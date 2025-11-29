@@ -14,10 +14,7 @@ pages:
     text:
       format: 1
       content: >-
-        <p>@UUID[.pMYfq6zfRb97WxAn]{EN - Welcome to Shadowrun
-        Anarchy}</p><p>@UUID[.MrBdOQunEVz8UmRo]{FR - Bienvenue sur Shadowrun
-        Anarchy}</p><p>@UUID[.y3xvxB9jCkGJOFHN]{EN - Shadowrun/Cyberpunk
-        maps}</p><p></p>
+        <p>@UUID[.pMYfq6zfRb97WxAn]{Welcome to Shadowrun Anarchy}</p><p>@UUID[.y3xvxB9jCkGJOFHN]{Shadowrun/Cyberpunk maps}</p><p></p>
       markdown: ''
     _id: qPJ9ZvpqXrbTDqkI
     image: {}
@@ -52,39 +49,6 @@ pages:
       default: -1
     flags: {}
     _key: '!journal.pages!49skRdv4apvF2SK3.pMYfq6zfRb97WxAn'
-  - sort: 200000
-    name: FR - Bienvenue sur Shadowrun Anarchy
-    type: text
-    _id: MrBdOQunEVz8UmRo
-    title:
-      show: true
-      level: 1
-    image: {}
-    text:
-      format: 1
-      content: >-
-        <p>Si vous ètes là, vous savez probablement que le monde a changé, que
-        la technologie se mèle à la chair, que des créatures mythologiques et la
-        magie sont de nouveau présentes parmi nous.</p><p>Ce système pour
-        Foundry VTT vous permettra de jouer en utilisant les règles de <a
-        href="https://www.black-book-editions.fr/produit.php?id=6543">Shadowrun
-        Anarchy</a>, edité par <a href="https://www.catalystgamelabs.com/"
-        target="_blank" rel="noopener">Catalyst game labs</a> et traduit par <a
-        href="https://www.black-book-editions.fr/">Black Book
-        Edition</a>.</p><p></p><h2>Prise en mains</h2><p>Vous trouverez le
-        manuel fait par <strong>Los Brutos</strong> ici:
-        @UUID[Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6]{Manuel
-        d'utilisation}</p>
-      markdown: ''
-    video:
-      controls: true
-      volume: 0.5
-    src: null
-    system: {}
-    ownership:
-      default: -1
-    flags: {}
-    _key: '!journal.pages!49skRdv4apvF2SK3.MrBdOQunEVz8UmRo'
   - sort: 300000
     name: Shadowrun/Cyberpunk maps
     type: text
