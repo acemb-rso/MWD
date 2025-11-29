@@ -1,0 +1,147 @@
+./quality-negative.svg:               anarchy.svg
+./quality-positive.svg:               anarchy.svg
+./vitruvian-man.svg
+
+actors/airtight-hatch.svg
+actors/cctv-camera.svg
+actors/cpu.svg
+actors/sentry-gun.svg
+actors/server-rack.svg
+actors/spirit.svg:                    ifrit.svg
+actors/spirit2.svg:                   pyromaniac.svg
+actors/video-camera.svg
+actors/warlock-eye.svg
+contacts/contact.svg:                 person.svg
+gear/abdominal-armor.svg
+gear/gear.svg:                        suitcase.svg
+gear/motorcycle-helmet.svg:           full-motorcycle-helmet.svg
+gear/sticking-plaster.svg
+misc/all-seeing-eye.svg
+misc/anarchy.svg
+misc/atom.svg
+misc/aura.svg
+misc/biohazard.svg
+misc/caduceus.svg
+misc/crossed-swords.svg
+misc/digital-trace.svg
+misc/dna1.svg
+misc/dna2.svg
+misc/embrassed-energy.svg
+misc/hand.svg
+misc/heptagram.svg
+misc/nuclear-waste.svg
+misc/pentagram-rose.svg
+misc/psychic-waves.svg
+misc/radioactive.svg
+misc/rod-of-asclepius.svg
+misc/rss.svg
+misc/rub-el-hizb.svg
+shadowamps/adept-power.svg:           mighty-force.svg
+shadowamps/adept-power2.svg:          prayer.svg
+shadowamps/bioware.svg:               techno-heart.svg
+shadowamps/complex-form.svg:          maze-cornea.svg
+shadowamps/cyberdeck.svg:             keyboard.svg + rss.svg
+shadowamps/cyberdexk-2050.svg:        keyboard.svg
+shadowamps/cyberware.svg:             cyber-eye.svg
+shadowamps/cyberware2.svg:            cyborg-face.svg
+shadowamps/drone.svg:                 delivery-drone.svg
+shadowamps/focus.svg:                 dream-catcher.svg
+shadowamps/initiation.svg:            shiny-omega.svg
+shadowamps/magic.svg:                 maze-saw.svg
+shadowamps/other.svg:                 cycle.svg
+shadowamps/program.svg:               microchip.svg
+shadowamps/skill-chip.svg:            processor.svg
+shadowamps/spell.svg:                 pentacle.svg
+shadowamps/weapon-focus.svg:          rune-sword.svg
+skills/animals.svg:                   paw.svg
+skills/astral-combat.svg:             dodging.svg
+skills/athletics.svg:                 jump-across.svg
+skills/biotech.svg:                   health-capsule.svg
+skills/close-combat.svg:              sword-brandish.svg
+skills/con-art.svg:                   drama-masks.svg
+skills/conjuring.svg:                 cursed-star.svg
+skills/disguise.svg:                  duality-mask.svg
+skills/electronics.svg:               circuitry.svg
+skills/engineering.svg:               spanner.svg
+skills/escape-artist.svg:             acrobatic.svg
+skills/etiquette.svg:                 shaking-hands.svg
+skills/etiquette2.svg:                martini.svg
+skills/firearms.svg:                  pistol-gun.svg
+skills/hacking.svg:                   computing.svg
+skills/heavy-weapons.svg:             minigun.svg
+skills/intimidation.svg:              arrest.svg
+skills/knowledge.svg:                 book-cover.svg
+skills/negotiation.svg:               convince.svg
+skills/piloting-ground.svg:           steering-wheel.svg
+skills/piloting-ground2.svg:          city-car.svg
+skills/piloting-other.svg:            joystick.svg
+skills/piloting-other2.svg:           gear-stick.svg
+skills/projectile-weapons.svg:        high-shot.svg
+skills/projectile-weapons2.svg:       flying-shuriken.svg
+skills/skill.svg                      skills.svg
+skills/sorcery.svg:                   magic-palm.svg
+skills/stealth.svg:                   domino-mask.svg
+skills/survival.svg:                  camping-tent.svg
+skills/technomancy.svg:               suspicious.svg
+skills/technomancy2.svg:              aerial-signal.svg
+skills/tracking.svg:                  footsteps.svg
+skills/tracking2.svg:                 trail.svg
+skills/vehicle-weapons.svg:           anti-aircraft-gun.svg
+vehicles/apc.svg
+vehicles/city-car.svg
+weapons/ak47u.svg
+weapons/axe.svg:                      sharp-axe.svg
+weapons/baseball-bat.svg
+weapons/baton.svg
+weapons/bolter-gun.svg
+weapons/boomerang.svg
+weapons/bow-string.svg
+weapons/bowie-knife.svg
+weapons/brass-knuckles.svg
+weapons/bullets.svg
+weapons/cannister.svg
+weapons/cannon.svg:                   gunshot.svg
+weapons/carabine.svg:                 winchester-rifle.svg
+weapons/claws.svg:                    claw-slashes.svg
+weapons/colt-m1911.svg
+weapons/combat-spell.svg:             lightning-helix.svg
+weapons/crossbow.svg
+weapons/cz-skorpion.svg
+weapons/dagger.svg:                   sacrificial-dagger.svg
+weapons/desert-eagle.svg
+weapons/famas.svg
+weapons/flash-grenade.svg
+weapons/glock.svg
+weapons/grenade.svg
+weapons/hammer.svg:                   thor-hammer.svg
+weapons/katana.svg
+weapons/kevlar-vest.svg
+weapons/lee-enfield.svg
+weapons/m3-grease-gun.svg
+weapons/mac-10.svg
+weapons/missile-launcher.svg
+weapons/mp-40.svg
+weapons/mp5.svg
+weapons/mp5k.svg
+weapons/narcojet.svg:                 water-gun.svg
+weapons/nunchaku.svg
+weapons/precision-rifle.svg:          human-target.svg
+weapons/reticule.svg
+weapons/revolver.svg
+weapons/shotgun.svg:                  sawed-off-shotgun.svg
+weapons/shuriken.svg:                 sharp-shuriken.svg
+weapons/spectre-m4.svg
+weapons/spiked-bat.svg
+weapons/steyr-aug.svg
+weapons/stiletto.svg
+weapons/stun-grenade.svg
+weapons/switchblade.svg
+weapons/tec-9.svg
+weapons/telescopic-baton.svg
+weapons/thompson-m1.svg
+weapons/thrown-daggers.svg
+weapons/tomahawk.svg
+weapons/unarmed.svg:                  fist.svg
+weapons/unarmed2.svg:                 revolt.svg
+weapons/uzi.svg
+weapons/walther-ppk.svg

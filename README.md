@@ -1,87 +1,78 @@
-# Foundry Vite Project
+# Welcome to Shadowrun Anarchy
 
-This README outlines the steps needed to set up and run the Foundry Vite project locally. Ensure you follow the installation instructions closely to get everything up and running without issues.
+If you are here, you probably know the world has changed, with technology melting with flesh, mythological creatures and magic raising back from the past.
 
-## Prerequisites
+This system implements Shadowrun Anarchy rules for Foundry VTT.
 
-### Node.js
+To run a game, you will need the [Shadowrun Anarchy rule book](https://store.catalystgamelabs.com/products/shadowrun-anarchy-pdf), edited by [Catalyst game labs](https://www.catalystgamelabs.com/).
 
-The project requires **Node.js v18** or higher. It is recommended to manage your Node.js versions using [NVM (Node Version Manager)](https://github.com/nvm-sh/nvm). This allows you to switch between Node versions without affecting other projects.
+In French, [Shadowrun - Anarchy (VF)](https://www.black-book-editions.fr/produit.php?id=6543), edited by  [Black Book Edition](https://www.black-book-editions.fr/).
 
-To install NVM and Node.js, follow these steps:
+## Characters
 
-```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-# Restart your terminal and then:
-nvm install 18
-nvm use 18
-```
+All characters and opponents are managed almost equal. You may chose different sheet (in the _Sheet_ menu on the header bar): reduced for NPCs, on one page, or with tabs.
 
-## Installation
+Player-owned characters have Anarchy, while NPCs are using the gamemaster's anarchy (even if not displayed on their sheets).
 
-Once the prerequisites are met, you can install the project dependencies by running:
+The system supports all you need to play, different type of actors (character, vehicle, device, sprite, and IC), and of items (metatype, skill, qualities, shadow amps, weapons, gear and contacts).
 
-```bash
-npm install
-```
+Weapons can be used for regular weapons, for spells, and for matrix attacks (to crash or put marks on target).
 
-This command will fetch and install all necessary packages required for the project to run.
+Modifiers are available and impact the actual rolls they modify. They can also change monitors, resistances, manage scene anarchy (during combats).
 
-## Running the Project
+Rolls are started by a click on the name of the weapon/skill/attribute, or on the configurable shortcuts, directly on the token.
 
-### Development Mode
+When using a weapon, select your target, it will receive a message to defend, with a link to do the roll.
 
-To start the project in development mode, run:
+![Sample of a character ](./img/sample-character.webp)
 
-```bash
-npx vite serve
-```
+## Gamemaster
 
-This will launch a Vite development server that is configured to intercept calls made to **systems/anarchy** and proxy them appropriately, while serving all other files directly from Foundry.
+The gamemaster has access to a special window which contains:
 
-## Building for Production
+- Gamemaster's plot points
+- Typical difficulty rolls (which can be customized in system options)
+- Reminder of GOD surveillance level
 
-If you need to build the project for production, use:
-
-```
-npx vite build
-```
-
-This command compiles your JavaScript and assets into static files ready for production deployment. These files are in `./dist` directory.
-
-## Foundry Configuration
-
-Ensure Foundry is running locally on port 30000 to allow seamless interaction between the Vite server and Foundry.
-
-```
-# Start Foundry command (Example)
-node resources/app/main.js --dataPath=<path_to_foundry_data>/foundrydata --port=30000
-```
-
-You need to link `<foundrydata>/systems/anarchy` to the `public` directory of your repository.
-
-When Foundry starts in the backend (Node.js), it will detect the necessary files in the public directory of the repository (these files are `systems/anarchy/index.mjs` and `systems/anarchy/style.css`).
-
-When you connect to Foundry from a browser (frontend), Vite will intercept all requests and redirect them to Foundry, except for requests to `systems/anarchy`. These files will be served by the Vite project.
-
-## Note on Vite Server and Foundry Interaction
-
-The Vite server is configured to handle specific API calls (e.g., to **systems/anarchy**) directly, enhancing development efficiency. All other requests are forwarded to the local Foundry server, ensuring that the environment replicates the production setup as closely as possible.
-
-## Compendiums management
-
-Compendium sources are located in `src/packs`. Content are written in a yaml format.
-
-Commands are available to manage them:
-
-Compile compendiums to the dist folder:
-```bash
-node ./tools/packCompendiumsToDist.mjs
-```
-
-Extract compendiums from the dist folder (for example, after changing the content on the running server, to update the source files):
-```bash
-node ./tools/unpackCompendiumsFromDist.mjs
-```
+When a player character spends anarchy, the GM plot points are increased accordingly.
 
 
+## Compendiums
+No compendiums are provided to not infringe CGL or BBE copyrights, they might develop paying compendiums later.
+
+# Legal mentions
+
+## License
+
+The system is developed under [Creative Commons BY-SA]("http://creativecommons.org/licenses/by/4.0/), more details in [LICENSE.md](LICENSE.md).
+
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+
+## Trademarks
+
+Shadowrun Anarchy is © 2016 The Topps Company, Inc.
+
+Shadowrun and Matrix are registered trademarks and/or trademarks of The Topps Company, Inc., in the United States and/or other countries.
+
+Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions, LLC. Printed in the USA.
+
+This is a fan project, in no way associated with The Topps Company Inc., Catalyst Games Lab or Black Book Editions.
+
+Ce système Foundry VTT utilise des marques déposées et/ou des droits d’auteurs qui sont la propriété de Black Book Editions et de Catalyst Game Lab, comme l’y autorisent les conditions d’utilisation de Black Book Editions. Ce système n’est pas publié(e) par Black Book Editions / Catalyst Game Lab et n’a pas reçu son aval ni une quelconque approbation de sa part. Pour de plus amples informations sur Black Book Editions, consultez
+www.black-book-editions.fr
+
+## Credits & attributions
+
+Icons are derived from original icons provided under [Creative Commons 3.0 BY license](http://creativecommons.org/licenses/by/3.0/), on [game-icons.net](game-icons.net):
+- by Lorc
+- by Delapouite
+- by Skoll
+
+See [game-icons-sources.txt](./game-icons-sources.txt) for the list of used icons, and the original names in case files were renamed.
+
+# The Anarchy development team
+
+- Half (Development)
+- Los Brutos (Documentation and support)
+- Pretre (Rules insights and contributor)
+- VincentVK (Development)
