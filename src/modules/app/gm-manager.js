@@ -8,7 +8,7 @@ import "../../styles/gm-manager.scss";
 const GM_MANAGER = "gm-manager";
 const GM_MANAGER_POSITION = "gm-manager-position";
 const GM_MANAGER_INITIAL_POSITION = { top: 200, left: 200 };
-const GM_MANAGER_TEMPLATE = 'systems/anarchy/templates/app/gm-manager.hbs';
+const GM_MANAGER_TEMPLATE = 'systems/mwd/templates/app/gm-manager.hbs';
 
 export class GMManager extends Application {
 
@@ -29,7 +29,7 @@ export class GMManager extends Application {
       })
     Hooks.once('ready', () => this.onReady());
     Hooks.on("renderChatLog", async (app, html, data) => {
-      const templatePath = "systems/anarchy/templates/app/chat-tools.hbs";
+      const templatePath = "systems/mwd/templates/app/chat-tools.hbs";
       const templateData = {
         title: game.i18n.localize("ANARCHY.gmManager.title"),
         rollDice: game.i18n.localize("ANARCHY.chat_actions.rollDice.title"),

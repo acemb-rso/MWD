@@ -3,12 +3,12 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 const config: UserConfig = {
     publicDir: 'public',
-    base: '/systems/anarchy/',
+    base: '/systems/mwd/',
     server: {
         port: 30001,
         open: true,
         proxy: {
-            '^(?!/systems/anarchy/)': 'http://localhost:30000/',
+            '^(?!/systems/mwd/)': 'http://localhost:30000/',
             '/socket.io': {
                 target: 'ws://localhost:30000',
                 ws: true,
@@ -20,7 +20,7 @@ const config: UserConfig = {
         emptyOutDir: true,
         sourcemap: true,
         lib: {
-            name: 'anarchy',
+            name: 'mwd',
             entry: 'src/start.js',
             formats: ['es'],
             fileName: 'index',

@@ -21,19 +21,22 @@ export class CharacterActor extends AnarchyBaseActor {
   hasOwnAnarchy() { return this.hasPlayerOwner; }
 
   prepareDerivedData() {
+    if (!this.system.monitors.fatigue && this.system.monitors.stun) {
+      this.system.monitors.fatigue = foundry.utils.duplicate(this.system.monitors.stun)
+    }
     this.system.monitors.physical.max = this._getMonitorMax(TEMPLATE.attributes.strength)
-    this.system.monitors.stun.max = this._getMonitorMax(TEMPLATE.attributes.willpower)
+    this.system.monitors.fatigue.max = this._getMonitorMax(TEMPLATE.attributes.willpower)
     super.prepareDerivedData()
     this.system.ignoreWounds = Modifiers.sumModifiers(this.items, 'other', 'ignoreWounds')
   }
 
   computePhysicalState() {
-    const maxMonitor = Math.max(this.system.monitors.physical.max, this.system.monitors.stun.max) + this.system.monitors.armor.max
+    const maxMonitor = Math.max(this.system.monitors.physical.max, this.system.monitors.fatigue.max) + this.system.monitors.armor.max
     const dead = this.system.monitors.physical.value == this.system.monitors.physical.max
-    const ko = this.system.monitors.stun.max == this.system.monitors.stun.value
+    const ko = this.system.monitors.fatigue.max == this.system.monitors.fatigue.value
     const current = (dead || ko)
       ? maxMonitor
-      : Math.max(this.system.monitors.physical.value, this.system.monitors.stun.value) + this.system.monitors.armor.value
+      : Math.max(this.system.monitors.physical.value, this.system.monitors.fatigue.value) + this.system.monitors.armor.value
     return {
       max: maxMonitor,
       value: maxMonitor - current
@@ -92,11 +95,11 @@ export class CharacterActor extends AnarchyBaseActor {
         hasMatrix: true,
         logic: TEMPLATE.attributes.logic,
         firewall: TEMPLATE.attributes.logic,
-        monitor: this.system.monitors.stun,
+        monitor: this.system.monitors.fatigue,
         overflow: TEMPLATE.monitors.physical,
         setMatrixMonitor: async (path, value) => {
           if (path == DEFAULT_CHECKBARS.matrix.path) {
-            return await Checkbars.setCheckbar(this, TEMPLATE.monitors.stun, value)
+            return await Checkbars.setCheckbar(this, TEMPLATE.monitors.fatigue, value)
           }
         }
       }
@@ -145,7 +148,7 @@ export class CharacterActor extends AnarchyBaseActor {
 
   getDamageMonitor(damageType) {
     switch (damageType) {
-      case TEMPLATE.monitors.stun:
+      case TEMPLATE.monitors.fatigue:
       case TEMPLATE.monitors.physical:
         return damageType;
     }
@@ -250,7 +253,7 @@ export class CharacterActor extends AnarchyBaseActor {
   canUseEdge() { return true }
 
   getWounds() {
-    const wounds = Misc.divint(this.system.monitors.stun.value, 3) + Misc.divint(this.system.monitors.physical.value, 3);
+    const wounds = Misc.divint(this.system.monitors.fatigue.value, 3) + Misc.divint(this.system.monitors.physical.value, 3);
     return Math.max(0, wounds - this.system.ignoreWounds);
   }
 
@@ -292,7 +295,7 @@ export class CharacterActor extends AnarchyBaseActor {
 
   async sufferDrain(drain) {
     if (drain != 0) {
-      await this.addCounter(TEMPLATE.monitors.stun, drain);
+      await this.addCounter(TEMPLATE.monitors.fatigue, drain);
     }
   }
 

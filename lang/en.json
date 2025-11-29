@@ -12,7 +12,7 @@
       "cyberdeck": "Cyberdeck",
       "gear": "Gear",
       "metatype": "Metatype",
-      "quality": "Quality",
+      "quality": "Trait",
       "shadowamp": "Shadowamp",
       "skill": "Skill",
       "weapon": "Weapon"
@@ -21,11 +21,11 @@
   "ANARCHY": {
     "settings": {
       "defaultCssClass": {
-        "name": "Style of Anarchy UI",
+        "name": "Style of Destiny UI",
         "hint": "Select the style used for actors, items and GM Manager"
       },
       "anarchyHack": {
-        "name": "Anarchy hack",
+        "name": "Destiny hack",
         "hint": "Use an Anarchy Hack provided by a module"
       },
       "skillSet": {
@@ -42,7 +42,7 @@
         "name": "Damage application",
         "hint": "Determine how Armor / Damage Resistance (RD) applies",
         "values": {
-          "resistanceArmorMonitor": "Shadowrun Anarchy: Resistance, Armor, then Monitor",
+          "resistanceArmorMonitor": "MechWarrior: Destiny: Resistance, Armor, then Monitor",
           "armorResistanceMonitor": "Armor, Resistance, Monitor",
           "armorGivesResistance": "RD = Armor/3 + Str/4, damaged per blow, AA ignores armor",
           "armorGiveResistanceHitsAvoid": "RD = Armor/3, damaged per blow, AA reduces resistance"
@@ -67,7 +67,7 @@
     },
     "chat_actions": {
       "rollDice": {
-        "title": "Roll Anarchy dice",
+        "title": "Roll Destiny dice",
         "instruction": "Number of dice to roll: ",
         "error": "Veuillez entrer un nombre valide de dés.",
         "result": "Roll of {count}d6, {success} success! {ones} dice with a value of 1"
@@ -226,7 +226,7 @@
         "overflow": "{actor}: Overflow of {monitor} condition monitor, transfering {overflow} to {overflowMonitor} condition monitor",
         "noMatrixMonitor": "{actor}: No Matrix condition monitor",
         "physical": "Physical",
-        "stun": "Stun",
+        "fatigue": "Fatigue",
         "matrix": "Matrix",
         "armor": "Armor",
         "structure": "Structure",
@@ -313,7 +313,7 @@
       "singular": {
         "metatype": "Metatype",
         "skill": "Skill",
-        "quality": "Quality",
+        "quality": "Trait",
         "shadowamp": "Shadow Amp",
         "weapon": "Weapon",
         "gear": "Gear",
@@ -340,13 +340,13 @@
     },
     "monitor": {
       "physical": "Physical",
-      "stun": "Stun",
+      "fatigue": "Fatigue",
       "matrix": "Matrix",
       "marks": "Marks"
     },
     "monitorLetter": {
       "physical": "P",
-      "stun": "S",
+      "fatigue": "F",
       "matrix": "M",
       "marks": "K"
     },
@@ -365,9 +365,9 @@
     },
     "attributes": {
       "strength": "Strength",
-      "agility": "Agility",
+      "agility": "Reflexes",
       "willpower": "Willpower",
-      "logic": "Logic",
+      "logic": "Intelligence",
       "charisma": "Charisma",
       "edge": "Edge",
       "knowledge": "Knowledge",
@@ -491,7 +491,7 @@
         "effect": {
           "armor": "Armor",
           "structure": "Structure",
-          "stun": "Stun",
+          "fatigue": "Fatigue",
           "physical": "Physical",
           "matrix": "Matrix"
         },

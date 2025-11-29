@@ -6,7 +6,7 @@
     <label class="title">
       {{localize (concat 'ANARCHY.actor.counters.anarchy')}}
     </label>
-    {{> "systems/anarchy/templates/monitors/anarchy.hbs"
+    {{> "systems/mwd/templates/monitors/anarchy.hbs"
       code='anarchy'
       labelkey='ANARCHY.actor.counters.anarchy'
       rowlength=6
@@ -14,7 +14,7 @@
       max=anarchy.max
     }}
   {{/if}}
-  {{> "systems/anarchy/templates/monitors/anarchy-scene.hbs"
+  {{> "systems/mwd/templates/monitors/anarchy-scene.hbs"
       code='sceneAnarchy'
       labelkey='ANARCHY.actor.counters.sceneAnarchy'
       rowlength=6

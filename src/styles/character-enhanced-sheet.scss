@@ -938,7 +938,7 @@
 
                 .armor,
                 .physical,
-                .stun,
+                .fatigue,
                 .tokens {
                     .content {
                         padding-top: 8px;
@@ -1057,7 +1057,7 @@
                 }
 
                 .physical,
-                .stun {
+                .fatigue {
                     .content {
                         display: grid;
                         grid-template-rows: 20px 1fr 20px;

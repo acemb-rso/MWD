@@ -2,10 +2,10 @@
 {{#each convergences as |c|}}
   <div class="actor-convergence" data-actor-id="{{c.actor.id}}">
     <div>
-    {{> 'systems/anarchy/templates/common/actor-reference.hbs' c.actor}}
+    {{> 'systems/mwd/templates/common/actor-reference.hbs' c.actor}}
     </div>
     <div>
-    {{> "systems/anarchy/templates/common/checkbar.hbs"
+    {{> "systems/mwd/templates/common/checkbar.hbs"
     code='convergence'
     value=c.convergence
     max=(min (sum c.convergence 1) 5)
