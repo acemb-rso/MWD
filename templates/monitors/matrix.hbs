@@ -1,0 +1,28 @@
+<div class="flexcol anarchy-monitor">
+  <label class="monitor-label">
+    {{localize 'ANARCHY.actor.monitors.matrix'}}
+    <input class="info-value" type="number" data-dtype="Number" maxlength="2" 
+      class="value" name="system.monitors.matrix.max" 
+      value="{{system.monitors.matrix.max}}"
+    />
+    {{#if system.monitors.matrix.maxBonus}}
+    {{numberFormat system.monitors.matrix.maxBonus sign=true}}
+    {{/if}}
+  </label>
+  {{> "systems/anarchy/templates/common/checkbar.hbs"
+    code='matrix'
+    value=system.monitors.matrix.value
+    max=(sum system.monitors.matrix.max system.monitors.matrix.maxBonus)
+    rowlength=6
+  }}
+  <label class="resitance-label">
+    {{localize ANARCHY.actor.monitors.resistance}}
+    <input class="info-value" type="number" data-dtype="Number" maxlength="2"
+      name="system.monitors.matrix.resistance"
+      value="{{system.monitors.matrix.resistance}}" 
+    />
+    {{#if system.monitors.matrix.resistanceBonus}}
+    {{numberFormat system.monitors.matrix.resistanceBonus sign=true}}
+    {{/if}}
+  </label>
+</div>

@@ -1,0 +1,18 @@
+<table class="modifier-list">
+  <tr class="modifier-header">
+    <th class="modifier-column" colspan="2">{{localize 'ANARCHY.modifier.column.effect'}}
+      <a class="item-control click-modifier-add" 
+          data-tooltip="{{localize 'ANARCHY.common.add'}}"
+          data-item-type="{{itemType}}">
+        {{{iconFA 'fas fa-plus-circle'}}}
+      </a>
+    </th>
+    <th class="modifier-column" colspan="2">{{localize 'ANARCHY.modifier.column.category'}}</th>
+    <th class="modifier-column">{{localize 'ANARCHY.modifier.column.value'}}</th>
+    <th class="modifier-column">{{localize 'ANARCHY.modifier.column.condition'}}</th>
+  </tr>
+
+  {{#each system.modifiers as |modifier|}}
+  {{> "systems/anarchy/templates/item/parts/modifier.hbs" modifier}}
+  {{/each}}
+</table>

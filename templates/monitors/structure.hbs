@@ -1,0 +1,25 @@
+<div class="flexcol anarchy-monitor">
+  <label class="monitor-label">
+    {{localize ANARCHY.actor.monitors.structure}}
+    <input class="info-value" type="number" data-dtype="Number" maxlength="2"
+      name="system.monitors.structure.max"
+      value="{{system.monitors.structure.max}}" 
+    />
+  </label>
+  {{> "systems/anarchy/templates/common/checkbar.hbs"
+    code='structure'
+    value=system.monitors.structure.value
+    max=system.monitors.structure.max
+    rowlength=6
+  }}
+  <label class="resitance-label">
+    {{localize ANARCHY.actor.monitors.resistance}}
+    <input class="info-value" type="number" data-dtype="Number" maxlength="2"
+      name="system.monitors.structure.resistance"
+      value="{{system.monitors.structure.resistance}}" 
+    />
+    {{#if system.monitors.structure.resistanceBonus}}
+    {{numberFormat system.monitors.structure.resistanceBonus sign=true}}
+    {{/if}}
+  </label>
+</div>

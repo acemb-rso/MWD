@@ -1,0 +1,14 @@
+<form class="{{options.cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}"/>
+    {{> 'systems/anarchy/templates/item/parts/itemname.hbs'
+      labelkey='ANARCHY.itemType.singular.gear'
+      type="gear"
+    }}
+  </header>
+  <section class="sheet-body">
+    {{> 'systems/anarchy/templates/item/parts/inactive.hbs'}}
+    {{> 'systems/anarchy/templates/item/parts/references.hbs'}}
+  </section>
+
+</form>

@@ -1,0 +1,27 @@
+{{#if anarchy.max}}
+<div class="flexcol anarchy-monitor">
+  {{#if (or anarchy.isGM @root.options.isOwned)}}
+    <label class="info-label">
+      {{localize (concat 'ANARCHY.actor.counters.sceneAnarchy')}}
+    </label>
+  {{else}}
+    <label class="info-label">
+      {{localize (concat 'ANARCHY.actor.counters.anarchy')}}
+    </label>
+    {{> "systems/anarchy/templates/monitors/anarchy.hbs"
+      code='anarchy'
+      labelkey='ANARCHY.actor.counters.anarchy'
+      rowlength=6
+      value=anarchy.value
+      max=anarchy.max
+    }}
+  {{/if}}
+  {{> "systems/anarchy/templates/monitors/anarchy-scene.hbs"
+      code='sceneAnarchy'
+      labelkey='ANARCHY.actor.counters.sceneAnarchy'
+      rowlength=6
+      value=anarchy.scene
+      max=anarchy.scene
+  }}
+</div>
+{{/if}}

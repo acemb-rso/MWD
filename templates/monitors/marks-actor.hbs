@@ -1,0 +1,13 @@
+<div class="anarchy-marks" data-actor-id="{{actorId}}">
+  <div>
+    {{> 'systems/anarchy/templates/common/actor-reference.hbs' (getActor actorId)}}
+  </div>
+  <div>
+    {{> "systems/anarchy/templates/common/checkbar.hbs"
+    code='marks'
+    value=marks
+    max=(min (sum marks 1) 5)
+    sourceActorId=actorId
+  }}
+  </div>
+</div>

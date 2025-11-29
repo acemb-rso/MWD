@@ -1,0 +1,8 @@
+<label class="parameter-label">
+  {{> 'systems/anarchy/templates/common/label.hbs' this}}
+</label>
+<label class="parameter-value">
+{{#if flags.optional}}
+  <input class="item-field-value flex-shrink check-optional {{#if isAnarchy}}anarchy-parameter{{/if}}" data-parameter-code="{{type}}" type="checkbox" {{checked used}} />
+{{/if}}
+</label>

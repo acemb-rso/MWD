@@ -1,0 +1,131 @@
+<form class="{{options.cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}"/>
+    {{> 'systems/anarchy/templates/item/parts/itemname.hbs'
+      labelkey='ANARCHY.itemType.singular.weapon'
+      type="weapon"
+    }}
+  </header>
+
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <div class="sheet-tab" data-tab="main">
+      <a>{{localize ANARCHY.item.tabs.main}}</a>
+    </div>
+    <div class="sheet-tab" data-tab="modifiers">
+      <a>{{localize ANARCHY.item.tabs.modifiers}}</a>
+    </div>
+    <div class="sheet-tab-fill"></div>
+  </nav>
+
+  <section class="sheet-body">
+    <div class="tab section-group" data-group="primary" data-tab="main">
+      <div class="form-group">
+        <label for="system.skill">{{localize 'ANARCHY.item.weapon.skill'}} </label>
+        <select class="select-weapon-skill" name="system.skill" data-dtype="String">
+            {{#select system.skill}}
+            {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
+            {{/select}}
+        </select>
+      </div>
+      {{#if hasDrain}}
+      <div class="form-group">
+        <label for="system.drain">{{localize 'ANARCHY.item.weapon.drain'}} </label>
+          <input class="type-numeric" type="number" data-dtype="Number"
+            name="system.drain" value="{{system.drain}}"
+          />
+      </div>
+      {{/if}}
+      <div class="form-group">
+        <label for="system.damage">
+          {{localize 'ANARCHY.item.weapon.damage'}}
+        </label>
+        <div class="flexrow flex-wrap">
+          <input class="type-numeric" type="number" data-dtype="Number"
+            name="system.damage" value="{{system.damage}}"
+          />
+          <span>+
+          <select name="system.damageAttribute" data-dtype="String">
+              {{#select system.damageAttribute}}
+              {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
+              {{/select}}
+          </select>
+          /2</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>
+          {{> 'systems/anarchy/templates/common/damage-code.hbs'
+              strength=system.strength
+              damage=system.damage
+              monitor=system.monitor
+              armor=(weaponArmorMode system.monitor system.noArmor)
+          }}
+        </label>
+        <div>
+          <select name="system.monitor" data-dtype="String">
+            {{#select system.monitor}}
+            {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.monitors}}
+            {{/select}}
+          </select>
+
+          <input class="item-field-value" name="system.noArmor" type="checkbox" {{checked system.noArmor}}>
+            <label>{{localize 'ANARCHY.item.weapon.noArmor'}}</label>
+          </input>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="system.area" >{{localize 'ANARCHY.item.weapon.area'}} </label>
+        <select name="system.area" data-dtype="String">
+          {{#select system.area}}
+          {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.areas}}
+          {{/select}}
+        </select>
+      </div>
+      <div class="form-group">
+          <label for="system.defense" >{{localize 'ANARCHY.item.weapon.defense'}} </label>
+          <select name="system.defense">
+            {{selectOptions ENUMS.defenses selected=(fixedDefenseCode system.defense)
+            nameAttr="code" labelAttr="labelkey" localize=true blank=''}}
+          </select>
+      </div>
+      <div class="form-group">
+          <label for="system.range.max" >{{localize 'ANARCHY.item.weapon.range.max'}} </label>
+          <select name="system.range.max">
+            {{#select system.range.max}}
+            {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.ranges}}
+            {{/select}}
+          </select>
+      </div>
+      <div class="form-group">
+          <label for="system.range.short" >{{localize 'ANARCHY.range.short'}} </label>
+          <input class="type-numeric" type="number" data-dtype="Number"
+            name="system.range.short" value="{{numberFormat system.range.short decimals=0 sign=false}}"
+          />
+      </div>
+      {{#unless (eq system.range.max "short")}}
+        <div class="form-group">
+            <label for="system.range.medium" >{{localize 'ANARCHY.range.medium'}} </label>
+            <input class="type-numeric" type="number" data-dtype="Number"
+              name="system.range.medium" value="{{numberFormat system.range.medium decimals=0 sign=false}}"
+            />
+        </div>
+      {{/unless}}
+
+      {{#if (eq system.range.max "long")}}
+      <div class="form-group">
+          <label for="system.range.long" >{{localize 'ANARCHY.range.long'}} </label>
+          <input class="type-numeric" type="number" data-dtype="Number"
+            name="system.range.long" value="{{numberFormat system.range.long decimals=0 sign=false}}"
+          />
+      </div>
+      {{/if}}
+      {{> 'systems/anarchy/templates/item/parts/inactive.hbs'}}
+      {{> 'systems/anarchy/templates/item/parts/references.hbs'}}
+    </div>
+    <div class="tab section-group" data-group="primary" data-tab="modifiers">
+      <div class="form-group">
+        {{> 'systems/anarchy/templates/item/parts/modifiers.hbs'}}
+      </div>
+    </div>
+  </section>
+</form>
