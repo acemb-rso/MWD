@@ -17,13 +17,13 @@ export class RollDialog extends Dialog {
 
   static async onReady() {
     await loadTemplates([
-      'systems/anarchy/templates/roll/roll-parameters-category.hbs',
-      'systems/anarchy/templates/roll/parts/generic.hbs',
-      'systems/anarchy/templates/roll/parts/image-attribute.hbs',
-      'systems/anarchy/templates/roll/parts/image-attributeAction.hbs',
-      'systems/anarchy/templates/roll/parts/image-defense.hbs',
-      'systems/anarchy/templates/roll/parts/image-skill.hbs',
-      'systems/anarchy/templates/roll/parts/image-weapon.hbs',
+      'systems/mwd/templates/roll/roll-parameters-category.hbs',
+      'systems/mwd/templates/roll/parts/generic.hbs',
+      'systems/mwd/templates/roll/parts/image-attribute.hbs',
+      'systems/mwd/templates/roll/parts/image-attributeAction.hbs',
+      'systems/mwd/templates/roll/parts/image-defense.hbs',
+      'systems/mwd/templates/roll/parts/image-skill.hbs',
+      'systems/mwd/templates/roll/parts/image-weapon.hbs',
     ]);
   }
 

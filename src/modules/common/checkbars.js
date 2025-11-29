@@ -16,13 +16,13 @@ export const DEFAULT_CHECKBARS = {
     iconHit: Icons.fontAwesome('fas fa-bahai'),
     resource: MONITORS.armor,
   },
-  stun: {
-    path: 'system.monitors.stun.value',
-    monitor: it => it.system.monitors.stun,
+  fatigue: {
+    path: 'system.monitors.fatigue.value',
+    monitor: it => it.system.monitors.fatigue,
     iconChecked: Icons.fontAwesome('fas fa-grimace'),
     iconUnchecked: Icons.fontAwesome('far fa-smile'),
     iconHit: Icons.fontAwesome('fas fa-bahai'),
-    resource: MONITORS.stun,
+    resource: MONITORS.fatigue,
     overflow: actor => TEMPLATE.monitors.physical,
     useArmor: true
   },
@@ -271,12 +271,12 @@ export class Checkbars {
     }));
   }
 
-  static async _manageStunOverflow(target, value, max) {
+  static async _manageFatigueOverflow(target, value, max) {
     await Checkbars.addCounter(target, TEMPLATE.monitors.physical, value - max);
   }
 
   static async _manageMatrixOverflow(target, value, max) {
-    await Checkbars.addCounter(target, TEMPLATE.monitors.stun, value - max);
+    await Checkbars.addCounter(target, TEMPLATE.monitors.fatigue, value - max);
   }
   static async setAnarchy(target, newValue) {
     if (!target.hasOwnAnarchy()) {

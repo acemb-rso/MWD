@@ -1,7 +1,7 @@
 <form class="{{options.cssClass}}" autocomplete="off">
   <header class="sheet-header">
     <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}"/>
-    {{> 'systems/anarchy/templates/item/parts/itemname.hbs'
+    {{> 'systems/mwd/templates/item/parts/itemname.hbs'
       labelkey='ANARCHY.itemType.singular.skill'
       type="skill"
     }}
@@ -10,7 +10,7 @@
     <div class="form-group">
       <label>{{localize 'ANARCHY.item.skill.copyDefault'}} </label>
       <select class="select-skill-code" data-dtype="String">
-        {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
+        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
       </select>
     </div>
     <div class="form-group">
@@ -26,7 +26,7 @@
       <label for="system.attribute">{{localize 'ANARCHY.item.skill.attribute'}} </label>
       <select class="item-field-value" name="system.attribute" data-dtype="String">
         {{#select system.attribute}}
-        {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
+        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
         {{/select}}
       </select>
     </div>
@@ -53,8 +53,8 @@
       </input>
     </div>
     {{/unless}}
-    {{> 'systems/anarchy/templates/item/parts/inactive.hbs'}}
-    {{> 'systems/anarchy/templates/item/parts/references.hbs'}}
+    {{> 'systems/mwd/templates/item/parts/inactive.hbs'}}
+    {{> 'systems/mwd/templates/item/parts/references.hbs'}}
   </section>
 
 </form>

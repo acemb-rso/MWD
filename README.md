@@ -1,65 +1,43 @@
-# Welcome to Shadowrun Anarchy
+# Welcome to MechWarrior: Destiny
 
-If you are here, you probably know the world has changed, with technology melting with flesh, mythological creatures and magic raising back from the past.
+This Foundry VTT system is an early conversion of the Shadowrun Anarchy codebase to support Catalyst Game Labs' **MechWarrior: Destiny** roleplaying game. The first pass focuses on renaming core identifiers, attributes, and condition tracks to match Destiny while we continue iterating on rules-specific features.
 
-This system implements Shadowrun Anarchy rules for Foundry VTT.
+## Installation
 
-To run a game, you will need the [Shadowrun Anarchy rule book](https://store.catalystgamelabs.com/products/shadowrun-anarchy-pdf), edited by [Catalyst game labs](https://www.catalystgamelabs.com/).
-
-In French, [Shadowrun - Anarchy (VF)](https://www.black-book-editions.fr/produit.php?id=6543), edited by  [Black Book Edition](https://www.black-book-editions.fr/).
+- In Foundry VTT go to **Configuration and Setup → Game Systems → Install System** and paste the manifest URL:
+  `https://raw.githubusercontent.com/acemb-rso/MWD/main/system.json`.
+- If you prefer a manual install, download `foundry-mwd-v13.0.0.zip` from the [releases page](https://github.com/acemb-rso/MWD/releases) and extract it into `Data/systems/mwd`.
 
 ## Characters
 
-All characters and opponents are managed almost equal. You may chose different sheet (in the _Sheet_ menu on the header bar): reduced for NPCs, on one page, or with tabs.
+- Player characters and NPCs share the same core sheet options (full, tabbed, and limited views).
+- Destiny traits are mapped onto the existing attribute framework: Reflexes replaces Agility and Intelligence replaces Logic, alongside Strength, Willpower, Charisma, and Edge.
+- Condition monitors now track **Physical** and **Fatigue** damage instead of Physical and Stun. Armor remains available for absorbing incoming harm.
+- Items retain the Anarchy-compatible categories for now (skills, weapons, gear, shadow amps, and contacts) while we transition them to Destiny equipment. Cyberdecks, sprites, IC, and other Matrix artifacts are intentionally unused in this system.
 
-Player-owned characters have Anarchy, while NPCs are using the gamemaster's anarchy (even if not displayed on their sheets).
-
-The system supports all you need to play, different type of actors (character, vehicle, device, sprite, and IC), and of items (metatype, skill, qualities, shadow amps, weapons, gear and contacts).
-
-Weapons can be used for regular weapons, for spells, and for matrix attacks (to crash or put marks on target).
-
-Modifiers are available and impact the actual rolls they modify. They can also change monitors, resistances, manage scene anarchy (during combats).
-
-Rolls are started by a click on the name of the weapon/skill/attribute, or on the configurable shortcuts, directly on the token.
-
-When using a weapon, select your target, it will receive a message to defend, with a link to do the roll.
+Rolls can be triggered directly from the sheet (attributes, skills, and weapons) or via token HUD shortcuts. Weapon rolls prompt targeted defenders to respond with an opposed roll.
 
 ![Sample of a character ](./img/sample-character.webp)
 
-## Gamemaster
+## Gamemaster tools
 
-The gamemaster has access to a special window which contains:
-
-- Gamemaster's plot points
-- Typical difficulty rolls (which can be customized in system options)
-- Reminder of GOD surveillance level
-
-When a player character spends anarchy, the GM plot points are increased accordingly.
-
+The gamemaster dashboard provides quick access to plot resources, configurable difficulty pools, and combat helpers. Matrix-specific utilities have been removed from the primary workflow.
 
 ## Compendiums
-No compendiums are provided to not infringe CGL or BBE copyrights, they might develop paying compendiums later.
 
-# Legal mentions
+No compendiums are provided to avoid distributing licensed content. You will need your own copy of the MechWarrior: Destiny rules to play.
 
-## License
+## Legal mentions
 
-The system is developed under [Creative Commons BY-SA]("http://creativecommons.org/licenses/by/4.0/), more details in [LICENSE.md](LICENSE.md).
+### License
+
+The system is developed under [Creative Commons BY-SA]("http://creativecommons.org/licenses/by/4.0/); see [LICENSE.md](LICENSE.md) for details.
 
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
 
-## Trademarks
+### Trademarks
 
-Shadowrun Anarchy is © 2016 The Topps Company, Inc.
-
-Shadowrun and Matrix are registered trademarks and/or trademarks of The Topps Company, Inc., in the United States and/or other countries.
-
-Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions, LLC. Printed in the USA.
-
-This is a fan project, in no way associated with The Topps Company Inc., Catalyst Games Lab or Black Book Editions.
-
-Ce système Foundry VTT utilise des marques déposées et/ou des droits d’auteurs qui sont la propriété de Black Book Editions et de Catalyst Game Lab, comme l’y autorisent les conditions d’utilisation de Black Book Editions. Ce système n’est pas publié(e) par Black Book Editions / Catalyst Game Lab et n’a pas reçu son aval ni une quelconque approbation de sa part. Pour de plus amples informations sur Black Book Editions, consultez
-www.black-book-editions.fr
+MechWarrior, BattleTech, and MechWarrior: Destiny are trademarks and/or registered trademarks of The Topps Company, Inc. Catalyst Game Labs and the Catalyst Game Labs logo are trademarks of InMediaRes Productions, LLC. This fan project is not affiliated with or endorsed by The Topps Company, Inc. or Catalyst Game Labs.
 
 ## Credits & attributions
 
@@ -68,9 +46,9 @@ Icons are derived from original icons provided under [Creative Commons 3.0 BY li
 - by Delapouite
 - by Skoll
 
-See [game-icons-sources.txt](./game-icons-sources.txt) for the list of used icons, and the original names in case files were renamed.
+See [game-icons-sources.txt](./game-icons-sources.txt) for the list of used icons and the original names in case files were renamed.
 
-# The Anarchy development team
+# The Destiny development team
 
 - Half (Development)
 - Los Brutos (Documentation and support)

@@ -1,10 +1,10 @@
 <div
   class="section-equipments wrapper {{actorTabClosed actor._id 'equipments'}}">
   <h2 class="wrapper-hexabox click-section" data-class="section-equipments">
-    {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+    {{> "systems/mwd/templates/actor/character-enhanced/hexabox.hbs"}}
     <div class="content">
       {{localize 'ANARCHY.itemType.plural.gear'}}
-      {{> 'systems/anarchy/templates/common/item-control-add.hbs'
+      {{> 'systems/mwd/templates/common/item-control-add.hbs'
       itemType='gear'}}
     </h2>
     <div
@@ -14,11 +14,11 @@
           class="item-list section-equipments {{actorTabClosed actor._id 'equipments'}}">
           <div class="content">
             {{!-- <div class="section-group items-group">
-              {{> "systems/anarchy/templates/actor/parts/owned-actors.hbs"}}
+              {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
             </div> --}}
 
-            {{> "systems/anarchy/templates/actor/character-enhanced/gears.hbs"}}
-            {{> "systems/anarchy/templates/actor/character-enhanced/cyberdecks.hbs"}}
+            {{> "systems/mwd/templates/actor/character-enhanced/gears.hbs"}}
+            {{> "systems/mwd/templates/actor/character-enhanced/cyberdecks.hbs"}}
 
           </div>
         </div>

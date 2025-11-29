@@ -56,7 +56,7 @@ export class GMDifficulty {
   }
 
   async _renderBar() {
-    return await renderTemplate("systems/anarchy/templates/app/gm-difficulty-buttons.hbs", {
+    return await renderTemplate("systems/mwd/templates/app/gm-difficulty-buttons.hbs", {
       difficultyPools: this.difficultyPools
     });
   }

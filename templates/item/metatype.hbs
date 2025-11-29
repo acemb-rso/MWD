@@ -1,7 +1,7 @@
 <form class="{{options.cssClass}}" autocomplete="off">
   <header class="sheet-header">
     <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}"/>
-    {{> 'systems/anarchy/templates/item/parts/itemname.hbs'
+    {{> 'systems/mwd/templates/item/parts/itemname.hbs'
       labelkey='ANARCHY.itemType.singular.metatype'
       type="metatype"
     }}
@@ -18,11 +18,11 @@
 
   <section class="sheet-body">
     <div class="tab section-group" data-group="primary" data-tab="main">
-      {{> 'systems/anarchy/templates/item/parts/references.hbs'}}
+      {{> 'systems/mwd/templates/item/parts/references.hbs'}}
     </div>
     <div class="tab section-group" data-group="primary" data-tab="modifiers">
       <div class="form-group">
-        {{> 'systems/anarchy/templates/item/parts/modifiers.hbs'}}
+        {{> 'systems/mwd/templates/item/parts/modifiers.hbs'}}
       </div>
     </div>
   </section>

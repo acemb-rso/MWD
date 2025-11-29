@@ -1,6 +1,6 @@
 <div class="{{#each options.classes as |cssClass|}}{{cssClass}}{{/each}} flexrow">
   <div class="column-images">
-    {{> 'systems/anarchy/templates/chat/parts/actor-image.hbs' actor=defender}}
+    {{> 'systems/mwd/templates/chat/parts/actor-image.hbs' actor=defender}}
   </div>
   <div class="column-details">
     <div>
@@ -64,7 +64,7 @@
               )
           }}}
           {{/if}}
-          {{> 'systems/anarchy/templates/common/damage-armor.hbs' armor=attack.damage.armorMode}}
+          {{> 'systems/mwd/templates/common/damage-armor.hbs' armor=attack.damage.armorMode}}
         </label>
       </a>
     </div>
