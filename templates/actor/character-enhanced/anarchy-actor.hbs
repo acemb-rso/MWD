@@ -1,0 +1,23 @@
+  {{#if (or anarchy.isGM @root.options.isOwned)}}
+    <label class="title">
+      {{localize (concat 'ANARCHY.actor.counters.sceneAnarchy')}}
+    </label>
+  {{else}}
+    <label class="title">
+      {{localize (concat 'ANARCHY.actor.counters.anarchy')}}
+    </label>
+    {{> "systems/anarchy/templates/monitors/anarchy.hbs"
+      code='anarchy'
+      labelkey='ANARCHY.actor.counters.anarchy'
+      rowlength=6
+      value=anarchy.value
+      max=anarchy.max
+    }}
+  {{/if}}
+  {{> "systems/anarchy/templates/monitors/anarchy-scene.hbs"
+      code='sceneAnarchy'
+      labelkey='ANARCHY.actor.counters.sceneAnarchy'
+      rowlength=6
+      value=anarchy.scene
+      max=anarchy.scene
+  }}

@@ -1,0 +1,13 @@
+{{#if (localize 'ANARCHY.itemType.plural.cyberdeck')}}
+<div class="define-item-type" data-item-type="cyberdeck">
+  <h2 class="section-group-header">
+    {{localize 'ANARCHY.itemType.plural.cyberdeck'}}
+    {{> 'systems/anarchy/templates/common/item-control-add.hbs' itemType='cyberdeck'}}
+  </h2>
+  <div class="items-group-list">
+    {{#each items.cyberdeck as |cyberdeck|}}
+    {{> "systems/anarchy/templates/actor/parts/cyberdeck.hbs" cyberdeck}}
+    {{/each}}
+  </div>
+</div>
+{{/if}}

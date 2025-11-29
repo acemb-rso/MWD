@@ -1,0 +1,14 @@
+<div class="anarchy-monitor">
+  {{> "systems/anarchy/templates/common/checkbar.hbs"
+    code='matrix'
+    value=system.monitors.matrix.value
+    max=(sum system.monitors.matrix.max system.monitors.matrix.maxBonus)
+    labelkey='ANARCHY.actor.monitors.matrix'
+    rowlength=6
+    iconChecked=(iconFA 'fas fa-laptop-medical')
+    iconUnchecked=(iconFA 'fas fa-laptop')
+  }}
+</div>
+<div class="anarchy-block">
+{{> "systems/anarchy/templates/monitors/marks.hbs"}}
+</div>

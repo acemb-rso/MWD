@@ -1,0 +1,23 @@
+<div
+  class="wrapper-hexabox define-item-type item anarchy-quality {{#if system.positive}}quality-positive{{else}}quality-negative{{/if}} {{#if system.inactive}}inactive{{/if}}"
+  data-item-id="{{_id}}" data-item-type="quality" draggable="true">
+  {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+  <div class="content">
+    <div class="quality-img">
+      <img class="anarchy-img item-img" src="systems/anarchy/icons/{{#if system.positive}}quality-positive{{else}}quality-negative{{/if}}.svg" alt="{{name}}"
+        data-tooltip="{{name}}" />
+      <div class="item-controls">
+        {{> 'systems/anarchy/templates/common/item-control-activate.hbs'}}
+        {{> 'systems/anarchy/templates/common/item-controls.hbs'}}
+      </div>
+    </div>
+    <div class="quality-content">
+      <label class="title">{{name}}</label>
+      <label class="item-description">
+        {{>'systems/anarchy/templates/actor/character/description.hbs'
+        description=system.description}}
+      </label>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,11 @@
+<div class="define-item-type" data-item-type="quality">
+  <h2 class="section-group-header">
+    {{localize 'ANARCHY.itemType.plural.quality'}}
+    {{> 'systems/anarchy/templates/common/item-control-add.hbs' itemType='quality'}}
+  </h2>
+  <div class="items-group-list">
+    {{#each items.quality as |quality|}}
+    {{> "systems/anarchy/templates/actor/parts/quality.hbs" quality}}
+    {{/each}}
+  </div>
+</div>

@@ -1,0 +1,85 @@
+<div
+  class="section-story wrapper {{actorTabClosed actor._id 'story'}}">
+  <h2 class="wrapper-hexabox" data-class="section-story">
+    {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+    <div class="content">
+      {{localize 'ANARCHY.actor.tabs.biography'}}
+    </div>
+  </h2>
+  <div
+    class="section-story {{actorTabClosed actor._id 'story'}}">
+    <div
+      class="section-story {{actorTabClosed actor._id 'story'}}">
+      {{#unless options.limited}}
+      <div class="social-info">
+        <div class="credibility wrapper-hexabox">
+          {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+          <div class="content">
+            <div class="title">
+              {{localize 'ANARCHY.actor.famous'}}
+            </div>
+            <div class="celeb-table">
+              <div>
+                <label>
+                  {{localize ANARCHY.actor.celebrity}}
+                </label>
+                <div class="input">
+                  <input {{#if @root.options.viewMode}}disabled{{/if}} class="info-value" type="number" data-dtype="Number"
+                    name="system.counters.social.celebrity.value"
+                    data-counter-social="celebrity"
+                    value="{{system.counters.social.celebrity.value}}" />
+                </div>
+              </div>
+              <div>
+                <label>
+                  {{localize ANARCHY.actor.counters.social.credibility}}
+                </label>
+                <div class="input">
+                  <input {{#if @root.options.viewMode}}disabled{{/if}} class="info-value"
+                    type="number" data-dtype="Number" min="0" max="10"
+                    name="system.counters.social.credibility.max"
+                    data-counter-social="credibility"
+                    value="{{system.counters.social.credibility.max}}" />
+                </div>
+              </div>
+              <div>
+                <label>
+                  {{localize ANARCHY.actor.counters.social.rumor}}
+                </label>
+                <div class="input">
+                  <input {{#if @root.options.viewMode}}disabled{{/if}} class="info-value"
+                    type="number" data-dtype="Number" min="0" max="10"
+                    name="system.counters.social.rumor.max"
+                    data-counter-social="rumor"
+                    value="{{system.counters.social.rumor.max}}" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="karma wrapper-hexabox">
+          {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+          <div class="content">
+            <div class="title">
+            {{localize 'ANARCHY.actor.counters.karma'}}
+            </div>
+              {{>
+              "systems/anarchy/templates/actor/character-enhanced/karma.hbs"}}
+          </div>
+        </div>
+      </div>
+      <div class="contacts">
+        {{> "systems/anarchy/templates/actor/character-enhanced/contacts.hbs"}}
+      </div>
+      {{/unless}}
+      <div class="description">
+        {{> 'systems/anarchy/templates/actor/character-enhanced/description.hbs'}}
+      </div>
+      {{#unless options.limited}}
+      <div class="gm-note">
+        {{> 'systems/anarchy/templates/actor/character-enhanced/gmnotes.hbs'}}
+      </div>
+      {{/unless}}
+    </div>
+  </div>
+</div>

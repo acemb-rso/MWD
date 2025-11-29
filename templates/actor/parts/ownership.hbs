@@ -1,0 +1,8 @@
+{{#if ownerActor}}
+<label class="info-label">
+  {{> 'systems/anarchy/templates/common/actor-reference.hbs' ownerActor}}
+  <a class="item-control click-owner-actor-unlink" data-tooltip="{{localize ANARCHY.common.del}}">
+    {{{iconFA 'fas fa-trash'}}}
+  </a>
+</label>
+{{/if}}

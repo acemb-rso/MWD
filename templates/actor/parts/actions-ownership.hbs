@@ -1,0 +1,12 @@
+{{#unless options.limited}}
+<div class=".passport-action-row">
+  <div class="passport-action">
+    {{> "systems/anarchy/templates/actor/parts/attributebuttons.hbs"}}
+  </div>
+  {{#if ownerActor}}
+  <div class="passport-owner">
+    {{> 'systems/anarchy/templates/actor/parts/ownership.hbs'}}
+  </div>
+  {{/if}}
+</div>
+{{/unless}}

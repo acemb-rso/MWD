@@ -1,0 +1,113 @@
+{{#if options.limited}}
+{{>"systems/anarchy/templates/actor/character-limited.hbs"}}
+{{else}}
+<form class="{{options.cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <div class="passport-header">
+      <div class="passport-img">
+        <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}" />
+      </div>
+      <div class="passport-column">
+        <div class="passport-details-row">
+          <div class="passport-detail">
+            {{> "systems/anarchy/templates/actor/character/name.hbs"}}
+          </div>
+          <div class="passport-detail">
+            {{> "systems/anarchy/templates/actor/character/metatype.hbs"}}
+          </div>
+          <div class="passport-detail">
+            {{> "systems/anarchy/templates/actor/character/genre.hbs"}}
+          </div>
+          <div class="passport-detail">
+            {{> "systems/anarchy/templates/actor/character/capacity.hbs"}}
+          </div>
+          <div class="passport-detail">
+            {{> "systems/anarchy/templates/actor/character/karma.hbs"}}
+          </div>
+          {{#if (localize 'ANARCHY.actor.counters.essence')}}
+          <div class="passport-detail">
+            {{> "systems/anarchy/templates/actor/character/essence.hbs"}}
+          </div>
+          {{/if}}
+        </div>
+        <div class=".passport-action-row">
+          <div class="passport-action">
+            {{> "systems/anarchy/templates/actor/parts/attributebuttons.hbs"}}
+          </div>
+          {{#if ownerActor}}
+          <div class="passport-owner">
+            {{> 'systems/anarchy/templates/actor/parts/ownership.hbs'}}
+          </div>
+          {{/if}}
+        </div>
+      </div>
+      {{> "systems/anarchy/templates/common/view-mode.hbs"}}
+    </div>
+  </header>
+  <section class="sheet-body">
+    <div class="section-attributes anarchy-attributes">
+      {{> "systems/anarchy/templates/actor/parts/attributes.hbs"}}
+    </div>
+    <div class="section-group anarchy-words-section">
+      <div class="anarchy-words anarchy-keywords">
+      {{> "systems/anarchy/templates/actor/parts/words.hbs" wordType='keywords' values=system.keywords}}
+      </div>
+      <div class="anarchy-words anarchy-cues">
+      {{> "systems/anarchy/templates/actor/parts/words.hbs" wordType='cues' values=system.cues}}
+      </div>
+      <div class="anarchy-words anarchy-dispositions">
+      {{> "systems/anarchy/templates/actor/parts/words.hbs" wordType='dispositions' values=system.dispositions}}
+      </div>
+    </div>
+    <div class="section-group items-group">
+    {{> "systems/anarchy/templates/actor/parts/skills.hbs"}}
+    </div>
+    <div class="section-group items-group">
+    {{> "systems/anarchy/templates/actor/parts/shadowamps.hbs"}}
+    </div>
+    <div class="section-group items-group">
+    {{> "systems/anarchy/templates/actor/parts/qualities.hbs"}}
+    </div>
+    <div class="section-group items-group">
+    {{> "systems/anarchy/templates/actor/parts/weapons.hbs"}}
+    </div>
+    <div class="section-group monitors-row">
+      <div class="anarchy-block">
+        {{> "systems/anarchy/templates/monitors/armor.hbs"}}
+      </div>
+      <div class="anarchy-block">
+        {{> "systems/anarchy/templates/monitors/physical.hbs"}}
+      </div>
+      <div class="anarchy-block">
+        {{> "systems/anarchy/templates/monitors/stun.hbs"}}
+      </div>
+      <div class="anarchy-block flexcol">
+        {{> "systems/anarchy/templates/monitors/edge.hbs"}}
+        {{> "systems/anarchy/templates/monitors/anarchy-actor.hbs"}}
+      </div>
+    </div>
+    <div class="section-group items-group">
+    {{> "systems/anarchy/templates/actor/parts/cyberdecks.hbs"}}
+    </div>
+    <div class="section-group">
+      <div class="items-group third-width">
+      {{> "systems/anarchy/templates/actor/parts/owned-actors.hbs"}}
+      {{> "systems/anarchy/templates/actor/parts/gears.hbs"}}
+      </div>
+      <div class="items-group third-width">
+      {{> "systems/anarchy/templates/actor/parts/contacts.hbs"}}
+      </div>
+      <div class="items-group third-width">
+      {{> "systems/anarchy/templates/actor/character/social-celebrity.hbs"}}
+      {{> "systems/anarchy/templates/monitors/social-credibility.hbs"}}
+      {{> "systems/anarchy/templates/monitors/social-rumor.hbs"}}
+      </div>
+    </div>
+
+    <div class="anarchy-block">
+      {{> 'systems/anarchy/templates/actor/parts/description.hbs'}}
+      {{> 'systems/anarchy/templates/actor/parts/gmnotes.hbs'}}
+    </div>
+  </section>
+</form>
+{{/if}}

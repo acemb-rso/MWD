@@ -1,0 +1,60 @@
+<form class="{{options.cssClass}} vehicle-sheet" autocomplete="off">
+  <header class="sheet-header">
+    <div class="passport-header">
+      <div class="passport-img">
+        <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}" />
+      </div>
+      <div class="passport-column">
+        <div class="passport-details-row">
+          <div class="passport-detail">
+            <input class="info-value" name="name" type="text" value="{{data.name}}" placeholder="{{localize ANARCHY.actor.actorName}}"/>
+          </div>
+          <div class="passport-detail">
+            {{> "systems/anarchy/templates/actor/vehicle/vehicle-category.hbs"}}
+          </div>
+          <div class="passport-detail">
+            {{> "systems/anarchy/templates/actor/vehicle/vehicle-skill.hbs"}}
+          </div>
+          <div class="passport-detail">
+            {{> 'systems/anarchy/templates/actor/parts/ownership.hbs'}}
+          </div>
+        </div>
+        <div class=".passport-action-row">
+          <div class="passport-action">
+            {{> "systems/anarchy/templates/actor/parts/attributebuttons.hbs"}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <section class="sheet-body">
+    <div class="section-attributes anarchy-attributes">
+      {{> "systems/anarchy/templates/actor/parts/attributes.hbs"}}
+      {{> "systems/anarchy/templates/actor/vehicle/vehicle-attributes.hbs"}}
+    </div>
+    <div class="section-group monitors-row">
+      <div class="anarchy-block">
+      {{> "systems/anarchy/templates/monitors/structure.hbs"}}
+      </div>
+      <div class="anarchy-block">
+      {{> "systems/anarchy/templates/monitors/matrix.hbs"}}
+      </div>
+      <div class="anarchy-block">
+      {{> "systems/anarchy/templates/monitors/marks.hbs"}}
+      </div>
+    </div>
+    <div class="section-group items-group">
+    {{> "systems/anarchy/templates/actor/npc-parts/skills.hbs"}}
+    </div>
+    <div class="section-group items-group">
+    {{> "systems/anarchy/templates/actor/npc-parts/shadowamps.hbs"}}
+    </div>
+    <div class="section-group items-group">
+    {{> "systems/anarchy/templates/actor/npc-parts/weapons.hbs"}}
+    </div>
+    <div class="anarchy-block">
+      {{> 'systems/anarchy/templates/actor/parts/description.hbs'}}
+      {{> 'systems/anarchy/templates/actor/parts/gmnotes.hbs'}}
+    </div>
+  </section>
+</form>

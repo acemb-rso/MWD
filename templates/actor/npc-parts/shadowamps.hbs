@@ -1,0 +1,11 @@
+<div class="define-item-type" data-item-type="shadowamp">
+  <h2 class="section-group-header">
+    {{localize 'ANARCHY.itemType.plural.shadowamp'}}
+    {{> 'systems/anarchy/templates/common/item-control-add.hbs' itemType='shadowamp'}}
+  </h2>
+  <div class="items-group-list">
+    {{#each items.shadowamp as |shadowamp|}}
+    {{> "systems/anarchy/templates/actor/npc-parts/shadowamp.hbs" shadowamp}}
+    {{/each}}
+  </div>
+</div>

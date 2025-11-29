@@ -1,0 +1,3 @@
+{{#each (sortedAttributes system.attributes) as |attribute key|}}
+{{> "systems/anarchy/templates/actor/parts/attribute.hbs" attribute=attribute key=key}}
+{{/each}}

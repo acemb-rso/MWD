@@ -1,0 +1,19 @@
+ <div class="karma-wrapper">
+  <div class="karma-row">
+    <label class="info-label" for="system.counters.karma.value">
+      {{localize 'ANARCHY.actor.counters.karmaUnused'}}
+    </label>
+    <input {{#if @root.options.viewMode}}disabled{{/if}} class="info-value" type="number" data-dtype="Number"
+      name="system.counters.karma.value"
+      value="{{system.counters.karma.value}}" />
+  </div>
+  <div>/</div>
+  <div class="karma-row">
+    <label class="info-label" for="system.counters.karma.total">
+      {{localize 'ANARCHY.actor.counters.karmaTotal'}}
+    </label>
+    <input {{#if @root.options.viewMode}}disabled{{/if}} class="info-value" type="number" data-dtype="Number"
+      name="system.counters.karma.total"
+      value="{{system.counters.karma.total}}" />
+  </div>
+</div>

@@ -1,0 +1,14 @@
+<div class="define-item-type section-skills wrapper {{actorTabClosed actor._id 'skills'}}" data-item-type="skill">
+  <h2 class="wrapper-hexabox click-section" data-class="section-skills">
+    {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+    <div class="content">
+      {{localize 'ANARCHY.itemType.plural.skill'}}
+      {{> 'systems/anarchy/templates/common/item-control-add.hbs' itemType='skill'}}
+    </div>
+  </h2>
+  <div class="item-list section-skills {{actorTabClosed actor._id 'skills'}}">
+    {{#each (sortSkills @root.actor items.skill) as |skill|}}
+    {{> "systems/anarchy/templates/actor/character-enhanced/skill.hbs" skill}}
+    {{/each}}
+  </div>
+</div>

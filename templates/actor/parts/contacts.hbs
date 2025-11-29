@@ -1,0 +1,11 @@
+<div class="define-item-type" data-item-type="contact">
+  <h2 class="section-group-header">
+    {{localize 'ANARCHY.itemType.plural.contact'}}
+    {{> 'systems/anarchy/templates/common/item-control-add.hbs' itemType='contact'}}
+  </h2>
+  <div class="flexrow flex-wrap">
+    {{#each items.contact as |contact|}}
+    {{> "systems/anarchy/templates/actor/parts/contact.hbs" contact}}
+    {{/each}}
+  </div>
+</div>
