@@ -26,7 +26,7 @@ export class CyberdeckItem extends AnarchyBaseItem {
   getMatrixOverflow() {
     switch (this.system.connectionMode) {
       case MATRIX.connectionMode.virtual: return TEMPLATE.monitors.physical
-      case MATRIX.connectionMode.augmented: return TEMPLATE.monitors.stun
+      case MATRIX.connectionMode.augmented: return TEMPLATE.monitors.fatigue
     }
     return undefined
   }

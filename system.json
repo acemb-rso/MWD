@@ -1,12 +1,12 @@
 {
-  "id": "anarchy",
+  "id": "mwd",
   "version": "13.0.0",
-  "manifest": "https://raw.githubusercontent.com/VincentVk9373/anarchy/master/public/system.json",
-  "download": "https://github.com/VincentVk9373/anarchy/releases/download/v13.0.0/foundry-anarchy-v13.0.0.zip",
-  "url": "https://github.com/VincentVk9373/anarchy",
-  "bugs": "https://github.com/VincentVk9373/anarchy/issues",
-  "title": "Anarchy",
-  "description": "Shadowrun Anarchy RPG, and hacks, for FoundryVTT",
+  "manifest": "https://raw.githubusercontent.com/acemb-rso/MWD/main/system.json",
+  "download": "https://github.com/acemb-rso/MWD/archive/refs/heads/main.zip",
+  "url": "https://github.com/acemb-rso/MWD",
+  "bugs": "https://github.com/acemb-rso/MWD/issues",
+  "title": "MechWarrior: Destiny",
+  "description": "MechWarrior: Destiny RPG for FoundryVTT",
   "compatibility": {
     "minimum": 11,
     "verified": 13
@@ -65,7 +65,7 @@
       "name": "macros",
       "label": "Macros",
       "type": "Macro",
-      "system": "anarchy",
+      "system": "mwd",
       "ownership": {
         "PLAYER": "NONE",
         "ASSISTANT": "OWNER"
@@ -75,7 +75,7 @@
       "name": "gm-info",
       "label": "Gamemaster information",
       "type": "JournalEntry",
-      "system": "anarchy",
+      "system": "mwd",
       "ownership": {
         "PLAYER": "NONE",
         "ASSISTANT": "OWNER"
@@ -85,7 +85,7 @@
       "name": "manual-fr",
       "label": "Manuel SR Anarchy (FR)",
       "type": "JournalEntry",
-      "system": "anarchy",
+      "system": "mwd",
       "ownership": {
         "PLAYER": "OBSERVER",
         "ASSISTANT": "OWNER"
@@ -95,10 +95,10 @@
   "media": [
     {
       "type": "cover",
-      "url": "systems/anarchy/style/anarchy-logo.webp"
+      "url": "systems/mwd/style/anarchy-logo.webp"
     }
   ],
-  "background": "systems/anarchy/style/anarchy-logo.webp",
+  "background": "systems/mwd/style/anarchy-logo.webp",
   "relationships": {},
   "socket": true,
   "protected": false,
@@ -107,5 +107,5 @@
     "units": "m"
   },
   "primaryTokenAttribute": "state.physical",
-  "secondaryTokenAttribute": "state.matrix"
+  "secondaryTokenAttribute": "state.fatigue"
 }

@@ -1,7 +1,7 @@
 <form class="{{options.cssClass}}" autocomplete="off">
   <header class="sheet-header">
     <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}"/>
-    {{> 'systems/anarchy/templates/item/parts/itemname.hbs'
+    {{> 'systems/mwd/templates/item/parts/itemname.hbs'
       labelkey='ANARCHY.itemType.singular.weapon'
       type="weapon"
     }}
@@ -23,7 +23,7 @@
         <label for="system.skill">{{localize 'ANARCHY.item.weapon.skill'}} </label>
         <select class="select-weapon-skill" name="system.skill" data-dtype="String">
             {{#select system.skill}}
-            {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
+            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
             {{/select}}
         </select>
       </div>
@@ -46,7 +46,7 @@
           <span>+
           <select name="system.damageAttribute" data-dtype="String">
               {{#select system.damageAttribute}}
-              {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
+              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
               {{/select}}
           </select>
           /2</span>
@@ -54,7 +54,7 @@
       </div>
       <div class="form-group">
         <label>
-          {{> 'systems/anarchy/templates/common/damage-code.hbs'
+          {{> 'systems/mwd/templates/common/damage-code.hbs'
               strength=system.strength
               damage=system.damage
               monitor=system.monitor
@@ -64,7 +64,7 @@
         <div>
           <select name="system.monitor" data-dtype="String">
             {{#select system.monitor}}
-            {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.monitors}}
+            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.monitors}}
             {{/select}}
           </select>
 
@@ -77,7 +77,7 @@
         <label for="system.area" >{{localize 'ANARCHY.item.weapon.area'}} </label>
         <select name="system.area" data-dtype="String">
           {{#select system.area}}
-          {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.areas}}
+          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.areas}}
           {{/select}}
         </select>
       </div>
@@ -92,7 +92,7 @@
           <label for="system.range.max" >{{localize 'ANARCHY.item.weapon.range.max'}} </label>
           <select name="system.range.max">
             {{#select system.range.max}}
-            {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.ranges}}
+            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.ranges}}
             {{/select}}
           </select>
       </div>
@@ -119,12 +119,12 @@
           />
       </div>
       {{/if}}
-      {{> 'systems/anarchy/templates/item/parts/inactive.hbs'}}
-      {{> 'systems/anarchy/templates/item/parts/references.hbs'}}
+      {{> 'systems/mwd/templates/item/parts/inactive.hbs'}}
+      {{> 'systems/mwd/templates/item/parts/references.hbs'}}
     </div>
     <div class="tab section-group" data-group="primary" data-tab="modifiers">
       <div class="form-group">
-        {{> 'systems/anarchy/templates/item/parts/modifiers.hbs'}}
+        {{> 'systems/mwd/templates/item/parts/modifiers.hbs'}}
       </div>
     </div>
   </section>

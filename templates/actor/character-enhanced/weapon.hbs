@@ -2,7 +2,7 @@
   class="weapon wrapper-hexabox item click-weapon-roll {{#if system.inactive}}inactive{{/if}}"
   draggable="true"
   data-item-id="{{_id}}" data-item-type="weapon">
-  {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+  {{> "systems/mwd/templates/actor/character-enhanced/hexabox.hbs"}}
   <div class="content">
     <div class="weapon-column weapon-img">
       <img class="anarchy-img item-img" src="{{img}}" alt="{{name}}"
@@ -27,7 +27,7 @@
         <div>
           <span class="weapon-dmg">
           {{>
-          'systems/anarchy/templates/actor/character-enhanced/damage-code.hbs'
+          'systems/mwd/templates/actor/character-enhanced/damage-code.hbs'
           damageAttribute=system.damageAttribute
           actorAttribute=(actorAttribute system.damageAttribute @root.actor
           this)
@@ -64,12 +64,12 @@
       </div>
     </div>
     <div class="item-controls">
-      {{> 'systems/anarchy/templates/common/favorite.hbs'
+      {{> 'systems/mwd/templates/common/favorite.hbs'
       isFavorite=(actorHasFavorite @root.actor.id id=_id type=type)
       weapon=this
       }}
-      {{> 'systems/anarchy/templates/common/item-control-activate.hbs'}}
-      {{> 'systems/anarchy/templates/common/item-controls.hbs'}}
+      {{> 'systems/mwd/templates/common/item-control-activate.hbs'}}
+      {{> 'systems/mwd/templates/common/item-controls.hbs'}}
     </div>
   </div>
 </div>

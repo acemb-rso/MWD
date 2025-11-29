@@ -1,7 +1,7 @@
 <form class="{{options.cssClass}}" autocomplete="off">
   <header class="sheet-header">
     <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}"/>
-    {{> 'systems/anarchy/templates/item/parts/itemname.hbs'
+    {{> 'systems/mwd/templates/item/parts/itemname.hbs'
       labelkey='ANARCHY.itemType.singular.shadowamp'
       type="shadowamp"
     }}
@@ -23,7 +23,7 @@
         <label for="system.category">{{localize 'ANARCHY.item.shadowamp.category'}} </label>
         <select name="system.category" data-dtype="String">
             {{#select system.category}}
-            {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.shadowampCategories}}
+            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.shadowampCategories}}
             {{/select}}
         </select>
       </div>
@@ -31,7 +31,7 @@
         <label for="system.capacity">{{localize 'ANARCHY.item.shadowamp.capacity'}} </label>
         <select name="system.capacity" data-dtype="String">
             {{#select system.capacity}}
-            {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.capacities}}
+            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.capacities}}
             {{/select}}
         </select>
       </div>
@@ -48,12 +48,12 @@
       </div>
       {{/if}}
 
-      {{> 'systems/anarchy/templates/item/parts/inactive.hbs'}}
-      {{> 'systems/anarchy/templates/item/parts/references.hbs'}}
+      {{> 'systems/mwd/templates/item/parts/inactive.hbs'}}
+      {{> 'systems/mwd/templates/item/parts/references.hbs'}}
     </div>
     <div class="tab section-group" data-group="primary" data-tab="modifiers">
       <div class="form-group">
-        {{> 'systems/anarchy/templates/item/parts/modifiers.hbs'}}
+        {{> 'systems/mwd/templates/item/parts/modifiers.hbs'}}
       </div>
     </div>
   </section>

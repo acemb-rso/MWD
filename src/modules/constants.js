@@ -3,8 +3,8 @@
  *
  * Constants are written in ALL_CAPS_CONSTANTS and should never be changed during runtime.
  */
-export const SYSTEM_NAME = 'anarchy';
-export const SYSTEM_DESCRIPTION = "Anarchy";
+export const SYSTEM_NAME = 'mwd';
+export const SYSTEM_DESCRIPTION = "MechWarrior: Destiny";
 export const SYSTEM_SOCKET = `system.${SYSTEM_NAME}`;
 export const SYSTEM_SCOPE = SYSTEM_NAME;
 export const SYSTEM_PATH = `systems/${SYSTEM_NAME}`;
@@ -12,7 +12,7 @@ export const STYLE_PATH = `${SYSTEM_PATH}/style`;
 export const TEMPLATES_PATH = `systems/${SYSTEM_NAME}/templates`;
 export const ICONS_PATH = `${SYSTEM_PATH}/icons`;
 export const ICONS_SKILLS_PATH = `${ICONS_PATH}/skills`;
-export const LOG_HEAD = 'Anarchy | ';
+export const LOG_HEAD = 'MWD | ';
 
 export const ANARCHY_DICE_BONUS = 3;
 export const SPECIALIZATION_BONUS = 2;
@@ -60,7 +60,7 @@ export const TEMPLATE = {
     emerged: 'emerged',
   },
   monitors: {
-    stun: 'stun',
+    fatigue: 'fatigue',
     armor: 'armor',
     physical: 'physical',
     structure: 'structure',

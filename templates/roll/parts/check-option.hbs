@@ -1,6 +1,6 @@
 <span class="flexrow parameter-label">
   <label class="parameter-label">
-  {{> 'systems/anarchy/templates/common/label.hbs' this}}
+  {{> 'systems/mwd/templates/common/label.hbs' this}}
   </label>
   {{#if flags.optional}}
     <input class="parameter-selection check-optional"
@@ -12,7 +12,7 @@
   <input disabled class="parameter-value info-value" type="number" data-dtype="Number" maxlength="2"
     value="{{either value 0}}"/>
   <div class="input-cursor-parameter">
-    {{>'systems/anarchy/templates/roll/parts/dice-cursor.hbs' value=value min=min max=max editable=flags.editDice}}
+    {{>'systems/mwd/templates/roll/parts/dice-cursor.hbs' value=value min=min max=max editable=flags.editDice}}
   </div>
 </span>
 {{else}}

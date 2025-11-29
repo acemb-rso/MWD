@@ -183,13 +183,19 @@ export class AnarchyBaseActor extends Actor {
 
   computeState() {
     return {
-      matrix: this.computeMatrixState(),
       physical: this.computePhysicalState(),
+      fatigue: this.computeFatigueState(),
+      matrix: this.computeMatrixState(),
     }
   }
 
   computePhysicalState() {
     return { value: 0, max: 0 }
+  }
+
+  computeFatigueState() {
+    const monitor = this.system.monitors?.fatigue;
+    return monitor ? { value: monitor.max - monitor.value, max: monitor.max } : { value: 0, max: 0 }
   }
 
   computeMatrixState() {
@@ -302,7 +308,7 @@ export class AnarchyBaseActor extends Actor {
   async applyArmorDamage(damageType, damage = 0) {
     switch (damageType) {
       case TEMPLATE.monitors.physical:
-      case TEMPLATE.monitors.stun:
+      case TEMPLATE.monitors.fatigue:
         await ActorDamageManager.damageToArmor(this, damage);
     }
   }
@@ -369,7 +375,7 @@ export class AnarchyBaseActor extends Actor {
       case TEMPLATE.monitors.marks:
         return this.hasMatrixMonitor()
       case TEMPLATE.monitors.physical:
-      case TEMPLATE.monitors.stun:
+      case TEMPLATE.monitors.fatigue:
         return this.getDamageMonitor(monitor) != undefined
     }
     return false
