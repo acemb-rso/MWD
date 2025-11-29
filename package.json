@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "build": "npx vite build",
+    "run": "npx vite serve",
+    "packCompendiumsToDist": "node ./tools/packCompendiumsToDist.mjs",
+    "packCompendiumsToPublic": "node ./tools/packCompendiumsToPublic.mjs",
+    "unpackCompendiumsFromPublic": "node ./tools/unpackCompendiumsFromPublic.mjs"
+  },
+  "devDependencies": {
+    "@foundryvtt/foundryvtt-cli": "^1.0.3",
+    "@league-of-foundry-developers/foundry-vtt-types": "^9.280.0",
+    "nodemon": "^3.1.2",
+    "sass": "^1.77.4",
+    "vite": "^5.2.12"
+  },
+  "dependencies": {
+    "rollup-plugin-visualizer": "^5.12.0"
+  }
+}

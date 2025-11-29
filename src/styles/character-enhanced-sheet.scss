@@ -1,0 +1,1699 @@
+.sheet {
+    .character-enhanced {
+        --darkglass-color-font: black !important;
+        --darkglass-background-attributes: white !important;
+        color: var(--darkglass-color-font);
+        container-type: inline-size;
+
+        a {
+            transition: all 200ms;
+            cursor: pointer !important;
+        }
+
+        a:hover {
+            text-shadow: inherit;
+            // filter: hue-rotate(179deg);
+            transform: scale(1.1);
+        }
+
+        h2 {
+            border-bottom: 0px solid transparent;
+        }
+
+
+        input {
+            background-color: #f1f4ff;
+        }
+
+        header {
+            height: 150px;
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            position: relative;
+
+            @container (max-width:700px) {
+                height: 220px;
+
+                .name-attributes {
+                    grid-template-rows: 50px 170px !important;
+                }
+
+                .attributes {
+                    grid-template-columns: 1fr 1fr 1fr !important;
+                }
+
+                .avatar {
+                    img {
+                        margin-top: 47px;
+                    }
+                }
+
+                .name-attributes {
+                    .name {
+                        width: calc(100% + 145px);
+                        margin-left: -136px;
+                    }
+                }
+
+                .roleplay {
+                    grid-template-columns: 1fr !important;
+                }
+            }
+
+            .avatar {
+                position: relative;
+                position: relative;
+                margin-top: -6px;
+                margin-left: -6px;
+
+                >.angle.tr {
+                    display: none;
+                }
+
+                .metatype {
+                    position: absolute;
+                    bottom: 0px;
+                    right: 0px;
+                    width: 100px;
+                    font-size: 10px;
+
+                    .anarchy-metatype {
+                        gap: 8px;
+                        background-color: white;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        padding-right: 6px;
+
+                        &.info-value {
+                            padding-right: 0px;
+                        }
+
+                        span {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                    }
+                }
+            }
+
+            .name-attributes {
+                display: grid;
+                grid-template-rows: 50px 100px;
+
+
+                .name {
+                    transform: translate(-12px, -4px);
+                    margin-right: -12px;
+                    padding-top: 0px;
+                    position: relative;
+
+                    >.side.up,
+                    >.angle.tr,
+                    >.angle.tl {
+                        display: none;
+                    }
+
+                    >.right,
+                    >.left {
+                        top: 0px;
+                    }
+
+                    .input {
+                        margin-right: 70px;
+                        height: 40px;
+                        margin-top: 3px;
+                        margin-left: 2px;
+                        font-size: 24px;
+
+                        input {
+                            font-family: "BebasNeue";
+                            padding: 11px 0px 4px 4px;
+                            background-color: transparent;
+                            font-weight: bold;
+                        }
+
+
+                    }
+
+                    .awarness {
+                        position: absolute;
+                        right: 5px;
+                        top: 5px;
+                        display: flex;
+                        flex-direction: row-reverse;
+                        gap: 8px;
+                        align-items: center;
+
+                        select {
+                            border: 0px;
+                            background-color: white;
+                        }
+
+                        .connection-mode,
+                        .view-mode {
+                            transform: translateY(3px);
+                            font-size: 12px;
+
+                            i {
+                                font-size: 16px;
+                            }
+
+                            display: flex;
+                            flex-direction: column;
+                        }
+                    }
+                }
+
+                .attributes {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+                    background-image: linear-gradient(to bottom, #ffffff 0%, #dcdddf 50%, #989999 100%);
+                    padding-bottom: 32px;
+                    margin-right: -4px;
+
+                    .attribute {
+                        display: grid;
+                        grid-template-rows: 1fr 2fr;
+                        padding: 2px 8px 0 8px;
+                        font-family: "BebasNeue";
+
+                        .label {
+                            font-size: 18px;
+                            text-transform: uppercase;
+                            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                            color: #f4c000;
+                            font-weight: bold;
+                            font-family: "BebasNeue";
+                            letter-spacing: 2px;
+                        }
+
+                        .attribute-infos {
+                            position: relative;
+
+                            a {
+                                width: 100%;
+                                height: 100%;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                font-size: 28px;
+                            }
+
+                            .value {
+                                position: absolute;
+                                bottom: -4px;
+                                right: -4px;
+                                font-size: 14px;
+                                width: 18px;
+                                height: 22px;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .item {
+            opacity: 1;
+            transition: opacity 200ms ease-out;
+
+            &.inactive {
+                background: transparent !important;
+                opacity: 0.3;
+            }
+        }
+
+        .roleplay {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            font-size: 20px;
+            gap: 0px;
+            font-weight: bold;
+            margin-right: -5px;
+
+            @container (max-width:700px) {
+                display: none;
+            }
+
+            h3 {
+                border-bottom: none;
+                padding: 8px 0 0 0;
+                text-transform: uppercase;
+                font-size: 1.1em;
+                font-weight: bold;
+                font-family: BebasNeue;
+
+                letter-spacing: 1px;
+                display: flex;
+                align-content: center;
+                justify-content: center;
+                align-items: center;
+                gap: 8px;
+
+                a {
+                    display: flex;
+                    align-items: center;
+                    align-content: center;
+                    justify-content: center;
+                }
+            }
+
+            .behavior,
+            .keyword {
+                border-top: 2px solid black;
+                padding-top: 2px;
+                box-shadow: var(--anarchy-shadow-section);
+                z-index: 0;
+            }
+
+            .behavior {
+                transform: translateX(-1px);
+            }
+
+            .quote {
+                --wrapper-padding: 19px;
+                margin-top: -26px;
+                padding-bottom: 0px;
+
+                .side.up {
+                    box-shadow: var(--anarchy-shadow-section);
+                    height: 12px;
+                    transform: translateY(7px);
+                }
+
+                .angle.tl,
+                .angle.tr {
+                    transform: translateY(7px);
+                }
+
+                .side.down,
+                .side.left,
+                .side.right,
+                .angle.bl,
+                .angle.br {
+                    display: none;
+                }
+
+                .center {
+                    background-color: white;
+
+                    .label {
+                        transform: translateY(-14px);
+                    }
+                }
+            }
+
+            input {
+                height: 20px;
+                font-size: 14px;
+                border-top: 0px;
+                border-left: 0px;
+                border-right: 0px;
+                border-bottom: 1px solid black;
+                border-radius: 0px;
+                margin-bottom: 5px;
+            }
+        }
+
+        .section-monitors,
+        .section-skills,
+        .section-roleplay,
+        .section-keywords,
+        .section-cues,
+        .section-dispositions,
+        .section-actions,
+        .section-qualities,
+        .section-equipments,
+        .section-owned,
+        .section-shadowamps {
+            max-height: 1000px;
+            transition: max-height 400ms cubic-bezier(.14, .87, .5, .97);
+
+            &:not(.wrapper) {
+                transition: max-height 400ms cubic-bezier(.78, .32, .88, .38);
+                overflow: hidden;
+            }
+
+            &.closed {
+                max-height: 0px;
+            }
+
+            &.quote {
+                &.closed {
+                    max-height: 36px;
+                }
+            }
+        }
+
+        .section-roleplay {
+            max-height: 300px;
+            transition: max-height 300ms ease-out;
+
+            &:not(.wrapper) {
+                transition: max-height 300ms ease-out;
+                overflow: hidden;
+            }
+        }
+
+        .click-section {
+            cursor: pointer;
+        }
+
+        .actions {
+            background-color: #e3e4e6;
+            border-top: 2px solid black;
+            z-index: 0;
+            position: relative;
+            margin-left: -4px;
+            margin-right: -4px;
+            padding: 0 0rem 2rem 0rem;
+            box-shadow: var(--anarchy-shadow-section);
+
+            h2 {
+                --wrapper-padding: 19px;
+                --wrapper-background-color: #e3e4e6;
+                display: inline-block;
+                margin-top: -19px;
+                padding-bottom: 0px;
+                margin-bottom: 0px;
+
+                .side.up {
+                    box-shadow: var(--anarchy-shadow-section);
+                }
+
+                .side.down,
+                .side.right,
+                .side.left,
+                .angle.br,
+                .angle.bl {
+                    display: none;
+                }
+
+                .content {
+                    color: black;
+                    font-size: 1.2em;
+                    border-bottom: none;
+
+                    text-transform: uppercase;
+                    // text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                    font-weight: bold;
+                    font-family: "BebasNeue";
+                    letter-spacing: 2px;
+
+                    background-color: #e3e4e6;
+                    transform: translateY(-14px);
+
+                    display: flex;
+                    align-content: center;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 8px;
+
+                    a {
+                        text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+                        display: flex;
+                        align-items: center;
+                        align-content: center;
+                        justify-content: center;
+                    }
+                }
+            }
+
+            .action-list {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                padding: 0 16px;
+
+                @container (max-width:500px) {
+                    grid-template-columns: 1fr;
+                }
+
+
+                .item-list {
+                    &>.content {
+                        padding: 8px;
+                        display: grid;
+                        gap: 12px;
+                        grid-template-columns: 1fr 1fr;
+                        background-color: white;
+
+                        a {
+                            background-color: transparent;
+                            --wrapper-background-color: #f4c000;
+                            --wrapper-padding: 8px;
+                            color: white;
+                            font-size: 18px;
+                            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                            transition: 200ms;
+
+                            &:hover {
+                                transform: scale(1.05);
+                            }
+
+                            &>.content {
+                                padding: 0px 8px 0px 24px;
+                                font-size: 16px;
+                                align-items: center;
+                                justify-content: center;
+                                display: grid;
+
+
+                                .attribute-button-icon {
+                                    --wrapper-background-color: #f4c000;
+                                    position: absolute;
+                                    top: -5px;
+                                    left: -5px;
+                                    width: 36px;
+                                }
+
+                                label {
+                                    display: block;
+                                    text-align: center;
+                                    font-size: 14px;
+                                    text-shadow: none;
+                                    color: black;
+                                    cursor: pointer;
+                                }
+                            }
+
+                        }
+                    }
+                }
+
+                .weapons {
+                    .content {
+                        .title {
+                            margin-top: 0px;
+                            padding: 4px;
+                            font-family: "BebasNeue";
+                            font-size: 18px;
+                            letter-spacing: 1px;
+                            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                            color: white;
+                        }
+
+                        .weapon-list {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 8px;
+                            padding: 0 2px;
+
+                            .weapon {
+                                padding: 6px;
+                                transition: 200ms;
+                                background-color: transparent;
+                                --wrapper-border-color: black;
+
+                                &:hover {
+                                    transform: scale(1.01);
+                                }
+
+                                .content {
+                                    width: 100%;
+                                    display: grid;
+                                    grid-template-columns: 50px 1fr;
+                                    cursor: pointer;
+
+                                    .item-controls {
+                                        position: absolute;
+                                        bottom: 4px;
+                                        right: 6px;
+                                        text-align: center;
+                                    }
+
+                                    .weapon-name {
+                                        font-family: "BebasNeue";
+                                        font-size: 16px;
+                                        letter-spacing: 0px;
+                                        // font-weight: bold;
+
+                                    }
+
+                                    .weapon-desc {
+                                        font-size: 12px;
+                                        padding: 2px 0;
+
+                                        span {
+                                            p {
+                                                margin: 0;
+                                            }
+                                        }
+                                    }
+
+                                    .weapon-img {
+                                        width: 42px !important;
+
+                                        .item-img {
+                                            width: 42px !important;
+                                            height: 42px !important;
+                                        }
+                                    }
+
+                                    .weapon-info {
+                                        display: flex;
+                                        flex-direction: column;
+                                        justify-content: space-between;
+
+                                        .weapon-stats {
+                                            display: grid;
+                                            flex-direction: row;
+                                            grid-template-columns: 1fr 1fr;
+
+                                            .weapon-range {
+                                                text-wrap: nowrap;
+                                                font-family: "BebasNeue";
+                                            }
+
+                                            .weapon-dmg {
+                                                font-family: "BebasNeue";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .skills {
+            background-color: #fec81c;
+            border-top: 2px solid black;
+            z-index: 0;
+            position: relative;
+            margin-left: -4px;
+            margin-right: -4px;
+            padding: 0 0rem 2rem 0rem;
+            box-shadow: var(--anarchy-shadow-section);
+
+            h2 {
+                --wrapper-padding: 19px;
+                --wrapper-background-color: #fec81c;
+                display: inline-block;
+                margin-top: -19px;
+                padding-bottom: 0px;
+                margin-bottom: 0px;
+
+                .side.up {
+                    box-shadow: var(--anarchy-shadow-section);
+                }
+
+                .side.down,
+                .side.right,
+                .side.left,
+                .angle.br,
+                .angle.bl {
+                    display: none;
+                }
+
+                .content {
+                    color: white;
+                    font-size: 1.2em;
+                    border-bottom: none;
+
+                    text-transform: uppercase;
+                    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                    font-weight: bold;
+                    font-family: "BebasNeue";
+                    letter-spacing: 2px;
+
+                    background-color: #fec81c;
+                    transform: translateY(-14px);
+
+                    display: flex;
+                    align-content: center;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 8px;
+
+                    a {
+                        text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+                        display: flex;
+                        align-items: center;
+                        align-content: center;
+                        justify-content: center;
+                    }
+
+
+                }
+
+            }
+
+            .item-list {
+                overflow: auto;
+                margin-bottom: 16px;
+                padding: 1rem 1rem 0 1rem;
+                margin-top: 0rem;
+                gap: 1rem;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+
+                .anarchy-skill {
+                    --wrapper-padding: 12px;
+
+                    .content {
+                        max-width: none;
+                        display: grid;
+                        flex-direction: row;
+                        grid-template-columns: 46px 1fr;
+
+
+                        .skill-img {
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                            gap: 6px;
+
+                            .anarchy-img {
+                                width: 46px;
+                                height: 46px;
+                            }
+
+                            .item-controls {
+                                position: absolute;
+                                top: 8px;
+                                right: 8px;
+                            }
+                        }
+
+                        .skill-txt {
+                            padding: 0px 16px;
+
+                            .title {
+                                font-family: "BebasNeue";
+                                font-size: 18px;
+                                letter-spacing: 1px;
+                            }
+                        }
+                    }
+
+                    .level {
+                        position: absolute;
+                        top: 10px;
+                        transform: translateY(-50%);
+                        position: absolute;
+                        width: 32px;
+                        height: 32px;
+                        font-weight: bold;
+                        left: -6px;
+                        transform: translateY(-50%);
+
+                        .content {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 20px;
+                        }
+
+                    }
+                }
+            }
+        }
+
+        .shadowamps {
+            background-color: #dcdddf;
+            border-top: 2px solid black;
+            z-index: 0;
+            position: relative;
+            margin-top: 0px;
+            margin-left: -4px;
+            margin-right: -4px;
+            padding: 0 0rem 2rem 0rem;
+            box-shadow: var(--anarchy-shadow-section);
+
+            .item-controls {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+            }
+
+            h2 {
+                --wrapper-padding: 19px;
+                --wrapper-background-color: #dcdddf;
+                display: inline-block;
+                margin-top: -19px;
+                padding-bottom: 0px;
+                margin-bottom: 0px;
+
+                .side.up {
+                    box-shadow: var(--anarchy-shadow-section);
+                }
+
+                .side.down,
+                .side.right,
+                .side.left,
+                .angle.br,
+                .angle.bl {
+                    display: none;
+                }
+
+                .content {
+                    color: white;
+                    font-size: 1.2em;
+                    border-bottom: none;
+
+                    text-transform: uppercase;
+                    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                    font-weight: bold;
+                    font-family: "BebasNeue";
+                    letter-spacing: 2px;
+
+                    background-color: #dcdddf;
+                    transform: translateY(-14px);
+
+                    display: flex;
+                    align-content: center;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 8px;
+
+                    a {
+                        text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+                        display: flex;
+                        align-items: center;
+                        align-content: center;
+                        justify-content: center;
+                    }
+                }
+            }
+
+            .item-list {
+                overflow: auto;
+                margin-bottom: 16px;
+                gap: 1rem;
+                padding: 1rem 1rem 0 1rem;
+                margin-top: 0rem;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+
+                .anarchy-shadowamp {
+                    --wrapper-padding: 12px;
+
+                    .content {
+                        display: flex;
+                        flex-direction: row;
+
+
+                        .shadowamp-img {
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                            min-width: 46px;
+
+                            .anarchy-img {
+                                width: 46px;
+                                height: 46px;
+                            }
+                        }
+
+                        .shadowamp-content {
+                            max-width: none;
+                            padding-left: 12px;
+                            text-align: left;
+
+                            .title {
+                                font-family: "BebasNeue";
+                                font-weight: bold;
+                                font-size: 18px;
+                                letter-spacing: 1px;
+                            }
+                        }
+                    }
+
+                    .level {
+                        position: absolute;
+                        transform: translateY(-50%);
+                        position: absolute;
+                        width: 32px;
+                        height: 32px;
+                        top: 10px;
+                        font-weight: bold;
+                        left: -6px;
+                        transform: translateY(-50%);
+
+                        .content {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 20px;
+                        }
+
+                    }
+                }
+            }
+        }
+
+        .monitors {
+            background-color: #dcdddf;
+            border-top: 2px solid black;
+            z-index: 0;
+            position: relative;
+            margin-top: 24px;
+            margin-left: -4px;
+            margin-right: -4px;
+            padding: 0 1rem 2rem 1rem;
+            box-shadow: var(--anarchy-shadow-section);
+
+            @container (max-width:700px) {
+                margin-top: 0;
+            }
+
+
+            h2 {
+                --wrapper-padding: 19px;
+                --wrapper-background-color: #dcdddf;
+                display: inline-block;
+                margin-top: -19px;
+                padding-bottom: 0px;
+                margin-bottom: 0px;
+
+                .side.up {
+                    box-shadow: var(--anarchy-shadow-section);
+                }
+
+                .side.down,
+                .side.right,
+                .side.left,
+                .angle.br,
+                .angle.bl {
+                    display: none;
+                }
+
+
+                .content {
+                    color: white;
+                    font-size: 1.2em;
+                    border-bottom: none;
+
+                    text-transform: uppercase;
+                    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                    font-weight: bold;
+                    font-family: "BebasNeue";
+                    letter-spacing: 2px;
+
+                    background-color: #dcdddf;
+                    transform: translateY(-14px);
+
+                    display: flex;
+                    align-content: center;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 8px;
+
+                    a {
+                        text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+                        display: flex;
+                        align-items: center;
+                        align-content: center;
+                        justify-content: center;
+                    }
+                }
+            }
+
+            .monitor-list {
+                display: grid;
+                grid-template-columns: 1fr 376px;
+                gap: 8px;
+
+                .checkbar-img {
+                    width: 24px;
+                    height: 24px;
+                }
+
+                .tokens {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+
+                .health {
+                    display: grid;
+                    grid-template-columns: 120px 120px 120px;
+                    gap: 8px;
+                }
+
+                .armor,
+                .physical,
+                .stun,
+                .tokens {
+                    .content {
+                        padding-top: 8px;
+                        position: relative;
+                        background-color: white;
+
+                        .title {
+                            height: 20px;
+                            font-size: 18px;
+                            color: white;
+                            text-transform: uppercase;
+                            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                            font-weight: bold;
+                            font-family: "BebasNeue";
+                            letter-spacing: 2px;
+                            display: flex;
+                            flex-direction: row;
+                            gap: 4px;
+                            align-items: center;
+                            justify-content: center;
+                            margin-bottom: 4px;
+
+                            input.info-value {
+                                text-align: center;
+                                font-size: 16px;
+                                width: 28px;
+                                height: 20px;
+                            }
+                        }
+
+                        .anarchy-monitor {
+                            margin-top: 8px;
+                            display: flex;
+                            flex-direction: row;
+                            justify-content: center;
+                            font-family: "BebasNeue";
+
+                            .checkbar-root {
+                                display: flex;
+                                flex-direction: row;
+                                justify-content: center;
+                                align-items: center;
+
+                                .checkbar {
+                                    justify-content: center;
+                                    display: grid;
+                                    gap: 12px 5px;
+
+                                    .click-checkbar-element {
+                                        position: relative;
+                                    }
+
+                                    .click-checkbar-element:after {
+                                        content: '';
+                                        position: absolute;
+                                        border-top: 1px dotted #777;
+                                        width: 6px;
+                                        right: -5px;
+                                        top: 6px;
+                                    }
+
+                                    .click-checkbar-element:nth-child(3n) {
+                                        &:after {
+                                            width: 33px;
+                                            right: 15px;
+                                            top: 21px;
+                                            transform: rotate(151deg);
+                                        }
+                                    }
+
+                                    .click-checkbar-element:last-child {
+                                        &:after {
+                                            display: none;
+                                        }
+                                    }
+                                }
+                            }
+
+                            .adjust {
+                                display: flex;
+                                flex-direction: column;
+                                margin-left: -10px;
+
+                                div {
+                                    height: 29px;
+                                    display: flex;
+                                    align-content: center;
+                                    justify-content: center;
+
+                                    &.activated {
+                                        color: red;
+                                        font-weight: bold;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    .resistance-label {
+                        font-size: 14px;
+                        font-family: "BebasNeue";
+                        display: flex;
+                        flex-direction: row;
+
+                        justify-content: center;
+                        align-items: center;
+                        gap: 6px;
+
+                        .value {
+                            font-size: 16px;
+                            font-weight: bold;
+                        }
+                    }
+
+
+                }
+
+                .physical,
+                .stun {
+                    .content {
+                        display: grid;
+                        grid-template-rows: 20px 1fr 20px;
+
+                        .anarchy-monitor {
+                            display: grid;
+                            grid-template-columns: 1fr 16px;
+
+                        }
+                    }
+                }
+
+                .anarchy-essence {
+                    height: 100%;
+                    display: grid;
+                    grid-template-columns: 2fr 1fr;
+                    gap: 8px;
+
+                    div {
+                        flex: 1;
+                    }
+                }
+
+                .edge-credibility {
+                    height: 100%;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                    gap: 8px;
+
+                    div {
+                        flex: 1;
+                    }
+
+                    .edge,
+                    .rumors,
+                    .credibility {
+                        .content {
+                            display: grid;
+                        }
+                    }
+                }
+            }
+
+            @container (max-width: 650px) {
+                .monitor-list {
+                    grid-template-columns: 1fr;
+
+                    .health {
+                        grid-template-columns: 1fr 1fr 1fr;
+                    }
+                }
+            }
+
+        }
+
+        .roleplay-keywords,
+        .roleplay-dispositions,
+        .roleplay-cues {
+            background-color: white;
+            display: none;
+
+            border-top: 2px solid black;
+            z-index: 0;
+            position: relative;
+            margin-top: 0px;
+            margin-left: -4px;
+            margin-right: -4px;
+            padding: 0 1rem 2rem 1rem;
+            box-shadow: var(--anarchy-shadow-section);
+
+            @container (max-width: 700px) {
+                display: inherit;
+                h3 {
+                    display:none;
+                }
+            }
+
+            h2 {
+                --wrapper-padding: 19px;
+                --wrapper-background-color: white;
+                display: inline-block;
+                margin-top: -19px;
+                padding-bottom: 0px;
+                margin-bottom: 0px;
+
+                .side.up {
+                    box-shadow: var(--anarchy-shadow-section);
+                }
+
+                .side.down,
+                .side.right,
+                .side.left,
+                .angle.br,
+                .angle.bl {
+                    display: none;
+                }
+
+                .content {
+                    color: black;
+                    font-size: 1.2em;
+                    border-bottom: none;
+
+                    text-transform: uppercase;
+                    font-weight: bold;
+                    font-family: "BebasNeue";
+                    letter-spacing: 2px;
+
+                    background-color: white;
+                    transform: translateY(-14px);
+
+                    display: flex;
+                    align-content: center;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 8px;
+
+                    a {
+                        text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+                        display: flex;
+                        align-items: center;
+                        align-content: center;
+                        justify-content: center;
+                    }
+                }
+            }
+
+
+        }
+
+        .owned,
+        .equipments {
+            background-color: #fec81c;
+
+            &.owned {
+                background-color: #e3e4e6;
+
+                h2 {
+                    // background-color: white;
+                    --wrapper-background-color: #e3e4e6;
+
+                    .content {
+                        background-color: #e3e4e6;
+                    }
+                }
+            }
+
+            border-top: 2px solid black;
+            z-index: 0;
+            position: relative;
+            margin-top: 0px;
+            margin-left: -4px;
+            margin-right: -4px;
+            padding: 0 1rem 2rem 1rem;
+            box-shadow: var(--anarchy-shadow-section);
+
+            h2 {
+                --wrapper-padding: 19px;
+                --wrapper-background-color: #fec81c;
+                display: inline-block;
+                margin-top: -19px;
+                padding-bottom: 0px;
+                margin-bottom: 0px;
+
+                .side.up {
+                    box-shadow: var(--anarchy-shadow-section);
+                }
+
+                .side.down,
+                .side.right,
+                .side.left,
+                .angle.br,
+                .angle.bl {
+                    display: none;
+                }
+
+                .content {
+                    color: white;
+                    font-size: 1.2em;
+                    border-bottom: none;
+
+                    text-transform: uppercase;
+                    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                    font-weight: bold;
+                    font-family: "BebasNeue";
+                    letter-spacing: 2px;
+
+                    background-color: #fec81c;
+                    transform: translateY(-14px);
+
+                    display: flex;
+                    align-content: center;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 8px;
+
+                    a {
+                        text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+                        display: flex;
+                        align-items: center;
+                        align-content: center;
+                        justify-content: center;
+                    }
+                }
+            }
+
+            .gear-list {
+                padding: 0;
+                gap: 8px 1rem;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+
+                .gear {
+                    .content {
+                        padding: 4px;
+
+                        p {
+                            text-align: justify;
+                        }
+
+                        label {
+                            font-family: "BebasNeue";
+                            font-size: 18px;
+                            letter-spacing: 1px;
+                            font-weight: bold;
+                        }
+                    }
+
+                    .item-controls {
+                        position: absolute;
+                        bottom: 4px;
+                        right: 4px;
+                        text-align: center;
+                    }
+                }
+            }
+
+            .cyberdecks {
+                .title {
+                    margin-top: 1rem;
+                    padding: 4px;
+                    font-family: "BebasNeue";
+                    font-size: 18px;
+                    letter-spacing: 1px;
+                    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                    color: white;
+                }
+
+                .cyberdeck-list {
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: 1rem;
+
+                    .cyberdeck {
+                        --wrapper-padding: 25px;
+                        --wrapper-thickness: 3px;
+
+                        .content {
+                            display: grid;
+                            grid-template-columns: 32px 1fr;
+                            gap: 1rem;
+
+                            .cyberdeck-details {
+                                display: flex;
+                                flex-direction: column;
+
+                                .name {
+                                    font-family: "BebasNeue";
+                                    font-weight: bold;
+                                    font-size: 18px;
+                                    letter-spacing: 1px;
+                                    transform: translateY(-12px);
+                                }
+
+                                .information {
+                                    display: grid;
+                                    grid-template-columns: 1fr 1fr 1fr 1fr;
+
+                                    > :first-child {
+                                        display: flex;
+                                        flex-direction: column;
+                                        text-align: left;
+                                    }
+
+                                    .attribute {
+                                        text-align: center;
+
+                                        .anarchy-attribute {
+                                            display: flex;
+                                            height: 35px;
+                                            align-items: center;
+                                            justify-content: center;
+
+                                            a {
+                                                display: block;
+                                                width: 100%;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        .item-controls {
+                            position: absolute;
+                            top: 14px;
+                            right: 32px;
+                            text-align: center;
+                        }
+                    }
+                }
+            }
+        }
+
+        .story {
+            background-color: #e3e4e6;
+            border-top: 2px solid black;
+            z-index: 0;
+            position: relative;
+            margin-top: 0px;
+            margin-left: -4px;
+            margin-right: -4px;
+            padding: 0 1rem 2rem 1rem;
+            box-shadow: var(--anarchy-shadow-section);
+
+            h2 {
+                --wrapper-padding: 19px;
+                --wrapper-background-color: #e3e4e6;
+                display: inline-block;
+                margin-top: -19px;
+                padding-bottom: 0px;
+                margin-bottom: 0px;
+
+                .side.up {
+                    box-shadow: var(--anarchy-shadow-section);
+                    // height: 12px;
+                    // transform: translateY(7px);
+                }
+
+                .side.down,
+                .side.right,
+                .side.left,
+                .angle.br,
+                .angle.bl {
+                    display: none;
+                }
+
+                .content {
+                    color: black;
+                    font-size: 1.2em;
+                    border-bottom: none;
+
+                    text-transform: uppercase;
+                    // text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                    font-weight: bold;
+                    font-family: "BebasNeue";
+                    letter-spacing: 2px;
+
+                    background-color: #e3e4e6;
+                    transform: translateY(-14px);
+
+                    display: flex;
+                    align-content: center;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 8px;
+
+                    a {
+                        text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+                        display: flex;
+                        align-items: center;
+                        align-content: center;
+                        justify-content: center;
+                    }
+                }
+            }
+
+            .social-info {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                @container (max-width:500px) {
+                    grid-template-columns: 1fr;
+                }
+                gap: 1rem;
+
+                .title {
+                    margin-top: 0px;
+                    padding: 4px;
+                    font-family: "BebasNeue";
+                    font-size: 18px;
+                    letter-spacing: 1px;
+                    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                    color: white;
+                }
+
+                .celeb-table {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+
+                    &>div {
+                        display: flex;
+                        justify-content: center;
+                        gap: 8px;
+
+                        .input {
+                            input {
+                                text-align: center;
+                            }
+                        }
+                    }
+                }
+
+                .karma {
+                    .karma-wrapper {
+                        display: grid;
+                        grid-template-columns: 1fr 4px 1fr;
+                        gap: 16px;
+
+                        .karma-row {
+                            &:first-child {
+                                justify-content: flex-end;
+                            }
+
+                            &:last-child {
+                                justify-content: flex-start;
+                            }
+
+                            display: flex;
+                            gap: 4px;
+
+                            input {
+                                text-align: center;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .contacts {
+                .title {
+                    margin-top: 1rem;
+                    padding: 4px;
+                    font-family: "BebasNeue";
+                    font-size: 18px;
+                    letter-spacing: 1px;
+                    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                    color: white;
+                }
+
+                .contact-list {
+                    padding: 0;
+                    gap: 8px 1rem;
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+
+                    .contact {
+                        .content {
+                            padding: 4px;
+
+                            p {
+                                text-align: justify;
+                            }
+
+                            label {
+                                font-family: "BebasNeue";
+                                letter-spacing: 1px;
+                                font-size: 20px;
+                                letter-spacing: 1px;
+                            }
+                        }
+
+                        .item-controls {
+                            position: absolute;
+                            bottom: 4px;
+                            right: 4px;
+                            text-align: center;
+                        }
+                    }
+                }
+            }
+        }
+
+        .qualities {
+            background-color: #e3e4e6;
+            border-top: 2px solid black;
+            z-index: 0;
+            position: relative;
+            margin-top: 0px;
+            margin-left: -4px;
+            margin-right: -4px;
+            padding: 0 1rem 2rem 1rem;
+            box-shadow: var(--anarchy-shadow-section);
+
+            h2 {
+                --wrapper-padding: 19px;
+                --wrapper-background-color: #e3e4e6;
+                display: inline-block;
+                margin-top: -19px;
+                padding-bottom: 0px;
+                margin-bottom: 0px;
+
+                .side.up {
+                    box-shadow: var(--anarchy-shadow-section);
+                    // height: 12px;
+                    // transform: translateY(7px);
+                }
+
+                .side.down,
+                .side.right,
+                .side.left,
+                .angle.br,
+                .angle.bl {
+                    display: none;
+                }
+
+                .content {
+                    color: black;
+                    font-size: 1.2em;
+                    border-bottom: none;
+
+                    text-transform: uppercase;
+                    // text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                    font-weight: bold;
+                    font-family: "BebasNeue";
+                    letter-spacing: 2px;
+
+                    background-color: #e3e4e6;
+                    transform: translateY(-14px);
+
+                    display: flex;
+                    align-content: center;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 8px;
+
+                    a {
+                        text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+                        display: flex;
+                        align-items: center;
+                        align-content: center;
+                        justify-content: center;
+                    }
+                }
+            }
+
+            .item-list {
+                overflow: auto;
+                margin-bottom: 16px;
+                gap: 1rem;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+
+                .anarchy-quality {
+                    --wrapper-padding: 12px;
+
+                    &.quality-negative {
+                        .angle::before {
+                            border-top: var(--wrapper-thickness, 2px) dashed var(--wrapper-border-color)
+                        }
+
+                        .side.up {
+                            border-top: var(--wrapper-thickness, 2px) dashed var(--wrapper-border-color)
+                        }
+
+                        .side.right {
+                            border-right: var(--wrapper-thickness, 2px) dashed var(--wrapper-border-color)
+                        }
+
+                        .side.left {
+                            border-left: var(--wrapper-thickness, 2px) dashed var(--wrapper-border-color)
+                        }
+
+                        .side.down {
+                            border-bottom: var(--wrapper-thickness, 2px) dashed var(--wrapper-border-color)
+                        }
+                    }
+
+                    .content {
+                        display: grid;
+                        flex-direction: row;
+                        grid-template-columns: 46px 1fr;
+
+                        .quality-img {
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                            gap: 6px;
+
+                            .anarchy-img {
+                                width: 46px;
+                                height: 46px;
+                            }
+                        }
+
+                        .quality-content {
+                            max-width: none;
+                            padding-left: 12px;
+                            text-align: left;
+
+                            .title {
+                                font-family: "BebasNeue";
+                                font-weight: bold;
+                                font-size: 18px;
+                                letter-spacing: 1px;
+                            }
+
+                            .item-description {
+                                display: inline-block;
+                                max-height: 150px;
+                                overflow: auto;
+
+                                p {
+                                    margin: 0 !important;
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .description,
+        .gmnotes {
+            .title {
+                margin-top: 1rem;
+                padding: 4px;
+                font-family: "BebasNeue";
+                font-size: 18px;
+                letter-spacing: 1px;
+                text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+                color: white;
+            }
+
+            .editor {
+                text-align: initial;
+            }
+        }
+    }
+}

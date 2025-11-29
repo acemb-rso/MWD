@@ -1,0 +1,128 @@
+_id: 49skRdv4apvF2SK3
+name: Anarchy
+folder: null
+sort: 0
+flags:
+  core:
+    sourceId: JournalEntry.wA95jYbRqCLn3MJc
+pages:
+  - name: Shadowrun Anarchy
+    type: text
+    title:
+      show: true
+      level: 1
+    text:
+      format: 1
+      content: >-
+        <p>@UUID[.pMYfq6zfRb97WxAn]{EN - Welcome to Shadowrun
+        Anarchy}</p><p>@UUID[.MrBdOQunEVz8UmRo]{FR - Bienvenue sur Shadowrun
+        Anarchy}</p><p>@UUID[.y3xvxB9jCkGJOFHN]{EN - Shadowrun/Cyberpunk
+        maps}</p><p></p>
+      markdown: ''
+    _id: qPJ9ZvpqXrbTDqkI
+    image: {}
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    sort: 0
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!49skRdv4apvF2SK3.qPJ9ZvpqXrbTDqkI'
+  - sort: 100000
+    name: EN - Welcome to Shadowrun Anarchy
+    type: text
+    _id: pMYfq6zfRb97WxAn
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: "<p>If you are here, you probably know the world has changed, with technology melting with flesh, mythological creatures and magic raising back from the past.</p><p>This is a system for Foundry VTT. To run a game, you will most probably need the <a href=\"https://store.catalystgamelabs.com/products/anarchy-pdf?variant=28800112914\">Shadowrun Anarchy rule book</a>, edited by <a href=\"https://www.catalystgamelabs.com/\" target=\"_blank\" rel=\"noopener\">Catalyst game labs</a></p><h2>Characters</h2><p>At this stage, all characters and opponents are managed almost equal. Only the chosen sheet (in the <em>sheet</em> menu on the header bar) allows to chose a slightly reduced sheet for NPCs. The only small difference is that player-owned characters have Anarchy, where NPCs are using the gamemaster's anarchy.</p><p>The following features are supported:</p><ul><li><p>Character sheet</p><ul><li>Metatype, awakened/emerged status (informative)</li><li>Essence</li><li>Lists of keywords, cues and dispositions</li><li>Attributes</li><li>Skills</li><li>Shadow amps</li><li>Skills</li><li>Weapons</li><li>Gears</li><li>Contacts</li><li><p><span style=\"font-family:var(--font-primary)\">The different counters</span></p><ul><li><p>Anarchy</p><ul><li>for NPCs, it is the GM anarchy</li></ul></li><li>Edge</li><li>Armor</li><li>Condition monitors</li></ul></li></ul></li><li><p>Vehicles/drone sheet</p><ul><li>Basic attributes</li><li>Skills (in case of a drone with autosoft)</li><li>Shadowamps</li><li>Weapons</li><li>Structure monitor</li></ul></li><li><p>Test rolls</p><ul><li><p>Supported rolls\_</p><ul><li>attributes</li><li>default actions (defense, perception, judge intentions, ...)</li><li>skills</li></ul></li><li><p>Modifiers to rolls</p><ul><li>custom modifier</li><li>wound modifier</li><li>specializations</li><li>reroll failures</li><li>forced success rerolls (imposed by the opponents)</li><li>use anarchy for a disposition</li><li>use anarchy to take risks</li><li>use edge</li><li>notify about reduced opponent pool</li><li>notify about opponent forced rerolls</li></ul></li></ul></li></ul><p>\_</p><p>The modifiers for Shadow Amps, Qualities and Gear effects are not managed by the system. The player will have to add them manually on their rolls. It is possible to add this in the description.</p><h2>Gamemaster</h2><p>The gamemaster has access to a special window which contains</p><ul><li>Gamemaster's anarchy</li><li>Typicall difficulty roll (which can be customized)</li></ul><p>When a player character spends anarchy, the GM anarchy is increased accordingly.</p><p>\_</p><h2>Items</h2><p>The following types of items are available:</p><ul><li>Metatype</li><li>Skill</li><li>Quality</li><li>Shadow amp</li><li>Weapon</li><li>Gear</li><li>Contact</li></ul><p>It is possible to create them directly on the character sheet, or to add them to theworld's item and later store them in a compendium.</p><p>Compendiums may be developped later, or added to the system, in accordance with Catalyst game labs.</p>"
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!49skRdv4apvF2SK3.pMYfq6zfRb97WxAn'
+  - sort: 200000
+    name: FR - Bienvenue sur Shadowrun Anarchy
+    type: text
+    _id: MrBdOQunEVz8UmRo
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Si vous ètes là, vous savez probablement que le monde a changé, que
+        la technologie se mèle à la chair, que des créatures mythologiques et la
+        magie sont de nouveau présentes parmi nous.</p><p>Ce système pour
+        Foundry VTT vous permettra de jouer en utilisant les règles de <a
+        href="https://www.black-book-editions.fr/produit.php?id=6543">Shadowrun
+        Anarchy</a>, edité par <a href="https://www.catalystgamelabs.com/"
+        target="_blank" rel="noopener">Catalyst game labs</a> et traduit par <a
+        href="https://www.black-book-editions.fr/">Black Book
+        Edition</a>.</p><p></p><h2>Prise en mains</h2><p>Vous trouverez le
+        manuel fait par <strong>Los Brutos</strong> ici:
+        @UUID[Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6]{Manuel
+        d'utilisation}</p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!49skRdv4apvF2SK3.MrBdOQunEVz8UmRo'
+  - sort: 300000
+    name: Shadowrun/Cyberpunk maps
+    type: text
+    _id: y3xvxB9jCkGJOFHN
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>There are not so many ressources for Shadowrun assets.</p><p>This
+        place will reference some places to find assets. Don't hesitate to tell
+        us if you would like to be referenced here, or know about people that
+        could be referenced here.</p><ul><li><p>A sharing by BoboursToutCool (on
+        google drive): <a
+        href="https://drive.google.com/drive/folders/1WyIoLruXScmT16R5jDD591S12yyc5SoJ"
+        title="Cyberpunk/Shadowrun styled maps">Cyberpunk/Shadowrun styled
+        maps</a> — created With Chronos Builder</p></li></ul><p></p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!49skRdv4apvF2SK3.y3xvxB9jCkGJOFHN'
+ownership:
+  default: 0
+  hpG0HqTpAMeCLTP9: 3
+_stats:
+  systemId: anarchy
+  systemVersion: 10.2.6
+  coreVersion: '10.291'
+  createdTime: null
+  modifiedTime: 1672360899782
+  lastModifiedBy: hpG0HqTpAMeCLTP9
+_key: '!journal!49skRdv4apvF2SK3'
+
