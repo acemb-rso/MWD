@@ -1,0 +1,34 @@
+{{! 
+  data is:
+  {
+    code: "stun", // identifying the monitor"
+    value: 0, // current value in monitor
+    max: 9 // max value in monitor
+    labelkey: "ANARCHY.actor.monitors.stun", label key (to internationalize), used also for css class
+    rowlength: 3, // count of checks per row
+    adjust: true, // indicates to compute & display adjustment,
+    iconChecked: "<i class='fas fa-circle'></i>" , or "<img src='systems/anarchy/style/svg/icon.svg'/>""
+    iconUnchecked: "<i class='far fa-circle'></i>"
+  }
+}}
+<div class="checkbar-root" data-monitor-code="{{code}}">
+  <div {{#if rowlength}}
+    style="grid-column: span {{rowlength}} / span {{rowlength}}; grid-template-columns: repeat({{rowlength}}, minmax(0, 1fr));"
+  {{/if}}>
+  {{#for 0 max}}
+    {{> 'systems/anarchy/templates/common/check-element.hbs'
+      code=../code
+      rowlength=../rowlength
+      current=this
+      labelkey=(either ../labelkey (concat 'ANARCHY.actor.monitors.' ../code))
+      value=../value
+      max=../max
+    }}
+    {{#if (and ../adjust ../rowlength)}}
+      {{#if (or (eq ../rowlength (sum 1 (modulo this ../rowlength))) (eq (sum this 1) ../max))}}
+        <label>-{{sum 1 (divint this ../rowlength)}}</label>
+      {{/if}}
+    {{/if}}
+  {{/for}}
+  </div>
+</div>

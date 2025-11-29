@@ -1,0 +1,12 @@
+<div class="{{#each options.classes as |cssClass|}}{{cssClass}}{{/each}} flexrow">
+  <div class="flex-shrink-left flexcol">
+    {{> 'systems/anarchy/templates/chat/parts/actor-image.hbs'}}
+  </div>
+  <div>
+    {{#if drain}}
+    {{localize ANARCHY.chat.sufferedDrain actor=actor.name drain=drain}} 
+    {{else}}
+    {{localize ANARCHY.chat.noDrain actor=actor.name }} 
+    {{/if}}
+  </div>
+</div>

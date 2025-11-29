@@ -1,0 +1,8 @@
+{{#each difficultyPools as |dp|}}
+	<a class="anarchy-button click-roll-difficuty-pool flex-grow-0"
+			data-difficulty="{{either dp.difficulty dp.pool}}"
+			data-pool="{{dp.pool}}"
+			>
+	<label>{{#if dp.difficulty}}{{dp.difficulty}} : {{/if}}{{dp.pool}}</label>
+	</a>
+{{/each}}

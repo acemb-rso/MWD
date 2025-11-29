@@ -1,0 +1,9 @@
+<a class="item-control click-matrix-connectionMode" data-tooltip="{{localize ANARCHY.common.matrix.connectionMode}} {{localize (concat 'ANARCHY.connectionMode.' system.connectionMode)}}">
+  {{#if (eq connectionMode 'augmented')}}
+  <i class="fa-solid fa-wifi matrix-connectionMode-augmented"></i>
+  {{else if (eq connectionMode 'virtual')}}
+  <i class="fa-solid fa-network-wired matrix-connectionMode-virtual"></i>
+  {{else}}
+  <i class="fa-solid fa-user-slash matrix-connectionMode-disconnected"></i>
+  {{/if}}
+</a>

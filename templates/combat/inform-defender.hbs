@@ -1,0 +1,74 @@
+<div class="{{#each options.classes as |cssClass|}}{{cssClass}}{{/each}} flexrow">
+  <div class="column-images">
+    {{> 'systems/anarchy/templates/chat/parts/actor-image.hbs' actor=defender}}
+  </div>
+  <div class="column-details">
+    <div>
+      {{defender.name}}: {{localize (concat 'ANARCHY.defense.' (fixedDefenseCode attack.defense))}}
+    </div>
+    {{#if defenseRoll}}
+      <p>
+        <hr>
+        {{#if attack.isHit}}
+          {{localize ANARCHY.chat.partiallyDefended success=attack.success}}
+        {{else}}
+          {{localize ANARCHY.chat.fullyDefended}}
+        {{/if}}
+      </p>
+    {{else if (and defensePilotRoll attack.pilotCanDefend)}}
+      <p>
+        <hr>
+        {{#if attack.isHit}}
+          {{localize ANARCHY.chat.partiallyDefended success=attack.success}}
+        {{else}}
+          {{localize ANARCHY.chat.fullyDefended}}
+        {{/if}}
+      </p>
+    {{else}}
+      <div class="anarchy-button defend-attack click-defend-attack">
+        <a>
+          <label>
+            {{localize ANARCHY.chat.defendAttack success=attack.success}}
+          </label>
+        </a>
+      </div>
+      {{#if attack.pilotCanDefend}}
+      <div class="anarchy-button defend-attack click-defend-pilot-attack">
+        <a>
+          <label>
+            {{localize ANARCHY.chat.defendPilotAttack success=attack.success}}
+          </label>
+        </a>
+      </div>
+      {{/if}}
+    {{/if}}
+
+    {{#if attack.isHit}}
+    <div class="anarchy-button apply-attack-damage click-apply-attack-damage">
+      <a>
+        <label>
+          {{#if (eq attack.damage.monitor 'marks')}}
+          {{{localize ANARCHY.chat.applyDamage 
+            damage=(concat
+              attack.damage.value
+              (weaponDamageLetter attack.damage.monitor)
+              (iconCheckbarHit attack.damage.monitor)
+              )
+          }}}
+          {{else}}
+          {{{localize ANARCHY.chat.applyDamage 
+            damage=(concat 
+              (sum attack.damage.value attack.success)
+              (weaponDamageLetter attack.damage.monitor)
+              (iconCheckbarHit attack.damage.monitor)
+              )
+          }}}
+          {{/if}}
+          {{> 'systems/anarchy/templates/common/damage-armor.hbs' armor=attack.damage.armorMode}}
+        </label>
+      </a>
+    </div>
+    {{/if}}
+  </div>
+
+</div>

@@ -1,0 +1,6 @@
+  <div>{{localizeAttribute attribute1}}: {{actorAttribute attribute1 actor ''}}</div>
+  <div>{{skill.name}}: {{either skill.system.value 0}}</div>
+  {{#if modifiers.specialization.used}}
+  <div>{{localize ANARCHY.item.skill.specialization}} {{specialization}}: {{numberFormat modifiers.specialization.value decimals=0 sign=true}}</div>
+  {{/if}}
+  {{> 'systems/anarchy/templates/chat/roll-modifier.hbs' modifiers.range}}
