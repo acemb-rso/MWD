@@ -4,7 +4,7 @@
     damage: 1, // the damage or damage modifier
     damageAttribute: the attribute used for damage, if any
     actorAttribute: the actor value for the attribute
-    monitor: 'stun' // damage is stun/physical
+    monitor: 'fatigue' // damage is fatigue/physical
   }
 }}
 {{#if damageAttribute}}
@@ -15,4 +15,4 @@
 {{weaponDamageLetter monitor}}
 {{{iconCheckbarHit monitor}}}
 
-{{> 'systems/anarchy/templates/common/damage-armor.hbs' armor=armor}}
+{{> 'systems/mwd/templates/common/damage-armor.hbs' armor=armor}}

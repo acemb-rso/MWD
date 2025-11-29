@@ -1,4 +1,4 @@
-{{> 'systems/anarchy/templates/roll/parts/parameter-label.hbs' this}}
+{{> 'systems/mwd/templates/roll/parts/parameter-label.hbs' this}}
 <div class="flexcol">
   <div class="flexrow">
     {{#if flags.editable}}
@@ -9,7 +9,7 @@
         value="{{either value 0}}"/>
     {{/if}}
     <div class="input-cursor-parameter">
-      {{>'systems/anarchy/templates/roll/parts/dice-cursor.hbs' value=value min=min max=max editable=flags.editDice}}
+      {{>'systems/mwd/templates/roll/parts/dice-cursor.hbs' value=value min=min max=max editable=flags.editDice}}
     </div>
   </div>
   {{#each sources as |source|}}

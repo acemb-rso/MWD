@@ -213,7 +213,7 @@ export const ANARCHY = {
             overflow: 'ANARCHY.actor.monitors.overflow',
             noMatrixMonitor: 'ANARCHY.actor.monitors.noMatrixMonitor',
             physical: 'ANARCHY.actor.monitors.physical',
-            stun: 'ANARCHY.actor.monitors.stun',
+            fatigue: 'ANARCHY.actor.monitors.fatigue',
             matrix: 'ANARCHY.actor.monitors.matrix',
             armor: 'ANARCHY.actor.monitors.armor',
             structure: 'ANARCHY.actor.monitors.structure',
@@ -324,13 +324,13 @@ export const ANARCHY = {
     },
     monitor: {
         physical: 'ANARCHY.monitor.physical',
-        stun: 'ANARCHY.monitor.stun',
+        fatigue: 'ANARCHY.monitor.fatigue',
         matrix: 'ANARCHY.monitor.matrix',
         marks: 'ANARCHY.monitor.marks',
     },
     monitorLetter: {
         physical: 'ANARCHY.monitorLetter.physical',
-        stun: 'ANARCHY.monitorLetter.stun',
+        fatigue: 'ANARCHY.monitorLetter.fatigue',
         matrix: 'ANARCHY.monitorLetter.matrix',
         marks: 'ANARCHY.monitorLetter.marks',
     },
@@ -476,7 +476,7 @@ export const ANARCHY = {
             effect: {
                 armor: 'ANARCHY.modifier.monitor.effect.armor',
                 structure: 'ANARCHY.modifier.monitor.effect.structure',
-                stun: 'ANARCHY.modifier.monitor.effect.stun',
+                fatigue: 'ANARCHY.modifier.monitor.effect.fatigue',
                 physical: 'ANARCHY.modifier.monitor.effect.physical',
                 matrix: 'ANARCHY.modifier.monitor.effect.matrix',
             },

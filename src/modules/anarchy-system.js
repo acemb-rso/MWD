@@ -70,6 +70,7 @@ export class AnarchySystem {
 
   async onInit() {
     console.log(LOG_HEAD + 'AnarchySystem.onInit');
+    game.system.mwd = this;
     game.system.anarchy = this;
     this.remoteCall = new RemoteCall(); // initialize remote calls registry first: used by other singleton managers
 

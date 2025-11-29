@@ -1,6 +1,6 @@
 <div class="define-item-type wrapper-hexabox item anarchy-skill {{#if system.inactive}}inactive{{/if}}"
   data-item-id="{{_id}}" data-item-type="skill" draggable="true">
-  {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+  {{> "systems/mwd/templates/actor/character-enhanced/hexabox.hbs"}}
   <div class="content">
     <div class="skill-img">
       <div>
@@ -10,11 +10,11 @@
       </div>
       <div>
         <div class="item-controls">
-          {{> 'systems/anarchy/templates/common/favorite.hbs'
+          {{> 'systems/mwd/templates/common/favorite.hbs'
           isFavorite=(actorHasFavorite @root.actor.id id=_id type=type)
           skill=this
           }}
-          {{> 'systems/anarchy/templates/common/item-controls.hbs'}}
+          {{> 'systems/mwd/templates/common/item-controls.hbs'}}
         </div>
       </div>
     </div>
@@ -42,7 +42,7 @@
       </a>
       {{/if}}
       <div class="wrapper-hexabox level">
-        {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+        {{> "systems/mwd/templates/actor/character-enhanced/hexabox.hbs"}}
         <div class="content">
           {{sum system.value (actorAttribute system.attribute @root.actor)}}
         </div>

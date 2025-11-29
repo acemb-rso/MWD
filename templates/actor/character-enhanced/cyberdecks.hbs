@@ -2,11 +2,11 @@
 <div class="cyberdecks">
   <h2 class="title">
     {{localize 'ANARCHY.itemType.plural.cyberdeck'}}
-    {{> 'systems/anarchy/templates/common/item-control-add.hbs' itemType='cyberdeck'}}
+    {{> 'systems/mwd/templates/common/item-control-add.hbs' itemType='cyberdeck'}}
   </h2>
   <div class="cyberdeck-list">
     {{#each items.cyberdeck as |cyberdeck|}}
-    {{> "systems/anarchy/templates/actor/character-enhanced/cyberdeck.hbs" cyberdeck}}
+    {{> "systems/mwd/templates/actor/character-enhanced/cyberdeck.hbs" cyberdeck}}
     {{/each}}
   </div>
 </div>
