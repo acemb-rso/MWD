@@ -2,6 +2,12 @@
 
 This Foundry VTT system is an early conversion of the Shadowrun Anarchy codebase to support Catalyst Game Labs' **MechWarrior: Destiny** roleplaying game. The first pass focuses on renaming core identifiers, attributes, and condition tracks to match Destiny while we continue iterating on rules-specific features.
 
+## Installation
+
+- In Foundry VTT go to **Configuration and Setup → Game Systems → Install System** and paste the manifest URL:
+  `https://raw.githubusercontent.com/acemb-rso/MWD/main/system.json`.
+- If you prefer a manual install, download `foundry-mwd-v13.0.0.zip` from the [releases page](https://github.com/acemb-rso/MWD/releases) and extract it into `Data/systems/mwd`.
+
 ## Characters
 
 - Player characters and NPCs share the same core sheet options (full, tabbed, and limited views).
