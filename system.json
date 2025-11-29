@@ -53,11 +53,6 @@
       "lang": "en",
       "name": "English",
       "path": "lang/en.json"
-    },
-    {
-      "lang": "fr",
-      "name": "Français",
-      "path": "lang/fr.json"
     }
   ],
   "packs": [
@@ -78,16 +73,6 @@
       "system": "mwd",
       "ownership": {
         "PLAYER": "NONE",
-        "ASSISTANT": "OWNER"
-      }
-    },
-    {
-      "name": "manual-fr",
-      "label": "Manuel SR Anarchy (FR)",
-      "type": "JournalEntry",
-      "system": "mwd",
-      "ownership": {
-        "PLAYER": "OBSERVER",
         "ASSISTANT": "OWNER"
       }
     }
