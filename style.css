@@ -172,29 +172,6 @@
 .sheet .character-enhanced header .avatar > .angle.tr {
   display: none;
 }
-.sheet .character-enhanced header .avatar .metatype {
-  position: absolute;
-  bottom: 0px;
-  right: 0px;
-  width: 100px;
-  font-size: 10px;
-}
-.sheet .character-enhanced header .avatar .metatype .anarchy-metatype {
-  gap: 8px;
-  background-color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-right: 6px;
-}
-.sheet .character-enhanced header .avatar .metatype .anarchy-metatype.info-value {
-  padding-right: 0px;
-}
-.sheet .character-enhanced header .avatar .metatype .anarchy-metatype span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 .sheet .character-enhanced header .name-attributes {
   display: grid;
   grid-template-rows: 50px 100px;

@@ -164,8 +164,7 @@ export class AnarchyActorSheet extends foundry.appv1.sheets.ActorSheet {
   }
 
   getEventItem(event) {
-    const itemId = $(event.currentTarget).closest('.item').attr('data-item-id')
-      ?? $(event.currentTarget).closest('.anarchy-metatype').attr('data-item-id');
+    const itemId = $(event.currentTarget).closest('.item').attr('data-item-id');
     return this.actor.items.get(itemId);
   }
 

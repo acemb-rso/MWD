@@ -4,15 +4,12 @@ export const ANARCHY = {
         Actor: {
             character: "TYPES.Actor.character",
             vehicle: "TYPES.Actor.vehicle",
-            device: "TYPES.Actor.device",
-            sprite: "TYPES.Actor.sprite",
-            ic: "TYPES.Actor.ic"
+            battlemech: "TYPES.Actor.battlemech"
         },
         Item: {
             contact: "TYPES.Item.contact",
             cyberdeck: "TYPES.Item.cyberdeck",
             gear: "TYPES.Item.gear",
-            metatype: "TYPES.Item.metatype",
             quality: "TYPES.Item.quality",
             shadowamp: "TYPES.Item.shadowamp",
             skill: "TYPES.Item.skill",
@@ -177,13 +174,9 @@ export const ANARCHY = {
         characterTabbedSheet: 'ANARCHY.actor.characterTabbedSheet',
         characterEnhancedSheet: 'ANARCHY.actor.characterEnhancedSheet',
         vehicleSheet: 'ANARCHY.actor.vehicleSheet',
-        deviceSheet: 'ANARCHY.actor.deviceSheet',
-        spriteSheet: 'ANARCHY.actor.spriteSheet',
-        icSheet: 'ANARCHY.actor.icSheet',
         characterNPCSheet: 'ANARCHY.actor.characterNPCSheet',
         actorName: 'ANARCHY.actor.actorName',
         genre: 'ANARCHY.actor.genre',
-        noMetatype: 'ANARCHY.actor.noMetatype',
         celebrity: 'ANARCHY.actor.celebrity',
         tabs: {
             main: 'ANARCHY.actor.tabs.main',
@@ -238,9 +231,6 @@ export const ANARCHY = {
         character: 'ANARCHY.actorType.character',
         vehicle: 'ANARCHY.actorType.vehicle',
         battlemech: 'ANARCHY.actorType.battlemech',
-        device: 'ANARCHY.actorType.device',
-        sprite: 'ANARCHY.actorType.sprite',
-        ic: 'ANARCHY.actorType.ic',
     },
     item: {
         sheet: 'ANARCHY.item.sheet',
@@ -296,7 +286,6 @@ export const ANARCHY = {
     },
     itemType: {
         singular: {
-            metatype: 'ANARCHY.itemType.singular.metatype',
             skill: 'ANARCHY.itemType.singular.skill',
             quality: 'ANARCHY.itemType.singular.quality',
             shadowamp: 'ANARCHY.itemType.singular.shadowamp',
@@ -306,7 +295,6 @@ export const ANARCHY = {
             contact: 'ANARCHY.itemType.singular.contact'
         },
         plural: {
-            metatype: 'ANARCHY.itemType.plural.metatype',
             skill: 'ANARCHY.itemType.plural.skill',
             quality: 'ANARCHY.itemType.plural.quality',
             shadowamp: 'ANARCHY.itemType.plural.shadowamp',
