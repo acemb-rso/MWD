@@ -21,11 +21,60 @@ export class VehicleActor extends AnarchyBaseActor {
     return AnarchyBaseActor.initiative + " + max(@attributes.system.value, @attributes.handling.value)"
   }
 
+  getPilotUuid() {
+    return this.system?.pilot?.uuid;
+  }
+
+  getPilotDocument() {
+    const pilotUuid = this.getPilotUuid();
+    return pilotUuid ? fromUuidSync(pilotUuid) : undefined;
+  }
+
+  getPilotActor() {
+    const pilotDocument = this.getPilotDocument();
+    if (pilotDocument?.actor) {
+      return pilotDocument.actor;
+    }
+    return pilotDocument;
+  }
+
+  getPilotReference() {
+    const pilotDocument = this.getPilotDocument();
+    if (!pilotDocument) {
+      return undefined;
+    }
+
+    const pilotActor = this.getPilotActor();
+    const isToken = pilotDocument.documentName === 'Token';
+    return {
+      id: pilotActor?.id,
+      uuid: pilotDocument.uuid,
+      name: pilotDocument.name,
+      img: pilotDocument.img ?? pilotActor?.img,
+      isToken,
+      scene: isToken ? pilotDocument.parent?.name : undefined
+    };
+  }
+
   computePhysicalState() {
     return {
       max: this.system.monitors.structure.max,
       value: this.system.monitors.structure.max - this.system.monitors.structure.value
     }
+  }
+
+  getSkillValue(skillId, specialization = undefined) {
+    const skill = typeof skillId === 'string' ? this.items.get(skillId) : skillId;
+    const pilot = this.getPilotActor();
+
+    if (pilot && skill?.system?.code) {
+      const pilotSkill = pilot.items.find(it => it.type === TEMPLATE.itemType.skill && it.system.code === skill.system.code);
+      const attribute = pilot.getAttributeValue(skill.system.attribute);
+      const specializationBonus = specialization && pilotSkill?.system?.specialization ? 2 : 0;
+      return attribute + (pilotSkill?.system?.value ?? 0) + specializationBonus;
+    }
+
+    return super.getSkillValue(skill, specialization);
   }
 
   getAttributes() {
