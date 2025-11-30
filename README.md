@@ -19,6 +19,11 @@ Rolls can be triggered directly from the sheet (attributes, skills, and weapons)
 
 ![Sample of a character ](./img/sample-character.webp)
 
+## Vehicles and BattleMechs
+
+- **Vehicles** represent personal-scale transports (including drones). They use simple Structure and Armor tracks and avoid heat or mount-point management.
+- **Battlemechs** cover full mech-scale units. Their sheets include heat tracking, mount-point-aware weapon groups, and other chassis-specific systems.
+
 ## Gamemaster tools
 
 The gamemaster dashboard provides quick access to plot resources, configurable difficulty pools, and combat helpers. Matrix-specific utilities have been removed from the primary workflow.

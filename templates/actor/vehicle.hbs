@@ -39,49 +39,6 @@
       <div class="anarchy-block">
       {{> "systems/mwd/templates/monitors/armor.hbs"}}
       </div>
-      <div class="anarchy-block">
-      {{> "systems/mwd/templates/monitors/heat.hbs"}}
-      <label class="resitance-label">
-        {{localize ANARCHY.actor.vehicle.heatDissipation}}
-        <input class="info-value" type="number" data-dtype="Number" maxlength="2"
-          name="system.hybrid.heat.dissipation"
-          value="{{system.hybrid.heat.dissipation}}"
-        />
-      </label>
-      </div>
-    </div>
-    <div class="section-group monitors-row">
-      <div class="anarchy-block">
-        <label class="monitor-label">{{localize ANARCHY.actor.vehicle.criticalTrack}}</label>
-        {{> "systems/mwd/templates/common/checkbar.hbs"
-          code='criticals'
-          value=system.hybrid.criticals.value
-          max=system.hybrid.criticals.max
-          rowlength=6
-        }}
-        <textarea class="info-value" name="system.hybrid.criticals.notes" rows="3" placeholder="{{localize ANARCHY.actor.vehicle.criticalTrack}}">{{system.hybrid.criticals.notes}}</textarea>
-      </div>
-      <div class="anarchy-block hybrid-locations">
-        <label class="monitor-label">{{localize ANARCHY.actor.monitors.armor}}</label>
-        <div class="flexcol location-grid">
-          <div class="flexrow location-row">
-            <span class="location-label">{{localize ANARCHY.actor.vehicle.locationFront}}</span>
-            <input class="info-value" type="text" name="system.hybrid.locations.front" value="{{system.hybrid.locations.front}}" />
-          </div>
-          <div class="flexrow location-row">
-            <span class="location-label">{{localize ANARCHY.actor.vehicle.locationSide}}</span>
-            <input class="info-value" type="text" name="system.hybrid.locations.sides" value="{{system.hybrid.locations.sides}}" />
-          </div>
-          <div class="flexrow location-row">
-            <span class="location-label">{{localize ANARCHY.actor.vehicle.locationRear}}</span>
-            <input class="info-value" type="text" name="system.hybrid.locations.rear" value="{{system.hybrid.locations.rear}}" />
-          </div>
-          <div class="flexrow location-row">
-            <span class="location-label">{{localize ANARCHY.actor.vehicle.locationCore}}</span>
-            <input class="info-value" type="text" name="system.hybrid.locations.core" value="{{system.hybrid.locations.core}}" />
-          </div>
-        </div>
-      </div>
     </div>
     <div class="section-group items-group">
     {{> "systems/mwd/templates/actor/npc-parts/skills.hbs"}}
