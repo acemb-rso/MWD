@@ -36,8 +36,15 @@ export class AnarchyActorSheet extends ActorSheet {
         ENUMS: foundry.utils.mergeObject({ attributeAction: this.actor.getAttributeActions() }, Enums.getEnums()),
         ANARCHY: ANARCHY
       });
-    hbsData.options.classes.push(`actor-${this.actor.type}`);
-    hbsData.options.classes = Misc.distinct(hbsData.options.classes);
+    const editableClass = this.isEditable ? "editable" : "locked";
+    const baseClasses = hbsData.options?.classes ?? [];
+    const classes = Misc.distinct([
+      ...baseClasses,
+      `actor-${this.actor.type}`,
+      editableClass
+    ]);
+    hbsData.options.classes = classes;
+    hbsData.options.cssClass = classes.join(" ");
     hbsData.system = this.actor.system;
 
     Misc.classifyInto(hbsData.items, this.actor.items);

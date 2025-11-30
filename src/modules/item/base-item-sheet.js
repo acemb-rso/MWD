@@ -1,6 +1,7 @@
 import { ANARCHY } from "../config.js";
 import { TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { Enums } from "../enums.js";
+import { Misc } from "../misc.js";
 
 export class BaseItemSheet extends ItemSheet {
 
@@ -45,6 +46,12 @@ export class BaseItemSheet extends ItemSheet {
         ANARCHY: ANARCHY
       });
     hbsData.system = this.item.system;
+
+    const editableClass = this.isEditable ? "editable" : "locked";
+    const baseClasses = hbsData.options?.classes ?? [];
+    const classes = Misc.distinct([...baseClasses, editableClass]);
+    hbsData.options.classes = classes;
+    hbsData.options.cssClass = classes.join(" ");
 
     return hbsData;
   }
