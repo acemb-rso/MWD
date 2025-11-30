@@ -1,0 +1,28 @@
+{
+  "_id": "eea9ceddf58b91e5",
+  "name": "Computers",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/hacking.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1300000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "computers",
+    "attribute": "logic",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!eea9ceddf58b91e5"
+}

@@ -1,0 +1,28 @@
+{
+  "_id": "ac9b0855d0e18d57",
+  "name": "Intimidation",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/intimidation.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3100000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "intimidation",
+    "attribute": "charisma",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": true,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!ac9b0855d0e18d57"
+}

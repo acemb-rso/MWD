@@ -75,6 +75,16 @@
         "PLAYER": "NONE",
         "ASSISTANT": "OWNER"
       }
+    },
+    {
+      "name": "skills",
+      "label": "Skills",
+      "type": "Item",
+      "system": "mwd",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
     }
   ],
   "media": [

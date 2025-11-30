@@ -1,0 +1,28 @@
+{
+  "_id": "73752f54838d45e8",
+  "name": "Escape Artist",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/escape-artist.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 200000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "escapeArtist",
+    "attribute": "agility",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!73752f54838d45e8"
+}

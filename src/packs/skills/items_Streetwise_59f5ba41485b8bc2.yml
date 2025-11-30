@@ -1,0 +1,28 @@
+{
+  "_id": "59f5ba41485b8bc2",
+  "name": "Streetwise",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/etiquette2.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3000000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "streetwise",
+    "attribute": "charisma",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": true,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!59f5ba41485b8bc2"
+}

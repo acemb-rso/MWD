@@ -1,0 +1,28 @@
+{
+  "_id": "b1b0a9c6f717dae5",
+  "name": "Perception",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/skills.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1800000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "perception",
+    "attribute": "logic",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!b1b0a9c6f717dae5"
+}

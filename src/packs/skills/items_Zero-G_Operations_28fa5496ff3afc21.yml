@@ -1,0 +1,28 @@
+{
+  "_id": "28fa5496ff3afc21",
+  "name": "Zero-G Operations",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/free-fall.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 900000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "zeroGOperations",
+    "attribute": "agility",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!28fa5496ff3afc21"
+}

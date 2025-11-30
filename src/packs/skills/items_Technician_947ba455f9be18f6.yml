@@ -1,0 +1,28 @@
+{
+  "_id": "947ba455f9be18f6",
+  "name": "Technician",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/engineering.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2000000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "technician",
+    "attribute": "logic",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!947ba455f9be18f6"
+}

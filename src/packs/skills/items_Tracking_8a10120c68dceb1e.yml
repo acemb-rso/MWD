@@ -1,0 +1,28 @@
+{
+  "_id": "8a10120c68dceb1e",
+  "name": "Tracking",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/tracking.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2100000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "tracking",
+    "attribute": "logic",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!8a10120c68dceb1e"
+}

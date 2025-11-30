@@ -1,0 +1,28 @@
+{
+  "_id": "48bc64b712df81c1",
+  "name": "Communications",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/networking.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1200000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "communications",
+    "attribute": "logic",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!48bc64b712df81c1"
+}

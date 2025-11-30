@@ -1,0 +1,28 @@
+{
+  "_id": "e8c267554d5f54eb",
+  "name": "MedTech",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/biotech.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1600000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "medTech",
+    "attribute": "logic",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!e8c267554d5f54eb"
+}

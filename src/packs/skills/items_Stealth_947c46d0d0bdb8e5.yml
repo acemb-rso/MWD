@@ -1,0 +1,28 @@
+{
+  "_id": "947c46d0d0bdb8e5",
+  "name": "Stealth",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/stealth.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 800000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "stealth",
+    "attribute": "agility",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!947c46d0d0bdb8e5"
+}
