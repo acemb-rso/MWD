@@ -47,6 +47,10 @@
           "armorGivesResistance": "RD = Armor/3 + Str/4, damaged per blow, AA ignores armor",
           "armorGiveResistanceHitsAvoid": "RD = Armor/3, damaged per blow, AA reduces resistance"
         }
+      },
+      "useDestinyMechanics": {
+        "name": "Use Destiny opposed roll mechanics",
+        "hint": "Roll 2D6 and add the computed pool as a modifier instead of counting successes."
       }
     },
     "gmManager": {

@@ -56,6 +56,7 @@ import { Modifiers } from './modifiers/modifiers.js';
 import { ActorDamageManager } from './actor/actor-damage.js';
 import { AttributeActions } from './attribute-actions.js';
 import { DiceCursor } from './roll/dice-cursor.js';
+import { SystemSettings } from './system-settings.js';
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -98,6 +99,7 @@ export class AnarchySystem {
     this.gmAnarchy = new GMAnarchy();
     this.gmConvergence = new GMConvergence();
     Enums.init();
+    SystemSettings.register();
 
     this.skills = new Skills();
     this.modifiers = new Modifiers();

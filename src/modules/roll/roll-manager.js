@@ -1,6 +1,6 @@
 import { ChatManager, CAN_USE_EDGE, MESSAGE_DATA, OWNING_ACTOR } from "../chat/chat-manager.js";
 import { ANARCHY } from "../config.js";
-import { TEMPLATES_PATH } from "../constants.js";
+import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
 import { Enums } from "../enums.js";
 import { Misc } from "../misc.js";
 import { Tokens } from "../token/tokens.js";
@@ -37,6 +37,7 @@ export class RollManager {
     })
 
     roll.param = game.system.anarchy.rollParameters.compute(roll.parameters);
+    roll.param.destinyMode = game.settings.get(SYSTEM_NAME, "useDestinyMechanics");
     roll.param.edge = roll.parameters.find(it => it.category == ROLL_PARAMETER_CATEGORY.edge && it.used) ? 1 : 0;
     roll.param.anarchy = roll.parameters.filter(it => it.flags?.isAnarchy && it.used).length;
     roll.options.canUseEdge = roll.options.canUseEdge && !roll.param.edge;
