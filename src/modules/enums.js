@@ -23,6 +23,9 @@ export class Enums {
   static hbsMwdHardpointLocations;
   static hbsMwdPrimaryModes;
   static hbsMwdWeaponCategories;
+  static hbsMwdWeaponDamageTypes;
+  static hbsPersonalWeaponDamageTypes;
+  static hbsPersonalWeaponDamageCategories;
   static hbsMwdMeleeLocations;
 
   static sortedAttributeKeys;
@@ -45,6 +48,9 @@ export class Enums {
     Enums.hbsMwdHardpointLocations = Enums.mapObjetToKeyValue(ANARCHY.mwd.hardpointLocation);
     Enums.hbsMwdPrimaryModes = Enums.mapObjetToKeyValue(ANARCHY.mwd.primarySlotMode);
     Enums.hbsMwdWeaponCategories = Enums.mapObjetToKeyValue(ANARCHY.mwd.weaponCategory);
+    Enums.hbsMwdWeaponDamageTypes = Enums.mapObjetToKeyValue(ANARCHY.mwd.weaponDamageType);
+    Enums.hbsPersonalWeaponDamageTypes = Enums.mapObjetToKeyValue(ANARCHY.mwd.personalDamageType);
+    Enums.hbsPersonalWeaponDamageCategories = Enums.mapObjetToKeyValue(ANARCHY.mwd.personalDamageCategory);
     Enums.hbsMwdMeleeLocations = Enums.mapObjetToKeyValue(ANARCHY.mwd.meleeLocation);
 
     Enums.sortedAttributeKeys = Object.keys(ANARCHY.attributes);
@@ -74,6 +80,9 @@ export class Enums {
       mwdHardpointLocations: Enums.hbsMwdHardpointLocations,
       mwdPrimaryModes: Enums.hbsMwdPrimaryModes,
       mwdWeaponCategories: Enums.hbsMwdWeaponCategories,
+      mwdWeaponDamageTypes: Enums.hbsMwdWeaponDamageTypes,
+      personalWeaponDamageTypes: Enums.hbsPersonalWeaponDamageTypes,
+      personalWeaponDamageCategories: Enums.hbsPersonalWeaponDamageCategories,
       mwdMeleeLocations: Enums.hbsMwdMeleeLocations,
     };
   }

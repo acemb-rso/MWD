@@ -1,0 +1,28 @@
+{
+  "_id": "7e9c7f520768fb26",
+  "name": "Firearms",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/firearms.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 700000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "firearms",
+    "attribute": "agility",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!7e9c7f520768fb26"
+}

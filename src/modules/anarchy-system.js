@@ -23,10 +23,8 @@ import { VehicleSheet } from './actor/vehicle-sheet.js';
 import { BattlemechSheet } from './actor/battlemech-sheet.js';
 import { CharacterNPCSheet } from './actor/character-npc-sheet.js';
 import { SkillItem } from './item/skill-item.js';
-import { CyberdeckItem } from './item/cyberdeck-item.js';
 import { WeaponItem } from './item/weapon-item.js';
 import { ContactItemSheet } from './item/contact-item-sheet.js';
-import { CyberdeckItemSheet } from './item/cyberdeck-item-sheet.js';
 import { GearItemSheet } from './item/gear-item-sheet.js';
 import { QualityItemSheet } from './item/quality-item-sheet.js';
 import { ShadowampItemSheet } from './item/shadowamp-item-sheet.js';
@@ -76,12 +74,12 @@ export class AnarchySystem {
     }
     this.itemClasses = {
       contact: ContactItem,
-      cyberdeck: CyberdeckItem,
       gear: GearItem,
       quality: QualityItem,
       shadowamp: ShadowampItem,
       skill: SkillItem,
-      weapon: WeaponItem
+      mechWeapon: WeaponItem,
+      personalWeapon: WeaponItem
     }
 
     this.hooks = new HooksManager();
@@ -173,12 +171,11 @@ export class AnarchySystem {
     const { Items } = foundry.documents.collections;
     Items.unregisterSheet('core', foundry.appv1.sheets.ItemSheet);
     Items.registerSheet(SYSTEM_NAME, ContactItemSheet, { types: ["contact"], makeDefault: true });
-    Items.registerSheet(SYSTEM_NAME, CyberdeckItemSheet, { types: ["cyberdeck"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, GearItemSheet, { types: ["gear"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, QualityItemSheet, { types: ["quality"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, ShadowampItemSheet, { types: ["shadowamp"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, SkillItemSheet, { types: ["skill"], makeDefault: true });
-    Items.registerSheet(SYSTEM_NAME, WeaponItemSheet, { types: ["weapon"], makeDefault: true });
+    Items.registerSheet(SYSTEM_NAME, WeaponItemSheet, { types: ["mechWeapon", "personalWeapon"], makeDefault: true });
   }
 
 }

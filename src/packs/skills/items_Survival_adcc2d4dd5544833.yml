@@ -1,0 +1,28 @@
+{
+  "_id": "adcc2d4dd5544833",
+  "name": "Survival",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/survival.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2400000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "survival",
+    "attribute": "willpower",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!adcc2d4dd5544833"
+}

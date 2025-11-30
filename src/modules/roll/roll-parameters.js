@@ -496,7 +496,7 @@ export class RollParameters {
   }
 
   static computeRollModifiers(effect, context) {
-    const itemsFilter = it => it.type != TEMPLATE.itemType.weapon || (context.weapon && it.id == context.weapon.id)
+    const itemsFilter = it => !it.isWeapon?.() || (context.weapon && it.id == context.weapon.id)
     const items = context.actor.items.filter(itemsFilter)
     return Modifiers.computeRollModifiers(items, context, effect);
   }

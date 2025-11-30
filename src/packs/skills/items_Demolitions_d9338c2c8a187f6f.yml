@@ -1,0 +1,28 @@
+{
+  "_id": "d9338c2c8a187f6f",
+  "name": "Demolitions",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/demolition.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1400000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "demolitions",
+    "attribute": "logic",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!d9338c2c8a187f6f"
+}

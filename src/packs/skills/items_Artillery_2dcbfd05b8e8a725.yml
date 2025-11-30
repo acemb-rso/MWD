@@ -1,0 +1,28 @@
+{
+  "_id": "2dcbfd05b8e8a725",
+  "name": "Artillery",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/artillery.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1100000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "artillery",
+    "attribute": "logic",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!2dcbfd05b8e8a725"
+}

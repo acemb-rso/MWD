@@ -1,0 +1,28 @@
+{
+  "_id": "6d01691fbe81df32",
+  "name": "Melee Combat",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/close-combat.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 400000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "meleeCombat",
+    "attribute": "agility",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!6d01691fbe81df32"
+}

@@ -1,6 +1,6 @@
 {
   "id": "mwd",
-  "version": "13.3.0.",
+  "version": "13.3.2",
   "manifest": "https://raw.githubusercontent.com/acemb-rso/MWD/main/system.json",
   "download": "https://github.com/acemb-rso/MWD/archive/refs/heads/main.zip",
   "url": "https://github.com/acemb-rso/MWD",
@@ -73,6 +73,16 @@
       "system": "mwd",
       "ownership": {
         "PLAYER": "NONE",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "skills",
+      "label": "Skills",
+      "type": "Item",
+      "system": "mwd",
+      "ownership": {
+        "PLAYER": "OBSERVER",
         "ASSISTANT": "OWNER"
       }
     }

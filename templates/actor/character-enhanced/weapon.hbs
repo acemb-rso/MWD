@@ -33,17 +33,17 @@
           this)
           damage=system.damage
           monitor=system.monitor
-          armor=(weaponArmorMode system.monitor system.noArmor)
+          armor=(weaponArmorMode system.monitor system.armorAvoidance)
           }}
           </span>
           {{!-- <div>
             {{localize (concat 'ANARCHY.area.' (either system.area 'none'))}}
           </div> --}}
-          {{#if hasDrain}}
+          {{#if (eq type 'mechWeapon')}}
           <spam class="weapon-drain">
-            {{localize 'ANARCHY.item.weapon.drain'}}:
+            {{localize 'ANARCHY.item.mechWeapon.heat'}}:
           </spam>
-          {{system.drain}}
+          {{system.heat}}
           {{/if}}
         </div>
         <div class="weapon-range">

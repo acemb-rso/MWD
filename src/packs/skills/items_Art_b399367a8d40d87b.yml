@@ -1,0 +1,28 @@
+{
+  "_id": "b399367a8d40d87b",
+  "name": "Art",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/art.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1000000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "art",
+    "attribute": "logic",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!b399367a8d40d87b"
+}

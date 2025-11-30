@@ -1,0 +1,28 @@
+{
+  "_id": "99e1303406ba52ad",
+  "name": "Athletics",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/athletics.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 0,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "athletics",
+    "attribute": "strength",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!99e1303406ba52ad"
+}
