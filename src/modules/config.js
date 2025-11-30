@@ -47,6 +47,10 @@ export const ANARCHY = {
                 armorGivesResistance: 'ANARCHY.settings.damageMode.values.armorGivesResistance',
                 armorGiveResistanceHitsAvoid: 'ANARCHY.settings.damageMode.values.armorGiveResistanceHitsAvoid',
             },
+        },
+        useDestinyMechanics: {
+            name: 'ANARCHY.settings.useDestinyMechanics.name',
+            hint: 'ANARCHY.settings.useDestinyMechanics.hint',
         }
     },
     gmManager: {
