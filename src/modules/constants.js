@@ -56,8 +56,6 @@ export const TEMPLATE = {
   },
   capacities: {
     mundane: 'mundane',
-    awakened: 'awakened',
-    emerged: 'emerged',
   },
   monitors: {
     fatigue: 'fatigue',

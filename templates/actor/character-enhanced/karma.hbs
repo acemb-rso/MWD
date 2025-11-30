@@ -1,19 +1,19 @@
  <div class="karma-wrapper">
   <div class="karma-row">
-    <label class="info-label" for="system.counters.karma.value">
-      {{localize 'ANARCHY.actor.counters.karmaUnused'}}
+    <label class="info-label" for="system.counters.xp.value">
+      {{localize 'ANARCHY.actor.counters.xpUnused'}}
     </label>
     <input {{#if @root.options.viewMode}}disabled{{/if}} class="info-value" type="number" data-dtype="Number"
-      name="system.counters.karma.value"
-      value="{{system.counters.karma.value}}" />
+      name="system.counters.xp.value"
+      value="{{system.counters.xp.value}}" />
   </div>
   <div>/</div>
   <div class="karma-row">
-    <label class="info-label" for="system.counters.karma.total">
-      {{localize 'ANARCHY.actor.counters.karmaTotal'}}
+    <label class="info-label" for="system.counters.xp.total">
+      {{localize 'ANARCHY.actor.counters.xpTotal'}}
     </label>
     <input {{#if @root.options.viewMode}}disabled{{/if}} class="info-value" type="number" data-dtype="Number"
-      name="system.counters.karma.total"
-      value="{{system.counters.karma.total}}" />
+      name="system.counters.xp.total"
+      value="{{system.counters.xp.total}}" />
   </div>
 </div>

@@ -29,6 +29,4 @@ export class SpriteActor extends AnarchyBaseActor {
   getAttributes() {
     return SPRITE_ATTRIBUTES
   }
-
-  isEmerged() { return true }
 }

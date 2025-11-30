@@ -203,15 +203,10 @@
         "cues": "Cues",
         "dispositions": "Dispositions"
       },
-      "essence": {
-        "adjustments": "to Magic, resonance, healing",
-        "adjustShort": "Essence adj. "
-      },
       "counters": {
-        "essence": "Essence",
-        "karma": "Karma",
-        "karmaUnused": "Unused",
-        "karmaTotal": "Total",
+        "xp": "XP",
+        "xpUnused": "Unspent XP",
+        "xpTotal": "Lifetime XP",
         "edge": "Edge",
         "anarchy": "Anarchy",
         "sceneAnarchy": "Scene Anarchy",
@@ -282,9 +277,7 @@
         "category": "Category",
         "capacity": "Capacity",
         "level": "Level",
-        "essence": "Essence",
-        "levelShort": "Lvl",
-        "essenceShort": "Ess"
+        "levelShort": "Lvl"
       },
       "weapon": {
         "skill": "Skill",
@@ -335,8 +328,6 @@
     },
     "capacity": {
       "mundane": "Mundane",
-      "awakened": "Awakened",
-      "emerged": "Emerged"
     },
     "monitor": {
       "physical": "Physical",
@@ -358,7 +349,7 @@
       "cyberware": "Cyberware",
       "drone": "Drone",
       "equipment": "Equipment",
-      "focus": "Focus (awakened only)",
+      "focus": "Focus",
       "program": "Program",
       "spell": "Spell",
       "special": "Special"
@@ -506,7 +497,6 @@
           "damageArmor": "Damage to armor",
           "sceneAnarchy": "Scene Anarchy",
           "locationAnarchy": "Location anarchy",
-          "essenceAdjustment": "Essence adjustment",
           "initiative": "Initiative bonus",
           "celebrity": "Adjust celebrity"
         },

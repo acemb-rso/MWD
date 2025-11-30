@@ -21,14 +21,9 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     if (this.viewMode == undefined) {
       this.viewMode = true
     }
-    const essence = this.actor.computeEssence();
     const hbsData = foundry.utils.mergeObject(
       super.getData(options),
       {
-        essence: {
-          value: essence,
-          adjust: this.actor.computeMalusEssence(essence)
-        },
         options: {
           viewMode: this.viewMode
         }
