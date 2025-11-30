@@ -9,9 +9,9 @@ const GM_MANAGER_POSITION = "gm-manager-position";
 const GM_MANAGER_INITIAL_POSITION = { top: 200, left: 200 };
 const GM_MANAGER_TEMPLATE = 'systems/mwd/templates/app/gm-manager.hbs';
 
-const { ApplicationV2 } = foundry.applications.api;
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-export class GMManager extends ApplicationV2 {
+export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
 
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {

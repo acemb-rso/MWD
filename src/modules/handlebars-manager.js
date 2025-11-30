@@ -14,6 +14,7 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/monitors/anarchy-actor.hbs',
   'systems/mwd/templates/monitors/armor.hbs',
   'systems/mwd/templates/monitors/edge.hbs',
+  'systems/mwd/templates/monitors/heat.hbs',
   'systems/mwd/templates/actor/parts/matrix-cyberdeck.hbs',
   'systems/mwd/templates/monitors/matrix.hbs',
   'systems/mwd/templates/monitors/physical.hbs',
