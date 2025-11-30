@@ -1,6 +1,8 @@
 import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME } from "../constants.js";
 
+const { renderTemplate } = foundry.applications.handlebars;
+
 const GM_DIFFICULTY_POOLS = "gm-difficulty-pools";
 const SYSTEM_KEY_GM_DIFFICULTY_POOL = `${SYSTEM_NAME}.${GM_DIFFICULTY_POOLS}`;
 export class GMDifficulty {

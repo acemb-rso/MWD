@@ -5,6 +5,8 @@ import { Misc } from "../misc.js";
 import { DiceCursor } from "./dice-cursor.js";
 import { ROLL_PARAMETER_CATEGORY } from "./roll-parameters.js";
 
+const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
+
 /**
  * Extend the base Dialog to select roll parameters
  * @extends {Dialog}

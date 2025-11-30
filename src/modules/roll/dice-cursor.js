@@ -1,5 +1,7 @@
 import { Misc } from "../misc.js";
 
+const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
+
 
 const DICE_FAS_ICONS = {
   highlighted: ['far fa-times-circle', 'fas fa-dice-one', 'fas fa-dice-two', 'fas fa-dice-three', 'fas fa-dice-four', 'fas fa-dice-five', 'fas fa-dice-six'],

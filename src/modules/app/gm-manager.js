@@ -2,6 +2,8 @@ import { HandleDragApplication } from "./handle-drag.js";
 import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME } from "../constants.js";
 import { GMDifficulty } from "./gm-difficulty.js";
+
+const { renderTemplate } = foundry.applications.handlebars;
 const GM_MANAGER = "gm-manager";
 const GM_MANAGER_POSITION = "gm-manager-position";
 const GM_MANAGER_INITIAL_POSITION = { top: 200, left: 200 };

@@ -7,6 +7,8 @@ import { Tokens } from "../token/tokens.js";
 import { AnarchyRoll } from "./anarchy-roll.js";
 import { ROLL_PARAMETER_CATEGORY } from "./roll-parameters.js";
 
+const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
+
 const HBS_TEMPLATE_CHAT_ANARCHY_ROLL = `${TEMPLATES_PATH}/chat/anarchy-roll.hbs`;
 
 const HBS_CHAT_TEMPLATES = [
