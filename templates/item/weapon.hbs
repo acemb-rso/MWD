@@ -96,29 +96,16 @@
             {{/select}}
           </select>
       </div>
-      <div class="form-group">
-          <label for="system.range.short" >{{localize 'ANARCHY.range.short'}} </label>
-          <input class="type-numeric" type="number" data-dtype="Number"
-            name="system.range.short" value="{{numberFormat system.range.short decimals=0 sign=false}}"
-          />
-      </div>
-      {{#unless (eq system.range.max "short")}}
+      {{#each (weaponRangeList system.range)}}
+        {{#if allowed}}
         <div class="form-group">
-            <label for="system.range.medium" >{{localize 'ANARCHY.range.medium'}} </label>
+            <label for="system.range.{{key}}" >{{localize (concat 'ANARCHY.range.' key)}} </label>
             <input class="type-numeric" type="number" data-dtype="Number"
-              name="system.range.medium" value="{{numberFormat system.range.medium decimals=0 sign=false}}"
+              name="system.range.{{key}}" value="{{numberFormat value decimals=0 sign=false}}"
             />
         </div>
-      {{/unless}}
-
-      {{#if (eq system.range.max "long")}}
-      <div class="form-group">
-          <label for="system.range.long" >{{localize 'ANARCHY.range.long'}} </label>
-          <input class="type-numeric" type="number" data-dtype="Number"
-            name="system.range.long" value="{{numberFormat system.range.long decimals=0 sign=false}}"
-          />
-      </div>
-      {{/if}}
+        {{/if}}
+      {{/each}}
       {{> 'systems/mwd/templates/item/parts/inactive.hbs'}}
       {{> 'systems/mwd/templates/item/parts/references.hbs'}}
     </div>

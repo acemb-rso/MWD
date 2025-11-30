@@ -13,35 +13,49 @@ const DEFAULT_SKILLSET_ANARCHY = 'shadowrun-anarchy-en';
 const KNOWLEDGE = { code: 'knowledge', attribute: ATTR.knowledge, icon: `${ICONS_SKILLS_PATH}/knowledge.svg` };
 
 export const ANARCHY_SKILLS = [
+  // Strength
   { code: 'athletics', attribute: ATTR.strength, icon: `${ICONS_SKILLS_PATH}/athletics.svg` },
-  { code: 'acrobatics', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/escape-artist.svg` },
-  { code: 'closeCombat', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/close-combat.svg`, defense: DEFENSE.physicalDefense },
+  { code: 'heavyWeapons', attribute: ATTR.strength, icon: `${ICONS_SKILLS_PATH}/heavy-weapons.svg`, defense: DEFENSE.physicalDefense },
+
+  // Reflexes
+  { code: 'escapeArtist', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/escape-artist.svg` },
+  { code: 'gunnery', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/vehicle-weapons.svg`, defense: DEFENSE.physicalDefense },
+  { code: 'meleeCombat', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/close-combat.svg`, defense: DEFENSE.physicalDefense },
+  { code: 'piloting', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/piloting-ground-steering-wheel.svg` },
   { code: 'projectileWeapons', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/projectile-weapons.svg`, defense: DEFENSE.physicalDefense },
   { code: 'firearms', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/firearms.svg`, defense: DEFENSE.physicalDefense },
-  { code: 'heavyWeapons', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/heavy-weapons.svg`, defense: DEFENSE.physicalDefense },
-  { code: 'vehicleWeapons', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/vehicle-weapons.svg`, defense: DEFENSE.physicalDefense },
   { code: 'stealth', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/stealth.svg` },
-  { code: 'pilotingGround', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/piloting-ground-steering-wheel.svg` },
-  { code: 'pilotingOther', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/piloting-other.svg` },
-  { code: 'escapeArtist', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/escape-artist.svg` },
-  { code: 'conjuring', attribute: ATTR.willpower, hasDrain: true, icon: `${ICONS_SKILLS_PATH}/conjuring.svg` },
-  { code: 'sorcery', attribute: ATTR.willpower, hasDrain: true, icon: `${ICONS_SKILLS_PATH}/sorcery.svg` },
-  { code: 'astralCombat', attribute: ATTR.willpower, icon: `${ICONS_SKILLS_PATH}/astral-combat.svg` },
-  { code: 'survival', attribute: ATTR.willpower, icon: `${ICONS_SKILLS_PATH}/survival.svg` },
-  { code: 'biotech', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/biotech.svg` },
-  { code: 'hacking', attribute: ATTR.logic, hasConvergence: true, icon: `${ICONS_SKILLS_PATH}/hacking.svg` },
-  { code: 'electronics', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/electronics.svg` },
-  { code: 'engineering', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/engineering.svg` },
-  { code: 'tasking', attribute: ATTR.logic, hasDrain: true, icon: `${ICONS_SKILLS_PATH}/tasking.svg` },
+  { code: 'zeroGOperations', attribute: ATTR.agility, icon: `${ICONS_SKILLS_PATH}/free-fall.svg` },
+
+  // Intellect
+  { code: 'art', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/art.svg` },
+  { code: 'artillery', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/artillery.svg` },
+  { code: 'communications', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/networking.svg` },
+  { code: 'computers', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/hacking.svg` },
+  { code: 'demolitions', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/demolition.svg` },
+  { code: 'knowledge', attribute: ATTR.knowledge, icon: `${ICONS_SKILLS_PATH}/knowledge.svg` },
+  { code: 'medTech', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/biotech.svg` },
+  { code: 'science', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
+  { code: 'perception', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
+  { code: 'tactics', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
+  { code: 'technician', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/engineering.svg` },
   { code: 'tracking', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/tracking.svg` },
-  { code: 'animals', attribute: ATTR.charisma, icon: `${ICONS_SKILLS_PATH}/animals.svg` },
-  { code: 'con', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/con-art.svg` },
-  { code: 'etiquette', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/etiquette.svg` },
-  { code: 'intimidation', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/intimidation.svg` },
-  { code: 'negotiation', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/negotiation.svg` },
+  { code: 'navigation', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/piloting-other.svg` },
+
+  // Willpower
+  { code: 'animalHandling', attribute: ATTR.willpower, icon: `${ICONS_SKILLS_PATH}/animals.svg` },
+  { code: 'survival', attribute: ATTR.willpower, icon: `${ICONS_SKILLS_PATH}/survival.svg` },
+
+  // Charisma
+  { code: 'acting', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/con-art.svg` },
   { code: 'disguise', attribute: ATTR.charisma, icon: `${ICONS_SKILLS_PATH}/disguise.svg` },
+  { code: 'leadership', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
+  { code: 'negotiation', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/negotiation.svg` },
+  { code: 'etiquette', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/etiquette.svg` },
+  { code: 'streetwise', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/etiquette2.svg` },
+  { code: 'intimidation', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/intimidation.svg` },
 ]
-export const MATRIX_SKILLS = ['tasking', 'hacking']
+export const MATRIX_SKILLS = []
 
 export class Skills {
 
@@ -89,7 +103,7 @@ export class Skills {
 
   getSkills(options = { withKnowledge: false }) {
     const skills = this.$getConfiguredSkills().sort(Misc.ascending(it => it.label))
-    if (options.withKnowledge) {
+    if (options.withKnowledge && !skills.some(it => it.code === KNOWLEDGE.code)) {
       return [KNOWLEDGE, ...skills]
     }
     return skills

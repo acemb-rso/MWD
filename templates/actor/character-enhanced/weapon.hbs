@@ -47,19 +47,10 @@
           {{/if}}
         </div>
         <div class="weapon-range">
-          {{either system.range.short 'OK'}}
-
-          {{#if (eq system.range.max "short")}}
-          / -
-          {{else}}
-          / {{either system.range.medium 'OK'}}
-          {{/if}}
-
-          {{#if (eq system.range.max "long")}}
-          / {{either system.range.long 'OK'}}
-          {{else}}
-          / -
-          {{/if}}
+          {{#each (weaponRangeList system.range)}}
+          {{#unless @first}} / {{/unless}}
+          {{#if allowed}}{{either value 'OK'}}{{else}}-{{/if}}
+          {{/each}}
         </div>
       </div>
     </div>
