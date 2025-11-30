@@ -1,0 +1,159 @@
+<div class="anarchy-block battlemech-loadout">
+  <h3 class="section-group-header">{{localize 'ANARCHY.mwd.loadout.title'}}</h3>
+  <div class="flexrow loadout-summary">
+    <div class="flexcol">
+      <label>{{localize 'ANARCHY.mwd.weightClass.label'}}</label>
+      <select name="system.mwd.weightClass">
+        {{#select system.mwd.weightClass}}
+          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdWeightClasses}}
+        {{/select}}
+      </select>
+    </div>
+    <div class="flexcol">
+      <label>{{localize 'ANARCHY.mwd.loadout.mountPoints'}}</label>
+      <span>{{system.mwd.loadout.mountPoints.used}} / {{system.mwd.loadout.mountPoints.total}}</span>
+    </div>
+    <div class="flexcol">
+      <label>{{localize 'ANARCHY.mwd.loadout.primarySlot.label'}}</label>
+      <div class="flexrow">
+        <select name="system.mwd.primarySlot.mode">
+          {{#select system.mwd.primarySlot.mode}}
+            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdPrimaryModes}}
+          {{/select}}
+        </select>
+        <select name="system.mwd.primarySlot.typeRestriction">
+          {{#select system.mwd.primarySlot.typeRestriction}}
+            <option value="">{{localize 'ANARCHY.mwd.loadout.primarySlot.noRestriction'}}</option>
+            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdHardpointTypes}}
+          {{/select}}
+        </select>
+      </div>
+      <label class="small-label">{{localize 'ANARCHY.mwd.loadout.primarySlot.allowedWeapons'}}</label>
+      <select name="system.mwd.primarySlot.allowedWeaponIds" multiple>
+        {{#each items.weapon as |weapon|}}
+          {{#if (ne weapon.system.weaponCategory 'melee')}}
+          <option value="{{weapon._id}}" {{#if (includes ../system.mwd.primarySlot.allowedWeaponIds weapon._id)}}selected{{/if}}>{{weapon.name}}</option>
+          {{/if}}
+        {{/each}}
+      </select>
+    </div>
+  </div>
+  <div class="flexrow loadout-columns">
+    <div class="flexcol loadout-column">
+      <div class="loadout-column-header">
+        <h4>{{localize 'ANARCHY.mwd.loadout.hardpoints'}}</h4>
+        <a class="click-add-hardpoint"><i class="fa-solid fa-plus"></i></a>
+      </div>
+      <div class="loadout-list">
+        {{#each system.mwd.hardpoints as |hardpoint idx|}}
+          <div class="loadout-row">
+            <select name="system.mwd.hardpoints.{{idx}}.type">
+              {{#select hardpoint.type}}
+                {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=../../ENUMS.mwdHardpointTypes}}
+              {{/select}}
+            </select>
+            <select name="system.mwd.hardpoints.{{idx}}.size">
+              {{#select hardpoint.size}}
+                {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=../../ENUMS.mwdHardpointSizes}}
+              {{/select}}
+            </select>
+            <select name="system.mwd.hardpoints.{{idx}}.location">
+              {{#select hardpoint.location}}
+                {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=../../ENUMS.mwdHardpointLocations}}
+              {{/select}}
+            </select>
+            <span class="loadout-occupant">
+              {{#if (lookup ../system.mwd.loadout.hardpoints idx)}}
+                {{#with (lookup ../system.mwd.loadout.hardpoints idx)}}
+                  {{#if occupiedByName}}
+                    {{localize 'ANARCHY.mwd.loadout.occupied' weaponGroup=occupiedByName}}
+                  {{else}}
+                    {{localize 'ANARCHY.mwd.loadout.emptyHardpoint'}}
+                  {{/if}}
+                {{/with}}
+              {{/if}}
+            </span>
+            <a class="click-delete-hardpoint" data-index="{{idx}}"><i class="fa-solid fa-trash"></i></a>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+    <div class="flexcol loadout-column">
+      <div class="loadout-column-header">
+        <h4>{{localize 'ANARCHY.mwd.loadout.weaponGroups'}}</h4>
+        <a class="click-add-weapon-group"><i class="fa-solid fa-plus"></i></a>
+      </div>
+      <div class="loadout-list">
+        {{#each system.mwd.weaponGroups as |group idx|}}
+          <div class="loadout-row">
+            <input type="text" name="system.mwd.weaponGroups.{{idx}}.name" value="{{group.name}}" />
+            <label>
+              <input class="input-primary-group" data-index="{{idx}}" type="checkbox" name="system.mwd.weaponGroups.{{idx}}.isPrimary" {{checked group.isPrimary}} />
+              {{localize 'ANARCHY.mwd.loadout.primaryTag'}}
+            </label>
+            <select name="system.mwd.weaponGroups.{{idx}}.weaponIds" multiple>
+              {{#each ../../items.weapon as |weapon|}}
+                {{#if (ne weapon.system.weaponCategory 'melee')}}
+                <option value="{{weapon._id}}" {{#if (includes ../group.weaponIds weapon._id)}}selected{{/if}}>{{weapon.name}}</option>
+                {{/if}}
+              {{/each}}
+            </select>
+            <a class="click-delete-weapon-group" data-index="{{idx}}"><i class="fa-solid fa-trash"></i></a>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+  <div class="flexrow loadout-columns">
+    <div class="flexcol loadout-column">
+      <h4>{{localize 'ANARCHY.mwd.melee.title'}}</h4>
+      <label>{{localize 'ANARCHY.mwd.melee.baseProfileLabel'}}</label>
+      <input type="text" name="system.mwd.melee.baseProfile.name" value="{{system.mwd.melee.baseProfile.name}}" />
+      <input type="text" name="system.mwd.melee.baseProfile.damage" value="{{system.mwd.melee.baseProfile.damage}}" placeholder="{{localize 'ANARCHY.mwd.melee.damagePlaceholder'}}" />
+      <textarea name="system.mwd.melee.baseProfile.notes" rows="2" placeholder="{{localize 'ANARCHY.mwd.melee.notesPlaceholder'}}">{{system.mwd.melee.baseProfile.notes}}</textarea>
+      <label>{{localize 'ANARCHY.mwd.melee.maxWeapons'}}</label>
+      <input type="number" name="system.mwd.melee.maxWeapons" data-dtype="Number" value="{{system.mwd.melee.maxWeapons}}" />
+      <label>{{localize 'ANARCHY.mwd.melee.allowedLocations'}}</label>
+      <select name="system.mwd.melee.allowedLocations" multiple>
+        {{#each ENUMS.mwdMeleeLocations as |location|}}
+          <option value="{{location.value}}" {{#if (includes ../system.mwd.melee.allowedLocations location.value)}}selected{{/if}}>{{localize location.labelkey}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <div class="flexcol loadout-column">
+      <h4>{{localize 'ANARCHY.mwd.melee.availableProfiles'}} ({{length system.mwd.loadout.meleeProfiles}})</h4>
+      <ul class="melee-profile-list">
+        {{#each system.mwd.loadout.meleeProfiles as |profile|}}
+          <li>
+            <strong>{{profile.name}}</strong>: {{profile.damage}}
+            {{#if profile.notes}}
+              <span class="profile-notes">{{profile.notes}}</span>
+            {{/if}}
+          </li>
+        {{/each}}
+      </ul>
+    </div>
+  </div>
+  <div class="loadout-feedback">
+    {{#if system.mwd.loadout.errors.length}}
+      <div class="loadout-errors">
+        <strong>{{localize 'ANARCHY.mwd.loadout.errors.label'}}</strong>
+        <ul>
+          {{#each system.mwd.loadout.errors as |error|}}
+            <li>{{error}}</li>
+          {{/each}}
+        </ul>
+      </div>
+    {{/if}}
+    {{#if system.mwd.loadout.warnings.length}}
+      <div class="loadout-warnings">
+        <strong>{{localize 'ANARCHY.mwd.loadout.warnings.label'}}</strong>
+        <ul>
+          {{#each system.mwd.loadout.warnings as |warning|}}
+            <li>{{warning}}</li>
+          {{/each}}
+        </ul>
+      </div>
+    {{/if}}
+  </div>
+</div>

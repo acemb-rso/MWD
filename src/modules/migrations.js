@@ -355,6 +355,7 @@ class _13_2_2_AddMwdVehicleModel extends Migration {
     const isMech = actorType === TEMPLATE.actorTypes.battlemech;
     const base = {
       unitType: isMech ? 'mech' : 'vehicle',
+      weightClass: isMech ? 'medium' : 'vehicle',
       heat: {
         current: 0,
         safeMax: 1,
@@ -363,6 +364,22 @@ class _13_2_2_AddMwdVehicleModel extends Migration {
         coolingImpaired: false,
       },
       locations: {},
+      hardpoints: [],
+      weaponGroups: [],
+      primarySlot: {
+        mode: 'normal',
+        allowedWeaponIds: [],
+        typeRestriction: '',
+      },
+      melee: {
+        baseProfile: {
+          name: 'Unarmed',
+          damage: '',
+          notes: '',
+        },
+        maxWeapons: 0,
+        allowedLocations: [],
+      },
       crits: [],
       crew: {
         count: isMech ? 1 : 3,
@@ -416,6 +433,72 @@ class _13_2_2_AddMwdVehicleModel extends Migration {
   }
 }
 
+class _13_2_3_AddBattlemechLoadout extends Migration {
+  get version() { return '13.2.3' }
+  get code() { return 'migrate-mwd-battlemech-loadout' }
+
+  async migrate() {
+    const mechs = game.actors.filter(it => it.type === TEMPLATE.actorTypes.battlemech);
+    for (const actor of mechs) {
+      const updates = {};
+      this._ensure(actor, updates, 'system.mwd.weightClass', 'medium');
+      this._ensure(actor, updates, 'system.mwd.hardpoints', []);
+      this._ensure(actor, updates, 'system.mwd.weaponGroups', []);
+      this._ensure(actor, updates, 'system.mwd.primarySlot.mode', 'normal');
+      this._ensure(actor, updates, 'system.mwd.primarySlot.allowedWeaponIds', []);
+      this._ensure(actor, updates, 'system.mwd.primarySlot.typeRestriction', '');
+      this._ensure(actor, updates, 'system.mwd.melee.baseProfile.name', 'Unarmed');
+      this._ensure(actor, updates, 'system.mwd.melee.baseProfile.damage', '');
+      this._ensure(actor, updates, 'system.mwd.melee.baseProfile.notes', '');
+      this._ensure(actor, updates, 'system.mwd.melee.maxWeapons', 0);
+      this._ensure(actor, updates, 'system.mwd.melee.allowedLocations', []);
+      if (Object.keys(updates).length > 0) {
+        await actor.update(updates);
+      }
+    }
+
+    const worldWeapons = game.items.filter(it => it.type === TEMPLATE.itemType.weapon);
+    for (const weapon of worldWeapons) {
+      const updates = this._collectWeaponUpdates(weapon);
+      if (Object.keys(updates).length > 0) {
+        await weapon.update(updates);
+      }
+    }
+
+    for (const actor of game.actors) {
+      const updates = actor.items
+        .filter(it => it.type === TEMPLATE.itemType.weapon)
+        .map(it => ({ _id: it.id, ...this._collectWeaponUpdates(it) }))
+        .filter(update => Object.keys(update).length > 1);
+      if (updates.length > 0) {
+        await actor.updateEmbeddedDocuments('Item', updates);
+      }
+    }
+  }
+
+  _ensure(actor, updates, path, defaultValue) {
+    const value = foundry.utils.getProperty(actor, path);
+    if (value === undefined) {
+      updates[path] = defaultValue;
+    }
+  }
+
+  _collectWeaponUpdates(item) {
+    const updates = {};
+    this._ensureItem(item, updates, 'system.weaponCategory', 'ranged');
+    this._ensureItem(item, updates, 'system.hardpointType', 'energy');
+    this._ensureItem(item, updates, 'system.hardpointSize', 'small');
+    this._ensureItem(item, updates, 'system.mountLocation', '');
+    return updates;
+  }
+
+  _ensureItem(item, updates, path, defaultValue) {
+    if (foundry.utils.getProperty(item, path) === undefined) {
+      updates[path] = defaultValue;
+    }
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -434,6 +517,7 @@ export class Migrations {
       new _12_0_1_MigrateChatMessageFlags(),
       new _12_0_4_MigrateWeaponDrain(),
       new _13_2_2_AddMwdVehicleModel(),
+      new _13_2_3_AddBattlemechLoadout(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

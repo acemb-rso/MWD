@@ -99,6 +99,7 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/actor/parts/weapon-range.hbs',
   'systems/mwd/templates/actor/parts/weapon.hbs',
   'systems/mwd/templates/actor/parts/weapons.hbs',
+  'systems/mwd/templates/actor/parts/battlemech-loadout.hbs',
   //-- NPC
   'systems/mwd/templates/actor/npc-parts/quality.hbs',
   'systems/mwd/templates/actor/npc-parts/qualities.hbs',
@@ -167,6 +168,8 @@ export class HandlebarsManager {
 
   registerBasicHelpers() {
     Handlebars.registerHelper('concat', (...args) => Misc.join(args.slice(0, -1)));
+    Handlebars.registerHelper('eq', (a, b) => a === b);
+    Handlebars.registerHelper('ne', (a, b) => a !== b);
     Handlebars.registerHelper('substring', (str, from, to) => str?.substring(from, to));
     Handlebars.registerHelper('toUpperCase', Grammar.toUpperCaseNoAccent);
     Handlebars.registerHelper('weaponDamageLetter', Damage.letter);
@@ -187,6 +190,7 @@ export class HandlebarsManager {
     Handlebars.registerHelper('min', (v1, v2) => Math.min(v1, v2));
     Handlebars.registerHelper('max', (v1, v2) => Math.max(v1, v2));
     Handlebars.registerHelper('either', (a, b) => a ? a : b);
+    Handlebars.registerHelper('includes', (list, value) => list?.includes(value));
     Handlebars.registerHelper('isInteger', a => a !== undefined && Number.isInteger(a));
     Handlebars.registerHelper('actorAttribute', (attribute, actor, item = undefined) => actor.getAttributeValue(attribute, item));
     Handlebars.registerHelper('localizeAttribute', Enums.localizeAttribute);

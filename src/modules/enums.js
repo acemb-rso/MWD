@@ -17,6 +17,13 @@ export class Enums {
   static hbsShadowampCategories;
   static hbsAreas;
   static hbsRanges;
+  static hbsMwdWeightClasses;
+  static hbsMwdHardpointTypes;
+  static hbsMwdHardpointSizes;
+  static hbsMwdHardpointLocations;
+  static hbsMwdPrimaryModes;
+  static hbsMwdWeaponCategories;
+  static hbsMwdMeleeLocations;
 
   static sortedAttributeKeys;
 
@@ -32,6 +39,13 @@ export class Enums {
     Enums.hbsAreas = Enums.mapObjetToKeyValue(ANARCHY.area);
     Enums.hbsRanges = Enums.mapObjetToKeyValue(ANARCHY.range);
     Enums.hbsVehicleCategories = Enums.mapObjetToKeyValue(ANARCHY.vehicleCategory);
+    Enums.hbsMwdWeightClasses = Enums.mapObjetToKeyValue(ANARCHY.mwd.weightClass);
+    Enums.hbsMwdHardpointTypes = Enums.mapObjetToKeyValue(ANARCHY.mwd.hardpointType);
+    Enums.hbsMwdHardpointSizes = Enums.mapObjetToKeyValue(ANARCHY.mwd.hardpointSize);
+    Enums.hbsMwdHardpointLocations = Enums.mapObjetToKeyValue(ANARCHY.mwd.hardpointLocation);
+    Enums.hbsMwdPrimaryModes = Enums.mapObjetToKeyValue(ANARCHY.mwd.primarySlotMode);
+    Enums.hbsMwdWeaponCategories = Enums.mapObjetToKeyValue(ANARCHY.mwd.weaponCategory);
+    Enums.hbsMwdMeleeLocations = Enums.mapObjetToKeyValue(ANARCHY.mwd.meleeLocation);
 
     Enums.sortedAttributeKeys = Object.keys(ANARCHY.attributes);
 
@@ -53,7 +67,14 @@ export class Enums {
         .map(it => { return { value: it.code, label: game.i18n.localize(it.labelkey), labelkey: it.labelkey }; }),
       areas: Enums.hbsAreas,
       ranges: Enums.hbsRanges,
-      vehicleCategories: Enums.hbsVehicleCategories
+      vehicleCategories: Enums.hbsVehicleCategories,
+      mwdWeightClasses: Enums.hbsMwdWeightClasses,
+      mwdHardpointTypes: Enums.hbsMwdHardpointTypes,
+      mwdHardpointSizes: Enums.hbsMwdHardpointSizes,
+      mwdHardpointLocations: Enums.hbsMwdHardpointLocations,
+      mwdPrimaryModes: Enums.hbsMwdPrimaryModes,
+      mwdWeaponCategories: Enums.hbsMwdWeaponCategories,
+      mwdMeleeLocations: Enums.hbsMwdMeleeLocations,
     };
   }
 
