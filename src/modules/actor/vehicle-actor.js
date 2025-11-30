@@ -50,6 +50,7 @@ export class VehicleActor extends AnarchyBaseActor {
   getPhysicalAgility() { return TEMPLATE.attributes.autopilot }
 
   getDamageMonitor(damageType) {
+    damageType = this.resolveDamageType(damageType);
     switch (damageType) {
       case TEMPLATE.monitors.physical: return TEMPLATE.monitors.structure
       case TEMPLATE.monitors.fatigue: return undefined

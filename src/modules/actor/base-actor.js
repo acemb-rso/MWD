@@ -296,7 +296,16 @@ export class AnarchyBaseActor extends Actor {
     return value;
   }
 
+  resolveDamageType(damageType) {
+    switch (damageType) {
+      case 'stun':
+        return TEMPLATE.monitors.fatigue;
+    }
+    return damageType;
+  }
+
   getDamageMonitor(damageType) {
+    damageType = this.resolveDamageType(damageType);
     switch (damageType) {
       case TEMPLATE.monitors.matrix:
       case TEMPLATE.monitors.marks:
@@ -306,6 +315,7 @@ export class AnarchyBaseActor extends Actor {
   }
 
   async applyArmorDamage(damageType, damage = 0) {
+    damageType = this.resolveDamageType(damageType);
     switch (damageType) {
       case TEMPLATE.monitors.physical:
       case TEMPLATE.monitors.fatigue:
