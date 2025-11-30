@@ -143,6 +143,9 @@
           "chassis": { "value": 4 },
           "condition": { "value": 3 }
         },
+        "pilot": {
+          "uuid": ""
+        },
         "mwd": {
           "unitType": "mech",
           "locations": {

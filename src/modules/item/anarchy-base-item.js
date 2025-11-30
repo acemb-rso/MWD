@@ -13,6 +13,9 @@ export class AnarchyBaseItem extends Item {
   }
 
   constructor(docData, context = {}) {
+    const legacyTypeMap = { weapon: TEMPLATE.itemType.personalWeapon };
+    docData.type = legacyTypeMap[docData.type] ?? docData.type;
+
     if (!context.anarchy?.ready) {
       foundry.utils.mergeObject(context, { anarchy: { ready: true } });
       const ItemConstructor = game.system.anarchy.itemClasses[docData.type];

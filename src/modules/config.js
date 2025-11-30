@@ -215,7 +215,42 @@ export const ANARCHY = {
             attacks: 'ANARCHY.actor.vehicle.attacks',
             stealth: 'ANARCHY.actor.vehicle.stealth',
             category: 'ANARCHY.actor.vehicle.category',
-            skill: 'ANARCHY.actor.vehicle.skill'
+            skill: 'ANARCHY.actor.vehicle.skill',
+            quickActions: {
+                title: 'ANARCHY.actor.vehicle.quickActions.title',
+                rangedAttack: 'ANARCHY.actor.vehicle.quickActions.rangedAttack',
+                meleeAttack: 'ANARCHY.actor.vehicle.quickActions.meleeAttack',
+                dodgeCheck: 'ANARCHY.actor.vehicle.quickActions.dodgeCheck',
+                pilotingCheck: 'ANARCHY.actor.vehicle.quickActions.pilotingCheck',
+                sensorSweep: 'ANARCHY.actor.vehicle.quickActions.sensorSweep',
+                emergencyRepair: 'ANARCHY.actor.vehicle.quickActions.emergencyRepair',
+                primaryWeapons: 'ANARCHY.actor.vehicle.quickActions.primaryWeapons',
+                allWeapons: 'ANARCHY.actor.vehicle.quickActions.allWeapons',
+                primaryLabel: 'ANARCHY.actor.vehicle.quickActions.primaryLabel',
+                unarmed: 'ANARCHY.actor.vehicle.quickActions.unarmed',
+                unarmedNotes: 'ANARCHY.actor.vehicle.quickActions.unarmedNotes',
+                selectWeaponGroup: 'ANARCHY.actor.vehicle.quickActions.selectWeaponGroup',
+                selectMeleeProfile: 'ANARCHY.actor.vehicle.quickActions.selectMeleeProfile',
+                selectSensorSkill: 'ANARCHY.actor.vehicle.quickActions.selectSensorSkill',
+                weaponGroup: 'ANARCHY.actor.vehicle.quickActions.weaponGroup',
+                weaponsUsed: 'ANARCHY.actor.vehicle.quickActions.weaponsUsed',
+                meleeProfile: 'ANARCHY.actor.vehicle.quickActions.meleeProfile',
+                meleeDamage: 'ANARCHY.actor.vehicle.quickActions.meleeDamage',
+                skillUsed: 'ANARCHY.actor.vehicle.quickActions.skillUsed',
+                tooltips: {
+                    ranged: 'ANARCHY.actor.vehicle.quickActions.tooltips.ranged',
+                    melee: 'ANARCHY.actor.vehicle.quickActions.tooltips.melee',
+                    dodge: 'ANARCHY.actor.vehicle.quickActions.tooltips.dodge',
+                    piloting: 'ANARCHY.actor.vehicle.quickActions.tooltips.piloting',
+                    sensorSweep: 'ANARCHY.actor.vehicle.quickActions.tooltips.sensorSweep',
+                    emergencyRepair: 'ANARCHY.actor.vehicle.quickActions.tooltips.emergencyRepair',
+                },
+                errors: {
+                    noRanged: 'ANARCHY.actor.vehicle.quickActions.errors.noRanged',
+                    noMelee: 'ANARCHY.actor.vehicle.quickActions.errors.noMelee',
+                    noSensorSweep: 'ANARCHY.actor.vehicle.quickActions.errors.noSensorSweep',
+                }
+            }
         },
         ownership: {
             owner: 'ANARCHY.actor.ownership.owner',

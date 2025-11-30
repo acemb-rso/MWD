@@ -236,6 +236,17 @@
         "locationSide": "Side effects",
         "locationRear": "Rear effects",
         "locationCore": "Core effects",
+        "pilot": {
+          "label": "Pilot",
+          "none": "No pilot selected",
+          "selectActor": "Select Pilot",
+          "selectToken": "Use Selected Token",
+          "tokenTag": "Token ({{scene}})",
+          "errors": {
+            "noActors": "No valid actors available to pilot this vehicle.",
+            "noTokens": "Select a token with permission to pilot as the vehicle's pilot."
+          }
+        },
         "quickActions": {
           "title": "Quick Actions",
           "rangedAttack": "Ranged Attack",
