@@ -6,10 +6,10 @@ import { AnarchyUsers } from "../users.js";
 import { AnarchyBaseActor } from "./base-actor.js";
 
 const VEHICLE_ATTRIBUTES = [
-  TEMPLATE.attributes.autopilot,
   TEMPLATE.attributes.handling,
-  TEMPLATE.attributes.firewall,
-  TEMPLATE.attributes.system
+  TEMPLATE.attributes.system,
+  TEMPLATE.attributes.chassis,
+  TEMPLATE.attributes.condition,
 ]
 
 export class VehicleActor extends AnarchyBaseActor {
@@ -19,7 +19,7 @@ export class VehicleActor extends AnarchyBaseActor {
   }
 
   static get initiative() {
-    return AnarchyBaseActor.initiative + " + max(@attributes.system.value, @attributes.autopilot.value)"
+    return AnarchyBaseActor.initiative + " + max(@attributes.system.value, @attributes.handling.value)"
   }
 
   prepareDerivedData() {
@@ -43,7 +43,7 @@ export class VehicleActor extends AnarchyBaseActor {
     return {
       hasMatrix: true,
       logic: TEMPLATE.attributes.system,
-      firewall: TEMPLATE.attributes.firewall,
+      firewall: this.system.attributes.firewall ? TEMPLATE.attributes.firewall : undefined,
       monitor: this.system.monitors.matrix,
       overflow: undefined,
     }
@@ -53,7 +53,7 @@ export class VehicleActor extends AnarchyBaseActor {
     return VEHICLE_ATTRIBUTES
   }
 
-  getPhysicalAgility() { return TEMPLATE.attributes.autopilot }
+  getPhysicalAgility() { return TEMPLATE.attributes.handling }
 
   getDamageMonitor(damageType) {
     damageType = this.resolveDamageType(damageType);
