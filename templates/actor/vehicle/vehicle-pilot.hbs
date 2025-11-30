@@ -1,0 +1,22 @@
+<div class="passport-detail vehicle-pilot">
+  <label class="info-label">{{localize ANARCHY.actor.vehicle.pilot.label}}</label>
+  <div class="pilot-details">
+    {{#if pilot}}
+      <div class="pilot-reference">
+        {{> 'systems/mwd/templates/common/actor-reference.hbs' pilot}}
+        {{#if pilot.isToken}}
+          <span class="tag">{{localize ANARCHY.actor.vehicle.pilot.tokenTag scene=pilot.scene}}</span>
+        {{/if}}
+        <a class="item-control click-clear-pilot" data-tooltip="{{localize ANARCHY.common.del}}">
+          {{{iconFA 'fas fa-trash'}}}
+        </a>
+      </div>
+    {{else}}
+      <span class="pilot-placeholder">{{localize ANARCHY.actor.vehicle.pilot.none}}</span>
+    {{/if}}
+  </div>
+  <div class="pilot-actions">
+    <a class="anarchy-button click-select-pilot" data-tooltip="{{localize ANARCHY.actor.vehicle.pilot.selectActor}}">{{localize ANARCHY.actor.vehicle.pilot.selectActor}}</a>
+    <a class="anarchy-button click-select-pilot-token" data-tooltip="{{localize ANARCHY.actor.vehicle.pilot.selectToken}}">{{localize ANARCHY.actor.vehicle.pilot.selectToken}}</a>
+  </div>
+</div>

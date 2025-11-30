@@ -135,6 +135,9 @@
           "chassis": { "value": 3 },
           "condition": { "value": 3 }
         },
+        "pilot": {
+          "uuid": ""
+        },
         "mwd": {
           "unitType": "vehicle",
           "locations": {
@@ -162,6 +165,9 @@
           "system": { "value": 3 },
           "chassis": { "value": 4 },
           "condition": { "value": 3 }
+        },
+        "pilot": {
+          "uuid": ""
         },
         "mwd": {
           "unitType": "mech",

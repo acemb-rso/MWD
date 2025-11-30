@@ -416,7 +416,10 @@ export class AnarchyBaseActor extends Actor {
   }
 
   getSkillValue(skillId, specialization = undefined) {
-    const skill = this.items.get(skillId);
+    const skill = typeof skillId === 'string' ? this.items.get(skillId) : skillId;
+    if (!skill) {
+      return 0;
+    }
     const attribute = this.getAttributeValue(skill.system.attribute);
     return skill.system.value + attribute + (specialization && skill.system.specialization ? 2 : 0);
   }
