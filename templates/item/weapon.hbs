@@ -2,8 +2,8 @@
   <header class="sheet-header">
     <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}"/>
     {{> 'systems/mwd/templates/item/parts/itemname.hbs'
-      labelkey='ANARCHY.itemType.singular.weapon'
-      type="weapon"
+      labelkey=(concat 'ANARCHY.itemType.singular.' type)
+      type=type
     }}
   </header>
 
@@ -19,94 +19,111 @@
 
   <section class="sheet-body">
     <div class="tab section-group" data-group="primary" data-tab="main">
-      <div class="form-group">
-        <label for="system.skill">{{localize 'ANARCHY.item.weapon.skill'}} </label>
-        <select class="select-weapon-skill" name="system.skill" data-dtype="String">
+      {{#if (eq type 'mechWeapon')}}
+        <div class="form-group">
+          <label for="system.weaponCategory">{{localize 'ANARCHY.item.mechWeapon.category'}}</label>
+          <select name="system.weaponCategory">
+            {{#select system.weaponCategory}}
+              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdWeaponCategories}}
+            {{/select}}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>{{localize 'ANARCHY.item.mechWeapon.hardpoint'}}</label>
+          <div class="flexrow">
+            <select name="system.hardpointType">
+              {{#select system.hardpointType}}
+                {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdHardpointTypes}}
+              {{/select}}
+            </select>
+            <select name="system.hardpointSize">
+              {{#select system.hardpointSize}}
+                {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdHardpointSizes}}
+              {{/select}}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="system.damage">{{localize 'ANARCHY.item.mechWeapon.damage'}}</label>
+          <input class="type-numeric" type="number" data-dtype="Number" name="system.damage" value="{{system.damage}}" />
+        </div>
+        <div class="form-group">
+          <label for="system.damageType">{{localize 'ANARCHY.item.mechWeapon.damageType'}}</label>
+          <select name="system.damageType">
+            {{#select system.damageType}}
+              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdWeaponDamageTypes}}
+            {{/select}}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="system.heat">{{localize 'ANARCHY.item.mechWeapon.heat'}}</label>
+          <input class="type-numeric" type="number" data-dtype="Number" name="system.heat" value="{{system.heat}}" />
+        </div>
+      {{else}}
+        <div class="form-group">
+          <label for="system.skill">{{localize 'ANARCHY.item.personalWeapon.skill'}} </label>
+          <select class="select-weapon-skill" name="system.skill" data-dtype="String">
             {{#select system.skill}}
             {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
             {{/select}}
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="system.weaponCategory">{{localize 'ANARCHY.item.weapon.category'}}</label>
-        <select name="system.weaponCategory">
-          {{#select system.weaponCategory}}
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdWeaponCategories}}
-          {{/select}}
-        </select>
-      </div>
-      <div class="form-group">
-        <label>{{localize 'ANARCHY.item.weapon.hardpoint'}}</label>
-        <div class="flexrow">
-          <select name="system.hardpointType">
-            {{#select system.hardpointType}}
-              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdHardpointTypes}}
-            {{/select}}
           </select>
-          <select name="system.hardpointSize">
-            {{#select system.hardpointSize}}
-              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdHardpointSizes}}
+        </div>
+        <div class="form-group">
+          <label for="system.weaponCategory">{{localize 'ANARCHY.item.personalWeapon.category'}}</label>
+          <select name="system.weaponCategory">
+            {{#select system.weaponCategory}}
+              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdWeaponCategories}}
             {{/select}}
           </select>
         </div>
-      </div>
-      <div class="form-group">
-        <label>{{localize 'ANARCHY.item.weapon.mountLocation'}}</label>
-        <select name="system.mountLocation">
-          {{#select system.mountLocation}}
-            <option value="">{{localize 'ANARCHY.mwd.melee.locationAny'}}</option>
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdMeleeLocations}}
-          {{/select}}
-        </select>
-      </div>
-      {{#if hasDrain}}
-      <div class="form-group">
-        <label for="system.drain">{{localize 'ANARCHY.item.weapon.drain'}} </label>
-          <input class="type-numeric" type="number" data-dtype="Number"
-            name="system.drain" value="{{system.drain}}"
-          />
-      </div>
-      {{/if}}
-      <div class="form-group">
-        <label for="system.damage">
-          {{localize 'ANARCHY.item.weapon.damage'}}
-        </label>
-        <div class="flexrow flex-wrap">
-          <input class="type-numeric" type="number" data-dtype="Number"
-            name="system.damage" value="{{system.damage}}"
-          />
-          <span>+
-          <select name="system.damageAttribute" data-dtype="String">
-              {{#select system.damageAttribute}}
-              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
-              {{/select}}
-          </select>
-          /2</span>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>
-          {{> 'systems/mwd/templates/common/damage-code.hbs'
-              strength=system.strength
-              damage=system.damage
-              monitor=system.monitor
-              armor=(weaponArmorMode system.monitor system.noArmor)
-          }}
-        </label>
-        <div>
-          <select name="system.monitor" data-dtype="String">
-            {{#select system.monitor}}
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.monitors}}
+        <div class="form-group">
+          <label for="system.damageCategory">{{localize 'ANARCHY.item.personalWeapon.damageCategory'}}</label>
+          <select name="system.damageCategory">
+            {{#select system.damageCategory}}
+              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.personalWeaponDamageCategories}}
             {{/select}}
           </select>
-
-          <input class="item-field-value" name="system.noArmor" type="checkbox" {{checked system.noArmor}}>
-            <label>{{localize 'ANARCHY.item.weapon.noArmor'}}</label>
+        </div>
+        <div class="form-group">
+          <label for="system.damage">{{localize 'ANARCHY.item.personalWeapon.damage'}}</label>
+          <div class="flexrow flex-wrap">
+            <input class="type-numeric" type="number" data-dtype="Number" name="system.damage" value="{{system.damage}}" />
+            {{#if (eq system.weaponCategory 'melee')}}
+              <span>+
+              <select name="system.damageAttribute" data-dtype="String">
+                  {{#select system.damageAttribute}}
+                  {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
+                  {{/select}}
+              </select>
+              /2</span>
+            {{/if}}
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="system.damageType">{{localize 'ANARCHY.item.personalWeapon.damageType'}}</label>
+          <select name="system.damageType">
+            {{#select system.damageType}}
+              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.personalWeaponDamageTypes}}
+            {{/select}}
+          </select>
+        </div>
+        <div class="form-group">
+            <label for="system.defense" >{{localize 'ANARCHY.item.personalWeapon.defense'}} </label>
+            <select name="system.defense">
+              {{selectOptions ENUMS.defenses selected=(fixedDefenseCode system.defense)
+              nameAttr="code" labelAttr="labelkey" localize=true blank=''}}
+            </select>
+        </div>
+        <div class="form-group">
+          <label>{{localize 'ANARCHY.item.personalWeapon.armorAvoidance'}}</label>
+          <input class="item-field-value" name="system.armorAvoidance" type="checkbox" {{checked system.armorAvoidance}}>
+            <label>{{localize 'ANARCHY.item.personalWeapon.armorAvoidanceHelp'}}
+          </label>
           </input>
         </div>
-      </div>
+      {{/if}}
       <div class="form-group">
-        <label for="system.area" >{{localize 'ANARCHY.item.weapon.area'}} </label>
+        <label for="system.area" >{{localize (concat 'ANARCHY.item.' type '.area')}} </label>
         <select name="system.area" data-dtype="String">
           {{#select system.area}}
           {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.areas}}
@@ -114,14 +131,7 @@
         </select>
       </div>
       <div class="form-group">
-          <label for="system.defense" >{{localize 'ANARCHY.item.weapon.defense'}} </label>
-          <select name="system.defense">
-            {{selectOptions ENUMS.defenses selected=(fixedDefenseCode system.defense)
-            nameAttr="code" labelAttr="labelkey" localize=true blank=''}}
-          </select>
-      </div>
-      <div class="form-group">
-          <label for="system.range.max" >{{localize 'ANARCHY.item.weapon.range.max'}} </label>
+          <label for="system.range.max" >{{localize (concat 'ANARCHY.item.' type '.range.max')}} </label>
           <select name="system.range.max">
             {{#select system.range.max}}
             {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.ranges}}

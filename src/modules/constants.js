@@ -33,9 +33,9 @@ export const TEMPLATE = {
     skill: 'skill',
     quality: 'quality',
     shadowamp: 'shadowamp',
-    weapon: 'weapon',
+    mechWeapon: 'mechWeapon',
+    personalWeapon: 'personalWeapon',
     gear: 'gear',
-    cyberdeck: 'cyberdeck',
     contact: 'contact',
   },
   attributes: {

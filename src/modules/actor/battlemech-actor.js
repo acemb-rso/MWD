@@ -137,12 +137,12 @@ export class BattlemechActor extends VehicleActor {
   }
 
   _prepareWeaponGroups() {
-    const weapons = this.items.filter(it => it.type === TEMPLATE.itemType.weapon && it.isActive());
+    const weapons = this.items.filter(it => it.type === TEMPLATE.itemType.mechWeapon && it.isActive());
     if (weapons.length === 0) {
       return [];
     }
 
-    const favoriteWeapons = weapons.filter(it => this.hasFavorite(TEMPLATE.itemType.weapon, it.id));
+    const favoriteWeapons = weapons.filter(it => this.hasFavorite(TEMPLATE.itemType.mechWeapon, it.id));
     const groups = [];
     if (favoriteWeapons.length > 0) {
       groups.push({
@@ -173,7 +173,7 @@ export class BattlemechActor extends VehicleActor {
     }];
 
     const meleeWeapons = this.items.filter(it =>
-      it.type === TEMPLATE.itemType.weapon
+      it.type === TEMPLATE.itemType.mechWeapon
       && it.isActive()
       && it.system.skill === 'meleeCombat');
 

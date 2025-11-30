@@ -48,6 +48,10 @@ export class AnarchyActorSheet extends foundry.appv1.sheets.ActorSheet {
     hbsData.system = this.actor.system;
 
     Misc.classifyInto(hbsData.items, this.actor.items);
+    hbsData.items.weapon = [
+      ...(hbsData.items.mechWeapon ?? []),
+      ...(hbsData.items.personalWeapon ?? []),
+    ];
     return hbsData;
   }
 
@@ -186,6 +190,11 @@ export class AnarchyActorSheet extends foundry.appv1.sheets.ActorSheet {
   }
 
   async createNewItem(itemType) {
+    if (itemType === 'weapon') {
+      itemType = this.actor.type === TEMPLATE.actorTypes.battlemech
+        ? TEMPLATE.itemType.mechWeapon
+        : TEMPLATE.itemType.personalWeapon;
+    }
     const name = game.i18n.format(ANARCHY.common.newName, { type: game.i18n.localize(ANARCHY.itemType.singular[itemType]) });
     await this.actor.createEmbeddedDocuments('Item', [{ name: name, type: itemType }], { renderSheet: true });
   }
@@ -196,7 +205,8 @@ export class AnarchyActorSheet extends foundry.appv1.sheets.ActorSheet {
       await this.actor.switchFavorite(newState, TEMPLATE.itemType.skill, options.skillId, options.specialization);
     }
     else if (options.weaponId) {
-      await this.actor.switchFavorite(newState, TEMPLATE.itemType.weapon, options.weaponId);
+      const weapon = this.actor.items.get(options.weaponId);
+      await this.actor.switchFavorite(newState, weapon?.type ?? TEMPLATE.itemType.personalWeapon, options.weaponId);
     }
     else if (options.attributeAction) {
       await this.actor.switchFavorite(newState, 'attributeAction', options.attributeAction);
