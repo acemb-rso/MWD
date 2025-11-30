@@ -67,7 +67,7 @@ export class ActorDamageManager {
     ErrorManager.checkActorCanReceiveDamage(damageType, monitor, defender);
     const sufferDamageMethod = ActorDamageManager.damageModeMethod ?? ActorDamageManager.sufferDamageResistanceArmorMonitor;
     await sufferDamageMethod(defender, monitor, damage, success, avoidArmor, attacker);
-    await defender.applyArmorDamage(damageType, Modifiers.sumModifiers([attackWeapon], 'other', 'damageArmor'));
+    await defender.applyArmorDamage(monitor, Modifiers.sumModifiers([attackWeapon], 'other', 'damageArmor'));
   }
 
   static async sufferMarks(actor, sourceActor) {
