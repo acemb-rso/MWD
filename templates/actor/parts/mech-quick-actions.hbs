@@ -1,26 +1,26 @@
 <div class="mech-quick-actions" data-quick-actions>
-  <button type="button" class="quick-action-button" data-action="ranged" {{#unless system.weaponGroups.length}}disabled{{/unless}} data-tooltip="{{localize 'ANARCHY.actor.vehicle.quickActions.tooltips.ranged'}}">
+  <a class="anarchy-button quick-action-button" data-action="ranged" {{#unless system.weaponGroups.length}}data-disabled="true"{{/unless}} data-tooltip="{{localize 'ANARCHY.actor.vehicle.quickActions.tooltips.ranged'}}">
     <span class="quick-action-icon">🔫</span>
-    <span>{{localize 'ANARCHY.actor.vehicle.quickActions.rangedAttack'}}</span>
-  </button>
-  <button type="button" class="quick-action-button" data-action="melee" {{#unless system.meleeProfiles.length}}disabled{{/unless}} data-tooltip="{{localize 'ANARCHY.actor.vehicle.quickActions.tooltips.melee'}}">
+    <label>{{localize 'ANARCHY.actor.vehicle.quickActions.rangedAttack'}}</label>
+  </a>
+  <a class="anarchy-button quick-action-button" data-action="melee" {{#unless system.meleeProfiles.length}}data-disabled="true"{{/unless}} data-tooltip="{{localize 'ANARCHY.actor.vehicle.quickActions.tooltips.melee'}}">
     <span class="quick-action-icon">⚔️</span>
-    <span>{{localize 'ANARCHY.actor.vehicle.quickActions.meleeAttack'}}</span>
-  </button>
-  <button type="button" class="quick-action-button" data-action="dodge" data-tooltip="{{localize 'ANARCHY.actor.vehicle.quickActions.tooltips.dodge'}}">
+    <label>{{localize 'ANARCHY.actor.vehicle.quickActions.meleeAttack'}}</label>
+  </a>
+  <a class="anarchy-button quick-action-button" data-action="dodge" data-tooltip="{{localize 'ANARCHY.actor.vehicle.quickActions.tooltips.dodge'}}">
     <span class="quick-action-icon">🛡️</span>
-    <span>{{localize 'ANARCHY.actor.vehicle.quickActions.dodgeCheck'}}</span>
-  </button>
-  <button type="button" class="quick-action-button" data-action="piloting" data-tooltip="{{localize 'ANARCHY.actor.vehicle.quickActions.tooltips.piloting'}}">
+    <label>{{localize 'ANARCHY.actor.vehicle.quickActions.dodgeCheck'}}</label>
+  </a>
+  <a class="anarchy-button quick-action-button" data-action="piloting" data-tooltip="{{localize 'ANARCHY.actor.vehicle.quickActions.tooltips.piloting'}}">
     <span class="quick-action-icon">🌀</span>
-    <span>{{localize 'ANARCHY.actor.vehicle.quickActions.pilotingCheck'}}</span>
-  </button>
-  <button type="button" class="quick-action-button" data-action="sensor" {{#unless system.quickActions.hasSensorSweep}}disabled{{/unless}} data-tooltip="{{localize 'ANARCHY.actor.vehicle.quickActions.tooltips.sensorSweep'}}">
+    <label>{{localize 'ANARCHY.actor.vehicle.quickActions.pilotingCheck'}}</label>
+  </a>
+  <a class="anarchy-button quick-action-button" data-action="sensor" {{#unless system.quickActions.hasSensorSweep}}data-disabled="true"{{/unless}} data-tooltip="{{localize 'ANARCHY.actor.vehicle.quickActions.tooltips.sensorSweep'}}">
     <span class="quick-action-icon">📡</span>
-    <span>{{localize 'ANARCHY.actor.vehicle.quickActions.sensorSweep'}}</span>
-  </button>
-  <button type="button" class="quick-action-button" data-action="repair" data-tooltip="{{localize 'ANARCHY.actor.vehicle.quickActions.tooltips.emergencyRepair'}}">
+    <label>{{localize 'ANARCHY.actor.vehicle.quickActions.sensorSweep'}}</label>
+  </a>
+  <a class="anarchy-button quick-action-button" data-action="repair" data-tooltip="{{localize 'ANARCHY.actor.vehicle.quickActions.tooltips.emergencyRepair'}}">
     <span class="quick-action-icon">🔧</span>
-    <span>{{localize 'ANARCHY.actor.vehicle.quickActions.emergencyRepair'}}</span>
-  </button>
+    <label>{{localize 'ANARCHY.actor.vehicle.quickActions.emergencyRepair'}}</label>
+  </a>
 </div>

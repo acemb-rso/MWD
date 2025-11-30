@@ -136,23 +136,18 @@
 .mech-quick-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    align-items: stretch;
+    gap: 0.25rem;
+    align-items: center;
 
     .quick-action-button {
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
-        border: 1px solid var(--color-border-dark-primary);
-        background: var(--color-border-light-primary);
-        padding: 0.4rem 0.6rem;
-        border-radius: 4px;
-        font-size: var(--font-size-14);
-        cursor: pointer;
 
-        &:disabled {
+        &[data-disabled="true"] {
             opacity: 0.5;
             cursor: not-allowed;
+            pointer-events: none;
         }
     }
 }

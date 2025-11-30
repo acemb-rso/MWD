@@ -66,6 +66,7 @@ export class BattlemechSheet extends VehicleSheet {
 
     html.find('[data-quick-actions] .quick-action-button').click(async event => {
       event.stopPropagation();
+      if (event.currentTarget.dataset.disabled === "true") return;
       const action = event.currentTarget.dataset.action;
       switch (action) {
         case 'ranged':
