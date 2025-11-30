@@ -1,0 +1,28 @@
+{
+  "_id": "8886ef216e5de449",
+  "name": "Animal Handling",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/animals.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2300000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "animalHandling",
+    "attribute": "willpower",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!8886ef216e5de449"
+}

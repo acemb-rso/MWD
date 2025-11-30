@@ -1,0 +1,28 @@
+{
+  "_id": "d47c36665da78b79",
+  "name": "Negotiation",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/negotiation.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2800000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "negotiation",
+    "attribute": "charisma",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": true,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!d47c36665da78b79"
+}

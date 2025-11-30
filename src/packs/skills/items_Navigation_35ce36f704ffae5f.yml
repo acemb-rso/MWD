@@ -1,0 +1,28 @@
+{
+  "_id": "35ce36f704ffae5f",
+  "name": "Navigation",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/piloting-other.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2200000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "navigation",
+    "attribute": "logic",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!35ce36f704ffae5f"
+}

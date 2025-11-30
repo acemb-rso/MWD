@@ -1,0 +1,28 @@
+{
+  "_id": "6031f0b271aa2bb4",
+  "name": "Tactics",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/skills.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1900000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "tactics",
+    "attribute": "logic",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!6031f0b271aa2bb4"
+}

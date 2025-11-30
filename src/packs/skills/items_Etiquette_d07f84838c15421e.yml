@@ -1,0 +1,28 @@
+{
+  "_id": "d07f84838c15421e",
+  "name": "Etiquette",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/etiquette.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2900000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "etiquette",
+    "attribute": "charisma",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": true,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!d07f84838c15421e"
+}

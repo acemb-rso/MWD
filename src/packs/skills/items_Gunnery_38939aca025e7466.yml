@@ -1,0 +1,28 @@
+{
+  "_id": "38939aca025e7466",
+  "name": "Gunnery",
+  "type": "skill",
+  "img": "systems/mwd/icons/skills/vehicle-weapons.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 300000,
+  "flags": {},
+  "system": {
+    "inactive": false,
+    "sourceReference": "",
+    "description": "",
+    "gmnotes": "",
+    "code": "gunnery",
+    "attribute": "agility",
+    "value": 0,
+    "specialization": "",
+    "hasDrain": false,
+    "hasConvergence": false,
+    "isSocial": false,
+    "listspecialization": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!38939aca025e7466"
+}
