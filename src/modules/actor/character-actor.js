@@ -213,13 +213,6 @@ export class CharacterActor extends AnarchyBaseActor {
     }
   }
 
-  async rollConvergence(convergence) {
-    if (!convergence) {
-      return;
-    }
-    game.system.anarchy.gmConvergence.rollConvergence(this.id, convergence)
-  }
-
   async rollCelebrity() {
     await RollCelebrity.create(this);
   }

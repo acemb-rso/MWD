@@ -37,7 +37,6 @@ import { ShadowampItem } from './item/shadowamp-item.js';
 import { Checkbars } from './common/checkbars.js';
 import { RollParameters } from './roll/roll-parameters.js';
 import { RollDialog } from './roll/roll-dialog.js';
-import { GMConvergence } from './app/gm-convergence.js';
 import { AnarchyCombat } from './anarchy-combat.js';
 import { HUDShortcuts } from './token/hud-shortcuts.js';
 import { CombatManager } from './combat/combat-manager.js';
@@ -86,7 +85,6 @@ export class AnarchySystem {
     this.styles = new Styles();
     this.handlebarsManager = new HandlebarsManager();
     this.gmAnarchy = new GMAnarchy();
-    this.gmConvergence = new GMConvergence();
     Enums.init();
     SystemSettings.register();
 
@@ -120,7 +118,7 @@ export class AnarchySystem {
     AnarchyBaseActor.init()
     ActorDamageManager.init();
     ChatManager.init();
-    this.gmManager = new GMManager(this.gmAnarchy, this.gmConvergence);
+    this.gmManager = new GMManager(this.gmAnarchy);
     console.log(LOG_HEAD + 'AnarchySystem.onInit | done');
     Hooks.once('ready', () => this.onReady());
   }

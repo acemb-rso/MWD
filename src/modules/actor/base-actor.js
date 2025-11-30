@@ -313,8 +313,6 @@ export class AnarchyBaseActor extends Actor {
 
   async rollDrain(drain) { }
 
-  async rollConvergence(convergence) { }
-
   async switchMonitorCheck(monitor, index, checked, sourceActorId = undefined) {
     await Checkbars.switchMonitorCheck(this, monitor, index, checked, sourceActorId);
   }

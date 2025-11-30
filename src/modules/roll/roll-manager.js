@@ -57,7 +57,6 @@ export class RollManager {
     // TODO: indicate edge was used for reroll
     roll.options.canUseEdge = false;
     await roll.actor.spendEdge(1);
-    roll.param[ROLL_PARAMETER_CATEGORY.convergence] = undefined;
     roll.param[ROLL_PARAMETER_CATEGORY.drain] = undefined;
     await this._roll(roll)
   }
@@ -68,7 +67,6 @@ export class RollManager {
     await this._displayRollInChat(roll);
 
     await roll.actor.rollDrain(roll.param.drain);
-    await roll.actor.rollConvergence(roll.param.convergence);
 
     await game.system.anarchy.combatManager.manageCombat(roll);
   }
