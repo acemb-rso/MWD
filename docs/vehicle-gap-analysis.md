@@ -265,7 +265,7 @@ Below is written as `actor.system.mwd`, but you can rename the root path as need
 We replace Anarchy’s Shadowrun-centric attributes:
 
 * `Autopilot` (rigging)
-* `Firewall` (Matrix defense)
+* `Firewall`
 
 With BattleTech-appropriate attributes:
 

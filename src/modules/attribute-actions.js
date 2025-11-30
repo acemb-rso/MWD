@@ -43,16 +43,12 @@ const ATTRIBUTE_ACTIONS = [
   action(ACTION.catch, __ => ATTR.agility, __ => ATTR.agility, Icons.fontAwesome('fas fa-baseball-ball'), [ACTOR.character]),
   action(ACTION.lift, __ => ATTR.strength, __ => ATTR.strength, Icons.fontAwesome('fas fa-dumbbell'), [ACTOR.character]),
 
-  action(ACTION.matrixDefense, actor => actor.getMatrixLogic(), actor => actor.getMatrixFirewall(), Icons.fontAwesome('fas fa-shield-virus'), [ACTOR.character, ACTOR.vehicle, ACTOR.battlemech]),
-  action(ACTION.astralDefense, ___ => ATTR.logic, ___ => ATTR.willpower, Icons.fontAwesome('fas fa-shield-virus'), [ACTOR.character]),
-
 ]
 
 const DEFENSES = [
   defense(DEFENSE.physicalDefense, ACTION.defense),
   defense(DEFENSE.physicalResistance, ACTION.resistTorture),
   defense(DEFENSE.socialDefense, ACTION.composure),
-  defense(DEFENSE.matrixDefense, ACTION.matrixDefense),
   defense(DEFENSE.mentalResistance, ACTION.perception),
 ]
 

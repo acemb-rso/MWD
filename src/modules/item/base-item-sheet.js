@@ -92,15 +92,10 @@ export class BaseItemSheet extends foundry.appv1.sheets.ItemSheet {
   async onClickMonitor(event) {
     if (this.item.parent) {
       const monitor = this.getEventMonitorCode(event);
-      const sourceActorId = monitor == 'marks' ?
-        $(event.currentTarget).closest('.anarchy-marks').attr('data-actor-id')
-        : undefined;
       await this.item.parent.switchMonitorCheck(
         monitor,
         this.getEventMonitorIndex(event),
-        this.isEventMonitorChecked(event),
-        sourceActorId,
-        item
+        this.isEventMonitorChecked(event)
       );
     }
   }

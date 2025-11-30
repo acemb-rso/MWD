@@ -59,32 +59,6 @@ export const DEFAULT_CHECKBARS = {
     iconHit: Icons.fontAwesome('fas fa-exclamation-triangle'),
     resource: MONITORS.structure
   },
-  matrix: {
-    path: 'system.monitors.matrix.value',
-    monitor: it => it.getMatrixMonitor(),
-    iconChecked: Icons.fontAwesome('fas fa-laptop-medical'),
-    iconUnchecked: Icons.fontAwesome('fas fa-laptop'),
-    iconHit: Icons.fontAwesome('fas fa-laptop-code'),
-    overflow: actor => actor.getMatrixOverflow(),
-    recomputeOverflow: value => 3,
-    resource: MONITORS.matrix
-  },
-  marks: {
-    path: undefined,
-    monitor: it => { return { value: 0, max: 5 } },
-    iconChecked: Icons.fontAwesome('fas fa-bookmark'),
-    iconUnchecked: Icons.fontAwesome('far fa-bookmark'),
-    iconHit: Icons.fontAwesome('fas fa-fingerprint'),
-    resource: MONITORS.marks
-  },
-  convergence: {
-    path: undefined,
-    monitor: it => { return { value: 0, max: 5 } },
-    iconChecked: Icons.fontAwesome('far fa-eye'),
-    iconUnchecked: Icons.fontAwesome('fas fa-eye-slash'),
-    iconHit: Icons.fontAwesome('fas fa-eye'),
-    resource: MONITORS.convergence
-  },
   anarchy: {
     path: 'system.counters.anarchy.value',
     monitor: it => {
@@ -223,13 +197,6 @@ export class Checkbars {
 
   static async setCounter(target, monitor, value, sourceActorId = undefined, item = undefined) {
     switch (monitor) {
-      case TEMPLATE.monitors.marks:
-        return await Checkbars.setActorMarks(target, value, sourceActorId, item);
-      case TEMPLATE.monitors.matrix:
-        ErrorManager.checkMatrixMonitor(target)
-        return await Checkbars.setCheckbar(target, monitor, value, item);
-      case TEMPLATE.monitors.convergence:
-        return await Checkbars.setActorConvergence(target, value);
       case TEMPLATE.monitors.anarchy:
         return await Checkbars.setAnarchy(target, value);
       case TEMPLATE.monitors.sceneAnarchy:
@@ -240,10 +207,6 @@ export class Checkbars {
 
   static getCounterValue(target, monitor, sourceActorId) {
     switch (monitor) {
-      case TEMPLATE.monitors.marks:
-        return Checkbars.getActorMarks(target, sourceActorId);
-      case TEMPLATE.monitors.convergence:
-        return Checkbars.getActorConvergence(target);
       case TEMPLATE.monitors.anarchy:
         return Checkbars.getAnarchy(target, monitor);
     }
@@ -348,40 +311,5 @@ export class Checkbars {
           to: newValue
         })
     });
-  }
-
-  static getActorMarks(target, sourceActorId) {
-    return Checkbars._findActorMarks(target.getMatrixMarks(), sourceActorId)?.marks ?? 0;
-  }
-
-  static async addActorMark(target, sourceActorId, item = undefined) {
-    const previous = Checkbars._findActorMarks(target.getMatrixMarks(), sourceActorId);
-    Checkbars.setActorMarks(target, (previous.marks ?? 0) + 1, sourceActorId, item);
-  }
-
-  static async setActorMarks(target, value, sourceActorId, item = undefined) {
-    if (target.canReceiveMarks()) {
-      let marks = deepClone(target.getMatrixMarks())
-      ErrorManager.checkOutOfRange(CHECKBARS.marks.resource, value, 0, Checkbars.max(target, 'marks'))
-      const sourceActorMarks = Checkbars._findActorMarks(marks, sourceActorId)
-      if (sourceActorMarks.marks == undefined) {
-        marks.push(sourceActorMarks)
-      }
-      sourceActorMarks.marks = Math.max(0, value);
-      marks = marks.filter(target => target.marks > 0);
-      await target.setCheckbarValue('system.monitors.matrix.marks', marks)
-    }
-  }
-
-  static _findActorMarks(marks, sourceActorId) {
-    return marks.find(source => source.actorId == sourceActorId) ?? { actorId: sourceActorId };
-  }
-
-  static getActorConvergence(target) {
-    game.system.anarchy.gmConvergence.getConvergence(target);
-  }
-
-  static async setActorConvergence(target, value) {
-    await game.system.anarchy.gmConvergence.setConvergence(target, value);
   }
 }

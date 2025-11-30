@@ -34,20 +34,6 @@
           </div>
 
         </div>
-        <div>
-          {{> "systems/mwd/templates/common/checkbar.hbs"
-          code='matrix'
-          value=system.monitors.matrix.value
-          max=(sum system.monitors.matrix.max system.monitors.matrix.maxBonus)
-          labelkey='ANARCHY.actor.monitors.matrix'
-          rowlength=6
-          iconChecked=(iconFA 'fas fa-laptop-medical')
-          iconUnchecked=(iconFA 'fas fa-laptop')
-          }}
-        </div>
-        <div>
-          {{> "systems/mwd/templates/monitors/marks.hbs"}}
-        </div>
       </div>
       <div class="item-controls">
         {{> 'systems/mwd/templates/common/control-connectionMode.hbs' connectionMode=system.connectionMode}}

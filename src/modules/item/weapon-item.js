@@ -131,9 +131,6 @@ export class WeaponItem extends AnarchyBaseItem {
   }
 
   static damageValue(monitor, damage, damageAttribute, actorAttribute) {
-    if (monitor == TEMPLATE.monitors.marks) {
-      return 1;
-    }
     damage = Number(damage);
     if (damageAttribute) {
       if (actorAttribute !== undefined) {
@@ -156,9 +153,6 @@ export class WeaponItem extends AnarchyBaseItem {
   }
 
   static damageCode(monitor, damage, damageAttribute) {
-    if (monitor == TEMPLATE.monitors.marks) {
-      return '1';
-    }
     let code = '';
     if (damageAttribute && ANARCHY.attributes[damageAttribute]) {
       code += game.i18n.localize(ANARCHY.attributes[damageAttribute]).substring(0, 3).toUpperCase() + '/2 + ';

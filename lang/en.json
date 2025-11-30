@@ -214,20 +214,16 @@
           "rumor": "Rumor"
         }
       },
-      "monitors": {
-        "conditionMonitors": "Condition monitors",
+        "monitors": {
+          "conditionMonitors": "Condition monitors",
         "overflow": "{actor}: Overflow of {monitor} condition monitor, transfering {overflow} to {overflowMonitor} condition monitor",
-        "noMatrixMonitor": "{actor}: No Matrix condition monitor",
         "physical": "Physical",
         "fatigue": "Fatigue",
-        "matrix": "Matrix",
         "armor": "Armor",
         "structure": "Structure",
         "heat": "Heat",
-        "resistance": "Resistance",
-        "marks": "Marks",
-        "convergence": "Convergence"
-      },
+        "resistance": "Resistance"
+        },
       "vehicle": {
         "moves": "Moves",
         "attacks": "Attacks",
@@ -332,15 +328,11 @@
     },
     "monitor": {
       "physical": "Physical",
-      "fatigue": "Fatigue",
-      "matrix": "Matrix",
-      "marks": "Marks"
+      "fatigue": "Fatigue"
     },
     "monitorLetter": {
       "physical": "P",
-      "fatigue": "F",
-      "matrix": "M",
-      "marks": "K"
+      "fatigue": "F"
     },
     "shadowampCategory": {
       "adeptPower": "Adept power",
@@ -379,15 +371,12 @@
       "composure": "Composure / Social resistance",
       "memory": "Memory",
       "catch": "Catch object",
-      "lift": "Lift/carry",
-      "matrixDefense": "Matrix defense",
-      "astralDefense": "Astral defense"
+      "lift": "Lift/carry"
     },
     "defense": {
       "physicalDefense": "Physical defense",
       "physicalResistance": "Physical resistance",
       "socialDefense": "Social defense",
-      "matrixDefense": "Matrix defense",
       "mentalResistance": "Mental resistance"
     },
     "skill": {

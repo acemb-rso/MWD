@@ -203,16 +203,12 @@ export const ANARCHY = {
         monitors: {
             conditionMonitors: 'ANARCHY.actor.monitors.conditionMonitors',
             overflow: 'ANARCHY.actor.monitors.overflow',
-            noMatrixMonitor: 'ANARCHY.actor.monitors.noMatrixMonitor',
             physical: 'ANARCHY.actor.monitors.physical',
             fatigue: 'ANARCHY.actor.monitors.fatigue',
-            matrix: 'ANARCHY.actor.monitors.matrix',
             armor: 'ANARCHY.actor.monitors.armor',
             structure: 'ANARCHY.actor.monitors.structure',
             heat: 'ANARCHY.actor.monitors.heat',
             resistance: 'ANARCHY.actor.monitors.resistance',
-            marks: 'ANARCHY.actor.monitors.marks',
-            convergence: 'ANARCHY.actor.monitors.convergence',
         },
         vehicle: {
             moves: 'ANARCHY.actor.vehicle.moves',
@@ -310,14 +306,10 @@ export const ANARCHY = {
     monitor: {
         physical: 'ANARCHY.monitor.physical',
         fatigue: 'ANARCHY.monitor.fatigue',
-        matrix: 'ANARCHY.monitor.matrix',
-        marks: 'ANARCHY.monitor.marks',
     },
     monitorLetter: {
         physical: 'ANARCHY.monitorLetter.physical',
         fatigue: 'ANARCHY.monitorLetter.fatigue',
-        matrix: 'ANARCHY.monitorLetter.matrix',
-        marks: 'ANARCHY.monitorLetter.marks',
     },
     shadowampCategory: {
         adeptPower: 'ANARCHY.shadowampCategory.adeptPower',
@@ -356,15 +348,12 @@ export const ANARCHY = {
         composure: 'ANARCHY.attributeAction.composure',
         memory: 'ANARCHY.attributeAction.memory',
         catch: 'ANARCHY.attributeAction.catch',
-        lift: 'ANARCHY.attributeAction.lift',
-        matrixDefense: 'ANARCHY.attributeAction.matrixDefense',
-        astralDefense: 'ANARCHY.attributeAction.astralDefense'
+        lift: 'ANARCHY.attributeAction.lift'
     },
     defense: {
         physicalDefense: 'ANARCHY.defense.physicalDefense',
         physicalResistance: 'ANARCHY.defense.physicalResistance',
         socialDefense: 'ANARCHY.defense.socialDefense',
-        matrixDefense: 'ANARCHY.defense.matrixDefense',
         mentalResistance: 'ANARCHY.defense.mentalResistance',
     },
     skill: {
@@ -459,18 +448,17 @@ export const ANARCHY = {
                 attributeAction: 'ANARCHY.modifier.roll.category.attributeAction',
             },
         },
-        monitor: {
-            effect: {
-                armor: 'ANARCHY.modifier.monitor.effect.armor',
-                structure: 'ANARCHY.modifier.monitor.effect.structure',
-                fatigue: 'ANARCHY.modifier.monitor.effect.fatigue',
+            monitor: {
+                effect: {
+                    armor: 'ANARCHY.modifier.monitor.effect.armor',
+                    structure: 'ANARCHY.modifier.monitor.effect.structure',
+                    fatigue: 'ANARCHY.modifier.monitor.effect.fatigue',
                 physical: 'ANARCHY.modifier.monitor.effect.physical',
-                matrix: 'ANARCHY.modifier.monitor.effect.matrix',
-            },
-            category: {
-                max: 'ANARCHY.modifier.monitor.category.max',
-                resistance: 'ANARCHY.modifier.monitor.category.resistance',
-            }
+                },
+                category: {
+                    max: 'ANARCHY.modifier.monitor.category.max',
+                    resistance: 'ANARCHY.modifier.monitor.category.resistance',
+                }
         },
         other: {
             effect: {
