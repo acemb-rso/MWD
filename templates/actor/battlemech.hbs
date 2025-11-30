@@ -1,4 +1,4 @@
-<form class="{{options.cssClass}} vehicle-sheet" autocomplete="off">
+<form class="{{options.cssClass}} battlemech-sheet" autocomplete="off">
   <header class="sheet-header">
     <div class="passport-header">
       <div class="passport-img">
@@ -8,12 +8,6 @@
         <div class="passport-details-row">
           <div class="passport-detail">
             <input class="info-value" name="name" type="text" value="{{data.name}}" placeholder="{{localize ANARCHY.actor.actorName}}"/>
-          </div>
-          <div class="passport-detail">
-            {{> "systems/mwd/templates/actor/vehicle/vehicle-category.hbs"}}
-          </div>
-          <div class="passport-detail">
-            {{> "systems/mwd/templates/actor/vehicle/vehicle-skill.hbs"}}
           </div>
           <div class="passport-detail">
             {{> 'systems/mwd/templates/actor/parts/ownership.hbs'}}
@@ -48,14 +42,6 @@
           value="{{system.hybrid.heat.dissipation}}"
         />
       </label>
-      </div>
-    </div>
-    <div class="section-group monitors-row">
-      <div class="anarchy-block">
-      {{> "systems/mwd/templates/monitors/matrix.hbs"}}
-      </div>
-      <div class="anarchy-block">
-      {{> "systems/mwd/templates/monitors/marks.hbs"}}
       </div>
     </div>
     <div class="section-group monitors-row">

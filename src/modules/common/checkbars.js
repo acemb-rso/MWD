@@ -43,6 +43,22 @@ export const DEFAULT_CHECKBARS = {
     iconHit: Icons.fontAwesome('fas fa-bahai'),
     resource: MONITORS.structure
   },
+  heat: {
+    path: 'system.monitors.heat.value',
+    monitor: it => it.system.monitors.heat,
+    iconChecked: Icons.fontAwesome('fas fa-fire'),
+    iconUnchecked: Icons.fontAwesome('far fa-sun'),
+    iconHit: Icons.fontAwesome('fas fa-temperature-high'),
+    resource: MONITORS.heat
+  },
+  criticals: {
+    path: 'system.hybrid.criticals.value',
+    monitor: it => it.system.hybrid?.criticals ?? { value: 0, max: 0 },
+    iconChecked: Icons.fontAwesome('fas fa-bolt'),
+    iconUnchecked: Icons.fontAwesome('far fa-dot-circle'),
+    iconHit: Icons.fontAwesome('fas fa-exclamation-triangle'),
+    resource: MONITORS.structure
+  },
   matrix: {
     path: 'system.monitors.matrix.value',
     monitor: it => it.getMatrixMonitor(),

@@ -18,9 +18,11 @@ import { AnarchyBaseActor } from './actor/base-actor.js';
 import { CharacterActor } from './actor/character-actor.js';
 import { DeviceActor } from './actor/device-actor.js';
 import { VehicleActor } from './actor/vehicle-actor.js';
+import { BattlemechActor } from './actor/battlemech-actor.js';
 import { CharacterActorSheet } from './actor/character-sheet.js';
 import { DeviceSheet } from './actor/device-sheet.js';
 import { VehicleSheet } from './actor/vehicle-sheet.js';
+import { BattlemechSheet } from './actor/battlemech-sheet.js';
 import { CharacterNPCSheet } from './actor/character-npc-sheet.js';
 import { SkillItem } from './item/skill-item.js';
 import { MetatypeItem } from './item/metatype-item.js';
@@ -78,6 +80,7 @@ export class AnarchySystem {
     this.actorClasses = {
       character: CharacterActor,
       vehicle: VehicleActor,
+      battlemech: BattlemechActor,
       device: DeviceActor,
       sprite: SpriteActor,
       ic: ICActor
@@ -170,6 +173,11 @@ export class AnarchySystem {
       label: game.i18n.localize(ANARCHY.actor.vehicleSheet),
       makeDefault: true,
       types: ['vehicle']
+    });
+    Actors.registerSheet(SYSTEM_NAME, BattlemechSheet, {
+      label: game.i18n.localize(ANARCHY.actor.battlemechSheet),
+      makeDefault: true,
+      types: ['battlemech']
     });
     Actors.registerSheet(SYSTEM_NAME, DeviceSheet, {
       label: game.i18n.localize(ANARCHY.actor.deviceSheet),
