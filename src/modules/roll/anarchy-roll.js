@@ -48,6 +48,11 @@ export class AnarchyRoll {
   }
 
   async evaluate() {
+    if (this.param.destinyMode) {
+      await this.rollDestiny();
+      return;
+    }
+
     await this.rollPool();
     await this.rollRerolls();
     await this.rollRerollForced();
@@ -58,6 +63,17 @@ export class AnarchyRoll {
   async rollPool() {
     this.subrolls.pool = new Roll(`${this.param.pool}d6cs>=${this.param.target}[${ROLL_THEME['dicePool']}]`)
     await this.subrolls.pool.evaluate({ async: true })
+    this.total = this.subrolls.pool.total;
+  }
+
+  async rollDestiny() {
+    const bonus = this.param.pool ?? 0;
+    const parts = ["2d6"];
+    if (bonus !== 0) {
+      parts.push(bonus > 0 ? `+ ${bonus}` : `${bonus}`);
+    }
+    this.subrolls.pool = new Roll(parts.join(" "));
+    await this.subrolls.pool.evaluate({ async: true });
     this.total = this.subrolls.pool.total;
   }
 
