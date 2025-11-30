@@ -180,6 +180,23 @@
             "effectiveCount": 1,
             "injuryLevel": 0,
             "bailedOut": false
+          },
+          "weightClass": "medium",
+          "hardpoints": [],
+          "weaponGroups": [],
+          "primarySlot": {
+            "mode": "normal",
+            "allowedWeaponIds": [],
+            "typeRestriction": ""
+          },
+          "melee": {
+            "baseProfile": {
+              "name": "Unarmed",
+              "damage": "",
+              "notes": ""
+            },
+            "maxWeapons": 0,
+            "allowedLocations": []
           }
         }
       }
@@ -398,11 +415,15 @@
       "capacity": "mundane",
       "level": 1
     },
-    "weapon": {
-      "templates": ["modifiers", "inactive", "references"],
-      "skill": "",
-      "specialization": "",
-      "strength": true,
+      "weapon": {
+        "templates": ["modifiers", "inactive", "references"],
+        "weaponCategory": "ranged",
+        "hardpointType": "energy",
+        "hardpointSize": "small",
+        "mountLocation": "",
+        "skill": "",
+        "specialization": "",
+        "strength": true,
       "damage": 0,
       "damageAttribute": "",
       "noArmor": false,

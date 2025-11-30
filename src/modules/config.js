@@ -417,6 +417,45 @@ export const ANARCHY = {
         aerospace: 'ANARCHY.vehicleCategory.aerospace',
         mech: 'ANARCHY.vehicleCategory.mech',
     },
+    mwd: {
+        weightClass: {
+            light: 'ANARCHY.mwd.weightClass.light',
+            medium: 'ANARCHY.mwd.weightClass.medium',
+            heavy: 'ANARCHY.mwd.weightClass.heavy',
+            assault: 'ANARCHY.mwd.weightClass.assault',
+        },
+        hardpointType: {
+            energy: 'ANARCHY.mwd.hardpoint.type.energy',
+            ballistic: 'ANARCHY.mwd.hardpoint.type.ballistic',
+            missile: 'ANARCHY.mwd.hardpoint.type.missile',
+            support: 'ANARCHY.mwd.hardpoint.type.support',
+        },
+        hardpointSize: {
+            small: 'ANARCHY.mwd.hardpoint.size.small',
+            medium: 'ANARCHY.mwd.hardpoint.size.medium',
+            large: 'ANARCHY.mwd.hardpoint.size.large',
+        },
+        hardpointLocation: {
+            head: 'ANARCHY.mwd.hardpoint.location.head',
+            torso: 'ANARCHY.mwd.hardpoint.location.torso',
+            arm: 'ANARCHY.mwd.hardpoint.location.arm',
+            leg: 'ANARCHY.mwd.hardpoint.location.leg',
+        },
+        primarySlotMode: {
+            normal: 'ANARCHY.mwd.primarySlot.mode.normal',
+            converted: 'ANARCHY.mwd.primarySlot.mode.converted',
+        },
+        weaponCategory: {
+            ranged: 'ANARCHY.mwd.weaponCategory.ranged',
+            melee: 'ANARCHY.mwd.weaponCategory.melee',
+        },
+        meleeLocation: {
+            head: 'ANARCHY.mwd.melee.location.head',
+            torso: 'ANARCHY.mwd.melee.location.torso',
+            arm: 'ANARCHY.mwd.melee.location.arm',
+            leg: 'ANARCHY.mwd.melee.location.leg',
+        },
+    },
     modifier: {
         column: {
             group: 'ANARCHY.modifier.column.group',
