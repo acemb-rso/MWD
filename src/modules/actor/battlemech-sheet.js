@@ -60,4 +60,33 @@ export class BattlemechSheet extends VehicleSheet {
       await this.actor.update({ 'system.mwd.weaponGroups': weaponGroups });
     });
   }
+
+  activateListeners(html) {
+    super.activateListeners(html);
+
+    html.find('[data-quick-actions] .quick-action-button').click(async event => {
+      event.stopPropagation();
+      const action = event.currentTarget.dataset.action;
+      switch (action) {
+        case 'ranged':
+          await this.actor.rollRangedAttack();
+          break;
+        case 'melee':
+          await this.actor.rollMeleeAttack();
+          break;
+        case 'dodge':
+          await this.actor.rollDodge();
+          break;
+        case 'piloting':
+          await this.actor.rollPilotingCheck();
+          break;
+        case 'sensor':
+          await this.actor.rollSensorSweep();
+          break;
+        case 'repair':
+          await this.actor.rollEmergencyRepair();
+          break;
+      }
+    });
+  }
 }

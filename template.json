@@ -306,6 +306,9 @@
           "core": ""
         }
       },
+      "weaponGroups": [],
+      "meleeProfiles": [],
+      "skills": {},
       "moves": 0,
       "attacks": 0,
       "stealth": 0,
@@ -352,6 +355,9 @@
           "core": ""
         }
       },
+      "weaponGroups": [],
+      "meleeProfiles": [],
+      "skills": {},
       "moves": 0,
       "attacks": 0,
       "stealth": 0,
