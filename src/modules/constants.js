@@ -49,6 +49,8 @@ export const TEMPLATE = {
     handling: 'handling',
     firewall: 'firewall',
     system: 'system',
+    chassis: 'chassis',
+    condition: 'condition',
     knowledge: 'knowledge',
   },
   capacities: {

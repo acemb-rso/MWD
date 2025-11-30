@@ -336,6 +336,8 @@ export const ANARCHY = {
         handling: 'ANARCHY.attributes.handling',
         firewall: 'ANARCHY.attributes.firewall',
         system: 'ANARCHY.attributes.system',
+        chassis: 'ANARCHY.attributes.chassis',
+        condition: 'ANARCHY.attributes.condition',
         knowledge: 'ANARCHY.attributes.knowledge',
     },
     attributeAction: {
