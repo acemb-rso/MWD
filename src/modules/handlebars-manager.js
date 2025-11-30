@@ -29,7 +29,6 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/actor/character/description.hbs',
   'systems/mwd/templates/actor/character/genre.hbs',
   'systems/mwd/templates/actor/character/karma.hbs',
-  'systems/mwd/templates/actor/character/metatype.hbs',
   'systems/mwd/templates/actor/character/social-celebrity.hbs',
   // character parts
   'systems/mwd/templates/actor/character-limited.hbs',
@@ -39,7 +38,6 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/actor/parts/gear.hbs',
   'systems/mwd/templates/actor/parts/gears.hbs',
   // character enhanced
-  'systems/mwd/templates/actor/character-enhanced/metatype.hbs',
   'systems/mwd/templates/actor/character-enhanced/attributes.hbs',
   'systems/mwd/templates/actor/character-enhanced/capacity.hbs',
   'systems/mwd/templates/actor/character-enhanced/attribute.hbs',

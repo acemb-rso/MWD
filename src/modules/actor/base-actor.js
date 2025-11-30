@@ -481,12 +481,6 @@ export class AnarchyBaseActor extends Actor {
     return 0;
   }
 
-  async removeOtherMetatype(metatype) {
-    const metatypeIds = this.items.filter(it => it.isMetatype() && it.id != metatype?.id)
-      .map(it => it.id);
-    this.deleteEmbeddedDocuments("Item", metatypeIds);
-  }
-
   /**
    * @param ownerActor the Actor who becomes the owner of this Actor
    */

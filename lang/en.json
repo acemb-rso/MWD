@@ -3,15 +3,12 @@
     "Actor": {
       "character": "Character/Creature",
       "vehicle": "Vehicle/drone",
-      "device": "Matrix device",
-      "sprite": "Sprite",
-      "ic": "IC"
+      "battlemech": "Battlemech"
     },
     "Item": {
       "contact": "Contact",
       "cyberdeck": "Cyberdeck",
       "gear": "Gear",
-      "metatype": "Metatype",
       "quality": "Trait",
       "shadowamp": "Shadowamp",
       "skill": "Skill",
@@ -189,13 +186,9 @@
       "characterEnhancedSheet": "Character enhanced sheet (tabs)",
       "vehicleSheet": "Vehicle sheet",
       "battlemechSheet": "Battlemech sheet",
-      "deviceSheet": "Device sheet",
-      "spriteSheet": "Sprite sheet",
-      "icSheet": "IC sheet",
       "characterNPCSheet": "NPC sheet",
       "actorName": "Name",
       "genre": "Genre",
-      "noMetatype": "No metatype, drag it!",
       "celebrity": "Celebrity",
       "famous": "Fame",
       "tabs": {
@@ -257,10 +250,7 @@
     "actorType": {
       "character": "Character",
       "vehicle": "Vehicle",
-      "battlemech": "Battlemech",
-      "device": "Device",
-      "sprite": "Sprite",
-      "ic": "IC"
+      "battlemech": "Battlemech"
     },
     "item": {
       "sheet": "Sheet for ",
@@ -317,7 +307,6 @@
     },
     "itemType": {
       "singular": {
-        "metatype": "Metatype",
         "skill": "Skill",
         "quality": "Trait",
         "shadowamp": "Shadow Amp",
@@ -327,7 +316,6 @@
         "contact": "Contact"
       },
       "plural": {
-        "metatype": "Metatypes",
         "skill": "Skills",
         "quality": "Qualities",
         "shadowamp": "Shadow Amps",

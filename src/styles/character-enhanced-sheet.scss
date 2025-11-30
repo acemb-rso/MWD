@@ -70,32 +70,6 @@
                     display: none;
                 }
 
-                .metatype {
-                    position: absolute;
-                    bottom: 0px;
-                    right: 0px;
-                    width: 100px;
-                    font-size: 10px;
-
-                    .anarchy-metatype {
-                        gap: 8px;
-                        background-color: white;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        padding-right: 6px;
-
-                        &.info-value {
-                            padding-right: 0px;
-                        }
-
-                        span {
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        }
-                    }
-                }
             }
 
             .name-attributes {

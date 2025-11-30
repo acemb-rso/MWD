@@ -1,6 +1,6 @@
 {
   "Actor": {
-    "types": ["character", "vehicle", "battlemech", "device", "sprite", "ic"],
+    "types": ["character", "vehicle", "battlemech"],
     "templates": {
       "description": {
         "ownerId": "",
@@ -264,33 +264,6 @@
       "category": "mech",
       "skill": "gunnery",
       "passengers": 1
-    },
-    "device": {
-      "templates": ["description", "matrix-monitor"],
-      "attributes": {
-        "system": {
-          "value": 6
-        },
-        "firewall": {
-          "value": 0
-        }
-      }
-    },
-    "sprite": {
-      "templates": [
-        "description",
-        "matrix-monitor",
-        "attribute-logic",
-        "attribute-edge"
-      ]
-    },
-    "ic": {
-      "templates": ["description", "matrix-monitor", "attribute-logic"],
-      "attributes": {
-        "firewall": {
-          "value": 4
-        }
-      }
     }
   },
   "Item": {
@@ -298,7 +271,6 @@
       "contact",
       "cyberdeck",
       "gear",
-      "metatype",
       "quality",
       "shadowamp",
       "skill",
@@ -316,12 +288,6 @@
         "description": "",
         "gmnotes": ""
       }
-    },
-    "metatype": {
-      "templates": [
-        "references",
-        "modifiers"
-      ]
     },
     "skill": {
       "templates": [

@@ -28,12 +28,8 @@ export const TEMPLATE = {
     character: 'character',
     vehicle: 'vehicle',
     battlemech: 'battlemech',
-    device: 'device',
-    sprite: 'sprite',
-    ic: 'ic',
   },
   itemType: {
-    metatype: 'metatype',
     skill: 'skill',
     quality: 'quality',
     shadowamp: 'shadowamp',

@@ -59,7 +59,6 @@ export class AnarchyBaseItem extends Item {
     return await this.update({ [checkbarPath]: value })
   }
 
-  isMetatype() { return this.type == TEMPLATE.itemType.metatype; }
   isCyberdeck() { return this.type == TEMPLATE.itemType.cyberdeck; }
   isWeapon() { return this.type == TEMPLATE.itemType.weapon; }
 
