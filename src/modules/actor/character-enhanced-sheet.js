@@ -1,7 +1,5 @@
 import { TEMPLATES_PATH } from "../constants.js";
 import { CharacterBaseSheet } from "./character-base-sheet.js";
-import "../../styles/character-enhanced-sheet.scss";
-
 export class CharacterEnhancedSheet extends CharacterBaseSheet {
 
   get template() {

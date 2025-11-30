@@ -140,10 +140,22 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/common/actor-reference.hbs',
   // dialogs
   'systems/mwd/templates/dialog/roll-modifier.hbs',
+  // chat
+  'systems/mwd/templates/chat/anarchy-roll-title.hbs',
+  'systems/mwd/templates/chat/edge-reroll-button.hbs',
+  'systems/mwd/templates/chat/parts/actor-image.hbs',
+  'systems/mwd/templates/chat/parts/generic-parameter.hbs',
+  'systems/mwd/templates/chat/parts/result-mode-weapon.hbs',
+  'systems/mwd/templates/chat/roll-modifier.hbs',
   // apps
   'systems/mwd/templates/app/gm-anarchy.hbs',
   'systems/mwd/templates/app/gm-difficulty.hbs',
   'systems/mwd/templates/app/gm-difficulty-buttons.hbs',
+  'systems/mwd/templates/app/gm-convergence.hbs',
+  // roll (roll rendering helpers)
+  'systems/mwd/templates/roll/parts/dice-cursor.hbs',
+  'systems/mwd/templates/roll/parts/parameter-label.hbs',
+  'systems/mwd/templates/roll/roll-parameters-category.hbs',
 ];
 
 export class HandlebarsManager {
