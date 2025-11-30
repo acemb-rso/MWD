@@ -16,7 +16,6 @@ export const ROLL_PARAMETER_CATEGORY = {
   successReroll: 'successReroll',
   glitch: 'glitch',
   drain: 'drain',
-  convergence: 'convergence',
   edge: 'edge',
   risk: 'risk',
   opponentPool: 'opponentPool',
@@ -209,23 +208,6 @@ const DEFAULT_ROLL_PARAMETERS = [
         value: context.mode == 'weapon' && context.weapon.hasDrain ? context.weapon.system.drain : 1
       }
     }
-  },
-  // convergence
-  {
-    code: 'convergence',
-    options: {
-      flags: { editDice: false, optional: true, used: true, hideParameter: true },
-      order: 40, category: ROLL_PARAMETER_CATEGORY.convergence,
-      value: 1,
-      labelkey: ANARCHY.common.roll.modifiers.convergence,
-      hbsTemplateRoll: `${TEMPLATES_PATH}/roll/parts/check-option.hbs`
-    },
-    isUsed: (p) => p.used,
-    condition: context => (context.mode == 'skill' || context.mode == 'weapon') && context.skill?.system.hasConvergence,
-    onChecked: (p, checked) => {
-      p.used = checked;
-      p.value = checked ? 1 : 0;
-    },
   },
   // glitch
   {

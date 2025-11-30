@@ -34,10 +34,9 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
     }
   };
 
-  constructor(gmAnarchy, gmConvergence) {
+  constructor(gmAnarchy) {
     super();
     this.gmAnarchy = gmAnarchy;
-    this.gmConvergence = gmConvergence;
     this.gmDifficulty = new GMDifficulty();
     this.handleDrag = new HandleDragApplication(
       doc => doc.getElementById("gm-manager"),
@@ -132,7 +131,6 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
     this.handleDrag.setPosition();
     return {
       anarchy: this.gmAnarchy.getAnarchy(),
-      convergences: this.gmConvergence.getConvergences(),
       difficultyPools: this.gmDifficulty.getDifficultyData(),
       ANARCHY: ANARCHY,
       options: {
@@ -151,7 +149,6 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
     jqHtml.find('.gm-manager-hide-button').mousedown(event => this.close());
 
     this.gmAnarchy.activateListeners(jqHtml);
-    this.gmConvergence.activateListeners(jqHtml);
     this.gmDifficulty.activateListeners(jqHtml);
   }
 

@@ -150,7 +150,6 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/app/gm-anarchy.hbs',
   'systems/mwd/templates/app/gm-difficulty.hbs',
   'systems/mwd/templates/app/gm-difficulty-buttons.hbs',
-  'systems/mwd/templates/app/gm-convergence.hbs',
   // roll (roll rendering helpers)
   'systems/mwd/templates/roll/parts/dice-cursor.hbs',
   'systems/mwd/templates/roll/parts/parameter-label.hbs',
