@@ -70,15 +70,7 @@ export class ActorDamageManager {
     await defender.applyArmorDamage(monitor, Modifiers.sumModifiers([attackWeapon], 'other', 'damageArmor'));
   }
 
-  static async sufferMarks(actor, sourceActor) {
-    await Checkbars.addCounter(actor, TEMPLATE.monitors.marks, 1, sourceActor.id);
-  }
-
   static async sufferDamageResistanceArmorMonitor(actor, monitor, damage, success, avoidArmor, sourceActor) {
-    if (monitor == TEMPLATE.monitors.marks) {
-      await ActorDamageManager.sufferMarks(actor, sourceActor)
-      return;
-    }
     const resistance = Checkbars.resistance(actor, monitor);
     let total = 0;
 
@@ -103,10 +95,6 @@ export class ActorDamageManager {
   }
 
   static async sufferDamageArmorResistanceMonitor(actor, monitor, damage, success, avoidArmor, sourceActor) {
-    if (monitor == TEMPLATE.monitors.marks) {
-      await ActorDamageManager.sufferMarks(actor, sourceActor)
-      return;
-    }
     let total = 0;
     if (Checkbars.useArmor(monitor)) {
       if (avoidArmor) {
@@ -129,10 +117,6 @@ export class ActorDamageManager {
   }
 
   static async sufferDamageArmorAsResistance_Cyberpunk(actor, monitor, damage, success, avoidArmor, sourceActor) {
-    if (monitor == TEMPLATE.monitors.marks) {
-      await ActorDamageManager.sufferMarks(actor, sourceActor)
-      return;
-    }
     let total = damage + success;
     if (Checkbars.useArmor(monitor) && total > 0) {
       const ignoredArmor = avoidArmor ? success : 0;
@@ -150,10 +134,6 @@ export class ActorDamageManager {
   }
 
   static async sufferDamageArmorAsResistance_Earthdawn(actor, monitor, damage, success, avoidArmor, sourceActor) {
-    if (monitor == TEMPLATE.monitors.marks) {
-      await ActorDamageManager.sufferMarks(actor, sourceActor)
-      return;
-    }
     let total = damage + success;
     if (Checkbars.useArmor(monitor) && !avoidArmor && total > 0) {
       const armorResistance = ActorDamageManager._computeArmorResistance(actor);
@@ -195,10 +175,6 @@ export class ActorDamageManager {
   }
 
   static _computeStrengthResistance(actor, monitor) {
-    switch (monitor) {
-      case TEMPLATE.monitors.matrix:
-        return 0;
-    }
     const strength = actor.getAttributeValue(TEMPLATE.attributes.strength);
     return Math.max(0, Math.floor(strength / 4));
   }

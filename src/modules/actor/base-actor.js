@@ -4,7 +4,6 @@ import { ANARCHY } from "../config.js";
 import { BASE_MONITOR, TEMPLATE } from "../constants.js";
 import { Enums } from "../enums.js";
 import { ErrorManager } from "../error-manager.js";
-import { NO_MATRIX_MONITOR } from "../matrix-helper.js";
 import { Misc } from "../misc.js";
 import { Modifiers } from "../modifiers/modifiers.js";
 import { RollDialog } from "../roll/roll-dialog.js";
@@ -141,7 +140,6 @@ export class AnarchyBaseActor extends Actor {
   }
 
   prepareDerivedData() {
-    this.prepareMatrixMonitor()
     this.system.modifiers = {
       initiative: Modifiers.sumModifiers(this.items, 'other', 'initiative')
     }
@@ -167,14 +165,6 @@ export class AnarchyBaseActor extends Actor {
     return undefined
   }
 
-  prepareMatrixMonitor() {
-    const matrix = this.getMatrixDetails()
-    if (matrix.hasMatrix) {
-      this.system.monitors.matrix.max = this._getMonitorMax(matrix.logic)
-      this.system.monitors.matrix.canMark = true
-    }
-  }
-
   async onUpdateActor(updates, options) {
     if (updates.system?.monitors != undefined && updates.system?.state == undefined) {
       this.update({ 'system.state': this.computeState() })
@@ -185,7 +175,6 @@ export class AnarchyBaseActor extends Actor {
     return {
       physical: this.computePhysicalState(),
       fatigue: this.computeFatigueState(),
-      matrix: this.computeMatrixState(),
     }
   }
 
@@ -198,23 +187,12 @@ export class AnarchyBaseActor extends Actor {
     return monitor ? { value: monitor.max - monitor.value, max: monitor.max } : { value: 0, max: 0 }
   }
 
-  computeMatrixState() {
-    const matrixDetails = this.getMatrixDetails();
-    if (matrixDetails.hasMatrix) {
-      return {
-        value: matrixDetails.monitor.max - matrixDetails.monitor.value,
-        max: matrixDetails.monitor.max
-      }
-    }
-    return { value: 0, max: 0 }
-  }
-
   getMatrixDetails() {
     return {
       hasMatrix: false,
       logic: undefined,
       firewall: undefined,
-      monitor: NO_MATRIX_MONITOR,
+      monitor: undefined,
       overflow: undefined,
     }
   }
@@ -222,9 +200,9 @@ export class AnarchyBaseActor extends Actor {
   getMatrixLogic() { return this.getMatrixDetails().logic }
   getMatrixFirewall() { return this.getMatrixDetails().firewall }
   getMatrixMonitor() { return this.getMatrixDetails().monitor }
-  getMatrixMarks() { return this.getMatrixDetails().monitor?.marks ?? [] }
+  getMatrixMarks() { return [] }
   getMatrixOverflow() { return this.getMatrixDetails().overflow }
-  hasMatrixMonitor() { return this.getMatrixDetails().hasMatrix }
+  hasMatrixMonitor() { return false }
   isMatrixConnected(mode = undefined) { return false }
   isMatrixSkill(skill) {
     return MATRIX_SKILLS.includes(skill?.system.code)
@@ -232,23 +210,7 @@ export class AnarchyBaseActor extends Actor {
 
   async nextConnectionMode(cyberdeck) { }
 
-  async defSetMatrixMonitor(path, value) {
-    if (!this.getMatrixDetails().hasMatrix) {
-      game.system.anarchy.hacks.i18n.format(ANARCHY.actor.monitors.noMatrixMonitor, { actor: this.name })
-    }
-    else {
-      await this.update({ [path]: value })
-    }
-  }
-
   async setCheckbarValue(path, value) {
-    if (path.startsWith('system.monitors.matrix.')) {
-      const matrixDetails = this.getMatrixDetails();
-      if (matrixDetails.setMatrixMonitor) {
-        return await matrixDetails.setMatrixMonitor(path, value)
-      }
-      return await this.defSetMatrixMonitor(path, value)
-    }
     return await this.update({ [path]: value })
   }
 
@@ -304,9 +266,6 @@ export class AnarchyBaseActor extends Actor {
   getDamageMonitor(damageType) {
     damageType = this.resolveDamageType(damageType);
     switch (damageType) {
-      case TEMPLATE.monitors.matrix:
-      case TEMPLATE.monitors.marks:
-        return damageType;
     }
     return undefined;
   }
@@ -374,13 +333,8 @@ export class AnarchyBaseActor extends Actor {
 
   getCyberdeck() { return undefined }
 
-  canReceiveMarks() { return this.system.monitors?.matrix?.canMark }
-
   canApplyDamage(monitor) {
     switch (monitor) {
-      case TEMPLATE.monitors.matrix:
-      case TEMPLATE.monitors.marks:
-        return this.hasMatrixMonitor()
       case TEMPLATE.monitors.physical:
       case TEMPLATE.monitors.fatigue:
         return this.getDamageMonitor(monitor) != undefined
@@ -390,14 +344,6 @@ export class AnarchyBaseActor extends Actor {
 
   canReceiveDamage(monitor) {
     return this.canApplyDamage(monitor)
-  }
-
-  async addActorMark(sourceActorId) {
-    await Checkbars.addActorMark(this, sourceActorId);
-  }
-
-  getActorMarks(sourceActorId) {
-    return Checkbars.getActorMarks(this, sourceActorId)?.marks;
   }
 
   async onEnterCombat() {

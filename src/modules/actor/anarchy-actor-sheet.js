@@ -116,20 +116,12 @@ export class AnarchyActorSheet extends foundry.appv1.sheets.ActorSheet {
       const item = this.getEventItem(event);
       const handler = item ?? this.actor;
       const monitor = this.getEventMonitorCode(event);
-      const sourceActorId = monitor == 'marks' ?
-        $(event.currentTarget).closest('.anarchy-marks').attr('data-actor-id')
-        : undefined;
       await handler.switchMonitorCheck(
         monitor,
         this.getEventIndex(event),
         this.isEventChecked(event),
-        sourceActorId,
         item
       );
-    });
-    html.find('a.click-add-mark-actor').click(async event => {
-      event.stopPropagation();
-      this.onClickAddMark();
     });
 
     // rolls

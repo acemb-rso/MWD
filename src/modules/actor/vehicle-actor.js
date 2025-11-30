@@ -1,7 +1,6 @@
 import { ANARCHY } from "../config.js";
 import { ICONS_PATH, TEMPLATE } from "../constants.js";
 import { ErrorManager } from "../error-manager.js";
-import { NO_MATRIX_MONITOR } from "../matrix-helper.js";
 import { AnarchyUsers } from "../users.js";
 import { AnarchyBaseActor } from "./base-actor.js";
 
@@ -22,30 +21,10 @@ export class VehicleActor extends AnarchyBaseActor {
     return AnarchyBaseActor.initiative + " + max(@attributes.system.value, @attributes.autopilot.value)"
   }
 
-  prepareDerivedData() {
-    if (this.system.monitors?.matrix) {
-      this.system.monitors.matrix.max = this._getMonitorMax(TEMPLATE.attributes.system)
-    }
-    super.prepareDerivedData()
-  }
-
   computePhysicalState() {
     return {
       max: this.system.monitors.structure.max,
       value: this.system.monitors.structure.max - this.system.monitors.structure.value
-    }
-  }
-
-  getMatrixDetails() {
-    if (!this.system.monitors?.matrix) {
-      return NO_MATRIX_MONITOR
-    }
-    return {
-      hasMatrix: true,
-      logic: TEMPLATE.attributes.system,
-      firewall: TEMPLATE.attributes.firewall,
-      monitor: this.system.monitors.matrix,
-      overflow: undefined,
     }
   }
 

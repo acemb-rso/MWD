@@ -6,7 +6,6 @@ import { Misc } from "../misc.js";
 import { Modifiers } from "../modifiers/modifiers.js";
 import { Checkbars, DEFAULT_CHECKBARS } from "../common/checkbars.js";
 import { RollCelebrity } from "../dialog/roll-celebrity.js";
-import { MATRIX, Matrix, NO_MATRIX_MONITOR } from "../matrix-helper.js";
 
 const { renderTemplate } = foundry.applications.handlebars;
 
@@ -62,53 +61,6 @@ export class CharacterActor extends AnarchyBaseActor {
       return TEMPLATE.attributes.firewall
     }
     return super.getCorrespondingAttribute(attribute)
-  }
-
-  getMatrixDetails() {
-    const cyberdeck = this.getCyberdeck();
-    if (cyberdeck?.isConnected()) {
-      return {
-        hasMatrix: true,
-        logic: TEMPLATE.attributes.logic,
-        firewall: TEMPLATE.attributes.firewall,
-        monitor: cyberdeck.system.monitors.matrix,
-        overflow: cyberdeck.getMatrixOverflow(),
-        setMatrixMonitor: async (path, value) => cyberdeck.setMatrixMonitor(path, value),
-      }
-    }
-    return {
-      hasMatrix: false,
-      logic: TEMPLATE.attributes.logic,
-      firewall: undefined,
-      monitor: NO_MATRIX_MONITOR,
-      overflow: undefined
-    }
-  }
-
-  isMatrixConnected(mode = undefined) {
-    mode = Matrix.resolveConnectionMode(mode)
-    let connectionMode = undefined
-    const cyberdeck = this.getCyberdeck();
-    if (cyberdeck?.isConnected()) {
-      connectionMode = cyberdeck.getConnectionMode()
-    }
-    if (mode == undefined) {
-      return Matrix.resolveConnectionMode(connectionMode) != MATRIX.connectionMode.disconnected
-    }
-    return Matrix.resolveConnectionMode(connectionMode) == mode
-  }
-  async nextConnectionMode(cyberdeck) {
-    if (cyberdeck) {
-      await cyberdeck.nextConnectionMode()
-    }
-  }
-
-  prepareMatrixMonitor() {
-    const cyberdeck = this.getCyberdeck()
-    if (cyberdeck) {
-      cyberdeck.system.monitors.matrix.maxBonus = Modifiers.sumMonitorModifiers(this.items, 'matrix', 'max')
-      cyberdeck.system.monitors.matrix.resistanceBonus = Modifiers.sumMonitorModifiers(this.items, 'matrix', 'resistance')
-    }
   }
 
   getDamageMonitor(damageType) {

@@ -60,9 +60,6 @@ export const TEMPLATE = {
     physical: 'physical',
     structure: 'structure',
     heat: 'heat',
-    matrix: 'matrix',
-    marks: 'marks',
-    convergence: 'convergence',
     anarchy: 'anarchy',
     plot: 'plot',
     sceneAnarchy: 'sceneAnarchy',
@@ -102,21 +99,17 @@ export const ANARCHY_SYSTEM = {
     composure: "composure",
     memory: "memory",
     catch: "catch",
-    lift: "lift",
-    matrixDefense: "matrixDefense",
-    astralDefense: "astralDefense"
+    lift: "lift"
   },
   defenses: {
     physicalDefense: "physicalDefense",
     physicalResistance: "physicalResistance",
     socialDefense: "socialDefense",
-    matrixDefense: "matrixDefense",
     mentalResistance: "mentalResistance"
   },
   fixedDefenseCode: {
     // fix for old incorrect defense codes
     mentalDefense: "physicalResistance",
-    astralDefense: "mentalResistance",
   }
 }
 
