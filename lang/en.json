@@ -316,6 +316,9 @@
       "weapon": {
         "skill": "Skill",
         "drain": "Drain",
+        "category": "Weapon category",
+        "hardpoint": "Hardpoint",
+        "mountLocation": "Mount location",
         "damage": "Damages",
         "strength": "+ strength",
         "defense": "Defense",
@@ -474,6 +477,93 @@
       "combat": "Combat",
       "aerospace": "Aerospace",
       "mech": "Mech"
+    },
+    "mwd": {
+      "weightClass": {
+        "label": "Weight class",
+        "light": "Light",
+        "medium": "Medium",
+        "heavy": "Heavy",
+        "assault": "Assault"
+      },
+      "hardpoint": {
+        "type": {
+          "energy": "Energy",
+          "ballistic": "Ballistic",
+          "missile": "Missile",
+          "support": "Support"
+        },
+        "size": {
+          "small": "Small",
+          "medium": "Medium",
+          "large": "Large"
+        },
+        "location": {
+          "head": "Head",
+          "torso": "Torso",
+          "arm": "Arm",
+          "leg": "Leg"
+        }
+      },
+      "primarySlot": {
+        "mode": {
+          "normal": "Large hardpoint",
+          "converted": "Converted slot"
+        }
+      },
+      "weaponCategory": {
+        "ranged": "Ranged",
+        "melee": "Melee"
+      },
+      "melee": {
+        "title": "Melee options",
+        "baseProfile": "Unarmed",
+        "baseProfileLabel": "Base melee profile",
+        "damagePlaceholder": "Damage code",
+        "notesPlaceholder": "Notes",
+        "maxWeapons": "Maximum equipped melee weapons",
+        "allowedLocations": "Allowed locations",
+        "availableProfiles": "Available melee profiles",
+        "location": {
+          "head": "Head",
+          "torso": "Torso",
+          "arm": "Arm",
+          "leg": "Leg"
+        },
+        "locationAny": "Any location"
+      },
+      "loadout": {
+        "title": "Weapon loadout",
+        "mountPoints": "Mount points used",
+        "primarySlot": {
+          "label": "Primary weapon slot",
+          "noRestriction": "No type restriction",
+          "allowedWeapons": "Allowed primary weapons"
+        },
+        "hardpoints": "Hardpoints",
+        "weaponGroups": "Weapon groups",
+        "primaryTag": "Primary",
+        "occupied": "{{weaponGroup}} assigned",
+        "emptyHardpoint": "Empty",
+        "errors": {
+          "label": "Errors",
+          "multiplePrimary": "Only one primary weapon group is allowed.",
+          "mountPointsExceeded": "Loadout uses {used} mount points but only {total} are available.",
+          "hardpointUnavailable": "No matching hardpoint for {weapon} ({type}, {size}).",
+          "primaryNeedsLarge": "{weapon} must use a large hardpoint to be primary.",
+          "primaryWithoutWeapon": "Primary group needs at least one weapon.",
+          "weaponAlreadyGrouped": "{weapon} is already assigned to another group.",
+          "primaryNotAllowedWeapon": "{weapon} is not allowed in the converted primary slot.",
+          "primaryTypeRestriction": "{weapon} does not match the converted primary slot restriction ({type}).",
+          "meleeLimitExceeded": "Equipped melee weapons {equipped} exceed limit {limit}.",
+          "meleeLocationRestricted": "{weapon} cannot be mounted at that location."
+        },
+        "warnings": {
+          "label": "Warnings",
+          "weaponMissing": "Weapon with id {weapon} is missing."
+        },
+        "newGroup": "New weapon group"
+      }
     },
     "modifier": {
       "column": {

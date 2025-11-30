@@ -1630,4 +1630,47 @@
   font-weight: 600;
 }
 
+.battlemech-loadout .loadout-summary {
+  gap: 0.5rem;
+}
+
+.battlemech-loadout .loadout-columns {
+  gap: 0.75rem;
+}
+
+.battlemech-loadout .loadout-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.battlemech-loadout select[multiple] {
+  min-width: 12rem;
+  min-height: 5rem;
+}
+
+.battlemech-loadout .loadout-column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.battlemech-loadout .loadout-feedback {
+  margin-top: 0.5rem;
+}
+
+.battlemech-loadout .loadout-errors {
+  color: var(--anarchy-color-error, #b22222);
+}
+
+.battlemech-loadout .loadout-warnings {
+  color: var(--anarchy-color-warning, #b8860b);
+}
+
+.battlemech-loadout .melee-profile-list {
+  margin: 0;
+  padding-left: 1rem;
+}
+
 /*# sourceMappingURL=style.css.map */

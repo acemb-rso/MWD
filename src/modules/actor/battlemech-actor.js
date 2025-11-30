@@ -3,6 +3,7 @@ import { ANARCHY_SYSTEM, ICONS_PATH, TEMPLATE } from "../constants.js";
 import { SkillItem } from "../item/skill-item.js";
 import { RollDialog } from "../roll/roll-dialog.js";
 import { VehicleActor } from "./vehicle-actor.js";
+import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 
 export class BattlemechActor extends VehicleActor {
 
