@@ -35,6 +35,7 @@ export class BaseItemSheet extends ItemSheet {
       {
         options: {
           isGM: game.user.isGM,
+          limited: !this.document.isOwner,
           owner: this.document.isOwner,
           isOwned: (this.actor != undefined),
           editable: this.isEditable,
