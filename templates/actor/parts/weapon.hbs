@@ -21,19 +21,11 @@
   <div class="weapon-column weapon-stat">
     {{localize (concat 'ANARCHY.area.' (either system.area 'none'))}}
   </div>
+  {{#each (weaponRangeList system.range)}}
   <div class="weapon-column weapon-stat">
-    {{either system.range.short 'OK'}}
-    </div>
-  <div class="weapon-column weapon-stat">
-    {{#unless (eq system.range.max "short")}}
-    {{either system.range.medium 'OK'}}
-    {{/unless}}
+    {{#if allowed}}{{either value 'OK'}}{{else}}-{{/if}}
   </div>
-  <div class="weapon-column weapon-stat">
-    {{#if (eq system.range.max "long")}}
-    {{either system.range.long 'OK'}}
-    {{/if}}
-  </div>
+  {{/each}}
   <div class="weapon-column weapon-stat">
     {{#if hasDrain}}
     {{system.drain}}

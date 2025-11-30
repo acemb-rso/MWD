@@ -293,7 +293,7 @@
       "attacks": 0,
       "stealth": 0,
       "category": "",
-      "skill": "pilotingGround",
+      "skill": "piloting",
       "passengers": 4
     },
     "battlemech": {
@@ -411,10 +411,12 @@
       "area": "",
       "drain": 0,
       "range": {
-        "max": "short",
+        "max": "contact",
+        "contact": 0,
         "short": 0,
         "medium": 0,
-        "long": 0
+        "far": 0,
+        "extreme": 0
       }
     },
     "cyberdeck": {

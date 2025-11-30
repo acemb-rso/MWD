@@ -173,6 +173,7 @@ export class HandlebarsManager {
     Handlebars.registerHelper('weaponDamageCode', WeaponItem.damageCode);
     Handlebars.registerHelper('weaponDamageValue', WeaponItem.damageValue);
     Handlebars.registerHelper('weaponArmorMode', WeaponItem.armorMode);
+    Handlebars.registerHelper('weaponRangeList', WeaponItem.getRangeList);
 
     Handlebars.registerHelper('skillValue', (actor, skillId) => actor.getSkillValue(skillId, false));
     Handlebars.registerHelper('specializationValue', (actor, skillId) => actor.getSkillValue(skillId, true));

@@ -69,6 +69,8 @@ const WEAPON_AREA_PARAMETER = {
 
 export class WeaponItem extends AnarchyBaseItem {
 
+  static RANGE_ORDER = ['contact', 'short', 'medium', 'far', 'extreme'];
+
   static init() {
     Hooks.once(ANARCHY_HOOKS.REGISTER_ROLL_PARAMETERS, register => {
       register(WEAPON_AREA_PARAMETER);
@@ -169,20 +171,33 @@ export class WeaponItem extends AnarchyBaseItem {
   }
 
   getRanges() {
-    let ranges = [
-      this._getRange('short'),
-    ]
-    if (this.system.range.max != 'short') {
-      ranges.push(this._getRange('medium'));
-    }
-    if (this.system.range.max == 'long') {
-      ranges.push(this._getRange('long'));
-    }
-    return ranges
+    return WeaponItem.getRangeList(this.system.range)
+      .filter(it => it.allowed)
+      .map(it => ({ value: it.value, labelkey: it.labelkey }));
   }
 
   _getRange(range) {
     return { value: this.system.range[range], labelkey: Enums.getFromList(Enums.getEnums().ranges, range) };
+  }
+
+  static getRangeList(range) {
+    const normalizedMax = WeaponItem.normalizeRangeKey(range?.max);
+    const maxIndex = WeaponItem.RANGE_ORDER.indexOf(normalizedMax);
+    return WeaponItem.RANGE_ORDER.map((key, index) => {
+      return {
+        key,
+        allowed: maxIndex >= 0 ? index <= maxIndex : index === 0,
+        value: range?.[key] ?? (key === 'extreme' && range?.long !== undefined ? range.long : undefined),
+        labelkey: Enums.getFromList(Enums.getEnums().ranges, key)
+      };
+    });
+  }
+
+  static normalizeRangeKey(rangeKey) {
+    if (rangeKey === 'long') {
+      return 'extreme';
+    }
+    return rangeKey;
   }
 
   prepareShortcut() {
