@@ -9,7 +9,30 @@ const GM_MANAGER_POSITION = "gm-manager-position";
 const GM_MANAGER_INITIAL_POSITION = { top: 200, left: 200 };
 const GM_MANAGER_TEMPLATE = 'systems/mwd/templates/app/gm-manager.hbs';
 
-export class GMManager extends Application {
+const { ApplicationV2 } = foundry.applications.api;
+
+export class GMManager extends ApplicationV2 {
+
+  static get DEFAULT_OPTIONS() {
+    return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+      id: GM_MANAGER,
+      window: {
+        title: game.i18n.localize(ANARCHY.gmManager.title),
+        popOut: false,
+        resizable: false
+      },
+      position: {
+        height: "auto",
+        width: "auto"
+      }
+    });
+  }
+
+  static PARTS = {
+    body: {
+      template: GM_MANAGER_TEMPLATE
+    }
+  };
 
   constructor(gmAnarchy, gmConvergence) {
     super();
@@ -82,10 +105,10 @@ export class GMManager extends Application {
       const buttonGM = $(html).find('form.chat-form .gmmanager')
       buttonGM.on("click", event => {
         event.preventDefault();
-        if (this._element) {
+        if (this.rendered) {
           this.close();
         } else {
-          this.render(true);
+          this.render({ force: true });
         }
       })
 
@@ -94,29 +117,18 @@ export class GMManager extends Application {
 
   onReady() {
     if (game.user.isGM) {
-      this.render(true);
+      this.render({ force: true });
     }
   }
 
-  /* -------------------------------------------- */
-  static get defaultOptions() {
-    let options = super.defaultOptions;
-    options.id = GM_MANAGER;
-    options.title = game.i18n.localize(ANARCHY.gmManager.title);
-    options.template = GM_MANAGER_TEMPLATE;
-    options.popOut = false;
-    options.resizable = false;
-    options.height = "auto";
-    options.width = "auto";
-    return options;
-  }
-  async render(force, options) {
+  async render(options = {}) {
     if (game.user.isGM) {
-      await super.render(force, options);
+      return super.render(options);
     }
+    return this;
   }
 
-  getData() {
+  async _prepareContext() {
     this.handleDrag.setPosition();
     return {
       anarchy: this.gmAnarchy.getAnarchy(),
@@ -130,14 +142,17 @@ export class GMManager extends Application {
   }
 
   async activateListeners(html) {
-    super.activateListeners(html);
+    const element = html instanceof HTMLElement ? html : html[0];
+    await super.activateListeners(element);
 
-    html.find('.app-title-bar').mousedown(event => this.handleDrag.onMouseDown(event));
-    html.find('.gm-manager-hide-button').mousedown(event => this.close());
+    const jqHtml = $(element);
 
-    this.gmAnarchy.activateListeners(html);
-    this.gmConvergence.activateListeners(html);
-    this.gmDifficulty.activateListeners(html);
+    jqHtml.find('.app-title-bar').mousedown(event => this.handleDrag.onMouseDown(event));
+    jqHtml.find('.gm-manager-hide-button').mousedown(event => this.close());
+
+    this.gmAnarchy.activateListeners(jqHtml);
+    this.gmConvergence.activateListeners(jqHtml);
+    this.gmDifficulty.activateListeners(jqHtml);
   }
 
 }
