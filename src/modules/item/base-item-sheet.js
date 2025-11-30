@@ -20,6 +20,9 @@ export class BaseItemSheet extends foundry.appv1.sheets.ItemSheet {
   }
 
   get template() {
+    if ([TEMPLATE.itemType.mechWeapon, TEMPLATE.itemType.personalWeapon].includes(this.object.type)) {
+      return `${TEMPLATES_PATH}/item/weapon.hbs`;
+    }
     return `${TEMPLATES_PATH}/item/${this.object.type}.hbs`;
   }
 

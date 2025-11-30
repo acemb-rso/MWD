@@ -7,12 +7,12 @@
     },
     "Item": {
       "contact": "Contact",
-      "cyberdeck": "Cyberdeck",
       "gear": "Gear",
       "quality": "Trait",
       "shadowamp": "Shadowamp",
       "skill": "Skill",
-      "weapon": "Weapon"
+      "mechWeapon": "Mech-Scale Weapon",
+      "personalWeapon": "Personal Weapon"
     }
   },
   "ANARCHY": {
@@ -70,7 +70,7 @@
       "rollDice": {
         "title": "Roll Destiny dice",
         "instruction": "Number of dice to roll: ",
-        "error": "Veuillez entrer un nombre valide de dés.",
+        "error": "Veuillez entrer un nombre valide de d\u00e9s.",
         "result": "Roll of {count}d6, {success} success! {ones} dice with a value of 1"
       }
     },
@@ -214,8 +214,8 @@
           "rumor": "Rumor"
         }
       },
-        "monitors": {
-          "conditionMonitors": "Condition monitors",
+      "monitors": {
+        "conditionMonitors": "Condition monitors",
         "overflow": "{actor}: Overflow of {monitor} condition monitor, transfering {overflow} to {overflowMonitor} condition monitor",
         "physical": "Physical",
         "fatigue": "Fatigue",
@@ -223,55 +223,55 @@
         "structure": "Structure",
         "heat": "Heat",
         "resistance": "Resistance"
-        },
+      },
       "vehicle": {
         "moves": "Moves",
         "attacks": "Attacks",
         "stealth": "Stealth",
         "category": "Category",
         "skill": "Skill",
-    "heatDissipation": "Heat dissipation",
-    "criticalTrack": "Criticals",
-    "locationFront": "Front effects",
-    "locationSide": "Side effects",
-    "locationRear": "Rear effects",
-    "locationCore": "Core effects",
-    "quickActions": {
-      "title": "Quick Actions",
-      "rangedAttack": "Ranged Attack",
-      "meleeAttack": "Melee Attack",
-      "dodgeCheck": "Dodge Check",
-      "pilotingCheck": "Piloting Check",
-      "sensorSweep": "Sensor Sweep",
-      "emergencyRepair": "Emergency Repair",
-      "primaryWeapons": "Primary Weapons",
-      "allWeapons": "All Weapons",
-      "primaryLabel": "Primary",
-      "unarmed": "Unarmed (Punch/Kick)",
-      "unarmedNotes": "Basic unarmed strike.",
-      "selectWeaponGroup": "Select Weapon Group",
-      "selectMeleeProfile": "Select Melee Profile",
-      "selectSensorSkill": "Select Sensor Sweep Skill",
-      "weaponGroup": "Weapon Group",
-      "weaponsUsed": "Weapons",
-      "meleeProfile": "Melee Profile",
-      "meleeDamage": "Damage",
-      "skillUsed": "Skill",
-      "tooltips": {
-        "ranged": "Roll an attack using any Weapon Group or Primary Weapon",
-        "melee": "Roll a melee attack using fists, kicks, or installed melee weapons",
-        "dodge": "Piloting roll to evade incoming fire or avoid danger",
-        "piloting": "Piloting roll for movement, jumping, stability, or hazard checks",
-        "sensorSweep": "Perception/Tech roll using sensors or Active Probe",
-        "emergencyRepair": "Technician roll to stabilize or fix a system during battle"
+        "heatDissipation": "Heat dissipation",
+        "criticalTrack": "Criticals",
+        "locationFront": "Front effects",
+        "locationSide": "Side effects",
+        "locationRear": "Rear effects",
+        "locationCore": "Core effects",
+        "quickActions": {
+          "title": "Quick Actions",
+          "rangedAttack": "Ranged Attack",
+          "meleeAttack": "Melee Attack",
+          "dodgeCheck": "Dodge Check",
+          "pilotingCheck": "Piloting Check",
+          "sensorSweep": "Sensor Sweep",
+          "emergencyRepair": "Emergency Repair",
+          "primaryWeapons": "Primary Weapons",
+          "allWeapons": "All Weapons",
+          "primaryLabel": "Primary",
+          "unarmed": "Unarmed (Punch/Kick)",
+          "unarmedNotes": "Basic unarmed strike.",
+          "selectWeaponGroup": "Select Weapon Group",
+          "selectMeleeProfile": "Select Melee Profile",
+          "selectSensorSkill": "Select Sensor Sweep Skill",
+          "weaponGroup": "Weapon Group",
+          "weaponsUsed": "Weapons",
+          "meleeProfile": "Melee Profile",
+          "meleeDamage": "Damage",
+          "skillUsed": "Skill",
+          "tooltips": {
+            "ranged": "Roll an attack using any Weapon Group or Primary Weapon",
+            "melee": "Roll a melee attack using fists, kicks, or installed melee weapons",
+            "dodge": "Piloting roll to evade incoming fire or avoid danger",
+            "piloting": "Piloting roll for movement, jumping, stability, or hazard checks",
+            "sensorSweep": "Perception/Tech roll using sensors or Active Probe",
+            "emergencyRepair": "Technician roll to stabilize or fix a system during battle"
+          },
+          "errors": {
+            "noRanged": "No weapon groups available for ranged attack.",
+            "noMelee": "No melee attacks available.",
+            "noSensorSweep": "Sensor sweep requires Perception or Technician."
+          }
+        }
       },
-      "errors": {
-        "noRanged": "No weapon groups available for ranged attack.",
-        "noMelee": "No melee attacks available.",
-        "noSensorSweep": "Sensor sweep requires Perception or Technician."
-      }
-    }
-  },
       "ownership": {
         "owner": "Owner",
         "unknown": "Unknown",
@@ -313,30 +313,35 @@
         "level": "Level",
         "levelShort": "Lvl"
       },
-      "weapon": {
-        "skill": "Skill",
-        "drain": "Drain",
-        "category": "Weapon category",
+      "mechWeapon": {
+        "category": "Weapon Category",
         "hardpoint": "Hardpoint",
-        "mountLocation": "Mount location",
-        "damage": "Damages",
-        "strength": "+ strength",
-        "defense": "Defense",
+        "damage": "Damage Value",
+        "damageType": "Damage Type",
+        "heat": "Heat",
         "area": "Area of effect",
-        "withArmor": "Armor protects",
-        "noArmor": "Armor avoidance",
-        "damageShort": "DV",
-        "areaShort": "Area",
-        "noArmorShort": "(AA)",
-        "weaponWithoutActor": "No Actor",
         "range": {
           "max": "Maximum range"
         }
       },
-      "cyberdeck": {
-        "programs": "Programs",
-        "processing": "Processing power",
-        "processingHelp": "re-rolls on matrix rolls"
+      "personalWeapon": {
+        "skill": "Skill",
+        "category": "Weapon Category",
+        "damageCategory": "Damage Category",
+        "damage": "Damage Value",
+        "damageType": "Damage Type",
+        "defense": "Defense",
+        "area": "Area of effect",
+        "damageShort": "DV",
+        "areaShort": "Area",
+        "weaponWithoutActor": "No Actor",
+        "armorAvoidance": "Armor avoidance",
+        "armorAvoidanceHelp": "Ignore armor on this attack",
+        "range": {
+          "max": "Maximum range"
+        },
+        "noArmor": "Armor avoidance",
+        "withArmor": "Armor protects"
       }
     },
     "itemType": {
@@ -344,21 +349,21 @@
         "skill": "Skill",
         "quality": "Trait",
         "shadowamp": "Shadow Amp",
-        "weapon": "Weapon",
         "gear": "Gear",
-        "cyberdeck": "Cyberdeck",
-        "contact": "Contact"
+        "contact": "Contact",
+        "mechWeapon": "Mech-Scale Weapon",
+        "personalWeapon": "Personal Weapon"
       },
       "plural": {
         "skill": "Skills",
         "quality": "Qualities",
         "shadowamp": "Shadow Amps",
-        "weapon": "Weapons",
         "gear": "Gears",
-        "cyberdeck": "Cyberdecks",
         "contact": "Contacts",
         "action": "Actions",
-        "monitor": "Monitors"
+        "monitor": "Monitors",
+        "mechWeapon": "Mech-Scale Weapons",
+        "personalWeapon": "Personal Weapons"
       }
     },
     "capacity": {
@@ -488,10 +493,11 @@
       },
       "hardpoint": {
         "type": {
-          "energy": "Energy",
           "ballistic": "Ballistic",
+          "energy": "Energy",
           "missile": "Missile",
-          "support": "Support"
+          "special": "Special",
+          "melee": "Melee"
         },
         "size": {
           "small": "Small",
@@ -563,6 +569,29 @@
           "weaponMissing": "Weapon with id {weapon} is missing."
         },
         "newGroup": "New weapon group"
+      },
+      "weapon": {
+        "damageType": {
+          "energy": "Energy",
+          "kinetic": "Kinetic",
+          "explosive": "Explosive",
+          "plasma": "Plasma",
+          "none": "None"
+        }
+      },
+      "personalWeapon": {
+        "damageType": {
+          "energy": "Energy",
+          "kinetic": "Kinetic",
+          "explosive": "Explosive",
+          "plasma": "Plasma",
+          "corrosive": "Corrosive",
+          "poison": "Poison"
+        },
+        "damageCategory": {
+          "physical": "Physical",
+          "fatigue": "Fatigue"
+        }
       }
     },
     "modifier": {

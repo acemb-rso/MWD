@@ -1,5 +1,5 @@
 <li class="item anarchy-weapon {{#if system.inactive}}inactive{{/if}}" draggable="true"
-    data-item-id="{{_id}}" data-item-type="weapon">
+    data-item-id="{{_id}}" data-item-type="{{type}}">
   <div class="weapon-column weapon-summary">
     <a class="click-weapon-roll">
       {{name}},
@@ -8,10 +8,10 @@
         actorAttribute=(actorAttribute system.damageAttribute @root.actor this)
         damage=system.damage
         monitor=system.monitor
-        armor=(weaponArmorMode system.monitor system.noArmor)
+        armor=(weaponArmorMode system.monitor system.armorAvoidance)
       }},
       {{> 'systems/mwd/templates/actor/parts/weapon-range.hbs'}}
-      {{#if hasDrain}}, {{localize 'ANARCHY.item.weapon.drain'}}: {{system.drain}}{{/if}}
+      {{#if (eq type 'mechWeapon')}}, {{localize 'ANARCHY.item.mechWeapon.heat'}}: {{system.heat}}{{/if}}
     </a>
   </div>
   <div class="item-controls weapon-column weapon-controls">
