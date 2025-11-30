@@ -147,6 +147,7 @@ export class CharacterActor extends AnarchyBaseActor {
   }
 
   getDamageMonitor(damageType) {
+    damageType = this.resolveDamageType(damageType);
     switch (damageType) {
       case TEMPLATE.monitors.fatigue:
       case TEMPLATE.monitors.physical:
