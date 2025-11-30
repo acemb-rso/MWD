@@ -499,6 +499,32 @@ class _13_2_3_AddBattlemechLoadout extends Migration {
   }
 }
 
+class _13_3_3_SimplifyPersonalVehicles extends Migration {
+  get version() { return '13.3.3' }
+  get code() { return 'simplify-personal-vehicles' }
+
+  async migrate() {
+    const vehicles = game.actors.filter(actor => actor.type === TEMPLATE.actorTypes.vehicle);
+    for (const actor of vehicles) {
+      const updates = {};
+
+      if (actor.system.monitors?.heat !== undefined) {
+        updates['system.monitors.-=heat'] = null;
+      }
+      if (actor.system.hybrid !== undefined) {
+        updates['system.-=hybrid'] = null;
+      }
+      if (actor.system.mwd !== undefined) {
+        updates['system.-=mwd'] = null;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await actor.update(updates);
+      }
+    }
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -518,6 +544,7 @@ export class Migrations {
       new _12_0_4_MigrateWeaponDrain(),
       new _13_2_2_AddMwdVehicleModel(),
       new _13_2_3_AddBattlemechLoadout(),
+      new _13_3_3_SimplifyPersonalVehicles(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

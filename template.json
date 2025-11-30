@@ -126,34 +126,11 @@
         }
       },
       "mwd-vehicle": {
-        "templates": [
-          "mwd-base"
-        ],
         "attributes": {
           "handling": { "value": 3 },
           "system": { "value": 3 },
           "chassis": { "value": 3 },
           "condition": { "value": 3 }
-        },
-        "pilot": {
-          "uuid": ""
-        },
-        "mwd": {
-          "unitType": "vehicle",
-          "locations": {
-            "front": { "enabled": true, "stress": 0, "tags": ["weaponGroup", "motiveSystem"], "destroyed": false },
-            "side": { "enabled": true, "stress": 0, "tags": ["weaponGroup", "motiveSystem"], "destroyed": false },
-            "rear": { "enabled": true, "stress": 0, "tags": ["weaponGroup", "motiveSystem", "ammoStore"], "destroyed": false },
-            "turret": { "enabled": true, "stress": 0, "tags": ["turret", "weaponGroup"], "destroyed": false },
-            "rotor": { "enabled": false, "stress": 0, "tags": ["rotor"], "destroyed": false },
-            "core": { "enabled": true, "stress": 0, "tags": ["crewCompartment", "engine", "ammoStore"], "destroyed": false }
-          },
-          "crew": {
-            "count": 3,
-            "effectiveCount": 3,
-            "injuryLevel": 0,
-            "bailedOut": false
-          }
         }
       },
       "mwd-battlemech": {
@@ -289,27 +266,6 @@
           "value": 0,
           "max": 12,
           "resistance": 1
-        },
-        "heat": {
-          "value": 0,
-          "max": 3,
-          "resistance": 0
-        }
-      },
-      "hybrid": {
-        "heat": {
-          "dissipation": 1
-        },
-        "criticals": {
-          "value": 0,
-          "max": 3,
-          "notes": ""
-        },
-        "locations": {
-          "front": "",
-          "sides": "",
-          "rear": "",
-          "core": ""
         }
       },
       "weaponGroups": [],
