@@ -142,7 +142,7 @@ export class AnarchySystem {
   }
 
   loadActorSheets() {
-    Actors.unregisterSheet('core', ActorSheet);
+    Actors.unregisterSheet('core', foundry.appv1.sheets.ActorSheet);
     Actors.registerSheet(SYSTEM_NAME, CharacterActorSheet, {
       label: game.i18n.localize(ANARCHY.actor.characterSheet),
       makeDefault: false,
@@ -186,7 +186,7 @@ export class AnarchySystem {
   }
 
   loadItemSheets() {
-    Items.unregisterSheet('core', ItemSheet);
+    Items.unregisterSheet('core', foundry.appv1.sheets.ItemSheet);
     Items.registerSheet(SYSTEM_NAME, ContactItemSheet, { types: ["contact"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, CyberdeckItemSheet, { types: ["cyberdeck"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, GearItemSheet, { types: ["gear"], makeDefault: true });
