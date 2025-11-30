@@ -4,7 +4,11 @@ import { TEMPLATE } from "../constants.js";
 import { Enums } from "../enums.js";
 import { Misc } from "../misc.js";
 
-const SHADOWAMP_TYPES = [TEMPLATE.itemType.shadowamp, TEMPLATE.itemType.weapon, TEMPLATE.itemType.cyberdeck];
+const SHADOWAMP_TYPES = [
+  TEMPLATE.itemType.shadowamp,
+  TEMPLATE.itemType.mechWeapon,
+  TEMPLATE.itemType.personalWeapon,
+];
 /**
  * Modifier: {group, effect, category, subCategory, value, condition, id}
  */

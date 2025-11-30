@@ -109,6 +109,9 @@ export class WeaponItem extends AnarchyBaseItem {
   }
 
   getDefense() {
+    if (this.type !== TEMPLATE.itemType.personalWeapon) {
+      return this.system.defense ? AttributeActions.fixedDefenseCode(this.system.defense) : undefined;
+    }
     return AttributeActions.fixedDefenseCode(this.system.defense);
   }
 
@@ -116,19 +119,20 @@ export class WeaponItem extends AnarchyBaseItem {
     if (!this.parent) {
       return undefined;
     }
+    const monitor = this._getMonitor();
     const damageAttributeValue = this.system.damageAttribute
       ? (this.parent.getAttributeValue(this.system.damageAttribute) ?? 0)
       : 0;
     return {
       value: WeaponItem.damageValue(
-        this.system.monitor,
+        monitor,
         this.system.damage,
         this.system.damageAttribute,
         damageAttributeValue
       ),
-      monitor: this.system.monitor,
-      noArmor: this.system.noArmor,
-      armorMode: WeaponItem.armorMode(this.system.monitor, this.system.noArmor)
+      monitor: monitor,
+      noArmor: this.system.noArmor ?? this.system.armorAvoidance,
+      armorMode: WeaponItem.armorMode(monitor, this.system.noArmor ?? this.system.armorAvoidance)
     }
   }
 
@@ -140,7 +144,7 @@ export class WeaponItem extends AnarchyBaseItem {
       }
       else {
         console.warn('Weapon not attached to an actor');
-        return game.i18n.localize(ANARCHY.item.weapon.weaponWithoutActor);
+        return game.i18n.localize(ANARCHY.item.personalWeapon.weaponWithoutActor);
       }
     }
     return damage;
@@ -148,7 +152,7 @@ export class WeaponItem extends AnarchyBaseItem {
 
   getDamageCode() {
     return WeaponItem.damageCode(
-      this.system.monitor,
+      this._getMonitor(),
       this.system.damage,
       this.system.damageAttribute,
     );
@@ -254,5 +258,14 @@ export class WeaponItem extends AnarchyBaseItem {
       return TEMPLATE.area.none;
     }
     return this.system.area ?? TEMPLATE.area.none;
+  }
+
+  _getMonitor() {
+    if (this.type === TEMPLATE.itemType.personalWeapon) {
+      return this.system.damageCategory === 'fatigue'
+        ? TEMPLATE.monitors.fatigue
+        : TEMPLATE.monitors.physical;
+    }
+    return this.system.monitor || TEMPLATE.monitors.physical;
   }
 }

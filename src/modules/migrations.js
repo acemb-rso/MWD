@@ -62,7 +62,7 @@ class _0_3_8_MigrateWeaponDamage extends Migration {
 
   async migrate() {
 
-    const isStrengthDamageItem = it => it.type == TEMPLATE.itemType.weapon && it.system.strength;
+    const isStrengthDamageItem = it => it.isWeapon?.() && it.system.strength;
     const fixItemDamage = it => {
       return {
         _id: it.id,
@@ -294,7 +294,7 @@ class _12_0_4_MigrateWeaponDrain extends Migration {
   get version() { return '12.0.2' }
   get code() { return 'migrate-weapon-drain' }
   async migrate() {
-    this.applyItemsUpdates(items => items.filter(it => it.type = TEMPLATE.itemType.weapon)
+    this.applyItemsUpdates(items => items.filter(it => it.isWeapon?.())
       .filter(it => it.hasDrain)
       .map(it => {
         return {
@@ -457,7 +457,7 @@ class _13_2_3_AddBattlemechLoadout extends Migration {
       }
     }
 
-    const worldWeapons = game.items.filter(it => it.type === TEMPLATE.itemType.weapon);
+    const worldWeapons = game.items.filter(it => it.isWeapon?.());
     for (const weapon of worldWeapons) {
       const updates = this._collectWeaponUpdates(weapon);
       if (Object.keys(updates).length > 0) {
@@ -467,7 +467,7 @@ class _13_2_3_AddBattlemechLoadout extends Migration {
 
     for (const actor of game.actors) {
       const updates = actor.items
-        .filter(it => it.type === TEMPLATE.itemType.weapon)
+        .filter(it => it.isWeapon?.())
         .map(it => ({ _id: it.id, ...this._collectWeaponUpdates(it) }))
         .filter(update => Object.keys(update).length > 1);
       if (updates.length > 0) {

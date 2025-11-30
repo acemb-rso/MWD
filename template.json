@@ -369,12 +369,12 @@
   "Item": {
     "types": [
       "contact",
-      "cyberdeck",
       "gear",
       "quality",
       "shadowamp",
       "skill",
-      "weapon"
+      "mechWeapon",
+      "personalWeapon"
     ],
     "templates": {
       "modifiers": {
@@ -421,22 +421,16 @@
       "capacity": "mundane",
       "level": 1
     },
-      "weapon": {
-        "templates": ["modifiers", "inactive", "references"],
-        "weaponCategory": "ranged",
-        "hardpointType": "energy",
-        "hardpointSize": "small",
-        "mountLocation": "",
-        "skill": "",
-        "specialization": "",
-        "strength": true,
+    "mechWeapon": {
+      "templates": ["modifiers", "inactive", "references"],
+      "weaponCategory": "ranged",
+      "hardpointType": "energy",
+      "hardpointSize": "small",
+      "mountLocation": "",
       "damage": 0,
-      "damageAttribute": "",
-      "noArmor": false,
-      "monitor": "fatigue",
-      "defense": "",
-      "area": "",
-      "drain": 0,
+      "damageType": "kinetic",
+      "heat": 0,
+      "area": "none",
       "range": {
         "max": "contact",
         "contact": 0,
@@ -446,25 +440,25 @@
         "extreme": 0
       }
     },
-    "cyberdeck": {
+    "personalWeapon": {
       "templates": ["modifiers", "inactive", "references"],
-      "attributes": {
-        "firewall": {
-          "value": 1
-        }
-      },
-      "monitors": {
-        "matrix": {
-          "canMark": true,
-          "marks": [],
-          "value": 0,
-          "max": 6,
-          "resistance": 0
-        }
-      },
-      "programs": 1,
-      "processing": 1,
-      "connectionMode": "disconnected"
+      "skill": "",
+      "weaponCategory": "ranged",
+      "damageCategory": "physical",
+      "damage": 0,
+      "damageAttribute": "",
+      "damageType": "kinetic",
+      "defense": "physicalDefense",
+      "armorAvoidance": false,
+      "area": "none",
+      "range": {
+        "max": "contact",
+        "contact": 0,
+        "short": 0,
+        "medium": 0,
+        "far": 0,
+        "extreme": 0
+      }
     },
     "gear": {
       "templates": [

@@ -8,12 +8,12 @@ export const ANARCHY = {
         },
         Item: {
             contact: "TYPES.Item.contact",
-            cyberdeck: "TYPES.Item.cyberdeck",
             gear: "TYPES.Item.gear",
             quality: "TYPES.Item.quality",
             shadowamp: "TYPES.Item.shadowamp",
             skill: "TYPES.Item.skill",
-            weapon: "TYPES.Item.weapon"
+            mechWeapon: "TYPES.Item.mechWeapon",
+            personalWeapon: "TYPES.Item.personalWeapon"
         }
     },
     settings: {
@@ -258,26 +258,28 @@ export const ANARCHY = {
             level: 'ANARCHY.item.shadowamp.level',
             levelShort: 'ANARCHY.item.shadowamp.levelShort',
         },
-        weapon: {
-            skill: 'ANARCHY.item.weapon.skill',
-            damage: 'ANARCHY.item.weapon.damage',
-            strength: 'ANARCHY.item.weapon.strength',
-            defense: 'ANARCHY.item.weapon.defense',
-            area: 'ANARCHY.item.weapon.area',
-            noArmor: 'ANARCHY.item.weapon.noArmor',
-            withArmor: 'ANARCHY.item.weapon.withArmor',
-            damageShort: 'ANARCHY.item.weapon.damageShort',
-            areaShort: 'ANARCHY.item.weapon.areaShort',
-            noArmorShort: 'ANARCHY.item.weapon.noArmorShort',
-            weaponWithoutActor: 'ANARCHY.item.weapon.weaponWithoutActor',
+        mechWeapon: {
+            damage: 'ANARCHY.item.mechWeapon.damage',
+            heat: 'ANARCHY.item.mechWeapon.heat',
+            area: 'ANARCHY.item.mechWeapon.area',
             range: {
-                max: 'ANARCHY.item.weapon.range.max'
+                max: 'ANARCHY.item.mechWeapon.range.max'
             }
         },
-        cyberdeck: {
-            programs: 'ANARCHY.item.cyberdeck.programs',
-            processing: 'ANARCHY.item.cyberdeck.processing',
-            processingHelp: 'ANARCHY.item.cyberdeck.processingHelp',
+        personalWeapon: {
+            skill: 'ANARCHY.item.personalWeapon.skill',
+            weaponCategory: 'ANARCHY.item.personalWeapon.category',
+            damageCategory: 'ANARCHY.item.personalWeapon.damageCategory',
+            damage: 'ANARCHY.item.personalWeapon.damage',
+            defense: 'ANARCHY.item.personalWeapon.defense',
+            area: 'ANARCHY.item.personalWeapon.area',
+            armorAvoidance: 'ANARCHY.item.personalWeapon.armorAvoidance',
+            damageShort: 'ANARCHY.item.personalWeapon.damageShort',
+            areaShort: 'ANARCHY.item.personalWeapon.areaShort',
+            weaponWithoutActor: 'ANARCHY.item.personalWeapon.weaponWithoutActor',
+            range: {
+                max: 'ANARCHY.item.personalWeapon.range.max'
+            }
         }
     },
     itemType: {
@@ -285,18 +287,18 @@ export const ANARCHY = {
             skill: 'ANARCHY.itemType.singular.skill',
             quality: 'ANARCHY.itemType.singular.quality',
             shadowamp: 'ANARCHY.itemType.singular.shadowamp',
-            weapon: 'ANARCHY.itemType.singular.weapon',
+            mechWeapon: 'ANARCHY.itemType.singular.mechWeapon',
+            personalWeapon: 'ANARCHY.itemType.singular.personalWeapon',
             gear: 'ANARCHY.itemType.singular.gear',
-            cyberdeck: 'ANARCHY.itemType.singular.cyberdeck',
             contact: 'ANARCHY.itemType.singular.contact'
         },
         plural: {
             skill: 'ANARCHY.itemType.plural.skill',
             quality: 'ANARCHY.itemType.plural.quality',
             shadowamp: 'ANARCHY.itemType.plural.shadowamp',
-            weapon: 'ANARCHY.itemType.plural.weapon',
+            mechWeapon: 'ANARCHY.itemType.plural.mechWeapon',
+            personalWeapon: 'ANARCHY.itemType.plural.personalWeapon',
             gear: 'ANARCHY.itemType.plural.gear',
-            cyberdeck: 'ANARCHY.itemType.plural.cyberdeck',
             contact: 'ANARCHY.itemType.plural.contact'
         }
     },
@@ -425,10 +427,11 @@ export const ANARCHY = {
             assault: 'ANARCHY.mwd.weightClass.assault',
         },
         hardpointType: {
-            energy: 'ANARCHY.mwd.hardpoint.type.energy',
             ballistic: 'ANARCHY.mwd.hardpoint.type.ballistic',
+            energy: 'ANARCHY.mwd.hardpoint.type.energy',
             missile: 'ANARCHY.mwd.hardpoint.type.missile',
-            support: 'ANARCHY.mwd.hardpoint.type.support',
+            special: 'ANARCHY.mwd.hardpoint.type.special',
+            melee: 'ANARCHY.mwd.hardpoint.type.melee',
         },
         hardpointSize: {
             small: 'ANARCHY.mwd.hardpoint.size.small',
@@ -448,6 +451,25 @@ export const ANARCHY = {
         weaponCategory: {
             ranged: 'ANARCHY.mwd.weaponCategory.ranged',
             melee: 'ANARCHY.mwd.weaponCategory.melee',
+        },
+        weaponDamageType: {
+            energy: 'ANARCHY.mwd.weapon.damageType.energy',
+            kinetic: 'ANARCHY.mwd.weapon.damageType.kinetic',
+            explosive: 'ANARCHY.mwd.weapon.damageType.explosive',
+            plasma: 'ANARCHY.mwd.weapon.damageType.plasma',
+            none: 'ANARCHY.mwd.weapon.damageType.none'
+        },
+        personalDamageType: {
+            energy: 'ANARCHY.personal.weapon.damageType.energy',
+            kinetic: 'ANARCHY.personal.weapon.damageType.kinetic',
+            explosive: 'ANARCHY.personal.weapon.damageType.explosive',
+            plasma: 'ANARCHY.personal.weapon.damageType.plasma',
+            corrosive: 'ANARCHY.personal.weapon.damageType.corrosive',
+            poison: 'ANARCHY.personal.weapon.damageType.poison'
+        },
+        personalDamageCategory: {
+            physical: 'ANARCHY.personal.weapon.damageCategory.physical',
+            fatigue: 'ANARCHY.personal.weapon.damageCategory.fatigue'
         },
         meleeLocation: {
             head: 'ANARCHY.mwd.melee.location.head',

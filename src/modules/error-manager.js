@@ -57,7 +57,7 @@ export class ErrorManager {
 
   static checkWeaponDefense(weapon, actor) {
     const defense = weapon.getDefense();
-    if (!defense) {
+    if (weapon.type === TEMPLATE.itemType.personalWeapon && !defense) {
       const error = game.i18n.format(ANARCHY.common.errors.noDefenseOnWeapon, { actor: actor.name, weapon: weapon.name });
       ui.notifications.error(error);
       throw error;
