@@ -2,6 +2,8 @@ import { ANARCHY } from "../config.js";
 import { TEMPLATES_PATH } from "../constants.js";
 import { Misc } from "../misc.js";
 
+const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
+
 const TEMPLATE_HUD_SHORTCUTS = `${TEMPLATES_PATH}/token/hud-shortcuts.hbs`;
 
 export class HUDShortcuts {

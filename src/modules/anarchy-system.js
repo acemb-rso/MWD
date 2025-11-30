@@ -142,6 +142,7 @@ export class AnarchySystem {
   }
 
   loadActorSheets() {
+    const { Actors } = foundry.documents.collections;
     Actors.unregisterSheet('core', foundry.appv1.sheets.ActorSheet);
     Actors.registerSheet(SYSTEM_NAME, CharacterActorSheet, {
       label: game.i18n.localize(ANARCHY.actor.characterSheet),
@@ -186,6 +187,7 @@ export class AnarchySystem {
   }
 
   loadItemSheets() {
+    const { Items } = foundry.documents.collections;
     Items.unregisterSheet('core', foundry.appv1.sheets.ItemSheet);
     Items.registerSheet(SYSTEM_NAME, ContactItemSheet, { types: ["contact"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, CyberdeckItemSheet, { types: ["cyberdeck"], makeDefault: true });

@@ -3,6 +3,8 @@ import { TEMPLATES_PATH } from "../constants.js";
 import { Misc } from "../misc.js";
 import { Modifiers } from "../modifiers/modifiers.js";
 
+const { renderTemplate } = foundry.applications.handlebars;
+
 const HBS_TEMPLATE_CHAT_CELEBRITY_ROLL = `${TEMPLATES_PATH}/chat/celebrity-roll.hbs`;
 
 export class RollCelebrity extends Dialog {

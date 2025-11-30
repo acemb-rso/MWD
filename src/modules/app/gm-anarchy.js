@@ -4,6 +4,8 @@ import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
 import { ErrorManager } from "../error-manager.js";
 import { RemoteCall } from "../remotecall.js";
 
+const { renderTemplate } = foundry.applications.handlebars;
+
 const GM_ANARCHY = "anarchy-gm";
 const GM_SCENE_ANARCHY = "scene-anarchy-gm";
 const GM_ADD_ANARCHY = 'GMAnarchy.addAnarchy';

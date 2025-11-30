@@ -2,6 +2,8 @@ import { ANARCHY } from "../config.js";
 import { TEMPLATES_PATH } from "../constants.js";
 import { Icons } from "../icons.js";
 
+const { renderTemplate } = foundry.applications.handlebars;
+
 export class SelectActor extends Dialog {
 
   static async selectActor(title,

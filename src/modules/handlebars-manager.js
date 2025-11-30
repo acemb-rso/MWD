@@ -7,6 +7,8 @@ import { Icons } from "./icons.js";
 import { WeaponItem } from "./item/weapon-item.js";
 import { Misc } from "./misc.js";
 
+const { loadTemplates } = foundry.applications.handlebars;
+
 const HBS_PARTIAL_TEMPLATES = [
   // -- monitors
   'systems/mwd/templates/monitors/anarchy-actor.hbs',

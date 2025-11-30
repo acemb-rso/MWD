@@ -4,6 +4,8 @@ import { ANARCHY } from "../config.js";
 import { ANARCHY_SYSTEM, SYSTEM_SCOPE, TEMPLATES_PATH } from "../constants.js";
 import { RollManager } from "../roll/roll-manager.js";
 
+const { renderTemplate } = foundry.applications.handlebars;
+
 const TEMPLATE_INFORM_DEFENDER = `${TEMPLATES_PATH}/combat/inform-defender.hbs`;
 
 export class CombatManager {

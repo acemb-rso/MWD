@@ -6,6 +6,8 @@ import { MATRIX } from "../matrix-helper.js";
 import { Misc } from "../misc.js";
 import { Modifiers } from "../modifiers/modifiers.js";
 
+const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
+
 export const ROLL_PARAMETER_CATEGORY = {
   title: 'title',
   pool: 'pool',

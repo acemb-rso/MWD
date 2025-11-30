@@ -3,6 +3,8 @@ import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
 import { RemoteCall } from "../remotecall.js";
 
+const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
+
 const CONVERGENCES = "convergences";
 const SETTING_KEY_CONVERGENCES = `${SYSTEM_NAME}.${CONVERGENCES}`;
 const ROLL_CONVERGENCE = 'GMConvergence.rollConvergence';

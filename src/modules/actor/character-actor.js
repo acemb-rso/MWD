@@ -9,6 +9,8 @@ import { RollCelebrity } from "../dialog/roll-celebrity.js";
 import { ANARCHY_HOOKS } from "../hooks-manager.js";
 import { MATRIX, Matrix, NO_MATRIX_MONITOR } from "../matrix-helper.js";
 
+const { renderTemplate } = foundry.applications.handlebars;
+
 const HBS_TEMPLATE_ACTOR_DRAIN = `${TEMPLATES_PATH}/chat/actor-drain.hbs`;
 const HBS_TEMPLATE_ACTOR_SAY_WORD = `${TEMPLATES_PATH}/chat/actor-say-word.hbs`;
 
