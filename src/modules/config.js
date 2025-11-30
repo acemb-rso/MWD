@@ -216,6 +216,7 @@ export const ANARCHY = {
             matrix: 'ANARCHY.actor.monitors.matrix',
             armor: 'ANARCHY.actor.monitors.armor',
             structure: 'ANARCHY.actor.monitors.structure',
+            heat: 'ANARCHY.actor.monitors.heat',
             resistance: 'ANARCHY.actor.monitors.resistance',
             marks: 'ANARCHY.actor.monitors.marks',
             convergence: 'ANARCHY.actor.monitors.convergence',
@@ -236,6 +237,7 @@ export const ANARCHY = {
     actorType: {
         character: 'ANARCHY.actorType.character',
         vehicle: 'ANARCHY.actorType.vehicle',
+        battlemech: 'ANARCHY.actorType.battlemech',
         device: 'ANARCHY.actorType.device',
         sprite: 'ANARCHY.actorType.sprite',
         ic: 'ANARCHY.actorType.ic',

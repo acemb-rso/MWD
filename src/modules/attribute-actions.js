@@ -30,12 +30,12 @@ const DEFENSE = ANARCHY_SYSTEM.defenses;
 
 const ATTRIBUTE_ACTIONS = [
   action(ACTION.defense, __ => ATTR.agility, __ => ATTR.logic, Icons.fontAwesome('fas fa-shield-alt'), [ACTOR.character]),
-  action(ACTION.defense, __ => ATTR.autopilot, __ => ATTR.handling, Icons.fontAwesome('fas fa-tachometer-alt'), [ACTOR.vehicle]),
+  action(ACTION.defense, __ => ATTR.autopilot, __ => ATTR.handling, Icons.fontAwesome('fas fa-tachometer-alt'), [ACTOR.vehicle, ACTOR.battlemech]),
   // TODO: add a way to pilot a vehicle to fallback defense of controled vehicle
   action(ACTION.resistTorture, __ => ATTR.strength, __ => ATTR.willpower, Icons.fontAwesome('fas fa-angry'), [ACTOR.character]),
 
   action(ACTION.perception, __ => ATTR.logic, __ => ATTR.willpower, Icons.fontAwesome('fas fa-eye'), [ACTOR.character]),
-  action(ACTION.perception, __ => ATTR.autopilot, undefined, Icons.fontAwesome('fas fa-video'), [ACTOR.vehicle]),
+  action(ACTION.perception, __ => ATTR.autopilot, undefined, Icons.fontAwesome('fas fa-video'), [ACTOR.vehicle, ACTOR.battlemech]),
   action(ACTION.perception, actor => actor.getMatrixLogic(), actor => actor.getMatrixLogic(), Icons.fontAwesome('fas fa-video'), [ACTOR.device, ACTOR.sprite, ACTOR.ic]),
 
   action(ACTION.composure, __ => ATTR.charisma, __ => ATTR.willpower, Icons.fontAwesome('fas fa-meh'), [ACTOR.character]),
@@ -44,7 +44,7 @@ const ATTRIBUTE_ACTIONS = [
   action(ACTION.catch, __ => ATTR.agility, __ => ATTR.agility, Icons.fontAwesome('fas fa-baseball-ball'), [ACTOR.character]),
   action(ACTION.lift, __ => ATTR.strength, __ => ATTR.strength, Icons.fontAwesome('fas fa-dumbbell'), [ACTOR.character]),
 
-  action(ACTION.matrixDefense, actor => actor.getMatrixLogic(), actor => actor.getMatrixFirewall(), Icons.fontAwesome('fas fa-shield-virus'), [ACTOR.character, ACTOR.sprite, ACTOR.ic, ACTOR.device, ACTOR.vehicle]),
+  action(ACTION.matrixDefense, actor => actor.getMatrixLogic(), actor => actor.getMatrixFirewall(), Icons.fontAwesome('fas fa-shield-virus'), [ACTOR.character, ACTOR.sprite, ACTOR.ic, ACTOR.device, ACTOR.vehicle, ACTOR.battlemech]),
   action(ACTION.astralDefense, ___ => ATTR.logic, ___ => ATTR.willpower, Icons.fontAwesome('fas fa-shield-virus'), [ACTOR.character]),
 
 ]

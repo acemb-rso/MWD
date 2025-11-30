@@ -1,0 +1,25 @@
+<div class="flexcol anarchy-monitor">
+  <label class="monitor-label">
+    {{localize ANARCHY.actor.monitors.heat}}
+    <input class="info-value" type="number" data-dtype="Number" maxlength="2"
+      name="system.monitors.heat.max"
+      value="{{system.monitors.heat.max}}"
+    />
+  </label>
+  {{> "systems/mwd/templates/common/checkbar.hbs"
+    code='heat'
+    value=system.monitors.heat.value
+    max=system.monitors.heat.max
+    rowlength=6
+  }}
+  <label class="resitance-label">
+    {{localize ANARCHY.actor.monitors.resistance}}
+    <input class="info-value" type="number" data-dtype="Number" maxlength="2"
+      name="system.monitors.heat.resistance"
+      value="{{system.monitors.heat.resistance}}"
+    />
+    {{#if system.monitors.heat.resistanceBonus}}
+    {{numberFormat system.monitors.heat.resistanceBonus sign=true}}
+    {{/if}}
+  </label>
+</div>

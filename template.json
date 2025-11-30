@@ -1,6 +1,6 @@
 {
   "Actor": {
-    "types": ["character", "vehicle", "device", "sprite", "ic"],
+    "types": ["character", "vehicle", "battlemech", "device", "sprite", "ic"],
     "templates": {
       "description": {
         "ownerId": "",
@@ -176,6 +176,32 @@
           "value": 0,
           "max": 15,
           "resistance": 2
+        },
+        "armor": {
+          "value": 0,
+          "max": 12,
+          "resistance": 1
+        },
+        "heat": {
+          "value": 0,
+          "max": 3,
+          "resistance": 0
+        }
+      },
+      "hybrid": {
+        "heat": {
+          "dissipation": 1
+        },
+        "criticals": {
+          "value": 0,
+          "max": 3,
+          "notes": ""
+        },
+        "locations": {
+          "front": "",
+          "sides": "",
+          "rear": "",
+          "core": ""
         }
       },
       "moves": 0,
@@ -184,6 +210,60 @@
       "category": "",
       "skill": "pilotingGround",
       "passengers": 4
+    },
+    "battlemech": {
+      "templates": [
+        "description",
+        "attribute-autopilot",
+        "attribute-handling"
+      ],
+      "attributes": {
+        "system": {
+          "value": 5
+        },
+        "firewall": {
+          "value": 0
+        }
+      },
+      "monitors": {
+        "structure": {
+          "value": 0,
+          "max": 18,
+          "resistance": 1
+        },
+        "armor": {
+          "value": 0,
+          "max": 15,
+          "resistance": 1
+        },
+        "heat": {
+          "value": 0,
+          "max": 4,
+          "resistance": 0
+        }
+      },
+      "hybrid": {
+        "heat": {
+          "dissipation": 1
+        },
+        "criticals": {
+          "value": 0,
+          "max": 4,
+          "notes": ""
+        },
+        "locations": {
+          "front": "",
+          "sides": "",
+          "rear": "",
+          "core": ""
+        }
+      },
+      "moves": 0,
+      "attacks": 0,
+      "stealth": 0,
+      "category": "mech",
+      "skill": "gunnery",
+      "passengers": 1
     },
     "device": {
       "templates": ["description", "matrix-monitor"],

@@ -1,6 +1,7 @@
 import { ANARCHY } from "../config.js";
 import { ICONS_PATH, TEMPLATE } from "../constants.js";
 import { ErrorManager } from "../error-manager.js";
+import { NO_MATRIX_MONITOR } from "../matrix-helper.js";
 import { AnarchyUsers } from "../users.js";
 import { AnarchyBaseActor } from "./base-actor.js";
 
@@ -22,7 +23,9 @@ export class VehicleActor extends AnarchyBaseActor {
   }
 
   prepareDerivedData() {
-    this.system.monitors.matrix.max = this._getMonitorMax(TEMPLATE.attributes.system)
+    if (this.system.monitors?.matrix) {
+      this.system.monitors.matrix.max = this._getMonitorMax(TEMPLATE.attributes.system)
+    }
     super.prepareDerivedData()
   }
 
@@ -34,6 +37,9 @@ export class VehicleActor extends AnarchyBaseActor {
   }
 
   getMatrixDetails() {
+    if (!this.system.monitors?.matrix) {
+      return NO_MATRIX_MONITOR
+    }
     return {
       hasMatrix: true,
       logic: TEMPLATE.attributes.system,

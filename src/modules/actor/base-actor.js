@@ -134,7 +134,7 @@ export class AnarchyBaseActor extends Actor {
 
   hasOwnAnarchy() { return false; }
   hasGMAnarchy() { return !this.hasPlayerOwner; }
-  isVehicle() { return this.type == TEMPLATE.actorTypes.vehicle }
+  isVehicle() { return [TEMPLATE.actorTypes.vehicle, TEMPLATE.actorTypes.battlemech].includes(this.type) }
   prepareData() {
     super.prepareData()
     this.cleanupFavorites()

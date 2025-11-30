@@ -27,6 +27,7 @@ export const TEMPLATE = {
   actorTypes: {
     character: 'character',
     vehicle: 'vehicle',
+    battlemech: 'battlemech',
     device: 'device',
     sprite: 'sprite',
     ic: 'ic',
@@ -62,6 +63,7 @@ export const TEMPLATE = {
     armor: 'armor',
     physical: 'physical',
     structure: 'structure',
+    heat: 'heat',
     matrix: 'matrix',
     marks: 'marks',
     convergence: 'convergence',

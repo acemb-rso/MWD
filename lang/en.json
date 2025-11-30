@@ -188,6 +188,7 @@
       "characterTabbedSheet": "Character sheet (tabs)",
       "characterEnhancedSheet": "Character enhanced sheet (tabs)",
       "vehicleSheet": "Vehicle sheet",
+      "battlemechSheet": "Battlemech sheet",
       "deviceSheet": "Device sheet",
       "spriteSheet": "Sprite sheet",
       "icSheet": "IC sheet",
@@ -229,6 +230,7 @@
         "matrix": "Matrix",
         "armor": "Armor",
         "structure": "Structure",
+        "heat": "Heat",
         "resistance": "Resistance",
         "marks": "Marks",
         "convergence": "Convergence"
@@ -238,7 +240,13 @@
         "attacks": "Attacks",
         "stealth": "Stealth",
         "category": "Category",
-        "skill": "Skill"
+        "skill": "Skill",
+        "heatDissipation": "Heat dissipation",
+        "criticalTrack": "Criticals",
+        "locationFront": "Front effects",
+        "locationSide": "Side effects",
+        "locationRear": "Rear effects",
+        "locationCore": "Core effects"
       },
       "ownership": {
         "owner": "Owner",
@@ -249,6 +257,7 @@
     "actorType": {
       "character": "Character",
       "vehicle": "Vehicle",
+      "battlemech": "Battlemech",
       "device": "Device",
       "sprite": "Sprite",
       "ic": "IC"
