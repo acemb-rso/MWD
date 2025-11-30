@@ -3,7 +3,7 @@ import { TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { Enums } from "../enums.js";
 import { Misc } from "../misc.js";
 
-export class BaseItemSheet extends ItemSheet {
+export class BaseItemSheet extends foundry.appv1.sheets.ItemSheet {
 
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
