@@ -61,6 +61,7 @@ export class Skills {
 
   constructor() {
     this.skillSets = {};
+    this.selectedSkills = DEFAULT_SKILLSET_ANARCHY;
     HooksManager.register(ANARCHY_HOOKS.PROVIDE_SKILL_SET);
     Hooks.on(ANARCHY_HOOKS.PROVIDE_SKILL_SET, provide =>
       provide(DEFAULT_SKILLSET_ANARCHY, 'Shadowrun Anarchy', ANARCHY_SKILLS, { lang: 'en' })
@@ -111,7 +112,7 @@ export class Skills {
 
   $getConfiguredSkills() {
     const skillSet = this.skillSets[this.selectedSkills] ?? this.skillSets[DEFAULT_SKILLSET_ANARCHY];
-    return skillSet.skills;
+    return skillSet?.skills ?? [];
   }
 
 
