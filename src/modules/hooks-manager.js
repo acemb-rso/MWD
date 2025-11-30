@@ -43,6 +43,7 @@ export const ANARCHY_HOOKS = {
   ANARCHY_HACK: 'anarchy-hack',
 }
 
+const ANARCHY_HOOK_PREFIX = 'anarchy-';
 const SETTING_KEY_ANARCHY_HACK = `${SYSTEM_NAME}.${ANARCHY_HOOKS.ANARCHY_HACK}`;
 
 const SHADOWRUN_ANARCHY_NO_HACK = {
@@ -140,8 +141,8 @@ export class HooksManager {
 
   _register(name) {
     console.log(LOG_HEAD + 'HooksManager.register', name);
-    if (!name.startsWith(SYSTEM_NAME + '-')) {
-      throw "For safety Anarchy Hooks names must be prefixed by anarchy'-'"
+    if (!name.startsWith(ANARCHY_HOOK_PREFIX)) {
+      throw `For safety Anarchy Hooks names must be prefixed by '${ANARCHY_HOOK_PREFIX}'`;
     }
     this.hooks.push(name);
   }
