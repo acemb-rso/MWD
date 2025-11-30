@@ -305,6 +305,117 @@ class _12_0_4_MigrateWeaponDrain extends Migration {
   }
 }
 
+class _13_2_2_AddMwdVehicleModel extends Migration {
+  get version() { return '13.2.2' }
+  get code() { return 'migrate-mwd-vehicle-model' }
+
+  async migrate() {
+    const vehicles = game.actors.filter(it => it.isVehicle());
+    for (const actor of vehicles) {
+      const updates = this._collectVehicleUpdates(actor);
+      if (Object.keys(updates).length > 0) {
+        await actor.update(updates);
+      }
+    }
+  }
+
+  _collectVehicleUpdates(actor) {
+    const updates = {};
+
+    const autopilot = actor.system.attributes?.autopilot?.value ?? 0;
+    const handling = actor.system.attributes?.handling?.value ?? 0;
+    const desiredHandling = handling || autopilot || 3;
+    if (!actor.system.attributes?.handling || handling !== desiredHandling) {
+      updates['system.attributes.handling.value'] = desiredHandling;
+    }
+
+    const systemValue = actor.system.attributes?.system?.value ?? 0;
+    if (!actor.system.attributes?.system) {
+      updates['system.attributes.system.value'] = systemValue || 3;
+    }
+
+    const chassis = actor.system.attributes?.chassis?.value;
+    if (chassis === undefined) {
+      updates['system.attributes.chassis.value'] = 3;
+    }
+
+    const condition = actor.system.attributes?.condition?.value;
+    if (condition === undefined) {
+      updates['system.attributes.condition.value'] = 3;
+    }
+
+    if (!actor.system.mwd) {
+      updates['system.mwd'] = this._defaultMwdData(actor.type);
+    }
+
+    return updates;
+  }
+
+  _defaultMwdData(actorType) {
+    const isMech = actorType === TEMPLATE.actorTypes.battlemech;
+    const base = {
+      unitType: isMech ? 'mech' : 'vehicle',
+      heat: {
+        current: 0,
+        safeMax: 1,
+        hardMax: 4,
+        ventPerTurn: 1,
+        coolingImpaired: false,
+      },
+      locations: {},
+      crits: [],
+      crew: {
+        count: isMech ? 1 : 3,
+        effectiveCount: isMech ? 1 : 3,
+        injuryLevel: 0,
+        bailedOut: false,
+      },
+      status: {
+        state: 'operational',
+        reasons: [],
+      },
+      config: {
+        critTargetNumber: 8,
+        critOnSnakeEyes: true,
+        maxLocationStress: 3,
+        heatBands: {
+          safe: 1,
+          runningHot: 2,
+          overheated: 3,
+          shutdown: 4,
+        },
+      },
+    };
+
+    base.locations = isMech ? this._defaultMechLocations() : this._defaultVehicleLocations();
+    return base;
+  }
+
+  _defaultVehicleLocations() {
+    return {
+      front: { enabled: true, stress: 0, tags: ['weaponGroup', 'motiveSystem'], destroyed: false },
+      side: { enabled: true, stress: 0, tags: ['weaponGroup', 'motiveSystem'], destroyed: false },
+      rear: { enabled: true, stress: 0, tags: ['weaponGroup', 'motiveSystem', 'ammoStore'], destroyed: false },
+      turret: { enabled: true, stress: 0, tags: ['turret', 'weaponGroup'], destroyed: false },
+      rotor: { enabled: false, stress: 0, tags: ['rotor'], destroyed: false },
+      core: { enabled: true, stress: 0, tags: ['crewCompartment', 'engine', 'ammoStore'], destroyed: false },
+    };
+  }
+
+  _defaultMechLocations() {
+    return {
+      head: { enabled: true, stress: 0, tags: ['cockpit', 'sensor'], destroyed: false },
+      torsoFront: { enabled: true, stress: 0, tags: ['weaponGroup', 'engine'], destroyed: false },
+      torsoRear: { enabled: true, stress: 0, tags: ['weaponGroup', 'ammoStore'], destroyed: false },
+      leftArm: { enabled: true, stress: 0, tags: ['weaponGroup'], destroyed: false },
+      rightArm: { enabled: true, stress: 0, tags: ['weaponGroup'], destroyed: false },
+      leftLeg: { enabled: true, stress: 0, tags: ['motiveSystem'], destroyed: false },
+      rightLeg: { enabled: true, stress: 0, tags: ['motiveSystem'], destroyed: false },
+      core: { enabled: true, stress: 0, tags: ['engine', 'gyro', 'ammoStore'], destroyed: false },
+    };
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -322,6 +433,7 @@ export class Migrations {
       new _11_1_16_MigrateSkillsAttributes(),
       new _12_0_1_MigrateChatMessageFlags(),
       new _12_0_4_MigrateWeaponDrain(),
+      new _13_2_2_AddMwdVehicleModel(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

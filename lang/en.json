@@ -367,7 +367,9 @@
       "autopilot": "Autopilot",
       "handling": "Handling",
       "firewall": "Firewall",
-      "system": "System"
+      "system": "System",
+      "chassis": "Chassis",
+      "condition": "Condition"
     },
     "attributeAction": {
       "defense": "Defense",
