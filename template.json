@@ -121,10 +121,7 @@
         }
       },
       "counters": {
-        "essence": {
-          "value": 6
-        },
-        "karma": {
+        "xp": {
           "value": 0,
           "total": 0
         },
@@ -276,8 +273,7 @@
       ],
       "category": "special",
       "capacity": "mundane",
-      "level": 1,
-      "essence": 0
+      "level": 1
     },
     "weapon": {
       "templates": ["modifiers", "inactive", "references"],

@@ -2,12 +2,7 @@
   <div class="wrapper-hexabox">
     {{> "systems/mwd/templates/actor/character-enhanced/hexabox.hbs"}}
     <div class="content">
-      <select name="system.capacity" {{#if @root.options.viewMode}}disabled{{/if}}>
-        {{#select system.capacity}}
-        {{> 'systems/mwd/templates/common/enum-value-label.hbs'
-        entries=ENUMS.capacities noEmpty=true}}
-        {{/select }}
-      </select>
+      <div class="info-value character-capacity">{{localize 'ANARCHY.capacity.mundane'}}</div>
     </div>
   </div>
   <div class="view-mode">
@@ -15,19 +10,11 @@
       {{> "systems/mwd/templates/common/view-mode.hbs"}}
     </div>
     <div class="label">
-      {{#if @root.options.viewMode}}
-        {{localize 'ANARCHY.common.viewMode'}}
-      {{else}}
-        {{localize 'ANARCHY.common.editMode'}}
-      {{/if}}
-    </div>
-  </div>
-  {{#if (eq system.capacity 'emerged')}}
-  <div class="connection-mode">
-    {{> 'systems/mwd/templates/common/control-connectionMode.hbs'
-    connectionMode=system.connectionMode}}
-    <div>{{localize (concat 'ANARCHY.connectionMode.'
-      system.connectionMode)}}</div>
-  </div>
+  {{#if @root.options.viewMode}}
+    {{localize 'ANARCHY.common.viewMode'}}
+  {{else}}
+    {{localize 'ANARCHY.common.editMode'}}
   {{/if}}
+  </div>
+  </div>
 </div>

@@ -16,11 +16,6 @@
     </div>
     <div class="shadowamp-content">
       <label class="title">{{name}}</label>
-      {{#if (localize 'ANARCHY.actor.counters.essence')}}
-        {{#if system.essence}}
-            <label>{{localize 'ANARCHY.item.shadowamp.essenceShort'}} {{system.essence}}</label>
-        {{/if}}
-      {{/if}}
     {{>'systems/mwd/templates/actor/character/description.hbs' description=system.description}}
     </div>
   </div>

@@ -1070,14 +1070,8 @@
   display: grid;
   grid-template-columns: 1fr 16px;
 }
-.sheet .character-enhanced .monitors .monitor-list .anarchy-essence {
+.sheet .character-enhanced .monitors .monitor-list .anarchy-token {
   height: 100%;
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 8px;
-}
-.sheet .character-enhanced .monitors .monitor-list .anarchy-essence div {
-  flex: 1;
 }
 .sheet .character-enhanced .monitors .monitor-list .edge-credibility {
   height: 100%;

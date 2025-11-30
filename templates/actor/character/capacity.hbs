@@ -1,11 +1,3 @@
 <div class="info-label">
-  <select class="info-value character-capacity" name="system.capacity"
-  {{#if @root.options.viewMode}}disabled{{/if}}>
-    {{#select system.capacity}}
-    {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.capacities noEmpty=true}}
-    {{/select}}
-  </select>
-  {{#if (eq system.capacity 'emerged')}}
-  {{> 'systems/mwd/templates/common/control-connectionMode.hbs' connectionMode=system.connectionMode}}
-  {{/if}}
+  <span class="info-value character-capacity">{{localize 'ANARCHY.capacity.mundane'}}</span>
 </div>

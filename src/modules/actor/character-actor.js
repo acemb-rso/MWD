@@ -6,7 +6,6 @@ import { Misc } from "../misc.js";
 import { Modifiers } from "../modifiers/modifiers.js";
 import { Checkbars, DEFAULT_CHECKBARS } from "../common/checkbars.js";
 import { RollCelebrity } from "../dialog/roll-celebrity.js";
-import { ANARCHY_HOOKS } from "../hooks-manager.js";
 import { MATRIX, Matrix, NO_MATRIX_MONITOR } from "../matrix-helper.js";
 
 const HBS_TEMPLATE_ACTOR_DRAIN = `${TEMPLATES_PATH}/chat/actor-drain.hbs`;
@@ -43,21 +42,6 @@ export class CharacterActor extends AnarchyBaseActor {
     }
   }
 
-  computeEssence() {
-    // base essence
-    const baseEssence = game.system.anarchy.hooks.callHookMethod(ANARCHY_HOOKS.PROVIDE_BASE_ESSENCE, this)
-    // spent essence: from cyberware/bioware
-    const spentEssence = Misc.sumValues(this.items.filter(it => it.type == 'shadowamp')
-      .map(it => Math.abs(it.system.essence)))
-    // adjustments: from quality (that gives a "free" essence point), or essence losses due to vampire
-    const essenceAdjustment = Modifiers.sumModifiers(this.items, 'other', 'essenceAdjustment')
-    return baseEssence + essenceAdjustment - Math.max(0, spentEssence)
-  }
-
-  computeMalusEssence(essence = undefined) {
-    return game.system.anarchy.hooks.callHookMethod(ANARCHY_HOOKS.PROVIDE_MALUS_ESSENCE, this, essence ?? this.computeEssence())
-  }
-
   getAttributes() {
     return [
       TEMPLATE.attributes.strength,
@@ -90,20 +74,6 @@ export class CharacterActor extends AnarchyBaseActor {
         setMatrixMonitor: async (path, value) => cyberdeck.setMatrixMonitor(path, value),
       }
     }
-    if (this.isEmerged()) {
-      return {
-        hasMatrix: true,
-        logic: TEMPLATE.attributes.logic,
-        firewall: TEMPLATE.attributes.logic,
-        monitor: this.system.monitors.fatigue,
-        overflow: TEMPLATE.monitors.physical,
-        setMatrixMonitor: async (path, value) => {
-          if (path == DEFAULT_CHECKBARS.matrix.path) {
-            return await Checkbars.setCheckbar(this, TEMPLATE.monitors.fatigue, value)
-          }
-        }
-      }
-    }
     return {
       hasMatrix: false,
       logic: TEMPLATE.attributes.logic,
@@ -120,9 +90,6 @@ export class CharacterActor extends AnarchyBaseActor {
     if (cyberdeck?.isConnected()) {
       connectionMode = cyberdeck.getConnectionMode()
     }
-    if (!connectionMode && this.isEmerged()) {
-      connectionMode = this.system.connectionMode
-    }
     if (mode == undefined) {
       return Matrix.resolveConnectionMode(connectionMode) != MATRIX.connectionMode.disconnected
     }
@@ -131,10 +98,6 @@ export class CharacterActor extends AnarchyBaseActor {
   async nextConnectionMode(cyberdeck) {
     if (cyberdeck) {
       await cyberdeck.nextConnectionMode()
-    }
-    else if (this.isEmerged()) {
-      const newConnectionMode = Matrix.getNextConnectionMode(this.system.connectionMode)
-      await this.update({ 'system.connectionMode': newConnectionMode })
     }
   }
 
@@ -261,15 +224,11 @@ export class CharacterActor extends AnarchyBaseActor {
   canPilotVehicle() { return true }
 
   canSetMarks() {
-    return this.getCyberdeck()?.isConnected() || this.isEmerged()
+    return this.getCyberdeck()?.isConnected()
   }
 
   canReceiveMarks() {
     return this.getCyberdeck()?.isConnected()
-  }
-
-  isEmerged() {
-    return this.system.capacity == TEMPLATE.capacities.emerged;
   }
 
   getCyberdeck() {

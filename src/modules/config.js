@@ -191,14 +191,9 @@ export const ANARCHY = {
             cues: 'ANARCHY.actor.words.cues',
             dispositions: 'ANARCHY.actor.words.dispositions',
         },
-        essence: {
-            adjustments: 'ANARCHY.actor.essence.adjustments',
-            adjustShort: 'ANARCHY.actor.essence.adjustShort',
-        },
         counters: {
-            essence: 'ANARCHY.actor.counters.essence',
-            karma: 'ANARCHY.actor.counters.karma',
-            karmaTotal: 'ANARCHY.actor.counters.karmaTotal',
+            xp: 'ANARCHY.actor.counters.xp',
+            xpTotal: 'ANARCHY.actor.counters.xpTotal',
             edge: 'ANARCHY.actor.counters.edge',
             anarchy: 'ANARCHY.actor.counters.anarchy',
             sceneAnarchy: 'ANARCHY.actor.counters.sceneAnarchy',
@@ -269,9 +264,7 @@ export const ANARCHY = {
             category: 'ANARCHY.item.shadowamp.category',
             capacity: 'ANARCHY.item.shadowamp.capacity',
             level: 'ANARCHY.item.shadowamp.level',
-            essence: 'ANARCHY.item.shadowamp.essence',
             levelShort: 'ANARCHY.item.shadowamp.levelShort',
-            essenceShort: 'ANARCHY.item.shadowamp.essenceShort'
         },
         weapon: {
             skill: 'ANARCHY.item.weapon.skill',
@@ -318,9 +311,7 @@ export const ANARCHY = {
         }
     },
     capacity: {
-        mundane: 'ANARCHY.capacity.mundane',
-        awakened: 'ANARCHY.capacity.awakened',
-        emerged: 'ANARCHY.capacity.emerged'
+        mundane: 'ANARCHY.capacity.mundane'
     },
     monitor: {
         physical: 'ANARCHY.monitor.physical',
@@ -491,7 +482,6 @@ export const ANARCHY = {
                 damageArmor: 'ANARCHY.modifier.other.effect.damageArmor',
                 sceneAnarchy: 'ANARCHY.modifier.other.effect.sceneAnarchy',
                 locationAnarchy: 'ANARCHY.modifier.other.effect.locationAnarchy',
-                essenceAdjustment: 'ANARCHY.modifier.other.effect.essenceAdjustment',
                 initiative: 'ANARCHY.modifier.other.effect.initiative',
                 celebrity: 'ANARCHY.modifier.other.effect.celebrity',
             },

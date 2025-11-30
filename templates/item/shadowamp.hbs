@@ -40,13 +40,6 @@
         <input name="system.level" type="number" data-dtype="Number" size=2
           value="{{system.level}}"/>
       </div>
-      {{#if (localize 'ANARCHY.actor.counters.essence')}}
-      <div class="form-group">
-        <label for="system.essence">{{localize 'ANARCHY.item.shadowamp.essence'}} </label>
-        <input name="system.essence" type="number" data-dtype="Number" size=3
-          value="{{system.essence}}"/>
-      </div>
-      {{/if}}
 
       {{> 'systems/mwd/templates/item/parts/inactive.hbs'}}
       {{> 'systems/mwd/templates/item/parts/references.hbs'}}

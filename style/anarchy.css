@@ -1026,10 +1026,6 @@ input[type='number'] {
   max-width: 2rem;
 }
 
-input.anarchy-essence[type='number'] {
-  max-width: 3rem;
-}
-
 /* Tooltips container */
 .window-app.sheet .window-content .tooltip:hover .tooltiptext {
   top: 1rem;

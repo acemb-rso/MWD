@@ -285,9 +285,6 @@ export class AnarchyBaseActor extends Actor {
           value = Math.max(...candidateValues)
         }
       }
-      else if (this.isEmerged() && attribute == TEMPLATE.attributes.firewall) {
-        return this.getAttributeValue(TEMPLATE.attributes.logic);
-      }
       else {
         value = item?.getAttributeValue(attribute) ?? 0;
       }
@@ -394,8 +391,6 @@ export class AnarchyBaseActor extends Actor {
   canReceiveDamage(monitor) {
     return this.canApplyDamage(monitor)
   }
-
-  isEmerged() { return false }
 
   async addActorMark(sourceActorId) {
     await Checkbars.addActorMark(this, sourceActorId);
