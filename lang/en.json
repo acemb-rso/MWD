@@ -441,17 +441,12 @@
       "fatigue": "F"
     },
     "assetModuleCategory": {
-      "adeptPower": "Adept power",
-      "bioware": "Bioware",
-      "complexForm": "Complex form",
-      "cyberdeck": "Cyberdeck",
-      "cyberware": "Cyberware",
-      "drone": "Drone",
-      "equipment": "Equipment",
-      "focus": "Focus",
-      "program": "Program",
-      "spell": "Spell",
-      "special": "Special"
+      "faction": "Faction",
+      "logistics": "Logistics",
+      "training": "Training",
+      "influence": "Influence",
+      "personal": "Personal",
+      "operations": "Operations"
     },
     "attributes": {
       "strength": "Strength",
