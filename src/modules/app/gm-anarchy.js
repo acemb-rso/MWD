@@ -31,6 +31,7 @@ export class GMAnarchy {
       condition: user => user.isGM
     });
     this.anarchy = game.settings.get(SYSTEM_NAME, GM_ANARCHY);
+    Hooks.on('updateSetting', async (setting, update, options, id) => this.onUpdateSetting(setting, update, options, id));
   }
 
   getAnarchy() {
@@ -81,14 +82,14 @@ export class GMAnarchy {
   }
 
   async _rebuild() {
-    this.toolbar.find('.checkbar-root').replaceWith(await this._renderBar());
-    this.toolbar.find('a.click-checkbar-element').click(async (event) => await this._onClickAnarchyCheckbar(event));
+    if (!this.toolbar?.length) return;
+    this.toolbar.html(await this._renderBar());
+    this.toolbar.find('a.click-checkbar-element').on('click', async (event) => await this._onClickAnarchyCheckbar(event));
   }
 
   async _onClickAnarchyCheckbar(event) {
     const index = Number.parseInt($(event.currentTarget).attr('data-index'));
-    const isChecked = $(event.currentTarget).attr('data-checked') == 'true';
-    const newAnarchy = Checkbars.newValue(index, isChecked);
+    const newAnarchy = index < this.anarchy ? index : index + 1;
     await this.setAnarchy(newAnarchy);
   }
 
@@ -112,5 +113,11 @@ export class GMAnarchy {
     linkedActors.concat(unlinkedActors)
       .filter(actor => !actor.hasPlayerOwner)
       .forEach(actor => actor.render());
+  }
+
+  async onUpdateSetting(setting, update, options, id) {
+    if (setting.key !== `${SYSTEM_NAME}.${GM_ANARCHY}`) return;
+    this.anarchy = setting.value ?? game.settings.get(SYSTEM_NAME, GM_ANARCHY);
+    await this._rebuild();
   }
 }

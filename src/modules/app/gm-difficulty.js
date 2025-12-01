@@ -53,8 +53,9 @@ export class GMDifficulty {
   }
 
   async _rebuild() {
-    this.toolbar.find('.gm-difficulty-bar').replaceWith(await this._renderBar());
-    this.toolbar.find('a.click-roll-difficuty-pool').click(async (event) => await this._onClickDifficulty(event));
+    if (!this.toolbar?.length) return;
+    this.toolbar.html(await this._renderBar());
+    this.toolbar.find('a.click-roll-difficuty-pool').on('click', async (event) => await this._onClickDifficulty(event));
   }
 
   async _renderBar() {
@@ -67,7 +68,7 @@ export class GMDifficulty {
     const pool = $(event.currentTarget).attr('data-pool');
     const difficulty = $(event.currentTarget).attr('data-difficulty');
     const roll = new Roll(`${pool}d6cs>=5`);
-    await roll.evaluate();
+    await roll.evaluate({ async: true });
     const flavor = game.i18n.format(ANARCHY.settings.gmDifficulty.chatMessage, {
       pool: pool,
       difficulty: difficulty ?? pool,
