@@ -247,7 +247,6 @@
       },
       "style": "",
       "genre": "",
-      "capacity": "mundane",
       "connectionMode": "disconnected",
       "ownAnarchy": false,
       "keywords": [],
@@ -401,6 +400,15 @@
         "references"
       ],
       "category": "special",
+      "level": 1
+    },
+    "lifeModule": {
+      "templates": [
+        "modifiers",
+        "inactive",
+        "references"
+      ],
+      "category": "special",
       "capacity": "mundane",
       "level": 1
     },
@@ -409,7 +417,8 @@
         "inactive",
         "references"
       ],
-      "moduleType": "faction"
+      "category": "special",
+      "level": 1
     },
     "mechWeapon": {
       "templates": ["modifiers", "inactive", "references"],

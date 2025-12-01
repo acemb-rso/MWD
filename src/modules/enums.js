@@ -11,7 +11,6 @@ export class Enums {
   static ENUMS;
   static hbsAttributes;
   static hbsItemTypes;
-  static hbsCapacities;
   static hbsMonitors;
   static hbsMonitorLetters;
   static hbsAssetModuleCategories;
@@ -37,7 +36,6 @@ export class Enums {
     Enums.hbsAttributes = Enums.mapObjetToKeyValue(ANARCHY.attributes)
       .filter(a => a.value != 'knowledge' && a.value != 'noAttribute');
     Enums.hbsItemTypes = Enums.mapObjetToKeyValue(ANARCHY.itemType);
-    Enums.hbsCapacities = Enums.mapObjetToKeyValue(ANARCHY.capacity);
     Enums.hbsMonitors = Enums.mapObjetToKeyValue(ANARCHY.monitor);
     Enums.hbsMonitorLetters = Enums.mapObjetToKeyValue(ANARCHY.monitorLetter);
     Enums.hbsAssetModuleCategories = Enums.mapObjetToKeyValue(ANARCHY.assetModuleCategory);
@@ -73,7 +71,6 @@ export class Enums {
     return {
       attributes: Enums.getAttributes(filterAttributes),
       itemTypes: Enums.hbsItemTypes,
-      capacities: Enums.hbsCapacities,
       monitors: Enums.hbsMonitors,
       assetModuleCategories: Enums.hbsAssetModuleCategories,
       skills: game.system.anarchy.skills.getSkills({ withKnowledge })
