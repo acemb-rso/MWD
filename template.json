@@ -247,7 +247,6 @@
       },
       "style": "",
       "genre": "",
-      "capacity": "mundane",
       "connectionMode": "disconnected",
       "ownAnarchy": false,
       "keywords": [],
@@ -401,7 +400,6 @@
         "references"
       ],
       "category": "special",
-      "capacity": "mundane",
       "level": 1
     },
     "lifeModule": {
@@ -418,7 +416,6 @@
         "references"
       ],
       "category": "special",
-      "capacity": "mundane",
       "level": 1
     },
     "mechWeapon": {
