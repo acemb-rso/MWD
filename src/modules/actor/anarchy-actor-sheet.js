@@ -6,19 +6,28 @@ import { Enums } from "../enums.js";
 import { SelectActor } from "../dialog/select-actor.js";
 import { ResistanceByTypeDialog } from "../dialog/resistance-by-type.js";
 
-export class AnarchyActorSheet extends foundry.applications.sheets.ActorSheet {
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
+export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheet) {
 
   get template() {
     return `${TEMPLATES_PATH}/actor/${this.actor.type}.hbs`;
   }
 
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
+  static get DEFAULT_OPTIONS() {
+    return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       isGM: game.user.isGM,
       dragDrop: [{ dragSelector: ".item ", dropSelector: null }],
       classes: [game.system.anarchy.styles.selectCssClass(), "sheet", "actor"],
     });
+  }
+
+  /**
+   * Keep support for code paths that still read {@link defaultOptions} from app-v1 style classes.
+   */
+  static get defaultOptions() {
+    return this.DEFAULT_OPTIONS;
   }
 
   getData(options) {
@@ -56,33 +65,41 @@ export class AnarchyActorSheet extends foundry.applications.sheets.ActorSheet {
     return hbsData;
   }
 
+  /** @override */
+  async _prepareContext(options) {
+    return this.getData(options);
+  }
+
   activateListeners(html) {
-    super.activateListeners(html);
+    const element = html instanceof HTMLElement ? html : html[0];
+    super.activateListeners(element);
+
+    const jqHtml = $(element);
 
     // items standard actions (add/edit/activate/delete)
-    html.find('.click-item-add').click(async event => {
+    jqHtml.find('.click-item-add').click(async event => {
       event.stopPropagation();
       await this.createNewItem(this.getEventItemType(event));
     });
 
-    html.find('.click-item-edit').click(async event => {
+    jqHtml.find('.click-item-edit').click(async event => {
       event.stopPropagation();
       this.getEventItem(event)?.sheet.render(true);
     });
 
-    html.find('.click-item-activate').click(async event => {
+    jqHtml.find('.click-item-activate').click(async event => {
       event.stopPropagation();
       const item = this.getEventItem(event)
       const inactive = item.system.inactive;
       await item.update({ 'system.inactive': !inactive })
     })
 
-    html.find('a.click-matrix-connectionMode').click(async event => {
+    jqHtml.find('a.click-matrix-connectionMode').click(async event => {
       event.stopPropagation();
       await this.actor.nextConnectionMode(this.getEventItem(event))
     })
 
-    html.find('.click-item-delete').click(async event => {
+    jqHtml.find('.click-item-delete').click(async event => {
       event.stopPropagation();
       const item = this.getEventItem(event);
       ConfirmationDialog.confirmDeleteItem(item, async () => {
@@ -90,7 +107,7 @@ export class AnarchyActorSheet extends foundry.applications.sheets.ActorSheet {
       });
     });
 
-    html.find('.click-favorite').click(async event => {
+    jqHtml.find('.click-favorite').click(async event => {
       event.stopPropagation();
       this.onClickFavorite({
         skillId: $(event.currentTarget).attr('data-skill-id'),
@@ -102,21 +119,21 @@ export class AnarchyActorSheet extends foundry.applications.sheets.ActorSheet {
     });
 
     // ownership management
-    html.find('.click-owner-actor-unlink').click(async event => {
+    jqHtml.find('.click-owner-actor-unlink').click(async event => {
       event.stopPropagation();
       this.detachFromOwner(this.actor.getOwnerActor(), this.actor);
     });
-    html.find('.click-owned-actor-view').click(async event => {
+    jqHtml.find('.click-owned-actor-view').click(async event => {
       event.stopPropagation();
       this.getEventOwnedActor(event)?.sheet.render(true);
     });
-    html.find('.click-owned-actor-unlink').click(async event => {
+    jqHtml.find('.click-owned-actor-unlink').click(async event => {
       event.stopPropagation();
       this.detachFromOwner(this.actor, this.getEventOwnedActor(event));
     });
 
     // counters & monitors
-    html.find('a.click-checkbar-element').click(async event => {
+    jqHtml.find('a.click-checkbar-element').click(async event => {
       event.stopPropagation();
       const item = this.getEventItem(event);
       const handler = item ?? this.actor;
@@ -130,14 +147,14 @@ export class AnarchyActorSheet extends foundry.applications.sheets.ActorSheet {
     });
 
     // rolls
-    html.find('.click-skill-roll').click(async event => {
+    jqHtml.find('.click-skill-roll').click(async event => {
       event.stopPropagation();
       this.actor.rollSkill(
         this.getEventItem(event),
         this.getEventSkillSpecialization(event));
     });
 
-    html.find('.click-roll-attribute').click(async event => {
+    jqHtml.find('.click-roll-attribute').click(async event => {
       event.stopPropagation();
       const handler = this.getEventItem(event) ?? this.actor;
       handler.rollAttribute(
@@ -145,12 +162,12 @@ export class AnarchyActorSheet extends foundry.applications.sheets.ActorSheet {
       );
     });
 
-    html.find('.click-roll-attribute-action').click(async event => {
+    jqHtml.find('.click-roll-attribute-action').click(async event => {
       event.stopPropagation();
       this.actor.rollAttributeAction(this.getEventActionCode(event));
     });
 
-    html.find('.click-weapon-roll').click(async event => {
+    jqHtml.find('.click-weapon-roll').click(async event => {
       event.stopPropagation();
       const weapon = this.getEventItem(event);
       if (!weapon) {
@@ -160,7 +177,7 @@ export class AnarchyActorSheet extends foundry.applications.sheets.ActorSheet {
       this.actor.rollWeapon(weapon);
     });
 
-    html.find('.click-resistance-by-type').click(async event => {
+    jqHtml.find('.click-resistance-by-type').click(async event => {
       event.stopPropagation();
       const monitor = this.getEventMonitorCode(event);
       await ResistanceByTypeDialog.show(this.actor, monitor);
