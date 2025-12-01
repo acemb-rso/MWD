@@ -17,17 +17,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   };
 
   get template() {
-    const actorType = this.actor?.type;
-    if (!actorType) {
-      const fallback = `${TEMPLATES_PATH}/actor/character.hbs`;
-      console.warn(`${LOG_HEAD}Actor sheet missing type, using fallback template`, {
-        actorId: this.actor?.id,
-        actorName: this.actor?.name,
-        fallback
-      });
-      return fallback;
-    }
-    return `${TEMPLATES_PATH}/actor/${actorType}.hbs`;
+    return this._resolveTemplatePath();
   }
 
   /** @override */
@@ -204,7 +194,8 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   }
 
   async _render(force = false, options = {}) {
-    this._logSheetDiagnostics('render-start', { force, options });
+    const template = this._resolveTemplatePath();
+    this._logSheetDiagnostics('render-start', { force, options, template });
     try {
       const result = await super._render(force, options);
       this._logSheetDiagnostics('render-complete');
@@ -239,6 +230,40 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       ...extra
     };
     console.debug(`${LOG_HEAD}ActorSheet`, diagnostics);
+  }
+
+  _resolveTemplatePath() {
+    const fallback = `${TEMPLATES_PATH}/actor/character.hbs`;
+    const actorType = this.actor?.type;
+    const candidate = actorType
+      ? `${TEMPLATES_PATH}/actor/${actorType}.hbs`
+      : fallback;
+    const template = typeof candidate === "string" ? candidate.trim() : "";
+
+    const invalidPath = !template
+      || template.includes("undefined")
+      || template.includes("null");
+
+    if (invalidPath) {
+      console.warn(`${LOG_HEAD}Actor sheet template resolved to an invalid path, using fallback`, {
+        actorId: this.actor?.id,
+        actorName: this.actor?.name,
+        actorType,
+        candidate,
+        fallback
+      });
+      return fallback;
+    }
+
+    if (!actorType) {
+      console.warn(`${LOG_HEAD}Actor sheet missing type, using fallback template`, {
+        actorId: this.actor?.id,
+        actorName: this.actor?.name,
+        fallback
+      });
+    }
+
+    return template;
   }
 
   getEventItemType(event) {
