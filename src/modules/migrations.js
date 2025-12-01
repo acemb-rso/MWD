@@ -525,6 +525,36 @@ class _13_3_3_SimplifyPersonalVehicles extends Migration {
   }
 }
 
+class _13_4_0_MigrateEdgePools extends Migration {
+  get version() { return '13.4.0' }
+  get code() { return 'edge-pools' }
+
+  async migrate() {
+    for (const actor of game.actors) {
+      if (actor.type !== TEMPLATE.actorTypes.character) {
+        continue;
+      }
+      const updates = {};
+      const pools = actor.system?.counters?.edgePools ?? {};
+      const oldSocial = actor.system?.counters?.social ?? {};
+      const edgeValue = actor.system?.counters?.edge?.value ?? pools?.grit?.value ?? 0;
+
+      updates['system.counters.edgePools.grit.value'] = pools?.grit?.value ?? edgeValue ?? 0;
+      updates['system.counters.edgePools.insight.value'] = pools?.insight?.value ?? 0;
+      updates['system.counters.edgePools.legend.value'] = pools?.legend?.value ?? oldSocial?.celebrity?.value ?? 0;
+      updates['system.counters.edgePools.credibility.value'] = pools?.credibility?.value ?? oldSocial?.credibility?.value ?? 0;
+      updates['system.counters.edgePools.rumor.value'] = pools?.rumor?.value ?? oldSocial?.rumor?.value ?? 0;
+      updates['system.counters.edgePools.chaos.value'] = pools?.chaos?.value ?? actor.system?.counters?.sceneAnarchy?.value ?? 0;
+
+      updates['system.counters.-=edge'] = null;
+      updates['system.counters.-=social'] = null;
+      updates['system.counters.-=sceneAnarchy'] = null;
+
+      await actor.update(updates);
+    }
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -545,6 +575,7 @@ export class Migrations {
       new _13_2_2_AddMwdVehicleModel(),
       new _13_2_3_AddBattlemechLoadout(),
       new _13_3_3_SimplifyPersonalVehicles(),
+      new _13_4_0_MigrateEdgePools(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

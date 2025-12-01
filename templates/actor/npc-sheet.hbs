@@ -38,16 +38,27 @@
     <div class="section-group monitors-row">
       <div class="anarchy-block flexcol">
         {{> "systems/mwd/templates/monitors/armor.hbs"}}
-        <div class="anarchy-block flexrow">
-          {{> "systems/mwd/templates/monitors/edge.hbs"}}
-          {{> "systems/mwd/templates/monitors/anarchy-actor.hbs"}}
-        </div>
       </div>
       <div class="anarchy-block flexrow">
         {{> "systems/mwd/templates/monitors/physical.hbs"}}
       </div>
       <div class="anarchy-block flexrow">
         {{> "systems/mwd/templates/monitors/fatigue.hbs"}}
+      </div>
+      <div class="anarchy-block flexcol edge-pools">
+        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='grit'}}
+        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='insight'}}
+      </div>
+      <div class="anarchy-block flexcol edge-pools">
+        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='rumor'}}
+        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='legend'}}
+      </div>
+      <div class="anarchy-block flexcol edge-pools">
+        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='credibility'}}
+        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='chaos'}}
+      </div>
+      <div class="anarchy-block flexcol">
+        {{> "systems/mwd/templates/monitors/anarchy-actor.hbs"}}
       </div>
     </div>
 

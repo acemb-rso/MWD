@@ -1,0 +1,14 @@
+<div class="flexcol edge-pool anarchy-monitor">
+  <label class="info-label">
+    {{localize (concat 'ANARCHY.actor.counters.edgePools.' code)}}
+  </label>
+  {{#with (lookup system.counters.edgePools code) as |pool|}}
+    {{> "systems/mwd/templates/common/checkbar.hbs"
+      code=code
+      labelkey=(concat 'ANARCHY.actor.counters.edgePools.' code)
+      value=pool.value
+      max=(actorAttribute 'edge' @root.actor)
+      rowlength=6
+    }}
+  {{/with}}
+</div>

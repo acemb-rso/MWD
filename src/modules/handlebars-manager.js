@@ -20,6 +20,7 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/monitors/social-rumor.hbs',
   'systems/mwd/templates/monitors/structure.hbs',
   'systems/mwd/templates/monitors/fatigue.hbs',
+  'systems/mwd/templates/monitors/edge-pool.hbs',
   'systems/mwd/templates/actor/character/name.hbs',
 
   // character

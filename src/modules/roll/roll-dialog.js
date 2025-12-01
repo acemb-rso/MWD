@@ -169,6 +169,10 @@ export class RollDialog extends Dialog {
       if (parameter.category == ROLL_PARAMETER_CATEGORY.pool) {
         await this._updateParameterValue(parameter, parameter.value)
       }
+      if (parameter.code == 'edge') {
+        this.html.find(`.parameter[data-parameter-code='${parameter.code}'] .edge-pool-select`)
+          .prop('disabled', !parameter.used);
+      }
     });
 
     this.activateDiceParameterClick();
@@ -184,6 +188,11 @@ export class RollDialog extends Dialog {
       const selected = event.currentTarget.value;
       const value = Number.parseInt(selected);
       await this._setParameterSelectedOption(parameter, selected, value);
+    });
+
+    this.html.find('.edge-pool-select').change(async event => {
+      const parameter = this._getRollParameter(event);
+      parameter.pool = event.currentTarget.value;
     });
   }
 

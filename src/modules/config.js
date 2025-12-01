@@ -177,7 +177,7 @@ export const ANARCHY = {
         characterNPCSheet: 'ANARCHY.actor.characterNPCSheet',
         actorName: 'ANARCHY.actor.actorName',
         genre: 'ANARCHY.actor.genre',
-        celebrity: 'ANARCHY.actor.celebrity',
+        celebrity: 'ANARCHY.actor.counters.edgePools.legend',
         tabs: {
             main: 'ANARCHY.actor.tabs.main',
             equipment: 'ANARCHY.actor.tabs.equipment',
@@ -195,6 +195,15 @@ export const ANARCHY = {
             anarchy: 'ANARCHY.actor.counters.anarchy',
             sceneAnarchy: 'ANARCHY.actor.counters.sceneAnarchy',
             plot: 'ANARCHY.actor.counters.plot',
+            edgePools: {
+                title: 'ANARCHY.actor.counters.edgePools.title',
+                grit: 'ANARCHY.actor.counters.edgePools.grit',
+                insight: 'ANARCHY.actor.counters.edgePools.insight',
+                rumor: 'ANARCHY.actor.counters.edgePools.rumor',
+                legend: 'ANARCHY.actor.counters.edgePools.legend',
+                credibility: 'ANARCHY.actor.counters.edgePools.credibility',
+                chaos: 'ANARCHY.actor.counters.edgePools.chaos',
+            },
             social: {
                 credibility: 'ANARCHY.actor.counters.social.credibility',
                 rumor: 'ANARCHY.actor.counters.social.rumor',

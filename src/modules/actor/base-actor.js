@@ -380,10 +380,10 @@ export class AnarchyBaseActor extends Actor {
   }
 
   async spendCredibility(count) {
-    await Checkbars.addCounter(this, TEMPLATE.counters.social.credibility, - count);
+    await this.spendEdgePool(TEMPLATE.counters.social.credibility, count);
   }
   async spendRumor(count) {
-    await Checkbars.addCounter(this, TEMPLATE.counters.social.rumor, - count);
+    await this.spendEdgePool(TEMPLATE.counters.social.rumor, count);
   }
 
   async spendAnarchy(count) {
@@ -392,15 +392,31 @@ export class AnarchyBaseActor extends Actor {
     }
   }
 
-  getRemainingEdge() {
-    return this.system.counters?.edge?.value ?? 0
+  getEdgePools() { return this.system.counters?.edgePools ?? {}; }
+
+  getEdgePoolValue(pool) {
+    return this.getEdgePools()?.[pool]?.value ?? 0;
+  }
+
+  getRemainingEdge(pool = undefined) {
+    if (pool) {
+      return this.getEdgePoolValue(pool);
+    }
+    return Math.max(0, ...Object.values(this.getEdgePools()).map(it => it?.value ?? 0));
   }
 
   canUseEdge() {
     return this.getAttributes().includes(TEMPLATE.attributes.edge);
   }
 
-  async spendEdge(count) {
+  async spendEdgePool(pool, count) {
+    if (count == 0) {
+      return;
+    }
+    await Checkbars.addCounter(this, pool, - count);
+  }
+
+  async spendEdge(count, pool = TEMPLATE.counters.edgePools.grit) {
     if (count == 0) {
       return;
     }
@@ -412,7 +428,7 @@ export class AnarchyBaseActor extends Actor {
       ui.notifications.warn(message)
       throw ANARCHY.common.errors.noEdgeForActor + message;
     }
-    await Checkbars.addCounter(this, TEMPLATE.counters.edge, - count);
+    await this.spendEdgePool(pool, count);
   }
 
   getSkillValue(skillId, specialization = undefined) {

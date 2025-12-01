@@ -1,10 +1,10 @@
 <label class="title">
-  {{localize (concat 'ANARCHY.actor.counters.edge')}}
+  {{localize (concat 'ANARCHY.actor.counters.edgePools.grit')}}
 </label>
 {{> "systems/mwd/templates/common/checkbar.hbs"
-  code='edge'
-  labelkey='ANARCHY.actor.counters.edge'
-  value=system.counters.edge.value
+  code='grit'
+  labelkey='ANARCHY.actor.counters.edgePools.grit'
+  value=system.counters.edgePools.grit.value
   max=(actorAttribute 'edge' @root.actor)
   rowlength=6
 }}
