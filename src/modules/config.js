@@ -542,6 +542,7 @@ export const ANARCHY = {
             effect: {
                 pool: 'ANARCHY.modifier.roll.effect.pool',
                 reroll: 'ANARCHY.modifier.roll.effect.reroll',
+                rerollMax: 'ANARCHY.modifier.roll.effect.rerollMax',
                 glitch: 'ANARCHY.modifier.roll.effect.glitch',
                 successReroll: 'ANARCHY.modifier.roll.effect.successReroll',
                 opponentPool: 'ANARCHY.modifier.roll.effect.opponentPool',
