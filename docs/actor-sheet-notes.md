@@ -9,7 +9,7 @@ These notes capture where the actor sheet lifecycle can stumble and what to chec
 
 ## Fragile spots to watch
 - **Actor type drift**: `AnarchyActorSheet.template` now logs when an actor type is missing and falls back to the character template instead of crashing. Verify actor JSON includes a supported `type`, and confirm `actorClasses` plus registered sheets cover that type.
-- **Template preload hygiene**: Template paths gathered during render are trimmed and non-string or empty values are filtered out, with warnings and diagnostics that show exactly what was removed. If a sheet still fails to render, check the `templates-preload` log for the final list of templates being loaded.
+- **Template preload hygiene**: Template paths gathered during render are trimmed and non-string or empty values are filtered out, with warnings and diagnostics that show exactly what was removed. If a sheet still fails to render, check the `templates-preload` log emitted from `_preloadTemplates` for the final list of templates being loaded (even when the list is empty).
 - **System readiness**: Render logging records when `game.system.anarchy` is unavailable. If sheets break on world start, confirm `AnarchySystem.start()` ran (look for the init logs) before actors are touched.
 - **Template expectations**: The sheet diagnostics include the resolved template path and whether system data (`actor.system`) is present. Mismatched template paths or stripped `system` data will show up there.
 
@@ -19,3 +19,15 @@ These notes capture where the actor sheet lifecycle can stumble and what to chec
 3. **Sheet registration** – Check `AnarchySystem.loadActorSheets()` to verify the desired sheet class is registered (and defaulted) for the actor type.
 4. **System readiness** – Look for the `${LOG_HEAD}AnarchySystem.onInit`/`onReady` console logs. If sheets render before those fire, gating logic may need to delay rendering.
 5. **Console diagnostics** – Use the new `ActorSheet` debug logs to capture `actorId`, `actorType`, template path, ownership IDs, and render timing. Rendering failures will now surface a notification and a structured error payload in the console.
+
+## What “Cannot read properties of null (reading 'startsWith')” really means
+- Foundry calls `startsWith` on every template path before loading it; that error means **a `null` or empty template path made it into the preload list**.
+- Typical culprits:
+  - An actor type that resolves to `templates/actor/<type>.hbs` where `<type>` is missing or blank, producing `templates/actor/.hbs`.
+  - Custom sheet code that returns non-string entries from `_getTemplatePaths`.
+- How to confirm quickly:
+  - Check the `templates-preload` diagnostic log emitted by `AnarchyActorSheet._preloadTemplates` for any empty strings or unexpected entries.
+  - Verify the resolved template path in the `render-start` log (it prints `template: ...`). If it shows the character fallback despite expecting another type, the actor data is likely missing `type`.
+- Fast mitigations:
+  - Fix the actor’s `type` value or rename the corresponding template so the resolved path is non-empty.
+  - Ensure overrides of `_getTemplatePaths` only return trimmed strings; any other values are filtered and logged so they can be corrected before they hit Foundry’s loader.
