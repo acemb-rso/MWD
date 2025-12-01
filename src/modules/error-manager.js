@@ -49,7 +49,11 @@ export class ErrorManager {
     if (!monitor) {
       const error = game.i18n.format(ANARCHY.common.errors.actorCannotReceiveDamage, {
         actor: actor.name,
-        damageType: game.i18n.format('ANARCHY.actor.monitors.' + damageType)
+        damageType: game.i18n.localize(
+          ANARCHY.actor.monitors[damageType]
+          ?? ANARCHY.mwd.weaponDamageType[damageType]
+          ?? ANARCHY.mwd.personalDamageType[damageType]
+          ?? damageType)
       });
       ui.notifications.error(error);
       throw error;

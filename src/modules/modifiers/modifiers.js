@@ -49,6 +49,8 @@ export class Modifiers {
     switch (group) {
       case 'roll':
         return true;
+      case 'monitor':
+        return category === 'resistanceByType';
     }
     return false;
   }
@@ -62,6 +64,13 @@ export class Modifiers {
         switch (options.hash.group) {
           case 'roll': {
             return this.getSelectRollSubCategories(options.hash.category);
+          }
+          case 'monitor': {
+            switch (options.hash.category) {
+              case 'resistanceByType':
+                return Enums.getDamageTypes().map(it => ({ key: it.value, label: it.labelkey }));
+            }
+            return [];
           }
         }
         return [];
@@ -135,22 +144,23 @@ export class Modifiers {
     }
   }
 
-  static sumMonitorModifiers(items, monitor, category) {
-    return Modifiers.sumModifiers(Modifiers._activeItems(items), 'monitor', monitor, category);
+  static sumMonitorModifiers(items, monitor, category, subCategory = undefined) {
+    return Modifiers.sumModifiers(Modifiers._activeItems(items), 'monitor', monitor, category, subCategory);
   }
 
-  static sumModifiers(items, group, effect, category) {
-    const filter = Modifiers._createFilter(group, effect, category);
+  static sumModifiers(items, group, effect, category, subCategory = undefined) {
+    const filter = Modifiers._createFilter(group, effect, category, subCategory);
     const itemModifiers = Modifiers._activeItems(items).map(item => Modifiers.itemModifiers(item, filter))
       .reduce((a, b) => a.concat(b), []);
 
     return Misc.sumValues(itemModifiers, m => m.modifier.value);
   }
 
-  static _createFilter(group, effect, category) {
+  static _createFilter(group, effect, category, subCategory = undefined) {
     return m => m.group == group
       && m.effect == (effect == undefined ? m.effect : effect)
-      && m.category == (category == undefined ? m.category : category);
+      && m.category == (category == undefined ? m.category : category)
+      && (subCategory == undefined ? true : m.subCategory == subCategory);
   }
 
   static countModifiers(items, group, effect = undefined, category = undefined) {

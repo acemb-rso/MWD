@@ -62,16 +62,17 @@ export class ActorDamageManager {
     ActorDamageManager.damageModeMethod = damageModeMethods[damageModeCode];
   }
 
-  static async sufferDamage(defender, damageType, damage, success, avoidArmor, attacker, attackWeapon) {
-    const monitor = defender.getDamageMonitor(damageType);
-    ErrorManager.checkActorCanReceiveDamage(damageType, monitor, defender);
+  static async sufferDamage(defender, damageInfo, damage, success, avoidArmor, attacker, attackWeapon) {
+    const { monitor, damageType } = ActorDamageManager._resolveDamageContext(defender, damageInfo, attackWeapon);
+    ErrorManager.checkActorCanReceiveDamage(damageType ?? monitor, monitor, defender);
     const sufferDamageMethod = ActorDamageManager.damageModeMethod ?? ActorDamageManager.sufferDamageResistanceArmorMonitor;
-    await sufferDamageMethod(defender, monitor, damage, success, avoidArmor, attacker);
-    await defender.applyArmorDamage(monitor, Modifiers.sumModifiers([attackWeapon], 'other', 'damageArmor'));
+    await sufferDamageMethod(defender, monitor, damageType, damage, success, avoidArmor, attacker);
+    await defender.applyArmorDamage(monitor, damageType, Modifiers.sumModifiers([attackWeapon], 'other', 'damageArmor'));
   }
 
-  static async sufferDamageResistanceArmorMonitor(actor, monitor, damage, success, avoidArmor, sourceActor) {
-    const resistance = Checkbars.resistance(actor, monitor);
+  static async sufferDamageResistanceArmorMonitor(actor, monitor, damageType, damage, success, avoidArmor, sourceActor) {
+    const resistanceDetail = Checkbars.resistanceDetail(actor, monitor, damageType);
+    const resistance = resistanceDetail.value;
     let total = 0;
 
     if (avoidArmor) {
@@ -79,44 +80,47 @@ export class ActorDamageManager {
       const resisted2 = Math.min(resistance - resisted1, success);
       total = damage - resisted1;
       if (Checkbars.useArmor(monitor)) {
-        total -= await ActorDamageManager.damageToArmor(actor, total);
+        total -= await ActorDamageManager.damageToArmor(actor, damageType, total);
       }
       total += success - resisted2;
     }
     else {
       total = damage + success - resistance;
       if (Checkbars.useArmor(monitor)) {
-        total -= await ActorDamageManager.damageToArmor(actor, total);
+        total -= await ActorDamageManager.damageToArmor(actor, damageType, total);
       }
     }
     if (total > 0) {
       await Checkbars.addCounter(actor, monitor, total);
     }
+    ActorDamageManager._notifyResistanceUsage(actor, monitor, damageType, resistanceDetail);
   }
 
-  static async sufferDamageArmorResistanceMonitor(actor, monitor, damage, success, avoidArmor, sourceActor) {
+  static async sufferDamageArmorResistanceMonitor(actor, monitor, damageType, damage, success, avoidArmor, sourceActor) {
     let total = 0;
     if (Checkbars.useArmor(monitor)) {
       if (avoidArmor) {
-        damage -= await ActorDamageManager.damageToArmor(actor, damage);
+        damage -= await ActorDamageManager.damageToArmor(actor, damageType, damage);
         total = success + damage;
       }
       else {
         total = success + damage;
-        total -= await ActorDamageManager.damageToArmor(actor, total);
+        total -= await ActorDamageManager.damageToArmor(actor, damageType, total);
       }
     }
     else {
       total = damage + success;
     }
-    total -= Checkbars.resistance(actor, monitor);
+    const resistanceDetail = Checkbars.resistanceDetail(actor, monitor, damageType);
+    total -= resistanceDetail.value;
     if (total > 0) {
       await Checkbars.addCounter(actor, monitor, total);
     }
+    ActorDamageManager._notifyResistanceUsage(actor, monitor, damageType, resistanceDetail);
     return total;
   }
 
-  static async sufferDamageArmorAsResistance_Cyberpunk(actor, monitor, damage, success, avoidArmor, sourceActor) {
+  static async sufferDamageArmorAsResistance_Cyberpunk(actor, monitor, damageType, damage, success, avoidArmor, sourceActor) {
     let total = damage + success;
     if (Checkbars.useArmor(monitor) && total > 0) {
       const ignoredArmor = avoidArmor ? success : 0;
@@ -126,14 +130,16 @@ export class ActorDamageManager {
         total -= armorResistance;
       }
     }
-    total -= Checkbars.resistance(actor, monitor);
+    const resistanceDetail = Checkbars.resistanceDetail(actor, monitor, damageType);
+    total -= resistanceDetail.value;
     if (total > 0) {
       await Checkbars.addCounter(actor, monitor, total);
     }
+    ActorDamageManager._notifyResistanceUsage(actor, monitor, damageType, resistanceDetail);
     return Math.max(total, 0);
   }
 
-  static async sufferDamageArmorAsResistance_Earthdawn(actor, monitor, damage, success, avoidArmor, sourceActor) {
+  static async sufferDamageArmorAsResistance_Earthdawn(actor, monitor, damageType, damage, success, avoidArmor, sourceActor) {
     let total = damage + success;
     if (Checkbars.useArmor(monitor) && !avoidArmor && total > 0) {
       const armorResistance = ActorDamageManager._computeArmorResistance(actor);
@@ -143,19 +149,21 @@ export class ActorDamageManager {
       }
     }
     total -= ActorDamageManager._computeStrengthResistance(actor, monitor);
-    total -= Checkbars.resistance(actor, monitor);
+    const resistanceDetail = Checkbars.resistanceDetail(actor, monitor, damageType);
+    total -= resistanceDetail.value;
     if (total > 0) {
       await Checkbars.addCounter(actor, monitor, total);
     }
+    ActorDamageManager._notifyResistanceUsage(actor, monitor, damageType, resistanceDetail);
     return total;
   }
 
-  static async damageToArmor(actor, value) {
+  static async damageToArmor(actor, damageType, value) {
     if (value > 0) {
       const armorMax = Checkbars.max(actor, TEMPLATE.monitors.armor);
       const armor = Checkbars.getCounterValue(actor, TEMPLATE.monitors.armor);
       const armorReduction = Math.min(armorMax - armor, value);
-      const armorResistance = Checkbars.resistance(actor, TEMPLATE.monitors.armor);
+      const armorResistance = Checkbars.resistance(actor, TEMPLATE.monitors.armor, damageType);
       const armorDmg = Math.max(0, armorReduction - armorResistance);
       if (armorDmg > 0) {
         await Checkbars.addCounter(actor, TEMPLATE.monitors.armor, armorDmg);
@@ -165,6 +173,44 @@ export class ActorDamageManager {
     else {
       return 0;
     }
+  }
+
+  static _resolveDamageContext(defender, damageInfo, attackWeapon) {
+    const damageType = (typeof damageInfo === 'object'
+      ? damageInfo?.damageType ?? damageInfo?.type
+      : damageInfo) ?? attackWeapon?.system?.damageType;
+    const monitorHint = typeof damageInfo === 'object' ? damageInfo?.monitor ?? damageType : damageType;
+    const monitor = defender.getDamageMonitor(monitorHint);
+    return { monitor, damageType };
+  }
+
+  static _notifyResistanceUsage(actor, monitor, damageType, resistanceDetail) {
+    if (!resistanceDetail || monitor === undefined) {
+      return;
+    }
+    const monitorLabel = game.i18n.localize(ANARCHY.actor.monitors[monitor] ?? monitor);
+    const typeLabel = ActorDamageManager._localizeDamageType(damageType) ?? monitorLabel;
+    const sourceKey = resistanceDetail.usedType ? 'type' : 'default';
+    const sourceLabel = game.i18n.localize(ANARCHY.actor.monitors.resistanceSources?.[sourceKey] ?? sourceKey);
+    ui.notifications.info(game.i18n.format(ANARCHY.actor.monitors.resistanceApplied, {
+      actor: actor.name,
+      monitor: monitorLabel,
+      damageType: typeLabel,
+      value: resistanceDetail.value,
+      source: sourceLabel,
+    }));
+  }
+
+  static _localizeDamageType(damageType) {
+    if (!damageType) {
+      return undefined;
+    }
+    return game.i18n.localize(
+      ANARCHY.mwd.weaponDamageType[damageType]
+      ?? ANARCHY.mwd.personalDamageType[damageType]
+      ?? ANARCHY.actor.monitors[damageType]
+      ?? damageType
+    );
   }
 
   static _computeArmorResistance(actor) {

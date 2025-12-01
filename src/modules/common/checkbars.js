@@ -189,9 +189,35 @@ export class Checkbars {
     return (it?.value ?? 0);
   }
 
-  static resistance(target, monitor) {
+  static resistance(target, monitor, damageType = undefined) {
+    return Checkbars.resistanceDetail(target, monitor, damageType).value;
+  }
+
+  static resistanceDetail(target, monitor, damageType = undefined) {
     const it = CHECKBARS[monitor]?.monitor(target);
-    return (it?.resistance ?? 0) + (it?.resistanceBonus ?? 0);
+    const base = Checkbars._resolveResistance(it?.resistance, damageType);
+    const bonus = Checkbars._resolveResistance(it?.resistanceBonus, damageType);
+    const bonusByType = damageType === undefined ? 0 : Number(it?.resistanceBonusByType?.[damageType] ?? 0);
+    return {
+      value: base.value + bonus.value + bonusByType,
+      damageType,
+      source: base.source,
+      bonusSource: bonus.source,
+      bonusByType,
+      usedType: base.source === 'type' || bonus.source === 'type' || bonusByType !== 0,
+    };
+  }
+
+  static _resolveResistance(resistance, damageType = undefined) {
+    if (typeof resistance === 'number') {
+      return { value: resistance ?? 0, source: 'legacy' };
+    }
+    const byTypeValue = damageType !== undefined ? resistance?.byType?.[damageType] : undefined;
+    if (byTypeValue !== undefined) {
+      return { value: Number(byTypeValue) || 0, source: 'type' };
+    }
+    const defaultValue = Number(resistance?.default ?? 0) || 0;
+    return { value: defaultValue, source: 'default' };
   }
 
   static newValue(index, checked) {

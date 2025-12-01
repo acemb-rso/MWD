@@ -12,14 +12,19 @@
     max=system.monitors.structure.max
     rowlength=6
   }}
-  <label class="resitance-label">
-    {{localize ANARCHY.actor.monitors.resistance}}
-    <input class="info-value" type="number" data-dtype="Number" maxlength="2"
-      name="system.monitors.structure.resistance"
-      value="{{system.monitors.structure.resistance}}" 
-    />
-    {{#if system.monitors.structure.resistanceBonus}}
-    {{numberFormat system.monitors.structure.resistanceBonus sign=true}}
-    {{/if}}
-  </label>
+  <div class="resistance-row">
+    <label class="resitance-label">
+      {{localize ANARCHY.actor.monitors.resistanceBase}}
+      <input class="info-value" type="number" data-dtype="Number" maxlength="2"
+        name="system.monitors.structure.resistance.default"
+        value="{{system.monitors.structure.resistance.default}}"
+      />
+      {{#if system.monitors.structure.resistanceBonus}}
+      {{numberFormat system.monitors.structure.resistanceBonus sign=true}}
+      {{/if}}
+    </label>
+    <button type="button" class="anarchy-button click-resistance-by-type" data-monitor-code="structure">
+      {{localize ANARCHY.actor.monitors.resistanceByTypeButton}}
+    </button>
+  </div>
 </div>

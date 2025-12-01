@@ -145,15 +145,31 @@ export class AnarchyBaseActor extends Actor {
       initiative: Modifiers.sumModifiers(this.items, 'other', 'initiative')
     }
     if (this.system.monitors) {
+      const damageTypes = Enums.getDamageTypes();
       Object.entries(this.system.monitors).forEach(kv => {
-        kv[1].maxBonus = Modifiers.sumMonitorModifiers(this.items, kv[0], 'max')
-        kv[1].resistanceBonus = Modifiers.sumMonitorModifiers(this.items, kv[0], 'resistance')
+        kv[1].resistance = AnarchyBaseActor.normalizeResistance(kv[1].resistance);
+        kv[1].maxBonus = Modifiers.sumMonitorModifiers(this.items, kv[0], 'max');
+        kv[1].resistanceBonus = Modifiers.sumMonitorModifiers(this.items, kv[0], 'resistance');
+        kv[1].resistanceBonusByType = Object.fromEntries(
+          damageTypes
+            .map(dt => [dt.value, Modifiers.sumMonitorModifiers(this.items, kv[0], 'resistanceByType', dt.value)])
+            .filter(([, value]) => value)
+        );
       })
     }
     if (this.system.attributes) {
       Object.entries(this.system.attributes).forEach(kv => kv[1].total = this.getAttributeValue(kv[0]))
     }
     this.system.state = this.computeState()
+  }
+
+  static normalizeResistance(resistance) {
+    const normalized = typeof resistance === 'number'
+      ? { default: resistance, byType: {} }
+      : foundry.utils.mergeObject({ default: 0, byType: {} }, resistance ?? {}, { inplace: false, recursive: true });
+    normalized.default = Number(normalized.default ?? 0);
+    normalized.byType = normalized.byType ?? {};
+    return normalized;
   }
 
   getAttributes() { return []; }
@@ -293,12 +309,12 @@ export class AnarchyBaseActor extends Actor {
     return undefined;
   }
 
-  async applyArmorDamage(damageType, damage = 0) {
-    damageType = this.resolveDamageType(damageType);
-    switch (damageType) {
+  async applyArmorDamage(monitor, damageType, damage = 0) {
+    monitor = this.resolveDamageType(monitor);
+    switch (monitor) {
       case TEMPLATE.monitors.physical:
       case TEMPLATE.monitors.fatigue:
-        await ActorDamageManager.damageToArmor(this, damage);
+        await ActorDamageManager.damageToArmor(this, damageType, damage);
     }
   }
 

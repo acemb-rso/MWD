@@ -26,6 +26,7 @@ export class Enums {
   static hbsMwdWeaponDamageTypes;
   static hbsPersonalWeaponDamageTypes;
   static hbsPersonalWeaponDamageCategories;
+  static hbsDamageTypes;
   static hbsMwdMeleeLocations;
 
   static sortedAttributeKeys;
@@ -51,6 +52,10 @@ export class Enums {
     Enums.hbsMwdWeaponDamageTypes = Enums.mapObjetToKeyValue(ANARCHY.mwd.weaponDamageType);
     Enums.hbsPersonalWeaponDamageTypes = Enums.mapObjetToKeyValue(ANARCHY.mwd.personalDamageType);
     Enums.hbsPersonalWeaponDamageCategories = Enums.mapObjetToKeyValue(ANARCHY.mwd.personalDamageCategory);
+    Enums.hbsDamageTypes = Misc.distinct(
+      Enums.hbsMwdWeaponDamageTypes.concat(Enums.hbsPersonalWeaponDamageTypes),
+      dt => dt.value
+    );
     Enums.hbsMwdMeleeLocations = Enums.mapObjetToKeyValue(ANARCHY.mwd.meleeLocation);
 
     Enums.sortedAttributeKeys = Object.keys(ANARCHY.attributes);
@@ -83,8 +88,13 @@ export class Enums {
       mwdWeaponDamageTypes: Enums.hbsMwdWeaponDamageTypes,
       personalWeaponDamageTypes: Enums.hbsPersonalWeaponDamageTypes,
       personalWeaponDamageCategories: Enums.hbsPersonalWeaponDamageCategories,
+      damageTypes: Enums.hbsDamageTypes,
       mwdMeleeLocations: Enums.hbsMwdMeleeLocations,
     };
+  }
+
+  static getDamageTypes() {
+    return Enums.hbsDamageTypes ?? [];
   }
 
   static getAttributes(filterAttributes = it => true) {

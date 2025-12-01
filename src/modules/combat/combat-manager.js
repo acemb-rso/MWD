@@ -124,7 +124,7 @@ export class CombatManager {
     const defender = this.getTokenActor(attack.defenderTokenId);
     const attackRoll = RollManager.inflateAnarchyRoll(attack.attackRoll);
     await ActorDamageManager.sufferDamage(defender,
-      attack.attack.damage.monitor,
+      attack.attack.damage,
       attack.attack.damage.value,
       attack.attack.success,
       attack.attack.damage.noArmor,

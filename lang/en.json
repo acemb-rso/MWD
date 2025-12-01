@@ -247,7 +247,26 @@
         "legend": "Legend",
         "credibility": "Credibility",
         "chaos": "Chaos",
-        "resistance": "Resistance"
+        "resistance": "Resistance",
+        "resistanceBase": "Base resistance",
+        "resistanceByType": "By damage type",
+        "resistanceByTypeButton": "Resist by type",
+        "resistanceByTypeTitle": "Type-specific resistance",
+        "resistanceBonusLabel": "Bonuses",
+        "resistanceTotal": "Total",
+        "resistanceFallback": "Falls back to base",
+        "damageType": "Damage type",
+        "resistancePresets": {
+          "label": "Presets",
+          "biological": "Biological",
+          "armoredVehicle": "Armored vehicle",
+          "energyShielded": "Energy shielded"
+        },
+        "resistanceApplied": "{actor} resisted {value} vs {damageType} on {monitor} ({source})",
+        "resistanceSources": {
+          "default": "base",
+          "type": "type-specific"
+        }
       },
       "vehicle": {
         "moves": "Moves",
@@ -670,7 +689,8 @@
         },
         "category": {
           "max": "Increased max",
-          "resistance": "Resistance"
+          "resistance": "Resistance",
+          "resistanceByType": "Damage-type resistance"
         }
       },
       "other": {

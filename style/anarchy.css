@@ -1241,3 +1241,62 @@ div.column-details {
   width: 32px;
   height: 32px;
 }
+
+.resistance-by-type-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.resistance-header .title {
+  font-weight: 600;
+}
+
+.resistance-base-row,
+.resistance-presets {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.resistance-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.resistance-presets .buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.resistance-base-row input[type="number"] {
+  width: 4rem;
+}
+
+.resistance-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.resistance-table th,
+.resistance-table td {
+  padding: 0.25rem;
+  text-align: left;
+}
+
+.resistance-table td.total {
+  font-weight: 700;
+}
+
+.resistance-table td .source {
+  font-size: 0.75rem;
+  color: var(--color-text-light-primary);
+}
+
+.damage-type {
+  margin-left: 0.25rem;
+  font-style: italic;
+  color: var(--color-text-light-primary);
+}

@@ -56,13 +56,16 @@
               )
           }}}
           {{else}}
-          {{{localize ANARCHY.chat.applyDamage 
-            damage=(concat 
+          {{{localize ANARCHY.chat.applyDamage
+            damage=(concat
               (sum attack.damage.value attack.success)
               (weaponDamageLetter attack.damage.monitor)
               (iconCheckbarHit attack.damage.monitor)
               )
           }}}
+          {{/if}}
+          {{#if attack.damage.damageTypeLabel}}
+          <span class="damage-type">{{attack.damage.damageTypeLabel}}</span>
           {{/if}}
           {{> 'systems/mwd/templates/common/damage-armor.hbs' armor=attack.damage.armorMode}}
         </label>

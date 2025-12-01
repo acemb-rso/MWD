@@ -1,7 +1,7 @@
  <div class="title">
     {{localize 'ANARCHY.actor.monitors.fatigue'}}
 </div>
-<div class="anarchy-monitor">
+  <div class="anarchy-monitor">
     {{> "systems/mwd/templates/actor/character-enhanced/checkbar.hbs"
     code='fatigue'
     value=system.monitors.fatigue.value
@@ -10,9 +10,14 @@
     adjust=true
     }}
   </div>
-  <label class="resistance-label">
-    {{localize ANARCHY.actor.monitors.resistance}}:
-    <div class="value">
-      {{system.monitors.fatigue.resistanceBonus}}
-    </div>
-  </label>
+  <div class="resistance-row" data-monitor-code="fatigue">
+    <label class="resistance-label">
+      {{localize ANARCHY.actor.monitors.resistance}}:
+      <div class="value">
+        {{numberFormat (sum system.monitors.fatigue.resistance.default system.monitors.fatigue.resistanceBonus) sign=true}}
+      </div>
+    </label>
+    <button type="button" class="anarchy-button click-resistance-by-type" data-monitor-code="fatigue">
+      {{localize ANARCHY.actor.monitors.resistanceByTypeButton}}
+    </button>
+  </div>

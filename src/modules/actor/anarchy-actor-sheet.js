@@ -4,6 +4,7 @@ import { ConfirmationDialog } from "../confirmation.js";
 import { Misc } from "../misc.js";
 import { Enums } from "../enums.js";
 import { SelectActor } from "../dialog/select-actor.js";
+import { ResistanceByTypeDialog } from "../dialog/resistance-by-type.js";
 
 export class AnarchyActorSheet extends foundry.applications.sheets.ActorSheet {
 
@@ -158,6 +159,12 @@ export class AnarchyActorSheet extends foundry.applications.sheets.ActorSheet {
       }
       this.actor.rollWeapon(weapon);
     });
+
+    html.find('.click-resistance-by-type').click(async event => {
+      event.stopPropagation();
+      const monitor = this.getEventMonitorCode(event);
+      await ResistanceByTypeDialog.show(this.actor, monitor);
+    });
   }
 
   getEventItemType(event) {
@@ -183,7 +190,7 @@ export class AnarchyActorSheet extends foundry.applications.sheets.ActorSheet {
   }
 
   getEventMonitorCode(event) {
-    return $(event.currentTarget).closest('.click-checkbar-element').attr('data-monitor-code');
+    return $(event.currentTarget).closest('[data-monitor-code]').attr('data-monitor-code');
   }
 
   getEventIndex(event) {
