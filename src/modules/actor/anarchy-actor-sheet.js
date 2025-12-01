@@ -232,6 +232,36 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     console.debug(`${LOG_HEAD}ActorSheet`, diagnostics);
   }
 
+  async _getTemplatePaths(context) {
+    const superPaths = super._getTemplatePaths
+      ? await super._getTemplatePaths(context)
+      : [];
+
+    const templatePaths = (superPaths ?? [])
+      .map((path) => typeof path === "string" ? path.trim() : path)
+      .filter((path) => typeof path === "string" && path.length > 0);
+
+    const invalidPaths = (superPaths ?? []).filter((path) =>
+      typeof path !== "string"
+      || !path
+      || (typeof path === "string" && path.trim().length === 0)
+    );
+
+    if (invalidPaths.length > 0) {
+      console.warn(`${LOG_HEAD}Actor sheet filtered invalid template paths`, {
+        actorId: this.actor?.id,
+        actorName: this.actor?.name,
+        actorType: this.actor?.type,
+        invalidPaths,
+        templatePaths
+      });
+    }
+
+    this._logSheetDiagnostics("templates-preload", { templatePaths });
+
+    return templatePaths;
+  }
+
   _resolveTemplatePath() {
     const fallback = `${TEMPLATES_PATH}/actor/character.hbs`;
     const actorType = this.actor?.type;

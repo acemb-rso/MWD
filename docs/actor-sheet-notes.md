@@ -9,6 +9,7 @@ These notes capture where the actor sheet lifecycle can stumble and what to chec
 
 ## Fragile spots to watch
 - **Actor type drift**: `AnarchyActorSheet.template` now logs when an actor type is missing and falls back to the character template instead of crashing. Verify actor JSON includes a supported `type`, and confirm `actorClasses` plus registered sheets cover that type.
+- **Template preload hygiene**: Template paths gathered during render are trimmed and non-string or empty values are filtered out, with warnings and diagnostics that show exactly what was removed. If a sheet still fails to render, check the `templates-preload` log for the final list of templates being loaded.
 - **System readiness**: Render logging records when `game.system.anarchy` is unavailable. If sheets break on world start, confirm `AnarchySystem.start()` ran (look for the init logs) before actors are touched.
 - **Template expectations**: The sheet diagnostics include the resolved template path and whether system data (`actor.system`) is present. Mismatched template paths or stripped `system` data will show up there.
 
