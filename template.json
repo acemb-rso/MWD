@@ -409,14 +409,6 @@
       ],
       "moduleType": "faction"
     },
-    "lifeModule": {
-      "templates": [
-        "inactive",
-        "references"
-      ],
-      "category": "special",
-      "level": 1
-    },
     "mechWeapon": {
       "templates": ["modifiers", "inactive", "references"],
       "weaponCategory": "ranged",

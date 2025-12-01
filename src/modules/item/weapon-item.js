@@ -82,6 +82,13 @@ export class WeaponItem extends AnarchyBaseItem {
     return `${ICONS_PATH}/weapons/mac-10.svg`;
   }
 
+  static defaultIconForType(type) {
+    if (type === TEMPLATE.itemType.mechWeapon) {
+      return `${ICONS_PATH}/weapons/cannon.svg`;
+    }
+    return this.defaultIcon;
+  }
+
   isWeaponSkill(item) {
     return item.type == 'skill' && item.system.code === this.system.skill;
   }

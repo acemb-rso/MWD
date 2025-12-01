@@ -20,8 +20,10 @@ export class AnarchyBaseItem extends Item {
       foundry.utils.mergeObject(context, { anarchy: { ready: true } });
       const ItemConstructor = game.system.anarchy.itemClasses[docData.type];
       if (ItemConstructor) {
+        const defaultIcon = ItemConstructor.defaultIconForType?.(docData.type)
+          ?? ItemConstructor.defaultIcon;
         if (!docData.img) {
-          docData.img = ItemConstructor.defaultIcon;
+          docData.img = defaultIcon;
         }
         return new ItemConstructor(docData, context);
       }
