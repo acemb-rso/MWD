@@ -365,17 +365,12 @@ export const ANARCHY = {
         fatigue: 'ANARCHY.monitorLetter.fatigue',
     },
     assetModuleCategory: {
-        adeptPower: 'ANARCHY.assetModuleCategory.adeptPower',
-        bioware: 'ANARCHY.assetModuleCategory.bioware',
-        complexForm: 'ANARCHY.assetModuleCategory.complexForm',
-        cyberdeck: 'ANARCHY.assetModuleCategory.cyberdeck',
-        cyberware: 'ANARCHY.assetModuleCategory.cyberware',
-        drone: 'ANARCHY.assetModuleCategory.drone',
-        equipment: 'ANARCHY.assetModuleCategory.equipment',
-        focus: 'ANARCHY.assetModuleCategory.focus',
-        program: 'ANARCHY.assetModuleCategory.program',
-        spell: 'ANARCHY.assetModuleCategory.spell',
-        special: 'ANARCHY.assetModuleCategory.special'
+        faction: 'ANARCHY.assetModuleCategory.faction',
+        logistics: 'ANARCHY.assetModuleCategory.logistics',
+        training: 'ANARCHY.assetModuleCategory.training',
+        influence: 'ANARCHY.assetModuleCategory.influence',
+        personal: 'ANARCHY.assetModuleCategory.personal',
+        operations: 'ANARCHY.assetModuleCategory.operations'
     },
     attributes: {
         noAttribute: 'ANARCHY.attributes.noAttributes',
