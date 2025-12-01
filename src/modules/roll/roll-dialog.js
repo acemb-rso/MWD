@@ -198,15 +198,6 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       const parameter = this._getRollParameter(event);
       parameter.pool = event.currentTarget.value;
     });
-
-    this.html.find('[data-action="roll"]').on('click', async () => {
-      await game.system.anarchy.rollManager.roll(this.roll);
-      await this.close();
-    });
-
-    this.html.find('[data-action="cancel"]').on('click', async () => {
-      await this.close();
-    });
   }
 
   activateDiceParameterClick() {

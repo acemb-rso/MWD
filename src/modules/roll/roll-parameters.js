@@ -348,7 +348,6 @@ const DEFAULT_ROLL_PARAMETERS = [
       p.value = checked ? 1 : 0;
     },
     factory: context => {
-      const pools = context.actor.getEdgePools();
       const poolOrder = [
         TEMPLATE.counters.edgePools.grit,
         TEMPLATE.counters.edgePools.insight,
@@ -358,7 +357,7 @@ const DEFAULT_ROLL_PARAMETERS = [
         TEMPLATE.counters.edgePools.chaos,
       ];
       const edgePools = poolOrder.map(code => {
-        const value = pools?.[code]?.value ?? 0;
+        const value = context.actor.getEdgePoolValue(code);
         return {
           code: code,
           label: ANARCHY.actor.counters.edgePools[code] ?? code,
