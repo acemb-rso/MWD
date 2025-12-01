@@ -355,6 +355,7 @@
       "quality",
       "shadowamp",
       "skill",
+      "lifeModule",
       "mechWeapon",
       "personalWeapon"
     ],
@@ -392,6 +393,13 @@
         "references"
       ],
       "positive": true
+    },
+    "lifeModule": {
+      "templates": [
+        "inactive",
+        "references"
+      ],
+      "moduleType": "faction"
     },
     "shadowamp": {
       "templates": [

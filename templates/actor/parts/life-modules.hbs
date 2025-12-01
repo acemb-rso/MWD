@@ -1,0 +1,48 @@
+<div class="define-item-type life-modules" data-item-type="lifeModule">
+  <h2 class="section-group-header">
+    {{localize 'ANARCHY.itemType.plural.lifeModule'}}
+    {{> 'systems/mwd/templates/common/item-control-add.hbs' itemType='lifeModule'}}
+  </h2>
+  <div class="life-modules-list">
+    <div class="life-module-line">
+      <div class="life-module-label">{{localize 'ANARCHY.item.lifeModule.type.faction'}}</div>
+      <div class="life-module-items">
+        {{#each items.lifeModule}}
+          {{#if (eq system.moduleType 'faction')}}
+            {{> 'systems/mwd/templates/actor/parts/life-module.hbs'}}
+          {{/if}}
+        {{/each}}
+      </div>
+    </div>
+    <div class="life-module-line">
+      <div class="life-module-label">{{localize 'ANARCHY.item.lifeModule.type.childhood'}}</div>
+      <div class="life-module-items">
+        {{#each items.lifeModule}}
+          {{#if (eq system.moduleType 'childhood')}}
+            {{> 'systems/mwd/templates/actor/parts/life-module.hbs'}}
+          {{/if}}
+        {{/each}}
+      </div>
+    </div>
+    <div class="life-module-line">
+      <div class="life-module-label">{{localize 'ANARCHY.item.lifeModule.type.higherEducation'}}</div>
+      <div class="life-module-items">
+        {{#each items.lifeModule}}
+          {{#if (eq system.moduleType 'higherEducation')}}
+            {{> 'systems/mwd/templates/actor/parts/life-module.hbs'}}
+          {{/if}}
+        {{/each}}
+      </div>
+    </div>
+    <div class="life-module-line">
+      <div class="life-module-label">{{localize 'ANARCHY.item.lifeModule.type.realLife'}}</div>
+      <div class="life-module-items">
+        {{#each items.lifeModule}}
+          {{#if (eq system.moduleType 'realLife')}}
+            {{> 'systems/mwd/templates/actor/parts/life-module.hbs'}}
+          {{/if}}
+        {{/each}}
+      </div>
+    </div>
+  </div>
+</div>
