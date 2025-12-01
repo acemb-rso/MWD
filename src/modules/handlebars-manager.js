@@ -113,6 +113,7 @@ const HBS_PARTIAL_TEMPLATES = [
   // Vehicles
   'systems/mwd/templates/actor/vehicle/vehicle-attributes.hbs',
   'systems/mwd/templates/actor/vehicle/vehicle-category.hbs',
+  'systems/mwd/templates/actor/vehicle/vehicle-pilot.hbs',
   'systems/mwd/templates/actor/vehicle/vehicle-skill.hbs',
   // item
   'systems/mwd/templates/item/parts/inactive.hbs',
