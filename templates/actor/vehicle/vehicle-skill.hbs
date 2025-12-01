@@ -1,5 +1,3 @@
 <select class="info-value" name="system.skill" data-dtype="String">
-    {{#select system.skill}}
-    {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills  noEmpty=true}}
-    {{/select}}
+    {{selectOptions ENUMS.skills selected=system.skill labelAttr="label" localize=false}}
 </select>
