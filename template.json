@@ -404,14 +404,16 @@
     },
     "lifeModule": {
       "templates": [
+        "modifiers",
         "inactive",
         "references"
       ],
-      "moduleType": "faction"
+      "category": "special",
+      "capacity": "mundane",
+      "level": 1
     },
-    "shadowamp": {
+    "lifeModule": {
       "templates": [
-        "modifiers",
         "inactive",
         "references"
       ],
