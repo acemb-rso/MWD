@@ -5,7 +5,7 @@ import { Misc } from "../misc.js";
 import { Enums } from "../enums.js";
 import { SelectActor } from "../dialog/select-actor.js";
 
-export class AnarchyActorSheet extends foundry.appv1.sheets.ActorSheet {
+export class AnarchyActorSheet extends foundry.applications.sheets.ActorSheet {
 
   get template() {
     return `${TEMPLATES_PATH}/actor/${this.actor.type}.hbs`;
