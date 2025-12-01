@@ -14,8 +14,8 @@ export class CharacterNPCSheet extends CharacterBaseSheet {
     });
   }
 
-  getData(options) {
-    let hbsData = super.getData(options);
+  async getData(options) {
+    let hbsData = await super.getData(options);
     hbsData.options.classes.push('npc-sheet');
     return hbsData;
   }

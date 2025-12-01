@@ -11,9 +11,9 @@ export class VehicleSheet extends AnarchyActorSheet {
     });
   }
 
-  getData(options) {
+  async getData(options) {
     let hbsData = foundry.utils.mergeObject(
-      super.getData(options), {
+      await super.getData(options), {
         pilot: this.actor.getPilotReference()
     });
     return hbsData;

@@ -30,9 +30,10 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     return this.DEFAULT_OPTIONS;
   }
 
-  getData(options) {
+  async getData(options) {
+    const baseContext = await super._prepareContext(options);
     let hbsData = foundry.utils.mergeObject(
-      super.getData(options),
+      baseContext,
       {
         items: {},
         anarchy: this.actor.getAnarchy(),
