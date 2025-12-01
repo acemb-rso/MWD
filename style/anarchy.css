@@ -127,6 +127,9 @@ img.anarchy-img.item-img {
 
 #gm-manager {
   min-width: 300px;
+  max-width: min(480px, 95vw);
+  max-height: 85vh;
+  overflow: auto;
 }
 
 #gm-manager div.header {
@@ -140,8 +143,9 @@ img.anarchy-img.item-img {
   flex-direction: row;
   flex-wrap: wrap;
   width: 100%;
-  max-width: max-content;
+  max-width: 100%;
   align-items: flex-start;
+  gap: 4px;
 }
 
 #gm-manager div {
