@@ -26,12 +26,6 @@
         </select>
       </div>
       <div class="form-group">
-        <label for="system.capacity">{{localize 'ANARCHY.item.assetModule.capacity'}} </label>
-        <select name="system.capacity" data-dtype="String">
-            {{selectOptions ENUMS.capacities selected=system.capacity labelAttr="labelkey" localize=true blank=''}}
-        </select>
-      </div>
-      <div class="form-group">
         <label for="system.level">{{localize 'ANARCHY.item.assetModule.level'}} </label>
         <input name="system.level" type="number" data-dtype="Number" size=2
           value="{{system.level}}"/>

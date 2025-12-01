@@ -24,7 +24,6 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/actor/character/name.hbs',
 
   // character
-  'systems/mwd/templates/actor/character/capacity.hbs',
   'systems/mwd/templates/actor/character/description.hbs',
   'systems/mwd/templates/actor/character/genre.hbs',
   'systems/mwd/templates/actor/character/karma.hbs',
@@ -38,7 +37,6 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/actor/parts/gears.hbs',
   // character enhanced
   'systems/mwd/templates/actor/character-enhanced/attributes.hbs',
-  'systems/mwd/templates/actor/character-enhanced/capacity.hbs',
   'systems/mwd/templates/actor/character-enhanced/attribute.hbs',
   'systems/mwd/templates/actor/character-enhanced/karma.hbs',
   'systems/mwd/templates/actor/character-enhanced/hexabox.hbs',

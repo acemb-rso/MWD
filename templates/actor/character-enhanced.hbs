@@ -138,7 +138,20 @@
                 placeholder="{{localize ANARCHY.actor.actorName}}" />
             </div>
           </div>
-          {{> "systems/mwd/templates/actor/character-enhanced/capacity.hbs"}}
+          <div class="awarness">
+            <div class="view-mode">
+              <div class="icon">
+                {{> "systems/mwd/templates/common/view-mode.hbs"}}
+              </div>
+              <div class="label">
+                {{#if @root.options.viewMode}}
+                  {{localize 'ANARCHY.common.viewMode'}}
+                {{else}}
+                  {{localize 'ANARCHY.common.editMode'}}
+                {{/if}}
+              </div>
+            </div>
+          </div>
         </div>
         {{> "systems/mwd/templates/actor/character-enhanced/attributes.hbs"}}
       </div>
