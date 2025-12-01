@@ -395,6 +395,15 @@
       "positive": true
     },
     "assetModule": {
+      "templates": [
+        "modifiers",
+        "inactive",
+        "references"
+      ],
+      "category": "special",
+      "capacity": "mundane",
+      "level": 1
+    },
     "lifeModule": {
       "templates": [
         "inactive",
