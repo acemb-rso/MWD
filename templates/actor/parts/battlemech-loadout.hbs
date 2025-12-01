@@ -4,9 +4,7 @@
     <div class="flexcol">
       <label>{{localize 'ANARCHY.mwd.weightClass.label'}}</label>
       <select name="system.mwd.weightClass">
-        {{#select system.mwd.weightClass}}
-          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdWeightClasses}}
-        {{/select}}
+        {{selectOptions ENUMS.mwdWeightClasses selected=system.mwd.weightClass labelAttr="labelkey" localize=true blank=''}}
       </select>
     </div>
     <div class="flexcol">
@@ -17,15 +15,11 @@
       <label>{{localize 'ANARCHY.mwd.loadout.primarySlot.label'}}</label>
       <div class="flexrow">
         <select name="system.mwd.primarySlot.mode">
-          {{#select system.mwd.primarySlot.mode}}
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdPrimaryModes}}
-          {{/select}}
+          {{selectOptions ENUMS.mwdPrimaryModes selected=system.mwd.primarySlot.mode labelAttr="labelkey" localize=true blank=''}}
         </select>
         <select name="system.mwd.primarySlot.typeRestriction">
-          {{#select system.mwd.primarySlot.typeRestriction}}
-            <option value="">{{localize 'ANARCHY.mwd.loadout.primarySlot.noRestriction'}}</option>
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdHardpointTypes}}
-          {{/select}}
+          <option value="" {{#unless system.mwd.primarySlot.typeRestriction}}selected{{/unless}}>{{localize 'ANARCHY.mwd.loadout.primarySlot.noRestriction'}}</option>
+          {{selectOptions ENUMS.mwdHardpointTypes selected=system.mwd.primarySlot.typeRestriction labelAttr="labelkey" localize=true}}
         </select>
       </div>
       <label class="small-label">{{localize 'ANARCHY.mwd.loadout.primarySlot.allowedWeapons'}}</label>
@@ -48,19 +42,13 @@
         {{#each system.mwd.hardpoints as |hardpoint idx|}}
           <div class="loadout-row">
             <select name="system.mwd.hardpoints.{{idx}}.type">
-              {{#select hardpoint.type}}
-                {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=../../ENUMS.mwdHardpointTypes}}
-              {{/select}}
+              {{selectOptions ../../ENUMS.mwdHardpointTypes selected=hardpoint.type labelAttr="labelkey" localize=true blank=''}}
             </select>
             <select name="system.mwd.hardpoints.{{idx}}.size">
-              {{#select hardpoint.size}}
-                {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=../../ENUMS.mwdHardpointSizes}}
-              {{/select}}
+              {{selectOptions ../../ENUMS.mwdHardpointSizes selected=hardpoint.size labelAttr="labelkey" localize=true blank=''}}
             </select>
             <select name="system.mwd.hardpoints.{{idx}}.location">
-              {{#select hardpoint.location}}
-                {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=../../ENUMS.mwdHardpointLocations}}
-              {{/select}}
+              {{selectOptions ../../ENUMS.mwdHardpointLocations selected=hardpoint.location labelAttr="labelkey" localize=true blank=''}}
             </select>
             <span class="loadout-occupant">
               {{#if (lookup ../system.mwd.loadout.hardpoints idx)}}

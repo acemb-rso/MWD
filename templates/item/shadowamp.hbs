@@ -22,17 +22,13 @@
       <div class="form-group">
         <label for="system.category">{{localize 'ANARCHY.item.shadowamp.category'}} </label>
         <select name="system.category" data-dtype="String">
-            {{#select system.category}}
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.shadowampCategories}}
-            {{/select}}
+            {{selectOptions ENUMS.shadowampCategories selected=system.category labelAttr="labelkey" localize=true blank=''}}
         </select>
       </div>
       <div class="form-group">
         <label for="system.capacity">{{localize 'ANARCHY.item.shadowamp.capacity'}} </label>
         <select name="system.capacity" data-dtype="String">
-            {{#select system.capacity}}
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.capacities}}
-            {{/select}}
+            {{selectOptions ENUMS.capacities selected=system.capacity labelAttr="labelkey" localize=true blank=''}}
         </select>
       </div>
       <div class="form-group">

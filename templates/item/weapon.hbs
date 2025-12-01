@@ -23,23 +23,17 @@
         <div class="form-group">
           <label for="system.weaponCategory">{{localize 'ANARCHY.item.mechWeapon.category'}}</label>
           <select name="system.weaponCategory">
-            {{#select system.weaponCategory}}
-              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdWeaponCategories}}
-            {{/select}}
+            {{selectOptions ENUMS.mwdWeaponCategories selected=system.weaponCategory labelAttr="labelkey" localize=true blank=''}}
           </select>
         </div>
         <div class="form-group">
           <label>{{localize 'ANARCHY.item.mechWeapon.hardpoint'}}</label>
           <div class="flexrow">
             <select name="system.hardpointType">
-              {{#select system.hardpointType}}
-                {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdHardpointTypes}}
-              {{/select}}
+              {{selectOptions ENUMS.mwdHardpointTypes selected=system.hardpointType labelAttr="labelkey" localize=true blank=''}}
             </select>
             <select name="system.hardpointSize">
-              {{#select system.hardpointSize}}
-                {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdHardpointSizes}}
-              {{/select}}
+              {{selectOptions ENUMS.mwdHardpointSizes selected=system.hardpointSize labelAttr="labelkey" localize=true blank=''}}
             </select>
           </div>
         </div>
@@ -50,9 +44,7 @@
         <div class="form-group">
           <label for="system.damageType">{{localize 'ANARCHY.item.mechWeapon.damageType'}}</label>
           <select name="system.damageType">
-            {{#select system.damageType}}
-              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdWeaponDamageTypes}}
-            {{/select}}
+            {{selectOptions ENUMS.mwdWeaponDamageTypes selected=system.damageType labelAttr="labelkey" localize=true blank=''}}
           </select>
         </div>
         <div class="form-group">
@@ -63,25 +55,19 @@
         <div class="form-group">
           <label for="system.skill">{{localize 'ANARCHY.item.personalWeapon.skill'}} </label>
           <select class="select-weapon-skill" name="system.skill" data-dtype="String">
-            {{#select system.skill}}
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
-            {{/select}}
+            {{selectOptions ENUMS.skills selected=system.skill labelAttr="label" localize=false}}
           </select>
         </div>
         <div class="form-group">
           <label for="system.weaponCategory">{{localize 'ANARCHY.item.personalWeapon.category'}}</label>
           <select name="system.weaponCategory">
-            {{#select system.weaponCategory}}
-              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.mwdWeaponCategories}}
-            {{/select}}
+            {{selectOptions ENUMS.mwdWeaponCategories selected=system.weaponCategory labelAttr="labelkey" localize=true blank=''}}
           </select>
         </div>
         <div class="form-group">
           <label for="system.damageCategory">{{localize 'ANARCHY.item.personalWeapon.damageCategory'}}</label>
           <select name="system.damageCategory">
-            {{#select system.damageCategory}}
-              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.personalWeaponDamageCategories}}
-            {{/select}}
+            {{selectOptions ENUMS.personalWeaponDamageCategories selected=system.damageCategory labelAttr="labelkey" localize=true blank=''}}
           </select>
         </div>
         <div class="form-group">
@@ -91,9 +77,7 @@
             {{#if (eq system.weaponCategory 'melee')}}
               <span>+
               <select name="system.damageAttribute" data-dtype="String">
-                  {{#select system.damageAttribute}}
-                  {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
-                  {{/select}}
+                  {{selectOptions ENUMS.attributes selected=system.damageAttribute labelAttr="labelkey" localize=true blank=''}}
               </select>
               /2</span>
             {{/if}}
@@ -102,9 +86,7 @@
         <div class="form-group">
           <label for="system.damageType">{{localize 'ANARCHY.item.personalWeapon.damageType'}}</label>
           <select name="system.damageType">
-            {{#select system.damageType}}
-              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.personalWeaponDamageTypes}}
-            {{/select}}
+            {{selectOptions ENUMS.personalWeaponDamageTypes selected=system.damageType labelAttr="labelkey" localize=true blank=''}}
           </select>
         </div>
         <div class="form-group">
@@ -125,17 +107,13 @@
       <div class="form-group">
         <label for="system.area" >{{localize (concat 'ANARCHY.item.' type '.area')}} </label>
         <select name="system.area" data-dtype="String">
-          {{#select system.area}}
-          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.areas}}
-          {{/select}}
+          {{selectOptions ENUMS.areas selected=system.area labelAttr="labelkey" localize=true blank=''}}
         </select>
       </div>
       <div class="form-group">
           <label for="system.range.max" >{{localize (concat 'ANARCHY.item.' type '.range.max')}} </label>
           <select name="system.range.max">
-            {{#select system.range.max}}
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.ranges}}
-            {{/select}}
+            {{selectOptions ENUMS.ranges selected=system.range.max labelAttr="labelkey" localize=true blank=''}}
           </select>
       </div>
       {{#each (weaponRangeList system.range)}}

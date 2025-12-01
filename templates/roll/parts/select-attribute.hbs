@@ -1,9 +1,7 @@
 {{#if flags.editable}}
 <span class="parameter-label info-value">
   <select name="select-{{code}}" class="select-attribute-parameter info-value" data-dtype="String">
-    {{#select selected}}
-    {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=choices}}
-    {{/select}}
+    {{selectOptions choices selected=selected labelAttr="labelkey" localize=true blank=''}}
   </select>
 </span>
 {{else}}
