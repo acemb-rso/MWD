@@ -151,7 +151,12 @@ export class AnarchyActorSheet extends foundry.appv1.sheets.ActorSheet {
 
     html.find('.click-weapon-roll').click(async event => {
       event.stopPropagation();
-      this.actor.rollWeapon(this.getEventItem(event));
+      const weapon = this.getEventItem(event);
+      if (!weapon) {
+        ui.notifications.warn(game.i18n.localize('ANARCHY.common.errors.weaponNotFound'));
+        return;
+      }
+      this.actor.rollWeapon(weapon);
     });
   }
 
@@ -160,7 +165,8 @@ export class AnarchyActorSheet extends foundry.appv1.sheets.ActorSheet {
   }
 
   getEventItem(event) {
-    const itemId = $(event.currentTarget).closest('.item').attr('data-item-id');
+    const itemId = $(event.currentTarget).closest('[data-item-id]').attr('data-item-id')
+      ?? $(event.currentTarget).attr('data-item-id');
     return this.actor.items.get(itemId);
   }
 
