@@ -4,7 +4,8 @@
     "run": "npx vite serve",
     "packCompendiumsToDist": "node ./tools/packCompendiumsToDist.mjs",
     "packCompendiumsToPublic": "node ./tools/packCompendiumsToPublic.mjs",
-    "unpackCompendiumsFromPublic": "node ./tools/unpackCompendiumsFromPublic.mjs"
+    "unpackCompendiumsFromPublic": "node ./tools/unpackCompendiumsFromPublic.mjs",
+    "validate:json": "node ./tools/validate-json.js"
   },
   "devDependencies": {
     "@foundryvtt/foundryvtt-cli": "^1.0.3",
