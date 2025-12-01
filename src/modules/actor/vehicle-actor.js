@@ -14,7 +14,7 @@ const VEHICLE_ATTRIBUTES = [
 export class VehicleActor extends AnarchyBaseActor {
 
   static get defaultIcon() {
-    return `${ICONS_PATH}/shadowamps/drone.svg`
+    return `${ICONS_PATH}/default/Default_Vehicle.svg`
   }
 
   static get initiative() {

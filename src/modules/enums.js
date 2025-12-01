@@ -15,7 +15,6 @@ export class Enums {
   static hbsMonitors;
   static hbsMonitorLetters;
   static hbsAssetModuleCategories;
-  static hbsShadowampCategories;
   static hbsLifeModuleTypes;
   static hbsAreas;
   static hbsRanges;
@@ -42,7 +41,6 @@ export class Enums {
     Enums.hbsMonitors = Enums.mapObjetToKeyValue(ANARCHY.monitor);
     Enums.hbsMonitorLetters = Enums.mapObjetToKeyValue(ANARCHY.monitorLetter);
     Enums.hbsAssetModuleCategories = Enums.mapObjetToKeyValue(ANARCHY.assetModuleCategory);
-    Enums.hbsShadowampCategories = Enums.mapObjetToKeyValue(ANARCHY.shadowampCategory);
     Enums.hbsLifeModuleTypes = Enums.mapObjetToKeyValue(ANARCHY.lifeModule.type);
     Enums.hbsAreas = Enums.mapObjetToKeyValue(ANARCHY.area);
     Enums.hbsRanges = Enums.mapObjetToKeyValue(ANARCHY.range);

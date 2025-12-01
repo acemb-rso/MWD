@@ -395,14 +395,6 @@
       "positive": true
     },
     "assetModule": {
-    "lifeModule": {
-      "templates": [
-        "inactive",
-        "references"
-      ],
-      "moduleType": "faction"
-    },
-    "shadowamp": {
       "templates": [
         "modifiers",
         "inactive",
@@ -411,6 +403,13 @@
       "category": "special",
       "capacity": "mundane",
       "level": 1
+    },
+    "lifeModule": {
+      "templates": [
+        "inactive",
+        "references"
+      ],
+      "moduleType": "faction"
     },
     "mechWeapon": {
       "templates": ["modifiers", "inactive", "references"],
