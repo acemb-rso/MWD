@@ -563,6 +563,7 @@ export const ANARCHY = {
                 category: {
                     max: 'ANARCHY.modifier.monitor.category.max',
                     resistance: 'ANARCHY.modifier.monitor.category.resistance',
+                    resistanceByType: 'ANARCHY.modifier.monitor.category.resistanceByType',
                 }
         },
         other: {

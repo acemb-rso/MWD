@@ -25,7 +25,10 @@
             "marks": [],
             "value": 0,
             "max": 6,
-            "resistance": 0
+            "resistance": {
+              "default": 0,
+              "byType": {}
+            }
           }
         }
       },
@@ -205,12 +208,18 @@
         "physical": {
           "value": 0,
           "max": 10,
-          "resistance": 0
+          "resistance": {
+            "default": 0,
+            "byType": {}
+          }
         },
         "fatigue": {
           "value": 0,
           "max": 10,
-          "resistance": 0
+          "resistance": {
+            "default": 0,
+            "byType": {}
+          }
         },
         "armor": {
           "label": "Armor",
@@ -256,12 +265,18 @@
         "structure": {
           "value": 0,
           "max": 15,
-          "resistance": 2
+          "resistance": {
+            "default": 2,
+            "byType": {}
+          }
         },
         "armor": {
           "value": 0,
           "max": 12,
-          "resistance": 1
+          "resistance": {
+            "default": 1,
+            "byType": {}
+          }
         }
       },
       "weaponGroups": [],
@@ -284,17 +299,26 @@
         "structure": {
           "value": 0,
           "max": 18,
-          "resistance": 1
+          "resistance": {
+            "default": 1,
+            "byType": {}
+          }
         },
         "armor": {
           "value": 0,
           "max": 15,
-          "resistance": 1
+          "resistance": {
+            "default": 1,
+            "byType": {}
+          }
         },
         "heat": {
           "value": 0,
           "max": 4,
-          "resistance": 0
+          "resistance": {
+            "default": 0,
+            "byType": {}
+          }
         }
       },
       "hybrid": {

@@ -590,6 +590,44 @@ class _13_4_1_DefaultEdgePoolValues extends Migration {
   }
 }
 
+class _13_6_0_MigrateTypedResistance extends Migration {
+  get version() { return '13.6.0' }
+  get code() { return 'typed-resistance' }
+
+  async migrate() {
+    for (const actor of game.actors) {
+      const updates = this._buildResistanceUpdates(actor);
+      if (Object.keys(updates).length > 0) {
+        await actor.update(updates);
+      }
+    }
+  }
+
+  _buildResistanceUpdates(actor) {
+    const updates = {};
+    Object.entries(actor.system.monitors ?? {}).forEach(([monitor, data]) => {
+      const resistance = data?.resistance;
+      const basePath = `system.monitors.${monitor}.resistance`;
+      switch (typeof resistance) {
+        case 'number':
+          updates[basePath] = { default: resistance, byType: {} };
+          break;
+        case 'object':
+          if (resistance?.default === undefined) {
+            updates[`${basePath}.default`] = resistance?.default ?? 0;
+          }
+          if (resistance?.byType === undefined) {
+            updates[`${basePath}.byType`] = resistance?.byType ?? {};
+          }
+          break;
+        default:
+          updates[basePath] = { default: 0, byType: {} };
+      }
+    });
+    return updates;
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -612,6 +650,7 @@ export class Migrations {
       new _13_3_3_SimplifyPersonalVehicles(),
       new _13_4_0_MigrateEdgePools(),
       new _13_4_1_DefaultEdgePoolValues(),
+      new _13_6_0_MigrateTypedResistance(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

@@ -131,6 +131,8 @@ export class WeaponItem extends AnarchyBaseItem {
         damageAttributeValue
       ),
       monitor: monitor,
+      damageType: this.system.damageType,
+      damageTypeLabel: this.getDamageTypeLabel(),
       noArmor: this.system.noArmor ?? this.system.armorAvoidance,
       armorMode: WeaponItem.armorMode(monitor, this.system.noArmor ?? this.system.armorAvoidance)
     }
@@ -172,6 +174,12 @@ export class WeaponItem extends AnarchyBaseItem {
       return noArmor ? 'noArmor' : 'withArmor'
     }
     return '';
+  }
+
+  getDamageTypeLabel() {
+    const labelKey = ANARCHY.mwd.weaponDamageType[this.system.damageType]
+      ?? ANARCHY.mwd.personalDamageType[this.system.damageType];
+    return labelKey ? game.i18n.localize(labelKey) : this.system.damageType;
   }
 
   getRanges() {

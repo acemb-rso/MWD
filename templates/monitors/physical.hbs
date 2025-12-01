@@ -9,8 +9,13 @@
     rowlength=3
     adjust=true
   }}
-  <label class="resitance-label">
-    {{localize ANARCHY.actor.monitors.resistance}}:
-    {{system.monitors.physical.resistanceBonus}}
-  </label>
+  <div class="resistance-row" data-monitor-code="physical">
+    <label class="resitance-label">
+      {{localize ANARCHY.actor.monitors.resistance}}:
+      {{numberFormat (sum system.monitors.physical.resistance.default system.monitors.physical.resistanceBonus) sign=true}}
+    </label>
+    <button type="button" class="anarchy-button click-resistance-by-type" data-monitor-code="physical">
+      {{localize ANARCHY.actor.monitors.resistanceByTypeButton}}
+    </button>
+  </div>
 </div>
