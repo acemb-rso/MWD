@@ -504,16 +504,16 @@ export const ANARCHY = {
             none: 'ANARCHY.mwd.weapon.damageType.none'
         },
         personalDamageType: {
-            energy: 'ANARCHY.personal.weapon.damageType.energy',
-            kinetic: 'ANARCHY.personal.weapon.damageType.kinetic',
-            explosive: 'ANARCHY.personal.weapon.damageType.explosive',
-            plasma: 'ANARCHY.personal.weapon.damageType.plasma',
-            corrosive: 'ANARCHY.personal.weapon.damageType.corrosive',
-            poison: 'ANARCHY.personal.weapon.damageType.poison'
+            energy: 'ANARCHY.mwd.personalWeapon.damageType.energy',
+            kinetic: 'ANARCHY.mwd.personalWeapon.damageType.kinetic',
+            explosive: 'ANARCHY.mwd.personalWeapon.damageType.explosive',
+            plasma: 'ANARCHY.mwd.personalWeapon.damageType.plasma',
+            corrosive: 'ANARCHY.mwd.personalWeapon.damageType.corrosive',
+            poison: 'ANARCHY.mwd.personalWeapon.damageType.poison'
         },
         personalDamageCategory: {
-            physical: 'ANARCHY.personal.weapon.damageCategory.physical',
-            fatigue: 'ANARCHY.personal.weapon.damageCategory.fatigue'
+            physical: 'ANARCHY.mwd.personalWeapon.damageCategory.physical',
+            fatigue: 'ANARCHY.mwd.personalWeapon.damageCategory.fatigue'
         },
         meleeLocation: {
             head: 'ANARCHY.mwd.melee.location.head',
