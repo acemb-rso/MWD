@@ -21,14 +21,16 @@ export class HUDShortcuts {
 
   /* -------------------------------------------- */
   async removeExtensionHud(app, html, tokenId) {
-    html.find('.control-icon.anarchy-shortcuts').remove();
+    const hudHtml = html instanceof jQuery ? html : $(html);
+    hudHtml.find('.control-icon.anarchy-shortcuts').remove();
   }
 
   async addExtensionHud(app, html, tokenId) {
     app.hasExtension = true;
 
     const hud = await this._renderShortcuts(tokenId);
-    html.find('.control-icon[data-action=combat]').after(hud);
+    const hudHtml = html instanceof jQuery ? html : $(html);
+    hudHtml.find('.control-icon[data-action=combat]').after(hud);
   }
 
   async _renderShortcuts(tokenId) {
