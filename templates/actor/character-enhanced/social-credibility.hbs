@@ -1,10 +1,10 @@
   <label class="title">
-    {{localize ANARCHY.actor.counters.social.credibility}}
+    {{localize ANARCHY.actor.counters.edgePools.credibility}}
   </label>
   {{> "systems/mwd/templates/actor/character-enhanced/checkbar.hbs"
     code='credibility'
-    labelkey=ANARCHY.actor.counters.social.credibility
-    value=system.counters.social.credibility.value
-    max=system.counters.social.credibility.max
+    labelkey=ANARCHY.actor.counters.edgePools.credibility
+    value=system.counters.edgePools.credibility.value
+    max=(actorAttribute 'edge' @root.actor)
     rowlength=5
   }}

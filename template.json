@@ -71,8 +71,13 @@
           }
         },
         "counters": {
-          "edge": {
-            "value": 1
+          "edgePools": {
+            "grit": { "value": 1 },
+            "insight": { "value": 0 },
+            "rumor": { "value": 0 },
+            "legend": { "value": 0 },
+            "credibility": { "value": 0 },
+            "chaos": { "value": 0 }
           }
         }
       },
@@ -222,22 +227,13 @@
           "value": 3,
           "max": 6
         },
-        "sceneAnarchy": {
-          "value": 0,
-          "max": 3
-        },
-        "social": {
-          "celebrity": {
-            "value": 0
-          },
-          "credibility": {
-            "value": 0,
-            "max": 1
-          },
-          "rumor": {
-            "value": 0,
-            "max": 1
-          }
+        "edgePools": {
+          "grit": { "value": 1 },
+          "insight": { "value": 0 },
+          "rumor": { "value": 0 },
+          "legend": { "value": 0 },
+          "credibility": { "value": 0 },
+          "chaos": { "value": 0 }
         }
       },
       "style": "",

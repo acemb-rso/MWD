@@ -1,6 +1,6 @@
 import { ChatManager, CAN_USE_EDGE, MESSAGE_DATA, OWNING_ACTOR } from "../chat/chat-manager.js";
 import { ANARCHY } from "../config.js";
-import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
+import { SYSTEM_NAME, TEMPLATES_PATH, TEMPLATE } from "../constants.js";
 import { Enums } from "../enums.js";
 import { Misc } from "../misc.js";
 import { Tokens } from "../token/tokens.js";
@@ -39,6 +39,7 @@ export class RollManager {
     roll.param = game.system.anarchy.rollParameters.compute(roll.parameters);
     roll.param.destinyMode = game.settings.get(SYSTEM_NAME, "useDestinyMechanics");
     roll.param.edge = roll.parameters.find(it => it.category == ROLL_PARAMETER_CATEGORY.edge && it.used) ? 1 : 0;
+    roll.param.edgePool = roll.parameters.find(it => it.code == 'edge')?.pool ?? TEMPLATE.counters.edgePools.grit;
     roll.param.anarchy = roll.parameters.filter(it => it.flags?.isAnarchy && it.used).length;
     roll.options.canUseEdge = roll.options.canUseEdge && !roll.param.edge;
     roll.param.social = {
@@ -46,7 +47,7 @@ export class RollManager {
       rumor: roll.parameters.find(it => it.code == 'rumor' && it.used)?.value ?? 0,
     }
     await roll.actor.spendAnarchy(roll.param.anarchy);
-    await roll.actor.spendEdge(roll.param.edge);
+    await roll.actor.spendEdge(roll.param.edge, roll.param.edgePool);
     await roll.actor.spendCredibility(roll.param.social.credibility);
     await roll.actor.spendRumor(roll.param.social.rumor);
     await this._roll(roll);
@@ -56,7 +57,8 @@ export class RollManager {
     roll = RollManager.inflateAnarchyRoll(roll)
     // TODO: indicate edge was used for reroll
     roll.options.canUseEdge = false;
-    await roll.actor.spendEdge(1);
+    const edgePool = roll.parameters.find(it => it.code == 'edge')?.pool ?? TEMPLATE.counters.edgePools.grit;
+    await roll.actor.spendEdge(1, edgePool);
     roll.param[ROLL_PARAMETER_CATEGORY.drain] = undefined;
     await this._roll(roll)
   }
@@ -138,6 +140,7 @@ export class RollManager {
         return {
           code: it.code,
           value: it.value,
+          pool: it.pool,
         }
       });
   }

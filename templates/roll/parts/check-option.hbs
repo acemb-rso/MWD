@@ -18,3 +18,15 @@
 {{else}}
   <label class="parameter-value info-value"></label>
 {{/if}}
+{{#if edgePools}}
+<span class="flexrow edge-pool-select-row">
+  <label class="parameter-label info-label">{{localize 'ANARCHY.common.roll.modifiers.edgePool'}}</label>
+  <select class="edge-pool-select info-value" {{#unless used}}disabled{{/unless}}>
+    {{#each edgePools}}
+      <option value="{{code}}" {{#if (eq ../pool code)}}selected{{/if}} {{#unless value}}disabled{{/unless}}>
+        {{localize label}} ({{value}})
+      </option>
+    {{/each}}
+  </select>
+</span>
+{{/if}}

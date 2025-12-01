@@ -405,6 +405,16 @@ img.checkbar-img:active {
   top: 1px;
 }
 
+a.click-checkbar-element[data-checked="false"] img.checkbar-img {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+a.click-checkbar-element[data-checked="true"] img.checkbar-img {
+  filter: none;
+  opacity: 1;
+}
+
 :is(.actor-character, .item-sheet) nav.sheet-tabs {
   flex-flow: nowrap;
   font-size: 0.65rem;
@@ -901,9 +911,12 @@ div.risk-glitch.risk-glitch-prowess {
   background: var(--border-medium);
 }
 
-:is(div.checkbar-root[data-monitor-code='edge'],
+:is(div.checkbar-root[data-monitor-code='grit'],
+  div.checkbar-root[data-monitor-code='insight'],
+  div.checkbar-root[data-monitor-code='legend'],
   div.checkbar-root[data-monitor-code='credibility'],
-  div.checkbar-root[data-monitor-code='rumor']) a.click-checkbar-element[data-checked=true] i {
+  div.checkbar-root[data-monitor-code='rumor'],
+  div.checkbar-root[data-monitor-code='chaos']) a.click-checkbar-element[data-checked=true] i {
   color: orange;
 }
 

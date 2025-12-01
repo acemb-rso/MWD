@@ -103,6 +103,7 @@
         "attribute2": "Second attribute",
         "modifiers": {
           "edge": "Use edge",
+          "edgePool": "Spend from",
           "specialization": "Specialization",
           "poolModifiers": "Shadowamps",
           "social": {
@@ -190,8 +191,17 @@
       "characterNPCSheet": "NPC sheet",
       "actorName": "Name",
       "genre": "Genre",
-      "celebrity": "Celebrity",
+      "celebrity": "Legend",
       "famous": "Fame",
+      "edgePools": {
+        "title": "Edge Pools",
+        "grit": "Grit",
+        "insight": "Insight",
+        "rumor": "Rumor",
+        "legend": "Legend",
+        "credibility": "Credibility",
+        "chaos": "Chaos"
+      },
       "tabs": {
         "main": "Character",
         "equipment": "Equipment",
@@ -208,8 +218,16 @@
         "xpTotal": "Lifetime XP",
         "edge": "Edge",
         "anarchy": "Anarchy",
-        "sceneAnarchy": "Scene Anarchy",
+        "sceneAnarchy": "Chaos",
         "plot": "Plot",
+        "edgePools": {
+          "grit": "Grit",
+          "insight": "Insight",
+          "rumor": "Rumor",
+          "legend": "Legend",
+          "credibility": "Credibility",
+          "chaos": "Chaos"
+        },
         "social": {
           "credibility": "Credibility",
           "rumor": "Rumor"
@@ -223,6 +241,12 @@
         "armor": "Armor",
         "structure": "Structure",
         "heat": "Heat",
+        "grit": "Grit",
+        "insight": "Insight",
+        "rumor": "Rumor",
+        "legend": "Legend",
+        "credibility": "Credibility",
+        "chaos": "Chaos",
         "resistance": "Resistance"
       },
       "vehicle": {
@@ -653,10 +677,10 @@
         "effect": {
           "ignoreWounds": "Ignore wounds",
           "damageArmor": "Damage to armor",
-          "sceneAnarchy": "Scene Anarchy",
+          "sceneAnarchy": "Chaos",
           "locationAnarchy": "Location anarchy",
           "initiative": "Initiative bonus",
-          "celebrity": "Adjust celebrity"
+          "celebrity": "Adjust legend"
         },
         "category": {}
       },
