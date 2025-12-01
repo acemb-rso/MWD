@@ -17,12 +17,12 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     });
   }
 
-  getData(options) {
+  async getData(options) {
     if (this.viewMode == undefined) {
       this.viewMode = true
     }
     const hbsData = foundry.utils.mergeObject(
-      super.getData(options),
+      await super.getData(options),
       {
         options: {
           viewMode: this.viewMode
