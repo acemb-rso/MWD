@@ -680,6 +680,7 @@
         "effect": {
           "pool": "Pool bonus",
           "reroll": "Rerolls",
+          "rerollMax": "Reroll allowance cap",
           "glitch": "Glitch dice",
           "successReroll": "Reroll own successes",
           "opponentPool": "Opponent pool malus",
