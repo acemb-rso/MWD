@@ -136,6 +136,7 @@ export class AnarchyBaseActor extends Actor {
   isVehicle() { return [TEMPLATE.actorTypes.vehicle, TEMPLATE.actorTypes.battlemech].includes(this.type) }
   prepareData() {
     super.prepareData()
+    this._prepareEdgePools()
     this.cleanupFavorites()
   }
 
@@ -185,6 +186,28 @@ export class AnarchyBaseActor extends Actor {
   computeFatigueState() {
     const monitor = this.system.monitors?.fatigue;
     return monitor ? { value: monitor.max - monitor.value, max: monitor.max } : { value: 0, max: 0 }
+  }
+
+  _prepareEdgePools() {
+    if (!this.system?.counters) {
+      return;
+    }
+
+    const edgeValue = this.getAttributeValue(TEMPLATE.attributes.edge);
+    const pools = foundry.utils.getProperty(this.system, 'counters.edgePools') ?? {};
+
+    Object.values(TEMPLATE.counters.edgePools).forEach(code => {
+      const pool = pools[code] ?? {};
+      const value = pool.value;
+
+      pool.value = value ?? edgeValue ?? 0;
+      pool.value = Math.min(pool.value, edgeValue ?? pool.value ?? 0);
+      pool.max = edgeValue ?? pool.max ?? 0;
+
+      pools[code] = pool;
+    });
+
+    foundry.utils.setProperty(this.system, 'counters.edgePools', pools);
   }
 
   getMatrixDetails() {
@@ -380,10 +403,10 @@ export class AnarchyBaseActor extends Actor {
   }
 
   async spendCredibility(count) {
-    await Checkbars.addCounter(this, TEMPLATE.counters.social.credibility, - count);
+    await this.spendEdgePool(TEMPLATE.counters.social.credibility, count);
   }
   async spendRumor(count) {
-    await Checkbars.addCounter(this, TEMPLATE.counters.social.rumor, - count);
+    await this.spendEdgePool(TEMPLATE.counters.social.rumor, count);
   }
 
   async spendAnarchy(count) {
@@ -392,15 +415,34 @@ export class AnarchyBaseActor extends Actor {
     }
   }
 
-  getRemainingEdge() {
-    return this.system.counters?.edge?.value ?? 0
+  getEdgePools() { return this.system.counters?.edgePools ?? {}; }
+
+  getEdgePoolValue(pool) {
+    const edge = this.getAttributeValue(TEMPLATE.attributes.edge);
+    const poolValue = this.getEdgePools()?.[pool]?.value;
+    const value = poolValue ?? edge ?? 0;
+    return Math.min(value, edge ?? value ?? 0);
+  }
+
+  getRemainingEdge(pool = undefined) {
+    if (pool) {
+      return this.getEdgePoolValue(pool);
+    }
+    return Math.max(0, ...Object.values(TEMPLATE.counters.edgePools).map(poolCode => this.getEdgePoolValue(poolCode)));
   }
 
   canUseEdge() {
     return this.getAttributes().includes(TEMPLATE.attributes.edge);
   }
 
-  async spendEdge(count) {
+  async spendEdgePool(pool, count) {
+    if (count == 0) {
+      return;
+    }
+    await Checkbars.addCounter(this, pool, - count);
+  }
+
+  async spendEdge(count, pool = TEMPLATE.counters.edgePools.grit) {
     if (count == 0) {
       return;
     }
@@ -412,7 +454,7 @@ export class AnarchyBaseActor extends Actor {
       ui.notifications.warn(message)
       throw ANARCHY.common.errors.noEdgeForActor + message;
     }
-    await Checkbars.addCounter(this, TEMPLATE.counters.edge, - count);
+    await this.spendEdgePool(pool, count);
   }
 
   getSkillValue(skillId, specialization = undefined) {

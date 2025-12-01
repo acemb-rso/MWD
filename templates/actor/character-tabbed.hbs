@@ -66,8 +66,17 @@
   <section class="sheet-body">
     <div class="tab" data-group="primary" data-tab="main">
       <div class="section-group monitors-row">
-        <div class="anarchy-block">
-          {{> "systems/mwd/templates/monitors/edge.hbs"}}
+        <div class="anarchy-block flexcol edge-pools">
+          {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='grit'}}
+          {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='insight'}}
+        </div>
+        <div class="anarchy-block flexcol edge-pools">
+          {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='rumor'}}
+          {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='legend'}}
+        </div>
+        <div class="anarchy-block flexcol edge-pools">
+          {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='credibility'}}
+          {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='chaos'}}
         </div>
         <div class="anarchy-block anarchy-bar">
           {{> "systems/mwd/templates/monitors/anarchy-actor.hbs"}}
@@ -113,12 +122,6 @@
       </div>
     </div>
     <div class="tab" data-group="primary" data-tab="biography">
-      <div class="section-group monitors-row">
-        {{> "systems/mwd/templates/actor/character/social-celebrity.hbs"}}
-        {{> "systems/mwd/templates/monitors/social-credibility.hbs"}}
-        {{> "systems/mwd/templates/monitors/social-rumor.hbs"}}
-      </div>
-
       <div class="section-group items-group">
       {{> "systems/mwd/templates/actor/parts/contacts.hbs"}}
       </div>

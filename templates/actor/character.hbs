@@ -73,8 +73,19 @@
       <div class="anarchy-block">
         {{> "systems/mwd/templates/monitors/fatigue.hbs"}}
       </div>
+      <div class="anarchy-block flexcol edge-pools">
+        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='grit'}}
+        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='insight'}}
+      </div>
+      <div class="anarchy-block flexcol edge-pools">
+        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='rumor'}}
+        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='legend'}}
+      </div>
+      <div class="anarchy-block flexcol edge-pools">
+        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='credibility'}}
+        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='chaos'}}
+      </div>
       <div class="anarchy-block flexcol">
-        {{> "systems/mwd/templates/monitors/edge.hbs"}}
         {{> "systems/mwd/templates/monitors/anarchy-actor.hbs"}}
       </div>
     </div>
@@ -90,9 +101,6 @@
       {{> "systems/mwd/templates/actor/parts/contacts.hbs"}}
       </div>
       <div class="items-group third-width">
-      {{> "systems/mwd/templates/actor/character/social-celebrity.hbs"}}
-      {{> "systems/mwd/templates/monitors/social-credibility.hbs"}}
-      {{> "systems/mwd/templates/monitors/social-rumor.hbs"}}
       </div>
     </div>
 

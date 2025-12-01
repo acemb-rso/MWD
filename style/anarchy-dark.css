@@ -245,9 +245,12 @@
   color: var(--dark-color-controls-disconnected);
 }
 
-.style-dark :is(div.checkbar-root[data-monitor-code='edge'],
+.style-dark :is(div.checkbar-root[data-monitor-code='grit'],
+  div.checkbar-root[data-monitor-code='insight'],
+  div.checkbar-root[data-monitor-code='legend'],
   div.checkbar-root[data-monitor-code='credibility'],
-  div.checkbar-root[data-monitor-code='rumor']) a.click-checkbar-element[data-checked=true] i {
+  div.checkbar-root[data-monitor-code='rumor'],
+  div.checkbar-root[data-monitor-code='chaos']) a.click-checkbar-element[data-checked=true] i {
   color: var(--dark-color-resource-checked);
 }
 
@@ -257,6 +260,16 @@
 
 .style-dark a.click-checkbar-element[data-checked=false] i {
   color: var(--dark-color-unchecked);
+}
+
+.style-dark a.click-checkbar-element[data-checked="false"] img.checkbar-img {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+.style-dark a.click-checkbar-element[data-checked="true"] img.checkbar-img {
+  filter: none;
+  opacity: 1;
 }
 
 .style-dark .roll-dialog div.roll-parameters div.parameter :is(select, input) {

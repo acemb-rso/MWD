@@ -13,7 +13,7 @@ export class RollCelebrity extends Dialog {
     const rollData = {
       actor: actor,
       celebrity: {
-        labelkey: ANARCHY.actor.celebrity,
+        labelkey: ANARCHY.actor.counters.edgePools.legend,
         value: actor.getCelebrityValue(),
       },
       modifiers: foundry.utils.mergeObject(

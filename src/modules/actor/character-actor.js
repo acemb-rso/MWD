@@ -122,13 +122,13 @@ export class CharacterActor extends AnarchyBaseActor {
   }
 
   getCelebrityValue() {
-    return this.system.counters.social.celebrity.value;
+    return this.getEdgePoolValue(TEMPLATE.counters.social.legend);
   }
   getCredibilityValue() {
-    return this.system.counters.social.credibility.value;
+    return this.getEdgePoolValue(TEMPLATE.counters.social.credibility);
   }
   getRumorValue() {
-    return this.system.counters.social.rumor.value;
+    return this.getEdgePoolValue(TEMPLATE.counters.social.rumor);
   }
 
   getAnarchy() {
@@ -143,7 +143,7 @@ export class CharacterActor extends AnarchyBaseActor {
   }
 
   getAnarchyScene() {
-    return this.system.counters.sceneAnarchy.value ?? 0;
+    return this.getEdgePoolValue(TEMPLATE.counters.edgePools.chaos);
   }
 
   async spendAnarchy(count) {

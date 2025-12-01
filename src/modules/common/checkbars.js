@@ -82,50 +82,65 @@ export const DEFAULT_CHECKBARS = {
     resource: COUNTERS.anarchy
   },
   sceneAnarchy: {
-    path: 'system.counters.sceneAnarchy.value',
+    path: 'system.counters.edgePools.chaos.value',
     monitor: it => {
-      const value = it.system.counters.sceneAnarchy.value;
-      return { value: value, max: 3 };
+      const value = it.getEdgePoolValue(TEMPLATE.counters.edgePools.chaos);
+      const max = it.getAttributeValue(TEMPLATE.attributes.edge);
+      return { value: value, max: max };
     },
-    iconChecked: Icons.iconSystemPath('anarchy-point-scene.webp', 'checkbar-img'),
-    iconUnchecked: Icons.iconSystemPath('anarchy-point-off.webp', 'checkbar-img'),
-    resource: COUNTERS.sceneAnarchy
+    iconChecked: Icons.iconPath('systems/mwd/icons/default/explosion.svg', 'checkbar-img'),
+    iconUnchecked: Icons.iconPath('systems/mwd/icons/default/explosion.svg', 'checkbar-img'),
+    resource: COUNTERS.edgePools.chaos
   },
-  edge: {
-    path: 'system.counters.edge.value',
+  grit: {
+    path: 'system.counters.edgePools.grit.value',
     monitor: it => {
-      return {
-        value: it.system.counters.edge.value,
-        max: it.getAttributeValue(TEMPLATE.attributes.edge)
-      };
+      const value = it.getEdgePoolValue(TEMPLATE.counters.edgePools.grit);
+      return { value: value, max: it.getAttributeValue(TEMPLATE.attributes.edge) };
     },
-    iconChecked: Icons.fontAwesome('fas fa-star'),
-    iconUnchecked: Icons.fontAwesome('far fa-star'),
-    resource: COUNTERS.edge
+    iconChecked: Icons.iconPath('systems/mwd/icons/default/shield.svg', 'checkbar-img'),
+    iconUnchecked: Icons.iconPath('systems/mwd/icons/default/shield.svg', 'checkbar-img'),
+    resource: COUNTERS.edgePools.grit
+  },
+  insight: {
+    path: 'system.counters.edgePools.insight.value',
+    monitor: it => {
+      const value = it.getEdgePoolValue(TEMPLATE.counters.edgePools.insight);
+      return { value: value, max: it.getAttributeValue(TEMPLATE.attributes.edge) };
+    },
+    iconChecked: Icons.iconPath('systems/mwd/icons/default/eye.svg', 'checkbar-img'),
+    iconUnchecked: Icons.iconPath('systems/mwd/icons/default/eye.svg', 'checkbar-img'),
+    resource: COUNTERS.edgePools.insight
+  },
+  legend: {
+    path: 'system.counters.edgePools.legend.value',
+    monitor: it => {
+      const value = it.getEdgePoolValue(TEMPLATE.counters.edgePools.legend);
+      return { value: value, max: it.getAttributeValue(TEMPLATE.attributes.edge) };
+    },
+    iconChecked: Icons.iconPath('systems/mwd/icons/default/tower-flag.svg', 'checkbar-img'),
+    iconUnchecked: Icons.iconPath('systems/mwd/icons/default/tower-flag.svg', 'checkbar-img'),
+    resource: COUNTERS.edgePools.legend
   },
   credibility: {
-    path: 'system.counters.social.credibility.value',
+    path: 'system.counters.edgePools.credibility.value',
     monitor: it => {
-      return {
-        value: it.system.counters.social.credibility.value,
-        max: it.system.counters.social.credibility.max
-      };
+      const value = it.getEdgePoolValue(TEMPLATE.counters.edgePools.credibility);
+      return { value: value, max: it.getAttributeValue(TEMPLATE.attributes.edge) };
     },
-    iconChecked: Icons.fontAwesome('fas fa-handshake'),
-    iconUnchecked: Icons.fontAwesome('far fa-handshake'),
-    resource: COUNTERS.social.credibility
+    iconChecked: Icons.iconPath('systems/mwd/icons/misc/hand.svg', 'checkbar-img'),
+    iconUnchecked: Icons.iconPath('systems/mwd/icons/misc/hand.svg', 'checkbar-img'),
+    resource: COUNTERS.edgePools.credibility
   },
   rumor: {
-    path: 'system.counters.social.rumor.value',
+    path: 'system.counters.edgePools.rumor.value',
     monitor: it => {
-      return {
-        value: it.system.counters.social.rumor.value,
-        max: it.system.counters.social.rumor.max
-      };
+      const value = it.getEdgePoolValue(TEMPLATE.counters.edgePools.rumor);
+      return { value: value, max: it.getAttributeValue(TEMPLATE.attributes.edge) };
     },
-    iconChecked: Icons.fontAwesome('fas fa-grimace'),
-    iconUnchecked: Icons.fontAwesome('far fa-grimace'),
-    resource: COUNTERS.social.rumor
+    iconChecked: Icons.iconPath('systems/mwd/icons/default/mystery-man.svg', 'checkbar-img'),
+    iconUnchecked: Icons.iconPath('systems/mwd/icons/default/mystery-man.svg', 'checkbar-img'),
+    resource: COUNTERS.edgePools.rumor
   },
 }
 export const CHECKBARS = foundry.utils.mergeObject(DEFAULT_CHECKBARS, {});

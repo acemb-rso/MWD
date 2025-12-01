@@ -121,7 +121,7 @@ const DEFAULT_ROLL_PARAMETERS = [
     factory: context => {
       return {
         min: 0,
-        max: Math.min(context.actor.getCredibilityValue(), 3),
+        max: context.actor.getCredibilityValue(),
       }
     }
   },
@@ -241,7 +241,12 @@ const DEFAULT_ROLL_PARAMETERS = [
       hbsTemplateChat: `${TEMPLATES_PATH}/chat/parts/glitch.hbs`,
       min: 0, max: 1,
     },
-    condition: context => context.skill?.system.isSocial && context.actor.getRumorValue() > 0
+    condition: context => context.skill?.system.isSocial && context.actor.getRumorValue() > 0,
+    factory: context => {
+      return {
+        max: context.actor.getRumorValue()
+      }
+    }
   },
   // rerolls
   {
@@ -342,6 +347,29 @@ const DEFAULT_ROLL_PARAMETERS = [
       p.used = checked;
       p.value = checked ? 1 : 0;
     },
+    factory: context => {
+      const poolOrder = [
+        TEMPLATE.counters.edgePools.grit,
+        TEMPLATE.counters.edgePools.insight,
+        TEMPLATE.counters.edgePools.rumor,
+        TEMPLATE.counters.edgePools.legend,
+        TEMPLATE.counters.edgePools.credibility,
+        TEMPLATE.counters.edgePools.chaos,
+      ];
+      const edgePools = poolOrder.map(code => {
+        const value = context.actor.getEdgePoolValue(code);
+        return {
+          code: code,
+          label: ANARCHY.actor.counters.edgePools[code] ?? code,
+          value: value
+        }
+      });
+      const availablePool = edgePools.find(it => it.value > 0)?.code ?? TEMPLATE.counters.edgePools.grit;
+      return {
+        edgePools: edgePools,
+        pool: availablePool,
+      };
+    }
   },
   // reduce opponent pool
   {

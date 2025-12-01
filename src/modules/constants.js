@@ -67,12 +67,21 @@ export const TEMPLATE = {
     sceneAnarchy: 'sceneAnarchy',
   },
   counters: {
-    edge: 'edge',
+    anarchy: 'anarchy',
+    edgePools: {
+      grit: 'grit',
+      insight: 'insight',
+      rumor: 'rumor',
+      legend: 'legend',
+      credibility: 'credibility',
+      chaos: 'chaos',
+    },
     social: {
-      celebrity: 'celebrity',
+      legend: 'legend',
       credibility: 'credibility',
       rumor: 'rumor'
-    }
+    },
+    chaos: 'chaos'
   },
   area: {
     none: 'none',
