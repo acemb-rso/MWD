@@ -168,6 +168,7 @@
         "noTargetSelected": "No valid target is selected, consider selecting a valid target before using this {weapon}",
         "maxTargetsExceedeed": "{weapon} has a {area} area of effect, with a maximum of {max} targets. You are currently targetting {count} targets",
         "noDefenseOnWeapon": "No defense configured for {actor} weapon: {weapon}.<br>Configure defense against this weapon to be able to attack with it.",
+        "weaponNotFound": "No weapon could be found for this roll.",
         "noTokenActor": "Token is not attached to an Actor!",
         "noValidPilotForVehicle": "No valid pilot found for {vehicle} among selected tokens, your main character, and vehicle owner",
         "cannotUseEdgeAnymore": "Too late to use edge. A defender already rolled his defense!",
