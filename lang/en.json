@@ -365,7 +365,6 @@
       },
       "assetModule": {
         "category": "Category",
-        "capacity": "Capacity",
         "level": "Level",
         "levelShort": "Lvl"
       },
@@ -432,9 +431,6 @@
         "mechWeapon": "Mech-Scale Weapons",
         "personalWeapon": "Personal Weapons"
       }
-    },
-    "capacity": {
-      "mundane": "Mundane"
     },
     "monitor": {
       "physical": "Physical",

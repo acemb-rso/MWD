@@ -54,9 +54,6 @@ export const TEMPLATE = {
     condition: 'condition',
     knowledge: 'knowledge',
   },
-  capacities: {
-    mundane: 'mundane',
-  },
   monitors: {
     fatigue: 'fatigue',
     armor: 'armor',

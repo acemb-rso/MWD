@@ -299,7 +299,6 @@ export const ANARCHY = {
         },
         assetModule: {
             category: 'ANARCHY.item.assetModule.category',
-            capacity: 'ANARCHY.item.assetModule.capacity',
             level: 'ANARCHY.item.assetModule.level',
             levelShort: 'ANARCHY.item.assetModule.levelShort',
         },
@@ -356,9 +355,6 @@ export const ANARCHY = {
             higherEducation: 'ANARCHY.item.lifeModule.type.higherEducation',
             realLife: 'ANARCHY.item.lifeModule.type.realLife',
         }
-    },
-    capacity: {
-        mundane: 'ANARCHY.capacity.mundane'
     },
     monitor: {
         physical: 'ANARCHY.monitor.physical',
