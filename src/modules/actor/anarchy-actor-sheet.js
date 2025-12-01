@@ -10,6 +10,12 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheet) {
 
+  static PARTS = {
+    sheet: {
+      template: (sheet) => sheet.template
+    }
+  };
+
   get template() {
     return `${TEMPLATES_PATH}/actor/${this.actor.type}.hbs`;
   }

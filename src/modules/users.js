@@ -45,10 +45,14 @@ export class AnarchyUsers {
   }
 
   static firstResponsible(document) {
-    if (!document.testUserPermission) {
-      return undefined
+    if (!document?.testUserPermission) {
+      return undefined;
     }
-    return AnarchyUsers.getUsers(u => u.active && document.testUserPermission(u, CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)) == game.user
+    const firstOwner = AnarchyUsers.getUsers(
+      user => user.active && document.testUserPermission(user, CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)
+    ).sort(Misc.ascending(user => user.id)).at(0);
+
+    return firstOwner?.id === game.user.id ? document : undefined;
   }
 
   static getTargetTokens(user) {
