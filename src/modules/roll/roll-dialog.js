@@ -156,7 +156,7 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
   async activateListeners(html) {
     const element = html instanceof HTMLElement ? html : html[0];
     await super.activateListeners(element);
-    this.html = $(element);
+    this.html = element instanceof HTMLElement ? $(element) : html;
 
     this.html.find('.select-attribute-parameter').change(async event => {
       const parameter = this._getRollParameter(event);
@@ -197,6 +197,17 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     this.html.find('.edge-pool-select').change(async event => {
       const parameter = this._getRollParameter(event);
       parameter.pool = event.currentTarget.value;
+    });
+
+    this.html.find('[data-action="roll"]').on('click', async (event) => {
+      event.preventDefault();
+      await game.system.anarchy.rollManager.roll(this.roll);
+      await this.close();
+    });
+
+    this.html.find('[data-action="cancel"]').on('click', async (event) => {
+      event.preventDefault();
+      await this.close();
     });
   }
 
