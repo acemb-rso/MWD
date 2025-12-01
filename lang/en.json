@@ -369,6 +369,15 @@
         "level": "Level",
         "levelShort": "Lvl"
       },
+      "lifeModule": {
+        "moduleType": "Module Type",
+        "type": {
+          "faction": "Faction",
+          "childhood": "Childhood",
+          "higherEducation": "Higher Education",
+          "realLife": "Real Life"
+        }
+      },
       "mechWeapon": {
         "category": "Weapon Category",
         "hardpoint": "Hardpoint",
@@ -407,6 +416,7 @@
         "shadowamp": "Shadow Amp",
         "gear": "Gear",
         "contact": "Contact",
+        "lifeModule": "Life Module",
         "mechWeapon": "Mech-Scale Weapon",
         "personalWeapon": "Personal Weapon"
       },
@@ -416,6 +426,7 @@
         "shadowamp": "Shadow Amps",
         "gear": "Gears",
         "contact": "Contacts",
+        "lifeModule": "Life Modules",
         "action": "Actions",
         "monitor": "Monitors",
         "mechWeapon": "Mech-Scale Weapons",
