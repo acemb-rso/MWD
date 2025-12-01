@@ -12,6 +12,7 @@ export const ANARCHY = {
             quality: "TYPES.Item.quality",
             assetModule: "TYPES.Item.assetModule",
             skill: "TYPES.Item.skill",
+            lifeModule: "TYPES.Item.lifeModule",
             mechWeapon: "TYPES.Item.mechWeapon",
             personalWeapon: "TYPES.Item.personalWeapon"
         }
@@ -334,7 +335,8 @@ export const ANARCHY = {
             mechWeapon: 'ANARCHY.itemType.singular.mechWeapon',
             personalWeapon: 'ANARCHY.itemType.singular.personalWeapon',
             gear: 'ANARCHY.itemType.singular.gear',
-            contact: 'ANARCHY.itemType.singular.contact'
+            contact: 'ANARCHY.itemType.singular.contact',
+            lifeModule: 'ANARCHY.itemType.singular.lifeModule'
         },
         plural: {
             skill: 'ANARCHY.itemType.plural.skill',
@@ -343,7 +345,16 @@ export const ANARCHY = {
             mechWeapon: 'ANARCHY.itemType.plural.mechWeapon',
             personalWeapon: 'ANARCHY.itemType.plural.personalWeapon',
             gear: 'ANARCHY.itemType.plural.gear',
-            contact: 'ANARCHY.itemType.plural.contact'
+            contact: 'ANARCHY.itemType.plural.contact',
+            lifeModule: 'ANARCHY.itemType.plural.lifeModule'
+        }
+    },
+    lifeModule: {
+        type: {
+            faction: 'ANARCHY.item.lifeModule.type.faction',
+            childhood: 'ANARCHY.item.lifeModule.type.childhood',
+            higherEducation: 'ANARCHY.item.lifeModule.type.higherEducation',
+            realLife: 'ANARCHY.item.lifeModule.type.realLife',
         }
     },
     capacity: {
@@ -542,6 +553,7 @@ export const ANARCHY = {
             effect: {
                 pool: 'ANARCHY.modifier.roll.effect.pool',
                 reroll: 'ANARCHY.modifier.roll.effect.reroll',
+                rerollMax: 'ANARCHY.modifier.roll.effect.rerollMax',
                 glitch: 'ANARCHY.modifier.roll.effect.glitch',
                 successReroll: 'ANARCHY.modifier.roll.effect.successReroll',
                 opponentPool: 'ANARCHY.modifier.roll.effect.opponentPool',

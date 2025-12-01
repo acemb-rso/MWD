@@ -12,6 +12,7 @@ export const ROLL_PARAMETER_CATEGORY = {
   title: 'title',
   pool: 'pool',
   reroll: 'reroll',
+  rerollMax: 'rerollMax',
   rerollForced: 'rerollForced',
   successReroll: 'successReroll',
   glitch: 'glitch',
@@ -21,6 +22,8 @@ export const ROLL_PARAMETER_CATEGORY = {
   opponentPool: 'opponentPool',
   opponentReroll: 'opponentReroll'
 }
+
+const DEFAULT_REROLL_MAX = 4;
 
 const DEFAULT_ROLL_PARAMETERS = [
   // attribute1
@@ -256,9 +259,15 @@ const DEFAULT_ROLL_PARAMETERS = [
       order: 30, category: ROLL_PARAMETER_CATEGORY.reroll,
       labelkey: ANARCHY.common.roll.modifiers.reroll,
       hbsTemplateRoll: `${TEMPLATES_PATH}/roll/parts/input-numeric.hbs`,
-      min: 0, max: 4
+      min: 0, max: DEFAULT_REROLL_MAX
     },
-    factory: context => RollParameters.computeRollModifiers(ROLL_PARAMETER_CATEGORY.reroll, context)
+    factory: context => {
+      const reroll = RollParameters.computeRollModifiers(ROLL_PARAMETER_CATEGORY.reroll, context);
+      const rerollMax = RollParameters.computeRollModifiers(ROLL_PARAMETER_CATEGORY.rerollMax, context);
+      return foundry.utils.mergeObject(reroll, {
+        max: DEFAULT_REROLL_MAX + Math.max(0, rerollMax.value ?? 0)
+      });
+    }
   },
   // reduction from opponent
   {

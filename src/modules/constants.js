@@ -37,6 +37,7 @@ export const TEMPLATE = {
     personalWeapon: 'personalWeapon',
     gear: 'gear',
     contact: 'contact',
+    lifeModule: 'lifeModule',
   },
   attributes: {
     agility: 'agility',

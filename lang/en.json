@@ -369,6 +369,15 @@
         "level": "Level",
         "levelShort": "Lvl"
       },
+      "lifeModule": {
+        "moduleType": "Module Type",
+        "type": {
+          "faction": "Faction",
+          "childhood": "Childhood",
+          "higherEducation": "Higher Education",
+          "realLife": "Real Life"
+        }
+      },
       "mechWeapon": {
         "category": "Weapon Category",
         "hardpoint": "Hardpoint",
@@ -407,6 +416,7 @@
         "assetModule": "Asset Module",
         "gear": "Gear",
         "contact": "Contact",
+        "lifeModule": "Life Module",
         "mechWeapon": "Mech-Scale Weapon",
         "personalWeapon": "Personal Weapon"
       },
@@ -416,6 +426,7 @@
         "assetModule": "Asset Modules",
         "gear": "Gears",
         "contact": "Contacts",
+        "lifeModule": "Life Modules",
         "action": "Actions",
         "monitor": "Monitors",
         "mechWeapon": "Mech-Scale Weapons",
@@ -669,6 +680,7 @@
         "effect": {
           "pool": "Pool bonus",
           "reroll": "Rerolls",
+          "rerollMax": "Reroll allowance cap",
           "glitch": "Glitch dice",
           "successReroll": "Reroll own successes",
           "opponentPool": "Opponent pool malus",

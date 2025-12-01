@@ -15,6 +15,8 @@ export class Enums {
   static hbsMonitors;
   static hbsMonitorLetters;
   static hbsAssetModuleCategories;
+  static hbsShadowampCategories;
+  static hbsLifeModuleTypes;
   static hbsAreas;
   static hbsRanges;
   static hbsMwdWeightClasses;
@@ -40,6 +42,8 @@ export class Enums {
     Enums.hbsMonitors = Enums.mapObjetToKeyValue(ANARCHY.monitor);
     Enums.hbsMonitorLetters = Enums.mapObjetToKeyValue(ANARCHY.monitorLetter);
     Enums.hbsAssetModuleCategories = Enums.mapObjetToKeyValue(ANARCHY.assetModuleCategory);
+    Enums.hbsShadowampCategories = Enums.mapObjetToKeyValue(ANARCHY.shadowampCategory);
+    Enums.hbsLifeModuleTypes = Enums.mapObjetToKeyValue(ANARCHY.lifeModule.type);
     Enums.hbsAreas = Enums.mapObjetToKeyValue(ANARCHY.area);
     Enums.hbsRanges = Enums.mapObjetToKeyValue(ANARCHY.range);
     Enums.hbsVehicleCategories = Enums.mapObjetToKeyValue(ANARCHY.vehicleCategory);
@@ -78,6 +82,7 @@ export class Enums {
         .map(it => { return { value: it.code, label: game.i18n.localize(it.labelkey), labelkey: it.labelkey }; }),
       areas: Enums.hbsAreas,
       ranges: Enums.hbsRanges,
+      lifeModuleTypes: Enums.hbsLifeModuleTypes,
       vehicleCategories: Enums.hbsVehicleCategories,
       mwdWeightClasses: Enums.hbsMwdWeightClasses,
       mwdHardpointTypes: Enums.hbsMwdHardpointTypes,
