@@ -26,7 +26,14 @@ Rolls can be triggered directly from the sheet (attributes, skills, and weapons)
 
 ## Gamemaster tools
 
-The gamemaster dashboard provides quick access to plot resources, configurable difficulty pools, and combat helpers. Matrix-specific utilities have been removed from the primary workflow.
+The GM Manager icon appears in the chat bar for GMs (an eye-shaped button at the top of the chat sidebar). Clicking it opens a small always-on-top dashboard with two key helpers:
+
+- **Anarchy/plot tracker:** a row of clickable boxes at the top of the GM Manager that mirrors the plot/anarchy pool. Click an empty box to add a point or a filled box to spend one; changes sync to NPC sheets so you can spend or award points without opening actor sheets. (The boxes only appear in the GM Manager overlay—clicking the plot counter on an actor sheet will not change the shared pool.)
+- **Difficulty pool buttons:** configurable shortcuts that roll preset difficulty pools (e.g., *Trivial:4, Easy:6* by default) and post the results to chat. Adjust the pool list in **Settings → Configure Settings → System Settings → Default difficulty pools** using comma-separated `Label:Pool` entries.
+
+The plot/anarchy pool is stored as a world setting and only changed through the GM Manager checkboxes (ticking a box increases the pool, clearing one spends a point). Difficulty rolls are informational; they post a standalone pool result to chat but are not linked to opposed rolls. Players can still oppose rolls normally from their sheets, or you can treat the posted difficulty total as a target number for their action.
+
+Close the manager with the eye-slash button, or toggle it again from the chat bar. Matrix-specific utilities have been removed from the primary workflow.
 
 ## Compendiums
 

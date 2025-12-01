@@ -56,6 +56,18 @@
   color: var(--anarchy-color-font);
 }
 
+#gm-manager .gm-manager-resize-handle {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 14px;
+  height: 14px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.25) 50%), linear-gradient(45deg, transparent 50%, rgba(0, 0, 0, 0.2) 50%);
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+}
+
 #gm-manager.style-anarchy-shadowrun header {
   border-bottom: 1px solid var(--anarchy-color-border);
 }

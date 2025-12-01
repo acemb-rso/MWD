@@ -6,6 +6,8 @@ import { GMDifficulty } from "./gm-difficulty.js";
 const { renderTemplate } = foundry.applications.handlebars;
 const GM_MANAGER = "gm-manager";
 const GM_MANAGER_POSITION = "gm-manager-position";
+const GM_MANAGER_SIZE = "gm-manager-size";
+const GM_MANAGER_DEFAULT_SIZE = { width: 360, height: 0 };
 const GM_MANAGER_INITIAL_POSITION = { top: 200, left: 200 };
 const GM_MANAGER_TEMPLATE = 'systems/mwd/templates/app/gm-manager.hbs';
 
@@ -38,6 +40,7 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
     super();
     this.gmAnarchy = gmAnarchy;
     this.gmDifficulty = new GMDifficulty();
+    this.size = this._registerSizeSetting();
     this.handleDrag = new HandleDragApplication(
       doc => doc.getElementById("gm-manager"),
       {
@@ -147,9 +150,83 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
 
     jqHtml.find('.app-title-bar').mousedown(event => this.handleDrag.onMouseDown(event));
     jqHtml.find('.gm-manager-hide-button').mousedown(event => this.close());
+    this._applyStoredSize(element);
+    this._activateResizeHandle(element);
 
     this.gmAnarchy.activateListeners(jqHtml);
     this.gmDifficulty.activateListeners(jqHtml);
+  }
+
+  _registerSizeSetting() {
+    game.settings.register(SYSTEM_NAME, GM_MANAGER_SIZE, {
+      scope: "client",
+      config: false,
+      default: GM_MANAGER_DEFAULT_SIZE,
+      type: Object
+    });
+    return game.settings.get(SYSTEM_NAME, GM_MANAGER_SIZE);
+  }
+
+  _applyStoredSize(element) {
+    if (!element) return;
+    const width = this.size?.width;
+    const height = this.size?.height;
+    if (width && width > 0) {
+      element.style.width = `${width}px`;
+    }
+    if (height && height > 0) {
+      element.style.height = `${height}px`;
+    }
+  }
+
+  _activateResizeHandle(element) {
+    const handle = element.querySelector('.gm-manager-resize-handle');
+    if (!handle) return;
+
+    handle.addEventListener('mousedown', event => this._onResizeMouseDown(event, element));
+  }
+
+  _onResizeMouseDown(event, element) {
+    event.preventDefault();
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startWidth = element.offsetWidth;
+    const startHeight = element.offsetHeight;
+
+    const onMouseMove = moveEvent => {
+      moveEvent.preventDefault();
+      const width = startWidth + (moveEvent.clientX - startX);
+      const height = startHeight + (moveEvent.clientY - startY);
+      const constrained = this._constrainSize(element, width, height);
+      this._applySize(element, constrained);
+    };
+
+    const onMouseUp = upEvent => {
+      upEvent.preventDefault();
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      this.size = this._constrainSize(element, element.offsetWidth, element.offsetHeight);
+      game.settings.set(SYSTEM_NAME, GM_MANAGER_SIZE, this.size);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+
+  _constrainSize(element, width, height) {
+    const minWidth = 300;
+    const minHeight = 140;
+    const maxWidth = Math.max(minWidth, window.innerWidth - this.handleDrag.minPos.left);
+    const maxHeight = Math.max(minHeight, window.innerHeight - this.handleDrag.minPos.top);
+    return {
+      width: Math.min(maxWidth, Math.max(minWidth, width)),
+      height: Math.min(maxHeight, Math.max(minHeight, height))
+    };
+  }
+
+  _applySize(element, size) {
+    element.style.width = `${size.width}px`;
+    element.style.height = `${size.height}px`;
   }
 
 }
