@@ -21,7 +21,7 @@ const CHAT_MESSAGE_BUTTON_HANDLERS = [
 export class ChatManager {
 
   static async init() {
-    Hooks.on('renderChatMessage', async (app, html, msg) => await ChatManager.onRenderChatMessage(app, html, msg));
+    Hooks.on('renderChatMessageHTML', async (chatMessage, html) => await ChatManager.onRenderChatMessage(chatMessage, html));
 
     RemoteCall.register(CHAT_MANAGER_REMOVE_FAMILY, {
       callback: data => this.removeFamily(data),
@@ -34,8 +34,8 @@ export class ChatManager {
     });
   }
 
-  static async onRenderChatMessage(app, html, msg) {
-    const chatMessage = ChatManager.getChatMessageFromHtml(html);
+  static async onRenderChatMessage(chatMessage, htmlElement) {
+    const html = $(htmlElement);
     const showButtons = ChatManager.hasRight(chatMessage);
     CHAT_MESSAGE_BUTTON_HANDLERS.forEach(it => {
       const jQueryButtonSelector = html.find(it.selector);
