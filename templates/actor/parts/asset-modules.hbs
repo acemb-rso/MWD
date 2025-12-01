@@ -1,0 +1,11 @@
+<div class="define-item-type" data-item-type="assetModule">
+  <h2 class="section-group-header">
+    {{localize 'ANARCHY.itemType.plural.assetModule'}}
+    {{> 'systems/mwd/templates/common/item-control-add.hbs' itemType='assetModule'}}
+  </h2>
+  <div class="items-group-list">
+    {{#each items.assetModule as |assetModule|}}
+    {{> "systems/mwd/templates/actor/parts/asset-module.hbs" assetModule}}
+    {{/each}}
+  </div>
+</div>

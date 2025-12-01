@@ -1,8 +1,8 @@
- <div class="define-item-type item anarchy-shadowamp {{#if system.inactive}}inactive{{/if}}" data-item-id="{{_id}}" data-item-type="shadowamp">
+ <div class="define-item-type item anarchy-asset-module {{#if system.inactive}}inactive{{/if}}" data-item-id="{{_id}}" data-item-type="assetModule">
   <img class="anarchy-img item-img" src="{{img}}" alt="{{name}}" data-tooltip="{{name}}"/>
-  <div class="shadowamp-content">
+  <div class="asset-module-content">
     <label>{{name}}</label>
-    <label>({{localize 'ANARCHY.item.shadowamp.levelShort'}} {{system.level}})</label>
+    <label>({{localize 'ANARCHY.item.assetModule.levelShort'}} {{system.level}})</label>
     {{>'systems/mwd/templates/actor/character/description.hbs' description=system.description}}
   </div>
   <div class="item-controls">

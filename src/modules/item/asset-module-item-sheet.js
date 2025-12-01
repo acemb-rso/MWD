@@ -1,6 +1,6 @@
 import { BaseItemSheet } from "./base-item-sheet.js";
 
-export class ShadowampItemSheet extends BaseItemSheet {
+export class AssetModuleItemSheet extends BaseItemSheet {
 
   getData(options) {
     let hbsData = super.getData(options);

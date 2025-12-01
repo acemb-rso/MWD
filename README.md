@@ -13,7 +13,7 @@ This Foundry VTT system is an early conversion of the Shadowrun Anarchy codebase
 - Player characters and NPCs share the same core sheet options (full, tabbed, and limited views).
 - Destiny traits are mapped onto the existing attribute framework: Reflexes replaces Agility and Intelligence replaces Logic, alongside Strength, Willpower, Charisma, and Edge.
 - Condition monitors now track **Physical** and **Fatigue** damage instead of Physical and Stun. Armor remains available for absorbing incoming harm.
-- Items retain the Anarchy-compatible categories for now (skills, weapons, gear, shadow amps, and contacts) while we transition them to Destiny equipment. Cyberdecks, sprites, IC, and other Matrix artifacts are intentionally unused in this system.
+- Items retain the Anarchy-compatible categories for now (skills, weapons, gear, asset modules, and contacts) while we transition them to Destiny equipment. Cyberdecks, sprites, IC, and other Matrix artifacts are intentionally unused in this system.
 
 Rolls can be triggered directly from the sheet (attributes, skills, and weapons) or via token HUD shortcuts. Weapon rolls prompt targeted defenders to respond with an opposed roll.
 

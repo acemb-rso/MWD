@@ -97,11 +97,11 @@ export class AnarchyBaseActor extends Actor {
     })
   }
 
-  static sortShadowamps(shadowamps) {
-    if (!shadowamps) {
+  static sortAssetModules(assetModules) {
+    if (!assetModules) {
       return []
     }
-    return shadowamps.sort((sa, sb) => {
+    return assetModules.sort((sa, sb) => {
       if (sa.system.level > sb.system.level) return -1;
       if (sa.system.level < sb.system.level) return 1;
       if (sa.name > sb.name) return 1;

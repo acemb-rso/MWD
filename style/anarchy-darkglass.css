@@ -216,7 +216,7 @@
   background-color: var(--transparent);
 }
 
-.style-darkglass .items-group div.item:is(.anarchy-skill, .anarchy-cyberdeck, .anarchy-shadowamp, .anarchy-quality) {
+.style-darkglass .items-group div.item:is(.anarchy-skill, .anarchy-cyberdeck, .anarchy-asset-module, .anarchy-quality) {
   background: var(--darkglass-background-item-major);
   border-style: none;
 }

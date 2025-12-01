@@ -1,7 +1,7 @@
- <div class="define-item-type wrapper-hexabox item anarchy-shadowamp {{#if system.inactive}}inactive{{/if}}" data-item-id="{{_id}}" data-item-type="shadowamp">
+<div class="define-item-type wrapper-hexabox item anarchy-asset-module {{#if system.inactive}}inactive{{/if}}" data-item-id="{{_id}}" data-item-type="assetModule">
   {{> "systems/mwd/templates/actor/character-enhanced/hexabox.hbs"}}
   <div class="content">
-    <div class="shadowamp-img">
+    <div class="asset-module-img">
       <div>
         {{#if img}}
         <img class="anarchy-img item-img" src="{{img}}" alt="{{name}}" data-tooltip="{{name}}" />
@@ -14,7 +14,7 @@
         </div>
       </div>
     </div>
-    <div class="shadowamp-content">
+    <div class="asset-module-content">
       <label class="title">{{name}}</label>
     {{>'systems/mwd/templates/actor/character/description.hbs' description=system.description}}
     </div>

@@ -641,7 +641,7 @@ div.define-item-type.item>img.anarchy-img {
   align-items: flex-start;
 }
 
-div.define-item-type.item .shadowamp-content,
+div.define-item-type.item .asset-module-content,
 div.define-item-type.item .item-content {
   max-width: calc(100% - 32px - 16px);
   text-justify: inter-word;

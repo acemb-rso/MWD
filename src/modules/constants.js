@@ -32,7 +32,7 @@ export const TEMPLATE = {
   itemType: {
     skill: 'skill',
     quality: 'quality',
-    shadowamp: 'shadowamp',
+    assetModule: 'assetModule',
     mechWeapon: 'mechWeapon',
     personalWeapon: 'personalWeapon',
     gear: 'gear',

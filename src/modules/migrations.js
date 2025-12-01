@@ -628,6 +628,18 @@ class _13_6_0_MigrateTypedResistance extends Migration {
   }
 }
 
+class _13_6_1_RenameShadowampsToAssetModules extends Migration {
+  get version() { return '13.6.1' }
+  get code() { return 'rename-shadowamps-asset-modules' }
+
+  async migrate() {
+    await this.applyItemsUpdates(items => items
+      .filter(it => it.type === 'shadowamp')
+      .map(it => ({ _id: it.id, type: TEMPLATE.itemType.assetModule }))
+    );
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -651,6 +663,7 @@ export class Migrations {
       new _13_4_0_MigrateEdgePools(),
       new _13_4_1_DefaultEdgePoolValues(),
       new _13_6_0_MigrateTypedResistance(),
+      new _13_6_1_RenameShadowampsToAssetModules(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

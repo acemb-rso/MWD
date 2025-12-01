@@ -353,7 +353,7 @@
       "contact",
       "gear",
       "quality",
-      "shadowamp",
+      "assetModule",
       "skill",
       "lifeModule",
       "mechWeapon",
@@ -394,6 +394,7 @@
       ],
       "positive": true
     },
+    "assetModule": {
     "lifeModule": {
       "templates": [
         "inactive",
