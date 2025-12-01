@@ -13,7 +13,10 @@ export class AnarchyBaseItem extends Item {
   }
 
   constructor(docData, context = {}) {
-    const legacyTypeMap = { weapon: TEMPLATE.itemType.personalWeapon };
+    const legacyTypeMap = {
+      weapon: TEMPLATE.itemType.personalWeapon,
+      shadowamp: TEMPLATE.itemType.assetModule,
+    };
     docData.type = legacyTypeMap[docData.type] ?? docData.type;
 
     if (!context.anarchy?.ready) {
