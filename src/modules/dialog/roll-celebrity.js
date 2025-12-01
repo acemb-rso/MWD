@@ -3,11 +3,29 @@ import { TEMPLATES_PATH } from "../constants.js";
 import { Misc } from "../misc.js";
 import { Modifiers } from "../modifiers/modifiers.js";
 
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const { renderTemplate } = foundry.applications.handlebars;
 
 const HBS_TEMPLATE_CHAT_CELEBRITY_ROLL = `${TEMPLATES_PATH}/chat/celebrity-roll.hbs`;
 
-export class RollCelebrity extends Dialog {
+export class RollCelebrity extends HandlebarsApplicationMixin(ApplicationV2) {
+
+  static get DEFAULT_OPTIONS() {
+    return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+      id: "roll-celebrity",
+      classes: ["anarchy-dialog"],
+      position: { width: 400, height: "auto" },
+      window: {
+        resizable: true
+      }
+    });
+  }
+
+  static PARTS = {
+    body: {
+      template: `${TEMPLATES_PATH}/dialog/roll-celebrite.hbs`
+    }
+  };
 
   static async create(actor) {
     const rollData = {
@@ -28,37 +46,40 @@ export class RollCelebrity extends Dialog {
     }
 
     const title = await renderTemplate(`${TEMPLATES_PATH}/dialog/roll-celebrite-title.hbs`, rollData);
-    const html = await renderTemplate(`${TEMPLATES_PATH}/dialog/roll-celebrite.hbs`, rollData);
-    new RollCelebrity(title, html, rollData).render(true);
+    const app = new RollCelebrity(rollData, title);
+    return app.render({ force: true });
   }
 
-  constructor(title, html, roll) {
-    const config = {
-      title: title,
-      content: html,
-      default: 'roll',
-      buttons: {
-        'roll': {
-          label: game.i18n.localize(ANARCHY.common.roll.button),
-          callback: async () => RollCelebrity.doRoll(roll)
-        }
-      },
-    };
-    const options = {
-      classes: [game.system.anarchy.styles.selectCssClass(), "anarchy-dialog"],
-      width: 400,
-      height: 'fit-content',
-      'z-index': 99999,
-    };
-
-    super(config, options);
+  constructor(roll, title) {
+    const options = foundry.utils.mergeObject(RollCelebrity.DEFAULT_OPTIONS, {
+      id: `roll-celebrity-${foundry.utils.randomID()}`,
+      classes: [game.system.anarchy.styles.selectCssClass(), ...RollCelebrity.DEFAULT_OPTIONS.classes],
+      window: { title }
+    }, { inplace: false });
+    super(options);
+    this.roll = roll;
   }
 
-  activateListeners(html) {
-    super.activateListeners(html);
-    this.bringToTop();
-    html.find(".input-celebrity-other").on('input', event => {
+  async _prepareContext() {
+    return this.roll;
+  }
+
+  async activateListeners(html) {
+    const element = html instanceof HTMLElement ? html : html[0];
+    await super.activateListeners(element);
+    const jqHtml = $(element);
+
+    jqHtml.find(".input-celebrity-other").on('input', event => {
       this.roll.other.value = Number.parseInt(event.currentTarget.value) ?? 0;
+    });
+
+    jqHtml.find('[data-action="roll"]').on('click', async () => {
+      await RollCelebrity.doRoll(this.roll);
+      await this.close();
+    });
+
+    jqHtml.find('[data-action="cancel"]').on('click', async () => {
+      await this.close();
     });
   }
 
