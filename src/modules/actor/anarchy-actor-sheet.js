@@ -1,5 +1,5 @@
 import { ANARCHY } from "../config.js";
-import { TEMPLATE, TEMPLATES_PATH } from "../constants.js";
+import { LOG_HEAD, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { ConfirmationDialog } from "../confirmation.js";
 import { Misc } from "../misc.js";
 import { Enums } from "../enums.js";
@@ -17,7 +17,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   };
 
   get template() {
-    return `${TEMPLATES_PATH}/actor/${this.actor.type}.hbs`;
+    return this._resolveTemplatePath();
   }
 
   /** @override */
@@ -37,6 +37,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   }
 
   async getData(options) {
+    this._logSheetDiagnostics('getData-start', { options });
     const baseContext = await super._prepareContext(options);
     let hbsData = foundry.utils.mergeObject(
       baseContext,
@@ -69,6 +70,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       ...(hbsData.items.mechWeapon ?? []),
       ...(hbsData.items.personalWeapon ?? []),
     ];
+    this._logSheetDiagnostics('getData-complete', { classes });
     return hbsData;
   }
 
@@ -189,6 +191,133 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       const monitor = this.getEventMonitorCode(event);
       await ResistanceByTypeDialog.show(this.actor, monitor);
     });
+  }
+
+  async _render(force = false, options = {}) {
+    const template = this._resolveTemplatePath();
+    this._logSheetDiagnostics('render-start', { force, options, template });
+    try {
+      const result = await super._render(force, options);
+      this._logSheetDiagnostics('render-complete');
+      return result;
+    }
+    catch (error) {
+      console.error(`${LOG_HEAD}Actor sheet render failed`, {
+        actorId: this.actor?.id,
+        actorName: this.actor?.name,
+        actorType: this.actor?.type,
+        template: this.template,
+        options,
+        error
+      });
+      ui.notifications?.error?.('Actor sheet render failed. Check console for details.');
+      throw error;
+    }
+  }
+
+  _logSheetDiagnostics(stage, extra = {}) {
+    const diagnostics = {
+      stage,
+      actorId: this.actor?.id,
+      actorName: this.actor?.name,
+      actorType: this.actor?.type,
+      template: this.template,
+      hasSystemData: !!this.actor?.system,
+      ownerId: this.actor?.system?.ownerId ?? null,
+      systemReady: !!game.system?.anarchy,
+      sheetId: this.id,
+      rendered: this.rendered,
+      ...extra
+    };
+    console.debug(`${LOG_HEAD}ActorSheet`, diagnostics);
+  }
+
+  async _getTemplatePaths(context) {
+    const superPaths = super._getTemplatePaths
+      ? await super._getTemplatePaths(context)
+      : [];
+
+    const templatePaths = (superPaths ?? [])
+      .map((path) => typeof path === "string" ? path.trim() : path)
+      .filter((path) => typeof path === "string" && path.length > 0);
+
+    const invalidPaths = (superPaths ?? []).filter((path) =>
+      typeof path !== "string"
+      || !path
+      || (typeof path === "string" && path.trim().length === 0)
+    );
+
+    if (invalidPaths.length > 0) {
+      console.warn(`${LOG_HEAD}Actor sheet filtered invalid template paths`, {
+        actorId: this.actor?.id,
+        actorName: this.actor?.name,
+        actorType: this.actor?.type,
+        invalidPaths,
+        templatePaths
+      });
+    }
+
+    return templatePaths;
+  }
+
+  async _preloadTemplates(context) {
+    const templatePaths = await (this._getTemplatePaths?.(context) ?? []);
+    const safePaths = Array.isArray(templatePaths) ? templatePaths : [];
+
+    if (!Array.isArray(templatePaths)) {
+      console.warn(`${LOG_HEAD}Actor sheet _getTemplatePaths returned a non-array; coercing to []`, {
+        actorId: this.actor?.id,
+        actorName: this.actor?.name,
+        actorType: this.actor?.type,
+        templatePaths,
+      });
+    }
+
+    this._logSheetDiagnostics("templates-preload", { templatePaths: safePaths });
+
+    if (!safePaths.length) {
+      console.warn(`${LOG_HEAD}Actor sheet has no templates to preload`, {
+        actorId: this.actor?.id,
+        actorName: this.actor?.name,
+        actorType: this.actor?.type,
+      });
+    }
+
+    return loadTemplates?.(safePaths) ?? [];
+  }
+
+  _resolveTemplatePath() {
+    const fallback = `${TEMPLATES_PATH}/actor/character.hbs`;
+    const actorType = this.actor?.type;
+    const candidate = actorType
+      ? `${TEMPLATES_PATH}/actor/${actorType}.hbs`
+      : fallback;
+    const template = typeof candidate === "string" ? candidate.trim() : "";
+
+    const invalidPath = !template
+      || template.includes("undefined")
+      || template.includes("null");
+
+    if (invalidPath) {
+      console.warn(`${LOG_HEAD}Actor sheet template resolved to an invalid path, using fallback`, {
+        actorId: this.actor?.id,
+        actorName: this.actor?.name,
+        actorType,
+        candidate,
+        fallback
+      });
+      return fallback;
+    }
+
+    if (!actorType) {
+      console.warn(`${LOG_HEAD}Actor sheet missing type, using fallback template`, {
+        actorId: this.actor?.id,
+        actorName: this.actor?.name,
+        fallback
+      });
+    }
+
+    return template;
   }
 
   getEventItemType(event) {
