@@ -1,5 +1,5 @@
 import { ANARCHY } from "../config.js";
-import { TEMPLATE, TEMPLATES_PATH } from "../constants.js";
+import { LOG_HEAD, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { ConfirmationDialog } from "../confirmation.js";
 import { Misc } from "../misc.js";
 import { Enums } from "../enums.js";
@@ -17,7 +17,17 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   };
 
   get template() {
-    return `${TEMPLATES_PATH}/actor/${this.actor.type}.hbs`;
+    const actorType = this.actor?.type;
+    if (!actorType) {
+      const fallback = `${TEMPLATES_PATH}/actor/character.hbs`;
+      console.warn(`${LOG_HEAD}Actor sheet missing type, using fallback template`, {
+        actorId: this.actor?.id,
+        actorName: this.actor?.name,
+        fallback
+      });
+      return fallback;
+    }
+    return `${TEMPLATES_PATH}/actor/${actorType}.hbs`;
   }
 
   /** @override */
@@ -37,6 +47,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   }
 
   async getData(options) {
+    this._logSheetDiagnostics('getData-start', { options });
     const baseContext = await super._prepareContext(options);
     let hbsData = foundry.utils.mergeObject(
       baseContext,
@@ -69,6 +80,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       ...(hbsData.items.mechWeapon ?? []),
       ...(hbsData.items.personalWeapon ?? []),
     ];
+    this._logSheetDiagnostics('getData-complete', { classes });
     return hbsData;
   }
 
@@ -189,6 +201,44 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       const monitor = this.getEventMonitorCode(event);
       await ResistanceByTypeDialog.show(this.actor, monitor);
     });
+  }
+
+  async _render(force = false, options = {}) {
+    this._logSheetDiagnostics('render-start', { force, options });
+    try {
+      const result = await super._render(force, options);
+      this._logSheetDiagnostics('render-complete');
+      return result;
+    }
+    catch (error) {
+      console.error(`${LOG_HEAD}Actor sheet render failed`, {
+        actorId: this.actor?.id,
+        actorName: this.actor?.name,
+        actorType: this.actor?.type,
+        template: this.template,
+        options,
+        error
+      });
+      ui.notifications?.error?.('Actor sheet render failed. Check console for details.');
+      throw error;
+    }
+  }
+
+  _logSheetDiagnostics(stage, extra = {}) {
+    const diagnostics = {
+      stage,
+      actorId: this.actor?.id,
+      actorName: this.actor?.name,
+      actorType: this.actor?.type,
+      template: this.template,
+      hasSystemData: !!this.actor?.system,
+      ownerId: this.actor?.system?.ownerId ?? null,
+      systemReady: !!game.system?.anarchy,
+      sheetId: this.id,
+      rendered: this.rendered,
+      ...extra
+    };
+    console.debug(`${LOG_HEAD}ActorSheet`, diagnostics);
   }
 
   getEventItemType(event) {
