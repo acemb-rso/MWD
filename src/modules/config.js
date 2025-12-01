@@ -10,7 +10,7 @@ export const ANARCHY = {
             contact: "TYPES.Item.contact",
             gear: "TYPES.Item.gear",
             quality: "TYPES.Item.quality",
-            shadowamp: "TYPES.Item.shadowamp",
+            assetModule: "TYPES.Item.assetModule",
             skill: "TYPES.Item.skill",
             mechWeapon: "TYPES.Item.mechWeapon",
             personalWeapon: "TYPES.Item.personalWeapon"
@@ -296,11 +296,11 @@ export const ANARCHY = {
         quality: {
             positive: 'ANARCHY.item.quality.positive'
         },
-        shadowamp: {
-            category: 'ANARCHY.item.shadowamp.category',
-            capacity: 'ANARCHY.item.shadowamp.capacity',
-            level: 'ANARCHY.item.shadowamp.level',
-            levelShort: 'ANARCHY.item.shadowamp.levelShort',
+        assetModule: {
+            category: 'ANARCHY.item.assetModule.category',
+            capacity: 'ANARCHY.item.assetModule.capacity',
+            level: 'ANARCHY.item.assetModule.level',
+            levelShort: 'ANARCHY.item.assetModule.levelShort',
         },
         mechWeapon: {
             damage: 'ANARCHY.item.mechWeapon.damage',
@@ -330,7 +330,7 @@ export const ANARCHY = {
         singular: {
             skill: 'ANARCHY.itemType.singular.skill',
             quality: 'ANARCHY.itemType.singular.quality',
-            shadowamp: 'ANARCHY.itemType.singular.shadowamp',
+            assetModule: 'ANARCHY.itemType.singular.assetModule',
             mechWeapon: 'ANARCHY.itemType.singular.mechWeapon',
             personalWeapon: 'ANARCHY.itemType.singular.personalWeapon',
             gear: 'ANARCHY.itemType.singular.gear',
@@ -339,7 +339,7 @@ export const ANARCHY = {
         plural: {
             skill: 'ANARCHY.itemType.plural.skill',
             quality: 'ANARCHY.itemType.plural.quality',
-            shadowamp: 'ANARCHY.itemType.plural.shadowamp',
+            assetModule: 'ANARCHY.itemType.plural.assetModule',
             mechWeapon: 'ANARCHY.itemType.plural.mechWeapon',
             personalWeapon: 'ANARCHY.itemType.plural.personalWeapon',
             gear: 'ANARCHY.itemType.plural.gear',
@@ -357,18 +357,18 @@ export const ANARCHY = {
         physical: 'ANARCHY.monitorLetter.physical',
         fatigue: 'ANARCHY.monitorLetter.fatigue',
     },
-    shadowampCategory: {
-        adeptPower: 'ANARCHY.shadowampCategory.adeptPower',
-        bioware: 'ANARCHY.shadowampCategory.bioware',
-        complexForm: 'ANARCHY.shadowampCategory.complexForm',
-        cyberdeck: 'ANARCHY.shadowampCategory.cyberdeck',
-        cyberware: 'ANARCHY.shadowampCategory.cyberware',
-        drone: 'ANARCHY.shadowampCategory.drone',
-        equipment: 'ANARCHY.shadowampCategory.equipment',
-        focus: 'ANARCHY.shadowampCategory.focus',
-        program: 'ANARCHY.shadowampCategory.program',
-        spell: 'ANARCHY.shadowampCategory.spell',
-        special: 'ANARCHY.shadowampCategory.special'
+    assetModuleCategory: {
+        adeptPower: 'ANARCHY.assetModuleCategory.adeptPower',
+        bioware: 'ANARCHY.assetModuleCategory.bioware',
+        complexForm: 'ANARCHY.assetModuleCategory.complexForm',
+        cyberdeck: 'ANARCHY.assetModuleCategory.cyberdeck',
+        cyberware: 'ANARCHY.assetModuleCategory.cyberware',
+        drone: 'ANARCHY.assetModuleCategory.drone',
+        equipment: 'ANARCHY.assetModuleCategory.equipment',
+        focus: 'ANARCHY.assetModuleCategory.focus',
+        program: 'ANARCHY.assetModuleCategory.program',
+        spell: 'ANARCHY.assetModuleCategory.spell',
+        special: 'ANARCHY.assetModuleCategory.special'
     },
     attributes: {
         noAttribute: 'ANARCHY.attributes.noAttributes',

@@ -45,8 +45,8 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/actor/character-enhanced/words.hbs',
   'systems/mwd/templates/actor/character-enhanced/skills.hbs',
   'systems/mwd/templates/actor/character-enhanced/skill.hbs',
-  'systems/mwd/templates/actor/character-enhanced/shadowamp.hbs',
-  'systems/mwd/templates/actor/character-enhanced/shadowamps.hbs',
+  'systems/mwd/templates/actor/character-enhanced/asset-module.hbs',
+  'systems/mwd/templates/actor/character-enhanced/asset-modules.hbs',
   'systems/mwd/templates/actor/character-enhanced/quality.hbs',
   'systems/mwd/templates/actor/character-enhanced/qualities.hbs',
   'systems/mwd/templates/actor/character-enhanced/monitors.hbs',
@@ -90,8 +90,8 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/actor/parts/ownership.hbs',
   'systems/mwd/templates/actor/parts/qualities.hbs',
   'systems/mwd/templates/actor/parts/quality.hbs',
-  'systems/mwd/templates/actor/parts/shadowamp.hbs',
-  'systems/mwd/templates/actor/parts/shadowamps.hbs',
+  'systems/mwd/templates/actor/parts/asset-module.hbs',
+  'systems/mwd/templates/actor/parts/asset-modules.hbs',
   'systems/mwd/templates/actor/parts/item-attribute.hbs',
   'systems/mwd/templates/actor/parts/cyberdeck.hbs',
   'systems/mwd/templates/actor/parts/cyberdecks.hbs',
@@ -105,8 +105,8 @@ const HBS_PARTIAL_TEMPLATES = [
   //-- NPC
   'systems/mwd/templates/actor/npc-parts/quality.hbs',
   'systems/mwd/templates/actor/npc-parts/qualities.hbs',
-  'systems/mwd/templates/actor/npc-parts/shadowamp.hbs',
-  'systems/mwd/templates/actor/npc-parts/shadowamps.hbs',
+  'systems/mwd/templates/actor/npc-parts/asset-module.hbs',
+  'systems/mwd/templates/actor/npc-parts/asset-modules.hbs',
   'systems/mwd/templates/actor/npc-parts/skill.hbs',
   'systems/mwd/templates/actor/npc-parts/skills.hbs',
   'systems/mwd/templates/actor/npc-parts/weapon.hbs',
@@ -205,7 +205,7 @@ export class HandlebarsManager {
     Handlebars.registerHelper('actorHasFavorite', (actorId, options) => HandlebarsManager.checkHasFavorite(actorId, options));
     Handlebars.registerHelper('padWordListToMin', AnarchyBaseActor.padWordListToMin);
     Handlebars.registerHelper('sortSkills', AnarchyBaseActor.sortSkills);
-    Handlebars.registerHelper('sortShadowamps', AnarchyBaseActor.sortShadowamps);
+    Handlebars.registerHelper('sortAssetModules', AnarchyBaseActor.sortAssetModules);
     Handlebars.registerHelper('sortQualities', AnarchyBaseActor.sortQualities);
     Handlebars.registerHelper('sortAttributeButton', AnarchyBaseActor.sortAttributeButton);
     Handlebars.registerHelper('range', function (min, max) { let array = []; for (let i = min; i <= max; i++) { array.push(i); } return array; });

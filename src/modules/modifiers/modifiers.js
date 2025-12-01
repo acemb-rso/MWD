@@ -4,8 +4,8 @@ import { TEMPLATE } from "../constants.js";
 import { Enums } from "../enums.js";
 import { Misc } from "../misc.js";
 
-const SHADOWAMP_TYPES = [
-  TEMPLATE.itemType.shadowamp,
+const ASSET_MODULE_TYPES = [
+  TEMPLATE.itemType.assetModule,
   TEMPLATE.itemType.mechWeapon,
   TEMPLATE.itemType.personalWeapon,
 ];
@@ -117,18 +117,18 @@ export class Modifiers {
       .reduce((a, b) => a.concat(b), [])
       .sort(Misc.descending(im => im.modifier.value))
 
-    const sumShadowamp = Modifiers.$sumShadowampModifiers(itemModifiers.filter(it => SHADOWAMP_TYPES.includes(it.item.type)).map(im => im.modifier.value))
-    const sumOthers = Misc.sumValues(itemModifiers.filter(it => !SHADOWAMP_TYPES.includes(it.item.type)).map(im => im.modifier.value))
+    const sumAssetModules = Modifiers.$sumAssetModuleModifiers(itemModifiers.filter(it => ASSET_MODULE_TYPES.includes(it.item.type)).map(im => im.modifier.value))
+    const sumOthers = Misc.sumValues(itemModifiers.filter(it => !ASSET_MODULE_TYPES.includes(it.item.type)).map(im => im.modifier.value))
     return {
-      value: sumShadowamp + sumOthers,
+      value: sumAssetModules + sumOthers,
       sources: itemModifiers
     }
   }
 
-  static $sumShadowampModifiers(shadowampModifiers) {
-    const maxPositive = shadowampModifiers.find(v => v > 3) ?? 0
-    const negative = Misc.sumValues(shadowampModifiers.filter(v => v < 0))
-    const positive = Math.min(3, Misc.sumValues(shadowampModifiers.filter(v => v > 0 && v <= 3)))
+  static $sumAssetModuleModifiers(assetModuleModifiers) {
+    const maxPositive = assetModuleModifiers.find(v => v > 3) ?? 0
+    const negative = Misc.sumValues(assetModuleModifiers.filter(v => v < 0))
+    const positive = Math.min(3, Misc.sumValues(assetModuleModifiers.filter(v => v > 0 && v <= 3)))
     // allow only one item with modifier above 3 that replaces usual max of 3 to positive modifiers (for deltaware option in French rulebook)
     return negative + Math.max(positive, maxPositive)
   }

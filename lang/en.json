@@ -9,7 +9,7 @@
       "contact": "Contact",
       "gear": "Gear",
       "quality": "Trait",
-      "shadowamp": "Shadowamp",
+      "assetModule": "Asset Module",
       "skill": "Skill",
       "mechWeapon": "Mech-Scale Weapon",
       "personalWeapon": "Personal Weapon"
@@ -106,7 +106,7 @@
           "edge": "Use edge",
           "edgePool": "Spend from",
           "specialization": "Specialization",
-          "poolModifiers": "Shadowamps",
+          "poolModifiers": "Asset Modules",
           "social": {
             "credibility": "Credibility",
             "rumor": "Rumor"
@@ -363,7 +363,7 @@
       "quality": {
         "positive": "Positive if checked"
       },
-      "shadowamp": {
+      "assetModule": {
         "category": "Category",
         "capacity": "Capacity",
         "level": "Level",
@@ -404,7 +404,7 @@
       "singular": {
         "skill": "Skill",
         "quality": "Trait",
-        "shadowamp": "Shadow Amp",
+        "assetModule": "Asset Module",
         "gear": "Gear",
         "contact": "Contact",
         "mechWeapon": "Mech-Scale Weapon",
@@ -413,7 +413,7 @@
       "plural": {
         "skill": "Skills",
         "quality": "Qualities",
-        "shadowamp": "Shadow Amps",
+        "assetModule": "Asset Modules",
         "gear": "Gears",
         "contact": "Contacts",
         "action": "Actions",
@@ -433,7 +433,7 @@
       "physical": "P",
       "fatigue": "F"
     },
-    "shadowampCategory": {
+    "assetModuleCategory": {
       "adeptPower": "Adept power",
       "bioware": "Bioware",
       "complexForm": "Complex form",

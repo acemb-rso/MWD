@@ -353,7 +353,7 @@
       "contact",
       "gear",
       "quality",
-      "shadowamp",
+      "assetModule",
       "skill",
       "mechWeapon",
       "personalWeapon"
@@ -393,7 +393,7 @@
       ],
       "positive": true
     },
-    "shadowamp": {
+    "assetModule": {
       "templates": [
         "modifiers",
         "inactive",

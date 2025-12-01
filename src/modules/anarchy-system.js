@@ -27,13 +27,13 @@ import { WeaponItem } from './item/weapon-item.js';
 import { ContactItemSheet } from './item/contact-item-sheet.js';
 import { GearItemSheet } from './item/gear-item-sheet.js';
 import { QualityItemSheet } from './item/quality-item-sheet.js';
-import { ShadowampItemSheet } from './item/shadowamp-item-sheet.js';
+import { AssetModuleItemSheet } from './item/asset-module-item-sheet.js';
 import { SkillItemSheet } from './item/skill-item-sheet.js';
 import { WeaponItemSheet } from './item/weapon-item-sheet.js';
 import { ContactItem } from './item/contact-item.js';
 import { GearItem } from './item/gear-item.js';
 import { QualityItem } from './item/quality-item.js';
-import { ShadowampItem } from './item/shadowamp-item.js';
+import { AssetModuleItem } from './item/asset-module-item.js';
 import { Checkbars } from './common/checkbars.js';
 import { RollParameters } from './roll/roll-parameters.js';
 import { RollDialog } from './roll/roll-dialog.js';
@@ -75,7 +75,7 @@ export class AnarchySystem {
       contact: ContactItem,
       gear: GearItem,
       quality: QualityItem,
-      shadowamp: ShadowampItem,
+      assetModule: AssetModuleItem,
       skill: SkillItem,
       mechWeapon: WeaponItem,
       personalWeapon: WeaponItem
@@ -171,7 +171,7 @@ export class AnarchySystem {
     Items.registerSheet(SYSTEM_NAME, ContactItemSheet, { types: ["contact"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, GearItemSheet, { types: ["gear"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, QualityItemSheet, { types: ["quality"], makeDefault: true });
-    Items.registerSheet(SYSTEM_NAME, ShadowampItemSheet, { types: ["shadowamp"], makeDefault: true });
+    Items.registerSheet(SYSTEM_NAME, AssetModuleItemSheet, { types: ["assetModule"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, SkillItemSheet, { types: ["skill"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, WeaponItemSheet, { types: ["mechWeapon", "personalWeapon"], makeDefault: true });
   }

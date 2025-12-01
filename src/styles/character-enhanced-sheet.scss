@@ -301,7 +301,7 @@
         .section-qualities,
         .section-equipments,
         .section-owned,
-        .section-shadowamps {
+        .section-asset-modules {
             max-height: 1000px;
             transition: max-height 400ms cubic-bezier(.14, .87, .5, .97);
 
@@ -688,7 +688,7 @@
             }
         }
 
-        .shadowamps {
+        .asset-modules {
             background-color: #dcdddf;
             border-top: 2px solid black;
             z-index: 0;
@@ -764,7 +764,7 @@
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 
-                .anarchy-shadowamp {
+                .anarchy-asset-module {
                     --wrapper-padding: 12px;
 
                     .content {
@@ -772,7 +772,7 @@
                         flex-direction: row;
 
 
-                        .shadowamp-img {
+                        .asset-module-img {
                             display: flex;
                             flex-direction: column;
                             justify-content: space-between;
@@ -784,7 +784,7 @@
                             }
                         }
 
-                        .shadowamp-content {
+                        .asset-module-content {
                             max-width: none;
                             padding-left: 12px;
                             text-align: left;

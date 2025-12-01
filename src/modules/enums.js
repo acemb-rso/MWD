@@ -14,7 +14,7 @@ export class Enums {
   static hbsCapacities;
   static hbsMonitors;
   static hbsMonitorLetters;
-  static hbsShadowampCategories;
+  static hbsAssetModuleCategories;
   static hbsAreas;
   static hbsRanges;
   static hbsMwdWeightClasses;
@@ -39,7 +39,7 @@ export class Enums {
     Enums.hbsCapacities = Enums.mapObjetToKeyValue(ANARCHY.capacity);
     Enums.hbsMonitors = Enums.mapObjetToKeyValue(ANARCHY.monitor);
     Enums.hbsMonitorLetters = Enums.mapObjetToKeyValue(ANARCHY.monitorLetter);
-    Enums.hbsShadowampCategories = Enums.mapObjetToKeyValue(ANARCHY.shadowampCategory);
+    Enums.hbsAssetModuleCategories = Enums.mapObjetToKeyValue(ANARCHY.assetModuleCategory);
     Enums.hbsAreas = Enums.mapObjetToKeyValue(ANARCHY.area);
     Enums.hbsRanges = Enums.mapObjetToKeyValue(ANARCHY.range);
     Enums.hbsVehicleCategories = Enums.mapObjetToKeyValue(ANARCHY.vehicleCategory);
@@ -73,7 +73,7 @@ export class Enums {
       itemTypes: Enums.hbsItemTypes,
       capacities: Enums.hbsCapacities,
       monitors: Enums.hbsMonitors,
-      shadowampCategories: Enums.hbsShadowampCategories,
+      assetModuleCategories: Enums.hbsAssetModuleCategories,
       skills: game.system.anarchy.skills.getSkills({ withKnowledge })
         .map(it => { return { value: it.code, label: game.i18n.localize(it.labelkey), labelkey: it.labelkey }; }),
       areas: Enums.hbsAreas,
