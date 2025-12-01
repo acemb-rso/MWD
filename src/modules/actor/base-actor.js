@@ -136,6 +136,7 @@ export class AnarchyBaseActor extends Actor {
   isVehicle() { return [TEMPLATE.actorTypes.vehicle, TEMPLATE.actorTypes.battlemech].includes(this.type) }
   prepareData() {
     super.prepareData()
+    this._prepareEdgePools()
     this.cleanupFavorites()
   }
 
@@ -185,6 +186,28 @@ export class AnarchyBaseActor extends Actor {
   computeFatigueState() {
     const monitor = this.system.monitors?.fatigue;
     return monitor ? { value: monitor.max - monitor.value, max: monitor.max } : { value: 0, max: 0 }
+  }
+
+  _prepareEdgePools() {
+    if (!this.system?.counters) {
+      return;
+    }
+
+    const edgeValue = this.getAttributeValue(TEMPLATE.attributes.edge);
+    const pools = foundry.utils.getProperty(this.system, 'counters.edgePools') ?? {};
+
+    Object.values(TEMPLATE.counters.edgePools).forEach(code => {
+      const pool = pools[code] ?? {};
+      const value = pool.value;
+
+      pool.value = value ?? edgeValue ?? 0;
+      pool.value = Math.min(pool.value, edgeValue ?? pool.value ?? 0);
+      pool.max = edgeValue ?? pool.max ?? 0;
+
+      pools[code] = pool;
+    });
+
+    foundry.utils.setProperty(this.system, 'counters.edgePools', pools);
   }
 
   getMatrixDetails() {
@@ -395,14 +418,17 @@ export class AnarchyBaseActor extends Actor {
   getEdgePools() { return this.system.counters?.edgePools ?? {}; }
 
   getEdgePoolValue(pool) {
-    return this.getEdgePools()?.[pool]?.value ?? 0;
+    const edge = this.getAttributeValue(TEMPLATE.attributes.edge);
+    const poolValue = this.getEdgePools()?.[pool]?.value;
+    const value = poolValue ?? edge ?? 0;
+    return Math.min(value, edge ?? value ?? 0);
   }
 
   getRemainingEdge(pool = undefined) {
     if (pool) {
       return this.getEdgePoolValue(pool);
     }
-    return Math.max(0, ...Object.values(this.getEdgePools()).map(it => it?.value ?? 0));
+    return Math.max(0, ...Object.values(TEMPLATE.counters.edgePools).map(poolCode => this.getEdgePoolValue(poolCode)));
   }
 
   canUseEdge() {
