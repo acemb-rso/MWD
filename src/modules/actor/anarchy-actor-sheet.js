@@ -12,13 +12,10 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
 
   static PARTS = {
     sheet: {
-      template: (sheet) => sheet.template
+      template: TEMPLATES_PATH + "/actor/character.hbs",
+      scrollable: [".sheet-body"]
     }
   };
-
-  get template() {
-    return this._resolveTemplatePath();
-  }
 
   /** @override */
   static get DEFAULT_OPTIONS() {
@@ -26,6 +23,11 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       isGM: game.user.isGM,
       dragDrop: [{ dragSelector: ".item ", dropSelector: null }],
       classes: [game.system.anarchy.styles.selectCssClass(), "sheet", "actor"],
+      actions: {},
+      position: {
+        width: 700,
+        height: 800
+      }
     });
   }
 
@@ -36,47 +38,59 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     return this.DEFAULT_OPTIONS;
   }
 
-  async getData(options) {
-    this._logSheetDiagnostics('getData-start', { options });
-    const baseContext = await super._prepareContext(options);
-    let hbsData = foundry.utils.mergeObject(
-      baseContext,
-      {
-        items: {},
-        anarchy: this.actor.getAnarchy(),
-        ownerActor: this.actor.getOwnerActor(),
-        ownedActors: this.actor.getOwnedActors(),
-        options: {
-          limited: !this.document.isOwner,
-          owner: this.document.isOwner,
-          cssClass: this.isEditable ? "editable" : "locked",
-        },
-        ENUMS: foundry.utils.mergeObject({ attributeAction: this.actor.getAttributeActions() }, Enums.getEnums()),
-        ANARCHY: ANARCHY
-      });
-    const editableClass = this.isEditable ? "editable" : "locked";
-    const baseClasses = hbsData.options?.classes ?? [];
-    const classes = Misc.distinct([
-      ...baseClasses,
-      `actor-${this.actor.type}`,
-      editableClass
-    ]);
-    hbsData.options.classes = classes;
-    hbsData.options.cssClass = classes.join(" ");
-    hbsData.system = this.actor.system;
+  /** @override */
+  _configureRenderOptions(options) {
+    super._configureRenderOptions(options);
+    
+    // Dynamically set the template based on actor type
+    if (this.actor?.type) {
+      const template = `${TEMPLATES_PATH}/actor/${this.actor.type}.hbs`;
+      this.constructor.PARTS.sheet.template = template;
+    }
+  }
 
-    Misc.classifyInto(hbsData.items, this.actor.items);
-    hbsData.items.weapon = [
-      ...(hbsData.items.mechWeapon ?? []),
-      ...(hbsData.items.personalWeapon ?? []),
-    ];
-    this._logSheetDiagnostics('getData-complete', { classes });
+  async _prepareContext(options) {
+    this._logSheetDiagnostics('prepareContext-start', { options });
+    
+    const context = await super._prepareContext(options);
+    
+    // Merge in your custom data
+    const hbsData = foundry.utils.mergeObject(context, {
+      items: {},
+      anarchy: this.actor.getAnarchy?.() ?? {},
+      ownerActor: this.actor.getOwnerActor?.() ?? null,
+      ownedActors: this.actor.getOwnedActors?.() ?? [],
+      editable: this.isEditable,
+      owner: this.document.isOwner,
+      limited: !this.document.isOwner,
+      ENUMS: foundry.utils.mergeObject(
+        { attributeAction: this.actor.getAttributeActions?.() ?? {} }, 
+        Enums.getEnums()
+      ),
+      ANARCHY: ANARCHY,
+      system: this.actor.system
+    });
+
+    // Classify items
+    if (this.actor.items) {
+      Misc.classifyInto(hbsData.items, this.actor.items);
+      hbsData.items.weapon = [
+        ...(hbsData.items.mechWeapon ?? []),
+        ...(hbsData.items.personalWeapon ?? []),
+      ];
+    }
+
+    this._logSheetDiagnostics('prepareContext-complete', { 
+      hasItems: !!hbsData.items,
+      itemCount: this.actor.items?.size ?? 0 
+    });
+    
     return hbsData;
   }
 
-  /** @override */
-  async _prepareContext(options) {
-    return this.getData(options);
+  _onRender(context, options) {
+    super._onRender(context, options);
+    this._logSheetDiagnostics('onRender-complete');
   }
 
   activateListeners(html) {
@@ -193,35 +207,13 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     });
   }
 
-  async _render(force = false, options = {}) {
-    const template = this._resolveTemplatePath();
-    this._logSheetDiagnostics('render-start', { force, options, template });
-    try {
-      const result = await super._render(force, options);
-      this._logSheetDiagnostics('render-complete');
-      return result;
-    }
-    catch (error) {
-      console.error(`${LOG_HEAD}Actor sheet render failed`, {
-        actorId: this.actor?.id,
-        actorName: this.actor?.name,
-        actorType: this.actor?.type,
-        template: this.template,
-        options,
-        error
-      });
-      ui.notifications?.error?.('Actor sheet render failed. Check console for details.');
-      throw error;
-    }
-  }
-
   _logSheetDiagnostics(stage, extra = {}) {
     const diagnostics = {
       stage,
       actorId: this.actor?.id,
       actorName: this.actor?.name,
       actorType: this.actor?.type,
-      template: this.template,
+      template: this.constructor.PARTS?.sheet?.template,
       hasSystemData: !!this.actor?.system,
       ownerId: this.actor?.system?.ownerId ?? null,
       systemReady: !!game.system?.anarchy,
@@ -230,94 +222,6 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       ...extra
     };
     console.debug(`${LOG_HEAD}ActorSheet`, diagnostics);
-  }
-
-  async _getTemplatePaths(context) {
-    const superPaths = super._getTemplatePaths
-      ? await super._getTemplatePaths(context)
-      : [];
-
-    const templatePaths = (superPaths ?? [])
-      .map((path) => typeof path === "string" ? path.trim() : path)
-      .filter((path) => typeof path === "string" && path.length > 0);
-
-    const invalidPaths = (superPaths ?? []).filter((path) =>
-      typeof path !== "string"
-      || !path
-      || (typeof path === "string" && path.trim().length === 0)
-    );
-
-    if (invalidPaths.length > 0) {
-      console.warn(`${LOG_HEAD}Actor sheet filtered invalid template paths`, {
-        actorId: this.actor?.id,
-        actorName: this.actor?.name,
-        actorType: this.actor?.type,
-        invalidPaths,
-        templatePaths
-      });
-    }
-
-    return templatePaths;
-  }
-
-  async _preloadTemplates(context) {
-    const templatePaths = await (this._getTemplatePaths?.(context) ?? []);
-    const safePaths = Array.isArray(templatePaths) ? templatePaths : [];
-
-    if (!Array.isArray(templatePaths)) {
-      console.warn(`${LOG_HEAD}Actor sheet _getTemplatePaths returned a non-array; coercing to []`, {
-        actorId: this.actor?.id,
-        actorName: this.actor?.name,
-        actorType: this.actor?.type,
-        templatePaths,
-      });
-    }
-
-    this._logSheetDiagnostics("templates-preload", { templatePaths: safePaths });
-
-    if (!safePaths.length) {
-      console.warn(`${LOG_HEAD}Actor sheet has no templates to preload`, {
-        actorId: this.actor?.id,
-        actorName: this.actor?.name,
-        actorType: this.actor?.type,
-      });
-    }
-
-    return loadTemplates?.(safePaths) ?? [];
-  }
-
-  _resolveTemplatePath() {
-    const fallback = `${TEMPLATES_PATH}/actor/character.hbs`;
-    const actorType = this.actor?.type;
-    const candidate = actorType
-      ? `${TEMPLATES_PATH}/actor/${actorType}.hbs`
-      : fallback;
-    const template = typeof candidate === "string" ? candidate.trim() : "";
-
-    const invalidPath = !template
-      || template.includes("undefined")
-      || template.includes("null");
-
-    if (invalidPath) {
-      console.warn(`${LOG_HEAD}Actor sheet template resolved to an invalid path, using fallback`, {
-        actorId: this.actor?.id,
-        actorName: this.actor?.name,
-        actorType,
-        candidate,
-        fallback
-      });
-      return fallback;
-    }
-
-    if (!actorType) {
-      console.warn(`${LOG_HEAD}Actor sheet missing type, using fallback template`, {
-        actorId: this.actor?.id,
-        actorName: this.actor?.name,
-        fallback
-      });
-    }
-
-    return template;
   }
 
   getEventItemType(event) {
