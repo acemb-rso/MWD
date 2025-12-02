@@ -6,8 +6,7 @@ import { Grammar } from "./grammar.js";
 import { Icons } from "./icons.js";
 import { WeaponItem } from "./item/weapon-item.js";
 import { Misc } from "./misc.js";
-
-const { loadTemplates } = foundry.applications.handlebars;
+import { TemplateGuards } from "./template-guards.js";
 
 const HBS_PARTIAL_TEMPLATES = [
   // -- monitors
@@ -164,7 +163,7 @@ export class HandlebarsManager {
 
   async onReady() {
     this.registerBasicHelpers();
-    await loadTemplates(Misc.distinct(HBS_PARTIAL_TEMPLATES))
+    await TemplateGuards.loadTemplates(Misc.distinct(HBS_PARTIAL_TEMPLATES))
   }
 
   registerBasicHelpers() {

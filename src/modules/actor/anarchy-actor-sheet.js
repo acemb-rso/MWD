@@ -5,6 +5,7 @@ import { Misc } from "../misc.js";
 import { Enums } from "../enums.js";
 import { SelectActor } from "../dialog/select-actor.js";
 import { ResistanceByTypeDialog } from "../dialog/resistance-by-type.js";
+import { TemplateGuards } from "../template-guards.js";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -283,7 +284,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       });
     }
 
-    return loadTemplates?.(safePaths) ?? [];
+    return TemplateGuards.loadTemplates(safePaths);
   }
 
   _resolveTemplatePath() {
