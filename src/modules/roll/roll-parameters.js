@@ -432,7 +432,7 @@ export class RollParameters {
     const templates = Misc.distinct([]
       .concat(Object.values(this.registeredParameters).map(p => p.options.hbsTemplateRoll))
       .concat(Object.values(this.registeredParameters).map(p => p.options.hbsTemplateChat))
-      .filter(it => it != undefined));
+      .filter(it => typeof it === "string" && it.length > 0));
     await loadTemplates(Misc.distinct(templates));
     await loadTemplates([`${TEMPLATES_PATH}/roll/parts/parameter-label.hbs`]);
   }
