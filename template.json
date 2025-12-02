@@ -142,6 +142,9 @@
         }
       },
       "mwd-battlemech": {
+        "templates": [
+          "mwd-base"
+        ],
         "attributes": {
           "handling": { "value": 4 },
           "system": { "value": 3 },
@@ -192,6 +195,8 @@
     "character": {
       "templates": [
         "description",
+        "counters",
+        "ownership",
         "attribute-agility",
         "attribute-strength",
         "attribute-willpower",
@@ -286,7 +291,6 @@
     "battlemech": {
       "templates": [
         "description",
-        "mwd-base",
         "mwd-battlemech"
       ],
       "attributes": {},
