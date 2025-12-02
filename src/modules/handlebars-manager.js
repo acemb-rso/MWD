@@ -90,6 +90,8 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/actor/parts/quality.hbs',
   'systems/mwd/templates/actor/parts/asset-module.hbs',
   'systems/mwd/templates/actor/parts/asset-modules.hbs',
+  'systems/mwd/templates/actor/parts/life-module.hbs',
+  'systems/mwd/templates/actor/parts/life-modules.hbs',
   'systems/mwd/templates/actor/parts/item-attribute.hbs',
   'systems/mwd/templates/actor/parts/cyberdeck.hbs',
   'systems/mwd/templates/actor/parts/cyberdecks.hbs',
