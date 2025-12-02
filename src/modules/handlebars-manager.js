@@ -193,7 +193,13 @@ export class HandlebarsManager {
     Handlebars.registerHelper('either', (a, b) => a ? a : b);
     Handlebars.registerHelper('includes', (list, value) => list?.includes(value));
     Handlebars.registerHelper('isInteger', a => a !== undefined && Number.isInteger(a));
-    Handlebars.registerHelper('actorAttribute', (attribute, actor, item = undefined) => actor.getAttributeValue(attribute, item));
+    Handlebars.registerHelper('actorAttribute', (attribute, actor, item = undefined) => {
+      if (!actor || typeof actor.getAttributeValue !== 'function') {
+        console.warn('ANARCHY | actorAttribute helper: invalid actor', { attribute, actor });
+        return 0;
+      }
+      return actor.getAttributeValue(attribute, item);
+    });
     Handlebars.registerHelper('localizeAttribute', Enums.localizeAttribute);
     Handlebars.registerHelper('iconFA', Icons.fontAwesome);
     Handlebars.registerHelper('iconSrc', Icons.iconSystemPath);
