@@ -18,7 +18,7 @@ export class RollCelebrity extends HandlebarsApplicationMixin(ApplicationV2) {
       window: {
         resizable: true
       }
-    });
+    }, { inplace: false });
   }
 
   static PARTS = {
