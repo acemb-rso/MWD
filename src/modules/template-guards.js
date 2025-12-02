@@ -15,11 +15,48 @@ export class TemplateGuards {
       return;
     }
 
-    if (handlebars.loadTemplates.__mwdGuarded) return;
+    const descriptor = Object.getOwnPropertyDescriptor(handlebars, "loadTemplates");
+    const canPatch = !descriptor || descriptor.writable || descriptor.set || descriptor.configurable;
 
-    const originalLoadTemplates = handlebars.loadTemplates.bind(handlebars);
+    if (handlebars.loadTemplates.__mwdGuarded) {
+      TemplateGuards._guardedLoader = handlebars.loadTemplates;
+      return;
+    }
 
-    handlebars.loadTemplates = async function guardedLoadTemplates(paths = [], options = {}) {
+    const guardedLoader = TemplateGuards._createGuardedLoader(handlebars.loadTemplates, handlebars);
+
+    TemplateGuards._guardedLoader = guardedLoader;
+
+    if (!canPatch) {
+      console.warn(`${LOG_HEAD}TemplateGuards skipped; handlebars.loadTemplates is read-only.`);
+      return;
+    }
+
+    handlebars.loadTemplates = guardedLoader;
+    handlebars.loadTemplates.__mwdGuarded = true;
+  }
+
+  static async loadTemplates(paths = [], options = {}) {
+    const handlebars = foundry.applications?.handlebars;
+    const loader = handlebars?.loadTemplates;
+
+    if (!loader) {
+      console.warn(`${LOG_HEAD}TemplateGuards loadTemplates skipped; no handlebars loader found.`);
+      return [];
+    }
+
+    const guardedLoader = TemplateGuards._guardedLoader
+      ?? (loader.__mwdGuarded ? loader : TemplateGuards._createGuardedLoader(loader, handlebars));
+
+    TemplateGuards._guardedLoader = guardedLoader;
+
+    return guardedLoader(paths, options);
+  }
+
+  static _createGuardedLoader(loader, handlebars) {
+    const originalLoadTemplates = loader?.bind(handlebars);
+
+    const guardedLoadTemplates = async function guardedLoadTemplates(paths = [], options = {}) {
       const { normalized, stripped } = TemplateGuards._normalize(paths);
 
       if (stripped.length) {
@@ -37,7 +74,9 @@ export class TemplateGuards {
       return originalLoadTemplates(normalized, options);
     };
 
-    handlebars.loadTemplates.__mwdGuarded = true;
+    guardedLoadTemplates.__mwdGuarded = true;
+
+    return guardedLoadTemplates;
   }
 
   static _normalize(paths) {

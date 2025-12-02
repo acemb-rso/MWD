@@ -6,8 +6,9 @@ import { Misc } from "../misc.js";
 import { Tokens } from "../token/tokens.js";
 import { AnarchyRoll } from "./anarchy-roll.js";
 import { ROLL_PARAMETER_CATEGORY } from "./roll-parameters.js";
+import { TemplateGuards } from "../template-guards.js";
 
-const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
+const { renderTemplate } = foundry.applications.handlebars;
 
 const HBS_TEMPLATE_CHAT_ANARCHY_ROLL = `${TEMPLATES_PATH}/chat/anarchy-roll.hbs`;
 
@@ -26,7 +27,7 @@ export class RollManager {
   }
 
   async onReady() {
-    await loadTemplates(Misc.distinct(HBS_CHAT_TEMPLATES));
+    await TemplateGuards.loadTemplates(Misc.distinct(HBS_CHAT_TEMPLATES));
   }
 
   async roll(roll) {
