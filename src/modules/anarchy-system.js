@@ -124,7 +124,7 @@ export class AnarchySystem {
     AnarchyBaseActor.init()
     ActorDamageManager.init();
     ChatManager.init();
-    this.gmManager = new GMManager(this.gmAnarchy);
+    this.gmManager = new GMManager({ gmAnarchy: this.gmAnarchy });
     console.log(LOG_HEAD + 'AnarchySystem.onInit | done');
     Hooks.once('ready', () => this.onReady());
   }

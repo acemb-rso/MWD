@@ -31,18 +31,18 @@ export class ResistanceByTypeDialog extends HandlebarsApplicationMixin(Applicati
   };
 
   static async show(actor, monitor) {
-    const options = foundry.utils.mergeObject(ResistanceByTypeDialog.DEFAULT_OPTIONS, {
+    const options = {
       id: `${ResistanceByTypeDialog.DEFAULT_OPTIONS.id}-${foundry.utils.randomID()}`,
       classes: [game.system.anarchy.styles.selectCssClass(), ...ResistanceByTypeDialog.DEFAULT_OPTIONS.classes],
-    }, { inplace: false });
-    const app = new ResistanceByTypeDialog(actor, monitor, options);
+    };
+    const app = new ResistanceByTypeDialog({ actor, monitor }, options);
     return app.render({ force: true });
   }
 
-  constructor(actor, monitor, options) {
-    super(options);
-    this.actor = actor;
-    this.monitor = monitor;
+  constructor(context = {}, options = {}) {
+    super(context, options);
+    this.actor = context.actor;
+    this.monitor = context.monitor;
     this.damageTypes = Enums.getDamageTypes();
   }
 

@@ -36,9 +36,9 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
     }
   };
 
-  constructor(gmAnarchy) {
-    super();
-    this.gmAnarchy = gmAnarchy;
+  constructor(context = {}, options = {}) {
+    super(context, options);
+    this.gmAnarchy = context.gmAnarchy;
     this.gmDifficulty = new GMDifficulty();
     this.size = this._registerSizeSetting();
     this.handleDrag = new HandleDragApplication(

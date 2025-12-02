@@ -46,18 +46,18 @@ export class RollCelebrity extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     const title = await renderTemplate(`${TEMPLATES_PATH}/dialog/roll-celebrite-title.hbs`, rollData);
-    const app = new RollCelebrity(rollData, title);
-    return app.render({ force: true });
-  }
-
-  constructor(roll, title) {
-    const options = foundry.utils.mergeObject(RollCelebrity.DEFAULT_OPTIONS, {
+    const options = {
       id: `roll-celebrity-${foundry.utils.randomID()}`,
       classes: [game.system.anarchy.styles.selectCssClass(), ...RollCelebrity.DEFAULT_OPTIONS.classes],
       window: { title }
-    }, { inplace: false });
-    super(options);
-    this.roll = roll;
+    };
+    const app = new RollCelebrity({ roll: rollData }, options);
+    return app.render({ force: true });
+  }
+
+  constructor(context = {}, options = {}) {
+    super(context, options);
+    this.roll = context.roll;
   }
 
   async _prepareContext() {
