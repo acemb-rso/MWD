@@ -9,8 +9,8 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   }
 
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
+  static get DEFAULT_OPTIONS() {
+    return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       width: 720,
       height: 700,
       tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "main" }],
@@ -19,7 +19,7 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
 
   async getData(options) {
     if (this.viewMode == undefined) {
-      this.viewMode = true
+      this.viewMode = false;
     }
     const hbsData = foundry.utils.mergeObject(
       await super.getData(options),
@@ -37,29 +37,31 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   }
 
   activateListeners(html) {
-    super.activateListeners(html);
+    const element = html instanceof HTMLElement ? html : html[0];
+    const jqHtml = $(element);
+    super.activateListeners(element);
 
-    html.find('.click-toggle-view-mode').click(async event => this.toggleViewMode())
+    jqHtml.find('.click-toggle-view-mode').click(async event => this.toggleViewMode())
 
     // cues, dispositions, keywords
-    html.find('.click-word-add').click(async event => {
+    jqHtml.find('.click-word-add').click(async event => {
       event.stopPropagation();
       this.createNewWord(this.getEventWordType(event));
     });
 
-    html.find('.click-word-say').click(async event => {
+    jqHtml.find('.click-word-say').click(async event => {
       event.stopPropagation();
       this.actor.sayWord(
         this.getEventWordType(event),
         this.getEventWordId(event));
     });
 
-    html.find('.change-word-value').click(async event => {
+    jqHtml.find('.change-word-value').click(async event => {
       event.stopPropagation();
     });
 
 
-    html.find('.change-word-value').change(async event => {
+    jqHtml.find('.change-word-value').change(async event => {
       event.stopPropagation();
       const newWordValue = event.currentTarget.value;
       await this.actor.updateWord(
@@ -68,14 +70,14 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
         newWordValue);
     });
 
-    html.find('.click-word-delete').click(async event => {
+    jqHtml.find('.click-word-delete').click(async event => {
       event.stopPropagation();
       this.actor.deleteWord(
         this.getEventWordType(event),
         this.getEventWordId(event));
     });
 
-    html.find(".click-celebrity-roll").click(async event => {
+    jqHtml.find(".click-celebrity-roll").click(async event => {
       event.stopPropagation();
       this.actor.rollCelebrity();
     });
