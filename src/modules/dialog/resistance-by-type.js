@@ -21,7 +21,7 @@ export class ResistanceByTypeDialog extends HandlebarsApplicationMixin(Applicati
       window: {
         resizable: true,
       }
-    });
+    }, { inplace: false });
   }
 
   static PARTS = {

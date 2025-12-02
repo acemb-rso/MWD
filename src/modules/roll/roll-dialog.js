@@ -22,7 +22,7 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         resizable: true,
         minimizable: true
       }
-    });
+    }, { inplace: false });
   }
 
   static PARTS = {

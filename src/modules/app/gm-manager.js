@@ -27,7 +27,7 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
         height: "auto",
         width: "auto"
       }
-    });
+    }, { inplace: false });
   }
 
   static PARTS = {
