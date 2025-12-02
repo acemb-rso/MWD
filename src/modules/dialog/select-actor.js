@@ -12,7 +12,7 @@ export class SelectActor extends HandlebarsApplicationMixin(ApplicationV2) {
       window: {
         resizable: true
       }
-    });
+    }, { inplace: false });
   }
 
   static PARTS = {
@@ -26,20 +26,20 @@ export class SelectActor extends HandlebarsApplicationMixin(ApplicationV2) {
     onActorSelected = async actor => { },
     onCancel = async () => { }) {
 
-    const app = new SelectActor(actors, onActorSelected, onCancel, title);
-    return app.render({ force: true });
-  }
-
-  constructor(actors, onActorSelected, onCancel, title) {
-    const options = foundry.utils.mergeObject(SelectActor.DEFAULT_OPTIONS, {
+    const options = {
       id: `select-actor-${foundry.utils.randomID()}`,
       classes: [game.system.anarchy.styles.selectCssClass(), ...SelectActor.DEFAULT_OPTIONS.classes],
       window: { title }
-    }, { inplace: false });
-    super(options);
-    this.actors = actors;
-    this.onActorSelected = onActorSelected;
-    this.onCancel = onCancel;
+    };
+    const app = new SelectActor({ actors, onActorSelected, onCancel }, options);
+    return app.render({ force: true });
+  }
+
+  constructor(context = {}, options = {}) {
+    super(context, options);
+    this.actors = context.actors;
+    this.onActorSelected = context.onActorSelected;
+    this.onCancel = context.onCancel;
     this._actorSelected = false;
   }
 

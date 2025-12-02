@@ -22,7 +22,7 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         resizable: true,
         minimizable: true
       }
-    });
+    }, { inplace: false });
   }
 
   static PARTS = {
@@ -121,10 +121,15 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     await RollDialog.create(rollData); 
   } 
 
-  static async create(roll) { 
+  static async create(roll) {
     const preparedRoll = RollDialog.#prepareRollData(roll);
     const title = await renderTemplate(`${TEMPLATES_PATH}/roll/roll-dialog-title.hbs`, preparedRoll);
-    const app = new RollDialog(preparedRoll, title);
+    const options = {
+      id: `roll-dialog-${foundry.utils.randomID()}`,
+      classes: [game.system.anarchy.styles.selectCssClass(), ...RollDialog.DEFAULT_OPTIONS.classes],
+      window: { title }
+    };
+    const app = new RollDialog({ roll: preparedRoll }, options);
     return app.render({ force: true });
   }
 
@@ -138,15 +143,9 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
 
-  constructor(roll, title) {
-    const options = foundry.utils.mergeObject(RollDialog.DEFAULT_OPTIONS, {
-      id: `roll-dialog-${foundry.utils.randomID()}`,
-      classes: [game.system.anarchy.styles.selectCssClass(), ...RollDialog.DEFAULT_OPTIONS.classes],
-      window: { title: title }
-    }, { inplace: false });
-
-    super(options);
-    this.roll = roll;
+  constructor(context = {}, options = {}) {
+    super(context, options);
+    this.roll = context.roll;
   }
 
   async _prepareContext() {
