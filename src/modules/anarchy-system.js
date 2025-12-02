@@ -69,7 +69,7 @@ export class AnarchySystem {
     game.system.anarchy = this;
     this.remoteCall = new RemoteCall(); // initialize remote calls registry first: used by other singleton managers
 
-    TemplateGuards.install();
+    // TemplateGuards.install();  // Disabled - loadTemplates is frozen in Foundry V12
 
     this.actorClasses = {
       character: CharacterActor,
