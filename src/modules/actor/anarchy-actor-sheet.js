@@ -53,7 +53,14 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     this._logSheetDiagnostics('prepareContext-start', { options });
     
     const context = await super._prepareContext(options);
-    
+
+    console.log(`${LOG_HEAD}Actor data for template:`, {
+      actor: this.actor,
+      system: this.actor?.system,
+      type: this.actor?.type,
+      hasGetAnarchy: typeof this.actor?.getAnarchy === 'function'
+    });
+
     // Merge in your custom data
     const hbsData = foundry.utils.mergeObject(context, {
       items: {},
@@ -63,8 +70,10 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       editable: this.isEditable,
       owner: this.document.isOwner,
       limited: !this.document.isOwner,
+      actor: this.actor,
+      data: context.data ?? this.actor,
       ENUMS: foundry.utils.mergeObject(
-        { attributeAction: this.actor.getAttributeActions?.() ?? {} }, 
+        { attributeAction: this.actor.getAttributeActions?.() ?? {} },
         Enums.getEnums()
       ),
       ANARCHY: ANARCHY,
