@@ -50,6 +50,7 @@ import { ActorDamageManager } from './actor/actor-damage.js';
 import { AttributeActions } from './attribute-actions.js';
 import { DiceCursor } from './roll/dice-cursor.js';
 import { SystemSettings } from './system-settings.js';
+import { TemplateGuards } from './template-guards.js';
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -67,6 +68,8 @@ export class AnarchySystem {
     game.system.mwd = this;
     game.system.anarchy = this;
     this.remoteCall = new RemoteCall(); // initialize remote calls registry first: used by other singleton managers
+
+    TemplateGuards.install();
 
     this.actorClasses = {
       character: CharacterActor,
