@@ -5,9 +5,8 @@ import { ANARCHY_HOOKS, HooksManager } from "../hooks-manager.js";
 import { MATRIX } from "../matrix-helper.js";
 import { Misc } from "../misc.js";
 import { Modifiers } from "../modifiers/modifiers.js";
-import { TemplateGuards } from "../template-guards.js";
 
-const { renderTemplate } = foundry.applications.handlebars;
+const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
 
 export const ROLL_PARAMETER_CATEGORY = {
   title: 'title',
@@ -434,8 +433,8 @@ export class RollParameters {
       .concat(Object.values(this.registeredParameters).map(p => p.options.hbsTemplateRoll))
       .concat(Object.values(this.registeredParameters).map(p => p.options.hbsTemplateChat))
       .filter(it => typeof it === "string" && it.length > 0));
-    await TemplateGuards.loadTemplates(Misc.distinct(templates));
-    await TemplateGuards.loadTemplates([`${TEMPLATES_PATH}/roll/parts/parameter-label.hbs`]);
+    await loadTemplates(Misc.distinct(templates));
+    await loadTemplates([`${TEMPLATES_PATH}/roll/parts/parameter-label.hbs`]);
   }
 
   _validate(parameter) {
@@ -460,7 +459,7 @@ export class RollParameters {
 
   async _optionalLoadTemplate(hbsTemplate) {
     if (hbsTemplate) {
-      await TemplateGuards.loadTemplates([hbsTemplate]);
+      await loadTemplates([hbsTemplate]);
     }
   }
 

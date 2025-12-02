@@ -4,10 +4,9 @@ import { Enums } from "../enums.js";
 import { Misc } from "../misc.js";
 import { DiceCursor } from "./dice-cursor.js";
 import { ROLL_PARAMETER_CATEGORY } from "./roll-parameters.js";
-import { TemplateGuards } from "../template-guards.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
-const { renderTemplate } = foundry.applications.handlebars;
+const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
 
 /**
  * Roll dialog implemented with ApplicationV2.
@@ -37,7 +36,7 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   static async onReady() {
-    await TemplateGuards.loadTemplates([
+    await loadTemplates([
       'systems/mwd/templates/roll/roll-parameters-category.hbs',
       'systems/mwd/templates/roll/parts/generic.hbs',
       'systems/mwd/templates/roll/parts/image-attribute.hbs',
