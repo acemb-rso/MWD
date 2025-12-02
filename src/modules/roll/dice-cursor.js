@@ -1,7 +1,6 @@
 import { Misc } from "../misc.js";
-import { TemplateGuards } from "../template-guards.js";
 
-const { renderTemplate } = foundry.applications.handlebars;
+const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
 
 
 const DICE_FAS_ICONS = {
@@ -19,7 +18,7 @@ export class DiceCursor {
   }
 
   static async onReady() {
-    await TemplateGuards.loadTemplates([
+    await loadTemplates([
       'systems/mwd/templates/roll/parts/dice-cursor.hbs',
     ]);
   }

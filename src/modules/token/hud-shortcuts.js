@@ -1,9 +1,8 @@
 import { ANARCHY } from "../config.js";
 import { TEMPLATES_PATH } from "../constants.js";
 import { Misc } from "../misc.js";
-import { TemplateGuards } from "../template-guards.js";
 
-const { renderTemplate } = foundry.applications.handlebars;
+const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
 
 const TEMPLATE_HUD_SHORTCUTS = `${TEMPLATES_PATH}/token/hud-shortcuts.hbs`;
 
@@ -15,7 +14,7 @@ export class HUDShortcuts {
   }
 
   async onReady() {
-    await TemplateGuards.loadTemplates([
+    await loadTemplates([
       TEMPLATE_HUD_SHORTCUTS,
     ]);
   }
