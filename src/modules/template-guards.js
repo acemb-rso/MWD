@@ -15,6 +15,14 @@ export class TemplateGuards {
       return;
     }
 
+    const descriptor = Object.getOwnPropertyDescriptor(handlebars, "loadTemplates");
+    const canPatch = !descriptor || descriptor.writable || descriptor.set || descriptor.configurable;
+
+    if (!canPatch) {
+      console.warn(`${LOG_HEAD}TemplateGuards skipped; handlebars.loadTemplates is read-only.`);
+      return;
+    }
+
     if (handlebars.loadTemplates.__mwdGuarded) return;
 
     const originalLoadTemplates = handlebars.loadTemplates.bind(handlebars);
