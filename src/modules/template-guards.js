@@ -7,21 +7,24 @@ import { LOG_HEAD } from "./constants.js";
  * `startsWith` against a null path while still letting valid entries load.
  */
 export class TemplateGuards {
-
   static install() {
-    const handlebars = foundry.applications?.handlebars;
-    if (!handlebars?.loadTemplates) {
-      console.warn(`${LOG_HEAD}TemplateGuards skipped; no handlebars loader found.`);
+    // In Foundry V12+, loadTemplates is on globalThis, not on handlebars object
+    if (!globalThis.loadTemplates) {
+      console.warn(`${LOG_HEAD}TemplateGuards skipped; no loadTemplates found.`);
+      return;
+    }
+    
+    if (globalThis.loadTemplates.__mwdGuarded) {
+      console.debug(`${LOG_HEAD}TemplateGuards already installed.`);
       return;
     }
 
-    if (handlebars.loadTemplates.__mwdGuarded) return;
+    const originalLoadTemplates = globalThis.loadTemplates;
 
-    const originalLoadTemplates = handlebars.loadTemplates.bind(handlebars);
-
-    handlebars.loadTemplates = async function guardedLoadTemplates(paths = [], options = {}) {
+    // Define the wrapped function
+    const guardedLoadTemplates = async function(paths = [], options = {}) {
       const { normalized, stripped } = TemplateGuards._normalize(paths);
-
+      
       if (stripped.length) {
         console.warn(`${LOG_HEAD}Stripping invalid template paths before loadTemplates`, {
           paths,
@@ -31,26 +34,45 @@ export class TemplateGuards {
           stack: new Error("loadTemplates invalid input").stack
         });
       }
-
+      
       if (!normalized.length) return [];
-
+      
       return originalLoadTemplates(normalized, options);
     };
 
-    handlebars.loadTemplates.__mwdGuarded = true;
+    // Mark as guarded
+    guardedLoadTemplates.__mwdGuarded = true;
+
+    // Use Object.defineProperty to override even if the property is non-writable
+    try {
+      Object.defineProperty(globalThis, 'loadTemplates', {
+        value: guardedLoadTemplates,
+        writable: true,
+        configurable: true
+      });
+      console.log(`${LOG_HEAD}TemplateGuards installed successfully.`);
+    } catch (error) {
+      console.error(`${LOG_HEAD}Failed to install TemplateGuards:`, error);
+      // Fall back to direct assignment (might fail but worth trying)
+      try {
+        globalThis.loadTemplates = guardedLoadTemplates;
+      } catch (e) {
+        console.error(`${LOG_HEAD}Cannot override loadTemplates - it may be frozen.`);
+      }
+    }
   }
 
   static _normalize(paths) {
     const candidates = Array.isArray(paths) ? paths : [paths];
     const normalized = [];
     const stripped = [];
-
+    
     for (const path of candidates) {
       const trimmed = typeof path === "string" ? path.trim() : path;
       const valid = typeof trimmed === "string" && trimmed.length > 0;
       (valid ? normalized : stripped).push(path);
     }
-
+    
     return { normalized, stripped };
   }
 }
