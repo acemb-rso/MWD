@@ -17,23 +17,21 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     });
   }
 
-  async getData(options) {
-    if (this.viewMode == undefined) {
-      this.viewMode = false;
-    }
-    const hbsData = foundry.utils.mergeObject(
-      await super.getData(options),
-      {
-        options: {
-          viewMode: this.viewMode
-        }
-      });
-    return hbsData;
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
+    const viewMode = this.options.viewMode ?? false;
+    this.options.viewMode = viewMode;
+
+    return foundry.utils.mergeObject(context, {
+      options: {
+        viewMode
+      }
+    });
   }
 
   toggleViewMode() {
-    this.viewMode = !this.viewMode
-    this.render()
+    this.options.viewMode = !this.options.viewMode;
+    this.render();
   }
 
   activateListeners(html) {

@@ -97,6 +97,9 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/actor/parts/skill.hbs',
   'systems/mwd/templates/actor/parts/skills.hbs',
   'systems/mwd/templates/actor/parts/mech-quick-actions.hbs',
+  'systems/mwd/templates/actor/parts/battlemech-hardpoints.hbs',
+  'systems/mwd/templates/actor/parts/battlemech-weapon-groups.hbs',
+  'systems/mwd/templates/actor/parts/battlemech-weapons.hbs',
   'systems/mwd/templates/actor/parts/weapon-range.hbs',
   'systems/mwd/templates/actor/parts/weapon.hbs',
   'systems/mwd/templates/actor/parts/weapons.hbs',
@@ -115,6 +118,7 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/actor/vehicle/vehicle-category.hbs',
   'systems/mwd/templates/actor/vehicle/vehicle-pilot.hbs',
   'systems/mwd/templates/actor/vehicle/vehicle-skill.hbs',
+  'systems/mwd/templates/actor/vehicle/vehicle-weapons.hbs',
   // item
   'systems/mwd/templates/item/parts/inactive.hbs',
   'systems/mwd/templates/item/parts/itemname.hbs',
