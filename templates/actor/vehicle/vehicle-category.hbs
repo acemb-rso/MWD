@@ -1,3 +1,9 @@
-<select class="info-value" name="system.category">
-  {{selectOptions ENUMS.vehicleCategories selected=system.category labelAttr="labelkey" localize=true}}
-</select>
+{{#if (eq actor.type "battlemech")}}
+  <div class="info-value battlemech-category" aria-label="{{localize 'TYPES.Actor.battlemech'}}">
+    {{localize 'TYPES.Actor.battlemech'}}
+  </div>
+{{else}}
+  <select class="info-value" name="system.category">
+    {{selectOptions ENUMS.vehicleCategories selected=system.category labelAttr="labelkey" localize=true}}
+  </select>
+{{/if}}
