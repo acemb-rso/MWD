@@ -73,6 +73,7 @@ export class AnarchySystem {
 
     this.actorClasses = {
       character: CharacterActor,
+      npc: CharacterActor,
       vehicle: VehicleActor,
       battlemech: BattlemechActor
     }
@@ -146,8 +147,8 @@ export class AnarchySystem {
     });
     Actors.registerSheet(SYSTEM_NAME, CharacterNPCSheet, {
       label: game.i18n.localize(ANARCHY.actor.characterNPCSheet),
-      makeDefault: false,
-      types: ['character']
+      makeDefault: true,
+      types: ['npc']
     });
     Actors.registerSheet(SYSTEM_NAME, CharacterTabbedSheet, {
       label: game.i18n.localize(ANARCHY.actor.characterTabbedSheet),

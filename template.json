@@ -1,6 +1,6 @@
 {
   "Actor": {
-    "types": ["character", "vehicle", "battlemech"],
+    "types": ["character", "npc", "vehicle", "battlemech"],
     "templates": {
       "description": {
         "ownerId": "",
@@ -243,6 +243,61 @@
           "value": 0,
           "total": 0
         },
+        "anarchy": {
+          "value": 3,
+          "max": 6
+        },
+        "edgePools": {
+          "grit": { "value": null },
+          "insight": { "value": null },
+          "rumor": { "value": null },
+          "legend": { "value": null },
+          "credibility": { "value": null },
+          "chaos": { "value": null }
+        }
+      },
+      "style": "",
+      "connectionMode": "disconnected",
+      "ownAnarchy": false,
+      "keywords": [],
+      "dispositions": [],
+      "cues": []
+    },
+    "npc": {
+      "templates": [
+        "description",
+        "ownership",
+        "attribute-agility",
+        "attribute-strength",
+        "attribute-willpower",
+        "attribute-logic",
+        "attribute-charisma",
+        "attribute-edge"
+      ],
+      "monitors": {
+        "physical": {
+          "value": 0,
+          "max": 10,
+          "resistance": {
+            "default": 0,
+            "byType": {}
+          }
+        },
+        "fatigue": {
+          "value": 0,
+          "max": 10,
+          "resistance": {
+            "default": 0,
+            "byType": {}
+          }
+        },
+        "armor": {
+          "label": "Armor",
+          "value": 0,
+          "max": 9
+        }
+      },
+      "counters": {
         "anarchy": {
           "value": 3,
           "max": 6
