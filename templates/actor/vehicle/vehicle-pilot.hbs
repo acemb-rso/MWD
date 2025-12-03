@@ -15,6 +15,9 @@
       <span class="pilot-placeholder">{{localize ANARCHY.actor.vehicle.pilot.none}}</span>
     {{/if}}
   </div>
+  <div class="pilot-picker">
+    <input class="info-value" type="text" name="system.pilot.uuid" value="{{system.pilot.uuid}}" data-dtype="String" data-document-picker="Actor" placeholder="{{localize ANARCHY.actor.vehicle.pilot.placeholder}}" />
+  </div>
   <div class="pilot-actions">
     <a class="anarchy-button click-select-pilot" data-tooltip="{{localize ANARCHY.actor.vehicle.pilot.selectActor}}">{{localize ANARCHY.actor.vehicle.pilot.selectActor}}</a>
     <a class="anarchy-button click-select-pilot-token" data-tooltip="{{localize ANARCHY.actor.vehicle.pilot.selectToken}}">{{localize ANARCHY.actor.vehicle.pilot.selectToken}}</a>
