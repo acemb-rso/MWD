@@ -151,9 +151,6 @@
           "chassis": { "value": 4 },
           "condition": { "value": 3 }
         },
-        "pilot": {
-          "uuid": ""
-        },
         "mwd": {
           "unitType": "mech",
           "locations": {
@@ -351,7 +348,11 @@
       "stealth": 0,
       "category": "",
       "skill": "piloting",
-      "passengers": 4
+      "passengers": 4,
+      "pilot": {
+        "uuid": ""
+      },
+      "crew": ""
     },
     "battlemech": {
       "templates": [
@@ -409,7 +410,11 @@
       "stealth": 0,
       "category": "mech",
       "skill": "gunnery",
-      "passengers": 1
+      "passengers": 1,
+      "pilot": {
+        "uuid": ""
+      },
+      "crew": ""
     }
   },
   "Item": {

@@ -293,6 +293,10 @@
             "noTokens": "Select a token with permission to pilot as the vehicle's pilot."
           }
         },
+        "crew": {
+          "label": "Crew",
+          "placeholder": "Crew names or notes"
+        },
         "quickActions": {
           "title": "Quick Actions",
           "rangedAttack": "Ranged Attack",

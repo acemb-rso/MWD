@@ -37,6 +37,13 @@ export class VehicleSheet extends AnarchyActorSheet {
       await this.actor.update({ 'system.pilot.uuid': '' });
       this.render();
     });
+
+    html.find('.pilot-reference .actor-reference').click(async event => {
+      event.preventDefault();
+      const uuid = event.currentTarget.dataset.actorUuid ?? this.actor.getPilotUuid();
+      const pilot = uuid ? await fromUuid(uuid) : this.actor.getPilotActor();
+      pilot?.sheet?.render(true);
+    });
   }
 
   async selectPilotFromActor() {
