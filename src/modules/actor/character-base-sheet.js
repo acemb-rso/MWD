@@ -13,6 +13,7 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       width: 720,
       height: 700,
+      viewMode: false,
       tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "main" }],
     });
   }
@@ -20,7 +21,6 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const viewMode = this.options.viewMode ?? false;
-    this.options.viewMode = viewMode;
 
     return foundry.utils.mergeObject(context, {
       options: {
