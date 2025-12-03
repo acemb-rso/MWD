@@ -25,7 +25,6 @@ const HBS_PARTIAL_TEMPLATES = [
 
   // character
   'systems/mwd/templates/actor/character/description.hbs',
-  'systems/mwd/templates/actor/character/genre.hbs',
   'systems/mwd/templates/actor/character/karma.hbs',
   'systems/mwd/templates/actor/character/social-celebrity.hbs',
   // character parts
