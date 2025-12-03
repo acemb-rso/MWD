@@ -80,9 +80,12 @@ const DEFAULT_ROLL_PARAMETERS = [
     },
     condition: context => ['skill', 'weapon'].includes(context.mode),
     factory: context => {
+      const skillRating = context.actor?.getSkillRating
+        ? context.actor.getSkillRating(context.skill)
+        : (context.skill?.system?.value ?? 0);
       return {
         label: context.skill?.name,
-        value: context.skill?.system.value ?? 0,
+        value: skillRating,
       };
     }
   },

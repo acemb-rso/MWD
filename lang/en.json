@@ -284,6 +284,7 @@
         "pilot": {
           "label": "Pilot",
           "none": "No pilot selected",
+          "usingPilot": "Using pilot: {{pilot}}",
           "selectActor": "Select Pilot",
           "selectToken": "Use Selected Token",
           "tokenTag": "Token ({{scene}})",

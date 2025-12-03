@@ -3,6 +3,9 @@
     <div class="column-images">
       <img class="anarchy-img actor-img" src="{{actor.img}}" alt="{{actor.name}}" data-tooltip="{{actor.name}}"/>
       {{> (concat 'systems/mwd/templates/roll/parts/image-' mode '.hbs')}}
+      {{#if pilot}}
+        <div class="pilot-usage-note">{{localize 'ANARCHY.actor.vehicle.pilot.usingPilot' pilot=pilot.name}}</div>
+      {{/if}}
     </div>
     <div class="roll-parameters">
       <div class="parameter-category">

@@ -52,6 +52,7 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       actor: actor,
       tokenId: actor.token?.id,
       attributes: actor.getUsableAttributes(item),
+      pilot: actor.getRollPilotReference?.(),
       options: {
         canUseEdge: actor.canUseEdge()
       }
