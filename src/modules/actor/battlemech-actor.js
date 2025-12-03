@@ -124,9 +124,13 @@ export class BattlemechActor extends VehicleActor {
   }
 
   _prepareHeatTrack() {
+    const systemData = this.system ?? {};
+    const heatMonitor = systemData.monitors?.heat ?? { value: 0, max: 0 };
+    const mwdHeat = systemData.mwd?.heat ?? {};
+
     const defaults = {
-      current: this.system.monitors?.heat?.value ?? 0,
-      max: this.system.monitors?.heat?.max ?? 0,
+      current: heatMonitor.value ?? 0,
+      max: heatMonitor.max ?? 0,
       thresholds: {
         runningHot: 2,
         overheated: 3,
@@ -134,10 +138,10 @@ export class BattlemechActor extends VehicleActor {
       }
     };
 
-    const heat = foundry.utils.mergeObject(defaults, this.system.mwd?.heat ?? {}, { inplace: false });
-    heat.thresholds = foundry.utils.mergeObject(defaults.thresholds, this.system.mwd?.heat?.thresholds ?? {}, { inplace: false });
-    heat.current = this.system.monitors?.heat?.value ?? heat.current;
-    heat.max = this.system.monitors?.heat?.max ?? heat.max;
+    const heat = foundry.utils.mergeObject(defaults, mwdHeat, { inplace: false });
+    heat.thresholds = foundry.utils.mergeObject(defaults.thresholds, mwdHeat.thresholds ?? {}, { inplace: false });
+    heat.current = heatMonitor.value ?? heat.current;
+    heat.max = heatMonitor.max ?? heat.max;
 
     const status = this._resolveHeatStatus(heat.current, heat.thresholds, heat.max);
     this.system.mwd.heatStatus = {
