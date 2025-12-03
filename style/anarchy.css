@@ -462,6 +462,21 @@ a.click-checkbar-element[data-checked="true"] img.checkbar-img {
   margin-top: 0px;
 }
 
+.window-app.sheet.actor .window-content {
+  overflow: hidden;
+}
+
+.window-app.sheet.actor form {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.window-app.sheet.actor .sheet-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
 :is(.section-group, .section-attributes) {
   display: flex;
   flex-direction: row;

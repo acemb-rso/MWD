@@ -24,9 +24,10 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       dragDrop: [{ dragSelector: ".item ", dropSelector: null }],
       classes: [game.system.anarchy.styles.selectCssClass(), "sheet", "actor"],
       actions: {},
+      resizable: true,
       position: {
-        width: 700,
-        height: 800
+        width: 760,
+        height: 760
       }
     });
   }
