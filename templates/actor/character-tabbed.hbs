@@ -79,6 +79,19 @@
           {{> "systems/mwd/templates/monitors/anarchy-actor.hbs"}}
         </div>
       </div>
+      <div class="section-group actions-section">
+        <div class="actions-block">
+          <h2 class="section-group-header">{{localize ANARCHY.itemType.plural.action}}</h2>
+          <div class="actions-content">
+            <div class="actions-buttons">
+              {{> "systems/mwd/templates/actor/parts/attributebuttons.hbs"}}
+            </div>
+            <div class="actions-weapons">
+              {{> "systems/mwd/templates/actor/parts/weapons.hbs"}}
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="section-group anarchy-words-section">
         <div class="anarchy-words anarchy-keywords">
         {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='keywords' values=system.keywords}}
@@ -99,9 +112,6 @@
       <div class="section-group items-group">
       {{> "systems/mwd/templates/actor/parts/qualities.hbs"}}
       </div>
-      <div class="section-group items-group">
-      {{> "systems/mwd/templates/actor/parts/weapons.hbs"}}
-      </div>
     </div>
     <div class="tab" data-group="primary" data-tab="equipment">
       <div class="section-group items-group">
@@ -110,25 +120,30 @@
       <div class="section-group items-group">
         {{> "systems/mwd/templates/actor/parts/cyberdecks.hbs"}}
       </div>
-
-      <div class="section-group items-group">
-        {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
-      </div>
-      <div class="section-group items-group">
-        {{> "systems/mwd/templates/actor/parts/gears.hbs"}}
+      <div class="section-group items-group gear-owned-section">
+        <div class="items-group half-width">
+          {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
+        </div>
+        <div class="items-group half-width">
+          {{> "systems/mwd/templates/actor/parts/gears.hbs"}}
+        </div>
       </div>
     </div>
     <div class="tab" data-group="primary" data-tab="biography">
-      <div class="anarchy-block">
-        {{> 'systems/mwd/templates/actor/parts/life-modules.hbs'}}
-      </div>
-      <div class="section-group items-group">
-      {{> "systems/mwd/templates/actor/parts/contacts.hbs"}}
-      </div>
-
-      <div class="anarchy-block">
-        {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
-        {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
+      <div class="section-group biography-section">
+        <h2 class="section-group-header">{{localize ANARCHY.actor.tabs.biography}}</h2>
+        <div class="biography-content">
+          <div class="anarchy-block biography-life-modules">
+            {{> 'systems/mwd/templates/actor/parts/life-modules.hbs'}}
+          </div>
+          <div class="section-group items-group biography-contacts">
+            {{> "systems/mwd/templates/actor/parts/contacts.hbs"}}
+          </div>
+          <div class="anarchy-block biography-notes">
+            {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
+            {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
+          </div>
+        </div>
       </div>
     </div>
   </section>

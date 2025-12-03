@@ -545,6 +545,73 @@ a.click-checkbar-element[data-checked="true"] img.checkbar-img {
   width: 100%;
 }
 
+.actions-section .section-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.actions-block {
+  width: 100%;
+}
+
+.actions-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actions-buttons {
+  flex: 1 1 260px;
+}
+
+.actions-weapons {
+  flex: 2 1 360px;
+}
+
+.gear-owned-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gear-owned-section .items-group {
+  flex: 1 1 320px;
+}
+
+.biography-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.biography-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.biography-content .items-group,
+.biography-content .anarchy-block {
+  margin: 0;
+}
+
+@media (min-width: 900px) {
+  .biography-content {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .biography-content .items-group,
+  .biography-content .anarchy-block {
+    flex: 1 1 45%;
+  }
+
+  .biography-notes {
+    flex-basis: 100%;
+  }
+}
+
 .items-group.half-width {
   width: calc(50% - 2px);
 }
