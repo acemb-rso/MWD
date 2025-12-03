@@ -1,0 +1,33 @@
+<div class="battlemech-hardpoints">
+  <h3 class="section-group-header">{{localize 'ANARCHY.actor.battlemech.hardpoints.title'}}</h3>
+  {{#if system.mwd.loadout.hardpoints.length}}
+  <table class="anarchy-table">
+    <thead>
+      <tr>
+        <th>{{localize 'ANARCHY.actor.battlemech.hardpoints.type'}}</th>
+        <th>{{localize 'ANARCHY.actor.battlemech.hardpoints.size'}}</th>
+        <th>{{localize 'ANARCHY.actor.battlemech.hardpoints.location'}}</th>
+        <th>{{localize 'ANARCHY.actor.battlemech.hardpoints.assigned'}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each system.mwd.loadout.hardpoints as |hardpoint|}}
+      <tr>
+        <td>{{localize (lookup ../ANARCHY.mwd.hardpointType hardpoint.type)}}</td>
+        <td>{{localize (lookup ../ANARCHY.mwd.hardpointSize hardpoint.size)}}</td>
+        <td>{{localize (lookup ../ANARCHY.mwd.hardpointLocation hardpoint.location)}}</td>
+        <td>
+          {{#if hardpoint.occupiedByName}}
+            {{hardpoint.occupiedByName}}
+          {{else}}
+            {{localize 'ANARCHY.mwd.loadout.emptyHardpoint'}}
+          {{/if}}
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+    <p class="empty-state">{{localize 'ANARCHY.actor.battlemech.hardpoints.none'}}</p>
+  {{/if}}
+</div>

@@ -328,6 +328,50 @@
           }
         }
       },
+      "battlemech": {
+        "chassis": "Chassis",
+        "tonnage": "Tonnage",
+        "heat": {
+          "thresholds": "Heat thresholds",
+          "runningHot": "Running hot",
+          "overheated": "Overheated",
+          "shutdown": "Shutdown",
+          "statusLabel": "Current heat state",
+          "status": {
+            "safe": "Safe",
+            "runningHot": "Running hot",
+            "overheated": "Overheated",
+            "shutdown": "Shutdown"
+          }
+        },
+        "hardpoints": {
+          "title": "Hardpoint summary",
+          "type": "Type",
+          "size": "Size",
+          "location": "Location",
+          "assigned": "Assigned to",
+          "none": "No hardpoints configured."
+        },
+        "weaponGroups": {
+          "title": "Weapon groups",
+          "mountPoints": "Mount points used: {used} / {total}",
+          "group": "Group",
+          "weapons": "Weapons",
+          "empty": "No weapons assigned to this group.",
+          "none": "No weapon groups configured.",
+          "missingWeapon": "Weapon {missingId} is missing from the actor."
+        },
+        "weapons": {
+          "title": "Battlemech weapons",
+          "weapon": "Weapon",
+          "category": "Category",
+          "mount": "Mount",
+          "hardpoint": "Hardpoint",
+          "heat": "Heat",
+          "none": "No mech weapons equipped.",
+          "mountUnknown": "Unspecified"
+        }
+      },
       "ownership": {
         "owner": "Owner",
         "unknown": "Unknown",

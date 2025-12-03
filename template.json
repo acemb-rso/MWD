@@ -172,6 +172,17 @@
             "injuryLevel": 0,
             "bailedOut": false
           },
+          "heat": {
+            "current": 0,
+            "max": 4,
+            "thresholds": {
+              "runningHot": 2,
+              "overheated": 3,
+              "shutdown": 4
+            }
+          },
+          "chassis": "",
+          "tonnage": 0,
           "weightClass": "medium",
           "hardpoints": [],
           "weaponGroups": [],

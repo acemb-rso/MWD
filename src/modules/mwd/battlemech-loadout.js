@@ -1,4 +1,5 @@
 import { ANARCHY } from "../config.js";
+import { TEMPLATE } from "../constants.js";
 
 const MOUNT_POINTS = {
   light: 4,
@@ -193,7 +194,8 @@ export class BattlemechLoadout {
 
   _getWeapons(filter) {
     return this.actor.items
-      .filter(it => it.type === "weapon")
+      .filter(it => it.type === TEMPLATE.itemType.mechWeapon)
+      .filter(it => it.isActive?.())
       .filter(filter);
   }
 

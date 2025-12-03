@@ -14,6 +14,14 @@ export class BattlemechActor extends VehicleActor {
   prepareDerivedData() {
     super.prepareDerivedData();
 
+    this.system.mwd = this.system.mwd ?? {};
+    this.system.mwd.chassis = this.system.mwd.chassis ?? '';
+    this.system.mwd.tonnage = this.system.mwd.tonnage ?? 0;
+    this.system.mwd.loadout = new BattlemechLoadout(this).compute();
+    this.system.mwd.weaponGroupDetails = this._prepareConfiguredWeaponGroups();
+    this.system.mwd.heat = this._prepareHeatTrack();
+    this.system.mwd.primaryGroupName = this.system.mwd.weaponGroupDetails.find(group => group.isPrimary)?.name ?? '';
+
     this.system.skills = this._prepareSkillMap();
     this.system.weaponGroups = this._prepareWeaponGroups();
     this.system.meleeProfiles = this._prepareMeleeProfiles();
@@ -115,6 +123,68 @@ export class BattlemechActor extends VehicleActor {
     }
   }
 
+  _prepareHeatTrack() {
+    const defaults = {
+      current: this.system.monitors?.heat?.value ?? 0,
+      max: this.system.monitors?.heat?.max ?? 0,
+      thresholds: {
+        runningHot: 2,
+        overheated: 3,
+        shutdown: 4,
+      }
+    };
+
+    const heat = foundry.utils.mergeObject(defaults, this.system.mwd?.heat ?? {}, { inplace: false });
+    heat.thresholds = foundry.utils.mergeObject(defaults.thresholds, this.system.mwd?.heat?.thresholds ?? {}, { inplace: false });
+    heat.current = this.system.monitors?.heat?.value ?? heat.current;
+    heat.max = this.system.monitors?.heat?.max ?? heat.max;
+
+    const status = this._resolveHeatStatus(heat.current, heat.thresholds, heat.max);
+    this.system.mwd.heatStatus = {
+      code: status,
+      label: game.i18n.localize(ANARCHY.actor.battlemech.heat.status[status] ?? status)
+    };
+
+    return heat;
+  }
+
+  _resolveHeatStatus(value, thresholds, max) {
+    if (value >= (thresholds?.shutdown ?? max)) {
+      return 'shutdown';
+    }
+    if (value >= (thresholds?.overheated ?? max)) {
+      return 'overheated';
+    }
+    if (value >= (thresholds?.runningHot ?? 0)) {
+      return 'runningHot';
+    }
+    return 'safe';
+  }
+
+  _prepareConfiguredWeaponGroups() {
+    const groups = this.system.mwd?.weaponGroups ?? [];
+    const weapons = new Map(this.items.map(it => [it.id, it]));
+
+    return groups.map((group, index) => {
+      const weaponIds = Array.isArray(group.weaponIds) ? group.weaponIds : (group.weaponIds ? [group.weaponIds] : []);
+      const attachedWeapons = weaponIds
+        .map(id => weapons.get(id))
+        .filter(weapon => weapon?.type === TEMPLATE.itemType.mechWeapon);
+
+      const missingWeaponIds = weaponIds.filter(id => !weapons.has(id));
+
+      return {
+        id: group.id ?? `group-${index + 1}`,
+        index,
+        name: group.name || game.i18n.format(ANARCHY.common.newName, { type: game.i18n.localize(ANARCHY.itemType.singular.weapon) }),
+        weaponIds,
+        isPrimary: group.isPrimary ?? false,
+        weapons: attachedWeapons,
+        missingWeaponIds,
+      };
+    });
+  }
+
   _resolveSkill(code) {
     const skill = this.items.find(it => it.type === TEMPLATE.itemType.skill && it.system.code === code);
     if (skill) {
@@ -137,6 +207,22 @@ export class BattlemechActor extends VehicleActor {
   }
 
   _prepareWeaponGroups() {
+    const configuredGroups = (this.system.mwd?.weaponGroupDetails ?? [])
+      .map(group => ({
+        ...group,
+        weapons: (group.weapons ?? []).filter(weapon => weapon?.isActive?.()),
+      }))
+      .filter(group => group.weapons.length > 0);
+
+    if (configuredGroups.length > 0) {
+      return configuredGroups.map(group => ({
+        id: group.id,
+        name: group.name,
+        weaponIds: group.weapons.map(it => it.id),
+        isPrimary: group.isPrimary ?? false,
+      }));
+    }
+
     const weapons = this.items.filter(it => it.type === TEMPLATE.itemType.mechWeapon && it.isActive());
     if (weapons.length === 0) {
       return [];

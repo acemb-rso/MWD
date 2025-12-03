@@ -14,7 +14,18 @@
           </div>
           {{> "systems/mwd/templates/actor/vehicle/vehicle-pilot.hbs"}}
         </div>
-        <div class="passport-action-row">
+        <div class="passport-action-row mech-passport-row">
+          <div class="passport-action">
+            <label>{{localize 'ANARCHY.actor.battlemech.chassis'}}</label>
+            <input class="info-value" type="text" name="system.mwd.chassis" value="{{system.mwd.chassis}}" />
+          </div>
+          <div class="passport-action">
+            <label>{{localize 'ANARCHY.actor.battlemech.tonnage'}}</label>
+            <input class="info-value" type="number" data-dtype="Number" name="system.mwd.tonnage" value="{{system.mwd.tonnage}}" />
+          </div>
+          <div class="passport-action">
+            {{> "systems/mwd/templates/actor/vehicle/vehicle-category.hbs"}}
+          </div>
         </div>
       </div>
     </div>
@@ -30,20 +41,29 @@
     </div>
     <div class="section-group monitors-row">
       <div class="anarchy-block">
-      {{> "systems/mwd/templates/monitors/structure.hbs"}}
+        {{> "systems/mwd/templates/monitors/structure.hbs"}}
       </div>
       <div class="anarchy-block">
-      {{> "systems/mwd/templates/monitors/armor.hbs"}}
+        {{> "systems/mwd/templates/monitors/armor.hbs"}}
       </div>
-      <div class="anarchy-block">
-      {{> "systems/mwd/templates/monitors/heat.hbs"}}
-      <label class="resitance-label">
-        {{localize ANARCHY.actor.vehicle.heatDissipation}}
-        <input class="info-value" type="number" data-dtype="Number" maxlength="2"
-          name="system.hybrid.heat.dissipation"
-          value="{{system.hybrid.heat.dissipation}}"
-        />
-      </label>
+      <div class="anarchy-block mech-heat-block">
+        {{> "systems/mwd/templates/monitors/heat.hbs"}}
+        <div class="heat-thresholds">
+          <label class="monitor-label">{{localize 'ANARCHY.actor.battlemech.heat.thresholds'}}</label>
+          <div class="heat-threshold-row">
+            <span>{{localize 'ANARCHY.actor.battlemech.heat.runningHot'}}</span>
+            <input class="info-value" type="number" data-dtype="Number" name="system.mwd.heat.thresholds.runningHot" value="{{system.mwd.heat.thresholds.runningHot}}" />
+          </div>
+          <div class="heat-threshold-row">
+            <span>{{localize 'ANARCHY.actor.battlemech.heat.overheated'}}</span>
+            <input class="info-value" type="number" data-dtype="Number" name="system.mwd.heat.thresholds.overheated" value="{{system.mwd.heat.thresholds.overheated}}" />
+          </div>
+          <div class="heat-threshold-row">
+            <span>{{localize 'ANARCHY.actor.battlemech.heat.shutdown'}}</span>
+            <input class="info-value" type="number" data-dtype="Number" name="system.mwd.heat.thresholds.shutdown" value="{{system.mwd.heat.thresholds.shutdown}}" />
+          </div>
+          <div class="heat-status">{{localize 'ANARCHY.actor.battlemech.heat.statusLabel'}}: {{system.mwd.heatStatus.label}}</div>
+        </div>
       </div>
     </div>
     <div class="section-group monitors-row">
@@ -80,16 +100,23 @@
       </div>
     </div>
     <div class="section-group items-group">
-    {{> "systems/mwd/templates/actor/npc-parts/skills.hbs"}}
+      <div class="anarchy-block">
+        {{> "systems/mwd/templates/actor/parts/battlemech-hardpoints.hbs"}}
+      </div>
+    </div>
+    <div class="section-group items-group">
+      <div class="anarchy-block">
+        {{> "systems/mwd/templates/actor/parts/battlemech-weapon-groups.hbs"}}
+      </div>
     </div>
     <div class="section-group items-group">
       {{> "systems/mwd/templates/actor/parts/battlemech-loadout.hbs"}}
     </div>
     <div class="section-group items-group">
-    {{> "systems/mwd/templates/actor/npc-parts/asset-modules.hbs"}}
+      {{> "systems/mwd/templates/actor/npc-parts/asset-modules.hbs"}}
     </div>
     <div class="section-group items-group">
-    {{> "systems/mwd/templates/actor/npc-parts/weapons.hbs"}}
+      {{> "systems/mwd/templates/actor/parts/battlemech-weapons.hbs"}}
     </div>
     <div class="anarchy-block">
       {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
