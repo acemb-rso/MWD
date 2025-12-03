@@ -24,7 +24,7 @@
       </div>
       <label class="small-label">{{localize 'ANARCHY.mwd.loadout.primarySlot.allowedWeapons'}}</label>
       <select name="system.mwd.primarySlot.allowedWeaponIds" multiple>
-        {{#each items.weapon as |weapon|}}
+        {{#each items.mechWeapon as |weapon|}}
           {{#if (ne weapon.system.weaponCategory 'melee')}}
           <option value="{{weapon._id}}" {{#if (includes ../system.mwd.primarySlot.allowedWeaponIds weapon._id)}}selected{{/if}}>{{weapon.name}}</option>
           {{/if}}
@@ -75,16 +75,16 @@
         {{#each system.mwd.weaponGroups as |group idx|}}
           <div class="loadout-row">
             <input type="text" name="system.mwd.weaponGroups.{{idx}}.name" value="{{group.name}}" />
-            <label>
-              <input class="input-primary-group" data-index="{{idx}}" type="checkbox" name="system.mwd.weaponGroups.{{idx}}.isPrimary" {{checked group.isPrimary}} />
-              {{localize 'ANARCHY.mwd.loadout.primaryTag'}}
-            </label>
-            <select name="system.mwd.weaponGroups.{{idx}}.weaponIds" multiple>
-              {{#each ../../items.weapon as |weapon|}}
-                {{#if (ne weapon.system.weaponCategory 'melee')}}
-                <option value="{{weapon._id}}" {{#if (includes ../group.weaponIds weapon._id)}}selected{{/if}}>{{weapon.name}}</option>
-                {{/if}}
-              {{/each}}
+          <label>
+            <input class="input-primary-group" data-index="{{idx}}" type="checkbox" name="system.mwd.weaponGroups.{{idx}}.isPrimary" {{checked group.isPrimary}} />
+            {{localize 'ANARCHY.mwd.loadout.primaryTag'}}
+          </label>
+          <select name="system.mwd.weaponGroups.{{idx}}.weaponIds" multiple>
+            {{#each ../../items.mechWeapon as |weapon|}}
+              {{#if (ne weapon.system.weaponCategory 'melee')}}
+              <option value="{{weapon._id}}" {{#if (includes ../group.weaponIds weapon._id)}}selected{{/if}}>{{weapon.name}}</option>
+              {{/if}}
+            {{/each}}
             </select>
             <a class="click-delete-weapon-group" data-index="{{idx}}"><i class="fa-solid fa-trash"></i></a>
           </div>
