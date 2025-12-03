@@ -1673,4 +1673,60 @@
   padding-left: 1rem;
 }
 
+.battlemech-sheet .mech-passport-row {
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mech-heat-block .heat-thresholds {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--color-border-light-highlight);
+  padding-top: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mech-heat-block .heat-threshold-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.mech-heat-block .heat-status {
+  font-weight: 600;
+}
+
+.battlemech-hardpoints .anarchy-table,
+.battlemech-weapon-groups .anarchy-table,
+.battlemech-weapons-table.anarchy-table {
+  width: 100%;
+}
+
+.battlemech-hardpoints .empty-state,
+.battlemech-weapon-groups .empty-state,
+.battlemech-weapons-table .empty-state {
+  margin: 0.25rem 0;
+}
+
+.battlemech-weapon-groups .group-mountpoints {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.35rem;
+}
+
+.battlemech-weapon-groups .weapon-list {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.battlemech-weapon-groups .missing-weapon {
+  color: var(--anarchy-color-warning, #b8860b);
+}
+
+.battlemech-weapons-table .item-controls {
+  white-space: nowrap;
+}
+
 /*# sourceMappingURL=style.css.map */
