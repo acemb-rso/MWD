@@ -284,6 +284,7 @@
         "pilot": {
           "label": "Pilot",
           "none": "No pilot selected",
+          "placeholder": "Select an actor or paste its UUID",
           "selectActor": "Select Pilot",
           "selectToken": "Use Selected Token",
           "tokenTag": "Token ({{scene}})",
@@ -291,6 +292,10 @@
             "noActors": "No valid actors available to pilot this vehicle.",
             "noTokens": "Select a token with permission to pilot as the vehicle's pilot."
           }
+        },
+        "crew": {
+          "label": "Crew",
+          "placeholder": "Crew names or notes"
         },
         "quickActions": {
           "title": "Quick Actions",
