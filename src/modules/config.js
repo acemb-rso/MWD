@@ -177,7 +177,6 @@ export const ANARCHY = {
         vehicleSheet: 'ANARCHY.actor.vehicleSheet',
         characterNPCSheet: 'ANARCHY.actor.characterNPCSheet',
         actorName: 'ANARCHY.actor.actorName',
-        genre: 'ANARCHY.actor.genre',
         celebrity: 'ANARCHY.actor.counters.edgePools.legend',
         tabs: {
             main: 'ANARCHY.actor.tabs.main',
