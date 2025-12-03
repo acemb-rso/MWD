@@ -20,6 +20,11 @@
             </div>
           </div>
         </div>
+        <div class="identity-meta">
+          <div class="wrapper-hexabox karma">
+            {{> "systems/mwd/templates/actor/character/karma.hbs"}}
+          </div>
+        </div>
       </div>
     </header>
     <section class="roleplay">
@@ -138,20 +143,28 @@
                 placeholder="{{localize ANARCHY.actor.actorName}}" />
             </div>
           </div>
-          <div class="awarness">
-            <div class="view-mode">
-              <div class="icon">
-                {{> "systems/mwd/templates/common/view-mode.hbs"}}
-              </div>
-              <div class="label">
-                {{#if @root.options.viewMode}}
-                  {{localize 'ANARCHY.common.viewMode'}}
-                {{else}}
-                  {{localize 'ANARCHY.common.editMode'}}
-                {{/if}}
-              </div>
+        </div>
+        <div class="identity-meta">
+          <div class="wrapper-hexabox karma">
+            {{> "systems/mwd/templates/actor/character/karma.hbs"}}
+          </div>
+          <div class="wrapper-hexabox awarness">
+            <div class="icon">
+              {{> "systems/mwd/templates/common/view-mode.hbs"}}
+            </div>
+            <div class="label">
+              {{#if @root.options.viewMode}}
+                {{localize 'ANARCHY.common.viewMode'}}
+              {{else}}
+                {{localize 'ANARCHY.common.editMode'}}
+              {{/if}}
             </div>
           </div>
+          {{#if ownerActor}}
+          <div class="wrapper-hexabox owner-summary">
+            {{> 'systems/mwd/templates/actor/parts/ownership.hbs'}}
+          </div>
+          {{/if}}
         </div>
         {{> "systems/mwd/templates/actor/character-enhanced/attributes.hbs"}}
       </div>
