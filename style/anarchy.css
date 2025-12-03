@@ -1394,3 +1394,10 @@ div.column-details {
   font-style: italic;
   color: var(--color-text-light-primary);
 }
+
+.pilot-usage-note {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-light-primary);
+}

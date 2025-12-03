@@ -473,13 +473,18 @@ export class AnarchyBaseActor extends Actor {
     await this.spendEdgePool(pool, count);
   }
 
+  getSkillRating(skillId) {
+    const skill = typeof skillId === 'string' ? this.items.get(skillId) : skillId;
+    return skill?.system?.value ?? 0;
+  }
+
   getSkillValue(skillId, specialization = undefined) {
     const skill = typeof skillId === 'string' ? this.items.get(skillId) : skillId;
     if (!skill) {
       return 0;
     }
     const attribute = this.getAttributeValue(skill.system.attribute);
-    return skill.system.value + attribute + (specialization && skill.system.specialization ? 2 : 0);
+    return this.getSkillRating(skill) + attribute + (specialization && skill.system.specialization ? 2 : 0);
   }
 
   getWounds() {

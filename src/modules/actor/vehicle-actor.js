@@ -63,6 +63,28 @@ export class VehicleActor extends AnarchyBaseActor {
     }
   }
 
+  getAttributeValue(attribute, item = undefined) {
+    if (!this.getAttributes().includes(attribute)) {
+      const pilot = this.getPilotActor();
+      if (pilot) {
+        return pilot.getAttributeValue(attribute, item);
+      }
+    }
+    return super.getAttributeValue(attribute, item);
+  }
+
+  getSkillRating(skillId) {
+    const skill = typeof skillId === 'string' ? this.items.get(skillId) : skillId;
+    const pilot = this.getPilotActor();
+
+    if (pilot && skill?.system?.code) {
+      const pilotSkill = pilot.items.find(it => it.type === TEMPLATE.itemType.skill && it.system.code === skill.system.code);
+      return pilotSkill?.system?.value ?? 0;
+    }
+
+    return super.getSkillRating(skill);
+  }
+
   getSkillValue(skillId, specialization = undefined) {
     const skill = typeof skillId === 'string' ? this.items.get(skillId) : skillId;
     const pilot = this.getPilotActor();
@@ -75,6 +97,11 @@ export class VehicleActor extends AnarchyBaseActor {
     }
 
     return super.getSkillValue(skill, specialization);
+  }
+
+  getRollPilotReference() {
+    const pilot = this.getPilotReference();
+    return pilot ? pilot : undefined;
   }
 
   getAttributes() {
