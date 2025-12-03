@@ -98,6 +98,11 @@
   "relationships": {},
   "socket": true,
   "protected": false,
+  "template": "template.json",
+  "types": {
+    "Actor": ["character", "npc", "vehicle", "battlemech"],
+    "Item": ["contact", "gear", "quality", "assetModule", "skill", "lifeModule", "mechWeapon", "personalWeapon"]
+  },
   "grid": {
     "distance": 1,
     "units": "m"

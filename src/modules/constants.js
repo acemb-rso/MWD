@@ -26,6 +26,7 @@ export const BASE_MONITOR = 8;
 export const TEMPLATE = {
   actorTypes: {
     character: 'character',
+    npc: 'npc',
     vehicle: 'vehicle',
     battlemech: 'battlemech',
   },

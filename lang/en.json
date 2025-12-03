@@ -380,6 +380,7 @@
     },
     "actorType": {
       "character": "Character",
+      "npc": "NPC",
       "vehicle": "Vehicle",
       "battlemech": "Battlemech"
     },
