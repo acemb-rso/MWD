@@ -275,6 +275,7 @@
         "stealth": "Stealth",
         "category": "Category",
         "skill": "Skill",
+        "weapons": "Vehicle Weapons",
         "heatDissipation": "Heat dissipation",
         "criticalTrack": "Criticals",
         "locationFront": "Front effects",
