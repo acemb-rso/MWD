@@ -62,6 +62,18 @@ export class BaseItemSheet extends foundry.appv1.sheets.ItemSheet {
     return hbsData;
   }
 
+  /** @override */
+  _getHeaderButtons() {
+    const buttons = super._getHeaderButtons?.() ?? [];
+    const seen = new Set();
+    return buttons.filter(button => {
+      const key = `${button.class ?? ''}|${button.icon ?? ''}|${button.label ?? button.title ?? ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
 
   activateListeners(html) {
     super.activateListeners(html);

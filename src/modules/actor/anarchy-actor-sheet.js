@@ -40,6 +40,18 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   }
 
   /** @override */
+  _getHeaderButtons() {
+    const buttons = super._getHeaderButtons?.() ?? [];
+    const seen = new Set();
+    return buttons.filter(button => {
+      const key = `${button.class ?? ''}|${button.icon ?? ''}|${button.label ?? button.title ?? ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  /** @override */
   _configureRenderOptions(options) {
     super._configureRenderOptions(options);
     
