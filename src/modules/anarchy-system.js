@@ -139,19 +139,11 @@ export class AnarchySystem {
   loadActorSheets() {
     const { Actors } = foundry.documents.collections;
     Actors.unregisterSheet('core', foundry.appv1.sheets.ActorSheet);
-    Actors.registerSheet(SYSTEM_NAME, CharacterActorSheet, {
-      label: game.i18n.localize(ANARCHY.actor.characterSheet),
-      makeDefault: false,
-      types: ['character']
-    });
+    Actors.unregisterSheet(SYSTEM_NAME, CharacterActorSheet);
+    Actors.unregisterSheet(SYSTEM_NAME, CharacterTabbedSheet);
     Actors.registerSheet(SYSTEM_NAME, CharacterNPCSheet, {
       label: game.i18n.localize(ANARCHY.actor.characterNPCSheet),
-      makeDefault: false,
-      types: ['character']
-    });
-    Actors.registerSheet(SYSTEM_NAME, CharacterTabbedSheet, {
-      label: game.i18n.localize(ANARCHY.actor.characterTabbedSheet),
-      makeDefault: false,
+      makeDefault: true,
       types: ['character']
     });
     Actors.registerSheet(SYSTEM_NAME, CharacterEnhancedSheet, {
