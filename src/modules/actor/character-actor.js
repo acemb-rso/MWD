@@ -14,7 +14,7 @@ const HBS_TEMPLATE_ACTOR_SAY_WORD = `${TEMPLATES_PATH}/chat/actor-say-word.hbs`;
 export class CharacterActor extends AnarchyBaseActor {
 
   static get initiative() {
-    return AnarchyBaseActor.initiative + " + max(@attributes.agility.value, @attributes.logic.value)";
+    return AnarchyBaseActor.initiative + " + max(@attributes.reflexes.value, @attributes.intelligence.value)";
   }
 
   hasOwnAnarchy() { return this.hasPlayerOwner; }
@@ -46,7 +46,7 @@ export class CharacterActor extends AnarchyBaseActor {
     return ACTOR_ATTRIBUTE_SETS[this.type] ?? ACTOR_ATTRIBUTE_SETS[TEMPLATE.actorTypes.character];
   }
 
-  getPhysicalAgility() { return TEMPLATE.actorAttributes.agility }
+  getPhysicalAgility() { return TEMPLATE.actorAttributes.reflexes }
 
   getCorrespondingAttribute(attribute) {
     if (TEMPLATE.itemAttributes.firewall == attribute) {

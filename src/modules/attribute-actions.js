@@ -29,7 +29,7 @@ const ACTION = ANARCHY_SYSTEM.actions;
 const DEFENSE = ANARCHY_SYSTEM.defenses;
 
 const ATTRIBUTE_ACTIONS = [
-  action(ACTION.defense, __ => ATTR.agility, __ => ATTR.logic, Icons.fontAwesome('fas fa-shield-alt'), [ACTOR.character, ACTOR.npc]),
+  action(ACTION.defense, __ => ATTR.reflexes, __ => ATTR.intelligence, Icons.fontAwesome('fas fa-shield-alt'), [ACTOR.character, ACTOR.npc]),
   action(ACTION.defense, __ => ATTR.handling, __ => ATTR.chassis, Icons.fontAwesome('fas fa-tachometer-alt'), [ACTOR.vehicle, ACTOR.battlemech]),
   // TODO: add a way to pilot a vehicle to fallback defense of controled vehicle
   action(ACTION.resistTorture, __ => ATTR.strength, __ => ATTR.willpower, Icons.fontAwesome('fas fa-angry'), [ACTOR.character, ACTOR.npc]),
@@ -40,7 +40,7 @@ const ATTRIBUTE_ACTIONS = [
   action(ACTION.composure, __ => ATTR.charisma, __ => ATTR.willpower, Icons.fontAwesome('fas fa-meh'), [ACTOR.character, ACTOR.npc]),
   action(ACTION.judgeIntentions, __ => ATTR.charisma, __ => ATTR.charisma, Icons.fontAwesome('fas fa-theater-masks'), [ACTOR.character, ACTOR.npc]),
   action(ACTION.memory, __ => ATTR.logic, __ => ATTR.logic, Icons.fontAwesome('fas fa-brain'), [ACTOR.character, ACTOR.npc]),
-  action(ACTION.catch, __ => ATTR.agility, __ => ATTR.agility, Icons.fontAwesome('fas fa-baseball-ball'), [ACTOR.character, ACTOR.npc]),
+  action(ACTION.catch, __ => ATTR.reflexes, __ => ATTR.reflexes, Icons.fontAwesome('fas fa-baseball-ball'), [ACTOR.character, ACTOR.npc]),
   action(ACTION.lift, __ => ATTR.strength, __ => ATTR.strength, Icons.fontAwesome('fas fa-dumbbell'), [ACTOR.character, ACTOR.npc]),
 
 ]

@@ -24,10 +24,10 @@ export const TARGET_SUCCESS_EDGE = 4;
 export const BASE_MONITOR = 8;
 
 export const ACTOR_ATTRIBUTES = {
-  agility: 'agility',
+  reflexes: 'reflexes',
   strength: 'strength',
   willpower: 'willpower',
-  logic: 'logic',
+  intelligence: 'intelligence',
   charisma: 'charisma',
   edge: 'edge',
   handling: 'handling',
@@ -122,17 +122,17 @@ export const TEMPLATE = {
 export const ACTOR_ATTRIBUTE_SETS = {
   [TEMPLATE.actorTypes.character]: [
     TEMPLATE.actorAttributes.strength,
-    TEMPLATE.actorAttributes.agility,
+    TEMPLATE.actorAttributes.reflexes,
     TEMPLATE.actorAttributes.willpower,
-    TEMPLATE.actorAttributes.logic,
+    TEMPLATE.actorAttributes.intelligence,
     TEMPLATE.actorAttributes.charisma,
     TEMPLATE.actorAttributes.edge,
   ],
   [TEMPLATE.actorTypes.npc]: [
     TEMPLATE.actorAttributes.strength,
-    TEMPLATE.actorAttributes.agility,
+    TEMPLATE.actorAttributes.reflexes,
     TEMPLATE.actorAttributes.willpower,
-    TEMPLATE.actorAttributes.logic,
+    TEMPLATE.actorAttributes.intelligence,
     TEMPLATE.actorAttributes.charisma,
     TEMPLATE.actorAttributes.edge,
   ],

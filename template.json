@@ -32,9 +32,9 @@
           }
         }
       },
-      "attribute-agility": {
+      "attribute-reflexes": {
         "attributes": {
-          "agility": {
+          "reflexes": {
             "value": 1
           }
         }
@@ -60,9 +60,9 @@
           }
         }
       },
-      "attribute-logic": {
+      "attribute-intelligence": {
         "attributes": {
-          "logic": {
+          "intelligence": {
             "value": 1
           }
         }
@@ -205,10 +205,10 @@
         "description",
         "counters",
         "ownership",
-        "attribute-agility",
+        "attribute-reflexes",
         "attribute-strength",
         "attribute-willpower",
-        "attribute-logic",
+        "attribute-intelligence",
         "attribute-charisma",
         "attribute-edge"
       ],
@@ -232,7 +232,9 @@
         "armor": {
           "label": "Armor",
           "value": 0,
-          "max": 9
+          "max": 9,
+          "effect": "",
+          "resistance": ""
         }
       },
       "counters": {
@@ -245,13 +247,19 @@
           "max": 6
         },
         "edgePools": {
-          "grit": { "value": null },
-          "insight": { "value": null },
-          "rumor": { "value": null },
-          "legend": { "value": null },
-          "credibility": { "value": null },
-          "chaos": { "value": null }
+          "grit": { "value": 0, "max": 0 },
+          "insight": { "value": 0, "max": 0 },
+          "rumor": { "value": 0, "max": 0 },
+          "legend": { "value": 0, "max": 0 },
+          "credibility": { "value": 0, "max": 0 },
+          "chaos": { "value": 0, "max": 0 }
         }
+      },
+      "prototypeToken": {
+        "actorLink": true,
+        "disposition": 1,
+        "displayName": 20,
+        "displayBars": 40
       },
       "style": "",
       "connectionMode": "disconnected",
@@ -264,10 +272,10 @@
       "templates": [
         "description",
         "ownership",
-        "attribute-agility",
+        "attribute-reflexes",
         "attribute-strength",
         "attribute-willpower",
-        "attribute-logic",
+        "attribute-intelligence",
         "attribute-charisma",
         "attribute-edge"
       ],
@@ -291,7 +299,9 @@
         "armor": {
           "label": "Armor",
           "value": 0,
-          "max": 9
+          "max": 9,
+          "effect": "",
+          "resistance": ""
         }
       },
       "counters": {

@@ -376,9 +376,9 @@ export const ANARCHY = {
     attributes: {
         noAttribute: 'ANARCHY.attributes.noAttributes',
         strength: 'ANARCHY.attributes.strength',
-        agility: 'ANARCHY.attributes.agility',
+        reflexes: 'ANARCHY.attributes.reflexes',
         willpower: 'ANARCHY.attributes.willpower',
-        logic: 'ANARCHY.attributes.logic',
+        intelligence: 'ANARCHY.attributes.intelligence',
         charisma: 'ANARCHY.attributes.charisma',
         edge: 'ANARCHY.attributes.edge',
         autopilot: 'ANARCHY.attributes.autopilot',
