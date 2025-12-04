@@ -3,16 +3,21 @@
   <div class="passport-detail">
     {{> "systems/mwd/templates/actor/character/name.hbs"}}
   </div>
-  {{!-- Metatype and genre removed --}}
+  <div class="passport-detail">
+    {{> "systems/mwd/templates/actor/character/capacity.hbs"}}
+  </div>
+  {{#if (localize 'ANARCHY.actor.counters.essence')}}
+  <div class="passport-detail">
+    {{> "systems/mwd/templates/actor/character/essence.hbs"}}
+  </div>
+  {{/if}}
 {{else}}
   <div class="passport-detail">
     {{> "systems/mwd/templates/actor/character/name.hbs"}}
   </div>
-  {{!-- Metatype and genre removed --}}
   <div class="passport-detail">
     {{> "systems/mwd/templates/actor/character/capacity.hbs"}}
   </div>
-  {{!-- Karma removed --}}
   {{#if (localize 'ANARCHY.actor.counters.essence')}}
   <div class="passport-detail">
     {{> "systems/mwd/templates/actor/character/essence.hbs"}}
