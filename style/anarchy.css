@@ -204,8 +204,6 @@ img.anarchy-img.item-img {
   display: flex;
   flex-direction: row;
   margin: 2px;
-  flex-wrap: wrap;
-  gap: 6px;
 }
 
 .passport-img img {
@@ -232,7 +230,6 @@ img.anarchy-img.item-img {
 .vehicle-sheet .passport-img {
   min-height: 92px;
   min-width: 92px;
-  flex: 0 0 92px;
 }
 
 .npc-sheet .passport-img img,
@@ -274,9 +271,8 @@ img.anarchy-img.item-img {
 
 .npc-sheet .passport-column,
 .vehicle-sheet .passport-column {
-  width: auto;
+  width: calc(100% - 92px);
   min-height: 92px;
-  flex: 1 1 340px;
 }
 
 .device-sheet .passport-column {
@@ -307,14 +303,11 @@ img.anarchy-img.item-img {
   justify-content: flex-start;
   vertical-align: text-bottom;
   text-align: left;
-  min-height: 32px;
-  height: auto;
-  gap: 4px;
+  height: 32px;
 }
 
 :is(.passport-detail, .passport-owner) {
-  width: auto;
-  flex: 1 1 240px;
+  width: calc(49% - 2px);
 }
 
 img.owned-actor-img {
@@ -482,25 +475,6 @@ a.click-checkbar-element[data-checked="true"] img.checkbar-img {
 .window-app.sheet.actor .sheet-body {
   flex: 1 1 auto;
   overflow-y: auto;
-}
-
-.window-app.sheet.npc-sheet,
-.window-app.sheet.vehicle-sheet {
-  min-width: 720px;
-  min-height: 620px;
-}
-
-.npc-sheet .sheet-body,
-.vehicle-sheet .sheet-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.npc-sheet .section-group,
-.vehicle-sheet .section-group {
-  gap: 0.5rem;
-  align-items: stretch;
 }
 
 :is(.section-group, .section-attributes) {
