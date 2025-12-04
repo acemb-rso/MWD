@@ -85,7 +85,7 @@ export const DEFAULT_CHECKBARS = {
     path: 'system.counters.edgePools.chaos.value',
     monitor: it => {
       const value = it.getEdgePoolValue(TEMPLATE.counters.edgePools.chaos);
-      const max = it.getAttributeValue(TEMPLATE.attributes.edge);
+      const max = it.getAttributeValue(TEMPLATE.actorAttributes.edge);
       return { value: value, max: max };
     },
     iconChecked: Icons.iconPath('systems/mwd/icons/default/explosion.svg', 'checkbar-img'),
@@ -96,7 +96,7 @@ export const DEFAULT_CHECKBARS = {
     path: 'system.counters.edgePools.grit.value',
     monitor: it => {
       const value = it.getEdgePoolValue(TEMPLATE.counters.edgePools.grit);
-      return { value: value, max: it.getAttributeValue(TEMPLATE.attributes.edge) };
+      return { value: value, max: it.getAttributeValue(TEMPLATE.actorAttributes.edge) };
     },
     iconChecked: Icons.iconPath('systems/mwd/icons/default/shield.svg', 'checkbar-img'),
     iconUnchecked: Icons.iconPath('systems/mwd/icons/default/shield.svg', 'checkbar-img'),
@@ -106,7 +106,7 @@ export const DEFAULT_CHECKBARS = {
     path: 'system.counters.edgePools.insight.value',
     monitor: it => {
       const value = it.getEdgePoolValue(TEMPLATE.counters.edgePools.insight);
-      return { value: value, max: it.getAttributeValue(TEMPLATE.attributes.edge) };
+      return { value: value, max: it.getAttributeValue(TEMPLATE.actorAttributes.edge) };
     },
     iconChecked: Icons.iconPath('systems/mwd/icons/default/eye.svg', 'checkbar-img'),
     iconUnchecked: Icons.iconPath('systems/mwd/icons/default/eye.svg', 'checkbar-img'),
@@ -116,7 +116,7 @@ export const DEFAULT_CHECKBARS = {
     path: 'system.counters.edgePools.legend.value',
     monitor: it => {
       const value = it.getEdgePoolValue(TEMPLATE.counters.edgePools.legend);
-      return { value: value, max: it.getAttributeValue(TEMPLATE.attributes.edge) };
+      return { value: value, max: it.getAttributeValue(TEMPLATE.actorAttributes.edge) };
     },
     iconChecked: Icons.iconPath('systems/mwd/icons/default/tower-flag.svg', 'checkbar-img'),
     iconUnchecked: Icons.iconPath('systems/mwd/icons/default/tower-flag.svg', 'checkbar-img'),
@@ -126,7 +126,7 @@ export const DEFAULT_CHECKBARS = {
     path: 'system.counters.edgePools.credibility.value',
     monitor: it => {
       const value = it.getEdgePoolValue(TEMPLATE.counters.edgePools.credibility);
-      return { value: value, max: it.getAttributeValue(TEMPLATE.attributes.edge) };
+      return { value: value, max: it.getAttributeValue(TEMPLATE.actorAttributes.edge) };
     },
     iconChecked: Icons.iconPath('systems/mwd/icons/misc/hand.svg', 'checkbar-img'),
     iconUnchecked: Icons.iconPath('systems/mwd/icons/misc/hand.svg', 'checkbar-img'),
@@ -136,7 +136,7 @@ export const DEFAULT_CHECKBARS = {
     path: 'system.counters.edgePools.rumor.value',
     monitor: it => {
       const value = it.getEdgePoolValue(TEMPLATE.counters.edgePools.rumor);
-      return { value: value, max: it.getAttributeValue(TEMPLATE.attributes.edge) };
+      return { value: value, max: it.getAttributeValue(TEMPLATE.actorAttributes.edge) };
     },
     iconChecked: Icons.iconPath('systems/mwd/icons/default/mystery-man.svg', 'checkbar-img'),
     iconUnchecked: Icons.iconPath('systems/mwd/icons/default/mystery-man.svg', 'checkbar-img'),

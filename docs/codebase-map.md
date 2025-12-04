@@ -29,7 +29,7 @@ This document summarizes each file in the MechWarrior: Destiny Foundry VTT syste
 - `src/modules/actor/actor-damage.js` – Singleton `ActorDamageManager` for applying and tracking damage/resistance across actor monitor types.【F:src/modules/actor/actor-damage.js†L1-L140】
 - `src/modules/actor/anarchy-actor-sheet.js` – Base sheet class shared by actor sheet variants, handling generic data preparation and UI listeners.【F:src/modules/actor/anarchy-actor-sheet.js†L1-L140】
 - `src/modules/actor/character-sheet.js` – Default character sheet implementation with tab management and embedded item controls for a single-page view.【F:src/modules/actor/character-sheet.js†L1-L17】
-- `src/modules/actor/character-npc-sheet.js` – NPC-oriented character sheet variant with simplified layout and listeners.【F:src/modules/actor/character-npc-sheet.js†L1-L21】
+- `src/modules/actor/character-npc-sheet.js` – NPC-oriented sheet built directly on the base actor sheet with its own layout and sizing defaults.【F:src/modules/actor/character-npc-sheet.js†L1-L17】
 - `src/modules/actor/character-tabbed-sheet.js` – Character sheet that separates main/equipment/biography tabs; registered as an optional actor sheet.【F:src/modules/actor/character-tabbed-sheet.js†L1-L23】
 - `src/modules/actor/character-enhanced-sheet.js` – Enhanced character sheet offering expanded controls and summary blocks; set as default in `AnarchySystem`.【F:src/modules/actor/character-enhanced-sheet.js†L1-L41】
 - `src/modules/actor/character-base-sheet.js` – Shared utilities for character sheets (tab activation, rendering helpers) used by enhanced/tabbed variants.【F:src/modules/actor/character-base-sheet.js†L1-L96】

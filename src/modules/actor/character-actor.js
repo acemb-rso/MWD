@@ -1,5 +1,5 @@
 import { ANARCHY } from "../config.js";
-import { TEMPLATE, TEMPLATES_PATH } from "../constants.js";
+import { ACTOR_ATTRIBUTE_SETS, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { AnarchyBaseActor } from "./base-actor.js";
 import { ErrorManager } from "../error-manager.js";
 import { Misc } from "../misc.js";
@@ -24,8 +24,8 @@ export class CharacterActor extends AnarchyBaseActor {
     if (!this.system.monitors.fatigue && this.system.monitors.stun) {
       this.system.monitors.fatigue = foundry.utils.duplicate(this.system.monitors.stun)
     }
-    this.system.monitors.physical.max = this._getMonitorMax(TEMPLATE.attributes.strength)
-    this.system.monitors.fatigue.max = this._getMonitorMax(TEMPLATE.attributes.willpower)
+    this.system.monitors.physical.max = this._getMonitorMax(TEMPLATE.actorAttributes.strength)
+    this.system.monitors.fatigue.max = this._getMonitorMax(TEMPLATE.actorAttributes.willpower)
     super.prepareDerivedData()
     this.system.ignoreWounds = Modifiers.sumModifiers(this.items, 'other', 'ignoreWounds')
   }
@@ -44,21 +44,14 @@ export class CharacterActor extends AnarchyBaseActor {
   }
 
   getAttributes() {
-    return [
-      TEMPLATE.attributes.strength,
-      TEMPLATE.attributes.agility,
-      TEMPLATE.attributes.willpower,
-      TEMPLATE.attributes.logic,
-      TEMPLATE.attributes.charisma,
-      TEMPLATE.attributes.edge
-    ];
+    return ACTOR_ATTRIBUTE_SETS[this.type] ?? ACTOR_ATTRIBUTE_SETS[TEMPLATE.actorTypes.character];
   }
 
-  getPhysicalAgility() { return TEMPLATE.attributes.agility }
+  getPhysicalAgility() { return TEMPLATE.actorAttributes.agility }
 
   getCorrespondingAttribute(attribute) {
-    if (TEMPLATE.attributes.firewall == attribute) {
-      return TEMPLATE.attributes.firewall
+    if (TEMPLATE.itemAttributes.firewall == attribute) {
+      return TEMPLATE.itemAttributes.firewall
     }
     return super.getCorrespondingAttribute(attribute)
   }
@@ -128,7 +121,7 @@ export class CharacterActor extends AnarchyBaseActor {
     return this.getEdgePoolValue(TEMPLATE.counters.social.credibility);
   }
   getRumorValue() {
-    return this.getEdgePoolValue(TEMPLATE.counters.social.rumor);
+    return this.getEdgePoolValue(TEMPLATE.counters.mental.rumor);
   }
 
   getAnarchy() {

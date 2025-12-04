@@ -197,6 +197,9 @@ export const ANARCHY = {
             plot: 'ANARCHY.actor.counters.plot',
             edgePools: {
                 title: 'ANARCHY.actor.counters.edgePools.title',
+                physical: 'ANARCHY.actor.counters.edgePools.physical',
+                mental: 'ANARCHY.actor.counters.edgePools.mental',
+                social: 'ANARCHY.actor.counters.edgePools.social',
                 grit: 'ANARCHY.actor.counters.edgePools.grit',
                 insight: 'ANARCHY.actor.counters.edgePools.insight',
                 rumor: 'ANARCHY.actor.counters.edgePools.rumor',
@@ -204,9 +207,13 @@ export const ANARCHY = {
                 credibility: 'ANARCHY.actor.counters.edgePools.credibility',
                 chaos: 'ANARCHY.actor.counters.edgePools.chaos',
             },
+            mental: {
+                insight: 'ANARCHY.actor.counters.mental.insight',
+                rumor: 'ANARCHY.actor.counters.mental.rumor',
+            },
             social: {
+                legend: 'ANARCHY.actor.counters.social.legend',
                 credibility: 'ANARCHY.actor.counters.social.credibility',
-                rumor: 'ANARCHY.actor.counters.social.rumor',
             }
         },
         monitors: {

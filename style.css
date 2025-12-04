@@ -1791,4 +1791,73 @@
   width: calc(100% - 16px);
 }
 
+/* Sheet layout helpers to organize actor templates into stable grids */
+.sheet-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.sheet-layout.vehicle-layout {
+  grid-template-columns: 1.35fr 1fr;
+}
+
+.sheet-layout.battlemech-layout {
+  grid-template-columns: 1.4fr 1fr;
+}
+
+.sheet-layout .sheet-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sheet-layout .section-group,
+.sheet-layout .section-attributes,
+.sheet-layout .anarchy-block,
+.sheet-layout .items-group {
+  width: 100%;
+}
+
+.sheet-layout .section-group,
+.sheet-layout .section-attributes {
+  display: block;
+  margin-bottom: 0;
+}
+
+.sheet-layout .anarchy-attributes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 6px;
+}
+
+.word-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.2fr 1fr;
+  gap: 8px;
+}
+
+.stacked-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 8px;
+}
+
+.stacked-grid.tertiary-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.character-monitor-grid,
+.vehicle-monitor-grid,
+.mech-monitor-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.mech-monitor-grid textarea.info-value {
+  min-height: 60px;
+}
+
 /*# sourceMappingURL=style.css.map */

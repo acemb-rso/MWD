@@ -10,7 +10,7 @@ export class CyberdeckItem extends AnarchyBaseItem {
 
   getAttributes() {
     return [
-      TEMPLATE.attributes.firewall
+      TEMPLATE.itemAttributes.firewall
     ];
   }
 }

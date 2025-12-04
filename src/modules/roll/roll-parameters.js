@@ -362,11 +362,11 @@ const DEFAULT_ROLL_PARAMETERS = [
     factory: context => {
       const poolOrder = [
         TEMPLATE.counters.edgePools.grit,
+        TEMPLATE.counters.edgePools.chaos,
         TEMPLATE.counters.edgePools.insight,
         TEMPLATE.counters.edgePools.rumor,
         TEMPLATE.counters.edgePools.legend,
         TEMPLATE.counters.edgePools.credibility,
-        TEMPLATE.counters.edgePools.chaos,
       ];
       const edgePools = poolOrder.map(code => {
         const value = context.actor.getEdgePoolValue(code);

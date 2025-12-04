@@ -32,92 +32,101 @@
     </div>
   </header>
   <section class="sheet-body">
-    <div class="anarchy-block quick-actions-block">
-      <div class="section-group-header">{{localize 'ANARCHY.actor.vehicle.quickActions.title'}}</div>
-      {{> "systems/mwd/templates/actor/parts/mech-quick-actions.hbs"}}
-    </div>
-    <div class="section-attributes anarchy-attributes">
-      {{> "systems/mwd/templates/actor/vehicle/vehicle-attributes.hbs"}}
-    </div>
-    <div class="section-group monitors-row">
-      <div class="anarchy-block">
-        {{> "systems/mwd/templates/monitors/structure.hbs"}}
-      </div>
-      <div class="anarchy-block">
-        {{> "systems/mwd/templates/monitors/armor.hbs"}}
-      </div>
-      <div class="anarchy-block mech-heat-block">
-        {{> "systems/mwd/templates/monitors/heat.hbs"}}
-        <div class="heat-thresholds">
-          <label class="monitor-label">{{localize 'ANARCHY.actor.battlemech.heat.thresholds'}}</label>
-          <div class="heat-threshold-row">
-            <span>{{localize 'ANARCHY.actor.battlemech.heat.runningHot'}}</span>
-            <input class="info-value" type="number" data-dtype="Number" name="system.mwd.heat.thresholds.runningHot" value="{{system.mwd.heat.thresholds.runningHot}}" />
-          </div>
-          <div class="heat-threshold-row">
-            <span>{{localize 'ANARCHY.actor.battlemech.heat.overheated'}}</span>
-            <input class="info-value" type="number" data-dtype="Number" name="system.mwd.heat.thresholds.overheated" value="{{system.mwd.heat.thresholds.overheated}}" />
-          </div>
-          <div class="heat-threshold-row">
-            <span>{{localize 'ANARCHY.actor.battlemech.heat.shutdown'}}</span>
-            <input class="info-value" type="number" data-dtype="Number" name="system.mwd.heat.thresholds.shutdown" value="{{system.mwd.heat.thresholds.shutdown}}" />
-          </div>
-          <div class="heat-status">{{localize 'ANARCHY.actor.battlemech.heat.statusLabel'}}: {{system.mwd.heatStatus.label}}</div>
+    <div class="sheet-layout battlemech-layout">
+      <div class="sheet-column">
+        <div class="anarchy-block quick-actions-block">
+          <div class="section-group-header">{{localize 'ANARCHY.actor.vehicle.quickActions.title'}}</div>
+          {{> "systems/mwd/templates/actor/parts/mech-quick-actions.hbs"}}
         </div>
-      </div>
-    </div>
-    <div class="section-group monitors-row">
-      <div class="anarchy-block">
-        <label class="monitor-label">{{localize ANARCHY.actor.vehicle.criticalTrack}}</label>
-        {{> "systems/mwd/templates/common/checkbar.hbs"
-          code='criticals'
-          value=system.hybrid.criticals.value
-          max=system.hybrid.criticals.max
-          rowlength=6
-        }}
-        <textarea class="info-value" name="system.hybrid.criticals.notes" rows="3" placeholder="{{localize ANARCHY.actor.vehicle.criticalTrack}}">{{system.hybrid.criticals.notes}}</textarea>
-      </div>
-      <div class="anarchy-block hybrid-locations">
-        <label class="monitor-label">{{localize ANARCHY.actor.monitors.armor}}</label>
-        <div class="flexcol location-grid">
-          <div class="flexrow location-row">
-            <span class="location-label">{{localize ANARCHY.actor.vehicle.locationFront}}</span>
-            <input class="info-value" type="text" name="system.hybrid.locations.front" value="{{system.hybrid.locations.front}}" />
+
+        <div class="section-attributes anarchy-attributes anarchy-block">
+          {{> "systems/mwd/templates/actor/vehicle/vehicle-attributes.hbs"}}
+        </div>
+
+        <div class="mech-monitor-grid">
+          <div class="anarchy-block">
+            {{> "systems/mwd/templates/monitors/structure.hbs"}}
           </div>
-          <div class="flexrow location-row">
-            <span class="location-label">{{localize ANARCHY.actor.vehicle.locationSide}}</span>
-            <input class="info-value" type="text" name="system.hybrid.locations.sides" value="{{system.hybrid.locations.sides}}" />
+          <div class="anarchy-block">
+            {{> "systems/mwd/templates/monitors/armor.hbs"}}
           </div>
-          <div class="flexrow location-row">
-            <span class="location-label">{{localize ANARCHY.actor.vehicle.locationRear}}</span>
-            <input class="info-value" type="text" name="system.hybrid.locations.rear" value="{{system.hybrid.locations.rear}}" />
-          </div>
-          <div class="flexrow location-row">
-            <span class="location-label">{{localize ANARCHY.actor.vehicle.locationCore}}</span>
-            <input class="info-value" type="text" name="system.hybrid.locations.core" value="{{system.hybrid.locations.core}}" />
+          <div class="anarchy-block mech-heat-block">
+            {{> "systems/mwd/templates/monitors/heat.hbs"}}
+            <div class="heat-thresholds">
+              <label class="monitor-label">{{localize 'ANARCHY.actor.battlemech.heat.thresholds'}}</label>
+              <div class="heat-threshold-row">
+                <span>{{localize 'ANARCHY.actor.battlemech.heat.runningHot'}}</span>
+                <input class="info-value" type="number" data-dtype="Number" name="system.mwd.heat.thresholds.runningHot" value="{{system.mwd.heat.thresholds.runningHot}}" />
+              </div>
+              <div class="heat-threshold-row">
+                <span>{{localize 'ANARCHY.actor.battlemech.heat.overheated'}}</span>
+                <input class="info-value" type="number" data-dtype="Number" name="system.mwd.heat.thresholds.overheated" value="{{system.mwd.heat.thresholds.overheated}}" />
+              </div>
+              <div class="heat-threshold-row">
+                <span>{{localize 'ANARCHY.actor.battlemech.heat.shutdown'}}</span>
+                <input class="info-value" type="number" data-dtype="Number" name="system.mwd.heat.thresholds.shutdown" value="{{system.mwd.heat.thresholds.shutdown}}" />
+              </div>
+              <div class="heat-status">{{localize 'ANARCHY.actor.battlemech.heat.statusLabel'}}: {{system.mwd.heatStatus.label}}</div>
+            </div>
           </div>
         </div>
+
+        <div class="mech-monitor-grid">
+          <div class="anarchy-block">
+            <label class="monitor-label">{{localize ANARCHY.actor.vehicle.criticalTrack}}</label>
+            {{> "systems/mwd/templates/common/checkbar.hbs"
+              code='criticals'
+              value=system.hybrid.criticals.value
+              max=system.hybrid.criticals.max
+              rowlength=6
+            }}
+            <textarea class="info-value" name="system.hybrid.criticals.notes" rows="3" placeholder="{{localize ANARCHY.actor.vehicle.criticalTrack}}">{{system.hybrid.criticals.notes}}</textarea>
+          </div>
+          <div class="anarchy-block hybrid-locations">
+            <label class="monitor-label">{{localize ANARCHY.actor.monitors.armor}}</label>
+            <div class="flexcol location-grid">
+              <div class="flexrow location-row">
+                <span class="location-label">{{localize ANARCHY.actor.vehicle.locationFront}}</span>
+                <input class="info-value" type="text" name="system.hybrid.locations.front" value="{{system.hybrid.locations.front}}" />
+              </div>
+              <div class="flexrow location-row">
+                <span class="location-label">{{localize ANARCHY.actor.vehicle.locationSide}}</span>
+                <input class="info-value" type="text" name="system.hybrid.locations.sides" value="{{system.hybrid.locations.sides}}" />
+              </div>
+              <div class="flexrow location-row">
+                <span class="location-label">{{localize ANARCHY.actor.vehicle.locationRear}}</span>
+                <input class="info-value" type="text" name="system.hybrid.locations.rear" value="{{system.hybrid.locations.rear}}" />
+              </div>
+              <div class="flexrow location-row">
+                <span class="location-label">{{localize ANARCHY.actor.vehicle.locationCore}}</span>
+                <input class="info-value" type="text" name="system.hybrid.locations.core" value="{{system.hybrid.locations.core}}" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stacked-grid">
+          <div class="anarchy-block">
+            {{> "systems/mwd/templates/actor/parts/battlemech-hardpoints.hbs"}}
+          </div>
+          <div class="anarchy-block">
+            {{> "systems/mwd/templates/actor/parts/battlemech-weapon-groups.hbs"}}
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="section-group items-group">
-      <div class="anarchy-block">
-        {{> "systems/mwd/templates/actor/parts/battlemech-hardpoints.hbs"}}
+
+      <div class="sheet-column sidebar">
+        <div class="anarchy-block">
+          {{> "systems/mwd/templates/actor/parts/battlemech-loadout.hbs"}}
+        </div>
+        <div class="anarchy-block">
+          {{> "systems/mwd/templates/actor/parts/battlemech-weapons.hbs"}}
+        </div>
+        <div class="anarchy-block">
+          {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
+          {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
+        </div>
       </div>
-    </div>
-    <div class="section-group items-group">
-      <div class="anarchy-block">
-        {{> "systems/mwd/templates/actor/parts/battlemech-weapon-groups.hbs"}}
-      </div>
-    </div>
-    <div class="section-group items-group">
-      {{> "systems/mwd/templates/actor/parts/battlemech-loadout.hbs"}}
-    </div>
-    <div class="section-group items-group">
-      {{> "systems/mwd/templates/actor/parts/battlemech-weapons.hbs"}}
-    </div>
-    <div class="anarchy-block">
-      {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
-      {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
     </div>
   </section>
 </form>

@@ -66,7 +66,7 @@ class _0_3_8_MigrateWeaponDamage extends Migration {
     const fixItemDamage = it => {
       return {
         _id: it.id,
-        'system.damageAttribute': TEMPLATE.attributes.strength,
+        'system.damageAttribute': TEMPLATE.actorAttributes.strength,
         'system.strength': undefined,
       }
     };
@@ -269,7 +269,7 @@ class _11_1_16_MigrateSkillsAttributes extends Migration {
         return {
           _id: it.id,
           'system.attribute': '',
-          'system.code': TEMPLATE.attributes.knowledge
+          'system.code': TEMPLATE.itemAttributes.knowledge
         }
       }));
   }
