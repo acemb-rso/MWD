@@ -358,14 +358,855 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 8px;
 }
-
-.stacked-grid.tertiary-grid {
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+.sheet .character-enhanced .skills .item-list .anarchy-skill .content .skill-txt .title {
+  font-family: "BebasNeue";
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+.sheet .character-enhanced .skills .item-list .anarchy-skill .level {
+  position: absolute;
+  top: 10px;
+  transform: translateY(-50%);
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  font-weight: bold;
+  left: -6px;
+  transform: translateY(-50%);
+}
+.sheet .character-enhanced .skills .item-list .anarchy-skill .level .content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.sheet .character-enhanced .asset-modules {
+  background-color: #dcdddf;
+  border-top: 2px solid black;
+  z-index: 0;
+  position: relative;
+  margin-top: 0px;
+  margin-left: -4px;
+  margin-right: -4px;
+  padding: 0 0rem 2rem 0rem;
+  box-shadow: var(--anarchy-shadow-section);
+}
+.sheet .character-enhanced .asset-modules .item-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+.sheet .character-enhanced .asset-modules h2 {
+  --wrapper-padding: 19px;
+  --wrapper-background-color: #dcdddf;
+  display: inline-block;
+  margin-top: -19px;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+}
+.sheet .character-enhanced .asset-modules h2 .side.up {
+  box-shadow: var(--anarchy-shadow-section);
+}
+.sheet .character-enhanced .asset-modules h2 .side.down,
+.sheet .character-enhanced .asset-modules h2 .side.right,
+.sheet .character-enhanced .asset-modules h2 .side.left,
+.sheet .character-enhanced .asset-modules h2 .angle.br,
+.sheet .character-enhanced .asset-modules h2 .angle.bl {
+  display: none;
+}
+.sheet .character-enhanced .asset-modules h2 .content {
+  color: white;
+  font-size: 1.2em;
+  border-bottom: none;
+  text-transform: uppercase;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  font-weight: bold;
+  font-family: "BebasNeue";
+  letter-spacing: 2px;
+  background-color: #dcdddf;
+  transform: translateY(-14px);
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.sheet .character-enhanced .asset-modules h2 .content a {
+  text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+.sheet .character-enhanced .asset-modules .item-list {
+  overflow: auto;
+  margin-bottom: 16px;
+  gap: 1rem;
+  padding: 1rem 1rem 0 1rem;
+  margin-top: 0rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.sheet .character-enhanced .asset-modules .item-list .anarchy-asset-module {
+  --wrapper-padding: 12px;
+}
+.sheet .character-enhanced .asset-modules .item-list .anarchy-asset-module .content {
+  display: flex;
+  flex-direction: row;
+}
+.sheet .character-enhanced .asset-modules .item-list .anarchy-asset-module .content .asset-module-img {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 46px;
+}
+.sheet .character-enhanced .asset-modules .item-list .anarchy-asset-module .content .asset-module-img .anarchy-img {
+  width: 46px;
+  height: 46px;
+}
+.sheet .character-enhanced .asset-modules .item-list .anarchy-asset-module .content .asset-module-content {
+  max-width: none;
+  padding-left: 12px;
+  text-align: left;
+}
+.sheet .character-enhanced .asset-modules .item-list .anarchy-asset-module .content .asset-module-content .title {
+  font-family: "BebasNeue";
+  font-weight: bold;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+.sheet .character-enhanced .asset-modules .item-list .anarchy-asset-module .level {
+  position: absolute;
+  transform: translateY(-50%);
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  top: 10px;
+  font-weight: bold;
+  left: -6px;
+  transform: translateY(-50%);
+}
+.sheet .character-enhanced .asset-modules .item-list .anarchy-asset-module .level .content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.sheet .character-enhanced .monitors {
+  background-color: #dcdddf;
+  border-top: 2px solid black;
+  z-index: 0;
+  position: relative;
+  margin-top: 24px;
+  margin-left: -4px;
+  margin-right: -4px;
+  padding: 0 1rem 2rem 1rem;
+  box-shadow: var(--anarchy-shadow-section);
+}
+@container (max-width:700px) {
+  .sheet .character-enhanced .monitors {
+    margin-top: 0;
+  }
+}
+.sheet .character-enhanced .monitors h2 {
+  --wrapper-padding: 19px;
+  --wrapper-background-color: #dcdddf;
+  display: inline-block;
+  margin-top: -19px;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+}
+.sheet .character-enhanced .monitors h2 .side.up {
+  box-shadow: var(--anarchy-shadow-section);
+}
+.sheet .character-enhanced .monitors h2 .side.down,
+.sheet .character-enhanced .monitors h2 .side.right,
+.sheet .character-enhanced .monitors h2 .side.left,
+.sheet .character-enhanced .monitors h2 .angle.br,
+.sheet .character-enhanced .monitors h2 .angle.bl {
+  display: none;
+}
+.sheet .character-enhanced .monitors h2 .content {
+  color: white;
+  font-size: 1.2em;
+  border-bottom: none;
+  text-transform: uppercase;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  font-weight: bold;
+  font-family: "BebasNeue";
+  letter-spacing: 2px;
+  background-color: #dcdddf;
+  transform: translateY(-14px);
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.sheet .character-enhanced .monitors h2 .content a {
+  text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+.sheet .character-enhanced .monitors .monitor-list {
+  display: grid;
+  grid-template-columns: 1fr 376px;
+  gap: 8px;
+}
+.sheet .character-enhanced .monitors .monitor-list .checkbar-img {
+  width: 24px;
+  height: 24px;
+}
+.sheet .character-enhanced .monitors .monitor-list .tokens {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sheet .character-enhanced .monitors .monitor-list .health {
+  display: grid;
+  grid-template-columns: 120px 120px 120px;
+  gap: 8px;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content,
+.sheet .character-enhanced .monitors .monitor-list .physical .content,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content {
+  padding-top: 8px;
+  position: relative;
+  background-color: white;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content .title,
+.sheet .character-enhanced .monitors .monitor-list .physical .content .title,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .title,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content .title {
+  height: 20px;
+  font-size: 18px;
+  color: white;
+  text-transform: uppercase;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  font-weight: bold;
+  font-family: "BebasNeue";
+  letter-spacing: 2px;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content .title input.info-value,
+.sheet .character-enhanced .monitors .monitor-list .physical .content .title input.info-value,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .title input.info-value,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content .title input.info-value {
+  text-align: center;
+  font-size: 16px;
+  width: 28px;
+  height: 20px;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content .anarchy-monitor,
+.sheet .character-enhanced .monitors .monitor-list .physical .content .anarchy-monitor,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .anarchy-monitor,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content .anarchy-monitor {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  font-family: "BebasNeue";
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content .anarchy-monitor .checkbar-root,
+.sheet .character-enhanced .monitors .monitor-list .physical .content .anarchy-monitor .checkbar-root,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .anarchy-monitor .checkbar-root,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content .anarchy-monitor .checkbar-root {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content .anarchy-monitor .checkbar-root .checkbar,
+.sheet .character-enhanced .monitors .monitor-list .physical .content .anarchy-monitor .checkbar-root .checkbar,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .anarchy-monitor .checkbar-root .checkbar,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content .anarchy-monitor .checkbar-root .checkbar {
+  justify-content: center;
+  display: grid;
+  gap: 12px 5px;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element,
+.sheet .character-enhanced .monitors .monitor-list .physical .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element {
+  position: relative;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element:after,
+.sheet .character-enhanced .monitors .monitor-list .physical .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element:after,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element:after,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element:after {
+  content: "";
+  position: absolute;
+  border-top: 1px dotted #777;
+  width: 6px;
+  right: -5px;
+  top: 6px;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element:nth-child(3n):after,
+.sheet .character-enhanced .monitors .monitor-list .physical .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element:nth-child(3n):after,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element:nth-child(3n):after,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element:nth-child(3n):after {
+  width: 33px;
+  right: 15px;
+  top: 21px;
+  transform: rotate(151deg);
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element:last-child:after,
+.sheet .character-enhanced .monitors .monitor-list .physical .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element:last-child:after,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element:last-child:after,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content .anarchy-monitor .checkbar-root .checkbar .click-checkbar-element:last-child:after {
+  display: none;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content .anarchy-monitor .adjust,
+.sheet .character-enhanced .monitors .monitor-list .physical .content .anarchy-monitor .adjust,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .anarchy-monitor .adjust,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content .anarchy-monitor .adjust {
+  display: flex;
+  flex-direction: column;
+  margin-left: -10px;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content .anarchy-monitor .adjust div,
+.sheet .character-enhanced .monitors .monitor-list .physical .content .anarchy-monitor .adjust div,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .anarchy-monitor .adjust div,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content .anarchy-monitor .adjust div {
+  height: 29px;
+  display: flex;
+  align-content: center;
+  justify-content: center;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .content .anarchy-monitor .adjust div.activated,
+.sheet .character-enhanced .monitors .monitor-list .physical .content .anarchy-monitor .adjust div.activated,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .anarchy-monitor .adjust div.activated,
+.sheet .character-enhanced .monitors .monitor-list .tokens .content .anarchy-monitor .adjust div.activated {
+  color: red;
+  font-weight: bold;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .resistance-label,
+.sheet .character-enhanced .monitors .monitor-list .physical .resistance-label,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .resistance-label,
+.sheet .character-enhanced .monitors .monitor-list .tokens .resistance-label {
+  font-size: 14px;
+  font-family: "BebasNeue";
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+.sheet .character-enhanced .monitors .monitor-list .armor .resistance-label .value,
+.sheet .character-enhanced .monitors .monitor-list .physical .resistance-label .value,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .resistance-label .value,
+.sheet .character-enhanced .monitors .monitor-list .tokens .resistance-label .value {
+  font-size: 16px;
+  font-weight: bold;
+}
+.sheet .character-enhanced .monitors .monitor-list .physical .content,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content {
+  display: grid;
+  grid-template-rows: 20px 1fr 20px;
+}
+.sheet .character-enhanced .monitors .monitor-list .physical .content .anarchy-monitor,
+.sheet .character-enhanced .monitors .monitor-list .fatigue .content .anarchy-monitor {
+  display: grid;
+  grid-template-columns: 1fr 16px;
+}
+.sheet .character-enhanced .monitors .monitor-list .anarchy-token {
+  height: 100%;
+}
+.sheet .character-enhanced .monitors .monitor-list .edge-credibility {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.sheet .character-enhanced .monitors .monitor-list .edge-credibility div {
+  flex: 1;
+}
+.sheet .character-enhanced .monitors .monitor-list .edge-credibility .edge .content,
+.sheet .character-enhanced .monitors .monitor-list .edge-credibility .rumors .content,
+.sheet .character-enhanced .monitors .monitor-list .edge-credibility .credibility .content {
+  display: grid;
+}
+@container (max-width: 650px) {
+  .sheet .character-enhanced .monitors .monitor-list {
+    grid-template-columns: 1fr;
+  }
+  .sheet .character-enhanced .monitors .monitor-list .health {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+.sheet .character-enhanced .roleplay-keywords,
+.sheet .character-enhanced .roleplay-dispositions,
+.sheet .character-enhanced .roleplay-cues {
+  background-color: white;
+  display: none;
+  border-top: 2px solid black;
+  z-index: 0;
+  position: relative;
+  margin-top: 0px;
+  margin-left: -4px;
+  margin-right: -4px;
+  padding: 0 1rem 2rem 1rem;
+  box-shadow: var(--anarchy-shadow-section);
+}
+@container (max-width: 700px) {
+  .sheet .character-enhanced .roleplay-keywords,
+  .sheet .character-enhanced .roleplay-dispositions,
+  .sheet .character-enhanced .roleplay-cues {
+    display: inherit;
+  }
+  .sheet .character-enhanced .roleplay-keywords h3,
+  .sheet .character-enhanced .roleplay-dispositions h3,
+  .sheet .character-enhanced .roleplay-cues h3 {
+    display: none;
+  }
+}
+.sheet .character-enhanced .roleplay-keywords h2,
+.sheet .character-enhanced .roleplay-dispositions h2,
+.sheet .character-enhanced .roleplay-cues h2 {
+  --wrapper-padding: 19px;
+  --wrapper-background-color: white;
+  display: inline-block;
+  margin-top: -19px;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+}
+.sheet .character-enhanced .roleplay-keywords h2 .side.up,
+.sheet .character-enhanced .roleplay-dispositions h2 .side.up,
+.sheet .character-enhanced .roleplay-cues h2 .side.up {
+  box-shadow: var(--anarchy-shadow-section);
+}
+.sheet .character-enhanced .roleplay-keywords h2 .side.down,
+.sheet .character-enhanced .roleplay-keywords h2 .side.right,
+.sheet .character-enhanced .roleplay-keywords h2 .side.left,
+.sheet .character-enhanced .roleplay-keywords h2 .angle.br,
+.sheet .character-enhanced .roleplay-keywords h2 .angle.bl,
+.sheet .character-enhanced .roleplay-dispositions h2 .side.down,
+.sheet .character-enhanced .roleplay-dispositions h2 .side.right,
+.sheet .character-enhanced .roleplay-dispositions h2 .side.left,
+.sheet .character-enhanced .roleplay-dispositions h2 .angle.br,
+.sheet .character-enhanced .roleplay-dispositions h2 .angle.bl,
+.sheet .character-enhanced .roleplay-cues h2 .side.down,
+.sheet .character-enhanced .roleplay-cues h2 .side.right,
+.sheet .character-enhanced .roleplay-cues h2 .side.left,
+.sheet .character-enhanced .roleplay-cues h2 .angle.br,
+.sheet .character-enhanced .roleplay-cues h2 .angle.bl {
+  display: none;
+}
+.sheet .character-enhanced .roleplay-keywords h2 .content,
+.sheet .character-enhanced .roleplay-dispositions h2 .content,
+.sheet .character-enhanced .roleplay-cues h2 .content {
+  color: black;
+  font-size: 1.2em;
+  border-bottom: none;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-family: "BebasNeue";
+  letter-spacing: 2px;
+  background-color: white;
+  transform: translateY(-14px);
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.sheet .character-enhanced .roleplay-keywords h2 .content a,
+.sheet .character-enhanced .roleplay-dispositions h2 .content a,
+.sheet .character-enhanced .roleplay-cues h2 .content a {
+  text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+.sheet .character-enhanced .owned,
+.sheet .character-enhanced .equipments {
+  background-color: #fec81c;
+}
+.sheet .character-enhanced .owned.owned,
+.sheet .character-enhanced .equipments.owned {
+  background-color: #e3e4e6;
+}
+.sheet .character-enhanced .owned.owned h2,
+.sheet .character-enhanced .equipments.owned h2 {
+  --wrapper-background-color: #e3e4e6;
+}
+.sheet .character-enhanced .owned.owned h2 .content,
+.sheet .character-enhanced .equipments.owned h2 .content {
+  background-color: #e3e4e6;
+}
+.sheet .character-enhanced .owned,
+.sheet .character-enhanced .equipments {
+  border-top: 2px solid black;
+  z-index: 0;
+  position: relative;
+  margin-top: 0px;
+  margin-left: -4px;
+  margin-right: -4px;
+  padding: 0 1rem 2rem 1rem;
+  box-shadow: var(--anarchy-shadow-section);
+}
+.sheet .character-enhanced .owned h2,
+.sheet .character-enhanced .equipments h2 {
+  --wrapper-padding: 19px;
+  --wrapper-background-color: #fec81c;
+  display: inline-block;
+  margin-top: -19px;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+}
+.sheet .character-enhanced .owned h2 .side.up,
+.sheet .character-enhanced .equipments h2 .side.up {
+  box-shadow: var(--anarchy-shadow-section);
+}
+.sheet .character-enhanced .owned h2 .side.down,
+.sheet .character-enhanced .owned h2 .side.right,
+.sheet .character-enhanced .owned h2 .side.left,
+.sheet .character-enhanced .owned h2 .angle.br,
+.sheet .character-enhanced .owned h2 .angle.bl,
+.sheet .character-enhanced .equipments h2 .side.down,
+.sheet .character-enhanced .equipments h2 .side.right,
+.sheet .character-enhanced .equipments h2 .side.left,
+.sheet .character-enhanced .equipments h2 .angle.br,
+.sheet .character-enhanced .equipments h2 .angle.bl {
+  display: none;
+}
+.sheet .character-enhanced .owned h2 .content,
+.sheet .character-enhanced .equipments h2 .content {
+  color: white;
+  font-size: 1.2em;
+  border-bottom: none;
+  text-transform: uppercase;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  font-weight: bold;
+  font-family: "BebasNeue";
+  letter-spacing: 2px;
+  background-color: #fec81c;
+  transform: translateY(-14px);
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.sheet .character-enhanced .owned h2 .content a,
+.sheet .character-enhanced .equipments h2 .content a {
+  text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+.sheet .character-enhanced .owned .gear-list,
+.sheet .character-enhanced .equipments .gear-list {
+  padding: 0;
+  gap: 8px 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+.sheet .character-enhanced .owned .gear-list .gear .content,
+.sheet .character-enhanced .equipments .gear-list .gear .content {
+  padding: 4px;
+}
+.sheet .character-enhanced .owned .gear-list .gear .content p,
+.sheet .character-enhanced .equipments .gear-list .gear .content p {
+  text-align: justify;
+}
+.sheet .character-enhanced .owned .gear-list .gear .content label,
+.sheet .character-enhanced .equipments .gear-list .gear .content label {
+  font-family: "BebasNeue";
+  font-size: 18px;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+.sheet .character-enhanced .owned .gear-list .gear .item-controls,
+.sheet .character-enhanced .equipments .gear-list .gear .item-controls {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  text-align: center;
+}
+.sheet .character-enhanced .story {
+  background-color: #e3e4e6;
+  border-top: 2px solid black;
+  z-index: 0;
+  position: relative;
+  margin-top: 0px;
+  margin-left: -4px;
+  margin-right: -4px;
+  padding: 0 1rem 2rem 1rem;
+  box-shadow: var(--anarchy-shadow-section);
+}
+.sheet .character-enhanced .story h2 {
+  --wrapper-padding: 19px;
+  --wrapper-background-color: #e3e4e6;
+  display: inline-block;
+  margin-top: -19px;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+}
+.sheet .character-enhanced .story h2 .side.up {
+  box-shadow: var(--anarchy-shadow-section);
+}
+.sheet .character-enhanced .story h2 .side.down,
+.sheet .character-enhanced .story h2 .side.right,
+.sheet .character-enhanced .story h2 .side.left,
+.sheet .character-enhanced .story h2 .angle.br,
+.sheet .character-enhanced .story h2 .angle.bl {
+  display: none;
+}
+.sheet .character-enhanced .story h2 .content {
+  color: black;
+  font-size: 1.2em;
+  border-bottom: none;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-family: "BebasNeue";
+  letter-spacing: 2px;
+  background-color: #e3e4e6;
+  transform: translateY(-14px);
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.sheet .character-enhanced .story h2 .content a {
+  text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+.sheet .character-enhanced .story .social-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@container (max-width:500px) {
+  .sheet .character-enhanced .story .social-info {
+    grid-template-columns: 1fr;
+  }
+}
+.sheet .character-enhanced .story .social-info {
+  gap: 1rem;
+}
+.sheet .character-enhanced .story .social-info .title {
+  margin-top: 0px;
+  padding: 4px;
+  font-family: "BebasNeue";
+  font-size: 18px;
+  letter-spacing: 1px;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: white;
+}
+.sheet .character-enhanced .story .social-info .celeb-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.sheet .character-enhanced .story .social-info .celeb-table > div {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.sheet .character-enhanced .story .social-info .celeb-table > div .input input {
+  text-align: center;
+}
+.sheet .character-enhanced .story .contacts .title {
+  margin-top: 1rem;
+  padding: 4px;
+  font-family: "BebasNeue";
+  font-size: 18px;
+  letter-spacing: 1px;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: white;
+}
+.sheet .character-enhanced .story .contacts .contact-list {
+  padding: 0;
+  gap: 8px 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+.sheet .character-enhanced .story .contacts .contact-list .contact .content {
+  padding: 4px;
+}
+.sheet .character-enhanced .story .contacts .contact-list .contact .content p {
+  text-align: justify;
+}
+.sheet .character-enhanced .story .contacts .contact-list .contact .content label {
+  font-family: "BebasNeue";
+  letter-spacing: 1px;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+.sheet .character-enhanced .story .contacts .contact-list .contact .item-controls {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  text-align: center;
+}
+.sheet .character-enhanced .qualities {
+  background-color: #e3e4e6;
+  border-top: 2px solid black;
+  z-index: 0;
+  position: relative;
+  margin-top: 0px;
+  margin-left: -4px;
+  margin-right: -4px;
+  padding: 0 1rem 2rem 1rem;
+  box-shadow: var(--anarchy-shadow-section);
+}
+.sheet .character-enhanced .qualities h2 {
+  --wrapper-padding: 19px;
+  --wrapper-background-color: #e3e4e6;
+  display: inline-block;
+  margin-top: -19px;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+}
+.sheet .character-enhanced .qualities h2 .side.up {
+  box-shadow: var(--anarchy-shadow-section);
+}
+.sheet .character-enhanced .qualities h2 .side.down,
+.sheet .character-enhanced .qualities h2 .side.right,
+.sheet .character-enhanced .qualities h2 .side.left,
+.sheet .character-enhanced .qualities h2 .angle.br,
+.sheet .character-enhanced .qualities h2 .angle.bl {
+  display: none;
+}
+.sheet .character-enhanced .qualities h2 .content {
+  color: black;
+  font-size: 1.2em;
+  border-bottom: none;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-family: "BebasNeue";
+  letter-spacing: 2px;
+  background-color: #e3e4e6;
+  transform: translateY(-14px);
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.sheet .character-enhanced .qualities h2 .content a {
+  text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+.sheet .character-enhanced .qualities .item-list {
+  overflow: auto;
+  margin-bottom: 16px;
+  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality {
+  --wrapper-padding: 12px;
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality.quality-negative .angle::before {
+  border-top: var(--wrapper-thickness, 2px) dashed var(--wrapper-border-color);
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality.quality-negative .side.up {
+  border-top: var(--wrapper-thickness, 2px) dashed var(--wrapper-border-color);
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality.quality-negative .side.right {
+  border-right: var(--wrapper-thickness, 2px) dashed var(--wrapper-border-color);
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality.quality-negative .side.left {
+  border-left: var(--wrapper-thickness, 2px) dashed var(--wrapper-border-color);
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality.quality-negative .side.down {
+  border-bottom: var(--wrapper-thickness, 2px) dashed var(--wrapper-border-color);
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality .content {
+  display: grid;
+  flex-direction: row;
+  grid-template-columns: 46px 1fr;
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality .content .quality-img {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality .content .quality-img .anarchy-img {
+  width: 46px;
+  height: 46px;
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality .content .quality-content {
+  max-width: none;
+  padding-left: 12px;
+  text-align: left;
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality .content .quality-content .title {
+  font-family: "BebasNeue";
+  font-weight: bold;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality .content .quality-content .item-description {
+  display: inline-block;
+  max-height: 150px;
+  overflow: auto;
+}
+.sheet .character-enhanced .qualities .item-list .anarchy-quality .content .quality-content .item-description p {
+  margin: 0 !important;
+}
+.sheet .character-enhanced .description .title,
+.sheet .character-enhanced .gmnotes .title {
+  margin-top: 1rem;
+  padding: 4px;
+  font-family: "BebasNeue";
+  font-size: 18px;
+  letter-spacing: 1px;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  color: white;
+}
+.sheet .character-enhanced .description .editor,
+.sheet .character-enhanced .gmnotes .editor {
+  text-align: initial;
 }
 
-.character-monitor-grid,
-.mech-monitor-grid textarea.info-value {
-  min-height: 60px;
+#gm-manager {
+  position: relative;
+}
+#gm-manager .gm-manager-resize-handle {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 14px;
+  height: 14px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.25) 50%), linear-gradient(45deg, transparent 50%, rgba(0, 0, 0, 0.2) 50%);
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+}
+#gm-manager header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#gm-manager header button.gm-manager-hide-button {
+  width: 32px;
+}
+
+.chat-tools {
+  display: flex;
+  z-index: 1000;
+  flex: 0 0 28px;
+  margin: 0 0px 4px 8px;
+  width: calc(100% - 16px);
 }
 
 /*# sourceMappingURL=style.css.map */
