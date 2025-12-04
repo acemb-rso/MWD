@@ -10,8 +10,8 @@ export class CharacterActorSheet extends CharacterBaseSheet {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      width: 800,
-      height: 700,
+      width: 1100,
+      height: 900,
     });
   }
 
