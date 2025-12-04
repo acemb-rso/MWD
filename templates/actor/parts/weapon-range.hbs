@@ -1,7 +1,0 @@
-{{#if system.area}}{{#unless (eq system.area '-')}}
-{{system.area}},
-{{/unless}}{{/if}}
-{{#each (weaponRangeList system.range)}}
-{{#unless @first}}/{{/unless}}
-{{#if allowed}}{{either value 'OK'}}{{else}}-{{/if}}
-{{/each}}
