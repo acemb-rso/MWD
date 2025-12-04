@@ -1,0 +1,53 @@
+<div class="define-item-type wrapper-hexabox item anarchy-skill {{#if system.inactive}}inactive{{/if}}"
+  data-item-id="{{_id}}" data-item-type="skill" draggable="true">
+  {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+  <div class="content">
+    <div class="skill-img">
+      <div>
+        {{#if img}}
+        <img class="anarchy-img item-img" src="{{img}}" alt="{{name}}" data-tooltip="{{name}}" />
+        {{/if}}
+      </div>
+      <div>
+        <div class="item-controls">
+          {{> 'systems/anarchy/templates/common/favorite.hbs'
+          isFavorite=(actorHasFavorite @root.actor.id id=_id type=type)
+          skill=this
+          }}
+          {{> 'systems/anarchy/templates/common/item-controls.hbs'}}
+        </div>
+      </div>
+    </div>
+    <div class="skill-txt">
+      {{#if (or (eq system.code 'knowledge') (eq system.attribute 'knowledge')) }}
+      <span data-tooltip="{{localize 'ANARCHY.attributes.knowledge'}}">
+        {{{iconFA 'fas fa-user-graduate'}}}
+        <label><b><span class="title">{{name}}</span></b></label>
+      </span>
+      {{else}}
+      <a class="click-skill-roll">
+        <label>
+          <b><span class="title">{{name}}</span></b><br />{{system.value}}
+          +
+          {{localizeAttribute system.attribute}}
+        </label>
+      </a>
+      {{#if system.specialization}}
+      <br />
+      <a class="click-skill-roll" data-item-specialization="{{system.specialization}}">
+        <label>
+          (<b>{{system.specialization}}</b>:
+          {{sum (actorAttribute system.attribute @root.actor) (sum system.value 2)}})
+        </label>
+      </a>
+      {{/if}}
+      <div class="wrapper-hexabox level">
+        {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+        <div class="content">
+          {{sum system.value (actorAttribute system.attribute @root.actor)}}
+        </div>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+</div>

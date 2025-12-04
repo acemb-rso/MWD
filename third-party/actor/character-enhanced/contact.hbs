@@ -1,0 +1,15 @@
+<div class="item contact wrapper-hexabox {{#if system.inactive}}inactive{{/if}}"
+  data-item-id="{{_id}}" data-item-type="contact" draggable="true">
+  {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+  <div class="content">
+    <img class="anarchy-img item-img" src="{{img}}" alt="{{name}}"
+      data-tooltip="{{name}}" />
+    <span>
+      <label>{{name}}</label>
+    {{{system.description}}}
+    </span>
+    <div class="item-controls">
+      {{> 'systems/anarchy/templates/common/item-controls.hbs'}}
+    </div>
+  </div>
+</div>

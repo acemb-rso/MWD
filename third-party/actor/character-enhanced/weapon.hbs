@@ -1,0 +1,75 @@
+<div
+  class="weapon wrapper-hexabox item click-weapon-roll {{#if system.inactive}}inactive{{/if}}"
+  draggable="true"
+  data-item-id="{{_id}}" data-item-type="weapon">
+  {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+  <div class="content">
+    <div class="weapon-column weapon-img">
+      <img class="anarchy-img item-img" src="{{img}}" alt="{{name}}"
+        data-tooltip="{{name}}" />
+    </div>
+    <div class="weapon-info">
+      <div class="weapon-description">
+        <div>
+          <div class="weapon-name">
+            {{name}}
+          </div>
+          <div class="weapon-desc">
+            {{#if system.description}}
+            <span class="multiline-description">
+              {{{system.description}}}
+            </span>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+      <div class="weapon-stats">
+        <div>
+          <span class="weapon-dmg">
+          {{>
+          'systems/anarchy/templates/actor/character-enhanced/damage-code.hbs'
+          damageAttribute=system.damageAttribute
+          actorAttribute=(actorAttribute system.damageAttribute @root.actor
+          this)
+          damage=system.damage
+          monitor=system.monitor
+          armor=(weaponArmorMode system.monitor system.noArmor)
+          }}
+          </span>
+          {{!-- <div>
+            {{localize (concat 'ANARCHY.area.' (either system.area 'none'))}}
+          </div> --}}
+          {{#if hasDrain}}
+          <spam class="weapon-drain">
+            {{localize 'ANARCHY.item.weapon.drain'}}:
+          </spam>
+          {{system.drain}}
+          {{/if}}
+        </div>
+        <div class="weapon-range">
+          {{either system.range.short 'OK'}}
+
+          {{#if (eq system.range.max "short")}}
+          / -
+          {{else}}
+          / {{either system.range.medium 'OK'}}
+          {{/if}}
+
+          {{#if (eq system.range.max "long")}}
+          / {{either system.range.long 'OK'}}
+          {{else}}
+          / -
+          {{/if}}
+        </div>
+      </div>
+    </div>
+    <div class="item-controls">
+      {{> 'systems/anarchy/templates/common/favorite.hbs'
+      isFavorite=(actorHasFavorite @root.actor.id id=_id type=type)
+      weapon=this
+      }}
+      {{> 'systems/anarchy/templates/common/item-control-activate.hbs'}}
+      {{> 'systems/anarchy/templates/common/item-controls.hbs'}}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,89 @@
+<div class="section-monitors wrapper {{actorTabClosed actor._id 'monitors'}}">
+    <h2 class="wrapper-hexabox click-section" data-class="section-monitors">
+        {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+        <div class="content">
+            {{localize 'ANARCHY.itemType.plural.monitor'}}
+        </div>
+    </h2>
+    <div
+        class="monitor-list section-monitors {{actorTabClosed actor._id 'monitors'}}">
+        <div class="tokens">
+            <div class="anarchy-essence">
+                <div class="anarchy wrapper-hexabox">
+                    {{>
+                    "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+                    <div class="content">
+                        {{>
+                        "systems/anarchy/templates/actor/character-enhanced/anarchy-actor.hbs"}}
+                    </div>
+                </div>
+                <div class="essence wrapper-hexabox">
+                    {{>
+                    "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+                    <div class="content">
+                        <label class="title">
+                            {{localize (concat
+                            'ANARCHY.actor.counters.essence')}}
+                        </label>
+                        {{numberFormat essence.value decimals=2
+                        sign=false}}<br />
+                        {{localize ANARCHY.actor.essence.adjustShort}}
+                        {{numberFormat essence.adjust decimals=0 sign=false}}
+                    </div>
+                </div>
+            </div>
+            <div class="edge-credibility">
+                <div class="edge wrapper-hexabox">
+                    {{>
+                    "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+                    <div class="content">
+                        {{>
+                        "systems/anarchy/templates/actor/character-enhanced/edge.hbs"}}
+                    </div>
+                </div>
+                <div class="credibility wrapper-hexabox">
+                    {{>
+                    "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+                    <div class="content">
+                        {{>
+                        "systems/anarchy/templates/actor/character-enhanced/social-credibility.hbs"}}
+                    </div>
+                </div>
+                <div class="rumors wrapper-hexabox">
+                    {{>
+                    "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+                    <div class="content">
+                        {{>
+                        "systems/anarchy/templates/actor/character-enhanced/social-rumor.hbs"}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="health">
+            <div class="armor wrapper-hexabox">
+                {{>
+                "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+                <div class="content">
+                    {{>
+                    "systems/anarchy/templates/actor/character-enhanced/armor.hbs"}}
+                </div>
+            </div>
+            <div class="stun wrapper-hexabox">
+                {{>
+                "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+                <div class="content">
+                    {{>
+                    "systems/anarchy/templates/actor/character-enhanced/stun.hbs"}}
+                </div>
+            </div>
+            <div class="physical wrapper-hexabox">
+                {{>
+                "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+                <div class="content">
+                    {{>
+                    "systems/anarchy/templates/actor/character-enhanced/physical.hbs"}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

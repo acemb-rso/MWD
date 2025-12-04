@@ -1,0 +1,11 @@
+{{#if system.area}}{{#unless (eq system.area '-')}}
+{{system.area}},
+{{/unless}}{{/if}}
+{{either system.range.short 'OK'}}/
+{{~#if (eq system.range.max "short")}}-
+{{~else}}{{either system.range.medium 'OK'}}
+{{/if~}}/
+{{~#if (eq system.range.max "long")~}}
+{{either system.range.long 'OK'}}
+{{~else~}}-
+{{/if}}

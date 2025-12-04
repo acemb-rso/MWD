@@ -1,0 +1,18 @@
+ <div class="title">
+    {{localize 'ANARCHY.actor.monitors.physical'}}
+</div>
+<div class="anarchy-monitor">
+    {{> "systems/anarchy/templates/actor/character-enhanced/checkbar.hbs"
+    code='physical'
+    value=system.monitors.physical.value
+    max=(sum system.monitors.physical.max system.monitors.physical.maxBonus)
+    rowlength=3
+    adjust=true
+    }}
+</div>
+  <label class="resistance-label">
+    {{localize ANARCHY.actor.monitors.resistance}}:
+    <div class="value">
+      {{system.monitors.physical.resistanceBonus}}
+    </div>
+  </label>

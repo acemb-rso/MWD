@@ -1,0 +1,10 @@
+  <label class="title">
+    {{localize ANARCHY.actor.counters.social.credibility}}
+  </label>
+  {{> "systems/anarchy/templates/actor/character-enhanced/checkbar.hbs"
+    code='credibility'
+    labelkey=ANARCHY.actor.counters.social.credibility
+    value=system.counters.social.credibility.value
+    max=system.counters.social.credibility.max
+    rowlength=5
+  }}

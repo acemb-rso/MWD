@@ -1,0 +1,25 @@
+<div class="checkbar-root" data-monitor-code="{{code}}">
+    <div class="checkbar" {{#if rowlength}}
+        style="grid-template-columns: repeat({{rowlength}}, minmax(0, 18px));"
+        {{/if}}>
+        {{#for 0 max}}
+        {{>
+        'systems/anarchy/templates/actor/character-enhanced/check-element.hbs'
+        code=../code
+        rowlength=../rowlength
+        current=this
+        value=../value
+        max=../max
+        }}
+        {{/for}}
+    </div>
+</div>
+{{#if (and adjust rowlength)}}
+<div class="adjust">
+    {{#each (range 1 (divint max rowlength))}}
+        <div class="{{#ifGte ../value (times 3 this)}}activated{{/ifGte}}">
+        {{#ifGte ../max (times 3 this)}} -{{this}}{{/ifGte}}
+        </div>
+    {{/each}}
+</div>
+{{/if}}

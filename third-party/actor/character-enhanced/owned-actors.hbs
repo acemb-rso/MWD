@@ -1,0 +1,28 @@
+<div
+  class="section-owned wrapper {{actorTabClosed actor._id 'owned'}}">
+  <h2 class="wrapper-hexabox click-section" data-class="section-owned">
+    {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+    <div class="content">
+      {{localize 'ANARCHY.actor.ownership.owned'}}
+    </h2>
+    <div
+      class="item-list section-owned {{actorTabClosed actor._id 'owned'}}">
+      <div class="action-list">
+        <div
+          class="item-list section-owned {{actorTabClosed actor._id 'owned'}}">
+          <div class="content">
+            {{!-- <div class="section-group items-group">
+              {{> "systems/anarchy/templates/actor/parts/owned-actors.hbs"}}
+            </div> --}}
+            <div class="gear-list">
+              {{#each ownedActors as |ownedActor|}}
+              {{>
+              "systems/anarchy/templates/actor/character-enhanced/owned-actor.hbs"
+              ownedActor}}
+              {{/each}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

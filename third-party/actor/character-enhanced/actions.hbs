@@ -1,0 +1,27 @@
+<div
+  class="define-item-type section-actions wrapper {{actorTabClosed actor._id 'actions'}}"
+  data-item-type="action">
+  <h2 class="wrapper-hexabox click-section" data-class="section-actions">
+    {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+    <div class="content">
+      {{localize 'ANARCHY.itemType.plural.action'}}
+    </h2>
+    <div
+      class="item-list section-actions {{actorTabClosed actor._id 'actions'}}">
+    </div>
+    <div class="action-list">
+      <div class="weapons section-actions {{actorTabClosed actor._id 'actions'}}">
+        <div class="content">
+          {{> "systems/anarchy/templates/actor/character-enhanced/weapons.hbs"}}
+        </div>
+      </div>
+      <div
+        class="wrapper-hexabox item-list section-actions {{actorTabClosed actor._id 'actions'}}">
+        {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+        <div class="content">
+          {{>
+          "systems/anarchy/templates/actor/character-enhanced/attributebuttons.hbs"}}
+        </div>
+      </div>
+    </div>
+  </div>

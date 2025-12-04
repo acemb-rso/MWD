@@ -1,0 +1,18 @@
+ <div class="title">
+    {{localize 'ANARCHY.actor.monitors.stun'}}
+</div>
+<div class="anarchy-monitor">
+    {{> "systems/anarchy/templates/actor/character-enhanced/checkbar.hbs"
+    code='stun'
+    value=system.monitors.stun.value
+    max=(sum system.monitors.stun.max system.monitors.stun.maxBonus)
+    rowlength=3
+    adjust=true
+    }}
+</div>
+  <label class="resistance-label">
+    {{localize ANARCHY.actor.monitors.resistance}}:
+    <div class="value">
+      {{system.monitors.stun.resistanceBonus}}
+    </div>
+  </label>

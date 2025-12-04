@@ -1,0 +1,11 @@
+<div class="define-item-type" data-item-type="contact">
+  <h2 class="title">
+    {{localize 'ANARCHY.itemType.plural.contact'}}
+    {{> 'systems/anarchy/templates/common/item-control-add.hbs' itemType='contact'}}
+  </h2>
+  <div class="contact-list">
+    {{#each items.contact as |contact|}}
+    {{> "systems/anarchy/templates/actor/character-enhanced/contact.hbs" contact}}
+    {{/each}}
+  </div>
+</div>

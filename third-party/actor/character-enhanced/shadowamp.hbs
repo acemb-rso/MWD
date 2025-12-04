@@ -1,0 +1,33 @@
+ <div class="define-item-type wrapper-hexabox item anarchy-shadowamp {{#if system.inactive}}inactive{{/if}}" data-item-id="{{_id}}" data-item-type="shadowamp">
+  {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+  <div class="content">
+    <div class="shadowamp-img">
+      <div>
+        {{#if img}}
+        <img class="anarchy-img item-img" src="{{img}}" alt="{{name}}" data-tooltip="{{name}}" />
+        {{/if}}
+      </div>
+      <div>
+        <div class="item-controls">
+          {{> 'systems/anarchy/templates/common/item-control-activate.hbs'}}
+          {{> 'systems/anarchy/templates/common/item-controls.hbs'}}
+        </div>
+      </div>
+    </div>
+    <div class="shadowamp-content">
+      <label class="title">{{name}}</label>
+      {{#if (localize 'ANARCHY.actor.counters.essence')}}
+        {{#if system.essence}}
+            <label>{{localize 'ANARCHY.item.shadowamp.essenceShort'}} {{system.essence}}</label>
+        {{/if}}
+      {{/if}}
+    {{>'systems/anarchy/templates/actor/character/description.hbs' description=system.description}}
+    </div>
+  </div>
+  <div class="wrapper-hexabox level">
+    {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+    <div class="content">
+      {{system.level}}
+    </div>
+  </div>
+</div>
