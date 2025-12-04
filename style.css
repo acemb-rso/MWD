@@ -119,6 +119,147 @@
   object-fit: cover;
   width: 100%;
 }
+
+.character-sheet {
+  --character-panel-bg: #f6f1e7;
+  --character-panel-border: #d7cbb8;
+  --character-panel-shadow: 0 2px 6px rgba(46, 35, 17, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+}
+
+.character-sheet .sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.character-sheet .passport-header {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid var(--character-panel-border);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(46, 35, 17, 0.16);
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 120px 1fr auto;
+  padding: 0.5rem;
+}
+
+@media (max-width: 700px) {
+  .character-sheet .passport-header {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .character-sheet .passport-header .passport-img {
+    justify-self: center;
+  }
+}
+
+.character-sheet .passport-img img {
+  background: #f1eadf;
+  border: 1px solid var(--character-panel-border);
+  border-radius: 8px;
+  height: 120px;
+  object-fit: cover;
+  width: 120px;
+}
+
+.character-sheet .passport-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.character-sheet .passport-details-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem;
+}
+
+.character-sheet .passport-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.character-sheet .passport-label {
+  font-weight: 600;
+}
+
+.character-sheet .passport-input,
+.character-sheet .passport-detail input {
+  width: 100%;
+}
+
+.character-sheet .passport-action-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.character-sheet .passport-action {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.character-sheet .section-group,
+.character-sheet .anarchy-block,
+.character-sheet .section-attributes,
+.character-sheet .items-group {
+  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid var(--character-panel-border);
+  border-radius: 10px;
+  box-shadow: var(--character-panel-shadow);
+  padding: 0.75rem;
+}
+
+.character-sheet .section-group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.character-sheet .items-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+.character-sheet .section-group-header {
+  border-bottom: 1px solid var(--character-panel-border);
+  font-family: "BebasNeue", var(--font-primary);
+  letter-spacing: 1px;
+  margin-bottom: 0.35rem;
+  padding-bottom: 0.25rem;
+}
+
+.character-sheet .anarchy-words-section {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.character-sheet .monitors-row {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.character-sheet .experience-grid {
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: 1fr 80px;
+  align-items: center;
+}
+
+.character-sheet .experience-grid input {
+  width: 100%;
+}
 .sheet .character-enhanced header .name-attributes {
   display: flex;
   flex-direction: column;
