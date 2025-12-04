@@ -54,11 +54,14 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   /** @override */
   _configureRenderOptions(options) {
     super._configureRenderOptions(options);
-    
+
     // Dynamically set the template based on actor type
     if (this.actor?.type) {
       const template = `${TEMPLATES_PATH}/actor/${this.actor.type}.hbs`;
       this.constructor.PARTS.sheet.template = template;
+      options.parts = foundry.utils.mergeObject(options.parts ?? {}, {
+        sheet: { template }
+      });
     }
   }
 

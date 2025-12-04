@@ -6,7 +6,7 @@ import { Misc } from "./misc.js";
 const SELECTED_SKILL_LIST = "selected-skill-list";
 const SETTING_KEY_SELECTED_SKILL_LIST = `${SYSTEM_NAME}.${SELECTED_SKILL_LIST}`;
 
-const ATTR = TEMPLATE.attributes;
+const ATTR = TEMPLATE.actorAttributes;
 const DEFENSE = ANARCHY_SYSTEM.defenses;
 
 const DEFAULT_SKILLSET_ANARCHY = 'shadowrun-anarchy-en';

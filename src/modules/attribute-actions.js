@@ -23,7 +23,7 @@ function defense(code, actionCode) {
   }
 }
 
-const ATTR = TEMPLATE.attributes;
+const ATTR = TEMPLATE.actorAttributes;
 const ACTOR = TEMPLATE.actorTypes;
 const ACTION = ANARCHY_SYSTEM.actions;
 const DEFENSE = ANARCHY_SYSTEM.defenses;

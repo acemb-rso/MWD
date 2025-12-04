@@ -221,7 +221,7 @@ export class ActorDamageManager {
   }
 
   static _computeStrengthResistance(actor, monitor) {
-    const strength = actor.getAttributeValue(TEMPLATE.attributes.strength);
+    const strength = actor.getAttributeValue(TEMPLATE.actorAttributes.strength);
     return Math.max(0, Math.floor(strength / 4));
   }
 }

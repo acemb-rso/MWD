@@ -81,7 +81,7 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const rollData = foundry.utils.mergeObject(RollDialog.prepareActorRoll(actor), {
       mode: ANARCHY_SYSTEM.rollType.skill,
       skill: skill,
-      attribute1: skill?.system.attribute ?? TEMPLATE.attributes.agility,
+      attribute1: skill?.system.attribute ?? TEMPLATE.actorAttributes.agility,
       specialization: specialization,
     });
     await RollDialog.create(rollData);

@@ -1,11 +1,6 @@
-import { TEMPLATES_PATH } from "../constants.js";
-import { CharacterBaseSheet } from "./character-base-sheet.js";
+import { AnarchyActorSheet } from "./anarchy-actor-sheet.js";
 
-export class CharacterNPCSheet extends CharacterBaseSheet {
-
-  get template() {
-    return `${TEMPLATES_PATH}/actor/npc-sheet.hbs`;
-  }
+export class CharacterNPCSheet extends AnarchyActorSheet {
 
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
@@ -14,9 +9,9 @@ export class CharacterNPCSheet extends CharacterBaseSheet {
     });
   }
 
-  async getData(options) {
-    let hbsData = await super.getData(options);
-    hbsData.options.classes.push('npc-sheet');
-    return hbsData;
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
+    context.options.classes = Array.from(new Set([...(context.options.classes ?? []), 'npc-sheet']));
+    return context;
   }
 }
