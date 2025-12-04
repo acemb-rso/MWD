@@ -1,0 +1,8 @@
+<div class="define-item-type" data-item-type="weapon">
+  <h2 class="section-group-header">{{localize 'ANARCHY.itemType.plural.weapon'}}</h2>
+  <div class="items-group-list">
+    {{#each items.weapon as |weapon|}}
+    {{> 'systems/mwd/templates/actor/parts/weapon.hbs' weapon}}
+    {{/each}}
+  </div>
+</div>

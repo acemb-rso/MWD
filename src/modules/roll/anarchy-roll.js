@@ -9,7 +9,6 @@ const DEFAULT_ROLL_RESULT = {
   glitch: 0,
   glitchOutcome: 'nothing',
   totalGlitch: 0,
-  drain: 0,
   total: 0,
   subrolls: {
     roll: undefined,

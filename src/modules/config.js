@@ -83,9 +83,6 @@ export const ANARCHY = {
         delFavorite: 'ANARCHY.common.delFavorite',
         attach: 'ANARCHY.common.attach',
         attachCopy: 'ANARCHY.common.attachCopy',
-        matrix: {
-            connectionMode: 'ANARCHY.common.matrix.connectionMode',
-        },
         roll: {
             button: 'ANARCHY.common.roll.button',
             title: 'ANARCHY.common.roll.title',
@@ -102,7 +99,6 @@ export const ANARCHY = {
                 anarchyDisposition: 'ANARCHY.common.roll.modifiers.anarchyDisposition',
                 anarchyRisk: 'ANARCHY.common.roll.modifiers.anarchyRisk',
                 glitch: 'ANARCHY.common.roll.modifiers.glitch',
-                drain: 'ANARCHY.common.roll.modifiers.drain',
                 convergence: 'ANARCHY.common.roll.modifiers.convergence',
                 wounds: 'ANARCHY.common.roll.modifiers.wounds',
                 weaponRange: 'ANARCHY.common.roll.modifiers.weaponRange',
@@ -121,7 +117,6 @@ export const ANARCHY = {
                 removed: 'ANARCHY.common.roll.rollTheme.removed',
                 rerollRemoved: 'ANARCHY.common.roll.rollTheme.rerollRemoved',
                 glitch: 'ANARCHY.common.roll.rollTheme.glitch',
-                drain: 'ANARCHY.common.roll.rollTheme.drain',
                 convergence: 'ANARCHY.common.roll.rollTheme.convergence',
                 anarchyRisk: 'ANARCHY.common.roll.rollTheme.anarchyRisk',
             },

@@ -1,5 +1,5 @@
 import { AnarchyBaseActor } from "./actor/base-actor.js";
-import { CharacterEnhancedSheet } from "./actor/character-enhanced-sheet.js";
+import { CharacterActorSheet } from "./actor/character-sheet.js";
 import { Damage } from "./damage.js";
 import { Enums } from "./enums.js";
 import { Grammar } from "./grammar.js";
@@ -69,8 +69,8 @@ export class HandlebarsManager {
     Handlebars.registerHelper('sortAttributeButton', AnarchyBaseActor.sortAttributeButton);
     Handlebars.registerHelper('range', function (min, max) { let array = []; for (let i = min; i <= max; i++) { array.push(i); } return array; });
     Handlebars.registerHelper('ifGte', function (value, threshold, options) { if (value >= threshold) { return options.fn(this); } else { return options.inverse(this); } });
-    Handlebars.registerHelper('ifTabClosed', CharacterEnhancedSheet.ifTabClosed);
-    Handlebars.registerHelper('actorTabClosed', CharacterEnhancedSheet.actorTabClosed);
+    Handlebars.registerHelper('ifTabClosed', CharacterActorSheet.ifTabClosed);
+    Handlebars.registerHelper('actorTabClosed', CharacterActorSheet.actorTabClosed);
     Handlebars.registerHelper('length', function(context) { return context?.length || 0; }); }
 
   static hbsForLoop(start, end, options) {

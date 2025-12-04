@@ -1,0 +1,305 @@
+Item:
+  # ---------------------------------------------------------------------------
+  # ALL SUPPORTED ITEM TYPES
+  # ---------------------------------------------------------------------------
+  types:
+    - skill
+    - trait
+    - lifeModule
+    - cue
+    - disposition
+    - gear
+    - assetModule
+    - vehicleUpgrade
+    - mechEquipment
+    - personalWeapon
+    - vehicleWeapon
+    - mechWeapon
+    - weaponGroup
+
+  # ---------------------------------------------------------------------------
+  # REUSABLE TEMPLATE SEGMENTS (PSEUDO-INHERITANCE)
+  # ---------------------------------------------------------------------------
+  templates:
+
+    base:
+      system:
+        description:
+          type: string
+          default: ""
+        source:
+          type: string
+          default: ""
+        tags:
+          type: array
+          items: string
+          default: []
+        gmNotes:
+          type: string
+          default: ""
+
+    weaponBase:
+      system:
+        damage:
+          type: number
+          default: 0
+        tags:
+          type: array
+          items: string
+          default: []
+
+    moduleBase:
+      system:
+        effect:
+          type: string
+          default: ""
+        slotsRequired:
+          type: number
+          default: 1
+        tags:
+          type: array
+          items: string
+          default: []
+
+    # Unified range bands for all ranged weapons
+    rangedWeaponBase:
+      system:
+        range:
+          type: object
+          properties:
+            close:
+              type: number
+              default: 0
+            near:
+              type: number
+              default: 0
+            far:
+              type: number
+              default: 0
+            extreme:
+              type: number
+              default: 0
+        optimalBand:
+          type: string
+          default: "near"
+          choices: ["close","near","far","extreme"]
+
+  # ---------------------------------------------------------------------------
+  # ITEM TYPE SCHEMAS
+  # ---------------------------------------------------------------------------
+  schemas:
+
+    # ======================= Skills =======================
+    skill:
+      templates: [base]
+      system:
+        category:
+          type: string
+          default: "general"
+          choices: ["physical","mental","social","vehicle","mech","general"]
+        rating:
+          type: number
+          default: 0
+        linkedAttribute:
+          type: string
+          default: "reflexes"
+          choices: ["strength","reflexes","intelligence","willpower","charisma","edge"]
+        specializations:
+          type: array
+          items: string
+          default: []
+
+    # ======================= Traits =======================
+    trait:
+      templates: [base]
+      system:
+        positive:
+          type: boolean
+          default: true
+        category:
+          type: string
+          default: "standard"
+          choices: ["standard","combat","social","mental","background","quality"]
+        cost:
+          type: number
+          default: 0
+        effect:
+          type: string
+          default: ""
+
+    # ==================== Life Modules ====================
+    lifeModule:
+      templates: [base]
+      system:
+        stage:
+          type: string
+          default: "faction"
+          choices: ["faction","childhood","education","realLife","other"]
+        title:
+          type: string
+          default: ""
+        effect:
+          type: string
+          default: ""
+        tags:
+          type: array
+          items: string
+          default: []
+
+    # ======================== Cue =========================
+    cue:
+      templates: [base]
+      system:
+        text:
+          type: string
+          default: ""
+
+    # ===================== Disposition ====================
+    disposition:
+      templates: [base]
+      system:
+        text:
+          type: string
+          default: ""
+
+    # ======================== Gear ========================
+    gear:
+      templates: [base]
+      system:
+        quantity:
+          type: number
+          default: 1
+        weight:
+          type: number
+          default: 0
+        equipped:
+          type: boolean
+          default: false
+
+    # ============= Character-scale Modules ================
+    assetModule:
+      templates: [base, moduleBase]
+      system:
+        scale:
+          type: string
+          default: "character"
+        uses:
+          type: number
+          default: 0
+        maxUses:
+          type: number
+          default: 0
+
+    # ============= Vehicle-scale Upgrades =================
+    vehicleUpgrade:
+      templates: [base, moduleBase]
+      system:
+        scale:
+          type: string
+          default: "vehicle"
+        appliesTo:
+          type: string
+          default: "all"
+        passive:
+          type: boolean
+          default: true
+
+    # =============== Mech-scale Equipment =================
+    mechEquipment:
+      templates: [base, moduleBase]
+      system:
+        scale:
+          type: string
+          default: "mech"
+        slotType:
+          type: string
+          default: "equipment"
+          choices: ["equipment","hardpoint","other"]
+        heatModifier:
+          type: number
+          default: 0
+
+    # ==================================================================
+    #                       WEAPON TYPES (BY SCALE)
+    # ==================================================================
+
+    # =================== Personal Weapons ==================
+    personalWeapon:
+      templates: [base, weaponBase, rangedWeaponBase]
+      system:
+        category:
+          type: string
+          default: "ranged"
+          choices: ["melee","ranged","thrown","other"]
+        ammo:
+          type: number
+          default: 0
+        armorPiercing:
+          type: number
+          default: 0
+        # Melee can just set all range values to 0 or only Close / Near
+
+    # =================== Vehicle Weapons ===================
+    vehicleWeapon:
+      templates: [base, weaponBase, rangedWeaponBase]
+      system:
+        scale:
+          type: string
+          default: "vehicle"
+        category:
+          type: string
+          default: "cannon"
+          choices: ["cannon","missile","turret","support","beam"]
+        blast:
+          type: boolean
+          default: false
+        armorPiercing:
+          type: number
+          default: 0
+
+    # ==================== Mech Weapons =====================
+    mechWeapon:
+      templates: [base, weaponBase, rangedWeaponBase]
+      system:
+        scale:
+          type: string
+          default: "mech"
+        type:
+          type: string
+          default: "ballistic"
+          choices: ["ballistic","energy","missile","support","melee"]
+        size:
+          type: string
+          default: "medium"
+          choices: ["small","medium","large"]
+        slotCost:
+          type: number
+          default: 1
+        isPrimary:
+          type: boolean
+          default: false
+        heat:
+          type: number
+          default: 0
+        location:
+          type: string
+          default: "A"
+          choices: ["H","A","T","L","other"]
+        group:
+          type: string
+          default: "A"
+
+    # ==================== Weapon Groups ====================
+    weaponGroup:
+      templates: [base]
+      system:
+        triggerKey:
+          type: string
+          default: ""
+        description:
+          type: string
+          default: ""
+        linkedWeapons:
+          type: array
+          items: string
+          default: []

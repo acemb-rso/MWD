@@ -1,0 +1,15 @@
+{{{actor.name}}}
+{{#if (eq mode 'attribute')}}
+  {{#if item}} - {{{item.name}}}{{/if}}:
+  {{{localizeAttribute attribute1}}}
+{{/if}}
+{{#if (eq mode 'attributeAction')}}
+  {{#if item}} - {{{item.name}}}{{/if}}:
+  {{{localize (concat 'ANARCHY.attributeAction.' attributeAction)}}}
+{{/if}}
+{{#if (eq mode 'defense')}}
+  {{#if item}} - {{{item.name}}}{{/if}}:
+  {{{localize (concat 'ANARCHY.defense.' (fixedDefenseCode defenseAction))}}}
+{{/if}}
+{{#if (eq mode 'skill')}} - {{{skill.name}}}{{/if}}
+{{#if (eq mode 'weapon')}} - {{{weapon.name}}}{{/if}}

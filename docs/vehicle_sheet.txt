@@ -1,0 +1,123 @@
+sheet:
+  id: mwd-vehicle-sheet
+  style: "sra-enhanced"
+  tabs:
+    - id: vehicle
+      label: "Vehicle"
+
+    - id: description
+      label: "Description"
+
+  tab_layouts:
+
+    # ============================
+    # VEHICLE TAB (MAIN SHEET)
+    # ============================
+    vehicle:
+      sections:
+
+        - id: header
+          type: grid
+          columns: 2
+          fields:
+            - { key: "name", label: "Name", type: text }
+            - { key: "type", label: "Type", type: select,
+                options: ["Drone", "Personal", "Combat"] }
+
+        - id: attributes
+          label: "Attributes"
+          type: attribute-row
+          attributes:
+            - { key: "handling", label: "Handling" }
+            - { key: "system",   label: "System" }
+            - { key: "condition",label: "Condition" }
+            - { key: "chassis",  label: "Chassis" }
+
+        - id: movement-structure
+          type: grid
+          columns: 3
+          fields:
+            - { key: "move",      label: "Move",      type: number }
+            - { key: "structure", label: "Structure", type: number }
+            - { key: "upgradeSlots", label: "Upgrade Slots", type: number }
+
+        - id: armor
+          label: "Armor"
+          type: grid
+          columns: 2
+          fields:
+            - { key: "armor.value",   label: "Armor Value",   type: number }
+            - { key: "armor.effect",  label: "Resistance / Effect", type: text }
+
+        - id: monitors
+          label: "Condition Monitor"
+          type: monitor-track
+          key: "conditionTrack"      # e.g. boxes or pips for vehicle health
+
+        - id: actions
+          label: "Actions"
+          type: action-buttons
+          actions:
+            - id: defense
+              label: "Defense"
+              tooltip: "Handling + Piloting"
+              formula: "attributes.handling + driverSnapshot.piloting"
+
+            - id: sensors
+              label: "Sensors"
+              tooltip: "System + Perception"
+              formula: "attributes.system + driverSnapshot.perception"
+
+            - id: stealth
+              label: "Stealth"
+              tooltip: "Handling + Stealth"
+              formula: "attributes.handling + driverSnapshot.stealth"
+
+            - id: initiative
+              label: "Initiative"
+              tooltip: "Reflexes + Intelligence (driver)"
+              formula: "driverSnapshot.reflexes + driverSnapshot.intelligence"
+
+        - id: crew
+          label: "Crew"
+          type: actorList
+          actorsKey: "crew"          # array of linked Actor IDs
+
+        - id: driver-snapshot
+          label: "Driver Profile (Cached)"
+          help: "Cached values from primary driver used for action rolls."
+          type: grid
+          columns: 3
+          fields:
+            - { key: "driverSnapshot.name",         label: "Primary Driver", type: text, readOnly: true }
+            - { key: "driverSnapshot.gunnery",      label: "Gunnery",       type: number }
+            - { key: "driverSnapshot.piloting",     label: "Piloting",      type: number }
+            - { key: "driverSnapshot.perception",   label: "Perception",    type: number }
+            - { key: "driverSnapshot.stealth",      label: "Stealth",       type: number }
+            - { key: "driverSnapshot.reflexes",     label: "Reflexes",      type: number }
+            - { key: "driverSnapshot.intelligence", label: "Intelligence",  type: number }
+
+        - id: skills
+          label: "Vehicle Skills"
+          type: itemList
+          items: "skills"            # any vehicle-specific skill items
+
+        - id: upgrade-modules
+          label: "Upgrade Modules"
+          type: itemList
+          items: "upgradeModules"
+
+        - id: weapons
+          label: "Weapons"
+          type: itemList
+          items: "weapons"
+
+    # ============================
+    # DESCRIPTION TAB
+    # ============================
+    description:
+      sections:
+        - id: description-block
+          label: "Description"
+          type: textarea
+          key: "description"

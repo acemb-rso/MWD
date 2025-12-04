@@ -1,0 +1,11 @@
+{{#if (and rowlength (eq 0 (modulo current rowlength)) (gt current 0))}}
+  </div>
+  <div style="grid-column: span {{rowlength}} / span {{rowlength}}; grid-template-columns: repeat({{rowlength}}, minmax(0, 1fr));">
+{{/if}}
+<a class="click-checkbar-element" 
+    {{#if labelkey}}title="{{localize labelkey}}"{{/if}}
+    {{#if code}}data-monitor-code="{{code}}"{{/if}}
+    data-index="{{current}}"
+    data-checked="{{lt current value}}">
+  {{{iconCheckbar code (lt current value)}}}
+</a>

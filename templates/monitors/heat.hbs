@@ -1,0 +1,14 @@
+<div class="flexcol anarchy-monitor">
+  <label class="monitor-label">{{localize ANARCHY.actor.monitors.heat}}</label>
+  {{> "systems/mwd/templates/common/checkbar.hbs"
+    code='heat'
+    value=system.monitors.heat.value
+    max=(sum system.monitors.heat.max system.monitors.heat.maxBonus)
+    rowlength=3
+    adjust=true
+  }}
+  <label class="resitance-label">
+    {{localize ANARCHY.actor.monitors.resistance}}:
+    {{system.monitors.heat.resistanceBonus}}
+  </label>
+</div>
