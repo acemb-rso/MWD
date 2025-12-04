@@ -1,7 +1,7 @@
 import { AttributeActions } from "../attribute-actions.js";
 import { Checkbars } from "../common/checkbars.js";
 import { ANARCHY } from "../config.js";
-import { BASE_MONITOR, TEMPLATE } from "../constants.js";
+import { ACTOR_ATTRIBUTE_SETS, BASE_MONITOR, TEMPLATE } from "../constants.js";
 import { Enums } from "../enums.js";
 import { ErrorManager } from "../error-manager.js";
 import { Misc } from "../misc.js";
@@ -172,7 +172,7 @@ export class AnarchyBaseActor extends Actor {
     return normalized;
   }
 
-  getAttributes() { return []; }
+  getAttributes() { return ACTOR_ATTRIBUTE_SETS[this.type] ?? []; }
   getPhysicalAgility() { return undefined }
   getCorrespondingAttribute(attribute) {
     const attributes = this.getAttributes()

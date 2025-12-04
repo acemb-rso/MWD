@@ -92,6 +92,37 @@ export const TEMPLATE = {
   }
 }
 
+export const ACTOR_ATTRIBUTE_SETS = {
+  [TEMPLATE.actorTypes.character]: [
+    TEMPLATE.attributes.strength,
+    TEMPLATE.attributes.agility,
+    TEMPLATE.attributes.willpower,
+    TEMPLATE.attributes.logic,
+    TEMPLATE.attributes.charisma,
+    TEMPLATE.attributes.edge,
+  ],
+  [TEMPLATE.actorTypes.npc]: [
+    TEMPLATE.attributes.strength,
+    TEMPLATE.attributes.agility,
+    TEMPLATE.attributes.willpower,
+    TEMPLATE.attributes.logic,
+    TEMPLATE.attributes.charisma,
+    TEMPLATE.attributes.edge,
+  ],
+  [TEMPLATE.actorTypes.vehicle]: [
+    TEMPLATE.attributes.handling,
+    TEMPLATE.attributes.system,
+    TEMPLATE.attributes.chassis,
+    TEMPLATE.attributes.condition,
+  ],
+  [TEMPLATE.actorTypes.battlemech]: [
+    TEMPLATE.attributes.handling,
+    TEMPLATE.attributes.system,
+    TEMPLATE.attributes.chassis,
+    TEMPLATE.attributes.condition,
+  ],
+}
+
 export const ANARCHY_SYSTEM = {
   rollType: {
     attributeAction: 'attributeAction',

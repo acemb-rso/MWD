@@ -1,15 +1,8 @@
 import { ANARCHY } from "../config.js";
-import { ICONS_PATH, TEMPLATE } from "../constants.js";
+import { ACTOR_ATTRIBUTE_SETS, ICONS_PATH, TEMPLATE } from "../constants.js";
 import { ErrorManager } from "../error-manager.js";
 import { AnarchyUsers } from "../users.js";
 import { AnarchyBaseActor } from "./base-actor.js";
-
-const VEHICLE_ATTRIBUTES = [
-  TEMPLATE.attributes.handling,
-  TEMPLATE.attributes.system,
-  TEMPLATE.attributes.chassis,
-  TEMPLATE.attributes.condition,
-]
 
 export class VehicleActor extends AnarchyBaseActor {
 
@@ -104,9 +97,7 @@ export class VehicleActor extends AnarchyBaseActor {
     return pilot ? pilot : undefined;
   }
 
-  getAttributes() {
-    return VEHICLE_ATTRIBUTES
-  }
+  getAttributes() { return ACTOR_ATTRIBUTE_SETS[this.type] ?? ACTOR_ATTRIBUTE_SETS[TEMPLATE.actorTypes.vehicle]; }
 
   getPhysicalAgility() { return TEMPLATE.attributes.handling }
 
