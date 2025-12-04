@@ -1,0 +1,31 @@
+<h3 class="define-wordType" data-word-type="{{wordType}}">
+  {{localize (concat 'ANARCHY.actor.words.' wordType)}}
+  {{#unless @root.options.viewMode}}
+  <a class="item-control click-word-add" data-tooltip="{{localize ANARCHY.common.add}}">
+    {{{iconFA 'fas fa-plus-circle'}}}
+  </a>
+  {{/unless}}
+</h3>
+{{#each values as |wordEntry index|}}
+<div class="define-wordType" data-word-type="{{../wordType}}" data-word-id="{{wordEntry.id}}" data-index="{{index}}">
+  <span class="flexrow">
+    <input class="change-word-value" type="text" data-dtype="String" 
+      value="{{wordEntry.word}}"
+      data-tooltip="{{wordEntry.word}}"
+      {{#if @root.options.viewMode}}disabled{{/if}}
+    />
+    <div class="flex-shrink-end">
+      {{#if (or (eq ../wordType 'cues') (eq ../wordType 'dispositions')) }}
+      <a class="item-control click-word-say" data-tooltip="{{localize @root.ANARCHY.common.say}} {{wordEntry.word}}">
+        {{{iconFA 'fas fa-comment-dots'}}}
+      </a>
+      {{/if}}
+      {{#unless @root.options.viewMode}}
+      <a class="item-control click-word-delete" data-tooltip="{{localize @root.ANARCHY.common.del}}">
+        {{{iconFA 'fas fa-trash'}}}
+      </a>
+      {{/unless}}
+    </div>
+  </span>
+</div>
+{{/each}}

@@ -1,0 +1,14 @@
+<a class="{{#if isFavorite}}favorite-control{{else}}item-control{{/if}} click-favorite" 
+    data-tooltip="{{#if isFavorite}}{{localize 'ANARCHY.common.delFavorite'}}{{else}}{{localize 'ANARCHY.common.addFavorite'}}{{/if}}"
+    {{#if skill}}data-skill-id="{{skill._id}}"{{/if}}
+    {{#if specialization}}data-skill-specialization="{{specialization}}"{{/if}}
+    {{#if weapon}}data-weapon-id="{{weapon._id}}"{{/if}}
+    {{#if attributeAction}}data-attributeAction="{{attributeAction}}"{{/if}}
+    data-isFavorite="{{isFavorite}}"
+    >
+    {{#if isFavorite}}
+      {{{iconFA 'fas fa-star'}}}
+    {{else}}
+      {{{iconFA 'far fa-star'}}}
+    {{/if}}
+</a>

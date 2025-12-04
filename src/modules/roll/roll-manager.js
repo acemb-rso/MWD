@@ -59,7 +59,6 @@ export class RollManager {
     roll.options.canUseEdge = false;
     const edgePool = roll.parameters.find(it => it.code == 'edge')?.pool ?? TEMPLATE.counters.edgePools.grit;
     await roll.actor.spendEdge(1, edgePool);
-    roll.param[ROLL_PARAMETER_CATEGORY.drain] = undefined;
     await this._roll(roll)
   }
 
@@ -68,7 +67,6 @@ export class RollManager {
     await roll.roll.evaluate();
     await this._displayRollInChat(roll);
 
-    await roll.actor.rollDrain(roll.param.drain);
 
     await game.system.anarchy.combatManager.manageCombat(roll);
   }

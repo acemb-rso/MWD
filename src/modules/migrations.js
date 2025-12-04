@@ -76,26 +76,6 @@ class _0_3_8_MigrateWeaponDamage extends Migration {
 
 }
 
-class _0_3_14_MigrateSkillDrainConvergence extends Migration {
-  get version() { return '0.3.14' }
-  get code() { return 'migrate-skill-drain-convergence'; }
-
-  async migrate() {
-    const withDrain = ANARCHY_SKILLS.filter(it => it.hasDrain).map(it => it.code);
-    const hasDrain = it => it.type == TEMPLATE.itemType.skill && withDrain.includes(it.system.code);
-    const setDrain = it => { return { _id: it.id, 'system.hasDrain': true } };
-
-    const withConvergence = ANARCHY_SKILLS.filter(it => it.hasConvergence).map(it => it.code);
-    const hasConvergence = it => it.type == TEMPLATE.itemType.skill && withConvergence.includes(it.system.code);
-    const setConvergence = it => { return { _id: it.id, 'system.hasConvergence': true } };
-
-    const computeUpdates = items => items.filter(hasDrain).map(setDrain)
-      .concat(items.filter(hasConvergence).map(setConvergence))
-
-    await this.applyItemsUpdates(computeUpdates);
-  }
-}
-
 class _0_4_0_SelectWeaponDefense extends Migration {
   get version() { return '0.4.0' }
   get code() { return 'migrate-select-weapon-defense'; }
@@ -287,21 +267,6 @@ class _12_0_1_MigrateChatMessageFlags extends Migration {
         }
       })
     )
-  }
-}
-
-class _12_0_4_MigrateWeaponDrain extends Migration {
-  get version() { return '12.0.2' }
-  get code() { return 'migrate-weapon-drain' }
-  async migrate() {
-    this.applyItemsUpdates(items => items.filter(it => it.isWeapon?.())
-      .filter(it => it.hasDrain)
-      .map(it => {
-        return {
-          _id: it.id,
-          'system.drain': 1
-        }
-      }))
   }
 }
 
@@ -647,7 +612,6 @@ export class Migrations {
     Hooks.once(ANARCHY_HOOKS.DECLARE_MIGRATIONS, addMigrations => addMigrations(
       new _0_3_1_MigrationMoveWordsInObjects(),
       new _0_3_8_MigrateWeaponDamage(),
-      new _0_3_14_MigrateSkillDrainConvergence(),
       new _0_4_0_SelectWeaponDefense(),
       new _0_5_0_MigrationBaseResistanceIsZero(),
       new _0_6_0_MigrateSkillSocial(),
@@ -656,7 +620,6 @@ export class Migrations {
       new _11_1_12_MigrateBackWords(),
       new _11_1_16_MigrateSkillsAttributes(),
       new _12_0_1_MigrateChatMessageFlags(),
-      new _12_0_4_MigrateWeaponDrain(),
       new _13_2_2_AddMwdVehicleModel(),
       new _13_2_3_AddBattlemechLoadout(),
       new _13_3_3_SimplifyPersonalVehicles(),

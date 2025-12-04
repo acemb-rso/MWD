@@ -43,8 +43,6 @@ import { AnarchyCombat } from './anarchy-combat.js';
 import { HUDShortcuts } from './token/hud-shortcuts.js';
 import { CombatManager } from './combat/combat-manager.js';
 import { RollManager } from './roll/roll-manager.js';
-import { CharacterTabbedSheet } from './actor/character-tabbed-sheet.js';
-import { CharacterEnhancedSheet } from './actor/character-enhanced-sheet.js';
 import { Modifiers } from './modifiers/modifiers.js';
 import { ActorDamageManager } from './actor/actor-damage.js';
 import { AttributeActions } from './attribute-actions.js';
@@ -141,19 +139,13 @@ export class AnarchySystem {
     const { Actors } = foundry.documents.collections;
     Actors.unregisterSheet('core', foundry.appv1.sheets.ActorSheet);
     Actors.unregisterSheet(SYSTEM_NAME, CharacterActorSheet);
-    Actors.unregisterSheet(SYSTEM_NAME, CharacterTabbedSheet);
     Actors.registerSheet(SYSTEM_NAME, CharacterNPCSheet, {
       label: game.i18n.localize(ANARCHY.actor.characterNPCSheet),
       makeDefault: true,
       types: ['npc']
     });
-    Actors.registerSheet(SYSTEM_NAME, CharacterTabbedSheet, {
-      label: game.i18n.localize(ANARCHY.actor.characterTabbedSheet),
-      makeDefault: false,
-      types: ['character']
-    });
-    Actors.registerSheet(SYSTEM_NAME, CharacterEnhancedSheet, {
-      label: game.i18n.localize(ANARCHY.actor.characterEnhancedSheet),
+    Actors.registerSheet(SYSTEM_NAME, CharacterActorSheet, {
+      label: game.i18n.localize(ANARCHY.actor.characterSheet),
       makeDefault: true,
       types: ['character']
     });
