@@ -99,7 +99,7 @@ export class VehicleActor extends AnarchyBaseActor {
 
   getAttributes() { return ACTOR_ATTRIBUTE_SETS[this.type] ?? ACTOR_ATTRIBUTE_SETS[TEMPLATE.actorTypes.vehicle]; }
 
-  getPhysicalAgility() { return TEMPLATE.attributes.handling }
+  getPhysicalAgility() { return TEMPLATE.actorAttributes.handling }
 
   getDamageMonitor(damageType) {
     damageType = this.resolveDamageType(damageType);

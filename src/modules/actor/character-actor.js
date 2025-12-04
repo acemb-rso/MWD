@@ -24,8 +24,8 @@ export class CharacterActor extends AnarchyBaseActor {
     if (!this.system.monitors.fatigue && this.system.monitors.stun) {
       this.system.monitors.fatigue = foundry.utils.duplicate(this.system.monitors.stun)
     }
-    this.system.monitors.physical.max = this._getMonitorMax(TEMPLATE.attributes.strength)
-    this.system.monitors.fatigue.max = this._getMonitorMax(TEMPLATE.attributes.willpower)
+    this.system.monitors.physical.max = this._getMonitorMax(TEMPLATE.actorAttributes.strength)
+    this.system.monitors.fatigue.max = this._getMonitorMax(TEMPLATE.actorAttributes.willpower)
     super.prepareDerivedData()
     this.system.ignoreWounds = Modifiers.sumModifiers(this.items, 'other', 'ignoreWounds')
   }
@@ -47,11 +47,11 @@ export class CharacterActor extends AnarchyBaseActor {
     return ACTOR_ATTRIBUTE_SETS[this.type] ?? ACTOR_ATTRIBUTE_SETS[TEMPLATE.actorTypes.character];
   }
 
-  getPhysicalAgility() { return TEMPLATE.attributes.agility }
+  getPhysicalAgility() { return TEMPLATE.actorAttributes.agility }
 
   getCorrespondingAttribute(attribute) {
-    if (TEMPLATE.attributes.firewall == attribute) {
-      return TEMPLATE.attributes.firewall
+    if (TEMPLATE.itemAttributes.firewall == attribute) {
+      return TEMPLATE.itemAttributes.firewall
     }
     return super.getCorrespondingAttribute(attribute)
   }
@@ -121,7 +121,7 @@ export class CharacterActor extends AnarchyBaseActor {
     return this.getEdgePoolValue(TEMPLATE.counters.social.credibility);
   }
   getRumorValue() {
-    return this.getEdgePoolValue(TEMPLATE.counters.social.rumor);
+    return this.getEdgePoolValue(TEMPLATE.counters.mental.rumor);
   }
 
   getAnarchy() {

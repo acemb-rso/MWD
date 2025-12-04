@@ -209,7 +209,7 @@ export class AnarchyBaseActor extends Actor {
       return;
     }
 
-    const edgeValue = this.getAttributeValue(TEMPLATE.attributes.edge);
+    const edgeValue = this.getAttributeValue(TEMPLATE.actorAttributes.edge);
     const pools = foundry.utils.getProperty(this.system, 'counters.edgePools') ?? {};
 
     Object.values(TEMPLATE.counters.edgePools).forEach(code => {
@@ -422,7 +422,7 @@ export class AnarchyBaseActor extends Actor {
     await this.spendEdgePool(TEMPLATE.counters.social.credibility, count);
   }
   async spendRumor(count) {
-    await this.spendEdgePool(TEMPLATE.counters.social.rumor, count);
+    await this.spendEdgePool(TEMPLATE.counters.mental.rumor, count);
   }
 
   async spendAnarchy(count) {
@@ -434,7 +434,7 @@ export class AnarchyBaseActor extends Actor {
   getEdgePools() { return this.system.counters?.edgePools ?? {}; }
 
   getEdgePoolValue(pool) {
-    const edge = this.getAttributeValue(TEMPLATE.attributes.edge);
+    const edge = this.getAttributeValue(TEMPLATE.actorAttributes.edge);
     const poolValue = this.getEdgePools()?.[pool]?.value;
     const value = poolValue ?? edge ?? 0;
     return Math.min(value, edge ?? value ?? 0);
@@ -448,7 +448,7 @@ export class AnarchyBaseActor extends Actor {
   }
 
   canUseEdge() {
-    return this.getAttributes().includes(TEMPLATE.attributes.edge);
+    return this.getAttributes().includes(TEMPLATE.actorAttributes.edge);
   }
 
   async spendEdgePool(pool, count) {

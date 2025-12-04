@@ -195,6 +195,9 @@
       "famous": "Fame",
       "edgePools": {
         "title": "Edge Pools",
+        "physical": "Physical",
+        "mental": "Mental",
+        "social": "Social",
         "grit": "Grit",
         "insight": "Insight",
         "rumor": "Rumor",
@@ -217,10 +220,13 @@
         "xpUnused": "Unspent XP",
         "xpTotal": "Lifetime XP",
         "edge": "Edge",
-        "anarchy": "Anarchy",
+        "anarchy": "Destiny",
         "sceneAnarchy": "Chaos",
         "plot": "Plot",
         "edgePools": {
+          "physical": "Physical",
+          "mental": "Mental",
+          "social": "Social",
           "grit": "Grit",
           "insight": "Insight",
           "rumor": "Rumor",
@@ -228,9 +234,13 @@
           "credibility": "Credibility",
           "chaos": "Chaos"
         },
-        "social": {
-          "credibility": "Credibility",
+        "mental": {
+          "insight": "Insight",
           "rumor": "Rumor"
+        },
+        "social": {
+          "legend": "Legend",
+          "credibility": "Credibility"
         }
       },
       "monitors": {

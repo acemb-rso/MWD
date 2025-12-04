@@ -23,6 +23,40 @@ export const TARGET_SUCCESS_EDGE = 4;
 
 export const BASE_MONITOR = 8;
 
+export const ACTOR_ATTRIBUTES = {
+  agility: 'agility',
+  strength: 'strength',
+  willpower: 'willpower',
+  logic: 'logic',
+  charisma: 'charisma',
+  edge: 'edge',
+  handling: 'handling',
+  system: 'system',
+  chassis: 'chassis',
+  condition: 'condition',
+};
+
+export const ITEM_ATTRIBUTES = {
+  autopilot: 'autopilot',
+  firewall: 'firewall',
+  knowledge: 'knowledge',
+};
+
+const EDGE_POOLS = {
+  grit: 'grit',
+  chaos: 'chaos',
+  insight: 'insight',
+  rumor: 'rumor',
+  legend: 'legend',
+  credibility: 'credibility',
+};
+
+export const EDGE_POOL_GROUPS = {
+  physical: [EDGE_POOLS.grit, EDGE_POOLS.chaos],
+  mental: [EDGE_POOLS.insight, EDGE_POOLS.rumor],
+  social: [EDGE_POOLS.legend, EDGE_POOLS.credibility],
+};
+
 export const TEMPLATE = {
   actorTypes: {
     character: 'character',
@@ -40,21 +74,9 @@ export const TEMPLATE = {
     contact: 'contact',
     lifeModule: 'lifeModule',
   },
-  attributes: {
-    agility: 'agility',
-    strength: 'strength',
-    willpower: 'willpower',
-    logic: 'logic',
-    charisma: 'charisma',
-    edge: 'edge',
-    autopilot: 'autopilot',
-    handling: 'handling',
-    firewall: 'firewall',
-    system: 'system',
-    chassis: 'chassis',
-    condition: 'condition',
-    knowledge: 'knowledge',
-  },
+  actorAttributes: ACTOR_ATTRIBUTES,
+  itemAttributes: ITEM_ATTRIBUTES,
+  attributes: { ...ACTOR_ATTRIBUTES, ...ITEM_ATTRIBUTES },
   monitors: {
     fatigue: 'fatigue',
     armor: 'armor',
@@ -66,21 +88,26 @@ export const TEMPLATE = {
     sceneAnarchy: 'sceneAnarchy',
   },
   counters: {
+    xp: 'xp',
+    xpTotal: 'xpTotal',
+    xpUnused: 'xpUnused',
+    edge: 'edge',
     anarchy: 'anarchy',
-    edgePools: {
-      grit: 'grit',
-      insight: 'insight',
-      rumor: 'rumor',
-      legend: 'legend',
-      credibility: 'credibility',
-      chaos: 'chaos',
+    edgePools: EDGE_POOLS,
+    edgePoolGroups: EDGE_POOL_GROUPS,
+    physical: {
+      grit: EDGE_POOLS.grit,
+      chaos: EDGE_POOLS.chaos,
+    },
+    mental: {
+      insight: EDGE_POOLS.insight,
+      rumor: EDGE_POOLS.rumor,
     },
     social: {
-      legend: 'legend',
-      credibility: 'credibility',
-      rumor: 'rumor'
+      legend: EDGE_POOLS.legend,
+      credibility: EDGE_POOLS.credibility,
     },
-    chaos: 'chaos'
+    chaos: EDGE_POOLS.chaos
   },
   area: {
     none: 'none',
@@ -94,32 +121,32 @@ export const TEMPLATE = {
 
 export const ACTOR_ATTRIBUTE_SETS = {
   [TEMPLATE.actorTypes.character]: [
-    TEMPLATE.attributes.strength,
-    TEMPLATE.attributes.agility,
-    TEMPLATE.attributes.willpower,
-    TEMPLATE.attributes.logic,
-    TEMPLATE.attributes.charisma,
-    TEMPLATE.attributes.edge,
+    TEMPLATE.actorAttributes.strength,
+    TEMPLATE.actorAttributes.agility,
+    TEMPLATE.actorAttributes.willpower,
+    TEMPLATE.actorAttributes.logic,
+    TEMPLATE.actorAttributes.charisma,
+    TEMPLATE.actorAttributes.edge,
   ],
   [TEMPLATE.actorTypes.npc]: [
-    TEMPLATE.attributes.strength,
-    TEMPLATE.attributes.agility,
-    TEMPLATE.attributes.willpower,
-    TEMPLATE.attributes.logic,
-    TEMPLATE.attributes.charisma,
-    TEMPLATE.attributes.edge,
+    TEMPLATE.actorAttributes.strength,
+    TEMPLATE.actorAttributes.agility,
+    TEMPLATE.actorAttributes.willpower,
+    TEMPLATE.actorAttributes.logic,
+    TEMPLATE.actorAttributes.charisma,
+    TEMPLATE.actorAttributes.edge,
   ],
   [TEMPLATE.actorTypes.vehicle]: [
-    TEMPLATE.attributes.handling,
-    TEMPLATE.attributes.system,
-    TEMPLATE.attributes.chassis,
-    TEMPLATE.attributes.condition,
+    TEMPLATE.actorAttributes.handling,
+    TEMPLATE.actorAttributes.system,
+    TEMPLATE.actorAttributes.chassis,
+    TEMPLATE.actorAttributes.condition,
   ],
   [TEMPLATE.actorTypes.battlemech]: [
-    TEMPLATE.attributes.handling,
-    TEMPLATE.attributes.system,
-    TEMPLATE.attributes.chassis,
-    TEMPLATE.attributes.condition,
+    TEMPLATE.actorAttributes.handling,
+    TEMPLATE.actorAttributes.system,
+    TEMPLATE.actorAttributes.chassis,
+    TEMPLATE.actorAttributes.condition,
   ],
 }
 
@@ -173,6 +200,9 @@ globalThis.ANARCHY_CONSTANTS = {
   TARGET_SUCCESS,
   TARGET_SUCCESS_EDGE,
   BASE_MONITOR,
+  ACTOR_ATTRIBUTES,
+  ITEM_ATTRIBUTES,
+  EDGE_POOL_GROUPS,
   TEMPLATE,
   ANARCHY_SYSTEM
 }
