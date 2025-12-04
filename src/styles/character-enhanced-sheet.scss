@@ -138,54 +138,6 @@
                 }
 
                 .identity-meta {
-                    display: grid;
-                    gap: 0.5rem;
-                    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                    align-items: stretch;
-
-                    .karma {
-                        display: grid;
-                        gap: 0.35rem 0.5rem;
-                        grid-template-columns: 1fr 1fr;
-
-                        label {
-                            color: #5b4b2a;
-                            font-size: 12px;
-                            letter-spacing: 0.5px;
-                            text-align: left;
-                            text-transform: uppercase;
-                        }
-
-                        input {
-                            border: 1px solid #d7cbb8;
-                            border-radius: 6px;
-                            font-size: 14px;
-                            padding: 0.25rem 0.35rem;
-                            width: 100%;
-                        }
-                    }
-
-                    .awarness,
-                    .owner-summary {
-                        align-items: center;
-                        display: flex;
-                        gap: 0.5rem;
-                        justify-content: space-between;
-                        padding: 0.35rem 0.5rem;
-
-                        .label {
-                            color: #5b4b2a;
-                            font-size: 12px;
-                            text-transform: uppercase;
-                        }
-
-                        .icon {
-                            align-items: center;
-                            display: flex;
-                            gap: 0.35rem;
-                            font-weight: bold;
-                        }
-                    }
                 }
 
                 .attributes {
@@ -1291,82 +1243,6 @@
                     }
                 }
             }
-
-            .cyberdecks {
-                .title {
-                    margin-top: 1rem;
-                    padding: 4px;
-                    font-family: "BebasNeue";
-                    font-size: 18px;
-                    letter-spacing: 1px;
-                    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-                    color: white;
-                }
-
-                .cyberdeck-list {
-                    display: grid;
-                    grid-template-columns: 1fr;
-                    gap: 1rem;
-
-                    .cyberdeck {
-                        --wrapper-padding: 25px;
-                        --wrapper-thickness: 3px;
-
-                        .content {
-                            display: grid;
-                            grid-template-columns: 32px 1fr;
-                            gap: 1rem;
-
-                            .cyberdeck-details {
-                                display: flex;
-                                flex-direction: column;
-
-                                .name {
-                                    font-family: "BebasNeue";
-                                    font-weight: bold;
-                                    font-size: 18px;
-                                    letter-spacing: 1px;
-                                    transform: translateY(-12px);
-                                }
-
-                                .information {
-                                    display: grid;
-                                    grid-template-columns: 1fr 1fr 1fr 1fr;
-
-                                    > :first-child {
-                                        display: flex;
-                                        flex-direction: column;
-                                        text-align: left;
-                                    }
-
-                                    .attribute {
-                                        text-align: center;
-
-                                        .anarchy-attribute {
-                                            display: flex;
-                                            height: 35px;
-                                            align-items: center;
-                                            justify-content: center;
-
-                                            a {
-                                                display: block;
-                                                width: 100%;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        .item-controls {
-                            position: absolute;
-                            top: 14px;
-                            right: 32px;
-                            text-align: center;
-                        }
-                    }
-                }
-            }
         }
 
         .story {
@@ -1460,31 +1336,6 @@
                         gap: 8px;
 
                         .input {
-                            input {
-                                text-align: center;
-                            }
-                        }
-                    }
-                }
-
-                .karma {
-                    .karma-wrapper {
-                        display: grid;
-                        grid-template-columns: 1fr 4px 1fr;
-                        gap: 16px;
-
-                        .karma-row {
-                            &:first-child {
-                                justify-content: flex-end;
-                            }
-
-                            &:last-child {
-                                justify-content: flex-start;
-                            }
-
-                            display: flex;
-                            gap: 4px;
-
                             input {
                                 text-align: center;
                             }

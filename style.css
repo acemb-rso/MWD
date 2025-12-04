@@ -357,52 +357,6 @@
   padding: 0.35rem 0.4rem;
   width: 100%;
 }
-.sheet .character-enhanced header .name-attributes .identity-meta {
-  display: grid;
-  gap: 0.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  align-items: stretch;
-}
-.sheet .character-enhanced header .name-attributes .identity-meta .karma {
-  display: grid;
-  gap: 0.35rem 0.5rem;
-  grid-template-columns: 1fr 1fr;
-}
-.sheet .character-enhanced header .name-attributes .identity-meta .karma label {
-  color: #5b4b2a;
-  font-size: 12px;
-  letter-spacing: 0.5px;
-  text-align: left;
-  text-transform: uppercase;
-}
-.sheet .character-enhanced header .name-attributes .identity-meta .karma input {
-  border: 1px solid #d7cbb8;
-  border-radius: 6px;
-  font-size: 14px;
-  padding: 0.25rem 0.35rem;
-  width: 100%;
-}
-.sheet .character-enhanced header .name-attributes .identity-meta .awarness,
-.sheet .character-enhanced header .name-attributes .identity-meta .owner-summary {
-  align-items: center;
-  display: flex;
-  gap: 0.5rem;
-  justify-content: space-between;
-  padding: 0.35rem 0.5rem;
-}
-.sheet .character-enhanced header .name-attributes .identity-meta .awarness .label,
-.sheet .character-enhanced header .name-attributes .identity-meta .owner-summary .label {
-  color: #5b4b2a;
-  font-size: 12px;
-  text-transform: uppercase;
-}
-.sheet .character-enhanced header .name-attributes .identity-meta .awarness .icon,
-.sheet .character-enhanced header .name-attributes .identity-meta .owner-summary .icon {
-  align-items: center;
-  display: flex;
-  gap: 0.35rem;
-  font-weight: bold;
-}
 .sheet .character-enhanced header .name-attributes .attributes {
   background: transparent;
   display: grid;
@@ -1424,80 +1378,6 @@
   right: 4px;
   text-align: center;
 }
-.sheet .character-enhanced .owned .cyberdecks .title,
-.sheet .character-enhanced .equipments .cyberdecks .title {
-  margin-top: 1rem;
-  padding: 4px;
-  font-family: "BebasNeue";
-  font-size: 18px;
-  letter-spacing: 1px;
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-  color: white;
-}
-.sheet .character-enhanced .owned .cyberdecks .cyberdeck-list,
-.sheet .character-enhanced .equipments .cyberdecks .cyberdeck-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-.sheet .character-enhanced .owned .cyberdecks .cyberdeck-list .cyberdeck,
-.sheet .character-enhanced .equipments .cyberdecks .cyberdeck-list .cyberdeck {
-  --wrapper-padding: 25px;
-  --wrapper-thickness: 3px;
-}
-.sheet .character-enhanced .owned .cyberdecks .cyberdeck-list .cyberdeck .content,
-.sheet .character-enhanced .equipments .cyberdecks .cyberdeck-list .cyberdeck .content {
-  display: grid;
-  grid-template-columns: 32px 1fr;
-  gap: 1rem;
-}
-.sheet .character-enhanced .owned .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details,
-.sheet .character-enhanced .equipments .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details {
-  display: flex;
-  flex-direction: column;
-}
-.sheet .character-enhanced .owned .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details .name,
-.sheet .character-enhanced .equipments .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details .name {
-  font-family: "BebasNeue";
-  font-weight: bold;
-  font-size: 18px;
-  letter-spacing: 1px;
-  transform: translateY(-12px);
-}
-.sheet .character-enhanced .owned .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details .information,
-.sheet .character-enhanced .equipments .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details .information {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-}
-.sheet .character-enhanced .owned .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details .information > :first-child,
-.sheet .character-enhanced .equipments .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details .information > :first-child {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-.sheet .character-enhanced .owned .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details .information .attribute,
-.sheet .character-enhanced .equipments .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details .information .attribute {
-  text-align: center;
-}
-.sheet .character-enhanced .owned .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details .information .attribute .anarchy-attribute,
-.sheet .character-enhanced .equipments .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details .information .attribute .anarchy-attribute {
-  display: flex;
-  height: 35px;
-  align-items: center;
-  justify-content: center;
-}
-.sheet .character-enhanced .owned .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details .information .attribute .anarchy-attribute a,
-.sheet .character-enhanced .equipments .cyberdecks .cyberdeck-list .cyberdeck .content .cyberdeck-details .information .attribute .anarchy-attribute a {
-  display: block;
-  width: 100%;
-}
-.sheet .character-enhanced .owned .cyberdecks .cyberdeck-list .cyberdeck .item-controls,
-.sheet .character-enhanced .equipments .cyberdecks .cyberdeck-list .cyberdeck .item-controls {
-  position: absolute;
-  top: 14px;
-  right: 32px;
-  text-align: center;
-}
 .sheet .character-enhanced .story {
   background-color: #e3e4e6;
   border-top: 2px solid black;
@@ -1581,24 +1461,6 @@
   gap: 8px;
 }
 .sheet .character-enhanced .story .social-info .celeb-table > div .input input {
-  text-align: center;
-}
-.sheet .character-enhanced .story .social-info .karma .karma-wrapper {
-  display: grid;
-  grid-template-columns: 1fr 4px 1fr;
-  gap: 16px;
-}
-.sheet .character-enhanced .story .social-info .karma .karma-wrapper .karma-row:first-child {
-  justify-content: flex-end;
-}
-.sheet .character-enhanced .story .social-info .karma .karma-wrapper .karma-row:last-child {
-  justify-content: flex-start;
-}
-.sheet .character-enhanced .story .social-info .karma .karma-wrapper .karma-row {
-  display: flex;
-  gap: 4px;
-}
-.sheet .character-enhanced .story .social-info .karma .karma-wrapper .karma-row input {
   text-align: center;
 }
 .sheet .character-enhanced .story .contacts .title {
@@ -1789,75 +1651,6 @@
   flex: 0 0 28px;
   margin: 0 0px 4px 8px;
   width: calc(100% - 16px);
-}
-
-/* Sheet layout helpers to organize actor templates into stable grids */
-.sheet-layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 10px;
-  align-items: start;
-}
-
-.sheet-layout.vehicle-layout {
-  grid-template-columns: 1.35fr 1fr;
-}
-
-.sheet-layout.battlemech-layout {
-  grid-template-columns: 1.4fr 1fr;
-}
-
-.sheet-layout .sheet-column {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.sheet-layout .section-group,
-.sheet-layout .section-attributes,
-.sheet-layout .anarchy-block,
-.sheet-layout .items-group {
-  width: 100%;
-}
-
-.sheet-layout .section-group,
-.sheet-layout .section-attributes {
-  display: block;
-  margin-bottom: 0;
-}
-
-.sheet-layout .anarchy-attributes {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 6px;
-}
-
-.word-grid {
-  display: grid;
-  grid-template-columns: 0.9fr 1.2fr 1fr;
-  gap: 8px;
-}
-
-.stacked-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 8px;
-}
-
-.stacked-grid.tertiary-grid {
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-}
-
-.character-monitor-grid,
-.vehicle-monitor-grid,
-.mech-monitor-grid {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.mech-monitor-grid textarea.info-value {
-  min-height: 60px;
 }
 
 /*# sourceMappingURL=style.css.map */

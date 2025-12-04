@@ -247,7 +247,6 @@ export class AnarchyBaseActor extends Actor {
     return MATRIX_SKILLS.includes(skill?.system.code)
   }
 
-  async nextConnectionMode(cyberdeck) { }
 
   async setCheckbarValue(path, value) {
     return await this.update({ [path]: value })
@@ -350,7 +349,6 @@ export class AnarchyBaseActor extends Actor {
 
   async rollPilotDefense(attack) { }
 
-  async rollDrain(drain) { }
 
   async switchMonitorCheck(monitor, index, checked, sourceActorId = undefined) {
     await Checkbars.switchMonitorCheck(this, monitor, index, checked, sourceActorId);

@@ -1,0 +1,15 @@
+{{#if options.isGM}}
+<div class="section-group column">
+  <h2 class="section-group-header">
+    {{localize 'ANARCHY.common.gmnotes'}}
+  </h2>
+  <div class="editor actor-editor">
+    {{editor
+      system.gmnotes
+      target="system.gmnotes"
+      owner=options.owner
+      button=true
+      editable=options.editable}}
+  </div>
+</div>
+{{/if}}

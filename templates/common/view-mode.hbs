@@ -1,0 +1,11 @@
+<label>
+{{#if @root.options.viewMode}}
+<a class="view-mode-control click-toggle-view-mode" data-tooltip="{{localize ANARCHY.common.editMode}}">
+  <i>{{{iconFA 'fa-solid fa-lock'}}}</i>
+</a>
+{{else}}
+<a class="view-mode-control click-toggle-view-mode" data-tooltip="{{localize ANARCHY.common.viewMode}}">
+  <i>{{{iconFA 'fa-solid fa-lock-open'}}}</i>
+</a>
+{{/if}}
+</label>
