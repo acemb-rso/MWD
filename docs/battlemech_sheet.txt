@@ -1,0 +1,230 @@
+sheet:
+  id: mwd-battlemech-sheet
+  style: "sra-enhanced"
+  tabs:
+    - id: mech
+      label: "BattleMech"
+
+    - id: weapons
+      label: "Weapons & Mounts"
+
+    - id: notes
+      label: "Notes"
+
+  tab_layouts:
+
+    # ======================================
+    # MAIN TAB – BATTLEMECH OVERVIEW
+    # ======================================
+    mech:
+      sections:
+
+        # --- Name / chassis info ---
+        - id: header
+          type: grid
+          columns: 3
+          fields:
+            - { key: "name",               label: "Name",          type: text }
+            - { key: "chassis.class",      label: "Class", type: select,
+                options: ["Light", "Medium", "Heavy", "Assault"] }
+            - { key: "chassis.tonnage",    label: "Tonnage",       type: number }
+
+        # --- Core mech attributes (vehicle-style) ---
+        - id: attributes
+          label: "Attributes"
+          type: attribute-row
+          attributes:
+            - { key: "handling",  label: "Handling" }
+            - { key: "system",    label: "System" }
+            - { key: "condition", label: "Condition" }
+            - { key: "chassis.rating", label: "Chassis Rating" }
+
+        # --- Movement & heat baseline ---
+        - id: movement-heat
+          label: "Performance"
+          type: grid
+          columns: 4
+          fields:
+            - { key: "movement.run",     label: "Run",         type: number }
+            - { key: "movement.jump",    label: "Jump",        type: number }
+            - { key: "heat.dissipation", label: "Heat Dissipation", type: number }
+
+        # --- Structure & armor ---
+        - id: structure-armor
+          type: grid
+          columns: 2
+
+          left:
+            label: "Structure"
+            components:
+              - { type: "number",        key: "structure.max",   label: "Max Structure" }
+              - { type: "monitor-track", key: "structure.track", label: "Structure Track" }
+
+          right:
+            label: "Armor"
+            components:
+              - { type: "monitor-track", key: "armor.value",   label: "Armor Value" }
+              - { type: "text",   key: "armor.effect",  label: "Armor Effect / Resistance" }
+
+        # --- Heat track ---
+        - id: heat
+          label: "Heat"
+          type: grid
+          columns: 2
+          fields:
+            - { key: "heat.capacity", label: "Heat Capacity", type: number }
+          components:
+            - { type: "monitor-track", key: "heat.track", label: "Heat Track" }
+
+        # --- Mount / slot summary (houserule core) ---
+        - id: mount-summary
+          label: "Weapon Mount Summary"
+          type: grid
+          columns: 3
+          fields:
+            - { key: "mounts.baseSlots",     label: "Base Mount Slots",    type: number }
+            - { key: "mounts.primaryBonus",  label: "Primary Weapon Bonus", type: number }
+            - { key: "mounts.totalSlots",    label: "Total Slots",         type: number, readOnly: true }
+            - { key: "mounts.usedSlots",     label: "Used Slots",          type: number, readOnly: true }
+            - { key: "mounts.freeSlots",     label: "Free Slots",          type: number, readOnly: true }
+
+        # --- Equipment slots (3 fixed) from earlier houserule ---
+        - id: equipment-slots
+          label: "Equipment Slots"
+          type: slot-list
+          slots:
+            - { key: "equipment.slot1", label: "Slot 1" }  # each holds an Asset Module / Upgrade module
+            - { key: "equipment.slot2", label: "Slot 2" }
+            - { key: "equipment.slot3", label: "Slot 3" }
+
+        # --- Pilot / crew link, as with vehicles ---
+        - id: crew
+          label: "Pilot & Crew"
+          type: actorList
+          actorsKey: "crew"   # first entry is assumed primary pilot unless flagged
+
+        # --- Cached pilot stats for rolls (same snapshot idea as vehicle) ---
+        - id: pilot-snapshot
+          label: "Pilot Profile (Cached)"
+          help: "Cached values from primary pilot used for attack, defense, and initiative rolls."
+          type: grid
+          columns: 3
+          fields:
+            - { key: "pilotSnapshot.name",         label: "Primary Pilot",   type: text,   readOnly: true }
+            - { key: "pilotSnapshot.gunnery",      label: "Gunnery",         type: number }
+            - { key: "pilotSnapshot.piloting",     label: "Piloting",        type: number }
+            - { key: "pilotSnapshot.perception",   label: "Perception",      type: number }
+            - { key: "pilotSnapshot.stealth",      label: "Stealth",         type: number }
+            - { key: "pilotSnapshot.reflexes",     label: "Reflexes",        type: number }
+            - { key: "pilotSnapshot.intelligence", label: "Intelligence",    type: number }
+
+        # --- Mech actions (parallel to vehicle actions) ---
+        - id: actions
+          label: "Actions"
+          type: action-buttons
+          actions:
+            - id: defense
+              label: "Defense"
+              tooltip: "Handling + Piloting (pilot)"
+              formula: "attributes.handling + pilotSnapshot.piloting"
+
+            - id: sensors
+              label: "Sensors"
+              tooltip: "System + Perception (pilot)"
+              formula: "attributes.system + pilotSnapshot.perception"
+
+            - id: stealth
+              label: "Stealth"
+              tooltip: "Handling + Stealth (pilot)"
+              formula: "attributes.handling + pilotSnapshot.stealth"
+
+            - id: initiative
+              label: "Initiative"
+              tooltip: "Reflexes + Intelligence (pilot)"
+              formula: "pilotSnapshot.reflexes + pilotSnapshot.intelligence"
+
+
+    # ======================================
+    # WEAPONS & MOUNTS TAB – HONSERULE CORE
+    # ======================================
+    weapons:
+      sections:
+
+        # --- Primary weapon selection (AC/20 iconic gun etc.) ---
+        - id: primary-weapon
+          label: "Primary Weapon"
+          type: primary-weapon
+          fields:
+            - { key: "mounts.primaryWeaponId", label: "Primary Weapon Item ID", type: hidden }
+          help: >
+            One weapon may be marked as Primary. It costs 2 normal mount slots and
+            may have additional rules (signature gun, fluff bonus, etc).
+            Primary selection drives 'Primary Weapon Bonus' in the mount summary.
+
+        # --- Weapons list with slot cost & mount size/type ---
+        - id: weapons-list
+          label: "Weapons"
+          type: itemList
+          items: "weapons"
+          columns:
+            - { key: "name",          label: "Name" }
+            - { key: "system.type",   label: "Type" }           # Ballistic / Energy / Missile / Support / Melee
+            - { key: "system.size",   label: "Size" }           # Small / Medium / Large
+            - { key: "system.slotCost", label: "Slot Cost" }    # cost per houserule table
+            - { key: "system.isPrimary", label: "Primary?", type: checkbox }
+            - { key: "system.damage", label: "Damage" }
+            - { key: "system.heat",   label: "Heat" }
+            - { key: "system.range",  label: "Range Profile" }  # Close/Short/Med/Long/Extrm text
+            - { key: "system.location", label: "Location" }     # H/A/T/L, etc.
+            - { key: "system.group",  label: "Weapon Group" }   # A/B/C, etc.
+
+        # --- Weapon groups for firing (group A/B/C etc.) ---
+        - id: weapon-groups
+          label: "Weapon Groups"
+          type: itemList
+          items: "weaponGroups"
+          columns:
+            - { key: "name",             label: "Group" }
+            - { key: "system.triggerKey",label: "Hotkey/Trigger" }
+            - { key: "system.description",label: "Notes" }
+
+        # --- Mount accounting by location (for visual sanity vs the slot total) ---
+        - id: mounts-by-location
+          label: "Mounts by Location"
+          type: hardpoint-grid
+          locations:
+            - id: head
+              label: "Head"
+              fields:
+                - { key: "mounts.locations.head.slots",     label: "Slots", type: number }
+                - { key: "mounts.locations.head.usedSlots", label: "Used",  type: number, readOnly: true }
+
+            - id: torso
+              label: "Torso"
+              fields:
+                - { key: "mounts.locations.torso.slots",     label: "Slots", type: number }
+                - { key: "mounts.locations.torso.usedSlots", label: "Used",  type: number, readOnly: true }
+
+            - id: locationArm
+              label: "Arms"
+              fields:
+                - { key: "mounts.locations.Arm.slots",     label: "Slots", type: number }
+                - { key: "mounts.locations.Arm.usedSlots", label: "Used",  type: number, readOnly: true }
+
+
+            - id: locationLeg
+              label: "Legs"
+              fields:
+                - { key: "mounts.locations.Leg.slots",     label: "Slots", type: number }
+                - { key: "mounts.locations.Leg.usedSlots", label: "Used",  type: number, readOnly: true }
+
+
+    # ======================================
+    # NOTES TAB
+    # ======================================
+    notes:
+      sections:
+        - id: notes-block
+          label: "Notes"
+          type: textarea
+          key: "notes"

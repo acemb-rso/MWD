@@ -1,0 +1,83 @@
+sheet:
+  id: mwd-npc-sheet
+  style: "sra-enhanced"
+  tabs:
+    - id: npc
+      label: "NPC"
+
+    - id: biography
+      label: "Notes"
+
+# ============================
+# NPC TAB (MAIN SHEET)
+# ============================
+  tab_layouts:
+    npc:
+      sections:
+
+        - id: header
+          type: grid
+          columns: 2
+          fields:
+            - { name: name, label: "Name", type: text }
+            - { key: "role", label: "Role / Archetype", type: text }
+
+        - id: attributes
+          label: "Attributes"
+          type: attribute-row
+          attributes:
+            - { key: "strength",     label: "Strength" }
+            - { key: "reflexes",     label: "Reflexes" }
+            - { key: "intelligence", label: "Intelligence" }
+            - { key: "willpower",    label: "Willpower" }
+            - { key: "charisma",     label: "Charisma" }
+            - { key: "edge",         label: "Edge (Cap)" }
+
+   
+        - id: traits
+          label: "Traits"
+          type: itemList
+          items: "traits"
+
+        - id: monitors
+          label: "Condition & Edge"
+          type: grid
+          columns: 2
+
+          left:
+            label: "Condition Monitors"
+            components:
+
+              - { type: "monitor-track", key: "physical", label: "Physical" }
+              - { type: "monitor-track", key: "fatigue",  label: "Fatigue" }
+
+          right:
+            label: "Edge Pools"
+            components:
+              - { type: "monitor-track", key: "armor.value", label: "Armor Value" }
+              - { type: "text",   key: "armor.effect", label: "Armor Effect / Resistance" }             
+
+        - id: weapons
+          label: "Weapons"
+          type: itemList
+          items: "weapons"
+
+        - id: asset-modules
+          label: "Asset Modules"
+          type: itemList
+          items: "assetModules"
+
+        - id: inventory
+          label: "Inventory / Gear"
+          type: itemList
+          items: "inventory"
+
+# ============================
+# NOTES / BIOGRAPHY TAB
+# ============================
+    biography:
+      sections:
+        - id: quick-notes
+          label: "Notes"
+          type: textarea
+          key: "biography"

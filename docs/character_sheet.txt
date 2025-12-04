@@ -1,0 +1,159 @@
+sheet:
+  id: mwd-character-sheet
+  style: "sra-enhanced"
+  tabs:
+    - id: character
+      label: "Character"
+
+    - id: skills
+      label: "Skills"
+
+    - id: traits
+      label: "Traits"
+
+    - id: life-modules
+      label: "Life Modules"
+
+    - id: inventory
+      label: "Inventory"
+
+    - id: biography
+      label: "Biography"
+
+# ============================
+# CHARACTER TAB (MAIN SHEET)
+# ============================
+  tab_layouts:
+    character:
+      sections:
+
+        - id: header
+          type: grid
+          fields:
+            - { name: name, label: "Name", type: text }
+
+        - id: attributes
+          label: "Attributes"
+          type: attribute-row
+          attributes:
+            - { key: "strength",    label: "Strength" }
+            - { key: "reflexes",    label: "Reflexes" }
+            - { key: "intelligence", label: "Intelligence" }
+            - { key: "willpower",   label: "Willpower" }
+            - { key: "charisma",    label: "Charisma" }
+            - { key: "edge",        label: "Edge (Cap)" }
+
+        - id: cues-dispositions
+          type: two-column
+          left:
+            label: "Cues"
+            itemList: "cues"
+          right:
+            label: "Dispositions"
+            itemList: "dispositions"
+
+        - id: keywords
+          label: "Keywords"
+          type: itemList
+          items: "keywords" # optional, SR:A style
+
+        - id: monitors
+          label: "Condition Monitors"
+          type: grid
+          columns: 2
+          left:
+            label: "Physical Condition"
+            components:
+              - { type: "monitor-track", key: "armor", label: "Armor" }
+              - { type: "monitor-track", key: "physical", label: "Physical" }
+              - { type: "monitor-track", key: "fatigue", label: "Fatigue" }
+
+          right:
+            label: "Edge Pools"
+            components:
+              - group: "Physical"
+                pools:
+                  - { key: "grit",        label: "Grit" }
+                  - { key: "chaos",       label: "Chaos" }
+
+              - group: "Mental"
+                pools:
+                  - { key: "insight",     label: "Insight" }
+                  - { key: "rumor",       label: "Rumor" }
+
+              - group: "Social"
+                pools:
+                  - { key: "legend",      label: "Legend" }
+                  - { key: "credibility", label: "Credibility" }
+
+        - id: personal-weapons
+          label: "Personal Weaponry"
+          type: itemList
+          items: "weapons"
+
+        - id: asset-modules
+          label: "Asset Modules"
+          type: itemList
+          items: "assetModules"
+
+        - id: experience
+          label: "Experience"
+          type: grid
+          columns: 2
+          fields:
+            - { key: "xp.current",  label: "Current XP",  type: "number" }
+            - { key: "xp.lifetime", label: "Lifetime XP", type: "number" }
+
+# ============================
+# SKILLS TAB
+# ============================
+    skills:
+      sections:
+        - id: skill-list
+          label: "Skills"
+          type: itemList
+          items: "skills"
+
+# ============================
+# TRAITS TAB
+# ============================
+    traits:
+      sections:
+        - id: traits-list
+          label: "Traits"
+          type: itemList
+          items: "traits"
+
+# ============================
+# LIFE MODULES TAB
+# ============================
+    life-modules:
+      sections:
+        - id: life-module-fields
+          label: "Life Modules"
+          type: field-list
+          fields:
+            - { key: "life.faction",         label: "Faction",          type: item }
+            - { key: "life.childhood",       label: "Childhood",        type: item }
+            - { key: "life.education",       label: "Higher Education", type: item }
+            - { key: "life.realLife",        label: "Real Life",        type: item }
+
+# ============================
+# INVENTORY TAB
+# ============================
+    inventory:
+      sections:
+        - id: inventory-list
+          label: "Inventory"
+          type: itemList
+          items: "inventory"
+
+# ============================
+# BIOGRAPHY TAB
+# ============================
+    biography:
+      sections:
+        - id: biography-block
+          label: "Biography"
+          type: textarea
+          key: "biography"
