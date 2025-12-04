@@ -1,5 +1,5 @@
 import { ANARCHY } from "../config.js";
-import { TEMPLATE, TEMPLATES_PATH } from "../constants.js";
+import { ACTOR_ATTRIBUTE_SETS, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { AnarchyBaseActor } from "./base-actor.js";
 import { ErrorManager } from "../error-manager.js";
 import { Misc } from "../misc.js";
@@ -44,14 +44,7 @@ export class CharacterActor extends AnarchyBaseActor {
   }
 
   getAttributes() {
-    return [
-      TEMPLATE.attributes.strength,
-      TEMPLATE.attributes.agility,
-      TEMPLATE.attributes.willpower,
-      TEMPLATE.attributes.logic,
-      TEMPLATE.attributes.charisma,
-      TEMPLATE.attributes.edge
-    ];
+    return ACTOR_ATTRIBUTE_SETS[this.type] ?? ACTOR_ATTRIBUTE_SETS[TEMPLATE.actorTypes.character];
   }
 
   getPhysicalAgility() { return TEMPLATE.attributes.agility }

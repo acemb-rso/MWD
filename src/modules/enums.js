@@ -1,4 +1,5 @@
 import { ANARCHY } from "./config.js";
+import { ACTOR_ATTRIBUTE_SETS } from "./constants.js";
 import { Misc } from "./misc.js";
 
 const actorWordTypes = {
@@ -58,7 +59,8 @@ export class Enums {
     );
     Enums.hbsMwdMeleeLocations = Enums.mapObjetToKeyValue(ANARCHY.mwd.meleeLocation);
 
-    Enums.sortedAttributeKeys = Object.keys(ANARCHY.attributes);
+    const attributeOrder = Object.values(ACTOR_ATTRIBUTE_SETS).flat();
+    Enums.sortedAttributeKeys = Misc.distinct(attributeOrder.concat(Object.keys(ANARCHY.attributes)));
 
     Enums.registerHandleBarHelpers();
   }
