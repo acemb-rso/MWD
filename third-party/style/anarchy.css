@@ -1,0 +1,1230 @@
+/** common definitions **/
+@font-face {
+  font-family: "Impact";
+  src: url("../fonts/Impact.ttf");
+}
+
+/** common definitions **/
+@font-face {
+  font-family: "BebasNeue";
+  src: url("../fonts/BebasNeue.ttf");
+}
+
+:root {
+  --transparent: hsla(0, 0%, 0%, 0.0);
+  --background-inactive: repeating-linear-gradient(60deg,
+      hsla(0, 0%, 40%, 0.2) 0px 5px,
+      hsla(0, 0%, 80%, 0.2) 5px 10px);
+  --gradient-gold: repeating-linear-gradient(120deg,
+      hsla(40, 50%, 50%, 0.4),
+      hsla(55, 92%, 86%, 0.4),
+      hsla(41, 63%, 43%, 0.4),
+      hsla(55, 89%, 85%, 0.4),
+      hsla(38, 72%, 39%, 0.4));
+  --gradient-silver: repeating-linear-gradient(135deg,
+      hsla(249, 26%, 29%, 0.2),
+      hsla(237, 13%, 73%, 0.2),
+      hsla(195, 3%, 24%, 0.4),
+      hsla(43, 7%, 79%, 0.2),
+      hsla(348, 14%, 21%, 0.2));
+
+  --hover-tint: hsla(210, 44%, 69%, 0.486);
+  --default-background-glitch: hsla(300, 80%, 20%, 0.2);
+  --default-background-prowess: var(--gradient-gold);
+  --default-background-mixed: var(--gradient-gold) hsla(300, 80%, 20%, 0.5);
+
+  --color-dice-glitch: hsla(300, 80%, 20%, 1);
+  --color-dice-mixed: hsl(230, 80%, 30%, 1);
+  --color-dice-prowess: hsla(160, 80%, 40%, 1);
+
+
+  --background-editor: var(--gradient-silver), hsla(0, 10%, 80%, 0.8);
+  --color-button: hsla(0, 10%, 10%, 1);
+  --color-editor-font: hsla(0, 10%, 10%, 1);
+  --color-chat: hsla(0, 10%, 10%, 1);
+}
+
+#logo {
+  content: url(anarchy-logo.webp);
+  width: 100px;
+  height: 57px;
+}
+
+#pause > img {
+  content: url(anarchy-pause.webp);
+  height: 192px;
+  width: 192px;
+  top: -35px;
+  left: calc(50% - 96px);
+}
+
+/* common anarchy sheets styles*/
+h1,
+h2,
+h3 {
+  font-weight: bold;
+}
+
+h4 {
+  font-weight: 500;
+}
+
+h3,
+h4 {
+  padding: 0.25rem;
+}
+
+a.favorite-control i,
+a.item-control i,
+a.item-control img {
+  font-size: small;
+}
+
+div a.view-mode-control {
+  font-size: large
+}
+
+img.anarchy-img {
+  -webkit-box-flex: 0;
+  border: 0;
+  padding: 2px;
+  float: left;
+  border-radius: 6px;
+  object-fit: contain;
+  vertical-align: top;
+}
+
+.anarchy-img-title :is(.anarchy-dialog, .chat-message) :is(img.actor-img, img.skill-img, img.weapon-img) {
+  -ms-flex: 0 0 16px;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+}
+
+:is(.anarchy-dialog, .chat-message) :is(img.actor-img, img.skill-img, img.weapon-img, img.anarchy-img.actor-img) {
+  -ms-flex: 0 0 48px;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+}
+
+img.anarchy-img.actor-img {
+  -ms-flex: 0 0 64px;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+}
+
+img.anarchy-img.item-img {
+  -ms-flex: 0 0 32px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  flex-grow: 0;
+  margin-right: 0.1rem;
+}
+
+
+#gm-manager {
+  min-width: 300px;
+}
+
+#gm-manager div.header {
+  display: grid;
+  margin: 2px;
+  padding: 2px;
+}
+
+#gm-manager div.gm-manager-bar {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: max-content;
+  align-items: flex-start;
+}
+
+#gm-manager div {
+  padding: 1px;
+  vertical-align: top;
+}
+
+#gm-manager {
+  position: absolute;
+  display: block;
+  z-index: 100;
+
+  grid-column: 1;
+  height: fit-content;
+  width: fit-content;
+  margin: 0;
+  padding: 0;
+  border-radius: 6px;
+}
+
+#gm-manager header {
+  margin: 2px;
+  padding: 2px;
+}
+
+#gm-manager .actor-convergence {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+}
+
+#gm-manager .actor-convergence .checkbar-root {
+  flex-wrap: nowrap;
+}
+
+.sheet header.sheet-header h1,
+.sheet header.sheet-header .passport-header {
+  flex: auto;
+  flex-grow: 1;
+  flex-basis: auto;
+}
+
+.passport-header {
+  display: flex;
+  flex-direction: row;
+  margin: 2px;
+}
+
+.passport-img img {
+  object-position: center;
+  border-radius: 6px;
+  margin-right: 2px;
+}
+
+.actor-character .passport-img {
+  min-width: 128px;
+  min-height: 128px;
+  height: 128px;
+  width: 128px;
+}
+
+.actor-character .passport-img img {
+  min-width: 128px;
+  min-height: 128px;
+  height: 128px;
+  width: 128px;
+}
+
+.npc-sheet .passport-img,
+.vehicle-sheet .passport-img {
+  min-height: 92px;
+  min-width: 92px;
+}
+
+.npc-sheet .passport-img img,
+.vehicle-sheet .passport-img img {
+  height: 92px;
+  width: 92px;
+}
+
+.device-sheet .passport-img {
+  min-height: 64px;
+  min-width: 64px;
+}
+
+.device-sheet .passport-img img {
+  height: 64px;
+  width: 64px;
+}
+
+.actor-character .passport-column {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+}
+
+.actor-character .passport-column {
+  width: calc(100% - 128px);
+  min-height: 128px;
+}
+
+.window-app.sheet.actor-character.tabbed-sheet {
+  min-width: 680px;
+}
+
+.tabbed-sheet .passport-column {
+  width: calc(65% - 128px);
+  min-width: 340px;
+}
+
+.npc-sheet .passport-column,
+.vehicle-sheet .passport-column {
+  width: calc(100% - 92px);
+  min-height: 92px;
+}
+
+.device-sheet .passport-column {
+  width: calc(100% - 64px);
+  min-height: 64px;
+}
+
+.passport-details-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.passport-action-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+:is(.passport-owner, .passport-detail, .passport-action) {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  vertical-align: text-bottom;
+  text-align: left;
+  height: 32px;
+}
+
+:is(.passport-detail, .passport-owner) {
+  width: calc(49% - 2px);
+}
+
+img.owned-actor-img {
+  -ms-flex: 0 0 32px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  opacity: 0.8;
+  object-position: 50% 50%;
+}
+
+img.actor-reference-img {
+  -ms-flex: 0 0 32px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  opacity: 0.8;
+  object-position: 50% 0%;
+}
+
+.monitor-label,
+.info-label {
+  justify-content: left;
+  align-self: baseline;
+  white-space: nowrap;
+  height: 100%;
+  padding: 1px;
+}
+
+:is(div, label).chat-label :is(label, span, div, button, a.anarchy-button),
+:is(div, label).chat-messge :is(label, span, div, button, a.anarchy-button),
+:is(div, label).chat-label {
+  color: var(--color-chat);
+}
+
+:is(input, label, select).info-value {
+  align-self: baseline;
+  text-align: start;
+  border: none;
+  height: 100%;
+  width: 100%;
+  padding: 1px;
+}
+
+.resitance-label {
+  font-size: x-small;
+  justify-content: left;
+  align-self: baseline;
+  white-space: nowrap;
+  height: fit-content;
+  padding: 1px;
+}
+
+.anarchy-monitor .resitance-label input.info-value {
+  font-size: x-small;
+  align-self: baseline;
+  text-align: start;
+  border: none;
+  max-width: 16px;
+  height: fit-content;
+  padding: 1px;
+}
+
+/* manage the monitors*/
+.monitors-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  flex-grow: 0;
+}
+
+.anarchy-monitor {
+  flex: content;
+  flex-grow: 0;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin: 2px;
+  min-width: 4rem;
+}
+
+.anarchy-bar .anarchy-monitor {
+  max-width: max-content;
+}
+
+.anarchy-monitor :is(label, h3) {
+  flex-grow: 0.5;
+  margin: 2px;
+}
+
+.anarchy-monitor .check-rootbar {
+  height: max-content;
+}
+
+img.checkbar-img {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin: 0px;
+  display: inline-block;
+  background-position: center;
+  background-size: cover;
+  border: none;
+}
+
+img.checkbar-img:hover {
+  background-color: var(--hover-tint);
+}
+
+img.checkbar-img:active {
+  position: relative;
+  top: 1px;
+}
+
+:is(.actor-character, .item-sheet) nav.sheet-tabs {
+  flex-flow: nowrap;
+  font-size: 0.65rem;
+  font-weight: bold;
+  justify-content: flex-start;
+  text-align: center;
+  text-transform: uppercase;
+  border: 0 none;
+  padding-bottom: 0px;
+  margin: 0px 8px 0px 8px;
+}
+
+:is(.actor-character, .item-sheet) nav.sheet-tabs .sheet-tab {
+  position: relative;
+  min-height: 16px;
+  margin: 0px 2px 0px 2px;
+  padding: 2px 4px 2px 4px;
+}
+
+:is(.actor-character, .item-sheet) nav.sheet-tabs .sheet-tab:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+}
+
+.sheet .sheet-body {
+  margin-top: 0px;
+}
+
+:is(.section-group, .section-attributes) {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-bottom: 5px;
+  height: 100%;
+  width: 100%;
+}
+.section-group.tab[data-tab]:not(.active) {
+    display: none;
+}
+
+.section-group.column {
+  flex-direction: column;
+}
+
+/* Manage the attributes */
+.attribute-box {
+  display: flex;
+  flex-direction: column;
+  flex-basis: auto;
+  margin: 2px;
+  padding: 2px;
+  border-radius: 6px;
+  align-items: center;
+  min-width: 4rem;
+  max-width: 8rem;
+  width: auto;
+}
+
+:is(.npc-sheet, .device-sheet, .vehicle-sheet) .attribute-box {
+  min-width: 3rem;
+  max-width: 8rem;
+  flex-direction: row;
+  padding: 1px;
+}
+
+.attribute-box .attribute-label {
+  align-items: center;
+  text-align: center;
+  font-size: large;
+}
+
+.attribute-box .attribute-value {
+  align-items: center;
+  text-align: center;
+  border-style: none;
+  font-size: small;
+  max-width: 2rem;
+}
+
+:is(.npc-sheet, .device-sheet, .vehicle-sheet) .attribute-box input {
+  font-size: small;
+  max-width: 1.5rem;
+}
+
+/* Manage the list of keywords, cues, and dispositions*/
+.section-group.anarchy-words-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-width: auto;
+  margin: 0px 0px 2px 0px;
+  padding: 2px;
+}
+
+.anarchy-words.anarchy-keywords {
+  width: calc(20% - 4px);
+}
+
+.anarchy-words.anarchy-cues {
+  width: calc(52% - 4px);
+}
+
+.anarchy-words.anarchy-dispositions {
+  width: calc(28% - 4px);
+}
+
+.anarchy-words :is(div, input) {
+  width: 100%;
+}
+
+.items-group.half-width {
+  width: calc(50% - 2px);
+}
+
+.items-group.third-width {
+  width: calc(33% - 4px);
+}
+
+/* The sections for items */
+.items-group>div {
+  width: 100%;
+}
+
+.items-group>div h2 {
+  text-align: center;
+  border: none;
+}
+
+.items-group>div h2.section-group-header {
+  width: auto;
+  justify-content: center;
+}
+
+:is(.npc-sheet, .device-sheet) .items-group>div h2 {
+  text-align: center;
+  font-size: small;
+  border: none;
+}
+
+.actor-marks .marks-group-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  vertical-align: top;
+}
+
+
+.items-group .items-group-list {
+  display: grid;
+  gap: 6px 2px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  padding-bottom: 1rem;
+}
+
+.items-group .items-group-list div.item {
+  height: 100%;
+  position: relative;
+  padding: 4px;
+}
+
+.items-group .items-group-list div.item.anarchy-skill {
+  min-height: 52px;
+}
+
+.items-group .items-group-list div.item .item-controls {
+  position: absolute;
+  left: calc(100% - 16px);
+  bottom: initial;
+}
+
+:is(.npc-sheet, .device-sheet) .items-group .items-group-list {
+  gap: 1px;
+}
+
+.actor-marks .marks-group-list .anarchy-marks {
+  display: flex;
+  flex-direction: row;
+}
+
+.items-group div.item {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  flex-basis: auto;
+  align-items: flex-start;
+  justify-content: flex-start;
+  vertical-align: top;
+
+  gap: 1px;
+  margin: 2px;
+  padding: 2px;
+  border-radius: 6px;
+  max-width: 18rem;
+}
+
+div.define-item-type.item>img.anarchy-img {
+  max-width: 32px;
+  flex: none;
+  flex-grow: 0;
+  vertical-align: top;
+  align-items: flex-start;
+}
+
+div.define-item-type.item .shadowamp-content,
+div.define-item-type.item .item-content {
+  max-width: calc(100% - 32px - 16px);
+  text-justify: inter-word;
+  align-items: flex-start;
+}
+
+div.define-item-type.item div.item-controls {
+  max-width: 48px;
+  flex: content;
+  flex-grow: 0;
+  vertical-align: top;
+  align-items: flex-end;
+}
+
+.items-group div.item.anarchy-cyberdeck {
+  max-width: max-content;
+  width: max-content;
+}
+
+.items-group div.define-item-type.item.anarchy-cyberdeck .item-content {
+  display: flex;
+  flex-direction: row;
+  gap: 3px;
+  margin: 2px;
+  padding: 2px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.items-group div.define-item-type.item.anarchy-cyberdeck .item-content div.anarchy-monitor {
+  min-width: fit-content;
+}
+
+.items-group div.define-item-type.item.anarchy-cyberdeck .item-content .cyberdeck-details {
+  display: flex;
+  flex-direction: column;
+}
+
+:is(.npc-sheet, .device-sheet) .items-group div.item {
+  margin: 1px;
+  height: 100%;
+  position: relative;
+  padding: 1px;
+}
+
+:is(.npc-sheet, .device-sheet) .items-group .items-group-list {
+  display: grid;
+  gap: 2px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+:is(.npc-sheet, .device-sheet) .items-group .items-group-list div.item.anarchy-skill {
+  min-height: fit-content;
+}
+
+:is(.npc-sheet, .device-sheet) .items-group .items-group-list div.item.anarchy-skill .item-controls {
+  position: absolute;
+  left: calc(100% - 48px);
+  bottom: initial;
+}
+
+:is(.npc-sheet, .device-sheet) .items-group .items-group-list div.item:not(.anarchy-skill) .item-content {
+  max-width: calc(100% - 16px);
+}
+
+:is(.npc-sheet, .device-sheet) .items-group div.item.anarchy-cyberdeck {
+  max-width: max-content;
+}
+
+
+/* Modifiers lists */
+.modifier-list {
+  padding: 0px;
+  border: none;
+  font-size: x-small;
+}
+
+.modifier-list :is(.modifier-header, .modifier-row) {
+  justify-content: left;
+  vertical-align: top;
+  width: 100%;
+  text-align: left;
+  align-items: flex-start;
+  width: fit-content;
+
+}
+
+.modifier-list .modifier-header>th {
+  margin: 0px 0px;
+  text-align: left;
+}
+
+.modifier-list .modifier-row .modifier-column :is(input, select),
+.modifier-list .modifier-row .modifier-column {
+  font-size: x-small;
+  margin: 0px 0px;
+  padding: 0px 0px;
+}
+
+
+/* Weapons lists */
+ul.weapon-list {
+  padding: 0px;
+}
+
+.weapon-list :is(.weapon-header, .item) {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  flex-basis: auto;
+  align-items: flex-start;
+  justify-content: space-evenly;
+  vertical-align: top;
+
+  width: 100%;
+  gap: 1px;
+  padding: 2px;
+  text-align: left;
+  align-items: center;
+}
+
+.weapon-list .weapon-header>span {
+  margin: 2px 0px;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.weapon-list .item .weapon-column {
+  width: 100%;
+  margin: 0px 2px;
+  justify-content: flex-start;
+}
+
+.weapon-list .weapon-column.weapon-img {
+  width: 32px;
+}
+
+.weapon-list .weapon-column.weapon-dmg {
+  width: 4.5rem;
+}
+
+.weapon-list .weapon-column.weapon-stat {
+  width: 3.5rem;
+}
+
+.weapon-list .weapon-column.weapon-controls {
+  width: 5rem;
+}
+
+.weapon-list .weapon-column.weapon-txt {
+  width: calc(100% - 25rem - 32px);
+}
+
+.weapon-list .weapon-column.weapon-summary {
+  width: calc(100% - 2rem);
+}
+
+div.anarchy-button {
+  display: flex;
+  flex-direction: row;
+}
+
+.anarchy-button {
+  display: inline-block;
+  cursor: pointer;
+  margin: 2px;
+  padding: 3px 5px;
+  border-radius: 4px;
+  position: relative;
+  height: fit-content;
+  width: fit-content;
+}
+
+.anarchy-dialog .dialog-button {
+  display: inline-block;
+  cursor: pointer;
+  margin: 2px;
+  padding: 3px 5px;
+  border-radius: 4px;
+  position: relative;
+  height: fit-content;
+  width: 100%;
+  color: var(--color-button);
+}
+
+
+
+div.anarchy-block {
+  flex: content;
+  flex-grow: 0;
+  margin: 2px;
+  padding: 2px;
+}
+
+div.anarchy-block.anarchy-bar {
+  justify-content: flex-start;
+
+  flex-grow: unset;
+}
+
+div.anarchy-block {
+  flex: content;
+  flex-grow: 0;
+  margin: 2px;
+  padding: 2px;
+}
+
+
+.item.inactive {
+  background: var(--background-inactive) !important;
+}
+
+/* Generic styles - to separate */
+.chat-message .anarchy-button {
+  background: var(--gradient-silver-light-opaque);
+}
+
+.chat-message .anarchy-button label {
+  color: var(--font-color-dark);
+}
+
+.chat-message .anarchy-button:hover {
+  background-color: var(--hover-tint);
+}
+
+.chat-message .anarchy-button:active {
+  position: relative;
+  top: 1px;
+  left: 1px;
+}
+
+div.risk-glitch {
+  margin: 1px;
+  padding: 1px;
+  border-radius: 6px;
+}
+
+div.risk-glitch span i.fas {
+  font-size: large;
+}
+
+div.risk-glitch.risk-glitch-glitch span i.fas {
+  color: var(--color-dice-glitch);
+}
+
+div.risk-glitch.risk-glitch-mixed span i.fas {
+  color: var(--color-dice-mixed);
+}
+
+div.risk-glitch.risk-glitch-prowess span i.fas {
+  color: var(--color-dice-prowess);
+}
+
+div.risk-glitch.risk-glitch-glitch {
+  background: var(--default-background-glitch);
+}
+
+div.risk-glitch.risk-glitch-mixed {
+  background: var(--default-background-mixed);
+}
+
+div.risk-glitch.risk-glitch-prowess {
+  background: var(--default-background-prowess);
+}
+
+.alternate-items>.item {
+  margin: 0.1rem;
+  box-shadow: inset 0px 0px 1px var(--border-medium);
+  padding: 0.1rem;
+  display: flex !important;
+  align-items: baseline !important;
+}
+
+.alternate-items>.item:hover {
+  background: var(--border-light);
+}
+
+.alternate-items>.item:nth-child(even) {
+  background: var(--border-dark);
+}
+
+.alternate-items>.item:nth-child(odd) {
+  background: var(--border-medium);
+}
+
+:is(div.checkbar-root[data-monitor-code='edge'],
+  div.checkbar-root[data-monitor-code='credibility'],
+  div.checkbar-root[data-monitor-code='rumor']) a.click-checkbar-element[data-checked=true] i {
+  color: orange;
+}
+
+a.click-checkbar-element[data-checked=true] i {
+  color: red;
+}
+
+a.click-checkbar-element[data-checked=false] i {
+  color: gray;
+}
+
+i.hide-fontawesome {
+  font-size: small;
+  color: var(--transparent);
+}
+
+/* Flex/grid configuration */
+div.item.flexcol {
+  gap: 2px;
+  align-items: flex-start;
+}
+
+div.item.flexrow {
+  gap: 1px;
+  align-items: flex-start;
+  justify-content: space-between;
+  vertical-align: top;
+}
+
+.flex-group-left {
+  gap: 2px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: left;
+  vertical-align: top;
+}
+
+.flex-grow-3 {
+  flex-grow: 3;
+}
+
+.flex-grow,
+.flex-grow-2 {
+  flex-grow: 2;
+}
+
+.flex-grow-0 {
+  flex-grow: 0;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-shrink {
+  flex: content;
+  flex-grow: 0;
+}
+
+.flex-end {
+  justify-content: flex-end;
+}
+
+.flex-shrink-end {
+  flex: content;
+  flex-grow: 0;
+  vertical-align: top;
+  align-items: flex-end;
+}
+
+.flex-shrink-start {
+  flex: content;
+  flex-grow: 0.5;
+  justify-content: flex-start;
+  min-width: 32px;
+}
+
+.flex-shrink-left {
+  flex-grow: 0;
+  flex-wrap: nowrap;
+  flex-basis: content;
+  flex-direction: row;
+  justify-content: left;
+}
+
+.grid-3col {
+  grid-column: span 3 / span 3;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-2col {
+  grid-column: span 2 / span 2;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* TODO: redefine the role of these groups */
+div.form-group {
+  align-items: flex-start;
+}
+
+/* form input and controls */
+.editor {
+  border: 2;
+  height: 150px;
+  min-height: 80px;
+  padding: 0 3px;
+}
+
+.tox .tox-edit-area {
+  padding: 0 8px;
+}
+
+.tox .tox-editor-container {
+  background: var(--background-editor);
+  color: var(--color-editor-font);
+}
+
+input[type='number'] {
+  max-width: 2rem;
+}
+
+input.anarchy-essence[type='number'] {
+  max-width: 3rem;
+}
+
+/* Tooltips container */
+.window-app.sheet .window-content .tooltip:hover .tooltiptext {
+  top: 1rem;
+  left: 1rem;
+  margin: 0;
+  padding: 0.25rem;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip-dotted {
+  border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+  text-align: center;
+  /* Position the tooltip text */
+  top: 20px;
+  position: absolute;
+  z-index: 1;
+
+  /* Fade in tooltip */
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip .tooltip-roll-parameters {
+  z-index: 1000;
+  width: 200px;
+  left: -20px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: lighter;
+  padding: 3px 0;
+}
+
+/*
+ * Simple, stupid, way to not see the whole dice roll formula (which can become quite long)
+ * TODO: add styles to ChatMessages, and for Anarchy system rolls, add a dedicated
+ * style to improve filtering here.
+ */
+div.dice-result div.dice-formula {
+  height: 0px;
+  border: 0px none;
+  color: var(--transparent);
+}
+
+.roll-dialog div.roll-parameters {
+  display: flex;
+  flex-direction: column;
+  margin: 0px;
+  padding: 2px;
+}
+
+div.column-images {
+  display: flex;
+  flex-direction: column;
+  margin: 0px;
+  padding: 2px;
+  flex: none;
+  /* flex-grow: 0; */
+}
+
+div.column-details {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.roll-dialog div.roll-parameters div.parameter-category {
+  margin-top: 2px;
+  margin-bottom: 2px;
+  height: fit-content;
+}
+
+.roll-dialog div.roll-parameters div.parameter-category>label {
+  height: 16px;
+}
+
+.roll-dialog div.roll-parameters div.parameter {
+  display: flex;
+  flex-direction: row;
+  min-height: 24px;
+  height: fit-content;
+  width: 100%;
+}
+
+.roll-dialog div.roll-parameters div.parameter :is(.info-label, .info-value) {
+  justify-content: left;
+  align-self: stretch;
+  white-space: nowrap;
+  height: 24px;
+  padding: 0px;
+  margin: 0px;
+}
+
+.roll-dialog div.roll-parameters div.parameter :is(.info-label, .info-value, select, input) {
+  padding: 0px;
+  margin: 0px;
+  height: 24px;
+}
+
+.roll-dialog div.roll-parameters div.parameter .parameter-label {
+  width: calc(45% - 1rem);
+}
+
+.roll-dialog div.roll-parameters div.parameter .parameter-value {
+  max-width: 2rem;
+  min-width: 2rem;
+  width: 2rem;
+}
+
+.roll-dialog div.roll-parameters div.parameter .parameter-selection {
+  width: calc(55% - 1rem);
+  display: flex;
+  flex-direction: row;
+}
+
+.roll-dialog div.roll-parameters .input-cursor-parameter a i {
+  font-size: large;
+}
+
+
+.roll-dialog div.roll-parameters div.parameter-source {
+  margin-left: -2rem;
+}
+
+.roll-dialog a.variable-dice-malus.active i {
+  color: hsla(0, 100%, 40%, 0.7);
+}
+
+.roll-dialog a.variable-dice-malus.inactive i {
+  color: hsla(0, 50%, 40%, 0.7);
+}
+
+.roll-dialog a.fixed-dice-malus.active i {
+  color: hsla(20, 100%, 40%, 0.7);
+}
+
+.roll-dialog a.fixed-dice-malus.inactive i {
+  color: hsla(20, 50%, 40%, 0.7);
+}
+
+.roll-dialog a.fixed-dice-bonus.active i {
+  color: hsla(80, 100%, 40%, 0.7);
+}
+
+.roll-dialog a.fixed-dice-bonus.inactive i {
+  color: hsla(80, 50%, 40%, 0.7);
+}
+
+.roll-dialog a.variable-dice-bonus.active i {
+  color: hsla(100, 100%, 40%, 0.7);
+}
+
+.roll-dialog a.variable-dice-bonus.inactive i {
+  color: hsla(100, 50%, 40%, 0.7);
+}
+
+.anarchy-shortcuts .anarchy-shortcuts-list {
+  display: flex;
+  flex: 0 !important;
+  justify-content: flex-start;
+  flex-direction: column;
+  position: absolute;
+  top: 160px;
+  left: 64px;
+}
+
+.anarchy-shortcuts .anarchy-shortcut-button {
+  width: max-content;
+  display: flex;
+  flex-direction: row;
+  line-height: 32px;
+}
+
+.anarchy-shortcuts .anarchy-shortcut-button label {
+  line-break: unset;
+  color: var(--color-text-light-2);
+  padding: 1px 12px 1px 1px;
+}
+
+.anarchy-shortcuts .anarchy-shortcut-button img {
+  -ms-flex: 0 0 32px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+}

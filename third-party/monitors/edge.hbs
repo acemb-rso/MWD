@@ -1,0 +1,13 @@
+<div class="flexcol anarchy-monitor">
+  <label class="info-label">
+    {{localize (concat 'ANARCHY.actor.counters.edge')}}
+  </label>
+  {{> "systems/anarchy/templates/common/checkbar.hbs"
+    code='edge'
+    labelkey='ANARCHY.actor.counters.edge'
+    value=system.counters.edge.value
+    max=(actorAttribute 'edge' @root.actor)
+    rowlength=6
+  }}
+  </span>
+</div>

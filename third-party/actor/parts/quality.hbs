@@ -1,0 +1,14 @@
+<div class="define-item-type item anarchy-quality {{#if system.positive}}positive{{else}}negative{{/if}} {{#if system.inactive}}inactive{{/if}}" data-item-id="{{_id}}" data-item-type="quality" draggable="true">
+  <img class="anarchy-img item-img" src="{{img}}" alt="{{name}}" data-tooltip="{{name}}"/>
+  <div class="item-content">
+    <label>{{name}}</label>
+    <label class="item-description">
+      {{>'systems/anarchy/templates/actor/character/description.hbs' description=system.description}}
+    </label>
+  </div>
+  <div class="item-controls">
+    {{> 'systems/anarchy/templates/common/item-control-activate.hbs'}}
+    {{> 'systems/anarchy/templates/common/item-controls.hbs'}}
+  </div>
+
+</div>

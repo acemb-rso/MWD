@@ -1,0 +1,361 @@
+name: Vision mode (en)
+type: script
+author: hpG0HqTpAMeCLTP9
+img: icons/svg/dice-target.svg
+scope: global
+command: |-
+  /**
+   * A macro for the Foundry virtual tabletop that lets a user configure their token's vision and lighting settings. 
+   */
+
+  /*
+  Data models to configure visions
+  ================================
+  sight: { 
+    angle:        360,    // angle de vision
+    attenuation:  0.1,    // [-1 .. 1]
+    brightness:   1,      // [-1 .. 1]
+    color:        null,   // #xxxxxx
+    contrast:     0,      // [-1 .. 1]
+    enabled:      true,
+    range:        0,      // porté de la vision
+    saturation:   0,      // [-1 .. 1]
+    visionMode:   "basic" // basic|darkvision|monochromatic|tremorsense|lightAmplification
+  }
+
+  light: {
+    alpha: 0.5,
+    angle: 360, // Light > Basic Configuration > Degrees
+    animation: {
+      intensity: 5, 
+      reverse: false, 
+      speed: 5, 
+      type: null
+    },
+    attenuation: 0.5,
+    bright: 10, // Light > Basic Configuration > Light Radius > Bright
+    color: colorBlack,
+    coloration: 1,
+    contrast: 0,
+    darkness: {
+      max: 1,
+      min: 0
+    }
+    dim: 25, // Light > Basic Configuration > Light Radius > Dim
+    luminosity: 0.5,
+    saturation: 0,
+    shadows: 0,
+  }
+
+  detectionModes:[
+  {
+    id:      basicSight, // basicSight|seeInvisibility|senseInvisibility|feelTremor|seeAll|senseAll
+    range:   30,         // Vision range
+    enabled: true,
+  }, {
+    ...
+  }]
+  */
+  let applyChanges = false;
+
+  const colorFire = "#f8c377";
+  const colorWhite = "#ffffff";
+  const colorMoonGlow = "#f4f1c9";
+  const colorBlack = "#000000";
+
+  const visions = {
+    "normal": { label: "Normal", settings: { // valeurs par défaut 
+      sight: { 
+        enabled:      true,
+        range:        0, 
+        angle:        360, 
+        visionMode:   "basic",
+        //detectionModes: [],
+        color:        colorBlack,
+        brightness:   0,
+        contrast:     0
+      },
+      detectionModes: [{ }]
+    }},
+    
+    "lightAmplification": { label: "Light amplification", settings: { 
+      sight: {
+        angle:       360,
+        attenuation: 0.5,
+        brightness:  1,
+        color:       null, // #25e000
+        contrast:    0,
+        enabled:     true,
+        range:       15,
+        saturation:  -0.5,
+        visionMode:  'lightAmplification',
+      }
+    }},
+    
+    "darkvision": { label: "Night vision", settings: { 
+      sight: {
+        angle: 360,
+        attenuation: 0.1,
+        brightness: -1,
+        color: colorWhite,
+        contrast: -0.5,
+        enabled: true,
+        range: 10,
+        saturation: 0,
+  //      visionMode:   "darkvision",
+        visionMode:   "monochromatic",
+      }
+    }},
+
+    "infrared": { label: "Infrared", settings: { 
+      sight: {
+        angle:       360,
+        attenuation: 0,
+        brightness:  1,
+        color:       '#ff0000',
+        contrast:    0,
+        enabled:     true,
+        range:       60,
+        saturation:  1,
+        shadows:     1,
+        visionMode:  'darkvision',
+      }
+    }},
+    
+    "astral": {
+      label: "Astral sight",
+      settings: {
+        sight: {
+          angle:       360,
+          attenuation: 0,
+          brightness:  1,
+          color:       '#6600ff',
+          contrast:    0,
+          enabled:     true,
+          range:       60,
+          saturation:  0,
+          visionMode:  'basic',
+        },
+        detectionModes:[{
+          id:      "seeInvisibility",
+          range:   60,
+          enabled: true,
+        }]
+     }},
+  }
+
+  const lightSources = {
+    "none": {
+      label: "None",
+      settings: {
+        light: {
+          alpha: 0.5,
+          angle: 360,
+          animation: { intensity: 5, reverse: false, speed: 5, type: null },
+          attenuation: 0.5,
+          bright: 0,
+          color: colorBlack,
+          coloration: 1,
+          contrast: 0,
+          darkness: { max: 1, min: 0 },
+          dim: 0,
+          luminosity: 0.5,
+          saturation: 0,
+          shadows: 0,
+        },
+        detectionModes:[{ 
+          id:      'basicSight',
+          enabled: true,
+          range:   30,
+        }]
+      }
+    },
+    "torchlamp": {
+      label: "Torch light",
+      settings: {
+        light: {
+          angle: 15,
+          dim: 15,
+          bright: 5,
+          animation: { type: "torch", speed: 3, intensity: 5 },
+          color: colorWhite,
+          alpha: 0.5,
+        }
+      }
+    },
+    "ledTorch": {
+      label: "LED torch",
+      settings: {
+        light: {
+          angle: 360,
+          dim: 10,
+          bright: 8,
+          color: "#ffb638",
+          alpha: 0.1,
+          attenuation: 0.5,
+          coloration: 1,
+          luminosity: 0.5,
+          saturation: 0
+        }
+      }
+    },
+    "MgTorch": {
+      label: "Magnesium torch", settings: {
+        light: {
+          alpha: 0,
+          angle: 360,
+          // animation: { type: 'flame', speed: 5, intensity: 5, reverse: false},
+          // attenuation: 0.5,
+          bright: 10,
+          color: "#ffffff",
+          coloration: 1,
+          dim: 11,
+          luminosity: 0.7,
+          saturation: 0,
+        }
+      }
+    },
+    "headlight": {
+      label: "Vehicle lights",
+      settings: {
+        light: {
+          angle: 30,
+          dim: 50,
+          bright: 15,
+  //        animation: { type: "torch", speed: 2, intensity: 2 },
+          color: "#f8c377",
+          alpha: 0.25,
+        }
+      }
+    },
+    "occularlamp": {
+      label: "Occular lamp (cyberware)",
+      settings: {
+        light: {
+          angle: 120,
+          dim: 3,
+          bright: 2,
+          animation: { type: "torch", speed: 2, intensity: 2 },
+          color: colorFire,
+          alpha: 0.15,
+        }
+      }
+    },
+    "radarsensor": {
+      label: "Radar sensor (cyberware)",
+      settings: {
+        detectionModes:[{ 
+          id:      'basicSight',
+          enabled: true,
+          range:   30,
+        }, { 
+          id:      'feelTremor',
+          enabled: true,
+          range: 30
+        }]
+      }
+    },
+    "lifeDetection": {
+      label: "Life detection (spell)",
+      settings: {
+        detectionModes:[{ 
+          id:      'basicSight',
+          enabled: true,
+          range:   30,
+        }, { 
+          id:      'senseAll',
+          enabled: true,
+          range: 30
+        }]
+      }
+    },
+  }
+
+  function toHtmlOptions(list) {
+    return Object.entries(list)
+       .map(([k, v]) => `<option value="${k}">${v.label}</option>`)
+       .reduce((a, b) => a + b, '');
+  }
+
+  new Dialog({
+    title: `Configure Token visions and lights`,
+    content: `
+      <form>
+        <div class="form-group">
+          <label>Vision :</label>
+          <select id="vision-type" name="vision-type">
+            <option value="nochange">No Change</option>
+            ${toHtmlOptions(visions)}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Source de lumière :</label>
+          <select id="light-source" name="light-source">
+            <option value="nochange">No Change</option>
+            ${toHtmlOptions(lightSources)}
+          </select>
+        </div>
+      </form>
+      `,
+    buttons: {
+      yes: {
+        icon: "<i class='fas fa-check'></i>",
+        label: `Apply Changes`,
+        callback: () => applyChanges = true
+      },
+      no: {
+        icon: "<i class='fas fa-times'></i>",
+        label: `Cancel Changes`
+      },
+    },
+    default: "yes",
+    close: html => {
+      if (applyChanges) {
+        let updates = [];
+        for (let token of canvas.tokens.controlled) {
+          let visionType = html.find('[name="vision-type"]')[0].value || "none";
+          let lightSource = html.find('[name="light-source"]')[0].value || "none";
+          let tokenSettings = duplicate(token.document);
+          
+          console.warn('before: ');
+          console.warn(tokenSettings);
+          
+          foundry.utils.mergeObject(tokenSettings, { _id: token.id, vision: true });
+          if (visions[visionType]) {
+            foundry.utils.mergeObject(tokenSettings, visions['normal'].settings ?? {});
+            foundry.utils.mergeObject(tokenSettings, visions[visionType].settings ?? {});
+          }
+          if (lightSources[lightSource]) {
+            foundry.utils.mergeObject(tokenSettings, lightSources['none'].settings ?? {});
+            foundry.utils.mergeObject(tokenSettings, lightSources[lightSource].settings ?? {});
+          }
+          // Update Token
+          updates.push(tokenSettings);
+          console.warn('after: ');
+          console.warn(token.document);
+        }
+        console.log('Changing token settings', updates)
+        canvas.scene.updateEmbeddedDocuments("Token", updates);
+        
+
+      }
+    }
+  }).render(true);
+ownership:
+  default: 0
+  hpG0HqTpAMeCLTP9: 3
+flags:
+  core:
+    sourceId: Macro.2T0UPJRYNWMljnci
+_stats:
+  systemId: anarchy
+  systemVersion: 10.2.6
+  coreVersion: '10.291'
+  createdTime: 1671752507938
+  modifiedTime: 1671753210633
+  lastModifiedBy: hpG0HqTpAMeCLTP9
+folder: null
+sort: 0
+_id: WxOP2YFXTnCTDgPq
+_key: '!macros!WxOP2YFXTnCTDgPq'
+

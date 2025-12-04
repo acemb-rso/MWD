@@ -1,0 +1,16 @@
+<div class="define-item-type section-shadowamps wrapper {{actorTabClosed actor._id 'shadowamps'}}" data-item-type="shadowamp">
+  <h2 class="wrapper-hexabox click-section" data-class="section-shadowamps">
+    {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+    <div class="content">
+      {{localize 'ANARCHY.itemType.plural.shadowamp'}}
+      {{> 'systems/anarchy/templates/common/item-control-add.hbs'
+      itemType='shadowamp'}}
+    </div>
+  </h2>
+  <div class="item-list section-shadowamps {{actorTabClosed actor._id 'shadowamps'}}">
+    {{#each (sortShadowamps items.shadowamp) as |shadowamp|}}
+    {{> "systems/anarchy/templates/actor/character-enhanced/shadowamp.hbs"
+    shadowamp}}
+    {{/each}}
+  </div>
+</div>

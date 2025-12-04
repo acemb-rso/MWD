@@ -1,0 +1,11 @@
+<div class="define-item-type" data-item-type="weapon">
+  <h2 class="title">
+    {{localize 'ANARCHY.itemType.plural.weapon'}}
+    {{> 'systems/anarchy/templates/common/item-control-add.hbs' itemType='weapon'}}
+  </h2>
+  <div class="weapon-list">
+    {{#each items.weapon as |weapon|}}
+    {{> "systems/anarchy/templates/actor/character-enhanced/weapon.hbs" weapon}}
+    {{/each}}
+  </div>
+</div>

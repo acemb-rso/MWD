@@ -1,0 +1,20 @@
+{{#if options.isGM}}
+<div class="gmnotes">
+  <h2 class="title">
+    {{localize 'ANARCHY.common.gmnotes'}}
+  </h2>
+  <div class="wrapper-hexabox">
+    {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+    <div class="content">
+      <div class="editor actor-editor">
+        {{editor
+        system.gmnotes
+        target="system.gmnotes"
+        owner=options.owner
+        button=true
+        editable=options.editable}}
+      </div>
+    </div>
+  </div>
+</div>
+{{/if}}

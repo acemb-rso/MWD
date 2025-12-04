@@ -1,0 +1,23 @@
+<div class="metatype wrapper-hexabox">
+  <div class="side up"></div>
+  <div class="side left"></div>
+  <div class="angle tl"></div>
+  <div class="angle tr"></div>
+  <div class="angle bl"></div>
+  {{#if items.metatype}}
+  {{#with items.metatype.[0] as | metatype |}}
+  <label class="info-label define-item-type anarchy-metatype" data-item-id="{{metatype._id}}" data-item-type="metatype">
+    <span>{{metatype.name}}</span>
+    {{#unless @root.options.viewMode}}
+    <a class="item-control click-item-delete" data-tooltip="{{localize ANARCHY.common.del}}">
+      {{{iconFA 'fas fa-circle-xmark'}}}
+    </a>
+    {{/unless}}
+  </label>
+  {{/with}}
+  {{else}}
+  <label class="info-value define-item-type anarchy-metatype" data-item-type="metatype">{{localize
+    ANARCHY.actor.noMetatype}}
+  </label>
+  {{/if}}
+</div>

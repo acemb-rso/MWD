@@ -1,0 +1,18 @@
+{{! 
+  data is:
+  {
+    damage: 1, // the damage or damage modifier
+    damageAttribute: the attribute used for damage, if any
+    actorAttribute: the actor value for the attribute
+    monitor: 'stun' // damage is stun/physical
+  }
+}}
+{{#if damageAttribute}}
+  {{weaponDamageValue monitor damage damageAttribute actorAttribute}}
+{{~else}}
+  {{weaponDamageCode monitor damage damageAttribute}}
+{{~/if~}}
+{{weaponDamageLetter monitor}}
+{{{iconCheckbarHit monitor}}}
+
+{{> 'systems/anarchy/templates/actor/character-enhanced/damage-armor.hbs' armor=armor}}

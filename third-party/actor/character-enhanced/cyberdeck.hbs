@@ -1,0 +1,59 @@
+ <div
+  class="define-item-type item wrapper-hexabox cyberdeck {{#if system.inactive}}inactive{{/if}}"
+  data-item-id="{{_id}}" data-item-type="cyberdeck">
+  {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+  <div class="content">
+    <img class="anarchy-img item-img" src="{{img}}" alt="{{name}}"
+      data-tooltip="{{name}}" />
+    <div class="cyberdeck-details">
+      <div class="name">
+        <label>{{name}}</label>
+      </div>
+      <div class="description">
+        <label>
+          <span class="multiline-description">
+            {{{system.description}}}
+          </span>
+        </label>
+      </div>
+      <div class="information">
+        <div>
+          <label>{{localize 'ANARCHY.item.cyberdeck.programs'}}
+            {{system.programs}}</label>
+          <label>{{localize 'ANARCHY.item.cyberdeck.processing'}}
+            {{system.processing}}</label>
+        </div>
+        <div class="attribute">
+          <div class="attribute-box anarchy-attribute" data-attribute="firewall">
+            <a class="click-roll-attribute">
+              <label for="system.attributes.firewall.value">{{localizeAttribute
+                'firewall'}} 
+                {{system.attributes.firewall.value}}
+                </label>
+            </a>
+          </div>
+
+        </div>
+        <div>
+          {{> "systems/anarchy/templates/common/checkbar.hbs"
+          code='matrix'
+          value=system.monitors.matrix.value
+          max=(sum system.monitors.matrix.max system.monitors.matrix.maxBonus)
+          labelkey='ANARCHY.actor.monitors.matrix'
+          rowlength=6
+          iconChecked=(iconFA 'fas fa-laptop-medical')
+          iconUnchecked=(iconFA 'fas fa-laptop')
+          }}
+        </div>
+        <div>
+          {{> "systems/anarchy/templates/monitors/marks.hbs"}}
+        </div>
+      </div>
+      <div class="item-controls">
+        {{> 'systems/anarchy/templates/common/control-connectionMode.hbs' connectionMode=system.connectionMode}}
+        {{> 'systems/anarchy/templates/common/item-controls.hbs'}}
+      </div>
+    </div>
+  </div>
+
+</div>

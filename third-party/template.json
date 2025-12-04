@@ -1,0 +1,334 @@
+{
+  "Actor": {
+    "types": ["character", "vehicle", "device", "sprite", "ic"],
+    "templates": {
+      "description": {
+        "ownerId": "",
+        "description": "",
+        "gmnotes": "",
+        "favorites": [],
+        "state":{
+          "matrix":{
+            "value": 0,
+            "max": 0
+          },
+          "physical":{
+            "value": 0,
+            "max": 0
+          }
+        }
+      },
+      "matrix-monitor": {
+        "monitors": {
+          "matrix": {
+            "canMark": true,
+            "marks": [],
+            "value": 0,
+            "max": 6,
+            "resistance": 0
+          }
+        }
+      },
+      "attribute-agility": {
+        "attributes": {
+          "agility": {
+            "value": 1
+          }
+        }
+      },
+      "attribute-strength": {
+        "attributes": {
+          "strength": {
+            "value": 1
+          }
+        }
+      },
+      "attribute-willpower": {
+        "attributes": {
+          "willpower": {
+            "value": 1
+          }
+        }
+      },
+      "attribute-charisma": {
+        "attributes": {
+          "charisma": {
+            "value": 1
+          }
+        }
+      },
+      "attribute-logic": {
+        "attributes": {
+          "logic": {
+            "value": 1
+          }
+        }
+      },
+      "attribute-edge": {
+        "attributes": {
+          "edge": {
+            "value": 1
+          }
+        },
+        "counters": {
+          "edge": {
+            "value": 1
+          }
+        }
+      },
+      "attribute-autopilot": {
+        "attributes": {
+          "autopilot": {
+            "value": 6
+          }
+        }
+      },
+      "attribute-handling": {
+        "attributes": {
+          "handling": {
+            "value": 0
+          }
+        }
+      }
+    },
+    "character": {
+      "templates": [
+        "description",
+        "counters",
+        "ownership",
+        "attribute-agility",
+        "attribute-strength",
+        "attribute-willpower",
+        "attribute-logic",
+        "attribute-charisma",
+        "attribute-edge"
+      ],
+      "monitors": {
+        "physical": {
+          "value": 0,
+          "max": 10,
+          "resistance": 0
+        },
+        "stun": {
+          "value": 0,
+          "max": 10,
+          "resistance": 0
+        },
+        "armor": {
+          "label": "Armor",
+          "value": 0,
+          "max": 9
+        }
+      },
+      "counters": {
+        "essence": {
+          "value": 6
+        },
+        "karma": {
+          "value": 0,
+          "total": 0
+        },
+        "anarchy": {
+          "value": 3,
+          "max": 6
+        },
+        "sceneAnarchy": {
+          "value": 0,
+          "max": 3
+        },
+        "social": {
+          "celebrity": {
+            "value": 0
+          },
+          "credibility": {
+            "value": 0,
+            "max": 1
+          },
+          "rumor": {
+            "value": 0,
+            "max": 1
+          }
+        }
+      },
+      "style": "",
+      "genre": "",
+      "capacity": "mundane",
+      "connectionMode": "disconnected",
+      "ownAnarchy": false,
+      "keywords": [],
+      "dispositions": [],
+      "cues": []
+    },
+    "vehicle": {
+      "templates": [
+        "description",
+        "matrix-monitor",
+        "attribute-autopilot",
+        "attribute-handling"
+      ],
+      "attributes": {
+        "system": {
+          "value": 6
+        },
+        "firewall": {
+          "value": 0
+        }
+      },
+      "monitors": {
+        "structure": {
+          "value": 0,
+          "max": 15,
+          "resistance": 2
+        }
+      },
+      "moves": 0,
+      "attacks": 0,
+      "stealth": 0,
+      "category": "",
+      "skill": "pilotingGround",
+      "passengers": 4
+    },
+    "device": {
+      "templates": ["description", "matrix-monitor"],
+      "attributes": {
+        "system": {
+          "value": 6
+        },
+        "firewall": {
+          "value": 0
+        }
+      }
+    },
+    "sprite": {
+      "templates": [
+        "description",
+        "matrix-monitor",
+        "attribute-logic",
+        "attribute-edge"
+      ]
+    },
+    "ic": {
+      "templates": ["description", "matrix-monitor", "attribute-logic"],
+      "attributes": {
+        "firewall": {
+          "value": 4
+        }
+      }
+    }
+  },
+  "Item": {
+    "types": [
+      "contact",
+      "cyberdeck",
+      "gear",
+      "metatype",
+      "quality",
+      "shadowamp",
+      "skill",
+      "weapon"
+    ],
+    "templates": {
+      "modifiers": {
+        "modifiers": []
+      },
+      "inactive": {
+        "inactive": false
+      },
+      "references": {
+        "sourceReference": "",
+        "description": "",
+        "gmnotes": ""
+      }
+    },
+    "metatype": {
+      "templates": [
+        "references",
+        "modifiers"
+      ]
+    },
+    "skill": {
+      "templates": [
+        "inactive",
+        "references"
+      ],
+      "code": "",
+      "attribute": "knowledge",
+      "value": 0,
+      "specialization": "",
+      "hasDrain": false,
+      "hasConvergence": false,
+      "isSocial": false,
+      "listspecialization": []
+    },
+    "quality": {
+      "templates": [
+        "modifiers",
+        "inactive",
+        "references"
+      ],
+      "positive": true
+    },
+    "shadowamp": {
+      "templates": [
+        "modifiers",
+        "inactive",
+        "references"
+      ],
+      "category": "special",
+      "capacity": "mundane",
+      "level": 1,
+      "essence": 0
+    },
+    "weapon": {
+      "templates": ["modifiers", "inactive", "references"],
+      "skill": "",
+      "specialization": "",
+      "strength": true,
+      "damage": 0,
+      "damageAttribute": "",
+      "noArmor": false,
+      "monitor": "stun",
+      "defense": "",
+      "area": "",
+      "drain": 0,
+      "range": {
+        "max": "short",
+        "short": 0,
+        "medium": 0,
+        "long": 0
+      }
+    },
+    "cyberdeck": {
+      "templates": ["modifiers", "inactive", "references"],
+      "attributes": {
+        "firewall": {
+          "value": 1
+        }
+      },
+      "monitors": {
+        "matrix": {
+          "canMark": true,
+          "marks": [],
+          "value": 0,
+          "max": 6,
+          "resistance": 0
+        }
+      },
+      "programs": 1,
+      "processing": 1,
+      "connectionMode": "disconnected"
+    },
+    "gear": {
+      "templates": [
+        "inactive",
+        "references"
+      ]
+    },
+    "contact": {
+      "templates": [
+        "inactive",
+        "references"
+      ]
+    }
+  }
+}

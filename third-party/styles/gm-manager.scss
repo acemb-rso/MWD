@@ -1,0 +1,19 @@
+#gm-manager {
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        button.gm-manager-hide-button {
+            width: 32px;
+        }
+    }
+}
+
+.chat-tools {
+    display: flex;
+    z-index: 1000;
+    flex: 0 0 28px;
+    margin: 0 0px 4px 8px;
+    width: calc(100% - 16px);
+}

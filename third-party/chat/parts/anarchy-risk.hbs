@@ -1,0 +1,13 @@
+<div class="risk-glitch risk-glitch-{{@root.roll.riskOutcome}}">
+  <label>
+    {{> 'systems/anarchy/templates/common/label.hbs' this}}:
+  </label>
+  {{#each @root.roll.subrolls.risk.terms.[0].results as |dice|}}
+    <span class="risk-glitch-dice {{@root.roll.riskOutcome}}">
+      {{{iconD6 dice.result}}}
+    </span>
+  {{/each}}
+  <label>
+    {{localize (concat 'ANARCHY.common.roll.risk.' @root.roll.riskOutcome)}}
+  </label>
+</div>

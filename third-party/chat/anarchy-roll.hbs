@@ -1,0 +1,52 @@
+<div class="{{#each options.classes as |cssClass|}}{{cssClass}}{{/each}} flexrow">
+  <div class="flex-shrink-left flexcol">
+    {{> 'systems/anarchy/templates/chat/parts/actor-image.hbs'}}
+  </div>
+  <div>
+    {{!-- Dice pool explanation --}}
+    <h3 class="chat-roll-title tooltip tooltip-dotted">
+      {{> 'systems/anarchy/templates/chat/anarchy-roll-title.hbs'}}
+      <div class="tooltiptext tooltip-roll-parameters">
+        {{#each parameters as |parameter|}}
+          {{#unless parameter.flags.hideParameter}}
+            {{#unless parameter.flags.forceDisplay}}
+              {{#if parameter.used}}
+              <div class="parameter" data-parameter-code="{{parameter.code}}" {{#if item}}data-item-id="{{item.id}}"{{/if}}>
+                {{> (either parameter.hbsTemplateChat 'systems/anarchy/templates/chat/parts/generic-parameter.hbs') parameter}}
+              </div>
+              {{/if}}
+            {{/unless}}
+          {{/unless}}
+        {{/each}}
+      </div>
+    </h3>
+
+    {{#if (eq mode 'weapon')}}
+    <div class="alternate-items">
+    {{>'systems/anarchy/templates/chat/parts/result-mode-weapon.hbs'}}
+    </div>
+    {{/if}}
+
+    {{#if parameters}}
+      <div class="alternate-items">
+        {{#each parameters as |parameter|}}
+          {{!-- {{#unless parameter.flags.hideParameter}} --}}
+            {{#if parameter.flags.forceDisplay}}
+              {{#if parameter.used}}
+              <div class="parameter chat-label">
+                {{> (either parameter.hbsTemplateChat 'systems/anarchy/templates/chat/parts/generic-parameter.hbs') parameter}}
+              </div>
+              {{/if}}
+            {{/if}}
+          {{!-- {{/unless}} --}}
+        {{/each}}
+      </div>
+    {{/if}}
+
+    {{#if options.canUseEdge}}
+    {{#unless parameters.edge.used}}
+    {{> 'systems/anarchy/templates/chat/edge-reroll-button.hbs'}}
+    {{/unless}}
+    {{/if}}
+  </div>
+</div>

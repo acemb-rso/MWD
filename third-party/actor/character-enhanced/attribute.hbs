@@ -1,0 +1,19 @@
+<div data-attribute="{{key}}" class="attribute anarchy-attribute">
+    <label class="label" for="system.attributes.{{key}}.value">
+        <a class="click-roll-attribute">
+            {{localizeAttribute key}}
+        </a>
+    </label>
+    <div class="wrapper-hexabox">
+        {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+        <div class="content attribute-infos">
+            <a class="click-roll-attribute">
+                {{attribute.total}}
+            </a>
+            {{#unless @root.options.viewMode}}
+                <input class="value" type="number" data-dtype="Number" min="0" max="36" maxlength="2"
+                    name="system.attributes.{{key}}.value" value="{{attribute.value}}" />
+            {{/unless}}
+        </div>
+    </div>
+</div>

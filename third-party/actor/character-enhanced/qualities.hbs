@@ -1,0 +1,13 @@
+<div class="define-item-type section-qualities wrapper {{actorTabClosed actor._id 'qualities'}}" data-item-type="quality">
+  <h2 class="wrapper-hexabox click-section" data-class="section-qualities">
+    {{> "systems/anarchy/templates/actor/character-enhanced/hexabox.hbs"}}
+    <div class="content">
+    {{localize 'ANARCHY.itemType.plural.quality'}}
+    {{> 'systems/anarchy/templates/common/item-control-add.hbs' itemType='quality'}}
+  </h2>
+  <div class="item-list section-qualities {{actorTabClosed actor._id 'qualities'}}">
+    {{#each (sortQualities items.quality) as |quality|}}
+    {{> "systems/anarchy/templates/actor/character-enhanced/quality.hbs" quality}}
+    {{/each}}
+  </div>
+</div>

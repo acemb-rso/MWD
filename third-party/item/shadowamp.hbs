@@ -1,0 +1,60 @@
+<form class="{{options.cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}"/>
+    {{> 'systems/anarchy/templates/item/parts/itemname.hbs'
+      labelkey='ANARCHY.itemType.singular.shadowamp'
+      type="shadowamp"
+    }}
+  </header>
+
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <div class="sheet-tab" data-tab="main">
+      <a>{{localize ANARCHY.item.tabs.main}}</a>
+    </div>
+    <div class="sheet-tab" data-tab="modifiers">
+      <a>{{localize ANARCHY.item.tabs.modifiers}}</a>
+    </div>
+    <div class="sheet-tab-fill"></div>
+  </nav>
+
+  <section class="sheet-body">
+    <div class="tab section-group" data-group="primary" data-tab="main">
+      <div class="form-group">
+        <label for="system.category">{{localize 'ANARCHY.item.shadowamp.category'}} </label>
+        <select name="system.category" data-dtype="String">
+            {{#select system.category}}
+            {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.shadowampCategories}}
+            {{/select}}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="system.capacity">{{localize 'ANARCHY.item.shadowamp.capacity'}} </label>
+        <select name="system.capacity" data-dtype="String">
+            {{#select system.capacity}}
+            {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=ENUMS.capacities}}
+            {{/select}}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="system.level">{{localize 'ANARCHY.item.shadowamp.level'}} </label>
+        <input name="system.level" type="number" data-dtype="Number" size=2
+          value="{{system.level}}"/>
+      </div>
+      {{#if (localize 'ANARCHY.actor.counters.essence')}}
+      <div class="form-group">
+        <label for="system.essence">{{localize 'ANARCHY.item.shadowamp.essence'}} </label>
+        <input name="system.essence" type="number" data-dtype="Number" size=3
+          value="{{system.essence}}"/>
+      </div>
+      {{/if}}
+
+      {{> 'systems/anarchy/templates/item/parts/inactive.hbs'}}
+      {{> 'systems/anarchy/templates/item/parts/references.hbs'}}
+    </div>
+    <div class="tab section-group" data-group="primary" data-tab="modifiers">
+      <div class="form-group">
+        {{> 'systems/anarchy/templates/item/parts/modifiers.hbs'}}
+      </div>
+    </div>
+  </section>
+</form>

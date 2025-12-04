@@ -1,0 +1,26 @@
+<li class="item anarchy-weapon {{#if system.inactive}}inactive{{/if}}" draggable="true"
+    data-item-id="{{_id}}" data-item-type="weapon">
+  <div class="weapon-column weapon-summary">
+    <a class="click-weapon-roll">
+      {{name}},
+      {{> 'systems/anarchy/templates/common/damage-code.hbs'
+        damageAttribute=system.damageAttribute
+        actorAttribute=(actorAttribute system.damageAttribute @root.actor this)
+        damage=system.damage
+        monitor=system.monitor
+        armor=(weaponArmorMode system.monitor system.noArmor)
+      }},
+      {{> 'systems/anarchy/templates/actor/parts/weapon-range.hbs'}}
+      {{#if hasDrain}}, {{localize 'ANARCHY.item.weapon.drain'}}: {{system.drain}}{{/if}}
+    </a>
+  </div>
+  <div class="item-controls weapon-column weapon-controls">
+    {{> 'systems/anarchy/templates/common/favorite.hbs'
+      isFavorite=(actorHasFavorite @root.actor.id id=_id type=type)
+      weapon=this
+    }}
+    {{> 'systems/anarchy/templates/common/item-control-activate.hbs'}}
+    {{> 'systems/anarchy/templates/common/item-controls.hbs'}}
+  </div>
+
+</li>

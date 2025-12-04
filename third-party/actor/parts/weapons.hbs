@@ -1,0 +1,23 @@
+<div class="define-item-type" data-item-type="weapon">
+  <h2 class="section-group-header">
+    {{localize 'ANARCHY.itemType.plural.weapon'}}
+    {{> 'systems/anarchy/templates/common/item-control-add.hbs' itemType='weapon'}}
+  </h2>
+  <ul class="weapon-list">
+    <div class="weapon-header">
+      <span class="weapon-column weapon-img"></span>
+      <span class="weapon-column weapon-txt">{{localize 'ANARCHY.itemType.singular.weapon'}}</span>
+      <span class="weapon-column weapon-dmg">{{localize 'ANARCHY.item.weapon.damageShort'}}</span>
+      <span class="weapon-column weapon-stat">{{localize 'ANARCHY.item.weapon.areaShort'}}</span>
+      <span class="weapon-column weapon-stat">{{localize 'ANARCHY.range.short'}}</span>
+      <span class="weapon-column weapon-stat">{{localize 'ANARCHY.range.medium'}}</span>
+      <span class="weapon-column weapon-stat">{{localize 'ANARCHY.range.long'}}</span>
+      <span class="weapon-column weapon-stat">{{localize 'ANARCHY.item.weapon.drain'}}</span>
+      <span class="weapon-column weapon-controls">{{{iconFA 'fas fa-pen hide-fontawesome'}}}</span>
+    </div>
+
+    {{#each items.weapon as |weapon|}}
+    {{> "systems/anarchy/templates/actor/parts/weapon.hbs" weapon}}
+    {{/each}}
+  </ul>
+</div>

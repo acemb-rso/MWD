@@ -1,0 +1,41 @@
+{{!-- 
+  data:{
+    type: 'wounds'
+    optional: true, // display a checkbox to activate
+    editable: true, // true to allow changing the modifier, false if fixed
+    label: 'Wounds modifier', // the label for the modifier
+    use: true, // used to determine the checkbox, modifier and label
+    modifier: -1, // used to determine the checkbox, modifier and label
+  }
+ --}}
+ {{#if type}}
+  <li class="flexrow" data-modifier="{{type}}">
+    <label class="flex-grow-2" >{{label}}</label>
+    <span class="flex-shrink">
+    {{#if optional}}
+    <input class="item-field-value flex-shrink check-use-modifier {{#if isAnarchy}}modifier-row{{/if}}" data-modifier="{{type}}" type="checkbox" {{checked used}} />
+    {{/if}}
+
+    {{#if (isInteger value)}}
+      {{#if editable}}
+        {{#if options}}
+          <select name="select.range" class="select-option-modifier" data-dtype="String"
+            data-modifier="{{type}}">
+          {{#select value}}
+          {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=options noEmpty=true}}
+          {{/select}}
+          </select>
+          <label class="selected-option-modifier-value">{{numberFormat value decimals=0 sign=false}}</label>
+        {{else}}
+          <input class="type-numeric input-select-modifier"
+            data-modifier="{{type}}"
+            type="number" data-dtype="Number" maxlength="2"
+            value="{{either value 0}}"/>
+        {{/if}}
+      {{else}}
+        <label>{{numberFormat value decimals=0 sign=true}}</label>
+      {{/if}}
+    {{/if}}
+    </span>
+  </li>
+{{/if}}

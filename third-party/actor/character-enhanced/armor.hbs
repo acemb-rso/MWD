@@ -1,0 +1,16 @@
+ <div class="title">
+    <div>
+       {{localize 'ANARCHY.actor.monitors.armor'}}
+    </div>
+    <input {{#if @root.options.viewMode}}disabled{{/if}} class="info-value" name="system.monitors.armor.max"
+        type="number" data-dtype="Number"
+        value="{{system.monitors.armor.max}}" />
+</div>
+<div class="anarchy-monitor">
+    {{> "systems/anarchy/templates/actor/character-enhanced/checkbar.hbs"
+    code='armor'
+    value=system.monitors.armor.value
+    max=(sum system.monitors.armor.max system.monitors.armor.maxBonus)
+    rowlength=3
+    }}
+</div>

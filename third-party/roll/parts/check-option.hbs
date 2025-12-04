@@ -1,0 +1,20 @@
+<span class="flexrow parameter-label">
+  <label class="parameter-label">
+  {{> 'systems/anarchy/templates/common/label.hbs' this}}
+  </label>
+  {{#if flags.optional}}
+    <input class="parameter-selection check-optional"
+      type="checkbox" {{checked used}} />
+  {{/if}}
+</span>
+{{#if (eq category 'pool')}}
+<span class="flexrow">
+  <input disabled class="parameter-value info-value" type="number" data-dtype="Number" maxlength="2"
+    value="{{either value 0}}"/>
+  <div class="input-cursor-parameter">
+    {{>'systems/anarchy/templates/roll/parts/dice-cursor.hbs' value=value min=min max=max editable=flags.editDice}}
+  </div>
+</span>
+{{else}}
+  <label class="parameter-value info-value"></label>
+{{/if}}

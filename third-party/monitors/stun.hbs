@@ -1,0 +1,16 @@
+<div class="flexcol anarchy-monitor">
+  <label class="monitor-label">
+    {{localize 'ANARCHY.actor.monitors.stun'}}
+  </label>
+  {{> "systems/anarchy/templates/common/checkbar.hbs"
+    code='stun'
+    value=system.monitors.stun.value
+    max=(sum system.monitors.stun.max system.monitors.stun.maxBonus)
+    rowlength=3
+    adjust=true
+  }}
+  <label class="resitance-label">
+    {{localize ANARCHY.actor.monitors.resistance}}:
+    {{system.monitors.stun.resistanceBonus}}
+  </label>
+</div>

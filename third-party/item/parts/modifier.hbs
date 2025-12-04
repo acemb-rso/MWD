@@ -1,0 +1,49 @@
+<tr class="modifier-row define-modifier" data-modifier-id="{{id}}">
+  <td class="modifier-column">
+    <select class="select-modifier-change" data-modifier-select='group'>
+    {{selectOptions (modifierSelectOption 'group')
+      selected=group 
+      nameAttr="key" labelAttr="label"
+      localize=true blank=''}}
+    </select>
+  </td>
+  <td class="modifier-column">
+    <select class="select-modifier-change" data-modifier-select='effect'>
+    {{selectOptions (modifierSelectOption 'effect' group=group)
+      selected=effect
+      nameAttr="key" labelAttr="label"
+      localize=true blank=''}}
+    </select>
+  </td>
+  <td class="modifier-column">
+    {{#if (modifierSelectOption 'category' group=group effect=effect)}}
+      <select class="select-modifier-change" data-modifier-select='category'>
+        {{selectOptions (modifierSelectOption 'category' group=group effect=effect)
+          selected=category
+          nameAttr="key" labelAttr="label"
+          localize=true blank=''}}
+      </select>
+    {{/if}}
+  </td>
+  <td class="modifier-column">
+    {{#if (modifierHasSubCategory group effect category)}}
+      <select class="select-modifier-change" data-modifier-select='subCategory'>
+        {{selectOptions (modifierSelectOption 'subCategory' group=group effect=effect category=category)
+          selected=subCategory
+          nameAttr="key" labelAttr="label"
+          localize=true blank=''}}
+      </select>
+    {{/if}}
+  </td>
+  <td class="modifier-column">
+    {{numberInput value min=-2 max=4 class='input-modifier-value' step=1}}
+  </td>
+  <td class="modifier-column">
+    <input class="input-modifier-condition" type="text" value="{{condition}}" placeholder="{{localize ANARCHY.modifier.condition.always}}"/>
+  </td>
+  <td class="modifier-column modifier-controls item-controls">
+    <a class="item-control click-modifier-delete" data-tooltip="{{localize ANARCHY.common.del}}">
+      {{{iconFA 'fas fa-trash'}}}
+    </a>
+  </td>
+</tr>

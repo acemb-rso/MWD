@@ -1,0 +1,39 @@
+_id: kC4u5DPvb06eO41n
+name: Lancer de dés Anarchy
+type: script
+author: hpG0HqTpAMeCLTP9
+img: icons/svg/dice-target.svg
+scope: global
+command: |-
+  new Dialog({
+    title: "Lancer de dés Anarchy",
+    content: `<p>Donnez le nombre de dés à lancer</p>
+    <input name="macro-roll-count-dice" type="number" value="3" />`,
+    buttons: {
+      cancel: { label: "Annuler", icon: '<i class="fas fa-times"></i>' },
+      submit: {
+        label: "Lancer", icon: '<i class="fas fa-dice"></i>',
+        callback: async html => {
+          const count = html.find('input[name="macro-roll-count-dice"]').val();
+          const roll = new Roll(`${count}d6cs>4`);
+          await roll.evaluate({ async: true });
+          console.log('Rolled: ', roll);
+          const results = roll.terms[0].results;
+          const ones = results.filter(it => it.result == 1).length;
+          const flavor = `Lancer de ${count}d6, ${roll.total} Succès! ${ones} jets valant 1`;
+          const message = await roll.toMessage({ flavor: flavor }, { create: false });
+          ChatMessage.create(message);
+        }
+      }
+    }, default: "submit"
+  }).render(true);
+folder: null
+sort: 0
+permission:
+  default: 0
+  hpG0HqTpAMeCLTP9: 3
+flags:
+  core:
+    sourceId: Macro.kC4u5DPvb06eO41n
+_key: '!macros!kC4u5DPvb06eO41n'
+

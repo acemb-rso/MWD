@@ -1,0 +1,1087 @@
+name: Manuel d'utilisation
+flags:
+  core:
+    sourceId: JournalEntry.wA95jYbRqCLn3MJc
+pages:
+  - sort: 100000
+    name: Comment bien utiliser le système Shadowrun Anarchy
+    type: text
+    _id: uVSsp9ToZpaaVehA
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <h2 data-anchor="characters"
+        style="box-sizing:border-box;user-select:text;margin:1rem 0px
+        0.5rem;padding:0px;font-weight:bold;font-size:1.5em;border-bottom:1px
+        solid var(--color-underline-header);color:rgb(25, 24,
+        19);font-family:Signika,
+        sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial"><span
+        style="font-family:Signika, sans-serif"><strong>Grands principes de
+        base</strong></span></h2><p></p><p>Le système Anarchy s'appuie sur les
+        règles officielles et s'adapte à la version anglaise ou française
+        selon la langue et le paramétrage choisis.</p><p></p><p>Dans ce manuel,
+        vous découvrirez comment paramétrer le système, créer des personnages et
+        tous les éléments (objets) qui vous permettront de jouer en exploitant
+        toute la capacité du système Shadowrun Anarchy.</p><p></p><p><span
+        style="text-decoration:underline"><span
+        style="text-decoration:underline">/!\</span></span> ce manuel se penche
+        uniquement sur le système Shadowrun Anarchy et pas le fonctionnement de
+        Foundry
+        VTT</p><p></p><h2>@TODO</h2><ul><li><p>@UUID[.F7rLoYhx0Ab4Prkb#autres]{Les
+        Modificateurs / Autres}</p><ul><li><p>Ignore les blessures : est-ce que
+        la valeur correspond au nombre de dés ou est-ce le niveau de blessure
+        qui est ignoré ?</p></li><li><p>vérification des Anarchy de scène / de
+        lieu</p></li><li><p>vérification de l'ajustement
+        d'initiative</p></li><li><p>vérification de l'ajustement de
+        célébrité</p></li></ul></li></ul><p></p><p></p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.uVSsp9ToZpaaVehA'
+  - sort: 200000
+    name: Paramétrage du système
+    type: text
+    _id: dnfgjE9ah4GqCFJG
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Rendez-vous dans la configuration des options (via le menu
+        "Paramètres" du menu droit).</p><p>Les paramètres du système sont
+        visibles dans la partie "Anarchy" des options :</p><img
+        src="systems/anarchy/assets/pages-fr/00_systeme_00_parametres.webp"
+        /><p></p><h2>Anarchy hack</h2><p>Ce champ offre la possibilité de jouer
+        avec le système Anarchy dans d'autres univers (Earthdawn, Cyberpunk,
+        etc.). Par défaut, et sans utilisation d'un autre module, seul Shadowrun
+        Anarchy est disponible : "Standard Shadowrun
+        Anarchy".</p><p></p><h2>Style des fenêtres Anarchy</h2><p>Il est
+        possible de changer les couleurs de l'interface utilisateur et notamment
+        les couleurs des fiches de personnages.</p><p>Les modules Anarchy Hacks
+        peuvent ajouter leurs propres styles de fenêtres.</p><h3>Shadowrun
+        Anarchy (par défaut)</h3><img
+        src="systems/anarchy/assets/pages-fr/00_systeme_01_style_fenetre_01.webp"
+        /><h3>Dark</h3><img
+        src="systems/anarchy/assets/pages-fr/00_systeme_01_style_fenetre_02.webp"
+        /><h3>Dark glass</h3><img
+        src="systems/anarchy/assets/pages-fr/00_systeme_01_style_fenetre_03.webp"
+        /><p></p><h2>Liste de compétences</h2><p>Deux choix selon que vous
+        jouiez avec la version française "Shadowrun Anarchy FR" ou anglaise
+        "Shadowrun Anarchy EN".</p><p>Les modules Anarchy Hacks peuvent ajouter
+        leurs propres listes de compétences.</p><h2>Application des
+        dommages</h2><p>Vous pouvez changer le mode de calcul des dommages pour
+        jouer avec la version de base ou apprécier une des options
+        proposées.</p><p>Les modules Anarchy Hacks peuvent ajouter ou renommer
+        des modes de calcul de dommages.</p><h3>Shadowrun Anarchy: Résistance,
+        Armure, Moniteur</h3><p>Les dommages sont d'abord réduit de la
+        résistance. Ensuite, il entame en premier lieu l'armure du personnage et
+        quand il n'y a plus d'armure, ce sont les moniteurs de condition
+        (Physique ou Etourdissant) qui sont diminués.</p><p>C'est la version par
+        défaut du système Anarchy</p><h3>Armure, Résistance, Moniteur</h3><p>La
+        résistance est appliquée une fois que l'armure a encaissé les dommages,
+        s'il en reste.</p><h3>RD = Armure/3 + FOR/4, Armure -1 par coup, CA
+        ignore</h3><p>La résistance aux dommages (RD) est calculée différemment
+        : par défaut, un personnage bénéficie d'une résistance d'un montant de
+        l'armure divisée par 3 (arrondi au supérieur) auquel la valeur de
+        l'attribut de Force divisée par 4 (arrondi à l'inférieur) plus
+        d'éventuels modificateurs.</p><blockquote><p>Par exemple, Rak' l'ork des
+        Barrens a une veste blindée avec 9 points d'armure et une force de
+        5</p><p>Il bénéficie donc pour sa résistance de base (avant le premier
+        coup) d''une valeur = 9/3 + 5/3 soit 3 + 2 sout 5 points de
+        protection</p></blockquote><p>A chaque coup, la valeur d'armure est
+        diminuée d'un point.</p><p>Quand l'attaque contourne l'armure (CA), elle
+        ignore la résistance aux dommages et ne diminue pas l'armure</p><h3>RD =
+        Armure/3 + Armure -1 par coup, CA diminue l'armure</h3><p>Comme
+        ci-dessus mais quand une attaque qui contourne l'armure fait des
+        dommages, elle diminue aussi l'armure d'un point comme les attaques qui
+        ne contournent pas l'armure.</p><p>La force ne fournit pas de
+        résistance.</p><h2>Réserves de difficultés</h2><p>Par défaut :
+        "Triviale:4,Facile:6,Moyenne:8,Difficile:10,Très
+        difficile:12"</p><p>Chaque couple &lt;chaine de
+        caractères&gt;:&lt;nombre&gt; permet d'afficher un bouton.</p><p>La
+        &lt;chaine de caractères&gt; correspond au libellé du bouton.</p><p>Le
+        &lt;nombre&gt; correspond au nombre de dés jetés si on appuie sur le
+        bouton.</p><blockquote><p>Par exemple "Moyenne:8" permet d'afficher le
+        bouton suivant qui permettra au meneur de jeter 8 dés</p><img
+        src="systems/anarchy/assets/pages-fr/00_systeme_02.webp" width="95"
+        height="37" /></blockquote><p>Les couples sont séparés par une
+        virgule.</p><p></p><p></p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.dnfgjE9ah4GqCFJG'
+  - sort: 300000
+    name: Interface du meneur
+    type: text
+    _id: PLANgzze89tmm26w
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <h2>La fenêtre <em>Gestion du MJ</em></h2><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_00_Gestion%20du%20MJ.webp"><p>Cette
+        fenêtre n'est visible que du MJ.</p><p>Elle se décompose en plusieurs
+        parties.</p><p></p><h3>Danger</h3><p>Ici, vous retrouverez le décompte
+        des points d'Anarchy que le MJ a à sa disposition.</p><p>A chaque fois
+        qu'un joueur en utilise un, un point est ajouté à ce
+        compteur.</p><p>Quand le MJ utilise un point d'Anarchy, il clique sur un
+        point Anarchy</p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_00_Gestion%20du%20MJ_point%20anarchy.webp"><p>pour
+        le consommer.</p><p>S'il souhaite en ajouter un manuellement, il lui
+        suffit de cliquer sur le point "sombre"</p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_00_Gestion%20du%20MJ_point%20sombre.webp"><p>pour
+        le transformer en un point d'Anarchy.</p><p></p><h3>Jets
+        d'opposition</h3><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_00_Gestion%20du%20MJ_jets%20opposition.webp"><p>Les
+        jets d'opposition rapidement accessibles sont paramétrables via les
+        @UUID[.dnfgjE9ah4GqCFJG#reserves-de-difficultes]{Réserves de
+        difficultés}</p><p></p><h3>Surveillance DIEU</h3><p>La Surveillance
+        indique pour chaque joueur qui déclenche une alarme dans la matrice le
+        niveau de surveillance de DIEU. Les points de Surveillance DIEU s'ajoute
+        automatiquement lors d'un jet avec Convergence si ce dernier tombe sur
+        un 1.</p><p>Il est alors possible d'ajouter (via l'oeil barré) ou de
+        supprimer manuellement (via l'oeil ouvert)</p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_00_Gestion%20du%20MJ_dieu.webp">
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.PLANgzze89tmm26w'
+  - sort: 400000
+    name: Interface Joueur et MJ
+    type: text
+    _id: t8AfxjOeyLQeMxUJ
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <h2>Le Token</h2><h3>Les Favoris</h3><p>Le Token du système Anarchy
+        reprend les fonctionnalités habituelles des tokens dans Foundry
+        VTT.</p><p>Toutefois, une fonctionnalité a été ajoutée pour rendre le
+        jeu plus fluide. Un personnage peut ajouter certains de ses jets comme
+        <strong>Favoris</strong>.</p><p>Ceux-ci seront alors visibles en
+        cliquant sur le bouton <em>Favoris</em></p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_10_token_favoris%20bouton.webp"
+        /><p></p><p>Les favoris s'afficheront alors.</p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_10_token_favoris.webp"
+        /><p></p><p>Il ne reste plus qu'à cliquer sur l'un d'entre eux pour
+        jeter les dés !</p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_10_token_favoris%20clic.webp"
+        /><p></p><h3>Comment faire pour remplir cette liste des <strong>Favoris
+        </strong>nous diriez-vous ?</h3><p>C'est très simple !</p><p>Sur la
+        feuille de votre @UUID[.LApQdedhzFNzRwrJ]{Acteur}, aux côtés des
+        Compétences et des Armes, cochez l'étoile et le <strong>Favoris</strong>
+        apparaitra au niveau du <strong>Token</strong> :</p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_10_token_favoris_competences.webp"
+        /><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_10_token_favoris_armes.webp"
+        /><p></p><h2>La fenêtre des jets de dés</h2><h3>Fenêtre
+        type</h3><p>Lorsqu'un Acteur souhaite faire un jet de dés, la fenêtre
+        ci-dessous s'affiche à l'écran</p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_15_fenetre_jets_des.webp"
+        /><p>L'Attribut concerné par la Compétence peut être modifié au besoin.
+        Par exemple, au-dessus, nous avons un jet d'Etiquette. Si celui-ci doit
+        plutôt s'appuyer sur la Logique que sur le Charisme (l'Acteur souhaite
+        comprendre les jeux de pouvoir/relation lors d'une réunion de cadres
+        corporatistes), celle-ci peut être choisie pour le jet.</p><p>A noter
+        que si l'Acteur n'a pas la Compétence, ce choix ne peut pas être fait :
+        seul l'Attribut rattaché à la Compétence est applicable. Si vous
+        souhaitez quand même changer cet Attribut, il vous faudra ajouter la
+        Compétence avec un score de 0.</p><p></p><h3>Atouts et Traits</h3><p>Si
+        l'Acteur bénéficie d'@UUID[.0P3eWwDMF4VsNoYc]{Atouts} ou de
+        @UUID[.m4lPvZLB8kKFhX5M]{Traits} qui lui apportent des avantages ou des
+        inconvénients, ceux-ci s'afficheront et il sera possible de les prendre
+        en compte (ou pas) selon la situation.</p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_15_fenetre_jets_des_trait_atout.webp"
+        /><p>Certaines situations préremplissent également certaines cases comme
+        les <strong>Blessures</strong> qui apportent un dé de complication et
+        des malus au nombre de dés. Comme ici où l'Acteur a subi des blessures
+        lui imposant un malus de 2 dés et 1 dés de Complications :</p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_15_fenetre_jets_des_blessures.webp"
+        /><p></p><h3>Modifications manuelles</h3><p>Vous pouvez aussi appliquer
+        des modificateurs manuellement en cliquant sur les dés pour augmenter ou
+        réduire leur nombre comme avec les
+        @UUID[.LApQdedhzFNzRwrJ#principe-de-fonctionnement-des-moniteurs]{Moniteurs
+        des Acteurs}.</p><p></p><h3>Utilisation de la Chance</h3><p>Si l'Acteur
+        a de la Chance et qu'il souhaite en profiter, il peut cocher la cas
+        "Utiliser la chance". Un point de chance sera automatiquement retiré de
+        son Moniteur de Chance et le jet comptabilisera les succès sur un
+        résultat supérieur ou égal à 4 au lieu de 5
+        habituellement.</p><p></p><h3>Lancer les dés</h3><p>Une fois que les
+        paramètres du jet de dés sont correctement renseignés, il ne reste plus
+        qu'à lancer les dés en cliquant sur le bouton "<strong>Lancer</strong>"
+        (le nom du bouton a été choisi pour être simple et facilement
+        compréhensible).</p><p></p><h2>Les résultats d'un jet via le
+        chat</h2><h3>Utiliser la chance</h3><p>Lors d'un jet, le bouton
+        <em>Utiliser la chance</em> apparait.</p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_10_jets_chance.webp"
+        /><p>Il est possible de cliquer dessus. Cela relance le jet (avec
+        application des nouveaux résultats) et décoche un point de chance sur la
+        feuille du personnage concerné.</p><p>Dans certaines conditions, le
+        bouton ne peut plus être utilisé, notamment quand une action dépendante
+        du jet a été activée. Par exemple, une attaque est lancée. Si le
+        défenseur se défend (voir ci-dessous), l'attaquant ne peut plus utiliser
+        sa chance pour le jet d'attaque.</p><h3>Défense contre #
+        succès</h3><p>Quand un personnage est attaqué, l'interface du jeu lui
+        propose de se défendre contre le nombre de succès de l'attaque.</p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_10_jets_d%C3%A9fense.webp"
+        /><p>Le joueur (ou le MJ) n'a plus qu'à cliquer sur le bouton pour jeter
+        les dés correspondant à la défense correspondant à
+        l'attaque.</p><h3>Appliquer ##</h3><p>Si une attaque passe malgré la
+        défense (s'il y en a une), alors l'interface propose de procéder à
+        l'application des dommages. Ceux-ci sont détaillés dans le bouton : leur
+        nombre + le type de dommage (P pour physique, E pour étourdissant, M
+        pour matriciels, K pour mark) et s'ils contournent l'armure ou
+        pas.</p><img
+        src="systems/anarchy/assets/pages-fr/10_interfaces_10_jets_appliquer.webp"
+        /><p>Le nombre de dégâts subit par l'armure et les différents moniteurs
+        sont alors retirés de la fiche du personnage concerné.</p><p>La manière
+        dont les dommages sont comptabilisés dépendent du mode
+        d'@UUID[.dnfgjE9ah4GqCFJG#application-des-dommages]{Application des
+        dommages} paramétré dans le système Anarchy.</p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.t8AfxjOeyLQeMxUJ'
+  - sort: 700000
+    name: Les Acteurs
+    type: text
+    _id: LApQdedhzFNzRwrJ
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Les Acteurs regroupent dans le système Shadowrun Anarchy tous ceux
+        qui peuvent agir (ou subir) pendant le jeu.</p><p></p><h2>Les différents
+        types d'Acteurs</h2><p>Ceux-ci peuvent être évidemment les
+        @UUID[.VnkwboEYWvrShWNr]{Personnages Joueurs (PJ)}, mais
+        aussi</p><ul><li><p>les @UUID[.nmEA3U0UhplbUb3E]{Personnages Non Joueurs
+        (PNJ) ou les Créatures},</p></li><li><p>les
+        @UUID[.mBMeROdm81ifbffR]{Véhicules ou les Drones},</p></li><li><p>les
+        @UUID[.l6D4zCeGuaz0eIKw]{Objets matriciels},</p></li><li><p>les
+        @UUID[.qStxVt5nDbmxXAJk]{Sprites} ou enfin</p></li><li><p>les célèbres
+        @UUID[.bv4frckmzKQdwy3C]{GLACES}.</p></li></ul><p></p><h2>Principe de
+        fonctionnement des Moniteurs</h2><p>Qu'un Moniteur concerne les dommages
+        physiques ou matriciels, tous fonctionnent de la même
+        manière.</p><p>Lorsque l'Acteur reçoit des dommages, le Moniteur
+        concerné coche autant de cases que de dommages reçus.</p><p>Si vous
+        voulez ajouter ou retirer manuellement des dommages aux moniteurs, il
+        est possible de le faire en cliquant sur la case à cocher ou à décocher
+        la plus haute. Pour cocher 9 cases du moniteur, cliquer sur la neuvième
+        case. pour enlever toutes les cases à partir de la deuxième, cocher sur
+        la deuxième case.</p><img
+        src="systems/anarchy/assets/pages-fr/30_acteurs_40_moniteur.gif"
+        style="width:250px" /><p></p><h3>Prototype du token</h3><p>Le système de
+        Shadowrun Anarchy s'appuie sur les mécanisme de Foundry pour la gestion
+        des Tokens.</p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.LApQdedhzFNzRwrJ'
+  - sort: 600000
+    name: Les 0bjets
+    type: text
+    _id: BoLjHIjARpUI8ydw
+    title:
+      show: true
+      level: 1
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Dans le système Shadowrun Anarchy, les objets sont l'une des parties
+        les plus importantes.</p><p>Les objets permettent en effet de
+        gérer</p><ul><li><p>@UUID[.FCX82JaUpogdc2zw]{Les
+        Contacts}</p></li><li><p>@UUID[.mthRlmug9v1Tre9j]{Les
+        Cyberdecks}</p></li><li><p>@UUID[.P2TBpM6Ffg1Lc6e6]{L'Equipement}</p></li><li><p>@UUID[.xVb7WwyOa4oia69k]{Les
+        Métatypes} des personnages
+        (PJ/PNJ)</p></li><li><p>@UUID[.m4lPvZLB8kKFhX5M]{Les
+        Rraits}</p></li><li><p>@UUID[.0P3eWwDMF4VsNoYc]{Les
+        Atouts}</p></li><li><p>@UUID[.vnoKEqZihJHDwYXV]{les
+        Compétences}</p></li><li><p>@UUID[.zR0zzTK3L65Nv0BU]{Les
+        Armes}</p></li></ul><p></p><p>Pour créer un nouvel objet, allez dans
+        l'onglet <em>Objets</em> du menu droit et cliquer sur le bouton
+        <em>Créer un objet</em>, la fenêtre suivante s'ouvre.</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_00_creation.webp"
+        /><ul><li><p>Nom : saisissez le nom de votre objet</p></li><li><p>Type :
+        préciser le type d'objet que vous voulez créer</p></li><li><p>Dossier :
+        si vous vous voulez le ranger quelque part</p></li></ul><p></p><p>Dans
+        certains objets, vous pourrez gérer des
+        @UUID[.F7rLoYhx0Ab4Prkb]{modificateurs} qui auront un impact sur les
+        valeurs des personnages dans le jeu.</p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.BoLjHIjARpUI8ydw'
+  - sort: 650000
+    name: Les Contacts
+    type: text
+    _id: FCX82JaUpogdc2zw
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>La feuille d'un contact est simple et efficace.</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_10_contact.webp"
+        /><ol><li><p>A gauche du nom, vous pouvez changer l'icône par défaut
+        pour y rattacher une image en parcourant les répertoires de votre
+        disque.</p></li><li><p>Dans le champ <em>Description</em>, vous pouvez
+        décrire le contact. Ce champ est visible du joueur si le contact est
+        rattaché à sa feuille. Vous pouvez y décrire la relation entre le
+        contact et le personnage par exemple.</p></li><li><p>Le champ <em>Notes
+        du MJ</em> reste confidentiel : il est le seul à y avoir
+        accès.</p></li></ol><p></p><p>Un Contact peut être créé comme
+        Objet.</p><p>Il peut également être glisser directement sur la feuille
+        d'un @UUID[.VnkwboEYWvrShWNr]{Personnage Joueur} à partir d'une liste
+        d'Objets ou d'une autre feuille.</p><p>Enfin, sur cette feuille, vous
+        pouvez cliquer sur le bouton "<strong>+</strong>" de la section Contact
+        pour en ajouter un.</p><p>Sur cette feuille, vous pouvez faire un
+        glisser-déposer d'un Contact </p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.FCX82JaUpogdc2zw'
+  - sort: 675000
+    name: Les Cyberdecks
+    type: text
+    _id: mthRlmug9v1Tre9j
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Un cyberdeck est l'équipement indispensable de tout Decker qui se
+        respecte.</p><p>Sa feuille se présente ainsi :</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_20_cyberdeck.webp"
+        /><p></p><p>Deux onglets sont présents : <strong>DETAILS</strong> qui
+        est géré ci-dessous et <strong>MODIFICATEURS</strong> dont tout vous est
+        révélé dans la section éponyme @UUID[.F7rLoYhx0Ab4Prkb]{Les
+        modificateurs}.</p><p></p><p>La section <strong>DETAILS</strong>
+        regroupent les caractéristiques et informations du cyberdeck.</p><p>Vous
+        pourrez y renseigner les valeurs de <em>Firewall</em>, le <em>nombre de
+        programmes</em> et la <em>puissance de calcul</em> (le nombre de
+        relances sur les tests d’actions matricielles).</p><p>Vous pourrez
+        également y gérer le <em>moniteur de condition matriciel</em> et la
+        <em>résistance</em> aux dégâts matriciels que le deck pourra
+        encaisser.</p><p>Le champ <em>Description</em> est visible du joueur. Le
+        champ <em>Notes du MJ</em> n'est accessible que d'un MJ.</p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.mthRlmug9v1Tre9j'
+  - sort: 687500
+    name: L'Equipement
+    type: text
+    _id: P2TBpM6Ffg1Lc6e6
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Dans le système Shadowrun Anarchy, les équipements sont des objets
+        qui peuvent avoir un impact sur la narration mais pas dans les
+        mécanismes de jeu (sinon, c'est un
+        @UUID[Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.0P3eWwDMF4VsNoYc]{atout}).</p><p>Aussi,
+        la feuille d'un équipement est relativement simple, à l'instar de celle
+        d'un
+        @UUID[Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.FCX82JaUpogdc2zw]{contact}</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_30_equipement.webp" />
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.P2TBpM6Ffg1Lc6e6'
+  - sort: 693750
+    name: Les Métatypes
+    type: text
+    _id: xVb7WwyOa4oia69k
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>La feuille d'un métatype est aussi simple qu'un contact ou qu'un
+        équipement à la différence près qu'elle a un onglet
+        <strong>MODIFICATEURS</strong> lui permettant d'influencer les valeurs
+        des personnages. Cette partie est décrite dans la page décrivant
+        @UUID[.F7rLoYhx0Ab4Prkb]{le mécanisme de ces
+        modificateurs}.</p><p></p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_40_metatype.webp">
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.xVb7WwyOa4oia69k'
+  - sort: 696875
+    name: Les Traits
+    type: text
+    _id: m4lPvZLB8kKFhX5M
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Si vous avez lu les règles du jeu Shadowrun Anarchy, vous connaissez
+        l'importance des Traits.</p><p>Le système permet de simuler leur impact
+        dans le jeu.</p><p>La feuille d'un Trait se présente ainsi :</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_50_trait.webp"
+        /><ol><li><p>Retrouvez ici la désignation du
+        Trait</p></li><li><p>L'icône du Trait (positive ou négative, à changer
+        manuellement)</p></li><li><p>La case à cocher pour indiquer si le Trait
+        est un Avantage (case cochée, par défaut) ou un Défaut (casé décochée).
+        Vous pourrez ainsi mieux les retrouver sur la fiche de vos
+        personnages.</p></li></ol><p>Voici ce que donne la feuille d'un
+        Défaut</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_50_trait_defaut.webp"
+        /><p></p><p>Chaque Trait peut avoir des impacts en jeu qui seront
+        décrits dans le champ <em>Description</em> et dont les impacts en termes
+        de système peuvent être placé dans l'onglet
+        @UUID[.F7rLoYhx0Ab4Prkb]{MODIFICATEURS}.</p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.m4lPvZLB8kKFhX5M'
+  - sort: 698438
+    name: Les Atouts
+    type: text
+    _id: 0P3eWwDMF4VsNoYc
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Les Atouts permettent d'avoir des éléments distinctifs des
+        personnages.</p><p>Ils peuvent être de différentes <em>Catégories
+        </em>et dédiés à tous ou bien à seulement certains personnages dotés de
+        certaines <em>Capacités</em>.</p><p>Les Atouts peuvent être paramétrés
+        avec des
+        @UUID[Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.F7rLoYhx0Ab4Prkb]{MODIFICATEURS}.</p><p>Voici
+        la feuille d'un Atout.</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_60_atout.webp"
+        /><p></p><h3>Catégorie</h3><p>Chaque Atout peut être rattaché à une
+        <em>Catégorie</em>.</p><ul><li><p>Pouvoir
+        d'adepte</p></li><li><p>Bioware</p></li><li><p>Forme
+        conmplexe</p></li><li><p>Cyberdeck</p></li><li><p>Cyberware</p></li><li><p>Drone</p></li><li><p>Equipement</p></li><li><p>Focus
+        (éveillés)</p></li><li><p>Programme</p></li><li><p>Sort</p></li><li><p>Spécial</p></li></ul><h3>Capacité</h3><p>Il
+        est possible de préciser si un Atout est ouvert à tous (Normal) ou s'il
+        est dédié aux Eveillés ou aux Emergés.</p><h3>Niveau</h3><p>Permet de
+        préciser le niveau de l'Atout et ainsi de distinguer les Atouts
+        identiques mais de niveaux (et donc de puissance) différents. Par
+        exemple, le Sort Barrière qui peut avoir plusieurs
+        niveaux.</p><h3>Essence</h3><p>Le coût éventuel en Essence de l'Atout.
+        Celui-ci sera automatiquement retiré de l'Essence du personnage à qui
+        sera attribué l'Atout.</p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.0P3eWwDMF4VsNoYc'
+  - sort: 699219
+    name: les Compétences
+    type: text
+    _id: vnoKEqZihJHDwYXV
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Chaque personnage est décrit par ses Compétences (entre
+        autres).</p><h3>Connaissances</h3><p>Celles-ci peuvent être des
+        Compétences de connaissance comme celle-ci dessous si la case
+        <em>Connaissance</em> est cochée.</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_70_competences_connaissance.webp"
+        /><p></p><h3>Compétences actives</h3><p>D'autres peuvent être des
+        Compétences plus actives comme celle-ci</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_70_competences_actives.webp"
+        /><p></p><h4><strong>Niveau</strong></h4><p>Le <em>Niveau</em> indique
+        le nombre de dés qui sera utilisé pour les jets en plus de
+        l'attribut.</p><p></p><h4><strong>Attribut</strong></h4><p>L'<em>Attribut</em>
+        est celui qui sera utilisé pour les jets de la
+        compétence.</p><p></p><h4><strong>Spécialisation</strong></h4><p>La
+        <em>Spécialisation</em>, si elle est renseignée permettra de choisir si
+        le jet se fait avec cette spécialisation avec un bonus de +2 ou si c'est
+        un jet simple.</p><p></p><h4><strong>Cases Sociale, Drain et
+        Convergence</strong></h4><p>La case <em>Sociale</em> indique que la
+        compétence peut être affectée par les compteurs de Célébrité,
+        Crédibilité et Rumeur (provenant des règles optionnelles de la
+        compilation des Fans FR - <a href="https://anarchyhack.wordpress.com/"
+        title="Shadowrun Anarchy
+        Hacks">https://anarchyhack.wordpress.com/</a>)</p><p>Les cases
+        <em>Drain</em> et <em>Convergence</em> indiquent si le jet déclenche un
+        drain potentiel pour le mage qui l'utiliserait ou si la surveillance
+        DIEU risque d'être alertée par les perturbations dans la matrice que
+        cause les actions d'un Decker ou d'un
+        Technomancien.</p><p></p><h4><strong>Copie d'une
+        compétence</strong></h4><p>Pour accélérer la saisie des compétences, il
+        est possible de copier les paramétrages en sélectionnant l'une de celle
+        de la liste.</p><p></p><h4><strong>Code interne</strong></h4><p>Le
+        <em>Code interne</em> permet de lier les armes aux compétences. Si vous
+        créez vos propres compétences, choisissez un code unique (le nom de la
+        compétence). Il permet d'être indépendant de la traduction
+        FR/EN.</p><p></p><h3>Utiliser une Compétence</h3><p>Sur les feuilles des
+        @UUID[.LApQdedhzFNzRwrJ]{Acteurs}, une Compétence apparaitra de cette
+        manière :</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_70_competences_affichage.webp"
+        /><p>Pour faire un jet de Compétence, cliquez simplement sur le nom de
+        celle-ci. La @UUID[.t8AfxjOeyLQeMxUJ#la-fenetre-des-jets-de-des]{fenêtre
+        des jets} s'affichera et vous pourrez lancer les dés \o/</p><p></p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.vnoKEqZihJHDwYXV'
+  - sort: 699610
+    name: Les Armes
+    type: text
+    _id: zR0zzTK3L65Nv0BU
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Les personnages sortent rarement sans elles : les armes sont un
+        élément indispensable à la survie dans le monde des
+        Shadowrunners.</p><p>Le système offre une manière élégante pour gérer
+        tout ce qui génère une opposition. Cela peut évidemment être des armes
+        blanches, des armes à feu, des armes lourdes mais aussi des sorts, des
+        focus, des pouvoirs d'adeptes ou de créatures.</p><p></p><p>Voici la
+        feuille des armes qui permet de gérer tout cela :</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_80_arme.webp"
+        /><p></p><p>La feuille comprend elle-aussi deux onglets : les
+        <strong>DETAILS </strong>décrits ci-dessous et
+        <strong>MODIFICATEURS</strong> qui sont décrits dans
+        @UUID[Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.F7rLoYhx0Ab4Prkb]{leur
+        section}.</p><p></p><h3>Compétence</h3><p>La <em>Compétence</em> est
+        celle qui sera utilisée pour le jet
+        d'attaque.</p><p></p><h3>Dommages</h3><p>Les <em>Dommages</em> sont
+        découpés en deux parties. Le premier champ des dommages est un chiffre
+        qui sera constant. Le second est la compétence qui comptera pour les
+        dommages (avec sa valeur divisée par deux).</p><p>Ainsi, le plus célèbre
+        pistolet lourd qu'est l'Ares Predator V fait 6E de dommages. La première
+        case aura donc une valeur de 6, la seconde sera vide pour la compétence
+        :</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_80_arme_dommages%20Ares.webp"
+        /><p>Pour le combat à mains, les dommages font liés à la Force. Ainsi,
+        le premier champ sera de zéro et le second sera positionné sur la Force
+        :</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_80_arme_dommages%20mains%20nus.webp"
+        /><p>Les deux éléments suivants définissent le type de dommages
+        (Etourdissant, Physique, Matriciels, Marks). Si vous cochez la case
+        <em>Ignorer l'armure</em> et si l'attaque passe les défenses adverses
+        entamera directement les moniteurs sans tenir compte de
+        l'armure.</p><p></p><h3>Zone d'effet</h3><p>Vous pouvez aussi définir
+        une <em>Zone d'effet</em> pour l'arme en question
+        :</p><ul><li><p>Aucune</p></li><li><p>Shotgun</p></li><li><p>Circulaire</p></li><li><p>Cône</p></li><li><p>Rectangle</p></li><li><p>Rayon</p></li></ul><p></p><h3>Défense</h3><p>La
+        <em>Défense </em>définit le jet d'opposition qui permettra à
+        l'adversaire de se protéger de l'attaque</p><ul
+        style="box-sizing:border-box;user-select:text;margin:0.5em
+        0px;padding:0px 0px 0px 1.5em;color:rgb(25, 24, 19);font-family:Signika,
+        sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial"><li
+        style="box-sizing:border-box;user-select:text"><p
+        style="box-sizing:border-box;user-select:text;margin:0.5em 0px"><span
+        style="font-family:Signika, sans-serif">défense physique : AGI +
+        LOG</span></p></li><li style="box-sizing:border-box;user-select:text"><p
+        style="box-sizing:border-box;user-select:text;margin:0.5em 0px"><span
+        style="font-family:Signika, sans-serif">résistance physique : FOR +
+        VOL</span></p></li><li style="box-sizing:border-box;user-select:text"><p
+        style="box-sizing:border-box;user-select:text;margin:0.5em 0px"><span
+        style="font-family:Signika, sans-serif">défense sociale : CHA +
+        VOL</span></p></li><li style="box-sizing:border-box;user-select:text"><p
+        style="box-sizing:border-box;user-select:text;margin:0.5em 0px"><span
+        style="font-family:Signika, sans-serif">défense matricielle : FIREWALL +
+        LOG (selon la cible)</span></p></li><li
+        style="box-sizing:border-box;user-select:text"><p
+        style="box-sizing:border-box;user-select:text;margin:0.5em 0px"><span
+        style="font-family:Signika, sans-serif">résistance mentale : LOG +
+        VOL</span></p></li></ul><p></p><h3>Portée</h3><p>Enfin, il est possible
+        enfin de gérer la <em>Portée</em> de l'arme. Il faut sélectionner la
+        <em>Portée maximale</em> qui affichera un champ pour noter les
+        modificateurs des différentes portées (<em>Courte</em>, <em>Moyenne</em>
+        et <em>Longue</em>) comme l'exemple ci-dessous :</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_80_arme_port%C3%A9e.webp"
+        /><p></p><h3>Description et Notes du MJ</h3><p>A noter que le champ
+        <em>Description</em> est visible des joueurs alors que le champ
+        <em>Notes du MJ</em> ne sont accessibles qu'aux MJ :-)</p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.zR0zzTK3L65Nv0BU'
+  - sort: 625000
+    name: Les Modificateurs
+    type: text
+    _id: F7rLoYhx0Ab4Prkb
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Dans la plupart des objets (armes, sorts, atouts, métatypes, etc.),
+        la feuille propose un onglet
+        <strong>MODIFICATEURS</strong>.</p><p>Celui-ci permet d'ajouter des
+        <strong>Effets</strong> qui se répercuteront sur les fiches des
+        personnages qui en sont équipés (si la case <em>Actif pour l'acteur</em>
+        est cochée).</p><p>Un exemple de feuille positionné sur l'onglet
+        <strong>MODIFICATEURS</strong> :</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_90_modificateurs.webp"
+        /><h3>Ajouter un Effet</h3><p>Pour ajouter un Effet, il suffit d'appuyer
+        sur le bouton <strong>+</strong> à côté du titre
+        <strong>Effet</strong>.</p><p>Vous pouvez ajouter différents Effets dans
+        les objets. Voici ceux qui sont à votre disposition
+        !</p><p></p><h3><strong>De manière globale</strong></h3><p>Les champs
+        <strong>Valeur</strong> et <strong>Condition </strong>sont toujours
+        présents.</p><p>La <strong>Valeur</strong> présente le nombre qui est
+        pris en compte par l'<strong>Effet</strong>. Cela peut représenter par
+        exemple un nombre de points (en plus ou en moins à un Attribut par
+        exemple) ou un nombre de dés (à ajouter ou à retirer à un jet de
+        Compétence). Ce chiffre peut être négatif ou positif.</p><p>La
+        <strong>Condition</strong> est un petit texte qui pourra aider pendant
+        la phase de jeu à identifier s'il faut tenir compte de
+        l'<strong>Effet</strong> ou pas si celui-ci est conditionné. Laissez-le
+        vide si l'<strong>Effet</strong> est
+        permanent.</p><p></p><h3><strong>Jet de dé</strong></h3><p>Un effet
+        <strong>Jet de dé</strong> peut se traduire de différentes
+        manières.</p><h4><span style="text-decoration:underline"><strong><span
+        style="text-decoration:underline">Bonus</span></strong></span></h4><p>Un
+        <em>Bonus</em> ajoutera X dés correspondant à la <strong>Valeur</strong>
+        indiquée plus loin sur la ligne (la <strong>Valeur</strong> sera
+        retranchée au jet si elle est négative)</p><ul><li><p>sur une
+        <em>Compétence</em></p></li><li><p>sur un
+        <em>Attribut</em></p></li><li><p>sur une <em>Action liée aux
+        Attributs</em></p><ul><li><p>Défense</p></li><li><p>Résistance
+        mentale</p></li><li><p>Perception</p></li><li><p>Sang-froid</p></li><li><p>Jauger
+        les intentions</p></li><li><p>Mémoire</p></li><li><p>Attraper au
+        vel</p></li><li><p>Soulever</p></li><li><p>Défense
+        matricielle</p></li><li><p>Perception
+        matricielle</p></li></ul></li><li><p>sur une <em>Défense</em> identique
+        à celle qui sont utilisée pour résister à une attaque (cf.
+        @UUID[Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.zR0zzTK3L65Nv0BU#defense]{Défense
+        des Armes})</p><ul><li style="box-sizing:border-box;user-select:text"><p
+        style="box-sizing:border-box;user-select:text;margin:0.5em 0px"><span
+        style="font-family:Signika, sans-serif">Défense
+        physique</span></p></li><li
+        style="box-sizing:border-box;user-select:text"><p
+        style="box-sizing:border-box;user-select:text;margin:0.5em 0px"><span
+        style="font-family:Signika, sans-serif">Résistance
+        physique</span></p></li><li
+        style="box-sizing:border-box;user-select:text"><p
+        style="box-sizing:border-box;user-select:text;margin:0.5em 0px"><span
+        style="font-family:Signika, sans-serif">Défense
+        sociale</span></p></li><li
+        style="box-sizing:border-box;user-select:text"><p
+        style="box-sizing:border-box;user-select:text;margin:0.5em 0px"><span
+        style="font-family:Signika, sans-serif">Défense
+        matricielle</span></p></li><li
+        style="box-sizing:border-box;user-select:text"><p
+        style="box-sizing:border-box;user-select:text;margin:0.5em 0px"><span
+        style="font-family:Signika, sans-serif">Résistance
+        mentale</span></p></li></ul></li></ul><p></p><h4><span
+        style="text-decoration:underline"><strong><span
+        style="text-decoration:underline">Relances</span></strong></span></h4><p>Les
+        relances permettent de préciser le nombre de dés qui seront relancés en
+        cas d'échec sur le jet correspondant à la <em>Compétence</em>,
+        l'<em>Attribut</em>, l'<em>Action liée aux Attributs</em> ou la
+        <em>Défense</em> qui est précisé selon la Catégorie.</p><p></p><h4><span
+        style="text-decoration:underline"><strong><span
+        style="text-decoration:underline">Relances de ses
+        succès</span></strong></span></h4><p>Ce Modificateur est surtout un
+        désavantage : il va obliger l'Acteur à relancer le nombre de succès
+        indiqué dans la <strong>Valeur</strong> de l'Effet. Il sera donc
+        principalement utiliser dans les <strong>Défauts</strong>
+        (@UUID[Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.m4lPvZLB8kKFhX5M]{Traits
+        désavantageux}).</p><p></p><h4><span
+        style="text-decoration:underline"><strong><span
+        style="text-decoration:underline">Malus
+        adversaire</span></strong></span></h4><p>Ces <strong>Effets</strong>
+        vont influer sur les jets de l'adversaire lors des oppositions de la
+        même manière que les <em>@UUID[.F7rLoYhx0Ab4Prkb#bonus]{Bonus}</em>
+        ci-dessus<em>.</em></p><p></p><h4><span
+        style="text-decoration:underline"><strong><span
+        style="text-decoration:underline">Relances
+        adversaire</span></strong></span></h4><p>Ces <strong>Effets</strong>
+        vont influer sur les jets de l'adversaire lors des oppositions de la
+        même manière que les
+        <em>@UUID[.F7rLoYhx0Ab4Prkb#relances]{Relances}</em>
+        ci-dessus.</p><p></p><h3><strong>Attribut</strong></h3><p>Un
+        <strong>Effet</strong> pourtant sur un <em>Attribut</em> ajoutera (ou
+        enlèvera) un nombre de points à un Attribut de l'acteur auquel l'objet
+        est rattaché.</p><p>Par exemple, le métatype humain peut être paramétré
+        pour ajouter un point de Chance :</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_90_modificateurs_metatype_humain.webp"
+        /><p></p><h3>Moniteur</h3><p>En choisissant un <strong>Effet
+        </strong>sur un <em>Moniteur</em>, vous
+        pourrez</p><ul><li><p><em>modifier le maximum</em> en ajoutant des
+        points correspondant à la
+        <em>Valeur</em></p></li></ul><ul><li><p>ajouter (ou enlever) des points
+        de <em>Résistance</em> au <em>Moniteur </em>concerné. Aussi, à chaque
+        attaque, la résistance s'appliquera et réduira les dommages d'un nombre
+        de points indiqué dans la case <em>Valeur</em></p></li></ul><p>Les
+        différents <em>Moniteurs
+        </em>sont</p><ul><li><p>Armure</p></li><li><p>Blindage</p></li><li><p>Etourdissant</p></li><li><p>Physique</p></li><li><p>Matriciel</p></li></ul><p>Exemple
+        d'une immunité aux armes de 3 points où la résistance est positionnée
+        sur les deux <em>Moniteurs </em>Physique (pour résister aux armes
+        létales) et Etourdissant (pour résister aux armes contondantes ou
+        similaires) :</p><img
+        src="systems/anarchy/assets/pages-fr/20_objets_90_modificateurs_atout_immunit%C3%A9.webp"
+        /><p></p><h3><strong>Autres</strong></h3><p>Les <em>Autres </em>effets
+        agissent sur différents éléments du jeu et de la feuille de l'acteur à
+        laquelle l'objet est rattaché.</p><p>Ainsi, il est possible de modifier
+        les éléments suivants :</p><ul><li><p><em>Ignore des blessures</em> : la
+        <strong>Valeur</strong> indique alors le nombre de dés qui seront
+        épargnés à l'Acteur en cas de blessures.</p></li><li><p><em>Endommage
+        l'armure </em> : toute attaque diminuera la valeur de l'armure de la
+        cible d'autant de points que le champ <strong>Valeur</strong> en plus
+        des effets de l'attaque en elle-même. </p></li><li><p><em>Anarchy de
+        scène</em> : la <strong>Valeur</strong> indique le nombre de points
+        d'Anarchy que le PJ aura en plus (ou en moins si la
+        <strong>Valeur</strong> est négative) des 3 points
+        attribués</p></li><li><p><em>Anarchy de lieu</em> : même fonctionnement
+        que pour l'<em>Anarchy de scène</em></p></li><li><p><em>Ajustement
+        d'essence</em> : la <strong>Valeur</strong> est ajoutée ou retranchée à
+        l'essence</p></li><li><p><em>Ajustement d'initiative </em>: ajoute (ou
+        retranche) des points au jet d'initiative de
+        l'acteur</p></li><li><p><em>Ajustement de célébrité</em> : ajoute (ou
+        retranche) des points à la célébrité de l'acteur</p></li></ul>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.F7rLoYhx0Ab4Prkb'
+  - sort: 800000
+    name: Les Personnages Joueurs
+    type: text
+    _id: VnkwboEYWvrShWNr
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: "<p>Au centre du jeu et du système Anarchy, il y a les Personnages Joueurs (PJ). Le fonctionnement de leur feuille (et de ses différentes présentations) est détaillé ci-dessous.</p><p></p><h3>Feuille(s ?)</h3><p>Les PJ ont deux feuilles à leur disposition. Choisissez celle qui vous convient le mieux :)</p><p></p><h4>Feuille par défaut</h4><p>La feuille par défaut affiche sur <strong>un même écran</strong> tous les éléments qui constituent le PJ</p><img src=\"systems/anarchy/assets/pages-fr/30_acteurs_10_PJ_feuille_defaut.webp\" /><p></p><h4>Feuille avec onglets</h4><p>Cette feuille réorganise les données d'un PJ sur <strong>trois onglets</strong> :</p><ul><li><p>un <em>En-tête toujours affiché </em>avec le nom, le @UUID[.xVb7WwyOa4oia69k]{métatype}, le genre, le caractère éveillé/émergé ou pas, les Attributs, les @UUID[.LApQdedhzFNzRwrJ#principe-de-fonctionnement-des-moniteurs]{Moniteurs} physique, étourdissant et d'Armure</p></li></ul><ul><li><p><em>Personnage</em> avec les données liés aux @UUID[.LApQdedhzFNzRwrJ#principe-de-fonctionnement-des-moniteurs]{Moniteurs} de Chance et d'Anarchy de scène, aux éléments descriptifs du PJ (Mots-clés, Répliques, Comportements), aux @UUID[.vnoKEqZihJHDwYXV]{Compétences}, aux @UUID[.0P3eWwDMF4VsNoYc]{Atouts}, aux @UUID[.m4lPvZLB8kKFhX5M]{Traits}, aux données de jeux des @UUID[.zR0zzTK3L65Nv0BU]{Armes}</p></li><li><p><em>Equipement</em> avec les données concernant l'équipement comme les @UUID[.zR0zzTK3L65Nv0BU]{Armes} (dupliquées du premier onglet), les @UUID[.mthRlmug9v1Tre9j]{Cyberdecks}, les @UUID[.mBMeROdm81ifbffR]{Véhicules et Drones} contrôlés, le reste des @UUID[.P2TBpM6Ffg1Lc6e6]{équipements}</p></li><li><p><em>Biographie</em> avec la Célébrité, la Crédibilité et la Rumeur, les Contacts, la Description du PJ et les Notes du MJ</p></li></ul><img src=\"systems/anarchy/assets/pages-fr/30_acteurs_10_PJ_feuille_onglet_00_personnage.webp\" /><img src=\"systems/anarchy/assets/pages-fr/30_acteurs_10_PJ_feuille_onglet_10_equipement.webp\" /><img src=\"systems/anarchy/assets/pages-fr/30_acteurs_10_PJ_feuille_onglet_20_biographie.webp\" /><p></p><h3 data-anchor=\"image-and-informations-principales\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong style=\"box-sizing:border-box;user-select:text\">Image &amp; informations principales</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Il est possible de changer l'image du PJ pour qu'il soit plus facilement identifiable et que l'image corresponde au personnage souhaité.</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Vous pouvez modifier son nom.</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Un menu permet de préciser sa proximité avec la magie ou la matrice en choisissant</span></p><ul style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;padding:0px 0px 0px 1.5em;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Normal</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Eveillé</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Emergé</span></p></li></ul><p>Vous avez la possibilité de préciser le Genre du PJ.</p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Si vous ajoutez un <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.xVb7WwyOa4oia69k\" data-id=\"xVb7WwyOa4oia69k\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Métatype</a> à la feuille en en glissant un sur la feuille du PJ, celui-ci bénéficiera des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.F7rLoYhx0Ab4Prkb\" data-id=\"F7rLoYhx0Ab4Prkb\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Modificateurs</a> de ce dernier.</span></p><p>Deux champs permettent d'accueillir le Karma actuel du PJ ainsi que le Total qu'il a pu recevoir.</p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Enfin, l'Essence sera ajustée en fonction des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.0P3eWwDMF4VsNoYc\" data-id=\"0P3eWwDMF4VsNoYc\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Atouts</a> qui lui seront attribués.</span></p><h3 data-anchor=\"caracteristiques\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong style=\"box-sizing:border-box;user-select:text\">Caractéristiques</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Les PJ ont six\_<em style=\"box-sizing:border-box;user-select:text\">Attributs </em>:</span></p><ul style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;padding:0px 0px 0px 1.5em;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Force</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Agilité</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Volonté</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Logique</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Charisme</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Chance</span></p></li></ul><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;min-height:1rem;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Les valeurs des Attributs seront prises automatiquement dans ses jets de dés et sur le calcul des\_ <em style=\"box-sizing:border-box;user-select:text\">Actions d'attributs</em> :</span></p><ul style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;padding:0px 0px 0px 1.5em;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Défense (physique)</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Résistance mentale</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Perception</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Sang-froid</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Jauger les intentions</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Mémoire</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Attraper au vol</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Soulever</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Défense matricielle</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Perception matricielle</span></p></li></ul><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;min-height:1rem;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"></p><h3 data-anchor=\"moniteurs\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong style=\"box-sizing:border-box;user-select:text\">Moniteurs</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Les PJ ont plusieurs\_<em style=\"box-sizing:border-box;user-select:text\">Moniteur :</em></span></p><ul style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;padding:0px 0px 0px 1.5em;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\"><em style=\"box-sizing:border-box;user-select:text\">Armure\_</em>pour calculer l'état de la protection du PJ. Celle-ci diminuera en fonction des dégâts reçus et du paramétrage de l'<a class=\"content-link\" draggable=\"true\" data-hash=\"application-des-dommages\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.dnfgjE9ah4GqCFJG\" data-id=\"dnfgjE9ah4GqCFJG\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">application des dommages</a>.</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\"><em style=\"box-sizing:border-box;user-select:text\">Chance</em> qui permet de suivre l'utilisation de leur chance pendant le jeu</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Les Points d'<em style=\"box-sizing:border-box;user-select:text\">Anarchy de scène</em>. Ceux-ci apparaissent une fois que </span></p><ul><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">le prototype du token est associé à l'Acteur\_ \_</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p>et qu'un joueur est propriétaire de l'Acteur</p></li></ul></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Physique et Etourdissant pour suivre l'état même du PJ</span></p></li></ul><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;min-height:1rem;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"></p><h3>Mots clés, Répliques et Comportements</h3><p>Dans Shadowrun Anarchy, les PJ sont construits autour des différentes notions que sont les Mots clés, les Répliques et les Comportements.</p><p>Pour ajouter l'un ou l'une d'entre eux à la fiche, cliquez sur le bouton \"<strong>+</strong>\" à côté du titre de la notion. Cela ouvrira un champ de texte que vous n'aurez qu'à compléter.</p><p>Pour en supprimer, cliquez simplement sur la \"poubelle\" qui se trouve à côté.</p><p>Petite particularité, les PJ peuvent \"dire\" l'une de leurs Répliques. Pour cela, un joueur clique sur l'icône \"bulle\" à côté de la Réplique et celle-ci sera affichée dans le chat de Foundry.</p><h3 data-anchor=\"competences,-atouts,-armes\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong style=\"box-sizing:border-box;user-select:text\">Compétences, Atouts, Armes</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Vous pouvez ajouter des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.vnoKEqZihJHDwYXV\" data-id=\"vnoKEqZihJHDwYXV\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Compétences</a>, des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.0P3eWwDMF4VsNoYc\" data-id=\"0P3eWwDMF4VsNoYc\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Atouts</a> ou des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.zR0zzTK3L65Nv0BU\" data-id=\"zR0zzTK3L65Nv0BU\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Armes</a> à tout PJ.</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Il est également possible de lui adjoindre des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.mthRlmug9v1Tre9j\" data-id=\"mthRlmug9v1Tre9j\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Cyberdecks</a> et des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.m4lPvZLB8kKFhX5M\" data-id=\"m4lPvZLB8kKFhX5M\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Traits</a> qui viendront enrichir sa feuille.</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Soit en glissant/déposer à partir d'un élément existant dans votre monde ou dans un compendium, soit en cliquant sur le bouton \"<strong style=\"box-sizing:border-box;user-select:text\">+</strong>\".</span></p><h3 data-anchor=\"description-et-notes-du-mj\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong style=\"box-sizing:border-box;user-select:text\">Description et Notes du MJ</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Ces deux champs de texte sont à votre disposition.</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Sachez que les <strong style=\"box-sizing:border-box;user-select:text\">Notes du MJ</strong> lui sont réservées ;)</span></p>"
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags:
+      core:
+        sheetClass: ''
+    _key: '!journal.pages!liXqFwkuhZKocsD6.VnkwboEYWvrShWNr'
+  - sort: 900000
+    name: Les PNJ et les Créatures
+    type: text
+    _id: nmEA3U0UhplbUb3E
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: "<p>Un PNJ ou une Créature fonctionne de la même manière qu'un @UUID[.VnkwboEYWvrShWNr]{Personnage Joueur} à la différence qu'ils sont dotés d'une feuille spécifique, plus synthétique et optimisée pour faciliter leur utilisation pendant les parties.</p><p></p><h3>Feuille</h3><p>Créer donc un <strong>Personnage / Créature</strong> via la fenêtre <em>Créer un acteur</em> et choisissez le <em>Type</em> correspondant :</p><img src=\"systems/anarchy/assets/pages-fr/30_acteurs_00_fenetre_creer_un_acteur.webp\" /><p>La feuille d'un Personnage Joueur s'affiche.</p><p>Cliquant alors sur le bouton <strong>Feuille</strong></p><img src=\"systems/anarchy/assets/pages-fr/30_acteurs_00_bouton_feuille.webp\" /><p>Sélectionner la feuille \"PNJ\" dans le champ <em>Cette feuille de personnage</em> :</p><img src=\"systems/anarchy/assets/pages-fr/30_acteurs_10_Sheet_configuration.webp\" /><p>Cliquer sur le bouton \"Sauver la configuration de la feuille\" et profitez de la feuille adaptée pour les PNJ</p><img src=\"systems/anarchy/assets/pages-fr/30_acteurs_20_pnj_creature_feuille.webp\" /><p></p><h3 data-anchor=\"image\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong>Image &amp; informations principales</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Il est possible de changer l'image du PNJ ou de la Créature.</span></p><p>Vous pouvez modifier son nom.</p><p>Un menu permet de préciser sa proximité avec la magie ou la matrice en choisissant</p><ul><li><p>Normal</p></li><li><p>Eveillé</p></li><li><p>Emergé</p></li></ul><p>Si vous ajoutez un @UUID[.xVb7WwyOa4oia69k]{Métatype} à la feuille en en glissant un sur la feuille du PNJ, celui-ci bénéficiera des @UUID[.F7rLoYhx0Ab4Prkb]{Modificateurs} de ce dernier.</p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;min-height:1rem;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"></p><p>Enfin, l'Essence sera ajustée en fonction des @UUID[.0P3eWwDMF4VsNoYc]{Atouts} qui lui seront attribués.</p><h3 data-anchor=\"caracteristiques\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong>Caractéristiques</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Les PNJ et Créatures ont les mêmes\_<em style=\"box-sizing:border-box;user-select:text\">Attributs </em>que les @UUID[Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.VnkwboEYWvrShWNr]{Personnages Joueurs} :</span></p><ul style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;padding:0px 0px 0px 1.5em;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Force</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Agilité</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Volonté</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Logique</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Charisme</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Chance</span></p></li></ul><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;min-height:1rem;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Les valeurs des Attributs seront prises automatiquement dans ses jets de dés et sur le calcul des\_ <em style=\"box-sizing:border-box;user-select:text\">Actions d'attributs</em> :</span></p><ul style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;padding:0px 0px 0px 1.5em;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Défense (physique)</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Résistance mentale</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Perception</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Sang-froid</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Jauger les intentions</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Mémoire</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Attraper au vol</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Soulever</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Défense matricielle</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Perception matricielle</span></p></li></ul><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;min-height:1rem;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"></p><h3 data-anchor=\"moniteurs\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong>Moniteurs</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Les PNJ et Créatures ont plusieurs\_<em style=\"box-sizing:border-box;user-select:text\">Moniteur :</em></span></p><ul style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;padding:0px 0px 0px 1.5em;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\"><em style=\"box-sizing:border-box;user-select:text\">Armure\_</em>pour calculer l'état de la protection du PNJ. Celle-ci diminuera en fonction des dégâts reçus et du paramétrage de l'@UUID[Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.dnfgjE9ah4GqCFJG#application-des-dommages]{application des dommages}.</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\"><em style=\"box-sizing:border-box;user-select:text\">Chance</em> qui permet de suivre l'utilisation de leur chance pendant le jeu</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Les Points d'<em>Anarchy de scène</em></span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Physique et Etourdissant pour suivre l'état même du PNJ</span></p></li></ul><p></p><h3 data-anchor=\"competences,-atouts,-armes\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong>Compétences, Atouts, Armes</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Vous pouvez ajouter des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.vnoKEqZihJHDwYXV\" data-id=\"vnoKEqZihJHDwYXV\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Compétences</a>, des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.0P3eWwDMF4VsNoYc\" data-id=\"0P3eWwDMF4VsNoYc\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Atouts</a> ou des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.zR0zzTK3L65Nv0BU\" data-id=\"zR0zzTK3L65Nv0BU\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Armes</a> à tout PNJ ou Créature.</span></p><p>Il est également possible de lui adjoindre des @UUID[.mthRlmug9v1Tre9j]{Cyberdecks} et des @UUID[.m4lPvZLB8kKFhX5M]{Traits} qui viendront enrichir sa feuille.</p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Soit en glissant/déposer à partir d'un élément existant dans votre monde ou dans un compendium, soit en cliquant sur le bouton \"<strong style=\"box-sizing:border-box;user-select:text\">+</strong>\".</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;min-height:1rem;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"></p><h3 data-anchor=\"description-et-notes-du-mj\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong>Description et Notes du MJ</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Ces deux champs de texte sont à votre disposition.</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Sachez que les <strong style=\"box-sizing:border-box;user-select:text\">Notes du MJ</strong> lui sont réservées ;)</span></p>"
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.nmEA3U0UhplbUb3E'
+  - sort: 1000000
+    name: Les Véhicules et les Drones
+    type: text
+    _id: mBMeROdm81ifbffR
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: "<section class=\"journal-page-content\" style=\"box-sizing:border-box;user-select:text;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Les Véhicules et les Drones fonctionne avec la même feuille regroupant les informations nécessaires pour le jeu.</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;min-height:1rem\"></p><h3 data-anchor=\"feuille\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header)\"><span style=\"font-family:Signika, sans-serif\"><strong>Feuille</strong></span></h3><img src=\"systems/anarchy/assets/pages-fr/30_acteurs_30_vehicules_drone_feuille.webp\" /><h3 data-anchor=\"image-and-informations-principales\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong style=\"box-sizing:border-box;user-select:text\">Image &amp; informations principales</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Il est possible de changer l'image du  Véhicule ou du Drone.</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Vous pouvez modifier son nom.</span></p><p><span style=\"font-family:Signika, sans-serif\">Un menu permet d'indiquer quelle est la @UUID[.vnoKEqZihJHDwYXV]{Compétence} qui est utilisée pour piloter le Véhicule ou le Drone.</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Un menu permet de préciser le <em>Type</em> de véhicules ou de drones dont il est question en choisissant</span></p><ul style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;padding:0px 0px 0px 1.5em\"><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Mini drone</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Petit drone</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Drone moyen</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Grand drone</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Moto</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Petite voiture</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Van</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Camion</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Aéronef</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Bâteau</span></p></li></ul><p></p><p><span style=\"font-family:Signika, sans-serif\">Une case, vide à la création permet également de connaitre le propriétaire du Véhicule ou du Drone. </span></p><p><span style=\"font-family:Signika, sans-serif\">Dans l'exemple ci-dessous, c'est<em>\_Un PNJ qui est le propriétaire :\_</em></span></p><img src=\"systems/anarchy/assets/pages-fr/30_acteurs_30_vehicules_drone_proprietaire.webp\" /><p><span style=\"font-family:Signika, sans-serif\"><br />Cette information sera également reprise sur la fiche du propriétaire :</span></p><img src=\"systems/anarchy/assets/pages-fr/30_acteurs_00_controles.webp\" /><h3 data-anchor=\"caracteristiques\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong style=\"box-sizing:border-box;user-select:text\">Caractéristiques</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Les Véhicules et les Drones ont les\_<em style=\"box-sizing:border-box;user-select:text\">Attributs </em>suivants :</span></p><ul style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;padding:0px 0px 0px 1.5em;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Autopilote</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Firewall</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Système</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Mobilité</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Déplacements</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Attaques</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p><span style=\"font-family:Signika, sans-serif\">Furtivité</span></p></li></ul><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;min-height:1rem;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Les valeurs des Attributs seront prises automatiquement dans ses jets de dés et sur le calcul des\_ <em style=\"box-sizing:border-box;user-select:text\">Actions d'attributs</em> :</span></p><ul style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;padding:0px 0px 0px 1.5em;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Défense (physique)</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Perception</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\">Défense matricielle</span></p></li></ul><p></p><h3 data-anchor=\"moniteurs\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong style=\"box-sizing:border-box;user-select:text\">Moniteurs</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Les Véhicules et Drones ont plusieurs\_<em style=\"box-sizing:border-box;user-select:text\">Moniteur :</em></span></p><ul style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;padding:0px 0px 0px 1.5em;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\"><em>Blindage\_</em>pour calculer l'état du Véhicule ou du Drone. Celle-ci diminuera en fonction des dégâts reçus et du paramétrage de l'<a class=\"content-link\" draggable=\"true\" data-hash=\"application-des-dommages\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.dnfgjE9ah4GqCFJG\" data-id=\"dnfgjE9ah4GqCFJG\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">application des dommages</a>\_ ; il est possible d'indiquer la résistance qui diminuera chaque attaque physique.</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\"><em style=\"box-sizing:border-box;user-select:text\">Matriciel</em> pour calculer les dommages en cas d'attaque ; il est possible d'indiquer la résistance qui diminuera chaque attaque matricielle</span></p></li><li style=\"box-sizing:border-box;user-select:text\"><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px\"><span style=\"font-family:Signika, sans-serif\"><em style=\"box-sizing:border-box;user-select:text\">Marks</em> indiquant qui a laissé une marque et combien</span></p><img src=\"http://localhost:30000/systems/anarchy/assets/pages-fr/30_acteurs_40_marks.webp\" style=\"box-sizing:border-box;user-select:text;border:1px solid var(--color-border-dark);border-radius:2px;max-width:100%;cursor:pointer\" /></li></ul><h3 data-anchor=\"competences,-atouts,-armes\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong style=\"box-sizing:border-box;user-select:text\">Compétences, Atouts, Armes</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Vous pouvez ajouter des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.vnoKEqZihJHDwYXV\" data-id=\"vnoKEqZihJHDwYXV\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Compétences</a>, des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.0P3eWwDMF4VsNoYc\" data-id=\"0P3eWwDMF4VsNoYc\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Atouts</a> ou des <a class=\"content-link\" draggable=\"true\" data-uuid=\"Compendium.anarchy.manual-fr.liXqFwkuhZKocsD6.JournalEntryPage.zR0zzTK3L65Nv0BU\" data-id=\"zR0zzTK3L65Nv0BU\" data-type=\"JournalEntryPage\" data-pack=\"anarchy.manual-fr\" data-tooltip=\"Texte Page\" style=\"box-sizing:border-box;user-select:text;cursor:pointer;background:rgb(221, 221, 221);padding:1px 4px;border:1px solid var(--color-border-dark-tertiary);border-radius:2px;white-space:nowrap;word-break:break-all\">Armes</a> à tout Véhicules ou Drone.</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Soit en glissant/déposer à partir d'un élément existant dans votre monde ou dans un compendium, soit en cliquant sur le bouton \"<strong style=\"box-sizing:border-box;user-select:text\">+</strong>\".</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;min-height:1rem;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"></p><h3 data-anchor=\"description-et-notes-du-mj\" style=\"box-sizing:border-box;user-select:text;margin:1rem 0px 0.5rem;padding:0.25rem;font-weight:bold;font-size:1.25em;border-bottom:1px solid var(--color-underline-header);color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial\"><span style=\"font-family:Signika, sans-serif\"><strong style=\"box-sizing:border-box;user-select:text\">Description et Notes du MJ</strong></span></h3><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Ces deux champs de texte sont à votre disposition.</span></p><p style=\"box-sizing:border-box;user-select:text;margin:0.5em 0px;color:rgb(25, 24, 19);font-family:Signika, sans-serif;font-size:14px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;text-align:start\"><span style=\"font-family:Signika, sans-serif\">Sachez que les <strong style=\"box-sizing:border-box;user-select:text\">Notes du MJ</strong> lui sont réservées ;)</span></p></section>"
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.mBMeROdm81ifbffR'
+  - sort: 1100000
+    name: Les Objets matriciels
+    type: text
+    _id: l6D4zCeGuaz0eIKw
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Les Objets matriciels sont des objets qui peuvent être hackés ou
+        brickés par un autre acteur. Par exemple, on va retrouver des caméras ou
+        des maglocks dans cette catégorie.</p><h3>Feuille</h3><img
+        src="systems/anarchy/assets/pages-fr/30_acteurs_40_objet_matriciel.webp"
+        /><p></p><h3>Image &amp; informations principales</h3><p>Il est possible
+        de changer l'image de l'objet matriciel pour que celle-ci corresponde
+        mieux à ce qu'il est (une caméra ou un maglock par exemple).</p><p>Vous
+        pouvez également le renommer.</p><p></p><h3>Caractéristiques</h3><p>Les
+        Objets matriciels ont deux <em>Attributs</em>
+        :</p><ul><li><p>Firewall</p></li><li><p>Système</p></li></ul><p></p><p>Ils
+        ont également 3 <em>Actions d'attributs</em>
+        :</p><ul><li><p>Perception</p></li><li><p>Défense
+        matricielle</p></li><li><p>Perception
+        matricielle</p></li></ul><p></p><h3>Moniteurs</h3><p>Ils ont deux
+        <em>Moniteurs :</em></p><ul><li><p><em>Matriciel</em> pour calculer les
+        dommages en cas d'attaque ; il est possible d'indiquer la résistance qui
+        diminuera chaque attaque</p></li><li><p><em>Marks</em> indiquant qui a
+        laissé une marque et combien</p><img
+        src="systems/anarchy/assets/pages-fr/30_acteurs_40_marks.webp"
+        /></li></ul><p></p><h3>Compétences, Atouts, Armes</h3><p>Vous pouvez
+        ajouter des @UUID[.vnoKEqZihJHDwYXV]{Compétences}, des
+        @UUID[.0P3eWwDMF4VsNoYc]{Atouts} ou des @UUID[.zR0zzTK3L65Nv0BU]{Armes}
+        à tout Objet matriciel.</p><p>Soit en glissant/déposer à partir d'un
+        élément existant dans votre monde ou dans un compendium, soit en
+        cliquant sur le bouton "<strong>+</strong>".</p><p></p><h3>Description
+        et Notes du MJ</h3><p>Ces deux champs de texte sont à votre
+        disposition.</p><p>Sachez que les <strong>Notes du MJ</strong> lui sont
+        réservées ;)</p><p></p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.l6D4zCeGuaz0eIKw'
+  - sort: 1200000
+    name: Les Sprites
+    type: text
+    _id: qStxVt5nDbmxXAJk
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Les Sprites sont créés par les Technomanciens via la
+        Résonance.</p><p></p><h3>Feuille</h3><img
+        src="systems/anarchy/assets/pages-fr/30_acteurs_50_sprite_feuille.webp"><h3>Image</h3><p>Il
+        est possible de changer l'image du
+        Sprite.</p><p></p><h3>Caractéristiques</h3><p>Les Sprites ont deux
+        <em>Attributs</em>
+        :</p><ul><li><p>Logique</p></li><li><p>Chance</p></li></ul><p></p><p>Ils
+        ont également 2 <em>Actions d'attributs</em> :</p><ul><li><p>Défense
+        matricielle</p></li><li><p>Perception
+        matricielle</p></li></ul><p></p><h3>Moniteurs</h3><p>Ils ont deux
+        <em>Moniteur :</em></p><ul><li><p><em>Matriciel</em> pour calculer les
+        dommages en cas d'attaque ; il est possible d'indiquer la résistance qui
+        diminuera chaque attaque</p></li><li><p><em>Chance</em> qui permet de
+        suivre l'utilisation de leur chance pendant les
+        parties</p><p></p></li></ul><h3>Compétences, Atouts, Armes</h3><p>Vous
+        pouvez ajouter des @UUID[.vnoKEqZihJHDwYXV]{Compétences}, des
+        @UUID[.0P3eWwDMF4VsNoYc]{Atouts} ou des @UUID[.zR0zzTK3L65Nv0BU]{Armes}
+        à tout Sprite.</p><p>Soit en glissant/déposer à partir d'un élément
+        existant dans votre monde ou dans un compendium, soit en cliquant sur le
+        bouton "<strong>+</strong>".</p><p></p><h3>Description et Notes du
+        MJ</h3><p>Ces deux champs de texte sont à votre
+        disposition.</p><p>Sachez que les <strong>Notes du MJ</strong> lui sont
+        réservées ;)</p><p></p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.qStxVt5nDbmxXAJk'
+  - sort: 1300000
+    name: Les GLACES
+    type: text
+    _id: bv4frckmzKQdwy3C
+    title:
+      show: true
+      level: 2
+    image: {}
+    text:
+      format: 1
+      content: >-
+        <p>Les GLACES sont de entités
+        matricielles.</p><p></p><h3>Feuille</h3><img
+        src="systems/anarchy/assets/pages-fr/30_acteurs_60_GLACE_feuille.webp"
+        /><h3>Image</h3><p>Il est possible de changer l'image de la
+        GLACE.</p><p></p><h3>Caractéristiques</h3><p>Les GLACES ont deux
+        <em>Attributs</em>
+        :</p><ul><li><p>Logique</p></li><li><p>Chance</p></li></ul><p></p><p>Ils
+        ont également 2 <em>Actions d'attributs</em> :</p><ul><li><p>Défense
+        matricielle</p></li><li><p>Perception
+        matricielle</p></li></ul><p></p><h3>Moniteurs</h3><p>Ils ont deux
+        <em>Moniteur :</em></p><ul><li><p><em>Matriciel</em> pour calculer les
+        dommages en cas d'attaque ; il est possible d'indiquer la résistance qui
+        diminuera chaque attaque</p></li><li><p><span
+        style="font-family:Signika, sans-serif"><em>Marks</em> indiquant qui a
+        laissé une marque et combien</span></p><img
+        src="http://localhost:30000/systems/anarchy/assets/pages-fr/30_acteurs_40_marks.webp"
+        style="box-sizing:border-box;user-select:text;border:1px solid
+        var(--color-border-dark);border-radius:2px;max-width:100%;cursor:pointer"
+        /></li></ul><p></p><h3>Compétences, Atouts, Armes</h3><p>Vous pouvez
+        ajouter des @UUID[.vnoKEqZihJHDwYXV]{Compétences}, des
+        @UUID[.0P3eWwDMF4VsNoYc]{Atouts} ou des @UUID[.zR0zzTK3L65Nv0BU]{Armes}
+        à toute GLACE.</p><p>Soit en glissant/déposer à partir d'un élément
+        existant dans votre monde ou dans un compendium, soit en cliquant sur le
+        bouton "<strong>+</strong>".</p><p></p><h3>Description et Notes du
+        MJ</h3><p>Ces deux champs de texte sont à votre
+        disposition.</p><p>Sachez que les <strong>Notes du MJ</strong> lui sont
+        réservées ;)</p><p></p>
+      markdown: ''
+    video:
+      controls: true
+      volume: 0.5
+    src: null
+    system: {}
+    ownership:
+      default: -1
+    flags: {}
+    _key: '!journal.pages!liXqFwkuhZKocsD6.bv4frckmzKQdwy3C'
+_stats:
+  systemId: anarchy
+  systemVersion: 10.2.5
+  coreVersion: '10.291'
+  createdTime: 1670593683986
+  modifiedTime: 1671488953441
+  lastModifiedBy: cwwgeSvTCRoRQlq4
+folder: null
+sort: 0
+ownership:
+  default: 0
+  cwwgeSvTCRoRQlq4: 3
+_id: liXqFwkuhZKocsD6
+_key: '!journal!liXqFwkuhZKocsD6'
+

@@ -1,0 +1,14 @@
+<div class="gm-manager-bar
+	anarchy-monitor">
+	<label>{{localize ANARCHY.actor.counters.plot}}</label>
+	<span class="flex-grow-3 gm-anarchy-bar">
+		{{> "systems/anarchy/templates/monitors/anarchy.hbs"
+			code='plot'
+			rowlength=6
+			value=anarchy.value
+			max=anarchy.max
+			scene=anarchy.scene
+			labelkey='ANARCHY.actor.counters.plot'
+		}}
+	</span>
+</div>

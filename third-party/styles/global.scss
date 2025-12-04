@@ -1,0 +1,135 @@
+    .wrapper-hexabox {
+        --wrapper-padding: 6px;
+        --wrapper-background-color: white;
+        --wrapper-border-color: black;
+        position: relative;
+        padding: var(--wrapper-padding);
+        text-align: center;
+
+        >.content {
+            height: 100%;
+            background-color: var(--wrapper-background-color);
+        }
+
+        >.side {
+            position: absolute;
+            background-color: var(--wrapper-background-color);
+
+            &.up {
+                height: var(--wrapper-padding);
+                left: var(--wrapper-padding);
+                right: var(--wrapper-padding);
+                border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
+                top: 0px;
+            }
+
+            &.down {
+                height: var(--wrapper-padding);
+                left: var(--wrapper-padding);
+                right: var(--wrapper-padding);
+                border-bottom: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
+                bottom: 0px;
+            }
+
+            &.left {
+                width: var(--wrapper-padding);
+                left: 0px;
+                border-left: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
+                top: var(--wrapper-padding);
+                bottom: var(--wrapper-padding);
+            }
+
+            &.right {
+                width: var(--wrapper-padding);
+                right: 0px;
+                border-right: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
+                top: var(--wrapper-padding);
+                bottom: var(--wrapper-padding);
+            }
+
+
+        }
+
+        >.angle {
+            width: 0px;
+            height: 0px;
+            position: absolute;
+
+            &.tl {
+                top: 0;
+                left: 0;
+                border-top: var(--wrapper-padding) solid transparent;
+                border-right: var(--wrapper-padding) solid var(--wrapper-background-color);
+            }
+
+            &.tl::before {
+                content: '';
+                position: absolute;
+                display: block;
+                border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
+                width: calc(1.41 * var(--wrapper-padding));
+                left: 1px;
+                top: -1px;
+                transform-origin: bottom left;
+                transform: rotate(-45deg);
+            }
+
+            &.tr {
+                top: 0;
+                right: 0;
+                border-top: var(--wrapper-padding) solid transparent;
+                border-left: var(--wrapper-padding) solid var(--wrapper-background-color);
+            }
+
+            &.tr::before {
+                content: '';
+                position: absolute;
+                display: block;
+                border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
+                width: calc(1.41 * var(--wrapper-padding));
+                left: 0px;
+                top: -2px;
+                transform-origin: bottom left;
+                transform: rotate(-135deg);
+            }
+
+            &.br {
+                bottom: 0;
+                right: 0;
+                border-bottom: var(--wrapper-padding) solid transparent;
+                border-left: var(--wrapper-padding) solid var(--wrapper-background-color);
+            }
+
+
+            &.br::before {
+                content: '';
+                position: absolute;
+                display: block;
+                border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
+                width: calc(1.41 * var(--wrapper-padding));
+                top: -3px;
+                left: -2px;
+                transform-origin: bottom left;
+                transform: rotate(135deg);
+            }
+
+            &.bl {
+                bottom: 0;
+                left: 0;
+                border-bottom: var(--wrapper-padding) solid transparent;
+                border-right: var(--wrapper-padding) solid var(--wrapper-background-color);
+            }
+
+            &.bl::before {
+                content: '';
+                position: absolute;
+                display: block;
+                border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
+                width: calc(1.41 * var(--wrapper-padding));
+                top: -2px;
+                left: 0px;
+                transform-origin: bottom left;
+                transform: rotate(45deg);
+            }
+        }
+    }
