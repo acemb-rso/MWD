@@ -1,0 +1,88 @@
+{{#if options.limited}}
+{{>"systems/mwd/templates/actor/character-limited.hbs"}}
+{{else}}
+<form class="{{options.cssClass}} npc-sheet" autocomplete="off">
+  <header class="sheet-header">
+    <div class="passport-header">
+      <div class="passport-img">
+        <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}" />
+      </div>
+      <div class="passport-column">
+        <div class="passport-details-row">
+          <div class="passport-detail">
+            {{> "systems/mwd/templates/actor/character/name.hbs"}}
+          </div>
+          <div class="passport-detail">
+            {{!-- Metatype removed --}}
+          </div>
+          <div class="passport-detail">
+            {{> "systems/mwd/templates/actor/character/capacity.hbs"}}
+          </div>
+          {{#if (localize 'ANARCHY.actor.counters.essence')}}
+          <div class="passport-detail">
+            {{> "systems/mwd/templates/actor/character/essence.hbs"}}
+          </div>
+          {{/if}}
+        </div>
+        <div class=".passport-action-row">
+          <div class="passport-action">
+            {{> "systems/mwd/templates/actor/parts/attributebuttons.hbs"}}
+          </div>
+          {{#if ownerActor}}
+          <div class="passport-action">
+            {{> 'systems/mwd/templates/actor/parts/ownership.hbs'}}
+          </div>
+          {{/if}}
+        </div>
+      </div>
+      {{> "systems/mwd/templates/common/view-mode.hbs"}}
+    </div>
+  </header>
+
+  <section class="sheet-body">
+    <div class="section-attributes anarchy-attributes">
+      {{> "systems/mwd/templates/actor/parts/attributes.hbs"}}
+    </div>
+    <div class="section-group monitors-row">
+      <div class="anarchy-block flexcol">
+        {{> "systems/mwd/templates/monitors/armor.hbs"}}
+        <div class="anarchy-block flexrow">
+          {{> "systems/mwd/templates/monitors/edge.hbs"}}
+          {{> "systems/mwd/templates/monitors/anarchy-actor.hbs"}}
+        </div>
+      </div>
+      <div class="anarchy-block flexrow">
+        {{> "systems/mwd/templates/monitors/physical.hbs"}}
+      </div>
+      <div class="anarchy-block flexrow">
+        {{> "systems/mwd/templates/monitors/stun.hbs"}}
+      </div>
+    </div>
+
+    <div class="section-group">
+      <div class="section-group items-group half-width">
+        {{> "systems/mwd/templates/actor/npc-parts/skills.hbs"}}
+      </div>
+      <div class="section-group items-group half-width">
+      {{> "systems/mwd/templates/actor/npc-parts/weapons.hbs"}}
+      </div>
+    </div>
+    <div class="section-group items-group">
+    </div>
+    <div class="section-group items-group">
+    </div>
+    <div class="section-group items-group">
+      {{> "systems/mwd/templates/actor/npc-parts/qualities.hbs"}}
+    </div>
+    {{#if ownedActors}}
+      <div class="section-group items-group">
+        {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
+      </div>
+    {{/if}}
+    <div class="anarchy-block">
+    {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
+    {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
+    </div>
+  </section>
+</form>
+{{/if}}

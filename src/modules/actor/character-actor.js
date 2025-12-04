@@ -9,7 +9,6 @@ import { RollCelebrity } from "../dialog/roll-celebrity.js";
 
 const { renderTemplate } = foundry.applications.handlebars;
 
-const HBS_TEMPLATE_ACTOR_DRAIN = `${TEMPLATES_PATH}/chat/actor-drain.hbs`;
 const HBS_TEMPLATE_ACTOR_SAY_WORD = `${TEMPLATES_PATH}/chat/actor-say-word.hbs`;
 
 export class CharacterActor extends AnarchyBaseActor {
@@ -169,42 +168,6 @@ export class CharacterActor extends AnarchyBaseActor {
   }
 
   canPilotVehicle() { return true }
-
-  canSetMarks() {
-    return this.getCyberdeck()?.isConnected()
-  }
-
-  canReceiveMarks() {
-    return this.getCyberdeck()?.isConnected()
-  }
-
-  getCyberdeck() {
-    return this.items.find(it => it.isActive() && it.isCyberdeck())
-  }
-
-  async rollDrain(drain) {
-    if (drain) {
-      const rollDrain = new Roll(`${drain}dgcf=1[${game.i18n.localize(ANARCHY.common.roll.rollTheme.drain)}]`);
-      await rollDrain.evaluate({ async: true });
-      await this.sufferDrain(rollDrain.total);
-
-      const flavor = await renderTemplate(HBS_TEMPLATE_ACTOR_DRAIN, {
-        ANARCHY: ANARCHY,
-        actor: this,
-        drain: rollDrain.total,
-        options: {
-          classes: game.system.anarchy.styles.selectCssClass()
-        }
-      });
-      await rollDrain.toMessage({ flavor: flavor });
-    }
-  }
-
-  async sufferDrain(drain) {
-    if (drain != 0) {
-      await this.addCounter(TEMPLATE.monitors.fatigue, drain);
-    }
-  }
 
   async rollCelebrity() {
     await RollCelebrity.create(this);
