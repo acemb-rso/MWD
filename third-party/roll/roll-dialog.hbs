@@ -1,0 +1,31 @@
+<form class="anarchy-dialog roll-dialog">
+  <div class="flexrow">
+    <div class="column-images">
+      <img class="anarchy-img actor-img" src="{{actor.img}}" alt="{{actor.name}}" data-tooltip="{{actor.name}}"/>
+      {{> (concat 'systems/anarchy/templates/roll/parts/image-' mode '.hbs')}}
+    </div>
+    <div class="roll-parameters">
+      <div class="parameter-category">
+        {{>'systems/anarchy/templates/roll/roll-parameters-category.hbs' parameters=parameters category='pool'}}
+      </div>
+      <div class="parameter-category">
+        {{>'systems/anarchy/templates/roll/roll-parameters-category.hbs' parameters=parameters category='reroll'}}
+        {{>'systems/anarchy/templates/roll/roll-parameters-category.hbs' parameters=parameters category='rerollForced'}}
+      </div>
+      <div class="parameter-category">
+        {{>'systems/anarchy/templates/roll/roll-parameters-category.hbs' parameters=parameters category='glitch'}}
+        {{>'systems/anarchy/templates/roll/roll-parameters-category.hbs' parameters=parameters category='drain'}}
+        {{>'systems/anarchy/templates/roll/roll-parameters-category.hbs' parameters=parameters category='convergence'}}
+      </div>
+      <div class="parameter-category">
+        {{>'systems/anarchy/templates/roll/roll-parameters-category.hbs' parameters=parameters category='edge'}}
+        {{>'systems/anarchy/templates/roll/roll-parameters-category.hbs' parameters=parameters category='risk'}}
+      </div>
+      <div class="parameter-category">
+        <label>{{localize 'ANARCHY.common.roll.opponentRoll'}}</label>
+        {{>'systems/anarchy/templates/roll/roll-parameters-category.hbs' parameters=parameters category='opponentPool'}}
+        {{>'systems/anarchy/templates/roll/roll-parameters-category.hbs' parameters=parameters category='opponentReroll'}}
+      </div>
+    </div>
+  </div>
+</form>

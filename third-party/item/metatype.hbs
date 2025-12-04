@@ -1,0 +1,29 @@
+<form class="{{options.cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}"/>
+    {{> 'systems/anarchy/templates/item/parts/itemname.hbs'
+      labelkey='ANARCHY.itemType.singular.metatype'
+      type="metatype"
+    }}
+  </header>
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <div class="sheet-tab" data-tab="main">
+      <a>{{localize ANARCHY.item.tabs.main}}</a>
+    </div>
+    <div class="sheet-tab" data-tab="modifiers">
+      <a>{{localize ANARCHY.item.tabs.modifiers}}</a>
+    </div>
+    <div class="sheet-tab-fill"></div>
+  </nav>
+
+  <section class="sheet-body">
+    <div class="tab section-group" data-group="primary" data-tab="main">
+      {{> 'systems/anarchy/templates/item/parts/references.hbs'}}
+    </div>
+    <div class="tab section-group" data-group="primary" data-tab="modifiers">
+      <div class="form-group">
+        {{> 'systems/anarchy/templates/item/parts/modifiers.hbs'}}
+      </div>
+    </div>
+  </section>
+</form>

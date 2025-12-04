@@ -1,0 +1,14 @@
+<label class="parameter-label info-label">
+  {{> 'systems/anarchy/templates/common/label.hbs' this}}
+</label>
+  <input disabled  class="parameter-value info-value" type="number" data-dtype="Number" maxlength="2"
+    value="{{either value 0}}"/>
+{{#if flags.editable}}
+<span class="parameter-selection info-value">
+  <select name="select-{{code}}" class="select-option-parameter info-value" data-dtype="String">
+    {{#select selected}}
+    {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=choices noEmpty=true}}
+    {{/select}}
+  </select>
+</span>
+{{/if}}

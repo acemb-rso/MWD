@@ -1,0 +1,16 @@
+<div class="flexcol anarchy-monitor">
+  <label class="monitor-label">
+    {{localize ANARCHY.actor.monitors.physical}}
+  </label>
+  {{> "systems/anarchy/templates/common/checkbar.hbs"
+    code='physical'
+    value=system.monitors.physical.value
+    max=(sum system.monitors.physical.max system.monitors.physical.maxBonus)
+    rowlength=3
+    adjust=true
+  }}
+  <label class="resitance-label">
+    {{localize ANARCHY.actor.monitors.resistance}}:
+    {{system.monitors.physical.resistanceBonus}}
+  </label>
+</div>

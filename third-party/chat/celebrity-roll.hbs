@@ -1,0 +1,17 @@
+<div class="{{#each options.classes as |cssClass|}}{{cssClass}}{{/each}} flexrow">
+  <div class="flex-shrink-left flexcol">
+    {{> 'systems/anarchy/templates/chat/parts/actor-image.hbs'}}
+  </div>
+  <div>
+    <h3 class="chat-roll-title tooltip tooltip-dotted">
+      {{actor.name}} - {{localize ANARCHY.actor.celebrity}}: {{pool}}
+      <div class="tooltiptext tooltip-roll-parameters">
+        {{#each parameters as |parameter|}}
+          <div class="parameter">
+            {{> 'systems/anarchy/templates/chat/parts/generic-parameter.hbs' parameter}}
+          </div>
+        {{/each}}
+      </div>
+    </h3>
+  </div>
+</div>

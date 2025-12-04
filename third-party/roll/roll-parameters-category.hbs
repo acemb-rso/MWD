@@ -1,0 +1,9 @@
+{{#each parameters as |parameter|}}
+  {{#if (eq category ../category)}}
+    {{#unless hideParameter}}
+      <div class="parameter" data-parameter-code="{{code}}" {{#if item}}data-item-id="{{item.id}}"{{/if}}>
+        {{> (either hbsTemplateRoll 'systems/anarchy/templates/roll/parts/generic.hbs') parameter}}
+      </div>
+    {{/unless}}
+  {{/if}}
+{{/each}}

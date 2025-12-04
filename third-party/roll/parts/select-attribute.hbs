@@ -1,0 +1,20 @@
+{{#if flags.editable}}
+<span class="parameter-label info-value">
+  <select name="select-{{code}}" class="select-attribute-parameter info-value" data-dtype="String">
+    {{#select selected}}
+    {{> 'systems/anarchy/templates/common/enum-value-label.hbs' entries=choices}}
+    {{/select}}
+  </select>
+</span>
+{{else}}
+<label class="parameter-label info-label">
+  {{> 'systems/anarchy/templates/common/label.hbs' this}}
+</label>
+{{/if}}
+<input disabled  class="parameter-value info-value" type="number" data-dtype="Number" maxlength="2"
+  value="{{either value 0}}"/>
+</label>
+<div class="input-cursor-parameter">
+  {{>'systems/anarchy/templates/roll/parts/dice-cursor.hbs' value=value min=0 max=value editable=false}}
+</div>
+

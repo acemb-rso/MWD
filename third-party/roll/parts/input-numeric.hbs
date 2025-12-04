@@ -1,0 +1,21 @@
+{{> 'systems/anarchy/templates/roll/parts/parameter-label.hbs' this}}
+<div class="flexcol">
+  <div class="flexrow">
+    {{#if flags.editable}}
+      <input class="parameter-value info-value type-numeric" type="number" data-dtype="Number"
+        min="{{either min 0}}" max="{{either max 5}}" value="{{either value 0}}" />
+    {{else}}
+      <input disabled  class="parameter-value info-value" type="number" data-dtype="Number"
+        value="{{either value 0}}"/>
+    {{/if}}
+    <div class="input-cursor-parameter">
+      {{>'systems/anarchy/templates/roll/parts/dice-cursor.hbs' value=value min=min max=max editable=flags.editDice}}
+    </div>
+  </div>
+  {{#each sources as |source|}}
+    <div class="parameter-source">
+      {{source.item.name}}: {{source.modifier.value}} {{#if
+      source.modifier.condition}}({{source.modifier.condition}}){{/if}}
+    </div>
+  {{/each}}
+</div>

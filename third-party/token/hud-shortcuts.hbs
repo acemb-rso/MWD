@@ -1,0 +1,18 @@
+<div class="control-icon anarchy-shortcuts {{#each options.classes as |cssClass|}}{{cssClass}}{{/each}}" >
+  <img class="anarchy-shortcuts-toggle" src="systems/anarchy/icons/misc/digital-trace.svg" 
+    width="36" height="36" data-tooltip="{{localize 'ANARCHY.common.favorite'}}"/>
+  <div class="anarchy-shortcuts-list" data-token-id="{{tokenId}}">
+    {{#each shortcuts as |shortcut|}}
+    <div class="control-icon anarchy-shortcut-button" data-shortcut-type="{{shortcut.type}}" data-shortcut-id="{{shortcut.id}}">
+      {{#if shortcut.img}}
+      <img src="{{shortcut.img}}" data-tooltip="{{shortcut.label}}"/>
+      {{else if shortcut.icon}}
+      {{{shortcut.icon}}}
+      {{/if}}
+      <a>
+        <label>{{shortcut.label}}</label>
+      </a>
+    </div>
+    {{/each}}
+  </div>
+</div>

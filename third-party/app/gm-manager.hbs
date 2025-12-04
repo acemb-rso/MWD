@@ -1,0 +1,12 @@
+<div id="gm-manager"
+  class="app window-app {{#each options.classes as |cssClass|}}{{cssClass}}{{/each}}">
+  <header class="header app-title-bar">
+    <label>{{localize ANARCHY.gmManager.title}}</label>
+    <button class="gm-manager-hide-button">
+      <i class="fa-solid fa-eye-slash"></i>
+    </button>
+  </header>
+  {{> 'systems/anarchy/templates/app/gm-anarchy.hbs'}}
+  {{> 'systems/anarchy/templates/app/gm-difficulty.hbs'}}
+  {{> 'systems/anarchy/templates/app/gm-convergence.hbs'}}
+</div>

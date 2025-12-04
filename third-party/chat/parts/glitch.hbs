@@ -1,0 +1,17 @@
+<div class="risk-glitch risk-glitch-{{@root.roll.glitchOutcome}}">
+  <label>
+    {{> 'systems/anarchy/templates/common/label.hbs' this}}:
+  </label>
+  {{#each @root.roll.subrolls.glitch.terms.[0].results as |dice|}}
+    {{#if (eq dice.result 1)}}
+      <span class="risk-glitch-dice {{@root.roll.glitchOutcome}}">
+        {{{iconD6 dice.result}}}
+      </span>
+    {{/if}}
+  {{/each}}
+  {{#if @root.roll.subrolls.glitch.total}}
+    <label>
+      {{@root.roll.subrolls.glitch.total}}
+    </label>
+  {{/if}}
+</div>

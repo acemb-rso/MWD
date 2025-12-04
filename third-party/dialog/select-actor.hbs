@@ -1,0 +1,9 @@
+<form class="anarchy-dialog select-actor">
+  <div class="flexcol">
+    {{#each actors as |actor key|}}
+      <a class="click-select-actor" data-actor-id="{{actor.id}}">
+        {{> 'systems/anarchy/templates/common/actor-reference.hbs' actor}}
+      </a>
+    {{/each}}
+  </div>
+</form>

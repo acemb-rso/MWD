@@ -1,0 +1,16 @@
+{{!
+  data is:
+  {
+    // the entries to propose as options
+    entries: [
+      { "value": "k1", "label": "label1"},
+      { "value": "k2", "labelkey": "ANARCHY.(...).label2"},
+    ]
+  }
+}}
+{{#unless noEmpty}}
+<option value=""></option>
+{{/unless}}
+{{#each entries as |entry|}}
+<option value="{{entry.value}}">{{> 'systems/anarchy/templates/common/label.hbs' entry}}</option>
+{{/each}}
