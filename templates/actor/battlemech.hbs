@@ -1,0 +1,13 @@
+<form class="{{cssClass}} flexcol" autocomplete="off">
+  <header class="sheet-header">
+    <div class="character-identity flexrow">
+      <div class="portrait">
+        <img class="profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}" />
+      </div>
+      <div class="identity-fields flexcol">
+        <label>{{localize 'Name'}}</label>
+        <input type="text" name="name" value="{{data.name}}" />
+      </div>
+    </div>
+  </header>
+</form>

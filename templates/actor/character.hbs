@@ -1,0 +1,326 @@
+<form class="{{cssClass}} flexcol character-sheet" autocomplete="off">
+  <header class="sheet-header">
+    <div class="character-identity flexrow">
+      <div class="portrait">
+        <img class="profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}" />
+      </div>
+      <div class="identity-fields flexcol">
+        <label>{{localize 'Name'}}</label>
+        <input type="text" name="name" value="{{data.name}}" />
+      </div>
+    </div>
+  </header>
+
+  <section class="sheet-body flexcol">
+    <section class="sheet-section attributes">
+      <h2>{{localize 'ANARCHY.actor.section.attributes'}}</h2>
+      <div class="attribute-grid">
+        <label>{{localize 'ANARCHY.attributes.strength'}}</label>
+        <input type="number" name="system.attributes.strength.value" value="{{system.attributes.strength.value}}" />
+        <label>{{localize 'ANARCHY.attributes.reflexes'}}</label>
+        <input type="number" name="system.attributes.reflexes.value" value="{{system.attributes.reflexes.value}}" />
+        <label>{{localize 'ANARCHY.attributes.intelligence'}}</label>
+        <input type="number" name="system.attributes.intelligence.value" value="{{system.attributes.intelligence.value}}" />
+        <label>{{localize 'ANARCHY.attributes.willpower'}}</label>
+        <input type="number" name="system.attributes.willpower.value" value="{{system.attributes.willpower.value}}" />
+        <label>{{localize 'ANARCHY.attributes.charisma'}}</label>
+        <input type="number" name="system.attributes.charisma.value" value="{{system.attributes.charisma.value}}" />
+        <label>{{localize 'ANARCHY.attributes.edge'}}</label>
+        <input type="number" name="system.attributes.edge.value" value="{{system.attributes.edge.value}}" />
+      </div>
+    </section>
+
+    <section class="sheet-section skills define-item-type" data-item-type="skill">
+      <div class="section-header flexrow">
+        <h2>{{localize 'ANARCHY.itemType.plural.skill'}}</h2>
+        <button type="button" class="click-item-add">{{localize 'ANARCHY.common.add'}}</button>
+      </div>
+      <ul class="item-list">
+        {{#each items.skill as |skill|}}
+          <li class="item" data-item-id="{{skill.id}}">
+            <span class="item-name click-item-edit">{{skill.name}}</span>
+            <span class="item-value">{{skill.system.value}}</span>
+            <div class="item-controls">
+              <button type="button" class="click-item-edit">{{localize 'ANARCHY.common.edit'}}</button>
+              <button type="button" class="click-item-delete">{{localize 'ANARCHY.common.delete'}}</button>
+            </div>
+          </li>
+        {{/each}}
+      </ul>
+    </section>
+
+    <section class="sheet-section life-modules define-item-type" data-item-type="lifeModule">
+      <div class="section-header flexrow">
+        <h2>{{localize 'ANARCHY.itemType.plural.lifeModule'}}</h2>
+        <button type="button" class="click-item-add">{{localize 'ANARCHY.common.add'}}</button>
+      </div>
+      <div class="life-module-columns">
+        <div class="life-module-group">
+          <h3>{{localize 'ANARCHY.item.lifeModule.type.faction'}}</h3>
+          <ul class="item-list">
+            {{#each items.lifeModule as |module|}}
+              {{#if (eq module.system.moduleType 'faction')}}
+                <li class="item" data-item-id="{{module.id}}">
+                  <span class="item-name click-item-edit">{{module.name}}</span>
+                  <div class="item-controls">
+                    <button type="button" class="click-item-edit">{{localize 'ANARCHY.common.edit'}}</button>
+                    <button type="button" class="click-item-delete">{{localize 'ANARCHY.common.delete'}}</button>
+                  </div>
+                </li>
+              {{/if}}
+            {{/each}}
+          </ul>
+        </div>
+        <div class="life-module-group">
+          <h3>{{localize 'ANARCHY.item.lifeModule.type.childhood'}}</h3>
+          <ul class="item-list">
+            {{#each items.lifeModule as |module|}}
+              {{#if (eq module.system.moduleType 'childhood')}}
+                <li class="item" data-item-id="{{module.id}}">
+                  <span class="item-name click-item-edit">{{module.name}}</span>
+                  <div class="item-controls">
+                    <button type="button" class="click-item-edit">{{localize 'ANARCHY.common.edit'}}</button>
+                    <button type="button" class="click-item-delete">{{localize 'ANARCHY.common.delete'}}</button>
+                  </div>
+                </li>
+              {{/if}}
+            {{/each}}
+          </ul>
+        </div>
+        <div class="life-module-group">
+          <h3>{{localize 'ANARCHY.item.lifeModule.type.higherEducation'}}</h3>
+          <ul class="item-list">
+            {{#each items.lifeModule as |module|}}
+              {{#if (eq module.system.moduleType 'higherEducation')}}
+                <li class="item" data-item-id="{{module.id}}">
+                  <span class="item-name click-item-edit">{{module.name}}</span>
+                  <div class="item-controls">
+                    <button type="button" class="click-item-edit">{{localize 'ANARCHY.common.edit'}}</button>
+                    <button type="button" class="click-item-delete">{{localize 'ANARCHY.common.delete'}}</button>
+                  </div>
+                </li>
+              {{/if}}
+            {{/each}}
+          </ul>
+        </div>
+        <div class="life-module-group">
+          <h3>{{localize 'ANARCHY.item.lifeModule.type.realLife'}}</h3>
+          <ul class="item-list">
+            {{#each items.lifeModule as |module|}}
+              {{#if (eq module.system.moduleType 'realLife')}}
+                <li class="item" data-item-id="{{module.id}}">
+                  <span class="item-name click-item-edit">{{module.name}}</span>
+                  <div class="item-controls">
+                    <button type="button" class="click-item-edit">{{localize 'ANARCHY.common.edit'}}</button>
+                    <button type="button" class="click-item-delete">{{localize 'ANARCHY.common.delete'}}</button>
+                  </div>
+                </li>
+              {{/if}}
+            {{/each}}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="sheet-section traits define-item-type" data-item-type="quality">
+      <div class="section-header flexrow">
+        <h2>{{localize 'ANARCHY.itemType.plural.quality'}}</h2>
+        <button type="button" class="click-item-add">{{localize 'ANARCHY.common.add'}}</button>
+      </div>
+      <ul class="item-list">
+        {{#each items.quality as |quality|}}
+          <li class="item" data-item-id="{{quality.id}}">
+            <span class="item-name click-item-edit">{{quality.name}}</span>
+            <div class="item-controls">
+              <button type="button" class="click-item-edit">{{localize 'ANARCHY.common.edit'}}</button>
+              <button type="button" class="click-item-delete">{{localize 'ANARCHY.common.delete'}}</button>
+            </div>
+          </li>
+        {{/each}}
+      </ul>
+    </section>
+
+    <section class="sheet-section cues">
+      <div class="section-header flexrow define-wordType" data-word-type="cues">
+        <h2>{{localize 'ANARCHY.actor.words.cues'}}</h2>
+        <button type="button" class="click-word-add">{{localize 'ANARCHY.common.add'}}</button>
+      </div>
+      <ul class="word-list">
+        {{#each system.cues as |cue|}}
+          <li class="word-row define-wordType" data-word-type="cues" data-word-id="{{cue.id}}">
+            <input type="text" class="change-word-value" value="{{cue.word}}" />
+            <button type="button" class="click-word-delete">{{localize 'ANARCHY.common.delete'}}</button>
+          </li>
+        {{/each}}
+      </ul>
+    </section>
+
+    <section class="sheet-section dispositions">
+      <div class="section-header flexrow define-wordType" data-word-type="dispositions">
+        <h2>{{localize 'ANARCHY.actor.words.dispositions'}}</h2>
+        <button type="button" class="click-word-add">{{localize 'ANARCHY.common.add'}}</button>
+      </div>
+      <ul class="word-list">
+        {{#each system.dispositions as |disposition|}}
+          <li class="word-row define-wordType" data-word-type="dispositions" data-word-id="{{disposition.id}}">
+            <input type="text" class="change-word-value" value="{{disposition.word}}" />
+            <button type="button" class="click-word-delete">{{localize 'ANARCHY.common.delete'}}</button>
+          </li>
+        {{/each}}
+      </ul>
+    </section>
+
+    <section class="sheet-section personal-weaponry define-item-type" data-item-type="personalWeapon">
+      <div class="section-header flexrow">
+        <h2>{{localize 'ANARCHY.itemType.plural.personalWeapon'}}</h2>
+        <button type="button" class="click-item-add">{{localize 'ANARCHY.common.add'}}</button>
+      </div>
+      <ul class="item-list">
+        {{#each items.personalWeapon as |weapon|}}
+          <li class="item" data-item-id="{{weapon.id}}">
+            <span class="item-name click-item-edit">{{weapon.name}}</span>
+            <div class="item-controls">
+              <button type="button" class="click-item-edit">{{localize 'ANARCHY.common.edit'}}</button>
+              <button type="button" class="click-item-delete">{{localize 'ANARCHY.common.delete'}}</button>
+            </div>
+          </li>
+        {{/each}}
+      </ul>
+    </section>
+
+    <section class="sheet-section armor">
+      <h2>{{localize 'ANARCHY.actor.monitors.armor'}}</h2>
+      <div class="armor-grid">
+        <label>{{localize 'ANARCHY.common.monitorValue'}}</label>
+        <div class="monitor-inputs">
+          <input type="number" name="system.monitors.armor.value" value="{{system.monitors.armor.value}}" />
+          <span>/</span>
+          <input type="number" name="system.monitors.armor.max" value="{{system.monitors.armor.max}}" />
+        </div>
+        <label>{{localize 'ANARCHY.actor.monitors.effect'}}</label>
+        <input type="text" name="system.monitors.armor.effect" value="{{system.monitors.armor.effect}}" />
+        <label>{{localize 'ANARCHY.actor.monitors.resistance'}}</label>
+        <input type="text" name="system.monitors.armor.resistance" value="{{system.monitors.armor.resistance}}" />
+      </div>
+    </section>
+
+    <section class="sheet-section condition-monitors">
+      <h2>{{localize 'ANARCHY.actor.section.conditionMonitors'}}</h2>
+      <div class="monitor-grid">
+        <div class="monitor-block">
+          <label>{{localize 'ANARCHY.monitor.physical'}}</label>
+          <div class="monitor-inputs">
+            <input type="number" name="system.monitors.physical.value" value="{{system.monitors.physical.value}}" />
+            <span>/</span>
+            <input type="number" name="system.monitors.physical.max" value="{{system.monitors.physical.max}}" />
+          </div>
+        </div>
+        <div class="monitor-block">
+          <label>{{localize 'ANARCHY.monitor.fatigue'}}</label>
+          <div class="monitor-inputs">
+            <input type="number" name="system.monitors.fatigue.value" value="{{system.monitors.fatigue.value}}" />
+            <span>/</span>
+            <input type="number" name="system.monitors.fatigue.max" value="{{system.monitors.fatigue.max}}" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sheet-section asset-modules define-item-type" data-item-type="assetModule">
+      <div class="section-header flexrow">
+        <h2>{{localize 'ANARCHY.itemType.plural.assetModule'}}</h2>
+        <button type="button" class="click-item-add">{{localize 'ANARCHY.common.add'}}</button>
+      </div>
+      <ul class="item-list">
+        {{#each items.assetModule as |asset|}}
+          <li class="item" data-item-id="{{asset.id}}">
+            <span class="item-name click-item-edit">{{asset.name}}</span>
+            <div class="item-controls">
+              <button type="button" class="click-item-edit">{{localize 'ANARCHY.common.edit'}}</button>
+              <button type="button" class="click-item-delete">{{localize 'ANARCHY.common.delete'}}</button>
+            </div>
+          </li>
+        {{/each}}
+      </ul>
+    </section>
+
+    <section class="sheet-section inventory define-item-type" data-item-type="gear">
+      <div class="section-header flexrow">
+        <h2>{{localize 'ANARCHY.itemType.plural.gear'}}</h2>
+        <button type="button" class="click-item-add">{{localize 'ANARCHY.common.add'}}</button>
+      </div>
+      <ul class="item-list">
+        {{#each items.gear as |gear|}}
+          <li class="item" data-item-id="{{gear.id}}">
+            <span class="item-name click-item-edit">{{gear.name}}</span>
+            <div class="item-controls">
+              <button type="button" class="click-item-edit">{{localize 'ANARCHY.common.edit'}}</button>
+              <button type="button" class="click-item-delete">{{localize 'ANARCHY.common.delete'}}</button>
+            </div>
+          </li>
+        {{/each}}
+      </ul>
+    </section>
+
+    <section class="sheet-section edge-pools">
+      <h2>{{localize 'ANARCHY.actor.counters.edgePools.title'}}</h2>
+      <div class="edge-pool-columns">
+        <div class="edge-group">
+          <h3>{{localize 'ANARCHY.actor.counters.edgePools.physical'}}</h3>
+          <label>{{localize 'ANARCHY.actor.counters.edgePools.grit'}}</label>
+          <div class="monitor-inputs">
+            <input type="number" name="system.counters.edgePools.grit.value" value="{{system.counters.edgePools.grit.value}}" />
+            <span>/</span>
+            <input type="number" name="system.counters.edgePools.grit.max" value="{{system.counters.edgePools.grit.max}}" />
+          </div>
+          <label>{{localize 'ANARCHY.actor.counters.edgePools.chaos'}}</label>
+          <div class="monitor-inputs">
+            <input type="number" name="system.counters.edgePools.chaos.value" value="{{system.counters.edgePools.chaos.value}}" />
+            <span>/</span>
+            <input type="number" name="system.counters.edgePools.chaos.max" value="{{system.counters.edgePools.chaos.max}}" />
+          </div>
+        </div>
+        <div class="edge-group">
+          <h3>{{localize 'ANARCHY.actor.counters.edgePools.mental'}}</h3>
+          <label>{{localize 'ANARCHY.actor.counters.edgePools.insight'}}</label>
+          <div class="monitor-inputs">
+            <input type="number" name="system.counters.edgePools.insight.value" value="{{system.counters.edgePools.insight.value}}" />
+            <span>/</span>
+            <input type="number" name="system.counters.edgePools.insight.max" value="{{system.counters.edgePools.insight.max}}" />
+          </div>
+          <label>{{localize 'ANARCHY.actor.counters.edgePools.rumor'}}</label>
+          <div class="monitor-inputs">
+            <input type="number" name="system.counters.edgePools.rumor.value" value="{{system.counters.edgePools.rumor.value}}" />
+            <span>/</span>
+            <input type="number" name="system.counters.edgePools.rumor.max" value="{{system.counters.edgePools.rumor.max}}" />
+          </div>
+        </div>
+        <div class="edge-group">
+          <h3>{{localize 'ANARCHY.actor.counters.edgePools.social'}}</h3>
+          <label>{{localize 'ANARCHY.actor.counters.edgePools.legend'}}</label>
+          <div class="monitor-inputs">
+            <input type="number" name="system.counters.edgePools.legend.value" value="{{system.counters.edgePools.legend.value}}" />
+            <span>/</span>
+            <input type="number" name="system.counters.edgePools.legend.max" value="{{system.counters.edgePools.legend.max}}" />
+          </div>
+          <label>{{localize 'ANARCHY.actor.counters.edgePools.credibility'}}</label>
+          <div class="monitor-inputs">
+            <input type="number" name="system.counters.edgePools.credibility.value" value="{{system.counters.edgePools.credibility.value}}" />
+            <span>/</span>
+            <input type="number" name="system.counters.edgePools.credibility.max" value="{{system.counters.edgePools.credibility.max}}" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sheet-section experience">
+      <h2>{{localize 'ANARCHY.actor.counters.xp'}}</h2>
+      <div class="experience-grid">
+        <label>{{localize 'ANARCHY.actor.counters.current'}}</label>
+        <input type="number" name="system.counters.xp.value" value="{{system.counters.xp.value}}" />
+        <label>{{localize 'ANARCHY.actor.counters.lifetime'}}</label>
+        <input type="number" name="system.counters.xp.total" value="{{system.counters.xp.total}}" />
+      </div>
+    </section>
+  </section>
+</form>

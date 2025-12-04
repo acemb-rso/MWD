@@ -1,0 +1,15 @@
+Character sheet requirements:
+- Name
+- Attributes: Strength, Reflexes, Intelligence, Willpower, Charisma, Edge
+- Skills (list)
+- Life Modules: Faction, Childhood, Higher Education, Real Life
+- Traits (list)
+- Cues (list)
+- Dispositions (list)
+- Personal Weaponry (list)
+- Armor: monitor/value plus effect/resistance
+- Condition Monitors: Physical, Fatigue
+- Asset Modules (list)
+- Inventory (list)
+- Edge Pools: Physical (Grit, Chaos), Mental (Insight, Rumor), Social (Legend, Credibility)
+- Experience: Current, Lifetime
