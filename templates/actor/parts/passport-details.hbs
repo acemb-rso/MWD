@@ -1,27 +1,5 @@
 <div class="passport-details-row">
-{{#if options.limited}}
   <div class="passport-detail">
     {{> "systems/mwd/templates/actor/character/name.hbs"}}
   </div>
-  <div class="passport-detail">
-    {{> "systems/mwd/templates/actor/character/capacity.hbs"}}
-  </div>
-  {{#if (localize 'ANARCHY.actor.counters.essence')}}
-  <div class="passport-detail">
-    {{> "systems/mwd/templates/actor/character/essence.hbs"}}
-  </div>
-  {{/if}}
-{{else}}
-  <div class="passport-detail">
-    {{> "systems/mwd/templates/actor/character/name.hbs"}}
-  </div>
-  <div class="passport-detail">
-    {{> "systems/mwd/templates/actor/character/capacity.hbs"}}
-  </div>
-  {{#if (localize 'ANARCHY.actor.counters.essence')}}
-  <div class="passport-detail">
-    {{> "systems/mwd/templates/actor/character/essence.hbs"}}
-  </div>
-  {{/if}}
-{{/if}}
 </div>
