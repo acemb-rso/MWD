@@ -1,0 +1,111 @@
+{
+  "id": "anarchy",
+  "version": "13.0.0",
+  "manifest": "https://raw.githubusercontent.com/VincentVk9373/anarchy/master/public/system.json",
+  "download": "https://github.com/VincentVk9373/anarchy/releases/download/v13.0.0/foundry-anarchy-v13.0.0.zip",
+  "url": "https://github.com/VincentVk9373/anarchy",
+  "bugs": "https://github.com/VincentVk9373/anarchy/issues",
+  "title": "Anarchy",
+  "description": "Shadowrun Anarchy RPG, and hacks, for FoundryVTT",
+  "compatibility": {
+    "minimum": 11,
+    "verified": 13
+  },
+  "authors": [
+    {
+      "name": "Vincent VK",
+      "email": "vincent.vandeme@gmail.com",
+      "discord": "VincentVk#9373"
+    },
+    {
+      "name": "Pretre",
+      "discord": "Pretre#9138"
+    },
+    {
+      "name": "Los Brutos",
+      "discord": "Los Brutos#1876"
+    },
+    {
+      "name": "Half",
+      "discord": "half#3405",
+      "email": "cyril@dbyzero.com"
+    }
+  ],
+  "flags": {
+    "allowBugReporter": true,
+    "hotReload": {
+      "extensions": ["css", "hbs", "html"],
+      "paths": ["style/", "templates/"]
+    }
+  },
+  "license": "LICENSE.md",
+  "scripts": [],
+  "esmodules": ["index.mjs"],
+  "styles": [
+    "style/anarchy.css",
+    "style/anarchy-shadowrun.css",
+    "style/anarchy-dark.css",
+    "style/anarchy-darkglass.css",
+    "style.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    },
+    {
+      "lang": "fr",
+      "name": "Français",
+      "path": "lang/fr.json"
+    }
+  ],
+  "packs": [
+    {
+      "name": "macros",
+      "label": "Macros",
+      "type": "Macro",
+      "system": "anarchy",
+      "ownership": {
+        "PLAYER": "NONE",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "gm-info",
+      "label": "Gamemaster information",
+      "type": "JournalEntry",
+      "system": "anarchy",
+      "ownership": {
+        "PLAYER": "NONE",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "manual-fr",
+      "label": "Manuel SR Anarchy (FR)",
+      "type": "JournalEntry",
+      "system": "anarchy",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ],
+  "media": [
+    {
+      "type": "cover",
+      "url": "systems/anarchy/style/anarchy-logo.webp"
+    }
+  ],
+  "background": "systems/anarchy/style/anarchy-logo.webp",
+  "relationships": {},
+  "socket": true,
+  "protected": false,
+  "grid": {
+    "distance": 1,
+    "units": "m"
+  },
+  "primaryTokenAttribute": "state.physical",
+  "secondaryTokenAttribute": "state.matrix"
+}

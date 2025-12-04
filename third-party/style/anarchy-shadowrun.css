@@ -1,0 +1,261 @@
+/* specifics for style-anarchy-shadowrun */
+:root {
+  --anarchy-background: repeat center/50% url("anarchy-background.webp");
+  --anarchy-background-attributes: hsla(47, 90%, 50%, 0.5);
+  --anarchy-background-secondary-attributes: hsla(47, 75%, 75%, 0.5);
+  --anarchy-background-item: hsla(44, 0%, 100%, 0.5);
+  --anarchy-background-item-img: hsla(207, 40%, 60%, 0.7);
+  --anarchy-background-positive: hsla(180, 80%, 20%, 0.2);
+  --anarchy-background-negative: hsla(300, 80%, 20%, 0.2);
+
+  --anarchy-background-words: hsla(200, 50%, 70%, 0.3);
+  --anarchy-background-lighter: hsla(0, 0%, 100%, 0.2);
+
+  --anarchy-background-tooltip: hsla(207, 40%, 70%, 1);
+  --anarchy-background-button: var(--anarchy-background-attributes);
+  --anarchy-background-weapon: hsla(0, 0%, 80%, 0.3);
+
+  --anarchy-tint-weapon-odd: hsla(0, 0%, 70%, 0.3);
+  --anarchy-tint-weapon-even: hsla(0, 0%, 50%, 0.3);
+  --anarchy-tint-weapon-hover: hsla(200, 10%, 60%, 0.4);
+  --anarchy-tint-npc: hsla(90, 29%, 70%, 0.15);
+  --anarchy-tint-hover: hsla(0, 60%, 50%, 1);
+
+  --anarchy-color-highlight: hsla(0, 0%, 30%, 1);
+  --anarchy-color-font: hsla(0, 10%, 10%, 1);
+  --anarchy-color-border: hsla(200, 20%, 30%, 0.5);
+  --anarchy-color-button-border: hsla(47, 40%, 70%, 0.5);
+  --anarchy-color-border-light: hsla(200, 10%, 60%, 0.4);
+
+  --anarchy-color-dice-prowess: hsla(47, 60%, 40%, 1);
+  --anarchy-color-dice-glitch: hsla(300, 80%, 20%, 1);
+  --anarchy-color-controls: var(--anarchy-background-item-img);
+  --anarchy-color-controls-disconnected: hsla(47, 30%, 30%, 0.5);
+  --anarchy-color-controls-augmented: hsla(47, 80%, 50%, 0.9);
+  --anarchy-color-controls-virtual: hsla(47, 100%, 70%, 0.9);
+  --anarchy-color-text-hyperlink: hsla(47, 90%, 50%, 0.5);
+  --anarchy-shadow-section: 0px -8px 8px -6px var(--anarchy-color-border);
+  --anarchy-shadow-attribute: 4px -4px 8px -4px var(--anarchy-color-border);
+  --anarchy-shadow-anarchy-button: 3px -3px 6px -3px var(--anarchy-color-button-button);
+  --anarchy-shadow-items-group: 3px -3px 6px -3px var(--anarchy-color-border);
+
+  --anarchy-color-resource-checked: hsla(207, 100%, 80%, 1);
+  --anarchy-color-monitor-checked: hsla(9, 70%, 30%, 0.9);
+  --anarchy-color-unchecked: hsla(207, 10%, 50%, 1);
+}
+
+.window-app .style-anarchy-shadowrun.anarchy-dialog {
+  background: var(--anarchy-background);
+  color: var(--anarchy-color-font);
+  border: 3px outset var(--anarchy-color-button-border);
+  box-shadow: var(--anarchy-shadow-anarchy-button);
+}
+
+#gm-manager.style-anarchy-shadowrun {
+  background: var(--anarchy-background);
+  color: var(--anarchy-color-font);
+}
+
+#gm-manager.style-anarchy-shadowrun header {
+  border-bottom: 1px solid var(--anarchy-color-border);
+}
+
+#gm-manager.style-anarchy-shadowrun label {
+  color: var(--anarchy-color-font);
+}
+
+#gm-manager.style-anarchy-shadowrun a:hover,
+#gm-manager.style-anarchy-shadowrun a:hover label,
+.style-anarchy-shadowrun :is(.anarchy-button, a.item-control, .attribute-box, .a.click-checkbar-element):hover,
+.style-anarchy-shadowrun :is(.anarchy-button, a.item-control, .attribute-box, .a.click-checkbar-element):hover :is(i, label, a, img),
+.style-anarchy-shadowrun .item :is(a:hover, a.item-controls:hover i, a:hover label) {
+  color: var(--anarchy-color-highlight);
+  text-shadow: 0 0 4px var(--anarchy-tint-hover);
+}
+
+.style-anarchy-shadowrun .window-content {
+  background: var(--anarchy-background);
+  color: var(--anarchy-color-font);
+}
+
+.style-anarchy-shadowrun .window-content form.npc-sheet {
+  background: var(--anarchy-tint-npc);
+}
+
+.style-anarchy-shadowrun .vehicle-sheet .passport-img img {
+  background-color: var(--anarchy-background-item-img);
+}
+
+.style-anarchy-shadowrun .device-sheet .passport-img img {
+  background-color: var(--anarchy-background-item-img);
+}
+
+.style-anarchy-shadowrun .passport-detail {
+  box-shadow: 2px 2px 4px var(--anarchy-color-border);
+}
+
+.style-anarchy-shadowrun nav.sheet-tabs .sheet-tab:not(.active) {
+  color: var(--anarchy-color-controls);
+}
+
+.style-anarchy-shadowrun nav.sheet-tabs .sheet-tab.active {
+  background-color: var(--anarchy-shadow-section);
+  border-bottom: none !important;
+}
+
+.style-anarchy-shadowrun nav.sheet-tabs .sheet-tab {
+  border-top: 1px solid var(--anarchy-color-border-light);
+  border-left: 1px solid var(--anarchy-color-border-light);
+  border-right: 1px solid var(--anarchy-color-border-light);
+  box-shadow: var(--anarchy-shadow-section);
+}
+
+.style-anarchy-shadowrun :is(.section-group, .roll-dialog div.roll-parameters div.parameter-category) {
+  border-top: 1px solid var(--anarchy-color-border);
+  box-shadow: var(--anarchy-shadow-section);
+}
+
+.style-anarchy-shadowrun .attribute-box {
+  box-shadow: var(--anarchy-shadow-attribute);
+}
+
+.style-anarchy-shadowrun .attribute-box.anarchy-attribute {
+  background: var(--anarchy-background-attributes);
+}
+
+.style-anarchy-shadowrun .attribute-box.secondary-attribute {
+  background: var(--anarchy-background-secondary-attributes);
+}
+
+.style-anarchy-shadowrun .attribute-box input {
+  background: var(--anarchy-background-lighter);
+}
+
+.style-anarchy-shadowrun .anarchy-words input {
+  background: var(--anarchy-background-words);
+  border: 1px inset var(--anarchy-color-border);
+}
+
+.style-anarchy-shadowrun .items-group div.item {
+  background: var(--anarchy-background-item);
+  border: 1px solid var(--anarchy-color-border-light);
+  box-shadow: var(--anarchy-shadow-items-group);
+}
+
+/* Weapons lists */
+.style-anarchy-shadowrun .weapon-list .weapon-header {
+  background: var(--anarchy-background-item);
+}
+
+.style-anarchy-shadowrun .weapon-list .item:nth-child(even) {
+  background: var(--anarchy-tint-weapon-even);
+}
+
+.style-anarchy-shadowrun .weapon-list .item:nth-child(odd) {
+  background: var(--anarchy-tint-weapon-odd);
+}
+
+.style-anarchy-shadowrun .weapon-list .item:hover {
+  background: var(--anarchy-tint-weapon-hover);
+}
+
+.style-anarchy-shadowrun div.anarchy-shortcut-button img,
+.style-anarchy-shadowrun :is(div, li).item img {
+  background: var(--anarchy-background-item-img);
+}
+
+.style-anarchy-shadowrun .item.anarchy-quality.negative {
+  background: var(--anarchy-background-negative);
+}
+
+.style-anarchy-shadowrun .item.anarchy-quality.positive {
+  background: var(--anarchy-background-positive);
+}
+
+.style-anarchy-shadowrun :is(input, select, label, button) {
+  color: var(--anarchy-color-font);
+}
+
+.style-anarchy-shadowrun .window-content select option {
+  background: var(--anarchy-background);
+  color: var(--anarchy-color-font);
+}
+
+.style-anarchy-shadowrun .anarchy-button label {
+  background: var(--anarchy-background-button);
+  color: var(--anarchy-color-font);
+}
+
+.style-anarchy-shadowrun .anarchy-button {
+  background: var(--anarchy-background-button);
+  color: var(--anarchy-color-font);
+  border: 2px outset var(--anarchy-color-button-border);
+  box-shadow: var(--anarchy-shadow-anarchy-button);
+}
+
+.style-anarchy-shadowrun .anarchy-button:active {
+  border: 3px inset var(--anarchy-color-button-border);
+  position: relative;
+  top: -1px;
+  left: -1px;
+}
+
+.style-anarchy-shadowrun .tooltip .tooltip-roll-parameters {
+  background: var(--anarchy-background-tooltip);
+}
+
+
+
+.style-anarchy-shadowrun .anarchy-words:is(.anarchy-keywords, .anarchy-dispositions, .anarchy-cues) {
+  border: none;
+  background-color: var(--transparent);
+}
+
+.style-anarchy-shadowrun .anarchy-words:is(.anarchy-keywords, .anarchy-dispositions, .anarchy-cues) input {
+  border-color: var(--anarchy-color-border);
+}
+
+.style-anarchy-shadowrun a.favorite-control i {
+  color: var(--anarchy-color-text-hyperlink);
+}
+
+.style-anarchy-shadowrun a.view-mode-control i,
+.style-anarchy-shadowrun a.item-control i,
+.style-anarchy-shadowrun a.item-control img {
+  color: var(--anarchy-color-controls);
+}
+.style-anarchy-shadowrun a.item-control i.matrix-connectionMode-augmented {
+  color: var(--anarchy-color-controls-augmented);
+}
+.style-anarchy-shadowrun a.item-control i.matrix-connectionMode-virtual {
+  color: var(--anarchy-color-controls-virtual);
+}
+.style-anarchy-shadowrun a.item-control i.matrix-connectionMode-disconnected  {
+  color: var(--anarchy-color-controls-disconnected);
+}
+
+.style-anarchy-shadowrun :is(div.checkbar-root[data-monitor-code='edge'],
+  div.checkbar-root[data-monitor-code='credibility'],
+  div.checkbar-root[data-monitor-code='rumor']) a.click-checkbar-element[data-checked=true] i {
+  color: var(--anarchy-color-resource-checked);
+}
+
+.style-anarchy-shadowrun a.click-checkbar-element[data-checked=true] i {
+  color: var(--anarchy-color-monitor-checked);
+}
+
+.style-anarchy-shadowrun a.click-checkbar-element[data-checked=false] i {
+  color: var(--anarchy-color-unchecked);
+}
+
+.style-anarchy-shadowrun .roll-dialog div.roll-parameters div.parameter :is(select, input):disabled {
+  height: calc(100% - 2px);
+  border: 1px inset var(--anarchy-color-border-light);
+  text-align: center;
+}
+
+.style-anarchy-shadowrun .roll-dialog div.roll-parameters div.parameter :is(select, input):not(:disabled) {
+  height: calc(100% - 2px);
+  background-color: var(--anarchy-background-words);
+  border: 1px inset var(--anarchy-color-border);
+}
