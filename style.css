@@ -18,222 +18,6 @@
   height: var(--wrapper-padding);
   left: var(--wrapper-padding);
   right: var(--wrapper-padding);
-  border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-  top: 0px;
-}
-.wrapper-hexabox > .side.down {
-  height: var(--wrapper-padding);
-  left: var(--wrapper-padding);
-  right: var(--wrapper-padding);
-  border-bottom: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-  bottom: 0px;
-}
-.wrapper-hexabox > .side.left {
-  width: var(--wrapper-padding);
-  left: 0px;
-  border-left: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-  top: var(--wrapper-padding);
-  bottom: var(--wrapper-padding);
-}
-.wrapper-hexabox > .side.right {
-  width: var(--wrapper-padding);
-  right: 0px;
-  border-right: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-  top: var(--wrapper-padding);
-  bottom: var(--wrapper-padding);
-}
-.wrapper-hexabox > .angle {
-  width: 0px;
-  height: 0px;
-  position: absolute;
-}
-.wrapper-hexabox > .angle.tl {
-  top: 0;
-  left: 0;
-  border-top: var(--wrapper-padding) solid transparent;
-  border-right: var(--wrapper-padding) solid var(--wrapper-background-color);
-}
-.wrapper-hexabox > .angle.tl::before {
-  content: "";
-  position: absolute;
-  display: block;
-  border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-  width: calc(1.41 * var(--wrapper-padding));
-  left: 1px;
-  top: -1px;
-  transform-origin: bottom left;
-  transform: rotate(-45deg);
-}
-.wrapper-hexabox > .angle.tr {
-  top: 0;
-  right: 0;
-  border-top: var(--wrapper-padding) solid transparent;
-  border-left: var(--wrapper-padding) solid var(--wrapper-background-color);
-}
-.wrapper-hexabox > .angle.tr::before {
-  content: "";
-  position: absolute;
-  display: block;
-  border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-  width: calc(1.41 * var(--wrapper-padding));
-  left: 0px;
-  top: -2px;
-  transform-origin: bottom left;
-  transform: rotate(-135deg);
-}
-.wrapper-hexabox > .angle.br {
-  bottom: 0;
-  right: 0;
-  border-bottom: var(--wrapper-padding) solid transparent;
-  border-left: var(--wrapper-padding) solid var(--wrapper-background-color);
-}
-.wrapper-hexabox > .angle.br::before {
-  content: "";
-  position: absolute;
-  display: block;
-  border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-  width: calc(1.41 * var(--wrapper-padding));
-  top: -3px;
-  left: -2px;
-  transform-origin: bottom left;
-  transform: rotate(135deg);
-}
-.wrapper-hexabox > .angle.bl {
-  bottom: 0;
-  left: 0;
-  border-bottom: var(--wrapper-padding) solid transparent;
-  border-right: var(--wrapper-padding) solid var(--wrapper-background-color);
-}
-.wrapper-hexabox > .angle.bl::before {
-  content: "";
-  position: absolute;
-  display: block;
-  border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-  width: calc(1.41 * var(--wrapper-padding));
-  top: -2px;
-  left: 0px;
-  transform-origin: bottom left;
-  transform: rotate(45deg);
-}
-.wrapper-hexabox .mech-quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  align-items: center;
-}
-.wrapper-hexabox .mech-quick-actions .quick-action-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-.wrapper-hexabox .mech-quick-actions .quick-action-button[data-disabled=true] {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-.wrapper-hexabox .quick-actions-block .section-group-header {
-  margin-bottom: 0.25rem;
-}
-.wrapper-hexabox .quick-action-summary {
-  margin: 0.25rem 0 0.5rem 0;
-  font-size: var(--font-size-12);
-}
-.wrapper-hexabox .quick-action-summary .quick-action-line {
-  display: flex;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.wrapper-hexabox .quick-action-summary .quick-action-line.subtle {
-  color: var(--color-text-dark-secondary);
-}
-.wrapper-hexabox .quick-action-summary .tag {
-  background: var(--color-border-light-primary);
-  border: 1px solid var(--color-border-dark-primary);
-  border-radius: 3px;
-  padding: 0.05rem 0.35rem;
-  font-size: var(--font-size-11);
-  line-height: 1.2;
-}
-.wrapper-hexabox .life-modules .life-modules-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-.wrapper-hexabox .life-modules .life-module-line {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.wrapper-hexabox .life-modules .life-module-label {
-  min-width: 9rem;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-.wrapper-hexabox .life-modules .life-module-items {
-  flex: 1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-.wrapper-hexabox .life-modules .life-module {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.1rem 0.35rem;
-  border: 1px solid var(--color-border-light-highlight);
-  border-radius: 0.2rem;
-}
-.wrapper-hexabox .life-modules .life-module .life-module-name {
-  font-weight: bold;
-}
-.wrapper-hexabox .battlemech-sheet .mech-passport-row {
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-.wrapper-hexabox .mech-heat-block .heat-thresholds {
-  margin-top: 0.5rem;
-  border-top: 1px solid var(--color-border-light-highlight);
-  padding-top: 0.35rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-.wrapper-hexabox .mech-heat-block .heat-threshold-row {
-  display: flex;
-  justify-content: space-between;
-}
-.wrapper-hexabox .mech-heat-block .heat-status {
-  font-weight: 600;
-}
-.wrapper-hexabox .battlemech-hardpoints .anarchy-table,
-.wrapper-hexabox .battlemech-weapon-groups .anarchy-table,
-.wrapper-hexabox .battlemech-weapons-table.anarchy-table {
-  width: 100%;
-}
-.wrapper-hexabox .battlemech-hardpoints .empty-state,
-.wrapper-hexabox .battlemech-weapon-groups .empty-state,
-.wrapper-hexabox .battlemech-weapons-table .empty-state {
-  margin: 0.25rem 0;
-}
-.wrapper-hexabox .battlemech-weapon-groups .group-mountpoints {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-bottom: 0.35rem;
-}
-.wrapper-hexabox .battlemech-weapon-groups .weapon-list {
-  margin: 0;
-  padding-left: 1rem;
-}
-.wrapper-hexabox .battlemech-weapon-groups .missing-weapon {
-  color: var(--anarchy-color-warning, #b8860b);
-}
-.wrapper-hexabox .battlemech-weapons-table .item-controls {
-  white-space: nowrap;
-}
-
 .sheet .character-enhanced {
   --darkglass-color-font: #1f1b15 !important;
   --darkglass-background-attributes: white !important;
@@ -356,6 +140,15 @@
   font-weight: bold;
   padding: 0.35rem 0.4rem;
   width: 100%;
+}
+.sheet .character-enhanced header .name-attributes .identity-meta {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  align-items: stretch;
+  display: flex;
+  gap: 0.35rem;
+  font-weight: bold;
 }
 .sheet .character-enhanced header .name-attributes .attributes {
   background: transparent;
@@ -486,321 +279,84 @@
 .sheet .character-enhanced .section-owned,
 .sheet .character-enhanced .section-asset-modules {
   max-height: 1000px;
-  transition: max-height 400ms cubic-bezier(0.14, 0.87, 0.5, 0.97);
-}
-.sheet .character-enhanced .section-monitors:not(.wrapper),
-.sheet .character-enhanced .section-skills:not(.wrapper),
-.sheet .character-enhanced .section-roleplay:not(.wrapper),
-.sheet .character-enhanced .section-keywords:not(.wrapper),
-.sheet .character-enhanced .section-cues:not(.wrapper),
-.sheet .character-enhanced .section-dispositions:not(.wrapper),
-.sheet .character-enhanced .section-actions:not(.wrapper),
-.sheet .character-enhanced .section-qualities:not(.wrapper),
-.sheet .character-enhanced .section-equipments:not(.wrapper),
-.sheet .character-enhanced .section-owned:not(.wrapper),
-.sheet .character-enhanced .section-asset-modules:not(.wrapper) {
-  transition: max-height 400ms cubic-bezier(0.78, 0.32, 0.88, 0.38);
-  overflow: hidden;
-}
-.sheet .character-enhanced .section-monitors.closed,
-.sheet .character-enhanced .section-skills.closed,
-.sheet .character-enhanced .section-roleplay.closed,
-.sheet .character-enhanced .section-keywords.closed,
-.sheet .character-enhanced .section-cues.closed,
-.sheet .character-enhanced .section-dispositions.closed,
-.sheet .character-enhanced .section-actions.closed,
-.sheet .character-enhanced .section-qualities.closed,
-.sheet .character-enhanced .section-equipments.closed,
-.sheet .character-enhanced .section-owned.closed,
-.sheet .character-enhanced .section-asset-modules.closed {
-  max-height: 0px;
-}
-.sheet .character-enhanced .section-monitors.quote.closed,
-.sheet .character-enhanced .section-skills.quote.closed,
-.sheet .character-enhanced .section-roleplay.quote.closed,
-.sheet .character-enhanced .section-keywords.quote.closed,
-.sheet .character-enhanced .section-cues.quote.closed,
-.sheet .character-enhanced .section-dispositions.quote.closed,
-.sheet .character-enhanced .section-actions.quote.closed,
-.sheet .character-enhanced .section-qualities.quote.closed,
-.sheet .character-enhanced .section-equipments.quote.closed,
-.sheet .character-enhanced .section-owned.quote.closed,
-.sheet .character-enhanced .section-asset-modules.quote.closed {
-  max-height: 36px;
-}
-.sheet .character-enhanced .section-roleplay {
-  max-height: 300px;
-  transition: max-height 300ms ease-out;
-}
-.sheet .character-enhanced .section-roleplay:not(.wrapper) {
-  transition: max-height 300ms ease-out;
-  overflow: hidden;
-}
-.sheet .character-enhanced .click-section {
-  cursor: pointer;
-}
-.sheet .character-enhanced .actions {
-  background-color: #e3e4e6;
-  border-top: 2px solid black;
-  z-index: 0;
+#gm-manager {
   position: relative;
-  margin-left: -4px;
-  margin-right: -4px;
-  padding: 0 0rem 2rem 0rem;
-  box-shadow: var(--anarchy-shadow-section);
 }
-.sheet .character-enhanced .actions h2 {
-  --wrapper-padding: 19px;
-  --wrapper-background-color: #e3e4e6;
-  display: inline-block;
-  margin-top: -19px;
-  padding-bottom: 0px;
-  margin-bottom: 0px;
-}
-.sheet .character-enhanced .actions h2 .side.up {
-  box-shadow: var(--anarchy-shadow-section);
-}
-.sheet .character-enhanced .actions h2 .side.down,
-.sheet .character-enhanced .actions h2 .side.right,
-.sheet .character-enhanced .actions h2 .side.left,
-.sheet .character-enhanced .actions h2 .angle.br,
-.sheet .character-enhanced .actions h2 .angle.bl {
-  display: none;
-}
-.sheet .character-enhanced .actions h2 .content {
-  color: black;
-  font-size: 1.2em;
-  border-bottom: none;
-  text-transform: uppercase;
-  font-weight: bold;
-  font-family: "BebasNeue";
-  letter-spacing: 2px;
-  background-color: #e3e4e6;
-  transform: translateY(-14px);
-  display: flex;
-  align-content: center;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-}
-.sheet .character-enhanced .actions h2 .content a {
-  text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
-  display: flex;
-  align-items: center;
-  align-content: center;
-  justify-content: center;
-}
-.sheet .character-enhanced .actions .action-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 0 16px;
-}
-@container (max-width:500px) {
-  .sheet .character-enhanced .actions .action-list {
-    grid-template-columns: 1fr;
-  }
-}
-.sheet .character-enhanced .actions .action-list .item-list > .content {
-  padding: 8px;
-  display: grid;
-  gap: 12px;
-  grid-template-columns: 1fr 1fr;
-  background-color: white;
-}
-.sheet .character-enhanced .actions .action-list .item-list > .content a {
-  background-color: transparent;
-  --wrapper-background-color: #f4c000;
-  --wrapper-padding: 8px;
-  color: white;
-  font-size: 18px;
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-  transition: 200ms;
-}
-.sheet .character-enhanced .actions .action-list .item-list > .content a:hover {
-  transform: scale(1.05);
-}
-.sheet .character-enhanced .actions .action-list .item-list > .content a > .content {
-  padding: 0px 8px 0px 24px;
-  font-size: 16px;
-  align-items: center;
-  justify-content: center;
-  display: grid;
-}
-.sheet .character-enhanced .actions .action-list .item-list > .content a > .content .attribute-button-icon {
-  --wrapper-background-color: #f4c000;
+#gm-manager .gm-manager-resize-handle {
   position: absolute;
-  top: -5px;
-  left: -5px;
-  width: 36px;
-}
-.sheet .character-enhanced .actions .action-list .item-list > .content a > .content label {
-  display: block;
-  text-align: center;
-  font-size: 14px;
-  text-shadow: none;
-  color: black;
-  cursor: pointer;
-}
-.sheet .character-enhanced .actions .action-list .weapons .content .title {
-  margin-top: 0px;
-  padding: 4px;
-  font-family: "BebasNeue";
-  font-size: 18px;
-  letter-spacing: 1px;
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-  color: white;
-}
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0 2px;
-}
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon {
-  padding: 6px;
-  transition: 200ms;
-  background-color: transparent;
-  --wrapper-border-color: black;
-}
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon:hover {
-  transform: scale(1.01);
-}
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon .content {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 50px 1fr;
-  cursor: pointer;
-}
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon .content .item-controls {
-  position: absolute;
+  right: 4px;
   bottom: 4px;
-  right: 6px;
-  text-align: center;
+  width: 14px;
+  height: 14px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.25) 50%), linear-gradient(45deg, transparent 50%, rgba(0, 0, 0, 0.2) 50%);
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
 }
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon .content .weapon-name {
-  font-family: "BebasNeue";
-  font-size: 16px;
-  letter-spacing: 0px;
+#gm-manager header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon .content .weapon-desc {
-  font-size: 12px;
-  padding: 2px 0;
+#gm-manager header button.gm-manager-hide-button {
+  width: 32px;
 }
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon .content .weapon-desc span p {
-  margin: 0;
+
+.chat-tools {
+  display: flex;
+  z-index: 1000;
+  flex: 0 0 28px;
+  margin: 0 0px 4px 8px;
+  width: calc(100% - 16px);
 }
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon .content .weapon-img {
-  width: 42px !important;
+
+/* Sheet layout helpers to organize actor templates into stable grids */
+.sheet-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 10px;
+  align-items: start;
 }
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon .content .weapon-img .item-img {
-  width: 42px !important;
-  height: 42px !important;
+
+.sheet-layout.battlemech-layout {
+  grid-template-columns: 1.4fr 1fr;
 }
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon .content .weapon-info {
+
+.sheet-layout .sheet-column {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 10px;
 }
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon .content .weapon-info .weapon-stats {
+
+.sheet-layout .section-group,
+.sheet-layout .section-attributes,
+.sheet-layout .anarchy-block,
+.sheet-layout .items-group {
+  width: 100%;
+}
+
+.sheet-layout .section-group,
+.sheet-layout .section-attributes {
+  display: block;
+  margin-bottom: 0;
+}
+
+.sheet-layout .anarchy-attributes {
   display: grid;
-  flex-direction: row;
-  grid-template-columns: 1fr 1fr;
-}
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon .content .weapon-info .weapon-stats .weapon-range {
-  text-wrap: nowrap;
-  font-family: "BebasNeue";
-}
-.sheet .character-enhanced .actions .action-list .weapons .content .weapon-list .weapon .content .weapon-info .weapon-stats .weapon-dmg {
-  font-family: "BebasNeue";
-}
-.sheet .character-enhanced .skills {
-  background-color: #fec81c;
-  border-top: 2px solid black;
-  z-index: 0;
-  position: relative;
-  margin-left: -4px;
-  margin-right: -4px;
-  padding: 0 0rem 2rem 0rem;
-  box-shadow: var(--anarchy-shadow-section);
-}
-.sheet .character-enhanced .skills h2 {
-  --wrapper-padding: 19px;
-  --wrapper-background-color: #fec81c;
-  display: inline-block;
-  margin-top: -19px;
-  padding-bottom: 0px;
-  margin-bottom: 0px;
-}
-.sheet .character-enhanced .skills h2 .side.up {
-  box-shadow: var(--anarchy-shadow-section);
-}
-.sheet .character-enhanced .skills h2 .side.down,
-.sheet .character-enhanced .skills h2 .side.right,
-.sheet .character-enhanced .skills h2 .side.left,
-.sheet .character-enhanced .skills h2 .angle.br,
-.sheet .character-enhanced .skills h2 .angle.bl {
-  display: none;
-}
-.sheet .character-enhanced .skills h2 .content {
-  color: white;
-  font-size: 1.2em;
-  border-bottom: none;
-  text-transform: uppercase;
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-  font-weight: bold;
-  font-family: "BebasNeue";
-  letter-spacing: 2px;
-  background-color: #fec81c;
-  transform: translateY(-14px);
-  display: flex;
-  align-content: center;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-}
-.sheet .character-enhanced .skills h2 .content a {
-  text-shadow: -1px 0 transparent, 1px -1px 0 transparent, -1px 1px 0 transparent, 1px 1px 0 transparent;
-  display: flex;
-  align-items: center;
-  align-content: center;
-  justify-content: center;
-}
-.sheet .character-enhanced .skills .item-list {
-  overflow: auto;
-  margin-bottom: 16px;
-  padding: 1rem 1rem 0 1rem;
-  margin-top: 0rem;
-  gap: 1rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-}
-.sheet .character-enhanced .skills .item-list .anarchy-skill {
-  --wrapper-padding: 12px;
-}
-.sheet .character-enhanced .skills .item-list .anarchy-skill .content {
-  max-width: none;
-  display: grid;
-  flex-direction: row;
-  grid-template-columns: 46px 1fr;
-}
-.sheet .character-enhanced .skills .item-list .anarchy-skill .content .skill-img {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 6px;
 }
-.sheet .character-enhanced .skills .item-list .anarchy-skill .content .skill-img .anarchy-img {
-  width: 46px;
-  height: 46px;
+
+.word-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.2fr 1fr;
+  gap: 8px;
 }
-.sheet .character-enhanced .skills .item-list .anarchy-skill .content .skill-img .item-controls {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-}
-.sheet .character-enhanced .skills .item-list .anarchy-skill .content .skill-txt {
-  padding: 0px 16px;
+
+.stacked-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 8px;
 }
 .sheet .character-enhanced .skills .item-list .anarchy-skill .content .skill-txt .title {
   font-family: "BebasNeue";
