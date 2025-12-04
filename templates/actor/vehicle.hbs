@@ -25,26 +25,35 @@
     </div>
   </header>
   <section class="sheet-body">
-    <div class="section-attributes anarchy-attributes">
-      {{> "systems/mwd/templates/actor/vehicle/vehicle-attributes.hbs"}}
-    </div>
-    <div class="section-group monitors-row">
-      <div class="anarchy-block">
-      {{> "systems/mwd/templates/monitors/structure.hbs"}}
+    <div class="sheet-layout vehicle-layout">
+      <div class="sheet-column">
+        <div class="section-attributes anarchy-attributes anarchy-block">
+          {{> "systems/mwd/templates/actor/vehicle/vehicle-attributes.hbs"}}
+        </div>
+
+        <div class="vehicle-monitor-grid">
+          <div class="anarchy-block">
+          {{> "systems/mwd/templates/monitors/structure.hbs"}}
+          </div>
+          <div class="anarchy-block">
+          {{> "systems/mwd/templates/monitors/armor.hbs"}}
+          </div>
+        </div>
+
+        <div class="anarchy-block">
+        {{> "systems/mwd/templates/actor/npc-parts/asset-modules.hbs"}}
+        </div>
       </div>
-      <div class="anarchy-block">
-      {{> "systems/mwd/templates/monitors/armor.hbs"}}
+
+      <div class="sheet-column sidebar">
+        <div class="anarchy-block">
+        {{> "systems/mwd/templates/actor/vehicle/vehicle-weapons.hbs"}}
+        </div>
+        <div class="anarchy-block">
+          {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
+          {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
+        </div>
       </div>
-    </div>
-    <div class="section-group items-group">
-    {{> "systems/mwd/templates/actor/npc-parts/asset-modules.hbs"}}
-    </div>
-    <div class="section-group items-group">
-    {{> "systems/mwd/templates/actor/vehicle/vehicle-weapons.hbs"}}
-    </div>
-    <div class="anarchy-block">
-      {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
-      {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
     </div>
   </section>
 </form>

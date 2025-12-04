@@ -31,80 +31,91 @@
     </div>
   </header>
   <section class="sheet-body">
-    <div class="section-attributes anarchy-attributes">
-      {{> "systems/mwd/templates/actor/parts/attributes.hbs"}}
-    </div>
-    <div class="section-group anarchy-words-section">
-      <div class="anarchy-words anarchy-keywords">
-      {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='keywords' values=system.keywords}}
-      </div>
-      <div class="anarchy-words anarchy-cues">
-      {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='cues' values=system.cues}}
-      </div>
-      <div class="anarchy-words anarchy-dispositions">
-      {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='dispositions' values=system.dispositions}}
-      </div>
-    </div>
-    <div class="section-group items-group">
-    {{> "systems/mwd/templates/actor/parts/skills.hbs"}}
-    </div>
-    <div class="section-group items-group">
-    {{> "systems/mwd/templates/actor/parts/asset-modules.hbs"}}
-    </div>
-    <div class="section-group items-group">
-    {{> "systems/mwd/templates/actor/parts/qualities.hbs"}}
-    </div>
-    <div class="section-group items-group">
-    {{> "systems/mwd/templates/actor/parts/weapons.hbs"}}
-    </div>
-    <div class="section-group monitors-row">
-      <div class="anarchy-block">
-        {{> "systems/mwd/templates/monitors/armor.hbs"}}
-      </div>
-      <div class="anarchy-block">
-        {{> "systems/mwd/templates/monitors/physical.hbs"}}
-      </div>
-      <div class="anarchy-block">
-        {{> "systems/mwd/templates/monitors/fatigue.hbs"}}
-      </div>
-      <div class="anarchy-block flexcol edge-pools">
-        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='grit'}}
-        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='insight'}}
-      </div>
-      <div class="anarchy-block flexcol edge-pools">
-        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='rumor'}}
-        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='legend'}}
-      </div>
-      <div class="anarchy-block flexcol edge-pools">
-        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='credibility'}}
-        {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='chaos'}}
-      </div>
-      <div class="anarchy-block flexcol">
-        {{> "systems/mwd/templates/monitors/anarchy-actor.hbs"}}
-      </div>
-    </div>
-    <div class="section-group items-group">
-    {{> "systems/mwd/templates/actor/parts/cyberdecks.hbs"}}
-    </div>
-    <div class="section-group">
-      <div class="items-group third-width">
-      {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
-      {{> "systems/mwd/templates/actor/parts/gears.hbs"}}
-      </div>
-      <div class="items-group third-width">
-      {{> "systems/mwd/templates/actor/parts/contacts.hbs"}}
-      </div>
-      <div class="items-group third-width">
-      </div>
-    </div>
+    <div class="sheet-layout character-layout">
+      <div class="sheet-column">
+        <div class="section-attributes anarchy-attributes anarchy-block">
+          {{> "systems/mwd/templates/actor/parts/attributes.hbs"}}
+        </div>
 
-    <div class="anarchy-block">
-      {{> 'systems/mwd/templates/actor/parts/life-modules.hbs'}}
-    </div>
+        <div class="anarchy-block word-grid">
+          <div class="anarchy-words anarchy-keywords">
+          {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='keywords' values=system.keywords}}
+          </div>
+          <div class="anarchy-words anarchy-cues">
+          {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='cues' values=system.cues}}
+          </div>
+          <div class="anarchy-words anarchy-dispositions">
+          {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='dispositions' values=system.dispositions}}
+          </div>
+        </div>
 
-    <div class="anarchy-block">
-      {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
-      {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
+        <div class="stacked-grid">
+          <div class="anarchy-block">
+          {{> "systems/mwd/templates/actor/parts/skills.hbs"}}
+          </div>
+          <div class="anarchy-block">
+          {{> "systems/mwd/templates/actor/parts/asset-modules.hbs"}}
+          </div>
+          <div class="anarchy-block">
+          {{> "systems/mwd/templates/actor/parts/qualities.hbs"}}
+          </div>
+          <div class="anarchy-block">
+          {{> "systems/mwd/templates/actor/parts/weapons.hbs"}}
+          </div>
+        </div>
+
+        <div class="stacked-grid tertiary-grid">
+          <div class="anarchy-block">
+          {{> "systems/mwd/templates/actor/parts/cyberdecks.hbs"}}
+          </div>
+          <div class="anarchy-block">
+          {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
+          </div>
+          <div class="anarchy-block">
+          {{> "systems/mwd/templates/actor/parts/gears.hbs"}}
+          </div>
+          <div class="anarchy-block">
+          {{> "systems/mwd/templates/actor/parts/contacts.hbs"}}
+          </div>
+          <div class="anarchy-block">
+          {{> 'systems/mwd/templates/actor/parts/life-modules.hbs'}}
+          </div>
+        </div>
+
+        <div class="anarchy-block">
+          {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
+          {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
+        </div>
+      </div>
+
+      <div class="sheet-column sidebar">
+        <div class="character-monitor-grid">
+          <div class="anarchy-block">
+            {{> "systems/mwd/templates/monitors/armor.hbs"}}
+          </div>
+          <div class="anarchy-block">
+            {{> "systems/mwd/templates/monitors/physical.hbs"}}
+          </div>
+          <div class="anarchy-block">
+            {{> "systems/mwd/templates/monitors/fatigue.hbs"}}
+          </div>
+          <div class="anarchy-block flexcol edge-pools">
+            {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='grit'}}
+            {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='insight'}}
+          </div>
+          <div class="anarchy-block flexcol edge-pools">
+            {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='rumor'}}
+            {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='legend'}}
+          </div>
+          <div class="anarchy-block flexcol edge-pools">
+            {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='credibility'}}
+            {{> "systems/mwd/templates/monitors/edge-pool.hbs" code='chaos'}}
+          </div>
+          <div class="anarchy-block flexcol">
+            {{> "systems/mwd/templates/monitors/anarchy-actor.hbs"}}
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </form>
