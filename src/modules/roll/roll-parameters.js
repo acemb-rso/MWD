@@ -2,7 +2,6 @@ import { ANARCHY } from "../config.js";
 import { ANARCHY_SYSTEM, LOG_HEAD, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { Enums } from "../enums.js";
 import { ANARCHY_HOOKS, HooksManager } from "../hooks-manager.js";
-import { MATRIX } from "../matrix-helper.js";
 import { Misc } from "../misc.js";
 import { Modifiers } from "../modifiers/modifiers.js";
 
@@ -16,7 +15,6 @@ export const ROLL_PARAMETER_CATEGORY = {
   rerollForced: 'rerollForced',
   successReroll: 'successReroll',
   glitch: 'glitch',
-  drain: 'drain',
   edge: 'edge',
   risk: 'risk',
   opponentPool: 'opponentPool',
@@ -199,29 +197,6 @@ const DEFAULT_ROLL_PARAMETERS = [
     }
   },
   // Drain
-  {
-    code: 'drain',
-    options: {
-      flags: { editDice: true, editable: true, forceDisplay: true, },
-      order: 40, category: ROLL_PARAMETER_CATEGORY.drain,
-      labelkey: ANARCHY.common.roll.modifiers.drain,
-      hbsTemplateRoll: `${TEMPLATES_PATH}/roll/parts/input-numeric.hbs`,
-      min: 0, max: 6
-    },
-    condition: context => (context.mode == 'skill' || context.mode == 'weapon') && context.skill?.system.hasDrain,
-    factory: context => {
-      return {
-        value: context.mode == 'weapon' && context.weapon.hasDrain ? context.weapon.system.drain : 1
-      }
-    }
-  },
-  // glitch
-  {
-    code: 'glitch',
-    options: {
-      flags: { editDice: true, editable: true, forceDisplay: true, },
-      order: 50, category: ROLL_PARAMETER_CATEGORY.glitch,
-      labelkey: ANARCHY.common.roll.modifiers.glitch,
       hbsTemplateRoll: `${TEMPLATES_PATH}/roll/parts/input-numeric.hbs`,
       hbsTemplateChat: `${TEMPLATES_PATH}/chat/parts/glitch.hbs`,
       min: 0, max: 5

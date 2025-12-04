@@ -10,9 +10,36 @@ export class CharacterActorSheet extends CharacterBaseSheet {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      width: 720,
-      height: 700,
+      width: 1100,
+      height: 900,
     });
+  }
+
+  activateListeners(html) {
+    super.activateListeners(html);
+
+    const actorId = this.actor._id;
+    html.find('.click-section').on("click", function () {
+      const sectionClass = ($(this).data('class'));
+      html.find(`.${sectionClass}`).toggleClass('closed');
+      localStorage.setItem(`${actorId}-${sectionClass}`, html.find(`.${sectionClass}`).hasClass('closed') ? 'closed' : null);
+    });
+  }
+
+  static ifTabClosed(id, sectionName, option) {
+    const isTabClosed = localStorage.getItem(`${id}-section-${sectionName}`) === "closed";
+    if (isTabClosed) {
+      return option.fn(this);
+    }
+    return option.inverse(this);
+  }
+
+  static actorTabClosed(id, sectionName, option) {
+    const isTabClosed = localStorage.getItem(`${id}-section-${sectionName}`) === "closed";
+    if (isTabClosed) {
+      return 'closed'
+    }
+    return ''
   }
 
 }

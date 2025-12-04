@@ -1,0 +1,49 @@
+<form class="anarchy-dialog roll-dialog">
+  <div class="flexrow">
+    <div class="column-images">
+      <img class="anarchy-img actor-img" src="{{actor.img}}" alt="{{actor.name}}" data-tooltip="{{actor.name}}"/>
+    </div>
+    <div class="roll-parameters">
+      <div class="parameter">
+        <label class="parameter-label">
+          {{localize celebrity.labelkey}}
+        </label>
+        <label class="parameter-value">
+          {{celebrity.value}}
+        </label>
+      </div>
+      <div class="parameter">
+        <label class="parameter-label">
+          <span>
+            {{localize modifiers.labelkey}}
+          </span>
+          {{#if modifiers.sources}}
+          <span class="{{#if modifiers.sources}} tooltip tooltip-dotted{{/if}}">
+            (...)
+            <div class="tooltiptext tooltip-roll-parameters">
+              {{#each modifiers.sources as |source|}}
+                <div class="parameter">
+                  {{source.item.name}}: {{source.modifier.value}} {{#if source.modifier.condition}}({{source.modifier.condition}}){{/if}}
+                </div>
+              {{/each}}
+            </div>
+          </span>
+          {{/if}}
+        </label>
+        <label class="parameter-value info-value">
+          {{numberFormat modifiers.value decimals=0 sign=false}}
+        </label>
+      </div>
+      <div class="parameter">
+        <label class="parameter-label">
+          <span>
+            {{localize other.labelkey}}
+          </span>
+        </label>
+        <input class="parameter-value info-value type-numeric input-celebrity-other"
+          type="number" data-dtype="Number" maxlength="2" 
+          min="-9" max="9" value="{{other.value}}"/>
+      </div>
+    </div>
+  </div>
+</form>

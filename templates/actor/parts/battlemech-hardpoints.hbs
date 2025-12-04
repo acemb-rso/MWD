@@ -1,0 +1,8 @@
+<div class="section-group column">
+  <h2 class="section-group-header">{{localize 'ANARCHY.actor.battlemech.hardpoints'}}</h2>
+  <div class="items-group-list">
+    {{#each system.hardpoints as |hardpoint key|}}
+    <div class="item"><strong>{{key}}:</strong> {{hardpoint}}</div>
+    {{/each}}
+  </div>
+</div>

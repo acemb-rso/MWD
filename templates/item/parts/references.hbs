@@ -1,0 +1,36 @@
+  <div class="form-group">
+    <label for="sourceReference">{{localize 'ANARCHY.common.sourceReference'}} </label>
+    <input class="item-field-value" type="text" data-dtype="String"
+        name="system.sourceReference" value="{{system.sourceReference}}" 
+        placeholder="{{localize 'ANARCHY.common.sourceReferenceHelp'}}"
+    />
+  </div>
+  <div class="section-group form-group">
+    <div class="flexcol">
+      <span><label>{{localize 'ANARCHY.common.description'}}</label></span>
+      <div class="editor">
+        {{editor
+          system.description
+          target="system.description"
+          owner=options.owner
+          button=true
+          editable=options.editable}}
+      </div>
+    </div>
+  </div>
+
+{{#if options.isGM}}
+  <div class="section-group form-group">
+    <div class="flexcol">
+      <span><label>{{localize 'ANARCHY.common.gmnotes'}}</label></span>
+      <div class="editor">
+        {{editor
+          system.gmnotes
+          target="system.gmnotes"
+          owner=options.owner
+          button=true
+          editable=options.editable}}
+      </div>
+    </div>
+  </div>
+{{/if}}

@@ -1,0 +1,11 @@
+<div class="define-item-type" data-item-type="lifeModule">
+  <h2 class="section-group-header">
+    {{localize 'ANARCHY.itemType.plural.lifeModule'}}
+    {{> 'systems/mwd/templates/common/item-control-add.hbs' itemType='lifeModule'}}
+  </h2>
+  <div class="items-group-list">
+    {{#each items.lifeModule as |lifeModule|}}
+    {{> "systems/mwd/templates/actor/parts/life-module.hbs" lifeModule}}
+    {{/each}}
+  </div>
+</div>

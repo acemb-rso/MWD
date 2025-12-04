@@ -1,5 +1,5 @@
 import { AnarchyBaseActor } from "./actor/base-actor.js";
-import { CharacterEnhancedSheet } from "./actor/character-enhanced-sheet.js";
+import { CharacterActorSheet } from "./actor/character-sheet.js";
 import { Damage } from "./damage.js";
 import { Enums } from "./enums.js";
 import { Grammar } from "./grammar.js";
@@ -25,7 +25,6 @@ const HBS_PARTIAL_TEMPLATES = [
 
   // character
   'systems/mwd/templates/actor/character/description.hbs',
-  'systems/mwd/templates/actor/character/karma.hbs',
   'systems/mwd/templates/actor/character/social-celebrity.hbs',
   // character parts
   'systems/mwd/templates/actor/character-limited.hbs',
@@ -37,7 +36,6 @@ const HBS_PARTIAL_TEMPLATES = [
   // character enhanced
   'systems/mwd/templates/actor/character-enhanced/attributes.hbs',
   'systems/mwd/templates/actor/character-enhanced/attribute.hbs',
-  'systems/mwd/templates/actor/character-enhanced/karma.hbs',
   'systems/mwd/templates/actor/character-enhanced/hexabox.hbs',
   'systems/mwd/templates/actor/character-enhanced/words.hbs',
   'systems/mwd/templates/actor/character-enhanced/skills.hbs',
@@ -61,8 +59,6 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/actor/character-enhanced/attributebuttons.hbs',
   'systems/mwd/templates/actor/character-enhanced/gears.hbs',
   'systems/mwd/templates/actor/character-enhanced/gear.hbs',
-  'systems/mwd/templates/actor/character-enhanced/cyberdecks.hbs',
-  'systems/mwd/templates/actor/character-enhanced/cyberdeck.hbs',
   'systems/mwd/templates/actor/character-enhanced/weapons.hbs',
   'systems/mwd/templates/actor/character-enhanced/weapon.hbs',
   'systems/mwd/templates/actor/character-enhanced/damage-code.hbs',
@@ -92,8 +88,6 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/actor/parts/life-module.hbs',
   'systems/mwd/templates/actor/parts/life-modules.hbs',
   'systems/mwd/templates/actor/parts/item-attribute.hbs',
-  'systems/mwd/templates/actor/parts/cyberdeck.hbs',
-  'systems/mwd/templates/actor/parts/cyberdecks.hbs',
   'systems/mwd/templates/actor/parts/skill.hbs',
   'systems/mwd/templates/actor/parts/skills.hbs',
   'systems/mwd/templates/actor/parts/mech-quick-actions.hbs',
@@ -140,7 +134,6 @@ const HBS_PARTIAL_TEMPLATES = [
   'systems/mwd/templates/common/item-control-add.hbs',
   'systems/mwd/templates/common/item-control-activate.hbs',
   'systems/mwd/templates/common/item-controls.hbs',
-  'systems/mwd/templates/common/control-connectionMode.hbs',
   'systems/mwd/templates/common/actor-reference.hbs',
   // dialogs
   'systems/mwd/templates/dialog/roll-modifier.hbs',
@@ -220,8 +213,8 @@ export class HandlebarsManager {
     Handlebars.registerHelper('sortAttributeButton', AnarchyBaseActor.sortAttributeButton);
     Handlebars.registerHelper('range', function (min, max) { let array = []; for (let i = min; i <= max; i++) { array.push(i); } return array; });
     Handlebars.registerHelper('ifGte', function (value, threshold, options) { if (value >= threshold) { return options.fn(this); } else { return options.inverse(this); } });
-    Handlebars.registerHelper('ifTabClosed', CharacterEnhancedSheet.ifTabClosed);
-    Handlebars.registerHelper('actorTabClosed', CharacterEnhancedSheet.actorTabClosed);
+    Handlebars.registerHelper('ifTabClosed', CharacterActorSheet.ifTabClosed);
+    Handlebars.registerHelper('actorTabClosed', CharacterActorSheet.actorTabClosed);
     Handlebars.registerHelper('length', function(context) { return context?.length || 0; }); }
 
   static hbsForLoop(start, end, options) {

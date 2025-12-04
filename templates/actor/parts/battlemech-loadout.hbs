@@ -1,0 +1,8 @@
+<div class="section-group column">
+  <h2 class="section-group-header">{{localize 'ANARCHY.actor.battlemech.loadout'}}</h2>
+  <div class="items-group-list">
+    {{#each system.loadout as |slot key|}}
+    <div class="item"><strong>{{key}}:</strong> {{slot}}</div>
+    {{/each}}
+  </div>
+</div>

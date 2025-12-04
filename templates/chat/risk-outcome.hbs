@@ -1,0 +1,30 @@
+{{!-- Anarchy used and maybe glitch --}}
+{{#if modifiers.anarchyRisk.used}}
+  <div class="risk-glitch risk-glitch-{{~#if (eq roll.outcome 'mixed' )}}prowess
+  {{else}}{{roll.outcome}}{{/if~}}">
+    {{localize ANARCHY.common.roll.modifiers.anarchyRisk}}:
+    <span class="risk-glitch-dice {{roll.outcome}}">
+      {{{iconD6 roll.subrolls.risk.terms.[0].results.[0].result}}}
+    </span>
+    {{#unless (eq roll.outcome 'mixed')}}
+      {{localize (concat 'ANARCHY.common.roll.risk.' roll.outcome)}}
+    {{/unless}}
+  </div>
+{{/if}}
+{{#if modifiers.glitch.used}}
+  <div class="risk-glitch risk-glitch-{{~#if (eq roll.outcome 'prowess' )}}nothing
+  {{else if (eq roll.outcome 'mixed' )}}glitch
+  {{else}}{{roll.outcome}}{{/if~}}">
+    {{localize ANARCHY.common.roll.modifiers.glitch}}:
+    {{#each roll.subrolls.glitch.terms.[0].results as |dice|}}
+      <span class="risk-glitch-dice {{roll.outcome}}">
+        {{{iconD6 dice.result}}}
+      </span>
+    {{/each}}
+    {{#unless (eq roll.outcome 'prowess')}}
+      {{localize (concat 'ANARCHY.common.roll.risk.' roll.outcome)}}
+    {{/unless}}
+  </div>
+{{/if}}
+
+

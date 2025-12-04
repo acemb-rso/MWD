@@ -142,11 +142,6 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       await item.update({ 'system.inactive': !inactive })
     })
 
-    jqHtml.find('a.click-matrix-connectionMode').click(async event => {
-      event.stopPropagation();
-      await this.actor.nextConnectionMode(this.getEventItem(event))
-    })
-
     jqHtml.find('.click-item-delete').click(async event => {
       event.stopPropagation();
       const item = this.getEventItem(event);
