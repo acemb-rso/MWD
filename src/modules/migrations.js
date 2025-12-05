@@ -1,8 +1,9 @@
-import { ANARCHY_SYSTEM, LOG_HEAD, SYSTEM_NAME, TEMPLATE } from "./constants.js";
+import { ANARCHY_SYSTEM, LOG_HEAD, SYSTEM_NAME, SYSTEM_SCOPE, TEMPLATE } from "./constants.js";
 import { ANARCHY_SKILLS } from "./skills.js";
 import { ANARCHY_HOOKS, HooksManager } from "./hooks-manager.js";
 import { Misc } from "./misc.js";
 import { AttributeActions } from "./attribute-actions.js";
+import { MESSAGE_DATA } from "./chat/chat-manager.js";
 
 export const DECLARE_MIGRATIONS = 'anarchy-declareMigration';
 const SYSTEM_MIGRATION_CURRENT_VERSION = "systemMigrationVersion";
