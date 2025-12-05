@@ -12,6 +12,10 @@ const { loadTemplates } = foundry.applications.handlebars;
 
 const HBS_PARTIAL_TEMPLATES = [
   `${TEMPLATES_PATH}/app/gm-anarchy.hbs`,
+  `${TEMPLATES_PATH}/monitors/anarchy.hbs`,
+  `${TEMPLATES_PATH}/monitors/anarchy-actor.hbs`,
+  `${TEMPLATES_PATH}/monitors/anarchy-scene.hbs`,
+  `${TEMPLATES_PATH}/actor/parts/passport-details.hbs`,
 ];
 
 export class HandlebarsManager {
