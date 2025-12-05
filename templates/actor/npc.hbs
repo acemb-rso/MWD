@@ -1,13 +1,183 @@
-<form class="{{cssClass}} flexcol" autocomplete="off">
+<form class="{{options.cssClass}} npc-sheet sra-enhanced" autocomplete="off">
   <header class="sheet-header">
-    <div class="character-identity flexrow">
-      <div class="portrait">
-        <img class="profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}" />
+    <div class="npc-header grid grid-2col">
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" type="text" name="name" value="{{data.name}}" {{#if options.viewMode}}disabled{{/if}} />
       </div>
-      <div class="identity-fields flexcol">
-        <label>{{localize 'Name'}}</label>
-        <input type="text" name="name" value="{{data.name}}" />
+      <div class="field">
+        <label for="system.role">Role / Archetype</label>
+        <input id="system.role" type="text" name="system.role" value="{{system.role}}" {{#if options.viewMode}}disabled{{/if}} />
       </div>
     </div>
+    <nav class="tabs npc-tabs" data-group="primary">
+      <a data-tab="npc">NPC</a>
+      <a data-tab="biography">Notes</a>
+    </nav>
   </header>
+
+  <section class="sheet-body npc-body">
+    <div class="tab" data-group="primary" data-tab="npc">
+      <section class="npc-section">
+        <h3>Attributes</h3>
+        <div class="attributes-row">
+          <div class="attribute">
+            <label for="system.attributes.strength.value">Strength</label>
+            <input id="system.attributes.strength.value" type="number" name="system.attributes.strength.value" value="{{system.attributes.strength.value}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+          <div class="attribute">
+            <label for="system.attributes.reflexes.value">Reflexes</label>
+            <input id="system.attributes.reflexes.value" type="number" name="system.attributes.reflexes.value" value="{{system.attributes.reflexes.value}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+          <div class="attribute">
+            <label for="system.attributes.intelligence.value">Intelligence</label>
+            <input id="system.attributes.intelligence.value" type="number" name="system.attributes.intelligence.value" value="{{system.attributes.intelligence.value}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+          <div class="attribute">
+            <label for="system.attributes.willpower.value">Willpower</label>
+            <input id="system.attributes.willpower.value" type="number" name="system.attributes.willpower.value" value="{{system.attributes.willpower.value}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+          <div class="attribute">
+            <label for="system.attributes.charisma.value">Charisma</label>
+            <input id="system.attributes.charisma.value" type="number" name="system.attributes.charisma.value" value="{{system.attributes.charisma.value}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+          <div class="attribute">
+            <label for="system.attributes.edge.value">Edge (Cap)</label>
+            <input id="system.attributes.edge.value" type="number" name="system.attributes.edge.value" value="{{system.attributes.edge.value}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+        </div>
+      </section>
+
+      <section class="npc-section define-item-type" data-item-type="quality">
+        <div class="section-header">
+          <h3>Traits</h3>
+          {{#unless options.viewMode}}
+          <button type="button" class="click-item-add" data-tooltip="Add Trait">{{{iconFA 'fas fa-plus'}}}</button>
+          {{/unless}}
+        </div>
+        <div class="item-list">
+          {{#each npcItems.traits as |trait|}}
+          <div class="item" data-item-id="{{trait.id}}" data-item-type="quality">
+            <span class="item-name">{{trait.name}}</span>
+            <div class="item-controls">
+              {{#unless @root.options.viewMode}}
+              <button type="button" class="item-control click-item-edit" data-tooltip="Edit">{{{iconFA 'fas fa-edit'}}}</button>
+              <button type="button" class="item-control click-item-delete" data-tooltip="Delete">{{{iconFA 'fas fa-trash'}}}</button>
+              {{/unless}}
+            </div>
+          </div>
+          {{else}}
+          <p class="empty-note">No traits assigned.</p>
+          {{/each}}
+        </div>
+      </section>
+
+      <section class="npc-section monitors">
+        <h3>Condition &amp; Edge</h3>
+        <div class="grid grid-2col">
+          <div class="monitor-column">
+            <h4>Condition Monitors</h4>
+            <div class="monitor-row">
+              <div class="monitor-label">Physical</div>
+              {{> "systems/mwd/templates/actor/character-enhanced/checkbar.hbs" code='physical' value=system.monitors.physical.value max=system.monitors.physical.max rowlength=3 }}
+            </div>
+            <div class="monitor-row">
+              <div class="monitor-label">Fatigue</div>
+              {{> "systems/mwd/templates/actor/character-enhanced/checkbar.hbs" code='fatigue' value=system.monitors.fatigue.value max=system.monitors.fatigue.max rowlength=3 }}
+            </div>
+          </div>
+          <div class="monitor-column">
+            <h4>Edge Pools</h4>
+            <div class="monitor-row">
+              <div class="monitor-label">Armor Value</div>
+              {{> "systems/mwd/templates/actor/character-enhanced/checkbar.hbs" code='armor' value=system.monitors.armor.value max=system.monitors.armor.max rowlength=3 }}
+            </div>
+            <div class="monitor-row">
+              <div class="monitor-label">Armor Effect / Resistance</div>
+              <input type="text" name="system.monitors.armor.effect" value="{{system.monitors.armor.effect}}" {{#if options.viewMode}}disabled{{/if}} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="npc-section define-item-type" data-item-type="weapon">
+        <div class="section-header">
+          <h3>Weapons</h3>
+          {{#unless options.viewMode}}
+          <button type="button" class="click-item-add" data-tooltip="Add Weapon">{{{iconFA 'fas fa-plus'}}}</button>
+          {{/unless}}
+        </div>
+        <div class="item-list">
+          {{#each npcItems.weapons as |weapon|}}
+          <div class="item" data-item-id="{{weapon.id}}" data-item-type="weapon">
+            <span class="item-name">{{weapon.name}}</span>
+            <div class="item-controls">
+              {{#unless @root.options.viewMode}}
+              <button type="button" class="item-control click-item-edit" data-tooltip="Edit">{{{iconFA 'fas fa-edit'}}}</button>
+              <button type="button" class="item-control click-item-delete" data-tooltip="Delete">{{{iconFA 'fas fa-trash'}}}</button>
+              {{/unless}}
+            </div>
+          </div>
+          {{else}}
+          <p class="empty-note">No weapons listed.</p>
+          {{/each}}
+        </div>
+      </section>
+
+      <section class="npc-section define-item-type" data-item-type="assetModule">
+        <div class="section-header">
+          <h3>Asset Modules</h3>
+          {{#unless options.viewMode}}
+          <button type="button" class="click-item-add" data-tooltip="Add Asset Module">{{{iconFA 'fas fa-plus'}}}</button>
+          {{/unless}}
+        </div>
+        <div class="item-list">
+          {{#each npcItems.assetModules as |asset|}}
+          <div class="item" data-item-id="{{asset.id}}" data-item-type="assetModule">
+            <span class="item-name">{{asset.name}}</span>
+            <div class="item-controls">
+              {{#unless @root.options.viewMode}}
+              <button type="button" class="item-control click-item-edit" data-tooltip="Edit">{{{iconFA 'fas fa-edit'}}}</button>
+              <button type="button" class="item-control click-item-delete" data-tooltip="Delete">{{{iconFA 'fas fa-trash'}}}</button>
+              {{/unless}}
+            </div>
+          </div>
+          {{else}}
+          <p class="empty-note">No asset modules recorded.</p>
+          {{/each}}
+        </div>
+      </section>
+
+      <section class="npc-section define-item-type" data-item-type="gear">
+        <div class="section-header">
+          <h3>Inventory / Gear</h3>
+          {{#unless options.viewMode}}
+          <button type="button" class="click-item-add" data-tooltip="Add Gear">{{{iconFA 'fas fa-plus'}}}</button>
+          {{/unless}}
+        </div>
+        <div class="item-list">
+          {{#each npcItems.inventory as |gear|}}
+          <div class="item" data-item-id="{{gear.id}}" data-item-type="gear">
+            <span class="item-name">{{gear.name}}</span>
+            <div class="item-controls">
+              {{#unless @root.options.viewMode}}
+              <button type="button" class="item-control click-item-edit" data-tooltip="Edit">{{{iconFA 'fas fa-edit'}}}</button>
+              <button type="button" class="item-control click-item-delete" data-tooltip="Delete">{{{iconFA 'fas fa-trash'}}}</button>
+              {{/unless}}
+            </div>
+          </div>
+          {{else}}
+          <p class="empty-note">No inventory items.</p>
+          {{/each}}
+        </div>
+      </section>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="biography">
+      <section class="npc-section">
+        <h3>Notes</h3>
+        <textarea name="system.biography" rows="8" {{#if options.viewMode}}disabled{{/if}}>{{system.biography}}</textarea>
+      </section>
+    </div>
+  </section>
 </form>
