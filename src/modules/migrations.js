@@ -605,6 +605,93 @@ class _13_6_1_RenameShadowampsToAssetModules extends Migration {
   }
 }
 
+class _13_6_2_AddMwdVehicleScaffold extends Migration {
+  get version() { return '13.6.2' }
+  get code() { return 'mwd-vehicle-scaffold' }
+
+  async migrate() {
+    const vehicles = game.actors.filter(it => [TEMPLATE.actorTypes.vehicle, TEMPLATE.actorTypes.battlemech].includes(it.type));
+    for (const actor of vehicles) {
+      const updates = this._collectScaffoldUpdates(actor);
+      if (Object.keys(updates).length > 0) {
+        await actor.update(updates);
+      }
+    }
+  }
+
+  _collectScaffoldUpdates(actor) {
+    const updates = {};
+    const mwdAttributesPath = 'system.mwd.attributes';
+    const mwdMonitorPath = 'system.mwd.monitors';
+
+    if (!actor.system.mwd) {
+      updates['system.mwd'] = {};
+    }
+
+    [TEMPLATE.actorAttributes.handling, TEMPLATE.actorAttributes.system,
+      TEMPLATE.actorAttributes.condition, TEMPLATE.actorAttributes.chassis]
+      .forEach(attribute => {
+        const current = actor.system.attributes?.[attribute]?.value;
+        const existing = actor.system.mwd?.attributes?.[attribute]?.value ?? current;
+
+        if (current === undefined) {
+          updates[`system.attributes.${attribute}.value`] = existing ?? 0;
+        }
+
+        if (actor.system.mwd?.attributes?.[attribute]?.value === undefined) {
+          updates[`${mwdAttributesPath}.${attribute}.value`] = existing ?? 0;
+        }
+      });
+
+    const structure = actor.system.monitors?.structure ?? {};
+    if (structure.value === undefined) {
+      updates['system.monitors.structure.value'] = 0;
+    }
+    if (structure.max === undefined) {
+      updates['system.monitors.structure.max'] = this._defaultStructureMax(actor.type);
+    }
+    if (structure.resistance === undefined) {
+      updates['system.monitors.structure.resistance'] = { default: 0, byType: {} };
+    }
+
+    if (actor.system.mwd?.monitors?.structure === undefined) {
+      updates[`${mwdMonitorPath}.structure`] = {
+        value: structure.value ?? 0,
+        max: structure.max ?? this._defaultStructureMax(actor.type),
+        resistance: structure.resistance ?? { default: 0, byType: {} },
+      };
+    }
+
+    if (actor.type === TEMPLATE.actorTypes.battlemech) {
+      const heat = actor.system.monitors?.heat ?? {};
+      const mwdHeat = actor.system.mwd?.heat ?? {};
+      if (heat.value === undefined) {
+        updates['system.monitors.heat.value'] = mwdHeat.current ?? 0;
+      }
+      if (heat.max === undefined) {
+        updates['system.monitors.heat.max'] = mwdHeat.hardMax ?? 4;
+      }
+      if (heat.resistance === undefined) {
+        updates['system.monitors.heat.resistance'] = { default: 0, byType: {} };
+      }
+
+      if (actor.system.mwd?.monitors?.heat === undefined) {
+        updates[`${mwdMonitorPath}.heat`] = {
+          value: heat.value ?? mwdHeat.current ?? 0,
+          max: heat.max ?? mwdHeat.hardMax ?? 4,
+          resistance: heat.resistance ?? { default: 0, byType: {} },
+        };
+      }
+    }
+
+    return updates;
+  }
+
+  _defaultStructureMax(actorType) {
+    return actorType === TEMPLATE.actorTypes.battlemech ? 18 : 15;
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -627,6 +714,7 @@ export class Migrations {
       new _13_4_1_DefaultEdgePoolValues(),
       new _13_6_0_MigrateTypedResistance(),
       new _13_6_1_RenameShadowampsToAssetModules(),
+      new _13_6_2_AddMwdVehicleScaffold(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {
