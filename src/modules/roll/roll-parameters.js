@@ -196,7 +196,14 @@ const DEFAULT_ROLL_PARAMETERS = [
       min: -5, max: 5
     }
   },
-  // Drain
+  // glitch
+  {
+    code: 'glitch',
+    options: {
+      flags: { editDice: true, editable: true },
+      order: 40, category: ROLL_PARAMETER_CATEGORY.glitch,
+      value: 0,
+      labelkey: ANARCHY.common.roll.modifiers.glitch,
       hbsTemplateRoll: `${TEMPLATES_PATH}/roll/parts/input-numeric.hbs`,
       hbsTemplateChat: `${TEMPLATES_PATH}/chat/parts/glitch.hbs`,
       min: 0, max: 5
