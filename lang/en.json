@@ -1,7 +1,7 @@
 {
   "TYPES": {
     "Actor": {
-      "character": "Character/Creature",
+      "character": "Character",
       "vehicle": "Vehicle/drone",
       "battlemech": "Battlemech"
     },

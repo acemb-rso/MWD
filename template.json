@@ -271,21 +271,23 @@
     "npc": {
       "templates": [
         "description",
-        "ownership",
-        "attribute-reflexes",
-        "attribute-strength",
-        "attribute-willpower",
-        "attribute-intelligence",
-        "attribute-charisma",
-        "attribute-edge"
+        "ownership"
       ],
+      "attributes": {
+        "strength": { "value": 1 },
+        "reflexes": { "value": 1 },
+        "intelligence": { "value": 1 },
+        "willpower": { "value": 1 },
+        "charisma": { "value": 1 },
+        "edge": { "value": 1 }
+      },
       "monitors": {
         "physical": {
           "value": 0,
           "max": 10,
           "resistance": {
             "default": 0,
-            "byType": {}
+            "byType": {},
           }
         },
         "fatigue": {
@@ -293,7 +295,7 @@
           "max": 10,
           "resistance": {
             "default": 0,
-            "byType": {}
+            "byType": {},
           }
         },
         "armor": {
@@ -301,29 +303,13 @@
           "value": 0,
           "max": 9,
           "effect": "",
-          "resistance": ""
+          "resistance": "",
         }
       },
-      "counters": {
-        "anarchy": {
-          "value": 3,
-          "max": 6
-        },
-        "edgePools": {
-          "grit": { "value": null },
-          "insight": { "value": null },
-          "rumor": { "value": null },
-          "legend": { "value": null },
-          "credibility": { "value": null },
-          "chaos": { "value": null }
-        }
-      },
-      "style": "",
-      "connectionMode": "disconnected",
-      "ownAnarchy": false,
-      "keywords": [],
-      "dispositions": [],
-      "cues": []
+      "role": "",
+      "biography": "",
+      "style": "sra-enhanced",
+      "connectionMode": "disconnected"
     },
     "vehicle": {
       "templates": [
