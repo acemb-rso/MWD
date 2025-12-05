@@ -36,7 +36,7 @@
     "allowBugReporter": true,
     "hotReload": {
       "extensions": ["css", "hbs", "html"],
-      "paths": ["style/", "templates/"]
+      "paths": ["src/", "templates/", "style.css"]
     }
   },
   "license": "LICENSE.md",
@@ -87,10 +87,10 @@
   "media": [
     {
       "type": "cover",
-      "url": "systems/mwd/style/anarchy-logo.webp"
+      "url": "img/background.webp"
     }
   ],
-  "background": "systems/mwd/style/anarchy-logo.webp",
+  "background": "img/background.webp",
   "relationships": {},
   "socket": true,
   "protected": false,
