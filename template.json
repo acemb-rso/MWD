@@ -216,18 +216,12 @@
         "physical": {
           "value": 0,
           "max": 10,
-          "resistance": {
-            "default": 0,
-            "byType": {}
-          }
+          "resistance": { "default": 0, "byType": {} }
         },
         "fatigue": {
           "value": 0,
           "max": 10,
-          "resistance": {
-            "default": 0,
-            "byType": {}
-          }
+          "resistance": { "default": 0, "byType": {} }
         },
         "armor": {
           "label": "Armor",
@@ -281,23 +275,17 @@
         "charisma": { "value": 1 },
         "edge": { "value": 1 }
       },
-      "monitors": {
-        "physical": {
-          "value": 0,
-          "max": 10,
-          "resistance": {
-            "default": 0,
-            "byType": {}
-          }
-        },
-        "fatigue": {
-          "value": 0,
-          "max": 10,
-          "resistance": {
-            "default": 0,
-            "byType": {}
-          }
-        },
+        "monitors": {
+          "physical": {
+            "value": 0,
+            "max": 10,
+            "resistance": { "default": 0, "byType": {} }
+          },
+          "fatigue": {
+            "value": 0,
+            "max": 10,
+            "resistance": { "default": 0, "byType": {} }
+          },
         "armor": {
           "label": "Armor",
           "value": 0,
