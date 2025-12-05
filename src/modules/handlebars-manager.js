@@ -30,6 +30,7 @@ const HBS_PARTIAL_TEMPLATES = [
   `${TEMPLATES_PATH}/actor/parts/ownership.hbs`,
   `${TEMPLATES_PATH}/common/view-mode.hbs`,
   `${TEMPLATES_PATH}/actor/parts/attribute.hbs`,
+  `${TEMPLATES_PATH}/actor/parts/attributes.hbs`,
   `${TEMPLATES_PATH}/actor/parts/words.hbs`
 ];
 
