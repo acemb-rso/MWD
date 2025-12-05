@@ -15,6 +15,8 @@ const HBS_PARTIAL_TEMPLATES = [
   `${TEMPLATES_PATH}/monitors/anarchy.hbs`,
   `${TEMPLATES_PATH}/monitors/anarchy-actor.hbs`,
   `${TEMPLATES_PATH}/monitors/anarchy-scene.hbs`,
+  `${TEMPLATES_PATH}/common/check-element.hbs`,
+  `${TEMPLATES_PATH}/actor/character/name.hbs`,
   `${TEMPLATES_PATH}/actor/parts/passport-details.hbs`,
 ];
 
