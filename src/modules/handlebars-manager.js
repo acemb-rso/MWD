@@ -26,12 +26,11 @@ const HBS_PARTIAL_TEMPLATES = [
   `${TEMPLATES_PATH}/actor/parts/gears.hbs`,
   `${TEMPLATES_PATH}/actor/parts/life-modules.hbs`,
   `${TEMPLATES_PATH}/actor/parts/skills.hbs`,
-  `${TEMPLATES_PATH}/actor/parts/attributebutton.hbs`,
   `${TEMPLATES_PATH}/actor/parts/asset-modules.hbs`,
   `${TEMPLATES_PATH}/actor/parts/ownership.hbs`,
   `${TEMPLATES_PATH}/common/view-mode.hbs`,
-  `${TEMPLATES_PATH}/actor/parts/attributes.hbs`,
-  `${TEMPLATES_PATH}/actor/parts/words.hbs`,
+  `${TEMPLATES_PATH}/actor/parts/attribute.hbs`,
+  `${TEMPLATES_PATH}/actor/parts/words.hbs`
 ];
 
 export class HandlebarsManager {
