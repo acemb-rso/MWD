@@ -1,0 +1,520 @@
+{
+  "TYPES": {
+    "Actor": {
+      "character": "Character/Creature",
+      "vehicle": "Vehicle/drone",
+      "device": "Matrix device",
+      "sprite": "Sprite",
+      "ic": "IC"
+    },
+    "Item": {
+      "contact": "Contact",
+      "cyberdeck": "Cyberdeck",
+      "gear": "Gear",
+      "metatype": "Metatype",
+      "quality": "Quality",
+      "shadowamp": "Shadowamp",
+      "skill": "Skill",
+      "weapon": "Weapon"
+    }
+  },
+  "ANARCHY": {
+    "settings": {
+      "defaultCssClass": {
+        "name": "Style of Anarchy UI",
+        "hint": "Select the style used for actors, items and GM Manager"
+      },
+      "anarchyHack": {
+        "name": "Anarchy hack",
+        "hint": "Use an Anarchy Hack provided by a module"
+      },
+      "skillSet": {
+        "name": "Skill set",
+        "hint": "Select the set of skills to use"
+      },
+      "gmDifficulty": {
+        "name": "Default difficulty pools",
+        "hint": "The default difficulty pools, represented as 'Trivial:4,Easy:6' ...",
+        "default": "Trivial:4,Easy:6,Average:8,Hard:10,Very hard:12",
+        "chatMessage": "The difficulty {difficulty} ({pool}d6) is {success}"
+      },
+      "damageMode": {
+        "name": "Damage application",
+        "hint": "Determine how Armor / Damage Resistance (RD) applies",
+        "values": {
+          "resistanceArmorMonitor": "Shadowrun Anarchy: Resistance, Armor, then Monitor",
+          "armorResistanceMonitor": "Armor, Resistance, Monitor",
+          "armorGivesResistance": "RD = Armor/3 + Str/4, damaged per blow, AA ignores armor",
+          "armorGiveResistanceHitsAvoid": "RD = Armor/3, damaged per blow, AA reduces resistance"
+        }
+      }
+    },
+    "gmManager": {
+      "title": "GM manager",
+      "gmConvergence": "GOD convergence",
+      "playerChangedAnarchy": "Player {user} changed {actor}'s {monitor} from {from} to {to}",
+      "gmReceivedAnarchy": "Gamemaster receives {anarchy} anarchy from {actor}"
+    },
+    "chat": {
+      "blindMessageToGM": "Blind message from {user}:<br>{message}",
+      "sufferedDrain": "{actor} suffered a drain of {drain}",
+      "noDrain": "{actor} did not suffer any drain",
+      "defendAttack": "Defense against {success} success",
+      "defendPilotAttack": "Pilot defense against {success} success",
+      "partiallyDefended": "Attack exceeds defense of {success} success",
+      "fullyDefended": "The attack is fully defended",
+      "applyDamage": "Apply {damage}"
+    },
+    "chat_actions": {
+      "rollDice": {
+        "title": "Roll Anarchy dice",
+        "instruction": "Number of dice to roll: ",
+        "error": "Veuillez entrer un nombre valide de dés.",
+        "result": "Roll of {count}d6, {success} success! {ones} dice with a value of 1"
+      }
+    },
+    "user": {
+      "selectedTokenActors": "Selected actor tokens"
+    },
+    "common": {
+      "newEntry": "New entry...",
+      "newName": "New {type}",
+      "cancel": "Cancel",
+      "add": "Add",
+      "say": "Say:",
+      "edit": "Edit",
+      "activate": "Activate",
+      "del": "Remove",
+      "favorite": "Favorites",
+      "addFavorite": "Add to favorites",
+      "delFavorite": "Remove from favorites",
+      "viewMode": "View mode",
+      "editMode": "Edit mode",
+      "attach": "Change owner",
+      "attachCopy": "Give a copy",
+      "matrix": {
+        "connectionMode": "Connection mode"
+      },
+      "roll": {
+        "button": "Roll",
+        "title": "Roll {name} {specialization}",
+        "attribute": "Attribute",
+        "attribute2": "Second attribute",
+        "modifiers": {
+          "edge": "Use edge",
+          "specialization": "Specialization",
+          "poolModifiers": "Shadowamps",
+          "social": {
+            "credibility": "Credibility",
+            "rumor": "Rumor"
+          },
+          "anarchyDisposition": "Anarchy - Dispositions",
+          "anarchyRisk": "Anarchy - Take risks",
+          "glitch": "Glitch dice",
+          "convergence": "GOD Convergence",
+          "drain": "Drain",
+          "wounds": "Wounds modifiers",
+          "weaponRange": "Range",
+          "weaponArea": "Multiple targets",
+          "other": "Other modifiers",
+          "virtualReality": "Virtual Reality",
+          "reduced": "Pool reduced",
+          "reroll": "Rerolls",
+          "rerollForced": "Rerolls successes",
+          "opponentReroll": "Force opponent rerolls",
+          "opponentPool": "Reduce opponent pool"
+        },
+        "rollTheme": {
+          "dicePool": "Dice pool",
+          "reroll": "Failure rerolls",
+          "removed": "Success to reroll",
+          "rerollRemoved": "Reroll removed success",
+          "glitch": "Glitch dice",
+          "drain": "Drain",
+          "convergence": "Convergence",
+          "anarchyRisk": "Anarchy risk dice"
+        },
+        "opponentRoll": "Opponent roll",
+        "totalSuccess": "Total successes",
+        "success": "Successes",
+        "risk": {
+          "prowess": "Prowess",
+          "mixed": "Prowess and Glitch",
+          "nothing": "no effect",
+          "glitch": "Glitch"
+        },
+        "rerollSuccess": "Successes after reroll",
+        "rerollForcedLoss": "Forced reroll",
+        "rerollForcedSuccess": "Forced reroll successes"
+      },
+      "confirmation": {
+        "del": "Confirm removal",
+        "delItem": "Confirm removal of {name} ({type})",
+        "delowner": "Confirm detach from owner {name}",
+        "attach": "Attach actor to owner",
+        "attachOrCopy": "Attach {ownedType} {ownedName} to {ownerType} {ownerName}, or create a copy first"
+      },
+      "selection": {
+        "actorSettingMarks": "Select actor setting Marks on {name}"
+      },
+      "errors": {
+        "insufficient": "Not enough {resource}: required {required}, available {available}",
+        "outOfRange": "Cannot set {resource} to {value}, out of range [{min} , {max}]",
+        "onlyGM": "Only allowed for GM",
+        "noEdgeForActor": "{actor} is a {actorType}, so it cannot use Edge",
+        "expectedType": "Item is of type {type} instead of expected type {expectedType}",
+        "ignoredTargets": "This action cannot target {targets} due to its damage type",
+        "noTargetSelected": "No valid target is selected, consider selecting a valid target before using this {weapon}",
+        "maxTargetsExceedeed": "{weapon} has a {area} area of effect, with a maximum of {max} targets. You are currently targetting {count} targets",
+        "noDefenseOnWeapon": "No defense configured for {actor} weapon: {weapon}.<br>Configure defense against this weapon to be able to attack with it.",
+        "noTokenActor": "Token is not attached to an Actor!",
+        "noValidPilotForVehicle": "No valid pilot found for {vehicle} among selected tokens, your main character, and vehicle owner",
+        "cannotUseEdgeAnymore": "Too late to use edge. A defender already rolled his defense!",
+        "actorCannotApplyDamage": "Actor {actor} cannot apply {damageType} : maybe check the decker has connected his cyberdeck",
+        "actorCannotReceiveDamage": "Cannot apply {damageType} to actor {actor} : it does not have a condition monitor for this type of damage",
+        "actorDoesNotHaveDefense": "Actor {actor} does not have a {defense}, the attack should not to target {actorType}.<br>Or it may be a bug, please report and manage manually"
+      },
+      "sourceReference": "Source reference",
+      "sourceReferenceHelp": "rulebook, page, ...",
+      "description": "Description",
+      "gmnotes": "GM notes"
+    },
+    "actor": {
+      "characterSheet": "Character sheet",
+      "characterTabbedSheet": "Character sheet (tabs)",
+      "characterEnhancedSheet": "Character enhanced sheet (tabs)",
+      "vehicleSheet": "Vehicle sheet",
+      "deviceSheet": "Device sheet",
+      "spriteSheet": "Sprite sheet",
+      "icSheet": "IC sheet",
+      "characterNPCSheet": "NPC sheet",
+      "actorName": "Name",
+      "genre": "Genre",
+      "noMetatype": "No metatype, drag it!",
+      "celebrity": "Celebrity",
+      "famous": "Fame",
+      "tabs": {
+        "main": "Character",
+        "equipment": "Equipment",
+        "biography": "Biography"
+      },
+      "words": {
+        "keywords": "Keywords",
+        "cues": "Cues",
+        "dispositions": "Dispositions"
+      },
+      "essence": {
+        "adjustments": "to Magic, resonance, healing",
+        "adjustShort": "Essence adj. "
+      },
+      "counters": {
+        "essence": "Essence",
+        "karma": "Karma",
+        "karmaUnused": "Unused",
+        "karmaTotal": "Total",
+        "edge": "Edge",
+        "anarchy": "Anarchy",
+        "sceneAnarchy": "Scene Anarchy",
+        "plot": "Plot",
+        "social": {
+          "credibility": "Credibility",
+          "rumor": "Rumor"
+        }
+      },
+      "monitors": {
+        "conditionMonitors": "Condition monitors",
+        "overflow": "{actor}: Overflow of {monitor} condition monitor, transfering {overflow} to {overflowMonitor} condition monitor",
+        "noMatrixMonitor": "{actor}: No Matrix condition monitor",
+        "physical": "Physical",
+        "stun": "Stun",
+        "matrix": "Matrix",
+        "armor": "Armor",
+        "structure": "Structure",
+        "resistance": "Resistance",
+        "marks": "Marks",
+        "convergence": "Convergence"
+      },
+      "vehicle": {
+        "moves": "Moves",
+        "attacks": "Attacks",
+        "stealth": "Stealth",
+        "category": "Category",
+        "skill": "Skill"
+      },
+      "ownership": {
+        "owner": "Owner",
+        "unknown": "Unknown",
+        "owned": "Owned"
+      }
+    },
+    "actorType": {
+      "character": "Character",
+      "vehicle": "Vehicle",
+      "device": "Device",
+      "sprite": "Sprite",
+      "ic": "IC"
+    },
+    "item": {
+      "sheet": "Sheet for ",
+      "tabs": {
+        "main": "Details",
+        "modifiers": "Modifiers"
+      },
+      "common": {
+        "inactive": "Inactive for actor"
+      },
+      "skill": {
+        "code": "Internal code",
+        "copyDefault": "Configure skill",
+        "isKnowledge": "Knowledge",
+        "attribute": "Attribute",
+        "value": "Level",
+        "specialization": "Specialisation",
+        "specializationHelp": "Type the name to choose a specialization",
+        "isSocial": "Social skill",
+        "hasDrain": "Drain",
+        "hasConvergence": "Convergence"
+      },
+      "quality": {
+        "positive": "Positive if checked"
+      },
+      "shadowamp": {
+        "category": "Category",
+        "capacity": "Capacity",
+        "level": "Level",
+        "essence": "Essence",
+        "levelShort": "Lvl",
+        "essenceShort": "Ess"
+      },
+      "weapon": {
+        "skill": "Skill",
+        "drain": "Drain",
+        "damage": "Damages",
+        "strength": "+ strength",
+        "defense": "Defense",
+        "area": "Area of effect",
+        "withArmor": "Armor protects",
+        "noArmor": "Armor avoidance",
+        "damageShort": "DV",
+        "areaShort": "Area",
+        "noArmorShort": "(AA)",
+        "weaponWithoutActor": "No Actor",
+        "range": {
+          "max": "Maximum range"
+        }
+      },
+      "cyberdeck": {
+        "programs": "Programs",
+        "processing": "Processing power",
+        "processingHelp": "re-rolls on matrix rolls"
+      }
+    },
+    "itemType": {
+      "singular": {
+        "metatype": "Metatype",
+        "skill": "Skill",
+        "quality": "Quality",
+        "shadowamp": "Shadow Amp",
+        "weapon": "Weapon",
+        "gear": "Gear",
+        "cyberdeck": "Cyberdeck",
+        "contact": "Contact"
+      },
+      "plural": {
+        "metatype": "Metatypes",
+        "skill": "Skills",
+        "quality": "Qualities",
+        "shadowamp": "Shadow Amps",
+        "weapon": "Weapons",
+        "gear": "Gears",
+        "cyberdeck": "Cyberdecks",
+        "contact": "Contacts",
+        "action": "Actions",
+        "monitor": "Monitors"
+      }
+    },
+    "capacity": {
+      "mundane": "Mundane",
+      "awakened": "Awakened",
+      "emerged": "Emerged"
+    },
+    "monitor": {
+      "physical": "Physical",
+      "stun": "Stun",
+      "matrix": "Matrix",
+      "marks": "Marks"
+    },
+    "monitorLetter": {
+      "physical": "P",
+      "stun": "S",
+      "matrix": "M",
+      "marks": "K"
+    },
+    "shadowampCategory": {
+      "adeptPower": "Adept power",
+      "bioware": "Bioware",
+      "complexForm": "Complex form",
+      "cyberdeck": "Cyberdeck",
+      "cyberware": "Cyberware",
+      "drone": "Drone",
+      "equipment": "Equipment",
+      "focus": "Focus (awakened only)",
+      "program": "Program",
+      "spell": "Spell",
+      "special": "Special"
+    },
+    "attributes": {
+      "strength": "Strength",
+      "agility": "Agility",
+      "willpower": "Willpower",
+      "logic": "Logic",
+      "charisma": "Charisma",
+      "edge": "Edge",
+      "knowledge": "Knowledge",
+      "noAttribute": "No attribute chosen",
+      "autopilot": "Autopilot",
+      "handling": "Handling",
+      "firewall": "Firewall",
+      "system": "System"
+    },
+    "attributeAction": {
+      "defense": "Defense",
+      "judgeIntentions": "Judge intentions",
+      "perception": "Perception / Mental resistance",
+      "resistTorture": "Resist torture / Physical resistance",
+      "composure": "Composure / Social resistance",
+      "memory": "Memory",
+      "catch": "Catch object",
+      "lift": "Lift/carry",
+      "matrixDefense": "Matrix defense",
+      "astralDefense": "Astral defense"
+    },
+    "defense": {
+      "physicalDefense": "Physical defense",
+      "physicalResistance": "Physical resistance",
+      "socialDefense": "Social defense",
+      "matrixDefense": "Matrix defense",
+      "mentalResistance": "Mental resistance"
+    },
+    "skill": {
+      "athletics": "Athletics",
+      "acrobatics": "Acrobatics",
+      "closeCombat": "Close combat",
+      "projectileWeapons": "Projectile weapons",
+      "firearms": "Firearms",
+      "vehicleWeapons": "Vehicle weapons",
+      "heavyWeapons": "Heavy weapons",
+      "stealth": "Stealth",
+      "pilotingGround": "Vehicles (Ground)",
+      "pilotingOther": "Vehicles (others)",
+      "escapeArtist": "Escape artist",
+      "astralCombat": "Astral combat",
+      "conjuring": "Conjuring",
+      "sorcery": "Sorcery",
+      "survival": "Survival",
+      "biotech": "Biotech",
+      "hacking": "Hacking",
+      "electronics": "Electronics",
+      "engineering": "Engineering",
+      "tasking": "tasking",
+      "tracking": "Tracking",
+      "con": "Con",
+      "intimidation": "Intimidation",
+      "negotiation": "Negotiation",
+      "disguise": "Disguise",
+      "animals": "Animals",
+      "etiquette": "Etiquette",
+      "knowledge": "Knowledge"
+    },
+    "area": {
+      "none": "None",
+      "shotgun": "Shotgun",
+      "circle": "Circle",
+      "cone": "Cone",
+      "rect": "Rectangle",
+      "ray": "Ray"
+    },
+    "range": {
+      "short": "Short",
+      "medium": "Medium",
+      "long": "Long"
+    },
+    "connectionMode": {
+      "disconnected": "Disconnected",
+      "augmented": "Augmented reality",
+      "virtual": "Virtual reality"
+    },
+    "vehicleCategory": {
+      "miniDrone": "Mini drone",
+      "smallDrone": "Small drone",
+      "mediumDrone": "Medium drone",
+      "largeDrone": "Large drone",
+      "motorcycle": "Motorcycle",
+      "smallCar": "Small car",
+      "largeCar": "Large car",
+      "van": "Van",
+      "truck": "Truck",
+      "aircraft": "Aircraft",
+      "boat": "Boat"
+    },
+    "modifier": {
+      "column": {
+        "group": "Group",
+        "effect": "Effect",
+        "value": "Value",
+        "category": "",
+        "subCategory": "",
+        "condition": "When"
+      },
+      "group": {
+        "roll": "Roll",
+        "attribute": "Attribute",
+        "monitor": "Monitor",
+        "other": "Other"
+      },
+      "roll": {
+        "effect": {
+          "pool": "Pool bonus",
+          "reroll": "Rerolls",
+          "glitch": "Glitch dice",
+          "successReroll": "Reroll own successes",
+          "opponentPool": "Opponent pool malus",
+          "opponentReroll": "Opponent rerolls"
+        },
+        "category": {
+          "attribute": "Attribute",
+          "skill": "Skill",
+          "attributeAction": "Attribute action"
+        }
+      },
+      "monitor": {
+        "effect": {
+          "armor": "Armor",
+          "structure": "Structure",
+          "stun": "Stun",
+          "physical": "Physical",
+          "matrix": "Matrix"
+        },
+        "category": {
+          "max": "Increased max",
+          "resistance": "Resistance"
+        }
+      },
+      "other": {
+        "effect": {
+          "ignoreWounds": "Ignore wounds",
+          "damageArmor": "Damage to armor",
+          "sceneAnarchy": "Scene Anarchy",
+          "locationAnarchy": "Location anarchy",
+          "essenceAdjustment": "Essence adjustment",
+          "initiative": "Initiative bonus",
+          "celebrity": "Adjust celebrity"
+        },
+        "category": {}
+      },
+      "condition": {
+        "always": "Always"
+      }
+    }
+  }
+}

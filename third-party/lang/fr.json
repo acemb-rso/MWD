@@ -1,0 +1,520 @@
+{
+  "TYPES": {
+    "Actor": {
+      "character": "Personnage/Créature",
+      "vehicle": "Véhicule/drone",
+      "device": "Objet matriciel",
+      "sprite": "Sprite",
+      "ic": "Glace"
+    },
+    "Item": {
+      "contact": "Contact",
+      "cyberdeck": "Cyberdeck",
+      "gear": "Equipement",
+      "metatype": "Métatype",
+      "quality": "Trait",
+      "shadowamp": "Atout",
+      "skill": "Compétence",
+      "weapon": "Arme"
+    }
+  },
+  "ANARCHY": {
+    "settings": {
+      "defaultCssClass": {
+        "name": "Style des fenêtres Anarchy",
+        "hint": "Sélectionne le style utilisées pour les personnages, objets, et Gestion du MJ"
+      },
+      "anarchyHack": {
+        "name": "Anarchy hack",
+        "hint": "Choisir un hack de Anarchy fourni par un module"
+      },
+      "skillSet": {
+        "name": "Liste de compétences",
+        "hint": "Sélectionne la liste de compétences à utiliser"
+      },
+      "gmDifficulty": {
+        "name": "Réserves de difficulté",
+        "hint": "Les valeurs des réserves de dés pour différentes difficultés, représentées comme 'Triviale:4,Facile:6' ...",
+        "default": "Triviale:4,Facile:6,Moyenne:8,Difficile:10,Très difficile:12",
+        "chatMessage": "La difficulté {difficulty} ({pool}d6) est de {success}"
+      },
+      "damageMode": {
+        "name": "Application des dommages",
+        "hint": "Détermine comment l'armure et les résistances aux dommages (RD) s'appliquent",
+        "values": {
+          "resistanceArmorMonitor": "Shadowrun Anarchy: Résistance, Armure, Moniteur",
+          "armorResistanceMonitor": "Armure, Résistance, Moniteur",
+          "armorGivesResistance": "RD = Armure/3 + For/4, Armure -1 par coup, CA ignore",
+          "armorGiveResistanceHitsAvoid": "RD = Armure/3, armure -1 par coup, CA diminue la RD"
+        }
+      }
+    },
+    "gmManager": {
+      "title": "Gestion du MJ",
+      "gmConvergence": "Surveillance DIEU",
+      "playerChangedAnarchy": "Le joueur {user} a passé {monitor} de {actor} de {from} à {to}",
+      "gmReceivedAnarchy": "Le MJ reçoit {anarchy} points d'Anarchy de {actor}"
+    },
+    "chat": {
+      "blindMessageToGM": "Message aveugle de {user}:<br>{message}",
+      "sufferedDrain": "{actor} subit un drain de {drain}",
+      "noDrain": "{actor} n'a pas subi de drain",
+      "defendAttack": "Défense contre {success} succès",
+      "defendPilotAttack": "Défense du pilote contre {success} succès",
+      "partiallyDefended": "L'attaque surpasse la défense de {success} succès",
+      "fullyDefended": "L'attaque est totalement évitée",
+      "applyDamage": "Appliquer {damage}"
+    },
+    "chat_actions": {
+      "rollDice": {
+        "title": "Lancer de dés Anarchy",
+        "instruction": "Nombre de dés à lancer",
+        "error": "Veuillez entrer un nombre valide de dés.",
+        "result": "Lancer de ${count}d6, ${success} Succès! ${ones} jets valant 1`"
+      }
+    },
+    "user": {
+      "selectedTokenActors": "Sélection de tokens-Acteurs"
+    },
+    "common": {
+      "newEntry": "Valeur...",
+      "newName": "Nouveau(elle) {type}",
+      "cancel": "Annuler",
+      "add": "Ajouter",
+      "say": "Dire:",
+      "edit": "Modifier",
+      "activate": "Activer",
+      "del": "Supprimer",
+      "favorite": "Favoris",
+      "addFavorite": "Ajouter aux favoris",
+      "delFavorite": "Enlever des favoris",
+      "viewMode": "Mode visualisation",
+      "editMode": "Mode édition",
+      "attach": "Changer le propriétaire",
+      "attachCopy": "Donner une copie",
+      "matrix": {
+        "connectionMode": "Mode de connection"
+      },
+      "roll": {
+        "button": "Lancer",
+        "title": "Jet de {name} {specialization}",
+        "attribute": "Attribut",
+        "attribute2": "Second attribut",
+        "modifiers": {
+          "edge": "Utiliser la chance",
+          "specialization": "Spécialisation",
+          "poolModifiers": "Atouts",
+          "social": {
+            "credibility": "Crédibilité",
+            "rumor": "Rumeur"
+          },
+          "anarchyDisposition": "Anarchy - Bien disposé",
+          "anarchyRisk": "Anarchy - Prise de risque",
+          "glitch": "Complications",
+          "drain": "Drain",
+          "convergence": "Convergence DIEU",
+          "wounds": "Blessures",
+          "weaponRange": "Portée",
+          "weaponArea": "Cibles multiples",
+          "other": "Autres modificateurs",
+          "virtualReality": "Réalité Virtuelle",
+          "reduced": "Malus de dés",
+          "reroll": "Relances",
+          "rerollForced": "Relances forcées",
+          "opponentReroll": "Relances pour l'adversaire",
+          "opponentPool": "Malus pour l'adversaire"
+        },
+        "rollTheme": {
+          "dicePool": "Réserve de dés",
+          "reroll": "Relance d'échecs",
+          "removed": "Succès à relancer",
+          "rerollRemoved": "Relance des succès supprimés",
+          "glitch": "Complications",
+          "drain": "Drain",
+          "convergence": "Convergence",
+          "anarchyRisk": "Anarchy - Dés de prise de risques"
+        },
+        "opponentRoll": "Jet opposé",
+        "totalSuccess": "Succès finaux",
+        "success": "Succès",
+        "risk": {
+          "prowess": "Exploit!",
+          "mixed": "Exploit et complication!",
+          "nothing": "Sans effet",
+          "glitch": "Complication"
+        },
+        "rerollSuccess": "Succès sur relance",
+        "rerollForcedLoss": "Relances forcées",
+        "rerollForcedSuccess": "Succès sur relance forcée"
+      },
+      "confirmation": {
+        "del": "Confirmer la suppression",
+        "delItem": "Confirmer la suppression de {name} ({type})",
+        "delOwner": "Confirmer le détachement du propriétaire {name}",
+        "attach": "Changement de propriétaire",
+        "attachOrCopy": "Attacher le {ownedType} {ownedName} au {ownerType} {ownerName}"
+      },
+      "selection": {
+        "actorSettingMarks": "Choisir l'acteur qui pose un Marks sur {name}"
+      },
+      "errors": {
+        "insufficient": "{resource} insuffisant: requis {required}, disponible {available}",
+        "outOfRange": "Impossible de changer {resource} à {value}, en dehors de l'intervalle [{min} , {max}]",
+        "onlyGM": "Seul un MJ est autorisé",
+        "noEdgeForActor": "{actor} est un {actorType}, il ne peut pas utiliser la Chance",
+        "expectedType": "Objet de type incorrect, attendu: {expectedType}, type de l'objet: {type}",
+        "ignoredTargets": "Cette action ne peut pas cibler {targets} à cause de son type de dommages",
+        "noTargetSelected": "Aucune cible valide sélectionnée. Vous devriez choisir une (des?) cible valides avant d'utiliser votre {weapon}",
+        "maxTargetsExceedeed": "{weapon} a une zone zone d'effet {area}, avec au maximum {max} cibles, vous en avez {count}",
+        "noDefenseOnWeapon": "L'arme {weapon} de {actor} n'a pas de défense configurée. Configurez la défense contre cette arme pour pouvoir attaquer avec.",
+        "noTokenActor": "Le token n'est pas lié à un Personnage!",
+        "noValidPilotForVehicle": "Aucun pilote valide pour {vehicle} parmi les tokens sélectionés, votre personnage principal, ou le propriétaire du véhicule",
+        "cannotUseEdgeAnymore": "Trop tard pour utiliser la Chance. Un adversaire s'est déjà défendu!",
+        "actorCannotApplyDamage": "L'acteur {actor} ne peut pas causer de dommages {damageType}, vérifiez que le decker a connecté son cyberdeck",
+        "actorCannotReceiveDamage": "L'acteur {actor} ne peut pas recevoir de dommages {damageType}: il n'a pas de moniteur de condition associé",
+        "actorDoesNotHaveDefense": "L'acteur {actor} n'a pas de {defense}, l'attaque ne devrait pas cibler un(e) {actorType}.<br>Ou bien c'est un bug, à signaler, et à gérer à la main."
+      },
+      "sourceReference": "Référence source",
+      "sourceReferenceHelp": "livre, page, ...",
+      "description": "Description",
+      "gmnotes": "Notes du MJ"
+    },
+    "actor": {
+      "characterSheet": "Personnage",
+      "characterTabbedSheet": "Personnage (avec onglets)",
+      "characterEnhancedSheet": "Personnage (avec onglets), nouveau design",
+      "vehicleSheet": "Véhicule",
+      "deviceSheet": "Objet virtuel",
+      "spriteSheet": "Sprite",
+      "icSheet": "Contremesure d'intrusion (IC)",
+      "characterNPCSheet": "PNJ",
+      "actorName": "Nom",
+      "genre": "Genre",
+      "noMetatype": "Pas de metatype, ajoutez le!",
+      "celebrity": "Célébrité",
+      "famous": "Réputation",
+      "tabs": {
+        "main": "Personnage",
+        "equipment": "Equipement",
+        "biography": "Biographie"
+      },
+      "words": {
+        "keywords": "Mots clés",
+        "cues": "Répliques",
+        "dispositions": "Comportements"
+      },
+      "essence": {
+        "adjustments": "pour Magie, résonance, soins",
+        "adjustShort": "Malus"
+      },
+      "counters": {
+        "essence": "Essence",
+        "karma": "Karma",
+        "karmaUnused": "Non dépensé",
+        "karmaTotal": "Total",
+        "edge": "Chance",
+        "anarchy": "Anarchy",
+        "sceneAnarchy": "Anarchy de scène",
+        "plot": "Danger",
+        "social": {
+          "credibility": "Crédibilité",
+          "rumor": "Rumeur"
+        }
+      },
+      "monitors": {
+        "conditionMonitors": "Moniteurs de condition",
+        "overflow": "{actor}: Dépassement du moniteur {monitor}, transfert de {overflow} sur le moniteur {overflowMonitor}",
+        "noMatrixMonitor": "{actor}: Pas de moniteur matriciel",
+        "physical": "Physique",
+        "stun": "Etourdissant",
+        "matrix": "Matriciel",
+        "armor": "Armure",
+        "structure": "Blindage",
+        "resistance": "Résistance",
+        "marks": "Marks",
+        "convergence": "Surveillance"
+      },
+      "vehicle": {
+        "moves": "Déplacements",
+        "attacks": "Attaques",
+        "stealth": "Furtivité",
+        "category": "Catégorie",
+        "skill": "Compétence"
+      },
+      "ownership": {
+        "owner": "Propriétaire",
+        "unknown": "inconnu",
+        "owned": "Contrôlés"
+      }
+    },
+    "actorType": {
+      "character": "Personnage",
+      "vehicle": "Véhicule",
+      "device": "Objet électronique",
+      "sprite": "Sprite",
+      "ic": "IC"
+    },
+    "item": {
+      "sheet": "Fiche de ",
+      "tabs": {
+        "main": "Détails",
+        "modifiers": "Modificateurs"
+      },
+      "common": {
+        "inactive": "Inactif pour l'acteur"
+      },
+      "skill": {
+        "isKnowledge": "Connaissance",
+        "code": "Code interne",
+        "copyDefault": "Configurer la compétence",
+        "attribute": "Attribut",
+        "value": "Niveau",
+        "specialization": "Spécialisation",
+        "specializationHelp": "Saisissez un nom pour avoir cette spécialization",
+        "isSocial": "Sociale",
+        "hasDrain": "Drain",
+        "hasConvergence": "Convergence"
+      },
+      "quality": {
+        "positive": "Avantage si cochée"
+      },
+      "shadowamp": {
+        "category": "Categorie",
+        "capacity": "Capacité",
+        "level": "Niveau",
+        "essence": "Essence",
+        "levelShort": "Niv",
+        "essenceShort": "Ess"
+      },
+      "weapon": {
+        "skill": "Compétence",
+        "drain": "Drain",
+        "damage": "Dommages",
+        "strength": "+ force",
+        "defense": "Défense",
+        "area": "Zone d'effet",
+        "withArmor": "L'armure protège",
+        "noArmor": "Ignore l'armure",
+        "damageShort": "DV",
+        "areaShort": "Zone",
+        "noArmorShort": "(CA)",
+        "weaponWithoutActor": "Pas de personnage",
+        "range": {
+          "max": "Portée maximale"
+        }
+      },
+      "cyberdeck": {
+        "programs": "Programmes",
+        "processing": "Puissance de calcul",
+        "processingHelp": "relances sur tests matriciels"
+      }
+    },
+    "itemType": {
+      "singular": {
+        "metatype": "Metatype",
+        "skill": "Compétence",
+        "quality": "Trait",
+        "shadowamp": "Atout",
+        "weapon": "Arme",
+        "gear": "Equipement",
+        "cyberdeck": "Cyberdeck",
+        "contact": "Contact"
+      },
+      "plural": {
+        "metatype": "Metatypes",
+        "skill": "Compétences",
+        "quality": "Traits",
+        "shadowamp": "Atouts",
+        "weapon": "Armes",
+        "gear": "Equipements",
+        "cyberdeck": "Cyberdecks",
+        "contact": "Contacts",
+        "action": "Actions",
+        "monitor": "Moniteurs"
+      }
+    },
+    "capacity": {
+      "mundane": "Normal",
+      "awakened": "Eveillé",
+      "emerged": "Emergé"
+    },
+    "monitor": {
+      "physical": "Physique",
+      "stun": "Etourdissant",
+      "matrix": "Matriciel",
+      "marks": "Marks"
+    },
+    "monitorLetter": {
+      "physical": "P",
+      "stun": "E",
+      "matrix": "M",
+      "marks": "K"
+    },
+    "shadowampCategory": {
+      "adeptPower": "Pouvoir d'adepte",
+      "bioware": "Bioware",
+      "complexForm": "Forme complexe",
+      "cyberdeck": "Cyberdeck",
+      "cyberware": "Cyberware",
+      "drone": "Drone",
+      "equipment": "Equipement",
+      "focus": "Focus (éveillés)",
+      "program": "Programme",
+      "spell": "Sort",
+      "special": "Spécial"
+    },
+    "attributes": {
+      "strength": "Force",
+      "agility": "Agilité",
+      "willpower": "Volonté",
+      "logic": "Logique",
+      "charisma": "Charisme",
+      "edge": "Chance",
+      "knowledge": "Connaissance",
+      "noAttribute": "Pas d'attribut choisi",
+      "autopilot": "Autopilote",
+      "handling": "Mobilité",
+      "firewall": "Firewall",
+      "system": "Système"
+    },
+    "attributeAction": {
+      "defense": "Défense",
+      "judgeIntentions": "Jauger les intentions",
+      "perception": "Perception",
+      "resistTorture": "Résistance mentale",
+      "composure": "Sang froid",
+      "memory": "Mémoire",
+      "catch": "Attraper au vol",
+      "lift": "Soulever",
+      "matrixDefense": "Défense matricielle",
+      "astralDefense": "Défense astrale"
+    },
+    "defense": {
+      "physicalDefense": "Défense physique",
+      "physicalResistance": "Résistance physique",
+      "socialDefense": "Défense sociale",
+      "matrixDefense": "Défense matricielle",
+      "mentalResistance": "Résistance mentale"
+    },
+    "skill": {
+      "athletics": "Athlétisme",
+      "acrobatics": "Acrobaties",
+      "closeCombat": "Corps à corps",
+      "projectileWeapons": "Arme à projectiles",
+      "firearms": "Armes à feu",
+      "heavyWeapons": "Armes lourdes",
+      "vehicleWeapons": "Armes de véhicules",
+      "stealth": "Furtivité",
+      "pilotingGround": "Véhicules terrestres",
+      "pilotingOther": "Véhicules divers",
+      "escapeArtist": "Acrobaties",
+      "astralCombat": "Combat astral",
+      "conjuring": "Conjuration",
+      "sorcery": "Sorcellerie",
+      "survival": "Survie",
+      "biotech": "Biotech",
+      "hacking": "Hacking",
+      "electronics": "Electronique",
+      "engineering": "Ingénierie",
+      "tasking": "Technomancie",
+      "tracking": "Pistage",
+      "con": "Comédie",
+      "intimidation": "Intimidation",
+      "negotiation": "Négociation",
+      "disguise": "Déguisement",
+      "animals": "Animaux",
+      "etiquette": "Etiquette",
+      "knowledge": "Connaissance"
+    },
+    "area": {
+      "none": "Aucune",
+      "shotgun": "Shotgun",
+      "circle": "Circulaire",
+      "cone": "Cone",
+      "rect": "Rectangle",
+      "ray": "Rayon"
+    },
+    "range": {
+      "short": "Courte",
+      "medium": "Moyenne",
+      "long": "Longue"
+    },
+    "connectionMode": {
+      "disconnected": "Déconnecté",
+      "augmented": "Réalité augmentée",
+      "virtual": "Réalité virtuelle"
+    },
+    "vehicleCategory": {
+      "miniDrone": "Mini drone",
+      "smallDrone": "Petit drone",
+      "mediumDrone": "Drone moyen",
+      "largeDrone": "Grand drone",
+      "motorcycle": "Moto",
+      "smallCar": "Petite voiture",
+      "largeCar": "Grosse voiture",
+      "van": "Van",
+      "truck": "Camion",
+      "aircraft": "Aeronef",
+      "boat": "Bateau"
+    },
+    "modifier": {
+      "column": {
+        "group": "Groupe",
+        "effect": "Effet",
+        "value": "Valeur",
+        "category": "Catégorie",
+        "subCategory": "Appliqué à",
+        "condition": "Condition"
+      },
+      "group": {
+        "roll": "Jet de dé",
+        "attribute": "Attribut",
+        "monitor": "Moniteur",
+        "other": "Autre"
+      },
+      "roll": {
+        "effect": {
+          "pool": "Bonus",
+          "reroll": "Relances",
+          "glitch": "Dés de complication",
+          "successReroll": "Relance de ses succès",
+          "opponentPool": "Malus adversaire",
+          "opponentReroll": "Relances adversaire"
+        },
+        "category": {
+          "attribute": "Attribut",
+          "skill": "Compétence",
+          "attributeAction": "Action Attributs"
+        }
+      },
+      "monitor": {
+        "effect": {
+          "armor": "Armure",
+          "structure": "Blindage",
+          "stun": "Etourdissant",
+          "physical": "Physique",
+          "matrix": "Matriciel"
+        },
+        "category": {
+          "max": "Modification du maximum",
+          "resistance": "Résistance"
+        }
+      },
+      "other": {
+        "effect": {
+          "ignoreWounds": "Ignore des blessures",
+          "damageArmor": "Endommage l'armure",
+          "sceneAnarchy": "Anarchy de scène",
+          "locationAnarchy": "Anarchy de lieu",
+          "essenceAdjustment": "Ajustement d'essence",
+          "initiative": "Ajustement d'initiative",
+          "celebrity": "Ajustement de célébrité"
+        },
+        "category": {}
+      },
+      "condition": {
+        "always": "Toujours"
+      }
+    }
+  }
+}
