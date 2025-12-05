@@ -287,7 +287,7 @@
           "max": 10,
           "resistance": {
             "default": 0,
-            "byType": {},
+            "byType": {}
           }
         },
         "fatigue": {
@@ -295,7 +295,7 @@
           "max": 10,
           "resistance": {
             "default": 0,
-            "byType": {},
+            "byType": {}
           }
         },
         "armor": {
@@ -303,7 +303,7 @@
           "value": 0,
           "max": 9,
           "effect": "",
-          "resistance": "",
+          "resistance": ""
         }
       },
       "role": "",
