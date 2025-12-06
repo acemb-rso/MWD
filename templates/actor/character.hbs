@@ -1,104 +1,171 @@
-<form class="{{options.cssClass}} character-sheet" autocomplete="off">
+<form class="{{options.cssClass}} character-sheet sra-enhanced" autocomplete="off">
   <header class="sheet-header">
-    <div class="passport-header">
-      <div class="passport-img">
+    <div class="character-header">
+      <div class="avatar">
         <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}" />
       </div>
-      <div class="passport-column">
-        {{> "systems/mwd/templates/actor/parts/passport-details.hbs"}}
-        <div class="passport-action-row">
-          <div class="passport-action">
-            {{> "systems/mwd/templates/actor/parts/attributebuttons.hbs"}}
-          </div>
-          {{#if ownerActor}}
-          <div class="passport-action">
-            {{> 'systems/mwd/templates/actor/parts/ownership.hbs'}}
-          </div>
-          {{/if}}
-        </div>
+      <div class="header-fields">
+        <label for="name">{{localize 'ANARCHY.actor.name'}}</label>
+        <input id="name" type="text" name="name" value="{{actor.name}}" {{#if options.viewMode}}disabled{{/if}} />
       </div>
       {{> "systems/mwd/templates/common/view-mode.hbs"}}
     </div>
+
+    <nav class="sheet-tabs tabs" data-group="primary">
+      <a data-tab="character">Character</a>
+      <a data-tab="skills">Skills</a>
+      <a data-tab="traits">Traits</a>
+      <a data-tab="life-modules">Life Modules</a>
+      <a data-tab="inventory">Inventory</a>
+      <a data-tab="biography">Biography</a>
+    </nav>
   </header>
 
   <section class="sheet-body">
-    <div class="section-attributes anarchy-attributes">
-      {{> "systems/mwd/templates/actor/parts/attributes.hbs"}}
-    </div>
+    <div class="tab" data-group="primary" data-tab="character">
+      <section class="panel">
+        <h3>Attributes</h3>
+        <div class="attributes-row">
+          <div class="attribute">
+            <label for="system.attributes.strength.value">Strength</label>
+            <input id="system.attributes.strength.value" type="number" name="system.attributes.strength.value" value="{{system.attributes.strength.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+          <div class="attribute">
+            <label for="system.attributes.reflexes.value">Reflexes</label>
+            <input id="system.attributes.reflexes.value" type="number" name="system.attributes.reflexes.value" value="{{system.attributes.reflexes.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+          <div class="attribute">
+            <label for="system.attributes.intelligence.value">Intelligence</label>
+            <input id="system.attributes.intelligence.value" type="number" name="system.attributes.intelligence.value" value="{{system.attributes.intelligence.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+          <div class="attribute">
+            <label for="system.attributes.willpower.value">Willpower</label>
+            <input id="system.attributes.willpower.value" type="number" name="system.attributes.willpower.value" value="{{system.attributes.willpower.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+          <div class="attribute">
+            <label for="system.attributes.charisma.value">Charisma</label>
+            <input id="system.attributes.charisma.value" type="number" name="system.attributes.charisma.value" value="{{system.attributes.charisma.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+          <div class="attribute">
+            <label for="system.attributes.edge.value">Edge (Cap)</label>
+            <input id="system.attributes.edge.value" type="number" name="system.attributes.edge.value" value="{{system.attributes.edge.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+        </div>
+      </section>
 
-    <div class="section-group anarchy-words-section">
-      <div class="anarchy-words anarchy-keywords">
-      {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='keywords' values=system.keywords}}
-      </div>
-      <div class="anarchy-words anarchy-cues">
-      {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='cues' values=system.cues}}
-      </div>
-      <div class="anarchy-words anarchy-dispositions">
-      {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='dispositions' values=system.dispositions}}
-      </div>
-    </div>
+      <section class="panel two-column">
+        <div class="column define-wordType" data-word-type="cues">
+          <h3>Cues</h3>
+          {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='cues' values=system.cues}}
+        </div>
+        <div class="column define-wordType" data-word-type="dispositions">
+          <h3>Dispositions</h3>
+          {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='dispositions' values=system.dispositions}}
+        </div>
+      </section>
 
-    <div class="section-group items-group">
-      {{> "systems/mwd/templates/actor/parts/skills.hbs"}}
-      {{> "systems/mwd/templates/actor/parts/life-modules.hbs"}}
-    </div>
+      <section class="panel define-wordType" data-word-type="keywords">
+        <h3>Keywords</h3>
+        {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='keywords' values=system.keywords}}
+      </section>
 
-    <div class="section-group items-group">
-      {{> "systems/mwd/templates/actor/parts/asset-modules.hbs"}}
-      {{> "systems/mwd/templates/actor/parts/qualities.hbs"}}
-    </div>
+      <section class="panel monitors-grid">
+        <div class="monitor-column">
+          <h3>Condition Monitors</h3>
+          {{> "systems/mwd/templates/monitors/armor.hbs"}}
+          {{> "systems/mwd/templates/monitors/physical.hbs"}}
+          {{> "systems/mwd/templates/monitors/fatigue.hbs"}}
+        </div>
+        <div class="monitor-column">
+          <h3>Edge Pools</h3>
+          <div class="edge-pool-group">
+            <h4>{{localize ANARCHY.actor.counters.edgePools.physical}}</h4>
+            <div class="edge-pool-row">
+              <label for="system.counters.edgePools.grit.value">{{localize ANARCHY.actor.counters.edgePools.grit}}</label>
+              <input id="system.counters.edgePools.grit.value" type="number" name="system.counters.edgePools.grit.value" value="{{system.counters.edgePools.grit.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+              <label for="system.counters.edgePools.chaos.value">{{localize ANARCHY.actor.counters.edgePools.chaos}}</label>
+              <input id="system.counters.edgePools.chaos.value" type="number" name="system.counters.edgePools.chaos.value" value="{{system.counters.edgePools.chaos.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+            </div>
+          </div>
+          <div class="edge-pool-group">
+            <h4>{{localize ANARCHY.actor.counters.edgePools.mental}}</h4>
+            <div class="edge-pool-row">
+              <label for="system.counters.edgePools.insight.value">{{localize ANARCHY.actor.counters.edgePools.insight}}</label>
+              <input id="system.counters.edgePools.insight.value" type="number" name="system.counters.edgePools.insight.value" value="{{system.counters.edgePools.insight.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+              <label for="system.counters.edgePools.rumor.value">{{localize ANARCHY.actor.counters.edgePools.rumor}}</label>
+              <input id="system.counters.edgePools.rumor.value" type="number" name="system.counters.edgePools.rumor.value" value="{{system.counters.edgePools.rumor.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+            </div>
+          </div>
+          <div class="edge-pool-group">
+            <h4>{{localize ANARCHY.actor.counters.edgePools.social}}</h4>
+            <div class="edge-pool-row">
+              <label for="system.counters.edgePools.legend.value">{{localize ANARCHY.actor.counters.edgePools.legend}}</label>
+              <input id="system.counters.edgePools.legend.value" type="number" name="system.counters.edgePools.legend.value" value="{{system.counters.edgePools.legend.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+              <label for="system.counters.edgePools.credibility.value">{{localize ANARCHY.actor.counters.edgePools.credibility}}</label>
+              <input id="system.counters.edgePools.credibility.value" type="number" name="system.counters.edgePools.credibility.value" value="{{system.counters.edgePools.credibility.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+            </div>
+          </div>
+        </div>
+      </section>
 
-    <div class="section-group items-group">
-      {{> "systems/mwd/templates/actor/parts/weapons.hbs"}}
-      {{> "systems/mwd/templates/actor/parts/gears.hbs"}}
-    </div>
+      <section class="panel">
+        <h3>Personal Weaponry</h3>
+        {{> "systems/mwd/templates/actor/parts/weapons.hbs"}}
+      </section>
 
-    <div class="section-group items-group">
-      {{> "systems/mwd/templates/actor/parts/contacts.hbs"}}
-      {{#if ownedActors}}
-      {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
-      {{/if}}
-    </div>
+      <section class="panel">
+        <h3>Asset Modules</h3>
+        {{> "systems/mwd/templates/actor/parts/asset-modules.hbs"}}
+      </section>
 
-    <div class="section-group monitors-row">
-      <div class="anarchy-block">
-        {{> "systems/mwd/templates/monitors/armor.hbs"}}
-      </div>
-      <div class="anarchy-block">
-        {{> "systems/mwd/templates/monitors/physical.hbs"}}
-      </div>
-      <div class="anarchy-block">
-        {{> "systems/mwd/templates/monitors/fatigue.hbs"}}
-      </div>
-      <div class="anarchy-block flexcol">
-        {{> "systems/mwd/templates/monitors/edge.hbs"}}
-        {{> "systems/mwd/templates/monitors/anarchy-actor.hbs"}}
-      </div>
-    </div>
-
-    <div class="section-group items-group">
-      <div class="anarchy-block">
-        {{> "systems/mwd/templates/monitors/edge-pool.hbs"}}
-      </div>
-      <div class="anarchy-block experience-block">
-        <h3 class="section-group-header">{{localize 'ANARCHY.actor.counters.xp'}}</h3>
+      <section class="panel experience">
+        <h3>Experience</h3>
         <div class="experience-grid">
-          <label for="system.counters.xp.value">{{localize 'ANARCHY.actor.counters.current'}}</label>
+          <label for="system.counters.xp.value">Current XP</label>
           <input type="number" name="system.counters.xp.value" value="{{system.counters.xp.value}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
-          <label for="system.counters.xp.total">{{localize 'ANARCHY.actor.counters.lifetime'}}</label>
+          <label for="system.counters.xp.total">Lifetime XP</label>
           <input type="number" name="system.counters.xp.total" value="{{system.counters.xp.total}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
         </div>
-      </div>
-      <div class="anarchy-block">
-        {{> "systems/mwd/templates/actor/character/social-celebrity.hbs"}}
-        {{> "systems/mwd/templates/monitors/social-credibility.hbs"}}
-        {{> "systems/mwd/templates/monitors/social-rumor.hbs"}}
-      </div>
+      </section>
     </div>
 
-    <div class="anarchy-block">
-      {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
-      {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
+    <div class="tab" data-group="primary" data-tab="skills">
+      <section class="panel">
+        <h3>Skills</h3>
+        {{> "systems/mwd/templates/actor/parts/skills.hbs"}}
+      </section>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="traits">
+      <section class="panel">
+        <h3>Traits</h3>
+        {{> "systems/mwd/templates/actor/parts/qualities.hbs"}}
+      </section>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="life-modules">
+      <section class="panel">
+        <h3>Life Modules</h3>
+        {{> "systems/mwd/templates/actor/parts/life-modules.hbs"}}
+      </section>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="inventory">
+      <section class="panel">
+        <h3>Inventory</h3>
+        {{> "systems/mwd/templates/actor/parts/gears.hbs"}}
+        {{> "systems/mwd/templates/actor/parts/contacts.hbs"}}
+        {{#if ownedActors}}
+        {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
+        {{/if}}
+      </section>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="biography">
+      <section class="panel biography">
+        {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
+        {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
+      </section>
     </div>
   </section>
 </form>
