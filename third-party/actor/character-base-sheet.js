@@ -9,31 +9,26 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   }
 
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      width: 720,
-      height: 700,
-      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "main" }],
+  static get DEFAULT_OPTIONS() {
+    return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+      position: { width: 720, height: 700 },
+      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "main" }]
     });
   }
 
-  getData(options) {
-    if (this.viewMode == undefined) {
-      this.viewMode = true
-    }
+  async _prepareContext(options) {
+    this.viewMode ??= true;
+
+    const context = await super._prepareContext(options);
     const essence = this.actor.computeEssence();
-    const hbsData = foundry.utils.mergeObject(
-      super.getData(options),
-      {
-        essence: {
-          value: essence,
-          adjust: this.actor.computeMalusEssence(essence)
-        },
-        options: {
-          viewMode: this.viewMode
-        }
-      });
-    return hbsData;
+
+    return foundry.utils.mergeObject(context, {
+      essence: {
+        value: essence,
+        adjust: this.actor.computeMalusEssence(essence)
+      },
+      options: foundry.utils.mergeObject(context.options ?? {}, { viewMode: this.viewMode })
+    });
   }
 
   toggleViewMode() {
