@@ -39,6 +39,14 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     const element = jqHtml[0];
     super.activateListeners(jqHtml);
 
+    // Enable tab navigation so sheet content renders
+    this._tabs ??= new foundry.applications.api.Tabs({
+      navSelector: ".sheet-tabs",
+      contentSelector: ".sheet-body",
+      initial: "character"
+    });
+    this._tabs.bind(element);
+
     jqHtml.find('.click-toggle-view-mode').click(async event => this.toggleViewMode())
 
     // cues, dispositions, keywords
