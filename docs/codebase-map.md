@@ -31,7 +31,6 @@ This document summarizes each file in the MechWarrior: Destiny Foundry VTT syste
 - `src/modules/actor/character-sheet.js` – Default character sheet implementation with tab management and embedded item controls for a single-page view.【F:src/modules/actor/character-sheet.js†L1-L17】
 - `src/modules/actor/character-npc-sheet.js` – NPC-oriented sheet built directly on the base actor sheet with its own layout and sizing defaults.【F:src/modules/actor/character-npc-sheet.js†L1-L17】
 - `src/modules/actor/character-tabbed-sheet.js` – Character sheet that separates main/equipment/biography tabs; registered as an optional actor sheet.【F:src/modules/actor/character-tabbed-sheet.js†L1-L23】
-- `src/modules/actor/character-enhanced-sheet.js` – Enhanced character sheet offering expanded controls and summary blocks; set as default in `AnarchySystem`.【F:src/modules/actor/character-enhanced-sheet.js†L1-L41】
 - `src/modules/actor/character-base-sheet.js` – Shared utilities for character sheets (tab activation, rendering helpers) used by enhanced/tabbed variants.【F:src/modules/actor/character-base-sheet.js†L1-L96】
 - `src/modules/actor/vehicle-sheet.js` – Vehicle actor sheet class handling pilot display, weapon groups, and vehicle monitors.【F:src/modules/actor/vehicle-sheet.js†L1-L64】
 - `src/modules/actor/battlemech-sheet.js` – Battlemech sheet UI with loadout, heat, and chassis-specific controls.【F:src/modules/actor/battlemech-sheet.js†L1-L200】
@@ -88,7 +87,7 @@ This document summarizes each file in the MechWarrior: Destiny Foundry VTT syste
 
 ## Styles
 - `src/styles/index.scss` – Root stylesheet that imports other SCSS partials for compilation via Vite.【F:src/styles/index.scss†L1-L3】
-- `src/styles/global.scss`, `gm-manager.scss`, `character-enhanced-sheet.scss` – Theme/style definitions for global UI elements, GM Manager overlay, and the enhanced character sheet respectively.【F:src/styles/global.scss†L1-L200】【F:src/styles/gm-manager.scss†L1-L33】【F:src/styles/character-enhanced-sheet.scss†L1-L200】
+- `src/styles/global.scss`, `gm-manager.scss` – Theme/style definitions for global UI elements and the GM Manager overlay respectively.【F:src/styles/global.scss†L1-L200】【F:src/styles/gm-manager.scss†L1-L33】
 
 ## Templates & localization
 - `templates/` – Handlebars templates for chat cards, dialogs, common partials, monitors, item sheets, roll UI, token HUD shortcuts, and actor sheets; referenced by sheet classes, dialogs, and chat manager when rendering views.【F:templates/chat/anarchy-roll.hbs†L1-L60】【F:templates/actor/character.hbs†L1-L40】
