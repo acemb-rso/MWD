@@ -10,7 +10,7 @@ const ATTR = TEMPLATE.attributes;
 const DEFENSE = ANARCHY_SYSTEM.defenses;
 
 const DEFAULT_SKILLSET_ANARCHY = 'shadowrun-anarchy-en';
-const KNOWLEDGE = { code: 'knowledge', attribute: ATTR.knowledge, icon: `${ICONS_SKILLS_PATH}/knowledge.svg` };
+const KNOWLEDGE = { code: 'knowledge', attribute: ATTR.logic, icon: `${ICONS_SKILLS_PATH}/knowledge.svg` };
 
 export const ANARCHY_SKILLS = [
   { code: 'athletics', attribute: ATTR.strength, icon: `${ICONS_SKILLS_PATH}/athletics.svg` },

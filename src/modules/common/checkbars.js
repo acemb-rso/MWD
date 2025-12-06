@@ -2,7 +2,7 @@ import { ErrorManager } from "../error-manager.js";
 import { ANARCHY } from "../config.js";
 import { AnarchyUsers } from "../users.js";
 import { Icons } from "../icons.js";
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE, THIRD_PARTY_STYLE_PATH } from "../constants.js";
 
 const MONITORS = ANARCHY.actor.monitors;
 const COUNTERS = ANARCHY.actor.counters;
@@ -67,8 +67,8 @@ export const DEFAULT_CHECKBARS = {
         max: 6
       };
     },
-    iconChecked: Icons.iconSystemPath('anarchy-point.webp', 'checkbar-img'),
-    iconUnchecked: Icons.iconSystemPath('anarchy-point-off.webp', 'checkbar-img'),
+    iconChecked: Icons.iconPath(`${THIRD_PARTY_STYLE_PATH}/anarchy-point.webp`, 'checkbar-img'),
+    iconUnchecked: Icons.iconPath(`${THIRD_PARTY_STYLE_PATH}/anarchy-point-off.webp`, 'checkbar-img'),
     resource: COUNTERS.anarchy
   },
   plot: {
@@ -77,8 +77,8 @@ export const DEFAULT_CHECKBARS = {
       const value = it.system.counters.anarchy.value;
       return { value: value, max: value + 1 };
     },
-    iconChecked: Icons.iconSystemPath('danger-point.webp', 'checkbar-img'),
-    iconUnchecked: Icons.iconSystemPath('danger-point-off.webp', 'checkbar-img'),
+    iconChecked: Icons.iconPath(`${THIRD_PARTY_STYLE_PATH}/danger-point.webp`, 'checkbar-img'),
+    iconUnchecked: Icons.iconPath(`${THIRD_PARTY_STYLE_PATH}/danger-point-off.webp`, 'checkbar-img'),
     resource: COUNTERS.anarchy
   },
   sceneAnarchy: {

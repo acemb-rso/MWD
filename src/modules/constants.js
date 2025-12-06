@@ -9,6 +9,7 @@ export const SYSTEM_SOCKET = `system.${SYSTEM_NAME}`;
 export const SYSTEM_SCOPE = SYSTEM_NAME;
 export const SYSTEM_PATH = `systems/${SYSTEM_NAME}`;
 export const STYLE_PATH = `${SYSTEM_PATH}/style`;
+export const THIRD_PARTY_STYLE_PATH = `${SYSTEM_PATH}/third-party/style`;
 export const TEMPLATES_PATH = `systems/${SYSTEM_NAME}/templates`;
 export const ICONS_PATH = `${SYSTEM_PATH}/icons`;
 export const ICONS_SKILLS_PATH = `${ICONS_PATH}/skills`;
@@ -190,6 +191,7 @@ globalThis.ANARCHY_CONSTANTS = {
   SYSTEM_SCOPE,
   SYSTEM_PATH,
   STYLE_PATH,
+  THIRD_PARTY_STYLE_PATH,
   TEMPLATES_PATH,
   ICONS_PATH,
   ICONS_SKILLS_PATH,
