@@ -10,7 +10,7 @@ const ATTR = TEMPLATE.actorAttributes;
 const DEFENSE = ANARCHY_SYSTEM.defenses;
 
 const DEFAULT_SKILLSET_ANARCHY = 'shadowrun-anarchy-en';
-const KNOWLEDGE = { code: 'knowledge', attribute: ATTR.knowledge, icon: `${ICONS_SKILLS_PATH}/knowledge.svg` };
+const KNOWLEDGE = { code: 'knowledge', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/knowledge.svg` };
 
 export const ANARCHY_SKILLS = [
   // Strength
@@ -33,7 +33,7 @@ export const ANARCHY_SKILLS = [
   { code: 'communications', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/networking.svg` },
   { code: 'computers', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/hacking.svg` },
   { code: 'demolitions', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/demolition.svg` },
-  { code: 'knowledge', attribute: ATTR.knowledge, icon: `${ICONS_SKILLS_PATH}/knowledge.svg` },
+  { code: 'knowledge', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/knowledge.svg` },
   { code: 'medTech', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/biotech.svg` },
   { code: 'science', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
   { code: 'perception', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/skills.svg` },

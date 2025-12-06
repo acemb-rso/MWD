@@ -119,10 +119,9 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   }
 
   activateListeners(html) {
-    const element = html instanceof HTMLElement ? html : html[0];
-    super.activateListeners(element);
-
-    const jqHtml = $(element);
+    const jqHtml = html instanceof HTMLElement ? $(html) : html;
+    const element = jqHtml[0];
+    super.activateListeners(jqHtml);
 
     // items standard actions (add/edit/activate/delete)
     jqHtml.find('.click-item-add').click(async event => {

@@ -1,5 +1,5 @@
 import { ANARCHY } from "../config.js";
-import { SYSTEM_DESCRIPTION, SYSTEM_NAME, SYSTEM_PATH } from "../constants.js";
+import { SYSTEM_DESCRIPTION, SYSTEM_NAME, THIRD_PARTY_STYLE_PATH } from "../constants.js";
 
 export const GLITCH_COLORSET = 'glitch';
 export const RISK_COLORSET = 'risk';
@@ -7,8 +7,8 @@ export const REROLL_COLORSET = 'reroll';
 export const REROLL_REMOVED_COLORSET = 'rerollRemoved';
 export const REMOVED_COLORSET = 'removed';
 
-const DICE_GLITCH = `${SYSTEM_PATH}/style/danger-point.webp`;
-const DICE_PROWESS = `${SYSTEM_PATH}/style/anarchy-point.webp`;
+const DICE_GLITCH = `${THIRD_PARTY_STYLE_PATH}/danger-point.webp`;
+const DICE_PROWESS = `${THIRD_PARTY_STYLE_PATH}/anarchy-point.webp`;
 
 export class AnarchyDice {
   static dice3d = undefined;

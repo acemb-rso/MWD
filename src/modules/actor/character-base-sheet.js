@@ -35,9 +35,9 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   }
 
   activateListeners(html) {
-    const element = html instanceof HTMLElement ? html : html[0];
-    const jqHtml = $(element);
-    super.activateListeners(element);
+    const jqHtml = html instanceof HTMLElement ? $(html) : html;
+    const element = jqHtml[0];
+    super.activateListeners(jqHtml);
 
     jqHtml.find('.click-toggle-view-mode').click(async event => this.toggleViewMode())
 
