@@ -11,10 +11,13 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   /** @override */
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-      width: 720,
-      height: 700,
+      resizable: true,
+      position: {
+        width: 720,
+        height: 700
+      },
       viewMode: false,
-      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "character" }],
+      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", group: "primary", initial: "character" }],
     });
   }
 
@@ -38,6 +41,18 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     const jqHtml = html instanceof HTMLElement ? $(html) : html;
     const element = jqHtml[0];
     super.activateListeners(jqHtml);
+
+    const defaultTab = "character";
+
+    // Enable tab navigation so sheet content renders
+    this._tabs ??= new foundry.applications.api.Tabs({
+      navSelector: ".sheet-tabs",
+      contentSelector: ".sheet-body",
+      group: "primary",
+      initial: defaultTab
+    });
+    this._tabs.bind(element);
+    this._ensureActiveTab(element, defaultTab);
 
     jqHtml.find('.click-toggle-view-mode').click(async event => this.toggleViewMode())
 
@@ -79,6 +94,20 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
       event.stopPropagation();
       this.actor.rollCelebrity();
     });
+  }
+
+  _ensureActiveTab(element, tabName, group = "primary") {
+    const navElement = element.querySelector(`.sheet-tabs[data-group="${group}"]`);
+    const navLinks = navElement?.querySelectorAll("[data-tab]") ?? [];
+    const tabContents = element.querySelectorAll(`.tab[data-group="${group}"]`);
+
+    const navActivated = Array.from(navLinks).some(link => link.classList.contains("active"));
+    const tabActivated = Array.from(tabContents).some(tab => tab.classList.contains("active"));
+
+    if (navActivated && tabActivated) return;
+
+    navLinks.forEach(link => link.classList.toggle("active", link.dataset.tab === tabName));
+    tabContents.forEach(tab => tab.classList.toggle("active", tab.dataset.tab === tabName));
   }
 
   createNewWord(wordType) {
