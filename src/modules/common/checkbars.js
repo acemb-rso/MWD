@@ -295,9 +295,6 @@ export class Checkbars {
     await Checkbars.addCounter(target, TEMPLATE.monitors.physical, value - max);
   }
 
-  static async _manageMatrixOverflow(target, value, max) {
-    await Checkbars.addCounter(target, TEMPLATE.monitors.fatigue, value - max);
-  }
   static async setAnarchy(target, newValue) {
     if (!target.hasOwnAnarchy()) {
       return;

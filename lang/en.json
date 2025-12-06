@@ -94,9 +94,6 @@
       "editMode": "Edit mode",
       "attach": "Change owner",
       "attachCopy": "Give a copy",
-      "matrix": {
-        "connectionMode": "Connection mode"
-      },
       "roll": {
         "button": "Roll",
         "title": "Roll {name} {specialization}",
@@ -594,11 +591,6 @@
       "medium": "Medium",
       "far": "Far",
       "extreme": "Extreme"
-    },
-    "connectionMode": {
-      "disconnected": "Disconnected",
-      "augmented": "Augmented reality",
-      "virtual": "Virtual reality"
     },
     "vehicleCategory": {
       "drone": "Drone",

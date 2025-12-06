@@ -55,7 +55,6 @@ export const ANARCHY_SKILLS = [
   { code: 'streetwise', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/etiquette2.svg` },
   { code: 'intimidation', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/intimidation.svg` },
 ]
-export const MATRIX_SKILLS = []
 
 export class Skills {
 

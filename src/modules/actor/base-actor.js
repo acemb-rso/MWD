@@ -7,7 +7,6 @@ import { ErrorManager } from "../error-manager.js";
 import { Misc } from "../misc.js";
 import { Modifiers } from "../modifiers/modifiers.js";
 import { RollDialog } from "../roll/roll-dialog.js";
-import { MATRIX_SKILLS } from "../skills.js";
 import { AnarchyUsers } from "../users.js";
 import { ActorDamageManager } from "./actor-damage.js";
 
@@ -225,28 +224,6 @@ export class AnarchyBaseActor extends Actor {
 
     foundry.utils.setProperty(this.system, 'counters.edgePools', pools);
   }
-
-  getMatrixDetails() {
-    return {
-      hasMatrix: false,
-      logic: undefined,
-      firewall: undefined,
-      monitor: undefined,
-      overflow: undefined,
-    }
-  }
-
-  getMatrixLogic() { return this.getMatrixDetails().logic }
-  getMatrixFirewall() { return this.getMatrixDetails().firewall }
-  getMatrixMonitor() { return this.getMatrixDetails().monitor }
-  getMatrixMarks() { return [] }
-  getMatrixOverflow() { return this.getMatrixDetails().overflow }
-  hasMatrixMonitor() { return false }
-  isMatrixConnected(mode = undefined) { return false }
-  isMatrixSkill(skill) {
-    return MATRIX_SKILLS.includes(skill?.system.code)
-  }
-
 
   async setCheckbarValue(path, value) {
     return await this.update({ [path]: value })
