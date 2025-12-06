@@ -1,7 +1,7 @@
 {
   "id": "mwd",
   "type": "system",
-  "version": "0.2.16",
+  "version": "0.2.17",
   "manifest": "https://raw.githubusercontent.com/acemb-rso/MWD/main/system.json",
   "download": "https://github.com/acemb-rso/MWD/archive/refs/heads/main.zip",
   "url": "https://github.com/acemb-rso/MWD",
