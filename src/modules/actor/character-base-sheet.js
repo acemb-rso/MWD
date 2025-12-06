@@ -14,7 +14,7 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
       width: 720,
       height: 700,
       viewMode: false,
-      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "main" }],
+      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "character" }],
     });
   }
 
