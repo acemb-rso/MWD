@@ -1,28 +1,19 @@
 <form class="{{options.cssClass}} character-sheet sra-enhanced" autocomplete="off">
-  <header class="sheet-header">
-    <div class="character-header">
-      <div class="avatar">
-        <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}" />
-      </div>
-      <div class="header-fields">
-        <label for="name">{{localize 'ANARCHY.actor.name'}}</label>
-        <input id="name" type="text" name="name" value="{{actor.name}}" {{#if options.viewMode}}disabled{{/if}} />
-      </div>
-      {{> "systems/mwd/templates/common/view-mode.hbs"}}
-    </div>
+  <section class="sheet-split">
+    <div class="sheet-upper">
+      <header class="sheet-header">
+        <div class="character-header">
+          <div class="avatar">
+            <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}" />
+          </div>
+          <div class="header-fields">
+            <label for="name">{{localize 'ANARCHY.actor.name'}}</label>
+            <input id="name" type="text" name="name" value="{{actor.name}}" {{#if options.viewMode}}disabled{{/if}} />
+          </div>
+          {{> "systems/mwd/templates/common/view-mode.hbs"}}
+        </div>
+      </header>
 
-    <nav class="sheet-tabs tabs" data-group="primary">
-      <a data-tab="character">Character</a>
-      <a data-tab="skills">Skills</a>
-      <a data-tab="traits">Traits</a>
-      <a data-tab="life-modules">Life Modules</a>
-      <a data-tab="inventory">Inventory</a>
-      <a data-tab="biography">Biography</a>
-    </nav>
-  </header>
-
-  <section class="sheet-body">
-    <div class="tab" data-group="primary" data-tab="character">
       <section class="panel">
         <h3>Attributes</h3>
         <div class="attributes-row">
@@ -107,64 +98,79 @@
           </div>
         </div>
       </section>
+    </div>
 
-      <section class="panel">
-        <h3>Personal Weaponry</h3>
-        {{> "systems/mwd/templates/actor/parts/weapons.hbs"}}
-      </section>
+    <div class="sheet-lower">
+      <nav class="sheet-tabs tabs" data-group="primary">
+        <a data-tab="character">Character</a>
+        <a data-tab="skills">Skills</a>
+        <a data-tab="traits">Traits</a>
+        <a data-tab="life-modules">Life Modules</a>
+        <a data-tab="inventory">Inventory</a>
+        <a data-tab="biography">Biography</a>
+      </nav>
 
-      <section class="panel">
-        <h3>Asset Modules</h3>
-        {{> "systems/mwd/templates/actor/parts/asset-modules.hbs"}}
-      </section>
+      <section class="sheet-body card-stage">
+        <div class="tab tab-card" data-group="primary" data-tab="character">
+          <section class="panel">
+            <h3>Personal Weaponry</h3>
+            {{> "systems/mwd/templates/actor/parts/weapons.hbs"}}
+          </section>
 
-      <section class="panel experience">
-        <h3>Experience</h3>
-        <div class="experience-grid">
-          <label for="system.counters.xp.value">Current XP</label>
-          <input type="number" name="system.counters.xp.value" value="{{system.counters.xp.value}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
-          <label for="system.counters.xp.total">Lifetime XP</label>
-          <input type="number" name="system.counters.xp.total" value="{{system.counters.xp.total}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
+          <section class="panel">
+            <h3>Asset Modules</h3>
+            {{> "systems/mwd/templates/actor/parts/asset-modules.hbs"}}
+          </section>
+
+          <section class="panel experience">
+            <h3>Experience</h3>
+            <div class="experience-grid">
+              <label for="system.counters.xp.value">Current XP</label>
+              <input type="number" name="system.counters.xp.value" value="{{system.counters.xp.value}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
+              <label for="system.counters.xp.total">Lifetime XP</label>
+              <input type="number" name="system.counters.xp.total" value="{{system.counters.xp.total}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
+            </div>
+          </section>
         </div>
-      </section>
-    </div>
 
-    <div class="tab" data-group="primary" data-tab="skills">
-      <section class="panel">
-        <h3>Skills</h3>
-        {{> "systems/mwd/templates/actor/parts/skills.hbs"}}
-      </section>
-    </div>
+        <div class="tab tab-card" data-group="primary" data-tab="skills">
+          <section class="panel">
+            <h3>Skills</h3>
+            {{> "systems/mwd/templates/actor/parts/skills.hbs"}}
+          </section>
+        </div>
 
-    <div class="tab" data-group="primary" data-tab="traits">
-      <section class="panel">
-        <h3>Traits</h3>
-        {{> "systems/mwd/templates/actor/parts/qualities.hbs"}}
-      </section>
-    </div>
+        <div class="tab tab-card" data-group="primary" data-tab="traits">
+          <section class="panel">
+            <h3>Traits</h3>
+            {{> "systems/mwd/templates/actor/parts/qualities.hbs"}}
+          </section>
+        </div>
 
-    <div class="tab" data-group="primary" data-tab="life-modules">
-      <section class="panel">
-        <h3>Life Modules</h3>
-        {{> "systems/mwd/templates/actor/parts/life-modules.hbs"}}
-      </section>
-    </div>
+        <div class="tab tab-card" data-group="primary" data-tab="life-modules">
+          <section class="panel">
+            <h3>Life Modules</h3>
+            {{> "systems/mwd/templates/actor/parts/life-modules.hbs"}}
+          </section>
+        </div>
 
-    <div class="tab" data-group="primary" data-tab="inventory">
-      <section class="panel">
-        <h3>Inventory</h3>
-        {{> "systems/mwd/templates/actor/parts/gears.hbs"}}
-        {{> "systems/mwd/templates/actor/parts/contacts.hbs"}}
-        {{#if ownedActors}}
-        {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
-        {{/if}}
-      </section>
-    </div>
+        <div class="tab tab-card" data-group="primary" data-tab="inventory">
+          <section class="panel">
+            <h3>Inventory</h3>
+            {{> "systems/mwd/templates/actor/parts/gears.hbs"}}
+            {{> "systems/mwd/templates/actor/parts/contacts.hbs"}}
+            {{#if ownedActors}}
+            {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
+            {{/if}}
+          </section>
+        </div>
 
-    <div class="tab" data-group="primary" data-tab="biography">
-      <section class="panel biography">
-        {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
-        {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
+        <div class="tab tab-card" data-group="primary" data-tab="biography">
+          <section class="panel biography">
+            {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
+            {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
+          </section>
+        </div>
       </section>
     </div>
   </section>
