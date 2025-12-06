@@ -166,24 +166,6 @@ const DEFAULT_ROLL_PARAMETERS = [
       }
     }
   },
-  // modifier for deckers/technomancers connected in virtual reality
-  {
-    code: 'virtualReality',
-    options: {
-      flags: { editDice: false, editable: false },
-      order: 24, category: ROLL_PARAMETER_CATEGORY.pool,
-      value: 1,
-      labelkey: ANARCHY.common.roll.modifiers.virtualReality,
-      hbsTemplateRoll: `${TEMPLATES_PATH}/roll/parts/input-numeric.hbs`,
-      min: 1, max: 1,
-    },
-    condition: context => context.actor.isMatrixSkill(context.skill) && context.actor.isMatrixConnected(MATRIX.connectionMode.virtual),
-    factory: context => {
-      return {
-        flags: { used: context.actor.isMatrixSkill(context.skill) && context.actor.isMatrixConnected(MATRIX.connectionMode.virtual) },
-      }
-    }
-  },
   // other modifiers
   {
     code: 'other',

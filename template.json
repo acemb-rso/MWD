@@ -256,7 +256,6 @@
         "displayBars": 40
       },
       "style": "",
-      "connectionMode": "disconnected",
       "ownAnarchy": false,
       "keywords": [],
       "dispositions": [],
@@ -296,8 +295,7 @@
       },
       "role": "",
       "biography": "",
-      "style": "sra-enhanced",
-      "connectionMode": "disconnected"
+      "style": "sra-enhanced"
     },
     "vehicle": {
       "templates": [

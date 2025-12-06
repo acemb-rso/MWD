@@ -454,11 +454,6 @@ export const ANARCHY = {
         far: 'ANARCHY.range.far',
         extreme: 'ANARCHY.range.extreme',
     },
-    connectionMode: {
-        disconnected: 'ANARCHY.connectionMode.disconnected',
-        augmented: 'ANARCHY.connectionMode.augmented',
-        virtual: 'ANARCHY.connectionMode.virtual',
-    },
     vehicleCategory: {
         drone: 'ANARCHY.vehicleCategory.drone',
         personal: 'ANARCHY.vehicleCategory.personal',

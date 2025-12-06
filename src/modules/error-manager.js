@@ -82,16 +82,6 @@ export class ErrorManager {
     }
   }
 
-  static checkMatrixMonitor(actor) {
-    if (!actor.hasMatrixMonitor()) {
-      const error = game.i18n.format(ANARCHY.actor.monitors.noMatrixMonitor, {
-        actor: actor.name
-      });
-      ui.notifications.warn(error);
-      throw error;
-    }
-  }
-
   static checkActorDefenseAction(actorAction, actor, defense) {
     if (!actorAction) {
       const error = game.i18n.format(ANARCHY.common.errors.actorDoesNotHaveDefense, {
