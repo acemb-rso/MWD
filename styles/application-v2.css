@@ -1,53 +1,492 @@
-/* Flexbox layout support for Application V2 sheets */
+/* ================================================
+   APPLICATION V2 - FLEXBOX LAYOUT
+   ================================================ */
+
+/* Main form container - fill window height */
 .character-sheet.sra-enhanced form {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  padding: 0.5rem;
+  gap: 0.5rem;
 }
 
+/* Split layout: fixed upper + flexible lower */
 .character-sheet.sra-enhanced .sheet-split {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
   height: 100%;
   min-height: 0;
 }
 
+/* Upper section - fixed size, no scroll */
 .character-sheet.sra-enhanced .sheet-upper {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
   flex: 0 0 auto;
-  min-height: 0;
+  overflow: visible;
 }
 
+/* Lower section - flexible, contains tabs + content */
 .character-sheet.sra-enhanced .sheet-lower {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0;
   flex: 1 1 auto;
   min-height: 0;
+  overflow: hidden;
 }
+
+/* ================================================
+   TABS
+   ================================================ */
 
 .character-sheet.sra-enhanced .sheet-tabs {
   flex: 0 0 auto;
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--color-border-dark, #999);
+  padding: 0 0.5rem;
+  margin: 0;
+  background: var(--color-bg-option, rgba(0,0,0,0.05));
 }
+
+.character-sheet.sra-enhanced .sheet-tabs a.item {
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-bottom: none;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.2s;
+  position: relative;
+  top: 1px;
+  background: transparent;
+  text-decoration: none;
+  color: inherit;
+}
+
+.character-sheet.sra-enhanced .sheet-tabs a.item:hover {
+  opacity: 0.8;
+  background: var(--color-bg, #fff);
+}
+
+.character-sheet.sra-enhanced .sheet-tabs a.item.active {
+  opacity: 1;
+  border-color: var(--color-border-dark, #999);
+  border-bottom-color: var(--color-bg, #fff);
+  background: var(--color-bg, #fff);
+  font-weight: bold;
+}
+
+/* ================================================
+   TAB CONTENT
+   ================================================ */
 
 .character-sheet.sra-enhanced .sheet-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  position: relative;
-  display: flex;
-}
-
-.character-sheet.sra-enhanced .sheet-body.card-stage {
-  overflow-y: auto;
   overflow-x: hidden;
+  position: relative;
+  padding: 0.5rem;
+  background: var(--color-bg, #fff);
 }
 
+/* Hide inactive tabs */
 .character-sheet.sra-enhanced .sheet-body .tab {
-  position: absolute;
-  inset: 0;
+  display: none;
+}
+
+.character-sheet.sra-enhanced .sheet-body .tab.active {
+  display: block;
+}
+
+/* ================================================
+   HEADER
+   ================================================ */
+
+.character-sheet.sra-enhanced .sheet-header {
+  background: var(--color-bg-option, rgba(0,0,0,0.05));
+  border: 1px solid var(--color-border-dark, #999);
+  border-radius: 4px;
+  padding: 0.75rem;
+}
+
+.character-sheet.sra-enhanced .character-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.character-sheet.sra-enhanced .avatar {
+  flex: 0 0 auto;
+}
+
+.character-sheet.sra-enhanced .avatar img {
+  width: 80px;
+  height: 80px;
+  border: 2px solid var(--color-border-dark, #999);
+  border-radius: 4px;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.character-sheet.sra-enhanced .header-fields {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.character-sheet.sra-enhanced .header-fields label {
+  font-weight: bold;
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+.character-sheet.sra-enhanced .header-fields input[name="name"] {
+  width: 100%;
+  font-size: 1.3em;
+  font-weight: bold;
+  padding: 0.25rem;
+}
+
+/* ================================================
+   PANELS
+   ================================================ */
+
+.character-sheet.sra-enhanced .panel {
+  background: var(--color-bg-option, rgba(0,0,0,0.05));
+  border: 1px solid var(--color-border-dark, #999);
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.character-sheet.sra-enhanced .panel h3 {
+  margin: 0 0 0.5rem 0;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--color-border-dark, #999);
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+.character-sheet.sra-enhanced .panel h4 {
+  margin: 0.5rem 0 0.25rem 0;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+/* ================================================
+   ATTRIBUTES
+   ================================================ */
+
+.character-sheet.sra-enhanced .attributes-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+.character-sheet.sra-enhanced .attribute {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.character-sheet.sra-enhanced .attribute label {
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.character-sheet.sra-enhanced .attribute input {
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  padding: 0.25rem;
+}
+
+/* ================================================
+   TWO COLUMN LAYOUT
+   ================================================ */
+
+.character-sheet.sra-enhanced .two-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.character-sheet.sra-enhanced .two-column .column {
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .character-sheet.sra-enhanced .two-column {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================================================
+   MONITORS GRID
+   ================================================ */
+
+.character-sheet.sra-enhanced .monitors-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 0.75rem;
+}
+
+.character-sheet.sra-enhanced .monitor-column {
+  min-width: 0;
+}
+
+.character-sheet.sra-enhanced .monitor-column h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+@media (max-width: 900px) {
+  .character-sheet.sra-enhanced .monitors-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================================================
+   EDGE POOLS
+   ================================================ */
+
+.character-sheet.sra-enhanced .edge-pool-group {
+  margin-bottom: 1rem;
+}
+
+.character-sheet.sra-enhanced .edge-pool-row {
+  display: grid;
+  grid-template-columns: auto 70px auto 70px;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.character-sheet.sra-enhanced .edge-pool-row label {
+  text-align: right;
+  font-size: 0.9em;
+}
+
+.character-sheet.sra-enhanced .edge-pool-row input {
+  text-align: center;
+  font-weight: bold;
+}
+
+/* ================================================
+   ITEMS
+   ================================================ */
+
+.character-sheet.sra-enhanced .items-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.character-sheet.sra-enhanced .item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border-light, #ccc);
+  border-radius: 3px;
+  background: var(--color-bg, #fff);
+  transition: all 0.2s;
+}
+
+.character-sheet.sra-enhanced .item:hover {
+  background: var(--color-bg-option, rgba(0,0,0,0.05));
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.character-sheet.sra-enhanced .item.inactive {
+  opacity: 0.5;
+}
+
+.character-sheet.sra-enhanced .item-img {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border: 1px solid var(--color-border-dark, #999);
+  border-radius: 3px;
+  cursor: pointer;
+  object-fit: cover;
+}
+
+.character-sheet.sra-enhanced .item-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.character-sheet.sra-enhanced .item-content label {
+  font-weight: bold;
+  display: block;
+}
+
+.character-sheet.sra-enhanced .item-controls {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.character-sheet.sra-enhanced .item-control {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  padding: 0.25rem;
+}
+
+.character-sheet.sra-enhanced .item-control:hover {
+  opacity: 1;
+}
+
+/* ================================================
+   WEAPON LIST
+   ================================================ */
+
+.character-sheet.sra-enhanced .weapon-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.character-sheet.sra-enhanced .weapon-header {
+  display: flex;
+  gap: 0.5rem;
+  font-weight: bold;
+  padding: 0.5rem;
+  border-bottom: 2px solid var(--color-border-dark, #999);
+  font-size: 0.85em;
+  text-transform: uppercase;
+}
+
+.character-sheet.sra-enhanced .anarchy-weapon {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--color-border-light, #ccc);
+  align-items: center;
+}
+
+.character-sheet.sra-enhanced .anarchy-weapon:hover {
+  background: var(--color-bg-option, rgba(0,0,0,0.05));
+}
+
+.character-sheet.sra-enhanced .weapon-column {
+  padding: 0 0.25rem;
+}
+
+.character-sheet.sra-enhanced .weapon-column.weapon-img {
+  width: 40px;
+  flex: 0 0 40px;
+}
+
+.character-sheet.sra-enhanced .weapon-column.weapon-txt {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.character-sheet.sra-enhanced .weapon-column.weapon-dmg {
+  width: 80px;
+  flex: 0 0 80px;
+  text-align: center;
+}
+
+.character-sheet.sra-enhanced .weapon-column.weapon-stat {
+  width: 60px;
+  flex: 0 0 60px;
+  text-align: center;
+}
+
+.character-sheet.sra-enhanced .weapon-column.weapon-controls {
+  width: 100px;
+  flex: 0 0 100px;
+}
+
+/* ================================================
+   EXPERIENCE
+   ================================================ */
+
+.character-sheet.sra-enhanced .experience-grid {
+  display: grid;
+  grid-template-columns: auto 120px;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.character-sheet.sra-enhanced .experience-grid label {
+  text-align: right;
+  font-weight: bold;
+}
+
+.character-sheet.sra-enhanced .experience-grid input {
+  text-align: center;
+  font-weight: bold;
+}
+
+/* ================================================
+   BIOGRAPHY
+   ================================================ */
+
+.character-sheet.sra-enhanced .biography .editor {
+  min-height: 300px;
+}
+
+/* ================================================
+   COLLAPSIBLE SECTIONS
+   ================================================ */
+
+.character-sheet.sra-enhanced .click-section {
+  cursor: pointer;
+  user-select: none;
+}
+
+.character-sheet.sra-enhanced .click-section:hover {
+  opacity: 0.8;
+}
+
+.character-sheet.sra-enhanced .closed {
+  display: none !important;
+}
+
+/* ================================================
+   VIEW MODE
+   ================================================ */
+
+.character-sheet.sra-enhanced input:disabled,
+.character-sheet.sra-enhanced textarea:disabled,
+.character-sheet.sra-enhanced select:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+/* ================================================
+   SCROLLBAR STYLING (OPTIONAL)
+   ================================================ */
+
+.character-sheet.sra-enhanced .sheet-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.character-sheet.sra-enhanced .sheet-body::-webkit-scrollbar-track {
+  background: var(--color-bg-option, rgba(0,0,0,0.05));
+}
+
+.character-sheet.sra-enhanced .sheet-body::-webkit-scrollbar-thumb {
+  background: var(--color-border-dark, #999);
+  border-radius: 4px;
+}
+
+.character-sheet.sra-enhanced .sheet-body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-darker, #666);
 }
