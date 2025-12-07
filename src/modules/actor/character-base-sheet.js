@@ -14,10 +14,13 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   /** @override */
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-      classes: [...(super.DEFAULT_OPTIONS.classes ?? []), "character-sheet", "sra-enhanced"],
+      classes: ["character-sheet", "sra-enhanced"],
       position: {
         width: 720,
         height: 700
+      },
+      window: {
+        resizable: true
       }
     });
   }
@@ -29,13 +32,14 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
       options: {
         ...context.options,
         viewMode: this.viewMode ?? false
-      }
+      },
+      viewMode: this.viewMode ?? false
     });
   }
 
   toggleViewMode() {
     this.viewMode = !this.viewMode;
-    this.render();
+    this.render(true);
   }
 
   activateListeners(html) {
@@ -44,6 +48,7 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
 
     // View mode toggle
     jqHtml.find('.click-toggle-view-mode').click(async event => {
+      event.preventDefault();
       event.stopPropagation();
       this.toggleViewMode();
     });
