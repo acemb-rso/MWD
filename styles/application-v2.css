@@ -463,11 +463,27 @@
    VIEW MODE
    ================================================ */
 
+.character-sheet.sra-enhanced .view-mode-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  font-size: 1.2em;
+}
+
+.character-sheet.sra-enhanced .view-mode-control:hover {
+  opacity: 1;
+}
+
 .character-sheet.sra-enhanced input:disabled,
 .character-sheet.sra-enhanced textarea:disabled,
 .character-sheet.sra-enhanced select:disabled {
   opacity: 0.8;
   cursor: not-allowed;
+  background: var(--color-bg-option, rgba(0,0,0,0.05));
 }
 
 /* ================================================
