@@ -1,14 +1,19 @@
-<form class="{{options.cssClass}} character-sheet sra-enhanced" autocomplete="off">
+<form class="{{cssClass}} character-sheet sra-enhanced" autocomplete="off">
   <section class="sheet-split">
+    <!-- FIXED UPPER SECTION -->
     <div class="sheet-upper">
       <header class="sheet-header">
         <div class="character-header">
           <div class="avatar">
-            <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}" />
+            <img class="anarchy-img profile-img" src="{{actor.img}}" data-edit="img" data-tooltip="{{actor.name}}" />
           </div>
           <div class="header-fields">
             <label for="name">{{localize 'ANARCHY.actor.name'}}</label>
-            <input id="name" type="text" name="name" value="{{actor.name}}" {{#if options.viewMode}}disabled{{/if}} />
+            <input id="name" type="text" name="name" value="{{actor.name}}" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
           </div>
           {{> "systems/mwd/templates/common/view-mode.hbs"}}
         </div>
@@ -19,45 +24,53 @@
         <div class="attributes-row">
           <div class="attribute">
             <label for="system.attributes.strength.value">Strength</label>
-            <input id="system.attributes.strength.value" type="number" name="system.attributes.strength.value" value="{{system.attributes.strength.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+            <input id="system.attributes.strength.value" type="number" name="system.attributes.strength.value" value="{{system.attributes.strength.value}}" data-dtype="Number" min="0" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
           </div>
           <div class="attribute">
             <label for="system.attributes.reflexes.value">Reflexes</label>
-            <input id="system.attributes.reflexes.value" type="number" name="system.attributes.reflexes.value" value="{{system.attributes.reflexes.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+            <input id="system.attributes.reflexes.value" type="number" name="system.attributes.reflexes.value" value="{{system.attributes.reflexes.value}}" data-dtype="Number" min="0" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
           </div>
           <div class="attribute">
             <label for="system.attributes.intelligence.value">Intelligence</label>
-            <input id="system.attributes.intelligence.value" type="number" name="system.attributes.intelligence.value" value="{{system.attributes.intelligence.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+            <input id="system.attributes.intelligence.value" type="number" name="system.attributes.intelligence.value" value="{{system.attributes.intelligence.value}}" data-dtype="Number" min="0" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
           </div>
           <div class="attribute">
             <label for="system.attributes.willpower.value">Willpower</label>
-            <input id="system.attributes.willpower.value" type="number" name="system.attributes.willpower.value" value="{{system.attributes.willpower.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+            <input id="system.attributes.willpower.value" type="number" name="system.attributes.willpower.value" value="{{system.attributes.willpower.value}}" data-dtype="Number" min="0" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
           </div>
           <div class="attribute">
             <label for="system.attributes.charisma.value">Charisma</label>
-            <input id="system.attributes.charisma.value" type="number" name="system.attributes.charisma.value" value="{{system.attributes.charisma.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+            <input id="system.attributes.charisma.value" type="number" name="system.attributes.charisma.value" value="{{system.attributes.charisma.value}}" data-dtype="Number" min="0" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
           </div>
           <div class="attribute">
             <label for="system.attributes.edge.value">Edge (Cap)</label>
-            <input id="system.attributes.edge.value" type="number" name="system.attributes.edge.value" value="{{system.attributes.edge.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+            <input id="system.attributes.edge.value" type="number" name="system.attributes.edge.value" value="{{system.attributes.edge.value}}" data-dtype="Number" min="0" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
           </div>
         </div>
-      </section>
-
-      <section class="panel two-column">
-        <div class="column define-wordType" data-word-type="cues">
-          <h3>Cues</h3>
-          {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='cues' values=system.cues}}
-        </div>
-        <div class="column define-wordType" data-word-type="dispositions">
-          <h3>Dispositions</h3>
-          {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='dispositions' values=system.dispositions}}
-        </div>
-      </section>
-
-      <section class="panel define-wordType" data-word-type="keywords">
-        <h3>Keywords</h3>
-        {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='keywords' values=system.keywords}}
       </section>
 
       <section class="panel monitors-grid">
@@ -73,45 +86,86 @@
             <h4>{{localize ANARCHY.actor.counters.edgePools.physical}}</h4>
             <div class="edge-pool-row">
               <label for="system.counters.edgePools.grit.value">{{localize ANARCHY.actor.counters.edgePools.grit}}</label>
-              <input id="system.counters.edgePools.grit.value" type="number" name="system.counters.edgePools.grit.value" value="{{system.counters.edgePools.grit.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+              <input id="system.counters.edgePools.grit.value" type="number" name="system.counters.edgePools.grit.value" value="{{system.counters.edgePools.grit.value}}" data-dtype="Number" min="0" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
               <label for="system.counters.edgePools.chaos.value">{{localize ANARCHY.actor.counters.edgePools.chaos}}</label>
-              <input id="system.counters.edgePools.chaos.value" type="number" name="system.counters.edgePools.chaos.value" value="{{system.counters.edgePools.chaos.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+              <input id="system.counters.edgePools.chaos.value" type="number" name="system.counters.edgePools.chaos.value" value="{{system.counters.edgePools.chaos.value}}" data-dtype="Number" min="0" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
             </div>
           </div>
           <div class="edge-pool-group">
             <h4>{{localize ANARCHY.actor.counters.edgePools.mental}}</h4>
             <div class="edge-pool-row">
               <label for="system.counters.edgePools.insight.value">{{localize ANARCHY.actor.counters.edgePools.insight}}</label>
-              <input id="system.counters.edgePools.insight.value" type="number" name="system.counters.edgePools.insight.value" value="{{system.counters.edgePools.insight.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+              <input id="system.counters.edgePools.insight.value" type="number" name="system.counters.edgePools.insight.value" value="{{system.counters.edgePools.insight.value}}" data-dtype="Number" min="0" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
               <label for="system.counters.edgePools.rumor.value">{{localize ANARCHY.actor.counters.edgePools.rumor}}</label>
-              <input id="system.counters.edgePools.rumor.value" type="number" name="system.counters.edgePools.rumor.value" value="{{system.counters.edgePools.rumor.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+              <input id="system.counters.edgePools.rumor.value" type="number" name="system.counters.edgePools.rumor.value" value="{{system.counters.edgePools.rumor.value}}" data-dtype="Number" min="0" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
             </div>
           </div>
           <div class="edge-pool-group">
             <h4>{{localize ANARCHY.actor.counters.edgePools.social}}</h4>
             <div class="edge-pool-row">
               <label for="system.counters.edgePools.legend.value">{{localize ANARCHY.actor.counters.edgePools.legend}}</label>
-              <input id="system.counters.edgePools.legend.value" type="number" name="system.counters.edgePools.legend.value" value="{{system.counters.edgePools.legend.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+              <input id="system.counters.edgePools.legend.value" type="number" name="system.counters.edgePools.legend.value" value="{{system.counters.edgePools.legend.value}}" data-dtype="Number" min="0" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
               <label for="system.counters.edgePools.credibility.value">{{localize ANARCHY.actor.counters.edgePools.credibility}}</label>
-              <input id="system.counters.edgePools.credibility.value" type="number" name="system.counters.edgePools.credibility.value" value="{{system.counters.edgePools.credibility.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
+              <input id="system.counters.edgePools.credibility.value" type="number" name="system.counters.edgePools.credibility.value" value="{{system.counters.edgePools.credibility.value}}" data-dtype="Number" min="0" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
             </div>
           </div>
         </div>
       </section>
     </div>
 
+    <!-- FLEXIBLE LOWER SECTION WITH TABS -->
     <div class="sheet-lower">
       <nav class="sheet-tabs tabs" data-group="primary">
-        <a data-tab="character">Character</a>
-        <a data-tab="skills">Skills</a>
-        <a data-tab="traits">Traits</a>
-        <a data-tab="life-modules">Life Modules</a>
-        <a data-tab="inventory">Inventory</a>
-        <a data-tab="biography">Biography</a>
+        <a class="item" data-tab="character">Character</a>
+        <a class="item" data-tab="skills">Skills</a>
+        <a class="item" data-tab="traits">Traits</a>
+        <a class="item" data-tab="life-modules">Life Modules</a>
+        <a class="item" data-tab="inventory">Inventory</a>
+        <a class="item" data-tab="biography">Biography</a>
       </nav>
 
-      <section class="sheet-body card-stage">
-        <div class="tab tab-card" data-group="primary" data-tab="character">
+      <section class="sheet-body">
+        <div class="tab" data-group="primary" data-tab="character">
+          <section class="panel two-column">
+            <div class="column define-wordType" data-word-type="cues">
+              <h3>Cues</h3>
+              {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='cues' values=system.cues}}
+            </div>
+            <div class="column define-wordType" data-word-type="dispositions">
+              <h3>Dispositions</h3>
+              {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='dispositions' values=system.dispositions}}
+            </div>
+          </section>
+
+          <section class="panel define-wordType" data-word-type="keywords">
+            <h3>Keywords</h3>
+            {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='keywords' values=system.keywords}}
+          </section>
+
           <section class="panel">
             <h3>Personal Weaponry</h3>
             {{> "systems/mwd/templates/actor/parts/weapons.hbs"}}
@@ -126,46 +180,58 @@
             <h3>Experience</h3>
             <div class="experience-grid">
               <label for="system.counters.xp.value">Current XP</label>
-              <input type="number" name="system.counters.xp.value" value="{{system.counters.xp.value}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
+              <input type="number" name="system.counters.xp.value" value="{{system.counters.xp.value}}" data-dtype="Number" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
               <label for="system.counters.xp.total">Lifetime XP</label>
-              <input type="number" name="system.counters.xp.total" value="{{system.counters.xp.total}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
+              <input type="number" name="system.counters.xp.total" value="{{system.counters.xp.total}}" data-dtype="Number" {{
+#if
+ options.viewMode}}disabled{{
+/if
+}} />
             </div>
           </section>
         </div>
 
-        <div class="tab tab-card" data-group="primary" data-tab="skills">
+        <div class="tab" data-group="primary" data-tab="skills">
           <section class="panel">
             <h3>Skills</h3>
             {{> "systems/mwd/templates/actor/parts/skills.hbs"}}
           </section>
         </div>
 
-        <div class="tab tab-card" data-group="primary" data-tab="traits">
+        <div class="tab" data-group="primary" data-tab="traits">
           <section class="panel">
             <h3>Traits</h3>
             {{> "systems/mwd/templates/actor/parts/qualities.hbs"}}
           </section>
         </div>
 
-        <div class="tab tab-card" data-group="primary" data-tab="life-modules">
+        <div class="tab" data-group="primary" data-tab="life-modules">
           <section class="panel">
             <h3>Life Modules</h3>
             {{> "systems/mwd/templates/actor/parts/life-modules.hbs"}}
           </section>
         </div>
 
-        <div class="tab tab-card" data-group="primary" data-tab="inventory">
+        <div class="tab" data-group="primary" data-tab="inventory">
           <section class="panel">
             <h3>Inventory</h3>
             {{> "systems/mwd/templates/actor/parts/gears.hbs"}}
             {{> "systems/mwd/templates/actor/parts/contacts.hbs"}}
-            {{#if ownedActors}}
+            {{
+#if
+ ownedActors}}
             {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
-            {{/if}}
+            {{
+/if
+}}
           </section>
         </div>
 
-        <div class="tab tab-card" data-group="primary" data-tab="biography">
+        <div class="tab" data-group="primary" data-tab="biography">
           <section class="panel biography">
             {{> 'systems/mwd/templates/actor/parts/description.hbs'}}
             {{> 'systems/mwd/templates/actor/parts/gmnotes.hbs'}}
