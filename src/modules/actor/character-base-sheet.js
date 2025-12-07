@@ -53,7 +53,13 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     console.log('MWD | _prepareContext - context.options.viewMode:', result.options.viewMode);
     return result;
   }
-
+  _onRender(context, options) {
+    super._onRender(context, options);
+  
+    // In ApplicationV2, we must manually call activateListeners
+    this.activateListeners(this.element);
+  }
+  
   async toggleViewMode() {
     console.log('MWD | toggleViewMode CALLED');
     console.log('MWD | toggleViewMode - viewMode before:', this.viewMode);
