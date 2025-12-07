@@ -43,7 +43,8 @@
   "scripts": [],
   "esmodules": ["index.mjs"],
   "styles": [
-    "style.css"
+    "style.css",
+    "styles/application-v2.css"
   ],
   "languages": [
     {

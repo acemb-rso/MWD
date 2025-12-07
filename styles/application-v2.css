@@ -1,0 +1,53 @@
+/* Flexbox layout support for Application V2 sheets */
+.character-sheet.sra-enhanced form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.character-sheet.sra-enhanced .sheet-split {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 0;
+}
+
+.character-sheet.sra-enhanced .sheet-upper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.character-sheet.sra-enhanced .sheet-lower {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.character-sheet.sra-enhanced .sheet-tabs {
+  flex: 0 0 auto;
+}
+
+.character-sheet.sra-enhanced .sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+}
+
+.character-sheet.sra-enhanced .sheet-body.card-stage {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.character-sheet.sra-enhanced .sheet-body .tab {
+  position: absolute;
+  inset: 0;
+}
