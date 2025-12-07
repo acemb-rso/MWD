@@ -11,13 +11,26 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     }
   };
 
+  // ============================================================================
+  // CRITICAL FIX: ApplicationV2 requires explicit TABS configuration
+  // ============================================================================
+  static TABS = {
+    primary: {
+      id: "primary",
+      group: "primary",
+      navSelector: ".sheet-tabs",
+      contentSelector: ".sheet-body",
+      initial: "character"
+    }
+  };
+
   /** @override */
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       classes: ["character-sheet", "sra-enhanced"],
       position: {
         width: 720,
-        height: 700
+        height: 900  // Increased from 700 to accommodate tab content
       },
       window: {
         resizable: true
@@ -33,64 +46,44 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     if (savedViewMode !== undefined) {
       this.viewMode = savedViewMode;
     } else if (this.viewMode === undefined) {
-      this.viewMode = true;  // DEFAULT TO VIEW MODE
+      this.viewMode = true;  // ← DEFAULT TO VIEW MODE
     }
 
     return foundry.utils.mergeObject(context, {
       options: {
         ...context.options,
-        viewMode: this.viewMode ?? true
+        viewMode: this.viewMode ?? true  // ← Changed from false to true
       },
-      viewMode: this.viewMode ?? true
+      viewMode: this.viewMode ?? true  // ← Changed from false to true
     });
   }
 
-  // ApplicationV2 lifecycle method - attach listeners to a specific part
-  _attachPartListeners(partId, htmlElement, options) {
-    super._attachPartListeners(partId, htmlElement, options);
+  // CRITICAL FIX: Use render() with force: false and parts to actually re-render in ApplicationV2
+  async toggleViewMode() {
+    this.viewMode = !this.viewMode;
     
-    // Only attach our listeners to the 'sheet' part
-    if (partId === 'sheet') {
-      this._attachViewModeListeners(htmlElement);
-      this._attachImageEditListeners(htmlElement);
+    // Save view mode preference to actor flags for persistence
+    try {
+      await this.actor.setFlag('mwd', 'viewMode', this.viewMode);
+      console.log('MWD | View mode toggled to:', this.viewMode);
+    } catch (error) {
+      console.error('MWD | Failed to save view mode:', error);
     }
+    
+    // ApplicationV2 requires specific render options to force a re-render
+    // Using render(false, { parts: ['sheet'] }) tells it to re-render the sheet part
+    await this.render(false, { parts: ['sheet'] });
   }
 
-  // Attach image editing listeners
-  _attachImageEditListeners(html) {
-    const jqHtml = $(html);
-    
-    // Handle clicking on images with data-edit="img"
-    jqHtml.find('img[data-edit="img"]').click(async (event) => {
-      // Only allow editing in edit mode
-      if (this.viewMode) {
-        ui.notifications.info("Switch to edit mode to change the image.");
-        return;
-      }
-      
-      event.preventDefault();
-      
-      const fp = new FilePicker({
-        type: "image",
-        current: this.actor.img,
-        callback: async (path) => {
-          await this.actor.update({ img: path });
-        }
-      });
-      
-      fp.browse();
-    });
-  }
+  activateListeners(html) {
+    const jqHtml = html instanceof HTMLElement ? $(html) : html;
+    super.activateListeners(jqHtml);
 
-  // Separate method to attach view mode specific listeners
-  _attachViewModeListeners(html) {
-    const jqHtml = $(html);
-    
     // View mode toggle
-    jqHtml.find('.click-toggle-view-mode').click(async (event) => {
+    jqHtml.find('.click-toggle-view-mode').click(async event => {
       event.preventDefault();
       event.stopPropagation();
-      await this.toggleViewMode();
+      await this.toggleViewMode();  // ← Made async
     });
 
     // cues, dispositions, keywords
@@ -130,21 +123,6 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
       event.stopPropagation();
       this.actor.rollCelebrity();
     });
-  }
-
-  async toggleViewMode() {
-    this.viewMode = !this.viewMode;
-    
-    // Save view mode preference to actor flags for persistence
-    try {
-      await this.actor.setFlag('mwd', 'viewMode', this.viewMode);
-      console.log('MWD | View mode toggled to:', this.viewMode);
-    } catch (error) {
-      console.error('MWD | Failed to save view mode:', error);
-    }
-    
-    // ApplicationV2 render pattern
-    await this.render(false, { parts: ['sheet'] });
   }
 
   createNewWord(wordType) {
