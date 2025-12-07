@@ -28,28 +28,28 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
 
-    // FIXED: Load view mode from actor flags, defaulting to TRUE (view mode)
+    // Load saved view mode from actor flags, defaulting to TRUE (view mode)
     const savedViewMode = this.actor.getFlag('mwd', 'viewMode');
     if (savedViewMode !== undefined) {
       this.viewMode = savedViewMode;
     } else if (this.viewMode === undefined) {
-      this.viewMode = true;  // ← CHANGED: Default to view mode instead of false
+      this.viewMode = true;  // ← DEFAULT TO VIEW MODE
     }
 
     return foundry.utils.mergeObject(context, {
       options: {
         ...context.options,
-        viewMode: this.viewMode ?? true  // ← CHANGED: Default to true
+        viewMode: this.viewMode ?? true  // ← Changed from false to true
       },
-      viewMode: this.viewMode ?? true  // ← CHANGED: Default to true
+      viewMode: this.viewMode ?? true  // ← Changed from false to true
     });
   }
 
-  // FIXED: Toggle view mode and persist to actor flags
+  // CRITICAL FIX: Use render() with force: false and parts to actually re-render in ApplicationV2
   async toggleViewMode() {
     this.viewMode = !this.viewMode;
     
-    // ← ADDED: Save view mode preference to actor flags
+    // Save view mode preference to actor flags for persistence
     try {
       await this.actor.setFlag('mwd', 'viewMode', this.viewMode);
       console.log('MWD | View mode toggled to:', this.viewMode);
@@ -57,7 +57,9 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
       console.error('MWD | Failed to save view mode:', error);
     }
     
-    this.render(true);
+    // ApplicationV2 requires specific render options to force a re-render
+    // Using render(false, { parts: ['sheet'] }) tells it to re-render the sheet part
+    await this.render(false, { parts: ['sheet'] });
   }
 
   activateListeners(html) {
@@ -68,7 +70,7 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     jqHtml.find('.click-toggle-view-mode').click(async event => {
       event.preventDefault();
       event.stopPropagation();
-      await this.toggleViewMode();  // ← CHANGED: Make it async
+      await this.toggleViewMode();  // ← Made async
     });
 
     // cues, dispositions, keywords
