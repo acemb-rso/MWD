@@ -15,6 +15,7 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       classes: ["character-sheet", "sra-enhanced"],
+      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "character" }],
       position: {
         width: 720,
         height: 700
