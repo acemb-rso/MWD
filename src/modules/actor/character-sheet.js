@@ -3,15 +3,20 @@ import { CharacterBaseSheet } from "./character-base-sheet.js";
 
 export class CharacterActorSheet extends CharacterBaseSheet {
 
-  get template() {
-    return `${TEMPLATES_PATH}/actor/character.hbs`;
-  }
+  static PARTS = {
+    sheet: {
+      template: `${TEMPLATES_PATH}/actor/character.hbs`,
+      scrollable: [".sheet-body"]
+    }
+  };
 
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      width: 1100,
-      height: 900,
+  static get DEFAULT_OPTIONS() {
+    return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+      position: {
+        width: 1100,
+        height: 900
+      }
     });
   }
 
@@ -19,27 +24,12 @@ export class CharacterActorSheet extends CharacterBaseSheet {
     super.activateListeners(html);
 
     const actorId = this.actor._id;
-    html.find('.click-section').on("click", function () {
+    const jqHtml = html instanceof HTMLElement ? $(html) : html;
+    
+    jqHtml.find('.click-section').on("click", function () {
       const sectionClass = ($(this).data('class'));
-      html.find(`.${sectionClass}`).toggleClass('closed');
-      localStorage.setItem(`${actorId}-${sectionClass}`, html.find(`.${sectionClass}`).hasClass('closed') ? 'closed' : null);
+      jqHtml.find(`.${sectionClass}`).toggleClass('closed');
+      localStorage.setItem(`${actorId}-${sectionClass}`, jqHtml.find(`.${sectionClass}`).hasClass('closed') ? 'closed' : null);
     });
   }
-
-  static ifTabClosed(id, sectionName, option) {
-    const isTabClosed = localStorage.getItem(`${id}-section-${sectionName}`) === "closed";
-    if (isTabClosed) {
-      return option.fn(this);
-    }
-    return option.inverse(this);
-  }
-
-  static actorTabClosed(id, sectionName, option) {
-    const isTabClosed = localStorage.getItem(`${id}-section-${sectionName}`) === "closed";
-    if (isTabClosed) {
-      return 'closed'
-    }
-    return ''
-  }
-
 }
