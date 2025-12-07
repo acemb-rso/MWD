@@ -11,70 +11,55 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   /** @override */
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-      resizable: true,
-      position: {
-        width: 720,
-        height: 700
-      },
-      viewMode: false,
-      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", group: "primary", initial: "character" }],
+      position: { width: 720, height: 700 },
+      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "main" }]
     });
   }
 
   async _prepareContext(options) {
+    this.viewMode ??= true;
+
     const context = await super._prepareContext(options);
-    const viewMode = this.options.viewMode ?? false;
+    const essence = this.actor.computeEssence();
 
     return foundry.utils.mergeObject(context, {
-      options: {
-        viewMode
-      }
+      essence: {
+        value: essence,
+        adjust: this.actor.computeMalusEssence(essence)
+      },
+      options: foundry.utils.mergeObject(context.options ?? {}, { viewMode: this.viewMode })
     });
   }
 
   toggleViewMode() {
-    this.options.viewMode = !this.options.viewMode;
-    this.render();
+    this.viewMode = !this.viewMode
+    this.render()
   }
 
   activateListeners(html) {
-    const jqHtml = html instanceof HTMLElement ? $(html) : html;
-    const element = jqHtml[0];
-    super.activateListeners(jqHtml);
+    super.activateListeners(html);
 
-    const defaultTab = "character";
-
-    // Enable tab navigation so sheet content renders
-    this._tabs ??= new foundry.applications.api.Tabs({
-      navSelector: ".sheet-tabs",
-      contentSelector: ".sheet-body",
-      group: "primary",
-      initial: defaultTab
-    });
-    this._tabs.bind(element);
-    this._ensureActiveTab(element, defaultTab);
-
-    jqHtml.find('.click-toggle-view-mode').click(async event => this.toggleViewMode())
+    html.find('.click-toggle-view-mode').click(async event => this.toggleViewMode())
 
     // cues, dispositions, keywords
-    jqHtml.find('.click-word-add').click(async event => {
+    html.find('.click-word-add').click(async event => {
       event.stopPropagation();
       this.createNewWord(this.getEventWordType(event));
     });
 
-    jqHtml.find('.click-word-say').click(async event => {
+    html.find('.click-word-say').click(async event => {
       event.stopPropagation();
       this.actor.sayWord(
         this.getEventWordType(event),
         this.getEventWordId(event));
     });
 
-    jqHtml.find('.change-word-value').click(async event => {
+    html.find('.change-word-value').click(async event => {
       event.stopPropagation();
     });
 
 
-    jqHtml.find('.change-word-value').change(async event => {
+    html.find('.change-word-value').change(async event => {
       event.stopPropagation();
       const newWordValue = event.currentTarget.value;
       await this.actor.updateWord(
@@ -83,31 +68,17 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
         newWordValue);
     });
 
-    jqHtml.find('.click-word-delete').click(async event => {
+    html.find('.click-word-delete').click(async event => {
       event.stopPropagation();
       this.actor.deleteWord(
         this.getEventWordType(event),
         this.getEventWordId(event));
     });
 
-    jqHtml.find(".click-celebrity-roll").click(async event => {
+    html.find(".click-celebrity-roll").click(async event => {
       event.stopPropagation();
       this.actor.rollCelebrity();
     });
-  }
-
-  _ensureActiveTab(element, tabName, group = "primary") {
-    const navElement = element.querySelector(`.sheet-tabs[data-group="${group}"]`);
-    const navLinks = navElement?.querySelectorAll("[data-tab]") ?? [];
-    const tabContents = element.querySelectorAll(`.tab[data-group="${group}"]`);
-
-    const navActivated = Array.from(navLinks).some(link => link.classList.contains("active"));
-    const tabActivated = Array.from(tabContents).some(tab => tab.classList.contains("active"));
-
-    if (navActivated && tabActivated) return;
-
-    navLinks.forEach(link => link.classList.toggle("active", link.dataset.tab === tabName));
-    tabContents.forEach(tab => tab.classList.toggle("active", tab.dataset.tab === tabName));
   }
 
   createNewWord(wordType) {
