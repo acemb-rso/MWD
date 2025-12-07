@@ -5,42 +5,81 @@ import { Misc } from "../misc.js";
 import { Enums } from "../enums.js";
 import { SelectActor } from "../dialog/select-actor.js";
 
-export class AnarchyActorSheet extends ActorSheet {
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
+export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheet) {
+
+  static PARTS = {
+    sheet: {
+      template: `${TEMPLATES_PATH}/actor/character.hbs`,
+      scrollable: [".sheet-body"]
+    }
+  };
 
   get template() {
     return `${TEMPLATES_PATH}/actor/${this.actor.type}.hbs`;
   }
 
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
+  static get DEFAULT_OPTIONS() {
+    return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       isGM: game.user.isGM,
       dragDrop: [{ dragSelector: ".item ", dropSelector: null }],
       classes: [game.system.anarchy.styles.selectCssClass(), "sheet", "actor"],
+      actions: {},
+      resizable: true,
+      position: {
+        width: 760,
+        height: 760
+      }
     });
   }
 
-  getData(options) {
-    let hbsData = foundry.utils.mergeObject(
-      super.getData(options),
+  /**
+   * Keep support for code paths that still read {@link defaultOptions} from app-v1 style classes.
+   */
+  static get defaultOptions() {
+    return this.DEFAULT_OPTIONS;
+  }
+
+  /** @override */
+  _configureRenderOptions(options) {
+    super._configureRenderOptions(options);
+
+    if (this.actor?.type) {
+      const template = `${TEMPLATES_PATH}/actor/${this.actor.type}.hbs`;
+      this.constructor.PARTS.sheet.template = template;
+      options.parts = foundry.utils.mergeObject(options.parts ?? {}, {
+        sheet: { template }
+      });
+    }
+  }
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
+
+    const hbsData = foundry.utils.mergeObject(
+      context,
       {
         items: {},
-        anarchy: this.actor.getAnarchy(),
-        ownerActor: this.actor.getOwnerActor(),
-        ownedActors: this.actor.getOwnedActors(),
+        anarchy: this.actor.getAnarchy?.() ?? {},
+        ownerActor: this.actor.getOwnerActor?.(),
+        ownedActors: this.actor.getOwnedActors?.() ?? [],
         options: {
-          limited: this.document.limited,
-          owner: this.document.isOwner,
+          limited: this.document?.limited,
+          owner: this.document?.isOwner,
           cssClass: this.isEditable ? "editable" : "locked",
+          classes: Misc.distinct([
+            ...(context.options?.classes ?? []),
+            `actor-${this.actor?.type ?? "unknown"}`
+          ])
         },
-        ENUMS: foundry.utils.mergeObject({ attributeAction: this.actor.getAttributeActions() }, Enums.getEnums()),
-        ANARCHY: ANARCHY
+        ENUMS: foundry.utils.mergeObject({ attributeAction: this.actor.getAttributeActions?.() ?? {} }, Enums.getEnums()),
+        ANARCHY: ANARCHY,
+        system: this.actor.system
       });
-    hbsData.options.classes.push(`actor-${this.actor.type}`);
-    hbsData.options.classes = Misc.distinct(hbsData.options.classes);
-    hbsData.system = this.actor.system;
 
-    Misc.classifyInto(hbsData.items, this.actor.items);
+    Misc.classifyInto(hbsData.items, this.actor.items ?? []);
     return hbsData;
   }
 
