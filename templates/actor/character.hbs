@@ -9,11 +9,7 @@
           </div>
           <div class="header-fields">
             <label for="name">{{localize 'ANARCHY.actor.name'}}</label>
-            <input id="name" type="text" name="name" value="{{actor.name}}" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+            <input id="name" type="text" name="name" value="{{actor.name}}" {{#if options.viewMode}}disabled{{/if}} />
           </div>
           {{> "systems/mwd/templates/common/view-mode.hbs"}}
         </div>
@@ -24,51 +20,27 @@
         <div class="attributes-row">
           <div class="attribute">
             <label for="system.attributes.strength.value">Strength</label>
-            <input id="system.attributes.strength.value" type="number" name="system.attributes.strength.value" value="{{system.attributes.strength.value}}" data-dtype="Number" min="0" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+            <input id="system.attributes.strength.value" type="number" name="system.attributes.strength.value" value="{{system.attributes.strength.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
           </div>
           <div class="attribute">
             <label for="system.attributes.reflexes.value">Reflexes</label>
-            <input id="system.attributes.reflexes.value" type="number" name="system.attributes.reflexes.value" value="{{system.attributes.reflexes.value}}" data-dtype="Number" min="0" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+            <input id="system.attributes.reflexes.value" type="number" name="system.attributes.reflexes.value" value="{{system.attributes.reflexes.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
           </div>
           <div class="attribute">
             <label for="system.attributes.intelligence.value">Intelligence</label>
-            <input id="system.attributes.intelligence.value" type="number" name="system.attributes.intelligence.value" value="{{system.attributes.intelligence.value}}" data-dtype="Number" min="0" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+            <input id="system.attributes.intelligence.value" type="number" name="system.attributes.intelligence.value" value="{{system.attributes.intelligence.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
           </div>
           <div class="attribute">
             <label for="system.attributes.willpower.value">Willpower</label>
-            <input id="system.attributes.willpower.value" type="number" name="system.attributes.willpower.value" value="{{system.attributes.willpower.value}}" data-dtype="Number" min="0" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+            <input id="system.attributes.willpower.value" type="number" name="system.attributes.willpower.value" value="{{system.attributes.willpower.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
           </div>
           <div class="attribute">
             <label for="system.attributes.charisma.value">Charisma</label>
-            <input id="system.attributes.charisma.value" type="number" name="system.attributes.charisma.value" value="{{system.attributes.charisma.value}}" data-dtype="Number" min="0" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+            <input id="system.attributes.charisma.value" type="number" name="system.attributes.charisma.value" value="{{system.attributes.charisma.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
           </div>
           <div class="attribute">
             <label for="system.attributes.edge.value">Edge (Cap)</label>
-            <input id="system.attributes.edge.value" type="number" name="system.attributes.edge.value" value="{{system.attributes.edge.value}}" data-dtype="Number" min="0" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+            <input id="system.attributes.edge.value" type="number" name="system.attributes.edge.value" value="{{system.attributes.edge.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
           </div>
         </div>
       </section>
@@ -86,51 +58,27 @@
             <h4>{{localize ANARCHY.actor.counters.edgePools.physical}}</h4>
             <div class="edge-pool-row">
               <label for="system.counters.edgePools.grit.value">{{localize ANARCHY.actor.counters.edgePools.grit}}</label>
-              <input id="system.counters.edgePools.grit.value" type="number" name="system.counters.edgePools.grit.value" value="{{system.counters.edgePools.grit.value}}" data-dtype="Number" min="0" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+              <input id="system.counters.edgePools.grit.value" type="number" name="system.counters.edgePools.grit.value" value="{{system.counters.edgePools.grit.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
               <label for="system.counters.edgePools.chaos.value">{{localize ANARCHY.actor.counters.edgePools.chaos}}</label>
-              <input id="system.counters.edgePools.chaos.value" type="number" name="system.counters.edgePools.chaos.value" value="{{system.counters.edgePools.chaos.value}}" data-dtype="Number" min="0" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+              <input id="system.counters.edgePools.chaos.value" type="number" name="system.counters.edgePools.chaos.value" value="{{system.counters.edgePools.chaos.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
             </div>
           </div>
           <div class="edge-pool-group">
             <h4>{{localize ANARCHY.actor.counters.edgePools.mental}}</h4>
             <div class="edge-pool-row">
               <label for="system.counters.edgePools.insight.value">{{localize ANARCHY.actor.counters.edgePools.insight}}</label>
-              <input id="system.counters.edgePools.insight.value" type="number" name="system.counters.edgePools.insight.value" value="{{system.counters.edgePools.insight.value}}" data-dtype="Number" min="0" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+              <input id="system.counters.edgePools.insight.value" type="number" name="system.counters.edgePools.insight.value" value="{{system.counters.edgePools.insight.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
               <label for="system.counters.edgePools.rumor.value">{{localize ANARCHY.actor.counters.edgePools.rumor}}</label>
-              <input id="system.counters.edgePools.rumor.value" type="number" name="system.counters.edgePools.rumor.value" value="{{system.counters.edgePools.rumor.value}}" data-dtype="Number" min="0" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+              <input id="system.counters.edgePools.rumor.value" type="number" name="system.counters.edgePools.rumor.value" value="{{system.counters.edgePools.rumor.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
             </div>
           </div>
           <div class="edge-pool-group">
             <h4>{{localize ANARCHY.actor.counters.edgePools.social}}</h4>
             <div class="edge-pool-row">
               <label for="system.counters.edgePools.legend.value">{{localize ANARCHY.actor.counters.edgePools.legend}}</label>
-              <input id="system.counters.edgePools.legend.value" type="number" name="system.counters.edgePools.legend.value" value="{{system.counters.edgePools.legend.value}}" data-dtype="Number" min="0" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+              <input id="system.counters.edgePools.legend.value" type="number" name="system.counters.edgePools.legend.value" value="{{system.counters.edgePools.legend.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
               <label for="system.counters.edgePools.credibility.value">{{localize ANARCHY.actor.counters.edgePools.credibility}}</label>
-              <input id="system.counters.edgePools.credibility.value" type="number" name="system.counters.edgePools.credibility.value" value="{{system.counters.edgePools.credibility.value}}" data-dtype="Number" min="0" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+              <input id="system.counters.edgePools.credibility.value" type="number" name="system.counters.edgePools.credibility.value" value="{{system.counters.edgePools.credibility.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
             </div>
           </div>
         </div>
@@ -180,17 +128,9 @@
             <h3>Experience</h3>
             <div class="experience-grid">
               <label for="system.counters.xp.value">Current XP</label>
-              <input type="number" name="system.counters.xp.value" value="{{system.counters.xp.value}}" data-dtype="Number" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+              <input type="number" name="system.counters.xp.value" value="{{system.counters.xp.value}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
               <label for="system.counters.xp.total">Lifetime XP</label>
-              <input type="number" name="system.counters.xp.total" value="{{system.counters.xp.total}}" data-dtype="Number" {{
-#if
- options.viewMode}}disabled{{
-/if
-}} />
+              <input type="number" name="system.counters.xp.total" value="{{system.counters.xp.total}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
             </div>
           </section>
         </div>
