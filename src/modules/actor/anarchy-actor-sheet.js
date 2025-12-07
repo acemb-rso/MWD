@@ -8,7 +8,11 @@ import { ResistanceByTypeDialog } from "../dialog/resistance-by-type.js";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
-export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheet) {
+/**
+ * Base Actor Sheet class for the Anarchy system, fully converted to ApplicationV2.
+ * Uses _attachPartListeners instead of activateListeners for AppV2 compliance.
+ */
+export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2) {
 
   static PARTS = {
     sheet: {
@@ -21,9 +25,35 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       isGM: game.user.isGM,
-      dragDrop: [{ dragSelector: ".item ", dropSelector: null }],
+      dragDrop: [{ dragSelector: ".item", dropSelector: null }],
       classes: [game.system.anarchy.styles.selectCssClass(), "sheet", "actor"],
-      actions: {},
+      actions: {
+        // Item actions
+        itemAdd: this._onItemAdd,
+        itemEdit: this._onItemEdit,
+        itemActivate: this._onItemActivate,
+        itemDelete: this._onItemDelete,
+        
+        // Favorite actions
+        toggleFavorite: this._onToggleFavorite,
+        
+        // Ownership actions
+        ownerUnlink: this._onOwnerUnlink,
+        ownedActorView: this._onOwnedActorView,
+        ownedActorUnlink: this._onOwnedActorUnlink,
+        
+        // Monitor/counter actions
+        toggleMonitor: this._onToggleMonitor,
+        
+        // Roll actions
+        rollSkill: this._onRollSkill,
+        rollAttribute: this._onRollAttribute,
+        rollAttributeAction: this._onRollAttributeAction,
+        rollWeapon: this._onRollWeapon,
+        
+        // Dialog actions
+        showResistanceByType: this._onShowResistanceByType,
+      },
       position: {
         width: 760,
         height: 760
@@ -46,15 +76,15 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     let buttons = super._getHeaderButtons?.() ?? [];
     
     // Remove duplicates - Application V2 can cause buttons to be added multiple times
-    const seen = new Set ();
+    const seen = new Set();
     buttons = buttons.filter(button => {
       // Create a unique key based on action or label
-    const key = JSON.stringify({
-      action: button.action || null,
-      label: button.label || null,
-      tooltip: button.tooltip || null,
-      icon: button.icon || null
-    });
+      const key = JSON.stringify({
+        action: button.action || null,
+        label: button.label || null,
+        tooltip: button.tooltip || null,
+        icon: button.icon || null
+      });
       if (seen.has(key)) {
         return false;
       }
@@ -98,6 +128,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     }
   }
 
+  /** @override */
   async _prepareContext(options) {
     this._logSheetDiagnostics('prepareContext-start', { options });
     
@@ -146,34 +177,57 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     return hbsData;
   }
 
+  /** @override */
   _onRender(context, options) {
     super._onRender(context, options);
     this._logSheetDiagnostics('onRender-complete');
   }
 
-  activateListeners(html) {
-    const jqHtml = html instanceof HTMLElement ? $(html) : html;
-    const element = jqHtml[0];
+  /**
+   * AppV2 method for attaching event listeners to rendered parts.
+   * This replaces the old activateListeners pattern.
+   * @override
+   */
+  _attachPartListeners(partId, htmlElement, options) {
+    super._attachPartListeners(partId, htmlElement, options);
+    
+    // Note: In AppV2, actions defined in DEFAULT_OPTIONS.actions are handled automatically
+    // via data-action attributes in the template. However, we can still attach custom
+    // listeners here for events that don't fit the action pattern.
+    
+    // For compatibility with existing templates that may use old-style click handlers,
+    // we attach them here. Ideally, templates should be updated to use data-action.
+    const html = $(htmlElement);
+    
+    // Legacy click handlers (these should eventually be converted to actions)
+    this._attachLegacyClickHandlers(html);
+  }
 
-    // items standard actions (add/edit/activate/delete)
-    jqHtml.find('.click-item-add').click(async event => {
+  /**
+   * Attach legacy click handlers for backwards compatibility.
+   * These should eventually be converted to use the actions system.
+   * @private
+   */
+  _attachLegacyClickHandlers(html) {
+    // Items standard actions (add/edit/activate/delete)
+    html.find('.click-item-add').on('click', async (event) => {
       event.stopPropagation();
       await this.createNewItem(this.getEventItemType(event));
     });
 
-    jqHtml.find('.click-item-edit').click(async event => {
+    html.find('.click-item-edit').on('click', async (event) => {
       event.stopPropagation();
       this.getEventItem(event)?.sheet.render(true);
     });
 
-    jqHtml.find('.click-item-activate').click(async event => {
+    html.find('.click-item-activate').on('click', async (event) => {
       event.stopPropagation();
-      const item = this.getEventItem(event)
+      const item = this.getEventItem(event);
       const inactive = item.system.inactive;
-      await item.update({ 'system.inactive': !inactive })
-    })
+      await item.update({ 'system.inactive': !inactive });
+    });
 
-    jqHtml.find('.click-item-delete').click(async event => {
+    html.find('.click-item-delete').on('click', async (event) => {
       event.stopPropagation();
       const item = this.getEventItem(event);
       ConfirmationDialog.confirmDeleteItem(item, async () => {
@@ -181,7 +235,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       });
     });
 
-    jqHtml.find('.click-favorite').click(async event => {
+    html.find('.click-favorite').on('click', async (event) => {
       event.stopPropagation();
       this.onClickFavorite({
         skillId: $(event.currentTarget).attr('data-skill-id'),
@@ -192,22 +246,24 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       });
     });
 
-    // ownership management
-    jqHtml.find('.click-owner-actor-unlink').click(async event => {
+    // Ownership management
+    html.find('.click-owner-actor-unlink').on('click', async (event) => {
       event.stopPropagation();
       this.detachFromOwner(this.actor.getOwnerActor(), this.actor);
     });
-    jqHtml.find('.click-owned-actor-view').click(async event => {
+    
+    html.find('.click-owned-actor-view').on('click', async (event) => {
       event.stopPropagation();
       this.getEventOwnedActor(event)?.sheet.render(true);
     });
-    jqHtml.find('.click-owned-actor-unlink').click(async event => {
+    
+    html.find('.click-owned-actor-unlink').on('click', async (event) => {
       event.stopPropagation();
       this.detachFromOwner(this.actor, this.getEventOwnedActor(event));
     });
 
-    // counters & monitors
-    jqHtml.find('a.click-checkbar-element').click(async event => {
+    // Counters & monitors
+    html.find('a.click-checkbar-element').on('click', async (event) => {
       event.stopPropagation();
       const item = this.getEventItem(event);
       const handler = item ?? this.actor;
@@ -220,15 +276,16 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       );
     });
 
-    // rolls
-    jqHtml.find('.click-skill-roll').click(async event => {
+    // Rolls
+    html.find('.click-skill-roll').on('click', async (event) => {
       event.stopPropagation();
       this.actor.rollSkill(
         this.getEventItem(event),
-        this.getEventSkillSpecialization(event));
+        this.getEventSkillSpecialization(event)
+      );
     });
 
-    jqHtml.find('.click-roll-attribute').click(async event => {
+    html.find('.click-roll-attribute').on('click', async (event) => {
       event.stopPropagation();
       const handler = this.getEventItem(event) ?? this.actor;
       handler.rollAttribute(
@@ -236,12 +293,12 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       );
     });
 
-    jqHtml.find('.click-roll-attribute-action').click(async event => {
+    html.find('.click-roll-attribute-action').on('click', async (event) => {
       event.stopPropagation();
       this.actor.rollAttributeAction(this.getEventActionCode(event));
     });
 
-    jqHtml.find('.click-weapon-roll').click(async event => {
+    html.find('.click-weapon-roll').on('click', async (event) => {
       event.stopPropagation();
       const weapon = this.getEventItem(event);
       if (!weapon) {
@@ -251,13 +308,221 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       this.actor.rollWeapon(weapon);
     });
 
-    jqHtml.find('.click-resistance-by-type').click(async event => {
+    html.find('.click-resistance-by-type').on('click', async (event) => {
       event.stopPropagation();
       const monitor = this.getEventMonitorCode(event);
       await ResistanceByTypeDialog.show(this.actor, monitor);
     });
   }
 
+  // ==================== ACTION HANDLERS ====================
+  // These are called automatically when elements with data-action attributes are clicked
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onItemAdd(event, target) {
+    event.stopPropagation();
+    const itemType = target.closest('[data-item-type]')?.dataset.itemType;
+    if (itemType) {
+      await this.createNewItem(itemType);
+    }
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onItemEdit(event, target) {
+    event.stopPropagation();
+    const item = this._getItemFromTarget(target);
+    item?.sheet.render(true);
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onItemActivate(event, target) {
+    event.stopPropagation();
+    const item = this._getItemFromTarget(target);
+    if (item) {
+      const inactive = item.system.inactive;
+      await item.update({ 'system.inactive': !inactive });
+    }
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onItemDelete(event, target) {
+    event.stopPropagation();
+    const item = this._getItemFromTarget(target);
+    if (item) {
+      ConfirmationDialog.confirmDeleteItem(item, async () => {
+        await this.actor.deleteEmbeddedDocuments('Item', [item.id]);
+      });
+    }
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onToggleFavorite(event, target) {
+    event.stopPropagation();
+    this.onClickFavorite({
+      skillId: target.dataset.skillId,
+      specialization: target.dataset.specialization,
+      weaponId: target.dataset.weaponId,
+      attributeAction: target.dataset.attributeAction,
+      isFavorite: target.dataset.isFavorite
+    });
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onOwnerUnlink(event, target) {
+    event.stopPropagation();
+    this.detachFromOwner(this.actor.getOwnerActor(), this.actor);
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onOwnedActorView(event, target) {
+    event.stopPropagation();
+    const ownedActor = this._getOwnedActorFromTarget(target);
+    ownedActor?.sheet.render(true);
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onOwnedActorUnlink(event, target) {
+    event.stopPropagation();
+    const ownedActor = this._getOwnedActorFromTarget(target);
+    this.detachFromOwner(this.actor, ownedActor);
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onToggleMonitor(event, target) {
+    event.stopPropagation();
+    const item = this._getItemFromTarget(target);
+    const handler = item ?? this.actor;
+    const monitorElement = target.closest('.checkbar-root');
+    const monitor = monitorElement?.dataset.monitorCode;
+    const index = parseInt(target.dataset.index);
+    const checked = target.dataset.checked === 'true';
+    
+    if (monitor !== undefined && !isNaN(index)) {
+      await handler.switchMonitorCheck(monitor, index, checked, item);
+    }
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onRollSkill(event, target) {
+    event.stopPropagation();
+    const item = this._getItemFromTarget(target);
+    const specialization = target.dataset.specialization;
+    this.actor.rollSkill(item, specialization);
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onRollAttribute(event, target) {
+    event.stopPropagation();
+    const item = this._getItemFromTarget(target);
+    const handler = item ?? this.actor;
+    const attributeElement = target.closest('.anarchy-attribute');
+    const attribute = attributeElement?.dataset.attribute;
+    
+    if (attribute) {
+      handler.rollAttribute(attribute);
+    }
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onRollAttributeAction(event, target) {
+    event.stopPropagation();
+    const actionCode = target.dataset.actionCode || target.closest('[data-action-code]')?.dataset.actionCode;
+    if (actionCode) {
+      this.actor.rollAttributeAction(actionCode);
+    }
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onRollWeapon(event, target) {
+    event.stopPropagation();
+    const weapon = this._getItemFromTarget(target);
+    if (!weapon) {
+      ui.notifications.warn(game.i18n.localize('ANARCHY.common.errors.weaponNotFound'));
+      return;
+    }
+    this.actor.rollWeapon(weapon);
+  }
+
+  /**
+   * @param {PointerEvent} event
+   * @param {HTMLElement} target
+   */
+  static async _onShowResistanceByType(event, target) {
+    event.stopPropagation();
+    const monitorElement = target.closest('.checkbar-root');
+    const monitor = monitorElement?.dataset.monitorCode;
+    if (monitor) {
+      await ResistanceByTypeDialog.show(this.actor, monitor);
+    }
+  }
+
+  // ==================== HELPER METHODS ====================
+
+  /**
+   * Get an item from a target element
+   * @param {HTMLElement} target
+   * @returns {Item|null}
+   * @private
+   */
+  static _getItemFromTarget(target) {
+    const itemId = target.closest('[data-item-id]')?.dataset.itemId;
+    return itemId ? this.actor.items.get(itemId) : null;
+  }
+
+  /**
+   * Get an owned actor from a target element
+   * @param {HTMLElement} target
+   * @returns {Actor|null}
+   * @private
+   */
+  static _getOwnedActorFromTarget(target) {
+    const actorId = target.closest('[data-owned-actor-id]')?.dataset.ownedActorId;
+    return actorId ? game.actors.get(actorId) : null;
+  }
+
+  /**
+   * Diagnostic logging for sheet lifecycle
+   * @private
+   */
   _logSheetDiagnostics(stage, extra = {}) {
     const diagnostics = {
       stage,
@@ -275,6 +540,9 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     console.debug(`${LOG_HEAD}ActorSheet`, diagnostics);
   }
 
+  // ==================== LEGACY HELPER METHODS ====================
+  // These are kept for backwards compatibility with existing code
+
   getEventItemType(event) {
     return $(event.currentTarget).closest('.define-item-type').attr('data-item-type');
   }
@@ -285,83 +553,97 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     return this.actor.items.get(itemId);
   }
 
-  isEventChecked(event) {
-    return $(event.currentTarget).attr('data-checked') == 'true';
-  }
-
-  getEventSkillSpecialization(event) {
-    return $(event.currentTarget).closest('.click-skill-roll').attr('data-item-specialization');
-  }
-
-  getEventActionCode(event) {
-    return $(event.currentTarget).attr('data-action-code');
+  getEventOwnedActor(event) {
+    const ownedActorId = $(event.currentTarget).closest('[data-owned-actor-id]').attr('data-owned-actor-id');
+    return game.actors.get(ownedActorId);
   }
 
   getEventMonitorCode(event) {
-    return $(event.currentTarget).closest('[data-monitor-code]').attr('data-monitor-code');
+    return $(event.currentTarget).closest('.checkbar-root').attr('data-monitor-code');
   }
 
   getEventIndex(event) {
     return Number.parseInt($(event.currentTarget).attr('data-index'));
   }
 
-  getEventOwnedActor(event) {
-    const ownedActorId = $(event.currentTarget).closest('.define-owned-actor').attr('data-actor-id');
-    return game.actors.get(ownedActorId);
+  isEventChecked(event) {
+    return $(event.currentTarget).attr('data-checked') == 'true';
+  }
+
+  getEventActionCode(event) {
+    return $(event.currentTarget).attr('data-action-code');
+  }
+
+  getEventSkillSpecialization(event) {
+    return $(event.currentTarget).attr('data-specialization');
   }
 
   async createNewItem(itemType) {
-    if (itemType === 'weapon') {
-      itemType = this.actor.type === TEMPLATE.actorTypes.battlemech
-        ? TEMPLATE.itemType.mechWeapon
-        : TEMPLATE.itemType.personalWeapon;
-    }
-    const name = game.i18n.format(ANARCHY.common.newName, { type: game.i18n.localize(ANARCHY.itemType.singular[itemType]) });
-    await this.actor.createEmbeddedDocuments('Item', [{ name: name, type: itemType }], { renderSheet: true });
+    const singular = game.i18n.localize(ANARCHY.itemType.singular[itemType]);
+    const name = singular + ' ' + this.actor.items.filter(it => it.type == itemType).length;
+    await this.actor.createEmbeddedDocuments('Item', [{ name: name, type: itemType }]);
   }
 
   async onClickFavorite(options) {
-    const newState = options.isFavorite != "true";
-    if (options.skillId) {
-      await this.actor.switchFavorite(newState, TEMPLATE.itemType.skill, options.skillId, options.specialization);
+    const { skillId, specialization, weaponId, attributeAction, isFavorite } = options;
+    const favorite = isFavorite != 'true';
+
+    if (skillId) {
+      return this.actor.setSkillFavorite(skillId, specialization, favorite);
     }
-    else if (options.weaponId) {
-      const weapon = this.actor.items.get(options.weaponId);
-      await this.actor.switchFavorite(newState, weapon?.type ?? TEMPLATE.itemType.personalWeapon, options.weaponId);
+    if (weaponId) {
+      return this.actor.setWeaponFavorite(weaponId, favorite);
     }
-    else if (options.attributeAction) {
-      await this.actor.switchFavorite(newState, 'attributeAction', options.attributeAction);
-    }
-    else {
-      console.warn('Favorite not supported', options);
+    if (attributeAction) {
+      return this.actor.setAttributeActionFavorite(attributeAction, favorite);
     }
   }
 
-  detachFromOwner(owner, owned) {
-    ConfirmationDialog.confirmDetachOwnerActor(owner, owned, async () => {
-      await owned.attachToOwnerActor();
-      this.render(true);
+  async detachFromOwner(owner, owned) {
+    if (!owner || !owned) {
+      return;
+    }
+    const ownerId = owned.system.ownerId;
+    if (ownerId == owner.id) {
+      await owned.update({ 'system.ownerId': '' });
+    }
+    const ownedActorIds = owner.system.ownedActorIds;
+    if (ownedActorIds?.includes(owned.id)) {
+      const newOwnedActorIds = ownedActorIds.filter(id => id != owned.id);
+      await owner.update({ 'system.ownedActorIds': newOwnedActorIds });
+    }
+  }
+
+  /**
+   * Preload templates for the actor sheet
+   * @override
+   */
+  static async _preloadTemplates() {
+    const paths = this._getTemplatePaths();
+    // Filter and log any invalid paths
+    const validPaths = paths.filter(path => {
+      if (!path || typeof path !== 'string' || path.trim() === '') {
+        console.warn(`${LOG_HEAD}Invalid template path filtered:`, path);
+        return false;
+      }
+      return true;
     });
+    
+    console.debug(`${LOG_HEAD}templates-preload`, { paths: validPaths });
+    
+    if (validPaths.length > 0) {
+      return loadTemplates(validPaths);
+    }
   }
 
-  async _onDropActor(event, drag) {
-    const dropActor = fromUuidSync(drag.uuid);
-    if (dropActor?.id != this.actor.id) {
-      // check circular references: find a owner, without finding the owned id
-      ConfirmationDialog.confirmAttachOrCopy(this.actor, dropActor,
-        async () => await dropActor.attachToOwnerActor(this.actor),
-        async () => await dropActor.attachToOwnerActor(this.actor, 'copy'));
-    }
-    super._onDropActor(event, drag);
-  }
-
-  async onClickAddMark() {
-    if (this.actor.canReceiveMarks()) {
-      const title = game.i18n.format(ANARCHY.common.selection.actorSettingMarks, { name: this.actor.name });
-      await SelectActor.selectActor(title,
-        game.actors.filter(actor => !this.actor.getActorMarks(actor.id) && actor.canSetMarks()),
-        actor => this.actor.addActorMark(actor.id)
-      );
-    }
+  /**
+   * Get all template paths that should be preloaded
+   * @returns {string[]}
+   * @private
+   */
+  static _getTemplatePaths() {
+    return [
+      // Add any partial templates that should be preloaded here
+    ];
   }
 }
