@@ -30,48 +30,86 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
 
     // Load saved view mode from actor flags, defaulting to TRUE (view mode)
     const savedViewMode = this.actor.getFlag('mwd', 'viewMode');
+    console.log('MWD | _prepareContext - savedViewMode from flag:', savedViewMode);
+    console.log('MWD | _prepareContext - this.viewMode before:', this.viewMode);
+    
     if (savedViewMode !== undefined) {
       this.viewMode = savedViewMode;
     } else if (this.viewMode === undefined) {
-      this.viewMode = true;  // ← DEFAULT TO VIEW MODE
+      this.viewMode = true;  // DEFAULT TO VIEW MODE
     }
+    
+    console.log('MWD | _prepareContext - this.viewMode after:', this.viewMode);
 
-    return foundry.utils.mergeObject(context, {
+    const result = foundry.utils.mergeObject(context, {
       options: {
         ...context.options,
-        viewMode: this.viewMode ?? true  // ← Changed from false to true
+        viewMode: this.viewMode ?? true
       },
-      viewMode: this.viewMode ?? true  // ← Changed from false to true
+      viewMode: this.viewMode ?? true
     });
+    
+    console.log('MWD | _prepareContext - context.options.viewMode:', result.options.viewMode);
+    return result;
   }
 
-  // CRITICAL FIX: Use render() with force: false and parts to actually re-render in ApplicationV2
   async toggleViewMode() {
+    console.log('MWD | toggleViewMode CALLED');
+    console.log('MWD | toggleViewMode - viewMode before:', this.viewMode);
+    
     this.viewMode = !this.viewMode;
+    
+    console.log('MWD | toggleViewMode - viewMode after:', this.viewMode);
     
     // Save view mode preference to actor flags for persistence
     try {
       await this.actor.setFlag('mwd', 'viewMode', this.viewMode);
-      console.log('MWD | View mode toggled to:', this.viewMode);
+      console.log('MWD | toggleViewMode - Flag saved successfully');
     } catch (error) {
-      console.error('MWD | Failed to save view mode:', error);
+      console.error('MWD | toggleViewMode - Failed to save flag:', error);
     }
     
-    // ApplicationV2 requires specific render options to force a re-render
-    // Using render(false, { parts: ['sheet'] }) tells it to re-render the sheet part
+    // ApplicationV2 render pattern
+    console.log('MWD | toggleViewMode - Calling render...');
     await this.render(false, { parts: ['sheet'] });
+    console.log('MWD | toggleViewMode - Render complete');
   }
 
   activateListeners(html) {
     const jqHtml = html instanceof HTMLElement ? $(html) : html;
+    console.log('MWD | activateListeners CALLED');
+    console.log('MWD | activateListeners - html type:', html instanceof HTMLElement ? 'HTMLElement' : 'jQuery');
+    
     super.activateListeners(jqHtml);
 
-    // View mode toggle
-    jqHtml.find('.click-toggle-view-mode').click(async event => {
+    // Count how many elements match the selector
+    const toggleButtons = jqHtml.find('.click-toggle-view-mode');
+    console.log('MWD | activateListeners - Found .click-toggle-view-mode elements:', toggleButtons.length);
+    
+    toggleButtons.each((index, element) => {
+      console.log(`MWD | activateListeners - Element ${index}:`, {
+        tagName: element.tagName,
+        className: element.className,
+        hasClickHandler: !!$(element).data('events')?.click
+      });
+    });
+
+    // View mode toggle with extensive logging
+    toggleButtons.click(async (event) => {
+      console.log('MWD | CLICK HANDLER FIRED!');
+      console.log('MWD | Click event:', event);
+      console.log('MWD | Click target:', event.target);
+      console.log('MWD | Click currentTarget:', event.currentTarget);
+      
       event.preventDefault();
       event.stopPropagation();
-      await this.toggleViewMode();  // ← Made async
+      
+      console.log('MWD | About to call toggleViewMode...');
+      await this.toggleViewMode();
+      console.log('MWD | toggleViewMode returned');
     });
+    
+    console.log('MWD | activateListeners - Click handler attached');
 
     // cues, dispositions, keywords
     jqHtml.find('.click-word-add').click(async event => {
@@ -110,6 +148,8 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
       event.stopPropagation();
       this.actor.rollCelebrity();
     });
+    
+    console.log('MWD | activateListeners - All handlers attached');
   }
 
   createNewWord(wordType) {
