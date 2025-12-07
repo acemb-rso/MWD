@@ -57,6 +57,25 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       return true;
     });
     
+    // Filter Token/Prototype Token based on context
+    const isToken = this.document.isToken; // true if this is a synthetic token actor
+    
+    buttons = buttons.filter(button => {
+      const label = button.label || button.tooltip || '';
+      
+      // If viewing a token actor, remove "Prototype Token" button
+      if (isToken && (label.includes('Prototype') || button.action === 'prototypeToken')) {
+        return false;
+      }
+      
+      // If viewing the base actor, remove "Token" button (keep only "Prototype Token")
+      if (!isToken && label === 'Token' && !label.includes('Prototype') && button.action === 'token') {
+        return false;
+      }
+      
+      return true;
+    });
+    
     return buttons;
   }
 
