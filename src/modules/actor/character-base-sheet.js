@@ -52,7 +52,34 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     // Only attach our listeners to the 'sheet' part
     if (partId === 'sheet') {
       this._attachViewModeListeners(htmlElement);
+      this._attachImageEditListeners(htmlElement);
     }
+  }
+
+  // Attach image editing listeners
+  _attachImageEditListeners(html) {
+    const jqHtml = $(html);
+    
+    // Handle clicking on images with data-edit="img"
+    jqHtml.find('img[data-edit="img"]').click(async (event) => {
+      // Only allow editing in edit mode
+      if (this.viewMode) {
+        ui.notifications.info("Switch to edit mode to change the image.");
+        return;
+      }
+      
+      event.preventDefault();
+      
+      const fp = new FilePicker({
+        type: "image",
+        current: this.actor.img,
+        callback: async (path) => {
+          await this.actor.update({ img: path });
+        }
+      });
+      
+      fp.browse();
+    });
   }
 
   // Separate method to attach view mode specific listeners
