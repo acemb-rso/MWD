@@ -28,6 +28,9 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       classes: [game.system.anarchy.styles.selectCssClass(), "sheet", "actor"],
       actions: {},
       resizable: true,
+      window: {
+        resizable: true
+      },
       position: {
         width: 760,
         height: 760
