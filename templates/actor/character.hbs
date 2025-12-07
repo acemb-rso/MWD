@@ -161,13 +161,9 @@
             <h3>Inventory</h3>
             {{> "systems/mwd/templates/actor/parts/gears.hbs"}}
             {{> "systems/mwd/templates/actor/parts/contacts.hbs"}}
-            {{
-#if
- ownedActors}}
-            {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
-            {{
-/if
-}}
+            {{#if ownedActors}}
+              {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
+            {{/if}}
           </section>
         </div>
 
