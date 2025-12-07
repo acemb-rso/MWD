@@ -28,17 +28,35 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
 
+    // FIXED: Load view mode from actor flags, defaulting to TRUE (view mode)
+    const savedViewMode = this.actor.getFlag('mwd', 'viewMode');
+    if (savedViewMode !== undefined) {
+      this.viewMode = savedViewMode;
+    } else if (this.viewMode === undefined) {
+      this.viewMode = true;  // ← CHANGED: Default to view mode instead of false
+    }
+
     return foundry.utils.mergeObject(context, {
       options: {
         ...context.options,
-        viewMode: this.viewMode ?? false
+        viewMode: this.viewMode ?? true  // ← CHANGED: Default to true
       },
-      viewMode: this.viewMode ?? false
+      viewMode: this.viewMode ?? true  // ← CHANGED: Default to true
     });
   }
 
-  toggleViewMode() {
+  // FIXED: Toggle view mode and persist to actor flags
+  async toggleViewMode() {
     this.viewMode = !this.viewMode;
+    
+    // ← ADDED: Save view mode preference to actor flags
+    try {
+      await this.actor.setFlag('mwd', 'viewMode', this.viewMode);
+      console.log('MWD | View mode toggled to:', this.viewMode);
+    } catch (error) {
+      console.error('MWD | Failed to save view mode:', error);
+    }
+    
     this.render(true);
   }
 
@@ -50,7 +68,7 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     jqHtml.find('.click-toggle-view-mode').click(async event => {
       event.preventDefault();
       event.stopPropagation();
-      this.toggleViewMode();
+      await this.toggleViewMode();  // ← CHANGED: Make it async
     });
 
     // cues, dispositions, keywords
