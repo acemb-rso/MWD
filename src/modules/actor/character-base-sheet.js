@@ -4,62 +4,68 @@ import { TEMPLATES_PATH } from "../constants.js";
 
 export class CharacterBaseSheet extends AnarchyActorSheet {
 
-  get template() {
-    return `${TEMPLATES_PATH}/actor/character.hbs`;
-  }
+  static PARTS = {
+    sheet: {
+      template: `${TEMPLATES_PATH}/actor/character.hbs`,
+      scrollable: [".sheet-body"]
+    }
+  };
 
   /** @override */
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-      position: { width: 720, height: 700 },
-      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "main" }]
+      classes: ["character-sheet", "sra-enhanced"],
+      position: {
+        width: 720,
+        height: 700
+      }
     });
   }
 
   async _prepareContext(options) {
-    this.viewMode ??= true;
-
     const context = await super._prepareContext(options);
-    const essence = this.actor.computeEssence();
 
     return foundry.utils.mergeObject(context, {
-      essence: {
-        value: essence,
-        adjust: this.actor.computeMalusEssence(essence)
-      },
-      options: foundry.utils.mergeObject(context.options ?? {}, { viewMode: this.viewMode })
+      options: {
+        ...context.options,
+        viewMode: this.viewMode ?? false
+      }
     });
   }
 
   toggleViewMode() {
-    this.viewMode = !this.viewMode
-    this.render()
+    this.viewMode = !this.viewMode;
+    this.render();
   }
 
   activateListeners(html) {
-    super.activateListeners(html);
+    const jqHtml = html instanceof HTMLElement ? $(html) : html;
+    super.activateListeners(jqHtml);
 
-    html.find('.click-toggle-view-mode').click(async event => this.toggleViewMode())
+    // View mode toggle
+    jqHtml.find('.click-toggle-view-mode').click(async event => {
+      event.stopPropagation();
+      this.toggleViewMode();
+    });
 
     // cues, dispositions, keywords
-    html.find('.click-word-add').click(async event => {
+    jqHtml.find('.click-word-add').click(async event => {
       event.stopPropagation();
       this.createNewWord(this.getEventWordType(event));
     });
 
-    html.find('.click-word-say').click(async event => {
+    jqHtml.find('.click-word-say').click(async event => {
       event.stopPropagation();
       this.actor.sayWord(
         this.getEventWordType(event),
         this.getEventWordId(event));
     });
 
-    html.find('.change-word-value').click(async event => {
+    jqHtml.find('.change-word-value').click(async event => {
       event.stopPropagation();
     });
 
-
-    html.find('.change-word-value').change(async event => {
+    jqHtml.find('.change-word-value').change(async event => {
       event.stopPropagation();
       const newWordValue = event.currentTarget.value;
       await this.actor.updateWord(
@@ -68,14 +74,14 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
         newWordValue);
     });
 
-    html.find('.click-word-delete').click(async event => {
+    jqHtml.find('.click-word-delete').click(async event => {
       event.stopPropagation();
       this.actor.deleteWord(
         this.getEventWordType(event),
         this.getEventWordId(event));
     });
 
-    html.find(".click-celebrity-roll").click(async event => {
+    jqHtml.find(".click-celebrity-roll").click(async event => {
       event.stopPropagation();
       this.actor.rollCelebrity();
     });
@@ -93,5 +99,4 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   getEventWordId(event) {
     return $(event.currentTarget).closest('.define-wordType').attr('data-word-id');
   }
-
 }
