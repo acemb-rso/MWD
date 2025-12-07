@@ -243,6 +243,23 @@
   box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
+/* Make image clickable in edit mode */
+.character-sheet.sra-enhanced:not(.view-mode) img[data-edit="img"] {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.character-sheet.sra-enhanced:not(.view-mode) img[data-edit="img"]:hover {
+  opacity: 0.8;
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px var(--mwd-accent-gold);
+}
+
+/* In view mode, show it's not editable */
+.character-sheet.sra-enhanced.view-mode img[data-edit="img"] {
+  cursor: default;
+}
+
 /* ================================================
    PANELS & SECTIONS
    ================================================ */
