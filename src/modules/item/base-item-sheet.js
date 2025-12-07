@@ -3,137 +3,263 @@ import { TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { Enums } from "../enums.js";
 import { Misc } from "../misc.js";
 
-export class BaseItemSheet extends foundry.appv1.sheets.ItemSheet {
+const { HandlebarsApplicationMixin } = foundry.applications.api;
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
+/**
+ * Base item sheet for all MWD items, converted to ApplicationV2.
+ * Provides common functionality for all item types including:
+ * - Context preparation with enums and system data
+ * - Modifier management (add, delete, update)
+ * - Monitor/checkbar interactions
+ * - Template selection per item type
+ */
+export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ItemSheetV2) {
+
+  /** @override */
+  static DEFAULT_OPTIONS = {
+    classes: ["item-sheet"],
+    position: {
+      width: 600,
+      height: "auto"
+    },
+    window: {
+      resizable: true
+    },
+    actions: {
+      // Monitor/checkbar actions
+      checkbarElement: BaseItemSheet._onClickCheckbar,
+      
+      // Modifier actions
+      modifierAdd: BaseItemSheet._onModifierAdd,
+      modifierDelete: BaseItemSheet._onModifierDelete,
+      modifierValueChange: BaseItemSheet._onModifierValueChange,
+      modifierConditionChange: BaseItemSheet._onModifierConditionChange,
+      modifierSelectionChange: BaseItemSheet._onModifierSelectionChange
+    },
+    form: {
+      submitOnChange: true
+    }
+  };
+
+  /** @override */
+  static PARTS = {
+    sheet: {
+      template: "", // Set dynamically in _getPartTemplate
+      scrollable: [".sheet-body"]
+    },
+    tabs: {
+      template: "" // Optional, if tabs are needed
+    }
+  };
+
+  /** @override */
+  tabGroups = {
+    sheet: "main"
+  };
+
+  /* -------------------------------------------- */
+  /*  Rendering                                   */
+  /* -------------------------------------------- */
+
+  /**
+   * Dynamically determine the template based on item type.
+   * @param {string} partId - The part identifier
+   * @returns {string} The template path
+   * @override
+   */
+  _getPartTemplate(partId) {
+    if (partId === "sheet") {
+      const weaponTemplates = {
+        [TEMPLATE.itemType.mechWeapon]: `${TEMPLATES_PATH}/item/mech-weapon.hbs`,
+        [TEMPLATE.itemType.personalWeapon]: `${TEMPLATES_PATH}/item/personal-weapon.hbs`,
+      };
+      
+      return weaponTemplates[this.item.type] ?? `${TEMPLATES_PATH}/item/${this.item.type}.hbs`;
+    }
+    return super._getPartTemplate?.(partId) ?? "";
+  }
+
+  /**
+   * Override title to show localized item type and name.
+   * @override
+   */
+  get title() {
+    const typeLabel = game.i18n.localize(ANARCHY.itemType.singular[this.item.type]);
+    return `${typeLabel}: ${this.item.name}`;
+  }
+
+  /**
+   * Prepare context data for rendering.
+   * @param {object} options - Rendering options
+   * @returns {Promise<object>} The prepared context
+   * @override
+   */
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
+    
+    // Get actor attributes if this item is owned
+    const actorAttributes = this.item.actor?.getAttributes?.(this.item);
+    
+    // Determine which attributes are usable based on item ownership
+    const usableAttribute = this.item.actor
+      ? attribute => actorAttributes?.includes(attribute)
+      : attribute => true;
+    
+    // Skills need knowledge attributes
+    const withKnowledge = this.item.type === TEMPLATE.itemType.skill;
+
+    // Build CSS classes
+    const editableClass = this.isEditable ? "editable" : "locked";
+    const baseClasses = context.cssClass?.split(' ') ?? [];
+    const classes = Misc.distinct([
+      game.system.anarchy.styles.selectCssClass(),
+      "sheet",
+      "item-sheet",
+      editableClass,
+      ...baseClasses
+    ]);
+
+    // Merge additional context data
+    return foundry.utils.mergeObject(context, {
+      // CSS and styling
+      cssClass: classes.join(" "),
+      
+      // Permissions and state
       isGM: game.user.isGM,
-      dragDrop: [{ dragSelector: ".item ", dropSelector: null }],
-      classes: [game.system.anarchy.styles.selectCssClass(), "sheet", "item-sheet"],
-      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "main" }],
+      isOwned: this.item.actor !== undefined,
+      
+      // Enums for dropdowns and selections
+      ENUMS: foundry.utils.mergeObject(
+        Enums.getEnums(usableAttribute, withKnowledge),
+        game.system.anarchy.modifiers.getEnums()
+      ),
+      
+      // System configuration
+      ANARCHY: ANARCHY,
+      
+      // Item system data
+      system: this.item.system
     });
   }
 
-
-  get title() {
-    return game.i18n.localize(ANARCHY.itemType.singular[this.item.type]) + ': ' + this.item.name;
-  }
-
-  get template() {
-    const weaponTemplates = {
-      [TEMPLATE.itemType.mechWeapon]: `${TEMPLATES_PATH}/item/mech-weapon.hbs`,
-      [TEMPLATE.itemType.personalWeapon]: `${TEMPLATES_PATH}/item/personal-weapon.hbs`,
-    };
-
-    return weaponTemplates[this.object.type]
-      ?? `${TEMPLATES_PATH}/item/${this.object.type}.hbs`;
-  }
-
-  getData(options) {
-    const actorAttributes = this.item.actor?.getAttributes(this.item);
-
-    const usableAttribute = (this.item.actor
-      ? attribute => actorAttributes.includes(attribute)
-      : attribute => true)
-    const withKnowledge = this.item.type == TEMPLATE.itemType.skill
-
-    let hbsData = foundry.utils.mergeObject(
-      super.getData(options),
-      {
-        options: {
-          isGM: game.user.isGM,
-          limited: !this.document.isOwner,
-          owner: this.document.isOwner,
-          isOwned: (this.actor != undefined),
-          editable: this.isEditable,
-          cssClass: this.isEditable ? "editable" : "locked",
-        },
-        ENUMS: foundry.utils.mergeObject(Enums.getEnums(usableAttribute, withKnowledge), game.system.anarchy.modifiers.getEnums()),
-        ANARCHY: ANARCHY
-      });
-    hbsData.system = this.item.system;
-
-    const editableClass = this.isEditable ? "editable" : "locked";
-    const baseClasses = hbsData.options?.classes ?? [];
-    const classes = Misc.distinct([...baseClasses, editableClass]);
-    hbsData.options.classes = classes;
-    hbsData.options.cssClass = classes.join(" ");
-
-    return hbsData;
-  }
-
-  /** @override */
-  _getHeaderButtons() {
-    const buttons = super._getHeaderButtons?.() ?? [];
+  /**
+   * Configure header controls, removing duplicates.
+   * @returns {Array} Array of header control entries
+   * @override
+   * @protected
+   */
+  _getHeaderControls() {
+    const controls = super._getHeaderControls();
+    
+    // Deduplicate controls based on icon, label, and class
     const seen = new Set();
-    return buttons.filter(button => {
-      const key = `${button.class ?? ''}|${button.icon ?? ''}|${button.label ?? button.title ?? ''}`;
+    return controls.filter(control => {
+      const key = `${control.class ?? ''}|${control.icon ?? ''}|${control.label ?? ''}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
   }
 
+  /* -------------------------------------------- */
+  /*  Action Handlers                             */
+  /* -------------------------------------------- */
 
-  activateListeners(html) {
-    super.activateListeners(html);
+  /**
+   * Handle clicking a checkbar element (monitor/health track).
+   * @param {PointerEvent} event - The triggering click event
+   * @param {HTMLElement} target - The clicked element
+   * @static
+   */
+  static async _onClickCheckbar(event, target) {
+    const item = this.item;
+    if (!item.parent) return;
 
-    // counters & monitors
-    html.find('a.click-checkbar-element').click(async event =>
-      await this.onClickMonitor(event)
-    );
+    // Get monitor data from element attributes
+    const monitorRoot = target.closest('.checkbar-root');
+    if (!monitorRoot) return;
+    
+    const monitor = monitorRoot.dataset.monitorCode;
+    const index = Number.parseInt(target.dataset.index);
+    const checked = target.dataset.checked === 'true';
 
-    html.find('.click-modifier-add').click(async event =>
-      await this.item.createModifier()
-    );
-    html.find('.click-modifier-delete').click(async event =>
-      await this.item.deleteModifier(this.getEventModifierId(event))
-    );
-    html.find('.input-modifier-value').change(async event =>
-      await this.item.changeModifierValue(
-        this.getEventModifierId(event),
-        event.currentTarget.value)
-    );
-    html.find('.input-modifier-condition').change(async event =>
-      await this.item.changeModifierCondition(
-        this.getEventModifierId(event),
-        event.currentTarget.value)
-    );
-    html.find('.select-modifier-change').change(async event =>
-      await this.item.changeModifierSelection(
-        this.getEventModifierId(event),
-        this.getEventModifierSelect(event),
-        event.currentTarget.value)
-    );
+    // Toggle the monitor check
+    await item.parent.switchMonitorCheck(monitor, index, checked);
   }
 
-  async onClickMonitor(event) {
-    if (this.item.parent) {
-      const monitor = this.getEventMonitorCode(event);
-      await this.item.parent.switchMonitorCheck(
-        monitor,
-        this.getEventMonitorIndex(event),
-        this.isEventMonitorChecked(event)
-      );
+  /**
+   * Handle adding a new modifier.
+   * @param {PointerEvent} event - The triggering click event
+   * @param {HTMLElement} target - The clicked element
+   * @static
+   */
+  static async _onModifierAdd(event, target) {
+    await this.item.createModifier();
+  }
+
+  /**
+   * Handle deleting a modifier.
+   * @param {PointerEvent} event - The triggering click event
+   * @param {HTMLElement} target - The clicked element
+   * @static
+   */
+  static async _onModifierDelete(event, target) {
+    const modifierRow = target.closest('.define-modifier');
+    if (!modifierRow) return;
+    
+    const modifierId = modifierRow.dataset.modifierId;
+    if (modifierId) {
+      await this.item.deleteModifier(modifierId);
     }
   }
 
-  getEventMonitorCode(event) {
-    return $(event.currentTarget).closest('.checkbar-root').attr('data-monitor-code');
+  /**
+   * Handle changing a modifier's value.
+   * @param {Event} event - The triggering change event
+   * @param {HTMLElement} target - The changed input element
+   * @static
+   */
+  static async _onModifierValueChange(event, target) {
+    const modifierRow = target.closest('.define-modifier');
+    if (!modifierRow) return;
+    
+    const modifierId = modifierRow.dataset.modifierId;
+    if (modifierId) {
+      await this.item.changeModifierValue(modifierId, target.value);
+    }
   }
 
-  getEventMonitorIndex(event) {
-    return Number.parseInt($(event.currentTarget).attr('data-index'));
+  /**
+   * Handle changing a modifier's condition.
+   * @param {Event} event - The triggering change event
+   * @param {HTMLElement} target - The changed input element
+   * @static
+   */
+  static async _onModifierConditionChange(event, target) {
+    const modifierRow = target.closest('.define-modifier');
+    if (!modifierRow) return;
+    
+    const modifierId = modifierRow.dataset.modifierId;
+    if (modifierId) {
+      await this.item.changeModifierCondition(modifierId, target.value);
+    }
   }
 
-  isEventMonitorChecked(event) {
-    return $(event.currentTarget).attr('data-checked') == 'true';
-  }
-
-  getEventModifierId(event) {
-    return $(event.currentTarget).closest('.define-modifier').attr('data-modifier-id');
-  }
-  getEventModifierSelect(event) {
-    return $(event.currentTarget).attr('data-modifier-select');
+  /**
+   * Handle changing a modifier's selection (category, type, etc.).
+   * @param {Event} event - The triggering change event
+   * @param {HTMLElement} target - The changed select element
+   * @static
+   */
+  static async _onModifierSelectionChange(event, target) {
+    const modifierRow = target.closest('.define-modifier');
+    if (!modifierRow) return;
+    
+    const modifierId = modifierRow.dataset.modifierId;
+    const modifierSelect = target.dataset.modifierSelect;
+    
+    if (modifierId && modifierSelect) {
+      await this.item.changeModifierSelection(modifierId, modifierSelect, target.value);
+    }
   }
 }
