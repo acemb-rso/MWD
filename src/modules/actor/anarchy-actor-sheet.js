@@ -46,14 +46,19 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     let buttons = super._getHeaderButtons?.() ?? [];
     
     // Remove duplicates - Application V2 can cause buttons to be added multiple times
-    const seen = new Map();
+    const seen = new Set ();
     buttons = buttons.filter(button => {
       // Create a unique key based on action or label
-      const key = button.action || button.label || button.tooltip || button.icon;
-      if (!key || seen.has(key)) {
+    const key = JSON.stringify({
+      action: button.action || null,
+      label: button.label || null,
+      tooltip: button.tooltip || null,
+      icon: button.icon || null
+    });
+      if (seen.has(key)) {
         return false;
       }
-      seen.set(key, true);
+      seen.add(key);
       return true;
     });
     
