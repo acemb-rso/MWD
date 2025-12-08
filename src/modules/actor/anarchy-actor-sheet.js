@@ -21,6 +21,9 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     }
   };
 
+  // ApplicationV2 tabs configuration - override in subclasses if needed
+  static TABS = {};
+
   /** @override */
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
@@ -57,9 +60,6 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       position: {
         width: 760,
         height: 760
-      },
-      window: {
-        resizable: true
       }
     });
   }
@@ -302,7 +302,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       event.stopPropagation();
       const weapon = this.getEventItem(event);
       if (!weapon) {
-        ui.notifications.warn(game.i18n.localize('ANARCHY.common.errors.weaponNotFound'));
+        ui.notifications.warn('ANARCHY.common.errors.weaponNotFound');
         return;
       }
       this.actor.rollWeapon(weapon);
@@ -476,7 +476,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     event.stopPropagation();
     const weapon = this._getItemFromTarget(target);
     if (!weapon) {
-      ui.notifications.warn(game.i18n.localize('ANARCHY.common.errors.weaponNotFound'));
+      ui.notifications.warn('ANARCHY.common.errors.weaponNotFound');
       return;
     }
     this.actor.rollWeapon(weapon);
@@ -579,7 +579,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   }
 
   async createNewItem(itemType) {
-    const singular = game.i18n.localize(ANARCHY.itemType.singular[itemType]);
+    const singular = ANARCHY.itemType.singular[itemType];
     const name = singular + ' ' + this.actor.items.filter(it => it.type == itemType).length;
     await this.actor.createEmbeddedDocuments('Item', [{ name: name, type: itemType }]);
   }
@@ -615,35 +615,31 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   }
 
   /**
-   * Preload templates for the actor sheet
+   * Preload templates for the actor sheet.
+   * Note: The system's HandlebarsManager already loads all partial templates globally,
+   * so this method is primarily for sheet-specific template parts if needed.
    * @override
    */
   static async _preloadTemplates() {
-    const paths = this._getTemplatePaths();
-    // Filter and log any invalid paths
-    const validPaths = paths.filter(path => {
-      if (!path || typeof path !== 'string' || path.trim() === '') {
-        console.warn(`${LOG_HEAD}Invalid template path filtered:`, path);
-        return false;
-      }
-      return true;
-    });
+    // The HandlebarsManager already loads all partials system-wide.
+    // Individual sheets can add their own specific templates here if needed.
+    const paths = this._getSheetSpecificTemplates();
     
-    console.debug(`${LOG_HEAD}templates-preload`, { paths: validPaths });
-    
-    if (validPaths.length > 0) {
-      return loadTemplates(validPaths);
+    if (paths.length > 0) {
+      console.debug(`${LOG_HEAD}Preloading sheet-specific templates:`, paths);
+      return loadTemplates(paths);
     }
   }
 
   /**
-   * Get all template paths that should be preloaded
+   * Get sheet-specific template paths to preload.
+   * Override in subclasses to add templates specific to that sheet.
    * @returns {string[]}
-   * @private
+   * @protected
    */
-  static _getTemplatePaths() {
-    return [
-      // Add any partial templates that should be preloaded here
-    ];
+  static _getSheetSpecificTemplates() {
+    // Base class has no sheet-specific templates
+    // Child classes can override to add their own
+    return [];
   }
 }

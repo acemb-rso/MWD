@@ -111,7 +111,7 @@ export class AttributeActions {
     if (action) {
       return {
         icon: action.icon,
-        label: game.i18n.localize(action.labelkey),
+        label: action.labelkey,
         callback: (token) => token.actor.rollAttributeAction(actionCode),
       };
     }

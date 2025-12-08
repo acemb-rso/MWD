@@ -3,6 +3,7 @@ import { ANARCHY_SYSTEM, ICONS_PATH, TEMPLATE } from "../constants.js";
 import { SkillItem } from "../item/skill-item.js";
 import { RollDialog } from "../roll/roll-dialog.js";
 import { VehicleActor } from "./vehicle-actor.js";
+import { formatString } from "../strings.js";
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 
 export class BattlemechActor extends VehicleActor {
@@ -34,7 +35,7 @@ export class BattlemechActor extends VehicleActor {
   async rollRangedAttack() {
     const weaponGroups = this.system.weaponGroups ?? [];
     if (weaponGroups.length === 0) {
-      ui.notifications.warn(game.i18n.localize(ANARCHY.actor.vehicle.quickActions.errors.noRanged));
+      ui.notifications.warn(ANARCHY.actor.vehicle.quickActions.errors.noRanged);
       return;
     }
 
@@ -49,7 +50,7 @@ export class BattlemechActor extends VehicleActor {
 
     await this._rollQuickSkill(this.system.skills.gunnery, {
       quickAction: {
-        title: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.rangedAttack),
+        title: ANARCHY.actor.vehicle.quickActions.rangedAttack,
         weaponGroup: this._serializeWeaponGroup(selectedGroup, weapons)
       }
     });
@@ -58,7 +59,7 @@ export class BattlemechActor extends VehicleActor {
   async rollMeleeAttack() {
     const meleeProfiles = this.system.meleeProfiles ?? [];
     if (meleeProfiles.length === 0) {
-      ui.notifications.warn(game.i18n.localize(ANARCHY.actor.vehicle.quickActions.errors.noMelee));
+      ui.notifications.warn(ANARCHY.actor.vehicle.quickActions.errors.noMelee);
       return;
     }
 
@@ -69,7 +70,7 @@ export class BattlemechActor extends VehicleActor {
 
     await this._rollQuickSkill(this.system.skills.melee, {
       quickAction: {
-        title: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.meleeAttack),
+        title: ANARCHY.actor.vehicle.quickActions.meleeAttack,
         meleeProfile: selectedProfile
       }
     });
@@ -77,20 +78,20 @@ export class BattlemechActor extends VehicleActor {
 
   async rollDodge() {
     await this._rollQuickSkill(this.system.skills.piloting, {
-      quickAction: { title: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.dodgeCheck) }
+      quickAction: { title: ANARCHY.actor.vehicle.quickActions.dodgeCheck }
     });
   }
 
   async rollPilotingCheck() {
     await this._rollQuickSkill(this.system.skills.piloting, {
-      quickAction: { title: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.pilotingCheck) }
+      quickAction: { title: ANARCHY.actor.vehicle.quickActions.pilotingCheck }
     });
   }
 
   async rollSensorSweep() {
     const sensorSkills = [this.system.skills.perception, this.system.skills.technician].filter(it => it);
     if (sensorSkills.length === 0) {
-      ui.notifications.warn(game.i18n.localize(ANARCHY.actor.vehicle.quickActions.errors.noSensorSweep));
+      ui.notifications.warn(ANARCHY.actor.vehicle.quickActions.errors.noSensorSweep);
       return;
     }
 
@@ -101,7 +102,7 @@ export class BattlemechActor extends VehicleActor {
 
     await this._rollQuickSkill(selectedSkill, {
       quickAction: {
-        title: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.sensorSweep),
+        title: ANARCHY.actor.vehicle.quickActions.sensorSweep,
         skillName: selectedSkill.name
       }
     });
@@ -109,7 +110,7 @@ export class BattlemechActor extends VehicleActor {
 
   async rollEmergencyRepair() {
     await this._rollQuickSkill(this.system.skills.technician, {
-      quickAction: { title: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.emergencyRepair) }
+      quickAction: { title: ANARCHY.actor.vehicle.quickActions.emergencyRepair }
     });
   }
 
@@ -146,7 +147,7 @@ export class BattlemechActor extends VehicleActor {
     const status = this._resolveHeatStatus(heat.current, heat.thresholds, heat.max);
     this.system.mwd.heatStatus = {
       code: status,
-      label: game.i18n.localize(ANARCHY.actor.battlemech.heat.status[status] ?? status)
+      label: ANARCHY.actor.battlemech.heat.status[status] ?? status
     };
 
     return heat;
@@ -180,7 +181,7 @@ export class BattlemechActor extends VehicleActor {
       return {
         id: group.id ?? `group-${index + 1}`,
         index,
-        name: group.name || game.i18n.format(ANARCHY.common.newName, { type: game.i18n.localize(ANARCHY.itemType.singular.weapon) }),
+        name: group.name || formatString(ANARCHY.common.newName, { type: ANARCHY.itemType.singular.weapon }),
         weaponIds,
         isPrimary: group.isPrimary ?? false,
         weapons: attachedWeapons,
@@ -199,7 +200,7 @@ export class BattlemechActor extends VehicleActor {
     if (prepared) {
       const labelKey = ANARCHY.skill?.[code];
       return {
-        name: prepared.name ?? (labelKey ? game.i18n.localize(labelKey) : code),
+        name: prepared.name ?? (labelKey ? labelKey : code),
         system: foundry.utils.mergeObject({
           code: code,
           attribute: prepared.system?.attribute,
@@ -237,7 +238,7 @@ export class BattlemechActor extends VehicleActor {
     if (favoriteWeapons.length > 0) {
       groups.push({
         id: 'favorite',
-        name: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.primaryWeapons),
+        name: ANARCHY.actor.vehicle.quickActions.primaryWeapons,
         weaponIds: favoriteWeapons.map(it => it.id),
         isPrimary: true
       });
@@ -245,7 +246,7 @@ export class BattlemechActor extends VehicleActor {
 
     groups.push({
       id: 'all',
-      name: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.allWeapons),
+      name: ANARCHY.actor.vehicle.quickActions.allWeapons,
       weaponIds: weapons.map(it => it.id),
       isPrimary: groups.length === 0
     });
@@ -256,10 +257,10 @@ export class BattlemechActor extends VehicleActor {
   _prepareMeleeProfiles() {
     const profiles = [{
       id: 'unarmed',
-      name: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.unarmed),
+      name: ANARCHY.actor.vehicle.quickActions.unarmed,
       weaponId: null,
       damage: 1,
-      notes: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.unarmedNotes)
+      notes: ANARCHY.actor.vehicle.quickActions.unarmedNotes
     }];
 
     const meleeWeapons = this.items.filter(it =>
@@ -303,13 +304,13 @@ export class BattlemechActor extends VehicleActor {
     const content = `<form class="mwd-quick-select">${groups.map(group => `
       <label class="quick-select-option">
         <input type="radio" name="weapon-group" value="${group.id}" ${group.id === defaultGroup.id ? 'checked' : ''}>
-        <span>${group.name}${group.isPrimary ? ` (${game.i18n.localize(ANARCHY.actor.vehicle.quickActions.primaryLabel)})` : ''}</span>
+        <span>${group.name}${group.isPrimary ? ` (${ANARCHY.actor.vehicle.quickActions.primaryLabel})` : ''}</span>
       </label>`).join('')}</form>`;
 
     const selectedId = await Dialog.prompt({
-      title: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.selectWeaponGroup),
+      title: ANARCHY.actor.vehicle.quickActions.selectWeaponGroup,
       content: content,
-      label: game.i18n.localize(ANARCHY.common.roll.button),
+      label: ANARCHY.common.roll.button,
       callback: html => html.find('input[name="weapon-group"]:checked').val() ?? defaultGroup.id
     });
 
@@ -329,9 +330,9 @@ export class BattlemechActor extends VehicleActor {
       </label>`).join('')}</form>`;
 
     const selectedId = await Dialog.prompt({
-      title: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.selectMeleeProfile),
+      title: ANARCHY.actor.vehicle.quickActions.selectMeleeProfile,
       content: content,
-      label: game.i18n.localize(ANARCHY.common.roll.button),
+      label: ANARCHY.common.roll.button,
       callback: html => html.find('input[name="melee-profile"]:checked').val() ?? defaultProfile.id
     });
 
@@ -350,9 +351,9 @@ export class BattlemechActor extends VehicleActor {
       </label>`).join('')}</form>`;
 
     const selectedCode = await Dialog.prompt({
-      title: game.i18n.localize(ANARCHY.actor.vehicle.quickActions.selectSensorSkill),
+      title: ANARCHY.actor.vehicle.quickActions.selectSensorSkill,
       content: content,
-      label: game.i18n.localize(ANARCHY.common.roll.button),
+      label: ANARCHY.common.roll.button,
       callback: html => html.find('input[name="sensor-skill"]:checked').val()
     });
 

@@ -4,6 +4,7 @@ import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
 import { ErrorManager } from "../error-manager.js";
 import { ANARCHY_HOOKS, HooksManager } from "../hooks-manager.js";
 import { Modifiers } from "../modifiers/modifiers.js";
+import { formatString } from "../strings.js";
 
 const DAMAGE_MODE = 'damage-mode'
 const SETTING_KEY_DAMAGE_MODE = `${SYSTEM_NAME}.${DAMAGE_MODE}`;
@@ -33,13 +34,13 @@ export class ActorDamageManager {
 
   static _registerDamageModeSetting() {
     Hooks.callAll(ANARCHY_HOOKS.PROVIDE_DAMAGE_MODE, (code, labelkey, method) => {
-      damageModeChoices[code] = game.i18n.localize(labelkey);
+      damageModeChoices[code] = labelkey;
       damageModeMethods[code] = method;
     });
     game.settings.register(SYSTEM_NAME, DAMAGE_MODE, {
       scope: "world",
-      name: game.i18n.localize(ANARCHY.settings.damageMode.name),
-      hint: game.i18n.localize(ANARCHY.settings.damageMode.hint),
+      name: ANARCHY.settings.damageMode.name,
+      hint: ANARCHY.settings.damageMode.hint,
       config: true,
       default: Object.keys(damageModeChoices)[0],
       choices: damageModeChoices,
@@ -188,29 +189,30 @@ export class ActorDamageManager {
     if (!resistanceDetail || monitor === undefined) {
       return;
     }
-    const monitorLabel = game.i18n.localize(ANARCHY.actor.monitors[monitor] ?? monitor);
+    const monitorLabel = ANARCHY.actor.monitors[monitor] ?? monitor;
     const typeLabel = ActorDamageManager._localizeDamageType(damageType) ?? monitorLabel;
     const sourceKey = resistanceDetail.usedType ? 'type' : 'default';
-    const sourceLabel = game.i18n.localize(ANARCHY.actor.monitors.resistanceSources?.[sourceKey] ?? sourceKey);
-    ui.notifications.info(game.i18n.format(ANARCHY.actor.monitors.resistanceApplied, {
+    const sourceLabel = ANARCHY.actor.monitors.resistanceSources?.[sourceKey] ?? sourceKey;
+    const content = formatString(ANARCHY.actor.monitors.resistanceApplied, {
       actor: actor.name,
       monitor: monitorLabel,
       damageType: typeLabel,
       value: resistanceDetail.value,
       source: sourceLabel,
-    }));
+    });
+    ui.notifications.info(content);
   }
 
   static _localizeDamageType(damageType) {
     if (!damageType) {
       return undefined;
     }
-    return game.i18n.localize(
+    return 
       ANARCHY.mwd.weaponDamageType[damageType]
       ?? ANARCHY.mwd.personalDamageType[damageType]
       ?? ANARCHY.actor.monitors[damageType]
       ?? damageType
-    );
+    ;
   }
 
   static _computeArmorResistance(actor) {

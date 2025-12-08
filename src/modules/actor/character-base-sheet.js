@@ -126,7 +126,7 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   }
 
   createNewWord(wordType) {
-    const word = game.i18n.localize(ANARCHY.common.newEntry);
+    const word = ANARCHY.common.newEntry;
     this.actor.createWord(wordType, word);
   }
 

@@ -1,12 +1,13 @@
 import { ANARCHY } from "./config.js";
 import { TEMPLATE } from "./constants.js";
+import { formatString } from "./strings.js";
 
 export class ErrorManager {
 
   static checkSufficient(resource, required, available) {
     if (required > available) {
-      const error = game.i18n.format(ANARCHY.common.errors.insufficient, {
-        resource: game.i18n.localize(resource),
+      const error = formatString(ANARCHY.common.errors.insufficient, {
+        resource: resource,
         required: required,
         available: available
       });
@@ -17,8 +18,8 @@ export class ErrorManager {
 
   static checkOutOfRange(resource, value, min, max) {
     if (value < min || value > max) {
-      const error = game.i18n.format(ANARCHY.common.errors.outOfRange, {
-        resource: game.i18n.localize(resource),
+      const error = formatString(ANARCHY.common.errors.outOfRange, {
+        resource: resource,
         value: value, min: min, max: max
       });
       ui.notifications.error(error);
@@ -28,7 +29,7 @@ export class ErrorManager {
 
   static checkUserGM() {
     if (!game.user.isGM) {
-      const error = game.i18n.localize(ANARCHY.common.errors.onlyGM);
+      const error = ANARCHY.common.errors.onlyGM;
       ui.notifications.error(error);
       throw error;
     }
@@ -36,9 +37,9 @@ export class ErrorManager {
 
   static checkItemType(item, expectedType) {
     if (item.type != expectedType) {
-      const error = game.i18n.format(ANARCHY.common.errors.expectedType, {
-        type: game.i18n.localize(item.type ? (ANARCHY.itemType.singular[item.type]) : item.type),
-        expectedType: game.i18n.localize(expectedType)
+      const error = formatString(ANARCHY.common.errors.expectedType, {
+        type: item.type ? (ANARCHY.itemType.singular[item.type]) : item.type,
+        expectedType: expectedType
       });
       ui.notifications.error(error);
       throw error;
@@ -47,13 +48,13 @@ export class ErrorManager {
 
   static checkActorCanReceiveDamage(damageType, monitor, actor) {
     if (!monitor) {
-      const error = game.i18n.format(ANARCHY.common.errors.actorCannotReceiveDamage, {
+      const error = formatString(ANARCHY.common.errors.actorCannotReceiveDamage, {
         actor: actor.name,
-        damageType: game.i18n.localize(
+        damageType:
           ANARCHY.actor.monitors[damageType]
           ?? ANARCHY.mwd.weaponDamageType[damageType]
           ?? ANARCHY.mwd.personalDamageType[damageType]
-          ?? damageType)
+          ?? damageType
       });
       ui.notifications.error(error);
       throw error;
@@ -63,7 +64,7 @@ export class ErrorManager {
   static checkWeaponDefense(weapon, actor) {
     const defense = weapon.getDefense();
     if (weapon.type === TEMPLATE.itemType.personalWeapon && !defense) {
-      const error = game.i18n.format(ANARCHY.common.errors.noDefenseOnWeapon, { actor: actor.name, weapon: weapon.name });
+      const error = formatString(ANARCHY.common.errors.noDefenseOnWeapon, { actor: actor.name, weapon: weapon.name });
       ui.notifications.error(error);
       throw error;
     }
@@ -71,9 +72,9 @@ export class ErrorManager {
 
   static checkTargetsCount(maxTargets, targets, area) {
     if (maxTargets > 0 && targets.length > maxTargets) {
-      const error = game.i18n.format(ANARCHY.common.errors.maxTargetsExceedeed, {
+      const error = formatString(ANARCHY.common.errors.maxTargetsExceedeed, {
         weapon: this.name,
-        area: game.i18n.localize(ANARCHY.area[area]),
+        area: ANARCHY.area[area],
         count: targets.length,
         max: maxTargets
       });
@@ -84,10 +85,10 @@ export class ErrorManager {
 
   static checkActorDefenseAction(actorAction, actor, defense) {
     if (!actorAction) {
-      const error = game.i18n.format(ANARCHY.common.errors.actorDoesNotHaveDefense, {
+      const error = formatString(ANARCHY.common.errors.actorDoesNotHaveDefense, {
         actor: actor.name,
-        defense: game.i18n.localize(defense.labelkey),
-        actorType: game.i18n.localize(ANARCHY.actorType[actor.type])
+        defense: defense.labelkey,
+        actorType: ANARCHY.actorType[actor.type]
       });
       ui.notifications.error(error);
       throw error;

@@ -2,6 +2,7 @@ import { ANARCHY } from "./config.js";
 import { ErrorManager } from "./error-manager.js";
 import { Misc } from "./misc.js";
 import { RemoteCall } from "./remotecall.js";
+import { formatString } from "./strings.js";
 
 const BLIND_MESSAGE_TO_GM = 'Users.blindMessageToGM';
 
@@ -21,7 +22,7 @@ export class AnarchyUsers {
         user: message.user,
         whisper: ChatMessage.getWhisperRecipients('GM'),
         blind: true,
-        content: game.i18n.format(ANARCHY.chat.blindMessageToGM, {
+        content: formatString(ANARCHY.chat.blindMessageToGM, {
           user: game.user.name,
           message: message.content
         })
