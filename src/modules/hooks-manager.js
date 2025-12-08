@@ -70,8 +70,8 @@ export class HooksManager {
     });
     game.settings.register(SYSTEM_NAME, ANARCHY_HOOKS.ANARCHY_HACK, {
       scope: "world",
-      name: game.i18n.localize(ANARCHY.settings.anarchyHack.name),
-      hint: game.i18n.localize(ANARCHY.settings.anarchyHack.hint),
+      name: ANARCHY.settings.anarchyHack.name,
+      hint: ANARCHY.settings.anarchyHack.hint,
       config: true,
       default: SHADOWRUN_ANARCHY_NO_HACK.id,
       choices: this.hackNames,

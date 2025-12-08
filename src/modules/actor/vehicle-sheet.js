@@ -49,11 +49,11 @@ export class VehicleSheet extends AnarchyActorSheet {
   async selectPilotFromActor() {
     const candidates = game.actors.filter(actor => actor.canPilotVehicle());
     if (candidates.length === 0) {
-      ui.notifications.warn(game.i18n.localize(ANARCHY.actor.vehicle.pilot.errors.noActors));
+      ui.notifications.warn(ANARCHY.actor.vehicle.pilot.errors.noActors);
       return;
     }
 
-    const title = game.i18n.localize(ANARCHY.actor.vehicle.pilot.selectActor);
+    const title = ANARCHY.actor.vehicle.pilot.selectActor;
     await SelectActor.selectActor(title, candidates,
       async actor => await this.actor.update({ 'system.pilot.uuid': actor.uuid }));
   }
@@ -61,7 +61,7 @@ export class VehicleSheet extends AnarchyActorSheet {
   async selectPilotFromToken() {
     const selectedToken = canvas?.tokens?.controlled?.find(token => token.actor?.canPilotVehicle());
     if (!selectedToken) {
-      ui.notifications.warn(game.i18n.localize(ANARCHY.actor.vehicle.pilot.errors.noTokens));
+      ui.notifications.warn(ANARCHY.actor.vehicle.pilot.errors.noTokens);
       return;
     }
 

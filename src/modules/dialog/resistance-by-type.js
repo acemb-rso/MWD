@@ -61,7 +61,7 @@ export class ResistanceByTypeDialog extends HandlebarsApplicationMixin(Applicati
         labelkey: dt.labelkey,
         value: typedValue,
         source,
-        sourceLabel: game.i18n.localize(ANARCHY.actor.monitors.resistanceSources?.[source] ?? source),
+        sourceLabel: ANARCHY.actor.monitors.resistanceSources?.[source] ?? source,
         bonusTotal: resistanceBonus + typeBonus,
         total: value + resistanceBonus + typeBonus,
       };
@@ -70,7 +70,7 @@ export class ResistanceByTypeDialog extends HandlebarsApplicationMixin(Applicati
     return {
       actor: this.actor,
       monitor: this.monitor,
-      monitorLabel: game.i18n.localize(ANARCHY.actor.monitors[this.monitor] ?? this.monitor),
+      monitorLabel: ANARCHY.actor.monitors[this.monitor] ?? this.monitor,
       resistance,
       resistanceBonus,
       resistanceBonusByType,

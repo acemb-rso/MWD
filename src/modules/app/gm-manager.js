@@ -2,6 +2,7 @@ import { HandleDragApplication } from "./handle-drag.js";
 import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME } from "../constants.js";
 import { GMDifficulty } from "./gm-difficulty.js";
+import { formatString } from "../strings.js";
 
 const { renderTemplate } = foundry.applications.handlebars;
 const GM_MANAGER = "gm-manager";
@@ -19,7 +20,7 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       id: GM_MANAGER,
       window: {
-        title: game.i18n.localize(ANARCHY.gmManager.title),
+        title: ANARCHY.gmManager.title,
         popOut: false,
         resizable: false
       },
@@ -55,8 +56,8 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
     Hooks.on("renderChatLog", async (app, html, data) => {
       const templatePath = "systems/mwd/templates/app/chat-tools.hbs";
       const templateData = {
-        title: game.i18n.localize("ANARCHY.gmManager.title"),
-        rollDice: game.i18n.localize("ANARCHY.chat_actions.rollDice.title"),
+        title: "ANARCHY.gmManager.title",
+        rollDice: "ANARCHY.chat_actions.rollDice.title",
         isGM: game.user.isGM,
       };
       const templateHTML = await renderTemplate(templatePath, templateData);
@@ -68,18 +69,18 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
       buttonDICE.on("click", event => {
         event.preventDefault();
         new Dialog({
-          title: game.i18n.localize("ANARCHY.chat_actions.rollDice.title"),
+          title: ANARCHY.chat_actions.rollDice.title,
           content: "<div style=\"display:flex;margin:4px 0 8px 0;align-items:center;gap:8px\">" +
-            game.i18n.localize("ANARCHY.chat_actions.rollDice.instruction") +
+            ANARCHY.chat_actions.rollDice.instruction +
             '<input class="roll-dice-value" name="macro-roll-count-dice" type="number" value="3" /></div>',
           buttons: {
-            cancel: { label: game.i18n.localize("ANARCHY.common.cancel"), icon: '<i class="fas fa-times"></i>' },
+            cancel: { label: ANARCHY.common.cancel, icon: '<i class="fas fa-times"></i>' },
             submit: {
-              label: game.i18n.localize("ANARCHY.common.roll.button"), icon: '<i class="fas fa-dice"></i>',
+              label: ANARCHY.common.roll.button, icon: '<i class="fas fa-dice"></i>',
               callback: async (html) => {
                 const count = $(html).find('input[name="macro-roll-count-dice"]').val();
                 if (!count || isNaN(count) || count <= 0) {
-                  ui.notifications.warn(game.i18n.localize("ANARCHY.chat_actions.rollDice.error"));
+                  ui.notifications.warn(ANARCHY.chat_actions.rollDice.error);
                   return;
                 }
 
@@ -89,7 +90,7 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
                 const results = roll.terms[0].results;
                 const ones = results.filter(it => it.result == 1).length;
 
-                const flavor = game.i18n.format("ANARCHY.chat_actions.rollDice.result", {
+                const flavor = formatString(ANARCHY.chat_actions.rollDice.result, {
                   count: count,
                   success: roll.total,
                   ones: ones

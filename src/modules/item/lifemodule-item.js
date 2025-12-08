@@ -4,8 +4,8 @@ import { AnarchyBaseItem } from "./anarchy-base-item.js";
 export class LifeModuleItem extends AnarchyBaseItem {
 
   constructor(docData, context = {}) {
-    const lifeModuleName = game.i18n.localize('ANARCHY.itemType.singular.lifeModule');
-    if (!docData.name || docData.name === game.i18n.localize('DOCUMENT.Item')) {
+    const lifeModuleName = 'ANARCHY.itemType.singular.lifeModule';
+    if (!docData.name || docData.name === 'DOCUMENT.Item') {
       docData.name = lifeModuleName;
     }
 

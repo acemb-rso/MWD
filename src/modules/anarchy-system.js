@@ -140,22 +140,22 @@ export class AnarchySystem {
     Actors.unregisterSheet('core', foundry.appv1.sheets.ActorSheet);
     Actors.unregisterSheet(SYSTEM_NAME, CharacterActorSheet);
     Actors.registerSheet(SYSTEM_NAME, CharacterNPCSheet, {
-      label: game.i18n.localize(ANARCHY.actor.characterNPCSheet),
+      label: ANARCHY.actor.characterNPCSheet,
       makeDefault: true,
       types: ['npc']
     });
     Actors.registerSheet(SYSTEM_NAME, CharacterActorSheet, {
-      label: game.i18n.localize(ANARCHY.actor.characterSheet),
+      label: ANARCHY.actor.characterSheet,
       makeDefault: true,
       types: ['character']
     });
     Actors.registerSheet(SYSTEM_NAME, VehicleSheet, {
-      label: game.i18n.localize(ANARCHY.actor.vehicleSheet),
+      label: ANARCHY.actor.vehicleSheet,
       makeDefault: true,
       types: ['vehicle']
     });
     Actors.registerSheet(SYSTEM_NAME, BattlemechSheet, {
-      label: game.i18n.localize(ANARCHY.actor.battlemechSheet),
+      label: ANARCHY.actor.battlemechSheet,
       makeDefault: true,
       types: ['battlemech']
     });

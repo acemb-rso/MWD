@@ -84,7 +84,7 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
    * @override
    */
   get title() {
-    const typeLabel = game.i18n.localize(ANARCHY.itemType.singular[this.item.type]);
+    const typeLabel = ANARCHY.itemType.singular[this.item.type];
     return `${typeLabel}: ${this.item.name}`;
   }
 
