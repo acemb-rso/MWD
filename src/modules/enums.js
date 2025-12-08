@@ -76,7 +76,7 @@ export class Enums {
       monitors: Enums.hbsMonitors,
       assetModuleCategories: Enums.hbsAssetModuleCategories,
       skills: game.system.anarchy.skills.getSkills({ withKnowledge })
-        .map(it => { return { value: it.code, label: game.i18n.localize(it.labelkey), labelkey: it.labelkey }; }),
+        .map(it => { return { value: it.code, label: it.labelkey, labelkey: it.labelkey }; }),
       areas: Enums.hbsAreas,
       ranges: Enums.hbsRanges,
       lifeModuleTypes: Enums.hbsLifeModuleTypes,
@@ -121,9 +121,9 @@ export class Enums {
 
   static localizeAttribute(attribute) {
     if (!ANARCHY.attributes[attribute]) {
-      return game.i18n.localize(ANARCHY.attributes['noAttribute']);
+      return ANARCHY.attributes['noAttribute'];
     }
-    return game.i18n.localize(ANARCHY.attributes[attribute]);
+    return ANARCHY.attributes[attribute];
   }
 
   static getFromList(list, key, keyName = 'value', valueName = 'labelkey') {

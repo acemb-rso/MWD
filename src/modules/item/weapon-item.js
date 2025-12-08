@@ -10,6 +10,7 @@ import { AttributeActions } from "../attribute-actions.js";
 import { ErrorManager } from "../error-manager.js";
 import { Misc } from "../misc.js";
 import { SkillItem } from "./skill-item.js";
+import { formatString } from "../strings.js";
 
 const AREA_TARGETS = {
   none: { targets: 1, adjust: [0] },
@@ -40,7 +41,7 @@ const WEAPON_RANGE_PARAMETER = {
       min: Math.min(...rangeValues),
       max: Math.max(...rangeValues),
       choices: ranges,
-      selected: game.i18n.localize(ranges[0].labelkey)
+      selected: ranges[0].labelkey
     }
   }
 }
@@ -153,7 +154,7 @@ export class WeaponItem extends AnarchyBaseItem {
       }
       else {
         console.warn('Weapon not attached to an actor');
-        return game.i18n.localize(ANARCHY.item.personalWeapon.weaponWithoutActor);
+        return ANARCHY.item.personalWeapon.weaponWithoutActor;
       }
     }
     return damage;
@@ -170,7 +171,7 @@ export class WeaponItem extends AnarchyBaseItem {
   static damageCode(monitor, damage, damageAttribute) {
     let code = '';
     if (damageAttribute && ANARCHY.attributes[damageAttribute]) {
-      code += game.i18n.localize(ANARCHY.attributes[damageAttribute]).substring(0, 3).toUpperCase() + '/2 + ';
+      code += ANARCHY.attributes[damageAttribute].substring(0, 3).toUpperCase() + '/2 + ';
     }
     code += String(damage);
     return code;
@@ -186,7 +187,7 @@ export class WeaponItem extends AnarchyBaseItem {
   getDamageTypeLabel() {
     const labelKey = ANARCHY.mwd.weaponDamageType[this.system.damageType]
       ?? ANARCHY.mwd.personalDamageType[this.system.damageType];
-    return labelKey ? game.i18n.localize(labelKey) : this.system.damageType;
+    return labelKey ? labelKey : this.system.damageType;
   }
 
   getRanges() {
@@ -237,14 +238,16 @@ export class WeaponItem extends AnarchyBaseItem {
       .map(token => token.name)
 
     if (invalidTargets.length > 0) {
-      ui.notifications.info(game.i18n.format(ANARCHY.common.errors.ignoredTargets, {
+      const content = formatString(ANARCHY.common.errors.ignoredTargets, {
         targets: invalidTargets.reduce(Misc.joiner(', ')),
-      }));
+      });
+      ui.notifications.info(content);
     }
     if (validTargets.length == 0) {
-      ui.notifications.info(game.i18n.format(ANARCHY.common.errors.noTargetSelected, {
-        weapon: this.name ?? game.i18n.localize(ANARCHY.itemType.singular.weapon)
-      }));
+      const content = formatString(ANARCHY.common.errors.noTargetSelected, {
+        weapon: this.name ?? ANARCHY.itemType.singular.weapon
+      });
+      ui.notifications.info(content);
     }
     else {
       this.checkWeaponTargetsCount(validTargets)

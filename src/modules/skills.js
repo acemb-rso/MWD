@@ -81,8 +81,8 @@ export class Skills {
     const skillSetChoices = Object.fromEntries(Object.values(this.skillSets).map(e => [e.id, e.name]));
     game.settings.register(SYSTEM_NAME, SELECTED_SKILL_LIST, {
       scope: "world",
-      name: game.i18n.localize(ANARCHY.settings.skillSet.name),
-      hint: game.i18n.localize(ANARCHY.settings.skillSet.hint),
+      name: ANARCHY.settings.skillSet.name,
+      hint: ANARCHY.settings.skillSet.hint,
       config: true,
       default: DEFAULT_SKILLSET_ANARCHY,
       choices: skillSetChoices,

@@ -29,8 +29,8 @@ export class Styles {
 
     game.settings.register(SYSTEM_NAME, DEFAULT_CSS_CLASS, {
       scope: "world",
-      name: game.i18n.localize(ANARCHY.settings.defaultCssClass.name),
-      hint: game.i18n.localize(ANARCHY.settings.defaultCssClass.hint),
+      name: ANARCHY.settings.defaultCssClass.name,
+      hint: ANARCHY.settings.defaultCssClass.hint,
       config: true,
       default: CSS_DEFAULT,
       choices: this.availableStyles,

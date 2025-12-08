@@ -1,6 +1,6 @@
 <div class="flexcol anarchy-monitor">
   <label class="monitor-label">
-    {{localize ANARCHY.actor.counters.social.credibility}}
+    {{ANARCHY.actor.counters.social.credibility}}
     <input class="info-value"
       type="number" data-dtype="Number" min="0" max="10"
       name="system.counters.social.credibility.max"
@@ -11,7 +11,7 @@
   </label>
   {{> "systems/mwd/templates/common/checkbar.hbs"
     code='credibility'
-    labelkey=ANARCHY.actor.counters.social.credibility
+    label=ANARCHY.actor.counters.social.credibility
     value=system.counters.social.credibility.value
     max=system.counters.social.credibility.max
     rowlength=5

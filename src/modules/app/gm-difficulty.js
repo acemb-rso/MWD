@@ -1,5 +1,6 @@
 import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME } from "../constants.js";
+import { formatString } from "../strings.js";
 
 const { renderTemplate } = foundry.applications.handlebars;
 
@@ -15,10 +16,10 @@ export class GMDifficulty {
   onReady() {
     game.settings.register(SYSTEM_NAME, GM_DIFFICULTY_POOLS, {
       scope: "world",
-      name: game.i18n.localize(ANARCHY.settings.gmDifficulty.name),
-      hint: game.i18n.localize(ANARCHY.settings.gmDifficulty.hint),
+      name: ANARCHY.settings.gmDifficulty.name,
+      hint: ANARCHY.settings.gmDifficulty.hint,
       config: true,
-      default: game.i18n.localize(ANARCHY.settings.gmDifficulty.default),
+      default: ANARCHY.settings.gmDifficulty.default,
       type: String
     });
     this.loadDifficultySettings();
@@ -69,7 +70,7 @@ export class GMDifficulty {
     const difficulty = $(event.currentTarget).attr('data-difficulty');
     const roll = new Roll(`${pool}d6cs>=5`);
     await roll.evaluate({ async: true });
-    const flavor = game.i18n.format(ANARCHY.settings.gmDifficulty.chatMessage, {
+    const flavor = formatString(ANARCHY.settings.gmDifficulty.chatMessage, {
       pool: pool,
       difficulty: difficulty ?? pool,
       success: roll.total

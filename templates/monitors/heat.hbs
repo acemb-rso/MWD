@@ -1,5 +1,5 @@
 <div class="flexcol anarchy-monitor">
-  <label class="monitor-label">{{localize ANARCHY.actor.monitors.heat}}</label>
+  <label class="monitor-label">{{ANARCHY.actor.monitors.heat}}</label>
   {{> "systems/mwd/templates/common/checkbar.hbs"
     code='heat'
     value=system.monitors.heat.value
@@ -8,7 +8,7 @@
     adjust=true
   }}
   <label class="resitance-label">
-    {{localize ANARCHY.actor.monitors.resistance}}:
+    {{ANARCHY.actor.monitors.resistance}}:
     {{system.monitors.heat.resistanceBonus}}
   </label>
 </div>

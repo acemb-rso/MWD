@@ -2,17 +2,17 @@
   <header class="sheet-header">
     <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}"/>
     {{> 'systems/mwd/templates/item/parts/itemname.hbs'
-      labelkey='ANARCHY.itemType.singular.weapon'
+      label=ANARCHY.itemType.singular.weapon
       type="weapon"
     }}
   </header>
 
   <nav class="sheet-tabs tabs" data-group="primary">
     <div class="sheet-tab" data-tab="main">
-      <a>{{localize ANARCHY.item.tabs.main}}</a>
+      <a>{{ANARCHY.item.tabs.main}}</a>
     </div>
     <div class="sheet-tab" data-tab="modifiers">
-      <a>{{localize ANARCHY.item.tabs.modifiers}}</a>
+      <a>{{ANARCHY.item.tabs.modifiers}}</a>
     </div>
     <div class="sheet-tab-fill"></div>
   </nav>
@@ -20,7 +20,7 @@
   <section class="sheet-body">
     <div class="tab section-group" data-group="primary" data-tab="main">
       <div class="form-group">
-        <label for="system.skill">{{localize 'ANARCHY.item.weapon.skill'}} </label>
+        <label for="system.skill">{{ANARCHY.item.weapon.skill}} </label>
         <select class="select-weapon-skill" name="system.skill" data-dtype="String">
             {{#select system.skill}}
             {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
@@ -29,7 +29,7 @@
       </div>
       <div class="form-group">
         <label for="system.damage">
-          {{localize 'ANARCHY.item.weapon.damage'}}
+          {{ANARCHY.item.weapon.damage}}
         </label>
         <div class="flexrow flex-wrap">
           <input class="type-numeric" type="number" data-dtype="Number"
@@ -61,12 +61,12 @@
           </select>
 
           <input class="item-field-value" name="system.noArmor" type="checkbox" {{checked system.noArmor}}>
-            <label>{{localize 'ANARCHY.item.weapon.noArmor'}}</label>
+            <label>{{ANARCHY.item.weapon.noArmor}}</label>
           </input>
         </div>
       </div>
       <div class="form-group">
-        <label for="system.area" >{{localize 'ANARCHY.item.weapon.area'}} </label>
+        <label for="system.area" >{{ANARCHY.item.weapon.area}} </label>
         <select name="system.area" data-dtype="String">
           {{#select system.area}}
           {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.areas}}
@@ -74,14 +74,14 @@
         </select>
       </div>
       <div class="form-group">
-          <label for="system.defense" >{{localize 'ANARCHY.item.weapon.defense'}} </label>
+          <label for="system.defense" >{{ANARCHY.item.weapon.defense}} </label>
           <select name="system.defense">
             {{selectOptions ENUMS.defenses selected=(fixedDefenseCode system.defense)
-            nameAttr="code" labelAttr="labelkey" localize=true blank=''}}
+            nameAttr="code" labelAttr="label" localize=false blank=''}}
           </select>
       </div>
       <div class="form-group">
-          <label for="system.range.max" >{{localize 'ANARCHY.item.weapon.range.max'}} </label>
+          <label for="system.range.max" >{{ANARCHY.item.weapon.range.max}} </label>
           <select name="system.range.max">
             {{#select system.range.max}}
             {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.ranges}}
@@ -89,14 +89,14 @@
           </select>
       </div>
       <div class="form-group">
-          <label for="system.range.short" >{{localize 'ANARCHY.range.short'}} </label>
+          <label for="system.range.short" >{{ANARCHY.range.short}} </label>
           <input class="type-numeric" type="number" data-dtype="Number"
             name="system.range.short" value="{{numberFormat system.range.short decimals=0 sign=false}}"
           />
       </div>
       {{#unless (eq system.range.max "short")}}
         <div class="form-group">
-            <label for="system.range.medium" >{{localize 'ANARCHY.range.medium'}} </label>
+            <label for="system.range.medium" >{{ANARCHY.range.medium}} </label>
             <input class="type-numeric" type="number" data-dtype="Number"
               name="system.range.medium" value="{{numberFormat system.range.medium decimals=0 sign=false}}"
             />
@@ -105,7 +105,7 @@
 
       {{#if (eq system.range.max "long")}}
       <div class="form-group">
-          <label for="system.range.long" >{{localize 'ANARCHY.range.long'}} </label>
+          <label for="system.range.long" >{{ANARCHY.range.long}} </label>
           <input class="type-numeric" type="number" data-dtype="Number"
             name="system.range.long" value="{{numberFormat system.range.long decimals=0 sign=false}}"
           />

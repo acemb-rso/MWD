@@ -135,9 +135,9 @@ export class VehicleActor extends AnarchyBaseActor {
     }
     else {
       ui.notifications.warn(
-        game.i18n.localize(ANARCHY.common.errors.noValidPilotForVehicle, {
+        ANARCHY.common.errors.noValidPilotForVehicle, {
           vehicle: this.name
-        }))
+        })
     }
   }
   async _migrateHandlingToAttribute(actor) {

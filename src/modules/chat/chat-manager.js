@@ -71,7 +71,7 @@ export class ChatManager {
       ChatManager.removeFamily(chatMsg.id);
     }
     else {
-      ui.notifications.info(game.i18n.localize(ANARCHY.common.errors.cannotUseEdgeAnymore));
+      ui.notifications.info(ANARCHY.common.errors.cannotUseEdgeAnymore);
     }
   }
 

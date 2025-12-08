@@ -8,6 +8,7 @@ import { Misc } from "../misc.js";
 import { Modifiers } from "../modifiers/modifiers.js";
 import { RollDialog } from "../roll/roll-dialog.js";
 import { AnarchyUsers } from "../users.js";
+import { formatString } from "../strings.js";
 import { ActorDamageManager } from "./actor-damage.js";
 
 export class AnarchyBaseActor extends Actor {
@@ -114,8 +115,8 @@ export class AnarchyBaseActor extends Actor {
       return []
     }
     return buttons.sort((a, b) => {
-      if (game.i18n.localize(a.labelkey) > game.i18n.localize(b.labelkey)) return 1;
-      if (game.i18n.localize(a.labelkey) < game.i18n.localize(b.labelkey)) return -1;
+      if (a.labelkey > b.labelkey) return 1;
+      if (a.labelkey < b.labelkey) return -1;
       return 0;
     })
   }
@@ -438,9 +439,9 @@ export class AnarchyBaseActor extends Actor {
       return;
     }
     if (!this.canUseEdge()) {
-      const message = game.system.anarchy.hacks.i18n.localize(ANARCHY.common.errors.noEdgeForActor, {
+      const message = formatString(ANARCHY.common.errors.noEdgeForActor, {
         actor: this.name,
-        actorType: game.system.anarchy.hacks.i18n.localize(ANARCHY.actorType[this.type])
+        actorType: ANARCHY.actorType[this.type]
       });
       ui.notifications.warn(message)
       throw ANARCHY.common.errors.noEdgeForActor + message;

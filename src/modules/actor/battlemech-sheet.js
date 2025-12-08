@@ -65,7 +65,7 @@ export class BattlemechSheet extends VehicleSheet {
       const weaponGroups = foundry.utils.deepClone(this.actor.system.mwd.weaponGroups ?? []);
       weaponGroups.push({
         id: foundry.utils.randomID(),
-        name: game.i18n.localize(ANARCHY.mwd.loadout.newGroup),
+        name: ANARCHY.mwd.loadout.newGroup,
         weaponIds: [],
         isPrimary: weaponGroups.length === 0,
       });

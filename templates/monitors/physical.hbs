@@ -1,6 +1,6 @@
 <div class="flexcol anarchy-monitor">
   <label class="monitor-label">
-    {{localize ANARCHY.actor.monitors.physical}}
+    {{ANARCHY.actor.monitors.physical}}
   </label>
   {{> "systems/mwd/templates/common/checkbar.hbs"
     code='physical'
@@ -10,7 +10,7 @@
     adjust=true
   }}
   <label class="resitance-label">
-    {{localize ANARCHY.actor.monitors.resistance}}:
+    {{ANARCHY.actor.monitors.resistance}}:
     {{system.monitors.physical.resistanceBonus}}
   </label>
 </div>
