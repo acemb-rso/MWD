@@ -21,6 +21,9 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     }
   };
 
+  // ApplicationV2 tabs configuration - override in subclasses if needed
+  static TABS = {};
+
   /** @override */
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
@@ -57,9 +60,6 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       position: {
         width: 760,
         height: 760
-      },
-      window: {
-        resizable: true
       }
     });
   }
@@ -612,38 +612,5 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       const newOwnedActorIds = ownedActorIds.filter(id => id != owned.id);
       await owner.update({ 'system.ownedActorIds': newOwnedActorIds });
     }
-  }
-
-  /**
-   * Preload templates for the actor sheet
-   * @override
-   */
-  static async _preloadTemplates() {
-    const paths = this._getTemplatePaths();
-    // Filter and log any invalid paths
-    const validPaths = paths.filter(path => {
-      if (!path || typeof path !== 'string' || path.trim() === '') {
-        console.warn(`${LOG_HEAD}Invalid template path filtered:`, path);
-        return false;
-      }
-      return true;
-    });
-    
-    console.debug(`${LOG_HEAD}templates-preload`, { paths: validPaths });
-    
-    if (validPaths.length > 0) {
-      return loadTemplates(validPaths);
-    }
-  }
-
-  /**
-   * Get all template paths that should be preloaded
-   * @returns {string[]}
-   * @private
-   */
-  static _getTemplatePaths() {
-    return [
-      // Add any partial templates that should be preloaded here
-    ];
   }
 }
