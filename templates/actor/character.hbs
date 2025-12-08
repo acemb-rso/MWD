@@ -8,7 +8,7 @@
             <img class="anarchy-img profile-img" src="{{actor.img}}" data-edit="img" data-tooltip="{{actor.name}}" />
           </div>
           <div class="header-fields">
-            <label for="name">{{localize 'ANARCHY.actor.name'}}</label>
+            <label for="name">{{'ANARCHY.actor.name'}}</label>
             <input id="name" type="text" name="name" value="{{actor.name}}" {{#if options.viewMode}}disabled{{/if}} />
           </div>
           {{> "systems/mwd/templates/common/view-mode.hbs"}}
@@ -55,29 +55,29 @@
         <div class="monitor-column">
           <h3>Edge Pools</h3>
           <div class="edge-pool-group">
-            <h4>{{localize ANARCHY.actor.counters.edgePools.physical}}</h4>
+            <h4>{{ANARCHY.actor.counters.edgePools.physical}}</h4>
             <div class="edge-pool-row">
-              <label for="system.counters.edgePools.grit.value">{{localize ANARCHY.actor.counters.edgePools.grit}}</label>
+              <label for="system.counters.edgePools.grit.value">{{ ANARCHY.actor.counters.edgePools.grit}}</label>
               <input id="system.counters.edgePools.grit.value" type="number" name="system.counters.edgePools.grit.value" value="{{system.counters.edgePools.grit.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
-              <label for="system.counters.edgePools.chaos.value">{{localize ANARCHY.actor.counters.edgePools.chaos}}</label>
+              <label for="system.counters.edgePools.chaos.value">{{ ANARCHY.actor.counters.edgePools.chaos}}</label>
               <input id="system.counters.edgePools.chaos.value" type="number" name="system.counters.edgePools.chaos.value" value="{{system.counters.edgePools.chaos.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
             </div>
           </div>
           <div class="edge-pool-group">
-            <h4>{{localize ANARCHY.actor.counters.edgePools.mental}}</h4>
+            <h4>{{ ANARCHY.actor.counters.edgePools.mental}}</h4>
             <div class="edge-pool-row">
-              <label for="system.counters.edgePools.insight.value">{{localize ANARCHY.actor.counters.edgePools.insight}}</label>
+              <label for="system.counters.edgePools.insight.value">{{ ANARCHY.actor.counters.edgePools.insight}}</label>
               <input id="system.counters.edgePools.insight.value" type="number" name="system.counters.edgePools.insight.value" value="{{system.counters.edgePools.insight.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
-              <label for="system.counters.edgePools.rumor.value">{{localize ANARCHY.actor.counters.edgePools.rumor}}</label>
+              <label for="system.counters.edgePools.rumor.value">{{ ANARCHY.actor.counters.edgePools.rumor}}</label>
               <input id="system.counters.edgePools.rumor.value" type="number" name="system.counters.edgePools.rumor.value" value="{{system.counters.edgePools.rumor.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
             </div>
           </div>
           <div class="edge-pool-group">
-            <h4>{{localize ANARCHY.actor.counters.edgePools.social}}</h4>
+            <h4>{{ ANARCHY.actor.counters.edgePools.social}}</h4>
             <div class="edge-pool-row">
-              <label for="system.counters.edgePools.legend.value">{{localize ANARCHY.actor.counters.edgePools.legend}}</label>
+              <label for="system.counters.edgePools.legend.value">{{ ANARCHY.actor.counters.edgePools.legend}}</label>
               <input id="system.counters.edgePools.legend.value" type="number" name="system.counters.edgePools.legend.value" value="{{system.counters.edgePools.legend.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
-              <label for="system.counters.edgePools.credibility.value">{{localize ANARCHY.actor.counters.edgePools.credibility}}</label>
+              <label for="system.counters.edgePools.credibility.value">{{ ANARCHY.actor.counters.edgePools.credibility}}</label>
               <input id="system.counters.edgePools.credibility.value" type="number" name="system.counters.edgePools.credibility.value" value="{{system.counters.edgePools.credibility.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
             </div>
           </div>
