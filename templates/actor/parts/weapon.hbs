@@ -19,7 +19,7 @@
     }}
   </div>
   <div class="weapon-column weapon-stat">
-    {{localize (concat 'ANARCHY.area.' (either system.area 'none'))}}
+    {{lookup ANARCHY.area (either system.area 'none')}}
   </div>
   <div class="weapon-column weapon-stat">
     {{either system.range.short 'OK'}}

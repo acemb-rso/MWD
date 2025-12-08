@@ -8,6 +8,6 @@
     </span>
   {{/each}}
   <label>
-    {{localize (concat 'ANARCHY.common.roll.risk.' @root.roll.riskOutcome)}}
+    {{lookup ANARCHY.common.roll.risk @root.roll.riskOutcome}}
   </label>
 </div>
