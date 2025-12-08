@@ -1,10 +1,10 @@
 <div class="flexcol anarchy-monitor">
   <label class="info-label">
-    {{(concat 'ANARCHY.actor.counters.edge')}}
+    {{'ANARCHY.actor.counters.edge'}}
   </label>
   {{> "systems/mwd/templates/common/checkbar.hbs"
     code='edge'
-    labelkey='ANARCHY.actor.counters.edge'
+    label='ANARCHY.actor.counters.edge'
     value=system.counters.edge.value
     max=(actorAttribute 'edge' @root.actor)
     rowlength=6
