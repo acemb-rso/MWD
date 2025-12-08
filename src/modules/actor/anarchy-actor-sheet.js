@@ -613,4 +613,33 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       await owner.update({ 'system.ownedActorIds': newOwnedActorIds });
     }
   }
+
+  /**
+   * Preload templates for the actor sheet.
+   * Note: The system's HandlebarsManager already loads all partial templates globally,
+   * so this method is primarily for sheet-specific template parts if needed.
+   * @override
+   */
+  static async _preloadTemplates() {
+    // The HandlebarsManager already loads all partials system-wide.
+    // Individual sheets can add their own specific templates here if needed.
+    const paths = this._getSheetSpecificTemplates();
+    
+    if (paths.length > 0) {
+      console.debug(`${LOG_HEAD}Preloading sheet-specific templates:`, paths);
+      return loadTemplates(paths);
+    }
+  }
+
+  /**
+   * Get sheet-specific template paths to preload.
+   * Override in subclasses to add templates specific to that sheet.
+   * @returns {string[]}
+   * @protected
+   */
+  static _getSheetSpecificTemplates() {
+    // Base class has no sheet-specific templates
+    // Child classes can override to add their own
+    return [];
+  }
 }
