@@ -40,7 +40,16 @@ export class Enums {
     Enums.hbsMonitors = Enums.mapObjetToKeyValue(ANARCHY.monitor);
     Enums.hbsMonitorLetters = Enums.mapObjetToKeyValue(ANARCHY.monitorLetter);
     Enums.hbsAssetModuleCategories = Enums.mapObjetToKeyValue(ANARCHY.assetModuleCategory);
-    Enums.hbsLifeModuleTypes = Enums.mapObjetToKeyValue(ANARCHY.lifeModule.type);
+
+    // New (safe if life modules aren’t configured)
+    const lifeModuleTypeConfig = ANARCHY.lifeModule?.type;
+    if (lifeModuleTypeConfig) {
+      Enums.hbsLifeModuleTypes = Enums.mapObjetToKeyValue(lifeModuleTypeConfig);
+    } else {
+      Enums.hbsLifeModuleTypes = [];
+    console.warn("MWD | ANARCHY.lifeModule.type is missing; life module enums disabled.");
+    }
+
     Enums.hbsAreas = Enums.mapObjetToKeyValue(ANARCHY.area);
     Enums.hbsRanges = Enums.mapObjetToKeyValue(ANARCHY.range);
     Enums.hbsVehicleCategories = Enums.mapObjetToKeyValue(ANARCHY.vehicleCategory);
