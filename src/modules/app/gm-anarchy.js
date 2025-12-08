@@ -3,6 +3,7 @@ import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
 import { ErrorManager } from "../error-manager.js";
 import { RemoteCall } from "../remotecall.js";
+import { formatString } from "../strings.js";
 
 const { renderTemplate } = foundry.applications.handlebars;
 
@@ -48,7 +49,7 @@ export class GMAnarchy {
       ChatMessage.create({
         user: game.user,
         whisper: ChatMessage.getWhisperRecipients('GM'),
-        content: game.i18n.format(ANARCHY.gmManager.gmReceivedAnarchy,
+        content: formatString(ANARCHY.gmManager.gmReceivedAnarchy,
           {
             anarchy: count,
             actor: actor.name

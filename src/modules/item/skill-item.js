@@ -31,7 +31,7 @@ export class SkillItem extends AnarchyBaseItem {
       }
     }
     if (skill.code != 'knowledge') {
-      updates.name = game.i18n.localize(skill.labelkey)
+      updates.name = skill.labelkey
     }
     return updates
   }

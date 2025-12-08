@@ -27,7 +27,7 @@ export class AnarchyRoll {
 
   static onReady() {
     Object.entries(ANARCHY.common.roll.rollTheme).forEach(entry => {
-      ROLL_THEME[entry[0]] = game.i18n.localize(entry[1]);
+      ROLL_THEME[entry[0]] = entry[1];
     });
   }
 

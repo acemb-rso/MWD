@@ -1,5 +1,6 @@
 import { ANARCHY } from "../config.js";
 import { TEMPLATE } from "../constants.js";
+import { formatString } from "../strings.js";
 
 const MOUNT_POINTS = {
   light: 4,
@@ -33,13 +34,13 @@ export class BattlemechLoadout {
     const warnings = [];
 
     if (primaryGroups.length > 1) {
-      errors.push(game.i18n.localize(ANARCHY.mwd.loadout.errors.multiplePrimary));
+      errors.push(ANARCHY.mwd.loadout.errors.multiplePrimary);
     }
 
     const maxGroupCount = primaryGroup ? mountPointTotal - 1 : mountPointTotal;
     const usedMountPoints = groups.length + (primaryGroup ? 1 : 0);
     if (groups.length > maxGroupCount) {
-      errors.push(game.i18n.format(ANARCHY.mwd.loadout.errors.mountPointsExceeded, {
+      errors.push(formatString(ANARCHY.mwd.loadout.errors.mountPointsExceeded, {
         used: usedMountPoints,
         total: mountPointTotal,
       }));
@@ -55,13 +56,13 @@ export class BattlemechLoadout {
       for (const weaponId of group.weaponIds ?? []) {
         const weapon = rangedById.get(weaponId);
         if (!weapon) {
-          warnings.push(game.i18n.format(ANARCHY.mwd.loadout.warnings.weaponMissing, { weapon: weaponId }));
+          warnings.push(formatString(ANARCHY.mwd.loadout.warnings.weaponMissing, { weapon: weaponId }));
           continue;
         }
         const weaponType = weapon.system.hardpointType ?? "energy";
         const weaponSize = weapon.system.hardpointSize ?? "small";
         if (usedWeapons.has(weaponId)) {
-          errors.push(game.i18n.format(ANARCHY.mwd.loadout.errors.weaponAlreadyGrouped, { weapon: weapon.name }));
+          errors.push(formatString(ANARCHY.mwd.loadout.errors.weaponAlreadyGrouped, { weapon: weapon.name }));
           continue;
         }
         usedWeapons.add(weaponId);
@@ -78,10 +79,10 @@ export class BattlemechLoadout {
           && hp.type === weaponType
           && hp.size === weaponSize);
         if (!match) {
-          errors.push(game.i18n.format(ANARCHY.mwd.loadout.errors.hardpointUnavailable, {
+          errors.push(formatString(ANARCHY.mwd.loadout.errors.hardpointUnavailable, {
             weapon: weapon.name,
-            type: game.i18n.localize(ANARCHY.mwd.hardpointType[weaponType] ?? weaponType),
-            size: game.i18n.localize(ANARCHY.mwd.hardpointSize[weaponSize] ?? weaponSize),
+            type: ANARCHY.mwd.hardpointType[weaponType] ?? weaponType,
+            size: ANARCHY.mwd.hardpointSize[weaponSize] ?? weaponSize,
           }));
         }
         else {
@@ -92,7 +93,7 @@ export class BattlemechLoadout {
     }
 
     if (primaryGroup && (!primaryGroup.weaponIds || primaryGroup.weaponIds.length === 0)) {
-      errors.push(game.i18n.localize(ANARCHY.mwd.loadout.errors.primaryWithoutWeapon));
+      errors.push(ANARCHY.mwd.loadout.errors.primaryWithoutWeapon);
     }
 
     const meleeState = this._computeMeleeState(errors);
@@ -117,7 +118,7 @@ export class BattlemechLoadout {
   _normalizeWeaponGroups() {
     return (this.mwd.weaponGroups ?? []).map((group, index) => ({
       id: group.id ?? `group-${index + 1}`,
-      name: group.name || game.i18n.format(ANARCHY.common.newName, { type: game.i18n.localize(ANARCHY.itemType.singular.weapon) }),
+      name: group.name || formatString(ANARCHY.common.newName, { type: ANARCHY.itemType.singular.weapon }),
       weaponIds: this._asArray(group.weaponIds),
       isPrimary: group.isPrimary ?? false,
     }));
@@ -145,7 +146,7 @@ export class BattlemechLoadout {
     const limit = Number(meleeConfig.maxWeapons ?? 0);
 
     if (meleeWeapons.length > limit) {
-      errors.push(game.i18n.format(ANARCHY.mwd.loadout.errors.meleeLimitExceeded, {
+      errors.push(formatString(ANARCHY.mwd.loadout.errors.meleeLimitExceeded, {
         equipped: meleeWeapons.length,
         limit,
       }));
@@ -153,16 +154,16 @@ export class BattlemechLoadout {
 
     const allowedLocations = this._asArray(meleeConfig.allowedLocations);
     profiles.push({
-      name: meleeConfig.baseProfile?.name || game.i18n.localize(ANARCHY.mwd.melee.baseProfile),
+      name: meleeConfig.baseProfile?.name || ANARCHY.mwd.melee.baseProfile,
       damage: meleeConfig.baseProfile?.damage ?? "",
       notes: meleeConfig.baseProfile?.notes ?? "",
     });
 
     meleeWeapons.forEach(weapon => {
       if (allowedLocations.length > 0 && weapon.system.mountLocation && !allowedLocations.includes(weapon.system.mountLocation)) {
-        errors.push(game.i18n.format(ANARCHY.mwd.loadout.errors.meleeLocationRestricted, {
+        errors.push(formatString(ANARCHY.mwd.loadout.errors.meleeLocationRestricted, {
           weapon: weapon.name,
-          location: game.i18n.localize(ANARCHY.mwd.meleeLocation[weapon.system.mountLocation] ?? weapon.system.mountLocation),
+          location: ANARCHY.mwd.meleeLocation[weapon.system.mountLocation] ?? weapon.system.mountLocation,
         }));
       }
       profiles.push({
@@ -178,17 +179,17 @@ export class BattlemechLoadout {
   _validatePrimaryWeapon(weapon, weaponType, weaponSize, primarySlot, errors) {
     if (primarySlot.mode === "converted") {
       if (primarySlot.allowedWeaponIds?.length > 0 && !primarySlot.allowedWeaponIds.includes(weapon.id)) {
-        errors.push(game.i18n.format(ANARCHY.mwd.loadout.errors.primaryNotAllowedWeapon, { weapon: weapon.name }));
+        errors.push(formatString(ANARCHY.mwd.loadout.errors.primaryNotAllowedWeapon, { weapon: weapon.name }));
       }
       if (primarySlot.typeRestriction && weaponType !== primarySlot.typeRestriction) {
-        errors.push(game.i18n.format(ANARCHY.mwd.loadout.errors.primaryTypeRestriction, {
+        errors.push(formatString(ANARCHY.mwd.loadout.errors.primaryTypeRestriction, {
           weapon: weapon.name,
-          type: game.i18n.localize(ANARCHY.mwd.hardpointType[primarySlot.typeRestriction] ?? primarySlot.typeRestriction),
+          type: ANARCHY.mwd.hardpointType[primarySlot.typeRestriction] ?? primarySlot.typeRestriction,
         }));
       }
     }
     else if (weaponSize !== "large") {
-      errors.push(game.i18n.format(ANARCHY.mwd.loadout.errors.primaryNeedsLarge, { weapon: weapon.name }));
+      errors.push(formatString(ANARCHY.mwd.loadout.errors.primaryNeedsLarge, { weapon: weapon.name }));
     }
   }
 

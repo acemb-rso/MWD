@@ -1,5 +1,6 @@
 import { ANARCHY } from "../config.js";
 import { SYSTEM_DESCRIPTION, SYSTEM_NAME, THIRD_PARTY_STYLE_PATH } from "../constants.js";
+import { ANARCHY } from "../config.js";
 
 export const GLITCH_COLORSET = 'glitch';
 export const RISK_COLORSET = 'risk';
@@ -34,22 +35,22 @@ export class AnarchyDice {
     return {
       [REROLL_COLORSET]: {
         name: REROLL_COLORSET,
-        description: game.i18n.localize(ANARCHY.common.roll.rollTheme.reroll),
+        description: ANARCHY.common.roll.rollTheme.reroll,
         category: SYSTEM_DESCRIPTION,
       },
       [REMOVED_COLORSET]: {
         name: RISK_COLORSET,
-        description: game.i18n.localize(ANARCHY.common.roll.rollTheme.removed),
+        description: ANARCHY.common.roll.rollTheme.removed,
         category: SYSTEM_DESCRIPTION,
       },
       [REROLL_REMOVED_COLORSET]: {
         name: REROLL_REMOVED_COLORSET,
-        description: game.i18n.localize(ANARCHY.common.roll.rollTheme.rerollRemoved),
+        description: ANARCHY.common.roll.rollTheme.rerollRemoved,
         category: SYSTEM_DESCRIPTION,
       },
       [GLITCH_COLORSET]: {
         name: GLITCH_COLORSET,
-        description: game.i18n.localize(ANARCHY.common.roll.rollTheme.glitch),
+        description: ANARCHY.common.roll.rollTheme.glitch,
         category: SYSTEM_DESCRIPTION,
         foreground: "white",
         background: "#5c0a5c",
@@ -60,7 +61,7 @@ export class AnarchyDice {
       },
       [RISK_COLORSET]: {
         name: RISK_COLORSET,
-        description: game.i18n.localize(ANARCHY.common.roll.rollTheme.anarchyRisk),
+        description: ANARCHY.common.roll.rollTheme.anarchyRisk,
         category: SYSTEM_DESCRIPTION,
         foreground: "#faecd1",
         background: "#040101",

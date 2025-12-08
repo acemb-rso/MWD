@@ -3,6 +3,7 @@ import { ANARCHY } from "../config.js";
 import { AnarchyUsers } from "../users.js";
 import { Icons } from "../icons.js";
 import { TEMPLATE, THIRD_PARTY_STYLE_PATH } from "../constants.js";
+import { formatString } from "../strings.js";
 
 const MONITORS = ANARCHY.actor.monitors;
 const COUNTERS = ANARCHY.actor.counters;
@@ -283,12 +284,13 @@ export class Checkbars {
   }
 
   static _notifyOverflow(target, monitor, overflow, overflowMonitor) {
-    ui.notifications.warn(game.i18n.format(ANARCHY.actor.monitors.overflow, {
+    const content = formatString(ANARCHY.actor.monitors.overflow, {
       actor: target.name,
-      monitor: game.i18n.format('ANARCHY.actor.monitors.' + monitor),
+      monitor: ANARCHY.actor.monitors[monitor],
       overflow: overflow,
-      overflowMonitor: game.i18n.format('ANARCHY.actor.monitors.' + overflowMonitor),
-    }));
+      overflowMonitor: ANARCHY.actor.monitors[overflowMonitor],
+    });
+    ui.notifications.warn(content);
   }
 
   static async _manageFatigueOverflow(target, value, max) {
@@ -340,11 +342,11 @@ export class Checkbars {
   static notifyAnarchyChange(target, monitor, current, newValue) {
     AnarchyUsers.blindMessageToGM({
       from: game.user.id,
-      content: game.i18n.format(ANARCHY.gmManager.playerChangedAnarchy,
+      content: formatString(ANARCHY.gmManager.playerChangedAnarchy,
         {
           user: game.user.name,
           actor: target.name,
-          monitor: game.i18n.localize(ANARCHY.actor.counters[monitor]),
+          monitor: ANARCHY.actor.counters[monitor],
           from: current,
           to: newValue
         })

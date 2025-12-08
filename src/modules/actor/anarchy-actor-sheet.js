@@ -302,7 +302,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       event.stopPropagation();
       const weapon = this.getEventItem(event);
       if (!weapon) {
-        ui.notifications.warn(game.i18n.localize('ANARCHY.common.errors.weaponNotFound'));
+        ui.notifications.warn('ANARCHY.common.errors.weaponNotFound');
         return;
       }
       this.actor.rollWeapon(weapon);
@@ -476,7 +476,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     event.stopPropagation();
     const weapon = this._getItemFromTarget(target);
     if (!weapon) {
-      ui.notifications.warn(game.i18n.localize('ANARCHY.common.errors.weaponNotFound'));
+      ui.notifications.warn('ANARCHY.common.errors.weaponNotFound');
       return;
     }
     this.actor.rollWeapon(weapon);
@@ -579,7 +579,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   }
 
   async createNewItem(itemType) {
-    const singular = game.i18n.localize(ANARCHY.itemType.singular[itemType]);
+    const singular = ANARCHY.itemType.singular[itemType];
     const name = singular + ' ' + this.actor.items.filter(it => it.type == itemType).length;
     await this.actor.createEmbeddedDocuments('Item', [{ name: name, type: itemType }]);
   }

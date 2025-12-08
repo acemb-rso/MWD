@@ -6,8 +6,8 @@ export class SystemSettings {
 
   static register() {
     game.settings.register(SYSTEM_NAME, "useDestinyMechanics", {
-      name: game.i18n.localize(ANARCHY.settings.useDestinyMechanics.name),
-      hint: game.i18n.localize(ANARCHY.settings.useDestinyMechanics.hint),
+      name: ANARCHY.settings.useDestinyMechanics.name,
+      hint: ANARCHY.settings.useDestinyMechanics.hint,
       scope: "world",
       config: true,
       type: Boolean,
