@@ -4,7 +4,7 @@
     {{selectOptions (modifierSelectOption 'group')
       selected=group 
       nameAttr="key" labelAttr="label"
-      localize=true blank=''}}
+      localize=false blank=''}}
     </select>
   </td>
   <td class="modifier-column">
@@ -12,7 +12,7 @@
     {{selectOptions (modifierSelectOption 'effect' group=group)
       selected=effect
       nameAttr="key" labelAttr="label"
-      localize=true blank=''}}
+      localize=false blank=''}}
     </select>
   </td>
   <td class="modifier-column">
@@ -21,7 +21,7 @@
         {{selectOptions (modifierSelectOption 'category' group=group effect=effect)
           selected=category
           nameAttr="key" labelAttr="label"
-          localize=true blank=''}}
+          localize=false blank=''}}
       </select>
     {{/if}}
   </td>
@@ -31,7 +31,7 @@
         {{selectOptions (modifierSelectOption 'subCategory' group=group effect=effect category=category)
           selected=subCategory
           nameAttr="key" labelAttr="label"
-          localize=true blank=''}}
+          localize=false blank=''}}
       </select>
     {{/if}}
   </td>
@@ -39,10 +39,10 @@
     {{numberInput value min=-2 max=4 class='input-modifier-value' step=1}}
   </td>
   <td class="modifier-column">
-    <input class="input-modifier-condition" type="text" value="{{condition}}" placeholder="{{localize ANARCHY.modifier.condition.always}}"/>
+    <input class="input-modifier-condition" type="text" value="{{condition}}" placeholder="{{ANARCHY.modifier.condition.always}}"/>
   </td>
   <td class="modifier-column modifier-controls item-controls">
-    <a class="item-control click-modifier-delete" data-tooltip="{{localize ANARCHY.common.del}}">
+    <a class="item-control click-modifier-delete" data-tooltip="{{ANARCHY.common.del}}">
       {{{iconFA 'fas fa-trash'}}}
     </a>
   </td>

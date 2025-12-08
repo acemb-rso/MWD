@@ -31,15 +31,15 @@ export class RollCelebrity extends HandlebarsApplicationMixin(ApplicationV2) {
     const rollData = {
       actor: actor,
       celebrity: {
-        labelkey: ANARCHY.actor.counters.edgePools.legend,
+        label: ANARCHY.actor.counters.edgePools.legend,
         value: actor.getCelebrityValue(),
       },
       modifiers: foundry.utils.mergeObject(
-        { labelkey: ANARCHY.item.tabs.modifiers },
+        { label: ANARCHY.item.tabs.modifiers },
         Modifiers.computeModifiers(actor.items, 'other', 'celebrity')
       ),
       other: {
-        labelkey: ANARCHY.common.roll.modifiers.other,
+        label: ANARCHY.common.roll.modifiers.other,
         value: 0
       },
       ANARCHY: ANARCHY,

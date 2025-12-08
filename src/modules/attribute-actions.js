@@ -7,6 +7,7 @@ function action(code, attributeFunction1, attributeFunction2, icon, actorTypes, 
   return {
     code: code,
     labelkey: ANARCHY.attributeAction[code],
+    label: ANARCHY.attributeAction[code],
     attributeFunction1: attributeFunction1 ?? (__ => undefined),
     attributeFunction2: attributeFunction2 ?? (__ => undefined),
     icon: icon,
@@ -19,6 +20,7 @@ function defense(code, actionCode) {
   return {
     code: code,
     labelkey: ANARCHY.defense[code],
+    label: ANARCHY.defense[code],
     actionCode: actionCode
   }
 }

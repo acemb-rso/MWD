@@ -2,28 +2,28 @@
   <header class="sheet-header">
     <img class="anarchy-img profile-img" src="{{data.img}}" data-edit="img" data-tooltip="{{data.name}}"/>
     {{> 'systems/mwd/templates/item/parts/itemname.hbs'
-      labelkey='ANARCHY.itemType.singular.skill'
+      label=ANARCHY.itemType.singular.skill
       type="skill"
     }}
   </header>
   <section class="sheet-body">
     <div class="form-group">
-      <label>{{localize 'ANARCHY.item.skill.copyDefault'}} </label>
+      <label>{{ANARCHY.item.skill.copyDefault}} </label>
       <select class="select-skill-code" data-dtype="String">
         {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
       </select>
     </div>
     <div class="form-group">
-      <label for="system.code">{{localize 'ANARCHY.item.skill.code'}}</label>
+      <label for="system.code">{{ANARCHY.item.skill.code}}</label>
       <input class="item-field-value" type="text" name="system.code" value="{{system.code}}" data-dtype="String" disabled/>
     </div>
     {{#unless (or (eq system.code 'knowledge') (eq system.attribute 'knowledge')) }}
     <div class="form-group">
-      <label for="system.value">{{localize 'ANARCHY.item.skill.value'}} </label>
+      <label for="system.value">{{ANARCHY.item.skill.value}} </label>
       <input class="type-numeric" type="number" name="system.value" value="{{system.value}}" data-dtype="Number"/>
     </div>
     <div class="form-group">
-      <label for="system.attribute">{{localize 'ANARCHY.item.skill.attribute'}} </label>
+      <label for="system.attribute">{{ANARCHY.item.skill.attribute}} </label>
       <select class="item-field-value" name="system.attribute" data-dtype="String">
         {{#select system.attribute}}
         {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
@@ -31,25 +31,25 @@
       </select>
     </div>
     <div class="form-group">
-      <label for="system.specialization">{{localize 'ANARCHY.item.skill.specialization'}} </label>
+      <label for="system.specialization">{{ANARCHY.item.skill.specialization}} </label>
       <input class="item-field-value" type="text" data-dtype="String"
           name="system.specialization" value="{{system.specialization}}"
-          placeholder="{{localize 'ANARCHY.item.skill.specializationHelp'}}"
+          placeholder="{{ANARCHY.item.skill.specializationHelp}}"
       />
     </div>
     <div class="form-group">
       <input name="system.isSocial" class="item-field-value" type="checkbox" {{checked system.isSocial}}>
-        {{localize 'ANARCHY.item.skill.isSocial'}}
+        {{ANARCHY.item.skill.isSocial}}
       </input>
     </div>
     <div class="form-group">
       <input name="system.hasDrain" class="item-field-value" type="checkbox" {{checked system.hasDrain}}>
-        {{localize 'ANARCHY.item.skill.hasDrain'}}
+        {{ANARCHY.item.skill.hasDrain}}
       </input>
     </div>
     <div class="form-group">
       <input name="system.hasConvergence" class="item-field-value" type="checkbox" {{checked system.hasConvergence}}>
-        {{localize 'ANARCHY.item.skill.hasConvergence'}}
+        {{ANARCHY.item.skill.hasConvergence}}
       </input>
     </div>
     {{/unless}}

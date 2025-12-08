@@ -1,5 +1,6 @@
 import { ANARCHY } from "../config.js";
 import { SYSTEM_DESCRIPTION, SYSTEM_NAME, THIRD_PARTY_STYLE_PATH } from "../constants.js";
+import { ANARCHY } from "../config.js";
 
 export const GLITCH_COLORSET = 'glitch';
 export const RISK_COLORSET = 'risk';
