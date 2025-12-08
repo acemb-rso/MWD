@@ -2,7 +2,7 @@
   <img class="anarchy-img item-img" src="{{img}}" alt="{{name}}" data-tooltip="{{name}}" />
   <div class="asset-module-content">
     <label class="item-title">{{name}}</label>
-    {{#if system.level}}<label class="item-subtitle">{{localize 'ANARCHY.item.assetModule.levelShort'}} {{system.level}}</label>{{/if}}
+    {{#if system.level}}<label class="item-subtitle">{{ANARCHY.item.assetModule.levelShort}} {{system.level}}</label>{{/if}}
     {{> 'systems/mwd/templates/actor/character/description.hbs' description=system.description}}
   </div>
   <div class="item-controls">

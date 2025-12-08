@@ -2,7 +2,7 @@
   {{#if (eq category 'pool')}}  
   {{#if value}}
     <div>
-    {{localize (concat 'ANARCHY.common.roll.modifiers.' type)}}
+    {{lookup ANARCHY.common.roll.modifiers type}}
     {{#if options}}{{selectedLabel}}{{!-- already i18n --}}{{/if}}:
     {{numberFormat value decimals=0 sign=true}}
     </div>
@@ -10,14 +10,14 @@
   {{/if}}
   {{#if (eq category 'reroll')}}  
   <div>
-    {{localize (concat 'ANARCHY.common.roll.modifiers.' type)}}
+    {{lookup ANARCHY.common.roll.modifiers type}}
     {{numberFormat value decimals=0 sign=false}}
   </div>
   {{/if}}
   {{#if (eq category 'opponent')}}
     {{#if value}}
     <div>
-      {{localize (concat 'ANARCHY.common.roll.modifiers.' type)}}
+      {{lookup ANARCHY.common.roll.modifiers type}}
       {{numberFormat value decimals=0 sign=false}}
     </div>
     {{/if}}
@@ -25,7 +25,7 @@
   {{#if (eq category 'other')}}
     {{#if value}}
     <div>
-      {{localize (concat 'ANARCHY.common.roll.modifiers.' type)}}
+      {{lookup ANARCHY.common.roll.modifiers type}}
     </div>
     {{/if}}
   {{/if}}

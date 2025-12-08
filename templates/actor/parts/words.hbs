@@ -1,7 +1,7 @@
 <h3 class="define-wordType" data-word-type="{{wordType}}">
-  {{localize (concat 'ANARCHY.actor.words.' wordType)}}
+  {{lookup ANARCHY.actor.words wordType}}
   {{#unless @root.options.viewMode}}
-  <a class="item-control click-word-add" data-tooltip="{{localize ANARCHY.common.add}}">
+  <a class="item-control click-word-add" data-tooltip="{{ANARCHY.common.add}}">
     {{{iconFA 'fas fa-plus-circle'}}}
   </a>
   {{/unless}}
@@ -16,12 +16,12 @@
     />
     <div class="flex-shrink-end">
       {{#if (or (eq ../wordType 'cues') (eq ../wordType 'dispositions')) }}
-      <a class="item-control click-word-say" data-tooltip="{{localize @root.ANARCHY.common.say}} {{wordEntry.word}}">
+      <a class="item-control click-word-say" data-tooltip="{{@root.ANARCHY.common.say}} {{wordEntry.word}}">
         {{{iconFA 'fas fa-comment-dots'}}}
       </a>
       {{/if}}
       {{#unless @root.options.viewMode}}
-      <a class="item-control click-word-delete" data-tooltip="{{localize @root.ANARCHY.common.del}}">
+      <a class="item-control click-word-delete" data-tooltip="{{@root.ANARCHY.common.del}}">
         {{{iconFA 'fas fa-trash'}}}
       </a>
       {{/unless}}
