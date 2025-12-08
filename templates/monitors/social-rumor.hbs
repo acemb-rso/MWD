@@ -1,6 +1,6 @@
 <div class="flexcol anarchy-monitor">
   <label class="monitor-label">
-    {{localize ANARCHY.actor.counters.social.rumor}}
+    {{ANARCHY.actor.counters.social.rumor}}
     <input class="info-value"
       type="number" data-dtype="Number" min="0" max="10"
       name="system.counters.social.rumor.max"
@@ -11,7 +11,7 @@
   </label>
   {{> "systems/mwd/templates/common/checkbar.hbs"
     code='rumor'
-    labelkey=ANARCHY.actor.counters.social.rumor
+    label=ANARCHY.actor.counters.social.rumor
     value=system.counters.social.rumor.value
     max=system.counters.social.rumor.max
     rowlength=5

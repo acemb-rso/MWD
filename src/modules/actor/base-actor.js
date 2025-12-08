@@ -433,20 +433,18 @@ export class AnarchyBaseActor extends Actor {
     await Checkbars.addCounter(this, pool, - count);
   }
 
-  async spendEdge(count, pool = TEMPLATE.counters.edgePools.grit) {
+async spendEdge(count, pool = TEMPLATE.counters.edgePools.grit) {
     if (count == 0) {
       return;
     }
     if (!this.canUseEdge()) {
-      const message = game.system.anarchy.hacks.i18n.localize(ANARCHY.common.errors.noEdgeForActor, {
-        actor: this.name,
-        actorType: game.system.anarchy.hacks.i18n.localize(ANARCHY.actorType[this.type])
-      });
-      ui.notifications.warn(message)
-      throw ANARCHY.common.errors.noEdgeForActor + message;
+      const actorType = ANARCHY.actorType[this.type] ?? this.type;
+      const message = `${this.name} (${actorType}) cannot use Edge`;
+      ui.notifications.warn(message);
+      throw message;
     }
     await this.spendEdgePool(pool, count);
-  }
+}
 
   getSkillRating(skillId) {
     const skill = typeof skillId === 'string' ? this.items.get(skillId) : skillId;
