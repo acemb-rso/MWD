@@ -1,5 +1,5 @@
 <div class="flexcol anarchy-monitor">
-  <label class="monitor-label">{{localize ANARCHY.actor.monitors.fatigue}}</label>
+  <label class="monitor-label">{{ANARCHY.actor.monitors.fatigue}}</label>
   {{> "systems/mwd/templates/common/checkbar.hbs"
     code='fatigue'
     value=system.monitors.fatigue.value
@@ -8,7 +8,7 @@
     adjust=true
   }}
   <label class="resitance-label">
-    {{localize ANARCHY.actor.monitors.resistance}}:
+    {{ANARCHY.actor.monitors.resistance}}:
     {{system.monitors.fatigue.resistanceBonus}}
   </label>
 </div>
