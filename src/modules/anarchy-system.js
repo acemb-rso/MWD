@@ -2,9 +2,8 @@ import { ANARCHY } from './config.js';
 import { Enums } from './enums.js';
 import { LOG_HEAD, SYSTEM_NAME } from './constants.js';
 import { ChatManager } from './chat/chat-manager.js';
-import { GMAnarchy } from './app/gm-anarchy.js';
-import { GMManager } from './app/gm-manager.js';
 import { HandlebarsManager } from './handlebars-manager.js';
+import { GMManager } from './app/gm-manager.js';
 import { RemoteCall } from './remotecall.js';
 import { Styles } from './styles.js';
 import { AnarchyUsers } from './users.js';
@@ -89,7 +88,6 @@ export class AnarchySystem {
     this.hooks = new HooksManager();
     this.styles = new Styles();
     this.handlebarsManager = new HandlebarsManager();
-    this.gmAnarchy = new GMAnarchy();
     Enums.init();
     SystemSettings.register();
 
@@ -99,6 +97,7 @@ export class AnarchySystem {
     this.rollManager = new RollManager();
     this.hudShortcuts = new HUDShortcuts();
     this.combatManager = new CombatManager();
+    this.gmManager = new GMManager();
 
     console.log(LOG_HEAD + 'AnarchySystem.onInit | loading system');
     CONFIG.ANARCHY = ANARCHY;
@@ -123,7 +122,6 @@ export class AnarchySystem {
     AnarchyBaseActor.init()
     ActorDamageManager.init();
     ChatManager.init();
-    this.gmManager = new GMManager({ gmAnarchy: this.gmAnarchy });
     console.log(LOG_HEAD + 'AnarchySystem.onInit | done');
     Hooks.once('ready', () => this.onReady());
   }
