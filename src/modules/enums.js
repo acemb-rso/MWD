@@ -143,36 +143,29 @@ static getFromList(list, key, keyName = "value", valueName = "label") {
 }
 
 
-static mapObjetToKeyValue(object, keyName = "value") {
-  // Safety: if the config isn't defined, just return an empty list.
-  if (!object || typeof object !== "object") {
-    console.warn("MWD | mapObjetToKeyValue called with invalid object:", object);
-    return [];
-  }
+// enums.js
+static mapObjetToKeyValue(object, keyName = "value", valueName = "label") {
+  // If a config object is missing, just return [] and move on.
+  if (!object) return [];
 
   return Object.entries(object).map(([key, raw]) => {
-    const ret = {};
-    ret[keyName] = key;
+    let label;
 
-    // Derive a readable label from whatever the config uses now
-    let labelText;
     if (typeof raw === "string") {
-      // e.g. { strength: "Strength" }
-      labelText = raw;
+      label = raw;
     } else if (raw && typeof raw === "object") {
-      // e.g. { label: "Strength" } or legacy { labelkey: "Strength" }
-      labelText = raw.label ?? raw.labelkey ?? raw.name ?? String(key);
+      label = raw.label ?? raw.name ?? String(key);
     } else {
-      labelText = String(raw ?? key);
+      label = String(key);
     }
 
-    // Support both new & legacy callers
-    ret.label = labelText;
-    ret.labelkey = labelText;
-
-    return ret;
+    return {
+      [keyName]: key,
+      [valueName]: label
+    };
   });
 }
+
 
 
 }
