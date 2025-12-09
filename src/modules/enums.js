@@ -83,8 +83,10 @@ if (ANARCHY.lifeModule?.type) {
       itemTypes: Enums.hbsItemTypes,
       monitors: Enums.hbsMonitors,
       assetModuleCategories: Enums.hbsAssetModuleCategories,
-      skills: game.system.anarchy.skills.getSkills({ withKnowledge })
-        .map(it => { return { value: it.code, label: it.labelkey, labelkey: it.labelkey }; }),
+      skills: game.system.anarchy.skills.getSkills({ withKnowledge }).map(it => ({
+        value: it.code,
+        label: it.label ?? it.code
+      })),
       areas: Enums.hbsAreas,
       ranges: Enums.hbsRanges,
       lifeModuleTypes: Enums.hbsLifeModuleTypes,
@@ -136,11 +138,9 @@ if (ANARCHY.lifeModule?.type) {
 
 static getFromList(list, key, keyName = "value", valueName = "label") {
   const found = list?.find(m => m[keyName] == key);
-  if (!found) return undefined;
-
-  // Prefer requested field, then label, then labelkey
-  return found[valueName] ?? found.label ?? found.labelkey;
+  return found ? found[valueName] : undefined;
 }
+
 
 
 // enums.js
