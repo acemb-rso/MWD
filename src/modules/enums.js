@@ -41,14 +41,13 @@ export class Enums {
     Enums.hbsMonitorLetters = Enums.mapObjetToKeyValue(ANARCHY.monitorLetter);
     Enums.hbsAssetModuleCategories = Enums.mapObjetToKeyValue(ANARCHY.assetModuleCategory);
 
-    // New (safe if life modules aren’t configured)
-    const lifeModuleTypeConfig = ANARCHY.lifeModule?.type;
-    if (lifeModuleTypeConfig) {
-      Enums.hbsLifeModuleTypes = Enums.mapObjetToKeyValue(lifeModuleTypeConfig);
-    } else {
-      Enums.hbsLifeModuleTypes = [];
-    console.warn("MWD | ANARCHY.lifeModule.type is missing; life module enums disabled.");
-    }
+// Life modules are not wired up yet; keep this from blowing up init.
+if (ANARCHY.lifeModule?.type) {
+  Enums.hbsLifeModuleTypes = Enums.mapObjetToKeyValue(ANARCHY.lifeModule.type);
+} else {
+  console.warn("MWD | ANARCHY.lifeModule.type is missing; life module enums disabled.");
+  Enums.hbsLifeModuleTypes = [];
+}
 
     Enums.hbsAreas = Enums.mapObjetToKeyValue(ANARCHY.area);
     Enums.hbsRanges = Enums.mapObjetToKeyValue(ANARCHY.range);
