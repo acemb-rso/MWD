@@ -135,20 +135,46 @@ export class Enums {
     return ANARCHY.attributes[attribute];
   }
 
-  static getFromList(list, key, keyName = 'value', valueName = 'labelkey') {
-    const found = list.find(m => m[keyName] == key);
-    return found ? found[valueName] : undefined
+static getFromList(list, key, keyName = "value", valueName = "label") {
+  const found = list?.find(m => m[keyName] == key);
+  if (!found) return undefined;
+
+  // Prefer requested field, then label, then labelkey
+  return found[valueName] ?? found.label ?? found.labelkey;
+}
+
+
+static mapObjetToKeyValue(object, keyName = "value") {
+  // Safety: if the config isn't defined, just return an empty list.
+  if (!object || typeof object !== "object") {
+    console.warn("MWD | mapObjetToKeyValue called with invalid object:", object);
+    return [];
   }
 
-  static mapObjetToKeyValue(object, keyName = 'value', valueName = 'labelkey') {
-    return Object.entries(object).map(
-      entry => {
-        const ret = {};
-        ret[keyName] = entry[0];
-        ret[valueName] = entry[1];
-        return ret;
-      });
-  }
+  return Object.entries(object).map(([key, raw]) => {
+    const ret = {};
+    ret[keyName] = key;
+
+    // Derive a readable label from whatever the config uses now
+    let labelText;
+    if (typeof raw === "string") {
+      // e.g. { strength: "Strength" }
+      labelText = raw;
+    } else if (raw && typeof raw === "object") {
+      // e.g. { label: "Strength" } or legacy { labelkey: "Strength" }
+      labelText = raw.label ?? raw.labelkey ?? raw.name ?? String(key);
+    } else {
+      labelText = String(raw ?? key);
+    }
+
+    // Support both new & legacy callers
+    ret.label = labelText;
+    ret.labelkey = labelText;
+
+    return ret;
+  });
+}
+
 
 }
 
