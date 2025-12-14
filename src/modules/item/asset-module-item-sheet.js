@@ -1,5 +1,11 @@
 import { BaseItemSheet } from "./base-item-sheet.js";
+import { TEMPLATES_PATH } from "../constants.js";
 
 export class AssetModuleItemSheet extends BaseItemSheet {
-  // No overrides needed - BaseItemSheet handles everything
+  static PARTS = {
+    sheet: {
+      template: `${TEMPLATES_PATH}/item/assetModule.hbs`,
+      scrollable: [".sheet-body"]
+    }
+  };
 }

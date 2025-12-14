@@ -1,11 +1,7 @@
 {
   "id": "mwd",
   "type": "system",
-  "version": "0.4.4",
-  "manifest": "https://raw.githubusercontent.com/acemb-rso/MWD/main/system.json",
-  "download": "https://github.com/acemb-rso/MWD/archive/refs/heads/main.zip",
-  "url": "https://github.com/acemb-rso/MWD",
-  "bugs": "https://github.com/acemb-rso/MWD/issues",
+  "version": "0.4.6",
   "title": "MechWarrior: Destiny",
   "description": "MechWarrior: Destiny RPG for FoundryVTT",
   "compatibility": {
@@ -35,7 +31,7 @@
   "flags": {
     "allowBugReporter": true,
     "hotReload": {
-      "extensions": ["css", "hbs", "html"],
+      "extensions": ["css", "hbs", "html", "scss"],
       "paths": ["src/", "templates/", "style.css"]
     }
   },
@@ -46,13 +42,6 @@
     "style.css",
     "styles/application-v2.css",
     "src/styles/gm-manager.css"
-  ],
-  "languages": [
-    {
-      "lang": "en",
-      "name": "English",
-      "path": "lang/en.json"
-    }
   ],
   "packs": [
     {
@@ -89,10 +78,10 @@
   "media": [
     {
       "type": "cover",
-      "url": "img/background.webp"
+      "url": "img/mechwarrior.png"
     }
   ],
-  "background": "img/background.webp",
+  "background": "img/mechwarrior.png",
   "relationships": {},
   "socket": true,
   "protected": false,
@@ -102,7 +91,7 @@
     "Item": ["contact", "gear", "quality", "assetModule", "skill", "lifeModule", "mechWeapon", "personalWeapon"]
   },
   "grid": {
-    "distance": 1,
+    "distance": 2,
     "units": "m"
   },
   "primaryTokenAttribute": "state.physical",

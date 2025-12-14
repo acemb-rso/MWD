@@ -375,16 +375,20 @@ export class AnarchyBaseActor extends Actor {
   getRumorValue() { return 0; }
 
   getAnarchy() {
-    const anarchy = this.hasGMAnarchy()
-      ? game.system.anarchy.gmAnarchy.getAnarchy()
-      : {
-        isGM: false,
-        value: 0,
-        max: 0,
-      };
-    anarchy.scene = this.getAnarchyScene()
-    return anarchy;
+      const hasGM = this.hasGMAnarchy();
+      const gmAnarchy = game.system?.anarchy?.gmAnarchy;
+      const anarchy = (hasGM && gmAnarchy && typeof gmAnarchy.getAnarchy === "function")
+        ? gmAnarchy.getAnarchy()
+        : {
+            isGM: false,
+            value: 0,
+            max: 0
+          };
+
+      anarchy.scene = this.getAnarchyScene();
+      return anarchy;
   }
+
 
   getAnarchyScene() {
     return 0;
@@ -402,10 +406,17 @@ export class AnarchyBaseActor extends Actor {
   }
 
   async spendAnarchy(count) {
-    if (count && !this.hasPlayerOwner) {
-      await game.system.anarchy.gmAnarchy.npcConsumesAnarchy(this, count);
-    }
+      if (!count) return;
+
+      if (!this.hasPlayerOwner) {
+        const gmAnarchy = game.system?.anarchy?.gmAnarchy;
+        if (gmAnarchy?.npcConsumesAnarchy) {
+          await gmAnarchy.npcConsumesAnarchy(this, count);
+        }
+        return;
+      }
   }
+
 
   getEdgePools() { return this.system.counters?.edgePools ?? {}; }
 

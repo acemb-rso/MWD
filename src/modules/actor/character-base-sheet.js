@@ -20,7 +20,15 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
       group: "primary",
       navSelector: ".sheet-tabs",
       contentSelector: ".sheet-body",
-      initial: "character"
+      initial: "character",
+      tabs: [
+        { id: "character" },
+        { id: "skills" },
+        { id: "traits" },
+        { id: "life-modules" },
+        { id: "inventory" },
+        { id: "biography" }
+      ]
     }
   };
 
@@ -75,51 +83,74 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
     await this.render(false, { parts: ['sheet'] });
   }
 
-  activateListeners(html) {
-    const jqHtml = html instanceof HTMLElement ? $(html) : html;
-    super.activateListeners(jqHtml);
+   /**
+   * AppV2-compliant listener hook for the character sheet.
+   * We attach all our click handlers here instead of using activateListeners.
+   */
+  _attachPartListeners(partId, htmlElement, options) {
+    // Let the base AnarchyActorSheet wire up its own actions & legacy handlers
+    super._attachPartListeners(partId, htmlElement, options);
 
-    // View mode toggle
-    jqHtml.find('.click-toggle-view-mode').click(async event => {
+    // We only care about the main sheet part
+    if (partId !== "sheet") return;
+
+    const jqHtml = htmlElement instanceof HTMLElement ? $(htmlElement) : htmlElement;
+
+    // ─────────────────────────────────────────────────────
+    // View mode toggle (lock icon in the header)
+    // ─────────────────────────────────────────────────────
+    jqHtml.find(".click-toggle-view-mode").on("click", async event => {
       event.preventDefault();
       event.stopPropagation();
-      await this.toggleViewMode();  // ← Made async
+      await this.toggleViewMode();
     });
 
-    // cues, dispositions, keywords
-    jqHtml.find('.click-word-add').click(async event => {
+    // ─────────────────────────────────────────────────────
+    // Words: cues, dispositions, keywords, etc.
+    // ─────────────────────────────────────────────────────
+
+    // Add new word
+    jqHtml.find(".click-word-add").on("click", async event => {
       event.stopPropagation();
       this.createNewWord(this.getEventWordType(event));
     });
 
-    jqHtml.find('.click-word-say').click(async event => {
+    // “Say” a word (for cues / dispositions)
+    jqHtml.find(".click-word-say").on("click", async event => {
       event.stopPropagation();
       this.actor.sayWord(
         this.getEventWordType(event),
-        this.getEventWordId(event));
+        this.getEventWordId(event)
+      );
     });
 
-    jqHtml.find('.change-word-value').click(async event => {
+    // Focus on word input
+    jqHtml.find(".change-word-value").on("click", async event => {
       event.stopPropagation();
     });
 
-    jqHtml.find('.change-word-value').change(async event => {
+    // Change a word’s text
+    jqHtml.find(".change-word-value").on("change", async event => {
       event.stopPropagation();
       const newWordValue = event.currentTarget.value;
       await this.actor.updateWord(
         this.getEventWordType(event),
         this.getEventWordId(event),
-        newWordValue);
+        newWordValue
+      );
     });
 
-    jqHtml.find('.click-word-delete').click(async event => {
+    // Delete word
+    jqHtml.find(".click-word-delete").on("click", async event => {
       event.stopPropagation();
       this.actor.deleteWord(
         this.getEventWordType(event),
-        this.getEventWordId(event));
+        this.getEventWordId(event)
+      );
     });
 
-    jqHtml.find(".click-celebrity-roll").click(async event => {
+    // Celebrity roll (button in the words panel)
+    jqHtml.find(".click-celebrity-roll").on("click", async event => {
       event.stopPropagation();
       this.actor.rollCelebrity();
     });

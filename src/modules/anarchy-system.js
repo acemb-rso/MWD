@@ -28,7 +28,8 @@ import { GearItemSheet } from './item/gear-item-sheet.js';
 import { QualityItemSheet } from './item/quality-item-sheet.js';
 import { AssetModuleItemSheet } from './item/asset-module-item-sheet.js';
 import { SkillItemSheet } from './item/skill-item-sheet.js';
-import { WeaponItemSheet } from './item/weapon-item-sheet.js';
+import { MechWeaponItemSheet } from './item/mech-weapon-item-sheet.js';
+import { PersonalWeaponItemSheet } from './item/personal-weapon-item-sheet.js';
 import { ContactItem } from './item/contact-item.js';
 import { GearItem } from './item/gear-item.js';
 import { QualityItem } from './item/quality-item.js';
@@ -48,6 +49,8 @@ import { AttributeActions } from './attribute-actions.js';
 import { DiceCursor } from './roll/dice-cursor.js';
 import { SystemSettings } from './system-settings.js';
 import { TemplateGuards } from './template-guards.js';
+import { GMAnarchyManager } from "./gm/gm-anarchy.js";
+
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -57,7 +60,8 @@ export class AnarchySystem {
 
   static start() {
     const anarchySystem = new AnarchySystem();
-    Hooks.once('init', async () => await anarchySystem.onInit());
+    Hooks.once('init',  () => anarchySystem.onInit());
+    Hooks.once('ready', () => anarchySystem.onReady());
   }
 
   async onInit() {
@@ -97,7 +101,6 @@ export class AnarchySystem {
     this.rollManager = new RollManager();
     this.hudShortcuts = new HUDShortcuts();
     this.combatManager = new CombatManager();
-    this.gmManager = new GMManager();
 
     console.log(LOG_HEAD + 'AnarchySystem.onInit | loading system');
     CONFIG.ANARCHY = ANARCHY;
@@ -123,41 +126,46 @@ export class AnarchySystem {
     ActorDamageManager.init();
     ChatManager.init();
     console.log(LOG_HEAD + 'AnarchySystem.onInit | done');
-    Hooks.once('ready', () => this.onReady());
   }
 
   async onReady() {
     console.log(LOG_HEAD + 'AnarchySystem.onReady');
-    if (game.user.isGM) {
-      new Migrations().migrate();
+    // Global GM anarchy pool
+    this.gmAnarchy = new GMAnarchyManager();
+    if (!game.user.isGM) return;
+    await new Migrations().migrate();
+    if (!game.gmManager) {
+        game.gmManager = new GMManager();
     }
+      game.gmManager.render({ force: true });
   }
 
-  loadActorSheets() {
-    const { Actors } = foundry.documents.collections;
-    Actors.unregisterSheet('core', foundry.appv1.sheets.ActorSheet);
-    Actors.unregisterSheet(SYSTEM_NAME, CharacterActorSheet);
-    Actors.registerSheet(SYSTEM_NAME, CharacterNPCSheet, {
-      label: ANARCHY.actor.characterNPCSheet,
-      makeDefault: true,
-      types: ['npc']
-    });
-    Actors.registerSheet(SYSTEM_NAME, CharacterActorSheet, {
-      label: ANARCHY.actor.characterSheet,
-      makeDefault: true,
-      types: ['character']
-    });
-    Actors.registerSheet(SYSTEM_NAME, VehicleSheet, {
-      label: ANARCHY.actor.vehicleSheet,
-      makeDefault: true,
-      types: ['vehicle']
-    });
-    Actors.registerSheet(SYSTEM_NAME, BattlemechSheet, {
-      label: ANARCHY.actor.battlemechSheet,
-      makeDefault: true,
-      types: ['battlemech']
-    });
-  }
+ loadActorSheets() {
+  const { Actors } = foundry.documents.collections;
+  Actors.unregisterSheet('core', foundry.appv1.sheets.ActorSheet);
+  Actors.unregisterSheet(SYSTEM_NAME, CharacterActorSheet);
+  Actors.registerSheet(SYSTEM_NAME, CharacterNPCSheet, {
+    label: ANARCHY.actor.characterNPCSheet,
+    makeDefault: true,
+    types: ['npc']
+  });
+  Actors.registerSheet(SYSTEM_NAME, CharacterActorSheet, {
+    label: ANARCHY.actor.characterSheet,
+    makeDefault: true,
+    types: ['character']
+  });
+  Actors.registerSheet(SYSTEM_NAME, VehicleSheet, {
+    label: ANARCHY.actor.vehicleSheet,
+    makeDefault: true,
+    types: ['vehicle']
+  });
+  Actors.registerSheet(SYSTEM_NAME, BattlemechSheet, {
+    label: ANARCHY.actor.battlemechSheet,
+    makeDefault: true,
+    types: ['battlemech']
+  });
+}
+ 
 
   loadItemSheets() {
     const { Items } = foundry.documents.collections;
@@ -168,7 +176,8 @@ export class AnarchySystem {
     Items.registerSheet(SYSTEM_NAME, AssetModuleItemSheet, { types: ["assetModule"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, LifeModuleItemSheet, { types: ["lifeModule"], makeDefault: true });
     Items.registerSheet(SYSTEM_NAME, SkillItemSheet, { types: ["skill"], makeDefault: true });
-    Items.registerSheet(SYSTEM_NAME, WeaponItemSheet, { types: ["mechWeapon", "personalWeapon"], makeDefault: true });
+    Items.registerSheet(SYSTEM_NAME, PersonalWeaponItemSheet, { types: ["personalWeapon"], makeDefault: true });
+    Items.registerSheet(SYSTEM_NAME, MechWeaponItemSheet, { types: ["mechWeapon"], makeDefault: true });
   }
 
 }

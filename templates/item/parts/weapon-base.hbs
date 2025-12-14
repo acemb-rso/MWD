@@ -1,0 +1,106 @@
+<section class="panel">
+  <h3>{{title}}</h3>
+
+  <div class="form-group">
+    <label for="system.skill">{{ANARCHY.item.weapon.skill}}</label>
+    <select id="system.skill" name="system.skill" data-dtype="String"
+            {{#if @root.options.viewMode}}disabled{{/if}}>
+      {{#select system.skill}}
+        {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.skills}}
+      {{/select}}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="system.damage">{{ANARCHY.item.weapon.damage}}</label>
+    <input id="system.damage" class="type-numeric" type="number"
+           name="system.damage" value="{{system.damage}}" data-dtype="Number" min="0"
+           {{#if @root.options.viewMode}}disabled{{/if}} />
+  </div>
+
+  <div class="form-group">
+    <label for="system.damageType">Damage Type</label>
+    <select id="system.damageType" name="system.damageType" data-dtype="String"
+            {{#if @root.options.viewMode}}disabled{{/if}}>
+      {{#select system.damageType}}
+        {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.damageTypes}}
+      {{/select}}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="system.area">{{ANARCHY.item.weapon.area}}</label>
+    <select id="system.area" name="system.area" data-dtype="String"
+            {{#if @root.options.viewMode}}disabled{{/if}}>
+      {{#select system.area}}
+        {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.areas}}
+      {{/select}}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="system.defense">{{ANARCHY.item.weapon.defense}}</label>
+    <select id="system.defense" name="system.defense" data-dtype="String"
+            {{#if @root.options.viewMode}}disabled{{/if}}>
+      {{#select system.defense}}
+        {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.defenses}}
+      {{/select}}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="system.armorPiercing">Armor Piercing</label>
+    <input id="system.armorPiercing" class="type-numeric" type="number"
+           name="system.armorPiercing" value="{{system.armorPiercing}}" data-dtype="Number"
+           {{#if @root.options.viewMode}}disabled{{/if}} />
+  </div>
+</section>
+
+<section class="panel">
+  <h3>Range (Unified Bands)</h3>
+
+  <div class="form-group">
+    <label for="system.range.max">Max Band</label>
+    <select id="system.range.max" name="system.range.max" data-dtype="String"
+            {{#if @root.options.viewMode}}disabled{{/if}}>
+      {{#select system.range.max}}
+        <option value="close">Close</option>
+        <option value="near">Near</option>
+        <option value="far">Far</option>
+        <option value="extreme">Extreme</option>
+      {{/select}}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="system.range.mod.close">Close Mod</label>
+    <input id="system.range.mod.close" class="type-numeric" type="number"
+           name="system.range.mod.close" value="{{system.range.mod.close}}" data-dtype="Number"
+           {{#if @root.options.viewMode}}disabled{{/if}} />
+  </div>
+
+  <div class="form-group">
+    <label for="system.range.mod.near">Near Mod</label>
+    <input id="system.range.mod.near" class="type-numeric" type="number"
+           name="system.range.mod.near" value="{{system.range.mod.near}}" data-dtype="Number"
+           {{#if @root.options.viewMode}}disabled{{/if}} />
+  </div>
+
+  <div class="form-group">
+    <label for="system.range.mod.far">Far Mod</label>
+    <input id="system.range.mod.far" class="type-numeric" type="number"
+           name="system.range.mod.far" value="{{system.range.mod.far}}" data-dtype="Number"
+           {{#if @root.options.viewMode}}disabled{{/if}} />
+  </div>
+
+  <div class="form-group">
+    <label for="system.range.mod.extreme">Extreme Mod</label>
+    <input id="system.range.mod.extreme" class="type-numeric" type="number"
+           name="system.range.mod.extreme" value="{{system.range.mod.extreme}}" data-dtype="Number"
+           {{#if @root.options.viewMode}}disabled{{/if}} />
+  </div>
+
+  {{#if rangeOptimalBand}}
+    <p class="hint">Optimal band (derived): <strong>{{rangeOptimalBand}}</strong></p>
+  {{/if}}
+</section>

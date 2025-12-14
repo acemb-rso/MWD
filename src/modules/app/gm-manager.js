@@ -10,19 +10,13 @@ const GM_MANAGER_POSITION = "gm-manager-position";
 const GM_MANAGER_SIZE = "gm-manager-size";
 const GM_MANAGER_DEFAULT_SIZE = { width: 360, height: 0 };
 const GM_MANAGER_INITIAL_POSITION = { top: 200, left: 200 };
-const GM_MANAGER_TEMPLATE = 'systems/mwd/templates/app/gm-manager.hbs';
+const GM_MANAGER_TEMPLATE = "systems/mwd/templates/app/gm-manager.hbs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
  * GM Manager - Main control panel for Game Masters
  * Provides quick access to plot points, difficulty pools, and other GM tools
- * 
- * Architecture:
- * - Uses AppV2 with proper action handlers
- * - Widget-based system for modular features
- * - No jQuery dependencies (vanilla JS only)
- * - Proper lifecycle management
  */
 export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
 
@@ -52,26 +46,30 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
 
   constructor(options = {}) {
     super(options);
-    
+
     // Initialize widgets
     this.widgets = [];
     this._initializeWidgets();
-    
+
+    // Register settings used by the GM Manager (size, etc.)
+    this._registerSettings();
+
+    // Load size from settings
+    this.size = game.settings.get(SYSTEM_NAME, GM_MANAGER_SIZE) ?? GM_MANAGER_DEFAULT_SIZE;
+
     // Initialize drag handler
     this.handleDrag = new HandleDragApplication(
       () => this.element,
       {
         initial: GM_MANAGER_INITIAL_POSITION,
-        maxPos: { left: 200, top: 100 },
-        settingKey: GM_MANAGER_POSITION
+        maxPos: { left: window.innerWidth - 100, top: window.innerHeight - 100 },
+        minPos: { left: 2, top: 2 },
+        settings: {
+          system: SYSTEM_NAME,
+          keyPosition: GM_MANAGER_POSITION
+        }
       }
     );
-    
-    // Register settings
-    this._registerSettings();
-    
-    // Load size from settings
-    this.size = game.settings.get(SYSTEM_NAME, GM_MANAGER_SIZE);
   }
 
   /**
@@ -102,12 +100,12 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    
+
     // Gather widget data
     const widgetData = await Promise.all(
       this.widgets.map(widget => widget.getTemplateData())
     );
-    
+
     return foundry.utils.mergeObject(context, {
       widgets: widgetData,
       ANARCHY: ANARCHY,
@@ -119,9 +117,7 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
    * Render the GM Manager (only for GMs)
    */
   async render(options = {}) {
-    if (!game.user.isGM) {
-      return this;
-    }
+    if (!game.user.isGM) return this;
     return super.render(options);
   }
 
@@ -130,28 +126,26 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   _attachPartListeners(partId, htmlElement, options) {
     super._attachPartListeners(partId, htmlElement, options);
-    
+
     if (partId === "body") {
       // Dragging
-      const titleBar = htmlElement.querySelector('.gm-manager-header');
+      const titleBar = htmlElement.querySelector(".gm-manager-header");
       if (titleBar) {
-        titleBar.addEventListener('mousedown', event => {
+        titleBar.addEventListener("mousedown", event => {
           if (event.button === 0) { // Left click only
-            this.handleDrag.onMouseDown(event);
+            this.handleDrag?.onMouseDown(event);
           }
         });
       }
-      
+
       // Resizing
       this._activateResizeHandle(htmlElement);
-      
+
       // Apply stored size
       this._applyStoredSize(htmlElement);
-      
+
       // Initialize all widgets
-      this.widgets.forEach(widget => {
-        widget.activateListeners(htmlElement);
-      });
+      this.widgets.forEach(widget => widget.activateListeners(htmlElement));
     }
   }
 
@@ -159,13 +153,13 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
    * Activate the resize handle
    */
   _activateResizeHandle(element) {
-    const handle = element.querySelector('.gm-manager-resize-handle');
+    const handle = element.querySelector(".gm-manager-resize-handle");
     if (!handle) {
       console.warn("GM Manager: Resize handle not found in template");
       return;
     }
 
-    handle.addEventListener('mousedown', event => this._onResizeMouseDown(event, element));
+    handle.addEventListener("mousedown", event => this._onResizeMouseDown(event, element));
   }
 
   /**
@@ -174,7 +168,7 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
   _onResizeMouseDown(event, element) {
     event.preventDefault();
     event.stopPropagation();
-    
+
     const startX = event.clientX;
     const startY = event.clientY;
     const startWidth = element.offsetWidth;
@@ -189,14 +183,14 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
     };
 
     const onMouseUp = () => {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
       this.size = this._constrainSize(element, element.offsetWidth, element.offsetHeight);
       game.settings.set(SYSTEM_NAME, GM_MANAGER_SIZE, this.size);
     };
 
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
   }
 
   /**
@@ -205,9 +199,13 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
   _constrainSize(element, width, height) {
     const minWidth = 300;
     const minHeight = 140;
-    const maxWidth = Math.max(minWidth, window.innerWidth - (this.handleDrag.minPos?.left ?? 0));
-    const maxHeight = Math.max(minHeight, window.innerHeight - (this.handleDrag.minPos?.top ?? 0));
-    
+
+    const minLeft = this.handleDrag?.minPos?.left ?? 0;
+    const minTop = this.handleDrag?.minPos?.top ?? 0;
+
+    const maxWidth = Math.max(minWidth, window.innerWidth - minLeft);
+    const maxHeight = Math.max(minHeight, window.innerHeight - minTop);
+
     return {
       width: Math.min(maxWidth, Math.max(minWidth, width)),
       height: Math.min(maxHeight, Math.max(minHeight, height))
@@ -228,7 +226,7 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   _applyStoredSize(element) {
     if (!element || !this.size) return;
-    
+
     const { width, height } = this.size;
     if (width && width > 0) {
       element.style.width = `${width}px`;
@@ -242,7 +240,8 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
    * Refresh the GM Manager display
    */
   async refresh() {
-    return this.render(false, { parts: ['body'] });
+    // AppV2-style partial render
+    return this.render({ parts: ["body"] });
   }
 
   /**
@@ -251,17 +250,17 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
   static async _onToggleSection(event, target) {
     const sectionId = target.dataset.section;
     if (!sectionId) return;
-    
+
     const section = this.element.querySelector(`[data-section-content="${sectionId}"]`);
-    const icon = target.querySelector('i');
-    
+    const icon = target.querySelector("i");
+
     if (section) {
-      const isCollapsed = section.classList.toggle('collapsed');
+      const isCollapsed = section.classList.toggle("collapsed");
       if (icon) {
-        icon.classList.toggle('fa-chevron-down', !isCollapsed);
-        icon.classList.toggle('fa-chevron-right', isCollapsed);
+        icon.classList.toggle("fa-chevron-down", !isCollapsed);
+        icon.classList.toggle("fa-chevron-right", isCollapsed);
       }
-      
+
       // TODO: Save collapsed state to settings
     }
   }
@@ -274,7 +273,7 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Hook: Called when ready
+   * Hook: Called when ready (instance pattern – optional now that AnarchySystem handles ready)
    */
   onReady() {
     if (game.user.isGM) {
@@ -289,11 +288,11 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!game.user.isGM) return;
 
     // Add destiny dice roller button
-    const chatControls = html.find('form.chat-form');
+    const chatControls = html.find("form.chat-form");
     if (chatControls.length === 0) return;
 
     // Check if button already exists
-    if (chatControls.find('.destiny-roller').length > 0) return;
+    if (chatControls.find(".destiny-roller").length > 0) return;
 
     const button = $(`
       <button class="destiny-roller" type="button" title="${ANARCHY.chat_actions.rollDice.title}">
@@ -324,12 +323,12 @@ export class GMManager extends HandlebarsApplicationMixin(ApplicationV2) {
       const ones = results.filter(r => r.result === 1).length;
 
       const flavor = formatString(ANARCHY.chat_actions.rollDice.result, {
-        count: count,
+        count,
         success: roll.total,
-        ones: ones
+        ones
       });
 
-      await roll.toMessage({ flavor: flavor });
+      await roll.toMessage({ flavor });
     });
 
     chatControls.append(button);

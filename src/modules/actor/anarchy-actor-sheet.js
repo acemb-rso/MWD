@@ -1,4 +1,4 @@
-import { ANARCHY } from "../config.js";
+﻿import { ANARCHY } from "../config.js";
 import { LOG_HEAD, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { ConfirmationDialog } from "../confirmation.js";
 import { Misc } from "../misc.js";
@@ -54,6 +54,9 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
         rollAttributeAction: this._onRollAttributeAction,
         rollWeapon: this._onRollWeapon,
         
+        // Image actions
+        editImage: AnarchyActorSheet._onEditImage,
+
         // Dialog actions
         showResistanceByType: this._onShowResistanceByType,
       },
@@ -69,49 +72,6 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
    */
   static get defaultOptions() {
     return this.DEFAULT_OPTIONS;
-  }
-
-  /** @override */
-  _getHeaderButtons() {
-    let buttons = super._getHeaderButtons?.() ?? [];
-    
-    // Remove duplicates - Application V2 can cause buttons to be added multiple times
-    const seen = new Set();
-    buttons = buttons.filter(button => {
-      // Create a unique key based on action or label
-      const key = JSON.stringify({
-        action: button.action || null,
-        label: button.label || null,
-        tooltip: button.tooltip || null,
-        icon: button.icon || null
-      });
-      if (seen.has(key)) {
-        return false;
-      }
-      seen.add(key);
-      return true;
-    });
-    
-    // Filter Token/Prototype Token based on context
-    const isToken = this.document.isToken; // true if this is a synthetic token actor
-    
-    buttons = buttons.filter(button => {
-      const label = button.label || button.tooltip || '';
-      
-      // If viewing a token actor, remove "Prototype Token" button
-      if (isToken && (label.includes('Prototype') || button.action === 'prototypeToken')) {
-        return false;
-      }
-      
-      // If viewing the base actor, remove "Token" button (keep only "Prototype Token")
-      if (!isToken && label === 'Token' && !label.includes('Prototype') && button.action === 'token') {
-        return false;
-      }
-      
-      return true;
-    });
-    
-    return buttons;
   }
 
   /** @override */
@@ -178,6 +138,45 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   }
 
   /** @override */
+  _getHeaderControls() {
+    // Start with the default header controls from ActorSheetV2
+    let controls = super._getHeaderControls?.() ?? [];
+
+    const isToken = this.document?.isToken ?? false;
+
+    // Filter Token / Prototype Token controls based on context
+    controls = controls.filter(control => {
+      const label = control.label ?? "";
+
+      // If viewing a token actor → remove "Prototype Token"
+      if (isToken && (label.includes("Prototype") || control.action === "prototypeToken")) {
+        return false;
+      }
+
+      // If viewing the base actor → remove the "Token" entry
+      if (!isToken &&
+          label === "Token" &&
+          !label.includes("Prototype") &&
+          control.action === "token") {
+        return false;
+      }
+
+      return true;
+    });
+
+    // Final dedupe: treat same icon+label as “the same button”
+    const seen = new Set();
+    controls = controls.filter(control => {
+      const key = `${control.icon ?? ""}|${control.label ?? ""}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return controls;
+  }
+
+  /** @override */
   _onRender(context, options) {
     super._onRender(context, options);
     this._logSheetDiagnostics('onRender-complete');
@@ -188,6 +187,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
    * This replaces the old activateListeners pattern.
    * @override
    */
+
   _attachPartListeners(partId, htmlElement, options) {
     super._attachPartListeners(partId, htmlElement, options);
     
@@ -234,6 +234,62 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
         await this.actor.deleteEmbeddedDocuments('Item', [item.id]);
       });
     });
+  }
+    
+  /** @override */
+  _configureRenderOptions(options) {
+    super._configureRenderOptions(options);
+
+    // Dynamically set the template based on actor type
+    if (this.actor?.type) {
+      const template = `${TEMPLATES_PATH}/actor/${this.actor.type}.hbs`;
+      this.constructor.PARTS.sheet.template = template;
+      options.parts = foundry.utils.mergeObject(options.parts ?? {}, {
+        sheet: { template }
+      });
+    }
+  }
+
+  /** @override */
+  async _prepareContext(options) {
+    this._logSheetDiagnostics('prepareContext-start', { options });
+    
+    const context = await super._prepareContext(options);
+
+    console.log(`${LOG_HEAD}Actor data for template:`, {
+      actor: this.actor,
+      system: this.actor?.system,
+      type: this.actor?.type,
+      hasGetAnarchy: typeof this.actor?.getAnarchy === 'function'
+    });
+
+    // Merge in your custom data
+    const hbsData = foundry.utils.mergeObject(context, {
+      items: {},
+      anarchy: this.actor.getAnarchy?.() ?? {},
+      ownerActor: this.actor.getOwnerActor?.() ?? null,
+      ownedActors: this.actor.getOwnedActors?.() ?? [],
+      editable: this.isEditable,
+      owner: this.document.isOwner,
+      limited: !this.document.isOwner,
+      actor: this.actor,
+      data: context.data ?? this.actor,
+      ENUMS: foundry.utils.mergeObject(
+        { attributeAction: this.actor.getAttributeActions?.() ?? {} },
+        Enums.getEnums()
+      ),
+      ANARCHY: ANARCHY,
+      system: this.actor.system
+    });
+
+    // Classify items
+    if (this.actor.items) {
+      Misc.classifyInto(hbsData.items, this.actor.items);
+      hbsData.items.weapon = [
+        ...(hbsData.items.mechWeapon ?? []),
+        ...(hbsData.items.personalWeapon ?? []),
+      ];
+    }
 
     html.find('.click-favorite').on('click', async (event) => {
       event.stopPropagation();
@@ -366,6 +422,8 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       });
     }
   }
+
+
 
   /**
    * @param {PointerEvent} event
@@ -612,6 +670,34 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       const newOwnedActorIds = ownedActorIds.filter(id => id != owned.id);
       await owner.update({ 'system.ownedActorIds': newOwnedActorIds });
     }
+  }
+  
+  /**
+   * Action handler: edit the actor portrait image.
+   * Called via data-action="editImage" on the img element.
+   */
+  static async _onEditImage(event, target) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // `this` is the sheet instance for AppV2 actions
+    const sheet = this;
+
+    // Respect editability and view mode
+    if (!sheet.isEditable || sheet.options?.viewMode) return;
+
+    const current = sheet.document.img; // or sheet.actor.img if you prefer
+
+    const fp = new FilePicker({
+      type: "image",
+      current,
+      callback: async (path) => {
+        if (!path) return;
+        await sheet.document.update({ img: path });
+      }
+    });
+
+    fp.render(true);
   }
 
   /**

@@ -46,9 +46,6 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     sheet: {
       template: "", // Set dynamically in _getPartTemplate
       scrollable: [".sheet-body"]
-    },
-    tabs: {
-      template: "" // Optional, if tabs are needed
     }
   };
 
@@ -143,10 +140,9 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
   }
 
   /**
-   * Configure header controls, removing duplicates.
-   * @returns {Array} Array of header control entries
+   * Get header controls, removing duplicates.
+   * @returns {Array} Array of header controls
    * @override
-   * @protected
    */
   _getHeaderControls() {
     const controls = super._getHeaderControls();
@@ -166,16 +162,16 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
   /* -------------------------------------------- */
 
   /**
-   * Handle clicking a checkbar element (monitor/health track).
-   * @param {PointerEvent} event - The triggering click event
+   * Handle clicking a checkbar element (monitor).
+   * @param {Event} event - The triggering event
    * @param {HTMLElement} target - The clicked element
    * @static
+   * @async
    */
   static async _onClickCheckbar(event, target) {
     const item = this.item;
     if (!item.parent) return;
 
-    // Get monitor data from element attributes
     const monitorRoot = target.closest('.checkbar-root');
     if (!monitorRoot) return;
     
@@ -183,15 +179,15 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     const index = Number.parseInt(target.dataset.index);
     const checked = target.dataset.checked === 'true';
 
-    // Toggle the monitor check
     await item.parent.switchMonitorCheck(monitor, index, checked);
   }
 
   /**
    * Handle adding a new modifier.
-   * @param {PointerEvent} event - The triggering click event
+   * @param {Event} event - The triggering event
    * @param {HTMLElement} target - The clicked element
    * @static
+   * @async
    */
   static async _onModifierAdd(event, target) {
     await this.item.createModifier();
@@ -199,9 +195,10 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
 
   /**
    * Handle deleting a modifier.
-   * @param {PointerEvent} event - The triggering click event
+   * @param {Event} event - The triggering event
    * @param {HTMLElement} target - The clicked element
    * @static
+   * @async
    */
   static async _onModifierDelete(event, target) {
     const modifierRow = target.closest('.define-modifier');
@@ -215,9 +212,10 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
 
   /**
    * Handle changing a modifier's value.
-   * @param {Event} event - The triggering change event
+   * @param {Event} event - The triggering event
    * @param {HTMLElement} target - The changed input element
    * @static
+   * @async
    */
   static async _onModifierValueChange(event, target) {
     const modifierRow = target.closest('.define-modifier');
@@ -231,9 +229,10 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
 
   /**
    * Handle changing a modifier's condition.
-   * @param {Event} event - The triggering change event
+   * @param {Event} event - The triggering event
    * @param {HTMLElement} target - The changed input element
    * @static
+   * @async
    */
   static async _onModifierConditionChange(event, target) {
     const modifierRow = target.closest('.define-modifier');
@@ -246,10 +245,11 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
   }
 
   /**
-   * Handle changing a modifier's selection (category, type, etc.).
-   * @param {Event} event - The triggering change event
+   * Handle changing a modifier's selection.
+   * @param {Event} event - The triggering event
    * @param {HTMLElement} target - The changed select element
    * @static
+   * @async
    */
   static async _onModifierSelectionChange(event, target) {
     const modifierRow = target.closest('.define-modifier');

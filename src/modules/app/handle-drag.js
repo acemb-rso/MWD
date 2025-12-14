@@ -1,11 +1,20 @@
 
 export class HandleDragApplication {
-  constructor(getDocElement, options) {
-    this.getDocElement = getDocElement
+  constructor(getDocElement, options = {}) {
+    this.getDocElement = getDocElement;
     this.initial = options.initial ?? { left: 200, top: 200 };
-    this.maxPos = options.maxPos ?? { left: 200, top: 100 };
-    this.minPos = options.minPos ?? { left: 2, top: 2 };
+    this.maxPos  = options.maxPos  ?? { left: 200, top: 100 };
+    this.minPos  = options.minPos  ?? { left: 2,   top: 2 };
     this.settings = options.settings;
+
+    // Guard: settings must exist and have system & keyPosition
+    if (!this.settings || !this.settings.system || !this.settings.keyPosition) {
+      console.error(
+        "HandleDragApplication | Missing or invalid settings. " +
+        "Expected options.settings = { system: <systemId>, keyPosition: <settingKey> }"
+      );
+      return; // Bail out gracefully instead of crashing init
+    }
 
     game.settings.register(this.settings.system, this.settings.keyPosition, {
       scope: "client",
@@ -13,6 +22,7 @@ export class HandleDragApplication {
       default: this.initial,
       type: Object
     });
+
     this.position = game.settings.get(this.settings.system, this.settings.keyPosition);
     this._initDrag();
   }

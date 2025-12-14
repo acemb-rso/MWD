@@ -133,6 +133,8 @@
 .character-sheet .sheet-body {
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
   gap: 0.75rem;
 }
 
