@@ -1,74 +1,67 @@
 ﻿import { ANARCHY } from "../config.js";
-import { LOG_HEAD, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
+import { LOG_HEAD, TEMPLATES_PATH } from "../constants.js";
 import { ConfirmationDialog } from "../confirmation.js";
 import { Misc } from "../misc.js";
 import { Enums } from "../enums.js";
-import { SelectActor } from "../dialog/select-actor.js";
 import { ResistanceByTypeDialog } from "../dialog/resistance-by-type.js";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
- * Base Actor Sheet class for the Anarchy system, fully converted to ApplicationV2.
- * Uses _attachPartListeners instead of activateListeners for AppV2 compliance.
+ * AppV2-only Actor Sheet base class.
+ * - No jQuery
+ * - No legacy click handlers
+ * - Uses DEFAULT_OPTIONS.actions + data-action in templates
  */
 export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2) {
-
   static PARTS = {
     sheet: {
-      template: TEMPLATES_PATH + "/actor/character.hbs",
+      template: `${TEMPLATES_PATH}/actor/character.hbs`,
       scrollable: [".sheet-body"]
     }
   };
 
-  // ApplicationV2 tabs configuration - override in subclasses if needed
-  static TABS = {};
-
   /** @override */
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-      isGM: game.user.isGM,
+      classes: [game.system.anarchy.styles.selectCssClass(), "sheet", "actor", "mwd"],
       dragDrop: [{ dragSelector: ".item", dropSelector: null }],
-      classes: [game.system.anarchy.styles.selectCssClass(), "sheet", "actor"],
+      position: { width: 760, height: 760 },
       actions: {
-        // Item actions
+        // Items
         itemAdd: this._onItemAdd,
         itemEdit: this._onItemEdit,
         itemActivate: this._onItemActivate,
         itemDelete: this._onItemDelete,
-        
-        // Favorite actions
+
+        // Favorites
         toggleFavorite: this._onToggleFavorite,
-        
-        // Ownership actions
+
+        // Ownership
         ownerUnlink: this._onOwnerUnlink,
         ownedActorView: this._onOwnedActorView,
         ownedActorUnlink: this._onOwnedActorUnlink,
-        
-        // Monitor/counter actions
+
+        // Monitors/counters
         toggleMonitor: this._onToggleMonitor,
-        
-        // Roll actions
+
+        // Rolls
         rollSkill: this._onRollSkill,
         rollAttribute: this._onRollAttribute,
         rollAttributeAction: this._onRollAttributeAction,
         rollWeapon: this._onRollWeapon,
-        
-        // Image actions
-        editImage: AnarchyActorSheet._onEditImage,
 
-        // Dialog actions
-        showResistanceByType: this._onShowResistanceByType,
-      },
-      position: {
-        width: 760,
-        height: 760
+        // Image
+        editImage: this._onEditImage,
+
+        // Dialogs
+        showResistanceByType: this._onShowResistanceByType
       }
     });
   }
 
   /**
-   * Keep support for code paths that still read {@link defaultOptions} from app-v1 style classes.
+   * Keep support for old code paths that read defaultOptions.
    */
   static get defaultOptions() {
     return this.DEFAULT_OPTIONS;
@@ -78,96 +71,84 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   _configureRenderOptions(options) {
     super._configureRenderOptions(options);
 
-    // Dynamically set the template based on actor type
-    if (this.actor?.type) {
-      const template = `${TEMPLATES_PATH}/actor/${this.actor.type}.hbs`;
-      this.constructor.PARTS.sheet.template = template;
-      options.parts = foundry.utils.mergeObject(options.parts ?? {}, {
-        sheet: { template }
-      });
-    }
+    // Choose template by actor type, WITHOUT mutating static PARTS.
+    const type = this.actor?.type ?? "character";
+    const template = `${TEMPLATES_PATH}/actor/${type}.hbs`;
+
+    options.parts = foundry.utils.mergeObject(options.parts ?? {}, {
+      sheet: { template }
+    });
   }
 
   /** @override */
   async _prepareContext(options) {
-    this._logSheetDiagnostics('prepareContext-start', { options });
-    
-    const context = await super._prepareContext(options);
+    this._debug("prepareContext:start", { options });
 
-    console.log(`${LOG_HEAD}Actor data for template:`, {
+    const base = await super._prepareContext(options);
+
+    // Build HBS data: keep it deterministic and data-only.
+    const hbsData = foundry.utils.mergeObject(base, {
       actor: this.actor,
-      system: this.actor?.system,
-      type: this.actor?.type,
-      hasGetAnarchy: typeof this.actor?.getAnarchy === 'function'
-    });
-
-    // Merge in your custom data
-    const hbsData = foundry.utils.mergeObject(context, {
-      items: {},
-      anarchy: this.actor.getAnarchy?.() ?? {},
-      ownerActor: this.actor.getOwnerActor?.() ?? null,
-      ownedActors: this.actor.getOwnedActors?.() ?? [],
+      system: this.actor.system,
       editable: this.isEditable,
       owner: this.document.isOwner,
       limited: !this.document.isOwner,
-      actor: this.actor,
-      data: context.data ?? this.actor,
+
+      // System-specific
+      anarchy: this.actor.getAnarchy?.() ?? {},
+      ownerActor: this.actor.getOwnerActor?.() ?? null,
+      ownedActors: this.actor.getOwnedActors?.() ?? [],
+
       ENUMS: foundry.utils.mergeObject(
         { attributeAction: this.actor.getAttributeActions?.() ?? {} },
         Enums.getEnums()
       ),
-      ANARCHY: ANARCHY,
-      system: this.actor.system
+      ANARCHY
     });
 
-    // Classify items
+    // Items classified by your helper
+    hbsData.items = hbsData.items ?? {};
     if (this.actor.items) {
       Misc.classifyInto(hbsData.items, this.actor.items);
+
+      // Convenience “weapon” bucket combining both types
       hbsData.items.weapon = [
         ...(hbsData.items.mechWeapon ?? []),
-        ...(hbsData.items.personalWeapon ?? []),
+        ...(hbsData.items.personalWeapon ?? [])
       ];
     }
 
-    this._logSheetDiagnostics('prepareContext-complete', { 
-      hasItems: !!hbsData.items,
-      itemCount: this.actor.items?.size ?? 0 
+    this._debug("prepareContext:done", {
+      actorType: this.actor?.type,
+      itemCount: this.actor?.items?.size ?? 0
     });
-    
+
     return hbsData;
   }
 
   /** @override */
-  _getHeaderControls() {
-    // Start with the default header controls from ActorSheetV2
-    let controls = super._getHeaderControls?.() ?? [];
+  _attachPartListeners(partId, htmlElement, options) {
+    // AppV2 actions are wired automatically; only add listeners here if you truly
+    // need something that cannot be expressed as a data-action.
+    super._attachPartListeners(partId, htmlElement, options);
+  }
 
+  /** @override */
+  _getHeaderControls() {
+    let controls = super._getHeaderControls?.() ?? [];
     const isToken = this.document?.isToken ?? false;
 
-    // Filter Token / Prototype Token controls based on context
     controls = controls.filter(control => {
       const label = control.label ?? "";
-
-      // If viewing a token actor → remove "Prototype Token"
-      if (isToken && (label.includes("Prototype") || control.action === "prototypeToken")) {
-        return false;
-      }
-
-      // If viewing the base actor → remove the "Token" entry
-      if (!isToken &&
-          label === "Token" &&
-          !label.includes("Prototype") &&
-          control.action === "token") {
-        return false;
-      }
-
+      if (isToken && (label.includes("Prototype") || control.action === "prototypeToken")) return false;
+      if (!isToken && label === "Token" && control.action === "token") return false;
       return true;
     });
 
-    // Final dedupe: treat same icon+label as “the same button”
+    // Dedupe icon+label
     const seen = new Set();
-    controls = controls.filter(control => {
-      const key = `${control.icon ?? ""}|${control.label ?? ""}`;
+    controls = controls.filter(c => {
+      const key = `${c.icon ?? ""}|${c.label ?? ""}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -176,262 +157,54 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     return controls;
   }
 
-  /** @override */
-  _onRender(context, options) {
-    super._onRender(context, options);
-    this._logSheetDiagnostics('onRender-complete');
-  }
+  // =========================
+  // Action handlers (AppV2)
+  // =========================
 
-  /**
-   * AppV2 method for attaching event listeners to rendered parts.
-   * This replaces the old activateListeners pattern.
-   * @override
-   */
-
-  _attachPartListeners(partId, htmlElement, options) {
-    super._attachPartListeners(partId, htmlElement, options);
-    
-    // Note: In AppV2, actions defined in DEFAULT_OPTIONS.actions are handled automatically
-    // via data-action attributes in the template. However, we can still attach custom
-    // listeners here for events that don't fit the action pattern.
-    
-    // For compatibility with existing templates that may use old-style click handlers,
-    // we attach them here. Ideally, templates should be updated to use data-action.
-    const html = $(htmlElement);
-    
-    // Legacy click handlers (these should eventually be converted to actions)
-    this._attachLegacyClickHandlers(html);
-  }
-
-  /**
-   * Attach legacy click handlers for backwards compatibility.
-   * These should eventually be converted to use the actions system.
-   * @private
-   */
-  _attachLegacyClickHandlers(html) {
-    // Items standard actions (add/edit/activate/delete)
-    html.find('.click-item-add').on('click', async (event) => {
-      event.stopPropagation();
-      await this.createNewItem(this.getEventItemType(event));
-    });
-
-    html.find('.click-item-edit').on('click', async (event) => {
-      event.stopPropagation();
-      this.getEventItem(event)?.sheet.render(true);
-    });
-
-    html.find('.click-item-activate').on('click', async (event) => {
-      event.stopPropagation();
-      const item = this.getEventItem(event);
-      const inactive = item.system.inactive;
-      await item.update({ 'system.inactive': !inactive });
-    });
-
-    html.find('.click-item-delete').on('click', async (event) => {
-      event.stopPropagation();
-      const item = this.getEventItem(event);
-      ConfirmationDialog.confirmDeleteItem(item, async () => {
-        await this.actor.deleteEmbeddedDocuments('Item', [item.id]);
-      });
-    });
-  }
-    
-  /** @override */
-  _configureRenderOptions(options) {
-    super._configureRenderOptions(options);
-
-    // Dynamically set the template based on actor type
-    if (this.actor?.type) {
-      const template = `${TEMPLATES_PATH}/actor/${this.actor.type}.hbs`;
-      this.constructor.PARTS.sheet.template = template;
-      options.parts = foundry.utils.mergeObject(options.parts ?? {}, {
-        sheet: { template }
-      });
-    }
-  }
-
-  /** @override */
-  async _prepareContext(options) {
-    this._logSheetDiagnostics('prepareContext-start', { options });
-    
-    const context = await super._prepareContext(options);
-
-    console.log(`${LOG_HEAD}Actor data for template:`, {
-      actor: this.actor,
-      system: this.actor?.system,
-      type: this.actor?.type,
-      hasGetAnarchy: typeof this.actor?.getAnarchy === 'function'
-    });
-
-    // Merge in your custom data
-    const hbsData = foundry.utils.mergeObject(context, {
-      items: {},
-      anarchy: this.actor.getAnarchy?.() ?? {},
-      ownerActor: this.actor.getOwnerActor?.() ?? null,
-      ownedActors: this.actor.getOwnedActors?.() ?? [],
-      editable: this.isEditable,
-      owner: this.document.isOwner,
-      limited: !this.document.isOwner,
-      actor: this.actor,
-      data: context.data ?? this.actor,
-      ENUMS: foundry.utils.mergeObject(
-        { attributeAction: this.actor.getAttributeActions?.() ?? {} },
-        Enums.getEnums()
-      ),
-      ANARCHY: ANARCHY,
-      system: this.actor.system
-    });
-
-    // Classify items
-    if (this.actor.items) {
-      Misc.classifyInto(hbsData.items, this.actor.items);
-      hbsData.items.weapon = [
-        ...(hbsData.items.mechWeapon ?? []),
-        ...(hbsData.items.personalWeapon ?? []),
-      ];
-    }
-
-    html.find('.click-favorite').on('click', async (event) => {
-      event.stopPropagation();
-      this.onClickFavorite({
-        skillId: $(event.currentTarget).attr('data-skill-id'),
-        specialization: $(event.currentTarget).attr('data-specialization'),
-        weaponId: $(event.currentTarget).attr('data-weapon-id'),
-        attributeAction: $(event.currentTarget).attr('data-attributeAction'),
-        isFavorite: $(event.currentTarget).attr('data-isFavorite')
-      });
-    });
-
-    // Ownership management
-    html.find('.click-owner-actor-unlink').on('click', async (event) => {
-      event.stopPropagation();
-      this.detachFromOwner(this.actor.getOwnerActor(), this.actor);
-    });
-    
-    html.find('.click-owned-actor-view').on('click', async (event) => {
-      event.stopPropagation();
-      this.getEventOwnedActor(event)?.sheet.render(true);
-    });
-    
-    html.find('.click-owned-actor-unlink').on('click', async (event) => {
-      event.stopPropagation();
-      this.detachFromOwner(this.actor, this.getEventOwnedActor(event));
-    });
-
-    // Counters & monitors
-    html.find('a.click-checkbar-element').on('click', async (event) => {
-      event.stopPropagation();
-      const item = this.getEventItem(event);
-      const handler = item ?? this.actor;
-      const monitor = this.getEventMonitorCode(event);
-      await handler.switchMonitorCheck(
-        monitor,
-        this.getEventIndex(event),
-        this.isEventChecked(event),
-        item
-      );
-    });
-
-    // Rolls
-    html.find('.click-skill-roll').on('click', async (event) => {
-      event.stopPropagation();
-      this.actor.rollSkill(
-        this.getEventItem(event),
-        this.getEventSkillSpecialization(event)
-      );
-    });
-
-    html.find('.click-roll-attribute').on('click', async (event) => {
-      event.stopPropagation();
-      const handler = this.getEventItem(event) ?? this.actor;
-      handler.rollAttribute(
-        $(event.currentTarget).closest('.anarchy-attribute').attr('data-attribute')
-      );
-    });
-
-    html.find('.click-roll-attribute-action').on('click', async (event) => {
-      event.stopPropagation();
-      this.actor.rollAttributeAction(this.getEventActionCode(event));
-    });
-
-    html.find('.click-weapon-roll').on('click', async (event) => {
-      event.stopPropagation();
-      const weapon = this.getEventItem(event);
-      if (!weapon) {
-        ui.notifications.warn('ANARCHY.common.errors.weaponNotFound');
-        return;
-      }
-      this.actor.rollWeapon(weapon);
-    });
-
-    html.find('.click-resistance-by-type').on('click', async (event) => {
-      event.stopPropagation();
-      const monitor = this.getEventMonitorCode(event);
-      await ResistanceByTypeDialog.show(this.actor, monitor);
-    });
-  }
-
-  // ==================== ACTION HANDLERS ====================
-  // These are called automatically when elements with data-action attributes are clicked
-
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onItemAdd(event, target) {
+    event.preventDefault();
     event.stopPropagation();
-    const itemType = target.closest('[data-item-type]')?.dataset.itemType;
-    if (itemType) {
-      await this.createNewItem(itemType);
-    }
+
+    // Prefer data-item-type on the clicked element; fallback to closest ancestor.
+    const itemType =
+      target?.dataset?.itemType ??
+      target.closest?.("[data-item-type]")?.dataset?.itemType;
+
+    if (!itemType) return;
+    await this._createNewItem(itemType);
   }
 
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onItemEdit(event, target) {
+    event.preventDefault();
     event.stopPropagation();
     const item = this._getItemFromTarget(target);
-    item?.sheet.render(true);
+    item?.sheet?.render(true);
   }
 
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onItemActivate(event, target) {
+    event.preventDefault();
     event.stopPropagation();
     const item = this._getItemFromTarget(target);
-    if (item) {
-      const inactive = item.system.inactive;
-      await item.update({ 'system.inactive': !inactive });
-    }
+    if (!item) return;
+    await item.update({ "system.inactive": !item.system.inactive });
   }
 
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onItemDelete(event, target) {
+    event.preventDefault();
     event.stopPropagation();
     const item = this._getItemFromTarget(target);
-    if (item) {
-      ConfirmationDialog.confirmDeleteItem(item, async () => {
-        await this.actor.deleteEmbeddedDocuments('Item', [item.id]);
-      });
-    }
+    if (!item) return;
+
+    ConfirmationDialog.confirmDeleteItem(item, async () => {
+      await this.actor.deleteEmbeddedDocuments("Item", [item.id]);
+    });
   }
 
-
-
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onToggleFavorite(event, target) {
+    event.preventDefault();
     event.stopPropagation();
-    this.onClickFavorite({
+
+    await this._onClickFavorite({
       skillId: target.dataset.skillId,
       specialization: target.dataset.specialization,
       weaponId: target.dataset.weaponId,
@@ -440,292 +213,184 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     });
   }
 
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onOwnerUnlink(event, target) {
+    event.preventDefault();
     event.stopPropagation();
-    this.detachFromOwner(this.actor.getOwnerActor(), this.actor);
+    await this._detachFromOwner(this.actor.getOwnerActor?.(), this.actor);
   }
 
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onOwnedActorView(event, target) {
+    event.preventDefault();
     event.stopPropagation();
-    const ownedActor = this._getOwnedActorFromTarget(target);
-    ownedActor?.sheet.render(true);
+    const owned = this._getOwnedActorFromTarget(target);
+    owned?.sheet?.render(true);
   }
 
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onOwnedActorUnlink(event, target) {
+    event.preventDefault();
     event.stopPropagation();
-    const ownedActor = this._getOwnedActorFromTarget(target);
-    this.detachFromOwner(this.actor, ownedActor);
+    const owned = this._getOwnedActorFromTarget(target);
+    await this._detachFromOwner(this.actor, owned);
   }
 
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onToggleMonitor(event, target) {
+    event.preventDefault();
     event.stopPropagation();
+
     const item = this._getItemFromTarget(target);
     const handler = item ?? this.actor;
-    const monitorElement = target.closest('.checkbar-root');
-    const monitor = monitorElement?.dataset.monitorCode;
-    const index = parseInt(target.dataset.index);
-    const checked = target.dataset.checked === 'true';
-    
-    if (monitor !== undefined && !isNaN(index)) {
-      await handler.switchMonitorCheck(monitor, index, checked, item);
-    }
+
+    const monitorRoot = target.closest?.(".checkbar-root");
+    const monitor = monitorRoot?.dataset?.monitorCode;
+
+    const index = Number.parseInt(target.dataset.index ?? "", 10);
+    const checked = target.dataset.checked === "true";
+
+    if (!monitor || Number.isNaN(index)) return;
+    await handler.switchMonitorCheck(monitor, index, checked, item);
   }
 
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onRollSkill(event, target) {
+    event.preventDefault();
     event.stopPropagation();
     const item = this._getItemFromTarget(target);
     const specialization = target.dataset.specialization;
     this.actor.rollSkill(item, specialization);
   }
 
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onRollAttribute(event, target) {
+    event.preventDefault();
     event.stopPropagation();
+
     const item = this._getItemFromTarget(target);
     const handler = item ?? this.actor;
-    const attributeElement = target.closest('.anarchy-attribute');
-    const attribute = attributeElement?.dataset.attribute;
-    
-    if (attribute) {
-      handler.rollAttribute(attribute);
-    }
+
+    const attrRoot = target.closest?.(".anarchy-attribute");
+    const attribute = attrRoot?.dataset?.attribute;
+    if (!attribute) return;
+
+    handler.rollAttribute(attribute);
   }
 
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onRollAttributeAction(event, target) {
+    event.preventDefault();
     event.stopPropagation();
-    const actionCode = target.dataset.actionCode || target.closest('[data-action-code]')?.dataset.actionCode;
-    if (actionCode) {
-      this.actor.rollAttributeAction(actionCode);
-    }
+    const actionCode =
+      target.dataset.actionCode ??
+      target.closest?.("[data-action-code]")?.dataset?.actionCode;
+
+    if (!actionCode) return;
+    this.actor.rollAttributeAction(actionCode);
   }
 
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onRollWeapon(event, target) {
+    event.preventDefault();
     event.stopPropagation();
     const weapon = this._getItemFromTarget(target);
     if (!weapon) {
-      ui.notifications.warn('ANARCHY.common.errors.weaponNotFound');
+      ui.notifications.warn("ANARCHY.common.errors.weaponNotFound");
       return;
     }
     this.actor.rollWeapon(weapon);
   }
 
-  /**
-   * @param {PointerEvent} event
-   * @param {HTMLElement} target
-   */
   static async _onShowResistanceByType(event, target) {
+    event.preventDefault();
     event.stopPropagation();
-    const monitorElement = target.closest('.checkbar-root');
-    const monitor = monitorElement?.dataset.monitorCode;
-    if (monitor) {
-      await ResistanceByTypeDialog.show(this.actor, monitor);
-    }
+
+    const root = target.closest?.(".checkbar-root");
+    const monitor = root?.dataset?.monitorCode;
+    if (!monitor) return;
+
+    await ResistanceByTypeDialog.show(this.actor, monitor);
   }
 
-  // ==================== HELPER METHODS ====================
-
-  /**
-   * Get an item from a target element
-   * @param {HTMLElement} target
-   * @returns {Item|null}
-   * @private
-   */
-  static _getItemFromTarget(target) {
-    const itemId = target.closest('[data-item-id]')?.dataset.itemId;
-    return itemId ? this.actor.items.get(itemId) : null;
-  }
-
-  /**
-   * Get an owned actor from a target element
-   * @param {HTMLElement} target
-   * @returns {Actor|null}
-   * @private
-   */
-  static _getOwnedActorFromTarget(target) {
-    const actorId = target.closest('[data-owned-actor-id]')?.dataset.ownedActorId;
-    return actorId ? game.actors.get(actorId) : null;
-  }
-
-  /**
-   * Diagnostic logging for sheet lifecycle
-   * @private
-   */
-  _logSheetDiagnostics(stage, extra = {}) {
-    const diagnostics = {
-      stage,
-      actorId: this.actor?.id,
-      actorName: this.actor?.name,
-      actorType: this.actor?.type,
-      template: this.constructor.PARTS?.sheet?.template,
-      hasSystemData: !!this.actor?.system,
-      ownerId: this.actor?.system?.ownerId ?? null,
-      systemReady: !!game.system?.anarchy,
-      sheetId: this.id,
-      rendered: this.rendered,
-      ...extra
-    };
-    console.debug(`${LOG_HEAD}ActorSheet`, diagnostics);
-  }
-
-  // ==================== LEGACY HELPER METHODS ====================
-  // These are kept for backwards compatibility with existing code
-
-  getEventItemType(event) {
-    return $(event.currentTarget).closest('.define-item-type').attr('data-item-type');
-  }
-
-  getEventItem(event) {
-    const itemId = $(event.currentTarget).closest('[data-item-id]').attr('data-item-id')
-      ?? $(event.currentTarget).attr('data-item-id');
-    return this.actor.items.get(itemId);
-  }
-
-  getEventOwnedActor(event) {
-    const ownedActorId = $(event.currentTarget).closest('[data-owned-actor-id]').attr('data-owned-actor-id');
-    return game.actors.get(ownedActorId);
-  }
-
-  getEventMonitorCode(event) {
-    return $(event.currentTarget).closest('.checkbar-root').attr('data-monitor-code');
-  }
-
-  getEventIndex(event) {
-    return Number.parseInt($(event.currentTarget).attr('data-index'));
-  }
-
-  isEventChecked(event) {
-    return $(event.currentTarget).attr('data-checked') == 'true';
-  }
-
-  getEventActionCode(event) {
-    return $(event.currentTarget).attr('data-action-code');
-  }
-
-  getEventSkillSpecialization(event) {
-    return $(event.currentTarget).attr('data-specialization');
-  }
-
-  async createNewItem(itemType) {
-    const singular = ANARCHY.itemType.singular[itemType];
-    const name = singular + ' ' + this.actor.items.filter(it => it.type == itemType).length;
-    await this.actor.createEmbeddedDocuments('Item', [{ name: name, type: itemType }]);
-  }
-
-  async onClickFavorite(options) {
-    const { skillId, specialization, weaponId, attributeAction, isFavorite } = options;
-    const favorite = isFavorite != 'true';
-
-    if (skillId) {
-      return this.actor.setSkillFavorite(skillId, specialization, favorite);
-    }
-    if (weaponId) {
-      return this.actor.setWeaponFavorite(weaponId, favorite);
-    }
-    if (attributeAction) {
-      return this.actor.setAttributeActionFavorite(attributeAction, favorite);
-    }
-  }
-
-  async detachFromOwner(owner, owned) {
-    if (!owner || !owned) {
-      return;
-    }
-    const ownerId = owned.system.ownerId;
-    if (ownerId == owner.id) {
-      await owned.update({ 'system.ownerId': '' });
-    }
-    const ownedActorIds = owner.system.ownedActorIds;
-    if (ownedActorIds?.includes(owned.id)) {
-      const newOwnedActorIds = ownedActorIds.filter(id => id != owned.id);
-      await owner.update({ 'system.ownedActorIds': newOwnedActorIds });
-    }
-  }
-  
-  /**
-   * Action handler: edit the actor portrait image.
-   * Called via data-action="editImage" on the img element.
-   */
   static async _onEditImage(event, target) {
     event.preventDefault();
     event.stopPropagation();
 
-    // `this` is the sheet instance for AppV2 actions
-    const sheet = this;
+    if (!this.isEditable || this.options?.viewMode) return;
 
-    // Respect editability and view mode
-    if (!sheet.isEditable || sheet.options?.viewMode) return;
-
-    const current = sheet.document.img; // or sheet.actor.img if you prefer
-
+    const current = this.document.img;
     const fp = new FilePicker({
       type: "image",
       current,
       callback: async (path) => {
         if (!path) return;
-        await sheet.document.update({ img: path });
+        await this.document.update({ img: path });
       }
     });
 
     fp.render(true);
   }
 
-  /**
-   * Preload templates for the actor sheet.
-   * Note: The system's HandlebarsManager already loads all partial templates globally,
-   * so this method is primarily for sheet-specific template parts if needed.
-   * @override
-   */
-  static async _preloadTemplates() {
-    // The HandlebarsManager already loads all partials system-wide.
-    // Individual sheets can add their own specific templates here if needed.
-    const paths = this._getSheetSpecificTemplates();
-    
-    if (paths.length > 0) {
-      console.debug(`${LOG_HEAD}Preloading sheet-specific templates:`, paths);
-      return loadTemplates(paths);
+  // =========================
+  // Helpers (instance context)
+  // =========================
+
+  _debug(stage, extra = {}) {
+    console.debug(`${LOG_HEAD}ActorSheet`, {
+      stage,
+      actorId: this.actor?.id,
+      actorName: this.actor?.name,
+      actorType: this.actor?.type,
+      template: this.options?.parts?.sheet?.template ?? this.constructor.PARTS?.sheet?.template,
+      ...extra
+    });
+  }
+
+  _getItemFromTarget(target) {
+    const itemId = target.closest?.("[data-item-id]")?.dataset?.itemId;
+    return itemId ? this.actor.items.get(itemId) : null;
+  }
+
+  _getOwnedActorFromTarget(target) {
+    const actorId = target.closest?.("[data-owned-actor-id]")?.dataset?.ownedActorId;
+    return actorId ? game.actors.get(actorId) : null;
+  }
+
+  async _createNewItem(itemType) {
+    const singular = ANARCHY.itemType?.singular?.[itemType] ?? itemType;
+    const existingCount = this.actor.items.filter(it => it.type === itemType).length;
+    const name = `${singular} ${existingCount}`;
+
+    await this.actor.createEmbeddedDocuments("Item", [{ name, type: itemType }]);
+  }
+
+  async _onClickFavorite({ skillId, specialization, weaponId, attributeAction, isFavorite }) {
+    const favorite = isFavorite !== "true";
+    if (skillId) return this.actor.setSkillFavorite(skillId, specialization, favorite);
+    if (weaponId) return this.actor.setWeaponFavorite(weaponId, favorite);
+    if (attributeAction) return this.actor.setAttributeActionFavorite(attributeAction, favorite);
+  }
+
+  async _detachFromOwner(owner, owned) {
+    if (!owner || !owned) return;
+
+    const ownerId = owned.system.ownerId;
+    if (ownerId === owner.id) await owned.update({ "system.ownerId": "" });
+
+    const ownedActorIds = owner.system.ownedActorIds;
+    if (ownedActorIds?.includes(owned.id)) {
+      await owner.update({ "system.ownedActorIds": ownedActorIds.filter(id => id !== owned.id) });
     }
   }
 
   /**
-   * Get sheet-specific template paths to preload.
-   * Override in subclasses to add templates specific to that sheet.
+   * AppV2 preload hook (optional). Keep deterministic.
+   * @override
+   */
+  static async _preloadTemplates() {
+    const paths = this._getSheetSpecificTemplates();
+    if (!paths?.length) return;
+    return foundry.applications.handlebars.loadTemplates(paths);
+  }
+
+  /**
+   * Override in subclasses if you truly have sheet-specific partials.
    * @returns {string[]}
-   * @protected
    */
   static _getSheetSpecificTemplates() {
-    // Base class has no sheet-specific templates
-    // Child classes can override to add their own
     return [];
   }
 }

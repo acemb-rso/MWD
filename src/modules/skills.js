@@ -10,50 +10,50 @@ const ATTR = TEMPLATE.actorAttributes;
 const DEFENSE = ANARCHY_SYSTEM.defenses;
 
 const DEFAULT_SKILLSET_ANARCHY = 'shadowrun-anarchy-en';
-const KNOWLEDGE = { code: 'knowledge', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/knowledge.svg` };
+const KNOWLEDGE = { code: 'knowledge', label: 'Knowledge', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/knowledge.svg` };
 
 export const ANARCHY_SKILLS = [
   // Strength
-  { code: 'athletics', attribute: ATTR.strength, icon: `${ICONS_SKILLS_PATH}/athletics.svg` },
-  { code: 'heavyWeapons', attribute: ATTR.strength, icon: `${ICONS_SKILLS_PATH}/heavy-weapons.svg`, defense: DEFENSE.physicalDefense },
+  { code: 'athletics', label: 'Athletics', attribute: ATTR.strength, icon: `${ICONS_SKILLS_PATH}/athletics.svg` },
+  { code: 'heavyWeapons', label: 'Heavy Weapons', attribute: ATTR.strength, icon: `${ICONS_SKILLS_PATH}/heavy-weapons.svg`, defense: DEFENSE.physicalDefense },
 
   // Reflexes
-  { code: 'escapeArtist', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/escape-artist.svg` },
-  { code: 'gunnery', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/vehicle-weapons.svg`, defense: DEFENSE.physicalDefense },
-  { code: 'meleeCombat', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/close-combat.svg`, defense: DEFENSE.physicalDefense },
-  { code: 'piloting', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/piloting-ground-steering-wheel.svg` },
-  { code: 'projectileWeapons', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/projectile-weapons.svg`, defense: DEFENSE.physicalDefense },
-  { code: 'firearms', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/firearms.svg`, defense: DEFENSE.physicalDefense },
-  { code: 'stealth', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/stealth.svg` },
-  { code: 'zeroGOperations', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/free-fall.svg` },
+  { code: 'escapeArtist', label: 'Escape Artist', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/escape-artist.svg` },
+  { code: 'gunnery', label: 'Gunnery', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/vehicle-weapons.svg`, defense: DEFENSE.physicalDefense },
+  { code: 'meleeCombat', label: 'Melee Combat', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/close-combat.svg`, defense: DEFENSE.physicalDefense },
+  { code: 'piloting', label: 'Piloting', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/piloting-ground-steering-wheel.svg` },
+  { code: 'projectileWeapons', label: 'Projectile Weapons', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/projectile-weapons.svg`, defense: DEFENSE.physicalDefense },
+  { code: 'firearms', label: 'Firearms', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/firearms.svg`, defense: DEFENSE.physicalDefense },
+  { code: 'stealth', label: 'Stealth', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/stealth.svg` },
+  { code: 'zeroGOperations', label: 'Zero-G Operations', attribute: ATTR.reflexes, icon: `${ICONS_SKILLS_PATH}/free-fall.svg` },
 
   // Intellect
-  { code: 'art', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/art.svg` },
-  { code: 'artillery', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/artillery.svg` },
-  { code: 'communications', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/networking.svg` },
-  { code: 'computers', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/hacking.svg` },
-  { code: 'demolitions', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/demolition.svg` },
-  { code: 'knowledge', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/knowledge.svg` },
-  { code: 'medTech', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/biotech.svg` },
-  { code: 'science', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
-  { code: 'perception', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
-  { code: 'tactics', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
-  { code: 'technician', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/engineering.svg` },
-  { code: 'tracking', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/tracking.svg` },
-  { code: 'navigation', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/piloting-other.svg` },
+  { code: 'art', label: 'Art', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/art.svg` },
+  { code: 'artillery', label: 'Artillery', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/artillery.svg` },
+  { code: 'communications', label: 'Communications', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/networking.svg` },
+  { code: 'computers', label: 'Computers', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/hacking.svg` },
+  { code: 'demolitions', label: 'Demolitions', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/demolition.svg` },
+  { code: 'knowledge', label: 'Knowledge', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/knowledge.svg` },
+  { code: 'medTech', label: 'Medtech', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/biotech.svg` },
+  { code: 'science', label: 'Science', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
+  { code: 'perception', label: 'Perceptoin', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
+  { code: 'tactics', label: 'Tactics', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
+  { code: 'technician', label: 'Technician', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/engineering.svg` },
+  { code: 'tracking', label: 'Tracking', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/tracking.svg` },
+  { code: 'navigation', label: 'Navigation', attribute: ATTR.intelligence, icon: `${ICONS_SKILLS_PATH}/piloting-other.svg` },
 
   // Willpower
-  { code: 'animalHandling', attribute: ATTR.willpower, icon: `${ICONS_SKILLS_PATH}/animals.svg` },
-  { code: 'survival', attribute: ATTR.willpower, icon: `${ICONS_SKILLS_PATH}/survival.svg` },
+  { code: 'animalHandling', label: 'Animal Handling', attribute: ATTR.willpower, icon: `${ICONS_SKILLS_PATH}/animals.svg` },
+  { code: 'survival', label: 'Survival', attribute: ATTR.willpower, icon: `${ICONS_SKILLS_PATH}/survival.svg` },
 
   // Charisma
-  { code: 'acting', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/con-art.svg` },
-  { code: 'disguise', attribute: ATTR.charisma, icon: `${ICONS_SKILLS_PATH}/disguise.svg` },
-  { code: 'leadership', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
-  { code: 'negotiation', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/negotiation.svg` },
-  { code: 'etiquette', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/etiquette.svg` },
-  { code: 'streetwise', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/etiquette2.svg` },
-  { code: 'intimidation', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/intimidation.svg` },
+  { code: 'acting', label: 'Acting', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/con-art.svg` },
+  { code: 'disguise', label: 'Disguise', attribute: ATTR.charisma, icon: `${ICONS_SKILLS_PATH}/disguise.svg` },
+  { code: 'leadership', label: 'Leadership', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
+  { code: 'negotiation', label: 'Negotiation', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/negotiation.svg` },
+  { code: 'etiquette', label: 'Etiquette', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/etiquette.svg` },
+  { code: 'streetwise', label: 'Streetwise', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/etiquette2.svg` },
+  { code: 'intimidation', label: 'Initmidation', attribute: ATTR.charisma, isSocial: true, icon: `${ICONS_SKILLS_PATH}/intimidation.svg` },
 ]
 
 export class Skills {
@@ -127,9 +127,11 @@ export class Skills {
   }
 
   $prepareSkill(skill) {
-    skill.labelkey = skill.labelkey ?? ANARCHY.skill[skill.code];
+    // If a skill set didn’t provide a label, fall back to a readable version of the code.
+    skill.label = skill.label ?? Misc.titleCase?.(skill.code) ?? skill.code;
     skill.icon = skill.icon ?? `${SYSTEM_PATH}/icons/skills/skills.svg`;
   }
+
 
   $validateSkillSet(skillSet) {
     function check(check, error = '') { if (!check) { throw error; } }
@@ -141,7 +143,7 @@ export class Skills {
       check(Array.isArray(skillSet.skills), `Missing skills array`);
       skillSet.skills.forEach(skill => {
         check(skill.code, `Missing skill code for ${skill} in ${skillSet.id}`);
-        check(skill.labelkey || ANARCHY.skill[skill.code], `Missing skill localization key for ${skill.code}`);
+        check(skill.label || ANARCHY.skill[skill.code], `Missing skill label for ${skill.code}`);
         check(skill.attribute, `Missing skill attribute for ${skill.code}`);
       });
       const skillCodes = skillSet.skills.map(it => it.code);

@@ -15,31 +15,32 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
  */
 export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ItemSheetV2) {
 
-  /** @override */
-  static DEFAULT_OPTIONS = {
-    classes: ["item-sheet"],
-    position: {
-      width: 600,
-      height: "auto"
-    },
-    window: {
-      resizable: true
-    },
-    actions: {
-      // Monitor/checkbar actions
-      checkbarElement: BaseItemSheet._onClickCheckbar,
-      
-      // Modifier actions
-      modifierAdd: BaseItemSheet._onModifierAdd,
-      modifierDelete: BaseItemSheet._onModifierDelete,
-      modifierValueChange: BaseItemSheet._onModifierValueChange,
-      modifierConditionChange: BaseItemSheet._onModifierConditionChange,
-      modifierSelectionChange: BaseItemSheet._onModifierSelectionChange
-    },
-    form: {
-      submitOnChange: true
-    }
-  };
+/** @override */
+static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+  classes: ["mwd", "item-sheet"],
+  position: {
+    width: 600,
+    height: 650   // use a number; rely on scrolling instead of "auto"
+  },
+  window: {
+    resizable: true
+  },
+  actions: {
+    checkbarElement: BaseItemSheet._onClickCheckbar,
+
+    modifierAdd: BaseItemSheet._onModifierAdd,
+    modifierDelete: BaseItemSheet._onModifierDelete,
+    modifierValueChange: BaseItemSheet._onModifierValueChange,
+    modifierConditionChange: BaseItemSheet._onModifierConditionChange,
+    modifierSelectionChange: BaseItemSheet._onModifierSelectionChange
+  },
+
+  // keep AppV2 form behavior; super.DEFAULT_OPTIONS should already include tag:"form"
+  form: {
+    submitOnChange: true
+  }
+});
+
 
   /** @override */
   static PARTS = {
@@ -106,8 +107,8 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     const withKnowledge = this.item.type === TEMPLATE.itemType.skill;
 
     // Build CSS classes
-    const editableClass = this.isEditable ? "editable" : "locked";
-    const baseClasses = context.cssClass?.split(' ') ?? [];
+    const editableClass = context.editable ? "editable" : "locked";
+    const baseClasses = String(context.cssClass ?? "").split(/\s+/).filter(Boolean);
     const classes = Misc.distinct([
       game.system.anarchy.styles.selectCssClass(),
       "sheet",
