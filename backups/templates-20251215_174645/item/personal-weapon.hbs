@@ -1,0 +1,176 @@
+{{!-- Personal weapon item sheet --}}
+<form class="{{options.cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    {{!-- FIXED: data.img → item.img --}}
+    <img class="anarchy-img profile-img" src="{{item.img}}" data-action="editImage" data-tooltip="{{item.name}}"/>
+    {{> 'systems/mwd/templates/item/parts/itemname.hbs'
+      label=ANARCHY.itemType.singular.personalWeapon
+    }}
+  </header>
+
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <div class="sheet-tab" data-tab="main">
+      <a>{{ANARCHY.item.tabs.main}}</a>
+    </div>
+    <div class="sheet-tab" data-tab="modifiers">
+      <a>{{ANARCHY.item.tabs.modifiers}}</a>
+    </div>
+    <div class="sheet-tab-fill"></div>
+  </nav>
+
+  <section class="sheet-body">
+    <div class="tab section-group" data-group="primary" data-tab="main">
+      
+      {{!-- Weapon Skill --}}
+      <div class="form-group">
+        <label for="system.skill">{{ANARCHY.item.personalWeapon.skill}}</label>
+        {{!-- FIXED: Added data-action for AppV2 --}}
+        <select class="select-weapon-skill" name="system.skill" data-dtype="String" data-action="weaponSkillChange">
+            {{#select system.skill}}
+            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
+            {{/select}}
+        </select>
+      </div>
+
+      {{!-- Weapon Category --}}
+      <div class="form-group">
+        <label for="system.category">{{ANARCHY.item.personalWeapon.category}}</label>
+        <select name="system.category" data-dtype="String">
+          {{#select system.category}}
+          <option value="melee">Melee</option>
+          <option value="ranged">Ranged</option>
+          <option value="thrown">Thrown</option>
+          <option value="other">Other</option>
+          {{/select}}
+        </select>
+      </div>
+
+      {{!-- Damage Value + Attribute --}}
+      <div class="form-group">
+        <label for="system.damage">{{ANARCHY.item.personalWeapon.damage}}</label>
+        <div class="flexrow flex-wrap">
+          <input class="type-numeric" type="number" data-dtype="Number"
+            name="system.damage" value="{{system.damage}}"
+          />
+          <span>+</span>
+          <select name="system.damageAttribute" data-dtype="String">
+              {{#select system.damageAttribute}}
+              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
+              {{/select}}
+          </select>
+        </div>
+      </div>
+
+      {{!-- Damage Type --}}
+      <div class="form-group">
+        <label for="system.damageType">{{ANARCHY.item.personalWeapon.damageType}}</label>
+        <select name="system.damageType" data-dtype="String">
+          {{#select system.damageType}}
+          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.damageTypes}}
+          {{/select}}
+        </select>
+      </div>
+
+      {{!-- Defense --}}
+      <div class="form-group">
+        <label for="system.defense">{{ANARCHY.item.personalWeapon.defense}}</label>
+        <select name="system.defense" data-dtype="String">
+          {{#select system.defense}}
+          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.defenses}}
+          {{/select}}
+        </select>
+      </div>
+
+      {{!-- Area of Effect --}}
+      <div class="form-group">
+        <label for="system.area">{{ANARCHY.item.personalWeapon.area}}</label>
+        <select name="system.area" data-dtype="String">
+          {{#select system.area}}
+          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.areas}}
+          {{/select}}
+        </select>
+      </div>
+
+      {{!-- Armor Piercing --}}
+      <div class="form-group">
+        <label for="system.armorPiercing">Armor Piercing</label>
+        <input class="type-numeric" type="number"
+               name="system.armorPiercing" value="{{system.armorPiercing}}" data-dtype="Number" />
+      </div>
+
+      {{!-- Ammo --}}
+      <div class="form-group">
+        <label for="system.ammo">Ammo</label>
+        <input class="type-numeric" type="number"
+               name="system.ammo" value="{{system.ammo}}" data-dtype="Number" min="0" />
+      </div>
+
+      {{!-- RANGE SECTION --}}
+      <h3>Range (Unified Bands)</h3>
+
+      {{!-- Maximum Range Band --}}
+      <div class="form-group">
+        <label for="system.range.max">Max Band</label>
+        <select name="system.range.max" data-dtype="String">
+          {{#select system.range.max}}
+          <option value="close">Close</option>
+          <option value="near">Near</option>
+          <option value="far">Far</option>
+          <option value="extreme">Extreme</option>
+          {{/select}}
+        </select>
+      </div>
+
+      {{!-- Range Band Modifiers --}}
+      <div class="form-group">
+        <label for="system.range.mod.close">Close Mod</label>
+        <input class="type-numeric" type="number"
+               name="system.range.mod.close" value="{{system.range.mod.close}}" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.range.mod.near">Near Mod</label>
+        <input class="type-numeric" type="number"
+               name="system.range.mod.near" value="{{system.range.mod.near}}" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.range.mod.far">Far Mod</label>
+        <input class="type-numeric" type="number"
+               name="system.range.mod.far" value="{{system.range.mod.far}}" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.range.mod.extreme">Extreme Mod</label>
+        <input class="type-numeric" type="number"
+               name="system.range.mod.extreme" value="{{system.range.mod.extreme}}" data-dtype="Number" />
+      </div>
+
+      {{!-- Inactive flag --}}
+      {{> 'systems/mwd/templates/item/parts/inactive.hbs'}}
+      
+      {{!-- Source Reference & Description --}}
+      {{> 'systems/mwd/templates/item/parts/references.hbs'}}
+
+    </div>
+
+    {{!-- MODIFIERS TAB --}}
+    <div class="tab section-group" data-group="primary" data-tab="modifiers">
+      {{> 'systems/mwd/templates/item/parts/modifiers.hbs'}}
+    </div>
+  </section>
+
+</form>
+
+{{!--
+  KEY FIXES APPLIED:
+  1. {{data.img}} → {{item.img}}
+  2. {{data.name}} → {{item.name}}
+  3. Added data-action="weaponSkillChange" to skill select (already had it, kept it)
+  4. Added all weapon fields inline (damage, damageType, defense, area, armorPiercing, ammo, range)
+  5. Added weapon category field
+  6. Kept partials for inactive, references, and modifiers (they should work)
+  
+  NOTE: The "references" partial should handle the description editor with enrichedDescription
+  if it's been updated. If not, that partial also needs updating.
+--}}

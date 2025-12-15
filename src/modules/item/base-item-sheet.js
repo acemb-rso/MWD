@@ -15,32 +15,30 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
  */
 export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ItemSheetV2) {
 
-/** @override */
-static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-  classes: ["mwd", "item-sheet"],
-  position: {
-    width: 600,
-    height: 650   // use a number; rely on scrolling instead of "auto"
-  },
-  window: {
-    resizable: true
-  },
-  actions: {
-    checkbarElement: BaseItemSheet._onClickCheckbar,
-
-    modifierAdd: BaseItemSheet._onModifierAdd,
-    modifierDelete: BaseItemSheet._onModifierDelete,
-    modifierValueChange: BaseItemSheet._onModifierValueChange,
-    modifierConditionChange: BaseItemSheet._onModifierConditionChange,
-    modifierSelectionChange: BaseItemSheet._onModifierSelectionChange
-  },
-
-  // keep AppV2 form behavior; super.DEFAULT_OPTIONS should already include tag:"form"
-  form: {
-    submitOnChange: true
-  }
-});
-
+  /** @override */
+  static DEFAULT_OPTIONS = {
+    classes: ["mwd", "item-sheet"],
+    position: {
+      width: 600,
+      height: "auto"  // CRITICAL: Use "auto" to prevent content truncation
+    },
+    window: {
+      resizable: true
+    },
+    actions: {
+      checkbarElement: BaseItemSheet._onClickCheckbar,
+      modifierAdd: BaseItemSheet._onModifierAdd,
+      modifierDelete: BaseItemSheet._onModifierDelete,
+      modifierValueChange: BaseItemSheet._onModifierValueChange,
+      modifierConditionChange: BaseItemSheet._onModifierConditionChange,
+      modifierSelectionChange: BaseItemSheet._onModifierSelectionChange
+    },
+    form: {
+      submitOnChange: true,
+      closeOnSubmit: false
+      // NOTE: No custom handler - AppV2 handles form submission automatically
+    }
+  };
 
   /** @override */
   static PARTS = {
@@ -52,7 +50,7 @@ static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
 
   /** @override */
   tabGroups = {
-    sheet: "main"
+    primary: "details"  // Default tab
   };
 
   /* -------------------------------------------- */
@@ -82,80 +80,113 @@ static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
    * @override
    */
   get title() {
-    const typeLabel = ANARCHY.itemType.singular[this.item.type];
+    const typeLabel = ANARCHY.itemType.singular[this.item.type] ?? this.item.type;
     return `${typeLabel}: ${this.item.name}`;
   }
 
   /**
    * Prepare context data for rendering.
    * @param {object} options - Rendering options
-   * @returns {Promise<object>} The prepared context
+   * @returns {Promise<object>} The context object
    * @override
    */
   async _prepareContext(options) {
+    // Get base context from parent
     const context = await super._prepareContext(options);
     
     // Get actor attributes if this item is owned
-    const actorAttributes = this.item.actor?.getAttributes?.(this.item);
+    const actorAttributes = this.item.actor?.getAttributes?.(this.item) ?? [];
     
     // Determine which attributes are usable based on item ownership
     const usableAttribute = this.item.actor
-      ? attribute => actorAttributes?.includes(attribute)
+      ? attribute => actorAttributes.includes(attribute)
       : attribute => true;
     
     // Skills need knowledge attributes
     const withKnowledge = this.item.type === TEMPLATE.itemType.skill;
 
     // Build CSS classes
-    const editableClass = context.editable ? "editable" : "locked";
-    const baseClasses = String(context.cssClass ?? "").split(/\s+/).filter(Boolean);
-    const classes = Misc.distinct([
-      game.system.anarchy.styles.selectCssClass(),
-      "sheet",
-      "item-sheet",
-      editableClass,
-      ...baseClasses
-    ]);
+    const editableClass = this.isEditable ? "editable" : "locked";
+    const baseClasses = ["mwd", "item-sheet", editableClass];
+    const cssClass = baseClasses.join(" ");
 
-    // Merge additional context data
+    // Prepare enriched description (for display in templates)
+    const enrichedDescription = await TextEditor.enrichHTML(this.item.system.description ?? "", {
+      async: true,
+      secrets: this.item.isOwner,
+      relativeTo: this.item
+    });
+
+    // Prepare enriched GM notes (if applicable)
+    const enrichedGMNotes = game.user.isGM && this.item.system.gmnotes
+      ? await TextEditor.enrichHTML(this.item.system.gmnotes, {
+          async: true,
+          secrets: true,
+          relativeTo: this.item
+        })
+      : "";
+
+    // Build complete context
     return foundry.utils.mergeObject(context, {
-      // CSS and styling
-      cssClass: classes.join(" "),
+      // Item data
+      item: this.item,
+      system: this.item.system,
       
-      // Permissions and state
-      isGM: game.user.isGM,
-      isOwned: this.item.actor !== undefined,
+      // Enriched content
+      enrichedDescription,
+      enrichedGMNotes,
       
-      // Enums for dropdowns and selections
+      // Options for templates
+      options: {
+        isGM: game.user.isGM,
+        limited: !this.document.isOwner,
+        owner: this.document.isOwner,
+        isOwned: this.item.actor !== undefined,
+        editable: this.isEditable,
+        cssClass,
+        viewMode: false  // Items don't have view mode like actors do
+      },
+      
+      // Configuration data
       ENUMS: foundry.utils.mergeObject(
-        Enums.getEnums(usableAttribute, withKnowledge),
+        Enums.getEnums(usableAttribute, withKnowledge), 
         game.system.anarchy.modifiers.getEnums()
       ),
+      ANARCHY,
       
-      // System configuration
-      ANARCHY: ANARCHY,
+      // CSS class for form element
+      cssClass,
       
-      // Item system data
-      system: this.item.system
+      // Tab configuration
+      tabs: this._getTabs()
     });
   }
 
   /**
-   * Get header controls, removing duplicates.
-   * @returns {Array} Array of header controls
+   * Get tab configuration for this item type.
+   * Override in subclasses if needed.
+   * @returns {object} Tab configuration
+   * @protected
+   */
+  _getTabs() {
+    return {
+      details: { id: "details", group: "primary", label: "Details" },
+      description: { id: "description", group: "primary", label: "Description" }
+    };
+  }
+
+  /**
+   * Override header buttons to add custom controls.
+   * @returns {object[]} Array of header button configurations
    * @override
    */
   _getHeaderControls() {
-    const controls = super._getHeaderControls();
+    const buttons = super._getHeaderControls();
     
-    // Deduplicate controls based on icon, label, and class
-    const seen = new Set();
-    return controls.filter(control => {
-      const key = `${control.class ?? ''}|${control.icon ?? ''}|${control.label ?? ''}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    // Add any item-specific controls here
+    // Example: Toggle inactive state, etc.
+    
+    return buttons;
   }
 
   /* -------------------------------------------- */
@@ -166,8 +197,8 @@ static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
    * Handle clicking a checkbar element (monitor).
    * @param {Event} event - The triggering event
    * @param {HTMLElement} target - The clicked element
+   * @returns {Promise<void>}
    * @static
-   * @async
    */
   static async _onClickCheckbar(event, target) {
     const item = this.item;
@@ -187,8 +218,8 @@ static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
    * Handle adding a new modifier.
    * @param {Event} event - The triggering event
    * @param {HTMLElement} target - The clicked element
+   * @returns {Promise<void>}
    * @static
-   * @async
    */
   static async _onModifierAdd(event, target) {
     await this.item.createModifier();
@@ -198,8 +229,8 @@ static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
    * Handle deleting a modifier.
    * @param {Event} event - The triggering event
    * @param {HTMLElement} target - The clicked element
+   * @returns {Promise<void>}
    * @static
-   * @async
    */
   static async _onModifierDelete(event, target) {
     const modifierRow = target.closest('.define-modifier');
@@ -214,9 +245,9 @@ static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
   /**
    * Handle changing a modifier's value.
    * @param {Event} event - The triggering event
-   * @param {HTMLElement} target - The changed input element
+   * @param {HTMLElement} target - The input element
+   * @returns {Promise<void>}
    * @static
-   * @async
    */
   static async _onModifierValueChange(event, target) {
     const modifierRow = target.closest('.define-modifier');
@@ -231,9 +262,9 @@ static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
   /**
    * Handle changing a modifier's condition.
    * @param {Event} event - The triggering event
-   * @param {HTMLElement} target - The changed input element
+   * @param {HTMLElement} target - The input element
+   * @returns {Promise<void>}
    * @static
-   * @async
    */
   static async _onModifierConditionChange(event, target) {
     const modifierRow = target.closest('.define-modifier');
@@ -246,11 +277,11 @@ static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
   }
 
   /**
-   * Handle changing a modifier's selection.
+   * Handle changing a modifier's selection (dropdown).
    * @param {Event} event - The triggering event
-   * @param {HTMLElement} target - The changed select element
+   * @param {HTMLElement} target - The select element
+   * @returns {Promise<void>}
    * @static
-   * @async
    */
   static async _onModifierSelectionChange(event, target) {
     const modifierRow = target.closest('.define-modifier');

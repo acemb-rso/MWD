@@ -84,7 +84,6 @@ const HBS_PARTIAL_TEMPLATES = [
   `${TEMPLATES_PATH}/monitors/physical.hbs`,
   `${TEMPLATES_PATH}/monitors/social-credibility.hbs`,
   `${TEMPLATES_PATH}/monitors/social-rumor.hbs`,
-  `${TEMPLATES_PATH}/monitors/stun.hbs`,
   `${TEMPLATES_PATH}/roll/parts/dice-cursor.hbs`,
   `${TEMPLATES_PATH}/roll/parts/image-attribute.hbs`,
   `${TEMPLATES_PATH}/roll/parts/image-attributeAction.hbs`,

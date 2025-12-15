@@ -9,8 +9,7 @@
     <div class="flexcol">
       <span><label>{{ANARCHY.common.description}}</label></span>
       <div class="editor">
-        {{editor
-          system.description
+        {{editor enrichedDescription
           target="system.description"
           owner=options.owner
           button=true
@@ -22,11 +21,10 @@
 {{#if options.isGM}}
   <div class="section-group form-group">
     <div class="flexcol">
-      <span><label>{{ANARCHY.common.gmnotes}}</label></span>
+      <span><label>{{ANARCHY.common.gmNotes}}</label></span>
       <div class="editor">
-        {{editor
-          system.gmnotes
-          target="system.gmnotes"
+        {{editor enrichedGMNotes
+          target="system.gmNotes"
           owner=options.owner
           button=true
           editable=options.editable}}
@@ -34,3 +32,4 @@
     </div>
   </div>
 {{/if}}
+
