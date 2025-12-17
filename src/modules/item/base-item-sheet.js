@@ -48,9 +48,23 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     }
   };
 
+  static TABS = {
+    primary: {
+      id: "primary",
+      group: "primary",
+      navSelector: ".sheet-tabs",
+      contentSelector: ".sheet-body",
+      initial: "main",  // This must match your tab name
+      tabs: [
+        { id: "main" },
+        { id: "modifiers" }
+      ]
+    }
+  };
+
   /** @override */
   tabGroups = {
-    primary: "details"  // Default tab
+    primary: "main"  // Default tab
   };
 
   /* -------------------------------------------- */

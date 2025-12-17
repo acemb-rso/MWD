@@ -153,6 +153,52 @@
 }
 
 /* ================================================
+   ITEM SHEETS - ALL STYLES
+   ================================================ */
+
+.item-sheet .sheet-body,
+.item-sheet.style-darkglass .sheet-body,
+.item-sheet.style-dark .sheet-body,
+.item-sheet.style-anarchy-shadowrun .sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  padding: 0.75rem;
+  background: #ffffff;
+  border: 2px solid #999;
+  border-radius: 0 0 12px 12px;
+}
+
+.item-sheet .sheet-body .tab,
+.item-sheet.style-darkglass .sheet-body .tab,
+.item-sheet.style-dark .sheet-body .tab,
+.item-sheet.style-anarchy-shadowrun .sheet-body .tab {
+  display: none;
+}
+
+.item-sheet .sheet-body .tab.active,
+.item-sheet.style-darkglass .sheet-body .tab.active,
+.item-sheet.style-dark .sheet-body .tab.active,
+.item-sheet.style-anarchy-shadowrun .sheet-body .tab.active {
+  display: block;
+  color: #000000 !important;
+  padding: 1rem;
+}
+
+/* Force visible content for all item sheet styles */
+.item-sheet .tab *,
+.item-sheet.style-darkglass .tab *,
+.item-sheet.style-dark .tab *,
+.item-sheet.style-anarchy-shadowrun .tab * {
+  color: #000000 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* ================================================
    HEADER SECTION
    ================================================ */
 
