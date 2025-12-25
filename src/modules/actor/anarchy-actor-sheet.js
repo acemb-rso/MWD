@@ -147,6 +147,18 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       ];
     }
 
+    // -----------------------------------------------------------------------
+    // COMPAT: npc.hbs expects npcItems.* buckets (traits/weapons/assetModules/inventory)
+    // Our canonical buckets are in hbsData.items.*. Provide a derived view.
+    // -----------------------------------------------------------------------
+    hbsData.npcItems = {
+      traits: (hbsData.items.quality ?? []),
+      weapons: (hbsData.items.weapon ?? []),
+      assetModules: (hbsData.items.assetModule ?? []),
+      inventory: (hbsData.items.gear ?? [])
+    };
+
+
     this._debug("prepareContext:done", {
       actorType: this.actor?.type,
       itemCount: this.actor?.items?.size ?? 0

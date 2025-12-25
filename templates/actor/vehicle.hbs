@@ -1,17 +1,68 @@
-<form class="{{cssClass}} flexcol" autocomplete="off">
+<form class="{{cssClass}} vehicle-sheet flexcol" autocomplete="off">
   <header class="sheet-header">
-    <div class="character-identity flexrow">
-      <div class="portrait">
-        <img class="profile-img" src="{{data.img}}" data-action="editImage" data-tooltip="{{data.name}}" />
+    <div class="passport-header">
+      <div class="passport-img">
+        <img class="anarchy-img profile-img" src="{{data.img}}" data-action="editImage" data-tooltip="{{data.name}}" />
       </div>
-      <div class="identity-fields flexcol">
-        <label>{{localize 'Name'}}</label>
-        <input type="text" name="name" value="{{data.name}}" />
+
+      <div class="passport-column">
+        <div class="passport-details-row">
+          <div class="passport-detail">
+            <label for="name">Name</label>
+            <input id="name" class="info-value" type="text" name="name" value="{{data.name}}" />
+          </div>
+        </div>
+
+        <div class="passport-action-row">
+          <div class="passport-action">
+            {{> "systems/mwd/templates/actor/parts/attributebuttons.hbs"}}
+          </div>
+          {{#if ownerActor}}
+          <div class="passport-action">
+            {{> "systems/mwd/templates/actor/parts/ownership.hbs"}}
+          </div>
+          {{/if}}
+        </div>
       </div>
+
+      {{> "systems/mwd/templates/common/view-mode.hbs"}}
     </div>
+
+    <nav class="tabs sheet-tabs" data-group="primary">
+      <a data-tab="vehicle">Vehicle</a>
+      <a data-tab="inventory">Inventory</a>
+      <a data-tab="notes">Notes</a>
+    </nav>
   </header>
 
   <section class="sheet-body">
-    {{!-- TODO: vehicle body content --}}
+    <div class="tab" data-group="primary" data-tab="vehicle">
+      <div class="section-attributes anarchy-attributes">
+        {{> "systems/mwd/templates/actor/parts/attributes.hbs"}}
+      </div>
+
+      <div class="section-group items-group">
+        {{> "systems/mwd/templates/actor/parts/weapons.hbs"}}
+      </div>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="inventory">
+      <div class="section-group items-group">
+        {{> "systems/mwd/templates/actor/parts/gears.hbs"}}
+      </div>
+
+      {{#if ownedActors}}
+      <div class="section-group items-group">
+        {{> "systems/mwd/templates/actor/parts/owned-actors.hbs"}}
+      </div>
+      {{/if}}
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="notes">
+      <div class="anarchy-block">
+        {{> "systems/mwd/templates/actor/parts/description.hbs"}}
+        {{> "systems/mwd/templates/actor/parts/gmnotes.hbs"}}
+      </div>
+    </div>
   </section>
 </form>
