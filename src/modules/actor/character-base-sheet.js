@@ -12,7 +12,7 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   };
 
   // ============================================================================
-  // CRITICAL FIX: ApplicationV2 requires explicit TABS configuration
+  // ApplicationV2 tabs configuration
   // ============================================================================
   static TABS = {
     primary: {
@@ -34,80 +34,74 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
 
   /** @override */
   static get DEFAULT_OPTIONS() {
-    return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-      classes: ["character-sheet", "sra-enhanced"],
-      position: {
-        width: 720,
-        height: 900  // Increased from 700 to accommodate tab content
+    // IMPORTANT: Do NOT overwrite classes, append to the base classes so styling works.
+    const base = super.DEFAULT_OPTIONS;
+
+    return foundry.utils.mergeObject(
+      base,
+      {
+        classes: [ ...(base.classes ?? []), "character-sheet", "sra-enhanced" ],
+        position: {
+          width: 720,
+          height: 900
+        },
+        window: {
+          resizable: true
+        }
       },
-      window: {
-        resizable: true
-      }
-    });
+      { inplace: false }
+    );
   }
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
 
     // Load saved view mode from actor flags, defaulting to TRUE (view mode)
-    const savedViewMode = this.actor.getFlag('mwd', 'viewMode');
+    const savedViewMode = this.actor.getFlag("mwd", "viewMode");
     if (savedViewMode !== undefined) {
       this.viewMode = savedViewMode;
     } else if (this.viewMode === undefined) {
-      this.viewMode = true;  // ← DEFAULT TO VIEW MODE
+      this.viewMode = true; // DEFAULT TO VIEW MODE
     }
 
     return foundry.utils.mergeObject(context, {
       options: {
         ...context.options,
-        viewMode: this.viewMode ?? true  // ← Changed from false to true
+        viewMode: this.viewMode ?? true
       },
-      viewMode: this.viewMode ?? true  // ← Changed from false to true
+      viewMode: this.viewMode ?? true
     });
   }
 
-  // CRITICAL FIX: Use render() with force: false and parts to actually re-render in ApplicationV2
+  // AppV2: use render() to re-render parts
   async toggleViewMode() {
     this.viewMode = !this.viewMode;
-    
-    // Save view mode preference to actor flags for persistence
+
     try {
-      await this.actor.setFlag('mwd', 'viewMode', this.viewMode);
-      console.log('MWD | View mode toggled to:', this.viewMode);
+      await this.actor.setFlag("mwd", "viewMode", this.viewMode);
+      console.log("MWD | View mode toggled to:", this.viewMode);
     } catch (error) {
-      console.error('MWD | Failed to save view mode:', error);
+      console.error("MWD | Failed to save view mode:", error);
     }
-    
-    // ApplicationV2 requires specific render options to force a re-render
-    // Using render(false, { parts: ['sheet'] }) tells it to re-render the sheet part
-    await this.render(false, { parts: ['sheet'] });
+
+    await this.render(false, { parts: ["sheet"] });
   }
 
-   /**
+  /**
    * AppV2-compliant listener hook for the character sheet.
-   * We attach all our click handlers here instead of using activateListeners.
    */
   _attachPartListeners(partId, htmlElement, options) {
-    // Let the base AnarchyActorSheet wire up its own actions & legacy handlers
     super._attachPartListeners(partId, htmlElement, options);
-
-    // We only care about the main sheet part
     if (partId !== "sheet") return;
 
     const jqHtml = htmlElement instanceof HTMLElement ? $(htmlElement) : htmlElement;
 
-    // ─────────────────────────────────────────────────────
-    // View mode toggle (lock icon in the header)
-    // ─────────────────────────────────────────────────────
+    // View mode toggle (lock icon)
     jqHtml.find(".click-toggle-view-mode").on("click", async event => {
       event.preventDefault();
       event.stopPropagation();
       await this.toggleViewMode();
     });
-
-    // ─────────────────────────────────────────────────────
-    // Words: cues, dispositions, keywords, etc.
-    // ─────────────────────────────────────────────────────
 
     // Add new word
     jqHtml.find(".click-word-add").on("click", async event => {
@@ -115,7 +109,7 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
       this.createNewWord(this.getEventWordType(event));
     });
 
-    // “Say” a word (for cues / dispositions)
+    // “Say” a word
     jqHtml.find(".click-word-say").on("click", async event => {
       event.stopPropagation();
       this.actor.sayWord(
@@ -149,7 +143,7 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
       );
     });
 
-    // Celebrity roll (button in the words panel)
+    // Celebrity roll
     jqHtml.find(".click-celebrity-roll").on("click", async event => {
       event.stopPropagation();
       this.actor.rollCelebrity();
@@ -162,10 +156,10 @@ export class CharacterBaseSheet extends AnarchyActorSheet {
   }
 
   getEventWordType(event) {
-    return $(event.currentTarget).closest('.define-wordType').attr('data-word-type');
+    return $(event.currentTarget).closest(".define-wordType").attr("data-word-type");
   }
 
   getEventWordId(event) {
-    return $(event.currentTarget).closest('.define-wordType').attr('data-word-id');
+    return $(event.currentTarget).closest(".define-wordType").attr("data-word-id");
   }
 }

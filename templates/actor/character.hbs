@@ -38,100 +38,26 @@
             <label for="system.attributes.charisma.value">Charisma</label>
             <input id="system.attributes.charisma.value" type="number" name="system.attributes.charisma.value" value="{{system.attributes.charisma.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
           </div>
-          <div class="attribute">
-            <label for="system.attributes.edge.value">Edge (Cap)</label>
-            <input id="system.attributes.edge.value" type="number" name="system.attributes.edge.value" value="{{system.attributes.edge.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
-          </div>
-        </div>
-      </section>
-
-      <section class="panel monitors-grid">
-        <div class="monitor-column">
-          <h3>Condition Monitors</h3>
-          {{> "systems/mwd/templates/monitors/armor.hbs"}}
-          {{> "systems/mwd/templates/monitors/physical.hbs"}}
-          {{> "systems/mwd/templates/monitors/fatigue.hbs"}}
-        </div>
-        <div class="monitor-column">
-          <h3>Edge Pools</h3>
-          <div class="edge-pool-group">
-            <h4>{{ANARCHY.actor.counters.edgePools.physical}}</h4>
-            <div class="edge-pool-row">
-              <label for="system.counters.edgePools.grit.value">{{ ANARCHY.actor.counters.edgePools.grit}}</label>
-              <input id="system.counters.edgePools.grit.value" type="number" name="system.counters.edgePools.grit.value" value="{{system.counters.edgePools.grit.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
-              <label for="system.counters.edgePools.chaos.value">{{ ANARCHY.actor.counters.edgePools.chaos}}</label>
-              <input id="system.counters.edgePools.chaos.value" type="number" name="system.counters.edgePools.chaos.value" value="{{system.counters.edgePools.chaos.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
-            </div>
-          </div>
-          <div class="edge-pool-group">
-            <h4>{{ ANARCHY.actor.counters.edgePools.mental}}</h4>
-            <div class="edge-pool-row">
-              <label for="system.counters.edgePools.insight.value">{{ ANARCHY.actor.counters.edgePools.insight}}</label>
-              <input id="system.counters.edgePools.insight.value" type="number" name="system.counters.edgePools.insight.value" value="{{system.counters.edgePools.insight.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
-              <label for="system.counters.edgePools.rumor.value">{{ ANARCHY.actor.counters.edgePools.rumor}}</label>
-              <input id="system.counters.edgePools.rumor.value" type="number" name="system.counters.edgePools.rumor.value" value="{{system.counters.edgePools.rumor.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
-            </div>
-          </div>
-          <div class="edge-pool-group">
-            <h4>{{ ANARCHY.actor.counters.edgePools.social}}</h4>
-            <div class="edge-pool-row">
-              <label for="system.counters.edgePools.legend.value">{{ ANARCHY.actor.counters.edgePools.legend}}</label>
-              <input id="system.counters.edgePools.legend.value" type="number" name="system.counters.edgePools.legend.value" value="{{system.counters.edgePools.legend.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
-              <label for="system.counters.edgePools.credibility.value">{{ ANARCHY.actor.counters.edgePools.credibility}}</label>
-              <input id="system.counters.edgePools.credibility.value" type="number" name="system.counters.edgePools.credibility.value" value="{{system.counters.edgePools.credibility.value}}" data-dtype="Number" min="0" {{#if options.viewMode}}disabled{{/if}} />
-            </div>
-          </div>
         </div>
       </section>
     </div>
 
-    <!-- FLEXIBLE LOWER SECTION WITH TABS -->
+    <!-- SCROLLABLE LOWER SECTION -->
     <div class="sheet-lower">
-      <nav class="sheet-tabs tabs" data-group="primary">
-        <a class="item" data-tab="character">Character</a>
-        <a class="item" data-tab="skills">Skills</a>
-        <a class="item" data-tab="traits">Traits</a>
-        <a class="item" data-tab="life-modules">Life Modules</a>
-        <a class="item" data-tab="inventory">Inventory</a>
-        <a class="item" data-tab="biography">Biography</a>
+      <nav class="tabs sheet-tabs" data-group="primary">
+        <a data-tab="character">Character</a>
+        <a data-tab="skills">Skills</a>
+        <a data-tab="traits">Traits</a>
+        <a data-tab="life-modules">Life Modules</a>
+        <a data-tab="inventory">Inventory</a>
+        <a data-tab="biography">Bio & Notes</a>
       </nav>
 
       <section class="sheet-body">
         <div class="tab" data-group="primary" data-tab="character">
-          <section class="panel two-column">
-            <div class="column define-wordType" data-word-type="cues">
-              <h3>Cues</h3>
-              {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='cues' values=system.cues}}
-            </div>
-            <div class="column define-wordType" data-word-type="dispositions">
-              <h3>Dispositions</h3>
-              {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='dispositions' values=system.dispositions}}
-            </div>
-          </section>
-
-          <section class="panel define-wordType" data-word-type="keywords">
-            <h3>Keywords</h3>
-            {{> "systems/mwd/templates/actor/parts/words.hbs" wordType='keywords' values=system.keywords}}
-          </section>
-
           <section class="panel">
-            <h3>Personal Weaponry</h3>
-            {{> "systems/mwd/templates/actor/parts/weapons.hbs"}}
-          </section>
-
-          <section class="panel">
-            <h3>Asset Modules</h3>
-            {{> "systems/mwd/templates/actor/parts/asset-modules.hbs"}}
-          </section>
-
-          <section class="panel experience">
-            <h3>Experience</h3>
-            <div class="experience-grid">
-              <label for="system.counters.xp.value">Current XP</label>
-              <input type="number" name="system.counters.xp.value" value="{{system.counters.xp.value}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
-              <label for="system.counters.xp.total">Lifetime XP</label>
-              <input type="number" name="system.counters.xp.total" value="{{system.counters.xp.total}}" data-dtype="Number" {{#if options.viewMode}}disabled{{/if}} />
-            </div>
+            <h3>Character</h3>
+            {{> "systems/mwd/templates/actor/parts/skills.hbs"}}
           </section>
         </div>
 
@@ -176,5 +102,4 @@
       </section>
     </div>
   </section>
-</div>
-
+</form>

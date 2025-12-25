@@ -9,8 +9,7 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
  * AppV2-only Actor Sheet base class.
- * - No jQuery
- * - No legacy click handlers
+ * - No AppV1 sheet patterns
  * - Uses DEFAULT_OPTIONS.actions + data-action in templates
  */
 export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2) {
@@ -105,6 +104,36 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       ),
       ANARCHY
     });
+
+    // -----------------------------------------------------------------------
+    // COMPAT LAYER (critical for MWD templates forked from Anarchy-era HBS)
+    //
+    // Many templates still reference:
+    //   {{data.img}}, {{data.name}}, {{options.cssClass}}, {{cssClass}}
+    // AppV2 does not guarantee these exist unless we provide them.
+    // -----------------------------------------------------------------------
+
+    // Legacy alias used by older templates (battlemech/vehicle/npc/device/etc).
+    hbsData.data = this.actor;
+
+    // Ensure options exists and contains what templates expect.
+    hbsData.options = hbsData.options ?? {};
+
+    // Ownership flags commonly expected inside options
+    hbsData.options.owner = hbsData.owner;
+    hbsData.options.limited = hbsData.limited;
+    hbsData.options.editable = hbsData.editable;
+
+    // Ensure options.classes is an array and includes this.options.classes
+    const sheetClasses = Array.isArray(this.options?.classes) ? this.options.classes : [];
+    const existing = Array.isArray(hbsData.options.classes) ? hbsData.options.classes : [];
+    hbsData.options.classes = Misc.distinct([ ...existing, ...sheetClasses ]);
+
+    // cssClass string used by many templates
+    hbsData.options.cssClass = hbsData.options.classes.join(" ");
+
+    // Some templates reference {{cssClass}} directly
+    hbsData.cssClass = hbsData.options.cssClass;
 
     // Items classified by your helper
     hbsData.items = hbsData.items ?? {};
