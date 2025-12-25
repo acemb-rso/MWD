@@ -472,10 +472,9 @@
       "heat": 0,
       "area": "none",
       "range": {
-        "max": "contact",
-        "contact": 0,
-        "short": 0,
-        "medium": 0,
+        "max": "close",
+        "close": 0,
+        "near": 0,
         "far": 0,
         "extreme": 0
       }
@@ -492,10 +491,9 @@
       "armorAvoidance": false,
       "area": "none",
       "range": {
-        "max": "contact",
-        "contact": 0,
-        "short": 0,
-        "medium": 0,
+        "max": "close",
+        "close": 0,
+        "near": 0,
         "far": 0,
         "extreme": 0
       }

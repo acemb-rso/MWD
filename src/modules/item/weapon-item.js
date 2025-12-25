@@ -70,7 +70,7 @@ const WEAPON_AREA_PARAMETER = {
 
 export class WeaponItem extends AnarchyBaseItem {
 
-  static RANGE_ORDER = ['contact', 'short', 'medium', 'far', 'extreme'];
+  static const RANGE_ORDER = ['close', 'near', 'far', 'extreme'];
 
   static init() {
     Hooks.once(ANARCHY_HOOKS.REGISTER_ROLL_PARAMETERS, register => {
@@ -79,6 +79,33 @@ export class WeaponItem extends AnarchyBaseItem {
     });
   }
 
+  maxIndex(maxKey) {
+      const idx = RANGE_ORDER.indexOf(maxKey);
+    return idx >= 0 ? idx : RANGE_ORDER.indexOf("near");
+  }
+
+  export function getRangeBands(range) {
+    const r = range ?? {};
+    const cap = r.max ?? "near";
+    const capIdx = maxIndex(cap);
+
+    const bands = RANGE_ORDER.map((key, idx) => ({
+      key,
+      allowed: idx <= capIdx,
+      value: Number(r[key] ?? 0)
+    }));
+
+    // Compute optimal: highest value among allowed; tie → earliest (closest) band
+    let optimalKey = "close";
+    let best = -Infinity;
+    for (const b of bands) {
+      if (!b.allowed) continue;
+      if (b.value > best) { best = b.value; optimalKey = b.key; }
+    }
+
+    return { cap, bands, optimalKey };
+  }
+  
   static get defaultIcon() {
     return `${ICONS_PATH}/weapons/mac-10.svg`;
   }
@@ -92,16 +119,6 @@ export class WeaponItem extends AnarchyBaseItem {
 
   isWeaponSkill(item) {
     return item.type == 'skill' && item.system.code === this.system.skill;
-  }
-
-  get hasDrain() {
-    const skill = this.getWeaponSkill()
-    return skill.system.hasDrain
-  }
-
-  get hasConvergence() {
-    const skill = this.getWeaponSkill()
-    return skill.system.hasConvergence
   }
 
   getWeaponSkill() {
