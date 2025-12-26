@@ -17,25 +17,25 @@ import { AnarchyBaseActor } from './actor/base-actor.js';
 import { CharacterActor } from './actor/character-actor.js';
 import { VehicleActor } from './actor/vehicle-actor.js';
 import { BattlemechActor } from './actor/battlemech-actor.js';
-import { CharacterActorSheet } from './actor/character-sheet.js';
-import { VehicleSheet } from './actor/vehicle-sheet.js';
-import { BattlemechSheet } from './actor/battlemech-sheet.js';
-import { CharacterNPCSheet } from './actor/character-npc-sheet.js';
+//import { CharacterActorSheet } from './actor/character-sheet.js';
+//import { VehicleSheet } from './actor/vehicle-sheet.js';
+//import { BattlemechSheet } from './actor/battlemech-sheet.js';
+//import { CharacterNPCSheet } from './actor/character-npc-sheet.js';
 import { SkillItem } from './item/skill-item.js';
 import { WeaponItem } from './item/weapon-item.js';
-import { ContactItemSheet } from './item/contact-item-sheet.js';
-import { GearItemSheet } from './item/gear-item-sheet.js';
-import { QualityItemSheet } from './item/quality-item-sheet.js';
-import { AssetModuleItemSheet } from './item/asset-module-item-sheet.js';
-import { SkillItemSheet } from './item/skill-item-sheet.js';
-import { MechWeaponItemSheet } from './item/mech-weapon-item-sheet.js';
-import { PersonalWeaponItemSheet } from './item/personal-weapon-item-sheet.js';
+//import { ContactItemSheet } from './item/contact-item-sheet.js';
+//import { GearItemSheet } from './item/gear-item-sheet.js';
+//import { QualityItemSheet } from './item/quality-item-sheet.js';
+//import { AssetModuleItemSheet } from './item/asset-module-item-sheet.js';
+//import { SkillItemSheet } from './item/skill-item-sheet.js';
+//import { MechWeaponItemSheet } from './item/mech-weapon-item-sheet.js';
+//import { PersonalWeaponItemSheet } from './item/personal-weapon-item-sheet.js';
 import { ContactItem } from './item/contact-item.js';
 import { GearItem } from './item/gear-item.js';
 import { QualityItem } from './item/quality-item.js';
 import { AssetModuleItem } from './item/asset-module-item.js';
 import { LifeModuleItem } from './item/lifemodule-item.js';
-import { LifeModuleItemSheet } from './item/lifemodule-item-sheet.js';
+//import { LifeModuleItemSheet } from './item/lifemodule-item-sheet.js';
 import { Checkbars } from './common/checkbars.js';
 import { RollParameters } from './roll/roll-parameters.js';
 import { RollDialog } from './roll/roll-dialog.js';
@@ -48,9 +48,11 @@ import { ActorDamageManager } from './actor/actor-damage.js';
 import { AttributeActions } from './attribute-actions.js';
 import { DiceCursor } from './roll/dice-cursor.js';
 import { SystemSettings } from './system-settings.js';
-import { TemplateGuards } from './template-guards.js';
+//import { TemplateGuards } from './template-guards.js';
 import { GMAnarchyManager } from "./gm/gm-anarchy.js";
-
+import { registerActorSheetsV2 } from "./sheets/register-actor-sheets-v2.js";
+import { preloadTemplatesV2 } from "./sheets/preload-templates.js";
+//import { registerItemSheetsV2 } from "./sheets/register-item-sheets-v2.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -110,8 +112,13 @@ export class AnarchySystem {
     CONFIG.Item.documentClass = AnarchyBaseItem;
 
     Checkbars.init();
-    this.loadActorSheets();
-    this.loadItemSheets();
+
+    // Register sheets (AppV2-only, no appv1 unregisters)
+    registerActorSheetsV2();
+    //registerItemSheetsV2();
+
+    // Preload templates/partials to avoid first-render blank sheets
+    await preloadTemplatesV2();
 
     WeaponItem.init();
     DiceCursor.init();
@@ -140,44 +147,6 @@ export class AnarchySystem {
       game.gmManager.render({ force: true });
   }
 
- loadActorSheets() {
-  const { Actors } = foundry.documents.collections;
-  Actors.unregisterSheet('core', foundry.appv1.sheets.ActorSheet);
-  Actors.unregisterSheet(SYSTEM_NAME, CharacterActorSheet);
-  Actors.registerSheet(SYSTEM_NAME, CharacterNPCSheet, {
-    label: ANARCHY.actor.characterNPCSheet,
-    makeDefault: true,
-    types: ['npc']
-  });
-  Actors.registerSheet(SYSTEM_NAME, CharacterActorSheet, {
-    label: ANARCHY.actor.characterSheet,
-    makeDefault: true,
-    types: ['character']
-  });
-  Actors.registerSheet(SYSTEM_NAME, VehicleSheet, {
-    label: ANARCHY.actor.vehicleSheet,
-    makeDefault: true,
-    types: ['vehicle']
-  });
-  Actors.registerSheet(SYSTEM_NAME, BattlemechSheet, {
-    label: ANARCHY.actor.battlemechSheet,
-    makeDefault: true,
-    types: ['battlemech']
-  });
-}
- 
 
-  loadItemSheets() {
-    const { Items } = foundry.documents.collections;
-    Items.unregisterSheet('core', foundry.appv1.sheets.ItemSheet);
-    Items.registerSheet(SYSTEM_NAME, ContactItemSheet, { types: ["contact"], makeDefault: true });
-    Items.registerSheet(SYSTEM_NAME, GearItemSheet, { types: ["gear"], makeDefault: true });
-    Items.registerSheet(SYSTEM_NAME, QualityItemSheet, { types: ["quality"], makeDefault: true });
-    Items.registerSheet(SYSTEM_NAME, AssetModuleItemSheet, { types: ["assetModule"], makeDefault: true });
-    Items.registerSheet(SYSTEM_NAME, LifeModuleItemSheet, { types: ["lifeModule"], makeDefault: true });
-    Items.registerSheet(SYSTEM_NAME, SkillItemSheet, { types: ["skill"], makeDefault: true });
-    Items.registerSheet(SYSTEM_NAME, PersonalWeaponItemSheet, { types: ["personalWeapon"], makeDefault: true });
-    Items.registerSheet(SYSTEM_NAME, MechWeaponItemSheet, { types: ["mechWeapon"], makeDefault: true });
-  }
 
 }

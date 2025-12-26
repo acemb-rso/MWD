@@ -70,7 +70,7 @@ const WEAPON_AREA_PARAMETER = {
 
 export class WeaponItem extends AnarchyBaseItem {
 
-  static const RANGE_ORDER = ['close', 'near', 'far', 'extreme'];
+  static RANGE_ORDER = ['close', 'near', 'far', 'extreme'];
 
   static init() {
     Hooks.once(ANARCHY_HOOKS.REGISTER_ROLL_PARAMETERS, register => {
@@ -79,23 +79,29 @@ export class WeaponItem extends AnarchyBaseItem {
     });
   }
 
-  maxIndex(maxKey) {
-      const idx = RANGE_ORDER.indexOf(maxKey);
-    return idx >= 0 ? idx : RANGE_ORDER.indexOf("near");
+  static maxIndex(maxKey) {
+    const idx = WeaponItem.RANGE_ORDER.indexOf(maxKey);
+    return idx >= 0 ? idx : WeaponItem.RANGE_ORDER.indexOf("near");
   }
 
-  export function getRangeBands(range) {
+ /**
+   * Compute UI-friendly range band data:
+   * - cap: normalized max band
+   * - bands: [{key, allowed, value}]
+   * - optimalKey: highest value among allowed (tie -> closest)
+   */
+  static getRangeBands(range) {
     const r = range ?? {};
-    const cap = r.max ?? "near";
-    const capIdx = maxIndex(cap);
+    const cap = WeaponItem.normalizeRangeKey(r.max ?? "near");
+    const capIdx = WeaponItem.maxIndex(cap);
 
-    const bands = RANGE_ORDER.map((key, idx) => ({
+    const bands = WeaponItem.RANGE_ORDER.map((key, idx) => ({
       key,
       allowed: idx <= capIdx,
-      value: Number(r[key] ?? 0)
+      value: Number(r[key] ?? (key === "extreme" && r.long !== undefined ? r.long : 0))
     }));
 
-    // Compute optimal: highest value among allowed; tie → earliest (closest) band
+    // Compute optimal: highest value among allowed; tie -> earliest (closest)
     let optimalKey = "close";
     let best = -Infinity;
     for (const b of bands) {

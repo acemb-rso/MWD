@@ -1,0 +1,31 @@
+import { SYSTEM_NAME, LOG_HEAD } from "../constants.js";
+
+// Import your EXISTING item sheet classes (whatever they are named)
+// If you are pivoting items later, we can replace these with new V2 item sheets.
+// For now, this file exists so wiring is complete.
+import { ContactItemSheet } from "../item/contact-item-sheet.js";
+import { GearItemSheet } from "../item/gear-item-sheet.js";
+import { QualityItemSheet } from "../item/quality-item-sheet.js";
+import { AssetModuleItemSheet } from "../item/asset-module-item-sheet.js";
+//import { LifeModuleItemSheet } from "../item/life-module-item-sheet.js";
+import { SkillItemSheet } from "../item/skill-item-sheet.js";
+import { PersonalWeaponItemSheet } from "../item/personal-weapon-item-sheet.js";
+import { MechWeaponItemSheet } from "../item/mech-weapon-item-sheet.js";
+
+/**
+ * Register Item sheets.
+ * NOTE: We intentionally do NOT call foundry.appv1.* here.
+ */
+export function registerItemSheetsV2() {
+  console.log(`${LOG_HEAD}Registering Item sheets (V2)`);
+
+  // Foundry's API still uses Items.registerSheet for V2 sheet classes.
+  Items.registerSheet(SYSTEM_NAME, ContactItemSheet, { types: ["contact"], makeDefault: true, label: "Contact (V2)" });
+  Items.registerSheet(SYSTEM_NAME, GearItemSheet, { types: ["gear"], makeDefault: true, label: "Gear (V2)" });
+  Items.registerSheet(SYSTEM_NAME, QualityItemSheet, { types: ["quality"], makeDefault: true, label: "Quality (V2)" });
+  Items.registerSheet(SYSTEM_NAME, AssetModuleItemSheet, { types: ["assetModule"], makeDefault: true, label: "Asset Module (V2)" });
+  Items.registerSheet(SYSTEM_NAME, LifeModuleItemSheet, { types: ["lifeModule"], makeDefault: true, label: "Life Module (V2)" });
+  Items.registerSheet(SYSTEM_NAME, SkillItemSheet, { types: ["skill"], makeDefault: true, label: "Skill (V2)" });
+  Items.registerSheet(SYSTEM_NAME, PersonalWeaponItemSheet, { types: ["personalWeapon"], makeDefault: true, label: "Personal Weapon (V2)" });
+  Items.registerSheet(SYSTEM_NAME, MechWeaponItemSheet, { types: ["mechWeapon"], makeDefault: true, label: "Mech Weapon (V2)" });
+}

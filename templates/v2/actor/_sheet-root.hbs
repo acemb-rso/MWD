@@ -1,0 +1,33 @@
+<form class="{{cssClass}}" autocomplete="off">
+ {{!-- This is the root template for actor sheets. It defines the common layout and structure,
+     while allowing specific sheets to inject their unique content via the "body" block. --}}
+
+  <header class="sheet-header">
+    <div class="header-left">
+      <img class="profile" src="{{actor.img}}" data-edit="img" />
+      <h1 class="name">
+        {{#if editable}}
+          <input name="name" type="text" value="{{actor.name}}" />
+        {{else}}
+          {{actor.name}}
+        {{/if}}
+      </h1>
+    </div>
+
+    <div class="header-right">
+      {{#if editable}}
+            {{> "mwd.common.view-mode"}}
+      {{/if}}
+    </div>
+  </header>
+
+  <nav class="tabs sheet-tabs" data-group="primary">
+    <a class="item" data-tab="main">Main</a>
+  </nav>
+
+  <section class="sheet-body">
+    <div class="tab" data-group="primary" data-tab="main">
+      {{> @partial-block}}
+    </div>
+  </section>
+</form>

@@ -9,7 +9,7 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
  * AppV2-only Actor Sheet base class.
- * - No AppV1 sheet patterns
+ * - No localization/i18n usage in our code
  * - Uses DEFAULT_OPTIONS.actions + data-action in templates
  */
 export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2) {
@@ -60,10 +60,33 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
   }
 
   /**
-   * Keep support for old code paths that read defaultOptions.
+   * Keep support for code paths that still read {@link defaultOptions}.
    */
   static get defaultOptions() {
     return this.DEFAULT_OPTIONS;
+  }
+
+  /**
+   * NO i18n: Provide a concrete title so Foundry doesn't display "TYPES.Actor.<type>".
+   * @override
+   */
+  get title() {
+    const type = this.actor?.type ?? "actor";
+
+    const TYPE_LABELS = {
+      character: "Character",
+      npc: "NPC",
+      battlemech: "BattleMech",
+      vehicle: "Vehicle",
+      device: "Device"
+    };
+
+    const typeLabel =
+      TYPE_LABELS[type] ??
+      String(type).replace(/(^|[-_])([a-z])/g, (_, sep, c) => (sep ? " " : "") + c.toUpperCase());
+
+    const name = this.actor?.name ?? "Actor";
+    return `${name} — ${typeLabel}`;
   }
 
   /** @override */
@@ -77,13 +100,26 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     options.parts = foundry.utils.mergeObject(options.parts ?? {}, {
       sheet: { template }
     });
+
+    // Diagnostic: confirm template resolution in-console
+    console.debug(`${LOG_HEAD}Sheet render options`, {
+      actorType: type,
+      template,
+      parts: options.parts
+    });
   }
 
   /** @override */
   async _prepareContext(options) {
     this._debug("prepareContext:start", { options });
 
-    const base = await super._prepareContext(options);
+    let base;
+    try {
+      base = await super._prepareContext(options);
+    } catch (err) {
+      console.error(`${LOG_HEAD}super._prepareContext failed`, err);
+      throw err;
+    }
 
     // Build HBS data: keep it deterministic and data-only.
     const hbsData = foundry.utils.mergeObject(base, {
@@ -106,34 +142,31 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     });
 
     // -----------------------------------------------------------------------
-    // COMPAT LAYER (critical for MWD templates forked from Anarchy-era HBS)
-    //
-    // Many templates still reference:
-    //   {{data.img}}, {{data.name}}, {{options.cssClass}}, {{cssClass}}
-    // AppV2 does not guarantee these exist unless we provide them.
+    // COMPAT LAYER (critical)
+    // Your templates (and many partials) expect:
+    //   {{data.*}}, {{cssClass}}, {{options.cssClass}}, {{options.classes}}
+    // AppV2 doesn't guarantee these unless we provide them.
     // -----------------------------------------------------------------------
 
-    // Legacy alias used by older templates (battlemech/vehicle/npc/device/etc).
+    // Legacy alias used throughout the forked templates
     hbsData.data = this.actor;
 
-    // Ensure options exists and contains what templates expect.
+    // Ensure options exists
     hbsData.options = hbsData.options ?? {};
-
-    // Ownership flags commonly expected inside options
-    hbsData.options.owner = hbsData.owner;
-    hbsData.options.limited = hbsData.limited;
-    hbsData.options.editable = hbsData.editable;
 
     // Ensure options.classes is an array and includes this.options.classes
     const sheetClasses = Array.isArray(this.options?.classes) ? this.options.classes : [];
     const existing = Array.isArray(hbsData.options.classes) ? hbsData.options.classes : [];
     hbsData.options.classes = Misc.distinct([ ...existing, ...sheetClasses ]);
 
-    // cssClass string used by many templates
+    // Provide a string cssClass for templates
     hbsData.options.cssClass = hbsData.options.classes.join(" ");
-
-    // Some templates reference {{cssClass}} directly
     hbsData.cssClass = hbsData.options.cssClass;
+
+    // Ownership flags often referenced inside options
+    hbsData.options.owner = hbsData.owner;
+    hbsData.options.limited = hbsData.limited;
+    hbsData.options.editable = hbsData.editable;
 
     // Items classified by your helper
     hbsData.items = hbsData.items ?? {};
@@ -147,10 +180,7 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       ];
     }
 
-    // -----------------------------------------------------------------------
-    // COMPAT: npc.hbs expects npcItems.* buckets (traits/weapons/assetModules/inventory)
-    // Our canonical buckets are in hbsData.items.*. Provide a derived view.
-    // -----------------------------------------------------------------------
+    // NPC compatibility: npc.hbs expects npcItems.*
     hbsData.npcItems = {
       traits: (hbsData.items.quality ?? []),
       weapons: (hbsData.items.weapon ?? []),
@@ -158,10 +188,10 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
       inventory: (hbsData.items.gear ?? [])
     };
 
-
     this._debug("prepareContext:done", {
       actorType: this.actor?.type,
-      itemCount: this.actor?.items?.size ?? 0
+      itemCount: this.actor?.items?.size ?? 0,
+      cssClass: hbsData.cssClass
     });
 
     return hbsData;
@@ -169,8 +199,6 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
 
   /** @override */
   _attachPartListeners(partId, htmlElement, options) {
-    // AppV2 actions are wired automatically; only add listeners here if you truly
-    // need something that cannot be expressed as a data-action.
     super._attachPartListeners(partId, htmlElement, options);
   }
 
@@ -206,7 +234,6 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     event.preventDefault();
     event.stopPropagation();
 
-    // Prefer data-item-type on the clicked element; fallback to closest ancestor.
     const itemType =
       target?.dataset?.itemType ??
       target.closest?.("[data-item-type]")?.dataset?.itemType;
@@ -417,20 +444,12 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     }
   }
 
-  /**
-   * AppV2 preload hook (optional). Keep deterministic.
-   * @override
-   */
   static async _preloadTemplates() {
     const paths = this._getSheetSpecificTemplates();
     if (!paths?.length) return;
     return foundry.applications.handlebars.loadTemplates(paths);
   }
 
-  /**
-   * Override in subclasses if you truly have sheet-specific partials.
-   * @returns {string[]}
-   */
   static _getSheetSpecificTemplates() {
     return [];
   }
