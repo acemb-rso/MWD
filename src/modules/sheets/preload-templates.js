@@ -25,6 +25,21 @@ export async function preloadTemplatesV2() {
     `${BASE}/v2/actor/npc-sheet.hbs`,
     `${BASE}/v2/actor/battlemech-sheet.hbs`,
     `${BASE}/v2/actor/vehicle-sheet.hbs`,
+ 
+    // Layout renderer
+    `${BASE}/v2/ui/layout-root.hbs`,
+    `${BASE}/v2/ui/nodes/stack.hbs`,
+    `${BASE}/v2/ui/nodes/panel.hbs`,
+    `${BASE}/v2/ui/nodes/include.hbs`,
+    `${BASE}/v2/ui/nodes/tabs.hbs`,
+    `${BASE}/v2/ui/nodes/unknown.hbs`,
+
+    // Placeholders
+    `${BASE}/v2/ui/placeholders/edge-console.hbs`,
+    `${BASE}/v2/ui/placeholders/combat-actions.hbs`,
+    `${BASE}/v2/ui/placeholders/condition-monitors.hbs`,
+    `${BASE}/v2/ui/placeholders/status-dashboard.hbs`,
+    `${BASE}/v2/ui/placeholders/assigned-systems.hbs`,
 
     // Actor parts (add more as needed)
     `${BASE}/actor/parts/attributes.hbs`,

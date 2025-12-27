@@ -1,0 +1,6 @@
+<section class="panel {{#if node.classes}}{{join node.classes " "}}{{/if}}">
+  {{#if node.title}}<h3>{{node.title}}</h3>{{/if}}
+  {{#each node.children as |child|}}
+    {{> (lookup child "template") node=child}}
+  {{/each}}
+</section>

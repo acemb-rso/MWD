@@ -1,0 +1,5 @@
+<div class="{{#if node.classes}}{{join node.classes " "}}{{/if}}">
+  {{#each node.children as |child|}}
+    {{> (lookup child "template") node=child}}
+  {{/each}}
+</div>
