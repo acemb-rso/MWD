@@ -1,0 +1,103 @@
+{
+  "id": "character",
+  "version": 1,
+  "root": {
+    "type": "stack",
+    "classes": ["csb-layout", "character-layout"],
+    "children": [
+      {
+        "type": "include",
+        "label": "Edge Console",
+        "partial": "mwd.v2.ui.placeholders.edge-console",
+        "classes": ["edge-console"]
+      },
+      {
+        "type": "tabs",
+        "group": "primary",
+        "default": "combat",
+        "renderMode": "stack",
+        "tabs": [
+          {
+            "id": "combat",
+            "label": "Combat Readiness",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Combat Actions",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.placeholders.combat-actions"
+                  }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Condition Monitors",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.placeholders.condition-monitors"
+                  }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Status Dashboard",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.placeholders.status-dashboard"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "inventory",
+            "label": "Inventory",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Gear",
+                "children": [{ "type": "include", "partial": "mwd.actor.parts.gears" }]
+              },
+              {
+                "type": "panel",
+                "title": "Weapons",
+                "children": [{ "type": "include", "partial": "mwd.actor.parts.weapons" }]
+              }
+            ]
+          },
+          {
+            "id": "assigned",
+            "label": "Assigned Systems",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Assigned Systems",
+                "children": [{ "type": "include", "partial": "mwd.v2.ui.placeholders.assigned-systems" }]
+              }
+            ]
+          },
+          {
+            "id": "bio",
+            "label": "Bio",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Description",
+                "children": [{ "type": "include", "partial": "mwd.actor.parts.description" }]
+              },
+              {
+                "type": "panel",
+                "title": "GM Notes",
+                "children": [{ "type": "include", "partial": "mwd.actor.parts.gmnotes" }]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

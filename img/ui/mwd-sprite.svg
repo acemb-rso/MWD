@@ -1,0 +1,52 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="mwdGold" x1="0" y1="70" x2="0" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFE97A"></stop>
+      <stop offset="30%" stop-color="#FFC83A"></stop>
+      <stop offset="65%" stop-color="#FF9A1E"></stop>
+      <stop offset="100%" stop-color="#C94F00"></stop>
+    </linearGradient>
+
+    <linearGradient id="mwdStroke" x1="0" y1="70" x2="0" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#B56D00"></stop>
+      <stop offset="100%" stop-color="#6A2600"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- TOP WEDGE: FILL WITH SMALL CUTOUT -->
+  <path fill="url(#mwdGold)" fill-rule="evenodd" d="
+    M256 78
+    L430 292
+    L338 292
+    L256 206
+    L174 292
+    L82 292
+    Z
+
+    M256 270
+    L276 292
+    L236 292
+    Z
+  "></path>
+
+  <!-- TOP WEDGE: OUTER STROKE ONLY -->
+  <path fill="none" stroke="url(#mwdStroke)" stroke-width="10" stroke-linejoin="miter" d="
+          M256 78
+          L430 292
+          L338 292
+          L256 206
+          L174 292
+          L82 292
+          Z
+        "></path>
+
+  <!-- BOTTOM TRAPEZOID -->
+  <path fill="url(#mwdGold)" stroke="url(#mwdStroke)" stroke-width="10" stroke-linejoin="miter" d="
+          M176 332
+          L336 332
+          L392 386
+          L120 386
+          Z
+        "></path>
+</svg>
