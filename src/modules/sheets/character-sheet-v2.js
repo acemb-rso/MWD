@@ -10,10 +10,14 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       },
       scrollable: [".sheet-body"]
     }
+
   };
 
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-    classes: ["character-sheet", SYSTEM_NAME, "actor-sheet-v2"]
+    classes: ["character-sheet", SYSTEM_NAME, "actor-sheet-v2"],
+    window: {
+      resizable: true,
+    }
   });
 
   /** @override */

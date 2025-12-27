@@ -34,6 +34,9 @@ export async function preloadTemplatesV2() {
     `${BASE}/v2/ui/nodes/tabs.hbs`,
     `${BASE}/v2/ui/nodes/unknown.hbs`,
 
+    // V2 UI (Character)
+    `${BASE}/v2/ui/character/attributes.hbs`,
+
     // Placeholders
     `${BASE}/v2/ui/placeholders/edge-console.hbs`,
     `${BASE}/v2/ui/placeholders/combat-actions.hbs`,

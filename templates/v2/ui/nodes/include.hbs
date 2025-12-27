@@ -1,6 +1,6 @@
 {{!-- include a known partial alias; pass root context through --}}
 {{#if node.partial}}
-  {{> (lookup node "partial") }}
+  {{> (lookup node "partial") @root}}
 {{else}}
   <div class="warning">Missing include partial</div>
 {{/if}}

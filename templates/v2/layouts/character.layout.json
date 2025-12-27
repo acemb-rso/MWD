@@ -3,13 +3,60 @@
   "version": 1,
   "root": {
     "type": "stack",
-    "classes": ["csb-layout", "character-layout"],
+    "classes": [
+      "csb-layout",
+      "character-layout"
+    ],
     "children": [
       {
-        "type": "include",
-        "label": "Edge Console",
-        "partial": "mwd.v2.ui.placeholders.edge-console",
-        "classes": ["edge-console"]
+        "type": "stack",
+        "classes": [
+          "csb-topband"
+        ],
+        "children": [
+          {
+            "type": "panel",
+            "title": "Attributes",
+            "classes": [
+              "csb-topband__attributes"
+            ],
+            "children": [
+              {
+                "type": "include",
+                "partial": "mwd.v2.ui.character.attributes"
+              }
+            ]
+          },
+          {
+            "type": "panel",
+            "title": "Edge",
+            "classes": [
+              "csb-topband__edge"
+            ],
+            "children": [
+              {
+                "type": "include",
+                "partial": "mwd.v2.ui.placeholders.edge-console",
+                "classes": [
+                  "edge-console"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "panel",
+            "title": "Condition Monitors",
+            "classes": [
+              "csb-topband__monitors"
+            ],
+            "children": [
+              {
+                "type": "include",
+                "partial": "mwd.v2.ui.placeholders.condition-monitors"
+              }
+            ]
+          }
+        ]
       },
       {
         "type": "tabs",
@@ -33,16 +80,6 @@
               },
               {
                 "type": "panel",
-                "title": "Condition Monitors",
-                "children": [
-                  {
-                    "type": "include",
-                    "partial": "mwd.v2.ui.placeholders.condition-monitors"
-                  }
-                ]
-              },
-              {
-                "type": "panel",
                 "title": "Status Dashboard",
                 "children": [
                   {
@@ -60,12 +97,22 @@
               {
                 "type": "panel",
                 "title": "Gear",
-                "children": [{ "type": "include", "partial": "mwd.actor.parts.gears" }]
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.actor.parts.gears"
+                  }
+                ]
               },
               {
                 "type": "panel",
                 "title": "Weapons",
-                "children": [{ "type": "include", "partial": "mwd.actor.parts.weapons" }]
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.actor.parts.weapons"
+                  }
+                ]
               }
             ]
           },
@@ -76,7 +123,12 @@
               {
                 "type": "panel",
                 "title": "Assigned Systems",
-                "children": [{ "type": "include", "partial": "mwd.v2.ui.placeholders.assigned-systems" }]
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.placeholders.assigned-systems"
+                  }
+                ]
               }
             ]
           },
@@ -87,12 +139,22 @@
               {
                 "type": "panel",
                 "title": "Description",
-                "children": [{ "type": "include", "partial": "mwd.actor.parts.description" }]
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.actor.parts.description"
+                  }
+                ]
               },
               {
                 "type": "panel",
                 "title": "GM Notes",
-                "children": [{ "type": "include", "partial": "mwd.actor.parts.gmnotes" }]
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.actor.parts.gmnotes"
+                  }
+                ]
               }
             ]
           }

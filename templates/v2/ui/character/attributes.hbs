@@ -1,0 +1,58 @@
+<div class="mwd-attributes">
+  <div class="attributes-row">
+    <div class="attribute">
+      <label for="system.attributes.strength.value">Strength</label>
+      <input id="system.attributes.strength.value"
+             type="number"
+             name="system.attributes.strength.value"
+             value="{{system.attributes.strength.value}}"
+             data-dtype="Number"
+             min="0"
+             {{#unless @root.editable}}disabled{{/unless}} />
+    </div>
+
+    <div class="attribute">
+      <label for="system.attributes.reflexes.value">Reflexes</label>
+      <input id="system.attributes.reflexes.value"
+             type="number"
+             name="system.attributes.reflexes.value"
+             value="{{system.attributes.reflexes.value}}"
+             data-dtype="Number"
+             min="0"
+             {{#unless @root.editable}}disabled{{/unless}} />
+    </div>
+
+    <div class="attribute">
+      <label for="system.attributes.intelligence.value">Intelligence</label>
+      <input id="system.attributes.intelligence.value"
+             type="number"
+             name="system.attributes.intelligence.value"
+             value="{{system.attributes.intelligence.value}}"
+             data-dtype="Number"
+             min="0"
+             {{#unless @root.editable}}disabled{{/unless}} />
+    </div>
+
+    <div class="attribute">
+      <label for="system.attributes.willpower.value">Willpower</label>
+      <input id="system.attributes.willpower.value"
+             type="number"
+             name="system.attributes.willpower.value"
+             value="{{system.attributes.willpower.value}}"
+             data-dtype="Number"
+             min="0"
+             {{#unless @root.editable}}disabled{{/unless}} />
+    </div>
+
+    <div class="attribute">
+      <label for="system.attributes.charisma.value">Charisma</label>
+      <input id="system.attributes.charisma.value"
+             type="number"
+             name="system.attributes.charisma.value"
+             value="{{system.attributes.charisma.value}}"
+             data-dtype="Number"
+             min="0"
+             {{#unless @root.editable}}disabled{{/unless}} />
+    </div>
+  </div>
+</div>
