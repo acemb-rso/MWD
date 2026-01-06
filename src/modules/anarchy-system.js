@@ -39,6 +39,7 @@ import { GMAnarchyManager } from "./gm/gm-anarchy.js";
 import { registerActorSheetsV2 } from "./sheets/register-actor-sheets-v2.js";
 import { preloadTemplatesV2 } from "./sheets/preload-templates.js";
 import { MWDActor } from "./actor/mwd-actor.js";
+import { MWDRoll } from "./roll/mwd-roll.js";
 //import { registerItemSheetsV2 } from "./sheets/register-item-sheets-v2.js";
 
 /* -------------------------------------------- */
@@ -57,7 +58,16 @@ export class AnarchySystem {
     console.log(LOG_HEAD + 'AnarchySystem.onInit');
     game.system.mwd = this;
     game.system.anarchy = this;
-    this.remoteCall = new RemoteCall(); // initialize remote calls registry first: used by other singleton managers
+    game.mwd ??= {};
+
+    // Roll API (new AppV2 path)
+    game.mwd.roll = MWDRoll;
+
+    // Optional alias if you want it under the system object too:
+    this.roll = MWDRoll;
+
+    // initialize remote calls registry first: used by other singleton managers
+    this.remoteCall = new RemoteCall(); 
 
     //register handlebars helpers early
     Handlebars.registerHelper("mwdClassList", (classes) => {

@@ -1,5 +1,8 @@
 <div class="mwd-skill">
-  <div class="mwd-skill__left">
++  <div class="mwd-skill__left"
++       data-action="roll"
++       data-roll='{"intent":"skill","key":"{{s.code}}"}'
++       title="Roll {{s.label}} (Shift = quick)">
     {{#if s.icon}}
       <img class="mwd-skill__icon" src="{{s.icon}}" />
     {{/if}}
@@ -24,8 +27,10 @@
            type="number"
            name="{{s.pathRating}}"
            value="{{s.rating}}"
+           data-edit-field="staged"
            min="0"
-           data-dtype="Number" />
+           max="12"
+           step="1" />
   {{else}}
     <span class="mwd-pill__value">{{s.rating}}</span>
   {{/if}}

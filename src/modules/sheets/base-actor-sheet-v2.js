@@ -40,7 +40,8 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
      */
     actions: {
       toggleViewMode: BaseActorSheetV2.prototype._onToggleViewMode,
-      tab: BaseActorSheetV2.prototype._onClickTab
+      tab: BaseActorSheetV2.prototype._onClickTab,
+      roll: BaseActorSheetV2.prototype._onRollAction
     }
   });
 
@@ -81,7 +82,20 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
   }
 
   toggleEditing() {
+    // Permissions gate: if you can't edit, you can't enter edit mode or commit.
     if (!this.isEditable) return;
+
+    // If we are currently editing and about to exit edit mode, commit changes first.
+    if (this.#editing) {
+      // Fire and forget is tempting, but don't: we want commit to finish before re-render.
+      this._commitEditsToActor().finally(() => {
+        this.#editing = !this.#editing;
+        this.render({ force: true });
+      });
+      return;
+    }
+
+    // Entering edit mode: just flip and re-render.
     this.#editing = !this.#editing;
     this.render({ force: true });
   }
@@ -189,7 +203,7 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
    * AppV2 action handler: Edit/View toggle.
    * Note: actions mapping already routes clicks here; we keep this lean.
    */
-  async _onToggleViewMode(event /*, target */) {
+  async _onToggleViewMode(event) {
     event?.preventDefault?.();
     this.toggleEditing();
   }
@@ -212,6 +226,38 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
     this.#activeTabsByGroup.set(group, tabId);
 
     this.#applyTabState(tabs, tabId);
+  }
+  
+  /**
+   * Universal roll action: data-action="roll" + data-roll='{"intent":"skill","key":"gunnery"}'
+   */
+  async _onRollAction(event, target) {
+    event?.preventDefault?.();
+
+    const el = target?.closest?.("[data-roll]") ?? event?.target?.closest?.("[data-roll]");
+    const raw = el?.dataset?.roll;
+    if (!raw) return;
+
+    let payload;
+    try {
+      payload = JSON.parse(raw);
+    } catch (err) {
+      console.warn("MWD | Invalid data-roll JSON:", raw, err);
+      return;
+    }
+
+    // Future: default dialog, Shift = quick roll.
+    // For now: everything is “quick roll” until dialog exists.
+    const quick = !!event?.shiftKey;
+
+    // Ensure roll namespace exists
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) {
+      ui.notifications?.error("MWD roll system not initialized (game.mwd.roll.execute missing).");
+      return;
+    }
+
+    return rollApi.execute({ actor: this.actor, payload, event, quick });
   }
 
   /**
@@ -247,6 +293,58 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
       });
      }
 
+  }
+
+  async _commitEditsToActor() {
+    // If the sheet isn't rendered yet, nothing to commit.
+    const root = this.element;
+    if (!root) return;
+
+    // Gather all named inputs/selects/textareas inside the sheet.
+    const fields = root.querySelectorAll('input[name][data-edit-field="staged"], select[name][data-edit-field="staged"], textarea[name][data-edit-field="staged"]');
+    if (!fields.length) return;
+
+    const updates = {};
+
+    for (const el of fields) {
+      const name = el.getAttribute("name");
+      if (!name) continue;
+
+      // Skip disabled fields; they shouldn't commit.
+      if (el.disabled) continue;
+
+      let value;
+
+      if (el instanceof HTMLInputElement) {
+        if (el.type === "checkbox") value = el.checked;
+        else if (el.type === "number") value = Number(el.value);
+        else value = el.value;
+      } else {
+        value = el.value;
+      }
+
+      // Coerce number NaN -> 0 for numeric fields
+      if (typeof value === "number" && Number.isNaN(value)) value = 0;
+
+      // Clamp rules (your requirements)
+      value = this._clampByPath(name, value);
+
+      // Only include changes (prevents noisy updates)
+      const current = foundry.utils.getProperty(this.actor, name);
+      if (current === value) continue;
+
+      updates[name] = value;
+    }
+
+    if (!Object.keys(updates).length) return;
+
+    // Permissions: let Foundry enforce. If it fails, it fails (expected).
+    try {
+      await this.actor.update(updates);
+    } catch (err) {
+      console.warn("MWD | Commit failed (permissions or validation):", err);
+      // Optional: ui.notifications?.warn("You don't have permission to update this actor.");
+    }
   }
 
   /**
@@ -341,5 +439,30 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
     });
 
     return hbsData;
+  }
+  
+  /** Clamp certain actor system paths to valid ranges */
+  _clampByPath(path, value) {
+    if (typeof value !== "number") return value;
+
+    // Force integers for attributes + skills
+    if (
+      /^system\.skills\.[^.]+\.rating$/.test(path) ||
+      /^system\.attributes\.[^.]+\.value$/.test(path)
+    ) {
+      value = Math.trunc(value); // or Math.floor, but trunc is clearer
+    }
+
+    // Skill rating clamp
+    if (/^system\.skills\.[^.]+\.rating$/.test(path)) {
+      return Math.clamp(value, 0, 12);
+    }
+
+    // Attribute value clamp
+    if (/^system\.attributes\.[^.]+\.value$/.test(path)) {
+      return Math.clamp(value, 0, 10);
+    }
+
+    return value;
   }
 }
