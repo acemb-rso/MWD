@@ -1,0 +1,233 @@
+/* AppV2 sheet layout contract */
+/* NOTE:
+   Layout is CSB-driven. Do NOT target Foundry .tab/.sheet-tabs here.
+   Scroll ownership lives on .csb-tab-panel.
+*/
+
+/* =========================================================
+   Sheet frame (outer boundary)
+   ========================================================= */
+
+.mwd-sheet {
+  display: flex;
+  flex-direction: column;
+  //height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  /* VISUAL FRAME */
+  background: var(--csb-surface-0);
+  border: 1px solid var(--csb-border);
+  border-radius: var(--csb-radius);
+
+  /* Prevent content from kissing the edges */
+  overflow: hidden;
+}
+
+.mwd-sheet .sheet-header {
+  flex: 0 0 auto;
+  background: var(--csb-surface-0);
+  border-bottom: 1px solid var(--csb-border);
+}
+
+
+.mwd-sheet .sheet-footer { flex: 0 0 auto; }
+
+/* =========================================================
+   Sheet body (interior scroll area)
+   Goal: flexible height, proper scroll containment
+   Lives in base.scss (layout contract).
+   ========================================================= */
+
+.mwd-sheet .csb-layout {
+  min-width: 0;
+  min-height: 0;
+}
+
+.mwd-sheet .sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  padding: var(--csb-space-3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;          /* prevents double scrollbars */
+}
+
+/* CSB layout root inside sheet-body */
+.mwd-sheet .sheet-body > .csb-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Topband stays visible, does not scroll */
+.mwd-sheet .sheet-body > .csb-layout > .csb-topband {
+  flex: 0 0 auto;
+}
+
+/* Body region below topband must participate in flex sizing.
+   Without this, tab panels expand to content and never overflow -> no scrollbar. */
+.mwd-sheet .sheet-body > .csb-layout > .csb-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* prevent double scrollbars; panels own scroll */
+}
+
+/* --- CSB Tabs: nav stays fixed, panels area fills, active panel scrolls --- */
+
+/* CSB body owns remaining height */
+.mwd-sheet .csb-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tabs must also flex */
+.mwd-sheet .csb-body .csb-tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.mwd-sheet .csb-tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.mwd-sheet .csb-tab-bar {
+  flex: 0 0 auto;
+}
+
+.mwd-sheet .csb-tab-panels {
+  flex: 1 1 20%;   /* key to getting panels to fill available space */
+  min-height: 10px;
+  padding-right: var( --csb-space-1 ); /* space for scrollbar */
+  overflow-y: auto;          /* ensures only the panel scrolls */
+  overflow-x: hidden;
+  //display: flex;
+  //flex-direction: column;
+  scrollbar-gutter: stable; /* prevent layout shift when scrollbar appears */
+}
+
+/* Panels: only the active one should scroll. We can safely set all to scroll;
+   hidden panels (display:none) won’t matter. */
+.mwd-sheet .csb-tab-panel { display: none;}
+.mwd-sheet .csb-tab-panel.is-active { display: block;}
+
+/* Guardrails: keep the app usable */
+.window-app.mwd-app {
+  min-width: 720px;
+  min-height: 520px;
+
+  /* optional maxes if you want to keep it from going ridiculous */
+  max-width: 1400px;
+  max-height: 1000px;
+}
+
+/* Prevent the window itself from scrolling */
+.window-app.mwd-app .window-content {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* The AppV2 sheet form is also .application (position:absolute in Foundry core).
+   Dock it to all sides so it always expands with the window. */
+.window-app.mwd-app .window-content > form.mwd-sheet {
+  position: absolute;
+  inset: 0;       /* top/right/bottom/left = 0 */
+  margin: 0;
+}
+
+/* =========================================================
+   Sheet Header (AppV2)
+   Goal: compact profile + proper name placement + clean actions
+   Lives in base.scss (layout contract).
+   ========================================================= */
+
+.mwd-sheet.mwd-character-sheet .sheet-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--csb-space-3);
+  padding: var(--csb-space-3);
+  border-bottom: 1px solid var(--csb-border);
+  overflow: visible;
+}
+
+.mwd-sheet.mwd-character-sheet .sheet-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--csb-space-3);
+  flex: 1 1 auto;
+  min-width: 0; /* allow name to shrink */
+}
+
+.mwd-sheet.mwd-character-sheet .sheet-header .header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--csb-space-2);
+  flex: 0 0 auto;
+}
+
+/* Profile image should never dominate */
+.mwd-sheet.mwd-character-sheet .sheet-header .profile {
+  width: 88px;
+  height: 88px;
+  flex: 0 0 88px;
+  object-fit: cover;
+  display: block;
+  border-radius: calc(var(--csb-radius) + 4px);
+  border: 1px solid var(--csb-border);
+  background: var(--csb-surface-2);
+}
+
+/* Name block */
+.mwd-sheet.mwd-character-sheet .sheet-header .name {
+  margin: 0;
+  font-size: 1.35rem; /* ~22px at 16px root; your global is 14px so this lands ~19px */
+  line-height: 1.1;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mwd-sheet.mwd-character-sheet .sheet-header .name input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--csb-text);
+}
+
+/* Make header actions look like controls without fighting Foundry chrome */
+.mwd-sheet.mwd-character-sheet .sheet-header .header-right .view-mode-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: calc(var(--csb-radius));
+  border: 1px solid var(--csb-border);
+  background: var(--csb-surface-2);
+}
+
+.mwd-sheet.mwd-character-sheet .sheet-header .header-right .view-mode-control:hover {
+  border-color: var(--csb-border-strong);
+}
+
+.mwd-sheet.mwd-character-sheet .sheet-header .header-right .view-mode-control i {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+

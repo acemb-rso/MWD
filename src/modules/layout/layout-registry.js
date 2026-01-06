@@ -36,25 +36,32 @@ export class LayoutRegistry {
     const walk = (node) => {
       if (!node || typeof node !== "object") return node;
 
-      // Map node type -> template alias
       node.template ??= LayoutRegistry.#templateFor(node);
 
-      // Normalize arrays
-      node.children ??= [];
-      node.classes ??= [];
+      node.children = Array.isArray(node.children) ? node.children : [];
 
-      // Recurse for common shapes
-      if (Array.isArray(node.children)) node.children = node.children.map(walk);
-
-      if (node.type === "tabs" && Array.isArray(node.tabs)) {
-        node.tabs = node.tabs.map(t => ({
-          ...t,
-          children: (t.children ?? []).map(walk)
-        }));
+      if (Array.isArray(node.classes)) {
+        // ok
+      } else if (typeof node.classes === "string") {
+        node.classes = node.classes.split(/\s+/).filter(Boolean);
+      } else {
+        node.classes = [];
       }
 
-      return node;
-    };
+    // Recurse children
+    node.children = node.children.map(walk);
+
+    // Normalize tabs once
+    if (node.type === "tabs" && Array.isArray(node.tabs)) {
+      node.tabs = node.tabs.map(t => ({
+        ...t,
+        children: (Array.isArray(t.children) ? t.children : []).map(walk)
+      }));
+    }
+
+    return node;
+  };
+
 
     return {
       ...layout,
@@ -65,6 +72,7 @@ export class LayoutRegistry {
   static #templateFor(node) {
     switch (node.type) {
       case "stack": return "mwd.v2.ui.nodes.stack";
+      case "hexabox": return "mwd.v2.ui.nodes.hexabox";
       case "panel": return "mwd.v2.ui.nodes.panel";
       case "include": return "mwd.v2.ui.nodes.include";
       case "tabs": return "mwd.v2.ui.nodes.tabs";

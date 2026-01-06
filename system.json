@@ -30,19 +30,15 @@
   ],
   "flags": {
     "allowBugReporter": true,
-    "hotReload": {
-      "extensions": ["css", "hbs", "html", "scss"],
-      "paths": ["src/", "templates/", "style.css"]
-    }
-  },
+      "hotReload": {
+        "extensions": ["css", "hbs", "html", "scss"],
+        "paths": ["src/", "templates/", "styles/"]
+      }
+   },
   "license": "LICENSE.md",
   "scripts": [],
   "esmodules": ["index.mjs"],
-  "styles": [
-    "style.css",
-    "styles/application-v2.css",
-    "src/styles/gm-manager.css"
-  ],
+  "styles": ["/styles/mwd.css"],  
   "packs": [
     {
       "name": "macros",

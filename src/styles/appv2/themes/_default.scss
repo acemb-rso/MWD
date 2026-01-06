@@ -1,0 +1,46 @@
+/* Default theme: gunmetal, restrained contrast */
+
+.mwd-theme-default {
+  --csb-surface-0: #1f2328;
+  --csb-surface-1: #262b31;
+  --csb-surface-2: #2e353d;
+  --csb-surface-3: #343c45;
+
+  --csb-text: #e6edf3;
+  --csb-text-muted: rgba(230, 237, 243, 0.75);
+  --csb-text-faint: rgba(230, 237, 243, 0.55);
+
+  --csb-border: rgba(230, 237, 243, 0.14);
+  --csb-border-strong: rgba(230, 237, 243, 0.22);
+
+  --csb-accent: #6aa7ff;
+  --csb-focus: rgba(106, 167, 255, 0.45);
+
+  --csb-panel-shadow: var(--csb-shadow-0);
+}
+
+/* Scrollbars – theme-level only */
+.mwd-sheet {
+  scrollbar-width: thin;              /* Firefox */
+  scrollbar-color: var(--csb-border-strong) transparent;
+}
+
+/* Chromium / Electron */
+.mwd-sheet ::-webkit-scrollbar {
+  width: 15px;
+}
+
+.mwd-sheet ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mwd-sheet ::-webkit-scrollbar-thumb {
+  background-color: var(--csb-text-muted);
+  border-radius: 6px;
+  border: 2px solid transparent;     /* creates inset look */
+  background-clip: content-box;
+}
+
+.mwd-sheet ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--csb-accent);
+}

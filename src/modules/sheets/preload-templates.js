@@ -1,98 +1,99 @@
-import { LOG_HEAD, TEMPLATES_PATH } from "../constants.js";
+// sheets/preload-templates.js
+import { SYSTEM_NAME, LOG_HEAD } from "../constants.js";
 
 /**
- * Explicit template preload to prevent "first render blank" partial resolution issues.
- * Loads one-by-one so a single missing template doesn't stop everything.
+ * Minimal preload list to guarantee CSB/AppV2 sheets render.
+ * Keep this explicit (like dnd5e) to avoid FilePicker/glob edge cases.
  */
+const PARTIALS = [
+  // UI (CSB render entry point + node types)
+  `systems/${SYSTEM_NAME}/templates/v2/ui/layout-root.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/hexabox.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/stack.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/panel.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/include.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/tabs.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/unknown.hbs`,
+  `systems/${SYSTEM_NAME}/templates/common/view-mode.hbs`,
 
-function toAlias(p, base) {
-  // base is TEMPLATES_PATH, e.g. "systems/mwd/templates"
-  const rel = p.startsWith(base) ? p.slice(base.length + 1) : p;
-  return `mwd.${rel}`.replace(/\.hbs$/, "").replace(/\//g, ".");
+  // Character UI
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/attributes.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/combat-actions.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/skills-column.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/skill-row.hbs`,
+
+  // Sheet wrapper
+  `systems/${SYSTEM_NAME}/templates/v2/actor/_sheet-root.hbs`,
+
+  // Placeholders
+  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/assigned-systems.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/condition-monitors.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/edge-console.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/status-dashboard.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-gear.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-weapons.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-description.hbs`,
+
+  // Actors
+  `systems/${SYSTEM_NAME}/templates/v2/actor/character-sheet.hbs`
+];
+
+function toAlias(path) {
+  const p = String(path).replaceAll("\\", "/");
+
+  // Match both "systems/..." and "/systems/..."
+  const marker = `systems/${SYSTEM_NAME}/templates/`;
+  const idx = p.indexOf(marker);
+
+  // Keep only the portion under templates/ (e.g. "v2/ui/layout-root.hbs")
+  const rel = idx >= 0 ? p.slice(idx + marker.length) : p;
+
+  const noExt = rel.replace(/\.hbs$/i, "");
+  const parts = noExt
+    .split("/")
+    .filter(Boolean)
+    .map(seg => seg.replace(/^_+/, ""));
+
+  return `mwd.${parts.join(".")}`; // mwd.v2.ui.layout-root
+}
+
+
+function getHB() {
+  // AppV2 rendering uses Foundry's handlebars environment
+  return foundry?.applications?.handlebars?.Handlebars ?? Handlebars;
 }
 
 export async function preloadTemplatesV2() {
-  const BASE = TEMPLATES_PATH;
+  const HB = getHB();
 
-  const paths = [
-    // Common
-    `${BASE}/common/checkbar.hbs`,
-    `${BASE}/common/view-mode.hbs`,
+  try {
+    const map = {};
+    for (const p of PARTIALS) map[toAlias(p)] = p;
 
-    // Actor roots
-    `${BASE}/v2/actor/_sheet-root.hbs`,
-    `${BASE}/v2/actor/character-sheet.hbs`,
-    `${BASE}/v2/actor/npc-sheet.hbs`,
-    `${BASE}/v2/actor/battlemech-sheet.hbs`,
-    `${BASE}/v2/actor/vehicle-sheet.hbs`,
- 
-    // Layout renderer
-    `${BASE}/v2/ui/layout-root.hbs`,
-    `${BASE}/v2/ui/nodes/stack.hbs`,
-    `${BASE}/v2/ui/nodes/panel.hbs`,
-    `${BASE}/v2/ui/nodes/include.hbs`,
-    `${BASE}/v2/ui/nodes/tabs.hbs`,
-    `${BASE}/v2/ui/nodes/unknown.hbs`,
+    // This compiles & registers the aliases as partials in Foundry's HB env
+    await foundry.applications.handlebars.loadTemplates(map);
 
-    // V2 UI (Character)
-    `${BASE}/v2/ui/character/attributes.hbs`,
-
-    // Placeholders
-    `${BASE}/v2/ui/placeholders/edge-console.hbs`,
-    `${BASE}/v2/ui/placeholders/combat-actions.hbs`,
-    `${BASE}/v2/ui/placeholders/condition-monitors.hbs`,
-    `${BASE}/v2/ui/placeholders/status-dashboard.hbs`,
-    `${BASE}/v2/ui/placeholders/assigned-systems.hbs`,
-
-    // Actor parts (add more as needed)
-    `${BASE}/actor/parts/attributes.hbs`,
-    `${BASE}/actor/parts/attributebuttons.hbs`,
-    `${BASE}/actor/parts/skills.hbs`,
-    `${BASE}/actor/parts/qualities.hbs`,
-    `${BASE}/actor/parts/life-modules.hbs`,
-    `${BASE}/actor/parts/gears.hbs`,
-    `${BASE}/actor/parts/contacts.hbs`,
-    `${BASE}/actor/parts/owned-actors.hbs`,
-    `${BASE}/actor/parts/ownership.hbs`,
-    `${BASE}/actor/parts/description.hbs`,
-    `${BASE}/actor/parts/gmnotes.hbs`,
-    `${BASE}/actor/parts/weapons.hbs`,
-
-    // Mech parts
-    `${BASE}/actor/parts/mech-quick-actions.hbs`,
-    `${BASE}/actor/parts/battlemech-loadout.hbs`,
-    `${BASE}/actor/parts/battlemech-weapons.hbs`,
-    `${BASE}/actor/parts/battlemech-weapon-groups.hbs`,
-    `${BASE}/actor/parts/battlemech-hardpoints.hbs`,
-
-    // Monitors
-    `${BASE}/monitors/armor.hbs`,
-    `${BASE}/monitors/physical.hbs`,
-    `${BASE}/monitors/fatigue.hbs`,
-    `${BASE}/monitors/structure.hbs`,
-    `${BASE}/monitors/heat.hbs`
-  ];
-
-  const ok = [];
-  const bad = [];
-
-  for (const p of paths) {
-    try {
-      const alias = toAlias(p, BASE);
-      await foundry.applications.handlebars.loadTemplates([p]);
-      // Register deterministic alias for *every* preloaded template
-      const tpl = Handlebars.partials[p] ?? (await getTemplate(p));
-      Handlebars.registerPartial(alias, tpl);
-      ok.push(p);
-    } catch (e) {
-      bad.push(p);
-      console.error(`${LOG_HEAD}preloadTemplatesV2 FAILED`, p, e);
+    // Hard asserts against the *same* environment used by AppV2 rendering
+    const required = "mwd.v2.ui.layout-root";
+    if (!Handlebars.partials?.[required]) {
+      const keys = Object.keys(Handlebars.partials ?? {});
+      console.error("Missing required partial:", required);
+      console.error("Closest matches:", keys.filter(k => k.includes("layout-root")));
+      throw new Error(`Template preload failed: ${required} not registered`);
     }
-  }
 
-  console.log(`${LOG_HEAD}preloadTemplatesV2 complete`, {
-    loaded: ok.length,
-    failed: bad.length,
-    failedPaths: bad
-  });
+
+    // Optional compatibility: mirror into global Handlebars too (some legacy render paths read global)
+    if (HB !== Handlebars) {
+      for (const [k, v] of Object.entries(HB.partials ?? {})) {
+        if (Handlebars.partials?.[k]) continue;
+        try { Handlebars.registerPartial(k, v); } catch (_) {}
+      }
+    }
+
+    console.log(`${LOG_HEAD}preloadTemplatesV2 OK`, { loaded: PARTIALS.length });
+  } catch (e) {
+    console.error(`${LOG_HEAD}preloadTemplatesV2 FAILED`, e);
+    throw e;
+  }
 }

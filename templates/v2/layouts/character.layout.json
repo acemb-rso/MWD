@@ -3,52 +3,39 @@
   "version": 1,
   "root": {
     "type": "stack",
-    "classes": [
-      "csb-layout",
-      "character-layout"
-    ],
+    "classes": ["csb-layout", "character-layout"],
     "children": [
       {
         "type": "stack",
-        "classes": [
-          "csb-topband"
-        ],
+        "classes": ["csb-topband", "mwd-topband", "mwd-topband--character"],
         "children": [
           {
-            "type": "panel",
-            "title": "Attributes",
-            "classes": [
-              "csb-topband__attributes"
-            ],
+            "type": "stack",
+            "classes": ["csb-topband__attributes", "mwd-attributes-panel", "mwd-attributes-panel--hex"],
             "children": [
               {
                 "type": "include",
-                "partial": "mwd.v2.ui.character.attributes"
+                "partial": "mwd.v2.ui.character.attributes",
+                "classes": ["mwd-attributes"]
               }
             ]
           },
           {
             "type": "panel",
             "title": "Edge",
-            "classes": [
-              "csb-topband__edge"
-            ],
+            "classes": ["csb-topband__edge"],
             "children": [
               {
                 "type": "include",
                 "partial": "mwd.v2.ui.placeholders.edge-console",
-                "classes": [
-                  "edge-console"
-                ]
+                "classes": ["edge-console"]
               }
             ]
           },
           {
             "type": "panel",
             "title": "Condition Monitors",
-            "classes": [
-              "csb-topband__monitors"
-            ],
+            "classes": ["csb-topband__monitors"],
             "children": [
               {
                 "type": "include",
@@ -59,100 +46,118 @@
         ]
       },
       {
-        "type": "tabs",
-        "group": "primary",
-        "default": "combat",
-        "renderMode": "stack",
-        "tabs": [
+        "type": "stack",
+        "classes": ["csb-body", "mwd-body"],
+        "children": [
           {
-            "id": "combat",
-            "label": "Combat Readiness",
-            "children": [
+            "type": "tabs",
+            "group": "primary",
+            "default": "combat",
+            "renderMode": "stack",
+            "tabs": [
               {
-                "type": "panel",
-                "title": "Combat Actions",
+                "id": "combat",
+                "label": "Combat Readiness",
                 "children": [
                   {
-                    "type": "include",
-                    "partial": "mwd.v2.ui.placeholders.combat-actions"
+                    "type": "panel",
+                    "title": "Combat Actions",
+                    "children": [
+                      {
+                        "type": "include",
+                        "partial": "mwd.v2.ui.character.combat-actions"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Status Dashboard",
+                    "children": [
+                      {
+                        "type": "include",
+                        "partial": "mwd.v2.ui.placeholders.status-dashboard"
+                      }
+                    ]
                   }
                 ]
               },
               {
-                "type": "panel",
-                "title": "Status Dashboard",
+                "id": "skills",
+                "label": "Skills",
                 "children": [
                   {
-                    "type": "include",
-                    "partial": "mwd.v2.ui.placeholders.status-dashboard"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "id": "inventory",
-            "label": "Inventory",
-            "children": [
-              {
-                "type": "panel",
-                "title": "Gear",
-                "children": [
-                  {
-                    "type": "include",
-                    "partial": "mwd.actor.parts.gears"
+                    "type": "stack",
+                    "classes": ["mwd-skills-grid"],
+                    "children": [
+                      {
+                        "type": "include",
+                        "partial": "mwd.v2.ui.character.skills-column",
+                        "context": { "skills": "left" }
+                      },
+                      {
+                        "type": "include",
+                        "partial": "mwd.v2.ui.character.skills-column",
+                        "context": { "skills": "right" }
+                      }
+                    ]
                   }
                 ]
               },
               {
-                "type": "panel",
-                "title": "Weapons",
+                "id": "inventory",
+                "label": "Inventory",
                 "children": [
                   {
-                    "type": "include",
-                    "partial": "mwd.actor.parts.weapons"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "id": "assigned",
-            "label": "Assigned Systems",
-            "children": [
-              {
-                "type": "panel",
-                "title": "Assigned Systems",
-                "children": [
+                    "type": "panel",
+                    "title": "Gear",
+                    "children": [
+                      {
+                        "type": "include",
+                        "partial": "mwd.v2.ui.placeholders.inventory-gear"
+                      }
+                    ]
+                  },
                   {
-                    "type": "include",
-                    "partial": "mwd.v2.ui.placeholders.assigned-systems"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "id": "bio",
-            "label": "Bio",
-            "children": [
-              {
-                "type": "panel",
-                "title": "Description",
-                "children": [
-                  {
-                    "type": "include",
-                    "partial": "mwd.actor.parts.description"
+                    "type": "panel",
+                    "title": "Weapons",
+                    "children": [
+                      {
+                        "type": "include",
+                        "partial": "mwd.v2.ui.placeholders.inventory-weapons"
+                      }
+                    ]
                   }
                 ]
               },
               {
-                "type": "panel",
-                "title": "GM Notes",
+                "id": "assigned",
+                "label": "Assigned Systems",
                 "children": [
                   {
-                    "type": "include",
-                    "partial": "mwd.actor.parts.gmnotes"
+                    "type": "panel",
+                    "title": "Assigned Systems",
+                    "children": [
+                      {
+                        "type": "include",
+                        "partial": "mwd.v2.ui.placeholders.assigned-systems"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "bio",
+                "label": "Bio",
+                "children": [
+                  {
+                    "type": "panel",
+                    "title": "Description",
+                    "children": [
+                      {
+                        "type": "include",
+                        "partial": "mwd.v2.ui.placeholders.bio-description"
+                      }
+                    ]
                   }
                 ]
               }

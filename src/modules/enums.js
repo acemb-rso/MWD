@@ -1,4 +1,6 @@
-import { ANARCHY } from "./config.js";
+// enums.js (refactored away from anarchy namespace)
+
+import { ANARCHY as MWD } from "./config.js";
 import { ACTOR_ATTRIBUTE_SETS } from "./constants.js";
 import { Misc } from "./misc.js";
 
@@ -6,10 +8,12 @@ const actorWordTypes = {
   keyword: "keywords",
   disposition: "dispositions",
   cue: "cues"
-}
+};
 
 export class Enums {
   static ENUMS;
+
+  // HBS-friendly arrays of { value, label } (or key/value depending on caller)
   static hbsAttributes;
   static hbsItemTypes;
   static hbsMonitors;
@@ -18,6 +22,9 @@ export class Enums {
   static hbsLifeModuleTypes;
   static hbsAreas;
   static hbsRanges;
+  static hbsVehicleCategories;
+
+  // MWD-specific enum groups
   static hbsMwdWeightClasses;
   static hbsMwdHardpointTypes;
   static hbsMwdHardpointSizes;
@@ -32,85 +39,98 @@ export class Enums {
 
   static sortedAttributeKeys;
 
-  // this method is the place to add settings-based entries in the enums
+  /**
+   * Initialize enum caches.
+   * Call once during system init/setup after config/constants are available.
+   */
   static init() {
-    Enums.hbsAttributes = Enums.mapObjetToKeyValue(ANARCHY.attributes)
-      .filter(a => a.value != 'knowledge' && a.value != 'noAttribute');
-    Enums.hbsItemTypes = Enums.mapObjetToKeyValue(ANARCHY.itemType);
-    Enums.hbsMonitors = Enums.mapObjetToKeyValue(ANARCHY.monitor);
-    Enums.hbsMonitorLetters = Enums.mapObjetToKeyValue(ANARCHY.monitorLetter);
-    Enums.hbsAssetModuleCategories = Enums.mapObjetToKeyValue(ANARCHY.assetModuleCategory);
+    // Attributes (filter out legacy pseudo-attributes if present)
+    Enums.hbsAttributes = Enums.mapObjectToKeyValue(MWD.attributes)
+      .filter(a => a.value !== "knowledge" && a.value !== "noAttribute");
 
-// Life modules are not wired up yet; keep this from blowing up init.
-if (ANARCHY.lifeModule?.type) {
-  Enums.hbsLifeModuleTypes = Enums.mapObjetToKeyValue(ANARCHY.lifeModule.type);
-} else {
-  console.warn("MWD | ANARCHY.lifeModule.type is missing; life module enums disabled.");
-  Enums.hbsLifeModuleTypes = [];
-}
+    Enums.hbsItemTypes = Enums.mapObjectToKeyValue(MWD.itemType);
+    Enums.hbsMonitors = Enums.mapObjectToKeyValue(MWD.monitor);
+    Enums.hbsMonitorLetters = Enums.mapObjectToKeyValue(MWD.monitorLetter);
+    Enums.hbsAssetModuleCategories = Enums.mapObjectToKeyValue(MWD.assetModuleCategory);
 
-    Enums.hbsAreas = Enums.mapObjetToKeyValue(ANARCHY.area);
-    Enums.hbsRanges = Enums.mapObjetToKeyValue(ANARCHY.range);
-    Enums.hbsVehicleCategories = Enums.mapObjetToKeyValue(ANARCHY.vehicleCategory);
-    Enums.hbsMwdWeightClasses = Enums.mapObjetToKeyValue(ANARCHY.mwd.weightClass);
-    Enums.hbsMwdHardpointTypes = Enums.mapObjetToKeyValue(ANARCHY.mwd.hardpointType);
-    Enums.hbsMwdHardpointSizes = Enums.mapObjetToKeyValue(ANARCHY.mwd.hardpointSize);
-    Enums.hbsMwdHardpointLocations = Enums.mapObjetToKeyValue(ANARCHY.mwd.hardpointLocation);
-    Enums.hbsMwdPrimaryModes = Enums.mapObjetToKeyValue(ANARCHY.mwd.primarySlotMode);
-    Enums.hbsMwdWeaponCategories = Enums.mapObjetToKeyValue(ANARCHY.mwd.weaponCategory);
-    Enums.hbsMwdWeaponDamageTypes = Enums.mapObjetToKeyValue(ANARCHY.mwd.weaponDamageType);
-    Enums.hbsPersonalWeaponDamageTypes = Enums.mapObjetToKeyValue(ANARCHY.mwd.personalDamageType);
-    Enums.hbsPersonalWeaponDamageCategories = Enums.mapObjetToKeyValue(ANARCHY.mwd.personalDamageCategory);
+    // Life modules not always present yet; keep init resilient
+    if (MWD.lifeModule?.type) {
+      Enums.hbsLifeModuleTypes = Enums.mapObjectToKeyValue(MWD.lifeModule.type);
+    } else {
+      console.warn("MWD | MWD.lifeModule.type is missing; life module enums disabled.");
+      Enums.hbsLifeModuleTypes = [];
+    }
+
+    Enums.hbsAreas = Enums.mapObjectToKeyValue(MWD.area);
+    Enums.hbsRanges = Enums.mapObjectToKeyValue(MWD.range);
+    Enums.hbsVehicleCategories = Enums.mapObjectToKeyValue(MWD.vehicleCategory);
+
+    // MWD block enums
+    Enums.hbsMwdWeightClasses = Enums.mapObjectToKeyValue(MWD.mwd?.weightClass);
+    Enums.hbsMwdHardpointTypes = Enums.mapObjectToKeyValue(MWD.mwd?.hardpointType);
+    Enums.hbsMwdHardpointSizes = Enums.mapObjectToKeyValue(MWD.mwd?.hardpointSize);
+    Enums.hbsMwdHardpointLocations = Enums.mapObjectToKeyValue(MWD.mwd?.hardpointLocation);
+    Enums.hbsMwdPrimaryModes = Enums.mapObjectToKeyValue(MWD.mwd?.primarySlotMode);
+    Enums.hbsMwdWeaponCategories = Enums.mapObjectToKeyValue(MWD.mwd?.weaponCategory);
+    Enums.hbsMwdWeaponDamageTypes = Enums.mapObjectToKeyValue(MWD.mwd?.weaponDamageType);
+    Enums.hbsPersonalWeaponDamageTypes = Enums.mapObjectToKeyValue(MWD.mwd?.personalDamageType);
+    Enums.hbsPersonalWeaponDamageCategories = Enums.mapObjectToKeyValue(MWD.mwd?.personalDamageCategory);
+    Enums.hbsMwdMeleeLocations = Enums.mapObjectToKeyValue(MWD.mwd?.meleeLocation);
+
+    // Combined damage types (distinct by .value)
     Enums.hbsDamageTypes = Misc.distinct(
-      Enums.hbsMwdWeaponDamageTypes.concat(Enums.hbsPersonalWeaponDamageTypes),
+      (Enums.hbsMwdWeaponDamageTypes ?? []).concat(Enums.hbsPersonalWeaponDamageTypes ?? []),
       dt => dt.value
     );
-    Enums.hbsMwdMeleeLocations = Enums.mapObjetToKeyValue(ANARCHY.mwd.meleeLocation);
 
+    // Sorted attribute order: first by configured sets, then any remaining keys
     const attributeOrder = Object.values(ACTOR_ATTRIBUTE_SETS).flat();
-    Enums.sortedAttributeKeys = Misc.distinct(attributeOrder.concat(Object.keys(ANARCHY.attributes)));
+    Enums.sortedAttributeKeys = Misc.distinct(
+      attributeOrder.concat(Object.keys(MWD.attributes ?? {}))
+    );
 
     Enums.registerHandleBarHelpers();
+
+    // Convenience “all enums” object for quick sheet context injection if desired
+    Enums.ENUMS = Enums.getEnums();
   }
 
   static registerHandleBarHelpers() {
-    Handlebars.registerHelper('sortedAttributes', map => Misc.sortedMap(map, Misc.ascendingBySortedArray(Enums.sortedAttributeKeys)));
-  }
+    if (typeof Handlebars === "undefined") return;
 
-  static getEnums(filterAttributes = it => true, withKnowledge = false) {
-    return {
-      attributes: Enums.getAttributes(filterAttributes),
-      itemTypes: Enums.hbsItemTypes,
-      monitors: Enums.hbsMonitors,
-      assetModuleCategories: Enums.hbsAssetModuleCategories,
-      skills: game.system.anarchy.skills.getSkills({ withKnowledge }).map(it => ({
-        value: it.code,
-        label: it.label ?? it.code
-      })),
-      areas: Enums.hbsAreas,
-      ranges: Enums.hbsRanges,
-      lifeModuleTypes: Enums.hbsLifeModuleTypes,
-      vehicleCategories: Enums.hbsVehicleCategories,
-      mwdWeightClasses: Enums.hbsMwdWeightClasses,
-      mwdHardpointTypes: Enums.hbsMwdHardpointTypes,
-      mwdHardpointSizes: Enums.hbsMwdHardpointSizes,
-      mwdHardpointLocations: Enums.hbsMwdHardpointLocations,
-      mwdPrimaryModes: Enums.hbsMwdPrimaryModes,
-      mwdWeaponCategories: Enums.hbsMwdWeaponCategories,
-      mwdWeaponDamageTypes: Enums.hbsMwdWeaponDamageTypes,
-      personalWeaponDamageTypes: Enums.hbsPersonalWeaponDamageTypes,
-      personalWeaponDamageCategories: Enums.hbsPersonalWeaponDamageCategories,
-      damageTypes: Enums.hbsDamageTypes,
-      mwdMeleeLocations: Enums.hbsMwdMeleeLocations,
-    };
+    /**
+     * {{#each (sortedAttributes system.attributes) as |attr|}} ... {{/each}}
+     * - Returns an array of entries in the preferred attribute order.
+     * - Each entry is { key, ...value } if value is an object, else { key, value }.
+     */
+    Handlebars.registerHelper("sortedAttributes", (map) => {
+      if (!map || typeof map !== "object") return [];
+
+      const keys = Object.keys(map);
+      const order = Enums.sortedAttributeKeys ?? [];
+      const keyRank = new Map(order.map((k, i) => [k, i]));
+
+      keys.sort((a, b) => {
+        const ra = keyRank.has(a) ? keyRank.get(a) : 9999;
+        const rb = keyRank.has(b) ? keyRank.get(b) : 9999;
+        if (ra !== rb) return ra - rb;
+        return String(a).localeCompare(String(b));
+      });
+
+      return keys.map((key) => {
+        const v = map[key];
+        if (v && typeof v === "object") return { key, ...v };
+        return { key, value: v };
+      });
+    });
   }
 
   static getDamageTypes() {
     return Enums.hbsDamageTypes ?? [];
   }
 
-  static getAttributes(filterAttributes = it => true) {
-    return Enums.hbsAttributes.filter(it => filterAttributes(it.value));
+  static getAttributes(filterAttributes = () => true) {
+    return (Enums.hbsAttributes ?? []).filter(it => filterAttributes(it.value));
   }
 
   static getActorWordTypes() {
@@ -118,55 +138,81 @@ if (ANARCHY.lifeModule?.type) {
   }
 
   static getMonitors() {
-    return Enums.hbsMonitors;
+    return Enums.hbsMonitors ?? [];
   }
 
-  static getMonitorLetters() {
-    return Enums.hbsMonitorLetters;
-  }
-
-  static getActorWordTypePlural(wordType) {
-    return actorWordTypes[wordType];
-  }
-
-  static localizeAttribute(attribute) {
-    if (!ANARCHY.attributes[attribute]) {
-      return ANARCHY.attributes['noAttribute'];
-    }
-    return ANARCHY.attributes[attribute];
-  }
-
-static getFromList(list, key, keyName = "value", valueName = "label") {
-  const found = list?.find(m => m[keyName] == key);
-  return found ? found[valueName] : undefined;
-}
-
-
-
-// enums.js
-static mapObjetToKeyValue(object, keyName = "value", valueName = "label") {
-  // If a config object is missing, just return [] and move on.
-  if (!object) return [];
-
-  return Object.entries(object).map(([key, raw]) => {
-    let label;
-
-    if (typeof raw === "string") {
-      label = raw;
-    } else if (raw && typeof raw === "object") {
-      label = raw.label ?? raw.name ?? String(key);
-    } else {
-      label = String(key);
-    }
-
+  /**
+   * Returns a big blob of enums suitable for sheet contexts.
+   * `withKnowledge` is passed through to the skills service.
+   */
+  static getEnums(filterAttributes = () => true, withKnowledge = false) {
     return {
-      [keyName]: key,
-      [valueName]: label
+      attributes: Enums.getAttributes(filterAttributes),
+      itemTypes: Enums.hbsItemTypes ?? [],
+      monitors: Enums.hbsMonitors ?? [],
+      monitorLetters: Enums.hbsMonitorLetters ?? [],
+      assetModuleCategories: Enums.hbsAssetModuleCategories ?? [],
+      lifeModuleTypes: Enums.hbsLifeModuleTypes ?? [],
+      areas: Enums.hbsAreas ?? [],
+      ranges: Enums.hbsRanges ?? [],
+      vehicleCategories: Enums.hbsVehicleCategories ?? [],
+
+      // Skills: now sourced from MWD namespace (with safe fallback)
+      skills: Enums.getSkillsEnum({ withKnowledge }),
+
+      // MWD enums
+      mwdWeightClasses: Enums.hbsMwdWeightClasses ?? [],
+      mwdHardpointTypes: Enums.hbsMwdHardpointTypes ?? [],
+      mwdHardpointSizes: Enums.hbsMwdHardpointSizes ?? [],
+      mwdHardpointLocations: Enums.hbsMwdHardpointLocations ?? [],
+      mwdPrimaryModes: Enums.hbsMwdPrimaryModes ?? [],
+      mwdWeaponCategories: Enums.hbsMwdWeaponCategories ?? [],
+      mwdWeaponDamageTypes: Enums.hbsMwdWeaponDamageTypes ?? [],
+      personalWeaponDamageTypes: Enums.hbsPersonalWeaponDamageTypes ?? [],
+      personalWeaponDamageCategories: Enums.hbsPersonalWeaponDamageCategories ?? [],
+      damageTypes: Enums.hbsDamageTypes ?? [],
+      mwdMeleeLocations: Enums.hbsMwdMeleeLocations ?? []
     };
-  });
+  }
+
+  static getSkillsEnum({ withKnowledge = false } = {}) {
+    const svc =
+      game?.system?.mwd?.skills
+      ?? game?.system?.anarchy?.skills; // temporary fallback while migrating
+
+    const skills = svc?.getSkills?.({ withKnowledge }) ?? [];
+    return skills.map(it => ({
+      value: it.code,
+      label: it.label ?? it.code
+    }));
+  }
+
+  /**
+   * Convert an object map into an array like [{ value, label }, ...]
+   * Accepts:
+   * - { key: "Label" }
+   * - { key: { label: "Label" } }
+   */
+  static mapObjectToKeyValue(obj, keyName = "value", valueName = "label") {
+    if (!obj || typeof obj !== "object") return [];
+
+    return Object.keys(obj).map((key) => {
+      const raw = obj[key];
+
+      let label;
+      if (raw && typeof raw === "object") label = raw.label ?? raw.name ?? raw.value ?? String(key);
+      else if (raw != null) label = String(raw);
+      else label = String(key);
+
+      return {
+        [keyName]: key,
+        [valueName]: label
+      };
+    });
+  }
+
+  // Backwards-compat alias (the legacy file misspelled this)
+  static mapObjetToKeyValue(obj, keyName = "value", valueName = "label") {
+    return Enums.mapObjectToKeyValue(obj, keyName, valueName);
+  }
 }
-
-
-
-}
-

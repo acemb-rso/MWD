@@ -1,0 +1,888 @@
+@charset "UTF-8";
+/* IMPORTANT:
+   SCSS is order-sensitive.
+   Load order is:
+   global → utilities → tokens → base → components → themes → modules.
+   Do not reorder without understanding cascade impact.
+*/
+/* SOURCE OF TRUTH — AppV2 */
+/* Environment */
+/* =========================================================
+   GLOBAL BASELINE — MWD SHEETS ONLY
+   Purpose: normalization + typography + sane defaults
+   No layout. No components. No theme colors.
+   IMPORTANT: Do NOT stomp Foundry chrome (window/header controls).
+   ========================================================= */
+.mwd-sheet {
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--csb-text);
+}
+.mwd-sheet *, .mwd-sheet *::before, .mwd-sheet *::after {
+  box-sizing: inherit;
+}
+.mwd-sheet {
+  /* -------------------------
+     Typography
+     ------------------------- */
+}
+.mwd-sheet h1, .mwd-sheet h2, .mwd-sheet h3, .mwd-sheet h4 {
+  margin: 0;
+  font-weight: 600;
+}
+.mwd-sheet h3 {
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+.mwd-sheet p {
+  margin: 0;
+}
+.mwd-sheet label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  user-select: none;
+}
+.mwd-sheet {
+  /* -------------------------
+     Forms (behavior only)
+     Scope to sheet BODY so we don't break Foundry header buttons.
+     ------------------------- */
+}
+.mwd-sheet .sheet-body input,
+.mwd-sheet .sheet-body select,
+.mwd-sheet .sheet-body textarea,
+.mwd-sheet .sheet-body button {
+  font: inherit;
+  color: inherit;
+}
+.mwd-sheet .sheet-body input,
+.mwd-sheet .sheet-body select,
+.mwd-sheet .sheet-body textarea {
+  background: none;
+  border: none;
+  outline: none;
+}
+.mwd-sheet .sheet-body input[type=number] {
+  appearance: textfield;
+}
+.mwd-sheet .sheet-body input[type=number]::-webkit-outer-spin-button, .mwd-sheet .sheet-body input[type=number]::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+.mwd-sheet .sheet-body button {
+  background: var(--csb-accent);
+  border: var(--csb-border-strong);
+  cursor: pointer;
+}
+.mwd-sheet {
+  /* -------------------------
+     Utility expectations
+     ------------------------- */
+}
+.mwd-sheet [hidden] {
+  display: none !important;
+}
+
+/* Atomic helpers */
+/* Interface and defaults */
+/* =========================================================
+   TOKENS — variable interface + safe defaults
+   Purpose: define "knobs" that components/base can rely on.
+   Themes override these by setting values under .mwd-theme-*
+   ========================================================= */
+:root {
+  /* ---------- spacing scale ---------- */
+  --csb-space-0: 0;
+  --csb-space-1: 4px;
+  --csb-space-2: 8px;
+  --csb-space-3: 12px;
+  --csb-space-4: 16px;
+  --csb-space-5: 20px;
+  /* ---------- radii ---------- */
+  --csb-radius-sm: 6px;
+  --csb-radius: 10px;
+  --csb-radius-lg: 14px;
+  --csb-radius-pill: 999px;
+  /* ---------- typography ---------- */
+  --csb-font-size-sm: 0.85rem;
+  --csb-font-size: 1rem;
+  --csb-font-size-lg: 1.15rem;
+  --csb-line-height: 1.4;
+  /* ---------- surfaces (tiers) ---------- */
+  --csb-surface-0: #222; /* sheet background */
+  --csb-surface-1: #2a2a2a; /* panels */
+  --csb-surface-2: #333; /* inputs/controls */
+  --csb-surface-3: #3a3a3a; /* hover */
+  /* ---------- text ---------- */
+  --csb-text: #e8e8e8;
+  --csb-text-muted: #bdbdbd;
+  --csb-text-faint: #8c8c8c;
+  --csb-text-inverse: #111;
+  /* ---------- borders ---------- */
+  --csb-border: rgba(255, 255, 255, 0.14);
+  --csb-border-strong: rgba(255, 255, 255, 0.22);
+  /* ---------- accents / states ---------- */
+  --csb-accent: #6aa7ff;
+  --csb-focus: rgba(106, 167, 255, 0.45);
+  --csb-warning: #b8860b; /* matches legacy fallback */
+  --csb-danger: #d14b4b;
+  --csb-success: #49b36a;
+  /* ---------- shadows ---------- */
+  --csb-shadow-0: none;
+  --csb-shadow-1: 0 2px 6px rgba(0, 0, 0, 0.25);
+  --csb-shadow-2: 0 6px 18px rgba(0, 0, 0, 0.35);
+  /* =========================================================
+     Component-specific knobs
+     ========================================================= */
+  /* Panels */
+  --csb-panel-bg: var(--csb-surface-1);
+  --csb-panel-border: var(--csb-border);
+  --csb-panel-radius: var(--csb-radius);
+  --csb-panel-padding: var(--csb-space-3);
+  --csb-panel-shadow: var(--csb-shadow-0);
+  /* Inputs */
+  --csb-input-bg: var(--csb-surface-2);
+  --csb-input-border: var(--csb-border);
+  --csb-input-radius: calc(var(--csb-radius) - 2px);
+  --csb-input-height: 28px;
+  --csb-input-padding-x: var(--csb-space-2);
+  /* Buttons */
+  --csb-button-bg: var(--csb-surface-2);
+  --csb-button-bg-hover: var(--csb-surface-3);
+  --csb-button-border: var(--csb-border);
+  --csb-button-radius: calc(var(--csb-radius) - 2px);
+  --csb-button-height: 28px;
+  --csb-button-padding-x: var(--csb-space-2);
+  --csb-button-gap: var(--csb-space-2);
+  /* Tabs */
+  --csb-tabbar-border: var(--csb-border);
+  --csb-tab-bg: transparent;
+  --csb-tab-bg-active: transparent;
+  --csb-tab-text: var(--csb-text-muted);
+  --csb-tab-text-active: var(--csb-text);
+  --csb-tab-underline: var(--csb-accent);
+  /* Chips / tags */
+  --csb-chip-bg: rgba(255, 255, 255, 0.06);
+  --csb-chip-border: var(--csb-border);
+  --csb-chip-radius: var(--csb-radius-pill);
+  --csb-chip-padding-y: 2px;
+  --csb-chip-padding-x: 8px;
+  /* =========================================================
+     Legacy alias layer (strip-mining friendliness)
+     Keep these until migration is complete.
+     ========================================================= */
+  /* legacy “anarchy color” style fallbacks */
+  --anarchy-color-warning: var(--csb-warning);
+  --anarchy-color-danger: var(--csb-danger);
+  --anarchy-color-success: var(--csb-success);
+  /* legacy hexabox vars */
+  --wrapper-padding: var(--csb-hexabox-cut);
+  --wrapper-background-color: var(--csb-hexabox-bg);
+  --wrapper-border-color: var(--csb-hexabox-border);
+  --wrapper-thickness: var(--csb-hexabox-thickness);
+  /* Hexabox knobs */
+  --csb-hexabox-cut: 10px;
+  --csb-hexabox-bg: var(--csb-surface-1);
+  --csb-hexabox-border: var(--csb-border);
+  --csb-hexabox-thickness: 1px;
+}
+
+/* Structural layout */
+/* AppV2 sheet layout contract */
+/* NOTE:
+   Layout is CSB-driven. Do NOT target Foundry .tab/.sheet-tabs here.
+   Scroll ownership lives on .csb-tab-panel.
+*/
+/* =========================================================
+   Sheet frame (outer boundary)
+   ========================================================= */
+.mwd-sheet {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  /* VISUAL FRAME */
+  background: var(--csb-surface-0);
+  border: 1px solid var(--csb-border);
+  border-radius: var(--csb-radius);
+  /* Prevent content from kissing the edges */
+  overflow: hidden;
+}
+
+.mwd-sheet .sheet-header {
+  flex: 0 0 auto;
+  background: var(--csb-surface-0);
+  border-bottom: 1px solid var(--csb-border);
+}
+
+.mwd-sheet .sheet-footer {
+  flex: 0 0 auto;
+}
+
+/* =========================================================
+   Sheet body (interior scroll area)
+   Goal: flexible height, proper scroll containment
+   Lives in base.scss (layout contract).
+   ========================================================= */
+.mwd-sheet .csb-layout {
+  min-width: 0;
+  min-height: 0;
+}
+
+.mwd-sheet .sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  padding: var(--csb-space-3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* prevents double scrollbars */
+}
+
+/* CSB layout root inside sheet-body */
+.mwd-sheet .sheet-body > .csb-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Topband stays visible, does not scroll */
+.mwd-sheet .sheet-body > .csb-layout > .csb-topband {
+  flex: 0 0 auto;
+}
+
+/* Body region below topband must participate in flex sizing.
+   Without this, tab panels expand to content and never overflow -> no scrollbar. */
+.mwd-sheet .sheet-body > .csb-layout > .csb-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* prevent double scrollbars; panels own scroll */
+}
+
+/* --- CSB Tabs: nav stays fixed, panels area fills, active panel scrolls --- */
+/* CSB body owns remaining height */
+.mwd-sheet .csb-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tabs must also flex */
+.mwd-sheet .csb-body .csb-tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.mwd-sheet .csb-tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.mwd-sheet .csb-tab-bar {
+  flex: 0 0 auto;
+}
+
+.mwd-sheet .csb-tab-panels {
+  flex: 1 1 20%; /* key to getting panels to fill available space */
+  min-height: 10px;
+  padding-right: var(--csb-space-1); /* space for scrollbar */
+  overflow-y: auto; /* ensures only the panel scrolls */
+  overflow-x: hidden;
+  scrollbar-gutter: stable; /* prevent layout shift when scrollbar appears */
+}
+
+/* Panels: only the active one should scroll. We can safely set all to scroll;
+   hidden panels (display:none) won’t matter. */
+.mwd-sheet .csb-tab-panel {
+  display: none;
+}
+
+.mwd-sheet .csb-tab-panel.is-active {
+  display: block;
+}
+
+/* Guardrails: keep the app usable */
+.window-app.mwd-app {
+  min-width: 720px;
+  min-height: 520px;
+  /* optional maxes if you want to keep it from going ridiculous */
+  max-width: 1400px;
+  max-height: 1000px;
+}
+
+/* Prevent the window itself from scrolling */
+.window-app.mwd-app .window-content {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* The AppV2 sheet form is also .application (position:absolute in Foundry core).
+   Dock it to all sides so it always expands with the window. */
+.window-app.mwd-app .window-content > form.mwd-sheet {
+  position: absolute;
+  inset: 0; /* top/right/bottom/left = 0 */
+  margin: 0;
+}
+
+/* =========================================================
+   Sheet Header (AppV2)
+   Goal: compact profile + proper name placement + clean actions
+   Lives in base.scss (layout contract).
+   ========================================================= */
+.mwd-sheet.mwd-character-sheet .sheet-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--csb-space-3);
+  padding: var(--csb-space-3);
+  border-bottom: 1px solid var(--csb-border);
+  overflow: visible;
+}
+
+.mwd-sheet.mwd-character-sheet .sheet-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--csb-space-3);
+  flex: 1 1 auto;
+  min-width: 0; /* allow name to shrink */
+}
+
+.mwd-sheet.mwd-character-sheet .sheet-header .header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--csb-space-2);
+  flex: 0 0 auto;
+}
+
+/* Profile image should never dominate */
+.mwd-sheet.mwd-character-sheet .sheet-header .profile {
+  width: 88px;
+  height: 88px;
+  flex: 0 0 88px;
+  object-fit: cover;
+  display: block;
+  border-radius: calc(var(--csb-radius) + 4px);
+  border: 1px solid var(--csb-border);
+  background: var(--csb-surface-2);
+}
+
+/* Name block */
+.mwd-sheet.mwd-character-sheet .sheet-header .name {
+  margin: 0;
+  font-size: 1.35rem; /* ~22px at 16px root; your global is 14px so this lands ~19px */
+  line-height: 1.1;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mwd-sheet.mwd-character-sheet .sheet-header .name input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--csb-text);
+}
+
+/* Make header actions look like controls without fighting Foundry chrome */
+.mwd-sheet.mwd-character-sheet .sheet-header .header-right .view-mode-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: calc(var(--csb-radius));
+  border: 1px solid var(--csb-border);
+  background: var(--csb-surface-2);
+}
+
+.mwd-sheet.mwd-character-sheet .sheet-header .header-right .view-mode-control:hover {
+  border-color: var(--csb-border-strong);
+}
+
+.mwd-sheet.mwd-character-sheet .sheet-header .header-right .view-mode-control i {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+/* Reusable UI pieces */
+/* =========================================================
+   CSB / AppV2 COMPONENTS
+   Structural + spacing rules only
+   No theme-specific colors here
+   ========================================================= */
+.mwd-sheet {
+  background: var(--csb-surface-0);
+  color: var(--csb-text);
+}
+
+/* -------------------------
+   1. Panels (foundation)
+   ------------------------- */
+.mwd-sheet .panel {
+  padding: var(--csb-space-3);
+  border: 1px solid var(--csb-border);
+  border-radius: var(--csb-radius);
+  background: var(--csb-surface-1);
+  min-width: 0;
+}
+
+.mwd-sheet .panel > h3 {
+  margin: 0 0 var(--csb-space-2) 0;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+/* -------------------------
+   2. Tabs (chrome)
+   ------------------------- */
+.csb-tab-bar {
+  display: flex;
+  gap: var(--csb-space-2);
+  border-bottom: 1px solid var(--csb-border);
+}
+
+.csb-tab-link {
+  padding: var(--csb-space-2) var(--csb-space-3);
+  cursor: pointer;
+}
+
+.csb-tab-link.is-active {
+  border-bottom: 2px solid var(--csb-accent);
+}
+
+/* -------------------------
+   3. Inputs (baseline)
+   ------------------------- */
+.mwd-sheet input,
+.mwd-sheet select,
+.mwd-sheet textarea {
+  background: var(--csb-surface-2);
+  border: 1px solid var(--csb-border);
+  border-radius: calc(var(--csb-radius) - 2px);
+  color: var(--csb-text);
+}
+
+/* -------------------------
+   4. Character: Attributes
+   (first leaf component)
+   ------------------------- */
+.csb-topband__attributes .attributes-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--csb-space-2);
+  padding-bottom: var(--csb-space-3);
+}
+
+.csb-topband__attributes .attribute {
+  display: grid;
+  gap: var(--csb-space-1);
+}
+
+.csb-topband__attributes .attribute label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--csb-muted);
+}
+
+.mwd-attributes .attribute input {
+  background: var(--csb-surface-2);
+  border: 1px solid var(--csb-border);
+  border-radius: 999px; /* bubble */
+  text-align: center;
+}
+
+/* Attributes inside hexabox should not look like pills */
+.mwd-attributes .attribute .attribute-hex input {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  width: 100%;
+  text-align: center;
+  padding: 0;
+}
+
+/* Action button grouping */
+.mwd-sheet .actions-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csb-space-2);
+}
+
+/* Panels */
+.mwd-sheet .panel {
+  padding: var(--csb-panel-padding);
+  border: 1px solid var(--csb-panel-border);
+  border-radius: var(--csb-panel-radius);
+  background: var(--csb-panel-bg);
+  box-shadow: var(--csb-panel-shadow);
+  min-width: 0;
+}
+
+/* Inputs */
+.mwd-sheet .sheet-body input,
+.mwd-sheet .sheet-body select,
+.mwd-sheet .sheet-body textarea {
+  height: var(--csb-input-height);
+  padding: 0 var(--csb-input-padding-x);
+  background: var(--csb-input-bg);
+  border: 1px solid var(--csb-input-border);
+  border-radius: var(--csb-input-radius);
+  color: var(--csb-text);
+}
+
+.mwd-sheet .sheet-body input:focus,
+.mwd-sheet .sheet-body select:focus,
+.mwd-sheet .sheet-body textarea:focus {
+  box-shadow: 0 0 0 2px var(--csb-focus);
+}
+
+/* Button rows (quick-actions model) */
+.mwd-sheet .button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--csb-button-gap);
+  align-items: center;
+}
+
+.mwd-sheet .sheet-body button {
+  height: var(--csb-button-height);
+  padding: 0 var(--csb-button-padding-x);
+  border: 1px solid var(--csb-button-border);
+  border-radius: var(--csb-button-radius);
+  background: var(--csb-button-bg);
+  color: var(--csb-text);
+}
+
+.mwd-sheet .sheet-body button:hover {
+  background: var(--csb-button-bg-hover);
+}
+
+/* Tabs (CSB) */
+.mwd-sheet .csb-tab-bar {
+  border-bottom: 1px solid var(--csb-tabbar-border);
+}
+
+.mwd-sheet .csb-tab-link {
+  color: var(--csb-tab-text);
+  background: var(--csb-tab-bg);
+}
+
+.mwd-sheet .csb-tab-link.is-active {
+  color: var(--csb-tab-text-active);
+  background: var(--csb-tab-bg-active);
+  border-bottom: 2px solid var(--csb-tab-underline);
+}
+
+/* Chips / tags */
+.mwd-sheet .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--csb-space-1);
+  padding: var(--csb-chip-padding-y) var(--csb-chip-padding-x);
+  border: 1px solid var(--csb-chip-border);
+  border-radius: var(--csb-chip-radius);
+  background: var(--csb-chip-bg);
+  color: var(--csb-text);
+}
+
+/* =========================================================
+   Button Groups (Quick-Action style)
+   Model: legacy .mech-quick-actions
+   ========================================================= */
+.mwd-sheet .button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--csb-space-2);
+}
+
+/* Optional: tighten for dense areas */
+.mwd-sheet .button-row.is-compact {
+  gap: var(--csb-space-1);
+}
+
+/* Keep buttons from stretching weirdly in rows */
+.mwd-sheet .button-row > button {
+  flex: 0 0 auto;
+}
+
+/* =========================================================
+   Hexabox (wrapper) component
+   Model: legacy .mech-quick-actions
+
+    Hexabox (clip-path)
+   ========================================================= */
+.mwd-sheet .mwd-hexabox {
+  /* local knob with safe fallback */
+  --hex-cut: var(--csb-hexabox-cut, 12px);
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--csb-hexabox-bg, var(--csb-surface-2));
+  border: var(--csb-hexabox-thickness, 2px) solid var(--csb-hexabox-border);
+  clip-path: polygon(var(--hex-cut) 0%, calc(100% - var(--hex-cut)) 0%, 100% 50%, calc(100% - var(--hex-cut)) 100%, var(--hex-cut) 100%, 0% 50%);
+  /* helps with children painting cleanly */
+  overflow: hidden;
+}
+
+.mwd-sheet .mwd-hexabox.attribute-hex {
+  height: 32px;
+  width: 100%;
+  padding: 0 10px;
+  /* optional per-variant tweak */
+  --hex-cut: 12px;
+}
+
+.mwd-sheet .mwd-hexabox.attribute-hex input {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+}
+
+.mwd-sheet .mwd-hexabox.attribute-hex .attribute-value {
+  width: 100%;
+  text-align: center;
+  font-weight: 600;
+}
+
+.mwd-sheet .mwd-attributes .attributes-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--csb-space-3);
+  align-items: end;
+}
+
+/* =========================================================
+   Character: Skills component
+   ========================================================= */
+/* Two columns */
+.mwd-skills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  min-width: 0;
+}
+
+.mwd-skills-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* One row */
+.mwd-skill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--csb-border, rgba(255, 255, 255, 0.1));
+  border-radius: 10px;
+  background: var(--csb-panel-bg, rgba(0, 0, 0, 0.15));
+  min-width: 0;
+}
+
+.mwd-skill__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mwd-skill__icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.mwd-skill__text {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mwd-skill__name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 22ch;
+}
+
+.mwd-skill__attr {
+  opacity: 0.75;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+/* Pills */
+.mwd-skill__pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.mwd-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--csb-border, rgba(255, 255, 255, 0.1));
+  background: rgba(255, 255, 255, 0.04);
+  font-variant-numeric: tabular-nums;
+}
+
+.mwd-pill__tag {
+  opacity: 0.7;
+  font-weight: 700;
+  font-size: 0.85em;
+}
+
+.mwd-pill__val {
+  min-width: 2ch;
+  text-align: right;
+  font-weight: 700;
+}
+
+.mwd-pill__input {
+  width: 3em;
+  text-align: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  outline: none;
+  padding: 0;
+}
+
+/* Visual affordance for edit-mode pill cursor */
+.mwd-pill.is-editable {
+  cursor: text;
+}
+
+.mwd-pill.is-editable .mwd-pill__input {
+  cursor: text;
+}
+
+/* Visual mood / values */
+/* appv2/themes/_index.scss */
+/* Default theme: gunmetal, restrained contrast */
+.mwd-theme-default {
+  --csb-surface-0: #1f2328;
+  --csb-surface-1: #262b31;
+  --csb-surface-2: #2e353d;
+  --csb-surface-3: #343c45;
+  --csb-text: #e6edf3;
+  --csb-text-muted: rgba(230, 237, 243, 0.75);
+  --csb-text-faint: rgba(230, 237, 243, 0.55);
+  --csb-border: rgba(230, 237, 243, 0.14);
+  --csb-border-strong: rgba(230, 237, 243, 0.22);
+  --csb-accent: #6aa7ff;
+  --csb-focus: rgba(106, 167, 255, 0.45);
+  --csb-panel-shadow: var(--csb-shadow-0);
+}
+
+/* Scrollbars – theme-level only */
+.mwd-sheet {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--csb-border-strong) transparent;
+}
+
+/* Chromium / Electron */
+.mwd-sheet ::-webkit-scrollbar {
+  width: 15px;
+}
+
+.mwd-sheet ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mwd-sheet ::-webkit-scrollbar-thumb {
+  background-color: var(--csb-text-muted);
+  border-radius: 6px;
+  border: 2px solid transparent; /* creates inset look */
+  background-clip: content-box;
+}
+
+.mwd-sheet ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--csb-accent);
+}
+
+/* SRA theme: brighter plates, warmer borders, softer shadow */
+.mwd-theme-sra {
+  --csb-surface-0: #2a2f36;
+  --csb-surface-1: #343a43;
+  --csb-surface-2: #3d4550;
+  --csb-surface-3: #46505c;
+  --csb-text: #f2f5f7;
+  --csb-text-muted: rgba(242, 245, 247, 0.78);
+  --csb-text-faint: rgba(242, 245, 247, 0.58);
+  --csb-border: rgba(242, 245, 247, 0.16);
+  --csb-border-strong: rgba(242, 245, 247, 0.26);
+  /* a slightly warmer accent reads “brighter” without neon */
+  --csb-accent: #8fb8ff;
+  --csb-focus: rgba(143, 184, 255, 0.45);
+  --csb-panel-shadow: var(--csb-shadow-1);
+  /* Optional: make chips look more “badge-like” */
+  --csb-chip-bg: rgba(255, 255, 255, 0.08);
+}
+
+/* Scrollbars – theme-level only */
+.mwd-sheet {
+  scrollbar-width: auto; /* Firefox */
+  scrollbar-color: var(--csb-border-strong) transparent;
+}
+
+/* Chromium / Electron */
+.mwd-sheet ::-webkit-scrollbar {
+  width: var(--csb-space-2);
+}
+
+.mwd-sheet ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mwd-sheet ::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--csb-text) 40%, transparent 60%);
+  border-radius: 6px;
+  border: 2px solid transparent; /* creates inset look */
+  background-clip: content-box;
+}
+
+.mwd-sheet ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--csb-accent);
+}
+
+/* Feature-specific scopes */
+
+/*# sourceMappingURL=mwd.css.map */

@@ -1,0 +1,387 @@
+/* =========================================================
+   CSB / AppV2 COMPONENTS
+   Structural + spacing rules only
+   No theme-specific colors here
+   ========================================================= */
+
+.mwd-sheet {
+  background: var(--csb-surface-0);
+  color: var(--csb-text);
+}
+
+/* -------------------------
+   1. Panels (foundation)
+   ------------------------- */
+.mwd-sheet .panel {
+  padding: var(--csb-space-3);
+  border: 1px solid var(--csb-border);
+  border-radius: var(--csb-radius);
+  background: var(--csb-surface-1);
+  min-width: 0;
+}
+
+.mwd-sheet .panel > h3 {
+  margin: 0 0 var(--csb-space-2) 0;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+/* -------------------------
+   2. Tabs (chrome)
+   ------------------------- */
+.csb-tab-bar {
+  display: flex;
+  gap: var(--csb-space-2);
+  border-bottom: 1px solid var(--csb-border);
+}
+
+.csb-tab-link {
+  padding: var(--csb-space-2) var(--csb-space-3);
+  cursor: pointer;
+}
+
+.csb-tab-link.is-active {
+  border-bottom: 2px solid var(--csb-accent);
+}
+
+/* -------------------------
+   3. Inputs (baseline)
+   ------------------------- */
+.mwd-sheet input,
+.mwd-sheet select,
+.mwd-sheet textarea {
+  background: var(--csb-surface-2);
+  border: 1px solid var(--csb-border);
+  border-radius: calc(var(--csb-radius) - 2px);
+  color: var(--csb-text);
+}
+
+/* -------------------------
+   4. Character: Attributes
+   (first leaf component)
+   ------------------------- */
+.csb-topband__attributes .attributes-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--csb-space-2);
+  padding-bottom: var(--csb-space-3);
+}
+
+.csb-topband__attributes .attribute {
+  display: grid;
+  gap: var(--csb-space-1);
+}
+
+.csb-topband__attributes .attribute label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--csb-muted);
+}
+
+.mwd-attributes .attribute input {
+  background: var(--csb-surface-2);
+  border: 1px solid var(--csb-border);
+  border-radius: 999px; /* bubble */
+  text-align: center;
+}
+
+/* Attributes inside hexabox should not look like pills */
+.mwd-attributes .attribute .attribute-hex input {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  width: 100%;
+  text-align: center;
+  padding: 0;
+}
+
+/* Action button grouping */
+.mwd-sheet .actions-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csb-space-2);
+}
+
+/* Panels */
+.mwd-sheet .panel {
+  padding: var(--csb-panel-padding);
+  border: 1px solid var(--csb-panel-border);
+  border-radius: var(--csb-panel-radius);
+  background: var(--csb-panel-bg);
+  box-shadow: var(--csb-panel-shadow);
+  min-width: 0;
+}
+
+/* Inputs */
+.mwd-sheet .sheet-body input,
+.mwd-sheet .sheet-body select,
+.mwd-sheet .sheet-body textarea {
+  height: var(--csb-input-height);
+  padding: 0 var(--csb-input-padding-x);
+  background: var(--csb-input-bg);
+  border: 1px solid var(--csb-input-border);
+  border-radius: var(--csb-input-radius);
+  color: var(--csb-text);
+}
+
+.mwd-sheet .sheet-body input:focus,
+.mwd-sheet .sheet-body select:focus,
+.mwd-sheet .sheet-body textarea:focus {
+  box-shadow: 0 0 0 2px var(--csb-focus);
+}
+
+/* Button rows (quick-actions model) */
+.mwd-sheet .button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--csb-button-gap);
+  align-items: center;
+}
+
+.mwd-sheet .sheet-body button {
+  height: var(--csb-button-height);
+  padding: 0 var(--csb-button-padding-x);
+  border: 1px solid var(--csb-button-border);
+  border-radius: var(--csb-button-radius);
+  background: var(--csb-button-bg);
+  color: var(--csb-text);
+}
+
+.mwd-sheet .sheet-body button:hover {
+  background: var(--csb-button-bg-hover);
+}
+
+/* Tabs (CSB) */
+.mwd-sheet .csb-tab-bar {
+  border-bottom: 1px solid var(--csb-tabbar-border);
+}
+
+.mwd-sheet .csb-tab-link {
+  color: var(--csb-tab-text);
+  background: var(--csb-tab-bg);
+}
+
+.mwd-sheet .csb-tab-link.is-active {
+  color: var(--csb-tab-text-active);
+  background: var(--csb-tab-bg-active);
+  border-bottom: 2px solid var(--csb-tab-underline);
+}
+
+/* Chips / tags */
+.mwd-sheet .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--csb-space-1);
+  padding: var(--csb-chip-padding-y) var(--csb-chip-padding-x);
+  border: 1px solid var(--csb-chip-border);
+  border-radius: var(--csb-chip-radius);
+  background: var(--csb-chip-bg);
+  color: var(--csb-text);
+}
+
+/* =========================================================
+   Button Groups (Quick-Action style)
+   Model: legacy .mech-quick-actions
+   ========================================================= */
+
+.mwd-sheet .button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--csb-space-2);
+}
+
+/* Optional: tighten for dense areas */
+.mwd-sheet .button-row.is-compact {
+  gap: var(--csb-space-1);
+}
+
+/* Keep buttons from stretching weirdly in rows */
+.mwd-sheet .button-row > button {
+  flex: 0 0 auto;
+}
+
+/* =========================================================
+   Hexabox (wrapper) component
+   Model: legacy .mech-quick-actions
+
+    Hexabox (clip-path)
+   ========================================================= */
+
+.mwd-sheet .mwd-hexabox {
+  /* local knob with safe fallback */
+  --hex-cut: var(--csb-hexabox-cut, 12px);
+
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--csb-hexabox-bg, var(--csb-surface-2));
+  border: var(--csb-hexabox-thickness, 2px) solid var(--csb-hexabox-border);
+
+  clip-path: polygon(
+    var(--hex-cut) 0%,
+    calc(100% - var(--hex-cut)) 0%,
+    100% 50%,
+    calc(100% - var(--hex-cut)) 100%,
+    var(--hex-cut) 100%,
+    0% 50%
+  );
+
+  /* helps with children painting cleanly */
+  overflow: hidden;
+}
+
+.mwd-sheet .mwd-hexabox.attribute-hex {
+  height: 32px;
+  width: 100%;
+  padding: 0 10px;
+
+  /* optional per-variant tweak */
+  --hex-cut: 12px; 
+}
+
+.mwd-sheet .mwd-hexabox.attribute-hex input {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+
+  -webkit-appearance: none !important;
+  appearance: none !important;
+
+  padding: 0;
+  margin: 0;
+  color: inherit;
+}
+
+.mwd-sheet .mwd-hexabox.attribute-hex .attribute-value {
+  width: 100%;
+  text-align: center;
+  font-weight: 600;
+}
+
+.mwd-sheet .mwd-attributes .attributes-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--csb-space-3);
+  align-items: end;
+}
+
+/* =========================================================
+   Character: Skills component
+   ========================================================= */ 
+/* Two columns */
+.mwd-skills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  min-width: 0;
+}
+
+.mwd-skills-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* One row */
+.mwd-skill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--csb-border, rgba(255,255,255,0.10));
+  border-radius: 10px;
+  background: var(--csb-panel-bg, rgba(0,0,0,0.15));
+  min-width: 0;
+}
+
+.mwd-skill__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mwd-skill__icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.mwd-skill__text {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mwd-skill__name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 22ch;
+}
+
+.mwd-skill__attr {
+  opacity: 0.75;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+/* Pills */
+.mwd-skill__pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.mwd-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--csb-border, rgba(255,255,255,0.10));
+  background: rgba(255,255,255,0.04);
+  font-variant-numeric: tabular-nums;
+}
+
+.mwd-pill__tag {
+  opacity: 0.7;
+  font-weight: 700;
+  font-size: 0.85em;
+}
+
+.mwd-pill__val {
+  min-width: 2ch;
+  text-align: right;
+  font-weight: 700;
+}
+
+.mwd-pill__input {
+  width: 3.0em;
+  text-align: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  outline: none;
+  padding: 0;
+}
+
+/* Visual affordance for edit-mode pill cursor */
+.mwd-pill.is-editable { cursor: text; }
+.mwd-pill.is-editable .mwd-pill__input { cursor: text; }

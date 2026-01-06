@@ -1,6 +1,6 @@
 sheet:
   id: mwd-character-sheet
-  style: "sra-enhanced"
+  style: "mwd-appv2"
   tabs:
     - id: character
       label: "Character"

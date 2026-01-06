@@ -1,279 +1,91 @@
-    .wrapper-hexabox {
-        --wrapper-padding: 6px;
-        --wrapper-background-color: white;
-        --wrapper-border-color: black;
-        position: relative;
-        padding: var(--wrapper-padding);
-        text-align: center;
+/* =========================================================
+   GLOBAL BASELINE — MWD SHEETS ONLY
+   Purpose: normalization + typography + sane defaults
+   No layout. No components. No theme colors.
+   IMPORTANT: Do NOT stomp Foundry chrome (window/header controls).
+   ========================================================= */
 
-        >.content {
-            height: 100%;
-            background-color: var(--wrapper-background-color);
-        }
+.mwd-sheet {
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--csb-text);
 
-        >.side {
-            position: absolute;
-            background-color: var(--wrapper-background-color);
+  *, *::before, *::after {
+    box-sizing: inherit;
+  }
 
-            &.up {
-                height: var(--wrapper-padding);
-                left: var(--wrapper-padding);
-                right: var(--wrapper-padding);
-                border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-                top: 0px;
-            }
+  /* -------------------------
+     Typography
+     ------------------------- */
 
-            &.down {
-                height: var(--wrapper-padding);
-                left: var(--wrapper-padding);
-                right: var(--wrapper-padding);
-                border-bottom: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-                bottom: 0px;
-            }
+  h1, h2, h3, h4 {
+    margin: 0;
+    font-weight: 600;
+  }
 
-            &.left {
-                width: var(--wrapper-padding);
-                left: 0px;
-                border-left: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-                top: var(--wrapper-padding);
-                bottom: var(--wrapper-padding);
-            }
+  h3 {
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+  }
 
-            &.right {
-                width: var(--wrapper-padding);
-                right: 0px;
-                border-right: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-                top: var(--wrapper-padding);
-                bottom: var(--wrapper-padding);
-            }
+  p {
+    margin: 0;
+  }
 
+  label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    user-select: none;
+  }
 
-        }
+  /* -------------------------
+     Forms (behavior only)
+     Scope to sheet BODY so we don't break Foundry header buttons.
+     ------------------------- */
 
-        >.angle {
-            width: 0px;
-            height: 0px;
-            position: absolute;
+  .sheet-body {
+    input,
+    select,
+    textarea,
+    button {
+      font: inherit;
+      color: inherit;
+    }
 
-            &.tl {
-                top: 0;
-                left: 0;
-                border-top: var(--wrapper-padding) solid transparent;
-                border-right: var(--wrapper-padding) solid var(--wrapper-background-color);
-            }
+    input,
+    select,
+    textarea {
+      background: none;
+      border: none;
+      outline: none;
+    }
 
-            &.tl::before {
-                content: '';
-                position: absolute;
-                display: block;
-                border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-                width: calc(1.41 * var(--wrapper-padding));
-                left: 1px;
-                top: -1px;
-                transform-origin: bottom left;
-                transform: rotate(-45deg);
-            }
+    input[type="number"] {
+      appearance: textfield;
 
-            &.tr {
-                top: 0;
-                right: 0;
-                border-top: var(--wrapper-padding) solid transparent;
-                border-left: var(--wrapper-padding) solid var(--wrapper-background-color);
-            }
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        appearance: none;
+        margin: 0;
+      }
+    }
 
-            &.tr::before {
-                content: '';
-                position: absolute;
-                display: block;
-                border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-                width: calc(1.41 * var(--wrapper-padding));
-                left: 0px;
-                top: -2px;
-                transform-origin: bottom left;
-                transform: rotate(-135deg);
-            }
+    button {
+      background: var(--csb-accent);
+      border: var(--csb-border-strong);
+      cursor: pointer;
 
-            &.br {
-                bottom: 0;
-                right: 0;
-                border-bottom: var(--wrapper-padding) solid transparent;
-                border-left: var(--wrapper-padding) solid var(--wrapper-background-color);
-            }
+    }
+  }
 
+  /* -------------------------
+     Utility expectations
+     ------------------------- */
 
-            &.br::before {
-                content: '';
-                position: absolute;
-                display: block;
-                border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-                width: calc(1.41 * var(--wrapper-padding));
-                top: -3px;
-                left: -2px;
-                transform-origin: bottom left;
-                transform: rotate(135deg);
-            }
-
-            &.bl {
-                bottom: 0;
-                left: 0;
-                border-bottom: var(--wrapper-padding) solid transparent;
-                border-right: var(--wrapper-padding) solid var(--wrapper-background-color);
-            }
-
-            &.bl::before {
-                content: '';
-                position: absolute;
-                display: block;
-                border-top: var(--wrapper-thickness, 2px) solid var(--wrapper-border-color);
-                width: calc(1.41 * var(--wrapper-padding));
-                top: -2px;
-                left: 0px;
-                transform-origin: bottom left;
-                transform: rotate(45deg);
+  [hidden] {
+    display: none !important;
   }
 }
-
-.mech-quick-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    align-items: center;
-
-    .quick-action-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-
-        &[data-disabled="true"] {
-            opacity: 0.5;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-    }
-}
-
-.quick-actions-block {
-    .section-group-header {
-        margin-bottom: 0.25rem;
-    }
-}
-
-.quick-action-summary {
-    margin: 0.25rem 0 0.5rem 0;
-    font-size: var(--font-size-12);
-
-    .quick-action-line {
-        display: flex;
-        gap: 0.35rem;
-        flex-wrap: wrap;
-        align-items: center;
-
-        &.subtle {
-            color: var(--color-text-dark-secondary);
-        }
-    }
-
-    .tag {
-        background: var(--color-border-light-primary);
-        border: 1px solid var(--color-border-dark-primary);
-        border-radius: 3px;
-        padding: 0.05rem 0.35rem;
-        font-size: var(--font-size-11);
-        line-height: 1.2;
-    }
-}
-
-.life-modules .life-modules-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-}
-
-.life-modules .life-module-line {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.life-modules .life-module-label {
-    min-width: 9rem;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.life-modules .life-module-items {
-    flex: 1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-}
-
-.life-modules .life-module {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.1rem 0.35rem;
-    border: 1px solid var(--color-border-light-highlight);
-    border-radius: 0.2rem;
-}
-
-.life-modules .life-module .life-module-name {
-    font-weight: bold;
-}
-
-.battlemech-sheet .mech-passport-row {
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.mech-heat-block .heat-thresholds {
-    margin-top: 0.5rem;
-    border-top: 1px solid var(--color-border-light-highlight);
-    padding-top: 0.35rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.mech-heat-block .heat-threshold-row {
-    display: flex;
-    justify-content: space-between;
-}
-
-.mech-heat-block .heat-status {
-    font-weight: 600;
-}
-
-.battlemech-hardpoints .anarchy-table,
-.battlemech-weapon-groups .anarchy-table,
-.battlemech-weapons-table.anarchy-table {
-    width: 100%;
-}
-
-.battlemech-hardpoints .empty-state,
-.battlemech-weapon-groups .empty-state,
-.battlemech-weapons-table .empty-state {
-    margin: 0.25rem 0;
-}
-
-.battlemech-weapon-groups .group-mountpoints {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    margin-bottom: 0.35rem;
-}
-
-.battlemech-weapon-groups .weapon-list {
-    margin: 0;
-    padding-left: 1rem;
-}
-
-.battlemech-weapon-groups .missing-weapon {
-    color: var(--anarchy-color-warning, #b8860b);
-}
-
-.battlemech-weapons-table .item-controls {
-    white-space: nowrap;
-}
-    }

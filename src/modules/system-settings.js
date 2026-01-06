@@ -13,12 +13,19 @@ export class SystemSettings {
       type: Boolean,
       default: true,
     });
+    game.settings.register(SYSTEM_NAME, "enableGMManager", {
+      name: "Enable GM Manager (legacy)",
+      hint: "If enabled, renders the legacy GM Manager UI on startup. Keep OFF while migrating to v2.",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: false
+    });
   }
 
-  static getSystemProperty(property, fallback) {
-    let value = game.settings.get(SYSTEM_NAME, property) ?? fallback;
-    game.settings.set(SYSTEM_NAME, property, value);
-    return value;
-  }
+static getSystemProperty(property, fallback) {
+  return game.settings.get(SYSTEM_NAME, property) ?? fallback;
+}
+
 
 }

@@ -1,0 +1,50 @@
+/* SRA theme: brighter plates, warmer borders, softer shadow */
+
+.mwd-theme-sra {
+  --csb-surface-0: #2a2f36;
+  --csb-surface-1: #343a43;
+  --csb-surface-2: #3d4550;
+  --csb-surface-3: #46505c;
+
+  --csb-text: #f2f5f7;
+  --csb-text-muted: rgba(242, 245, 247, 0.78);
+  --csb-text-faint: rgba(242, 245, 247, 0.58);
+
+  --csb-border: rgba(242, 245, 247, 0.16);
+  --csb-border-strong: rgba(242, 245, 247, 0.26);
+
+  /* a slightly warmer accent reads “brighter” without neon */
+  --csb-accent: #8fb8ff;
+  --csb-focus: rgba(143, 184, 255, 0.45);
+
+  --csb-panel-shadow: var(--csb-shadow-1);
+
+  /* Optional: make chips look more “badge-like” */
+  --csb-chip-bg: rgba(255, 255, 255, 0.08);
+}
+
+/* Scrollbars – theme-level only */
+.mwd-sheet {
+  scrollbar-width: auto;              /* Firefox */
+  scrollbar-color: var(--csb-border-strong) transparent;
+}
+
+/* Chromium / Electron */
+.mwd-sheet ::-webkit-scrollbar {
+  width: var(--csb-space-2);
+}
+
+.mwd-sheet ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mwd-sheet ::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--csb-text) 40%, transparent 60%);
+  border-radius: 6px;
+  border: 2px solid transparent;     /* creates inset look */
+  background-clip: content-box;
+}
+
+.mwd-sheet ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--csb-accent);
+}

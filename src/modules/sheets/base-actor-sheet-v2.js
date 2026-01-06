@@ -1,28 +1,79 @@
-import { LOG_HEAD, SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
+import { LOG_HEAD, SYSTEM_NAME } from "../constants.js";
 import { Misc } from "../misc.js";
+import { buildSkillDisplay } from "../mwd/skills.js";
 
 /**
  * CSB-style: deterministic AppV2 sheet base.
- * - One sheet class = one root template (no dynamic template swapping)
- * - Append CSS classes early in _initializeApplicationOptions
- * - Merge context in _prepareContext and keep a stable template contract
- * - Compose complex sheets safely (subclasses override PARTS; base stays generic)
+ * - AppV2 actions for event routing (no activateListeners)
+ * - CSB tab state is reconciled in _onRender (post-DOM, stable)
+ * - Theme class injection in _initializeApplicationOptions
+ * - Stable template contract in _prepareContext (legacy-friendly)
  * - No i18n usage (fork requirement)
  */
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
+
+
 export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2) {
   #editing = false;
 
+  // ---- Hard minimum size (resize clamp) ----
+  static MIN_WIDTH  = 800;
+  static MAX_WIDTH  = 950;
+  static MIN_HEIGHT = 600;
+  static MAX_HEIGHT = 1000;
+
+  /** Track active CSB tab per group across rerenders */
+  #activeTabsByGroup = new Map(); // group -> tabId
+
   /** @override */
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-    classes: ["sheet", "actor", SYSTEM_NAME, "appv2"],
+    classes: ["sheet", "actor", SYSTEM_NAME, "appv2", "mwd-sheet", "mwd-character-sheet"],
     position: { width: 760, height: 760 },
-    actions: {toggleViewMode: BaseActorSheetV2.prototype._onToggleViewMode}
+    window: { resizable: true,
+      minimizable: true
+     },
+
+    /**
+     * AppV2 action routing:
+     * data-action="toggleViewMode" / "tab"
+     */
+    actions: {
+      toggleViewMode: BaseActorSheetV2.prototype._onToggleViewMode,
+      tab: BaseActorSheetV2.prototype._onClickTab
+    }
   });
 
-  // optional legacy shim if anything still reads defaultOptions
-  static get default_Options() { return this.DEFAULT_OPTIONS; }
+ /** @override */
+  _updatePosition(position) {
+    const resolved = super._updatePosition(position);
+
+    const {
+      MIN_WIDTH,
+      MAX_WIDTH,
+      MIN_HEIGHT,
+      MAX_HEIGHT
+    } = this.constructor;
+
+    if (typeof resolved.width === "number") {
+      resolved.width = Math.min(
+        MAX_WIDTH,
+        Math.max(MIN_WIDTH, resolved.width)
+      );
+    }
+
+    if (typeof resolved.height === "number") {
+      resolved.height = Math.min(
+        MAX_HEIGHT,
+        Math.max(MIN_HEIGHT, resolved.height)
+      );
+    }
+
+    return resolved;
+  }
+  
+  // Optional legacy shim if anything still reads defaultOptions
+  static get defaultOptions() { return this.DEFAULT_OPTIONS; }
 
   /** Editing mode flag for templates */
   get editing() {
@@ -35,18 +86,32 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
     this.render({ force: true });
   }
 
+  /** Get the root HTMLElement for this application */
+  _getRootElement() {
+  return (this.element instanceof HTMLElement) ? this.element : this.element?.[0];
+}
+
   /** @override */
   _initializeApplicationOptions(options) {
     options = super._initializeApplicationOptions(options);
 
-    // CSB-style: append stable classes EARLY so CSS always matches.
     const doc = options?.document ?? this.document;
     const type = doc?.type ?? this.actor?.type;
 
     options.classes ??= [];
     if (type) options.classes.push(String(type));
 
-    // NOTE: Avoid using document ids as CSS classes; they are noisy and unstable for styling.
+    // ---- Theme class (from Styles) ----
+    const theme = game.system?.anarchy?.styles?.selectCssClass?.() ?? "mwd-theme-default";
+    const managedThemes = ["mwd-theme-default", "mwd-theme-sra"];
+
+    // Remove previously applied theme class (defensive)
+    for (let i = options.classes.length - 1; i >= 0; i--) {
+      if (managedThemes.includes(options.classes[i])) options.classes.splice(i, 1);
+    }
+
+    // Add selected theme
+    options.classes.push(theme);
 
     return options;
   }
@@ -75,11 +140,8 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
 
   /**
    * Window actions (header/menu). Centralize here and dedupe by action key.
-   * This is where we add the Edit/View toggle for AppV2 sheets.
    * @override
    */
-
-  
   _getHeaderControls() {
     let controls = super._getHeaderControls?.() ?? [];
     const isToken = this.document?.isToken ?? false;
@@ -88,7 +150,7 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
     const removeActions = new Set();
 
     // These action keys vary a bit across versions/modules, so we include both and
-    // also keep a label fallback.
+    // keep a label fallback.
     if (isToken) {
       removeActions.add("prototypeToken");
       removeActions.add("configurePrototypeToken");
@@ -110,43 +172,95 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
       return true;
     });
 
-  // Dedupe: action first, then icon|label
-  const seen = new Set();
-  controls = controls.filter(c => {
-    const action = c?.action;
-    const key = action ? `a:${action}` : `il:${c?.icon ?? ""}|${c?.label ?? ""}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+    // Dedupe: action first, then icon|label
+    const seen = new Set();
+    controls = controls.filter(c => {
+      const action = c?.action;
+      const key = action ? `a:${action}` : `il:${c?.icon ?? ""}|${c?.label ?? ""}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
-  return controls;
-}
+    return controls;
+  }
 
   /**
-   * AppV2 action router.
+   * AppV2 action handler: Edit/View toggle.
+   * Note: actions mapping already routes clicks here; we keep this lean.
+   */
+  async _onToggleViewMode(event /*, target */) {
+    event?.preventDefault?.();
+    this.toggleEditing();
+  }
+
+  /**
+   * AppV2 action handler: CSB tab click.
+   * Defensive: derive the tab link from target or event.
+   */
+  _onClickTab(event, target) {
+    const el =
+      target?.closest?.(".csb-tab-link[data-tab]") ??
+      event?.target?.closest?.(".csb-tab-link[data-tab]");
+    if (!el) return;
+
+    const tabId = el.dataset.tab;
+    const tabs = el.closest(".csb-tabs");
+    if (!tabs || !tabId) return;
+
+    const group = tabs.dataset.group || "default";
+    this.#activeTabsByGroup.set(group, tabId);
+
+    this.#applyTabState(tabs, tabId);
+  }
+
+  /**
+   * Post-render reconciliation hook (stable DOM).
+   * Ensures every .csb-tabs group has exactly one active tab/panel:
+   * - prefer remembered selection
+   * - else use data-default
+   * - else use first tab link
    * @override
    */
-  _onClickAction(event, target) {
-    // Let AppV2 actions routing do its thing first
-    const result = super._onClickAction?.(event, target);
+  _onRender(context, options) {
+    super._onRender?.(context, options);
 
-    // Fallback: if actions mapping is missing, still handle the click
-    const el = target?.closest?.("[data-action]") ?? target;
-    const action = el?.dataset?.action;
+    const root = this._getRootElement();
+    if (!root) return;
 
-    if (action === "toggleViewMode" || action === "toggleEditing") {
-      event?.preventDefault?.();
-      this.toggleEditing();
-      return;
+    for (const tabs of root.querySelectorAll(".csb-tabs")) {
+      const group = tabs.dataset.group || "default";
+
+      const remembered = this.#activeTabsByGroup.get(group);
+      const fallback =
+        tabs.dataset.default ||
+        tabs.querySelector(".csb-tab-link[data-tab]")?.dataset.tab;
+
+      const tabId = remembered || fallback;
+      if (!tabId) continue;
+
+      this.#applyTabState(tabs, tabId);
     }
+      // Debugging aid: warn if tabs exist but no active tab applied
+    if (root.querySelectorAll(".csb-tabs").length && !root.querySelector(".csb-tab-panel.is-active")) {
+      console.warn(`${LOG_HEAD} CSB tabs present but no active tab applied. Check element root resolution and CSS .is-active selectors.`, { sheet: this.constructor?.name
+      });
+     }
 
-    return result;
   }
-  
-  async _onToggleViewMode(event, target) {
-    event?.preventDefault?.();
-    this.toggleEditing(); // reuse your existing editing toggle
+
+  /**
+   * Apply active-state classes within a single .csb-tabs root.
+   * Idempotent: safe to call every render.
+   */
+  #applyTabState(tabsRoot, tabId) {
+    tabsRoot.querySelectorAll(".csb-tab-link").forEach(a => {
+      a.classList.toggle("is-active", a.dataset.tab === tabId);
+    });
+
+    tabsRoot.querySelectorAll(".csb-tab-panel").forEach(p => {
+      p.classList.toggle("is-active", p.dataset.tab === tabId);
+    });
   }
 
   /** @override */
@@ -172,9 +286,15 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
       { inplace: false }
     );
 
-    // ---- Template contract (forked HBS expects these) ----
+    /*
+     ---- Template contract (forked HBS expects these) ----
+     Entirely legacy, but many HBS forks rely on these keys.
+    */
     hbsData.data = this.actor; // legacy alias used in many HBS forks
     hbsData.options ??= {};
+
+    // ---- Skills display model (CSB Skills tab expects this) ----
+    hbsData.skillsDisplay = buildSkillDisplay(this.actor?.system ?? {});
 
     const classes = Array.isArray(this.options?.classes) ? this.options.classes : [];
     const existing = Array.isArray(hbsData.options.classes) ? hbsData.options.classes : [];

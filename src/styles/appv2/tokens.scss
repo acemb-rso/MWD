@@ -1,0 +1,120 @@
+/* =========================================================
+   TOKENS — variable interface + safe defaults
+   Purpose: define "knobs" that components/base can rely on.
+   Themes override these by setting values under .mwd-theme-*
+   ========================================================= */
+
+:root {
+  /* ---------- spacing scale ---------- */
+  --csb-space-0: 0;
+  --csb-space-1: 4px;
+  --csb-space-2: 8px;
+  --csb-space-3: 12px;
+  --csb-space-4: 16px;
+  --csb-space-5: 20px;
+
+  /* ---------- radii ---------- */
+  --csb-radius-sm: 6px;
+  --csb-radius: 10px;
+  --csb-radius-lg: 14px;
+  --csb-radius-pill: 999px;
+
+  /* ---------- typography ---------- */
+  --csb-font-size-sm: 0.85rem;
+  --csb-font-size: 1rem;
+  --csb-font-size-lg: 1.15rem;
+  --csb-line-height: 1.4;
+
+  /* ---------- surfaces (tiers) ---------- */
+  --csb-surface-0: #222; /* sheet background */
+  --csb-surface-1: #2a2a2a; /* panels */
+  --csb-surface-2: #333; /* inputs/controls */
+  --csb-surface-3: #3a3a3a; /* hover */
+
+  /* ---------- text ---------- */
+  --csb-text: #e8e8e8;
+  --csb-text-muted: #bdbdbd;
+  --csb-text-faint: #8c8c8c;
+  --csb-text-inverse: #111;
+
+  /* ---------- borders ---------- */
+  --csb-border: rgba(255, 255, 255, 0.14);
+  --csb-border-strong: rgba(255, 255, 255, 0.22);
+
+  /* ---------- accents / states ---------- */
+  --csb-accent: #6aa7ff;
+  --csb-focus: rgba(106, 167, 255, 0.45);
+
+  --csb-warning: #b8860b; /* matches legacy fallback */
+  --csb-danger: #d14b4b;
+  --csb-success: #49b36a;
+
+  /* ---------- shadows ---------- */
+  --csb-shadow-0: none;
+  --csb-shadow-1: 0 2px 6px rgba(0, 0, 0, 0.25);
+  --csb-shadow-2: 0 6px 18px rgba(0, 0, 0, 0.35);
+
+  /* =========================================================
+     Component-specific knobs
+     ========================================================= */
+
+  /* Panels */
+  --csb-panel-bg: var(--csb-surface-1);
+  --csb-panel-border: var(--csb-border);
+  --csb-panel-radius: var(--csb-radius);
+  --csb-panel-padding: var(--csb-space-3);
+  --csb-panel-shadow: var(--csb-shadow-0);
+
+  /* Inputs */
+  --csb-input-bg: var(--csb-surface-2);
+  --csb-input-border: var(--csb-border);
+  --csb-input-radius: calc(var(--csb-radius) - 2px);
+  --csb-input-height: 28px;
+  --csb-input-padding-x: var(--csb-space-2);
+
+  /* Buttons */
+  --csb-button-bg: var(--csb-surface-2);
+  --csb-button-bg-hover: var(--csb-surface-3);
+  --csb-button-border: var(--csb-border);
+  --csb-button-radius: calc(var(--csb-radius) - 2px);
+  --csb-button-height: 28px;
+  --csb-button-padding-x: var(--csb-space-2);
+  --csb-button-gap: var(--csb-space-2);
+
+  /* Tabs */
+  --csb-tabbar-border: var(--csb-border);
+  --csb-tab-bg: transparent;
+  --csb-tab-bg-active: transparent;
+  --csb-tab-text: var(--csb-text-muted);
+  --csb-tab-text-active: var(--csb-text);
+  --csb-tab-underline: var(--csb-accent);
+
+  /* Chips / tags */
+  --csb-chip-bg: rgba(255, 255, 255, 0.06);
+  --csb-chip-border: var(--csb-border);
+  --csb-chip-radius: var(--csb-radius-pill);
+  --csb-chip-padding-y: 2px;
+  --csb-chip-padding-x: 8px;
+
+  /* =========================================================
+     Legacy alias layer (strip-mining friendliness)
+     Keep these until migration is complete.
+     ========================================================= */
+
+  /* legacy “anarchy color” style fallbacks */
+  --anarchy-color-warning: var(--csb-warning);
+  --anarchy-color-danger: var(--csb-danger);
+  --anarchy-color-success: var(--csb-success);
+
+  /* legacy hexabox vars */
+  --wrapper-padding: var(--csb-hexabox-cut);
+  --wrapper-background-color: var(--csb-hexabox-bg);
+  --wrapper-border-color: var(--csb-hexabox-border);
+  --wrapper-thickness: var(--csb-hexabox-thickness);
+
+    /* Hexabox knobs */
+  --csb-hexabox-cut: 10px;
+  --csb-hexabox-bg: var(--csb-surface-1);
+  --csb-hexabox-border: var(--csb-border);
+  --csb-hexabox-thickness: 1px;
+}

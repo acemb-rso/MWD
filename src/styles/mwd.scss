@@ -1,0 +1,28 @@
+/* IMPORTANT:
+   SCSS is order-sensitive.
+   Load order is:
+   global → utilities → tokens → base → components → themes → modules.
+   Do not reorder without understanding cascade impact.
+*/
+/* SOURCE OF TRUTH — AppV2 */
+
+/* Environment */
+@use "global";              // variables, fonts, resets
+
+/* Atomic helpers */
+//@use "appv2/utilities";     // helpers, spacing, text utilities
+
+/* Interface and defaults */
+@use "appv2/tokens";      // colors, spacing, shapes
+
+/* Structural layout */
+@use "appv2/base";          // .character-sheet, layout, panels
+
+/* Reusable UI pieces */
+@use "appv2/components";    // buttons, inputs, tabs, chips
+
+/* Visual mood / values */
+@use "appv2/themes/index";        // .mwd-theme-default, .mwd-theme-sra
+
+/* Feature-specific scopes */
+//@use "appv2/modules/index";       // gm-manager, hud, etc.

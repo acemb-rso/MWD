@@ -1,5 +1,5 @@
 import { ANARCHY_SYSTEM, LOG_HEAD, SYSTEM_NAME, SYSTEM_SCOPE, TEMPLATE } from "./constants.js";
-import { ANARCHY_SKILLS } from "./skills.js";
+//import { ANARCHY_SKILLS } from "./skills.js";
 import { ANARCHY_HOOKS, HooksManager } from "./hooks-manager.js";
 import { Misc } from "./misc.js";
 import { AttributeActions } from "./attribute-actions.js";

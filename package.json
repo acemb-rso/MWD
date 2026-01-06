@@ -5,13 +5,14 @@
     "packCompendiumsToDist": "node ./tools/packCompendiumsToDist.mjs",
     "packCompendiumsToPublic": "node ./tools/packCompendiumsToPublic.mjs",
     "unpackCompendiumsFromPublic": "node ./tools/unpackCompendiumsFromPublic.mjs",
-    "validate:json": "node ./tools/validate-json.js"
+    "validate:json": "node ./tools/validate-json.js",
+    "css": "sass --watch src/styles/mwd.scss:styles/mwd.css"
   },
   "devDependencies": {
     "@foundryvtt/foundryvtt-cli": "^1.0.3",
     "@league-of-foundry-developers/foundry-vtt-types": "^9.280.0",
     "nodemon": "^3.1.2",
-    "sass": "^1.77.4",
+    "sass": "^1.97.1",
     "vite": "^5.2.12"
   },
   "dependencies": {

@@ -1,7 +1,12 @@
 <div class="csb-tabs" data-group="{{node.group}}" data-default="{{node.default}}">
   <nav class="csb-tab-bar">
     {{#each node.tabs as |t|}}
-      <a class="csb-tab-link" data-tab="{{t.id}}">{{t.label}}</a>
+      <a
+        class="csb-tab-link"
+        data-action="tab"
+        data-tab="{{t.id}}">
+        {{t.label}}
+      </a>
     {{/each}}
   </nav>
 
