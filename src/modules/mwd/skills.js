@@ -23,7 +23,7 @@ import { Enums } from "../enums.js"; // if you want pretty attribute labels (opt
 /** @type {MWDSkillDef[]} */
 export const MWD_SKILLS = [
   // Strength
-  { code: "athletics",       label: "Athletics",       attribute: "strength",  icon: `${ICONS_SKILLS_PATH}/athletics.svg` },
+  { code: "athletics",       label: "Athletics",       attribute: "strength",  icon: `${ICONS_SKILLS_PATH}/athletics.svg`, domains: ["physical"] },
   { code: "heavyWeapons",    label: "Heavy Weapons",   attribute: "strength",  icon: `${ICONS_SKILLS_PATH}/heavy-weapons.svg`, defense: "physicalDefense" },
 
   // Reflexes
@@ -61,7 +61,7 @@ export const MWD_SKILLS = [
   { code: "negotiation",  label: "Negotiation",  attribute: "charisma", isSocial: true, icon: `${ICONS_SKILLS_PATH}/negotiation.svg` },
   { code: "etiquette",    label: "Etiquette",    attribute: "charisma", isSocial: true, icon: `${ICONS_SKILLS_PATH}/etiquette.svg` },
   { code: "streetwise",   label: "Streetwise",   attribute: "charisma", isSocial: true, icon: `${ICONS_SKILLS_PATH}/etiquette2.svg` },
-  { code: "intimidation", label: "Intimidation", attribute: "charisma", isSocial: true, icon: `${ICONS_SKILLS_PATH}/intimidation.svg` }
+  { code: "intimidation", label: "Intimidation", attribute: "charisma", isSocial: true, icon: `${ICONS_SKILLS_PATH}/intimidation.svg`, domains: ["social", "mental"] }
 ].map(normalizeSkillDef);
 
 /**

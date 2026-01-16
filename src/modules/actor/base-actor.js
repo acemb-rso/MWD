@@ -5,7 +5,7 @@ import { ACTOR_ATTRIBUTE_SETS, BASE_MONITOR, TEMPLATE } from "../constants.js";
 import { Enums } from "../enums.js";
 import { ErrorManager } from "../error-manager.js";
 import { Misc } from "../misc.js";
-import { Modifiers } from "../modifiers/modifiers.js";
+import { Modifiers } from "../modifiers/anarchy-modifiers.js";
 import { RollDialog } from "../roll/roll-dialog.js";
 import { AnarchyUsers } from "../users.js";
 import { formatString } from "../strings.js";
@@ -563,4 +563,20 @@ async spendEdge(count, pool = TEMPLATE.counters.edgePools.grit) {
     }
     return favorite;
   }
+
+    async _onSetManualStepper(event, target) {
+    event?.preventDefault();
+
+    const id = target?.dataset?.id;
+    const value = Number(target?.dataset?.value);
+
+    if (!id || Number.isNaN(value)) return;
+
+    const row = this._mwd.state.manual.find(r => r.id === id);
+    if (!row) return;
+
+    row.value = value;
+    return this.render(false);
+  }
+
 }

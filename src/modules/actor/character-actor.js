@@ -3,7 +3,7 @@ import { ACTOR_ATTRIBUTE_SETS, TEMPLATE, TEMPLATES_PATH } from "../constants.js"
 import { AnarchyBaseActor } from "./base-actor.js";
 import { ErrorManager } from "../error-manager.js";
 import { Misc } from "../misc.js";
-import { Modifiers } from "../modifiers/modifiers.js";
+import { Modifiers } from "../modifiers/anarchy-modifiers.js";
 import { Checkbars, DEFAULT_CHECKBARS } from "../common/checkbars.js";
 import { RollCelebrity } from "../dialog/roll-celebrity.js";
 

@@ -2,6 +2,7 @@ import { LOG_HEAD, SYSTEM_NAME } from "../constants.js";
 import { Misc } from "../misc.js";
 import { buildSkillDisplay } from "../mwd/skills.js";
 
+
 /**
  * CSB-style: deterministic AppV2 sheet base.
  * - AppV2 actions for event routing (no activateListeners)
@@ -21,7 +22,7 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
   static MIN_WIDTH  = 800;
   static MAX_WIDTH  = 950;
   static MIN_HEIGHT = 600;
-  static MAX_HEIGHT = 1000;
+  static MAX_HEIGHT = 1400;
 
   /** Track active CSB tab per group across rerenders */
   #activeTabsByGroup = new Map(); // group -> tabId

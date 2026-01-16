@@ -24,5 +24,8 @@
 /* Visual mood / values */
 @use "appv2/themes/index";        // .mwd-theme-default, .mwd-theme-sra
 
+/* Roll Dialog */
+@use "appv2/_roll-dialog";
+
 /* Feature-specific scopes */
 //@use "appv2/modules/index";       // gm-manager, hud, etc.

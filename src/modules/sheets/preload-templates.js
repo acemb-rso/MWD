@@ -15,6 +15,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/tabs.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/unknown.hbs`,
   `systems/${SYSTEM_NAME}/templates/common/view-mode.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/mod-stepper.hbs`,
 
   // Character UI
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/attributes.hbs`,

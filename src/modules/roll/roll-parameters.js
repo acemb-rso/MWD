@@ -3,7 +3,7 @@ import { ANARCHY_SYSTEM, LOG_HEAD, TEMPLATE, TEMPLATES_PATH } from "../constants
 import { Enums } from "../enums.js";
 import { ANARCHY_HOOKS, HooksManager } from "../hooks-manager.js";
 import { Misc } from "../misc.js";
-import { Modifiers } from "../modifiers/modifiers.js";
+import { Modifiers } from "../modifiers/anarchy-modifiers.js";
 
 const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
 

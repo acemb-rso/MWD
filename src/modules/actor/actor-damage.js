@@ -3,7 +3,7 @@ import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
 import { ErrorManager } from "../error-manager.js";
 import { ANARCHY_HOOKS, HooksManager } from "../hooks-manager.js";
-import { Modifiers } from "../modifiers/modifiers.js";
+import { Modifiers } from "../modifiers/anarchy-modifiers.js";
 import { formatString } from "../strings.js";
 
 const DAMAGE_MODE = 'damage-mode'

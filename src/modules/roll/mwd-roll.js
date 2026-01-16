@@ -1,49 +1,180 @@
 // src/modules/roll/mwd-roll.js
-import { getSkillDef } from "../mwd/skills.js"; // adjust path if your skills.js is elsewhere
+import { resolveIntent } from "./intent/resolve-intent.js";
+import { collectModifiers } from "./collect-modifiers.js";
+import { buildResolved } from "./build-resolved.js";
+import { renderChat } from "./renderers/render-chat.js";
+import { getSkillDef } from "../mwd/skills.js";
+import { MWDRollDialog } from "./mwd-roll-dialog.js";
 
 /**
  * Public roll API.
  * Sheets call: game.mwd.roll.execute({ actor, payload, event, quick })
  */
-export const MWDRoll = {
-  execute
-};
+export const MWDRoll = { execute };
+
+function normalizeManualMods(payload) {
+  const rows = Array.isArray(payload?.manualModifiers) ? payload.manualModifiers : [];
+  const mods = rows
+    .map(r => ({
+      id: r.id ?? foundry.utils.randomID(),
+      label: (r.label ?? "Manual").trim() || "Manual",
+      value: Number(r.value ?? 0),
+      source: "Manual"
+    }))
+    .filter(m => Number.isFinite(m.value) && m.value !== 0);
+
+  const total = mods.reduce((a, m) => a + m.value, 0);
+  return { mods, total };
+}
+
+function normalizePayload(payload = {}) {
+  const toggles = payload.toggles ?? {};
+
+  return {
+    ...payload,
+    toggles: {
+      useEdge: !!toggles.useEdge,
+      takeRisks: !!toggles.takeRisks,
+      opponentRoll: !!toggles.opponentRoll
+    },
+    manualModifiers: normalizeManualModifierRows(payload.manualModifiers)
+  };
+}
+
+function normalizeManualModifierRows(rows) {
+  if (!Array.isArray(rows)) return [];
+  return rows.map(r => ({
+    id: r?.id ?? foundry.utils.randomID(),
+    label: typeof r?.label === "string" ? r.label : "Manual",
+    value: Number(r?.value ?? 0)
+  }));
+}
 
 async function execute({ actor, payload, event, quick = false } = {}) {
+  console.log("MWD.roll.execute reached - quick: ", { quick })
+  // Allow token docs/objects to be passed accidentally
+  if (actor?.actor) actor = actor.actor;
+  if (actor?.document?.actor) actor = actor.document.actor;
+
   if (!actor) throw new Error("MWD.roll.execute requires actor");
   if (!payload?.intent) throw new Error("MWD.roll.execute requires payload.intent");
+  payload = normalizePayload(payload);
 
-  // Later: if (!quick && shouldOpenDialog(payload)) return openDialog(...)
-  // For now: always immediate.
+  /* -------------------------------- */
+  /* 1) Resolve intent (always first) */
+  /* -------------------------------- */
 
   const ctx = await resolveIntent({ actor, payload, event });
 
-  // Roll-time modifiers (MVP): payload.modifiers only; providers later.
-  const mods = normalizeModifiers(payload?.modifiers);
-  const modTotal = sumModifiers(mods);
+  /* --------------------------------------------------- */
+  /* 2) Collect modifiers (items, status, etc — no UI)  */
+  /* --------------------------------------------------- */
 
-  const pool = Math.max(0, Number(ctx.pool ?? 0) + modTotal);
-
-  // Edge/target rules (MVP): default target 5; if payload.edge?.enabled then 4
-  const target = payload?.edge?.enabled ? 4 : (ctx.target ?? 5);
-
-  const roll = await new Roll(`${pool}d6`).evaluate({ async: true });
-
-  const hits = countHits(roll, target);
-  const ones = countOnes(roll);
-
-  const html = renderSimpleChat({
+  const collected = await collectModifiers({
     actor,
-    title: ctx.title,
-    subtitle: ctx.subtitle,
-    pool,
+    rollType: payload.intent,
+    skillId: payload.key,
+    domains: ctx.domains,
+    payload,
+    resolved: ctx,
+    context: { event, quick }
+  });
+
+  /* -------------------------------------- */
+  /* 3) Dialog fork (BEFORE rolling)         */
+  /* -------------------------------------- */
+
+  if (shouldOpenDialog({ payload, quick })) {
+    const updatedPayload = await MWDRollDialog.prompt({
+      actor,
+      basePayload: payload,
+      resolved: ctx,
+      diceParts: {
+        attribute: ctx.dice?.attribute ?? 0,
+        skill: ctx.dice?.skill ?? 0,
+        bonus: ctx.dice?.bonus ?? 0
+      },
+      mods: collected.mods,
+      modTotal: collected.total
+    });
+
+
+    // Cancel = abort roll entirely
+    if (!updatedPayload) return null;
+
+    // Re-enter engine with edited payload; force quick to avoid loop
+    return execute({
+      actor,
+      payload: updatedPayload,
+      event,
+      quick: true
+    });
+  }
+
+  /* -------------------------------- */
+  /* 4) Final modifier collection     */
+  /*    (now includes manual mods)    */
+  /* -------------------------------- */
+
+  const { mods: providerMods, total: providerTotal } = collected;
+
+  // Manual mods come from the payload editor (dialog)
+  const { mods: manualMods, total: manualTotal } = normalizeManualMods(payload);
+
+  // Final mods used for roll + chat
+  const mods = [...providerMods, ...manualMods];
+  const modTotal = Number(providerTotal ?? 0) + Number(manualTotal ?? 0);
+
+  const pool = Math.max(
+    0,
+    Number(ctx.poolDice ?? 0) + Number(modTotal ?? 0)
+  );
+
+  /* --------------------------- */
+  /* 5) Edge + target number    */
+  /* --------------------------- */
+
+  const edgeInfo = computeEdgeInfo({ ctx, payload });
+  const target = edgeInfo.pre.spent ? 4 : Number(ctx.target ?? 5);
+
+  /* --------------------------- */
+  /* 6) Roll dice (once)        */
+  /* --------------------------- */
+
+  const roll = await new Roll(`${pool}d6cs>=${target}`).evaluate();
+  const dice = roll.dice?.[0];
+
+  const hits = Array.isArray(dice?.results)
+    ? dice.results.filter(r => r.success).length
+    : 0;
+
+  const ones = Array.isArray(dice?.results)
+    ? dice.results.filter(r => r.result === 1).length
+    : 0;
+
+  /* --------------------------- */
+  /* 7) Build resolved payload  */
+  /* --------------------------- */
+
+  const resolved = buildResolved({
+    actor,
+    payload,
+    ctx,
+    roll,
     target,
+    pool,
+    mods,
+    modTotal,
     hits,
     ones,
-    breakdown: ctx.breakdown,
-    mods,
-    modTotal
+    edge: edgeInfo
   });
+
+  /* --------------------------- */
+  /* 8) Render chat             */
+  /* --------------------------- */
+
+  const html = renderChat({ resolved });
 
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
@@ -51,134 +182,75 @@ async function execute({ actor, payload, event, quick = false } = {}) {
     flags: {
       mwd: {
         payload,
-        resolved: { ...ctx, pool, target, hits, ones, mods, modTotal }
+        resolved
       }
     }
   });
 }
 
+
 /* ----------------------------- */
-/* Intent resolution (now: skill) */
+/* Edge computation (MVP local) */
 /* ----------------------------- */
 
-async function resolveIntent({ actor, payload }) {
-  switch (payload.intent) {
-    case "skill":
-      return resolveSkill({ actor, payload });
-    // next:
-    // case "attribute": return resolveAttribute(...)
-    // case "defense": ...
-    // case "resistance": ...
-    // case "mech": ...
-    default:
-      throw new Error(`Unsupported roll intent: ${payload.intent}`);
-  }
-}
+function computeEdgeInfo({ ctx, payload }) {
+  const domain = pickEdgeDomain(ctx?.domains);
 
-function resolveSkill({ actor, payload }) {
-  const code = payload.key;
-  const def = getSkillDef(code);
-  if (!def) throw new Error(`Unknown skill: ${code}`);
+  // Pool pairs by domain
+  const pair = EDGE_POOLS_BY_DOMAIN[domain] ?? null;
 
-  const sys = actor.system ?? {};
-  const attrKey = def.attribute;
-  const base = Number(sys?.attributes?.[attrKey]?.value ?? 0);
-  const rating = Number(sys?.skills?.[code]?.rating ?? 0);
-  const bonus = Number(sys?.skills?.[code]?.bonus ?? 0);
+  // Legacy compatibility: payload.edge.enabled implies a pre-spend happened
+  const legacyPre = Boolean(payload?.edge?.enabled);
 
-  const pool = base + rating + bonus;
+  const prePoolKey =
+    payload?.edge?.pre?.poolKey ??
+    (legacyPre ? (payload?.edge?.poolKey ?? null) : null);
+
+  const preSpent =
+    Number(payload?.edge?.pre?.spent ?? (legacyPre ? 1 : 0)) ? 1 : 0;
+
+  // Post spend not applied during the initial roll; it is only meaningful for chat apply steps.
+  const postPoolKey = payload?.edge?.post?.poolKey ?? null;
+  const postSpent = Number(payload?.edge?.post?.spent ?? 0) ? 1 : 0;
+
+  const a = pair?.a ?? null;
+  const b = pair?.b ?? null;
+
+  const allowedPrePools = [a, b].filter(Boolean);
+
+  let allowedPostPools = [a, b].filter(Boolean);
+  if (preSpent && prePoolKey) allowedPostPools = allowedPostPools.filter(k => k !== prePoolKey);
 
   return {
-    title: `${def.label} (${attrKey})`,
-    subtitle: actor.name ?? "Actor",
-    pool,
-    target: 5,
-    breakdown: { base, rating, bonus }
+    domain,
+    pools: pair ? { a, b } : null,
+    pre: { poolKey: prePoolKey, spent: preSpent },
+    post: { poolKey: postPoolKey, spent: postSpent },
+    allowed: { prePools: allowedPrePools, postPools: allowedPostPools }
   };
 }
 
-/* ----------------------------- */
-/* Modifiers (roll-time MVP)     */
-/* ----------------------------- */
-
-function normalizeModifiers(mods) {
-  if (!Array.isArray(mods)) return [];
-  return mods
-    .map(m => ({
-      key: String(m?.key ?? "mod"),
-      label: String(m?.label ?? m?.key ?? "Modifier"),
-      value: Number(m?.value ?? 0)
-    }))
-    .filter(m => Number.isFinite(m.value) && m.value !== 0);
+function pickEdgeDomain(domains) {
+  if (!Array.isArray(domains)) return null;
+  if (domains.includes("physical")) return "physical";
+  if (domains.includes("mental")) return "mental";
+  if (domains.includes("social")) return "social";
+  return null;
 }
 
-function sumModifiers(mods) {
-  return mods.reduce((n, m) => n + m.value, 0);
+const EDGE_POOLS_BY_DOMAIN = {
+  physical: { a: "grit", b: "chaos" },
+  mental: { a: "insight", b: "rumor" },
+  social: { a: "legend", b: "credibility" }
+};
+
+function shouldOpenDialog({ payload, quick }) {
+  if (quick) return false;
+
+  // Later you can refine this:
+  // - payload.mode === "quick"
+  // - attacks always open dialog
+  // - GM setting
+  return true;
 }
 
-/* ----------------------------- */
-/* Dice helpers                  */
-/* ----------------------------- */
-
-function countHits(roll, target) {
-  let hits = 0;
-  for (const term of roll.terms) {
-    if (!term?.results) continue;
-    for (const r of term.results) {
-      const v = Number(r.result);
-      if (Number.isFinite(v) && v >= target) hits++;
-    }
-  }
-  return hits;
-}
-
-function countOnes(roll) {
-  let ones = 0;
-  for (const term of roll.terms) {
-    if (!term?.results) continue;
-    for (const r of term.results) {
-      if (Number(r.result) === 1) ones++;
-    }
-  }
-  return ones;
-}
-
-/* ----------------------------- */
-/* Chat (MVP — swap to legacy HBS later) */
-/* ----------------------------- */
-
-function renderSimpleChat({ actor, title, subtitle, pool, target, hits, breakdown, mods, modTotal }) {
-  const modLine = mods.length
-    ? `<div><b>Mods:</b> ${mods.map(m => `${escapeHtml(m.label)} ${fmt(m.value)}`).join(", ")} (Total ${fmt(modTotal)})</div>`
-    : "";
-
-  return `
-  <div class="mwd-chat-roll">
-    <header>
-      <div><b>${escapeHtml(title)}</b></div>
-      <div class="muted">${escapeHtml(subtitle ?? "")}</div>
-    </header>
-    <hr/>
-    <div><b>Pool:</b> ${pool} vs <b>TN</b> ${target}</div>
-    <div><b>Hits:</b> ${hits}</div>
-    <div class="mwd-chat-roll__breakdown">
-      <div><b>Base</b>: ${breakdown?.base ?? 0}</div>
-      <div><b>Rating</b>: ${breakdown?.rating ?? 0}</div>
-      <div><b>Bonus</b>: ${breakdown?.bonus ?? 0}</div>
-    </div>
-    ${modLine}
-  </div>`;
-}
-
-function fmt(n) {
-  return n >= 0 ? `+${n}` : `${n}`;
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}

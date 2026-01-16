@@ -30,7 +30,7 @@ import { AnarchyCombat } from './anarchy-combat.js';
 import { HUDShortcuts } from './token/hud-shortcuts.js';
 import { CombatManager } from './combat/combat-manager.js';
 import { RollManager } from './roll/roll-manager.js';
-import { Modifiers } from './modifiers/modifiers.js';
+import { Modifiers } from './modifiers/anarchy-modifiers.js';
 import { ActorDamageManager } from './actor/actor-damage.js';
 import { AttributeActions } from './attribute-actions.js';
 import { DiceCursor } from './roll/dice-cursor.js';
@@ -40,7 +40,11 @@ import { registerActorSheetsV2 } from "./sheets/register-actor-sheets-v2.js";
 import { preloadTemplatesV2 } from "./sheets/preload-templates.js";
 import { MWDActor } from "./actor/mwd-actor.js";
 import { MWDRoll } from "./roll/mwd-roll.js";
-//import { registerItemSheetsV2 } from "./sheets/register-item-sheets-v2.js";
+import { modifierProviders } from "../modules/modifiers/index.js";
+import { ItemModifiersProvider } from "../modules/modifiers/providers/item-modifiers.js";
+import { StatusEffectsProvider } from "../modules/modifiers/providers/status-effects.js";
+import { BaseRollModifiersProvider } from "../modules/modifiers/providers/base-modifiers.js";
+
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -68,6 +72,10 @@ export class AnarchySystem {
 
     // initialize remote calls registry first: used by other singleton managers
     this.remoteCall = new RemoteCall(); 
+
+      modifierProviders.register(new ItemModifiersProvider());
+      modifierProviders.register(new StatusEffectsProvider());
+      modifierProviders.register(new BaseRollModifiersProvider()); 
 
     //register handlebars helpers early
     Handlebars.registerHelper("mwdClassList", (classes) => {

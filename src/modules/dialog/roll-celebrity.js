@@ -1,7 +1,7 @@
 import { ANARCHY } from "../config.js";
 import { TEMPLATES_PATH } from "../constants.js";
 import { Misc } from "../misc.js";
-import { Modifiers } from "../modifiers/modifiers.js";
+import { Modifiers } from "../modifiers/anarchy-modifiers.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const { renderTemplate } = foundry.applications.handlebars;

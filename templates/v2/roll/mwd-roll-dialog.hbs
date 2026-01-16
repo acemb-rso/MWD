@@ -1,0 +1,111 @@
+<section class="mwd-roll-dialog__root">
+
+  <header class="mwd-roll-dialog__header">
+    <div class="mwd-roll-dialog__title">
+      <div class="mwd-roll-dialog__title-left">{{header.left}}</div>
+      <div class="mwd-roll-dialog__title-right">{{header.right}}</div>
+    </div>
+  </header>
+
+  <div class="mwd-roll-dialog__panel">
+    <div class="mwd-roll-dialog__panel-title">Dice Breakdown</div>
+
+    <div class="mwd-roll-dialog__grid">
+      <div class="mwd-roll-dialog__row">
+        <div class="mwd-roll-dialog__label">Attribute</div>
+        <div class="mwd-roll-dialog__pill">{{dice.attribute}}</div>
+      </div>
+      <div class="mwd-roll-dialog__row">
+        <div class="mwd-roll-dialog__label">Skill</div>
+        <div class="mwd-roll-dialog__pill">{{dice.skill}}</div>
+      </div>
+      <div class="mwd-roll-dialog__row">
+        <div class="mwd-roll-dialog__label">Bonus</div>
+        <div class="mwd-roll-dialog__pill">{{dice.bonus}}</div>
+      </div>
+      <div class="mwd-roll-dialog__row">
+        <div class="mwd-roll-dialog__label">Existing Mods</div>
+        <div class="mwd-roll-dialog__pill">{{dice.modifiers}}</div>
+      </div>
+    </div>
+
+    <div class="mwd-roll-dialog__total">
+      <span class="mwd-roll-dialog__total-label">Total Pool</span>
+      <span class="mwd-roll-dialog__pill mwd-roll-dialog__pill--strong">{{totalPool}}</span>
+    </div>
+  </div>
+
+  <div class="mwd-roll-dialog__panel">
+    <div class="mwd-roll-dialog__panel-title">Modifiers</div>
+
+    {{#if modifiers.length}}
+      <ul class="mwd-roll-dialog__mods">
+        {{#each modifiers}}
+          <li class="mwd-roll-dialog__mod">
+            <span class="mwd-roll-dialog__mod-label">{{label}}</span>
+            <span class="mwd-roll-dialog__mod-src">{{source}}</span>
+            <span class="mwd-roll-dialog__mod-val">{{value}}</span>
+          </li>
+        {{/each}}
+      </ul>
+    {{else}}
+      <div class="mwd-roll-dialog__empty">No existing modifiers.</div>
+    {{/if}}
+
+    <div class="mwd-roll-dialog__manual-header">
+      <div class="mwd-roll-dialog__panel-subtitle">Manual Modifiers</div>
+      <button type="button" class="mwd-roll-dialog__btn" data-action="addManual">Add</button>
+    </div>
+
+    <div class="mwd-roll-dialog__manual">
+      {{#each manual}}
+        <div class="mwd-roll-dialog__manual-row">
+          <input
+            type="text"
+            class="mwd-roll-dialog__manual-label"
+            value="{{label}}"
+            data-action="setManualValue"
+            data-id="{{id}}"
+            data-field="label"
+          />
+            <div class="mwd-roll-dialog__manual-stepper">
+              {{> "mwd.v2.ui.mod-stepper" id=id action="setManualStepper" steps=steps}}
+            </div>
+
+          <button
+            type="button"
+            class="mwd-roll-dialog__btn mwd-roll-dialog__btn--icon"
+            title="Remove"
+            data-action="removeManual"
+            data-id="{{id}}"
+          >✕</button>
+        </div>
+      {{/each}}
+    </div>
+  </div>
+
+  <div class="mwd-roll-dialog__panel">
+    <div class="mwd-roll-dialog__panel-title">Edge & Risk</div>
+
+    <label class="mwd-roll-dialog__check">
+      <input type="checkbox" {{checked toggles.useEdge}} data-action="toggleCheckbox" data-key="useEdge" />
+      <span>Use Edge</span>
+    </label>
+
+    <label class="mwd-roll-dialog__check">
+      <input type="checkbox" {{checked toggles.takeRisks}} data-action="toggleCheckbox" data-key="takeRisks" />
+      <span>Anarchy – Take risks</span>
+    </label>
+
+    <label class="mwd-roll-dialog__check">
+      <input type="checkbox" {{checked toggles.opponentRoll}} data-action="toggleCheckbox" data-key="opponentRoll" />
+      <span>Opponent roll</span>
+    </label>
+  </div>
+
+  <footer class="mwd-roll-dialog__footer">
+    <button type="button" class="mwd-roll-dialog__btn" data-action="cancel">Cancel</button>
+    <button type="button" class="mwd-roll-dialog__btn mwd-roll-dialog__btn--primary" data-action="submit">ROLL</button>
+  </footer>
+
+</section>

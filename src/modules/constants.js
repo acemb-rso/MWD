@@ -109,7 +109,8 @@ export const TEMPLATE = {
       credibility: EDGE_POOLS.credibility,
     },
     chaos: EDGE_POOLS.chaos
-  },
+  }, 
+ 
   area: {
     none: 'none',
     shotgun: 'shotgun',
@@ -119,6 +120,26 @@ export const TEMPLATE = {
     ray: 'ray'
   }
 }
+
+ export const ROLL_DOMAINS = Object.freeze({
+    physical: "physical",
+    mental: "mental",
+    social: "social"
+  });
+
+  export const ROLL_DOMAIN_LIST = Object.freeze(Object.values(ROLL_DOMAINS));
+
+  export function normalizeDomains(domains) {
+    if (!Array.isArray(domains)) return [];
+    return domains
+      .map(d => String(d).trim().toLowerCase())
+      .filter(d => ROLL_DOMAIN_LIST.includes(d));
+  }
+
+  export function domainsIntersect(a, b) {
+    if (!Array.isArray(a) || !Array.isArray(b)) return false;
+    return a.some(d => b.includes(d));
+  }
 
 export const ACTOR_ATTRIBUTE_SETS = {
   [TEMPLATE.actorTypes.character]: [
