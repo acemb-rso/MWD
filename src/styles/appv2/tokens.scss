@@ -117,4 +117,32 @@
   --csb-hexabox-bg: var(--csb-surface-1);
   --csb-hexabox-border: var(--csb-border);
   --csb-hexabox-thickness: 1px;
+
+  --mwd-icon-wound: url("/systems/mwd/img/default/blood.svg");
+  --mwd-icon-fatigue: url("/systems/mwd/img/icons/status/knockout.svg");
+  --mwd-icon-armor-personal: url("/systems/mwd/img/default/Default_Armor.svg");
+  --mwd-icon-armor-shield: url("/systems/mwd/img/default/shield.svg");
+  --mwd-icon-armor-vehicle: url("/systems/mwd/img/icons/systems/upgrades/armored_chassis.svg");
+  --mwd-icon-structure: url("/systems/mwd/img/default/default-linearframe.svg");
+  --mwd-icon-heat: url("/systems/mwd/img/icons/status/on_fire_mild.svg");
+  --mwd-icon-durability: url("/systems/mwd/img/icons/skills/piloting-ground-steering-wheel.svg");
+
+  --mwd-monitor-empty: rgba(0, 0, 0, 0.55);
+  --mwd-monitor-filled: rgba(255, 255, 255, 0.95);
+  --mwd-monitor-hover: rgba(255, 255, 255, 1);
+
+    /* Ink on light/noisy surfaces */
+  --mwd-ink-strong: rgba(20, 24, 28, 0.95);
+  --mwd-ink-shadow-light: rgba(255, 255, 255, 0.85);
+
+  /* Tabs */
+  --mwd-tab-text: rgba(40, 44, 48, 0.85);
+  --mwd-tab-text-shadow: rgba(255, 255, 255, 0.60);
+
+  --mwd-tab-active-text: rgba(245, 246, 248, 0.95);
+  --mwd-tab-active-shadow: rgba(0, 0, 0, 0.60);
+
+  /* Brown steel plate (active tab) */
+  --mwd-brownsteel-top: rgba(72, 64, 54, 0.95);
+  --mwd-brownsteel-bottom: rgba(52, 46, 38, 0.95);
 }

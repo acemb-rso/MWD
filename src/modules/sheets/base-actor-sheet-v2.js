@@ -13,8 +13,6 @@ import { buildSkillDisplay } from "../mwd/skills.js";
  */
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
-
-
 export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2) {
   #editing = false;
 
@@ -42,7 +40,8 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
     actions: {
       toggleViewMode: BaseActorSheetV2.prototype._onToggleViewMode,
       tab: BaseActorSheetV2.prototype._onClickTab,
-      roll: BaseActorSheetV2.prototype._onRollAction
+      roll: BaseActorSheetV2.prototype._onRollAction,
+      monitorSet: BaseActorSheetV2.prototype._onMonitorSet
     }
   });
 
@@ -465,5 +464,45 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
     }
 
     return value;
+  }
+  
+  /** Action handler: Condition Monitor set */
+  async _onMonitorSet(event, target) {
+    event.preventDefault();
+    if (!this.isEditable) return;
+
+    const monitorId = String(target?.dataset?.monitor ?? "").trim();
+    const raw = Number(target?.dataset?.value);
+
+    if (!monitorId || !Number.isFinite(raw)) return;
+
+    // Prefer actor-owned semantics
+    if (typeof this.actor.setMonitorValue === "function") {
+      return this.actor.setMonitorValue(monitorId, raw, { source: "sheet" });
+    }
+
+    // Fallback: raw value update only (still generic)
+    const basePath = `system.monitors.${monitorId}`;
+    const max = Number(foundry.utils.getProperty(this.actor, `${basePath}.max`)) || 0;
+    const value = Math.min(Math.max(0, raw), Math.max(0, max));
+    return this.actor.update({ [`${basePath}.value`]: value });
+  }
+
+  /**
+ * Compute -1 penalty per 3 full damage (3,6,9...)
+ * Returns 0, -1, -2, ...
+ */
+  static _mwdPenaltyFromDamage(damage) {
+    const d = Math.max(0, Number(damage) || 0);
+    return -Math.floor(d / 3);
+  }
+
+/**
+ * Compute resistance = ceil(value / 4), with 0 -> 0
+ * 1-4 => 1, 5-8 => 2, ...
+ */
+  static _mwdResistanceFromValue(value) {
+    const v = Math.max(0, Number(value) || 0);
+    return v === 0 ? 0 : Math.ceil(v / 4);
   }
 }

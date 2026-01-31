@@ -90,9 +90,9 @@ async function execute({ actor, payload, event, quick = false } = {}) {
       basePayload: payload,
       resolved: ctx,
       diceParts: {
-        attribute: ctx.dice?.attribute ?? 0,
-        skill: ctx.dice?.skill ?? 0,
-        bonus: ctx.dice?.bonus ?? 0
+        attribute: ctx?.pool?.attribute ?? 0,
+        skill: ctx.pool?.skill ?? 0,
+        bonus: ctx.pool?.bonus ?? 0
       },
       mods: collected.mods,
       modTotal: collected.total

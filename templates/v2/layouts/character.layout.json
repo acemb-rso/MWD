@@ -27,7 +27,7 @@
             "children": [
               {
                 "type": "include",
-                "partial": "mwd.v2.ui.placeholders.edge-console",
+                "partial": "mwd.v2.ui.character.edge-console",
                 "classes": ["edge-console"]
               }
             ]
@@ -39,7 +39,7 @@
             "children": [
               {
                 "type": "include",
-                "partial": "mwd.v2.ui.placeholders.condition-monitors"
+                "partial": "mwd.v2.ui.condition-monitors"
               }
             ]
           }

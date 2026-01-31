@@ -16,20 +16,20 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/unknown.hbs`,
   `systems/${SYSTEM_NAME}/templates/common/view-mode.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/mod-stepper.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/condition-monitors.hbs`,
 
   // Character UI
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/attributes.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/combat-actions.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/skills-column.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/skill-row.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/edge-console.hbs`,
 
   // Sheet wrapper
   `systems/${SYSTEM_NAME}/templates/v2/actor/_sheet-root.hbs`,
 
   // Placeholders
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/assigned-systems.hbs`,
-  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/condition-monitors.hbs`,
-  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/edge-console.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/status-dashboard.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-gear.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-weapons.hbs`,

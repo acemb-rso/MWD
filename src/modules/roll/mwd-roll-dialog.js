@@ -145,21 +145,44 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const bc = this._mwd.baseContext ?? {};
     const st = this._mwd.state ?? {};
 
-    const dice = {
-      attribute: Number(bc?.dice?.attribute ?? 0),
-      skill: Number(bc?.dice?.skill ?? 0),
-      bonus: Number(bc?.dice?.bonus ?? 0),
-      modifiers: Number(bc?.dice?.modifiers ?? 0) // existing mods from providers
-    };
+    const intent = bc?.intent ?? "skill";
+
+    let dice;
+    let totalPool;
 
     const manualTotal = Array.isArray(st.manual)
       ? st.manual.reduce((a, r) => a + Number(r?.value || 0), 0)
       : 0;
 
-    // "All modifiers applied" as players think of it
-    const modifiersTotal = dice.modifiers + manualTotal;
-    const baseTotal = dice.attribute + dice.skill + dice.bonus;
-    const totalPool = Math.max(0, baseTotal + modifiersTotal);
+    if (intent === "edge") {
+      // Edge rolls do NOT use attribute/skill/bonus
+      const resolved = bc?.resolved ?? {};
+      const breakdown = Array.isArray(resolved.breakdown) ? resolved.breakdown : [];
+      const get = (id) => Number(breakdown.find(r => r.id === id)?.value ?? 0);
+
+      const pool = Number(resolved.pool ?? 0);
+
+      dice = {
+        pool,
+        rating: get("rating"),
+        cap: get("cap"),
+        modifiers: Number(bc?.dice?.modifiers ?? 0)
+      };
+
+      totalPool = Math.max(0, pool + dice.modifiers + manualTotal);
+    } else {
+      // Skill roll (existing behavior)
+      dice = {
+        attribute: Number(bc?.dice?.attribute ?? 0),
+        skill: Number(bc?.dice?.skill ?? 0),
+        bonus: Number(bc?.dice?.bonus ?? 0),
+        modifiers: Number(bc?.dice?.modifiers ?? 0)
+      };
+
+      const modifiersTotal = dice.modifiers + manualTotal;
+      const baseTotal = dice.attribute + dice.skill + dice.bonus;
+      totalPool = Math.max(0, baseTotal + modifiersTotal);
+    }
 
     return {
       header: {
@@ -175,8 +198,11 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         steps: buildStepperSteps(Number(r.value ?? 0), -3, 3)
       })),
 
-      toggles: st.toggles,
-      totalPool
+      toggles: intent === "edge"
+        ? { useEdge: false, takeRisks: false, opponentRoll: false }
+        : st.toggles,
+      totalPool,
+      intent
     };
   }
 
@@ -313,9 +339,15 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const dlg = new MWDRollDialog({
       actor,
-      baseContext: { header, dice, modifiers, payload }
+      baseContext: {
+        intent: resolved?.intent ?? "skill",
+        header,
+        dice,
+        modifiers,
+        payload,
+        resolved // keep full resolved for edge display
+      }
     });
-
     const result = await dlg.wait();
     return result?.payload ?? null;
   }

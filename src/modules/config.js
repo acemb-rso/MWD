@@ -223,7 +223,9 @@ export const MWD = {
       "rumor": "Rumor",
       "legend": "Legend",
       "credibility": "Credibility",
-      "chaos": "Chaos"
+      "chaos": "Chaos",
+      "rating": "Rating",
+      "current": "Current"
     },
 
     "tabs": {
@@ -258,7 +260,9 @@ export const MWD = {
         "rumor": "Rumor",
         "legend": "Legend",
         "credibility": "Credibility",
-        "chaos": "Chaos"
+        "chaos": "Chaos",
+        "rating": "Rating",
+        "current": "Current"
       },
 
       "mental": {
@@ -626,10 +630,10 @@ export const MWD = {
     "projectileWeapons": "Projectile Weapons",
     "firearms": "Firearms",
     "stealth": "Stealth",
-    "zeroGOperations": "Zero-G Operations",
+    "zeroGOps": "Zero-G Operations",
     "art": "Art",
     "artillery": "Artillery",
-    "communications": "Communications",
+    "systemOps": "System Operations",
     "computers": "Computers",
     "demolitions": "Demolitions",
     "knowledge": "Knowledge",
@@ -648,7 +652,8 @@ export const MWD = {
     "negotiation": "Negotiation",
     "etiquette": "Etiquette",
     "streetwise": "Streetwise",
-    "intimidation": "Intimidation"
+    "intimidation": "Intimidation",
+    "Administration": "Administration"
   },
 
   "area": {

@@ -12,7 +12,6 @@ import { AnarchyDice } from './roll/dice.js';
 import { AnarchyRoll } from './roll/anarchy-roll.js';
 import { Migrations } from './migrations.js';
 import { AnarchyBaseItem } from './item/anarchy-base-item.js';
-import { AnarchyBaseActor } from './actor/base-actor.js';
 import { CharacterActor } from './actor/character-actor.js';
 import { VehicleActor } from './actor/vehicle-actor.js';
 import { BattlemechActor } from './actor/battlemech-actor.js';
@@ -138,7 +137,6 @@ export class AnarchySystem {
     AnarchyDice.init();
     AnarchyRoll.init();
     AnarchyBaseItem.init()
-    AnarchyBaseActor.init()
     ActorDamageManager.init();
     ChatManager.init();
     console.log(LOG_HEAD + 'AnarchySystem.onInit | done');

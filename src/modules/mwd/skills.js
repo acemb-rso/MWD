@@ -16,52 +16,53 @@ import { Enums } from "../enums.js"; // if you want pretty attribute labels (opt
  * @property {string} label             Human-readable label
  * @property {string} attribute         Attribute key (e.g. "strength", "reflexes")
  * @property {string} [icon]            Optional icon path
- * @property {boolean} [isSocial]       Optional UI grouping hint
  * @property {string} [defense]         Optional roll hint (e.g. "physicalDefense")
+ * @property {string[]} [domains]       Optional list of domains (e.g. ["physical", "mental"])
  */
 
 /** @type {MWDSkillDef[]} */
 export const MWD_SKILLS = [
   // Strength
   { code: "athletics",       label: "Athletics",       attribute: "strength",  icon: `${ICONS_SKILLS_PATH}/athletics.svg`, domains: ["physical"] },
-  { code: "heavyWeapons",    label: "Heavy Weapons",   attribute: "strength",  icon: `${ICONS_SKILLS_PATH}/heavy-weapons.svg`, defense: "physicalDefense" },
+  { code: "heavyWeapons",    label: "Heavy Weapons",   attribute: "strength",  icon: `${ICONS_SKILLS_PATH}/heavy-weapons.svg`, defense: "physicalDefense", domains: ["physical"] },
 
   // Reflexes
-  { code: "escapeArtist",     label: "Escape Artist",     attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/escape-artist.svg` },
-  { code: "gunnery",          label: "Gunnery",           attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/vehicle-weapons.svg`, defense: "physicalDefense" },
-  { code: "meleeCombat",      label: "Melee Combat",      attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/close-combat.svg`, defense: "physicalDefense" },
-  { code: "piloting",         label: "Piloting",          attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/piloting-ground-steering-wheel.svg` },
-  { code: "projectileWeapons",label: "Projectile Weapons",attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/projectile-weapons.svg`, defense: "physicalDefense" },
-  { code: "firearms",         label: "Firearms",          attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/firearms.svg`, defense: "physicalDefense" },
-  { code: "stealth",          label: "Stealth",           attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/stealth.svg` },
-  { code: "zeroGOperations",  label: "Zero-G Operations", attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/free-fall.svg` },
+  { code: "escapeArtist",     label: "Escape Artist",     attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/escape-artist.svg`, domains: ["physical"] },
+  { code: "gunnery",          label: "Gunnery",           attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/vehicle-weapons.svg`, defense: "physicalDefense", domains: ["physical"] },
+  { code: "meleeCombat",      label: "Melee Combat",      attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/close-combat.svg`, defense: "physicalDefense", domains: ["physical"] },
+  { code: "piloting",         label: "Piloting",          attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/piloting-ground-steering-wheel.svg`, domains: ["physical"] },
+  { code: "projectileWeapons",label: "Projectile Weapons",attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/projectile-weapons.svg`, defense: "physicalDefense", domains: ["physical"] },
+  { code: "firearms",         label: "Firearms",          attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/firearms.svg`, defense: "physicalDefense", domains: ["physical"] },
+  { code: "stealth",          label: "Stealth",           attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/stealth.svg`, domains: ["physical"] },
+  { code: "zeroGOps",         label: "Zero-G Operations", attribute: "reflexes", icon: `${ICONS_SKILLS_PATH}/fly.svg`, domains: ["physical"] },
 
   // Intelligence
-  { code: "art",            label: "Art",            attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/art.svg` },
-  { code: "artillery",      label: "Artillery",      attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/artillery.svg` },
-  { code: "communications", label: "Communications", attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/networking.svg` },
-  { code: "computers",      label: "Computers",      attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/hacking.svg` },
-  { code: "demolitions",    label: "Demolitions",    attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/demolition.svg` },
-  { code: "medTech",        label: "Medtech",        attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/biotech.svg` },
-  { code: "science",        label: "Science",        attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/skills.svg` },
-  { code: "perception",     label: "Perception",     attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/skills.svg` },
-  { code: "tactics",        label: "Tactics",        attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/skills.svg` },
-  { code: "technician",     label: "Technician",     attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/engineering.svg` },
-  { code: "tracking",       label: "Tracking",       attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/tracking.svg` },
-  { code: "navigation",     label: "Navigation",     attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/piloting-other.svg` },
+  { code: "art",            label: "Art",               attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/art.svg`, domains: ["mental"] },
+  { code: "artillery",      label: "Artillery",         attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/artillery.svg`, domains: ["mental"] },
+  { code: "systemOps",      label: "System Operations", attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/electronics.svg`, domains: ["mental"] },
+  { code: "computers",      label: "Computers",         attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/hacking.svg`, domains: ["mental"] },
+  { code: "demolitions",    label: "Demolitions",       attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/demolition.svg`, domains: ["mental"] },
+  { code: "medTech",        label: "Medtech",           attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/biotech.svg`, domains: ["mental"] },
+  { code: "science",        label: "Science",           attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/skills.svg`, domains: ["mental"] },
+  { code: "perception",     label: "Perception",        attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/skills.svg`, domains: ["mental"] },
+  { code: "tactics",        label: "Tactics",           attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/skills.svg`, domains: ["mental"] },
+  { code: "technician",     label: "Technician",        attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/engineering.svg`, domains: ["mental"] },
+  { code: "tracking",       label: "Tracking",          attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/tracking.svg`, domains: ["physical", "mental"] },
+  { code: "navigation",     label: "Navigation",        attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/piloting-other.svg`, domains: ["mental"] },
 
   // Willpower
-  { code: "animalHandling", label: "Animal Handling", attribute: "willpower", icon: `${ICONS_SKILLS_PATH}/animals.svg` },
-  { code: "survival",       label: "Survival",        attribute: "willpower", icon: `${ICONS_SKILLS_PATH}/survival.svg` },
+  { code: "administration", label: "Administration",  attribute: "willpower", icon: `${ICONS_SKILLS_PATH}/knowledge.svg`, domains: ["social", "mental"] },
+  { code: "animalHandling", label: "Animal Handling", attribute: "willpower", icon: `${ICONS_SKILLS_PATH}/animals.svg`, domains: ["physical", "mental"] },
+  { code: "survival",       label: "Survival",        attribute: "willpower", icon: `${ICONS_SKILLS_PATH}/survival.svg`, domains: ["physical", "mental"] },
 
   // Charisma
-  { code: "acting",       label: "Acting",       attribute: "charisma", isSocial: true, icon: `${ICONS_SKILLS_PATH}/con-art.svg` },
-  { code: "disguise",     label: "Disguise",     attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/disguise.svg` },
-  { code: "leadership",   label: "Leadership",   attribute: "charisma", isSocial: true, icon: `${ICONS_SKILLS_PATH}/skills.svg` },
-  { code: "negotiation",  label: "Negotiation",  attribute: "charisma", isSocial: true, icon: `${ICONS_SKILLS_PATH}/negotiation.svg` },
-  { code: "etiquette",    label: "Etiquette",    attribute: "charisma", isSocial: true, icon: `${ICONS_SKILLS_PATH}/etiquette.svg` },
-  { code: "streetwise",   label: "Streetwise",   attribute: "charisma", isSocial: true, icon: `${ICONS_SKILLS_PATH}/etiquette2.svg` },
-  { code: "intimidation", label: "Intimidation", attribute: "charisma", isSocial: true, icon: `${ICONS_SKILLS_PATH}/intimidation.svg`, domains: ["social", "mental"] }
+  { code: "acting",       label: "Acting",       attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/con-art.svg`, domains: ["social"] },
+  { code: "disguise",     label: "Disguise",     attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/disguise.svg`, domains: ["social", "mental"] },
+  { code: "leadership",   label: "Leadership",   attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/psychology.svg`, domains: ["social"] },
+  { code: "negotiation",  label: "Negotiation",  attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/negotiation.svg`, domains: ["social"] },
+  { code: "etiquette",    label: "Etiquette",    attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/etiquette.svg`, domains: ["social"] },
+  { code: "streetwise",   label: "Streetwise",   attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/etiquette2.svg`, domains: ["social"] },
+  { code: "intimidation", label: "Intimidation", attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/intimidation.svg`, domains: ["social", "mental"] }
 ].map(normalizeSkillDef);
 
 /**

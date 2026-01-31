@@ -188,234 +188,130 @@
   --csb-hexabox-bg: var(--csb-surface-1);
   --csb-hexabox-border: var(--csb-border);
   --csb-hexabox-thickness: 1px;
+  --mwd-icon-wound: url("/systems/mwd/img/default/blood.svg");
+  --mwd-icon-fatigue: url("/systems/mwd/img/icons/status/knockout.svg");
+  --mwd-icon-armor-personal: url("/systems/mwd/img/default/Default_Armor.svg");
+  --mwd-icon-armor-shield: url("/systems/mwd/img/default/shield.svg");
+  --mwd-icon-armor-vehicle: url("/systems/mwd/img/icons/systems/upgrades/armored_chassis.svg");
+  --mwd-icon-structure: url("/systems/mwd/img/default/default-linearframe.svg");
+  --mwd-icon-heat: url("/systems/mwd/img/icons/status/on_fire_mild.svg");
+  --mwd-icon-durability: url("/systems/mwd/img/icons/skills/piloting-ground-steering-wheel.svg");
+  --mwd-monitor-empty: rgba(0, 0, 0, 0.55);
+  --mwd-monitor-filled: rgba(255, 255, 255, 0.95);
+  --mwd-monitor-hover: rgba(255, 255, 255, 1);
+  /* Ink on light/noisy surfaces */
+  --mwd-ink-strong: rgba(20, 24, 28, 0.95);
+  --mwd-ink-shadow-light: rgba(255, 255, 255, 0.85);
+  /* Tabs */
+  --mwd-tab-text: rgba(40, 44, 48, 0.85);
+  --mwd-tab-text-shadow: rgba(255, 255, 255, 0.60);
+  --mwd-tab-active-text: rgba(245, 246, 248, 0.95);
+  --mwd-tab-active-shadow: rgba(0, 0, 0, 0.60);
+  /* Brown steel plate (active tab) */
+  --mwd-brownsteel-top: rgba(72, 64, 54, 0.95);
+  --mwd-brownsteel-bottom: rgba(52, 46, 38, 0.95);
 }
 
 /* Structural layout */
-/* AppV2 sheet layout contract */
-/* NOTE:
-   Layout is CSB-driven. Do NOT target Foundry .tab/.sheet-tabs here.
-   Scroll ownership lives on .csb-tab-panel.
-*/
 /* =========================================================
-   Sheet frame (outer boundary)
-   ========================================================= */
-.mwd-sheet {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  /* VISUAL FRAME */
-  background: var(--csb-surface-0);
-  border: 1px solid var(--csb-border);
-  border-radius: var(--csb-radius);
-  /* Prevent content from kissing the edges */
-  overflow: hidden;
-}
-
-.mwd-sheet .sheet-header {
-  flex: 0 0 auto;
-  background: var(--csb-surface-0);
-  border-bottom: 1px solid var(--csb-border);
-}
-
-.mwd-sheet .sheet-footer {
-  flex: 0 0 auto;
-}
-
-/* =========================================================
-   Sheet body (interior scroll area)
-   Goal: flexible height, proper scroll containment
-   Lives in base.scss (layout contract).
-   ========================================================= */
-.mwd-sheet .csb-layout {
-  min-width: 0;
-  min-height: 0;
-}
-
-.mwd-sheet .sheet-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  min-width: 0;
-  padding: var(--csb-space-3);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* prevents double scrollbars */
-}
-
-/* CSB layout root inside sheet-body */
-.mwd-sheet .sheet-body > .csb-layout {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Topband stays visible, does not scroll */
-.mwd-sheet .sheet-body > .csb-layout > .csb-topband {
-  flex: 0 0 auto;
-}
-
-/* Body region below topband must participate in flex sizing.
-   Without this, tab panels expand to content and never overflow -> no scrollbar. */
-.mwd-sheet .sheet-body > .csb-layout > .csb-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* prevent double scrollbars; panels own scroll */
-}
-
-/* --- CSB Tabs: nav stays fixed, panels area fills, active panel scrolls --- */
-/* CSB body owns remaining height */
-.mwd-sheet .csb-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Tabs must also flex */
-.mwd-sheet .csb-body .csb-tabs {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-.mwd-sheet .csb-tabs {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  overflow: hidden;
-  flex-direction: column;
-}
-
-.mwd-sheet .csb-tab-bar {
-  flex: 0 0 auto;
-}
-
-.mwd-sheet .csb-tab-panels {
-  flex: 1 1 20%; /* key to getting panels to fill available space */
-  min-height: 10px;
-  padding-right: var(--csb-space-1); /* space for scrollbar */
-  overflow-y: auto; /* ensures only the panel scrolls */
-  overflow-x: hidden;
-  scrollbar-gutter: stable; /* prevent layout shift when scrollbar appears */
-}
-
-/* Panels: only the active one should scroll. We can safely set all to scroll;
-   hidden panels (display:none) won’t matter. */
-.mwd-sheet .csb-tab-panel {
-  display: none;
-}
-
-.mwd-sheet .csb-tab-panel.is-active {
-  display: block;
-}
-
-/* Guardrails: keep the app usable */
-.window-app.mwd-app {
-  min-width: 720px;
-  min-height: 520px;
-  /* optional maxes if you want to keep it from going ridiculous */
-  max-width: 1400px;
-  max-height: 1400px;
-}
-
-/* Prevent the window itself from scrolling */
-.window-app.mwd-app .window-content {
+ * MWD Actor Sheet Background + Trim (AppV2/CSB-safe)
+ * Paint on .window-content, keep Foundry scroll behavior intact.
+ * ========================================================= */
+/* 0) Treat window-content as the paint canvas */
+.mwd-sheet.actor-sheet-v2 .window-content {
   position: relative;
-  padding: 0;
-  overflow: hidden;
+  isolation: isolate;
 }
 
-/* The AppV2 sheet form is also .application (position:absolute in Foundry core).
-   Dock it to all sides so it always expands with the window. */
-.window-app.mwd-app .window-content > form.mwd-sheet {
+/* 1) Background texture (bottom-most) */
+.mwd-sheet.actor-sheet-v2 .window-content::before {
+  content: "";
   position: absolute;
-  inset: 0; /* top/right/bottom/left = 0 */
-  margin: 0;
+  inset: 0;
+  background: url("/systems/mwd/img/backgrounds/background_2.PNG") center/cover no-repeat;
+  z-index: 0;
+  pointer-events: none;
 }
 
-/* =========================================================
-   Sheet Header (AppV2)
-   Goal: compact profile + proper name placement + clean actions
-   Lives in base.scss (layout contract).
-   ========================================================= */
-.mwd-sheet.mwd-character-sheet .sheet-header {
+/* 2) One top trim + one bottom trim (no tiling) */
+.mwd-sheet.actor-sheet-v2 .window-content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/systems/mwd/img/backgrounds/Hex-boarder_A.png"), url("/systems/mwd/img/backgrounds/Hex-boarder_2A.png");
+  background-repeat: no-repeat, no-repeat;
+  background-position: top center, bottom center;
+  background-size: 100% 140px, 100% 140px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 3) Lift the actual sheet content above the paint layers */
+.mwd-sheet.actor-sheet-v2 .window-content > form.mwd-sheet {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--csb-space-3);
-  padding: var(--csb-space-3);
-  border-bottom: 1px solid var(--csb-border);
-  overflow: visible;
+  z-index: 2;
+  background: transparent; /* critical: don't slab over the background */
 }
 
-.mwd-sheet.mwd-character-sheet .sheet-header .header-left {
+/* 4) Restore expected Foundry sheet flex/scroll behavior */
+.mwd-sheet.actor-sheet-v2 form.mwd-sheet {
+  height: 100%;
   display: flex;
-  align-items: center;
-  gap: var(--csb-space-3);
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-body {
   flex: 1 1 auto;
-  min-width: 0; /* allow name to shrink */
+  min-height: 0;
+  overflow: auto; /* brings scrollbars back */
 }
 
-.mwd-sheet.mwd-character-sheet .sheet-header .header-right {
-  margin-left: auto;
+/* 5) Header sizing */
+.mwd-sheet.actor-sheet-v2 .sheet-header {
   display: flex;
   align-items: center;
-  gap: var(--csb-space-2);
-  flex: 0 0 auto;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 0;
 }
 
-/* Profile image should never dominate */
-.mwd-sheet.mwd-character-sheet .sheet-header .profile {
-  width: 88px;
-  height: 88px;
-  flex: 0 0 88px;
-  object-fit: cover;
-  display: block;
-  border-radius: calc(var(--csb-radius) + 4px);
-  border: 1px solid var(--csb-border);
-  background: var(--csb-surface-2);
-}
-
-/* Name block */
-.mwd-sheet.mwd-character-sheet .sheet-header .name {
-  margin: 0;
-  font-size: 1.35rem; /* ~22px at 16px root; your global is 14px so this lands ~19px */
-  line-height: 1.1;
-  flex: 1 1 auto;
+.mwd-sheet.actor-sheet-v2 .sheet-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   min-width: 0;
 }
 
-.mwd-sheet.mwd-character-sheet .sheet-header .name input {
+.mwd-sheet.actor-sheet-v2 .sheet-header img.profile {
+  width: 96px;
+  height: 96px;
+  max-width: 96px;
+  max-height: 96px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 10px;
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-header h1.name {
+  margin: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-header input[name=name] {
   width: 100%;
   min-width: 0;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  color: var(--csb-text);
 }
 
-/* Make header actions look like controls without fighting Foundry chrome */
-.mwd-sheet.mwd-character-sheet .sheet-header .header-right .view-mode-control {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: calc(var(--csb-radius));
-  border: 1px solid var(--csb-border);
-  background: var(--csb-surface-2);
+.mwd-sheet.actor-sheet-v2 .mwd-panel,
+.mwd-sheet.actor-sheet-v2 .panel {
+  background: rgba(20, 24, 28, 0.72);
 }
 
-.mwd-sheet.mwd-character-sheet .sheet-header .header-right .view-mode-control:hover {
-  border-color: var(--csb-border-strong);
-}
-
-.mwd-sheet.mwd-character-sheet .sheet-header .header-right .view-mode-control i {
-  font-size: 0.9rem;
-  line-height: 1;
+.mwd-sheet.actor-sheet-v2 .sheet-body {
+  padding-bottom: 120px; /* give space so bottom trim reads */
 }
 
 /* Reusable UI pieces */
@@ -425,7 +321,7 @@
    No theme-specific colors here
    ========================================================= */
 .mwd-sheet {
-  background: var(--csb-surface-0);
+  background: transparent;
   color: var(--csb-text);
 }
 
@@ -446,6 +342,53 @@
   line-height: 1.2;
 }
 
+.mwd-panel__title {
+  position: relative;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(245, 246, 248, 0.92);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* Burned-in hex ghost background */
+.mwd-panel__title::before {
+  content: "";
+  position: absolute;
+  inset: -8px -14px;
+  background: url("/systems/mwd/img/backgrounds/hex-ghost-burn-v2.svg") center/420px 140px no-repeat;
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.mwd-panel__header {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* High-contrast labels on light background areas */
+.mwd-sheet.actor-sheet-v2 .attributes-strip .attr-label,
+.mwd-sheet.actor-sheet-v2 .hexabox__label,
+.mwd-sheet.actor-sheet-v2 .attribute-label,
+.mwd-sheet.actor-sheet-v2 .csb-tab-link {
+  color: rgba(15, 18, 22, 0.92);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+/* ===============================
+ * Attribute Labels (High Contrast)
+ * =============================== */
+.mwd-sheet.actor-sheet-v2 .attributes-strip .attr-label,
+.mwd-sheet.actor-sheet-v2 .hexabox__label,
+.mwd-sheet.actor-sheet-v2 .attribute-label {
+  color: rgba(20, 24, 28, 0.95); /* dark ink */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85); /* light halo */
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
 /* -------------------------
    2. Tabs (chrome)
    ------------------------- */
@@ -462,6 +405,28 @@
 
 .csb-tab-link.is-active {
   border-bottom: 2px solid var(--csb-accent);
+}
+
+/* ===============================
+ * CSB Tabs – Readable + Clear Active State
+ * =============================== */
+/* Base tab text */
+.mwd-sheet.actor-sheet-v2 .csb-tab-link {
+  color: var(--mwd-tab-text);
+  text-shadow: 0 1px 0 var(--mwd-tab-text-shadow);
+}
+
+/* Active tab: darker plate + light text */
+.mwd-sheet.actor-sheet-v2 .csb-tab-link.is-active {
+  color: var(--mwd-tab-active-text);
+  text-shadow: 0 1px 0 var(--mwd-tab-active-shadow);
+  background: linear-gradient(to bottom, var(--mwd-brownsteel-top), var(--mwd-brownsteel-bottom));
+  border-radius: 6px 6px 0 0;
+  padding: 6px 12px;
+}
+
+.mwd-sheet.actor-sheet-v2 .csb-tab-link:hover {
+  color: rgba(25, 28, 32, 0.92);
 }
 
 /* -------------------------
@@ -493,10 +458,14 @@
 }
 
 .csb-topband__attributes .attribute label {
-  font-size: 0.75rem;
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--csb-muted);
+  padding-left: 2em;
+  color: var(--mwd-ink-strong, rgba(20, 24, 28, 0.95));
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 .mwd-attributes .attribute input {
@@ -573,7 +542,31 @@
   background: var(--csb-button-bg-hover);
 }
 
-/* Tabs (CSB) */
+/* -------------------------
+   CSB Tabs: panels behavior
+   ------------------------- */
+.mwd-sheet .csb-tabs {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mwd-sheet .csb-tab-panels {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto; /* panels can scroll if needed */
+}
+
+/* Hide all panels by default... */
+.mwd-sheet .csb-tab-panel {
+  display: none;
+}
+
+/* ...show only the active one */
+.mwd-sheet .csb-tab-panel.is-active {
+  display: block;
+}
+
 .mwd-sheet .csb-tab-bar {
   border-bottom: 1px solid var(--csb-tabbar-border);
 }
@@ -794,6 +787,211 @@
   cursor: text;
 }
 
+/* View/edit lock toggle visibility */
+.mwd-sheet.actor-sheet-v2 .view-mode-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.mwd-sheet.actor-sheet-v2 .view-mode-control i,
+.mwd-sheet.actor-sheet-v2 .view-mode-control .fa-lock,
+.mwd-sheet.actor-sheet-v2 .view-mode-control .fa-unlock {
+  color: rgba(245, 246, 248, 0.95);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.65);
+  font-size: 16px;
+}
+
+/* Condition Monitor component */
+.mwd-monitor .pip {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  color: var(--mwd-monitor-empty);
+}
+.mwd-monitor .pip.pip--filled {
+  color: var(--mwd-monitor-filled);
+}
+.mwd-monitor .pip:hover {
+  color: var(--mwd-monitor-hover);
+  transform: scale(1.05);
+}
+.mwd-monitor .pip--wound {
+  -webkit-mask-image: var(--mwd-icon-wound);
+  mask-image: var(--mwd-icon-wound);
+}
+.mwd-monitor .pip--fatigue {
+  -webkit-mask-image: var(--mwd-icon-fatigue);
+  mask-image: var(--mwd-icon-fatigue);
+}
+.mwd-monitor .pip--armor {
+  -webkit-mask-image: var(--mwd-icon-armor-shield);
+  mask-image: var(--mwd-icon-armor-shield);
+}
+.mwd-monitor .pip--armor-personal {
+  -webkit-mask-image: var(--mwd-icon-armor-personal);
+  mask-image: var(--mwd-icon-armor-personal);
+}
+.mwd-monitor .pip--armor-vehicle {
+  -webkit-mask-image: var(--mwd-icon-armor-vehicle);
+  mask-image: var(--mwd-icon-armor-vehicle);
+}
+.mwd-monitor .pip--structure {
+  -webkit-mask-image: var(--mwd-icon-structure);
+  mask-image: var(--mwd-icon-structure);
+}
+.mwd-monitor .pip--heat {
+  -webkit-mask-image: var(--mwd-icon-heat);
+  mask-image: var(--mwd-icon-heat);
+}
+.mwd-monitor .pip--durability {
+  -webkit-mask-image: var(--mwd-icon-durability);
+  mask-image: var(--mwd-icon-durability);
+}
+
+/* ========================= */
+/* Condition Monitor Pips    */
+/* ========================= */
+.mwd-condition-monitors .pip--monitor {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  margin: 0 2px 0 0;
+  border: none;
+  background: currentColor;
+  /* MASK ICON SUPPORT */
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  color: var(--mwd-monitor-empty, rgba(255, 255, 255, 0.35));
+}
+.mwd-condition-monitors .pip--monitor.pip--filled {
+  color: var(--mwd-monitor-filled);
+}
+.mwd-condition-monitors .pip--monitor:hover {
+  color: var(--mwd-monitor-hover, rgb(255, 255, 255));
+}
+
+.mwd-monitor__pips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 16px;
+}
+
+.mwd-condition-monitors .pip--monitor {
+  /* hard fallback so you can always see something */
+  background-color: currentColor;
+  outline: 1px solid rgba(255, 255, 255, 0.35);
+  outline-offset: -1px;
+  /* subtle plate behind icon */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75), 0 1px 2px rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
+}
+
+/* ========================= */
+/* Condition Monitors        */
+/* ========================= */
+.mwd-condition-monitors {
+  display: grid;
+  gap: 10px;
+}
+.mwd-condition-monitors .mwd-monitor__header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.mwd-condition-monitors .mwd-monitor__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto; /* critical: prevents “label takes whole line” */
+  font-weight: 600;
+}
+.mwd-condition-monitors .mwd-monitor__status {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  font-size: 11px;
+}
+.mwd-condition-monitors .mwd-monitor__status-label {
+  opacity: 0.75;
+}
+.mwd-condition-monitors .mwd-monitor__status-value {
+  font-weight: 700;
+}
+
+.mwd-panel .mwd-condition-monitors .mwd-monitor__header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap; /* critical */
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.mwd-condition-monitors .mwd-monitor__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto; /* ← critical override */
+}
+
+.mwd-condition-monitors .mwd-monitor__status {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.mwd-monitor__status {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.mwd-monitor__status-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  opacity: 0.75;
+}
+
+.mwd-monitor__status-value {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
 /* Visual mood / values */
 /* appv2/themes/_index.scss */
 /* Default theme: gunmetal, restrained contrast */
@@ -883,7 +1081,208 @@
   background-color: var(--csb-accent);
 }
 
-/* Roll Dialog */
+/* Feature-specific scopes */
+/* -------------------------------------------- */
+/* Edge Console Widget Styles                   */
+/* -------------------------------------------- */
+.mwd-edge-console {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.6rem;
+}
+
+.mwd-edge-cap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.mwd-edge-cap__label {
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.9;
+  font-size: 0.75rem;
+}
+
+.mwd-edge-cap__pips {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Groups */
+.mwd-edge-groups {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.mwd-edge-group {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.6rem;
+  overflow: hidden;
+}
+
+.mwd-edge-group__label {
+  padding: 0.3rem 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0.9;
+}
+
+.mwd-edge-group__pools {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* two pools per row */
+  column-gap: 0.5rem;
+  row-gap: 0.35rem;
+  padding: 0.4rem 0.5rem;
+}
+
+/* Pool rows */
+.mwd-edge-pool {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mwd-edge-pool__name {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.45rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8rem;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+.mwd-edge-pool__name:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.mwd-edge-pool__name:active {
+  transform: translateY(1px);
+}
+
+.mwd-edge-pool__pips {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.22rem;
+  min-width: 3.5rem;
+}
+
+/* Pips */
+.pip {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+.pip--filled {
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25) inset;
+}
+
+.pip--empty {
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.mwd-edge-pool__capped {
+  margin-left: 0.25rem;
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+
+/* Normalize pip buttons (do NOT override pip visuals) */
+.mwd-edge-console button.pip {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  border: 0;
+  line-height: 1;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0.55rem;
+  min-height: 0.55rem;
+}
+
+/* Remove component button chrome */
+.mwd-edge-console .pip:focus,
+.mwd-edge-console .pip:focus-visible {
+  outline: none;
+}
+
+.mwd-edge-console .pip:hover {
+  filter: brightness(1.1);
+}
+
+/* Disabled pips should still look like pips */
+.mwd-edge-console .pip:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.mwd-edge-console button.pip:disabled {
+  cursor: default;
+}
+
+/* Re-apply pip visuals specifically for BUTTON pips */
+.mwd-edge-console .mwd-edge-pool__pips > button.pip.pip--filled {
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25) inset;
+  border: 0;
+}
+
+.mwd-edge-console .mwd-edge-pool__pips > button.pip.pip--empty {
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: none;
+}
+
+.mwd-edge-console .mwd-edge-pool__pips > button.pip:not(:disabled) {
+  cursor: pointer;
+}
+
+.mwd-edge-console .mwd-edge-pool__pips > button.pip:not(:disabled):hover {
+  filter: brightness(1.15);
+}
+
+/* Hard lock pip buttons to dot geometry (prevents stretching by button/component styles) */
+.mwd-edge-console .mwd-edge-pool__pips > button.pip {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 0.55rem;
+  height: 0.55rem;
+  min-width: 0.55rem;
+  min-height: 0.55rem;
+  border-radius: 999px;
+  padding: 0;
+  margin: 0;
+  line-height: 0;
+  vertical-align: middle;
+}
+
 .mwd-roll-dialog .window-content {
   padding: 0;
 }
@@ -1064,6 +1463,7 @@
   font-weight: 800;
 }
 
+/* Mod Stepper Styles */
 .mwd-mod-stepper {
   display: flex;
   gap: 6px;
@@ -1145,7 +1545,5 @@
   mask: var(--mwd-die-url) center/contain no-repeat;
   opacity: 0.75;
 }
-
-/* Feature-specific scopes */
 
 /*# sourceMappingURL=mwd.css.map */

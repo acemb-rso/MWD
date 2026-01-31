@@ -1,233 +1,104 @@
-/* AppV2 sheet layout contract */
-/* NOTE:
-   Layout is CSB-driven. Do NOT target Foundry .tab/.sheet-tabs here.
-   Scroll ownership lives on .csb-tab-panel.
-*/
-
 /* =========================================================
-   Sheet frame (outer boundary)
-   ========================================================= */
+ * MWD Actor Sheet Background + Trim (AppV2/CSB-safe)
+ * Paint on .window-content, keep Foundry scroll behavior intact.
+ * ========================================================= */
 
-.mwd-sheet {
-  display: flex;
-  flex-direction: column;
-  //height: 100%;
-  min-width: 0;
-  min-height: 0;
-
-  /* VISUAL FRAME */
-  background: var(--csb-surface-0);
-  border: 1px solid var(--csb-border);
-  border-radius: var(--csb-radius);
-
-  /* Prevent content from kissing the edges */
-  overflow: hidden;
-}
-
-.mwd-sheet .sheet-header {
-  flex: 0 0 auto;
-  background: var(--csb-surface-0);
-  border-bottom: 1px solid var(--csb-border);
-}
-
-
-.mwd-sheet .sheet-footer { flex: 0 0 auto; }
-
-/* =========================================================
-   Sheet body (interior scroll area)
-   Goal: flexible height, proper scroll containment
-   Lives in base.scss (layout contract).
-   ========================================================= */
-
-.mwd-sheet .csb-layout {
-  min-width: 0;
-  min-height: 0;
-}
-
-.mwd-sheet .sheet-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  min-width: 0;
-  padding: var(--csb-space-3);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;          /* prevents double scrollbars */
-}
-
-/* CSB layout root inside sheet-body */
-.mwd-sheet .sheet-body > .csb-layout {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Topband stays visible, does not scroll */
-.mwd-sheet .sheet-body > .csb-layout > .csb-topband {
-  flex: 0 0 auto;
-}
-
-/* Body region below topband must participate in flex sizing.
-   Without this, tab panels expand to content and never overflow -> no scrollbar. */
-.mwd-sheet .sheet-body > .csb-layout > .csb-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* prevent double scrollbars; panels own scroll */
-}
-
-/* --- CSB Tabs: nav stays fixed, panels area fills, active panel scrolls --- */
-
-/* CSB body owns remaining height */
-.mwd-sheet .csb-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Tabs must also flex */
-.mwd-sheet .csb-body .csb-tabs {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-.mwd-sheet .csb-tabs {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  overflow: hidden;
-  flex-direction: column;
-}
-
-.mwd-sheet .csb-tab-bar {
-  flex: 0 0 auto;
-}
-
-.mwd-sheet .csb-tab-panels {
-  flex: 1 1 20%;   /* key to getting panels to fill available space */
-  min-height: 10px;
-  padding-right: var( --csb-space-1 ); /* space for scrollbar */
-  overflow-y: auto;          /* ensures only the panel scrolls */
-  overflow-x: hidden;
-  //display: flex;
-  //flex-direction: column;
-  scrollbar-gutter: stable; /* prevent layout shift when scrollbar appears */
-}
-
-/* Panels: only the active one should scroll. We can safely set all to scroll;
-   hidden panels (display:none) won’t matter. */
-.mwd-sheet .csb-tab-panel { display: none;}
-.mwd-sheet .csb-tab-panel.is-active { display: block;}
-
-/* Guardrails: keep the app usable */
-.window-app.mwd-app {
-  min-width: 720px;
-  min-height: 520px;
-
-  /* optional maxes if you want to keep it from going ridiculous */
-  max-width: 1400px;
-  max-height: 1400px;
-}
-
-/* Prevent the window itself from scrolling */
-.window-app.mwd-app .window-content {
+/* 0) Treat window-content as the paint canvas */
+.mwd-sheet.actor-sheet-v2 .window-content {
   position: relative;
-  padding: 0;
-  overflow: hidden;
+  isolation: isolate;
 }
 
-/* The AppV2 sheet form is also .application (position:absolute in Foundry core).
-   Dock it to all sides so it always expands with the window. */
-.window-app.mwd-app .window-content > form.mwd-sheet {
+/* 1) Background texture (bottom-most) */
+.mwd-sheet.actor-sheet-v2 .window-content::before {
+  content: "";
   position: absolute;
-  inset: 0;       /* top/right/bottom/left = 0 */
-  margin: 0;
+  inset: 0;
+  background: url("/systems/mwd/img/backgrounds/background_2.PNG") center / cover no-repeat;
+  z-index: 0;
+  pointer-events: none;
 }
 
-/* =========================================================
-   Sheet Header (AppV2)
-   Goal: compact profile + proper name placement + clean actions
-   Lives in base.scss (layout contract).
-   ========================================================= */
+/* 2) One top trim + one bottom trim (no tiling) */
+.mwd-sheet.actor-sheet-v2 .window-content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    url("/systems/mwd/img/backgrounds/Hex-boarder_A.png"),
+    url("/systems/mwd/img/backgrounds/Hex-boarder_2A.png");
+  background-repeat: no-repeat, no-repeat;
+  background-position: top center, bottom center;
+  background-size: 100% 140px, 100% 140px;
+  z-index: 1;
+  pointer-events: none;
+}
 
-.mwd-sheet.mwd-character-sheet .sheet-header {
+/* 3) Lift the actual sheet content above the paint layers */
+.mwd-sheet.actor-sheet-v2 .window-content > form.mwd-sheet {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--csb-space-3);
-  padding: var(--csb-space-3);
-  border-bottom: 1px solid var(--csb-border);
-  overflow: visible;
+  z-index: 2;
+  background: transparent; /* critical: don't slab over the background */
 }
 
-.mwd-sheet.mwd-character-sheet .sheet-header .header-left {
+/* 4) Restore expected Foundry sheet flex/scroll behavior */
+.mwd-sheet.actor-sheet-v2 form.mwd-sheet {
+  height: 100%;
   display: flex;
-  align-items: center;
-  gap: var(--csb-space-3);
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-body {
   flex: 1 1 auto;
-  min-width: 0; /* allow name to shrink */
+  min-height: 0;
+  overflow: auto; /* brings scrollbars back */
+  //background: transparent;
 }
 
-.mwd-sheet.mwd-character-sheet .sheet-header .header-right {
-  margin-left: auto;
+/* 5) Header sizing */
+.mwd-sheet.actor-sheet-v2 .sheet-header {
   display: flex;
   align-items: center;
-  gap: var(--csb-space-2);
-  flex: 0 0 auto;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 0;
 }
 
-/* Profile image should never dominate */
-.mwd-sheet.mwd-character-sheet .sheet-header .profile {
-  width: 88px;
-  height: 88px;
-  flex: 0 0 88px;
-  object-fit: cover;
-  display: block;
-  border-radius: calc(var(--csb-radius) + 4px);
-  border: 1px solid var(--csb-border);
-  background: var(--csb-surface-2);
-}
-
-/* Name block */
-.mwd-sheet.mwd-character-sheet .sheet-header .name {
-  margin: 0;
-  font-size: 1.35rem; /* ~22px at 16px root; your global is 14px so this lands ~19px */
-  line-height: 1.1;
-  flex: 1 1 auto;
+.mwd-sheet.actor-sheet-v2 .sheet-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   min-width: 0;
 }
 
-.mwd-sheet.mwd-character-sheet .sheet-header .name input {
+.mwd-sheet.actor-sheet-v2 .sheet-header img.profile {
+  width: 96px;
+  height: 96px;
+  max-width: 96px;
+  max-height: 96px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 10px; 
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-header h1.name {
+  margin: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-header input[name="name"] {
   width: 100%;
   min-width: 0;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  color: var(--csb-text);
 }
 
-/* Make header actions look like controls without fighting Foundry chrome */
-.mwd-sheet.mwd-character-sheet .sheet-header .header-right .view-mode-control {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: calc(var(--csb-radius));
-  border: 1px solid var(--csb-border);
-  background: var(--csb-surface-2);
+.mwd-sheet.actor-sheet-v2 .mwd-panel,
+.mwd-sheet.actor-sheet-v2 .panel {
+  background: rgba(20, 24, 28, 0.72);
 }
 
-.mwd-sheet.mwd-character-sheet .sheet-header .header-right .view-mode-control:hover {
-  border-color: var(--csb-border-strong);
+.mwd-sheet.actor-sheet-v2 .sheet-body {
+  padding-bottom: 120px; /* give space so bottom trim reads */
 }
-
-.mwd-sheet.mwd-character-sheet .sheet-header .header-right .view-mode-control i {
-  font-size: 0.9rem;
-  line-height: 1;
-}
-
-

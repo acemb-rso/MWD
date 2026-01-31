@@ -1,0 +1,69 @@
+<div class="mwd-edge-console">
+
+  <div class="mwd-edge-cap">
+    <div class="mwd-edge-cap__label">Edge</div>
+    <div class="mwd-edge-cap__pips" aria-label="Edge cap">
+      {{#if editing}}
+        <input
+          type="number"
+          name="system.attributes.edge.value"
+          value="{{system.attributes.edge.value}}"
+          min="0"
+          step="1"
+          data-edit-field="staged"
+        />
+      {{else}}
+        {{#each edgeConsole.capPips as |n|}}
+          <span class="pip pip--filled" data-pip="{{n}}"></span>
+        {{/each}}
+      {{/if}}
+    </div>
+
+  </div>
+
+  <div class="mwd-edge-groups">
+    {{#each edgeConsole.groups as |group|}}
+      <div class="mwd-edge-group" data-group="{{group.id}}">
+        <div class="mwd-edge-group__label">{{group.label}}</div>
+
+        <div class="mwd-edge-group__pools">
+          {{#each group.pools as |pool|}}
+            <div class="mwd-edge-pool" data-pool="{{pool.key}}">
+
+              {{!-- Keep as roll button if you want; if intent:"edge" isn't implemented yet,
+                    remove data-action="roll"/data-roll for now. --}}
+              <button
+                type="button"
+                class="mwd-edge-pool__name"
+                data-action="roll"
+                data-roll='{{pool.roll}}'
+                title="Edge — {{pool.label}}"
+              >
+                {{pool.label}}
+              </button>
+
+              <div class="mwd-edge-pool__pips" aria-label="{{pool.label}} {{pool.value}} of {{pool.max}}">
+                {{#each pool.pips as |pip|}}
+                  <button
+                    type="button"
+                    class="pip {{#if pip.filled}}pip--filled{{else}}pip--empty{{/if}}"
+                    data-action="edgeSet"
+                    data-edge-pool="{{pool.key}}"
+                    data-edge-value="{{pip.n}}"
+                    title="Set {{pool.label}} to {{pip.n}}"
+                  ></button>
+                {{/each}}
+
+                {{#if pool.isCapped}}
+                  <span class="mwd-edge-pool__capped" title="Rating exceeds Edge cap">⌁</span>
+                {{/if}}
+              </div>
+
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    {{/each}}
+  </div>
+
+</div>

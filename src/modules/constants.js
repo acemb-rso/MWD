@@ -58,6 +58,31 @@ export const EDGE_POOL_GROUPS = {
   social: [EDGE_POOLS.legend, EDGE_POOLS.credibility],
 };
 
+export const EDGE_POOL_DOMAIN_BY_POOL = {
+  grit: "physical",
+  chaos: "physical",
+  insight: "mental",
+  rumor: "mental",
+  legend: "social",
+  credibility: "social",
+};
+
+// A canonical “id” for payloads / UI keys
+export const EDGE_POOL_IDS = {
+  "physical.grit": "grit",
+  "physical.chaos": "chaos",
+  "mental.insight": "insight",
+  "mental.rumor": "rumor",
+  "social.legend": "legend",
+  "social.credibility": "credibility",
+};
+
+// Function to get edge pool id
+export function edgePoolId(poolKey) {
+  const domain = EDGE_POOL_DOMAIN_BY_POOL[poolKey];
+  return domain ? `${domain}.${poolKey}` : poolKey;
+}
+
 export const TEMPLATE = {
   actorTypes: {
     character: 'character',
@@ -172,6 +197,66 @@ export const ACTOR_ATTRIBUTE_SETS = {
   ],
 }
 
+export const MONITOR_DEFS = {
+  character: {
+    physical: {
+      status: { label: "Penalty", path: "derived.penalty" },
+      derived: {
+        penalty: { fn: "penaltyPer3Damage", source: "value" }
+      }
+    },
+    fatigue: {
+      status: { label: "Penalty", path: "derived.penalty" },
+      derived: {
+        penalty: { fn: "penaltyPer3Damage", source: "value" }
+      }
+    },
+    armor: {
+      status: { label: "Resist", path: "derived.resistance" },
+      derived: {
+        resistance: { fn: "resistancePerQuarter", source: "armorPersonalBase" }
+      }
+    }
+  },
+
+  battlemech: {
+    armor: {
+      status: { label: "Resist", path: "derived.resistance" },
+      derived: {
+        resistance: { fn: "resistancePerQuarter", source: "mechArmorBase" }
+      }
+    },
+    structure: {
+      status: null
+    },
+    heat: {
+      status: { label: "Penalty", path: "derived.penalty" },
+      derived: {
+        penalty: { fn: "penaltyPer3Damage", source: "value" }
+      }
+    }
+  },
+
+  vehicle: {
+    armor: {
+      status: { label: "Resist", path: "derived.resistance" },
+      derived: {
+        resistance: { fn: "resistancePerQuarter", source: "vehicleArmorBase" }
+      }
+    },
+    durability: {
+      status: { label: "Penalty", path: "derived.penalty" },
+      derived: {
+        penalty: { fn: "penaltyPer3Damage", source: "value" }
+      }
+    }
+  }
+};
+
+/** LEGACY ANARCHY SYSTEM
+ * Definitions for the Anarchy system constants
+ * Remaining here for refernce
+ */
 export const ANARCHY_SYSTEM = {
   rollType: {
     attributeAction: 'attributeAction',

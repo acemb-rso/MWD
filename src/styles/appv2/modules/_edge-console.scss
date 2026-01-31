@@ -1,0 +1,204 @@
+/* -------------------------------------------- */
+/* Edge Console Widget Styles                   */
+/* -------------------------------------------- */
+
+.mwd-edge-console {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.6rem;
+}
+
+.mwd-edge-cap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+}
+
+.mwd-edge-cap__label {
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.9;
+  font-size: 0.75rem;
+}
+
+.mwd-edge-cap__pips {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Groups */
+.mwd-edge-groups {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.mwd-edge-group {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 0.6rem;
+  overflow: hidden;
+}
+
+.mwd-edge-group__label {
+  padding: 0.3rem 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.7rem;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  opacity: 0.9;
+}
+
+.mwd-edge-group__pools {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* two pools per row */
+  column-gap: 0.5rem;
+  row-gap: 0.35rem;
+  padding: 0.4rem 0.5rem;
+}
+
+/* Pool rows */
+.mwd-edge-pool {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mwd-edge-pool__name {
+  appearance: none;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.12);
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.45rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8rem;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+.mwd-edge-pool__name:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.18);
+}
+
+.mwd-edge-pool__name:active {
+  transform: translateY(1px);
+}
+
+.mwd-edge-pool__pips {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.22rem;
+  min-width: 3.5rem;
+}
+
+/* Pips */
+.pip {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+.pip--filled {
+  background: rgba(255,255,255,0.85);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset;
+}
+
+.pip--empty {
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.18);
+}
+
+.mwd-edge-pool__capped {
+  margin-left: 0.25rem;
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+
+/* Normalize pip buttons (do NOT override pip visuals) */
+.mwd-edge-console button.pip {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  border: 0;
+  line-height: 1;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0.55rem;
+  min-height: 0.55rem;
+}
+
+/* Remove component button chrome */
+.mwd-edge-console .pip:focus,
+.mwd-edge-console .pip:focus-visible {
+  outline: none;
+}
+
+.mwd-edge-console .pip:hover {
+  filter: brightness(1.1);
+}
+
+/* Disabled pips should still look like pips */
+.mwd-edge-console .pip:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.mwd-edge-console button.pip:disabled {
+  cursor: default;
+}
+
+/* Re-apply pip visuals specifically for BUTTON pips */
+.mwd-edge-console .mwd-edge-pool__pips > button.pip.pip--filled {
+  background: rgba(255,255,255,0.85);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset;
+  border: 0;
+}
+
+.mwd-edge-console .mwd-edge-pool__pips > button.pip.pip--empty {
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: none;
+}
+
+.mwd-edge-console .mwd-edge-pool__pips > button.pip:not(:disabled) {
+  cursor: pointer;
+}
+
+.mwd-edge-console .mwd-edge-pool__pips > button.pip:not(:disabled):hover {
+  filter: brightness(1.15);
+}
+
+/* Hard lock pip buttons to dot geometry (prevents stretching by button/component styles) */
+.mwd-edge-console .mwd-edge-pool__pips > button.pip {
+  display: inline-block;
+  flex: 0 0 auto;
+
+  width: 0.55rem;
+  height: 0.55rem;
+  min-width: 0.55rem;
+  min-height: 0.55rem;
+
+  border-radius: 999px;
+  padding: 0;
+  margin: 0;
+
+  line-height: 0;
+  vertical-align: middle;
+}

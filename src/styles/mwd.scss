@@ -22,10 +22,7 @@
 @use "appv2/components";    // buttons, inputs, tabs, chips
 
 /* Visual mood / values */
-@use "appv2/themes/index";        // .mwd-theme-default, .mwd-theme-sra
-
-/* Roll Dialog */
-@use "appv2/_roll-dialog";
+@use "appv2/themes/index" as themes;        // .mwd-theme-default, .mwd-theme-sra
 
 /* Feature-specific scopes */
-//@use "appv2/modules/index";       // gm-manager, hud, etc.
+@use "appv2/modules/index" as modules;       // gm-manager, hud, etc.

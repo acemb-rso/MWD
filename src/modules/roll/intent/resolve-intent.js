@@ -1,5 +1,6 @@
 // modules/roll/intent/resolve-intent.js
 import { resolveSkill } from "./resolve-skill.js";
+import { resolveEdge } from "./resolve-edge.js";
 
 /**
  * Resolve an intent payload into a normalized RollContext ("ctx").
@@ -19,6 +20,7 @@ export async function resolveIntent({ actor, payload, event } = {}) {
     case "attribute":
     case "attack":
     case "defense":
+    case "edge":  return resolveEdge({ actor, payload, event });
     case "resistance":
       throw new Error(`Intent not implemented yet: ${payload.intent}`);
 

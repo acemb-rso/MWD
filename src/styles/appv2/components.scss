@@ -5,7 +5,7 @@
    ========================================================= */
 
 .mwd-sheet {
-  background: var(--csb-surface-0);
+  background: transparent;
   color: var(--csb-text);
 }
 
@@ -26,6 +26,61 @@
   line-height: 1.2;
 }
 
+.mwd-panel__title {
+  position: relative;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(245, 246, 248, 0.92);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* Burned-in hex ghost background */
+.mwd-panel__title::before {
+  content: "";
+  position: absolute;
+  inset: -8px -14px;
+
+  background: url("/systems/mwd/img/backgrounds/hex-ghost-burn-v2.svg")
+              center / 420px 140px no-repeat;
+
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.mwd-panel__header {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.10);
+}
+
+/* High-contrast labels on light background areas */
+.mwd-sheet.actor-sheet-v2 .attributes-strip .attr-label,
+.mwd-sheet.actor-sheet-v2 .hexabox__label,
+.mwd-sheet.actor-sheet-v2 .attribute-label,
+.mwd-sheet.actor-sheet-v2 .csb-tab-link {
+  color: rgba(15, 18, 22, 0.92);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+/* ===============================
+ * Attribute Labels (High Contrast)
+ * =============================== */
+
+.mwd-sheet.actor-sheet-v2
+.attributes-strip .attr-label,
+.mwd-sheet.actor-sheet-v2
+.hexabox__label,
+.mwd-sheet.actor-sheet-v2
+.attribute-label {
+  color: rgba(20, 24, 28, 0.95); /* dark ink */
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85); /* light halo */
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
 /* -------------------------
    2. Tabs (chrome)
    ------------------------- */
@@ -42,6 +97,35 @@
 
 .csb-tab-link.is-active {
   border-bottom: 2px solid var(--csb-accent);
+}
+
+/* ===============================
+ * CSB Tabs – Readable + Clear Active State
+ * =============================== */
+
+/* Base tab text */
+.mwd-sheet.actor-sheet-v2 .csb-tab-link {
+  color: var(--mwd-tab-text);
+  text-shadow: 0 1px 0 var(--mwd-tab-text-shadow);
+}
+
+/* Active tab: darker plate + light text */
+.mwd-sheet.actor-sheet-v2 .csb-tab-link.is-active {
+  color: var(--mwd-tab-active-text);
+  text-shadow: 0 1px 0 var(--mwd-tab-active-shadow);
+
+  background: linear-gradient(
+    to bottom,
+    var(--mwd-brownsteel-top),
+    var(--mwd-brownsteel-bottom)
+  );
+
+  border-radius: 6px 6px 0 0;
+  padding: 6px 12px;
+}
+
+.mwd-sheet.actor-sheet-v2 .csb-tab-link:hover {
+  color: rgba(25, 28, 32, 0.92);
 }
 
 /* -------------------------
@@ -73,10 +157,15 @@
 }
 
 .csb-topband__attributes .attribute label {
-  font-size: 0.75rem;
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--csb-muted);
+  padding-left: 2em;
+
+  color: var(--mwd-ink-strong, rgba(20, 24, 28, 0.95));
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 .mwd-attributes .attribute input {
@@ -153,7 +242,32 @@
   background: var(--csb-button-bg-hover);
 }
 
-/* Tabs (CSB) */
+/* -------------------------
+   CSB Tabs: panels behavior
+   ------------------------- */
+
+.mwd-sheet .csb-tabs {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mwd-sheet .csb-tab-panels {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto; /* panels can scroll if needed */
+}
+
+/* Hide all panels by default... */
+.mwd-sheet .csb-tab-panel {
+  display: none;
+}
+
+/* ...show only the active one */
+.mwd-sheet .csb-tab-panel.is-active {
+  display: block;
+}
+
 .mwd-sheet .csb-tab-bar {
   border-bottom: 1px solid var(--csb-tabbar-border);
 }
@@ -385,3 +499,204 @@
 /* Visual affordance for edit-mode pill cursor */
 .mwd-pill.is-editable { cursor: text; }
 .mwd-pill.is-editable .mwd-pill__input { cursor: text; }
+
+/* View/edit lock toggle visibility */
+.mwd-sheet.actor-sheet-v2 .view-mode-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.40);
+}
+
+.mwd-sheet.actor-sheet-v2 .view-mode-control i,
+.mwd-sheet.actor-sheet-v2 .view-mode-control .fa-lock,
+.mwd-sheet.actor-sheet-v2 .view-mode-control .fa-unlock {
+  color: rgba(245, 246, 248, 0.95);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.65);
+  font-size: 16px;
+}
+
+/* Condition Monitor component */
+.mwd-monitor {
+  .pip {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 0;
+    background: currentColor;
+
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+
+    color: var(--mwd-monitor-empty);
+
+    &.pip--filled { color: var(--mwd-monitor-filled); }
+
+    &:hover {
+      color: var(--mwd-monitor-hover);
+      transform: scale(1.05);
+    }
+  }
+
+  .pip--wound      { -webkit-mask-image: var(--mwd-icon-wound); mask-image: var(--mwd-icon-wound); }
+  .pip--fatigue    { -webkit-mask-image: var(--mwd-icon-fatigue); mask-image: var(--mwd-icon-fatigue); }
+  .pip--armor      { -webkit-mask-image: var(--mwd-icon-armor-shield); mask-image: var(--mwd-icon-armor-shield); }
+  .pip--armor-personal { -webkit-mask-image: var(--mwd-icon-armor-personal); mask-image: var(--mwd-icon-armor-personal); }
+  .pip--armor-vehicle  { -webkit-mask-image: var(--mwd-icon-armor-vehicle); mask-image: var(--mwd-icon-armor-vehicle); }
+  .pip--structure  { -webkit-mask-image: var(--mwd-icon-structure); mask-image: var(--mwd-icon-structure); }
+  .pip--heat       { -webkit-mask-image: var(--mwd-icon-heat); mask-image: var(--mwd-icon-heat); }
+  .pip--durability { -webkit-mask-image: var(--mwd-icon-durability); mask-image: var(--mwd-icon-durability); }
+}
+
+/* ========================= */
+/* Condition Monitor Pips    */
+/* ========================= */
+
+.mwd-condition-monitors {
+  .pip--monitor {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    margin: 0 2px 0 0;
+    border: none;
+    background: currentColor;
+
+    /* MASK ICON SUPPORT */
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+
+    color: var(--mwd-monitor-empty, rgba(255,255,255,0.35));
+
+    &.pip--filled {
+      color: var(--mwd-monitor-filled);
+    }
+
+    &:hover {
+      color: var(--mwd-monitor-hover, rgba(255,255,255,1));
+    }
+  }
+}
+
+.mwd-monitor__pips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 16px;
+}
+
+.mwd-condition-monitors .pip--monitor {
+  /* hard fallback so you can always see something */
+  background-color: currentColor;
+  outline: 1px solid rgba(255, 255, 255, 0.35);
+  outline-offset: -1px;
+  
+  /* subtle plate behind icon */
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.75),
+    0 1px 2px rgba(0,0,0,0.4);
+  border-radius: 3px;
+}
+  
+/* ========================= */
+/* Condition Monitors        */
+/* ========================= */
+
+.mwd-condition-monitors {
+  display: grid;
+  gap: 10px;
+
+  .mwd-monitor__header {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .mwd-monitor__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;              /* critical: prevents “label takes whole line” */
+    font-weight: 600;
+  }
+
+  .mwd-monitor__status {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+
+    background: rgba(0, 0, 0, 0.25);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    font-size: 11px;
+  }
+
+  .mwd-monitor__status-label { opacity: 0.75; }
+  .mwd-monitor__status-value { font-weight: 700; }
+}
+
+  .mwd-panel .mwd-condition-monitors .mwd-monitor__header {
+  display: flex; 
+  flex-direction: row;
+  flex-wrap: nowrap;          /* critical */
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  }
+
+  .mwd-condition-monitors .mwd-monitor__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;          /* ← critical override */
+  }
+
+  .mwd-condition-monitors .mwd-monitor__status {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+.mwd-monitor__status {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.25);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.mwd-monitor__status-label { 
+  flex: 1 1 auto;
+  min-width: 0;
+  opacity: 0.75; 
+}
+
+.mwd-monitor__status-value { 
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-weight: 700; 
+}
+
