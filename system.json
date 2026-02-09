@@ -73,11 +73,11 @@
   ],
   "media": [
     {
-      "type": "cover",
-      "url": "img/mechwarrior.png"
+      "type": "setup",
+      "thumbnail": "systems/mwd/img/logos/mecharrior-destiny.png"
     }
   ],
-  "background": "img/mechwarrior.png",
+  "background": "systems/mwd/img/backgrounds/mechwarrior.png",
   "relationships": {},
   "socket": true,
   "protected": false,

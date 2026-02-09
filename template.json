@@ -241,10 +241,10 @@
           "max": 6
         },
         "edgePools": {
-          "grit": { "value": 1, "rating": 1 },
-          "insight": { "value": 1, "rating": 0 },
+          "grit": { "value": 2, "rating": 2 },
+          "insight": { "value": 0, "rating": 1 },
           "rumor": { "value": 1, "rating": 1 },
-          "legend": { "value": 1, "rating": 0 },
+          "legend": { "value": 0, "rating": 1 },
           "credibility": { "value": 1, "rating": 1 },
           "chaos": { "value": 1, "rating": 1 }
         }

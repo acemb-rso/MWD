@@ -1,15 +1,11 @@
 import { MWD } from './config.js';
 import { Enums } from './enums.js';
 import { LOG_HEAD, SYSTEM_NAME } from './constants.js';
-import { ChatManager } from './chat/chat-manager.js';
 import { HandlebarsManager } from './handlebars-manager.js';
 import { GMManager } from './app/gm-manager.js';
 import { RemoteCall } from './remotecall.js';
 import { Styles } from './styles.js';
-import { AnarchyUsers } from './users.js';
 import { HooksManager } from './hooks-manager.js';
-import { AnarchyDice } from './roll/dice.js';
-import { AnarchyRoll } from './roll/anarchy-roll.js';
 import { Migrations } from './migrations.js';
 import { AnarchyBaseItem } from './item/anarchy-base-item.js';
 import { CharacterActor } from './actor/character-actor.js';
@@ -22,17 +18,7 @@ import { GearItem } from './item/gear-item.js';
 import { QualityItem } from './item/quality-item.js';
 import { AssetModuleItem } from './item/asset-module-item.js';
 import { LifeModuleItem } from './item/lifemodule-item.js';
-import { Checkbars } from './common/checkbars.js';
-import { RollParameters } from './roll/roll-parameters.js';
-import { RollDialog } from './roll/roll-dialog.js';
 import { AnarchyCombat } from './anarchy-combat.js';
-import { HUDShortcuts } from './token/hud-shortcuts.js';
-import { CombatManager } from './combat/combat-manager.js';
-import { RollManager } from './roll/roll-manager.js';
-import { Modifiers } from './modifiers/anarchy-modifiers.js';
-import { ActorDamageManager } from './actor/actor-damage.js';
-import { AttributeActions } from './attribute-actions.js';
-import { DiceCursor } from './roll/dice-cursor.js';
 import { SystemSettings } from './system-settings.js';
 import { GMAnarchyManager } from "./gm/gm-anarchy.js";
 import { registerActorSheetsV2 } from "./sheets/register-actor-sheets-v2.js";
@@ -48,13 +34,57 @@ import { BaseRollModifiersProvider } from "../modules/modifiers/providers/base-m
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
 /* -------------------------------------------- */
+function configureMWDFonts() {
+  Object.assign(CONFIG.fontDefinitions, {
+    "MWD UI": {
+      editor: true,
+      fonts: [
+        { urls: ["systems/mwd/fonts/Exo2/Exo2-Regular.woff2"], weight: 400, style: "normal" },
+        { urls: ["systems/mwd/fonts/Exo2/Exo2-Italic.woff2"],  weight: 400, style: "italic" },
+        { urls: ["systems/mwd/fonts/Exo2/Exo2-SemiBold.woff2"], weight: 600, style: "normal" },
+        { urls: ["systems/mwd/fonts/Exo2/Exo2-Bold.woff2"],     weight: 700, style: "normal" }
+      ]
+    },
+    "MWD Display": {
+      editor: false,
+      fonts: [
+        { urls: ["systems/mwd/fonts/btclassic/BattletechOldStyle.woff2"], weight: 400, style: "normal" }
+      ]
+    },
+    "MWD Body": {
+      editor: true,
+      fonts: [
+        { urls: ["systems/mwd/fonts/bitter/Bitter-Regular.woff2"], weight: 400, style: "normal" },
+        { urls: ["systems/mwd/fonts/bitter/Bitter-Bold.woff2"],    weight: 700, style: "normal" }
+      ]
+    },
+    "MWD Numeric": {
+      editor: false,
+      fonts: [
+        { urls: ["systems/mwd/fonts/anta/Anta-Regular.woff2"], weight: 400, style: "normal" }
+      ]
+    },
+    "Material Symbols Rounded": {
+      editor: false,
+      fonts: [
+        { urls: ["systems/mwd/fonts/Icons/MaterialSymbolsRounded.woff2"], weight: 400, style: "normal" }
+      ]
+    },
+    "MWD Logo": {
+      editor: false,
+      fonts: [
+        { urls: ["systems/mwd/fonts/btclassic/BTLogo_old.woff2"], weight: 400, style: "normal" }
+      ]
+    }
 
+  });
+}
 export class AnarchySystem {
 
   static start() {
     const anarchySystem = new AnarchySystem();
     Hooks.once('init',  () => anarchySystem.onInit());
-    Hooks.once('ready', () => anarchySystem.onReady());
+    //Hooks.once('ready', () => anarchySystem.onReady());
   }
 
   async onInit() {
@@ -63,6 +93,8 @@ export class AnarchySystem {
     game.system.anarchy = this;
     game.mwd ??= {};
 
+    configureMWDFonts();
+    
     // Roll API (new AppV2 path)
     game.mwd.roll = MWDRoll;
 
@@ -80,6 +112,7 @@ export class AnarchySystem {
     Handlebars.registerHelper("mwdClassList", (classes) => {
       if (Array.isArray(classes)) return classes.join(" ");
       if (typeof classes === "string") return classes;
+   
       return "";
     });
 
@@ -100,17 +133,12 @@ export class AnarchySystem {
       personalWeapon: WeaponItem
     }
 
+    //Required for proper loading of sheets
     this.hooks = new HooksManager();
     this.styles = new Styles();
     this.handlebarsManager = new HandlebarsManager();
     Enums.init();
     SystemSettings.register();
-
-    this.modifiers = new Modifiers();
-    this.rollParameters = new RollParameters();
-    this.rollManager = new RollManager();
-    this.hudShortcuts = new HUDShortcuts();
-    this.combatManager = new CombatManager();
 
     console.log(LOG_HEAD + 'AnarchySystem.onInit | loading system');
     CONFIG.ANARCHY = MWD;
@@ -119,8 +147,6 @@ export class AnarchySystem {
     CONFIG.Actor.documentClass = MWDActor;
     CONFIG.Item.documentClass = AnarchyBaseItem;
 
-    Checkbars.init();
-
     // Register sheets (AppV2-only, no appv1 unregisters)
     registerActorSheetsV2();
     //registerItemSheetsV2();
@@ -128,17 +154,6 @@ export class AnarchySystem {
     // Preload templates/partials to avoid first-render blank sheets
     await preloadTemplatesV2();
 
-    WeaponItem.init();
-    DiceCursor.init();
-    RollDialog.init();
-    AttributeActions.init();
-    AnarchyCombat.init();
-    AnarchyUsers.init();
-    AnarchyDice.init();
-    AnarchyRoll.init();
-    AnarchyBaseItem.init()
-    ActorDamageManager.init();
-    ChatManager.init();
     console.log(LOG_HEAD + 'AnarchySystem.onInit | done');
   }
 

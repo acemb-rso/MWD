@@ -4,76 +4,113 @@ import { MONITOR_DEFS } from "../constants.js";
 import { DERIVE_FNS, resolveDerivedSource } from "../mwd/derive-monitors.js";
 
 export class MWDActor extends Actor {
+  /* -------------------------------------------- */
+  /* Base & Derived Data                           */
+  /* -------------------------------------------- */
+
   /** @override */
   prepareBaseData() {
     super.prepareBaseData();
 
     // Only character-like actors get skills scaffolding
-    if (!this.isCharacterLike()) return;
+    if (this.isCharacterLike()) {
+      const system = this.system ?? {};
+      ensureCoreSkillRatings(system);
 
-    const system = this.system ?? {};
-    ensureCoreSkillRatings(system);
-
-    // Optional cleanup if any bad nesting already happened in-memory
-    if (system.skills?.skills && typeof system.skills.skills === "object") {
-      for (const [k, v] of Object.entries(system.skills.skills)) {
-        system.skills[k] ??= v;
-      }
-      delete system.skills.skills;
-    }
-    
-    // Re-assign cleaned system data
-    if (this.type === "character") {
-    const pools = this.system?.counters?.edgePools;
-    if (pools) {
-      for (const p of Object.values(pools)) {
-        const rating = Math.max(0, Number(p?.rating ?? 0));
-        const value = Number(p?.value ?? NaN);
-
-        // If value is missing/NaN, initialize to rating
-        if (!Number.isFinite(value)) p.value = rating;
-
-        // If you want "start full" for legacy actors where value is 0:
-        if (value === 0 && rating > 0) p.value = rating;
-
-        // strip legacy
-        if (p && "max" in p) delete p.max;
+      // Cleanup if any bad nesting already happened in-memory
+      if (system.skills?.skills && typeof system.skills.skills === "object") {
+        for (const [k, v] of Object.entries(system.skills.skills)) {
+          system.skills[k] ??= v;
+        }
+        delete system.skills.skills;
       }
     }
-}
 
+    // Edge pools: schema hygiene only
+    this._prepareEdgePoolsBase();
   }
 
   /** @override */
   prepareDerivedData() {
     super.prepareDerivedData();
 
-    // Only characters have the six pools
+    // Compute derived caches (no document writes)
+    this._prepareEdgePoolsDerived();
+  }
+
+  /**
+   * Base-data prep for Edge pools:
+   * - Ensure numeric rating/value where present
+   * - Initialize value ONLY if missing/invalid (NOT if 0)
+   * - Remove legacy keys (max)
+   * - No clamping, no "start full" behavior
+   */
+  _prepareEdgePoolsBase() {
     if (this.type !== "character") return;
 
-    const cap = this.getEdgeCap?.() ?? Math.max(0, Number(this.system?.attributes?.edge?.value ?? 0));
     const pools = this.system?.counters?.edgePools;
     if (!pools || typeof pools !== "object") return;
 
     for (const p of Object.values(pools)) {
-      if (!p) continue;
+      if (!p || typeof p !== "object") continue;
 
-      // Stored rating is allowed to exceed cap, but "effective" is capped.
-      // However: we DO want stored current/value clamped to min(rating, cap).
-      const rating = Math.max(0, Number(p.rating ?? 0));
-      const effMax = Math.min(rating, cap);
+      // Rating is always numeric >= 0
+      p.rating = Math.max(0, Number(p.rating ?? 0));
 
-      let value = Number(p.value ?? NaN);
-      if (!Number.isFinite(value)) value = effMax;
+      // Value: ONLY initialize if missing/invalid. Do NOT treat 0 as missing.
+      const hasValue = Object.prototype.hasOwnProperty.call(p, "value");
+      const parsed = Number(p.value);
+      if (!hasValue || !Number.isFinite(parsed)) p.value = p.rating;
 
-      value = Math.max(0, Math.min(value, effMax));
-
-      p.rating = rating;
-      p.value = value;
-
-      // strip legacy just in case
+      // Strip legacy keys
       if ("max" in p) delete p.max;
     }
+  }
+
+  /**
+   * Derived-data prep for Edge pools:
+   * - Computes cap/effectiveMax/effectiveValue
+   * - Stores in a non-persisted cache on the actor instance
+   * - No writes to system data (prevents UI snap-back / loops)
+   */
+  _prepareEdgePoolsDerived() {
+    // Always reset cache each derived pass
+    this._mwdDerived ??= {};
+    this._mwdDerived.edgePools = null;
+
+    const cap = this.getEdgeCap();
+
+    // Characters: compute derived for real pools if present
+    if (this.type === "character" && this.hasEdgePools()) {
+      const pools = this.system?.counters?.edgePools ?? {};
+      const derived = {};
+
+      for (const [key, p] of Object.entries(pools)) {
+        const rating = Math.max(0, Number(p?.rating ?? 0));
+        const value = Math.max(0, Number(p?.value ?? 0));
+
+        const effectiveMax = Math.min(rating, cap);
+        const effectiveValue = Math.min(value, effectiveMax);
+
+        derived[key] = {
+          key,
+          rating,
+          value,
+          cap,
+          effectiveMax,
+          effectiveValue,
+          hasPools: true,
+          isEmpty: effectiveValue <= 0,
+          isCapped: rating > cap,
+        };
+      }
+
+      this._mwdDerived.edgePools = { cap, pools: derived };
+      return;
+    }
+
+    // NPCs/vehicles/mechs: no derived pools
+    this._mwdDerived.edgePools = { cap, pools: {} };
   }
 
   /* -------------------------------------------- */
@@ -85,13 +122,10 @@ export class MWDActor extends Actor {
   }
 
   hasSkills() {
-    // Vehicles/mechs do not have skills; characters do.
-    // If NPCs should have skills (common), keep npc included.
     return this.type === "character" || this.type === "npc";
   }
 
   hasEdgePools() {
-    // Only characters have the six pools.
     return this.type === "character" && !!this.system?.counters?.edgePools;
   }
 
@@ -109,9 +143,9 @@ export class MWDActor extends Actor {
 
   /**
    * Canonical pool accessor.
-   * - Character: real pool state (value/rating), clamped by cap for effective use/display.
-   * - NPC: no pools; Edge attribute acts as a single “pool” (effective max/value = cap).
-   * - Vehicle/Mech: no pools; returns safe zeros (pilot edge handled by resolvers).
+   * - Character: returns raw + effective values (effective is clamped by cap)
+   * - NPC: no pools; Edge attribute acts as a single “pool” (effective max/value = cap)
+   * - Vehicle/Mech: safe zeros
    */
   getEdgePool(poolKey) {
     const cap = this.getEdgeCap();
@@ -144,10 +178,24 @@ export class MWDActor extends Actor {
       };
     }
 
+    // Use derived cache when available
+    const cached = this._mwdDerived?.edgePools?.pools?.[poolKey];
+    if (cached) {
+      return {
+        key: cached.key,
+        value: cached.value,
+        rating: cached.rating,
+        effectiveValue: cached.effectiveValue,
+        effectiveMax: cached.effectiveMax,
+        cap: cached.cap,
+        hasPools: true,
+      };
+    }
+
+    // Fallback if derived hasn’t run yet (should be rare)
     const raw = this.getEdgePoolRaw(poolKey);
     const rating = Math.max(0, Number(raw?.rating ?? 0));
     const value = Math.max(0, Number(raw?.value ?? 0));
-
     const effectiveMax = Math.min(rating, cap);
     const effectiveValue = Math.min(value, effectiveMax);
 
@@ -179,7 +227,12 @@ export class MWDActor extends Actor {
   async setEdgePoolValue(poolKey, newValue) {
     if (!this.hasEdgePools()) return;
 
-    const { effectiveMax } = this.getEdgePool(poolKey);
+    // Compute clamp from raw rating + cap (do not depend on derived fields)
+    const cap = this.getEdgeCap();
+    const raw = this.getEdgePoolRaw(poolKey);
+    const rating = Math.max(0, Number(raw?.rating ?? 0));
+    const effectiveMax = Math.min(rating, cap);
+
     const v = Number(newValue ?? 0);
     const clamped = Math.max(0, Math.min(v, effectiveMax));
 
@@ -194,7 +247,7 @@ export class MWDActor extends Actor {
   async adjustEdgePoolValue(poolKey, delta) {
     if (!this.hasEdgePools()) return;
 
-    const current = this.getEdgePool(poolKey).effectiveValue; // raw stored value
+    const current = Math.max(0, Number(this.getEdgePoolRaw(poolKey)?.value ?? 0));
     const d = Number(delta ?? 0);
     return this.setEdgePoolValue(poolKey, current + d);
   }
@@ -219,56 +272,71 @@ export class MWDActor extends Actor {
     });
   }
 
+  /**
+   * Sheet-facing summary for rendering.
+   * If `groups` is provided, returns grouped pool arrays.
+   */
   getEdgePoolSummary({ groups } = {}) {
-  const cap = this.getEdgeCap();
+    const cap = this.getEdgeCap();
 
-  // Characters: real pools exist
-  if (this.hasEdgePools()) {
-    // If groups are provided, return grouped + ordered.
-    if (groups && typeof groups === "object") {
-      const outGroups = Object.entries(groups).map(([groupId, poolKeys]) => {
-        const pools = (poolKeys ?? []).map((poolKey) => {
-          const p = this.getEdgePool(poolKey);
-          return {
-            ...p,
-            isEmpty: p.effectiveValue <= 0,
-            isCapped: p.rating > p.cap,
-          };
+    if (this.hasEdgePools()) {
+      const cached = this._mwdDerived?.edgePools?.pools ?? {};
+
+      if (groups && typeof groups === "object") {
+        const outGroups = Object.entries(groups).map(([groupId, poolKeys]) => {
+          const pools = (poolKeys ?? []).map((poolKey) => {
+            const p = cached[poolKey] ?? this.getEdgePool(poolKey);
+            return {
+              ...p,
+              isEmpty: (p.effectiveValue ?? 0) <= 0,
+              isCapped: (p.rating ?? 0) > (p.cap ?? cap),
+            };
+          });
+          return { id: groupId, pools };
         });
 
-        return { id: groupId, pools };
+        return { cap, hasPools: true, groups: outGroups, pools: [] };
+      }
+
+      const pools = Object.keys(this.system?.counters?.edgePools ?? {}).map((poolKey) => {
+        const p = cached[poolKey] ?? this.getEdgePool(poolKey);
+        return {
+          ...p,
+          isEmpty: (p.effectiveValue ?? 0) <= 0,
+          isCapped: (p.rating ?? 0) > (p.cap ?? cap),
+        };
       });
 
-      return { cap, hasPools: true, groups: outGroups, pools: [] };
+      return { cap, hasPools: true, groups: [], pools };
     }
 
-    // Flat list (still ordered deterministically by object insertion order)
-    const pools = Object.keys(this.system?.counters?.edgePools ?? {}).map((poolKey) => {
-      const p = this.getEdgePool(poolKey);
-      return {
-        ...p,
-        isEmpty: p.effectiveValue <= 0,
-        isCapped: p.rating > p.cap,
-      };
-    });
-
-    return { cap, hasPools: true, groups: [], pools };
-  }
-
-  // NPC: Edge attribute acts as pool (no per-pool tracking)
-  // For now, return empty pools/groups; sheet can render “Edge” attribute normally.
-  if (this.type === "npc") {
+    // NPCs/vehicles/mechs: no pool tracking
     return { cap, hasPools: false, groups: [], pools: [] };
   }
+  
+  /**
+   * Spend Edge from a pool (decrement current value).
+   * - Characters only (six pools)
+   * - Amount defaults to 1
+   * - Safe no-op if pool missing
+   */
+  async spendEdge(poolKey, amount = 1) {
+    if (!this.hasEdgePools()) return;
+    const a = Math.max(0, Number(amount ?? 1));
+    if (!a) return;
 
-  // Vehicles/mechs/etc.: no edge; they use pilot edge in resolvers
-  return { cap, hasPools: false, groups: [], pools: [] };
+    // delta spend: subtract
+    return this.adjustEdgePoolValue(poolKey, -a);
   }
 
-  async setMonitorValue(monitorId, rawValue, { source = "unknown" } = {}) {
-   const basePath = `system.monitors.${monitorId}`;
+  /* -------------------------------------------- */
+  /* Condition Monitors                            */
+  /* -------------------------------------------- */
 
-    const max = Number(foundry.utils.getProperty(this.system, `${basePath}.max`)) || 0;
+  async setMonitorValue(monitorId, rawValue, { source = "unknown" } = {}) {
+    const basePath = `system.monitors.${monitorId}`;
+
+    const max = Number(foundry.utils.getProperty(this, `${basePath}.max`)) || 0;
     const clampedMax = Math.max(0, max);
     const nextValue = Math.min(Math.max(0, Number(rawValue) || 0), clampedMax);
 

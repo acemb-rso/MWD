@@ -1,63 +1,68 @@
 // modules/roll/intent/resolve-intent.js
 import { resolveSkill } from "./resolve-skill.js";
 import { resolveEdge } from "./resolve-edge.js";
+import { resolveAttribute } from "./resolve-attribute.js";
+import { resolveAttack } from "./resolve-attack.js";
+import { resolveDefense } from "./resolve-defense.js";
+import { resolveResistance } from "./resolve-resistance.js";
 
-/**
- * Resolve an intent payload into a normalized RollContext ("ctx").
- * This MUST produce a numeric ctx.poolDice and a UI-friendly ctx.pool/breakdown.
- */
+// Registry: adding a roll is “data entry”
+const RESOLVERS = {
+  skill: resolveSkill,
+  edge: resolveEdge,
+  attribute: resolveAttribute,
+  attack: resolveAttack,
+  defense: resolveDefense,
+  resistance: resolveResistance
+};
+
 export async function resolveIntent({ actor, payload, event } = {}) {
   if (!actor) throw new Error("resolveIntent requires actor");
-  if (!payload?.intent) throw new Error("resolveIntent requires payload.intent");
+  const intent = String(payload?.intent ?? "").trim();
+  if (!intent) throw new Error("resolveIntent requires payload.intent");
 
-  let ctx;
-  switch (payload.intent) {
-    case "skill":
-      ctx = await resolveSkill({ actor, payload, event });
-      break;
+  const fn = RESOLVERS[intent];
+  if (!fn) throw new Error(`Unsupported roll intent: ${intent}`);
 
-    // Future intents (stubbed intentionally)
-    case "attribute":
-    case "attack":
-    case "defense":
-    case "edge":  return resolveEdge({ actor, payload, event });
-    case "resistance":
-      throw new Error(`Intent not implemented yet: ${payload.intent}`);
-
-    default:
-      throw new Error(`Unsupported roll intent: ${payload.intent}`);
-  }
-
-  return normalizeResolvedContext(ctx, { intent: payload.intent });
+  const ctx = await fn({ actor, payload, event });
+  return normalizeResolvedContext(ctx, { intent });
 }
 
-/**
- * Enforce RollContext invariants so the engine never evaluates NaN terms.
- * - ctx.poolDice is always a finite number
- * - ctx.pool is always an object (UI)
- * - ctx.breakdown is always an array (UI)
- */
 export function normalizeResolvedContext(ctx, { intent } = {}) {
   if (!ctx || typeof ctx !== "object") ctx = {};
 
   ctx.intent = ctx.intent ?? intent ?? "unknown";
+  ctx.title = String(ctx.title ?? "Roll");
+  ctx.domains = Array.isArray(ctx.domains) ? ctx.domains : [];
   ctx.breakdown = Array.isArray(ctx.breakdown) ? ctx.breakdown : [];
+  ctx.mods = Array.isArray(ctx.mods) ? ctx.mods : [];
 
-  // Ensure poolDice is strictly numeric
-  const dice = Number(ctx.poolDice ?? 0);
-  if (!Number.isFinite(dice)) {
-    console.error("MWD | Invalid pool dice after intent resolution", { intent, ctx });
-    throw new Error(`MWD.roll: pool dice must be numeric; got ${String(ctx.poolDice ?? ctx.pool)}`);
+  // Pool is always three numeric parts (authoritative)
+  const pool = (ctx.pool && typeof ctx.pool === "object") ? ctx.pool : {};
+  const attribute = Number(pool.attribute ?? pool.base ?? 0);
+  const skill = Number(pool.skill ?? pool.rating ?? 0);
+  const bonus = Number(pool.bonus ?? 0);
+
+  if (![attribute, skill, bonus].every(Number.isFinite)) {
+    console.error("MWD | Invalid pool parts after intent resolution", { intent, ctx });
+    throw new Error(`MWD.roll: pool parts must be numeric (attribute/skill/bonus).`);
   }
-  ctx.poolDice = dice;
 
-  // Ensure pool object exists and total matches poolDice
-  const poolObj = ctx.pool && typeof ctx.pool === "object" ? ctx.pool : null;
-  if (!poolObj) {
-    ctx.pool = { base: 0, rating: 0, bonus: 0, mods: 0, total: dice, label: "" };
-  } else {
-    ctx.pool.total = dice;
-    if (!Number.isFinite(Number(ctx.pool.mods ?? 0))) ctx.pool.mods = 0;
+  // Normalize keys + compute totals consistently
+  ctx.pool = {
+    attribute,
+    skill,
+    bonus,
+    totalBase: attribute + skill + bonus
+  };
+
+  // Optional: ensure breakdown has the standard rows if missing
+  if (!ctx.breakdown.length) {
+    ctx.breakdown = [
+      { id: "attribute", label: "Attribute", value: attribute },
+      { id: "skill", label: "Skill", value: skill },
+      { id: "bonus", label: "Bonus", value: bonus }
+    ];
   }
 
   return ctx;

@@ -53,7 +53,7 @@ export function resolveDerivedSource(actor, monitorId, sourceKey, nextValue) {
     // Character personal armor: use max as rating if value is “damage taken” or starts at 0.
     // You can later swap this to whatever you decide is canonical.
     case "armorPersonalBase":
-      return Math.max(nextValue, currentMax, currentValue);
+      return nextValue;
 
     // BattleMech armor: you might later base on armor *remaining* or a separate rating.
     case "mechArmorBase":

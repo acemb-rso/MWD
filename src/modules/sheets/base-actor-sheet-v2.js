@@ -29,21 +29,14 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
     classes: ["sheet", "actor", SYSTEM_NAME, "appv2", "mwd-sheet", "mwd-character-sheet"],
     position: { width: 760, height: 760 },
-    window: { resizable: true,
-      minimizable: true
-     },
-
-    /**
-     * AppV2 action routing:
-     * data-action="toggleViewMode" / "tab"
-     */
+    window: { resizable: true, minimizable: true },
     actions: {
       toggleViewMode: BaseActorSheetV2.prototype._onToggleViewMode,
       tab: BaseActorSheetV2.prototype._onClickTab,
       roll: BaseActorSheetV2.prototype._onRollAction,
       monitorSet: BaseActorSheetV2.prototype._onMonitorSet
     }
-  });
+  }, { inplace: false });
 
  /** @override */
   _updatePosition(position) {
@@ -105,30 +98,30 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
   return (this.element instanceof HTMLElement) ? this.element : this.element?.[0];
 }
 
-  /** @override */
-  _initializeApplicationOptions(options) {
-    options = super._initializeApplicationOptions(options);
+/** @override */
+_initializeApplicationOptions(options) {
+  options = super._initializeApplicationOptions(options);
 
-    const doc = options?.document ?? this.document;
-    const type = doc?.type ?? this.actor?.type;
+  // Defensive: ensure instance-owned array (prevents shared-ref weirdness)
+  options.classes = Array.from(options.classes ?? []);
 
-    options.classes ??= [];
-    if (type) options.classes.push(String(type));
+   // (your existing code follows)
+  const doc = options?.document ?? this.document;
+  const type = doc?.type ?? this.actor?.type;
 
-    // ---- Theme class (from Styles) ----
-    const theme = game.system?.anarchy?.styles?.selectCssClass?.() ?? "mwd-theme-default";
-    const managedThemes = ["mwd-theme-default", "mwd-theme-sra"];
+  if (type) options.classes.push(String(type));
 
-    // Remove previously applied theme class (defensive)
-    for (let i = options.classes.length - 1; i >= 0; i--) {
-      if (managedThemes.includes(options.classes[i])) options.classes.splice(i, 1);
-    }
+  const theme = game.system?.anarchy?.styles?.selectCssClass?.() ?? "mwd-theme-default";
+  const managedThemes = ["mwd-theme-default", "mwd-theme-sra"];
 
-    // Add selected theme
-    options.classes.push(theme);
-
-    return options;
+  for (let i = options.classes.length - 1; i >= 0; i--) {
+    if (managedThemes.includes(options.classes[i])) options.classes.splice(i, 1);
   }
+
+  options.classes.push(theme);
+  return options;
+}
+
 
   /**
    * No localization: provide a concrete title so Foundry doesn't show "TYPES.Actor.<type>".
@@ -362,84 +355,78 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
   }
 
   /** @override */
-  async _prepareContext(options) {
-    console.log(`${LOG_HEAD}BaseActorSheetV2._prepareContext:start`, {
-      actorName: this.actor?.name,
-      actorType: this.actor?.type
-    });
+async _prepareContext(options) {
+  console.log(`${LOG_HEAD}BaseActorSheetV2._prepareContext:start`, {
+    actorName: this.actor?.name,
+    actorType: this.actor?.type
+  });
 
-    const base = await super._prepareContext(options);
+  const base = await super._prepareContext(options);
 
-    // Start with Foundry's base context, then add our contract keys.
-    const hbsData = foundry.utils.mergeObject(
-      base,
-      {
-        actor: this.actor,
-        system: this.actor?.system,
-        editable: this.isEditable,
-        owner: this.document?.isOwner ?? false,
-        limited: !(this.document?.isOwner ?? false),
-        editing: this.#editing
-      },
-      { inplace: false }
-    );
+  // ---- IMPORTANT: Never mutate base.options or hbsData.options in-place ----
+  // Some AppV2 paths hand through references that can alias this.options.
+  // We create a template-only options object that is safe to mutate.
+  const templateOptions = foundry.utils.deepClone(base?.options ?? {});
+  templateOptions.classes = Array.from(this.options?.classes ?? []);
+  templateOptions.cssClass = templateOptions.classes.join(" ");
 
-    /*
-     ---- Template contract (forked HBS expects these) ----
-     Entirely legacy, but many HBS forks rely on these keys.
-    */
-    hbsData.data = this.actor; // legacy alias used in many HBS forks
-    hbsData.options ??= {};
+  // Build final context without mutating Application options
+  const hbsData = foundry.utils.mergeObject(
+    base,
+    {
+      actor: this.actor,
+      system: this.actor?.system,
+      editable: this.isEditable,
+      owner: this.document?.isOwner ?? false,
+      limited: !(this.document?.isOwner ?? false),
+      editing: this.#editing,
 
-    // ---- Skills display model (CSB Skills tab expects this) ----
-    hbsData.skillsDisplay = buildSkillDisplay(this.actor?.system ?? {});
+      // Template contract
+      data: this.actor,                // legacy alias
+      options: templateOptions,         // safe, template-only
+      cssClass: templateOptions.cssClass
+    },
+    { inplace: false }
+  );
 
-    const classes = Array.isArray(this.options?.classes) ? this.options.classes : [];
-    const existing = Array.isArray(hbsData.options.classes) ? hbsData.options.classes : [];
-    const merged = typeof Misc?.distinct === "function"
-      ? Misc.distinct([...existing, ...classes])
-      : Array.from(new Set([...existing, ...classes]));
+  // Mirror common flags in options for templates that reference options.*
+  hbsData.options.owner = hbsData.owner;
+  hbsData.options.limited = hbsData.limited;
+  hbsData.options.editable = hbsData.editable;
+  hbsData.options.editing = hbsData.editing;
+  hbsData.options.viewMode = !hbsData.editing;
 
-    hbsData.options.classes = merged;
-    hbsData.options.cssClass = merged.join(" ");
-    hbsData.cssClass = hbsData.options.cssClass;
+  // ---- Skills display model (CSB Skills tab expects this) ----
+  hbsData.skillsDisplay = buildSkillDisplay(this.actor?.system ?? {});
 
-    // Mirror common flags in options for templates that reference options.*
-    hbsData.options.owner = hbsData.owner;
-    hbsData.options.limited = hbsData.limited;
-    hbsData.options.editable = hbsData.editable;
-    hbsData.options.editing = hbsData.editing;
-    hbsData.options.viewMode = !hbsData.editing;
-
-    // ---- Items: classify into buckets if helper exists ----
-    hbsData.items ??= {};
-    if (this.actor?.items && typeof Misc?.classifyInto === "function") {
-      Misc.classifyInto(hbsData.items, this.actor.items);
-
-      // Convenience bucket combining weapon types (commonly needed)
-      hbsData.items.weapon = [
-        ...(hbsData.items.mechWeapon ?? []),
-        ...(hbsData.items.personalWeapon ?? [])
-      ];
-    }
-
-    // ---- NPC compatibility alias (your npc.hbs expects npcItems.*) ----
-    hbsData.npcItems = {
-      traits: (hbsData.items.quality ?? []),
-      weapons: (hbsData.items.weapon ?? []),
-      assetModules: (hbsData.items.assetModule ?? []),
-      inventory: (hbsData.items.gear ?? [])
-    };
-
-    console.log(`${LOG_HEAD}BaseActorSheetV2._prepareContext:done`, {
-      actorType: this.actor?.type,
-      cssClass: hbsData.cssClass,
-      itemCount: this.actor?.items?.size ?? 0,
-      editing: this.#editing
-    });
-
-    return hbsData;
+  // ---- Items: classify into buckets if helper exists ----
+  hbsData.items ??= {};
+  if (this.actor?.items && typeof Misc?.classifyInto === "function") {
+    Misc.classifyInto(hbsData.items, this.actor.items);
+    hbsData.items.weapon = [
+      ...(hbsData.items.mechWeapon ?? []),
+      ...(hbsData.items.personalWeapon ?? [])
+    ];
   }
+
+  // ---- NPC compatibility alias (your npc.hbs expects npcItems.*) ----
+  hbsData.npcItems = {
+    traits: (hbsData.items.quality ?? []),
+    weapons: (hbsData.items.weapon ?? []),
+    assetModules: (hbsData.items.assetModule ?? []),
+    inventory: (hbsData.items.gear ?? [])
+  };
+
+  console.log(`${LOG_HEAD}BaseActorSheetV2._prepareContext:done`, {
+    actorType: this.actor?.type,
+    cssClass: hbsData.cssClass,
+    itemCount: this.actor?.items?.size ?? 0,
+    editing: this.#editing
+  });
+
+  return hbsData;
+}
+
   
   /** Clamp certain actor system paths to valid ranges */
   _clampByPath(path, value) {
@@ -483,7 +470,7 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
 
     // Fallback: raw value update only (still generic)
     const basePath = `system.monitors.${monitorId}`;
-    const max = Number(foundry.utils.getProperty(this.actor, `${basePath}.max`)) || 0;
+    const max = Number(foundry.utils.getProperty(this, `${basePath}.max`)) || 0;
     const value = Math.min(Math.max(0, raw), Math.max(0, max));
     return this.actor.update({ [`${basePath}.value`]: value });
   }

@@ -7,7 +7,7 @@
     "children": [
       {
         "type": "stack",
-        "classes": ["csb-topband", "mwd-topband", "mwd-topband--character"],
+        "classes": ["mwd-fixed-top"],
         "children": [
           {
             "type": "stack",
@@ -19,7 +19,13 @@
                 "classes": ["mwd-attributes"]
               }
             ]
-          },
+          }
+        ]
+      },
+      {
+        "type": "stack",
+        "classes": ["mwd-scroll-area"],
+        "children": [
           {
             "type": "panel",
             "title": "Edge",
@@ -42,18 +48,13 @@
                 "partial": "mwd.v2.ui.condition-monitors"
               }
             ]
-          }
-        ]
-      },
-      {
-        "type": "stack",
-        "classes": ["csb-body", "mwd-body"],
-        "children": [
+          },
           {
             "type": "tabs",
             "group": "primary",
             "default": "combat",
             "renderMode": "stack",
+            "classes": ["csb-body", "mwd-body"],
             "tabs": [
               {
                 "id": "combat",
@@ -63,20 +64,14 @@
                     "type": "panel",
                     "title": "Combat Actions",
                     "children": [
-                      {
-                        "type": "include",
-                        "partial": "mwd.v2.ui.character.combat-actions"
-                      }
+                      { "type": "include", "partial": "mwd.v2.ui.character.combat-actions" }
                     ]
                   },
                   {
                     "type": "panel",
                     "title": "Status Dashboard",
                     "children": [
-                      {
-                        "type": "include",
-                        "partial": "mwd.v2.ui.placeholders.status-dashboard"
-                      }
+                      { "type": "include", "partial": "mwd.v2.ui.placeholders.status-dashboard" }
                     ]
                   }
                 ]
@@ -111,20 +106,14 @@
                     "type": "panel",
                     "title": "Gear",
                     "children": [
-                      {
-                        "type": "include",
-                        "partial": "mwd.v2.ui.placeholders.inventory-gear"
-                      }
+                      { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-gear" }
                     ]
                   },
                   {
                     "type": "panel",
                     "title": "Weapons",
                     "children": [
-                      {
-                        "type": "include",
-                        "partial": "mwd.v2.ui.placeholders.inventory-weapons"
-                      }
+                      { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-weapons" }
                     ]
                   }
                 ]
@@ -137,10 +126,7 @@
                     "type": "panel",
                     "title": "Assigned Systems",
                     "children": [
-                      {
-                        "type": "include",
-                        "partial": "mwd.v2.ui.placeholders.assigned-systems"
-                      }
+                      { "type": "include", "partial": "mwd.v2.ui.placeholders.assigned-systems" }
                     ]
                   }
                 ]
@@ -153,10 +139,7 @@
                     "type": "panel",
                     "title": "Description",
                     "children": [
-                      {
-                        "type": "include",
-                        "partial": "mwd.v2.ui.placeholders.bio-description"
-                      }
+                      { "type": "include", "partial": "mwd.v2.ui.placeholders.bio-description" }
                     ]
                   }
                 ]

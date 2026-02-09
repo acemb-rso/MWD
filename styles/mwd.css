@@ -196,9 +196,17 @@
   --mwd-icon-structure: url("/systems/mwd/img/default/default-linearframe.svg");
   --mwd-icon-heat: url("/systems/mwd/img/icons/status/on_fire_mild.svg");
   --mwd-icon-durability: url("/systems/mwd/img/icons/skills/piloting-ground-steering-wheel.svg");
+  /* Monitor base states */
   --mwd-monitor-empty: rgba(0, 0, 0, 0.55);
   --mwd-monitor-filled: rgba(255, 255, 255, 0.95);
   --mwd-monitor-hover: rgba(255, 255, 255, 1);
+  /* Monitor type-specific colors (filled state) */
+  --mwd-monitor-physical-filled: #dd5555;
+  --mwd-monitor-physical-empty: rgba(80, 30, 30, 0.6);
+  --mwd-monitor-fatigue-filled: #ddaa33;
+  --mwd-monitor-fatigue-empty: rgba(80, 65, 20, 0.6);
+  --mwd-monitor-armor-filled: #55aadd;
+  --mwd-monitor-armor-empty: rgba(30, 60, 80, 0.6);
   /* Ink on light/noisy surfaces */
   --mwd-ink-strong: rgba(20, 24, 28, 0.95);
   --mwd-ink-shadow-light: rgba(255, 255, 255, 0.85);
@@ -210,21 +218,91 @@
   /* Brown steel plate (active tab) */
   --mwd-brownsteel-top: rgba(72, 64, 54, 0.95);
   --mwd-brownsteel-bottom: rgba(52, 46, 38, 0.95);
+  /* Fonts */
+  --mwd-font-display: "MWD Display", "MWD UI", system-ui, sans-serif;
+  --mwd-font-ui: "MWD UI", system-ui, sans-serif;
+  --mwd-font-body: "MWD Body", serif;
+  --mwd-font-numeric: "MWD Numeric", ui-monospace, monospace;
+  --mwd-font-icons: "Material Symbols Rounded";
 }
 
 /* Structural layout */
 /* =========================================================
- * MWD Actor Sheet Background + Trim (AppV2/CSB-safe)
- * Paint on .window-content, keep Foundry scroll behavior intact.
+ * MWD Actor Sheet — Base (AppV2 / CSB-safe)
+ * Purpose:
+ * - App shell sizing (no nested <form> assumptions)
+ * - Background + trim painted on Foundry .window-content
+ * - One scroll container (.sheet-body)
+ * - CSB “stretch to full width” rules (fixes tab width drift)
  * ========================================================= */
-/* 0) Treat window-content as the paint canvas */
-.mwd-sheet.actor-sheet-v2 .window-content {
-  position: relative;
-  isolation: isolate;
+/* -----------------------------------------
+ * 0) Defensive box sizing for everything inside the sheet
+ * ----------------------------------------- */
+.mwd-sheet.actor-sheet-v2,
+.mwd-sheet.actor-sheet-v2 * {
+  box-sizing: border-box;
 }
 
-/* 1) Background texture (bottom-most) */
-.mwd-sheet.actor-sheet-v2 .window-content::before {
+/* -----------------------------------------
+ * 1) App root: fill the app frame
+ * ----------------------------------------- */
+.mwd-sheet.actor-sheet-v2 {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden; /* clips trim so it doesn’t spill */
+  font-family: var(--mwd-font-ui);
+}
+
+/* Headers / section titles */
+.mwd-sheet.actor-sheet-v2 h1,
+.mwd-sheet.actor-sheet-v2 h2,
+.mwd-sheet.actor-sheet-v2 h3,
+.mwd-sheet.actor-sheet-v2 .sheet-header .name {
+  font-family: var(--mwd-font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mwd-sheet.actor-sheet-v2 .mwd-panel {
+  font-family: var(--mwd-font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Numeric readouts */
+.mwd-sheet.actor-sheet-v2 .mwd-attr__value,
+.mwd-sheet.actor-sheet-v2 .mwd-monitor__value,
+.mwd-roll-card .dice-total {
+  font-family: var(--mwd-font-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Material Symbols (if you use them as a font) */
+.mwd-icon {
+  font-family: var(--mwd-font-icons);
+  font-variation-settings: "FILL" 1;
+}
+
+/* -----------------------------------------
+ * 2) Foundry window-content is the paint canvas
+ *    (background + trim live here)
+ * ----------------------------------------- */
+.mwd-sheet.actor-sheet-v2 > .window-content {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* We paint behind and keep content above. */
+  overflow: hidden;
+}
+
+/* Background texture layer */
+.mwd-sheet.actor-sheet-v2 > .window-content::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -233,8 +311,8 @@
   pointer-events: none;
 }
 
-/* 2) One top trim + one bottom trim (no tiling) */
-.mwd-sheet.actor-sheet-v2 .window-content::after {
+/* Trim layer (top + bottom) */
+.mwd-sheet.actor-sheet-v2 > .window-content::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -242,38 +320,44 @@
   background-repeat: no-repeat, no-repeat;
   background-position: top center, bottom center;
   background-size: 100% 140px, 100% 140px;
-  z-index: 1;
   pointer-events: none;
+  z-index: 0; /* behind content */
 }
 
-/* 3) Lift the actual sheet content above the paint layers */
-.mwd-sheet.actor-sheet-v2 .window-content > form.mwd-sheet {
+/* ensure all real content paints above the trim */
+.mwd-sheet.actor-sheet-v2 > .window-content > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* -----------------------------------------
+ * 3) Lift the actual sheet content above paint layers
+ *    Your DOM: .window-content > section[data-application-part="sheet"]
+ * ----------------------------------------- */
+.mwd-sheet.actor-sheet-v2 > .window-content > [data-application-part=sheet].mwd-sheet {
   position: relative;
   z-index: 2;
-  background: transparent; /* critical: don't slab over the background */
-}
-
-/* 4) Restore expected Foundry sheet flex/scroll behavior */
-.mwd-sheet.actor-sheet-v2 form.mwd-sheet {
-  height: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-}
-
-.mwd-sheet.actor-sheet-v2 .sheet-body {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto; /* brings scrollbars back */
+  width: 100%;
+  /* Critical: don’t slab over the background. */
+  background: transparent;
+  /* Contain internal scroll behavior to .sheet-body */
+  overflow: hidden;
 }
 
-/* 5) Header sizing */
+/* -----------------------------------------
+ * 4) Header: fixed height (no scrolling here)
+ * ----------------------------------------- */
 .mwd-sheet.actor-sheet-v2 .sheet-header {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 0;
+  min-width: 0;
 }
 
 .mwd-sheet.actor-sheet-v2 .sheet-header .header-left {
@@ -281,13 +365,12 @@
   align-items: center;
   gap: 12px;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .mwd-sheet.actor-sheet-v2 .sheet-header img.profile {
   width: 96px;
   height: 96px;
-  max-width: 96px;
-  max-height: 96px;
   flex: 0 0 auto;
   object-fit: cover;
   object-position: center;
@@ -303,15 +386,188 @@
 .mwd-sheet.actor-sheet-v2 .sheet-header input[name=name] {
   width: 100%;
   min-width: 0;
+  font-family: var(--mwd-font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  padding: 0.25rem 0.5rem;
+  height: auto;
 }
 
-.mwd-sheet.actor-sheet-v2 .mwd-panel,
-.mwd-sheet.actor-sheet-v2 .panel {
-  background: rgba(20, 24, 28, 0.72);
-}
-
+/* -----------------------------------------
+ * 5) Sheet body: the ONE scroll container
+ * ----------------------------------------- */
 .mwd-sheet.actor-sheet-v2 .sheet-body {
-  padding-bottom: 120px; /* give space so bottom trim reads */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* -----------------------------------------
+ * 6) CSB Layout: make everything stretch to full width
+ *    This is the core fix for “only Skills stretches”.
+ *
+ *    The usual culprit:
+ *    - some ancestor is a flex container with align-items:flex-start/center
+ *      so children shrink to content width.
+ *    We force the CSB column stack to align-items:stretch,
+ *    and we make the active panel a flex column that stretches.
+ * ----------------------------------------- */
+/* The main CSB layout is a vertical stack */
+.mwd-sheet.actor-sheet-v2 .csb-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-height: 0;
+}
+
+/* Topband is fixed; body consumes remaining height */
+.mwd-sheet.actor-sheet-v2 .csb-topband {
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.mwd-sheet.actor-sheet-v2 .csb-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Tabs stack: tab bar + panels */
+.mwd-sheet.actor-sheet-v2 .csb-tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.mwd-sheet.actor-sheet-v2 .csb-tab-bar {
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Panels region must stretch */
+.mwd-sheet.actor-sheet-v2 .csb-tab-panels {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* IMPORTANT: make it a flex column with stretch,
+     so the active child can’t shrink-to-content. */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+/* All panels hidden by default */
+.mwd-sheet.actor-sheet-v2 .csb-tab-panel {
+  display: none;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Active panel becomes a full-width column stack */
+.mwd-sheet.actor-sheet-v2 .csb-tab-panel.is-active {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+/* If the renderer inserts a wrapper or you have a first child that can shrink,
+   force direct children to also behave like full-width blocks. */
+.mwd-sheet.actor-sheet-v2 .csb-tab-panel.is-active > * {
+  width: 100%;
+  min-width: 0;
+}
+
+/* -----------------------------------------
+ * 7) Convenience: keep common layout buckets full width
+ *    (harmless, helps when future wrappers appear)
+ * ----------------------------------------- */
+.mwd-sheet.actor-sheet-v2 .mwd-topband,
+.mwd-sheet.actor-sheet-v2 .mwd-body {
+  width: 100%;
+  min-width: 0;
+}
+
+/* =========================================================
+   MWD Sheet V2 — Scroll Contract
+   - sheet-body must NOT scroll (so topband stays fixed)
+   - only the tab panels scroll
+   ========================================================= */
+/* 1) Stop Foundry/default scrolling at sheet-body */
+.window-app .window-content .mwd-sheet.sheet > .sheet-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden !important; /* beat Foundry */
+}
+
+/* 2) Ensure CSB layout consumes available height */
+.window-app .window-content .mwd-sheet.sheet > .sheet-body > .csb-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* 3) Topband never scrolls */
+.window-app .window-content .mwd-sheet.sheet .csb-topband {
+  flex: 0 0 auto;
+}
+
+/* 4) Body fills remainder (but does NOT scroll itself) */
+.window-app .window-content .mwd-sheet.sheet .csb-body,
+.window-app .window-content .mwd-sheet.sheet .mwd-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 5) Tabs must be a column so the panels can be the flex scroller */
+.window-app .window-content .mwd-sheet.sheet .csb-tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Tab bar stays fixed */
+.window-app .window-content .mwd-sheet.sheet .csb-tab-bar {
+  flex: 0 0 auto;
+}
+
+/* 6) Panels are THE scroller */
+.window-app .window-content .mwd-sheet.sheet .csb-tab-panels {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Don’t let individual tab panels create additional scrolling */
+.window-app .window-content .mwd-sheet.sheet .csb-tab-panel {
+  min-height: 0;
+  overflow: visible;
 }
 
 /* Reusable UI pieces */
@@ -345,6 +601,7 @@
 .mwd-panel__title {
   position: relative;
   font-weight: 600;
+  font-family: var(--mwd-font-body);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: rgba(245, 246, 248, 0.92);
@@ -412,6 +669,9 @@
  * =============================== */
 /* Base tab text */
 .mwd-sheet.actor-sheet-v2 .csb-tab-link {
+  font-family: var(--mwd-font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--mwd-tab-text);
   text-shadow: 0 1px 0 var(--mwd-tab-text-shadow);
 }
@@ -420,9 +680,9 @@
 .mwd-sheet.actor-sheet-v2 .csb-tab-link.is-active {
   color: var(--mwd-tab-active-text);
   text-shadow: 0 1px 0 var(--mwd-tab-active-shadow);
+  font-family: var(--mwd-font-display);
   background: linear-gradient(to bottom, var(--mwd-brownsteel-top), var(--mwd-brownsteel-bottom));
   border-radius: 6px 6px 0 0;
-  padding: 6px 12px;
 }
 
 .mwd-sheet.actor-sheet-v2 .csb-tab-link:hover {
@@ -549,22 +809,35 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  width: 100%;
 }
 
 .mwd-sheet .csb-tab-panels {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto; /* panels can scroll if needed */
+  width: 100%;
+  overflow: visible;
 }
 
 /* Hide all panels by default... */
 .mwd-sheet .csb-tab-panel {
   display: none;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* ...show only the active one */
 .mwd-sheet .csb-tab-panel.is-active {
   display: block;
+  width: 100%;
+}
+
+/* If your CSB renderer inserts a wrapper (common), force it too */
+.mwd-sheet .csb-tab-panel.is-active > * {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .mwd-sheet .csb-tab-bar {
@@ -574,12 +847,18 @@
 .mwd-sheet .csb-tab-link {
   color: var(--csb-tab-text);
   background: var(--csb-tab-bg);
+  font-family: var(--mwd-font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .mwd-sheet .csb-tab-link.is-active {
   color: var(--csb-tab-text-active);
   background: var(--csb-tab-bg-active);
   border-bottom: 2px solid var(--csb-tab-underline);
+  font-family: var(--mwd-font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 /* Chips / tags */
@@ -883,11 +1162,35 @@
   mask-size: contain;
   color: var(--mwd-monitor-empty, rgba(255, 255, 255, 0.35));
 }
+.mwd-condition-monitors .pip--monitor.pip--empty {
+  color: var(--mwd-monitor-empty, rgba(0, 0, 0, 0.55));
+}
 .mwd-condition-monitors .pip--monitor.pip--filled {
   color: var(--mwd-monitor-filled);
 }
 .mwd-condition-monitors .pip--monitor:hover {
   color: var(--mwd-monitor-hover, rgb(255, 255, 255));
+}
+.mwd-condition-monitors {
+  /* Type-specific monitor colors */
+}
+.mwd-condition-monitors .mwd-monitor[data-monitor=physical] .pip--monitor.pip--filled {
+  color: var(--mwd-monitor-physical-filled);
+}
+.mwd-condition-monitors .mwd-monitor[data-monitor=physical] .pip--monitor.pip--empty {
+  color: var(--mwd-monitor-physical-empty);
+}
+.mwd-condition-monitors .mwd-monitor[data-monitor=fatigue] .pip--monitor.pip--filled {
+  color: var(--mwd-monitor-fatigue-filled);
+}
+.mwd-condition-monitors .mwd-monitor[data-monitor=fatigue] .pip--monitor.pip--empty {
+  color: var(--mwd-monitor-fatigue-empty);
+}
+.mwd-condition-monitors .mwd-monitor[data-monitor=armor] .pip--monitor.pip--filled {
+  color: var(--mwd-monitor-armor-filled);
+}
+.mwd-condition-monitors .mwd-monitor[data-monitor=armor] .pip--monitor.pip--empty {
+  color: var(--mwd-monitor-armor-empty);
 }
 
 .mwd-monitor__pips {
@@ -897,9 +1200,9 @@
   min-height: 16px;
 }
 
-.mwd-condition-monitors .pip--monitor {
-  /* hard fallback so you can always see something */
-  background-color: currentColor;
+.mwd-sheet .sheet-body .mwd-condition-monitors .pip--monitor {
+  /* Override .mwd-sheet .sheet-body button background */
+  background: currentColor !important;
   outline: 1px solid rgba(255, 255, 255, 0.35);
   outline-offset: -1px;
   /* subtle plate behind icon */
@@ -990,6 +1293,61 @@
   flex: 0 0 auto;
   white-space: nowrap;
   font-weight: 700;
+}
+
+/* Character sheet: attributes fixed, everything else scrolls */
+.mwd-sheet.actor-sheet-v2 .sheet-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden; /* important: prevent sheet-body from being the scroller */
+}
+
+.mwd-sheet.actor-sheet-v2 .mwd-fixed-top {
+  flex: 0 0 auto;
+}
+
+.mwd-sheet.actor-sheet-v2 .mwd-scroll-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 2;
+}
+
+/* -------------------------------------------- */
+/* Compact Condition Monitors: 3x1 grid         */
+/* -------------------------------------------- */
+.mwd-condition-monitors--compact {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  align-items: start;
+}
+
+/* each monitor "row" becomes a compact tile */
+.mwd-condition-monitors--compact .mwd-monitor,
+.mwd-condition-monitors--compact .mwd-monitor-track {
+  padding: 0.35rem 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.6rem;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* tighten label/badge so tiles don’t get tall */
+.mwd-condition-monitors--compact .mwd-monitor__header,
+.mwd-condition-monitors--compact .mwd-monitor-track__header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.mwd-condition-monitors--compact .mwd-monitor__label,
+.mwd-condition-monitors--compact .mwd-monitor-track__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Visual mood / values */
@@ -1090,6 +1448,7 @@
   gap: 0.5rem;
   padding: 0.5rem;
   border-radius: 0.6rem;
+  width: 100%;
 }
 
 .mwd-edge-cap {
@@ -1281,6 +1640,99 @@
   margin: 0;
   line-height: 0;
   vertical-align: middle;
+}
+
+/* -------------------------------------------- */
+/* Edit Mode Styles                             */
+/* -------------------------------------------- */
+.mwd-edge-pool__name--static {
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.45rem;
+}
+
+.mwd-edge-pool__edit-fields {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mwd-edge-pool__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.mwd-edge-pool__field-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+.mwd-edge-pool__input {
+  width: 3rem;
+  height: 1.5rem;
+  padding: 0 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.35rem;
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mwd-edge-pool__input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* -------------------------------------------- */
+/* Compact Edge Layout: 3x2 Grid                */
+/* -------------------------------------------- */
+.mwd-edge-console--compact .mwd-edge-groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem 0.5rem;
+}
+
+/* Remove the group chrome so pools can become tiles */
+.mwd-edge-console--compact .mwd-edge-group {
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  /* Key trick: flatten wrapper so its children can lay out in the parent grid */
+  display: contents;
+}
+
+/* Hide the group headers (Physical/Mental/Social) in compact mode */
+.mwd-edge-console--compact .mwd-edge-group__label {
+  display: none;
+}
+
+/* Flatten the “pools” wrapper as well */
+.mwd-edge-console--compact .mwd-edge-group__pools {
+  padding: 0;
+  display: contents;
+}
+
+/* Make each pool look like a small tile */
+.mwd-edge-console--compact .mwd-edge-pool {
+  padding: 0.25rem 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.6rem;
+  background: rgba(0, 0, 0, 0.1);
+  gap: 0.4rem;
+}
+
+/* Keep labels from wrapping and inflating height */
+.mwd-edge-console--compact .mwd-edge-pool__name,
+.mwd-edge-console--compact .mwd-edge-pool__name--static {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mwd-roll-dialog .window-content {
@@ -1544,6 +1996,37 @@
   -webkit-mask: var(--mwd-die-url) center/contain no-repeat;
   mask: var(--mwd-die-url) center/contain no-repeat;
   opacity: 0.75;
+}
+.mwd-mod-stepper__die .mwd-roll-dialog__edge-pools {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.mwd-mod-stepper__die .mwd-edge-pool {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--csb-border);
+  background: var(--wrapper-background-color);
+}
+.mwd-mod-stepper__die .mwd-edge-pool.is-selected {
+  border-color: var(--csb-accent);
+  background: var(--wrapper-background-color);
+  outline: 2px solid var(--csb-accent, #caa95a);
+  font-weight: 600;
+}
+.mwd-mod-stepper__die .mwd-roll-dialog__edge-pools .mwd-edge-pool.is-selected {
+  outline: 2px solid var(--csb-success, #5a9a5a);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2) inset;
+  font-weight: 600;
+}
+.mwd-mod-stepper__die .mwd-roll-dialog__edge-selected {
+  margin-left: 0.35rem;
+  opacity: 0.85;
+  font-weight: 600;
+}
+.mwd-mod-stepper__die .mwd-roll-dialog__edge-selected.is-missing {
+  opacity: 0.6;
+  font-weight: 500;
+  font-style: italic;
 }
 
 /*# sourceMappingURL=mwd.css.map */

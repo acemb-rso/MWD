@@ -72,23 +72,33 @@ function diceFromResolvedBreakdown(resolved) {
   };
 }
 
-export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
-  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-    id: "mwd-roll-dialog",
-    classes: ["mwd", "mwd-roll-dialog"],
-    window: { title: "Roll", resizable: false },
-    position: { width: 520, height: "auto" },
 
-    actions: {
-      submit: MWDRollDialog.prototype._onSubmit,
-      cancel: MWDRollDialog.prototype._onCancel,
-      addManual: MWDRollDialog.prototype._onAddManual,
-      removeManual: MWDRollDialog.prototype._onRemoveManual,
-      setManualValue: MWDRollDialog.prototype._onSetManualValue,
-      setManualStepper: MWDRollDialog.prototype._onSetManualStepper,
-      toggleCheckbox: MWDRollDialog.prototype._onToggleCheckbox
-    }
-  });
+export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(
+    super.DEFAULT_OPTIONS,
+    {
+      id: "mwd-roll-dialog",
+      classes: [
+        ...(super.DEFAULT_OPTIONS.classes ?? []),
+        "mwd",
+        "mwd-roll-dialog"
+      ],
+      window: { title: "Roll", resizable: false },
+      position: { width: 520, height: "auto" },
+
+      actions: {
+        submit: MWDRollDialog.prototype._onSubmit,
+        cancel: MWDRollDialog.prototype._onCancel,
+        addManual: MWDRollDialog.prototype._onAddManual,
+        removeManual: MWDRollDialog.prototype._onRemoveManual,
+        setManualValue: MWDRollDialog.prototype._onSetManualValue,
+        setManualStepper: MWDRollDialog.prototype._onSetManualStepper,
+        setEdgePrePool: MWDRollDialog.prototype._onSetEdgePrePool,
+        toggleCheckbox: MWDRollDialog.prototype._onToggleCheckbox
+      }
+    },
+    { inplace: false }
+  );
 
   static PARTS = {
     body: { template: "systems/mwd/templates/v2/roll/mwd-roll-dialog.hbs" }
@@ -122,6 +132,11 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       initialState ?? {},
       { inplace: false, insertKeys: true, insertValues: true, overwrite: true }
     );
+    const preKey = String(payload?.edge?.pre?.poolKey ?? "").trim() || null;
+
+    this._mwd.state.edge = {
+      prePoolKey: preKey
+    };
   }
 
   async wait() {
@@ -140,6 +155,10 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     return super.close(options);
   }
+
+  /* --------------------------- */
+  /* Prepare Context             */
+  /* --------------------------- */
 
   async _prepareContext(_options) {
     const bc = this._mwd.baseContext ?? {};
@@ -160,7 +179,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       const breakdown = Array.isArray(resolved.breakdown) ? resolved.breakdown : [];
       const get = (id) => Number(breakdown.find(r => r.id === id)?.value ?? 0);
 
-      const pool = Number(resolved.pool ?? 0);
+      const pool = Number(resolved?.pool?.attribute ?? 0);
 
       dice = {
         pool,
@@ -184,6 +203,28 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       totalPool = Math.max(0, baseTotal + modifiersTotal);
     }
 
+    const domains = Array.isArray(bc?.resolved?.domains) ? bc.resolved.domains : [];
+    const edgeDomain =
+      domains.includes("physical") ? "physical" :
+      domains.includes("mental") ? "mental" :
+      domains.includes("social") ? "social" : null;
+
+    const pair =
+      edgeDomain === "physical" ? ["grit","chaos"] :
+      edgeDomain === "mental" ? ["insight","rumor"] :
+      edgeDomain === "social" ? ["legend","credibility"] : [];
+
+    const edgeChoices = pair.map(k => ({
+      key: k,
+      label: k.charAt(0).toUpperCase() + k.slice(1),
+      available: Number(this.actor?.getEdgePool?.(k)?.effectiveValue ?? 0),
+      selected: k === (st.edge?.prePoolKey ?? null)
+    }));
+
+    const selected = edgeChoices.find(c => c.selected);
+    const selectedLabel = selected?.label ?? null;
+
+
     return {
       header: {
         left: bc?.header?.left ?? "Roll",
@@ -197,6 +238,12 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         ...r,
         steps: buildStepperSteps(Number(r.value ?? 0), -3, 3)
       })),
+      
+      edge: {
+        domain: edgeDomain,
+        choices: edgeChoices,
+        selectedLabel
+      },
 
       toggles: intent === "edge"
         ? { useEdge: false, takeRisks: false, opponentRoll: false }
@@ -241,6 +288,18 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       const resolve = this.#resolvePrompt;
       this.#resolvePrompt = null;
       resolve({ payload: st.payload });
+    }
+
+    st.payload.edge = st.payload.edge && typeof st.payload.edge === "object" ? st.payload.edge : {};
+    st.payload.edge.pre = st.payload.edge.pre && typeof st.payload.edge.pre === "object" ? st.payload.edge.pre : {};
+
+    if (st.toggles?.useEdge) {
+      const preKey = String(st.edge?.prePoolKey ?? "").trim() || null;
+      st.payload.edge.pre.poolKey = preKey;
+      st.payload.edge.pre.spent = preKey ? 1 : 0; // only spend if key selected
+    } else {
+      st.payload.edge.pre.poolKey = null;
+      st.payload.edge.pre.spent = 0;
     }
 
     return this.close();
@@ -292,6 +351,21 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     row.value = value;
     return this.render(false);
   }
+
+  async _onSetEdgePrePool(event, target) {
+  event?.preventDefault();
+  const key = String(target?.dataset?.poolKey ?? "").trim();
+  if (!key) return;
+
+  this._mwd.state.edge = this._mwd.state.edge ?? {};
+  this._mwd.state.edge.prePoolKey = key;
+
+  // If user is choosing a pool, we can reasonably assume they intend to pre-spend
+  this._mwd.state.toggles.useEdge = true;
+
+  return this.render(false);
+  }
+
 
   async _onToggleCheckbox(event, target) {
     event?.preventDefault();

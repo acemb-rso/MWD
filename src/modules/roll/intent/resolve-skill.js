@@ -2,48 +2,44 @@
 import { getSkillDef } from "../../mwd/skills.js";
 
 export async function resolveSkill({ actor, payload } = {}) {
-  const code = payload?.key;
+  if (!actor) throw new Error("resolveSkill requires actor");
+
+  const code = String(payload?.key ?? "").trim();
   const def = getSkillDef(code);
   if (!def) throw new Error(`Unknown skill: ${code}`);
 
   const sys = actor.system ?? {};
 
-  // Allow an on-the-fly attribute override (dialog will set payload.attrKey later).
-  // If absent, fall back to the skill's default attribute.
-  const attrKey = payload?.attrKey ?? def.attribute;
+  // Allow an on-the-fly attribute override (dialog can set payload.attrKey).
+  const attrKey = String(payload?.attrKey ?? def.attribute ?? "").trim();
+  if (!attrKey) throw new Error(`Skill ${code} missing attribute key`);
 
   const attribute = Number(sys?.attributes?.[attrKey]?.value ?? 0);
   const skill = Number(sys?.skills?.[code]?.rating ?? 0);
   const bonus = Number(sys?.skills?.[code]?.bonus ?? 0);
 
-  // Domains can be overridden by payload; otherwise use skill def domains
   const domains = Array.isArray(payload?.domains) ? payload.domains : (def.domains ?? []);
 
-  const total = attribute + skill + bonus;
-
   return {
+    intent: "skill",
     title: `${def.label} (${attrKey})`,
     subtitle: actor.name ?? "Actor",
-    intent: "skill",
     domains,
-    target: 5,
+    target: payload?.target ?? null, // don’t hardcode 5 here unless you truly mean it
 
-    pool: {
-      attribute,
-      skill,
-      bonus,
-      mods: 0,
-      total,
-      label: `${attrKey}+${def.label}`
-    },
+    pool: { attribute, skill, bonus },
 
-    poolDice: total,
-
-    // IMPORTANT: these ids must match what the dialog reads.
     breakdown: [
       { id: "attribute", label: "Attribute", value: attribute },
       { id: "skill", label: "Skill", value: skill },
       { id: "bonus", label: "Bonus", value: bonus }
-    ]
+    ],
+
+    // optional extra metadata (safe to stash)
+    data: {
+      skillKey: code,
+      attrKey,
+      label: `${attrKey}+${def.label}`
+    }
   };
 }

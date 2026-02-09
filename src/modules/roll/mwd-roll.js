@@ -6,6 +6,7 @@ import { renderChat } from "./renderers/render-chat.js";
 import { getSkillDef } from "../mwd/skills.js";
 import { MWDRollDialog } from "./mwd-roll-dialog.js";
 
+
 /**
  * Public roll API.
  * Sheets call: game.mwd.roll.execute({ actor, payload, event, quick })
@@ -125,17 +126,26 @@ async function execute({ actor, payload, event, quick = false } = {}) {
   const mods = [...providerMods, ...manualMods];
   const modTotal = Number(providerTotal ?? 0) + Number(manualTotal ?? 0);
 
-  const pool = Math.max(
-    0,
-    Number(ctx.poolDice ?? 0) + Number(modTotal ?? 0)
-  );
+  const basePool =
+  Number(ctx?.pool?.attribute ?? 0) +
+  Number(ctx?.pool?.skill ?? 0) +
+  Number(ctx?.pool?.bonus ?? 0);
+
+  const pool = Math.max(0, basePool + Number(modTotal ?? 0));
+
 
   /* --------------------------- */
   /* 5) Edge + target number    */
   /* --------------------------- */
 
-  const edgeInfo = computeEdgeInfo({ ctx, payload });
+  const edgeInfo = computeEdgeInfo({ actor, ctx, payload });
   const target = edgeInfo.pre.spent ? 4 : Number(ctx.target ?? 5);
+
+  // Spend pre-edge (once) before rolling
+  if (edgeInfo?.pre?.spent && edgeInfo?.pre?.poolKey) {
+    await actor.spendEdge?.(edgeInfo.pre.poolKey, 1);
+  }
+
 
   /* --------------------------- */
   /* 6) Roll dice (once)        */
@@ -193,33 +203,35 @@ async function execute({ actor, payload, event, quick = false } = {}) {
 /* Edge computation (MVP local) */
 /* ----------------------------- */
 
-function computeEdgeInfo({ ctx, payload }) {
+function computeEdgeInfo({ actor, ctx, payload }) {
   const domain = pickEdgeDomain(ctx?.domains);
-
-  // Pool pairs by domain
   const pair = EDGE_POOLS_BY_DOMAIN[domain] ?? null;
-
-  // Legacy compatibility: payload.edge.enabled implies a pre-spend happened
-  const legacyPre = Boolean(payload?.edge?.enabled);
-
-  const prePoolKey =
-    payload?.edge?.pre?.poolKey ??
-    (legacyPre ? (payload?.edge?.poolKey ?? null) : null);
-
-  const preSpent =
-    Number(payload?.edge?.pre?.spent ?? (legacyPre ? 1 : 0)) ? 1 : 0;
-
-  // Post spend not applied during the initial roll; it is only meaningful for chat apply steps.
-  const postPoolKey = payload?.edge?.post?.poolKey ?? null;
-  const postSpent = Number(payload?.edge?.post?.spent ?? 0) ? 1 : 0;
 
   const a = pair?.a ?? null;
   const b = pair?.b ?? null;
 
   const allowedPrePools = [a, b].filter(Boolean);
 
-  let allowedPostPools = [a, b].filter(Boolean);
+  // ---- PRE ----
+  const wantsPre = Boolean(payload?.toggles?.useEdge) || Boolean(payload?.useEdge);
+  let prePoolKey = String(payload?.edge?.pre?.poolKey ?? "").trim() || null;
+
+  // validate pre poolKey against domain
+  if (prePoolKey && !allowedPrePools.includes(prePoolKey)) prePoolKey = null;
+
+  // pre spent is driven by "wantsPre" AND having a valid poolKey
+  const preSpent = wantsPre && prePoolKey ? 1 : 0;
+
+  // ---- POST (Option B) ----
+  // if preSpent, post must be the other pool; else user can choose either later.
+  let allowedPostPools = [...allowedPrePools];
   if (preSpent && prePoolKey) allowedPostPools = allowedPostPools.filter(k => k !== prePoolKey);
+
+  // keep payload-selected post if present (used by chat post actions)
+  let postPoolKey = String(payload?.edge?.post?.poolKey ?? "").trim() || null;
+  if (postPoolKey && !allowedPostPools.includes(postPoolKey)) postPoolKey = null;
+
+  const postSpent = Number(payload?.edge?.post?.spent ?? 0) ? 1 : 0;
 
   return {
     domain,
@@ -229,6 +241,7 @@ function computeEdgeInfo({ ctx, payload }) {
     allowed: { prePools: allowedPrePools, postPools: allowedPostPools }
   };
 }
+
 
 function pickEdgeDomain(domains) {
   if (!Array.isArray(domains)) return null;

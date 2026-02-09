@@ -113,26 +113,44 @@
     </div>
   </div>
 
-  {{#unless (eq intent "edge")}}
-  <div class="mwd-roll-dialog__panel">
-    <div class="mwd-roll-dialog__panel-title">Edge & Risk</div>
+{{#unless (eq intent "edge")}}
+<div class="mwd-roll-dialog__panel">
+  <div class="mwd-roll-dialog__panel-title">Edge & Risk</div>
 
-    <label class="mwd-roll-dialog__check">
-      <input type="checkbox" {{checked toggles.useEdge}} data-action="toggleCheckbox" data-key="useEdge" />
-      <span>Use Edge</span>
-    </label>
+  <label class="mwd-roll-dialog__check">
+  <input type="checkbox" {{checked toggles.useEdge}} data-action="toggleCheckbox" data-key="useEdge" />
+  <span>
+    Use Edge
+    {{#if toggles.useEdge}}
+      {{#if edge.selectedLabel}}
+        <span class="mwd-roll-dialog__edge-selected">({{edge.selectedLabel}})</span>
+      {{else}}
+        <span class="mwd-roll-dialog__edge-selected is-missing">(choose pool)</span>
+      {{/if}}
+    {{/if}}
+  </span>
+</label>
 
-    <label class="mwd-roll-dialog__check">
-      <input type="checkbox" {{checked toggles.takeRisks}} data-action="toggleCheckbox" data-key="takeRisks" />
-      <span>Anarchy – Take risks</span>
-    </label>
 
-    <label class="mwd-roll-dialog__check">
-      <input type="checkbox" {{checked toggles.opponentRoll}} data-action="toggleCheckbox" data-key="opponentRoll" />
-      <span>Opponent roll</span>
-    </label>
-  </div>
+  {{!-- NEW: pool choice, only if Edge applies --}}
+  {{#if edge.domain}}
+    {{#if toggles.useEdge}}
+      <div class="mwd-roll-dialog__edge-pools">
+        {{#each edge.choices as |c|}}
+          <button type="button"
+                  class="mwd-edge-pool {{#if c.selected}}is-selected{{/if}}"
+                  data-action="setEdgePrePool"
+                  data-pool-key="{{c.key}}">
+            {{c.label}} ({{c.available}})
+          </button>
+        {{/each}}
+      </div>
+    {{/if}}
+  {{/if}}
+
+</div>
 {{/unless}}
+
 
 
   <footer class="mwd-roll-dialog__footer">

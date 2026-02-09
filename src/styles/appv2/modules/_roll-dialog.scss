@@ -264,4 +264,43 @@
   mask: var(--mwd-die-url) center / contain no-repeat;
 
   opacity: 0.75;
+  
+
+  .mwd-roll-dialog__edge-pools {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  }
+
+  .mwd-edge-pool {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--csb-border);
+    background: var(--wrapper-background-color);
+  }
+
+  .mwd-edge-pool.is-selected {
+    border-color: var(--csb-accent);
+    background: var(--wrapper-background-color);
+    outline: 2px solid var(--csb-accent, #caa95a);
+    font-weight: 600;
+  }
+
+  .mwd-roll-dialog__edge-pools .mwd-edge-pool.is-selected {
+  outline: 2px solid var(--csb-success, #5a9a5a);
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.2) inset;
+  font-weight: 600;
+}
+
+.mwd-roll-dialog__edge-selected {
+  margin-left: 0.35rem;
+  opacity: 0.85;
+  font-weight: 600;
+}
+
+.mwd-roll-dialog__edge-selected.is-missing {
+  opacity: 0.6;
+  font-weight: 500;
+  font-style: italic;
+}
+
 }

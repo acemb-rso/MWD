@@ -7,6 +7,7 @@
   gap: 0.5rem;
   padding: 0.5rem;
   border-radius: 0.6rem;
+  width: 100%;
 }
 
 .mwd-edge-cap {
@@ -201,4 +202,100 @@
 
   line-height: 0;
   vertical-align: middle;
+}
+
+/* -------------------------------------------- */
+/* Edit Mode Styles                             */
+/* -------------------------------------------- */
+
+.mwd-edge-pool__name--static {
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.45rem;
+}
+
+.mwd-edge-pool__edit-fields {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mwd-edge-pool__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.mwd-edge-pool__field-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+.mwd-edge-pool__input {
+  width: 3rem;
+  height: 1.5rem;
+  padding: 0 0.25rem;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 0.35rem;
+  background: rgba(0,0,0,0.2);
+  color: inherit;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mwd-edge-pool__input:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.35);
+  background: rgba(0,0,0,0.3);
+}
+
+/* -------------------------------------------- */
+/* Compact Edge Layout: 3x2 Grid                */
+/* -------------------------------------------- */
+
+.mwd-edge-console--compact .mwd-edge-groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem 0.5rem;
+}
+
+/* Remove the group chrome so pools can become tiles */
+.mwd-edge-console--compact .mwd-edge-group {
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+
+  /* Key trick: flatten wrapper so its children can lay out in the parent grid */
+  display: contents;
+}
+
+/* Hide the group headers (Physical/Mental/Social) in compact mode */
+.mwd-edge-console--compact .mwd-edge-group__label {
+  display: none;
+}
+
+/* Flatten the “pools” wrapper as well */
+.mwd-edge-console--compact .mwd-edge-group__pools {
+  padding: 0;
+  display: contents;
+}
+
+/* Make each pool look like a small tile */
+.mwd-edge-console--compact .mwd-edge-pool {
+  padding: 0.25rem 0.35rem;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 0.6rem;
+  background: rgba(0,0,0,0.10);
+  gap: 0.4rem;
+}
+
+/* Keep labels from wrapping and inflating height */
+.mwd-edge-console--compact .mwd-edge-pool__name,
+.mwd-edge-console--compact .mwd-edge-pool__name--static {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

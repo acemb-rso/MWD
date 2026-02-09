@@ -127,11 +127,20 @@
   --mwd-icon-heat: url("/systems/mwd/img/icons/status/on_fire_mild.svg");
   --mwd-icon-durability: url("/systems/mwd/img/icons/skills/piloting-ground-steering-wheel.svg");
 
+   /* Monitor base states */
   --mwd-monitor-empty: rgba(0, 0, 0, 0.55);
   --mwd-monitor-filled: rgba(255, 255, 255, 0.95);
   --mwd-monitor-hover: rgba(255, 255, 255, 1);
-
-    /* Ink on light/noisy surfaces */
+  
+  /* Monitor type-specific colors (filled state) */
+  --mwd-monitor-physical-filled: #dd5555;
+  --mwd-monitor-physical-empty: rgba(80, 30, 30, 0.6);
+  --mwd-monitor-fatigue-filled: #ddaa33;
+  --mwd-monitor-fatigue-empty: rgba(80, 65, 20, 0.6);
+  --mwd-monitor-armor-filled: #55aadd;
+  --mwd-monitor-armor-empty: rgba(30, 60, 80, 0.6);
+  
+  /* Ink on light/noisy surfaces */
   --mwd-ink-strong: rgba(20, 24, 28, 0.95);
   --mwd-ink-shadow-light: rgba(255, 255, 255, 0.85);
 
@@ -145,4 +154,11 @@
   /* Brown steel plate (active tab) */
   --mwd-brownsteel-top: rgba(72, 64, 54, 0.95);
   --mwd-brownsteel-bottom: rgba(52, 46, 38, 0.95);
+
+   /* Fonts */
+  --mwd-font-display: "MWD Display", "MWD UI", system-ui, sans-serif;
+  --mwd-font-ui: "MWD UI", system-ui, sans-serif;
+  --mwd-font-body: "MWD Body", serif;
+  --mwd-font-numeric: "MWD Numeric", ui-monospace, monospace;
+  --mwd-font-icons: "Material Symbols Rounded";
 }

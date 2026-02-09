@@ -29,6 +29,7 @@
 .mwd-panel__title {
   position: relative;
   font-weight: 600;
+  font-family: var(--mwd-font-body);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: rgba(245, 246, 248, 0.92);
@@ -105,6 +106,10 @@
 
 /* Base tab text */
 .mwd-sheet.actor-sheet-v2 .csb-tab-link {
+  font-family: var(--mwd-font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
   color: var(--mwd-tab-text);
   text-shadow: 0 1px 0 var(--mwd-tab-text-shadow);
 }
@@ -113,7 +118,7 @@
 .mwd-sheet.actor-sheet-v2 .csb-tab-link.is-active {
   color: var(--mwd-tab-active-text);
   text-shadow: 0 1px 0 var(--mwd-tab-active-shadow);
-
+  font-family: var(--mwd-font-display);
   background: linear-gradient(
     to bottom,
     var(--mwd-brownsteel-top),
@@ -121,7 +126,6 @@
   );
 
   border-radius: 6px 6px 0 0;
-  padding: 6px 12px;
 }
 
 .mwd-sheet.actor-sheet-v2 .csb-tab-link:hover {
@@ -250,24 +254,36 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  width: 100%;
 }
 
 .mwd-sheet .csb-tab-panels {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto; /* panels can scroll if needed */
+  width: 100%;
+  overflow: visible; 
 }
 
 /* Hide all panels by default... */
 .mwd-sheet .csb-tab-panel {
   display: none;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* ...show only the active one */
 .mwd-sheet .csb-tab-panel.is-active {
   display: block;
+  width: 100%;
 }
 
+/* If your CSB renderer inserts a wrapper (common), force it too */
+.mwd-sheet .csb-tab-panel.is-active > * {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
 .mwd-sheet .csb-tab-bar {
   border-bottom: 1px solid var(--csb-tabbar-border);
 }
@@ -275,12 +291,18 @@
 .mwd-sheet .csb-tab-link {
   color: var(--csb-tab-text);
   background: var(--csb-tab-bg);
+  font-family: var(--mwd-font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .mwd-sheet .csb-tab-link.is-active {
   color: var(--csb-tab-text-active);
   background: var(--csb-tab-bg-active);
   border-bottom: 2px solid var(--csb-tab-underline);
+  font-family: var(--mwd-font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 /* Chips / tags */
@@ -582,6 +604,10 @@
     mask-size: contain;
 
     color: var(--mwd-monitor-empty, rgba(255,255,255,0.35));
+ 
+   &.pip--empty {
+      color: var(--mwd-monitor-empty, rgba(0, 0, 0, 0.55));
+    }
 
     &.pip--filled {
       color: var(--mwd-monitor-filled);
@@ -590,6 +616,22 @@
     &:hover {
       color: var(--mwd-monitor-hover, rgba(255,255,255,1));
     }
+  }
+
+  /* Type-specific monitor colors */
+  .mwd-monitor[data-monitor="physical"] .pip--monitor {
+    &.pip--filled { color: var(--mwd-monitor-physical-filled); }
+    &.pip--empty { color: var(--mwd-monitor-physical-empty); }
+  }
+
+  .mwd-monitor[data-monitor="fatigue"] .pip--monitor {
+    &.pip--filled { color: var(--mwd-monitor-fatigue-filled); }
+    &.pip--empty { color: var(--mwd-monitor-fatigue-empty); }
+  }
+
+  .mwd-monitor[data-monitor="armor"] .pip--monitor {
+    &.pip--filled { color: var(--mwd-monitor-armor-filled); }
+    &.pip--empty { color: var(--mwd-monitor-armor-empty); }
   }
 }
 
@@ -600,9 +642,9 @@
   min-height: 16px;
 }
 
-.mwd-condition-monitors .pip--monitor {
-  /* hard fallback so you can always see something */
-  background-color: currentColor;
+.mwd-sheet .sheet-body .mwd-condition-monitors .pip--monitor {
+  /* Override .mwd-sheet .sheet-body button background */
+  background: currentColor !important;
   outline: 1px solid rgba(255, 255, 255, 0.35);
   outline-offset: -1px;
   
@@ -700,3 +742,58 @@
   font-weight: 700; 
 }
 
+/* Character sheet: attributes fixed, everything else scrolls */
+.mwd-sheet.actor-sheet-v2 .sheet-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden; /* important: prevent sheet-body from being the scroller */
+}
+
+.mwd-sheet.actor-sheet-v2 .mwd-fixed-top {
+  flex: 0 0 auto;
+}
+
+.mwd-sheet.actor-sheet-v2 .mwd-scroll-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 2;
+}
+
+/* -------------------------------------------- */
+/* Compact Condition Monitors: 3x1 grid         */
+/* -------------------------------------------- */
+
+.mwd-condition-monitors--compact {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  align-items: start;
+}
+
+/* each monitor "row" becomes a compact tile */
+.mwd-condition-monitors--compact .mwd-monitor,
+.mwd-condition-monitors--compact .mwd-monitor-track {
+  padding: 0.35rem 0.4rem;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 0.6rem;
+  background: rgba(0,0,0,0.10);
+}
+
+/* tighten label/badge so tiles don’t get tall */
+.mwd-condition-monitors--compact .mwd-monitor__header,
+.mwd-condition-monitors--compact .mwd-monitor-track__header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.mwd-condition-monitors--compact .mwd-monitor__label,
+.mwd-condition-monitors--compact .mwd-monitor-track__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
