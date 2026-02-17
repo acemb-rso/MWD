@@ -1,0 +1,134 @@
+<article
+  class="mwd-chat-card mwd-roll-card
+    {{#if passed}}is-success{{else}}{{#if success}}is-success{{else}}is-failure{{/if}}{{/if}}"
+  {{#if breakdownTooltip}}title="{{breakdownTooltip}}"{{/if}}
+>
+  <header class="mwd-roll-card__header">
+    <div class="mwd-roll-card__title">{{header.left}}</div>
+    <div class="mwd-roll-card__subtitle">{{header.right}}</div>
+  </header>
+
+  {{!-- Compact formula line (optional; can also be a tooltip via breakdownTooltip) --}}
+  {{#if formula}}
+    <div class="mwd-roll-card__formula">{{formula}}</div>
+  {{/if}}
+
+  <div class="mwd-roll-card__meta">
+    <div class="mwd-roll-card__meta-left">
+      <div class="mwd-roll-card__line">
+        <span class="k">TN</span> <span class="v">{{tn}}</span>
+        <span class="sep">•</span>
+        <span class="k">DN</span> <span class="v">{{dn}}</span>
+      </div>
+
+      {{!-- Optional legacy limit row (attacks, etc.) --}}
+      {{#if limitValue}}
+        <div class="mwd-roll-card__line">
+          <span class="k">{{limitLabel}}</span> <span class="v">{{limitValue}}</span>
+        </div>
+      {{/if}}
+
+      {{!-- Optional Edge summary (when vm.edge is present) --}}
+      {{#if edge}}
+        <div class="mwd-roll-card__line muted">
+          <span class="k">Edge</span>
+          <span class="v">{{edge.domain}}</span>
+          {{#if edge.earned}}
+            <span class="sep">•</span>
+            <span class="k">Earned</span>
+            <span class="v">+{{edge.earned.amount}}</span>
+          {{/if}}
+        </div>
+      {{/if}}
+    </div>
+
+    <div class="mwd-roll-card__meta-right">
+      <div class="mwd-roll-card__stat">
+        <div class="k">Pool</div>
+        <div class="v">{{pool}}</div>
+      </div>
+      <div class="mwd-roll-card__stat">
+        <div class="k">Hits</div>
+        <div class="v">{{hits}}</div>
+      </div>
+    </div>
+  </div>
+
+  {{!-- Result banner --}}
+  <div class="mwd-roll-card__result">
+    {{!-- Prefer outcomeText if provided; else derive from passed/success --}}
+    {{#if outcomeText}}
+      {{outcomeText}}
+    {{else}}
+      {{#if passed}}SUCCESS!{{else}}{{#if success}}SUCCESS!{{else}}FAILURE!{{/if}}{{/if}}
+    {{/if}}
+
+    {{!-- Optional margin (if provided in VM) --}}
+    {{#if margin}}
+      <span class="mwd-roll-card__margin">
+        ({{#if margin}} {{margin}} {{/if}})
+      </span>
+    {{/if}}
+  </div>
+
+  {{!-- Meta rows (enhancer-friendly) --}}
+  {{#if metaRows.length}}
+    <div class="mwd-roll-card__extras mwd-roll-card__extras--meta">
+      {{#each metaRows as |row|}}
+        <div class="mwd-roll-card__line" {{#if row.title}}title="{{row.title}}"{{/if}}>
+          {{row.text}}
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+
+  {{!-- Action buttons (enhancer-friendly) --}}
+  {{#if actions.length}}
+    <div class="mwd-roll-card__actions">
+      {{#each actions as |a|}}
+        <button
+          type="button"
+          class="{{a.cssClass}}"
+          data-mwd-action="{{a.action}}"
+          {{#if a.title}}title="{{a.title}}"{{/if}}
+          {{#if a.disabled}}disabled{{/if}}
+          {{#if a.dataset}}
+            {{#each a.dataset}}
+              data-{{@key}}="{{this}}"
+            {{/each}}
+          {{/if}}
+        >
+          {{a.label}}
+        </button>
+      {{/each}}
+    </div>
+  {{/if}}
+
+  {{!-- Footer rows (enhancer-friendly) --}}
+  {{#if footerRows.length}}
+    <footer class="mwd-roll-card__extras mwd-roll-card__extras--footer">
+      {{#each footerRows as |row|}}
+        <div class="mwd-roll-card__line" {{#if row.title}}title="{{row.title}}"{{/if}}>
+          {{row.text}}
+        </div>
+      {{/each}}
+    </footer>
+  {{/if}}
+
+  {{!-- Legacy "Incoming" footer (kept for compatibility) --}}
+  {{#if incomingLabel}}
+    <footer class="mwd-roll-card__incoming">
+      <span class="k">Incoming:</span>
+      <span class="label">{{incomingLabel}}</span>
+      <span class="value">{{incomingValue}}</span>
+    </footer>
+  {{else}}
+    {{#if incoming}}
+      <footer class="mwd-roll-card__incoming">
+        <span class="k">Incoming:</span>
+        <span class="label">{{incoming.label}}</span>
+        <span class="value">{{incoming.value}}</span>
+      </footer>
+    {{/if}}
+  {{/if}}
+</article>

@@ -20,12 +20,30 @@ export async function resolveSkill({ actor, payload } = {}) {
 
   const domains = Array.isArray(payload?.domains) ? payload.domains : (def.domains ?? []);
 
+  // --- NEW: semantic roll typing + thresholds ---
+  // diceTarget = per-die success threshold (cs>=X). Default 5.
+  // dnHits = hits needed to succeed (your DN). Default 1 for a basic skill check.
+  const diceTarget = Number.isFinite(Number(payload?.diceTarget))
+    ? Number(payload.diceTarget)
+    : (Number.isFinite(Number(payload?.target)) ? Number(payload.target) : 5);
+
+  const dnHits = Number.isFinite(Number(payload?.dn))
+    ? Number(payload.dn)
+    : 1;
+
   return {
     intent: "skill",
+    rollType: "simple",
+
     title: `${def.label} (${attrKey})`,
     subtitle: actor.name ?? "Actor",
     domains,
-    target: payload?.target ?? null, // don’t hardcode 5 here unless you truly mean it
+
+    // Per-die threshold (cs>=X). Kept separate from dnHits.
+    diceTarget,
+
+    // DN = hits needed for success
+    difficulty: { dn: dnHits },
 
     pool: { attribute, skill, bonus },
 

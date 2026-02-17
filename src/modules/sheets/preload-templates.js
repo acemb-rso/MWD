@@ -17,6 +17,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/common/view-mode.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/mod-stepper.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/condition-monitors.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/roll/_mwd-roll-card.hbs`,
 
   // Character UI
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/attributes.hbs`,

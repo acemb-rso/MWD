@@ -1,79 +1,71 @@
 // modules/roll/renderers/render-skill.js
 
-export function renderSkill({ resolved } = {}) {
-  const title = escapeHtml(resolved?.title ?? "Skill Roll");
-  const subtitle = escapeHtml(resolved?.subtitle ?? "");
-  const pool = Number(resolved?.roll?.pool ?? 0);
-  const target = Number(resolved?.roll?.target ?? 5);
-  const hits = Number(resolved?.outcome?.hits ?? 0);
+/**
+ * Enhancer for intent="skill".
+ * Mutates vm (base card) to add skill-specific meta/actions/footer/edge details.
+ */
+export function enhanceSkill(resolved, vm) {
+  const r = resolved ?? {};
 
-  const breakdownRows = Array.isArray(resolved?.breakdownRows) ? resolved.breakdownRows : [];
-  const modsApplied = Array.isArray(resolved?.modifiers?.applied) ? resolved.modifiers.applied : [];
-  const modTotal = Number(resolved?.modifiers?.total ?? 0);
+  // ---- Mods summary (as a meta row with tooltip) ----
+  const modsApplied = Array.isArray(r?.modifiers?.applied) ? r.modifiers.applied : [];
+  const modTotal = Number(r?.modifiers?.total ?? 0);
 
-  const poolRowsHtml = breakdownRows
-    .filter(r => String(r.id ?? "").startsWith("pool."))
-    .map(r => rowHtml(r))
-    .join("");
+  if (modsApplied.length) {
+    const modsRow = Array.isArray(r?.breakdownRows)
+      ? r.breakdownRows.find(x => x.id === "mods.total")
+      : null;
 
-  const modsRow = breakdownRows.find(r => r.id === "mods.total");
-  const modsHtml = modsApplied.length
-    ? `<div class="mwd-chat-roll__mods" title="${escapeHtml(modsRow?.tooltip ?? "")}">
-         <b>Mods:</b>
-         ${modsApplied.map(m => `${escapeHtml(m.label)} ${fmt(m.value)}`).join(", ")}
-         <span class="muted">(Total ${fmt(modTotal)})</span>
-       </div>`
-    : "";
+    vm.metaRows.push({
+      text: `Mods: ${modsApplied.map(m => `${m.label} ${fmt(m.value)}`).join(", ")} (Total ${fmt(modTotal)})`,
+      title: modsRow?.tooltip ?? ""
+    });
+  }
 
-  const edge = resolved?.edge;
-  const edgeHtml = edge?.domain
-    ? `<div class="mwd-chat-roll__edge muted">
-         <b>Edge:</b> ${escapeHtml(edge.domain)}
-         &nbsp; pre=${escapeHtml(edge.pre?.poolKey ?? "—")}(${Number(edge.pre?.spent ?? 0)})
-         &nbsp; post=${escapeHtml(edge.post?.poolKey ?? "—")}(${Number(edge.post?.spent ?? 0)})
-       </div>`
-    : "";
+  // ---- Edge info + post-spend actions ----
+  const edge = r?.edge ?? null;
+  const failureRefs = Array.isArray(r?.roll?.failureDiceRefs) ? r.roll.failureDiceRefs : [];
 
-  return `
-  <div class="mwd-chat-roll mwd-chat-roll--skill" data-intent="skill">
-    <header>
-      <div><b>${title}</b></div>
-      <div class="muted">${subtitle}</div>
-    </header>
+  const canPost = Boolean(edge?.availableActions?.canPostRerollFailures);
+  const postPools = Array.isArray(edge?.allowed?.postPools) ? edge.allowed.postPools : [];
 
-    <hr/>
+  // Put a normalized edge block on the VM (template can choose how to show it)
+  if (edge?.domain) {
+    vm.edge = {
+      domain: edge.domain,
+      earned: r?.outcomeModel?.edgeEarned ?? null,
+      preSpent: Number(edge?.pre?.spent ?? 0),
+      postSpent: Number(edge?.post?.spent ?? 0),
+      canPost: canPost && failureRefs.length > 0 && postPools.length > 0,
+      failureCount: failureRefs.length,
+      postPools
+    };
 
-    <div class="mwd-chat-roll__summary">
-      <div><b>Pool:</b> ${pool} vs <b>TN</b> ${target}</div>
-      <div><b>Hits:</b> ${hits}</div>
-    </div>
+    // Optional: show a small meta line for visibility (non-intrusive)
+    vm.metaRows.push({
+      text: `Edge: ${edge.domain} • pre ${vm.edge.preSpent} • post ${vm.edge.postSpent}`,
+      title: ""
+    });
+  }
 
-    <div class="mwd-chat-roll__breakdown">
-      ${poolRowsHtml}
-    </div>
+  // Post-spend footer + buttons (generic action schema)
+  if (vm.edge?.canPost) {
+    vm.footerRows.push({
+      text: `Post-spend: Reroll ${vm.edge.failureCount} failure${vm.edge.failureCount === 1 ? "" : "s"}`
+    });
 
-    ${modsHtml}
-    ${edgeHtml}
-  </div>`;
-}
-
-function rowHtml(r) {
-  const label = escapeHtml(r?.label ?? "");
-  const tooltip = escapeHtml(r?.tooltip ?? "");
-  const value = Number(r?.value ?? 0);
-  return `<div class="mwd-chat-roll__row" title="${tooltip}"><b>${label}</b>: ${value}</div>`;
+    for (const poolKey of vm.edge.postPools) {
+      vm.actions.push({
+        action: "edgePostReroll",
+        label: `Spend ${poolKey}`,
+        dataset: { poolKey },
+        cssClass: "mwd-edge-post"
+      });
+    }
+  }
 }
 
 function fmt(n) {
   const num = Number(n ?? 0);
   return num >= 0 ? `+${num}` : `${num}`;
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }

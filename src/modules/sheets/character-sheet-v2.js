@@ -37,10 +37,10 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
     const GROUP_LABELS = { physical: "Physical", mental: "Mental", social: "Social" };
         const POOL_LABELS = {
           grit: "Grit",
-          chaos: "Chaos",
           insight: "Insight",
-          rumor: "Rumor",
           legend: "Legend",
+          chaos: "Chaos",
+          rumor: "Rumor",
           credibility: "Credibility"
         };
 
@@ -88,6 +88,25 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
         })
       }))
     };
+    // Interleaved 3x2 render order:
+    // [Grit][Insight][Legend]
+    // [Chaos][Rumor][Credibility]
+    const order = ["grit", "insight", "legend", "chaos", "rumor", "credibility"];
+
+    const poolByShortKey = new Map();
+    for (const g of ctx.edgeConsole.groups ?? []) {
+      for (const p of g.pools ?? []) {
+        const shortKey = String(p.key ?? "").split(".").pop(); // grit/chaos/...
+        if (shortKey) poolByShortKey.set(shortKey, p);
+        p.domain = g.id;
+      }
+    }
+
+ctx.edgeConsole.poolsOrdered = order
+  .map(k => poolByShortKey.get(k))
+  .filter(Boolean);
+
+
     /* -------------------------------------------- */
     /* Condition Monitors (character)               */
     /* -------------------------------------------- */

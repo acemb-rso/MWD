@@ -56,6 +56,22 @@ export function normalizeResolvedContext(ctx, { intent } = {}) {
     totalBase: attribute + skill + bonus
   };
 
+  // --- Roll semantics defaults ---
+  ctx.rollType = ctx.rollType ?? "simple";
+
+  // Die face threshold (per-die success)
+  // Defaults to 5 to preserve existing behavior
+  ctx.diceTarget = Number.isFinite(ctx.diceTarget)
+    ? ctx.diceTarget
+    : Number(ctx.target ?? 5);
+
+  // DN = hits needed (gate), optional
+  if (ctx.difficulty && typeof ctx.difficulty === "object") {
+    ctx.difficulty.dn = Number(ctx.difficulty.dn ?? 0);
+  } else if (Number.isFinite(ctx.dn)) {
+    ctx.difficulty = { dn: Number(ctx.dn) };
+  }
+
   // Optional: ensure breakdown has the standard rows if missing
   if (!ctx.breakdown.length) {
     ctx.breakdown = [

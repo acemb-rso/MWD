@@ -13,13 +13,14 @@ export class SystemSettings {
       type: Boolean,
       default: true,
     });
-    game.settings.register(SYSTEM_NAME, "enableGMManager", {
-      name: "Enable GM Manager (legacy)",
-      hint: "If enabled, renders the legacy GM Manager UI on startup. Keep OFF while migrating to v2.",
+
+    game.settings.register(SYSTEM_NAME, "enableGMGadget", {
+      name: "Enable GM Gadget",
+      hint: "If enabled, renders the new AppV2 GM Gadget UI on startup.",
       scope: "world",
       config: true,
       type: Boolean,
-      default: false
+      default: true
     });
   }
 

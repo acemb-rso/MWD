@@ -5,6 +5,7 @@ import { buildResolved } from "./build-resolved.js";
 import { renderChat } from "./renderers/render-chat.js";
 import { getSkillDef } from "../mwd/skills.js";
 import { MWDRollDialog } from "./mwd-roll-dialog.js";
+import { interpretOutcome } from "./outcome/interpret-outcome.js";
 
 
 /**
@@ -139,7 +140,7 @@ async function execute({ actor, payload, event, quick = false } = {}) {
   /* --------------------------- */
 
   const edgeInfo = computeEdgeInfo({ actor, ctx, payload });
-  const target = edgeInfo.pre.spent ? 4 : Number(ctx.target ?? 5);
+  const diceTarget = edgeInfo.pre.spent ? 4 : Number(ctx.diceTarget ?? ctx.target ?? 5);
 
   // Spend pre-edge (once) before rolling
   if (edgeInfo?.pre?.spent && edgeInfo?.pre?.poolKey) {
@@ -151,7 +152,7 @@ async function execute({ actor, payload, event, quick = false } = {}) {
   /* 6) Roll dice (once)        */
   /* --------------------------- */
 
-  const roll = await new Roll(`${pool}d6cs>=${target}`).evaluate();
+  const roll = await new Roll(`${pool}d6cs>=${diceTarget}`).evaluate();
   const dice = roll.dice?.[0];
 
   const hits = Array.isArray(dice?.results)
@@ -162,6 +163,16 @@ async function execute({ actor, payload, event, quick = false } = {}) {
     ? dice.results.filter(r => r.result === 1).length
     : 0;
 
+  /* -------------------------------- */
+  /* 6.5) Interpret roll outcome      */
+  /* -------------------------------- */
+
+  const outcomeModel = interpretOutcome(
+    ctx,
+    { successes: hits, raw: roll?.toJSON?.() },
+    null // opposed rolls can pass defender result later
+  );
+
   /* --------------------------- */
   /* 7) Build resolved payload  */
   /* --------------------------- */
@@ -171,20 +182,21 @@ async function execute({ actor, payload, event, quick = false } = {}) {
     payload,
     ctx,
     roll,
-    target,
+    target: diceTarget,
     pool,
     mods,
     modTotal,
     hits,
     ones,
-    edge: edgeInfo
+    edge: edgeInfo,
+    outcomeModel
   });
 
   /* --------------------------- */
   /* 8) Render chat             */
   /* --------------------------- */
 
-  const html = renderChat({ resolved });
+  const html = await renderChat({ resolved });
 
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),

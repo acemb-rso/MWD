@@ -1,0 +1,34 @@
+<section class="mwd-gmgadget__root">
+  <header class="mwd-gmgadget__header">
+    <div><b>Next Roll Difficulty</b></div>
+    <div class="mwd-gmgadget__sub">DN = hits needed</div>
+  </header>
+
+  <div class="mwd-gmgadget__current">
+    <span>Current:</span>
+    <b>DN {{currentDn}}</b>
+    <a class="mwd-gmgadget__clear" data-action="clearDn">Reset</a>
+  </div>
+
+  <div class="mwd-gmgadget__bar">
+    {{#each presets as |p|}}
+      <button
+        type="button"
+        class="mwd-gmgadget__btn {{#if (eq ../currentDn p.dn)}}is-active{{/if}}"
+        data-action="setDn"
+        data-dn="{{p.dn}}"
+        data-label="{{p.label}}"
+        title="Set next roll DN to {{p.dn}}"
+      >
+        {{p.label}} ({{p.dn}})
+      </button>
+    {{/each}}
+  </div>
+
+  <footer class="mwd-gmgadget__footer">
+    <label class="mwd-gmgadget__toggle">
+      <input type="checkbox" {{#if announce}}checked{{/if}} data-action="toggleAnnounce" />
+      Announce to chat
+    </label>
+  </footer>
+</section>

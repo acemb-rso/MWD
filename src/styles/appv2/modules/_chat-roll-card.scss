@@ -1,0 +1,70 @@
+.mwd-chat-card.mwd-roll-card {
+  padding: 6px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.35);
+}
+
+.mwd-roll-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.mwd-roll-card__title { font-size: 13px; }
+.mwd-roll-card__subtitle { font-size: 11px; opacity: 0.85; }
+
+.mwd-roll-card__formula {
+  font-size: 11px;
+  opacity: 0.9;
+  margin: 4px 0 6px;
+}
+
+.mwd-roll-card__meta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: start;
+}
+
+.mwd-roll-card__line { font-size: 11px; opacity: 0.9; }
+.mwd-roll-card__line .k { opacity: 0.75; }
+.mwd-roll-card__line .sep { opacity: 0.4; margin: 0 6px; }
+
+.mwd-roll-card__meta-right {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 6px;
+}
+
+.mwd-roll-card__stat {
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 4px 6px;
+  min-width: 56px;
+  text-align: right;
+}
+.mwd-roll-card__stat .k { font-size: 10px; opacity: 0.7; }
+.mwd-roll-card__stat .v { font-size: 14px; font-weight: 700; }
+
+.mwd-roll-card__result {
+  margin-top: 6px;
+  padding: 6px;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.mwd-roll-card.is-success .mwd-roll-card__result { /* let theme tokens color this */ }
+.mwd-roll-card.is-failure .mwd-roll-card__result { /* let theme tokens color this */ }
+
+.mwd-roll-card__incoming {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  font-size: 11px;
+  opacity: 0.9;
+}
+.mwd-roll-card__incoming .k { opacity: 0.75; }

@@ -61,6 +61,33 @@ export class HooksManager {
     Hooks.on(ANARCHY_HOOKS.ANARCHY_HACK, register => register(SHADOWRUN_ANARCHY_NO_HACK));
     Hooks.on('updateSetting', async (setting, update, options, id) => this.onUpdateSetting(setting, update, options, id));
     Hooks.once('ready', () => this.onReady());
+    Hooks.on("getSceneControlButtons", (controls) => {
+      if (!game.user?.isGM) return;
+
+      // Foundry v13: controls often arrives as an Array of SceneControl,
+      // and each SceneControl.tools is a Record<string, SceneControlTool>.
+      const token = Array.isArray(controls) ? controls.find(c => c.name === "notes") : controls?.notes;
+
+      if (!token) {
+        const names = Array.isArray(controls) ? controls.map(c => c.name) : Object.keys(controls ?? {});
+        console.warn("MWD: token controls not found. Available:", names);
+        return;
+      }
+
+      token.tools = token.tools ?? {};
+
+      if (token.tools["mwd-gm-gadget"]) return;
+
+      token.tools["mwd-gm-gadget"] = {
+        name: "mwd-gm-gadget",
+        title: "Open GM Gadget",
+        icon: "fa-solid fa-sliders",
+        order: 990,
+        button: true,
+        visible: true,
+        onChange: () => game.mwd?.gmGadget?.()
+      };
+    });
   }
 
   async onReady() {

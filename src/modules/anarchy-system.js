@@ -2,11 +2,10 @@ import { MWD } from './config.js';
 import { Enums } from './enums.js';
 import { LOG_HEAD, SYSTEM_NAME } from './constants.js';
 import { HandlebarsManager } from './handlebars-manager.js';
-import { GMManager } from './app/gm-manager.js';
 import { RemoteCall } from './remotecall.js';
 import { Styles } from './styles.js';
 import { HooksManager } from './hooks-manager.js';
-import { Migrations } from './migrations.js';
+//import { Migrations } from './migrations.js';
 import { AnarchyBaseItem } from './item/anarchy-base-item.js';
 import { CharacterActor } from './actor/character-actor.js';
 import { VehicleActor } from './actor/vehicle-actor.js';
@@ -18,9 +17,8 @@ import { GearItem } from './item/gear-item.js';
 import { QualityItem } from './item/quality-item.js';
 import { AssetModuleItem } from './item/asset-module-item.js';
 import { LifeModuleItem } from './item/lifemodule-item.js';
-import { AnarchyCombat } from './anarchy-combat.js';
+//import { AnarchyCombat } from './anarchy-combat.js';
 import { SystemSettings } from './system-settings.js';
-import { GMAnarchyManager } from "./gm/gm-anarchy.js";
 import { registerActorSheetsV2 } from "./sheets/register-actor-sheets-v2.js";
 import { preloadTemplatesV2 } from "./sheets/preload-templates.js";
 import { MWDActor } from "./actor/mwd-actor.js";
@@ -29,7 +27,9 @@ import { modifierProviders } from "../modules/modifiers/index.js";
 import { ItemModifiersProvider } from "../modules/modifiers/providers/item-modifiers.js";
 import { StatusEffectsProvider } from "../modules/modifiers/providers/status-effects.js";
 import { BaseRollModifiersProvider } from "../modules/modifiers/providers/base-modifiers.js";
-
+import { registerMWDChatActions } from "./chat/chat-actions.js";
+import { registerMWDGMGadgetSettings } from "./gm/mwd-gmgadget.js";
+import { getMWDGMGadget } from "./gm/mwd-gmgadget.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -41,7 +41,6 @@ function configureMWDFonts() {
       fonts: [
         { urls: ["systems/mwd/fonts/Exo2/Exo2-Regular.woff2"], weight: 400, style: "normal" },
         { urls: ["systems/mwd/fonts/Exo2/Exo2-Italic.woff2"],  weight: 400, style: "italic" },
-        { urls: ["systems/mwd/fonts/Exo2/Exo2-SemiBold.woff2"], weight: 600, style: "normal" },
         { urls: ["systems/mwd/fonts/Exo2/Exo2-Bold.woff2"],     weight: 700, style: "normal" }
       ]
     },
@@ -84,7 +83,7 @@ export class AnarchySystem {
   static start() {
     const anarchySystem = new AnarchySystem();
     Hooks.once('init',  () => anarchySystem.onInit());
-    //Hooks.once('ready', () => anarchySystem.onReady());
+    Hooks.once('ready', () => anarchySystem.onReady());
   }
 
   async onInit() {
@@ -94,7 +93,8 @@ export class AnarchySystem {
     game.mwd ??= {};
 
     configureMWDFonts();
-    
+    registerMWDChatActions();
+    registerMWDGMGadgetSettings("mwd");
     // Roll API (new AppV2 path)
     game.mwd.roll = MWDRoll;
 
@@ -104,9 +104,9 @@ export class AnarchySystem {
     // initialize remote calls registry first: used by other singleton managers
     this.remoteCall = new RemoteCall(); 
 
-      modifierProviders.register(new ItemModifiersProvider());
-      modifierProviders.register(new StatusEffectsProvider());
-      modifierProviders.register(new BaseRollModifiersProvider()); 
+    modifierProviders.register(new ItemModifiersProvider());
+    modifierProviders.register(new StatusEffectsProvider());
+    modifierProviders.register(new BaseRollModifiersProvider()); 
 
     //register handlebars helpers early
     Handlebars.registerHelper("mwdClassList", (classes) => {
@@ -142,7 +142,7 @@ export class AnarchySystem {
 
     console.log(LOG_HEAD + 'AnarchySystem.onInit | loading system');
     CONFIG.ANARCHY = MWD;
-    CONFIG.Combat.documentClass = AnarchyCombat;
+    //CONFIG.Combat.documentClass = AnarchyCombat;
     CONFIG.Combat.initiative = { formula: "2d6" }
     CONFIG.Actor.documentClass = MWDActor;
     CONFIG.Item.documentClass = AnarchyBaseItem;
@@ -160,19 +160,17 @@ export class AnarchySystem {
   async onReady() {
     console.log(LOG_HEAD + 'AnarchySystem.onReady');
 
-    this.gmAnarchy = new GMAnarchyManager();
-
     if (!game.user.isGM) return;
 
-    await new Migrations().migrate();
+    const enabled = game.settings.get(SYSTEM_NAME, "enableGMGadget");
 
-    const enabled = game.settings.get(SYSTEM_NAME, "enableGMManager");
     if (!enabled) {
-      console.log(`${LOG_HEAD}GMManager render skipped (enableGMManager=false)`);
+      console.log(`${LOG_HEAD}GMManager render skipped (enableGMGadget=false)`);
       return;
     }
 
-    if (!game.gmManager) game.gmManager = new GMManager();
-    game.gmManager.render({ force: true });
+    game.mwd = game.mwd ?? {};
+    game.mwd.gmGadget = () => getMWDGMGadget({ systemId: SYSTEM_NAME }).render({ force: true });
+    if (enabled) game.mwd.gmGadget();
   }
 }

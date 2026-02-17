@@ -1,43 +1,68 @@
 // modules/roll/renderers/render-chat.js
-import { renderSkill } from "./render-skill.js";
+import { enhanceSkill } from "./render-skill.js";
+import { enhanceNet } from "./render-net.js";
+import { enhanceOpposed } from "./render-opposed.js";
+import { enhanceExtended } from "./render-extended.js";
+// import { enhanceDefense } from "./render-defense.js";
+// import { enhanceEdge } from "./render-edge.js";
 
-/**
- * Router renderer.
- * Keeps the call-site stable: renderChat({ resolved })
- */
-export function renderChat({ resolved } = {}) {
-  const intent = resolved?.originPayload?.intent ?? resolved?.intent ?? null;
+const ENHANCERS = {
+  skill: enhanceSkill,
+  net: enhanceNet,
+  opposed: enhanceOpposed,
+  extended: enhanceExtended,
+  // defense: enhanceDefense,
+  // edge: enhanceEdge,
+};
 
-  switch (intent) {
-    case "skill":
-      return renderSkill({ resolved });
+export async function renderChat({ resolved } = {}) {
+  const r = resolved ?? {};
+  const vm = buildBaseCardVM(r);
 
-    // future: attribute/attack/defense/resistance
-    default:
-      return renderFallback({ resolved });
-  }
+  const fn = ENHANCERS[vm.intent];
+  if (typeof fn === "function") fn(r, vm);
+
+  return await foundry.applications.handlebars.renderTemplate(
+    "mwd.v2.roll.mwd-roll-card",
+    vm
+  );
 }
 
-function renderFallback({ resolved } = {}) {
-  const title = escapeHtml(resolved?.title ?? "Roll");
-  const pool = Number(resolved?.roll?.pool ?? 0);
-  const target = Number(resolved?.roll?.target ?? 5);
-  const hits = Number(resolved?.outcome?.hits ?? 0);
+function buildBaseCardVM(resolved) {
+  const r = resolved ?? {};
 
-  return `
-  <div class="mwd-chat-roll mwd-chat-roll--fallback">
-    <header><b>${title}</b></header>
-    <hr/>
-    <div><b>Pool:</b> ${pool} vs <b>TN</b> ${target}</div>
-    <div><b>Hits:</b> ${hits}</div>
-  </div>`;
-}
+  const tn   = Number(r?.roll?.target ?? 5);
+  const dn   = Number(r?.ctxSnapshot?.difficulty?.dn ?? 0);
+  const pool = Number(r?.roll?.pool ?? 0);
+  const hits = Number(r?.outcome?.hits ?? 0);
 
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  const om = r?.outcomeModel ?? {};
+  const passed = (typeof om.passed === "boolean") ? om.passed : (hits >= dn);
+  const margin = Number.isFinite(Number(om.margin)) ? Number(om.margin) : (hits - dn);
+  const tier   = om.tier ?? null;
+
+  const breakdownTooltip = Array.isArray(r?.breakdownRows)
+    ? r.breakdownRows.map(x => `${x.label}: ${x.value}`).join("\n")
+    : "";
+
+  return {
+    header: { left: r?.title ?? "Roll", right: r?.subtitle ?? "" },
+    intent: r?.intent ?? "unknown",
+    domains: Array.isArray(r?.domains) ? r.domains : [],
+
+    tn, dn, pool, hits,
+    passed, margin, tier,
+
+    breakdownTooltip,
+
+    metaRows: [],
+    actions: [],
+    footerRows: [],
+
+    incoming: null,
+    edge: null,
+    net: null,
+    opposed: null,
+    extended: null,
+  };
 }

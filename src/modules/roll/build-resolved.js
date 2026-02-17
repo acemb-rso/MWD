@@ -21,7 +21,8 @@ export function buildResolved({
   modTotal = 0,
   hits = null,
   ones = null,
-  edge = null
+  edge = null,
+  outcomeModel = null
 } = {}) {
   if (!actor) throw new Error("buildResolved requires actor");
   if (!payload?.intent) throw new Error("buildResolved requires payload.intent");
@@ -143,6 +144,19 @@ export function buildResolved({
     intent: ctx?.intent ?? payload.intent,
     domains: Array.isArray(ctx?.domains) ? ctx.domains : [],
 
+    // Minimal context snapshot so chat-actions can recompute interpretation
+    // after post-spend rerolls mutate hits.
+    ctxSnapshot: {
+       rollType: ctx?.rollType ?? "simple",
+       difficulty: ctx?.difficulty ?? null,
+       opposed: ctx?.opposed ?? null,
+       net: ctx?.net ?? null,
+       edge: {
+        pool: ctx?.edge?.pool ?? null,
+        earn: ctx?.edge?.earn ?? null
+       }
+     },
+
     // Roll + dice
     roll: {
       json: roll.toJSON(),
@@ -159,6 +173,9 @@ export function buildResolved({
       ones: computedOnes
     },
 
+    // New: engine-interpreted outcome (margin/net/converted/edgeEarned/etc
+    outcomeModel: outcomeModel,
+    
     // Breakdown + modifiers
     breakdownRows,
     modifiers: {

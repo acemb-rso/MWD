@@ -94,7 +94,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         setManualValue: MWDRollDialog.prototype._onSetManualValue,
         setManualStepper: MWDRollDialog.prototype._onSetManualStepper,
         setEdgePrePool: MWDRollDialog.prototype._onSetEdgePrePool,
-        toggleCheckbox: MWDRollDialog.prototype._onToggleCheckbox
+        toggleCheckbox: MWDRollDialog.prototype._onToggleCheckbox,
+        setDn: MWDRollDialog.prototype._onSetDn
       }
     },
     { inplace: false }
@@ -163,6 +164,11 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
   async _prepareContext(_options) {
     const bc = this._mwd.baseContext ?? {};
     const st = this._mwd.state ?? {};
+    const dn =
+      Number.isFinite(Number(st?.payload?.dn)) ? Number(st.payload.dn) :
+      Number.isFinite(Number(bc?.dn)) ? Number(bc.dn) :
+      Number.isFinite(Number(bc?.resolved?.difficulty?.dn)) ? Number(bc.resolved.difficulty.dn) :
+      1;
 
     const intent = bc?.intent ?? "skill";
 
@@ -249,7 +255,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         ? { useEdge: false, takeRisks: false, opponentRoll: false }
         : st.toggles,
       totalPool,
-      intent
+      intent,
+      dn
     };
   }
 
@@ -376,6 +383,17 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     return this.render(false);
   }
 
+  async _onSetDn(event, target) {
+    event?.preventDefault();
+
+    // Accept empty as "unset" (will fall back to defaulting rules next open)
+    const raw = String(target?.value ?? "").trim();
+    const n = raw === "" ? null : Number(raw);
+
+    this._mwd.state.payload.dn = Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : null;
+    return this.render(false);
+  }
+
   /**
    * Open the roll dialog as a payload editor and return an updated payload.
    * Cancel returns null.
@@ -386,6 +404,25 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   static async prompt({ actor, basePayload, resolved, diceParts = null, mods = [], modTotal = 0 } = {}) {
     const payload = foundry.utils.deepClone(basePayload ?? {});
+
+    // ------------------------------
+    // Default DN (hits needed) from GM Gadget for SIMPLE tests
+    // ------------------------------
+    //
+    // Rules:
+    // - Only apply to simple rolls
+    // - Only if payload.dn is not already set
+    // - Uses the GM Gadget "next DN" setting
+    //
+    try {
+      const rollType = resolved?.rollType ?? "simple"; // until everything sets rollType explicitly
+      if (rollType === "simple" && payload?.dn == null) {
+        const gmDn = Number(game.settings.get(game.system.id, "gmNextDn"));
+        if (Number.isFinite(gmDn)) payload.dn = Math.max(0, Math.trunc(gmDn));
+      }
+    } catch (err) {
+      console.warn("MWD: failed to default DN from GM Gadget", err);
+    }
 
     const header = {
       left: resolved?.title ?? "Roll",
@@ -419,7 +456,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         dice,
         modifiers,
         payload,
-        resolved // keep full resolved for edge display
+        resolved, // keep full resolved for edge display
+        dn: Number(payload?.dn ?? resolved?.difficulty?.dn ?? 1)
       }
     });
     const result = await dlg.wait();

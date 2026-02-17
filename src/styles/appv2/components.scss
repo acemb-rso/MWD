@@ -797,3 +797,58 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* =========================================================
+   Chat: Roll Summary component
+   ========================================================= */
+.mwd-chat-roll {
+  padding: 6px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.35);
+}
+
+.mwd-roll-summary {
+  font-size: 11px;
+  opacity: 0.85;
+  margin-bottom: 4px;
+}
+
+.mwd-roll-stats {
+  display: flex;
+  gap: 6px;
+}
+
+.mwd-roll-stat {
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 4px 6px;
+  min-width: 52px;
+  text-align: right;
+}
+
+.mwd-roll-stat .k {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.mwd-roll-stat .v {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.mwd-roll-result {
+  margin-top: 6px;
+  padding: 6px;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+.mwd-chat-roll.is-success .mwd-roll-result {
+  color: #8fdc8f;
+}
+
+.mwd-chat-roll.is-failure .mwd-roll-result {
+  color: #ff8a8a;
+}
