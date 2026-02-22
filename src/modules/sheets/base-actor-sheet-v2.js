@@ -34,7 +34,8 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
       toggleViewMode: BaseActorSheetV2.prototype._onToggleViewMode,
       tab: BaseActorSheetV2.prototype._onClickTab,
       roll: BaseActorSheetV2.prototype._onRollAction,
-      monitorSet: BaseActorSheetV2.prototype._onMonitorSet
+      monitorSet: BaseActorSheetV2.prototype._onMonitorSet,
+      editImage: BaseActorSheetV2.prototype._onEditImage
     }
   }, { inplace: false });
 
@@ -121,7 +122,6 @@ _initializeApplicationOptions(options) {
   options.classes.push(theme);
   return options;
 }
-
 
   /**
    * No localization: provide a concrete title so Foundry doesn't show "TYPES.Actor.<type>".
@@ -253,6 +253,28 @@ _initializeApplicationOptions(options) {
     return rollApi.execute({ actor: this.actor, payload, event, quick });
   }
 
+  async _onEditImage(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (!this.isEditable) return;
+    if (!this.editing) return;
+
+    const FilePickerV2 = foundry.applications.apps.FilePicker.implementation;
+
+    const picker = new FilePickerV2({
+      type: "image",
+      current: this.actor?.img ?? "",
+      callback: async (path) => {
+        if (!path) return;
+        await this.actor.update({ img: path });
+      }
+    });
+
+    // render() is sync in Foundry; awaiting is fine but not required
+    picker.render(true);
+  }
+
   /**
    * Post-render reconciliation hook (stable DOM).
    * Ensures every .csb-tabs group has exactly one active tab/panel:
@@ -336,7 +358,6 @@ _initializeApplicationOptions(options) {
       await this.actor.update(updates);
     } catch (err) {
       console.warn("MWD | Commit failed (permissions or validation):", err);
-      // Optional: ui.notifications?.warn("You don't have permission to update this actor.");
     }
   }
 

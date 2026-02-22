@@ -1,3 +1,5 @@
+// systems/mwd/modules/mwd/derive-monitors.js
+
 export function penaltyFromDamage(damage) {
   const d = Math.max(0, Number(damage) || 0);
   return -Math.floor(d / 3);

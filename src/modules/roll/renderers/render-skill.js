@@ -58,7 +58,7 @@ export function enhanceSkill(resolved, vm) {
       vm.actions.push({
         action: "edgePostReroll",
         label: `Spend ${poolKey}`,
-        dataset: { poolKey },
+        dataset: { "pool-key": poolKey },
         cssClass: "mwd-edge-post"
       });
     }

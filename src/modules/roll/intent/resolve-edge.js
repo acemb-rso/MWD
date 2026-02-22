@@ -24,16 +24,17 @@ export async function resolveEdge({ actor, payload } = {}) {
   if (!EDGE_POOLS.has(poolKey)) throw new Error(`Invalid edge pool: ${poolKey}`);
 
   const p = actor.getEdgePool(poolKey);
-  const usable = Math.max(0, Number(p?.effectiveValue ?? 0)); // current usable (clamped)
+  const usable = Math.max(0, Number(p?.effectiveValue ?? 0));
 
   return {
     intent: "edge",
     title: `Edge — ${poolKey}`,
     subtitle: actor.name ?? "Actor",
-    domains: ["edge", EDGE_DOMAIN[poolKey] ?? "unknown"],
+    domains: [EDGE_DOMAIN[poolKey] ?? "unknown"], // drop "edge" tag unless you truly want it
 
-    // Edge is “attribute-only dice”
-    pool: { attribute: usable, skill: 0, bonus: 0 },
+    // ✅ Make it directly rollable by the core roll pipeline
+    target: 5,
+    poolTotal: usable,
 
     breakdown: [
       { id: "current", label: "Current", value: Number(p?.value ?? 0) },
@@ -45,3 +46,4 @@ export async function resolveEdge({ actor, payload } = {}) {
     data: { poolKey }
   };
 }
+

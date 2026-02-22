@@ -36,7 +36,7 @@ export async function collectModifiers({
   const ctx = { actor, rollType, skillId, domains, payload, resolved, context };
 
   const raw = await modifierProviders.collectAll(ctx);
-
+  console.log("MWD|condition collect called", ctx.rollType);
   // 1) Normalize + drop invalid values
   let mods = [];
   for (const m of raw ?? []) {

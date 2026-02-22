@@ -1,7 +1,7 @@
 // /mwd/src/modules/actor/mwd-actor.js
 import { ensureCoreSkillRatings } from "../mwd/skills.js";
 import { MONITOR_DEFS } from "../constants.js";
-import { DERIVE_FNS, resolveDerivedSource } from "../mwd/derive-monitors.js";
+import { DERIVE_FNS, resolveDerivedSource,  deriveMonitors } from "../mwd/derive-monitors.js";
 
 export class MWDActor extends Actor {
   /* -------------------------------------------- */
@@ -36,6 +36,9 @@ export class MWDActor extends Actor {
 
     // Compute derived caches (no document writes)
     this._prepareEdgePoolsDerived();
+
+    // Condition monitors derived (penalties/resistance)
+    this._prepareMonitors();
   }
 
   /**
@@ -329,6 +332,18 @@ export class MWDActor extends Actor {
     return this.adjustEdgePoolValue(poolKey, -a);
   }
 
+  async gainEdge(poolKey, amount = 1) {
+    if (!this.hasEdgePools()) return;
+
+    const current = Math.max(
+      0,
+      Number(this.getEdgePoolRaw(poolKey)?.value ?? 0)
+    );
+
+    const delta = Number(amount ?? 0);
+    return this.adjustEdgePoolValue(poolKey, delta);
+  }
+
   /* -------------------------------------------- */
   /* Condition Monitors                            */
   /* -------------------------------------------- */
@@ -357,5 +372,28 @@ export class MWDActor extends Actor {
     }
 
     return this.update(update);
+  }
+
+  _prepareMonitors() {
+    const monitors = this.system.monitors ?? {};
+    const derived = deriveMonitors(monitors);
+
+    this.system.derived ??= {};
+    this.system.derived.monitors = derived;
+
+    const phys = Number(derived?.physical?.penalty ?? 0);
+    const fat  = Number(derived?.fatigue?.penalty ?? 0);
+
+    // Both apply (stack)
+    const total = phys + fat;
+
+    // Keep explicit components (useful for sheets + providers)
+    this.system.derived.condition ??= {};
+    this.system.derived.condition.physicalPenalty = phys;
+    this.system.derived.condition.fatiguePenalty  = fat;
+    this.system.derived.condition.totalPenalty    = total;
+
+    // Optional: keep the old field for backward compatibility
+    this.system.derived.conditionPenalty = total;
   }
 }

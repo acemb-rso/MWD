@@ -5,7 +5,6 @@ import { HandlebarsManager } from './handlebars-manager.js';
 import { RemoteCall } from './remotecall.js';
 import { Styles } from './styles.js';
 import { HooksManager } from './hooks-manager.js';
-//import { Migrations } from './migrations.js';
 import { AnarchyBaseItem } from './item/anarchy-base-item.js';
 import { CharacterActor } from './actor/character-actor.js';
 import { VehicleActor } from './actor/vehicle-actor.js';
@@ -17,7 +16,6 @@ import { GearItem } from './item/gear-item.js';
 import { QualityItem } from './item/quality-item.js';
 import { AssetModuleItem } from './item/asset-module-item.js';
 import { LifeModuleItem } from './item/lifemodule-item.js';
-//import { AnarchyCombat } from './anarchy-combat.js';
 import { SystemSettings } from './system-settings.js';
 import { registerActorSheetsV2 } from "./sheets/register-actor-sheets-v2.js";
 import { preloadTemplatesV2 } from "./sheets/preload-templates.js";
@@ -27,6 +25,7 @@ import { modifierProviders } from "../modules/modifiers/index.js";
 import { ItemModifiersProvider } from "../modules/modifiers/providers/item-modifiers.js";
 import { StatusEffectsProvider } from "../modules/modifiers/providers/status-effects.js";
 import { BaseRollModifiersProvider } from "../modules/modifiers/providers/base-modifiers.js";
+import { ConditionModifiersProvider } from "../modules/modifiers/providers/conditions.js";
 import { registerMWDChatActions } from "./chat/chat-actions.js";
 import { registerMWDGMGadgetSettings } from "./gm/mwd-gmgadget.js";
 import { getMWDGMGadget } from "./gm/mwd-gmgadget.js";
@@ -95,6 +94,7 @@ export class AnarchySystem {
     configureMWDFonts();
     registerMWDChatActions();
     registerMWDGMGadgetSettings("mwd");
+    
     // Roll API (new AppV2 path)
     game.mwd.roll = MWDRoll;
 
@@ -106,7 +106,8 @@ export class AnarchySystem {
 
     modifierProviders.register(new ItemModifiersProvider());
     modifierProviders.register(new StatusEffectsProvider());
-    modifierProviders.register(new BaseRollModifiersProvider()); 
+    modifierProviders.register(new BaseRollModifiersProvider());
+    modifierProviders.register(new ConditionModifiersProvider());
 
     //register handlebars helpers early
     Handlebars.registerHelper("mwdClassList", (classes) => {

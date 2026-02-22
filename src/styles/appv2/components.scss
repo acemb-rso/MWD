@@ -852,3 +852,8 @@
 .mwd-chat-roll.is-failure .mwd-roll-result {
   color: #ff8a8a;
 }
+
+.mwd-portrait.is-editable {
+  cursor: pointer;
+  outline: 2px dashed var(--mwd-accent);
+}

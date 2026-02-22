@@ -19,6 +19,18 @@ export class ModifierProviderRegistry {
         out.push(m);
       }
     }
+    for (const p of this.#providers.values()) {
+      const mods = await p.collect(ctx);
+      console.log("MWD | provider", p.id, "returned", mods);
+
+      if (!mods?.length) continue;
+
+      for (const m of mods) {
+        const ok = m && typeof m.label === "string" && typeof m.value === "number" && typeof m.source === "string";
+        if (!ok) console.warn("MWD | DROPPED MOD (bad shape)", p.id, m);
+        else out.push(m);
+      }
+    }
     return out;
   }
 }

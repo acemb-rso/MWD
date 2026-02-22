@@ -1405,6 +1405,11 @@
   color: #ff8a8a;
 }
 
+.mwd-portrait.is-editable {
+  cursor: pointer;
+  outline: 2px dashed var(--mwd-accent);
+}
+
 /* Visual mood / values */
 /* appv2/themes/_index.scss */
 /* Default theme: gunmetal, restrained contrast */

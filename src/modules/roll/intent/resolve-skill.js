@@ -44,7 +44,9 @@ export async function resolveSkill({ actor, payload } = {}) {
 
     // DN = hits needed for success
     difficulty: { dn: dnHits },
-
+    edge: {
+        earn: { enabled: true, rate: 4, maxPerRoll: 1 }
+      },
     pool: { attribute, skill, bonus },
 
     breakdown: [

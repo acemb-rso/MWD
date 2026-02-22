@@ -10,9 +10,29 @@ import { interpretOutcome } from "./outcome/interpret-outcome.js";
 
 /**
  * Public roll API.
- * Sheets call: game.mwd.roll.execute({ actor, payload, event, quick })
+ * Sheets call: game.mwd.roll.execute({ actor, payload, event })
  */
 export const MWDRoll = { execute };
+
+const EDGE_DOMAIN_POOLS = {
+  physical: ["grit","chaos"],
+  mental: ["insight","rumor"],
+  social: ["legend","credibility"],
+};
+
+function pickMostMissingEdgePool(actor, domain) {
+  const keys = EDGE_DOMAIN_POOLS[domain] ?? [];
+  let best = null, bestMissing = -1;
+
+  for (const k of keys) {
+    const p = actor.getEdgePool?.(k);
+    const rating = Number(p?.rating ?? 0);
+    const value  = Number(p?.value ?? 0);
+    const missing = Math.max(0, rating - value);
+    if (missing > bestMissing) { bestMissing = missing; best = k; }
+  }
+  return best ?? keys[0] ?? null;
+}
 
 function normalizeManualMods(payload) {
   const rows = Array.isArray(payload?.manualModifiers) ? payload.manualModifiers : [];
@@ -52,8 +72,7 @@ function normalizeManualModifierRows(rows) {
   }));
 }
 
-async function execute({ actor, payload, event, quick = false } = {}) {
-  console.log("MWD.roll.execute reached - quick: ", { quick })
+async function execute({ actor, payload, event } = {}) {
   // Allow token docs/objects to be passed accidentally
   if (actor?.actor) actor = actor.actor;
   if (actor?.document?.actor) actor = actor.document.actor;
@@ -72,47 +91,51 @@ async function execute({ actor, payload, event, quick = false } = {}) {
   /* 2) Collect modifiers (items, status, etc — no UI)  */
   /* --------------------------------------------------- */
 
-  const collected = await collectModifiers({
+  let collected = await collectModifiers({
     actor,
     rollType: payload.intent,
     skillId: payload.key,
     domains: ctx.domains,
     payload,
     resolved: ctx,
-    context: { event, quick }
+    context: { event }
   });
 
   /* -------------------------------------- */
-  /* 3) Dialog fork (BEFORE rolling)         */
+  /* 3) Dialog (BEFORE rolling)             */
   /* -------------------------------------- */
 
-  if (shouldOpenDialog({ payload, quick })) {
-    const updatedPayload = await MWDRollDialog.prompt({
-      actor,
-      basePayload: payload,
-      resolved: ctx,
-      diceParts: {
-        attribute: ctx?.pool?.attribute ?? 0,
-        skill: ctx.pool?.skill ?? 0,
-        bonus: ctx.pool?.bonus ?? 0
-      },
-      mods: collected.mods,
-      modTotal: collected.total
-    });
+  const updatedPayload = await MWDRollDialog.prompt({
+    actor,
+    basePayload: payload,
+    resolved: ctx,
+    diceParts: {
+      attribute: ctx?.pool?.attribute ?? 0,
+      skill: ctx?.pool?.skill ?? 0,
+      bonus: ctx?.pool?.bonus ?? 0
+    },
+    mods: collected.mods,
+    modTotal: collected.total
+  });
 
+  if (!updatedPayload) return null;
 
-    // Cancel = abort roll entirely
-    if (!updatedPayload) return null;
+  payload = normalizePayload(updatedPayload);
 
-    // Re-enter engine with edited payload; force quick to avoid loop
-    return execute({
-      actor,
-      payload: updatedPayload,
-      event,
-      quick: true
-    });
-  }
+  /* -------------------------------------- */
+  /* 3.5) Recollect modifiers (final pass) */
+  /* -------------------------------------- */
 
+  collected = await collectModifiers({
+    actor,
+    rollType: payload.intent,
+    skillId: payload.key,
+    domains: ctx.domains,
+    payload,
+    resolved: ctx,
+    context: { event }
+  });
+    
   /* -------------------------------- */
   /* 4) Final modifier collection     */
   /*    (now includes manual mods)    */
@@ -173,6 +196,21 @@ async function execute({ actor, payload, event, quick = false } = {}) {
     null // opposed rolls can pass defender result later
   );
 
+  const earned = outcomeModel?.edgeEarned;
+  if (earned?.amount > 0) {
+    const domain =
+      ctx?.domains?.includes("physical") ? "physical" :
+      ctx?.domains?.includes("mental") ? "mental" :
+      ctx?.domains?.includes("social") ? "social" : null;
+
+    const poolKey = pickMostMissingEdgePool(actor, domain);
+
+    await actor.gainEdge?.(poolKey, earned.amount);
+
+    // so chat shows where it went
+    outcomeModel.edgeEarned.pool = poolKey;
+  }
+
   /* --------------------------- */
   /* 7) Build resolved payload  */
   /* --------------------------- */
@@ -212,7 +250,7 @@ async function execute({ actor, payload, event, quick = false } = {}) {
 
 
 /* ----------------------------- */
-/* Edge computation (MVP local) */
+/* Edge computation              */
 /* ----------------------------- */
 
 function computeEdgeInfo({ actor, ctx, payload }) {
@@ -268,14 +306,3 @@ const EDGE_POOLS_BY_DOMAIN = {
   mental: { a: "insight", b: "rumor" },
   social: { a: "legend", b: "credibility" }
 };
-
-function shouldOpenDialog({ payload, quick }) {
-  if (quick) return false;
-
-  // Later you can refine this:
-  // - payload.mode === "quick"
-  // - attacks always open dialog
-  // - GM setting
-  return true;
-}
-
