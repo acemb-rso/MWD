@@ -1,9 +1,27 @@
 ## Personal Damage Calculation
-[DamageIncoming] - [NetResistance] = [TotalMitigatedDamage]
-[WeaponDamage] + [NetHits] = [DamageIncoming]
-[BaseArmorResistance] + [DamageTypeMitigation] - [WeaponAP] = [NetResistance]
-[AttackRollHits] - [DefenseRollHits] - [PersonalDefenseBonus] = [NetHits]
+[DamageApplied] = max(0, [DamageIncoming] - [NetResistance])
+[DamageIncoming] = [WeaponDamageEff] + [NetHits]
+[NetResistance] = [BaseArmorResistance] + [DamageTypeMitigation] - [WeaponAP]
 
+[Margin] = [AttackRollHits] - [DN]
+[CombatQuality] = [AttackRating] - [DefenseRating]
+
+** Outcome
+
+[Margin] = -1 AND [CombatQuality] > 0 => [Graze]
+[Margin] = 0 AND [CombatQuality] < 0 => [Graze]
+[Margin] >= 1 => [Hit]
+Else => [Miss]
+
+** NetHits (bounded AR; Hit only)
+
+[Hit] => [NetHits] = max(0, [Margin] + min([CombatQuality], [Margin]))
+[Graze OR Miss] => [NetHits] = 0
+
+** Graze damage
+
+[Graze] => [WeaponDamageEff] = [WeaponDamage] / 2
+[Hit] => [WeaponDamageEff] = [WeaponDamage]
 
 ## Hit Location (3d6)
 Roll 3d6 (sum):
