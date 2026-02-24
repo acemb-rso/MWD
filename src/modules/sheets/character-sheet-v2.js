@@ -146,6 +146,11 @@ ctx.edgeConsole.poolsOrdered = order
           : null
       };
     });
+    ctx.combat = {
+      roll: {
+        initiative: JSON.stringify({ intent: "initiative" })
+      }
+    };
 
     return ctx;
   }

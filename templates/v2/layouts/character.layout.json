@@ -71,7 +71,7 @@
                     "type": "panel",
                     "title": "Status Dashboard",
                     "children": [
-                      { "type": "include", "partial": "mwd.v2.ui.placeholders.status-dashboard" }
+                      { "type": "include", "partial": "mwd.v2.ui.character.status-dashboard" }
                     ]
                   }
                 ]

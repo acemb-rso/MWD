@@ -115,7 +115,10 @@ async function execute({ actor, payload, event } = {}) {
       bonus: ctx?.pool?.bonus ?? 0
     },
     mods: collected.mods,
-    modTotal: collected.total
+    modTotal: collected.total,
+    options: {
+      allowEdge: payload.intent !== "initiative"
+    }
   });
 
   if (!updatedPayload) return null;
@@ -158,15 +161,19 @@ async function execute({ actor, payload, event } = {}) {
   const pool = Math.max(0, basePool + Number(modTotal ?? 0));
 
 
-  /* --------------------------- */
+ /* --------------------------- */
   /* 5) Edge + target number    */
   /* --------------------------- */
 
-  const edgeInfo = computeEdgeInfo({ actor, ctx, payload });
-  const diceTarget = edgeInfo.pre.spent ? 4 : Number(ctx.diceTarget ?? ctx.target ?? 5);
+  // Initiative (and other non-skill intents) must not spend Edge.
+  // Edge may *later* be used to gain actions, but that's not "roll spend".
+  const edgeAllowed = payload.intent !== "initiative";
+
+  const edgeInfo = edgeAllowed ? computeEdgeInfo({ actor, ctx, payload }) : null;
+  const diceTarget = edgeInfo?.pre?.spent ? 4 : Number(ctx.diceTarget ?? ctx.target ?? 5);
 
   // Spend pre-edge (once) before rolling
-  if (edgeInfo?.pre?.spent && edgeInfo?.pre?.poolKey) {
+  if (edgeAllowed && edgeInfo?.pre?.spent && edgeInfo?.pre?.poolKey) {
     await actor.spendEdge?.(edgeInfo.pre.poolKey, 1);
   }
 
@@ -175,16 +182,37 @@ async function execute({ actor, payload, event } = {}) {
   /* 6) Roll dice (once)        */
   /* --------------------------- */
 
-  const roll = await new Roll(`${pool}d6cs>=${diceTarget}`).evaluate();
-  const dice = roll.dice?.[0];
+  let roll;
+  let hits = 0;
+  let ones = 0;
 
-  const hits = Array.isArray(dice?.results)
-    ? dice.results.filter(r => r.success).length
-    : 0;
+  if (ctx.rollType === "sum" && ctx.sum?.formula) {
 
-  const ones = Array.isArray(dice?.results)
-    ? dice.results.filter(r => r.result === 1).length
-    : 0;
+    roll = await new Roll(ctx.sum.formula, ctx.sum.data ?? {}).evaluate({ async: true });
+
+    const baseTotal = Number(roll.total ?? 0);
+    const totalWithMods = baseTotal + Number(modTotal ?? 0);
+    hits = totalWithMods; // treat totalWithMods as "hits" for downstream compatibility
+
+  } else {
+
+    roll = await new Roll(`${pool}d6cs>=${diceTarget}`)
+      .evaluate({ async: true });
+
+    const dice = roll.dice?.[0];
+
+    hits = Array.isArray(dice?.results)
+      ? dice.results.filter(r => r.success).length
+      : 0;
+
+    ones = Array.isArray(dice?.results)
+      ? dice.results.filter(r => r.result === 1).length
+      : 0;
+  }
+
+  if (ctx.intent === "initiative" && roll?.total != null) {
+    await applyInitiativeToCombat({ actor, total: roll.total });
+  }
 
   /* -------------------------------- */
   /* 6.5) Interpret roll outcome      */
@@ -306,3 +334,40 @@ const EDGE_POOLS_BY_DOMAIN = {
   mental: { a: "insight", b: "rumor" },
   social: { a: "legend", b: "credibility" }
 };
+
+async function applyInitiativeToCombat({ actor, total }) {
+
+  // Require token (Option 3A)
+  const controlled = canvas?.tokens?.controlled?.find(t => t.actor?.id === actor.id);
+  const fallback = actor.getActiveTokens?.(true, true)?.[0] ?? null;
+  const token = controlled ?? fallback;
+
+  if (!token) {
+    ui.notifications?.warn("Initiative requires a token on the current scene.");
+    return;
+  }
+
+  let combat = game.combat;
+
+  if (!combat) {
+    combat = await Combat.create({
+      scene: canvas.scene.id,
+      active: true
+    });
+  }
+
+  let combatant = combat.combatants.find(c => c.tokenId === token.id);
+
+  if (!combatant) {
+    const created = await combat.createEmbeddedDocuments("Combatant", [{
+      tokenId: token.id,
+      actorId: actor.id,
+      sceneId: canvas.scene.id
+    }]);
+    combatant = created?.[0];
+  }
+
+  if (!combatant) return;
+
+  await combatant.update({ initiative: Number(total) });
+}
