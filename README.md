@@ -16,7 +16,7 @@ This system brings a ruleset inspired by Catalyst Game Labs' **MechWarrior: Dest
 2. Paste the manifest URL: `https://raw.githubusercontent.com/acemb-rso/MWD/main/system.json`.
 3. Alternatively, download the latest archive (`https://github.com/acemb-rso/MWD/archive/refs/heads/main.zip`) and extract it into `Data/systems/mwd`.
 
-The system targets Foundry **v11** and has been verified against **v13**. After installation, you can select MechWarrior: Destiny when creating a new world.
+The system targets Foundry **v13**. After installation, you can select MechWarrior: Destiny when creating a new world.
 
 ## Using the system
 
