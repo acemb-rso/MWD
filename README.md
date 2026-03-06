@@ -1,6 +1,6 @@
-# MechWarrior: Destiny for Foundry VTT
+# MechWarrior: Destiny-ish for Foundry VTT
 
-This system brings Catalyst Game Labs' **MechWarrior: Destiny** ruleset to Foundry VTT with support for characters, vehicles, and full BattleMechs. It began as a Shadowrun: Anarchy fork and now ships with Destiny-specific terminology, condition tracks, and sheet layouts.
+This system brings a ruleset inspired by Catalyst Game Labs' **MechWarrior: Destiny** to Foundry VTT with support for characters, vehicles, and full BattleMechs. It began as a Shadowrun: Anarchy fork and now ships with Destiny-specific terminology, condition tracks, and sheet layouts.
 
 ## What you get
 
