@@ -1,6 +1,6 @@
-# MechWarrior: Destiny for Foundry VTT
+# MechWarrior: Destiny-ish for Foundry VTT
 
-This system brings Catalyst Game Labs' **MechWarrior: Destiny** ruleset to Foundry VTT with support for characters, vehicles, and full BattleMechs. It began as a Shadowrun: Anarchy fork and now ships with Destiny-specific terminology, condition tracks, and sheet layouts.
+This system brings a ruleset inspired by Catalyst Game Labs' **MechWarrior: Destiny** to Foundry VTT with support for characters, vehicles, and full BattleMechs. It began as a Shadowrun: Anarchy fork and now ships with Destiny-specific terminology, condition tracks, and sheet layouts.
 
 ## What you get
 
@@ -16,7 +16,7 @@ This system brings Catalyst Game Labs' **MechWarrior: Destiny** ruleset to Found
 2. Paste the manifest URL: `https://raw.githubusercontent.com/acemb-rso/MWD/main/system.json`.
 3. Alternatively, download the latest archive (`https://github.com/acemb-rso/MWD/archive/refs/heads/main.zip`) and extract it into `Data/systems/mwd`.
 
-The system targets Foundry **v11** and has been verified against **v13**. After installation, you can select MechWarrior: Destiny when creating a new world.
+The system targets Foundry **v13**. After installation, you can select MechWarrior: Destiny when creating a new world.
 
 ## Using the system
 
