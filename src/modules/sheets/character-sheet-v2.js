@@ -148,8 +148,19 @@ ctx.edgeConsole.poolsOrdered = order
     });
     ctx.combat = {
       roll: {
-        initiative: JSON.stringify({ intent: "initiative" })
+        initiative: JSON.stringify({ intent: "initiative" }),
+        overload: JSON.stringify({ intent: "overload" })
       }
+    };
+    
+    const burn = Number(this.actor.system?.burn?.value ?? 0);
+
+    ctx.burn = {
+      value: burn,
+      penalty: Math.floor(burn / 2),
+      overflow: Math.max(0, burn - 10),
+      canOverloadCheck: burn >= 6,
+      overloaded: !!this.actor.system?.burn?.overloaded
     };
 
     return ctx;

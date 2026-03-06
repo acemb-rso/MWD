@@ -1,0 +1,20 @@
+export const burnModifier = {
+  id: "burn",
+
+  async collect(ctx) {
+    const actor = ctx.actor;
+    if (!actor) return [];
+
+    const burn = Number(actor.system?.burn?.value ?? 0);
+    const penalty = Math.floor(burn / 2);
+
+    if (penalty <= 0) return [];
+
+    return [{
+      id: "burn",
+      label: "Burn",
+      value: -penalty,
+      domain: null
+    }];
+  }
+};

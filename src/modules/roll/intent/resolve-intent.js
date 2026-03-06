@@ -6,6 +6,7 @@ import { resolveAttack } from "./resolve-attack.js";
 import { resolveDefense } from "./resolve-defense.js";
 import { resolveResistance } from "./resolve-resistance.js";
 import { resolveInitiative} from "./resolve-initiative.js";
+import { resolveOverload } from "./resolve-overload.js";
 
 // Registry: adding a roll is “data entry”
 const RESOLVERS = {
@@ -15,7 +16,8 @@ const RESOLVERS = {
   attack: resolveAttack,
   defense: resolveDefense,
   resistance: resolveResistance,
-  initiative: resolveInitiative
+  initiative: resolveInitiative,
+  overload: resolveOverload
 };
 
 export async function resolveIntent({ actor, payload, event } = {}) {

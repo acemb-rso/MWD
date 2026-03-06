@@ -8,7 +8,6 @@ import { Misc } from "../misc.js";
 import { Modifiers } from "../modifiers/anarchy-modifiers.js";
 import { RollDialog } from "../roll/roll-dialog.js";
 import { AnarchyUsers } from "../users.js";
-import { formatString } from "../strings.js";
 import { ActorDamageManager } from "./actor-damage.js";
 
 export class AnarchyBaseActor extends Actor {

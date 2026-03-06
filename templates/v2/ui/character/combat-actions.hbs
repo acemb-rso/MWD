@@ -3,5 +3,5 @@
   <button type="button">Attack</button>
   <button data-action="roll" data-roll="{{combat.roll.initiative}}">Initiative</button>
   <button type="button">Defend</button>
-  <button type="button">Resist</button>
+  <button data-action="roll" data-roll='{{combat.roll.overload}}' {{#unless burn.canOverloadCheck}}disabled{{/unless}}> Overload Check </button>
 </div>
