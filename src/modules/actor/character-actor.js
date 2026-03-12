@@ -167,8 +167,6 @@ export class CharacterActor extends AnarchyBaseActor {
     return Math.max(0, wounds - this.system.ignoreWounds);
   }
 
-  canPilotVehicle() { return true }
-
   async rollCelebrity() {
     await RollCelebrity.create(this);
   }

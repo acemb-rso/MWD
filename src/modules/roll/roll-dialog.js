@@ -52,7 +52,6 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       actor: actor,
       tokenId: actor.token?.id,
       attributes: actor.getUsableAttributes(item),
-      pilot: actor.getRollPilotReference?.(),
       options: {
         canUseEdge: actor.canUseEdge()
       }
@@ -99,7 +98,7 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     await RollDialog.create(rollData);
   }
 
-  static async rollDefense(actor, action, attack, pilot = undefined) {
+  static async rollDefense(actor, action, attack) {
     const rollData = foundry.utils.mergeObject(RollDialog.prepareActorRoll(actor), {
       mode: ANARCHY_SYSTEM.rollType.defense,
       attribute1: action.attributeFunction1(actor),

@@ -1,7 +1,5 @@
-// systems/mwd/templates/v2/ui/character/combat-actions.hbs
 <div class="button-row combat-actions">
   <button type="button">Attack</button>
   <button data-action="roll" data-roll="{{combat.roll.initiative}}">Initiative</button>
-  <button type="button">Defend</button>
-  <button data-action="roll" data-roll='{{combat.roll.overload}}' {{#unless burn.canOverloadCheck}}disabled{{/unless}}> Overload Check </button>
+  <button data-action="roll" data-roll='{{combat.roll.overload}}' {{#unless burn.canOverloadCheck}}disabled{{/unless}}>Overload Check</button>
 </div>

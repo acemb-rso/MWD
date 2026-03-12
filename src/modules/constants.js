@@ -15,9 +15,7 @@ export const ICONS_PATH = `${SYSTEM_PATH}/img/icons`;
 export const ICONS_SKILLS_PATH = `${ICONS_PATH}/skills`;
 export const LOG_HEAD = 'MWD | ';
 
-export const ANARCHY_DICE_BONUS = 3;
 export const SPECIALIZATION_BONUS = 2;
-export const PLAYER_MAX_ANARCHY = 6;
 
 export const TARGET_SUCCESS = 5;
 export const TARGET_SUCCESS_EDGE = 4;
@@ -109,16 +107,12 @@ export const TEMPLATE = {
     physical: 'physical',
     structure: 'structure',
     heat: 'heat',
-    anarchy: 'anarchy',
-    plot: 'plot',
-    sceneAnarchy: 'sceneAnarchy',
   },
   counters: {
     xp: 'xp',
     xpTotal: 'xpTotal',
     xpUnused: 'xpUnused',
     edge: 'edge',
-    anarchy: 'anarchy',
     edgePools: EDGE_POOLS,
     edgePoolGroups: EDGE_POOL_GROUPS,
     physical: {
@@ -261,7 +255,6 @@ export const ANARCHY_SYSTEM = {
   rollType: {
     attributeAction: 'attributeAction',
     defense: 'defense',
-    defensePilot: 'defensePilot',
     attribute: 'attribute',
     skill: 'skill',
     weapon: 'weapon',
@@ -302,9 +295,7 @@ globalThis.ANARCHY_CONSTANTS = {
   ICONS_PATH,
   ICONS_SKILLS_PATH,
   LOG_HEAD,
-  ANARCHY_DICE_BONUS,
   SPECIALIZATION_BONUS,
-  PLAYER_MAX_ANARCHY,
   TARGET_SUCCESS,
   TARGET_SUCCESS_EDGE,
   BASE_MONITOR,

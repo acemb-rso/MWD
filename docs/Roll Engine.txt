@@ -76,12 +76,17 @@ The sheet does **not**:
 ### Intent → Resolver Mapping
 
 ```
-intent: "skill"       → resolveSkillIntent()
-intent: "attribute"   → resolveAttributeIntent()
-intent: "defense"     → resolveDefenseIntent()
-intent: "resistance"  → resolveResistanceIntent()
-intent: "attack"      → resolveAttackIntent()
+intent: "skill"       → resolve-skill.js
+intent: "attribute"   → resolve-attribute.js
+intent: "defense"     → resolve-defense.js
+intent: "resistance"  → resolve-resistance.js
+intent: "attack"      → resolve-attack.js
+intent: "edge"        → resolve-edge.js
+intent: "initiative"  → resolve-initiative.js
+intent: "overload"    → resolve-overload.js
 ```
+
+All dispatched from `src/modules/roll/intent/resolve-intent.js`.
 
 Each resolver’s job is **only** to normalize inputs into a **RollContext**.
 
@@ -222,12 +227,21 @@ All re-enter the engine through the same path.
 
 ---
 
+## 9. Key File Locations
+
+| Stage | File |
+|-------|------|
+| Entry point | `src/modules/roll/mwd-roll.js` |
+| Intent dispatch | `src/modules/roll/intent/resolve-intent.js` |
+| Modifier collection | `src/modules/roll/collect-modifiers.js` |
+| Roll dialog (V2) | `src/modules/roll/mwd-roll-dialog.js` |
+| Dice execution | `src/modules/roll/dice.js` |
+| Result packaging | `src/modules/roll/build-resolved.js` |
+| Chat card template | `templates/v2/roll/_mwd-roll-card.hbs` |
+| Modifier providers | `src/modules/modifiers/providers/` |
+
+---
+
 ## One-Sentence Summary (BLUF)
 
 > **Clicks emit intent, intents resolve into a single RollContext, execution is centralized, and chat is a stateless reflection—everything else is just UI.**
-
-If you want, next we can:
-
-* sketch this as a **literal sequence diagram** with method names
-* walk one concrete example (e.g. *Defense → Resistance*)
-* or map this directly onto your AppV2 + CSB layout nodes

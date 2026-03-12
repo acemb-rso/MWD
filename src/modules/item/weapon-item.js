@@ -252,8 +252,6 @@ export class WeaponItem extends AnarchyBaseItem {
   }
 
   validateTargets(actor) {
-    // TODO: add a weapon "plane" to define if attack is in matrix/astral/physical world
-    // use actorCannotApplyDamage?
     const monitor = this.getDamage()?.monitor
     const targets = AnarchyUsers.getTargetTokens(game.user);
     const validTargets = targets.filter(token => token.actor?.canReceiveDamage(monitor))

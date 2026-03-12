@@ -1,5 +1,7 @@
 # Stabilization Plan
 
+> **Current status:** Stage 1 (data model alignment) is substantially complete for vehicles and BattleMechs. Stage 2 (sheet wiring) is in progress. Stages 3–4 remain open.
+
 A concise implementation plan to modernize vehicles and BattleMechs without rewriting existing work. Use the structure references in `vehicle_sheet.txt`, `battlemech_sheet.txt`, and the item schema in `Items.txt` as the sources of truth for sheet wiring, actor data, and embedded item preparation.
 
 ## Inputs to respect
@@ -8,19 +10,24 @@ A concise implementation plan to modernize vehicles and BattleMechs without rewr
 - **Item schemas:** only the item types defined in `Items.txt` are expected (skills, traits, life modules, cues, dispositions, gear, modules, upgrades, equipment, and the weapon types/groups). Prepare embedded documents against these schemas and avoid reintroducing legacy Anarchy item templates.【F:docs/Items.txt†L1-L165】【F:docs/Items.txt†L200-L261】
 
 ## Stabilization stages
-1. **Data model alignment**
-   - Add or confirm MWD vehicle attribute blocks (`handling/system/condition/chassis`) and monitor fields for structure/heat per the sheet definitions.
-   - Ensure actor prep populates crew/pilot snapshots, caches core stats used by the action buttons, and prepares embedded items using the canonical schemas (no legacy item flavors).
 
-2. **Sheet wiring sanity pass**
-   - Wire the vehicle and BattleMech sheets to expose the layout components above (attribute rows, monitors, action buttons, crew lists, and weapon/equipment lists) so the UI matches the documented structure.
-   - Keep the BattleMech Weapons & Mounts tab focused on primary weapon selection and mount groups, leaving melee handling separate.
-   - Surface item details according to their schema segments (base/module/weapon blocks and range bands) so embedded items render consistently across vehicles and ’Mechs.
+1. **Data model alignment** ✅ Substantially complete
+   - ✅ Vehicle attribute blocks (`handling/system/condition/chassis`) are in `template.json` and prepared by `VehicleActor`
+   - ✅ Structure/heat monitors defined in template and derived by `VehicleActor._prepareMwdMonitors()`
+   - ✅ Items organized into type collections (`mwd.items`) in `VehicleActor._prepareMwdItems()`
+   - Remaining: `system.mwd` block (locations, crits, crew, config) not yet added to template
 
-3. **Rule mechanics integration**
-   - Layer in MWD-specific logic (hit locations, crit workflows, heat handling, crew/catastrophic states) behind the structured data and sheet panels instead of ad hoc fields.
-   - Reuse the cached pilot/driver stats in roll formulas to keep attack/defense/initiative consistent with the action buttons.
-   - Apply item-driven modifiers (e.g., module effects, heat modifiers, weapon range bands) through prepared data rather than freeform sheet values.
+2. **Sheet wiring sanity pass** ⚙️ In progress
+   - V2 sheets exist for all four actor types (character, npc, vehicle, battlemech)
+   - Wire vehicle and BattleMech sheets to expose layout components per `vehicle_sheet.txt` / `battlemech_sheet.txt`: attribute rows, monitors, action buttons, crew list, weapon/equipment lists
+   - Keep the BattleMech Weapons & Mounts tab focused on primary weapon selection and mount groups, leaving melee handling separate
+   - Surface item details according to their schema segments (base/module/weapon blocks and range bands) so embedded items render consistently across vehicles and ‘Mechs
+   - Note: driver/pilot combat stats are **cached snapshots** on the sheet, not dynamic actor links
+
+3. **Rule mechanics integration** 🔲 Not started
+   - Layer in MWD-specific logic (hit locations, crit workflows, heat handling, crew/catastrophic states) behind the structured data and sheet panels instead of ad hoc fields
+   - Use cached driver/pilot snapshot stats in roll formulas for vehicle/mech attack, defense, and initiative rolls
+   - Apply item-driven modifiers (e.g., module effects, heat modifiers, weapon range bands) through prepared data rather than freeform sheet values
 
 4. **Validation and tests**
    - Add focused tests for hit-location mapping, crit triggers, heat bands, mount-slot validation, and item schema prep that mirror the documented sheet structures.

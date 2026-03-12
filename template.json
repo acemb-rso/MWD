@@ -236,10 +236,6 @@
           "value": 0,
           "total": 0
         },
-        "anarchy": {
-          "value": 3,
-          "max": 6
-        },
         "edgePools": {
           "grit": { "value": 2, "rating": 2 },
           "insight": { "value": 0, "rating": 1 },
@@ -256,10 +252,13 @@
         "displayBars": 40
       },
       "style": "",
-      "ownAnarchy": false,
       "keywords": [],
       "dispositions": [],
-      "cues": []
+      "cues": [],
+      "burn": {
+        "value": 0,
+        "overloaded": false
+      }
     },
     "npc": {
       "templates": [

@@ -1,15 +1,41 @@
 # Character data model review
 
+> **Status:** Updated to reflect current implementation. The original version of this document described stale Anarchy-derived gaps that have since been resolved.
+
 ## Current character registration
-- `AnarchySystem` registers both the `character` and `npc` actor types to the same `CharacterActor` class, so they share behavior and derived data paths rather than having isolated type-specific logic. 【F:src/modules/anarchy-system.js†L74-L110】
+
+- `AnarchySystem` registers both `character` and `npc` actor types to the same `CharacterActor` class. This is intentional: NPCs share the same mechanical framework as characters but use a smaller sheet layout (`NpcSheetV2`). The shared class does not cause data leakage because sheet layouts are type-scoped. 【F:src/modules/anarchy-system.js†L74-L110】
 
 ## Actor template definitions
-- The `character` template in `template.json` only declares agility, strength, willpower, logic, charisma, and edge attributes; it does not include the Reflexes or Intelligence attributes listed in the desired sheet structure, and it lacks life modules, traits, cues, dispositions, personal weaponry, armor details, monitors, asset modules, inventory, and edge pool breakdowns beyond the basic counters. 【F:template.json†L203-L262】
-- The `npc` template mirrors the same attribute set and counter structure as `character`, reinforcing that non-player actors inherit the same data footprint rather than a pared-down model. 【F:template.json†L263-L317】
 
-## Attribute catalogs
-- System attribute constants define agility and logic instead of reflexes and intelligence, so the schema does not presently align with the requested attribute names. 【F:src/modules/constants.js†L26-L37】
-- Both `character` and `npc` actor attribute sets reference the same agility/logic configuration, further demonstrating that the data model does not isolate a unique character definition. 【F:src/modules/constants.js†L122-L151】
+- The `character` template in `template.json` declares the correct MWD attribute set: **reflexes, strength, willpower, intelligence, charisma, edge**. The former Anarchy values (`agility`, `logic`) have been replaced. 【F:template.json†L203-L262】
+- Condition monitors are defined for character actors: **physical** (STR-derived max), **fatigue** (WIL-derived max), **armor** (9-box track). These are prepared as derived data in `CharacterActor` and `MWDActor`. 【F:src/modules/actor/character-actor.js†L1-L80】
+- Edge pools are structured with both a **rating** (advancement ceiling) and **value** (current spendable tokens): `grit`, `chaos` (physical), `insight`, `rumor` (mental), `legend`, `credibility` (social). Pool hygiene (clamping values to rating, zeroing depleted pools) runs in `MWDActor.prepareBaseData()`. 【F:src/modules/actor/mwd-actor.js†L1-L60】
+- The `npc` template mirrors the character attribute and monitor structure, which is correct given the shared class. The NPC sheet simply exposes a smaller subset of those fields.
+
+## Attribute constants
+
+- `constants.js` correctly defines the character attribute set as `reflexes, strength, willpower, intelligence, charisma, edge`. Both `character` and `npc` actor attribute sets reference this configuration. 【F:src/modules/constants.js†L26-L37】
+
+## Known remaining gaps
+
+The following fields documented in `character_sheet.txt` exist as **item types** (embedded documents) rather than scalar template fields, which is the correct approach—but embedding support needs to be verified in character sheet rendering:
+
+| Feature | Current state |
+|---------|---------------|
+| Life modules | `lifeModule` item type registered; sheet rendering of embedded list TBD |
+| Traits / Qualities | `quality` item type registered; rendered as embedded list |
+| Cues & Dispositions | No dedicated item type or structured field; currently free-text in description |
+| Personal weapons | `personalWeapon` item type registered; rendered in combat section |
+| Asset modules | `assetModule` item type registered; rendered as embedded list |
+| Gear / Inventory | `gear` item type registered; rendered as embedded list |
+| XP tracker | No dedicated field in template.json; not yet implemented |
+| Words / Keywords | No structured field; stored in free text if at all |
+
+The `MWDActor` base class prepares `mwd.items` groupings (skills, traits, gear, weapons, etc.) for use by V2 sheets. Character-specific preparation runs in `CharacterActor.prepareDerivedData()`.
 
 ## Implications
-- Because characters and NPCs share the same actor class and largely identical templates, and the attribute catalog diverges from the requested fields, the current data model does not enforce a single, specific definition of a character. Additional character-only structures (life modules, traits, cues, dispositions, personal weaponry, armor details, condition monitors, asset modules, inventory, edge pools, and experience) are absent from the base template, so sheets cannot draw solely from actor data without mixing in other sources or leaving gaps.
+
+- Character and NPC sheets can render correctly because the data model is now aligned with MWD attribute requirements.
+- The primary outstanding gap is cues/dispositions and XP tracker, which have no template field yet.
+- Cues/dispositions should be added to `template.json` as structured arrays when the character sheet tab is being wired up, rather than as free-text fields.

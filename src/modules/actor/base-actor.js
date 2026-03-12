@@ -324,9 +324,6 @@ export class AnarchyBaseActor extends Actor {
     await RollDialog.rollDefense(this, action, attack);
   }
 
-  async rollPilotDefense(attack) { }
-
-
   async switchMonitorCheck(monitor, index, checked, sourceActorId = undefined) {
     await Checkbars.switchMonitorCheck(this, monitor, index, checked, sourceActorId);
   }
@@ -338,8 +335,6 @@ export class AnarchyBaseActor extends Actor {
   async setCounter(monitor, value, sourceActorId = undefined) {
     await Checkbars.setCounter(this, monitor, value, sourceActorId);
   }
-
-  canPilotVehicle() { return false }
 
   canSetMarks() { return false }
 

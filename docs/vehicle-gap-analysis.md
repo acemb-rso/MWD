@@ -1,6 +1,8 @@
 # MWD Vehicle Handling – System Gap Analysis & Attribute Redesign
 
-This document outlines the mechanical gaps between **MechWarrior: Destiny (MWD)** and our current **Anarchy-derived vehicle implementation**, and defines a new, BattleTech-appropriate attribute set for all ‘Mechs and vehicles. This attribute set replaces Shadowrun-oriented stats (Autopilot, Firewall) with values that matter in a BattleTech context (piloting behavior, mechanical robustness, electronics, redundancy).
+> **Status note:** Gap 6 (Attribute Mismatch) is **resolved** — vehicle and BattleMech actors now use Handling/System/Chassis/Condition. The dynamic pilot-actor linking system has been removed; pilot/driver stats are cached manually as snapshots on the sheet. Gaps 1–5 remain open.
+
+This document tracks the mechanical gaps between **MechWarrior: Destiny (MWD)** and the current vehicle implementation, and defines the BattleTech-appropriate attribute set for all ‘Mechs and vehicles.
 
 The goal:
 
@@ -25,15 +27,14 @@ MWD assumptions:
 
 ---
 
-## 2. Current Anarchy Vehicle Implementation (Summary)
+## 2. Current Vehicle Implementation (Summary)
 
-The current system mirrors metahuman actors:
-
-* Vehicle actors expose **initiative** and **defense** helpers but only track **a single shared Structure monitor**.
+* Vehicle actors track **a single shared Structure monitor** plus Armor and Heat (BattleMech only).
+* Attributes are **Handling, System, Chassis, Condition** — the BattleTech-appropriate set. ✅
 * No hit-location table, no per-location stress, no critical-hit workflow.
 * Attack resolution applies aggregate damage to a single monitor via `ActorDamageManager.sufferDamage`.
 * No logic for weapon group loss, motive damage, turret/rotor status, crew compartment harm, or catastrophic outcomes.
-* Vehicle attributes are **Autopilot, Handling, Firewall, System**, which reflect Shadowrun’s rigging/hacking model and do not match BattleTech concepts.
+* Dynamic pilot-actor linking has been removed. Pilot/driver combat stats are cached manually as a snapshot on the sheet.
 
 ---
 
@@ -72,9 +73,9 @@ MWD crits degrade:
 
 Current system: crits cannot modify Movement, weapons, targeting, or startup logic.
 
-### Gap 6 — Attribute Mismatch
+### Gap 6 — Attribute Mismatch ✅ RESOLVED
 
-Current attributes (Autopilot, Firewall) assume hacking, rigging, rigger safety, and drones—none of which exist in BattleTech. We need **physical, mechanical, and reliability-based attributes** instead.
+Vehicle and BattleMech actors now use **Handling, System, Chassis, Condition**. The former Shadowrun attributes (Autopilot, Firewall) have been replaced. See Section 4 for the full attribute definitions.
 
 ---
 
@@ -628,22 +629,18 @@ Implementation order is important. Below is a suggested sequence.
 
 ### 4.1. Data Model & Migration
 
-* [ ] **Add MWD attribute block** to vehicle/’Mech actors
-  * `system.attributes.mwdVehicle.handling/system/chassis/condition`
+* [x] **Add MWD attribute block** to vehicle/’Mech actors — `handling/system/chassis/condition` are live in `template.json` and `constants.js`
 * [ ] **Add `system.mwd` block** to actors
   * Default sensible values for `unitType`, `heat`, `locations`, `config`
 * [ ] **Write a migration script**
   * For existing vehicle actors:
-    * Initialize `mwdVehicle` attributes with defaults based on chassis type
-    * Enable only relevant locations (e.g., front/side/rear/turret for tanks; head/torso/arms/legs/core for ’Mechs)
+    * Enable only relevant locations (e.g., front/side/rear/turret for tanks; head/torso/arms/legs/core for ‘Mechs)
     * Set default `heat.safeMax/hardMax/ventPerTurn`
     * Set `config` to default crit TNs and heat bands
 
 ### 4.2. Actor Sheet UI
 
-* [ ] **Expose new attributes** on vehicle/’Mech sheets
-  * Handling, System, Chassis, Condition
-  * Editable by GMs; optionally by players for custom Mechs
+* [x] **Expose new attributes** on vehicle/’Mech sheets — Handling, System, Chassis, Condition are rendered via V2 sheets
 * [ ] **Add MWD panel** for:
   * Heat track (display current, safe, overheated, shutdown band)
   * Location list with stress and destroyed flag

@@ -59,19 +59,11 @@ export const MWD = {
     }
   },
 
-  "gmManager": {
-    "title": "GM manager",
-    "gmConvergence": "GOD convergence",
-    "playerChangedAnarchy": "Player {user} changed {actor}'s {monitor} from {from} to {to}",
-    "gmReceivedAnarchy": "Gamemaster receives {anarchy} anarchy from {actor}"
-  },
-
   "chat": {
     "blindMessageToGM": "Blind message from {user}:<br>{message}",
     "sufferedDrain": "{actor} suffered a drain of {drain}",
     "noDrain": "{actor} did not suffer any drain",
     "defendAttack": "Defense against {success} success",
-    "defendPilotAttack": "Pilot defense against {success} success",
     "partiallyDefended": "Attack exceeds defense of {success} success",
     "fullyDefended": "The attack is fully defended",
     "applyDamage": "Apply {damage}"
@@ -188,7 +180,6 @@ export const MWD = {
       "noDefenseOnWeapon": "No defense configured for {actor} weapon: {weapon}.<br>Configure defense against this weapon to be able to attack with it.",
       "weaponNotFound": "No weapon could be found for this roll.",
       "noTokenActor": "Token is not attached to an Actor!",
-      "noValidPilotForVehicle": "No valid pilot found for {vehicle} among selected tokens, your main character, and vehicle owner",
       "cannotUseEdgeAnymore": "Too late to use edge. A defender already rolled his defense!",
       "actorCannotApplyDamage": "Actor {actor} cannot apply {damageType} : maybe check the decker has connected his cyberdeck",
       "actorCannotReceiveDamage": "Cannot apply {damageType} to actor {actor} : it does not have a condition monitor for this type of damage",
@@ -247,10 +238,6 @@ export const MWD = {
       "current": "Current",
       "lifetime": "Lifetime",
       "edge": "Edge",
-      "anarchy": "Destiny",
-      "sceneAnarchy": "Chaos",
-      "plot": "Plot",
-
       "edgePools": {
         "physical": "Physical",
         "mental": "Mental",
@@ -331,19 +318,6 @@ export const MWD = {
       "locationSide": "Side effects",
       "locationRear": "Rear effects",
       "locationCore": "Core effects",
-
-      "pilot": {
-        "label": "Pilot",
-        "none": "No pilot selected",
-        "usingPilot": "Using pilot: {{pilot}}",
-        "selectActor": "Select Pilot",
-        "selectToken": "Use Selected Token",
-        "tokenTag": "Token ({{scene}})",
-        "errors": {
-          "noActors": "No valid actors available to pilot this vehicle.",
-          "noTokens": "Select a token with permission to pilot as the vehicle's pilot."
-        }
-      },
 
       "crew": {
         "label": "Crew",
@@ -840,7 +814,6 @@ export const MWD = {
         "structure": "Structure",
         "fatigue": "Fatigue",
         "physical": "Physical",
-        "matrix": "Matrix"
       },
       "category": {
         "max": "Increased max",
@@ -853,8 +826,6 @@ export const MWD = {
       "effect": {
         "ignoreWounds": "Ignore wounds",
         "damageArmor": "Damage to armor",
-        "sceneAnarchy": "Chaos",
-        "locationAnarchy": "Location anarchy",
         "initiative": "Initiative bonus",
         "celebrity": "Adjust legend"
       },

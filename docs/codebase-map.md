@@ -1,98 +1,201 @@
 # Codebase Map
 
-This document summarizes each file in the MechWarrior: Destiny Foundry VTT system and highlights its role plus key dependencies.
+This document summarizes the key files in the MechWarrior: Destiny Foundry VTT system and their roles. The V2 (AppV2-based) architecture is the active development target. Legacy Anarchy-era files are noted where they still exist but should not be extended.
+
+---
 
 ## Root metadata & build tooling
-- `system.json` – Foundry manifest describing the system ID, version, assets, data packs, and entry module (`index.mjs`).【F:system.json†L1-L107】
-- `index.mjs` – Development entry that exposes `window.global` and boots the runtime by loading `src/start.js`.【F:index.mjs†L1-L6】
-- `package.json` – Project scripts and dependencies (Vite build, compendium packing helpers, JSON validation).【F:package.json†L1-L21】
-- `vite.config.ts` – Vite/Rollup configuration for building the ES module library from `src/start.js`, setting dev server proxies, and enabling bundle visualization.【F:vite.config.ts†L1-L37】
+
+- `system.json` – Foundry manifest: system ID (`mwd`), version, CSS entry (`/styles/mwd.css`), entry module (`index.mjs`), actor/item type declarations, and compendiums.
+- `index.mjs` – Dev entry: exposes `window.global` and bootstraps via `src/start.js`.
+- `package.json` – Build scripts (Vite), compendium pack/unpack helpers, JSON schema validation.
+- `vite.config.ts` – Vite/Rollup config: ES module library build from `src/start.js`, dev server proxy to localhost:30000, bundle visualizer.
+
+---
 
 ## Entry point
-- `src/start.js` – Minimal bootstrap that imports `AnarchySystem` and kicks off initialization via `AnarchySystem.start()`.【F:src/start.js†L1-L3】
 
-## Core system orchestration
-- `src/modules/anarchy-system.js` – Central initializer wiring configuration, document classes, UI sheets, dice/roll handlers, chat, migrations, GM utilities, and hooks during Foundry’s `init`/`ready` lifecycle. It sets `CONFIG` bindings and registers actor/item sheets from module imports listed at the top of the file.【F:src/modules/anarchy-system.js†L1-L182】
-- `src/modules/hooks-manager.js` – Declares extensibility hooks for hacks (e.g., registering alternate skill sets or styles), registers a world setting to select a hack, and applies the chosen behavior to checkbars; exported hook names are placed on `globalThis` for external modules.【F:src/modules/hooks-manager.js†L1-L108】
-- `src/modules/constants.js` – Central constants such as log prefixes, template paths, and type identifiers referenced across modules.【F:src/modules/constants.js†L1-L120】
-- `src/modules/config.js` – Localized keys and configuration enums for actors, items, settings, chat strings, and monitor labels used throughout the UI and rules logic.【F:src/modules/config.js†L1-L120】
-- `src/modules/enums.js` – Enumerations and lookup helpers (e.g., damage types) used by actors, rolls, and UI templates; initialized by `AnarchySystem` via `Enums.init()`.【F:src/modules/enums.js†L1-L120】
-- `src/modules/system-settings.js` – Registers world settings like default CSS class and damage mode options consumed by other managers during setup.【F:src/modules/system-settings.js†L1-L23】
-- `src/modules/styles.js` – Determines available CSS themes/styles for the system and exposes selection helpers consumed by sheets and dialogs.【F:src/modules/styles.js†L1-L45】
-- `src/modules/handlebars-manager.js` – Registers Handlebars helpers and partials to render templates used by sheets, dialogs, and chat messages.【F:src/modules/handlebars-manager.js†L1-L140】
+- `src/start.js` – Imports `AnarchySystem` and calls `AnarchySystem.start()`.
+- `src/modules/anarchy-system.js` – Central initializer. Registers actor/item document classes, modifier providers, V2 actor sheets, handlebars helpers, fonts, and combat class during Foundry's `init` hook. Renders GM Gadget on `ready` if the setting is enabled.
+
+---
+
+## Core configuration
+
+- `src/modules/constants.js` – All system constants: `TEMPLATE` (actor types, item types, attribute names, monitor keys), `ANARCHY_SYSTEM` (roll types, action/defense codes), `ACTOR_ATTRIBUTE_SETS` (per-type attribute arrays), `MONITOR_DEFS`, `EDGE_POOLS`, `ICONS_PATH`, etc.
+- `src/modules/config.js` – Localized label strings for actors, items, rolls, monitors, and chat messages. All user-visible text comes from here or `lang/en.json`.
+- `src/modules/enums.js` – Enumeration helpers (damage type lookups, etc.), initialized by `AnarchySystem.init()`.
+- `src/modules/system-settings.js` – Registers world settings: CSS theme selection, damage mode, GM Gadget toggle.
+- `src/modules/styles.js` – Available CSS themes and selection helpers consumed by sheets and dialogs.
+- `src/modules/handlebars-manager.js` – Registers Handlebars helpers (iconCheckbarHit, weaponDamageLetter, formatString, etc.) and legacy partials.
+- `src/modules/hooks-manager.js` – Extensibility hooks for checkbar registration and style overrides; puts hook names on `globalThis` for external modules.
+
+---
 
 ## Actor framework
-- `src/modules/actor/base-actor.js` – Core `AnarchyBaseActor` class that dispatches to specialized actor constructors, prepares derived data (monitors, modifiers), and provides utilities for permissions, sorting, and edge pools. Depends on attribute actions, checkbars, enums, modifier utilities, and actor damage manager.【F:src/modules/actor/base-actor.js†L1-L88】【F:src/modules/actor/base-actor.js†L94-L137】
-- `src/modules/actor/character-actor.js` – Extends the base actor with character-specific preparation and helper methods for skills, items, and condition tracks.【F:src/modules/actor/character-actor.js†L1-L160】
-- `src/modules/actor/vehicle-actor.js` – Vehicle actor subclass handling pilot links, armor/structure monitors, and item organization specific to vehicles.【F:src/modules/actor/vehicle-actor.js†L1-L128】
-- `src/modules/actor/battlemech-actor.js` – Battlemech-specific actor logic including mount loadouts and heat/structure management.【F:src/modules/actor/battlemech-actor.js†L1-L200】
-- `src/modules/actor/actor-damage.js` – Singleton `ActorDamageManager` for applying and tracking damage/resistance across actor monitor types.【F:src/modules/actor/actor-damage.js†L1-L140】
-- `src/modules/actor/anarchy-actor-sheet.js` – Base sheet class shared by actor sheet variants, handling generic data preparation and UI listeners.【F:src/modules/actor/anarchy-actor-sheet.js†L1-L140】
-- `src/modules/actor/character-sheet.js` – Default character sheet implementation with tab management and embedded item controls for a single-page view.【F:src/modules/actor/character-sheet.js†L1-L17】
-- `src/modules/actor/character-npc-sheet.js` – NPC-oriented sheet built directly on the base actor sheet with its own layout and sizing defaults.【F:src/modules/actor/character-npc-sheet.js†L1-L17】
-- `src/modules/actor/character-tabbed-sheet.js` – Character sheet that separates main/equipment/biography tabs; registered as an optional actor sheet.【F:src/modules/actor/character-tabbed-sheet.js†L1-L23】
-- `src/modules/actor/character-base-sheet.js` – Shared utilities for character sheets (tab activation, rendering helpers) used by enhanced/tabbed variants.【F:src/modules/actor/character-base-sheet.js†L1-L96】
-- `src/modules/actor/vehicle-sheet.js` – Vehicle actor sheet class handling pilot display, weapon groups, and vehicle monitors.【F:src/modules/actor/vehicle-sheet.js†L1-L64】
-- `src/modules/actor/battlemech-sheet.js` – Battlemech sheet UI with loadout, heat, and chassis-specific controls.【F:src/modules/actor/battlemech-sheet.js†L1-L200】
+
+### Document classes
+
+- `src/modules/actor/mwd-actor.js` – **MWDActor**: the MWD base class (extends AnarchyBaseActor). Owns edge pool API (`getEdgePool`, `spendEdge`, `gainEdge`, `adjustEdgePoolValue`), monitor penalty derivation, skill scaffolding (`_prepareMwdSkills`), and item grouping (`mwd.items`). Type guards: `isCharacterLike()`, `hasSkills()`, `hasEdgePools()`.
+- `src/modules/actor/base-actor.js` – **AnarchyBaseActor**: lower-level base providing attribute lookups, damage monitor routing, permission helpers, and the defense roll entry point (`rollDefense`). Does not own edge or MWD-specific logic.
+- `src/modules/actor/character-actor.js` – **CharacterActor**: derives physical/fatigue monitor maxes from STR/WIL, computes wound penalties, prepares edge pools. Used for both `character` and `npc` actor types.
+- `src/modules/actor/vehicle-actor.js` – **VehicleActor**: prepares MWD attribute block (handling/system/chassis/condition), structure/heat monitors, and item type collections. No dynamic pilot-actor linking.
+- `src/modules/actor/battlemech-actor.js` – **BattlemechActor** (extends VehicleActor): adds weapon group management, melee profiles, heat state tracking (safe/runningHot/overheated/shutdown), and quick-action roll methods (ranged attack, melee, dodge, piloting check, sensor sweep, emergency repair).
+- `src/modules/actor/actor-damage.js` – **ActorDamageManager**: applies damage through one of four selectable modes (resistanceArmorMonitor, armorResistanceMonitor, armorGivesResistance, armorGiveResistanceHitsAvoid). Entry point: `ActorDamageManager.sufferDamage(...)`.
+
+### V2 sheets
+
+**`CharacterSheetV2` is the reference implementation.** It is the only fully wired V2 sheet. The NPC, Vehicle, and BattleMech V2 sheet classes are shells that will be built out using the character sheet as the pattern.
+
+- `src/modules/sheets/register-actor-sheets-v2.js` – Registers all four V2 actor sheets with Foundry.
+- `src/modules/sheets/register-item-sheets-v2.js` – Item V2 sheet registration (defined but currently not called in `anarchy-system.js`; item sheets still use legacy AppV1).
+- `src/modules/sheets/base-actor-sheet-v2.js` – **BaseActorSheetV2**: shared AppV2 foundation. Provides: edit/view toggle, CSB tab state, roll action routing (`data-action="roll"` → `game.mwd.roll.execute`), monitor setting, image editing, `_commitEditsToActor`, skill display prep, and item classification. All actor sheets inherit this.
+- `src/modules/sheets/character-sheet-v2.js` – ✅ **Fully implemented**. Has own `_prepareContext` with edge console (6 pools, pip rendering, toggle behavior), condition monitors (physical/fatigue/armor), burn state, layout registry integration, and `_onEdgeSet` action. Uses `templates/v2/actor/character-sheet.hbs`.
+- `src/modules/sheets/npc-sheet-v2.js` – 🔲 Shell only. Registers as AppV2 but still renders the legacy `templates/actor/npc.hbs`. No `_prepareContext` override. Pending conversion following the character sheet pattern.
+- `src/modules/sheets/vehicle-sheet-v2.js` – 🔲 Shell only. Still renders legacy `templates/actor/vehicle.hbs`. Pending conversion.
+- `src/modules/sheets/battlemech-sheet-v2.js` – 🔲 Shell only. Still renders legacy `templates/actor/battlemech.hbs`. Pending conversion.
+- `src/modules/sheets/preload-templates.js` – Preloads ~30 V2 Handlebars templates to avoid first-render blanks.
+
+### Legacy sheets (AppV1 — do not extend)
+
+- `src/modules/actor/anarchy-actor-sheet.js` – AppV1 base sheet, still parent of legacy vehicle/battlemech sheets.
+- `src/modules/actor/character-sheet.js`, `character-npc-sheet.js`, `character-tabbed-sheet.js`, `character-base-sheet.js` – Legacy AppV1 character sheets.
+- `src/modules/actor/vehicle-sheet.js` – Legacy AppV1 vehicle sheet (stub only; inherits `defaultOptions` from AnarchyActorSheet).
+- `src/modules/actor/battlemech-sheet.js` – Legacy AppV1 BattleMech sheet with loadout and quick-action listeners.
+
+---
 
 ## Item framework
-- `src/modules/item/anarchy-base-item.js` – Base item document class adding common behaviors, initialization hooks, and creation helpers for all item types.【F:src/modules/item/anarchy-base-item.js†L1-L157】
-- `src/modules/item/skill-item.js` – Skill item document with roll helpers and attribute links; registered for both skill sets.【F:src/modules/item/skill-item.js†L1-L53】
-- `src/modules/item/weapon-item.js` – Weapon item logic used by mech and personal weapons (range, damage, attack rolls).【F:src/modules/item/weapon-item.js†L1-L285】
-- `src/modules/item/gear-item.js` – Generic gear item data helpers and cost/availability handling.【F:src/modules/item/gear-item.js†L1-L9】
-- `src/modules/item/contact-item.js` – Contact item behaviors such as loyalty/connection stats and attaching to actors.【F:src/modules/item/contact-item.js†L1-L9】
-- `src/modules/item/asset-module-item.js` – Asset module items with level sorting and activation management.【F:src/modules/item/asset-module-item.js†L1-L10】
-- `src/modules/item/lifemodule-item.js` – Life module item handling (qualities, attribute modifiers) for character creation options.【F:src/modules/item/lifemodule-item.js†L1-L18】
-- `src/modules/item/quality-item.js` – Positive/negative quality definitions, favoriting, and effect hooks.【F:src/modules/item/quality-item.js†L1-L10】
-- `src/modules/item/cyberdeck-item.js` – Legacy Matrix cyberdeck support kept for compatibility but not actively used in Destiny rules.【F:src/modules/item/cyberdeck-item.js†L1-L15】
-- `src/modules/item/base-item-sheet.js` – Base sheet class for items, providing shared event handlers and rendering support.【F:src/modules/item/base-item-sheet.js†L1-L127】
-- `src/modules/item/skill-item-sheet.js`, `weapon-item-sheet.js`, `gear-item-sheet.js`, `contact-item-sheet.js`, `quality-item-sheet.js`, `asset-module-item-sheet.js`, `lifemodule-item-sheet.js`, `cyberdeck-item-sheet.js` – Item sheet subclasses supplying templates and listeners for their respective item documents and registered by `AnarchySystem`.【F:src/modules/item/skill-item-sheet.js†L1-L17】【F:src/modules/item/weapon-item-sheet.js†L1-L25】
+
+### Document classes
+
+- `src/modules/item/anarchy-base-item.js` – Base item document (creation hooks, common initialization).
+- `src/modules/item/skill-item.js` – Skill item: attribute link, roll helpers.
+- `src/modules/item/weapon-item.js` – Weapon item: range bands, damage config, attack roll, target validation.
+- `src/modules/item/gear-item.js` – Generic gear.
+- `src/modules/item/contact-item.js` – Contact: loyalty/connection stats.
+- `src/modules/item/asset-module-item.js` – Asset module: level sorting, activation.
+- `src/modules/item/lifemodule-item.js` – Life module: attribute modifiers for character creation.
+- `src/modules/item/quality-item.js` – Quality/trait: positive/negative, favoriting.
+
+### Item sheets (AppV1 — pending V2 migration)
+
+- `src/modules/item/base-item-sheet.js` – Shared AppV1 item sheet base.
+- Individual AppV1 item sheets: `skill-item-sheet.js`, `weapon-item-sheet.js`, `gear-item-sheet.js`, `contact-item-sheet.js`, `quality-item-sheet.js`, `asset-module-item-sheet.js`, `lifemodule-item-sheet.js`.
+
+---
 
 ## Rolling & combat
-- `src/modules/roll/dice.js` – Wrapper around Foundry dice evaluation tailored to Anarchy/Destiny mechanics.【F:src/modules/roll/dice.js†L1-L140】
-- `src/modules/roll/anarchy-roll.js` – High-level roll flow, assembling dice pools, applying modifiers, and posting chat cards.【F:src/modules/roll/anarchy-roll.js†L1-L175】
-- `src/modules/roll/roll-manager.js` – Coordinates attacker/defender rolls, integrates with tokens, and handles opposed roll messaging.【F:src/modules/roll/roll-manager.js†L1-L158】
-- `src/modules/roll/roll-parameters.js` – Defines available roll parameters (attributes, modifiers) and exposes them for dialogs and hooks.【F:src/modules/roll/roll-parameters.js†L1-L160】
-- `src/modules/roll/roll-dialog.js` – Builds the roll dialog UI, populates with parameters, and triggers dice rolls.【F:src/modules/roll/roll-dialog.js†L1-L160】
-- `src/modules/roll/dice-cursor.js` – Manages the animated dice cursor overlay when hovering rollable elements.【F:src/modules/roll/dice-cursor.js†L1-L60】
-- `src/modules/anarchy-combat.js` – Custom combat document class that extends Foundry combat with system-specific initiative and attack handling, initialized and registered via `AnarchySystem`.【F:src/modules/anarchy-combat.js†L1-L49】
-- `src/modules/combat/combat-manager.js` – Coordinates combat-specific interactions such as defending attacks and informing defenders through templates.【F:src/modules/combat/combat-manager.js†L1-L180】
+
+### MWD roll system (active)
+
+- `src/modules/roll/mwd-roll.js` – **MWDRoll**: main entry point. Orchestrates the full pipeline: resolve intent → collect modifiers → dialog → re-collect → compute edge → execute dice → interpret outcome → render chat.
+- `src/modules/roll/mwd-roll-dialog.js` – Pre-roll dialog (AppV2): displays dice pool breakdown, modifier toggles, edge spend selector.
+- `src/modules/roll/collect-modifiers.js` – Invokes the modifier provider registry and merges results.
+- `src/modules/roll/build-resolved.js` – Packages all roll data into the `flags.mwd.resolved` shape stored on chat messages.
+- `src/modules/roll/intent/resolve-intent.js` – Dispatcher: maps intent string to the correct resolver.
+- `src/modules/roll/intent/resolve-skill.js` – Skill roll resolver.
+- `src/modules/roll/intent/resolve-attribute.js` – Attribute roll resolver.
+- `src/modules/roll/intent/resolve-defense.js` – Defense roll resolver.
+- `src/modules/roll/intent/resolve-resistance.js` – Resistance roll resolver.
+- `src/modules/roll/intent/resolve-attack.js` – Attack roll resolver.
+- `src/modules/roll/intent/resolve-edge.js` – Edge-spend resolver.
+- `src/modules/roll/intent/resolve-initiative.js` – Initiative roll resolver.
+- `src/modules/roll/intent/resolve-overload.js` – Overload roll resolver.
+
+### Legacy roll system (Anarchy-era — do not extend)
+
+- `src/modules/roll/anarchy-roll.js` – Legacy AnarchyRoll class (pre-MWD pipeline).
+- `src/modules/roll/roll-manager.js` – Legacy coordinator for attacker/defender flows.
+- `src/modules/roll/roll-parameters.js` – Legacy parameter definitions.
+- `src/modules/roll/roll-dialog.js` – Legacy AppV1 roll dialog.
+- `src/modules/roll/dice.js` – Dice pool wrapper (used by both legacy and MWD paths).
+- `src/modules/roll/dice-cursor.js` – Animated dice cursor overlay.
+
+### Combat
+
+- `src/modules/combat/combat-manager.js` – **CombatManager**: handles attack→defend→damage flow. Routes `weapon` roll to notify defender, `defense` roll to compare and display damage button. Entry points: `onClickDefendAttack`, `onClickApplyAttackDamage`.
+- `src/modules/anarchy-combat.js` – Custom Foundry Combat document class (initiative formula: `2d6`).
+
+---
+
+## Modifier system
+
+- `src/modules/modifiers/provider-registry.js` – Registry: collects modifiers from all registered providers, filtered by domain tag.
+- `src/modules/modifiers/providers/item-modifiers.js` – **ItemModifiersProvider**: reads `flags.mwd.modifiers[]` from actor items.
+- `src/modules/modifiers/providers/status-effects.js` – **StatusEffectsProvider**: maps active status effect IDs to modifier entries.
+- `src/modules/modifiers/providers/base-modifiers.js` – **BaseRollModifiersProvider**: manual modifiers from roll dialog.
+- `src/modules/modifiers/providers/conditions.js` – **ConditionModifiersProvider**: physical/fatigue track penalties (`floor(damage/3)`).
+- `src/modules/modifiers/providers/burn-modifier.js` – **BurnModifier**: reads `actor.system.burn.value`, applies `−floor(burn/2)` globally. Not auto-registered; burn field not yet in `template.json`.
+- `src/modules/modifiers/anarchy-modifiers.js` – Legacy modifier aggregator (Anarchy-era). Not used by MWD roll pipeline.
+
+---
+
+## Skill definitions
+
+- `src/modules/mwd/skills.js` – 27 core skill definitions: code, label, attribute, icon path, optional defense hint, and domain tags (physical/mental/social). Source of truth for the skills compendium.
+- `src/modules/mwd/battlemech-loadout.js` – BattleMech mount/loadout utilities: weapon group management, slot accounting, primary weapon handling.
+
+---
+
+## Attribute actions & defenses
+
+- `src/modules/attribute-actions.js` – Defines rollable attribute-pair actions: defense (reflexes+intelligence for characters; handling+chassis for vehicles/mechs), resistTorture, perception, composure, judgeIntentions, memory, catch, lift. Each entry specifies attribute functions and eligible actor types.
+
+---
 
 ## Chat, GM, and token utilities
-- `src/modules/chat/chat-manager.js` – Registers chat message hooks and renders chat cards for rolls, actor speech, and risk outcomes.【F:src/modules/chat/chat-manager.js†L1-L140】
-- `src/modules/app/gm-anarchy.js` – Manages the shared anarchy/plot pool for GMs, synchronizing state with actor sheets and GM Manager UI.【F:src/modules/app/gm-anarchy.js†L1-L122】
-- `src/modules/app/gm-difficulty.js` – Handles difficulty pool presets, rendering buttons, and triggering chat rolls from the GM Manager.【F:src/modules/app/gm-difficulty.js†L1-L79】
-- `src/modules/app/gm-manager.js` – Floating GM dashboard application that injects chat toolbar buttons, renders `gm-manager.hbs`, and wires drag/resizing plus GM-specific listeners.【F:src/modules/app/gm-manager.js†L1-L160】
-- `src/modules/app/handle-drag.js` – Helper to make applications draggable and persist positions in settings, used by GM Manager and dialogs.【F:src/modules/app/handle-drag.js†L1-L120】
-- `src/modules/token/hud-shortcuts.js` – Adds token HUD buttons for quick rolls and targeted actions leveraging roll manager and actor data.【F:src/modules/token/hud-shortcuts.js†L1-L140】
-- `src/modules/token/tokens.js` – Token helper utilities for resolving selected/targeted actors during rolls and actions.【F:src/modules/token/tokens.js†L1-L18】
-- `src/modules/dialog/roll-celebrity.js`, `select-actor.js`, `resistance-by-type.js` – Modal dialogs for specific roll flows (celebrity edge pools, selecting actors, choosing resistance types) invoked by roll/actor utilities.【F:src/modules/dialog/roll-celebrity.js†L1-L130】
-- `src/modules/remotecall.js` – Lightweight RPC/remote call registry enabling cross-client coordination for actions like GM updates.【F:src/modules/remotecall.js†L1-L61】
-- `src/modules/users.js` – Tracks per-user state (selected token actors, permissions) and exposes helpers referenced by actors and roll manager.【F:src/modules/users.js†L1-L70】
-- `src/modules/migrations.js` – Handles versioned world data migrations invoked on `ready` for GMs to upgrade actor/item data safely.【F:src/modules/migrations.js†L1-L140】
 
-## Mechanics helpers
-- `src/modules/skills.js` – Defines available skills, matrix skill set, and provides lookup helpers used by actors and roll parameters.【F:src/modules/skills.js†L1-L180】
-- `src/modules/modifiers/modifiers.js` – Aggregates item modifiers, computes bonuses for monitors/attributes, and is consumed when preparing actor data.【F:src/modules/modifiers/modifiers.js†L1-L160】
-- `src/modules/damage.js` – Damage calculation helpers including resistance application and armor interactions leveraged by attacks and actor damage manager.【F:src/modules/damage.js†L1-L10】
-- `src/modules/attribute-actions.js` – Defines rollable attribute/skill buttons and actions exposed on actor sheets and HUD shortcuts.【F:src/modules/attribute-actions.js†L1-L119】
-- `src/modules/common/checkbars.js` – Checkbar UI logic for resource tracks and hacks; globally initialized and modified via hooks manager.【F:src/modules/common/checkbars.js†L1-L160】
-- `src/modules/grammar.js` – Utilities for grammatical formatting (e.g., pluralization) used in chat messages and UI labels.【F:src/modules/grammar.js†L1-L8】
-- `src/modules/error-manager.js` – Centralized error/notification helper referenced by actor and roll modules to warn users.【F:src/modules/error-manager.js†L1-L106】
-- `src/modules/icons.js` – Icon path utilities/constants shared by sheets and HUD components.【F:src/modules/icons.js†L1-L37】
-- `src/modules/matrix-helper.js` – Legacy matrix-mode helpers maintained for compatibility but gated by settings/hacks.【F:src/modules/matrix-helper.js†L1-L140】
-- `src/modules/confirmation.js` – Standard confirmation dialogs for item/attachment deletion and other destructive actions.【F:src/modules/confirmation.js†L1-L78】
-- `src/modules/misc.js` – Small utility helpers reused across actors and items (e.g., array manipulations, formatting).【F:src/modules/misc.js†L1-L111】
-- `src/modules/mwd/battlemech-loadout.js` – Battlemech mount/loadout utilities supporting weapon grouping on mech sheets.【F:src/modules/mwd/battlemech-loadout.js†L1-L160】
+- `src/modules/chat/chat-manager.js` – Registers chat hooks, renders roll cards and actor speech.
+- `src/modules/app/gm-manager.js` – Floating GM dashboard: plot/anarchy pool, difficulty presets, drag/resize.
+- `src/modules/app/gm-anarchy.js` – Shared anarchy/plot pool state management and sync.
+- `src/modules/app/gm-difficulty.js` – Difficulty pool presets and GM roll triggers.
+- `src/modules/app/handle-drag.js` – Draggable position persistence for floating apps.
+- `src/modules/token/hud-shortcuts.js` – Token HUD buttons for quick rolls.
+- `src/modules/token/tokens.js` – Helpers for resolving selected/targeted actors.
+- `src/modules/dialog/roll-celebrity.js` – Celebrity edge pool roll dialog.
+- `src/modules/dialog/select-actor.js` – Actor selection dialog.
+- `src/modules/dialog/resistance-by-type.js` – Resistance type selection dialog.
+- `src/modules/remotecall.js` – Lightweight cross-client RPC registry.
+- `src/modules/users.js` – Per-user state: selected token actors, player character reference.
+- `src/modules/migrations.js` – Versioned world data migrations run on `ready` (GM only).
+
+---
+
+## Utility modules
+
+- `src/modules/error-manager.js` – Centralized error/notification helper (`ErrorManager.checkOutOfRange`, etc.).
+- `src/modules/misc.js` – Small utilities: `divint`, array helpers, formatting.
+- `src/modules/icons.js` – Icon path constants.
+- `src/modules/confirmation.js` – Standard confirmation dialogs for destructive actions.
+- `src/modules/common/checkbars.js` – Checkbar track logic: monitor box toggling, counter updates, cross-actor sourcing.
+
+---
 
 ## Styles
-- `src/styles/index.scss` – Root stylesheet that imports other SCSS partials for compilation via Vite.【F:src/styles/index.scss†L1-L3】
-- `src/styles/global.scss`, `gm-manager.scss` – Theme/style definitions for global UI elements and the GM Manager overlay respectively.【F:src/styles/global.scss†L1-L200】【F:src/styles/gm-manager.scss†L1-L33】
+
+- `src/styles/mwd.scss` – Root SCSS entry: imports global, tokens, base, components, themes, and modules partials.
+- `src/styles/global.scss` – Variables, font faces, resets.
+- `src/styles/appv2/` – Modular AppV2 SCSS: `tokens.scss`, `base.scss`, `components.scss`, `themes/` (default, sra), `modules/` (edge-console, roll-dialog, gm-gadget, chat-roll-card).
+- Compiled output: `styles/mwd.css` (loaded by Foundry via `system.json`).
+
+---
 
 ## Templates & localization
-- `templates/` – Handlebars templates for chat cards, dialogs, common partials, monitors, item sheets, roll UI, token HUD shortcuts, and actor sheets; referenced by sheet classes, dialogs, and chat manager when rendering views.【F:templates/chat/anarchy-roll.hbs†L1-L60】【F:templates/actor/character.hbs†L1-L40】
-- `lang/en.json` – English localization strings for the system identifiers used across config and templates.【F:lang/en.json†L1-L200】
 
-## Supporting docs & assets
-- `docs/` – Design notes for quick-roll buttons, vehicle rules, and weapon mounting systems supporting future development decisions.【F:docs/mech-quick-roll-buttons.md†L1-L120】
-- Asset folders (`icons/`, `img/`, `fonts/`, `style.css`, `style/`) – Images, fonts, and prebuilt CSS distributed with the system as declared in `system.json`.【F:system.json†L45-L51】
+- `templates/v2/` – **Active** Handlebars templates for AppV2 sheets, roll dialog, and chat cards.
+  - `actor/` – Character, NPC, vehicle, BattleMech sheet roots + `_sheet-root.hbs`
+  - `components/` – Reusable partials: `attributes.hbs`, `edge-console.hbs`, `status-dashboard.hbs`, `condition-monitors.hbs`, `skill-row.hbs`, `combat-actions.hbs`, `view-mode.hbs`, etc.
+  - `roll/` – `mwd-roll-dialog.hbs`, `_mwd-roll-card.hbs`
+  - `ui/` – GM gadget, layout node types (stack, panel, tabs, include, hexabox)
+- `templates/` (root) – Legacy AppV1 templates for actor/item sheets, chat, dialogs, and combat. Still referenced by legacy sheet classes and `combat-manager.js` (`inform-defender.hbs`).
+- `lang/en.json` – English localization strings keyed under `MWD.*`.
+
+---
+
+## Supporting tools & assets
+
+- `tools/` – Compendium management scripts: pack, unpack, validate YAML ↔ LevelDB.
+- `src/packs/` – YAML source files for compendiums (skills, macros, GM info).
+- `icons/`, `img/`, `fonts/` – Distributed static assets declared in `system.json`.
+- `docs/` – Design and architecture documentation (this file and its siblings).

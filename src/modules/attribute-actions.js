@@ -33,7 +33,6 @@ const DEFENSE = ANARCHY_SYSTEM.defenses;
 const ATTRIBUTE_ACTIONS = [
   action(ACTION.defense, __ => ATTR.reflexes, __ => ATTR.intelligence, Icons.fontAwesome('fas fa-shield-alt'), [ACTOR.character, ACTOR.npc]),
   action(ACTION.defense, __ => ATTR.handling, __ => ATTR.chassis, Icons.fontAwesome('fas fa-tachometer-alt'), [ACTOR.vehicle, ACTOR.battlemech]),
-  // TODO: add a way to pilot a vehicle to fallback defense of controled vehicle
   action(ACTION.resistTorture, __ => ATTR.strength, __ => ATTR.willpower, Icons.fontAwesome('fas fa-angry'), [ACTOR.character, ACTOR.npc]),
 
   action(ACTION.perception, __ => ATTR.logic, __ => ATTR.willpower, Icons.fontAwesome('fas fa-eye'), [ACTOR.character, ACTOR.npc]),

@@ -97,20 +97,20 @@ sheet:
             - { key: "equipment.slot2", label: "Slot 2" }
             - { key: "equipment.slot3", label: "Slot 3" }
 
-        # --- Pilot / crew link, as with vehicles ---
+        # --- Crew list ---
         - id: crew
-          label: "Pilot & Crew"
+          label: "Crew"
           type: actorList
-          actorsKey: "crew"   # first entry is assumed primary pilot unless flagged
+          actorsKey: "crew"
 
-        # --- Cached pilot stats for rolls (same snapshot idea as vehicle) ---
+        # --- Cached operator stats for rolls (manually entered; not dynamically linked) ---
         - id: pilot-snapshot
-          label: "Pilot Profile (Cached)"
-          help: "Cached values from primary pilot used for attack, defense, and initiative rolls."
+          label: "Operator Profile (Cached)"
+          help: "Manually cached stats used for attack, defense, and initiative rolls."
           type: grid
           columns: 3
           fields:
-            - { key: "pilotSnapshot.name",         label: "Primary Pilot",   type: text,   readOnly: true }
+            - { key: "pilotSnapshot.name",         label: "Operator Name",   type: text,   readOnly: false }
             - { key: "pilotSnapshot.gunnery",      label: "Gunnery",         type: number }
             - { key: "pilotSnapshot.piloting",     label: "Piloting",        type: number }
             - { key: "pilotSnapshot.perception",   label: "Perception",      type: number }
@@ -125,22 +125,22 @@ sheet:
           actions:
             - id: defense
               label: "Defense"
-              tooltip: "Handling + Piloting (pilot)"
+              tooltip: "Handling + Piloting (operator snapshot)"
               formula: "attributes.handling + pilotSnapshot.piloting"
 
             - id: sensors
               label: "Sensors"
-              tooltip: "System + Perception (pilot)"
+              tooltip: "System + Perception (operator snapshot)"
               formula: "attributes.system + pilotSnapshot.perception"
 
             - id: stealth
               label: "Stealth"
-              tooltip: "Handling + Stealth (pilot)"
+              tooltip: "Handling + Stealth (operator snapshot)"
               formula: "attributes.handling + pilotSnapshot.stealth"
 
             - id: initiative
               label: "Initiative"
-              tooltip: "Reflexes + Intelligence (pilot)"
+              tooltip: "Reflexes + Intelligence (operator snapshot)"
               formula: "pilotSnapshot.reflexes + pilotSnapshot.intelligence"
 
 

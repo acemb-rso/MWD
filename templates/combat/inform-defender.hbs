@@ -15,15 +15,6 @@
           The attack is fully defended
         {{/if}}
       </p>
-    {{else if (and defensePilotRoll attack.pilotCanDefend)}}
-      <p>
-        <hr>
-        {{#if attack.isHit}}
-          Attack exceeds defense of {{attack.success}} success
-        {{else}}
-          The attack is fully defended
-        {{/if}}
-      </p>
     {{else}}
       <div class="anarchy-button defend-attack click-defend-attack">
         <a>
@@ -32,15 +23,6 @@
           </label>
         </a>
       </div>
-      {{#if attack.pilotCanDefend}}
-      <div class="anarchy-button defend-attack click-defend-pilot-attack">
-        <a>
-          <label>
-            Pilot defense against {{attack.success}} success
-          </label>
-        </a>
-      </div>
-      {{/if}}
     {{/if}}
 
     {{#if attack.isHit}}
