@@ -1,5 +1,23 @@
 const MANAGED_STATUS_IDS = new Set(["overloaded"]);
 
+function getPersistentActorForToken(actor, token) {
+  if (!actor) return null;
+
+  const tokenDoc = token?.document ?? token ?? actor?.token ?? null;
+  const isLinkedToken = !!tokenDoc?.actorLink;
+  if (!isLinkedToken) return actor;
+
+  const baseActorId = String(
+    tokenDoc?.baseActor?.id
+    ?? tokenDoc?.actorId
+    ?? actor?.prototypeToken?.actorId
+    ?? ""
+  ).trim();
+
+  if (!baseActorId) return actor;
+  return game.actors?.get?.(baseActorId) ?? actor;
+}
+
 export function humanizeStatusKey(value) {
   const raw = String(value ?? "").trim();
   if (!raw) return "Status";
@@ -147,7 +165,8 @@ async function applyStatusSelection({ actor, effects, selectedStatusIds }) {
 export async function openTokenStatusDialog({ actor, token } = {}) {
   if (!actor || !token) return false;
 
-  const effects = getToggleableStatusEffects(actor);
+  const actorWriteTarget = getPersistentActorForToken(actor, token);
+  const effects = getToggleableStatusEffects(actorWriteTarget);
   if (!effects.length) {
     ui.notifications?.warn("No token statuses are configured.");
     return false;
@@ -170,7 +189,7 @@ export async function openTokenStatusDialog({ actor, token } = {}) {
                 .map((_, element) => element.value)
                 .get();
 
-              await applyStatusSelection({ actor, effects, selectedStatusIds });
+              await applyStatusSelection({ actor: actorWriteTarget, effects, selectedStatusIds });
               resolve(true);
             } catch (error) {
               console.error("MWD | Failed to update token statuses", error);

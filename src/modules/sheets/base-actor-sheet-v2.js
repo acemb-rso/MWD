@@ -99,6 +99,29 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
   return (this.element instanceof HTMLElement) ? this.element : this.element?.[0];
 }
 
+  /**
+   * Resolve the document that should persist actor-backed state.
+   * Linked token sheets should write to the base actor document so state survives scene changes.
+   */
+  getPersistentActor() {
+    const actor = this.actor ?? this.document ?? null;
+    if (!actor) return null;
+
+    const tokenDoc = this.document?.token ?? actor?.token ?? null;
+    const isLinkedToken = !!(this.document?.isToken && tokenDoc?.actorLink);
+    if (!isLinkedToken) return actor;
+
+    const baseActorId = String(
+      tokenDoc?.baseActor?.id
+      ?? tokenDoc?.actorId
+      ?? actor?.prototypeToken?.actorId
+      ?? ""
+    ).trim();
+
+    if (!baseActorId) return actor;
+    return game.actors?.get?.(baseActorId) ?? actor;
+  }
+
 /** @override */
 _initializeApplicationOptions(options) {
   options = super._initializeApplicationOptions(options);
@@ -267,7 +290,8 @@ _initializeApplicationOptions(options) {
       current: this.actor?.img ?? "",
       callback: async (path) => {
         if (!path) return;
-        await this.actor.update({ img: path });
+        const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+        await actorWriteTarget.update({ img: path });
       }
     });
 
@@ -355,7 +379,8 @@ _initializeApplicationOptions(options) {
 
     // Permissions: let Foundry enforce. If it fails, it fails (expected).
     try {
-      await this.actor.update(updates);
+      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+      await actorWriteTarget.update(updates);
     } catch (err) {
       console.warn("MWD | Commit failed (permissions or validation):", err);
     }
@@ -492,15 +517,16 @@ async _prepareContext(options) {
     const next = current === raw ? 0 : raw;
 
     // Prefer actor-owned semantics
-    if (typeof this.actor.setMonitorValue === "function") {
-      return this.actor.setMonitorValue(monitorId, next, { source: "sheet" });
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    if (typeof actorWriteTarget?.setMonitorValue === "function") {
+      return actorWriteTarget.setMonitorValue(monitorId, next, { source: "sheet" });
     }
 
     // Fallback: raw value update only (still generic)
     const basePath = `system.monitors.${monitorId}`;
-    const max = Number(foundry.utils.getProperty(this.actor, `${basePath}.max`)) || 0;
+    const max = Number(foundry.utils.getProperty(actorWriteTarget, `${basePath}.max`)) || 0;
     const value = Math.min(Math.max(0, next), Math.max(0, max));
-    return this.actor.update({ [`${basePath}.value`]: value });
+    return actorWriteTarget.update({ [`${basePath}.value`]: value });
   }
 
   /**

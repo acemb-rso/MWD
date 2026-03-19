@@ -8,7 +8,6 @@
 
   <div class="mwd-burn-monitor__header">
     <span class="mwd-burn-monitor__label">
-      <span class="mwd-burn-icon" aria-hidden="true"></span>
       Burn
       {{#if burnOverflow}}
         <span class="mwd-burn-overflow">+{{burnOverflow}}</span>
@@ -34,22 +33,31 @@
 
   <div class="mwd-burn-track" role="group" aria-label="Burn track">
     {{#each burnPips as |pip|}}
-      <button
-        type="button"
-        class="mwd-burn-pip {{#if pip.filled}}mwd-burn-pip--filled{{/if}} {{#if pip.threshold}}mwd-burn-pip--threshold{{/if}}"
-        data-action="monitorSet"
-        data-monitor="burn"
-        data-value="{{pip.pipValue}}"
-        aria-label="Set Burn to {{pip.pipValue}}"
-        {{#unless @root.editable}}disabled{{/unless}}
-      ></button>
+      {{#if pip.threshold}}
+        <span class="mwd-burn-pip-wrapper--threshold">
+          <button
+            type="button"
+            class="mwd-burn-pip {{#if pip.filled}}mwd-burn-pip--filled{{/if}}"
+            data-action="monitorSet"
+            data-monitor="burn"
+            data-value="{{pip.pipValue}}"
+            aria-label="Set Burn to {{pip.pipValue}}"
+            {{#unless @root.editable}}disabled{{/unless}}
+          ></button>
+        </span>
+      {{else}}
+        <button
+          type="button"
+          class="mwd-burn-pip {{#if pip.filled}}mwd-burn-pip--filled{{/if}}"
+          data-action="monitorSet"
+          data-monitor="burn"
+          data-value="{{pip.pipValue}}"
+          aria-label="Set Burn to {{pip.pipValue}}"
+          {{#unless @root.editable}}disabled{{/unless}}
+        ></button>
+      {{/if}}
     {{/each}}
   </div>
 
-  {{#if burn.overloaded}}
-    <div class="mwd-burn-monitor__meta">
-      <span class="mwd-burn-state">OVERLOADED</span>
-    </div>
-  {{/if}}
 
 </div>

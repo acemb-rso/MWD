@@ -7,6 +7,10 @@ import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 
 
 export class CharacterSheetV2 extends BaseActorSheetV2 {
+  #openCombatMenuId = null;
+  #combatMenuOutsideHandler = null;
+  #pendingScrollRestore = null;
+
   static PARTS = {
     sheet: {
       get template() {
@@ -23,6 +27,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
     actions: { 
       ...super.DEFAULT_OPTIONS.actions,
       edgeSet: CharacterSheetV2.prototype._onEdgeSet,
+      toggleCombatMenu: CharacterSheetV2.prototype._onToggleCombatMenu,
       toggleStatuses: CharacterSheetV2.prototype._onToggleStatuses,
       combatSpend: CharacterSheetV2.prototype._onCombatSpend,
       combatReduceBurn: CharacterSheetV2.prototype._onCombatReduceBurn,
@@ -195,10 +200,33 @@ ctx.edgeConsole.poolsOrdered = order
       inactiveReason: combatSnapshot.inactiveReason
     };
 
-    ctx.combatActions = PersonalCombatTracker.buildActionModel(this.actor, combatSnapshot);
+    const combatActions = PersonalCombatTracker.buildActionModel(this.actor, combatSnapshot);
+    const menuIds = new Set((combatActions.menus ?? []).map(menu => menu.id));
+    if (this.#openCombatMenuId && !menuIds.has(this.#openCombatMenuId)) {
+      this.#openCombatMenuId = null;
+    }
+
+    ctx.combatActions = {
+      ...combatActions,
+      menus: (combatActions.menus ?? []).map(menu => ({
+        ...menu,
+        isOpen: menu.id === this.#openCombatMenuId
+      }))
+    };
 
     return ctx;
   }
+
+ _onRender(context, options) {
+  super._onRender(context, options);
+  this.#syncCombatMenuOutsideHandler();
+  this.#restoreScrollPosition();
+ }
+
+ async close(options = {}) {
+  this.#removeCombatMenuOutsideHandler();
+  return super.close(options);
+ }
 
  async _onEdgeSet(event, target) {
   event.preventDefault();
@@ -229,11 +257,109 @@ ctx.edgeConsole.poolsOrdered = order
   if (event.button === 2 || event.type === "contextmenu") next = 0;
 
   // UX helpers
-  if (event.altKey) next = 0;
+ if (event.altKey) next = 0;
   if (event.shiftKey) next = pool.effectiveMax;
 
   return this.actor.setEdgePoolValue(poolKey, next);
 }
+
+ async _onToggleCombatMenu(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  const menuId = String(
+    target?.dataset?.combatMenu
+    ?? event?.target?.closest?.("[data-combat-menu]")?.dataset?.combatMenu
+    ?? ""
+  ).trim();
+
+  if (!menuId) return;
+
+  this.#openCombatMenuId = this.#openCombatMenuId === menuId ? null : menuId;
+  this.#renderPreservingScroll(false);
+ }
+
+ #syncCombatMenuOutsideHandler() {
+  this.#removeCombatMenuOutsideHandler();
+
+  if (!this.#openCombatMenuId) return;
+
+  this.#combatMenuOutsideHandler = (event) => {
+    const root = this._getRootElement();
+    if (!root) return;
+
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+
+    if (target.closest?.(".mwd-combat-menu")) return;
+    if (!root.contains(target)) {
+      this.#closeCombatMenu();
+      return;
+    }
+
+    this.#closeCombatMenu();
+  };
+
+  document.addEventListener("click", this.#combatMenuOutsideHandler);
+ }
+
+ #removeCombatMenuOutsideHandler() {
+  if (!this.#combatMenuOutsideHandler) return;
+  document.removeEventListener("click", this.#combatMenuOutsideHandler);
+  this.#combatMenuOutsideHandler = null;
+ }
+
+ #getPrimaryScroller() {
+  const root = this._getRootElement();
+  if (!root) return null;
+
+  return root.querySelector(".mwd-scroll-area")
+    ?? root.querySelector(".csb-tab-panels");
+ }
+
+ #captureScrollPosition() {
+  const scroller = this.#getPrimaryScroller();
+  if (!(scroller instanceof HTMLElement)) {
+    this.#pendingScrollRestore = null;
+    return;
+  }
+
+  this.#pendingScrollRestore = {
+    top: scroller.scrollTop,
+    left: scroller.scrollLeft
+  };
+ }
+
+ #restoreScrollPosition() {
+  const pending = this.#pendingScrollRestore;
+  if (!pending) return;
+
+  const scroller = this.#getPrimaryScroller();
+  if (!(scroller instanceof HTMLElement)) return;
+
+  scroller.scrollTop = pending.top;
+  scroller.scrollLeft = pending.left;
+
+  requestAnimationFrame(() => {
+    const nextScroller = this.#getPrimaryScroller();
+    if (!(nextScroller instanceof HTMLElement)) return;
+    nextScroller.scrollTop = pending.top;
+    nextScroller.scrollLeft = pending.left;
+  });
+
+  this.#pendingScrollRestore = null;
+ }
+
+ #renderPreservingScroll(renderOptions = false) {
+  this.#captureScrollPosition();
+  this.render(renderOptions);
+ }
+
+ #closeCombatMenu({ rerender = true } = {}) {
+  if (!this.#openCombatMenuId) return;
+  this.#openCombatMenuId = null;
+  if (rerender) this.#renderPreservingScroll(false);
+ }
 
  async _onToggleStatuses(event) {
   event?.preventDefault?.();
@@ -241,14 +367,17 @@ ctx.edgeConsole.poolsOrdered = order
 
   if (!this.isEditable) return;
 
-  const token = PersonalCombatTracker.getPreferredToken(this.actor);
+  const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+  const token = PersonalCombatTracker.getSnapshot(actorWriteTarget)?.token
+    ?? PersonalCombatTracker.getSnapshot(this.actor)?.token
+    ?? null;
   if (!token) {
     ui.notifications?.warn("Statuses require a token for this actor on the current scene.");
     return;
   }
 
   return openTokenStatusDialog({
-    actor: token.actor ?? this.actor,
+    actor: actorWriteTarget,
     token
   });
  }
@@ -262,14 +391,20 @@ ctx.edgeConsole.poolsOrdered = order
   const resource = String(target?.dataset?.resource ?? "").trim();
   const cost = Math.max(0, Number(target?.dataset?.cost ?? 0));
   const actionId = String(target?.dataset?.combatAction ?? "").trim();
+  const actionLabel = String(target?.dataset?.combatLabel ?? "").trim();
+  const actionCostLabel = String(target?.dataset?.combatCostLabel ?? "").trim();
   if (!resource || !cost || !actionId) return;
 
   try {
-    const result = await PersonalCombatTracker.spendResource(this.actor, {
-      token: PersonalCombatTracker.getPreferredToken(this.actor),
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const result = await PersonalCombatTracker.spendResource(actorWriteTarget, {
+      token: PersonalCombatTracker.getCurrentSceneToken(actorWriteTarget)
+        ?? PersonalCombatTracker.getCurrentSceneToken(this.actor),
       resource,
       cost,
-      actionId
+      actionId,
+      actionLabel,
+      actionCostLabel
     });
 
     if (!result?.ok) {
@@ -277,7 +412,8 @@ ctx.edgeConsole.poolsOrdered = order
       return;
     }
 
-    this.render({ force: true });
+    this.#closeCombatMenu({ rerender: false });
+    this.#renderPreservingScroll({ force: true });
   } catch (error) {
     console.error("MWD | Failed to spend combat action", error);
     ui.notifications?.error("Unable to spend action.");
@@ -291,8 +427,10 @@ ctx.edgeConsole.poolsOrdered = order
   if (!this.isEditable) return;
 
   try {
-    const result = await PersonalCombatTracker.reduceBurn(this.actor, {
-      token: PersonalCombatTracker.getPreferredToken(this.actor)
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const result = await PersonalCombatTracker.reduceBurn(actorWriteTarget, {
+      token: PersonalCombatTracker.getCurrentSceneToken(actorWriteTarget)
+        ?? PersonalCombatTracker.getCurrentSceneToken(this.actor)
     });
 
     if (!result?.ok) {
@@ -300,7 +438,8 @@ ctx.edgeConsole.poolsOrdered = order
       return;
     }
 
-    this.render({ force: true });
+    this.#closeCombatMenu({ rerender: false });
+    this.#renderPreservingScroll({ force: true });
   } catch (error) {
     console.error("MWD | Failed to reduce Burn", error);
     ui.notifications?.error("Unable to reduce Burn.");
@@ -325,9 +464,14 @@ ctx.edgeConsole.poolsOrdered = order
   }
 
   try {
-    const result = await game.mwd?.roll?.execute?.({ actor: this.actor, payload, event });
-    if (!result) return;
-    this.render({ force: true });
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const result = await game.mwd?.roll?.execute?.({ actor: actorWriteTarget, payload, event });
+    this.#closeCombatMenu({ rerender: false });
+    if (!result) {
+      this.#renderPreservingScroll(false);
+      return;
+    }
+    this.#renderPreservingScroll({ force: true });
   } catch (error) {
     console.error("MWD | Failed to launch overload check", error);
     ui.notifications?.error("Unable to launch overload check.");

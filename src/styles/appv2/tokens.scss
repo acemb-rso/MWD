@@ -135,11 +135,11 @@
   
   /* Monitor type-specific colors (filled state) */
   --mwd-monitor-physical-filled: #dd5555;
-  --mwd-monitor-physical-empty: rgba(80, 30, 30, 0.6);
+  --mwd-monitor-physical-empty: rgba(160, 55, 55, 0.5);
   --mwd-monitor-fatigue-filled: #ddaa33;
-  --mwd-monitor-fatigue-empty: rgba(80, 65, 20, 0.6);
+  --mwd-monitor-fatigue-empty: rgba(140, 110, 30, 0.5);
   --mwd-monitor-armor-filled: #55aadd;
-  --mwd-monitor-armor-empty: rgba(30, 60, 80, 0.6);
+  --mwd-monitor-armor-empty: rgba(50, 100, 145, 0.5);
   
   /* Ink on light/noisy surfaces */
   --mwd-ink-strong: rgba(20, 24, 28, 0.95);
