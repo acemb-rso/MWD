@@ -8,7 +8,7 @@ export async function resolveOverload({ actor }) {
     ui.notifications.warn("Overload check is only required at Burn 6+.");
   }
 
-  const will = Number(actor.system?.attributes?.wil?.value ?? 0);
+  const will = Number(actor.system?.attributes?.willpower?.value ?? 0);
 
   return {
     intent: "overload",

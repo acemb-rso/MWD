@@ -146,14 +146,28 @@ ctx.edgeConsole.poolsOrdered = order
           : null
       };
     });
+    const burn = Number(this.actor.system?.burn?.value ?? 0);
+    const burnDisplayMax = 10;
+    const burnThreshold = 6;
+    const burnFilled = Math.min(burn, burnDisplayMax);
+
+    ctx.burnOverflow = Math.max(0, burn - burnDisplayMax);
+    ctx.burnPenalty = Math.floor(burn / 2);
+    ctx.burnPips = Array.from({ length: burnDisplayMax }, (_, i) => {
+      const pipValue = i + 1;
+      return {
+        pipValue,
+        filled: pipValue <= burnFilled,
+        threshold: pipValue === burnThreshold
+      };
+    });
+
     ctx.combat = {
       roll: {
         initiative: JSON.stringify({ intent: "initiative" }),
         overload: JSON.stringify({ intent: "overload" })
       }
     };
-    
-    const burn = Number(this.actor.system?.burn?.value ?? 0);
 
     ctx.burn = {
       value: burn,

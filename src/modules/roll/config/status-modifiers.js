@@ -21,5 +21,12 @@ export const STATUS_MAP = {
     mods: [
       { domains: ["mental", "social"], value: -1 }
     ]
+  },
+
+  overloaded: {
+    label: "Overloaded",
+    mods: [
+      { domains: ["mental"], value: -2 }
+    ]
   }
 };

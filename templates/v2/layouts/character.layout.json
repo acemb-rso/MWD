@@ -44,8 +44,18 @@
             "classes": ["csb-topband__monitors"],
             "children": [
               {
-                "type": "include",
-                "partial": "mwd.v2.ui.condition-monitors"
+                "type": "stack",
+                "classes": ["mwd-monitors-row"],
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.condition-monitors"
+                  },
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.character.burn-monitor"
+                  }
+                ]
               }
             ]
           },

@@ -145,6 +145,12 @@ export class AnarchySystem {
     CONFIG.ANARCHY = MWD;
     //CONFIG.Combat.documentClass = AnarchyCombat;
     CONFIG.Combat.initiative = { formula: "2d6" }
+
+    CONFIG.statusEffects.push({
+      id: "overloaded",
+      name: "Overloaded",
+      icon: "systems/mwd/img/icons/status/surge.svg"
+    });
     CONFIG.Actor.documentClass = MWDActor;
     CONFIG.Item.documentClass = AnarchyBaseItem;
 

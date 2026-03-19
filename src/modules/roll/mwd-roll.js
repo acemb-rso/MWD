@@ -239,6 +239,10 @@ async function execute({ actor, payload, event } = {}) {
     outcomeModel.edgeEarned.pool = poolKey;
   }
 
+  if (ctx.intent === "overload") {
+    await applyOverloadResult({ actor, passed: outcomeModel.passed });
+  }
+
   /* --------------------------- */
   /* 7) Build resolved payload  */
   /* --------------------------- */
@@ -370,4 +374,10 @@ async function applyInitiativeToCombat({ actor, total }) {
   if (!combatant) return;
 
   await combatant.update({ initiative: Number(total) });
+}
+
+async function applyOverloadResult({ actor, passed }) {
+  if (!passed) {
+    await actor.update({ "system.burn.overloaded": true });
+  }
 }

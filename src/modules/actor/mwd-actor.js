@@ -345,10 +345,47 @@ export class MWDActor extends Actor {
   }
 
   /* -------------------------------------------- */
+  /* Document Lifecycle                            */
+  /* -------------------------------------------- */
+
+  /** @override */
+  async _onUpdate(data, options, userId) {
+    await super._onUpdate(data, options, userId);
+
+    // Only the initiating client syncs the ActiveEffect to avoid duplicate writes
+    if (game.userId !== userId) return;
+
+    if (foundry.utils.hasProperty(data, "system.burn.overloaded")) {
+      await this._syncOverloadedEffect(!!data.system.burn.overloaded);
+    }
+  }
+
+  async _syncOverloadedEffect(overloaded) {
+    const STATUS_ID = "overloaded";
+    const existing = this.effects.find(e => e.statuses?.has(STATUS_ID));
+
+    if (overloaded && !existing) {
+      await ActiveEffect.create({
+        name: "Overloaded",
+        icon: "systems/mwd/img/icons/status/surge.svg",
+        statuses: [STATUS_ID],
+        flags: { mwd: { managed: "burn" } }
+      }, { parent: this });
+    } else if (!overloaded && existing) {
+      await existing.delete();
+    }
+  }
+
+  /* -------------------------------------------- */
   /* Condition Monitors                            */
   /* -------------------------------------------- */
 
   async setMonitorValue(monitorId, rawValue, { source = "unknown" } = {}) {
+    if (monitorId === "burn") {
+      const nextValue = Math.max(0, Number(rawValue) || 0);
+      return this.update({ "system.burn.value": nextValue });
+    }
+
     const basePath = `system.monitors.${monitorId}`;
 
     const max = Number(foundry.utils.getProperty(this, `${basePath}.max`)) || 0;

@@ -25,6 +25,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/skills-column.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/skill-row.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/edge-console.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/burn-monitor.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/status-dashboard.hbs`,
 
   // Sheet wrapper

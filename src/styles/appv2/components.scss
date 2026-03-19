@@ -633,7 +633,152 @@
     &.pip--filled { color: var(--mwd-monitor-armor-filled); }
     &.pip--empty { color: var(--mwd-monitor-armor-empty); }
   }
+
 }
+
+/* ================================================ */
+/* Monitors row: 3 standard monitors + burn side-by-side */
+/* ================================================ */
+
+.mwd-monitors-row {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+/* ============================= */
+/* Burn Monitor                  */
+/* ============================= */
+
+.mwd-burn-monitor {
+  --burn-t1: rgba(255, 255, 255, 0.75);
+  --burn-t2: rgba(255, 220, 120, 0.95);
+  --burn-t3: rgba(255, 170, 80,  0.98);
+  --burn-t4: rgba(255, 90,  90,  0.95);
+  --burn-t5: rgba(255, 60,  60,  1);
+  --burn-gold: rgba(255, 196, 0, 0.9);
+  --burn-divider: color-mix(in srgb, var(--burn-gold) 70%, transparent);
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.4rem 0.5rem;
+  margin-top: 0.4rem;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0.9;
+  }
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  &__value {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 700;
+  }
+
+  &__meta {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    font-size: 0.72rem;
+    opacity: 0.8;
+  }
+
+  &--overloaded {
+    border-color: color-mix(in srgb, rgba(255,60,60,1) 55%, rgba(255,255,255,0.12));
+    box-shadow: 0 0 0 1px rgba(255,60,60,0.25);
+
+    .mwd-burn-icon { background: rgba(255, 90, 90, 0.95); }
+  }
+}
+
+.mwd-burn-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  -webkit-mask: var(--mwd-icon-burn) no-repeat center / contain;
+  mask: var(--mwd-icon-burn) no-repeat center / contain;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.mwd-burn-overflow {
+  padding: 1px 5px;
+  border-radius: 999px;
+  font-size: 0.72em;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.mwd-burn-penalty { font-weight: 700; }
+
+.mwd-burn-state {
+  color: rgba(255, 90, 90, 0.95);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.mwd-burn-track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+}
+
+.mwd-burn-pip {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: filter 0.1s ease;
+
+  &:hover { filter: brightness(1.25); }
+  &:disabled { cursor: default; opacity: 0.6; }
+
+
+  /* Gold ring + divider at threshold (pip 6) */
+  &--threshold {
+    position: relative;
+    margin-left: 8px;
+    border-color: var(--burn-gold);
+    box-shadow:
+      0 0 0 2px rgba(0, 0, 0, 0.35),
+      0 0 0 3px var(--burn-divider);
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: -9px;
+      top: -5px;
+      bottom: -5px;
+      width: 1px;
+      background: var(--burn-divider);
+    }
+  }
+}
+
+/* Burn pip fill gradient — flat rules, anchored to track for specificity */
+.mwd-burn-track .mwd-burn-pip--filled:nth-child(-n+2)                { background: rgba(255, 255, 255, 0.75); border-color: rgba(255, 255, 255, 0.45); }
+.mwd-burn-track .mwd-burn-pip--filled:nth-child(n+3):nth-child(-n+4) { background: rgba(255, 220, 120, 0.95); border-color: rgba(255, 220, 120, 0.50); }
+.mwd-burn-track .mwd-burn-pip--filled:nth-child(n+5):nth-child(-n+6) { background: rgba(255, 170,  80, 0.98); border-color: rgba(255, 170,  80, 0.50); }
+.mwd-burn-track .mwd-burn-pip--filled:nth-child(n+7):nth-child(-n+8) { background: rgba(255,  90,  90, 0.95); border-color: rgba(255,  90,  90, 0.50); }
+.mwd-burn-track .mwd-burn-pip--filled:nth-child(n+9)                 { background: rgba(255,  60,  60, 1.00); border-color: rgba(255,  60,  60, 0.50); }
 
 .mwd-monitor__pips {
   display: flex;

@@ -484,15 +484,22 @@ async _prepareContext(options) {
 
     if (!monitorId || !Number.isFinite(raw)) return;
 
+    // Toggle: clicking the already-active pip clears the monitor to 0
+    const currentPath = monitorId === "burn"
+      ? "system.burn.value"
+      : `system.monitors.${monitorId}.value`;
+    const current = Number(foundry.utils.getProperty(this.actor, currentPath) ?? 0);
+    const next = current === raw ? 0 : raw;
+
     // Prefer actor-owned semantics
     if (typeof this.actor.setMonitorValue === "function") {
-      return this.actor.setMonitorValue(monitorId, raw, { source: "sheet" });
+      return this.actor.setMonitorValue(monitorId, next, { source: "sheet" });
     }
 
     // Fallback: raw value update only (still generic)
     const basePath = `system.monitors.${monitorId}`;
-    const max = Number(foundry.utils.getProperty(this, `${basePath}.max`)) || 0;
-    const value = Math.min(Math.max(0, raw), Math.max(0, max));
+    const max = Number(foundry.utils.getProperty(this.actor, `${basePath}.max`)) || 0;
+    const value = Math.min(Math.max(0, next), Math.max(0, max));
     return this.actor.update({ [`${basePath}.value`]: value });
   }
 
