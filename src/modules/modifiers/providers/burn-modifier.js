@@ -14,6 +14,7 @@ export const burnModifier = {
       id: "burn",
       label: "Burn",
       value: -penalty,
+      source: "Burn Track",
       domain: null
     }];
   }

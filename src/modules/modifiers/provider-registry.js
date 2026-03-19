@@ -13,18 +13,8 @@ export class ModifierProviderRegistry {
     const out = [];
     for (const p of this.#providers.values()) {
       const mods = await p.collect(ctx);
-      if (!mods?.length) continue;
-      for (const m of mods) {
-        if (!m || typeof m.label !== "string" || typeof m.value !== "number" || typeof m.source !== "string") continue;
-        out.push(m);
-      }
-    }
-    for (const p of this.#providers.values()) {
-      const mods = await p.collect(ctx);
       console.log("MWD | provider", p.id, "returned", mods);
-
       if (!mods?.length) continue;
-
       for (const m of mods) {
         const ok = m && typeof m.label === "string" && typeof m.value === "number" && typeof m.source === "string";
         if (!ok) console.warn("MWD | DROPPED MOD (bad shape)", p.id, m);

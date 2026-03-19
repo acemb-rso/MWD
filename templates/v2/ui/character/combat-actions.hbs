@@ -1,5 +1,111 @@
-<div class="button-row combat-actions">
-  <button type="button">Attack</button>
-  <button data-action="roll" data-roll="{{combat.roll.initiative}}">Initiative</button>
-  <button data-action="roll" data-roll='{{combat.roll.overload}}' {{#unless burn.canOverloadCheck}}disabled{{/unless}}>Overload Check</button>
+<div class="mwd-combat-actions-panel">
+  {{#if combatActions.inactiveReason}}
+    <div class="mwd-combat-actions-panel__notice">{{combatActions.inactiveReason}}</div>
+  {{/if}}
+
+  <div class="mwd-combat-actions-panel__summary">
+    {{#each combatActions.summaryPills as |pill|}}
+      <span class="mwd-combat-actions-panel__pill">{{pill.label}} {{pill.value}}</span>
+    {{/each}}
+  </div>
+
+  <div class="mwd-combat-actions-panel__section">
+    <div class="mwd-combat-actions-panel__section-title">Spend Actions</div>
+    <div class="mwd-combat-actions-panel__grid">
+      {{#each combatActions.spendable as |action|}}
+        <button
+          type="button"
+          class="mwd-combat-action {{#if action.prominent}}is-prominent{{/if}}"
+          data-action="{{action.handler}}"
+          data-resource="{{action.resource}}"
+          data-cost="{{action.cost}}"
+          data-combat-action="{{action.id}}"
+          {{#if action.reason}}title="{{action.reason}}"{{/if}}
+          {{#if action.disabled}}disabled{{/if}}>
+          <span class="mwd-combat-action__label">{{action.label}}</span>
+          <span class="mwd-combat-action__cost">{{action.costLabel}}</span>
+          {{#if action.reason}}
+            <span class="mwd-combat-action__reason">{{action.reason}}</span>
+          {{/if}}
+        </button>
+      {{/each}}
+    </div>
+  </div>
+
+  <div class="mwd-combat-actions-panel__section">
+    <div class="mwd-combat-actions-panel__section-title">Burn & Recovery</div>
+    <div class="mwd-combat-actions-panel__grid">
+      {{#each combatActions.burnActions as |action|}}
+        <button
+          type="button"
+          class="mwd-combat-action {{#if action.prominent}}is-prominent{{/if}}"
+          data-action="{{action.handler}}"
+          data-roll='{{action.roll}}'
+          {{#if action.reason}}title="{{action.reason}}"{{/if}}
+          {{#if action.disabled}}disabled{{/if}}>
+          <span class="mwd-combat-action__label">{{action.label}}</span>
+          <span class="mwd-combat-action__cost">{{action.costLabel}}</span>
+          {{#if action.reason}}
+            <span class="mwd-combat-action__reason">{{action.reason}}</span>
+          {{/if}}
+        </button>
+      {{/each}}
+    </div>
+  </div>
+
+  <div class="mwd-combat-actions-panel__section">
+    <div class="mwd-combat-actions-panel__section-title">Planned Actions</div>
+    <div class="mwd-combat-actions-panel__grid">
+      {{#each combatActions.stubs as |action|}}
+        <button
+          type="button"
+          class="mwd-combat-action is-stub"
+          {{#if action.reason}}title="{{action.reason}}"{{/if}}
+          disabled>
+          <span class="mwd-combat-action__label">{{action.label}}</span>
+          <span class="mwd-combat-action__cost">{{action.costLabel}}</span>
+          <span class="mwd-combat-action__reason">{{action.reason}}</span>
+        </button>
+      {{/each}}
+    </div>
+  </div>
+
+  <div class="mwd-combat-actions-panel__section">
+    <div class="mwd-combat-actions-panel__section-title">Free & Reaction</div>
+    <div class="mwd-combat-actions-panel__grid mwd-combat-actions-panel__grid--compact">
+      {{#each combatActions.resourceButtons as |action|}}
+        <button
+          type="button"
+          class="mwd-combat-action"
+          data-action="{{action.handler}}"
+          data-resource="{{action.resource}}"
+          data-cost="{{action.cost}}"
+          data-combat-action="{{action.id}}"
+          {{#if action.reason}}title="{{action.reason}}"{{/if}}
+          {{#if action.disabled}}disabled{{/if}}>
+          <span class="mwd-combat-action__label">{{action.label}}</span>
+          <span class="mwd-combat-action__cost">{{action.costLabel}}</span>
+          {{#if action.reason}}
+            <span class="mwd-combat-action__reason">{{action.reason}}</span>
+          {{/if}}
+        </button>
+      {{/each}}
+    </div>
+  </div>
+
+  <div class="mwd-combat-actions-panel__section">
+    <div class="mwd-combat-actions-panel__section-title">Utility</div>
+    <div class="button-row is-compact">
+      {{#each combatActions.utility as |action|}}
+        <button
+          type="button"
+          data-action="{{action.handler}}"
+          data-roll='{{action.roll}}'
+          {{#if action.reason}}title="{{action.reason}}"{{/if}}
+          {{#if action.disabled}}disabled{{/if}}>
+          {{action.label}}
+        </button>
+      {{/each}}
+    </div>
+  </div>
 </div>

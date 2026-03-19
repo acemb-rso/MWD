@@ -681,7 +681,7 @@
     gap: 0.25rem;
   }
 
-  &__value {
+  &__status {
     display: flex;
     align-items: center;
     gap: 0.25rem;
@@ -719,8 +719,26 @@
   border-radius: 999px;
   font-size: 0.72em;
   font-weight: 800;
+  border: 1px solid rgba(200, 30, 30, 0.6);
+  background: rgba(180, 20, 20, 0.5);
+  color: rgba(255, 160, 160, 1);
+}
+
+.mwd-burn-input {
+  width: 3.5rem;
+  padding: 2px 6px;
   border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
   background: rgba(0, 0, 0, 0.25);
+  color: rgba(255, 255, 255, 0.9);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button { opacity: 0.5; }
 }
 
 .mwd-burn-penalty { font-weight: 700; }
@@ -1001,4 +1019,176 @@
 .mwd-portrait.is-editable {
   cursor: pointer;
   outline: 2px dashed var(--mwd-accent);
+}
+
+/* =========================================================
+   Personal Combat Cockpit
+   ========================================================= */
+
+.mwd-combat-dashboard,
+.mwd-combat-actions-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mwd-combat-dashboard__summary,
+.mwd-combat-actions-panel__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+}
+
+.mwd-combat-dashboard__summary-line {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.mwd-combat-dashboard__summary-burn {
+  opacity: 0.8;
+  font-size: 0.92em;
+}
+
+.mwd-combat-dashboard__notice,
+.mwd-combat-actions-panel__notice {
+  padding: 0.5rem 0.65rem;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 0.65rem;
+  background: rgba(0, 0, 0, 0.12);
+  font-size: 0.92em;
+  opacity: 0.88;
+}
+
+.mwd-combat-dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.mwd-combat-dashboard__card {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.mwd-combat-dashboard__label,
+.mwd-combat-actions-panel__section-title {
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.mwd-combat-dashboard__value {
+  margin-top: 0.2rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.mwd-combat-dashboard__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.mwd-combat-dashboard__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.mwd-combat-dashboard__empty {
+  opacity: 0.7;
+  font-size: 0.92em;
+}
+
+.mwd-combat-dashboard__modifier-list {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.mwd-combat-dashboard__modifier {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.6rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mwd-combat-actions-panel__pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.5rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.92em;
+  font-weight: 700;
+}
+
+.mwd-combat-actions-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.mwd-combat-actions-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.mwd-combat-actions-panel__grid--compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mwd-combat-action {
+  height: auto !important;
+  min-height: 4.4rem;
+  padding: 0.65rem 0.75rem !important;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.2rem;
+  text-align: left;
+}
+
+.mwd-combat-action__label {
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.mwd-combat-action__cost {
+  font-size: 0.8em;
+  opacity: 0.78;
+}
+
+.mwd-combat-action__reason {
+  font-size: 0.76em;
+  line-height: 1.2;
+  opacity: 0.72;
+  white-space: normal;
+}
+
+.mwd-combat-action.is-prominent {
+  border-color: rgba(255, 196, 0, 0.55) !important;
+  box-shadow: 0 0 0 1px rgba(255, 196, 0, 0.18);
+}
+
+.mwd-combat-action.is-stub {
+  opacity: 0.85;
+}
+
+@media (max-width: 760px) {
+  .mwd-combat-dashboard__grid,
+  .mwd-combat-actions-panel__grid,
+  .mwd-combat-actions-panel__grid--compact {
+    grid-template-columns: 1fr;
+  }
 }

@@ -2,6 +2,8 @@ import { TEMPLATES_PATH, SYSTEM_NAME } from "../constants.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import { EDGE_POOL_GROUPS } from "../constants.js";
+import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
+import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 
 
 export class CharacterSheetV2 extends BaseActorSheetV2 {
@@ -20,7 +22,11 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
     position: { width: 980, height: 900 },
     actions: { 
       ...super.DEFAULT_OPTIONS.actions,
-      edgeSet: CharacterSheetV2.prototype._onEdgeSet
+      edgeSet: CharacterSheetV2.prototype._onEdgeSet,
+      toggleStatuses: CharacterSheetV2.prototype._onToggleStatuses,
+      combatSpend: CharacterSheetV2.prototype._onCombatSpend,
+      combatReduceBurn: CharacterSheetV2.prototype._onCombatReduceBurn,
+      combatOverloadCheck: CharacterSheetV2.prototype._onCombatOverloadCheck
     }
   });
 
@@ -177,6 +183,20 @@ ctx.edgeConsole.poolsOrdered = order
       overloaded: !!this.actor.system?.burn?.overloaded
     };
 
+    const combatSnapshot = PersonalCombatTracker.getSnapshot(this.actor);
+    ctx.combatDashboard = {
+      overloadedLabel: combatSnapshot.overloaded ? "Yes" : "No",
+      burnLabel: String(combatSnapshot.burn.value),
+      burnPenaltyLabel: combatSnapshot.burn.penalty > 0 ? `-${combatSnapshot.burn.penalty}` : "0",
+      actionSummary: combatSnapshot.summaryText,
+      burnThisActivationLabel: `+${Math.max(0, Number(combatSnapshot.state.burnThisActivation ?? 0))}`,
+      statuses: combatSnapshot.statuses,
+      modifiers: combatSnapshot.modifierSummary,
+      inactiveReason: combatSnapshot.inactiveReason
+    };
+
+    ctx.combatActions = PersonalCombatTracker.buildActionModel(this.actor, combatSnapshot);
+
     return ctx;
   }
 
@@ -214,6 +234,105 @@ ctx.edgeConsole.poolsOrdered = order
 
   return this.actor.setEdgePoolValue(poolKey, next);
 }
+
+ async _onToggleStatuses(event) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable) return;
+
+  const token = PersonalCombatTracker.getPreferredToken(this.actor);
+  if (!token) {
+    ui.notifications?.warn("Statuses require a token for this actor on the current scene.");
+    return;
+  }
+
+  return openTokenStatusDialog({
+    actor: token.actor ?? this.actor,
+    token
+  });
+ }
+
+ async _onCombatSpend(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable) return;
+
+  const resource = String(target?.dataset?.resource ?? "").trim();
+  const cost = Math.max(0, Number(target?.dataset?.cost ?? 0));
+  const actionId = String(target?.dataset?.combatAction ?? "").trim();
+  if (!resource || !cost || !actionId) return;
+
+  try {
+    const result = await PersonalCombatTracker.spendResource(this.actor, {
+      token: PersonalCombatTracker.getPreferredToken(this.actor),
+      resource,
+      cost,
+      actionId
+    });
+
+    if (!result?.ok) {
+      ui.notifications?.warn(result?.reason ?? "Unable to spend action.");
+      return;
+    }
+
+    this.render({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to spend combat action", error);
+    ui.notifications?.error("Unable to spend action.");
+  }
+ }
+
+ async _onCombatReduceBurn(event) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable) return;
+
+  try {
+    const result = await PersonalCombatTracker.reduceBurn(this.actor, {
+      token: PersonalCombatTracker.getPreferredToken(this.actor)
+    });
+
+    if (!result?.ok) {
+      ui.notifications?.warn(result?.reason ?? "Unable to reduce Burn.");
+      return;
+    }
+
+    this.render({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to reduce Burn", error);
+    ui.notifications?.error("Unable to reduce Burn.");
+  }
+ }
+
+ async _onCombatOverloadCheck(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable) return;
+
+  const raw = target?.dataset?.roll ?? event?.target?.closest?.("[data-roll]")?.dataset?.roll;
+  if (!raw) return;
+
+  let payload;
+  try {
+    payload = JSON.parse(raw);
+  } catch (error) {
+    console.warn("MWD | Invalid overload payload", raw, error);
+    return;
+  }
+
+  try {
+    const result = await game.mwd?.roll?.execute?.({ actor: this.actor, payload, event });
+    if (!result) return;
+    this.render({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to launch overload check", error);
+    ui.notifications?.error("Unable to launch overload check.");
+  }
+ }
 
 
 }

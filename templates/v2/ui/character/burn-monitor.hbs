@@ -10,12 +10,25 @@
     <span class="mwd-burn-monitor__label">
       <span class="mwd-burn-icon" aria-hidden="true"></span>
       Burn
-    </span>
-    <span class="mwd-burn-monitor__value">
-      {{burn.value}}
       {{#if burnOverflow}}
         <span class="mwd-burn-overflow">+{{burnOverflow}}</span>
       {{/if}}
+    </span>
+    <span class="mwd-burn-monitor__status">
+      {{#if @root.editing}}
+        <input
+          class="mwd-burn-input"
+          type="number"
+          name="system.burn.value"
+          value="{{burn.value}}"
+          min="0"
+          step="1"
+          data-edit-field="staged"
+          aria-label="Burn value"
+        />
+      {{/if}}
+      <span class="mwd-monitor__status-label">Penalty</span>
+      <span class="mwd-monitor__status-value">−{{burnPenalty}}</span>
     </span>
   </div>
 
@@ -33,11 +46,10 @@
     {{/each}}
   </div>
 
-  <div class="mwd-burn-monitor__meta">
-    <span class="mwd-burn-penalty">−{{burnPenalty}} Dice</span>
-    {{#if burn.overloaded}}
+  {{#if burn.overloaded}}
+    <div class="mwd-burn-monitor__meta">
       <span class="mwd-burn-state">OVERLOADED</span>
-    {{/if}}
-  </div>
+    </div>
+  {{/if}}
 
 </div>

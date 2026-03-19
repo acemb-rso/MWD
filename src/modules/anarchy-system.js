@@ -26,6 +26,8 @@ import { ItemModifiersProvider } from "../modules/modifiers/providers/item-modif
 import { StatusEffectsProvider } from "../modules/modifiers/providers/status-effects.js";
 import { BaseRollModifiersProvider } from "../modules/modifiers/providers/base-modifiers.js";
 import { ConditionModifiersProvider } from "../modules/modifiers/providers/conditions.js";
+import { burnModifier } from "../modules/modifiers/providers/burn-modifier.js";
+import { PersonalCombatTracker } from "./combat/personal-combat-tracker.js";
 import { registerMWDChatActions } from "./chat/chat-actions.js";
 import { registerMWDGMGadgetSettings } from "./gm/mwd-gmgadget.js";
 import { getMWDGMGadget } from "./gm/mwd-gmgadget.js";
@@ -97,9 +99,11 @@ export class AnarchySystem {
     
     // Roll API (new AppV2 path)
     game.mwd.roll = MWDRoll;
+    game.mwd.personalCombat = PersonalCombatTracker;
 
     // Optional alias if you want it under the system object too:
     this.roll = MWDRoll;
+    this.personalCombat = PersonalCombatTracker;
 
     // initialize remote calls registry first: used by other singleton managers
     this.remoteCall = new RemoteCall(); 
@@ -108,6 +112,7 @@ export class AnarchySystem {
     modifierProviders.register(new StatusEffectsProvider());
     modifierProviders.register(new BaseRollModifiersProvider());
     modifierProviders.register(new ConditionModifiersProvider());
+    modifierProviders.register(burnModifier);
 
     //register handlebars helpers early
     Handlebars.registerHelper("mwdClassList", (classes) => {
@@ -138,6 +143,7 @@ export class AnarchySystem {
     this.hooks = new HooksManager();
     this.styles = new Styles();
     this.handlebarsManager = new HandlebarsManager();
+    PersonalCombatTracker.init();
     Enums.init();
     SystemSettings.register();
 
@@ -166,6 +172,8 @@ export class AnarchySystem {
 
   async onReady() {
     console.log(LOG_HEAD + 'AnarchySystem.onReady');
+
+    await PersonalCombatTracker.onReady();
 
     if (!game.user.isGM) return;
 
