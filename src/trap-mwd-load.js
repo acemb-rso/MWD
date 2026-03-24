@@ -1,4 +1,4 @@
-// put this at the very top of trap-mwd-load.js (before MutationObserver)
+// mwd/src/trap-mwd-load.js
 (() => {
   const TARGET = "mwd-roll-dialog";
 
