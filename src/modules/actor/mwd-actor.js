@@ -354,26 +354,42 @@ export class MWDActor extends Actor {
 
     // Only the initiating client syncs the ActiveEffect to avoid duplicate writes
     if (game.userId !== userId) return;
+    if (options?.mwdSyncOverloadedFromEffect) return;
 
     if (foundry.utils.hasProperty(data, "system.burn.overloaded")) {
       await this._syncOverloadedEffect(!!data.system.burn.overloaded);
     }
   }
 
+  _onCreateDescendantDocuments(parent, collection, documents, data, options, userId) {
+    super._onCreateDescendantDocuments(parent, collection, documents, data, options, userId);
+    if (collection === "effects") void this._syncOverloadedFieldFromEffects();
+  }
+
+  _onUpdateDescendantDocuments(parent, collection, documents, changes, options, userId) {
+    super._onUpdateDescendantDocuments(parent, collection, documents, changes, options, userId);
+    if (collection === "effects") void this._syncOverloadedFieldFromEffects();
+  }
+
+  _onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId) {
+    super._onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId);
+    if (collection === "effects") void this._syncOverloadedFieldFromEffects();
+  }
+
   async _syncOverloadedEffect(overloaded) {
     const STATUS_ID = "overloaded";
-    const existing = this.effects.find(e => e.statuses?.has(STATUS_ID));
+    await this.toggleStatusEffect(STATUS_ID, { active: overloaded, overlay: false });
+  }
 
-    if (overloaded && !existing) {
-      await ActiveEffect.create({
-        name: "Overloaded",
-        icon: "systems/mwd/img/icons/status/surge.svg",
-        statuses: [STATUS_ID],
-        flags: { mwd: { managed: "burn" } }
-      }, { parent: this });
-    } else if (!overloaded && existing) {
-      await existing.delete();
-    }
+  async _syncOverloadedFieldFromEffects() {
+    const overloadedFromStatus = this.statuses?.has?.("overloaded") ?? false;
+    const overloadedFromSystem = !!this.system?.burn?.overloaded;
+    if (overloadedFromStatus === overloadedFromSystem) return;
+
+    await this.update(
+      { "system.burn.overloaded": overloadedFromStatus },
+      { mwdSyncOverloadedFromEffect: true }
+    );
   }
 
   /* -------------------------------------------- */

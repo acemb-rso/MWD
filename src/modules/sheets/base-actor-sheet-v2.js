@@ -100,6 +100,21 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
 }
 
   /**
+   * Resolve the TokenDocument that launched this sheet when one exists.
+   * This keeps linked-token behavior aligned with Foundry's token API.
+   */
+  getSheetTokenDocument() {
+    const actor = this.actor ?? this.document ?? null;
+    const actorToken = actor?.token ?? null;
+    const tokenDoc = this.document?.isToken
+      ? (this.document?.token ?? actorToken ?? null)
+      : actorToken;
+
+    if (!tokenDoc) return null;
+    return tokenDoc?.document ?? tokenDoc;
+  }
+
+  /**
    * Resolve the document that should persist actor-backed state.
    * Linked token sheets should write to the base actor document so state survives scene changes.
    */
@@ -107,19 +122,13 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
     const actor = this.actor ?? this.document ?? null;
     if (!actor) return null;
 
-    const tokenDoc = this.document?.token ?? actor?.token ?? null;
-    const isLinkedToken = !!(this.document?.isToken && tokenDoc?.actorLink);
-    if (!isLinkedToken) return actor;
+    const tokenDoc = this.getSheetTokenDocument();
+    if (!tokenDoc?.isLinked) return actor;
 
-    const baseActorId = String(
-      tokenDoc?.baseActor?.id
-      ?? tokenDoc?.actorId
-      ?? actor?.prototypeToken?.actorId
-      ?? ""
-    ).trim();
-
-    if (!baseActorId) return actor;
-    return game.actors?.get?.(baseActorId) ?? actor;
+    return tokenDoc.baseActor
+      ?? game.actors?.get?.(tokenDoc?.baseActor?.id ?? "")
+      ?? tokenDoc.actor
+      ?? actor;
   }
 
 /** @override */

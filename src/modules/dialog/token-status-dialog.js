@@ -1,21 +1,24 @@
 const MANAGED_STATUS_IDS = new Set(["overloaded"]);
 
+function asTokenDocument(token) {
+  if (!token) return null;
+  return token?.document ?? token;
+}
+
 function getPersistentActorForToken(actor, token) {
   if (!actor) return null;
 
-  const tokenDoc = token?.document ?? token ?? actor?.token ?? null;
-  const isLinkedToken = !!tokenDoc?.actorLink;
-  if (!isLinkedToken) return actor;
+  const tokenDoc = asTokenDocument(token) ?? asTokenDocument(actor?.token);
+  if (!tokenDoc) return actor;
 
-  const baseActorId = String(
-    tokenDoc?.baseActor?.id
-    ?? tokenDoc?.actorId
-    ?? actor?.prototypeToken?.actorId
-    ?? ""
-  ).trim();
+  if (tokenDoc.isLinked) {
+    return tokenDoc.baseActor
+      ?? game.actors?.get?.(tokenDoc?.baseActor?.id ?? "")
+      ?? tokenDoc.actor
+      ?? actor;
+  }
 
-  if (!baseActorId) return actor;
-  return game.actors?.get?.(baseActorId) ?? actor;
+  return tokenDoc.actor ?? actor;
 }
 
 export function humanizeStatusKey(value) {
@@ -47,7 +50,7 @@ function getStatusIcon(effect) {
 
 function getCurrentStatusState(actor, statusId) {
   if (statusId === "overloaded") {
-    return !!actor?.system?.burn?.overloaded;
+    return !!actor?.system?.burn?.overloaded || !!actor?.statuses?.has?.(statusId);
   }
   return actor?.statuses?.has?.(statusId) ?? false;
 }
@@ -116,9 +119,8 @@ function buildDialogContent(effects) {
 
 async function applyStatusSelection({ actor, effects, selectedStatusIds }) {
   const selected = new Set(selectedStatusIds);
-  const creates = [];
-  const deletes = [];
   const updates = {};
+  const toggles = [];
 
   for (const effect of effects) {
     const isSelected = selected.has(effect.id);
@@ -131,35 +133,14 @@ async function applyStatusSelection({ actor, effects, selectedStatusIds }) {
       continue;
     }
 
-    if (isSelected) {
-      const createData = {
-        name: effect.label,
-        statuses: [effect.id]
-      };
-
-      if (effect.icon) createData.icon = effect.icon;
-      creates.push(createData);
-      continue;
-    }
-
-    const matching = actor.effects
-      .filter(activeEffect => activeEffect.statuses?.has?.(effect.id))
-      .map(activeEffect => activeEffect.id);
-
-    deletes.push(...matching);
+    toggles.push(actor.toggleStatusEffect(effect.id, { active: isSelected, overlay: false }));
   }
 
   if (Object.keys(updates).length) {
     await actor.update(updates);
   }
 
-  if (creates.length) {
-    await actor.createEmbeddedDocuments("ActiveEffect", creates);
-  }
-
-  if (deletes.length) {
-    await actor.deleteEmbeddedDocuments("ActiveEffect", deletes);
-  }
+  if (toggles.length) await Promise.all(toggles);
 }
 
 export async function openTokenStatusDialog({ actor, token } = {}) {

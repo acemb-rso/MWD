@@ -73,51 +73,112 @@ export class PersonalCombatTracker {
     this.renderOpenCharacterSheets();
   }
 
-  static getPreferredToken(actor) {
+  static _asTokenDocument(token) {
+    if (!token) return null;
+    return token?.document ?? token;
+  }
+
+  static _getTokenSceneId(token) {
+    const tokenDoc = this._asTokenDocument(token);
+    return tokenDoc?.parent?.id
+      ?? tokenDoc?.scene?.id
+      ?? tokenDoc?.object?.scene?.id
+      ?? null;
+  }
+
+  static _getSceneTokenDocumentById(tokenId, sceneId = canvas?.scene?.id) {
+    const normalizedId = String(tokenId ?? "").trim();
+    if (!normalizedId || !sceneId) return null;
+
+    const scene = canvas?.scene?.id === sceneId
+      ? canvas.scene
+      : game.scenes?.get?.(sceneId);
+
+    return scene?.tokens?.get?.(normalizedId) ?? null;
+  }
+
+  static _collectActorIds(actor, tokenDoc = null) {
+    const ids = new Set();
+    const add = value => {
+      const normalized = String(value ?? "").trim();
+      if (normalized) ids.add(normalized);
+    };
+
+    add(actor?.id);
+    add(actor?._id);
+
+    const resolvedTokenDoc = this._asTokenDocument(tokenDoc) ?? this._asTokenDocument(actor?.token);
+    add(resolvedTokenDoc?.actor?.id);
+    add(resolvedTokenDoc?.baseActor?.id);
+    add(resolvedTokenDoc?.actorId);
+
+    return ids;
+  }
+
+  static _tokenDocumentMatchesActor(tokenDoc, actor, actorIds = null) {
+    const resolvedTokenDoc = this._asTokenDocument(tokenDoc);
+    if (!resolvedTokenDoc || !actor) return false;
+
+    const ids = actorIds ?? this._collectActorIds(actor, resolvedTokenDoc);
+    return [
+      resolvedTokenDoc?.actor?.id,
+      resolvedTokenDoc?.baseActor?.id,
+      resolvedTokenDoc?.actorId
+    ].some(value => ids.has(String(value ?? "").trim()));
+  }
+
+  static getPreferredTokenDocument(actor) {
     if (!actor) return null;
 
-    const tokenActorToken = actor?.token?.object ?? null;
-    if (tokenActorToken) return tokenActorToken;
-
-    const tokenDocument = actor?.token ?? null;
-    const tokenDocumentId = String(tokenDocument?.id ?? "").trim();
-    if (tokenDocumentId) {
-      const sceneToken = canvas?.tokens?.get?.(tokenDocumentId)
-        ?? canvas?.tokens?.placeables?.find(token => token.id === tokenDocumentId)
-        ?? null;
-      if (sceneToken) return sceneToken;
-    }
-
-    const controlledToken = canvas?.tokens?.controlled?.find(token => token.actor?.id === actor.id) ?? null;
-    if (controlledToken) return controlledToken;
+    const actorTokenDoc = this._asTokenDocument(actor?.token);
+    if (actorTokenDoc) return actorTokenDoc;
 
     const activeTokens = actor.getActiveTokens?.(true, true) ?? [];
-    const sceneToken = activeTokens.find(token => token.scene?.id === canvas?.scene?.id);
-    return sceneToken ?? activeTokens[0] ?? null;
+    return activeTokens[0]?.document ?? null;
+  }
+
+  static getPreferredToken(actor) {
+    const tokenDoc = this.getPreferredTokenDocument(actor);
+    if (!tokenDoc) return null;
+    return tokenDoc.object ?? this._getSceneTokenById(tokenDoc.id);
+  }
+
+  static getCurrentSceneTokenDocument(actor, token = null) {
+    const sceneId = canvas?.scene?.id;
+    const explicitTokenDoc = this._asTokenDocument(token);
+    if (this._getTokenSceneId(explicitTokenDoc) === sceneId) return explicitTokenDoc;
+
+    const explicitTokenId = String(explicitTokenDoc?.id ?? token?.id ?? "").trim();
+    if (explicitTokenId) {
+      const sceneTokenDoc = this._getSceneTokenDocumentById(explicitTokenId, sceneId);
+      if (sceneTokenDoc) return sceneTokenDoc;
+    }
+
+    const preferredTokenDoc = this.getPreferredTokenDocument(actor);
+    if (this._getTokenSceneId(preferredTokenDoc) === sceneId) return preferredTokenDoc;
+
+    const preferredTokenId = String(preferredTokenDoc?.id ?? "").trim();
+    if (preferredTokenId) {
+      const sceneTokenDoc = this._getSceneTokenDocumentById(preferredTokenId, sceneId);
+      if (sceneTokenDoc) return sceneTokenDoc;
+    }
+
+    const activeTokens = actor?.getActiveTokens?.(true, true) ?? [];
+    const activeTokenDoc = activeTokens.find(it => it?.document?.parent?.id === sceneId)?.document ?? null;
+    if (activeTokenDoc) return activeTokenDoc;
+
+    const sceneTokens = Array.from(canvas?.scene?.tokens ?? []);
+    const actorIds = this._collectActorIds(actor, preferredTokenDoc);
+    const matchingTokens = sceneTokens.filter(tokenDoc => this._tokenDocumentMatchesActor(tokenDoc, actor, actorIds));
+    const activeMatchingToken = matchingTokens.find(tokenDoc => tokenDoc?.combatant?.id === game.combat?.combatant?.id) ?? null;
+
+    return activeMatchingToken ?? matchingTokens[0] ?? null;
   }
 
   static getCurrentSceneToken(actor, token = null) {
-    const sceneId = canvas?.scene?.id;
-    const explicitToken = token ?? null;
-    if (explicitToken?.scene?.id === sceneId) return explicitToken;
-
-    const explicitTokenId = String(explicitToken?.id ?? explicitToken?.document?.id ?? "").trim();
-    if (explicitTokenId) {
-      const sceneToken = this._getSceneTokenById(explicitTokenId);
-      if (sceneToken?.scene?.id === sceneId) return sceneToken;
-    }
-
-    const actorTokenId = String(actor?.token?.id ?? "").trim();
-    if (actorTokenId) {
-      const sceneToken = this._getSceneTokenById(actorTokenId);
-      if (sceneToken?.scene?.id === sceneId) return sceneToken;
-    }
-
-    const preferredToken = this.getPreferredToken(actor);
-    if (preferredToken?.scene?.id === sceneId) return preferredToken;
-
-    const activeTokens = actor?.getActiveTokens?.(true, true) ?? [];
-    return activeTokens.find(it => it.scene?.id === sceneId) ?? null;
+    const tokenDoc = this.getCurrentSceneTokenDocument(actor, token);
+    if (!tokenDoc) return null;
+    return tokenDoc.object ?? this._getSceneTokenById(tokenDoc.id);
   }
 
   static _getSceneTokenById(tokenId) {
@@ -130,59 +191,76 @@ export class PersonalCombatTracker {
   static getCombat(actor, token = null) {
     const sceneId = canvas?.scene?.id;
     const combat = game.combat;
-    const preferredSceneToken = this.getCurrentSceneToken(actor, token);
+    const preferredSceneTokenDoc = this.getCurrentSceneTokenDocument(actor, token);
+    const preferredSceneToken = preferredSceneTokenDoc?.object
+      ?? this._getSceneTokenById(preferredSceneTokenDoc?.id ?? null);
 
     if (!combat || combat.scene?.id !== sceneId) {
-      return { combat: null, combatant: null, token: preferredSceneToken };
+      return {
+        combat: null,
+        combatant: null,
+        token: preferredSceneToken,
+        tokenDocument: preferredSceneTokenDoc
+      };
     }
 
+    let combatant = preferredSceneTokenDoc?.combatant?.combat?.id === combat.id
+      ? preferredSceneTokenDoc.combatant
+      : null;
+
     const combatants = Array.from(combat.combatants ?? []);
-    const candidateTokenIds = new Set(
-      [
-        token?.id,
-        token?.document?.id,
-        preferredSceneToken?.id,
-        actor?.token?.id,
-        actor?.token?.object?.id
-      ]
-        .map(value => String(value ?? "").trim())
-        .filter(Boolean)
-    );
+    if (!combatant) {
+      const actorIds = this._collectActorIds(actor, preferredSceneTokenDoc);
+      const matchingCombatants = combatants.filter(it => {
+        const tokenId = String(it?.tokenId ?? "").trim();
+        if (preferredSceneTokenDoc && tokenId === String(preferredSceneTokenDoc.id ?? "").trim()) return true;
+        if (actorIds.has(String(it?.actorId ?? "").trim())) return true;
 
-    const candidateActorIds = new Set(
-      [
-        actor?.id,
-        actor?._id,
-        actor?.token?.actorId,
-        actor?.token?.baseActor?.id,
-        actor?.token?.actor?.id
-      ]
-        .map(value => String(value ?? "").trim())
-        .filter(Boolean)
-    );
+        const combatantTokenDoc = this._asTokenDocument(it?.token)
+          ?? this._getSceneTokenDocumentById(tokenId, sceneId);
 
-    const tokenCombatants = combatants.filter(it => candidateTokenIds.has(String(it?.tokenId ?? "").trim()));
-    const actorCombatants = combatants.filter(it => candidateActorIds.has(String(it?.actorId ?? "").trim()));
-    const matchingCombatants = Array.from(new Set([...tokenCombatants, ...actorCombatants]));
-    const activeMatchingCombatant = matchingCombatants.find(it => it.id === combat?.combatant?.id) ?? null;
+        return this._tokenDocumentMatchesActor(combatantTokenDoc, actor, actorIds);
+      });
 
-    let combatant = activeMatchingCombatant
-      ?? tokenCombatants[0]
-      ?? actorCombatants[0]
-      ?? null;
+      const activeMatchingCombatant = matchingCombatants.find(it => it.id === combat?.combatant?.id) ?? null;
+      const preferredTokenCombatant = matchingCombatants.find(it =>
+        preferredSceneTokenDoc
+        && String(it?.tokenId ?? "").trim() === String(preferredSceneTokenDoc.id ?? "").trim()
+      ) ?? null;
+
+      combatant = activeMatchingCombatant
+        ?? preferredTokenCombatant
+        ?? matchingCombatants[0]
+        ?? null;
+    }
 
     if (!combatant && combatants.length === 1 && (preferredSceneToken || actor)) {
       combatant = combatants[0];
     }
 
-    const combatantToken = this._getSceneTokenById(combatant?.tokenId ?? null);
-    const resolvedToken = preferredSceneToken ?? combatantToken ?? null;
+    const combatantTokenDoc = this._asTokenDocument(combatant?.token)
+      ?? this._getSceneTokenDocumentById(combatant?.tokenId ?? null, sceneId);
+    const resolvedTokenDoc = preferredSceneTokenDoc ?? combatantTokenDoc ?? null;
+    const resolvedToken = preferredSceneToken
+      ?? combatantTokenDoc?.object
+      ?? this._getSceneTokenById(combatant?.tokenId ?? null)
+      ?? null;
 
-    return { combat, combatant, token: resolvedToken };
+    return {
+      combat,
+      combatant,
+      token: resolvedToken,
+      tokenDocument: resolvedTokenDoc
+    };
   }
 
   static getSnapshot(actor, { token = null } = {}) {
-    const { combat, combatant, token: resolvedToken } = this.getCombat(actor, token);
+    const {
+      combat,
+      combatant,
+      token: resolvedToken,
+      tokenDocument
+    } = this.getCombat(actor, token);
     const isCurrentTurn = !!combatant && combat?.combatant?.id === combatant.id;
     const activation = combatant ? this.getActivationIdentity(combat, combatant) : null;
     const stored = combatant ? combatant.getFlag(FLAG_SCOPE, FLAG_KEY) : null;
@@ -203,6 +281,7 @@ export class PersonalCombatTracker {
 
     return {
       token: resolvedToken,
+      tokenDocument,
       combat,
       combatant,
       hasCombatant: !!combatant,

@@ -38,6 +38,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
     /** @override */
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
+    const sheetToken = this.getSheetTokenDocument?.() ?? null;
     ctx._mwdThemeClass = game.system.anarchy.styles.selectCssClass();
     ctx.layout = await LayoutRegistry.get("character");
 
@@ -188,7 +189,7 @@ ctx.edgeConsole.poolsOrdered = order
       overloaded: !!this.actor.system?.burn?.overloaded
     };
 
-    const combatSnapshot = PersonalCombatTracker.getSnapshot(this.actor);
+    const combatSnapshot = PersonalCombatTracker.getSnapshot(this.actor, { token: sheetToken });
     ctx.combatDashboard = {
       overloadedLabel: combatSnapshot.overloaded ? "Yes" : "No",
       burnLabel: String(combatSnapshot.burn.value),
@@ -361,15 +362,16 @@ ctx.edgeConsole.poolsOrdered = order
   if (rerender) this.#renderPreservingScroll(false);
  }
 
- async _onToggleStatuses(event) {
+  async _onToggleStatuses(event) {
   event?.preventDefault?.();
   event?.stopPropagation?.();
 
   if (!this.isEditable) return;
 
   const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-  const token = PersonalCombatTracker.getSnapshot(actorWriteTarget)?.token
-    ?? PersonalCombatTracker.getSnapshot(this.actor)?.token
+  const token = this.getSheetTokenDocument?.()
+    ?? PersonalCombatTracker.getSnapshot(actorWriteTarget, { token: this.getSheetTokenDocument?.() ?? null })?.tokenDocument
+    ?? PersonalCombatTracker.getSnapshot(this.actor, { token: this.getSheetTokenDocument?.() ?? null })?.tokenDocument
     ?? null;
   if (!token) {
     ui.notifications?.warn("Statuses require a token for this actor on the current scene.");
@@ -398,8 +400,9 @@ ctx.edgeConsole.poolsOrdered = order
   try {
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
     const result = await PersonalCombatTracker.spendResource(actorWriteTarget, {
-      token: PersonalCombatTracker.getCurrentSceneToken(actorWriteTarget)
-        ?? PersonalCombatTracker.getCurrentSceneToken(this.actor),
+      token: this.getSheetTokenDocument?.()
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
       resource,
       cost,
       actionId,
@@ -429,8 +432,9 @@ ctx.edgeConsole.poolsOrdered = order
   try {
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
     const result = await PersonalCombatTracker.reduceBurn(actorWriteTarget, {
-      token: PersonalCombatTracker.getCurrentSceneToken(actorWriteTarget)
-        ?? PersonalCombatTracker.getCurrentSceneToken(this.actor)
+      token: this.getSheetTokenDocument?.()
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor)
     });
 
     if (!result?.ok) {
