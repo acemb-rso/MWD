@@ -15,6 +15,10 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/tabs.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/unknown.hbs`,
   `systems/${SYSTEM_NAME}/templates/common/view-mode.hbs`,
+  `systems/${SYSTEM_NAME}/templates/common/label.hbs`,
+  `systems/${SYSTEM_NAME}/templates/common/enum-value-label.hbs`,
+  `systems/${SYSTEM_NAME}/templates/common/damage-code.hbs`,
+  `systems/${SYSTEM_NAME}/templates/common/damage-armor.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/mod-stepper.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/condition-monitors.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/roll/_mwd-roll-card.hbs`,
@@ -34,8 +38,24 @@ const PARTIALS = [
   // Placeholders
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/assigned-systems.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-gear.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-armor.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-weapons.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-description.hbs`,
+
+  // V2 item partials
+  `systems/${SYSTEM_NAME}/templates/v2/item/_item-sheet-root.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/personal-weapon-root.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/mech-weapon-root.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/armor-root.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/itemname.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/inactive.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/references.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/modifier.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/modifiers.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-main.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-compact-main.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/armor-main.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/item-effects.hbs`,
 
   // Actors
   `systems/${SYSTEM_NAME}/templates/v2/actor/character-sheet.hbs`
@@ -71,7 +91,10 @@ export async function preloadTemplatesV2() {
 
   try {
     const map = {};
-    for (const p of PARTIALS) map[toAlias(p)] = p;
+    for (const p of PARTIALS) {
+      map[toAlias(p)] = p; // short alias: mwd.v2.item.parts.itemname
+      map[p] = p;          // full path: systems/mwd/templates/v2/item/parts/itemname.hbs
+    }
 
     // This compiles & registers the aliases as partials in Foundry's HB env
     await foundry.applications.handlebars.loadTemplates(map);

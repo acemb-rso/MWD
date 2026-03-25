@@ -371,3 +371,189 @@
   min-height: 0;
   overflow: visible;
 }
+
+/* =========================================================
+ * MWD Item Sheet — Base (AppV2)
+ * ========================================================= */
+
+.mwd-sheet.item-sheet,
+.mwd-sheet.item-sheet * {
+  box-sizing: border-box;
+}
+
+.mwd-sheet.item-sheet {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  font-family: var(--mwd-font-ui);
+}
+
+.mwd-sheet.item-sheet h1,
+.mwd-sheet.item-sheet h2,
+.mwd-sheet.item-sheet h3,
+.mwd-sheet.item-sheet .sheet-header .name,
+.mwd-sheet.item-sheet .mwd-panel__title {
+  font-family: var(--mwd-font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mwd-sheet.item-sheet > .window-content {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  /* Opaque base so the texture reads as a soft tile, not a hero image */
+  background-color: #e7dfca;
+}
+
+.mwd-sheet.item-sheet > .window-content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    url("/systems/mwd/img/mek/camo/Standard Camouflage/Hex/Hex tan.jpg")
+    left top / 84px 72px repeat;
+  opacity: 0.22;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.mwd-sheet.item-sheet > .window-content::after {
+  content: none;
+}
+
+.mwd-sheet.item-sheet > .window-content > * {
+  position: relative;
+  z-index: 1;
+}
+
+.mwd-sheet.item-sheet > .window-content > [data-application-part="sheet"].mwd-item-sheet {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  background: transparent;
+  overflow: hidden;
+}
+
+.mwd-sheet.item-sheet .sheet-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  padding: 6px 4px 10px;
+}
+
+.mwd-sheet.item-sheet .sheet-header .header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mwd-sheet.item-sheet .sheet-header .header-right {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.mwd-sheet.item-sheet .sheet-header img.profile {
+  width: 164px;
+  height: 164px;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 14px;
+}
+
+.mwd-sheet.item-sheet .sheet-header .item-name {
+  margin: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.mwd-sheet.item-sheet .sheet-header .item-name input[name="name"] {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 3.5rem;
+  height: auto;
+  padding: 0.32rem 0.75rem 0.42rem;
+  font-family: var(--mwd-font-display);
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.02;
+}
+
+.mwd-sheet.item-sheet .sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mwd-sheet.item-sheet .csb-layout,
+.mwd-sheet.item-sheet .mwd-item-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.mwd-sheet.item-sheet .csb-body,
+.mwd-sheet.item-sheet .mwd-body,
+.mwd-sheet.item-sheet .csb-tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.mwd-sheet.item-sheet .csb-tab-panels {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+.mwd-sheet.item-sheet .csb-tab-panel {
+  display: none;
+  width: 100%;
+  min-width: 0;
+}
+
+.mwd-sheet.item-sheet .csb-tab-panel.is-active {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.mwd-sheet.item-sheet .csb-tab-panel.is-active > * {
+  width: 100%;
+  min-width: 0;
+}

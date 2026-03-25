@@ -1,7 +1,7 @@
-import { ICONS_PATH, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
-import { ANARCHY } from "../config.js";
+import { TEMPLATE, TEMPLATES_PATH } from "../constants.js";
+import { MWD } from "../config.js";
 import { Enums } from "../enums.js";
-import { AnarchyBaseItem } from "./anarchy-base-item.js";
+import { MWDItem } from "./anarchy-base-item.js";
 import { Checkbars } from "../common/checkbars.js";
 import { AnarchyUsers } from "../users.js";
 import { ROLL_PARAMETER_CATEGORY } from "../roll/roll-parameters.js";
@@ -11,6 +11,13 @@ import { ErrorManager } from "../error-manager.js";
 import { Misc } from "../misc.js";
 import { SkillItem } from "./skill-item.js";
 import { formatString } from "../strings.js";
+import { getSkillDef } from "../mwd/skills.js";
+import {
+  deriveWeaponEffectsFromTraits,
+  getPersonalDamageTypeLabel,
+  normalizePersonalDamageType,
+  normalizeWeaponTraits,
+} from "../mwd/personal-damage.js";
 
 const AREA_TARGETS = {
   none: { targets: 1, adjust: [0] },
@@ -27,7 +34,7 @@ const WEAPON_RANGE_PARAMETER = {
   options: {
     flags: { editable: true, },
     order: 20, category: ROLL_PARAMETER_CATEGORY.pool,
-    labelkey: ANARCHY.common.roll.modifiers.weaponRange,
+    labelkey: MWD.common.roll.modifiers.weaponRange,
     hbsTemplateRoll: `${TEMPLATES_PATH}/roll/parts/select-option.hbs`,
     hbsTemplateChat: undefined, //``
   },
@@ -50,7 +57,7 @@ const WEAPON_AREA_PARAMETER = {
   options: {
     used: true,
     order: 20, category: ROLL_PARAMETER_CATEGORY.pool,
-    labelkey: ANARCHY.common.roll.modifiers.weaponArea,
+    labelkey: MWD.common.roll.modifiers.weaponArea,
     hbsTemplateRoll: `${TEMPLATES_PATH}/roll/parts/input-numeric.hbs`,
     hbsTemplateChat: undefined, //``
   },
@@ -68,15 +75,47 @@ const WEAPON_AREA_PARAMETER = {
   }
 }
 
-export class WeaponItem extends AnarchyBaseItem {
+export class WeaponItem extends MWDItem {
 
   static RANGE_ORDER = ['close', 'near', 'far', 'extreme'];
+  static DEFAULT_UNARMED = Object.freeze({
+    id: "unarmed",
+    name: "Unarmed",
+    category: "melee",
+    skill: "meleeCombat",
+    damage: 1,
+    ap: 0,
+    damageType: "concussive",
+    attackRatingBand: { close: 0, near: 0, far: 0, extreme: 0 },
+    range: { max: "close", close: 0, near: 0, far: 0, extreme: 0 },
+    traits: [],
+    notes: ""
+  });
 
   static init() {
     Hooks.once(ANARCHY_HOOKS.REGISTER_ROLL_PARAMETERS, register => {
       register(WEAPON_AREA_PARAMETER);
       register(WEAPON_RANGE_PARAMETER);
     });
+  }
+
+  prepareBaseData() {
+    super.prepareBaseData();
+
+    if ((this.canonicalType ?? this.type) !== TEMPLATE.itemType.personalWeapon) return;
+
+    const system = this.system ?? {};
+    system.equipped = Boolean(system.equipped);
+    system.isPrimary = Boolean(system.isPrimary);
+    system.category = String(system.category ?? system.weaponCategory ?? "ranged").trim() || "ranged";
+    system.skill = String(system.skill ?? "firearms").trim() || "firearms";
+    system.ap = Number(system.ap ?? system.armorPiercing ?? 0) || 0;
+    system.damage = Number(system.damage ?? 0) || 0;
+    system.damageType = normalizePersonalDamageType(system.damageType);
+    system.attackRatingBand = WeaponItem.normalizeAttackRatingBand(system.attackRatingBand);
+    system.range = WeaponItem.normalizeRangeData(system.range);
+    system.traits = WeaponItem.normalizeTraits(system.traits);
+    system.notes = String(system.notes ?? "").trim();
   }
 
   static maxIndex(maxKey) {
@@ -113,14 +152,82 @@ export class WeaponItem extends AnarchyBaseItem {
   }
   
   static get defaultIcon() {
-    return `${ICONS_PATH}/weapons/mac-10.svg`;
+    return "systems/mwd/img/colt-m1911.svg";
   }
 
   static defaultIconForType(type) {
     if (type === TEMPLATE.itemType.mechWeapon) {
-      return `${ICONS_PATH}/weapons/cannon.svg`;
+      return "systems/mwd/img/default/Default_Weapon.svg";
     }
     return this.defaultIcon;
+  }
+
+  static normalizeTraits(value) {
+    return normalizeWeaponTraits(value);
+  }
+
+  static normalizeRangeData(range) {
+    const max = WeaponItem.normalizeRangeKey(range?.max ?? "near");
+    return {
+      max,
+      close: Number(range?.close ?? range?.short ?? 0) || 0,
+      near: Number(range?.near ?? range?.medium ?? 0) || 0,
+      far: Number(range?.far ?? range?.long ?? 0) || 0,
+      extreme: Number(range?.extreme ?? 0) || 0
+    };
+  }
+
+  static normalizeAttackRatingBand(bands) {
+    return {
+      close: Number(bands?.close ?? bands?.short ?? 0) || 0,
+      near: Number(bands?.near ?? bands?.medium ?? 0) || 0,
+      far: Number(bands?.far ?? bands?.long ?? 0) || 0,
+      extreme: Number(bands?.extreme ?? 0) || 0
+    };
+  }
+
+  getCombatProfile() {
+    const system = this.system ?? {};
+    const canonicalType = this.canonicalType ?? this.type;
+    const range = WeaponItem.normalizeRangeData(system.range);
+    const skillCode = String(system.skill ?? "").trim();
+    const skillDef = getSkillDef(skillCode);
+    const damage = Number(system.damage ?? 0) || 0;
+    const ap = Number(system.ap ?? system.armorPiercing ?? 0) || 0;
+    const category = String(system.category ?? system.weaponCategory ?? "ranged").trim() || "ranged";
+    const traits = WeaponItem.normalizeTraits(system.traits);
+    const effects = deriveWeaponEffectsFromTraits(traits);
+
+    return {
+      id: this.id ?? "weapon",
+      uuid: this.uuid ?? null,
+      name: this.name ?? "Weapon",
+      img: this.img,
+      item: this,
+      type: canonicalType,
+      equipped: Boolean(system.equipped),
+      isPrimary: Boolean(system.isPrimary),
+      category,
+      skill: skillCode || "firearms",
+      skillDef,
+      damage,
+      ap,
+      damageType: canonicalType === TEMPLATE.itemType.personalWeapon
+        ? normalizePersonalDamageType(system.damageType)
+        : String(system.damageType ?? "kinetic").trim() || "kinetic",
+      attackRatingBand: WeaponItem.normalizeAttackRatingBand(system.attackRatingBand),
+      range,
+      defaultRangeBand: this.getDefaultRangeBand(range),
+      traits,
+      effects: canonicalType === TEMPLATE.itemType.personalWeapon ? effects : {},
+      notes: String(system.notes ?? system.description ?? "").trim()
+    };
+  }
+
+  getDefaultRangeBand(range = WeaponItem.normalizeRangeData(this.system?.range)) {
+    const preferred = ["near", "close", "far", "extreme"];
+    const maxIndex = WeaponItem.maxIndex(range.max);
+    return preferred.find(key => WeaponItem.RANGE_ORDER.indexOf(key) <= maxIndex) ?? "close";
   }
 
   isWeaponSkill(item) {
@@ -140,10 +247,15 @@ export class WeaponItem extends AnarchyBaseItem {
   }
 
   getDefense() {
-    if (this.type !== TEMPLATE.itemType.personalWeapon) {
+    if ((this.canonicalType ?? this.type) !== TEMPLATE.itemType.personalWeapon) {
       return this.system.defense ? AttributeActions.fixedDefenseCode(this.system.defense) : undefined;
     }
-    return AttributeActions.fixedDefenseCode(this.system.defense);
+    if (this.system.defense) {
+      return AttributeActions.fixedDefenseCode(this.system.defense);
+    }
+
+    const skillDef = getSkillDef(String(this.system.skill ?? "").trim());
+    return skillDef?.defense ? AttributeActions.fixedDefenseCode(skillDef.defense) : undefined;
   }
 
   getDamage() {
@@ -177,7 +289,7 @@ export class WeaponItem extends AnarchyBaseItem {
       }
       else {
         console.warn('Weapon not attached to an actor');
-        return ANARCHY.item.personalWeapon.weaponWithoutActor;
+        return MWD.item.personalWeapon.weaponWithoutActor;
       }
     }
     return damage;
@@ -193,8 +305,8 @@ export class WeaponItem extends AnarchyBaseItem {
 
   static damageCode(monitor, damage, damageAttribute) {
     let code = '';
-    if (damageAttribute && ANARCHY.attributes[damageAttribute]) {
-      code += ANARCHY.attributes[damageAttribute].substring(0, 3).toUpperCase() + '/2 + ';
+    if (damageAttribute && MWD.attributes[damageAttribute]) {
+      code += MWD.attributes[damageAttribute].substring(0, 3).toUpperCase() + '/2 + ';
     }
     code += String(damage);
     return code;
@@ -208,13 +320,16 @@ export class WeaponItem extends AnarchyBaseItem {
   }
 
   getDamageTypeLabel() {
-    const labelKey = ANARCHY.mwd.weaponDamageType[this.system.damageType]
-      ?? ANARCHY.mwd.personalDamageType[this.system.damageType];
+    if ((this.canonicalType ?? this.type) === TEMPLATE.itemType.personalWeapon) {
+      return getPersonalDamageTypeLabel(this.system.damageType);
+    }
+    const labelKey = MWD.mwd.weaponDamageType[this.system.damageType]
+      ?? MWD.mwd.personalDamageType[this.system.damageType];
     return labelKey ? labelKey : this.system.damageType;
   }
 
   getRanges() {
-    return WeaponItem.getRangeList(this.system.range)
+    return WeaponItem.getRangeList(WeaponItem.normalizeRangeData(this.system.range))
       .filter(it => it.allowed)
       .map(it => ({ value: it.value, labelkey: it.labelkey }));
   }
@@ -259,14 +374,14 @@ export class WeaponItem extends AnarchyBaseItem {
       .map(token => token.name)
 
     if (invalidTargets.length > 0) {
-      const content = formatString(ANARCHY.common.errors.ignoredTargets, {
+      const content = formatString(MWD.common.errors.ignoredTargets, {
         targets: invalidTargets.reduce(Misc.joiner(', ')),
       });
       ui.notifications.info(content);
     }
     if (validTargets.length == 0) {
-      const content = formatString(ANARCHY.common.errors.noTargetSelected, {
-        weapon: this.name ?? ANARCHY.itemType.singular.weapon
+      const content = formatString(MWD.common.errors.noTargetSelected, {
+        weapon: this.name ?? MWD.itemType.singular.weapon
       });
       ui.notifications.info(content);
     }
@@ -300,10 +415,8 @@ export class WeaponItem extends AnarchyBaseItem {
   }
 
   _getMonitor() {
-    if (this.type === TEMPLATE.itemType.personalWeapon) {
-      return this.system.damageCategory === 'fatigue'
-        ? TEMPLATE.monitors.fatigue
-        : TEMPLATE.monitors.physical;
+    if ((this.canonicalType ?? this.type) === TEMPLATE.itemType.personalWeapon) {
+      return TEMPLATE.monitors.physical;
     }
     return this.system.monitor || TEMPLATE.monitors.physical;
   }

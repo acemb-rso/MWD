@@ -108,8 +108,7 @@ Each button triggers a **roll dialog** or a modal selector depending on the acti
 **Roll Formula**
 
 - Melee dice pool
-- Target DN from GM/automation
-- Effect: melee damage rating
+
 
 ### 3.3 Dodge (Piloting)
 

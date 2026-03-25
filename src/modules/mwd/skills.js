@@ -50,7 +50,7 @@ export const MWD_SKILLS = [
   { code: "tracking",       label: "Tracking",          attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/tracking.svg`, domains: ["physical", "mental"] },
   { code: "navigation",     label: "Navigation",        attribute: "intelligence", icon: `${ICONS_SKILLS_PATH}/piloting-other.svg`, domains: ["mental"] },
 
-  // Willpower
+  // Guts
   { code: "administration", label: "Administration",  attribute: "willpower", icon: `${ICONS_SKILLS_PATH}/knowledge.svg`, domains: ["social", "mental"] },
   { code: "animalHandling", label: "Animal Handling", attribute: "willpower", icon: `${ICONS_SKILLS_PATH}/animals.svg`, domains: ["physical", "mental"] },
   { code: "survival",       label: "Survival",        attribute: "willpower", icon: `${ICONS_SKILLS_PATH}/survival.svg`, domains: ["physical", "mental"] },

@@ -1,5 +1,35 @@
 import { AttributeActions } from "../attribute-actions.js";
 import { BaseItemSheet } from "./base-item-sheet.js";
+import { WeaponItem } from "./weapon-item.js";
+import {
+  PERSONAL_DAMAGE_TYPES,
+  getPersonalDamageTypeLabel,
+} from "../mwd/personal-damage.js";
+
+const PERSONAL_WEAPON_SKILL_CODES = Object.freeze([
+  "firearms",
+  "projectileWeapons",
+  "heavyWeapons",
+  "meleeCombat"
+]);
+
+const MECH_WEAPON_DAMAGE_TYPES = Object.freeze([
+  { value: "energy", label: "Energy" },
+  { value: "kinetic", label: "Kinetic" },
+  { value: "ballistic", label: "Ballistic" },
+  { value: "explosive", label: "Explosive" },
+  { value: "plasma", label: "Plasma" },
+  { value: "electrical", label: "Electrical" },
+  { value: "melee", label: "Melee" },
+  { value: "none", label: "None" }
+]);
+
+function appendSelectedOption(entries, selected, getLabel) {
+  const value = String(selected ?? "").trim();
+  if (!value) return entries;
+  if (entries.some(entry => entry.value === value)) return entries;
+  return entries.concat({ value, label: getLabel(value) });
+}
 
 /**
  * Weapon item sheet (AppV2).
@@ -15,7 +45,15 @@ export class WeaponItemSheet extends BaseItemSheet {
         ...super.DEFAULT_OPTIONS.actions,
         weaponSkillChange: WeaponItemSheet._onWeaponSkillChange
       }
-    });
+    }, { inplace: false });
+  }
+
+  _getTabs() {
+    return {
+      ...super._getTabs(),
+      modifiers: { id: "modifiers", group: "primary", label: "Roll Modifiers" },
+      effects: { id: "effects", group: "primary", label: "Active Effects" }
+    };
   }
 
   /**
@@ -26,16 +64,49 @@ export class WeaponItemSheet extends BaseItemSheet {
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    
-    // Add defense options for weapon targeting
+    const canonicalType = this._getCanonicalItemType();
+
     context.ENUMS = foundry.utils.mergeObject(
-      { defenses: AttributeActions.getDefenses() }, 
+      { defenses: AttributeActions.getDefenses() },
       context.ENUMS
     );
-    
-    // Add weapon-specific flags
-    context.hasDrain = this.item.hasDrain;
-    context.hasConvergence = this.item.hasConvergence;
+
+    const allSkills = Array.isArray(context.ENUMS?.skills) ? context.ENUMS.skills : [];
+    const selectedSkill = this.item.system?.skill;
+    const selectedDamageType = this.item.system?.damageType;
+    const skillOptions = canonicalType === "personalWeapon"
+      ? appendSelectedOption(
+          allSkills.filter(entry => PERSONAL_WEAPON_SKILL_CODES.includes(entry.value)),
+          selectedSkill,
+          value => allSkills.find(entry => entry.value === value)?.label ?? value
+        )
+      : allSkills;
+
+    context.weaponProfile = this.item.getCombatProfile?.() ?? null;
+    context.weaponEditor = {
+      skills: skillOptions,
+      categories: [
+        { value: "melee", label: "Melee" },
+        { value: "ranged", label: "Ranged" },
+        { value: "thrown", label: "Thrown" },
+        { value: "other", label: "Other" }
+      ],
+      damageTypes: appendSelectedOption(
+        canonicalType === "personalWeapon" ? [...PERSONAL_DAMAGE_TYPES] : [...MECH_WEAPON_DAMAGE_TYPES],
+        selectedDamageType,
+        value => canonicalType === "personalWeapon" ? getPersonalDamageTypeLabel(value) : value
+      ),
+      ranges: WeaponItem.RANGE_ORDER.map(value => ({
+        value,
+        label: value.charAt(0).toUpperCase() + value.slice(1)
+      }))
+    };
+
+    context.itemSheet = foundry.utils.mergeObject(context.itemSheet ?? {}, {
+      isCompactWeaponSheet: true,
+      weaponSheetVariant: canonicalType === "mechWeapon" ? "mech" : "personal"
+    });
+    context.itemSheet.stateChips = (context.itemSheet.stateChips ?? []).filter(chip => chip.kind !== "ownership");
     
     return context;
   }
@@ -49,14 +120,9 @@ export class WeaponItemSheet extends BaseItemSheet {
    */
   static async _onWeaponSkillChange(event, target) {
     const skillCode = target.value;
-    const skill = game.system.anarchy.skills.get(skillCode);
+    const skill = game.system.mwd.skills?.get?.(skillCode);
     
-    if (skill) {
-      await this.item.update({ 
-        'system.defense': skill.defense 
-      }, { 
-        render: false 
-      });
-    }
+    if (!skill?.defense) return;
+    await this.item.update({ 'system.defense': skill.defense }, { render: false });
   }
 }

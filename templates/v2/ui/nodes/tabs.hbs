@@ -1,4 +1,4 @@
-<div class="csb-tabs" data-group="{{node.group}}" data-default="{{node.default}}">
+<div class="csb-tabs {{#if node.classes}}{{join node.classes " "}}{{/if}}" data-group="{{node.group}}" data-default="{{node.default}}">
   <nav class="csb-tab-bar">
     {{#each node.tabs as |t|}}
       <a

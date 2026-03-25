@@ -1,0 +1,45 @@
+<section class="{{cssClass}} mwd-sheet mwd-item-sheet{{#if itemSheet.isCompactWeaponSheet}} mwd-item-sheet--weapon-compact{{/if}}" data-application-part="sheet">
+  <header class="sheet-header">
+    <div class="header-left">
+      <div class="mwd-item-sheet__media">
+        <img class="profile" src="{{item.img}}" alt="{{item.name}}" data-action="editImage" data-tooltip="{{item.name}}" />
+      </div>
+
+      <div class="mwd-item-sheet__meta">
+        <div class="mwd-item-sheet__eyebrow">{{itemSheet.typeLabel}}</div>
+        {{> "mwd.v2.item.parts.itemname" label=itemSheet.typeLabel}}
+
+        {{#unless itemSheet.isCompactWeaponSheet}}
+          {{#if itemSheet.summaryChips.length}}
+            <div class="mwd-item-sheet__summary">
+              {{#each itemSheet.summaryChips as |chip|}}
+                <span class="chip mwd-item-sheet__summary-chip">
+                  <strong>{{chip.label}}</strong>
+                  {{#if chip.value}}
+                    <span>{{chip.value}}</span>
+                  {{/if}}
+                </span>
+              {{/each}}
+            </div>
+          {{/if}}
+        {{/unless}}
+      </div>
+    </div>
+
+    {{#unless itemSheet.isCompactWeaponSheet}}
+      {{#if itemSheet.stateChips.length}}
+        <div class="header-right">
+          <div class="mwd-item-sheet__state">
+            {{#each itemSheet.stateChips as |chip|}}
+              <span class="chip mwd-item-sheet__state-chip{{#if chip.tone}} is-{{chip.tone}}{{/if}}">{{chip.label}}</span>
+            {{/each}}
+          </div>
+        </div>
+      {{/if}}
+    {{/unless}}
+  </header>
+
+  <section class="sheet-body">
+    {{> @partial-block}}
+  </section>
+</section>

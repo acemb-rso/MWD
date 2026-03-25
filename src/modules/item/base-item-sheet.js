@@ -1,6 +1,7 @@
-import { ANARCHY } from "../config.js";
-import { TEMPLATE, TEMPLATES_PATH } from "../constants.js";
+import { MWD } from "../config.js";
+import { SYSTEM_NAME, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { Enums } from "../enums.js";
+import { LayoutRegistry } from "../layout/layout-registry.js";
 import { Misc } from "../misc.js";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -14,31 +15,55 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
  * - Template selection per item type
  */
 export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ItemSheetV2) {
+  #activeTabsByGroup = new Map();
+
+  static LAYOUT_ID = null;
+
+  _getCanonicalItemType() {
+    return this.item?.canonicalType ?? this.item?.type;
+  }
+
+  _getCanonicalItemTypeFromOptions(options) {
+    const doc = options?.document;
+    return doc?.canonicalType ?? doc?.type;
+  }
 
   /** @override */
-  static DEFAULT_OPTIONS = {
-    classes: ["mwd", "item-sheet"],
-    position: {
-      width: 600,
-      height: "auto"  // CRITICAL: Use "auto" to prevent content truncation
-    },
-    window: {
-      resizable: true
-    },
-    actions: {
-      checkbarElement: BaseItemSheet._onClickCheckbar,
-      modifierAdd: BaseItemSheet._onModifierAdd,
-      modifierDelete: BaseItemSheet._onModifierDelete,
-      modifierValueChange: BaseItemSheet._onModifierValueChange,
-      modifierConditionChange: BaseItemSheet._onModifierConditionChange,
-      modifierSelectionChange: BaseItemSheet._onModifierSelectionChange
-    },
-    form: {
-      submitOnChange: true,
-      closeOnSubmit: false
-      // NOTE: No custom handler - AppV2 handles form submission automatically
-    }
-  };
+  static get DEFAULT_OPTIONS() {
+    return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+      classes: ["sheet", "item", SYSTEM_NAME, "appv2", "mwd-sheet", "item-sheet"],
+      position: {
+        width: 760,
+        height: 860
+      },
+      window: {
+        resizable: true
+      },
+      actions: {
+        editImage: BaseItemSheet._onEditImage,
+        tab: BaseItemSheet.prototype._onClickTab,
+        checkbarElement: BaseItemSheet._onClickCheckbar,
+        modifierAdd: BaseItemSheet._onModifierAdd,
+        modifierDelete: BaseItemSheet._onModifierDelete,
+        modifierValueChange: BaseItemSheet._onModifierValueChange,
+        modifierConditionChange: BaseItemSheet._onModifierConditionChange,
+        modifierSelectionChange: BaseItemSheet._onModifierSelectionChange,
+        effectCreate: BaseItemSheet._onEffectCreate,
+        effectEdit: BaseItemSheet._onEffectEdit,
+        effectDelete: BaseItemSheet._onEffectDelete,
+        effectToggleDisabled: BaseItemSheet._onEffectToggleDisabled
+      },
+      form: {
+        submitOnChange: true,
+        closeOnSubmit: false
+        // NOTE: No custom handler - AppV2 handles form submission automatically
+      }
+    }, { inplace: false });
+  }
+
+  static get defaultOptions() {
+    return this.DEFAULT_OPTIONS;
+  }
 
   /** @override */
   static PARTS = {
@@ -67,6 +92,21 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     primary: "main"  // Default tab
   };
 
+  _initializeApplicationOptions(options) {
+    options = super._initializeApplicationOptions(options);
+    options.classes = Array.from(options.classes ?? []);
+
+    const itemType = this._getCanonicalItemTypeFromOptions(options);
+    if (itemType) options.classes.push(String(itemType));
+
+    const theme = game.system?.mwd?.styles?.selectCssClass?.() ?? "mwd-theme-default";
+    const managedThemes = ["mwd-theme-default", "mwd-theme-sra"];
+    options.classes = options.classes.filter(cssClass => !managedThemes.includes(cssClass));
+    options.classes.push(theme);
+
+    return options;
+  }
+
   /* -------------------------------------------- */
   /*  Rendering                                   */
   /* -------------------------------------------- */
@@ -79,12 +119,13 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
    */
   _getPartTemplate(partId) {
     if (partId === "sheet") {
+      const itemType = this._getCanonicalItemType();
       const weaponTemplates = {
-        [TEMPLATE.itemType.mechWeapon]: `${TEMPLATES_PATH}/item/mech-weapon.hbs`,
-        [TEMPLATE.itemType.personalWeapon]: `${TEMPLATES_PATH}/item/personal-weapon.hbs`,
+        [TEMPLATE.itemType.mechWeapon]: `${TEMPLATES_PATH}/v2/item/mech-weapon-root.hbs`,
+        [TEMPLATE.itemType.armor]: `${TEMPLATES_PATH}/v2/item/armor.hbs`,
       };
       
-      return weaponTemplates[this.item.type] ?? `${TEMPLATES_PATH}/item/${this.item.type}.hbs`;
+      return weaponTemplates[itemType] ?? `${TEMPLATES_PATH}/v2/item/${itemType}.hbs`;
     }
     return super._getPartTemplate?.(partId) ?? "";
   }
@@ -94,7 +135,8 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
    * @override
    */
   get title() {
-    const typeLabel = ANARCHY.itemType.singular[this.item.type] ?? this.item.type;
+    const itemType = this._getCanonicalItemType();
+    const typeLabel = MWD.itemType.singular[itemType] ?? itemType;
     return `${typeLabel}: ${this.item.name}`;
   }
 
@@ -107,9 +149,18 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
   async _prepareContext(options) {
     // Get base context from parent
     const context = await super._prepareContext(options);
+    const modifierEnums = game.system.mwd.modifiers?.getEnums?.() ?? {};
+    const templateOptions = foundry.utils.deepClone(context?.options ?? {});
     
     // Get actor attributes if this item is owned
     const actorAttributes = this.item.actor?.getAttributes?.(this.item) ?? [];
+    const canonicalType = this._getCanonicalItemType();
+    const isStandalone = !this.item.actor;
+    const canUseActorControls = Boolean(this.item.actor);
+    const typeLabel = MWD.itemType.singular[canonicalType] ?? canonicalType;
+    const effectEntries = this._getEffectEntries();
+    const syncedEffectCount = effectEntries.filter(effect => effect.syncedCount > 0).length;
+    const layoutId = this.constructor.LAYOUT_ID;
     
     // Determine which attributes are usable based on item ownership
     const usableAttribute = this.item.actor
@@ -117,15 +168,17 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       : attribute => true;
     
     // Skills need knowledge attributes
-    const withKnowledge = this.item.type === TEMPLATE.itemType.skill;
+    const withKnowledge = canonicalType === TEMPLATE.itemType.skill;
 
     // Build CSS classes
     const editableClass = this.isEditable ? "editable" : "locked";
     const baseClasses = ["mwd", "item-sheet", editableClass];
     const cssClass = baseClasses.join(" ");
+    templateOptions.classes = baseClasses;
+    templateOptions.cssClass = cssClass;
 
     // Prepare enriched description (for display in templates)
-    const enrichedDescription = await TextEditor.enrichHTML(this.item.system.description ?? "", {
+    const enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(this.item.system.description ?? "", {
       async: true,
       secrets: this.item.isOwner,
       relativeTo: this.item
@@ -133,7 +186,7 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
 
     // Prepare enriched GM notes (if applicable)
     const enrichedGMNotes = game.user.isGM && this.item.system.gmnotes
-      ? await TextEditor.enrichHTML(this.item.system.gmnotes, {
+      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(this.item.system.gmnotes, {
           async: true,
           secrets: true,
           relativeTo: this.item
@@ -141,9 +194,10 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       : "";
 
     // Build complete context
-    return foundry.utils.mergeObject(context, {
+    const merged = foundry.utils.mergeObject(context, {
       // Item data
       item: this.item,
+      data: this.item,
       system: this.item.system,
       
       // Enriched content
@@ -152,10 +206,11 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       
       // Options for templates
       options: {
+        ...templateOptions,
         isGM: game.user.isGM,
         limited: !this.document.isOwner,
         owner: this.document.isOwner,
-        isOwned: this.item.actor !== undefined,
+        isOwned: Boolean(this.item.actor),
         editable: this.isEditable,
         cssClass,
         viewMode: false  // Items don't have view mode like actors do
@@ -164,9 +219,21 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       // Configuration data
       ENUMS: foundry.utils.mergeObject(
         Enums.getEnums(usableAttribute, withKnowledge), 
-        game.system.anarchy.modifiers.getEnums()
+        modifierEnums
       ),
-      ANARCHY,
+      MWD,
+      itemSheet: {
+        canonicalType,
+        typeLabel,
+        isStandalone,
+        canUseActorControls,
+        supportsEffectSync: Boolean(this.item.supportsEquippedEffectSync?.()),
+        effectEntries,
+        effectCount: effectEntries.length,
+        syncedEffectCount,
+        summaryChips: this._getSummaryChips(),
+        stateChips: this._getStateChips(effectEntries)
+      },
       
       // CSS class for form element
       cssClass,
@@ -174,6 +241,12 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       // Tab configuration
       tabs: this._getTabs()
     });
+
+    if (layoutId) {
+      merged.layout = await LayoutRegistry.get(layoutId);
+    }
+
+    return merged;
   }
 
   /**
@@ -184,9 +257,173 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
    */
   _getTabs() {
     return {
-      details: { id: "details", group: "primary", label: "Details" },
-      description: { id: "description", group: "primary", label: "Description" }
+      main: { id: "main", group: "primary", label: "Details" },
+      modifiers: { id: "modifiers", group: "primary", label: "Modifiers" },
+      effects: { id: "effects", group: "primary", label: "Effects" }
     };
+  }
+
+  _getSummaryChips() {
+    return [];
+  }
+
+  _getStateChips(effectEntries = []) {
+    const chips = [];
+    chips.push({ kind: "ownership", label: this.item.actor ? "Owned Item" : "World Item" });
+
+    if (Object.prototype.hasOwnProperty.call(this.item.system ?? {}, "equipped")) {
+      chips.push({
+        kind: "equipment",
+        label: this.item.system?.equipped ? "Equipped" : "Unequipped",
+        tone: this.item.system?.equipped ? "active" : "muted"
+      });
+    }
+
+    if (Object.prototype.hasOwnProperty.call(this.item.system ?? {}, "isPrimary") && this.item.system?.isPrimary) {
+      chips.push({ kind: "role", label: "Primary", tone: "accent" });
+    }
+
+    if (effectEntries.length) {
+      chips.push({
+        kind: "effects",
+        label: `${effectEntries.length} Effect${effectEntries.length === 1 ? "" : "s"}`,
+        tone: effectEntries.some(effect => effect.syncedCount > 0) ? "active" : "muted"
+      });
+    }
+
+    return chips;
+  }
+
+  _getEffectEntries() {
+    const syncedBySource = new Map();
+    const syncedEffects = this.item.getSyncedActorEffects?.() ?? [];
+
+    for (const actorEffect of syncedEffects) {
+      const sourceEffectId = actorEffect.flags?.[SYSTEM_NAME]?.equippedItemSync?.sourceEffectId;
+      if (!sourceEffectId) continue;
+      const bucket = syncedBySource.get(sourceEffectId) ?? [];
+      bucket.push(actorEffect);
+      syncedBySource.set(sourceEffectId, bucket);
+    }
+
+    return Array.from(this.item.effects?.contents ?? []).map(effect => {
+      const synced = syncedBySource.get(effect.id) ?? [];
+      return {
+        id: effect.id,
+        name: effect.name || "New Effect",
+        img: effect.img || "icons/svg/aura.svg",
+        disabled: Boolean(effect.disabled),
+        transfer: Boolean(effect.transfer),
+        changesCount: Array.isArray(effect.changes) ? effect.changes.length : 0,
+        statusesCount: Number(effect.statuses?.size ?? effect.statuses?.length ?? 0),
+        durationLabel: effect.duration?.seconds
+          ? `${effect.duration.seconds}s`
+          : effect.duration?.rounds
+            ? `${effect.duration.rounds} rounds`
+            : "Passive",
+        syncedCount: synced.length,
+        syncLabel: !this.item.actor
+          ? "World item"
+          : this.item.supportsEquippedEffectSync?.()
+            ? this.item.system?.equipped
+              ? synced.length
+                ? `Synced to actor (${synced.length})`
+                : "Pending sync"
+              : "Applies when equipped"
+            : "No equip sync"
+      };
+    });
+  }
+
+  _getRootElement() {
+    return (this.element instanceof HTMLElement) ? this.element : this.element?.[0];
+  }
+
+  _onClickTab(event, target) {
+    const tabLink =
+      target?.closest?.(".csb-tab-link[data-tab]") ??
+      event?.target?.closest?.(".csb-tab-link[data-tab]");
+    if (!tabLink) return;
+
+    const tabRoot = tabLink.closest(".csb-tabs");
+    if (!tabRoot) return;
+
+    const group = tabRoot.dataset.group || "default";
+    const tabId = tabLink.dataset.tab;
+    if (!tabId) return;
+
+    this.#activeTabsByGroup.set(group, tabId);
+    this.#applyTabState(this._getRootElement(), group, tabId);
+  }
+
+  _onRender(context, options) {
+    super._onRender?.(context, options);
+
+    if (this.window?.title) {
+      this.window.title.textContent = this.title;
+    }
+
+    const root = this._getRootElement();
+    if (!root) return;
+
+    for (const tabsRoot of root.querySelectorAll(".sheet-tabs")) {
+      const group = tabsRoot.dataset.group || "default";
+      const tabEls = Array.from(tabsRoot.querySelectorAll("[data-tab]"));
+      if (!tabEls.length) continue;
+
+      for (const el of tabEls) {
+        el.addEventListener("click", event => {
+          event.preventDefault();
+          event.stopPropagation();
+          const tabId = el.dataset.tab;
+          if (!tabId) return;
+          this.#activeTabsByGroup.set(group, tabId);
+          this.#applyTabState(root, group, tabId);
+        });
+      }
+
+      const remembered = this.#activeTabsByGroup.get(group);
+      const fallback = tabsRoot.dataset.default || tabEls[0]?.dataset.tab;
+      const activeTab = remembered || fallback;
+      if (activeTab) {
+        this.#applyTabState(root, group, activeTab);
+      }
+    }
+
+    for (const tabsRoot of root.querySelectorAll(".csb-tabs")) {
+      const group = tabsRoot.dataset.group || "default";
+      const tabEls = Array.from(tabsRoot.querySelectorAll(".csb-tab-link[data-tab]"));
+      if (!tabEls.length) continue;
+
+      const remembered = this.#activeTabsByGroup.get(group);
+      const fallback = tabsRoot.dataset.default || tabEls[0]?.dataset.tab;
+      const activeTab = remembered || fallback;
+      if (activeTab) {
+        this.#applyTabState(root, group, activeTab);
+      }
+    }
+  }
+
+  #applyTabState(root, group, tabId) {
+    if (!root) return;
+
+    root.querySelectorAll(`.csb-tabs[data-group="${group}"] .csb-tab-link[data-tab]`).forEach(el => {
+      el.classList.toggle("is-active", el.dataset.tab === tabId);
+    });
+
+    root.querySelectorAll(`.csb-tabs[data-group="${group}"] .csb-tab-panel[data-tab]`).forEach(panel => {
+      panel.classList.toggle("is-active", panel.dataset.tab === tabId);
+    });
+
+    root.querySelectorAll(`.sheet-tabs [data-tab]`).forEach(el => {
+      const sameGroup = (el.closest(".sheet-tabs")?.dataset.group || "default") === group;
+      if (!sameGroup) return;
+      el.classList.toggle("active", el.dataset.tab === tabId);
+    });
+
+    root.querySelectorAll(`.tab[data-group="${group}"]`).forEach(panel => {
+      panel.classList.toggle("active", panel.dataset.tab === tabId);
+    });
   }
 
   /**
@@ -226,6 +463,25 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     const checked = target.dataset.checked === 'true';
 
     await item.parent.switchMonitorCheck(monitor, index, checked);
+  }
+
+  static async _onEditImage(event) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (!this.isEditable) return;
+
+    const FilePickerV2 = foundry.applications.apps.FilePicker.implementation;
+    const picker = new FilePickerV2({
+      type: "image",
+      current: this.item?.img ?? "",
+      callback: async (path) => {
+        if (!path) return;
+        await this.item.update({ img: path });
+      }
+    });
+
+    picker.render(true);
   }
 
   /**
@@ -307,5 +563,54 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     if (modifierId && modifierSelect) {
       await this.item.changeModifierSelection(modifierId, modifierSelect, target.value);
     }
+  }
+
+  static async _onEffectCreate(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const [created] = await this.item.createEmbeddedDocuments("ActiveEffect", [{
+      name: `${this.item.name} Effect`,
+      img: this.item.img || "icons/svg/aura.svg",
+      disabled: false,
+      transfer: false,
+      changes: []
+    }]);
+
+    created?.sheet?.render(true);
+  }
+
+  static async _onEffectEdit(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const effectId = target?.dataset?.effectId ?? target?.closest?.("[data-effect-id]")?.dataset?.effectId;
+    if (!effectId) return;
+
+    const effect = this.item.effects.get(effectId);
+    effect?.sheet?.render(true);
+  }
+
+  static async _onEffectDelete(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const effectId = target?.dataset?.effectId ?? target?.closest?.("[data-effect-id]")?.dataset?.effectId;
+    if (!effectId) return;
+
+    await this.item.deleteEmbeddedDocuments("ActiveEffect", [effectId]);
+  }
+
+  static async _onEffectToggleDisabled(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const effectId = target?.dataset?.effectId ?? target?.closest?.("[data-effect-id]")?.dataset?.effectId;
+    if (!effectId) return;
+
+    const effect = this.item.effects.get(effectId);
+    if (!effect) return;
+
+    await effect.update({ disabled: !effect.disabled });
   }
 }

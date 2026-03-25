@@ -1,0 +1,37 @@
+<div class="mwd-inventory-block">
+  <div class="mwd-inventory-block__toolbar">
+    <button type="button" data-action="createOwnedItem" data-item-type="armor">Add Armor</button>
+  </div>
+
+  {{#if personalInventory.armor.length}}
+    <div class="mwd-inventory-list">
+      {{#each personalInventory.armor as |armor|}}
+        <div class="mwd-inventory-row" data-item-id="{{armor.id}}">
+          <button type="button" class="mwd-inventory-row__name" data-action="editOwnedItem">{{armor.name}}</button>
+          <span class="mwd-inventory-row__meta">Rating {{armor.rating}}</span>
+          <span class="mwd-inventory-row__meta">Resist {{armor.baseResistance}}</span>
+          <span class="mwd-inventory-row__meta">Defense {{armor.defenseBonus}}</span>
+          <span class="mwd-inventory-row__meta">{{armor.durability}}</span>
+          {{#if armor.equipped}}
+            <span class="mwd-inventory-row__meta">Equipped</span>
+          {{/if}}
+          {{#if armor.isPrimary}}
+            <span class="mwd-inventory-row__meta">Primary</span>
+          {{/if}}
+          <button type="button" data-action="toggleOwnedItemEquipped" data-item-id="{{armor.id}}">
+            {{#if armor.equipped}}Unequip{{else}}Equip{{/if}}
+          </button>
+          <button type="button" data-action="setOwnedItemPrimary" data-item-id="{{armor.id}}">
+            {{#if armor.isPrimary}}Clear Primary{{else}}Set Primary{{/if}}
+          </button>
+          <button type="button" data-action="deleteOwnedItem" data-item-id="{{armor.id}}">Delete</button>
+        </div>
+        {{#if armor.mitigationLabel}}
+          <div class="mwd-inventory-row__notes">{{armor.mitigationLabel}}</div>
+        {{/if}}
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-inventory-empty">No armor yet.</div>
+  {{/if}}
+</div>

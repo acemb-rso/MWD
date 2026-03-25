@@ -1,0 +1,24 @@
+{{#if itemSheet.isCompactWeaponSheet}}
+<div class="mwd-item-note mwd-item-help">
+  Roll Modifiers are custom MWD bonuses, penalties, and conditional adjustments for rolls made with this weapon.
+</div>
+{{/if}}
+
+<table class="modifier-list">
+  <tr class="modifier-header">
+    <th class="modifier-column" colspan="2">{{MWD.modifier.column.effect}}
+      <a class="item-control click-modifier-add" 
+          data-tooltip="{{MWD.common.add}}"
+          data-item-type="{{itemType}}">
+        {{{iconFA 'fas fa-plus-circle'}}}
+      </a>
+    </th>
+    <th class="modifier-column" colspan="2">{{MWD.modifier.column.category}}</th>
+    <th class="modifier-column">{{MWD.modifier.column.value}}</th>
+    <th class="modifier-column">{{MWD.modifier.column.condition}}</th>
+  </tr>
+
+  {{#each system.modifiers as |modifier|}}
+  {{> "systems/mwd/templates/v2/item/parts/modifier.hbs" modifier}}
+  {{/each}}
+</table>

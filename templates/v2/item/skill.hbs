@@ -1,0 +1,48 @@
+<div class="{{cssClass}}">
+  <header class="sheet-header">
+    <img class="anarchy-img profile-img" src="{{item.img}}" data-action="editImage" data-tooltip="{{item.name}}"/>
+    {{> 'systems/mwd/templates/v2/item/parts/itemname.hbs'
+      label=MWD.itemType.singular.skill
+      type="skill"
+    }}
+  </header>
+
+  <section class="sheet-body">
+    <div class="form-group">
+      <label>{{MWD.item.skill.code}}</label>
+      <select class="select-skill-code" name="system.code" data-dtype="String">
+        {{#select system.code}}
+          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
+        {{/select}}
+      </select>
+    </div>
+
+    {{#unless (or (eq system.code 'knowledge') (eq system.attribute 'knowledge'))}}
+      <div class="form-group">
+        <label for="system.value">{{MWD.item.skill.value}}</label>
+        <input class="type-numeric" type="number" name="system.value" value="{{system.value}}" data-dtype="Number"/>
+      </div>
+
+      <div class="form-group">
+        <label for="system.attribute">{{MWD.item.skill.attribute}}</label>
+        <select class="item-field-value" name="system.attribute" data-dtype="String">
+          {{#select system.attribute}}
+            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
+          {{/select}}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="system.specialization">{{MWD.item.skill.specialization}}</label>
+        <input class="item-field-value" type="text"
+               name="system.specialization"
+               value="{{system.specialization}}"
+               data-dtype="String"
+               placeholder="{{MWD.item.skill.specializationHelp}}"/>
+      </div>
+    {{/unless}}
+
+    {{> 'systems/mwd/templates/v2/item/parts/inactive.hbs'}}
+    {{> 'systems/mwd/templates/v2/item/parts/references.hbs'}}
+  </section>
+</div>

@@ -1,3 +1,45 @@
-<div class="weapons-placeholder">
-  <em>Weapons (placeholder)</em>
+<div class="mwd-inventory-block">
+  <div class="mwd-inventory-block__toolbar">
+    <button type="button" data-action="createOwnedItem" data-item-type="personalWeapon">Add Weapon</button>
+  </div>
+
+  {{#if personalInventory.warnings.length}}
+    <div class="mwd-inventory-warnings">
+      {{#each personalInventory.warnings as |warning|}}
+        <div class="mwd-inventory-warning">{{warning}}</div>
+      {{/each}}
+    </div>
+  {{/if}}
+
+  {{#if personalInventory.weapons.length}}
+    <div class="mwd-inventory-list">
+      {{#each personalInventory.weapons as |weapon|}}
+        <div class="mwd-inventory-row" data-item-id="{{weapon.id}}">
+          <button type="button" class="mwd-inventory-row__name" data-action="editOwnedItem">{{weapon.name}}</button>
+          <span class="mwd-inventory-row__meta">{{weapon.category}}</span>
+          <span class="mwd-inventory-row__meta">DV {{weapon.damage}}</span>
+          <span class="mwd-inventory-row__meta">AP {{weapon.ap}}</span>
+          {{#if weapon.equipped}}
+            <span class="mwd-inventory-row__meta">Equipped</span>
+          {{/if}}
+          {{#if weapon.isPrimary}}
+            <span class="mwd-inventory-row__meta">Primary</span>
+          {{/if}}
+          <button type="button" data-action="toggleOwnedItemEquipped" data-item-id="{{weapon.id}}">
+            {{#if weapon.equipped}}Unequip{{else}}Equip{{/if}}
+          </button>
+          <button type="button" data-action="setOwnedItemPrimary" data-item-id="{{weapon.id}}">
+            {{#if weapon.isPrimary}}Clear Primary{{else}}Set Primary{{/if}}
+          </button>
+          <button type="button" data-action="attackWeapon" data-item-id="{{weapon.id}}" data-roll='{{weapon.attackRoll}}' {{#unless weapon.equipped}}disabled{{/unless}}>Attack</button>
+          <button type="button" data-action="deleteOwnedItem" data-item-id="{{weapon.id}}">Delete</button>
+        </div>
+        {{#if weapon.traitsLabel}}
+          <div class="mwd-inventory-row__notes">{{weapon.traitsLabel}}</div>
+        {{/if}}
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-inventory-empty">No weapons yet.</div>
+  {{/if}}
 </div>

@@ -8,6 +8,7 @@ const ASSET_MODULE_TYPES = [
   TEMPLATE.itemType.assetModule,
   TEMPLATE.itemType.mechWeapon,
   TEMPLATE.itemType.personalWeapon,
+  "weapon",
 ];
 /**
  * Modifier: {group, effect, category, subCategory, value, condition, id}

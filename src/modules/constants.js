@@ -94,6 +94,7 @@ export const TEMPLATE = {
     assetModule: 'assetModule',
     mechWeapon: 'mechWeapon',
     personalWeapon: 'personalWeapon',
+    armor: 'armor',
     gear: 'gear',
     contact: 'contact',
     lifeModule: 'lifeModule',

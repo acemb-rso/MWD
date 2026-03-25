@@ -523,7 +523,9 @@ async _prepareContext(options) {
       ? "system.burn.value"
       : `system.monitors.${monitorId}.value`;
     const current = Number(foundry.utils.getProperty(this.actor, currentPath) ?? 0);
-    const next = current === raw ? 0 : raw;
+    const next = monitorId === "armor"
+      ? raw
+      : (current === raw ? 0 : raw);
 
     // Prefer actor-owned semantics
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;

@@ -30,12 +30,18 @@ export class CharacterActor extends AnarchyBaseActor {
   }
 
   computePhysicalState() {
-    const maxMonitor = Math.max(this.system.monitors.physical.max, this.system.monitors.fatigue.max) + this.system.monitors.armor.max
+    const armorMax = Math.max(0, Number(this.system.monitors.armor?.max ?? 0));
+    const armorCurrent = Math.min(
+      armorMax,
+      Math.max(0, Number(this.system.monitors.armor?.value ?? 0))
+    );
+    const armorDepleted = Math.max(0, armorMax - armorCurrent);
+    const maxMonitor = Math.max(this.system.monitors.physical.max, this.system.monitors.fatigue.max) + armorMax
     const dead = this.system.monitors.physical.value == this.system.monitors.physical.max
     const ko = this.system.monitors.fatigue.max == this.system.monitors.fatigue.value
     const current = (dead || ko)
       ? maxMonitor
-      : Math.max(this.system.monitors.physical.value, this.system.monitors.fatigue.value) + this.system.monitors.armor.value
+      : Math.max(this.system.monitors.physical.value, this.system.monitors.fatigue.value) + armorDepleted
     return {
       max: maxMonitor,
       value: maxMonitor - current

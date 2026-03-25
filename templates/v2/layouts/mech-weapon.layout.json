@@ -1,0 +1,39 @@
+{
+  "id": "mech-weapon",
+  "version": 1,
+  "root": {
+    "type": "stack",
+    "classes": ["csb-layout", "mwd-item-layout"],
+    "children": [
+      {
+        "type": "tabs",
+        "group": "primary",
+        "default": "main",
+        "classes": ["csb-body", "mwd-body"],
+        "tabs": [
+          {
+            "id": "main",
+            "label": "Details",
+            "children": [
+              { "type": "include", "partial": "mwd.v2.item.parts.weapon-compact-main" }
+            ]
+          },
+          {
+            "id": "modifiers",
+            "label": "Roll Modifiers",
+            "children": [
+              { "type": "include", "partial": "mwd.v2.item.parts.modifiers" }
+            ]
+          },
+          {
+            "id": "effects",
+            "label": "Active Effects",
+            "children": [
+              { "type": "include", "partial": "mwd.v2.item.parts.item-effects" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

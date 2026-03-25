@@ -1,7 +1,7 @@
 {
   "id": "mwd",
   "type": "system",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "title": "MechWarrior: Destiny",
   "description": "MechWarrior: Destiny RPG for FoundryVTT",
   "compatibility": {
@@ -84,7 +84,7 @@
   "template": "template.json",
   "types": {
     "Actor": ["character", "npc", "vehicle", "battlemech"],
-    "Item": ["contact", "gear", "quality", "assetModule", "skill", "lifeModule", "mechWeapon", "personalWeapon"]
+    "Item": ["contact", "gear", "quality", "assetModule", "skill", "lifeModule", "mechWeapon", "personalWeapon", "armor"]
   },
   "grid": {
     "distance": 2,

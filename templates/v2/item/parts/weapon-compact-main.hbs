@@ -1,0 +1,320 @@
+<div class="mwd-weapon-compact">
+  <section class="panel mwd-weapon-compact__panel">
+    <div class="mwd-weapon-compact__body">
+      {{#if itemSheet.stateChips.length}}
+        <div class="mwd-weapon-compact__status">
+          {{#each itemSheet.stateChips as |chip|}}
+            <span class="chip mwd-weapon-compact__status-chip{{#if chip.tone}} is-{{chip.tone}}{{/if}}">{{chip.label}}</span>
+          {{/each}}
+        </div>
+      {{/if}}
+
+      {{#if (eq itemSheet.weaponSheetVariant "mech")}}
+        <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.skill">Skill</label>
+            <select class="select-weapon-skill" name="system.skill" data-dtype="String" data-action="weaponSkillChange">
+              {{#select system.skill}}
+                {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=weaponEditor.skills}}
+              {{/select}}
+            </select>
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.weaponCategory">{{MWD.item.mechWeapon.category}}</label>
+            <select name="system.weaponCategory" data-dtype="String">
+              {{#select system.weaponCategory}}
+                {{#each weaponEditor.categories as |entry|}}
+                  <option value="{{entry.value}}">{{entry.label}}</option>
+                {{/each}}
+              {{/select}}
+            </select>
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.damageType">{{MWD.item.mechWeapon.damageType}}</label>
+            <select name="system.damageType" data-dtype="String">
+              {{#select system.damageType}}
+                {{#each weaponEditor.damageTypes as |entry|}}
+                  <option value="{{entry.value}}">{{entry.label}}</option>
+                {{/each}}
+              {{/select}}
+            </select>
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.range.max">{{MWD.item.mechWeapon.range.max}}</label>
+            <select name="system.range.max" data-dtype="String">
+              {{#select weaponProfile.range.max}}
+                {{#each weaponEditor.ranges as |entry|}}
+                  <option value="{{entry.value}}">{{entry.label}}</option>
+                {{/each}}
+              {{/select}}
+            </select>
+          </div>
+        </div>
+
+        <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.damage">{{MWD.item.mechWeapon.damage}}</label>
+            <input class="type-numeric" type="number" name="system.damage" value="{{system.damage}}" data-dtype="Number" />
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.damageAttribute">Damage Attribute</label>
+            <select name="system.damageAttribute" data-dtype="String">
+              {{#select system.damageAttribute}}
+                {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.attributes}}
+              {{/select}}
+            </select>
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.heat">{{MWD.item.mechWeapon.heat}}</label>
+            <input class="type-numeric" type="number" name="system.heat" value="{{system.heat}}" data-dtype="Number" />
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.area">{{MWD.item.mechWeapon.area}}</label>
+            <select name="system.area" data-dtype="String">
+              {{#select system.area}}
+                {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.areas}}
+              {{/select}}
+            </select>
+          </div>
+        </div>
+
+        <div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.defense">Defense</label>
+            <select name="system.defense" data-dtype="String">
+              {{selectOptions ENUMS.defenses selected=(fixedDefenseCode system.defense) nameAttr="code" labelAttr="label" localize=false blank=''}}
+            </select>
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.monitor">Monitor</label>
+            <select name="system.monitor" data-dtype="String">
+              {{#select system.monitor}}
+                {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.monitors}}
+              {{/select}}
+            </select>
+          </div>
+
+          <label class="mwd-weapon-compact__toggle">
+            <span>No Armor</span>
+            <input class="item-field-value" name="system.noArmor" type="checkbox" {{checked system.noArmor}} />
+          </label>
+        </div>
+
+        <section class="mwd-weapon-compact__band-row">
+          <header class="mwd-weapon-compact__band-header">
+            <h3 class="mwd-weapon-compact__band-title">Range Bands</h3>
+          </header>
+          <div class="mwd-weapon-compact__band-grid">
+            <div class="form-group mwd-weapon-compact__field">
+              <label for="system.range.close">Close</label>
+              <input class="type-numeric" type="number" name="system.range.close" value="{{weaponProfile.range.close}}" data-dtype="Number" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label for="system.range.near">Near</label>
+              <input class="type-numeric" type="number" name="system.range.near" value="{{weaponProfile.range.near}}" data-dtype="Number" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label for="system.range.far">Far</label>
+              <input class="type-numeric" type="number" name="system.range.far" value="{{weaponProfile.range.far}}" data-dtype="Number" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label for="system.range.extreme">Extreme</label>
+              <input class="type-numeric" type="number" name="system.range.extreme" value="{{weaponProfile.range.extreme}}" data-dtype="Number" />
+            </div>
+          </div>
+        </section>
+      {{else}}
+        <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.skill">{{MWD.item.personalWeapon.skill}}</label>
+            <select class="select-weapon-skill" name="system.skill" data-dtype="String" data-action="weaponSkillChange">
+              {{#select system.skill}}
+                {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=weaponEditor.skills}}
+              {{/select}}
+            </select>
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.category">{{MWD.item.personalWeapon.category}}</label>
+            <select name="system.category" data-dtype="String">
+              {{#select system.category}}
+                {{#each weaponEditor.categories as |entry|}}
+                  <option value="{{entry.value}}">{{entry.label}}</option>
+                {{/each}}
+              {{/select}}
+            </select>
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.damageType">{{MWD.item.personalWeapon.damageType}}</label>
+            <select name="system.damageType" data-dtype="String">
+              {{#select system.damageType}}
+                {{#each weaponEditor.damageTypes as |entry|}}
+                  <option value="{{entry.value}}">{{entry.label}}</option>
+                {{/each}}
+              {{/select}}
+            </select>
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.range.max">{{MWD.item.personalWeapon.range.max}}</label>
+            <select name="system.range.max" data-dtype="String">
+              {{#select weaponProfile.range.max}}
+                {{#each weaponEditor.ranges as |entry|}}
+                  <option value="{{entry.value}}">{{entry.label}}</option>
+                {{/each}}
+              {{/select}}
+            </select>
+          </div>
+        </div>
+
+        <div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.damage">{{MWD.item.personalWeapon.damageShort}}</label>
+            <input class="type-numeric" type="number" name="system.damage" value="{{system.damage}}" data-dtype="Number" />
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field">
+            <label for="system.ap">{{MWD.item.personalWeapon.apShort}}</label>
+            <input class="type-numeric" type="number" name="system.ap" value="{{system.ap}}" data-dtype="Number" />
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+            <label for="system.traits">{{MWD.item.personalWeapon.traits}}</label>
+            <input type="text" name="system.traits" value="{{join weaponProfile.traits ', '}}" data-dtype="String" />
+          </div>
+        </div>
+
+        <div class="mwd-weapon-compact__row mwd-weapon-compact__row--actions">
+          {{#if itemSheet.canUseActorControls}}
+            <label class="mwd-weapon-compact__toggle">
+              <span>{{MWD.item.personalWeapon.equipped}}</span>
+              <input type="checkbox" name="system.equipped" {{checked system.equipped}} />
+            </label>
+
+            <label class="mwd-weapon-compact__toggle">
+              <span>{{MWD.item.personalWeapon.primary}}</span>
+              <input type="checkbox" name="system.isPrimary" {{checked system.isPrimary}} />
+            </label>
+
+            {{#if itemSheet.canAttack}}
+              <div class="mwd-weapon-compact__action">
+                <span class="mwd-weapon-compact__action-label">{{MWD.item.personalWeapon.attack}}</span>
+                <button type="button" data-action="attackWeapon" {{#if itemSheet.attackDisabled}}disabled{{/if}}>Attack With Weapon</button>
+              </div>
+            {{/if}}
+          {{else}}
+            <div class="mwd-weapon-compact__field mwd-weapon-compact__field--full">
+              <label>Loadout</label>
+              <div class="mwd-item-note">
+                This is a standalone item. Equip, primary, and attack controls appear after the weapon is embedded in a character or NPC.
+              </div>
+            </div>
+          {{/if}}
+        </div>
+
+        <section class="mwd-weapon-compact__band-row">
+          <header class="mwd-weapon-compact__band-header">
+            <h3 class="mwd-weapon-compact__band-title">{{MWD.item.personalWeapon.attackRatingBand.label}}</h3>
+          </header>
+          <div class="mwd-weapon-compact__band-grid">
+            <div class="form-group mwd-weapon-compact__field">
+              <label for="system.attackRatingBand.close">{{MWD.item.personalWeapon.attackRatingBand.close}}</label>
+              <input class="type-numeric" type="number" name="system.attackRatingBand.close" value="{{system.attackRatingBand.close}}" data-dtype="Number" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label for="system.attackRatingBand.near">{{MWD.item.personalWeapon.attackRatingBand.near}}</label>
+              <input class="type-numeric" type="number" name="system.attackRatingBand.near" value="{{system.attackRatingBand.near}}" data-dtype="Number" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label for="system.attackRatingBand.far">{{MWD.item.personalWeapon.attackRatingBand.far}}</label>
+              <input class="type-numeric" type="number" name="system.attackRatingBand.far" value="{{system.attackRatingBand.far}}" data-dtype="Number" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label for="system.attackRatingBand.extreme">{{MWD.item.personalWeapon.attackRatingBand.extreme}}</label>
+              <input class="type-numeric" type="number" name="system.attackRatingBand.extreme" value="{{system.attackRatingBand.extreme}}" data-dtype="Number" />
+            </div>
+          </div>
+        </section>
+
+        <section class="mwd-weapon-compact__band-row">
+          <header class="mwd-weapon-compact__band-header">
+            <h3 class="mwd-weapon-compact__band-title">Range Bands</h3>
+          </header>
+          <div class="mwd-weapon-compact__band-grid">
+            <div class="form-group mwd-weapon-compact__field">
+              <label for="system.range.close">{{MWD.item.personalWeapon.attackRatingBand.close}}</label>
+              <input class="type-numeric" type="number" name="system.range.close" value="{{weaponProfile.range.close}}" data-dtype="Number" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label for="system.range.near">{{MWD.item.personalWeapon.attackRatingBand.near}}</label>
+              <input class="type-numeric" type="number" name="system.range.near" value="{{weaponProfile.range.near}}" data-dtype="Number" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label for="system.range.far">{{MWD.item.personalWeapon.attackRatingBand.far}}</label>
+              <input class="type-numeric" type="number" name="system.range.far" value="{{weaponProfile.range.far}}" data-dtype="Number" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label for="system.range.extreme">{{MWD.item.personalWeapon.attackRatingBand.extreme}}</label>
+              <input class="type-numeric" type="number" name="system.range.extreme" value="{{weaponProfile.range.extreme}}" data-dtype="Number" />
+            </div>
+          </div>
+        </section>
+
+        <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--full">
+          <label for="system.notes">{{MWD.item.personalWeapon.notes}}</label>
+          <textarea name="system.notes">{{system.notes}}</textarea>
+        </div>
+      {{/if}}
+    </div>
+  </section>
+
+  <section class="panel mwd-weapon-compact__panel mwd-weapon-compact__panel--secondary">
+    <div class="mwd-weapon-compact__secondary">
+      {{#if options.isOwned}}
+        <label class="mwd-weapon-compact__toggle mwd-weapon-compact__toggle--secondary">
+          <span>{{MWD.item.common.inactive}}</span>
+          <input class="item-field-value" name="system.inactive" type="checkbox" {{checked system.inactive}} />
+        </label>
+      {{/if}}
+
+      <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--full">
+        <label for="sourceReference">{{MWD.common.sourceReference}}</label>
+        <input class="item-field-value" type="text" data-dtype="String"
+          name="system.sourceReference"
+          value="{{system.sourceReference}}"
+          placeholder="{{MWD.common.sourceReferenceHelp}}"
+        />
+      </div>
+
+      <div class="section-group form-group mwd-weapon-compact__field mwd-weapon-compact__field--full mwd-weapon-compact__field--references">
+        <div class="flexcol">
+          <span><label>{{MWD.common.description}}</label></span>
+          <div class="editor">
+            {{editor enrichedDescription
+              target="system.description"
+              owner=options.owner
+              button=true
+              editable=options.editable}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

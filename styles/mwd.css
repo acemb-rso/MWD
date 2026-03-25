@@ -571,6 +571,189 @@
   overflow: visible;
 }
 
+/* =========================================================
+ * MWD Item Sheet — Base (AppV2)
+ * ========================================================= */
+.mwd-sheet.item-sheet,
+.mwd-sheet.item-sheet * {
+  box-sizing: border-box;
+}
+
+.mwd-sheet.item-sheet {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  font-family: var(--mwd-font-ui);
+}
+
+.mwd-sheet.item-sheet h1,
+.mwd-sheet.item-sheet h2,
+.mwd-sheet.item-sheet h3,
+.mwd-sheet.item-sheet .sheet-header .name,
+.mwd-sheet.item-sheet .mwd-panel__title {
+  font-family: var(--mwd-font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mwd-sheet.item-sheet > .window-content {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  /* Opaque base so the texture reads as a soft tile, not a hero image */
+  background-color: #e7dfca;
+}
+
+.mwd-sheet.item-sheet > .window-content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/systems/mwd/img/mek/camo/Standard Camouflage/Hex/Hex tan.jpg") left top/84px 72px repeat;
+  opacity: 0.22;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.mwd-sheet.item-sheet > .window-content::after {
+  content: none;
+}
+
+.mwd-sheet.item-sheet > .window-content > * {
+  position: relative;
+  z-index: 1;
+}
+
+.mwd-sheet.item-sheet > .window-content > [data-application-part=sheet].mwd-item-sheet {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  background: transparent;
+  overflow: hidden;
+}
+
+.mwd-sheet.item-sheet .sheet-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  padding: 6px 4px 10px;
+}
+
+.mwd-sheet.item-sheet .sheet-header .header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mwd-sheet.item-sheet .sheet-header .header-right {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.mwd-sheet.item-sheet .sheet-header img.profile {
+  width: 164px;
+  height: 164px;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 14px;
+}
+
+.mwd-sheet.item-sheet .sheet-header .item-name {
+  margin: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.mwd-sheet.item-sheet .sheet-header .item-name input[name=name] {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 3.5rem;
+  height: auto;
+  padding: 0.32rem 0.75rem 0.42rem;
+  font-family: var(--mwd-font-display);
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.02;
+}
+
+.mwd-sheet.item-sheet .sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mwd-sheet.item-sheet .csb-layout,
+.mwd-sheet.item-sheet .mwd-item-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.mwd-sheet.item-sheet .csb-body,
+.mwd-sheet.item-sheet .mwd-body,
+.mwd-sheet.item-sheet .csb-tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.mwd-sheet.item-sheet .csb-tab-panels {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+.mwd-sheet.item-sheet .csb-tab-panel {
+  display: none;
+  width: 100%;
+  min-width: 0;
+}
+
+.mwd-sheet.item-sheet .csb-tab-panel.is-active {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.mwd-sheet.item-sheet .csb-tab-panel.is-active > * {
+  width: 100%;
+  min-width: 0;
+}
+
 /* Reusable UI pieces */
 /* =========================================================
    CSB / AppV2 COMPONENTS
@@ -776,6 +959,19 @@
   color: var(--csb-text);
 }
 
+.mwd-sheet.item-sheet .sheet-body select option,
+.mwd-sheet.item-sheet .sheet-body select optgroup {
+  color: #1b1b1b;
+  background: #f0ebdc;
+  text-shadow: none;
+}
+
+.mwd-sheet.item-sheet .sheet-body select option:checked,
+.mwd-sheet.item-sheet .sheet-body select option:hover {
+  color: #111;
+  background: #d8ccb1;
+}
+
 .mwd-sheet .sheet-body input:focus,
 .mwd-sheet .sheet-body select:focus,
 .mwd-sheet .sheet-body textarea:focus {
@@ -923,6 +1119,516 @@
   --hex-cut: 12px;
 }
 
+/* =========================================================
+   Item Sheets
+   ========================================================= */
+.mwd-item-sheet__media {
+  flex: 0 0 auto;
+  padding: 10px;
+  border: 1px solid var(--csb-panel-border);
+  border-radius: 16px;
+  background: var(--csb-panel-bg);
+  box-shadow: var(--csb-panel-shadow);
+}
+
+.mwd-item-sheet__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csb-space-2);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.mwd-item-sheet__eyebrow {
+  font-family: var(--mwd-font-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(79, 67, 41, 0.92);
+  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.9);
+}
+
+.mwd-item-sheet__meta .item-name {
+  margin: 0;
+}
+
+.mwd-item-sheet__summary,
+.mwd-item-sheet__state,
+.mwd-effects-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--csb-space-1);
+}
+
+.mwd-sheet.item-sheet .mwd-item-sheet__summary,
+.mwd-sheet.item-sheet .mwd-item-sheet__state {
+  color: rgba(57, 48, 31, 0.96);
+  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.9);
+}
+
+.mwd-item-sheet__summary-chip,
+.mwd-item-sheet__state-chip {
+  gap: 6px;
+  color: inherit;
+  border-color: rgba(110, 92, 60, 0.24);
+  background: rgba(255, 248, 228, 0.68);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.mwd-item-sheet__summary-chip strong {
+  color: rgba(79, 67, 41, 0.96);
+}
+
+.mwd-item-sheet__state-chip.is-active {
+  background: rgba(140, 180, 112, 0.3);
+}
+
+.mwd-item-sheet__state-chip.is-accent {
+  background: rgba(196, 167, 110, 0.38);
+}
+
+.mwd-item-sheet__state-chip.is-muted {
+  background: rgba(236, 228, 204, 0.82);
+}
+
+.mwd-item-main-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--csb-space-3);
+  width: 100%;
+}
+
+.mwd-item-section--full {
+  grid-column: 1/-1;
+}
+
+.mwd-item-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--csb-space-2);
+}
+
+.mwd-item-field--wide {
+  grid-column: 1/-1;
+}
+
+.mwd-item-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--csb-space-2);
+}
+
+.mwd-item-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--csb-space-2);
+  padding: 10px 12px;
+  border: 1px solid var(--csb-panel-border);
+  border-radius: var(--csb-panel-radius);
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.mwd-item-note,
+.mwd-item-empty {
+  padding: 10px 12px;
+  border: 1px dashed var(--csb-panel-border);
+  border-radius: var(--csb-panel-radius);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.mwd-item-help {
+  margin-bottom: var(--csb-space-2);
+}
+
+.mwd-sheet.item-sheet .mwd-item-note,
+.mwd-sheet.item-sheet .mwd-item-empty {
+  color: rgba(56, 46, 28, 0.96);
+  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.82);
+  border-color: rgba(96, 80, 52, 0.2);
+  background: rgba(255, 248, 228, 0.56);
+}
+
+.mwd-field-cluster {
+  display: flex;
+  align-items: center;
+  gap: var(--csb-space-1);
+}
+
+.mwd-effects-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--csb-space-2);
+  margin-bottom: var(--csb-space-3);
+}
+
+.mwd-effects-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csb-space-2);
+}
+
+.mwd-effects-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--csb-space-2);
+  padding: 12px;
+  border: 1px solid var(--csb-panel-border);
+  border-radius: var(--csb-panel-radius);
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.mwd-effects-row__main {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.mwd-effects-row__icon {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex: 0 0 auto;
+}
+
+.mwd-effects-row__content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mwd-effects-row__title {
+  font-family: var(--mwd-font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .sheet-header {
+  align-items: center;
+  gap: 12px;
+  padding: 2px 2px 8px;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .sheet-header .header-left {
+  align-items: center;
+  gap: 12px;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .mwd-item-sheet__media {
+  padding: 6px;
+  border-radius: 12px;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .sheet-header img.profile {
+  width: 92px;
+  height: 92px;
+  border-radius: 10px;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .mwd-item-sheet__meta {
+  gap: 8px;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .mwd-item-sheet__eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .sheet-header .item-name input[name=name] {
+  min-height: 2.65rem;
+  padding: 0.2rem 0.65rem 0.3rem;
+  font-size: clamp(1.7rem, 3vw, 2.85rem);
+  line-height: 0.98;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .csb-tab-bar {
+  gap: 8px;
+  padding: 4px 0 8px;
+  border-bottom: 1px solid rgba(96, 80, 52, 0.22);
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .csb-tab-link {
+  color: rgba(83, 68, 41, 0.88);
+  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.9);
+  border-radius: 999px;
+  background: rgba(255, 248, 228, 0.28);
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .csb-tab-link:hover {
+  color: rgba(38, 31, 20, 0.98);
+  background: rgba(255, 248, 228, 0.46);
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .csb-tab-link.is-active {
+  color: rgba(244, 246, 248, 0.96);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+  border-bottom-color: transparent;
+  background: linear-gradient(180deg, rgba(74, 82, 98, 0.96), rgba(53, 60, 73, 0.98));
+  box-shadow: 0 6px 18px rgba(30, 36, 45, 0.18);
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .csb-tab-panel.is-active {
+  color: rgba(52, 43, 27, 0.96);
+  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.84);
+}
+
+.mwd-weapon-compact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csb-space-2);
+  width: 100%;
+}
+
+.mwd-weapon-compact__panel {
+  padding: var(--csb-space-2);
+}
+
+.mwd-weapon-compact__body,
+.mwd-weapon-compact__secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mwd-weapon-compact__status,
+.mwd-weapon-compact__secondary .form-group {
+  margin: 0;
+}
+
+.mwd-weapon-compact__status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mwd-weapon-compact__status-chip {
+  color: rgba(48, 40, 25, 0.96);
+  border-color: rgba(96, 80, 52, 0.22);
+  background: rgba(255, 246, 221, 0.78);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.mwd-weapon-compact__status-chip.is-active {
+  background: rgba(141, 181, 113, 0.32);
+}
+
+.mwd-weapon-compact__status-chip.is-accent {
+  background: rgba(196, 167, 110, 0.42);
+}
+
+.mwd-weapon-compact__status-chip.is-muted {
+  background: rgba(235, 227, 204, 0.92);
+}
+
+.mwd-weapon-compact__row {
+  display: grid;
+  gap: 10px;
+  align-items: end;
+}
+
+.mwd-weapon-compact__row--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mwd-weapon-compact__row--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mwd-weapon-compact__row--actions {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  align-items: stretch;
+}
+
+.mwd-sheet.item-sheet .mwd-weapon-compact .form-group {
+  margin: 0;
+}
+
+.mwd-weapon-compact__field {
+  min-width: 0;
+}
+
+.mwd-weapon-compact__field--wide {
+  grid-column: span 2;
+}
+
+.mwd-weapon-compact__field--full {
+  grid-column: 1/-1;
+}
+
+.mwd-weapon-compact__field label,
+.mwd-weapon-compact__toggle span,
+.mwd-weapon-compact__action-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(63, 52, 31, 0.94);
+  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.9);
+}
+
+.mwd-sheet.item-sheet .mwd-weapon-compact textarea {
+  min-height: 88px;
+  height: auto;
+  padding: 8px 10px;
+}
+
+.mwd-weapon-compact__toggle,
+.mwd-weapon-compact__action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: var(--csb-input-height);
+  padding: 8px 10px;
+  border: 1px solid rgba(93, 76, 45, 0.18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mwd-weapon-compact__toggle span,
+.mwd-weapon-compact__action-label {
+  margin: 0;
+}
+
+.mwd-weapon-compact__toggle input {
+  flex: 0 0 auto;
+}
+
+.mwd-weapon-compact__toggle--secondary {
+  align-self: flex-start;
+  min-width: min(100%, 18rem);
+}
+
+.mwd-weapon-compact__action {
+  flex-wrap: wrap;
+}
+
+.mwd-sheet.item-sheet .mwd-weapon-compact__action button {
+  min-width: 12rem;
+}
+
+.mwd-weapon-compact__band-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border: 1px solid rgba(93, 76, 45, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.mwd-weapon-compact__band-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mwd-weapon-compact__band-title {
+  margin: 0;
+  font-size: 0.98rem;
+  color: rgba(44, 36, 24, 0.96);
+  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.8);
+}
+
+.mwd-weapon-compact__band-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mwd-weapon-compact__panel--secondary {
+  background: rgba(255, 251, 241, 0.32);
+}
+
+.mwd-weapon-compact__field--references .editor {
+  min-height: 180px;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .modifier-list {
+  width: 100%;
+  border-collapse: collapse;
+  color: rgba(44, 36, 22, 0.96);
+  text-shadow: none;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .modifier-header th {
+  padding: 8px 10px;
+  color: rgba(245, 246, 248, 0.96);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+  background: rgba(63, 71, 86, 0.92);
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .modifier-list td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(96, 80, 52, 0.16);
+  background: rgba(255, 251, 241, 0.42);
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .modifier-list .item-control {
+  color: rgba(60, 74, 116, 0.92);
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .mwd-effects-row {
+  color: rgba(44, 36, 22, 0.96);
+  text-shadow: none;
+  border-color: rgba(96, 80, 52, 0.16);
+  background: rgba(255, 251, 241, 0.48);
+}
+
+@media (max-width: 720px) {
+  .mwd-sheet.item-sheet .sheet-header {
+    flex-direction: column;
+  }
+  .mwd-sheet.item-sheet .sheet-header .header-left {
+    width: 100%;
+  }
+  .mwd-sheet.item-sheet .sheet-header .header-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .mwd-sheet.item-sheet .sheet-header img.profile {
+    width: 112px;
+    height: 112px;
+  }
+  .mwd-effects-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .sheet-header {
+    align-items: stretch;
+  }
+  .mwd-sheet.item-sheet.mwd-item-sheet--weapon-compact .sheet-header .header-left {
+    align-items: flex-start;
+  }
+  .mwd-weapon-compact__row--4,
+  .mwd-weapon-compact__row--3,
+  .mwd-weapon-compact__band-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mwd-weapon-compact__field--wide {
+    grid-column: 1/-1;
+  }
+}
+@media (max-width: 520px) {
+  .mwd-weapon-compact__row--4,
+  .mwd-weapon-compact__row--3,
+  .mwd-weapon-compact__row--actions,
+  .mwd-weapon-compact__band-grid {
+    grid-template-columns: 1fr;
+  }
+  .mwd-sheet.item-sheet .mwd-weapon-compact__action button {
+    width: 100%;
+    min-width: 0;
+  }
+}
 .mwd-sheet .mwd-hexabox.attribute-hex input {
   width: 100%;
   height: 100%;

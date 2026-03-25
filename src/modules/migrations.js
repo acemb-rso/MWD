@@ -4,6 +4,11 @@ import { ANARCHY_HOOKS, HooksManager } from "./hooks-manager.js";
 import { Misc } from "./misc.js";
 import { AttributeActions } from "./attribute-actions.js";
 import { MESSAGE_DATA } from "./chat/chat-manager.js";
+import {
+  migrateLegacyArmorMitigation,
+  normalizePersonalDamageType,
+  normalizeArmorTags,
+} from "./mwd/personal-damage.js";
 
 export const DECLARE_MIGRATIONS = 'anarchy-declareMigration';
 const SYSTEM_MIGRATION_CURRENT_VERSION = "systemMigrationVersion";
@@ -693,6 +698,59 @@ class _13_6_2_AddMwdVehicleScaffold extends Migration {
   }
 }
 
+class _13_7_0_PersonalDamageModelV2 extends Migration {
+  get version() { return "13.7.0"; }
+  get code() { return "personal-damage-model-v2"; }
+
+  async migrate() {
+    await this.applyItemsUpdates(items => items
+      .filter(item => [TEMPLATE.itemType.personalWeapon, TEMPLATE.itemType.armor].includes(item.canonicalType ?? item.type))
+      .map(item => this._collectItemUpdate(item))
+      .filter(Boolean));
+  }
+
+  _collectItemUpdate(item) {
+    if ((item.canonicalType ?? item.type) === TEMPLATE.itemType.personalWeapon) {
+      return this._collectWeaponUpdate(item);
+    }
+    if ((item.canonicalType ?? item.type) === TEMPLATE.itemType.armor) {
+      return this._collectArmorUpdate(item);
+    }
+    return null;
+  }
+
+  _collectWeaponUpdate(item) {
+    const normalizedDamageType = normalizePersonalDamageType(item.system?.damageType);
+    const updates = { _id: item.id };
+
+    if (item.system?.damageType !== normalizedDamageType) {
+      updates["system.damageType"] = normalizedDamageType;
+    }
+
+    return Object.keys(updates).length > 1 ? updates : null;
+  }
+
+  _collectArmorUpdate(item) {
+    const rating = Math.max(0, Number(item.system?.rating ?? 0) || 0);
+    const durabilityMax = Math.max(0, Number(item.system?.durability?.max ?? rating) || 0);
+    const durabilityCurrent = Math.min(
+      durabilityMax,
+      Math.max(0, Number(item.system?.durability?.current ?? durabilityMax) || 0)
+    );
+    const mitigationByType = migrateLegacyArmorMitigation(item.system?.mitigationByType ?? item.system?.mitigation);
+    const tags = normalizeArmorTags(item.system?.tags);
+
+    return {
+      _id: item.id,
+      "system.mitigationByType": mitigationByType,
+      "system.tags": tags,
+      "system.durability.max": durabilityMax,
+      "system.durability.current": durabilityCurrent,
+      "system.-=mitigation": null,
+    };
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -716,6 +774,7 @@ export class Migrations {
       new _13_6_0_MigrateTypedResistance(),
       new _13_6_1_RenameShadowampsToAssetModules(),
       new _13_6_2_AddMwdVehicleScaffold(),
+      new _13_7_0_PersonalDamageModelV2(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

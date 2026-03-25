@@ -7,10 +7,11 @@ import { ContactItemSheet } from "../item/contact-item-sheet.js";
 import { GearItemSheet } from "../item/gear-item-sheet.js";
 import { QualityItemSheet } from "../item/quality-item-sheet.js";
 import { AssetModuleItemSheet } from "../item/asset-module-item-sheet.js";
-//import { LifeModuleItemSheet } from "../item/life-module-item-sheet.js";
+import { LifeModuleItemSheet } from "../item/lifemodule-item-sheet.js";
 import { SkillItemSheet } from "../item/skill-item-sheet.js";
 import { PersonalWeaponItemSheet } from "../item/personal-weapon-item-sheet.js";
 import { MechWeaponItemSheet } from "../item/mech-weapon-item-sheet.js";
+import { ArmorItemSheet } from "../item/armor-item-sheet.js";
 
 /**
  * Register Item sheets.
@@ -19,13 +20,14 @@ import { MechWeaponItemSheet } from "../item/mech-weapon-item-sheet.js";
 export function registerItemSheetsV2() {
   console.log(`${LOG_HEAD}Registering Item sheets (V2)`);
 
-  // Foundry's API still uses Items.registerSheet for V2 sheet classes.
+  const { Items } = foundry.documents.collections;
   Items.registerSheet(SYSTEM_NAME, ContactItemSheet, { types: ["contact"], makeDefault: true, label: "Contact (V2)" });
   Items.registerSheet(SYSTEM_NAME, GearItemSheet, { types: ["gear"], makeDefault: true, label: "Gear (V2)" });
   Items.registerSheet(SYSTEM_NAME, QualityItemSheet, { types: ["quality"], makeDefault: true, label: "Quality (V2)" });
   Items.registerSheet(SYSTEM_NAME, AssetModuleItemSheet, { types: ["assetModule"], makeDefault: true, label: "Asset Module (V2)" });
   Items.registerSheet(SYSTEM_NAME, LifeModuleItemSheet, { types: ["lifeModule"], makeDefault: true, label: "Life Module (V2)" });
   Items.registerSheet(SYSTEM_NAME, SkillItemSheet, { types: ["skill"], makeDefault: true, label: "Skill (V2)" });
-  Items.registerSheet(SYSTEM_NAME, PersonalWeaponItemSheet, { types: ["personalWeapon"], makeDefault: true, label: "Personal Weapon (V2)" });
+  Items.registerSheet(SYSTEM_NAME, PersonalWeaponItemSheet, { types: ["personalWeapon", "weapon"], makeDefault: true, label: "Personal Weapon (V2)" });
   Items.registerSheet(SYSTEM_NAME, MechWeaponItemSheet, { types: ["mechWeapon"], makeDefault: true, label: "Mech Weapon (V2)" });
+  Items.registerSheet(SYSTEM_NAME, ArmorItemSheet, { types: ["armor"], makeDefault: true, label: "Armor (V2)" });
 }

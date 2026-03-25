@@ -20,7 +20,8 @@ export const MWD = {
       "assetModule": "Asset Module",
       "skill": "Skill",
       "mechWeapon": "Mech-Scale Weapon",
-      "personalWeapon": "Personal Weapon"
+      "personalWeapon": "Personal Weapon",
+      "armor": "Armor"
     }
   },
 
@@ -488,21 +489,40 @@ export const MWD = {
     "personalWeapon": {
       "skill": "Skill",
       "category": "Weapon Category",
-      "damageCategory": "Damage Category",
       "damage": "Damage Value",
+      "ap": "Armor Piercing",
       "damageType": "Damage Type",
-      "defense": "Defense",
-      "area": "Area of effect",
       "damageShort": "DV",
-      "areaShort": "Area",
+      "apShort": "AP",
       "weaponWithoutActor": "No Actor",
-      "armorAvoidance": "Armor avoidance",
-      "armorAvoidanceHelp": "Ignore armor on this attack",
+      "equipped": "Equipped",
+      "primary": "Primary",
+      "attack": "Attack",
+      "traits": "Traits",
+      "notes": "Notes",
+      "attackRatingBand": {
+        "label": "Attack Rating Modifiers",
+        "close": "Close",
+        "near": "Near",
+        "far": "Far",
+        "extreme": "Extreme"
+      },
       "range": {
         "max": "Maximum range"
       },
-      "noArmor": "Armor avoidance",
       "withArmor": "Armor protects"
+    },
+
+    "armor": {
+      "equipped": "Equipped",
+      "primary": "Primary",
+      "rating": "Armor Rating",
+      "defenseBonus": "Defense Bonus",
+      "mitigation": "Type Modifiers",
+      "durability": "Durability",
+      "tags": "Armor Tags",
+      "traits": "Traits",
+      "notes": "Notes"
     }
   },
 
@@ -515,7 +535,8 @@ export const MWD = {
       "contact": "Contact",
       "lifeModule": "Life Module",
       "mechWeapon": "Mech-Scale Weapon",
-      "personalWeapon": "Personal Weapon"
+      "personalWeapon": "Personal Weapon",
+      "armor": "Armor"
     },
     "plural": {
       "skill": "Skills",
@@ -527,7 +548,8 @@ export const MWD = {
       "action": "Actions",
       "monitor": "Monitors",
       "mechWeapon": "Mech-Scale Weapons",
-      "personalWeapon": "Personal Weapons"
+      "personalWeapon": "Personal Weapons",
+      "armor": "Armor"
     }
   },
 
@@ -553,7 +575,7 @@ export const MWD = {
   "attributes": {
     "strength": "Strength",
     "reflexes": "Reflexes",
-    "willpower": "Willpower",
+    "willpower": "Guts",
     "intelligence": "Intelligence",
     "charisma": "Charisma",
     "edge": "Edge",
@@ -752,24 +774,22 @@ export const MWD = {
       "damageType": {
         "energy": "Energy",
         "kinetic": "Kinetic",
+        "ballistic": "Ballistic",
         "explosive": "Explosive",
         "plasma": "Plasma",
+        "electrical": "Electrical",
+        "melee": "Melee",
         "none": "None"
       }
     },
 
     "personalWeapon": {
       "damageType": {
+        "penetrating": "Penetrating",
+        "concussive": "Concussive",
         "energy": "Energy",
-        "kinetic": "Kinetic",
-        "explosive": "Explosive",
-        "plasma": "Plasma",
-        "corrosive": "Corrosive",
-        "poison": "Poison"
-      },
-      "damageCategory": {
-        "physical": "Physical",
-        "fatigue": "Fatigue"
+        "thermal": "Thermal",
+        "electrical": "Electrical"
       }
     }
   },

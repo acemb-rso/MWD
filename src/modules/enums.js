@@ -54,10 +54,10 @@ export class Enums {
     Enums.hbsAssetModuleCategories = Enums.mapObjectToKeyValue(MWD.assetModuleCategory);
 
     // Life modules not always present yet; keep init resilient
-    if (MWD.lifeModule?.type) {
-      Enums.hbsLifeModuleTypes = Enums.mapObjectToKeyValue(MWD.lifeModule.type);
+    if (MWD.item?.lifeModule?.type) {
+      Enums.hbsLifeModuleTypes = Enums.mapObjectToKeyValue(MWD.item.lifeModule.type);
     } else {
-      console.warn("MWD | MWD.lifeModule.type is missing; life module enums disabled.");
+      console.warn("MWD | MWD.item.lifeModule.type is missing; life module enums disabled.");
       Enums.hbsLifeModuleTypes = [];
     }
 

@@ -5,19 +5,13 @@ import { HandlebarsManager } from './handlebars-manager.js';
 import { RemoteCall } from './remotecall.js';
 import { Styles } from './styles.js';
 import { HooksManager } from './hooks-manager.js';
-import { AnarchyBaseItem } from './item/anarchy-base-item.js';
+import { MWDItem } from './item/anarchy-base-item.js';
 import { CharacterActor } from './actor/character-actor.js';
 import { VehicleActor } from './actor/vehicle-actor.js';
 import { BattlemechActor } from './actor/battlemech-actor.js';
-import { SkillItem } from './item/skill-item.js';
-import { WeaponItem } from './item/weapon-item.js';
-import { ContactItem } from './item/contact-item.js';
-import { GearItem } from './item/gear-item.js';
-import { QualityItem } from './item/quality-item.js';
-import { AssetModuleItem } from './item/asset-module-item.js';
-import { LifeModuleItem } from './item/lifemodule-item.js';
 import { SystemSettings } from './system-settings.js';
 import { registerActorSheetsV2 } from "./sheets/register-actor-sheets-v2.js";
+import { registerItemSheetsV2 } from "./sheets/register-item-sheets-v2.js";
 import { preloadTemplatesV2 } from "./sheets/preload-templates.js";
 import { MWDActor } from "./actor/mwd-actor.js";
 import { MWDRoll } from "./roll/mwd-roll.js";
@@ -27,10 +21,12 @@ import { StatusEffectsProvider } from "../modules/modifiers/providers/status-eff
 import { BaseRollModifiersProvider } from "../modules/modifiers/providers/base-modifiers.js";
 import { ConditionModifiersProvider } from "../modules/modifiers/providers/conditions.js";
 import { burnModifier } from "../modules/modifiers/providers/burn-modifier.js";
+import { Modifiers } from "./modifiers/anarchy-modifiers.js";
 import { PersonalCombatTracker } from "./combat/personal-combat-tracker.js";
 import { registerMWDChatActions } from "./chat/chat-actions.js";
 import { registerMWDGMGadgetSettings } from "./gm/mwd-gmgadget.js";
 import { getMWDGMGadget } from "./gm/mwd-gmgadget.js";
+import { getSkillDef, listSkillDefs } from "./mwd/skills.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -79,6 +75,22 @@ function configureMWDFonts() {
 
   });
 }
+
+function createMWDSkillsService() {
+  return {
+    get(code) {
+      return getSkillDef(code);
+    },
+    getSkills({ withKnowledge = false } = {}) {
+      void withKnowledge;
+      return listSkillDefs();
+    },
+    list() {
+      return listSkillDefs();
+    }
+  };
+}
+
 export class AnarchySystem {
 
   static start() {
@@ -104,9 +116,14 @@ export class AnarchySystem {
     // Optional alias if you want it under the system object too:
     this.roll = MWDRoll;
     this.personalCombat = PersonalCombatTracker;
+    this.skills = createMWDSkillsService();
 
     // initialize remote calls registry first: used by other singleton managers
-    this.remoteCall = new RemoteCall(); 
+    this.remoteCall = new RemoteCall();
+    game.system.mwd.skills = this.skills;
+    game.mwd.skills = this.skills;
+    Enums.init();
+    this.modifiers = new Modifiers();
 
     modifierProviders.register(new ItemModifiersProvider());
     modifierProviders.register(new StatusEffectsProvider());
@@ -128,23 +145,11 @@ export class AnarchySystem {
       vehicle: VehicleActor,
       battlemech: BattlemechActor
     }
-    this.itemClasses = {
-      contact: ContactItem,
-      gear: GearItem,
-      quality: QualityItem,
-      assetModule: AssetModuleItem,
-      skill: SkillItem,
-      lifeModule: LifeModuleItem,
-      mechWeapon: WeaponItem,
-      personalWeapon: WeaponItem
-    }
-
     //Required for proper loading of sheets
     this.hooks = new HooksManager();
     this.styles = new Styles();
     this.handlebarsManager = new HandlebarsManager();
     PersonalCombatTracker.init();
-    Enums.init();
     SystemSettings.register();
 
     console.log(LOG_HEAD + 'AnarchySystem.onInit | loading system');
@@ -158,11 +163,12 @@ export class AnarchySystem {
       icon: "systems/mwd/img/icons/status/surge.svg"
     });
     CONFIG.Actor.documentClass = MWDActor;
-    CONFIG.Item.documentClass = AnarchyBaseItem;
+    CONFIG.Item.documentClass = MWDItem;
+    MWDItem.init();
 
     // Register sheets (AppV2-only, no appv1 unregisters)
     registerActorSheetsV2();
-    //registerItemSheetsV2();
+    registerItemSheetsV2();
 
     // Preload templates/partials to avoid first-render blank sheets
     await preloadTemplatesV2();

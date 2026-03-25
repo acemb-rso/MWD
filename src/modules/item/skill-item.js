@@ -1,14 +1,13 @@
-import { ICONS_PATH } from "../constants.js";
-import { AnarchyBaseItem } from "./anarchy-base-item.js";
+import { MWDItem } from "./anarchy-base-item.js";
 
-export class SkillItem extends AnarchyBaseItem {
+export class SkillItem extends MWDItem {
 
   static get defaultIcon() {
-    return `${ICONS_PATH}/skills/skills.svg`;
+    return "systems/mwd/img/default/Default_Skill.svg";
   }
 
 static prepareSkill(skillCode) {
-  const skill = game.system.anarchy.skills.get(skillCode);
+  const skill = game.system.mwd.skills.get(skillCode);
 
   if (!skill) {
     return {

@@ -4,7 +4,7 @@ import { TEMPLATES_PATH } from "../constants.js";
 export class LifeModuleItemSheet extends BaseItemSheet {
   static PARTS = {
     sheet: {
-      template: `${TEMPLATES_PATH}/item/lifeModule.hbs`,
+      template: `${TEMPLATES_PATH}/v2/item/lifeModule.hbs`,
       scrollable: [".sheet-body"]
     }
   };

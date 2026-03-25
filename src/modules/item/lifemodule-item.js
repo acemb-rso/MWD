@@ -1,10 +1,9 @@
-import { ICONS_PATH } from "../constants.js";
 import { AnarchyBaseItem } from "./anarchy-base-item.js";
 
 export class LifeModuleItem extends AnarchyBaseItem {
 
   constructor(docData, context = {}) {
-    const lifeModuleName = 'ANARCHY.itemType.singular.lifeModule';
+    const lifeModuleName = 'MWD.itemType.singular.lifeModule';
     if (!docData.name || docData.name === 'DOCUMENT.Item') {
       docData.name = lifeModuleName;
     }
@@ -13,6 +12,6 @@ export class LifeModuleItem extends AnarchyBaseItem {
   }
 
   static get defaultIcon() {
-    return `${ICONS_PATH}/vitruvian-man.svg`;
+    return "systems/mwd/img/default/book.svg";
   }
 }

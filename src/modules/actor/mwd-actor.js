@@ -1,7 +1,19 @@
 // /mwd/src/modules/actor/mwd-actor.js
 import { ensureCoreSkillRatings } from "../mwd/skills.js";
-import { MONITOR_DEFS } from "../constants.js";
+import { MONITOR_DEFS, TEMPLATE } from "../constants.js";
 import { DERIVE_FNS, resolveDerivedSource,  deriveMonitors } from "../mwd/derive-monitors.js";
+import { WeaponItem } from "../item/weapon-item.js";
+import {
+  computeArmorBaseMitigation,
+  normalizeArmorMitigationByType,
+} from "../mwd/personal-damage.js";
+
+function mitigationLabel(mitigation = {}) {
+  return Object.entries(normalizeArmorMitigationByType(mitigation))
+    .filter(([, value]) => Number(value) > 0)
+    .map(([key, value]) => `${key} +${value}`)
+    .join(", ");
+}
 
 export class MWDActor extends Actor {
   /* -------------------------------------------- */
@@ -39,6 +51,7 @@ export class MWDActor extends Actor {
 
     // Condition monitors derived (penalties/resistance)
     this._prepareMonitors();
+    this._preparePersonalCombatDerived();
   }
 
   /**
@@ -130,6 +143,171 @@ export class MWDActor extends Actor {
 
   hasEdgePools() {
     return this.type === "character" && !!this.system?.counters?.edgePools;
+  }
+
+  getAttributeValue(attributeKey) {
+    return Math.max(0, Number(this.system?.attributes?.[attributeKey]?.value ?? 0));
+  }
+
+  getSkillRating(skillKey) {
+    return Math.max(0, Number(this.system?.skills?.[skillKey]?.rating ?? 0));
+  }
+
+  getOwnedItem(itemId) {
+    return this.items?.get?.(itemId) ?? null;
+  }
+
+  getPersonalCombatLoadout({ refresh = false } = {}) {
+    if (!refresh) {
+      const cached = this._mwdDerived?.personalCombat;
+      if (cached) return cached;
+    }
+
+    const loadout = this._computePersonalCombatLoadout();
+    this._mwdDerived ??= {};
+    this._mwdDerived.personalCombat = loadout;
+    return loadout;
+  }
+
+  _computePersonalCombatLoadout() {
+    const warnings = [];
+    const weapons = this.items
+      .filter(item => item.isPersonalWeapon?.() ?? item.type === TEMPLATE.itemType.personalWeapon)
+      .map(item => item.getCombatProfile?.() ?? null)
+      .filter(Boolean);
+
+    const armor = this.items
+      .filter(item => item.isArmor?.() ?? item.type === TEMPLATE.itemType.armor)
+      .map(item => item.getArmorProfile?.({ actor: this }) ?? null)
+      .filter(Boolean);
+
+    const equippedWeapons = weapons.filter(item => item.equipped);
+    const equippedArmor = armor.filter(item => item.equipped);
+
+    const primaryWeapons = equippedWeapons.filter(item => item.isPrimary);
+    const primaryArmor = equippedArmor.filter(item => item.isPrimary);
+
+    let defaultWeapon = null;
+    let primaryWeapon = null;
+    let weaponChoiceRequired = false;
+
+    if (primaryWeapons.length === 1) {
+      primaryWeapon = primaryWeapons[0];
+      defaultWeapon = primaryWeapon;
+    } else if (primaryWeapons.length > 1) {
+      warnings.push("Multiple equipped primary weapons found; attack selection requires a chooser.");
+      weaponChoiceRequired = true;
+    } else if (equippedWeapons.length === 1) {
+      defaultWeapon = equippedWeapons[0];
+    } else if (equippedWeapons.length > 1) {
+      weaponChoiceRequired = true;
+    } else {
+      defaultWeapon = {
+        ...WeaponItem.DEFAULT_UNARMED,
+        uuid: null,
+        img: null,
+        item: null,
+        equipped: true,
+        isPrimary: false,
+        defaultRangeBand: "close",
+        isSynthetic: true
+      };
+    }
+
+    let primaryArmorItem = null;
+    let activeArmor = null;
+
+    if (primaryArmor.length === 1) {
+      primaryArmorItem = primaryArmor[0];
+      activeArmor = this._buildActiveArmorState(primaryArmorItem);
+    } else if (primaryArmor.length > 1) {
+      warnings.push("Multiple equipped primary armor items found; using the first equipped armor.");
+      activeArmor = equippedArmor[0] ? this._buildActiveArmorState(equippedArmor[0]) : null;
+    } else if (equippedArmor.length === 1) {
+      activeArmor = this._buildActiveArmorState(equippedArmor[0]);
+    } else if (equippedArmor.length > 1) {
+      warnings.push("Multiple equipped armor items found without a single primary; using the first equipped armor.");
+      activeArmor = this._buildActiveArmorState(equippedArmor[0]);
+    }
+
+    return {
+      weapons,
+      equippedWeapons,
+      primaryWeapon,
+      defaultWeapon,
+      weaponChoiceRequired,
+      armor,
+      equippedArmor,
+      primaryArmor: primaryArmorItem,
+      activeArmor,
+      warnings
+    };
+  }
+
+  _buildActiveArmorState(armorProfile) {
+    if (!armorProfile) return null;
+
+    const max = Math.max(0, Number(armorProfile?.durability?.max ?? armorProfile?.rating ?? 0));
+    const current = Math.min(
+      max,
+      Math.max(0, Number(armorProfile?.durability?.current ?? armorProfile?.currentArmorRating ?? max))
+    );
+    const mitigationByType = normalizeArmorMitigationByType(armorProfile?.mitigationByType);
+    const baseMitigation = computeArmorBaseMitigation(current);
+
+    return {
+      ...armorProfile,
+      armorId: armorProfile.id,
+      remainingDurability: current,
+      currentArmorRating: current,
+      baseMitigation,
+      baseResistance: baseMitigation,
+      mitigationByType,
+      typedMitigation: mitigationByType,
+      ratingCurrent: current,
+      isDestroyed: current <= 0,
+      durability: {
+        current,
+        max
+      }
+    };
+  }
+
+  async setOwnedItemEquipped(itemId, equipped) {
+    const item = this.getOwnedItem(itemId);
+    if (!item) return null;
+    if (!(item.isPersonalWeapon?.() || item.isArmor?.())) return null;
+
+    return this.updateEmbeddedDocuments("Item", [{
+      _id: item.id,
+      "system.equipped": Boolean(equipped),
+      "system.isPrimary": Boolean(equipped) ? Boolean(item.system?.isPrimary) : false
+    }]);
+  }
+
+  async setOwnedItemPrimary(itemId, isPrimary) {
+    const item = this.getOwnedItem(itemId);
+    if (!item) return null;
+    if (!(item.isPersonalWeapon?.() || item.isArmor?.())) return null;
+
+    const updates = [];
+    const shouldEnable = Boolean(isPrimary);
+
+    if (shouldEnable) {
+      for (const other of this.items.filter(candidate => candidate.type === item.type && candidate.id !== item.id)) {
+        if (other.system?.isPrimary) {
+          updates.push({ _id: other.id, "system.isPrimary": false });
+        }
+      }
+    }
+
+    updates.push({
+      _id: item.id,
+      "system.isPrimary": shouldEnable,
+      "system.equipped": shouldEnable ? true : Boolean(item.system?.equipped)
+    });
+
+    return this.updateEmbeddedDocuments("Item", updates);
   }
 
   /* -------------------------------------------- */
@@ -402,6 +580,24 @@ export class MWDActor extends Actor {
       return this.update({ "system.burn.value": nextValue });
     }
 
+    if (monitorId === "armor" && this.isCharacterLike()) {
+      const loadout = this.getPersonalCombatLoadout({ refresh: true });
+      const activeArmorId = loadout?.activeArmor?.armorId ?? loadout?.activeArmor?.id ?? null;
+      const activeArmorItem = activeArmorId ? this.items.get(activeArmorId) : null;
+      if (!activeArmorItem?.id) return null;
+
+      const rating = Math.max(0, Number(activeArmorItem.system?.rating ?? 0) || 0);
+      const configuredMax = Math.max(0, Number(activeArmorItem.system?.durability?.max ?? 0) || 0);
+      const max = configuredMax > 0 ? configuredMax : rating;
+      const nextValue = Math.min(Math.max(0, Number(rawValue) || 0), max);
+
+      return this.updateEmbeddedDocuments("Item", [{
+        _id: activeArmorItem.id,
+        "system.durability.max": max,
+        "system.durability.current": nextValue
+      }]);
+    }
+
     const basePath = `system.monitors.${monitorId}`;
 
     const max = Number(foundry.utils.getProperty(this, `${basePath}.max`)) || 0;
@@ -448,5 +644,34 @@ export class MWDActor extends Actor {
 
     // Optional: keep the old field for backward compatibility
     this.system.derived.conditionPenalty = total;
+  }
+
+  _preparePersonalCombatDerived() {
+    if (!this.isCharacterLike()) return;
+
+    const loadout = this.getPersonalCombatLoadout({ refresh: true });
+    const armorMonitor = this.system?.monitors?.armor;
+    if (!armorMonitor) return;
+
+    const activeArmor = loadout.activeArmor;
+    const max = Math.max(0, Number(activeArmor?.durability?.max ?? 0));
+    const currentArmorRating = Math.max(0, Number(activeArmor?.currentArmorRating ?? activeArmor?.durability?.current ?? 0));
+    armorMonitor.max = max;
+    armorMonitor.value = Math.min(max, currentArmorRating);
+    armorMonitor.resistance = {
+      default: Number(activeArmor?.baseMitigation ?? activeArmor?.baseResistance ?? 0),
+      byType: {}
+    };
+    armorMonitor.resistanceBonusByType = activeArmor?.isDestroyed ? {} : (activeArmor?.mitigationByType ?? activeArmor?.typedMitigation ?? {});
+    armorMonitor.derived ??= {};
+    armorMonitor.derived.resistance = Number(activeArmor?.baseMitigation ?? activeArmor?.baseResistance ?? 0);
+    armorMonitor.effect = activeArmor?.isDestroyed ? "Destroyed" : (activeArmor ? mitigationLabel(activeArmor.mitigationByType ?? activeArmor.typedMitigation) : "");
+
+    this.system.derived ??= {};
+    this.system.derived.personalCombat = {
+      defaultWeaponId: loadout.defaultWeapon?.id ?? null,
+      activeArmorId: activeArmor?.id ?? null,
+      warnings: [...(loadout.warnings ?? [])]
+    };
   }
 }

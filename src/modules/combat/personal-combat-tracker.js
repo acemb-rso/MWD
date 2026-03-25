@@ -350,11 +350,24 @@ export class PersonalCombatTracker {
       { id: "stand", label: "Stand", resource: "sa", cost: 1, supported: true }
     ].map(action => this._buildSpendAction(snapshot, action, saReason));
 
+    const attackReason = notInCombatReason
+      || notTurnReason
+      || overloadedReason
+      || (snapshot.state.saRemaining < 2 ? "Need 2 SA remaining." : "");
+
     const complexActions = [
-      { id: "complexAttack", label: "Complex Attack", costLabel: "2 SA" },
+      {
+        id: "attack",
+        label: "Attack",
+        costLabel: "2 SA",
+        handler: "combatAttack",
+        disabled: !!attackReason,
+        reason: attackReason,
+        prominent: true
+      },
       { id: "firstAid", label: "First Aid", costLabel: "2 SA" },
       { id: "emergencyRepair", label: "Emergency Repair", costLabel: "2 SA" }
-    ].map(action => this._buildStubAction(action));
+    ].map(action => action.handler ? action : this._buildStubAction(action));
 
     const reduceBurnReason = notInCombatReason
       || notTurnReason

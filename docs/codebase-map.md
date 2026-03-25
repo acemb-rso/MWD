@@ -78,10 +78,15 @@ This document summarizes the key files in the MechWarrior: Destiny Foundry VTT s
 - `src/modules/item/lifemodule-item.js` – Life module: attribute modifiers for character creation.
 - `src/modules/item/quality-item.js` – Quality/trait: positive/negative, favoriting.
 
-### Item sheets (AppV1 — pending V2 migration)
+### Item sheets (AppV2)
 
-- `src/modules/item/base-item-sheet.js` – Shared AppV1 item sheet base.
-- Individual AppV1 item sheets: `skill-item-sheet.js`, `weapon-item-sheet.js`, `gear-item-sheet.js`, `contact-item-sheet.js`, `quality-item-sheet.js`, `asset-module-item-sheet.js`, `lifemodule-item-sheet.js`.
+- `src/modules/item/base-item-sheet.js` – **BaseItemSheet**: shared AppV2 foundation (extends `HandlebarsApplicationMixin(ItemSheetV2)`). Provides: modifier management, effect sync display, layout registry integration (`static LAYOUT_ID`), summary/state chips, and owned-vs-standalone context flags.
+- `src/modules/item/weapon-item-sheet.js` – **WeaponItemSheet**: adds weapon-specific enums and `weaponEditor` context (categories, damage types, range order). Handles skill→defense auto-derivation on skill change.
+- `src/modules/item/armor-item-sheet.js` – **ArmorItemSheet**: layout-driven (`LAYOUT_ID = "armor"`). Adds active armor state from actor combat loadout.
+- `src/modules/item/personal-weapon-item-sheet.js` – **PersonalWeaponItemSheet**: layout-driven (`LAYOUT_ID = "personal-weapon"`). Adds attack action and summary chips.
+- Individual simple sheets: `skill-item-sheet.js`, `gear-item-sheet.js`, `contact-item-sheet.js`, `quality-item-sheet.js`, `asset-module-item-sheet.js`, `lifemodule-item-sheet.js`, `mech-weapon-item-sheet.js` — all extend `BaseItemSheet` or `WeaponItemSheet`; use direct `.hbs` templates (no layout JSON yet).
+
+See `docs/item-data-review.md` for design decisions, canonical contracts, and the full layout pipeline.
 
 ---
 

@@ -1,6 +1,7 @@
 import { ANARCHY } from "./config.js";
 import { TEMPLATE } from "./constants.js";
 import { formatString } from "./strings.js";
+import { getPersonalDamageTypeLabel, isPersonalDamageType } from "./mwd/personal-damage.js";
 
 export class ErrorManager {
 
@@ -51,10 +52,12 @@ export class ErrorManager {
       const error = formatString(ANARCHY.common.errors.actorCannotReceiveDamage, {
         actor: actor.name,
         damageType:
-          ANARCHY.actor.monitors[damageType]
-          ?? ANARCHY.mwd.weaponDamageType[damageType]
-          ?? ANARCHY.mwd.personalDamageType[damageType]
-          ?? damageType
+          (isPersonalDamageType(damageType)
+            ? getPersonalDamageTypeLabel(damageType)
+            : ANARCHY.actor.monitors[damageType]
+              ?? ANARCHY.mwd.weaponDamageType[damageType]
+              ?? ANARCHY.mwd.personalDamageType[damageType]
+              ?? damageType)
       });
       ui.notifications.error(error);
       throw error;
@@ -63,7 +66,7 @@ export class ErrorManager {
 
   static checkWeaponDefense(weapon, actor) {
     const defense = weapon.getDefense();
-    if (weapon.type === TEMPLATE.itemType.personalWeapon && !defense) {
+    if ((weapon.isPersonalWeapon?.() ?? weapon.type === TEMPLATE.itemType.personalWeapon) && !defense) {
       const error = formatString(ANARCHY.common.errors.noDefenseOnWeapon, { actor: actor.name, weapon: weapon.name });
       ui.notifications.error(error);
       throw error;

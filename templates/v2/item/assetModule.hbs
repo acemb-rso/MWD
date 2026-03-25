@@ -1,0 +1,17 @@
+<div class="{{cssClass}}">
+  <header class="sheet-header">
+    <img class="anarchy-img profile-img" src="{{item.img}}" data-action="editImage" data-tooltip="{{item.name}}"/>
+    {{> 'systems/mwd/templates/v2/item/parts/itemname.hbs'
+      label=MWD.itemType.singular.assetModule
+    }}
+  </header>
+
+  <section class="sheet-body">
+    {{> 'systems/mwd/templates/v2/item/parts/inactive.hbs'}}
+    {{> 'systems/mwd/templates/v2/item/parts/references.hbs'}}
+    <div class="form-group">
+      {{> 'systems/mwd/templates/v2/item/parts/modifiers.hbs'}}
+    </div>
+  </section>
+
+</div>

@@ -5,6 +5,13 @@ import { ErrorManager } from "../error-manager.js";
 import { ANARCHY_HOOKS, HooksManager } from "../hooks-manager.js";
 import { Modifiers } from "../modifiers/anarchy-modifiers.js";
 import { formatString } from "../strings.js";
+import {
+  applyArmorTagEffects,
+  computePersonalArmorMitigation,
+  getPersonalDamageTypeLabel,
+  isPersonalDamageType,
+  normalizePersonalDamageType,
+} from "../mwd/personal-damage.js";
 
 const DAMAGE_MODE = 'damage-mode'
 const SETTING_KEY_DAMAGE_MODE = `${SYSTEM_NAME}.${DAMAGE_MODE}`;
@@ -66,9 +73,102 @@ export class ActorDamageManager {
   static async sufferDamage(defender, damageInfo, damage, success, avoidArmor, attacker, attackWeapon) {
     const { monitor, damageType } = ActorDamageManager._resolveDamageContext(defender, damageInfo, attackWeapon);
     ErrorManager.checkActorCanReceiveDamage(damageType ?? monitor, monitor, defender);
+    if (ActorDamageManager._shouldUsePersonalDamageV2(defender, monitor, attackWeapon)) {
+      await ActorDamageManager.sufferPersonalDamageV2(defender, monitor, damageType, damage, success, avoidArmor, attacker, attackWeapon);
+      return;
+    }
     const sufferDamageMethod = ActorDamageManager.damageModeMethod ?? ActorDamageManager.sufferDamageResistanceArmorMonitor;
     await sufferDamageMethod(defender, monitor, damageType, damage, success, avoidArmor, attacker);
     await defender.applyArmorDamage(monitor, damageType, Modifiers.sumModifiers([attackWeapon], 'other', 'damageArmor'));
+  }
+
+  static _shouldUsePersonalDamageV2(defender, monitor, attackWeapon) {
+    if (!defender?.isCharacterLike?.()) return false;
+    if (![TEMPLATE.monitors.physical, TEMPLATE.monitors.fatigue].includes(monitor)) return false;
+    return Boolean(attackWeapon?.isPersonalWeapon?.() || attackWeapon?.canonicalType === TEMPLATE.itemType.personalWeapon || attackWeapon?.type === TEMPLATE.itemType.personalWeapon);
+  }
+
+  static async sufferPersonalDamageV2(actor, monitor, damageType, damage, success, avoidArmor, sourceActor, attackWeapon) {
+    const weaponProfile = attackWeapon?.getCombatProfile?.() ?? attackWeapon ?? null;
+    const normalizedDamageType = normalizePersonalDamageType(damageType ?? weaponProfile?.damageType);
+    const baseDamage = Math.max(0, Number(damage ?? weaponProfile?.damage ?? 0) || 0);
+    const netHits = Math.max(0, Number(success ?? 0) || 0);
+    const effects = weaponProfile?.effects ?? {};
+    const loadout = actor.getPersonalCombatLoadout?.({ refresh: true }) ?? null;
+    const activeArmor = loadout?.activeArmor ?? null;
+    const armorCurrentRating = Math.max(0, Number(activeArmor?.currentArmorRating ?? activeArmor?.durability?.current ?? 0) || 0);
+
+    let damageIncoming = baseDamage + netHits;
+    const baseIncoming = damageIncoming;
+    const tagEffectResult = armorCurrentRating > 0
+      ? applyArmorTagEffects({
+          damageIncoming,
+          armorTags: activeArmor?.tags ?? [],
+          effects,
+        })
+      : { damageIncoming, applied: [] };
+    damageIncoming = tagEffectResult.damageIncoming;
+
+    const armorMitigation = computePersonalArmorMitigation({
+      currentArmorRating: armorCurrentRating,
+      mitigationByType: activeArmor?.mitigationByType ?? {},
+      damageType: normalizedDamageType,
+    });
+
+    const effectArmorModifier = 0;
+    const effectiveAp = Math.max(
+      0,
+      (Number(weaponProfile?.ap ?? 0) || 0) + (Number(effects?.ap ?? 0) || 0)
+    );
+    const netResistance = armorMitigation.isDestroyed
+      ? 0
+      : Math.max(0, armorMitigation.baseMitigation + armorMitigation.typeMitigationMod + effectArmorModifier - effectiveAp);
+    const finalDamage = Math.max(0, Math.ceil(damageIncoming - netResistance));
+
+    if (finalDamage > 0) {
+      await Checkbars.addCounter(actor, monitor, finalDamage);
+    }
+
+    await ActorDamageManager._degradePersonalArmorOnHit(actor, activeArmor);
+
+    ActorDamageManager._notifyPersonalArmorMitigation(actor, {
+      damageType: normalizedDamageType,
+      baseIncoming,
+      adjustedIncoming: damageIncoming,
+      finalDamage,
+      armorMitigation,
+      effectiveAp,
+      tagEffectResult,
+    });
+  }
+
+  static async _degradePersonalArmorOnHit(actor, activeArmor) {
+    const item = activeArmor?.item ?? actor?.items?.get?.(activeArmor?.id ?? "");
+    if (!item?.id) return;
+
+    const current = Math.max(0, Number(item.system?.durability?.current ?? 0) || 0);
+    const next = Math.max(0, current - 1);
+    if (next === current) return;
+
+    await item.update({ "system.durability.current": next });
+  }
+
+  static _notifyPersonalArmorMitigation(actor, detail = {}) {
+    const armorMitigation = detail.armorMitigation ?? {};
+    const damageTypeLabel = ActorDamageManager._localizeDamageType(detail.damageType);
+    const mitigationLabel = armorMitigation.isDestroyed
+      ? "Armor destroyed"
+      : `Base ${Number(armorMitigation.baseMitigation ?? 0)} + Type ${Number(armorMitigation.typeMitigationMod ?? 0)} - AP ${Number(detail.effectiveAp ?? 0)}`;
+    const adjustedIncoming = Number(detail.adjustedIncoming ?? detail.baseIncoming ?? 0);
+    const finalDamage = Number(detail.finalDamage ?? 0);
+    const tagSummary = (detail.tagEffectResult?.applied ?? [])
+      .map(entry => `${entry.tag} +${Math.round((Number(entry.bonus ?? 0) || 0) * 100)}%`)
+      .join(", ");
+    const tagSuffix = tagSummary ? ` [${tagSummary}]` : "";
+
+    ui.notifications.info(
+      `${actor.name} mitigated ${damageTypeLabel}: ${mitigationLabel}${tagSuffix}. Incoming ${adjustedIncoming}, final ${finalDamage}.`
+    );
   }
 
   static async sufferDamageResistanceArmorMonitor(actor, monitor, damageType, damage, success, avoidArmor, sourceActor) {
@@ -207,12 +307,13 @@ export class ActorDamageManager {
     if (!damageType) {
       return undefined;
     }
-    return 
-      ANARCHY.mwd.weaponDamageType[damageType]
+    if (isPersonalDamageType(damageType)) {
+      return getPersonalDamageTypeLabel(damageType);
+    }
+    return ANARCHY.mwd.weaponDamageType[damageType]
       ?? ANARCHY.mwd.personalDamageType[damageType]
       ?? ANARCHY.actor.monitors[damageType]
-      ?? damageType
-    ;
+      ?? damageType;
   }
 
   static _computeArmorResistance(actor) {

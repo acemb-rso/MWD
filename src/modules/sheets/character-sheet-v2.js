@@ -31,7 +31,14 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       toggleStatuses: CharacterSheetV2.prototype._onToggleStatuses,
       combatSpend: CharacterSheetV2.prototype._onCombatSpend,
       combatReduceBurn: CharacterSheetV2.prototype._onCombatReduceBurn,
-      combatOverloadCheck: CharacterSheetV2.prototype._onCombatOverloadCheck
+      combatOverloadCheck: CharacterSheetV2.prototype._onCombatOverloadCheck,
+      combatAttack: CharacterSheetV2.prototype._onCombatAttack,
+      createOwnedItem: CharacterSheetV2.prototype._onCreateOwnedItem,
+      editOwnedItem: CharacterSheetV2.prototype._onEditOwnedItem,
+      deleteOwnedItem: CharacterSheetV2.prototype._onDeleteOwnedItem,
+      toggleOwnedItemEquipped: CharacterSheetV2.prototype._onToggleOwnedItemEquipped,
+      setOwnedItemPrimary: CharacterSheetV2.prototype._onSetOwnedItemPrimary,
+      attackWeapon: CharacterSheetV2.prototype._onAttackWeapon
     }
   });
 
@@ -39,7 +46,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
     const sheetToken = this.getSheetTokenDocument?.() ?? null;
-    ctx._mwdThemeClass = game.system.anarchy.styles.selectCssClass();
+    ctx._mwdThemeClass = game.system.mwd.styles.selectCssClass();
     ctx.layout = await LayoutRegistry.get("character");
 
     // Character-only Edge console context
@@ -212,6 +219,55 @@ ctx.edgeConsole.poolsOrdered = order
       menus: (combatActions.menus ?? []).map(menu => ({
         ...menu,
         isOpen: menu.id === this.#openCombatMenuId
+      }))
+    };
+
+    const loadout = this.actor.getPersonalCombatLoadout?.() ?? null;
+    ctx.personalInventory = {
+      warnings: [...(loadout?.warnings ?? [])],
+      weapons: (loadout?.weapons ?? []).map(weapon => ({
+        id: weapon.id,
+        name: weapon.name,
+        img: weapon.img,
+        category: weapon.category,
+        skill: weapon.skill,
+        damage: weapon.damage,
+        ap: weapon.ap,
+        damageType: weapon.damageType,
+        equipped: !!weapon.equipped,
+        isPrimary: !!weapon.isPrimary,
+        traitsLabel: (weapon.traits ?? []).join(", "),
+        attackRoll: JSON.stringify({
+          intent: "attack",
+          weaponId: weapon.id,
+          edge: { pool: "physical.grit", allowed: ["pre", "post"] },
+          tags: ["combat", "attack"]
+        })
+      })),
+      armor: (loadout?.armor ?? []).map(armor => {
+        const activeArmor = loadout?.activeArmor?.id === armor.id ? loadout.activeArmor : null;
+        return {
+          id: armor.id,
+          name: armor.name,
+          img: armor.img,
+          rating: Number(activeArmor?.ratingCurrent ?? armor.rating ?? 0),
+          baseResistance: Number(activeArmor?.baseMitigation ?? activeArmor?.baseResistance ?? 0),
+          defenseBonus: Number(armor.defenseBonus ?? 0),
+          equipped: !!armor.equipped,
+          isPrimary: !!armor.isPrimary,
+          durability: `${Number(activeArmor?.durability?.current ?? armor.durability?.current ?? 0)}/${Number(activeArmor?.durability?.max ?? armor.durability?.max ?? 0)}`,
+          mitigationLabel: Object.entries(activeArmor?.mitigationByType ?? activeArmor?.typedMitigation ?? armor.mitigationByType ?? {})
+            .filter(([, value]) => Number(value) > 0)
+            .map(([key, value]) => `${key} +${value}`)
+            .join(", ")
+        };
+      }),
+      gear: (ctx.items?.gear ?? []).map(item => ({
+        id: item.id,
+        name: item.name,
+        img: item.img,
+        quantity: Number(item.system?.quantity ?? 1) || 1,
+        equipped: !!item.system?.equipped
       }))
     };
 
@@ -480,6 +536,184 @@ ctx.edgeConsole.poolsOrdered = order
     console.error("MWD | Failed to launch overload check", error);
     ui.notifications?.error("Unable to launch overload check.");
   }
+ }
+
+ async _onCombatAttack(event) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable) return;
+
+  const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+  const token = this.getSheetTokenDocument?.()
+    ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+    ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
+
+  const snapshot = PersonalCombatTracker.getSnapshot(actorWriteTarget, { token });
+  if (!snapshot.hasCombatant) {
+    ui.notifications?.warn("No combatant on the current scene.");
+    return;
+  }
+  if (!snapshot.isCurrentTurn) {
+    ui.notifications?.warn("Only available during your activation.");
+    return;
+  }
+  if (snapshot.overloaded) {
+    ui.notifications?.warn("Overloaded actors can only recover Burn.");
+    return;
+  }
+  if (snapshot.state.saRemaining < 2) {
+    ui.notifications?.warn("Need 2 SA remaining to attack.");
+    return;
+  }
+
+  const payload = {
+    intent: "attack",
+    mode: "auto",
+    fallback: "unarmed",
+    edge: { pool: "physical.grit", allowed: ["pre", "post"] },
+    tags: ["combat", "attack"]
+  };
+
+  try {
+    const result = await game.mwd?.roll?.execute?.({ actor: actorWriteTarget, payload, event });
+    this.#closeCombatMenu({ rerender: false });
+    if (!result) {
+      this.#renderPreservingScroll(false);
+      return;
+    }
+
+    const spend = await PersonalCombatTracker.spendResource(actorWriteTarget, {
+      token,
+      resource: "sa",
+      cost: 2,
+      actionId: "attack",
+      actionLabel: "Attack",
+      actionCostLabel: "2 SA"
+    });
+
+    if (!spend?.ok) {
+      ui.notifications?.warn(spend?.reason ?? "Unable to spend attack action.");
+    }
+
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to launch attack", error);
+    ui.notifications?.error(error?.message ?? "Unable to launch attack.");
+  }
+ }
+
+ async _onCreateOwnedItem(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable) return;
+
+  const itemType = String(target?.dataset?.itemType ?? "").trim();
+  if (!itemType) return;
+
+  const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+  const existingCount = actorWriteTarget.items.filter(item => item.type === itemType).length;
+  const label = itemType === "personalWeapon"
+    ? "Personal Weapon"
+    : itemType === "armor"
+      ? "Armor"
+      : itemType.charAt(0).toUpperCase() + itemType.slice(1);
+
+  await actorWriteTarget.createEmbeddedDocuments("Item", [{
+    name: `${label} ${existingCount + 1}`,
+    type: itemType
+  }]);
+
+  this.#renderPreservingScroll({ force: true });
+ }
+
+ async _onEditOwnedItem(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  const item = this.#getOwnedItemFromTarget(target, event);
+  item?.sheet?.render(true);
+ }
+
+ async _onDeleteOwnedItem(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable) return;
+
+  const item = this.#getOwnedItemFromTarget(target, event);
+  if (!item) return;
+
+  const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+  await actorWriteTarget.deleteEmbeddedDocuments("Item", [item.id]);
+  this.#renderPreservingScroll({ force: true });
+ }
+
+ async _onToggleOwnedItemEquipped(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable) return;
+
+  const item = this.#getOwnedItemFromTarget(target, event);
+  if (!item) return;
+
+  const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+  await actorWriteTarget.setOwnedItemEquipped?.(item.id, !item.system?.equipped);
+  this.#renderPreservingScroll({ force: true });
+ }
+
+ async _onSetOwnedItemPrimary(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable) return;
+
+  const item = this.#getOwnedItemFromTarget(target, event);
+  if (!item) return;
+
+  const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+  await actorWriteTarget.setOwnedItemPrimary?.(item.id, !item.system?.isPrimary);
+  this.#renderPreservingScroll({ force: true });
+ }
+
+ async _onAttackWeapon(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  const raw = target?.dataset?.roll ?? event?.target?.closest?.("[data-roll]")?.dataset?.roll;
+  if (!raw) return;
+
+  let payload;
+  try {
+    payload = JSON.parse(raw);
+  } catch (error) {
+    console.warn("MWD | Invalid attack payload", raw, error);
+    return;
+  }
+
+  try {
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const result = await game.mwd?.roll?.execute?.({ actor: actorWriteTarget, payload, event });
+    if (!result) return;
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to launch weapon attack", error);
+    ui.notifications?.error(error?.message ?? "Unable to attack with that weapon.");
+  }
+ }
+
+ #getOwnedItemFromTarget(target, event) {
+  const itemId = String(
+    target?.dataset?.itemId
+    ?? target?.closest?.("[data-item-id]")?.dataset?.itemId
+    ?? event?.target?.closest?.("[data-item-id]")?.dataset?.itemId
+    ?? ""
+  ).trim();
+
+  if (!itemId) return null;
+  return this.actor.items.get(itemId) ?? null;
  }
 
 

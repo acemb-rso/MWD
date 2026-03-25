@@ -1,305 +1,292 @@
-Item:
-  # ---------------------------------------------------------------------------
-  # ALL SUPPORTED ITEM TYPES
-  # ---------------------------------------------------------------------------
-  types:
-    - skill
-    - trait
-    - lifeModule
-    - cue
-    - disposition
-    - gear
-    - assetModule
-    - vehicleUpgrade
-    - mechEquipment
-    - personalWeapon
-    - vehicleWeapon
-    - mechWeapon
-    - weaponGroup
+MWD Item Design
+================
 
-  # ---------------------------------------------------------------------------
-  # REUSABLE TEMPLATE SEGMENTS (PSEUDO-INHERITANCE)
-  # ---------------------------------------------------------------------------
-  templates:
+This document describes the current item model implemented in the MWD system.
+It is intended to reflect the live codebase rather than older Anarchy-era
+design notes.
 
-    base:
-      system:
-        description:
-          type: string
-          default: ""
-        source:
-          type: string
-          default: ""
-        tags:
-          type: array
-          items: string
-          default: []
-        gmNotes:
-          type: string
-          default: ""
 
-    weaponBase:
-      system:
-        damage:
-          type: number
-          default: 0
-        tags:
-          type: array
-          items: string
-          default: []
+1. Core Model
+-------------
 
-    moduleBase:
-      system:
-        effect:
-          type: string
-          default: ""
-        slotsRequired:
-          type: number
-          default: 1
-        tags:
-          type: array
-          items: string
-          default: []
+- All items use a single Foundry document class: `MWDItem`.
+- Item behavior is type-driven. The document class is shared; item `type`
+  determines schema, sheet, and runtime behavior.
+- Canonical item types in `template.json` are:
+  - `contact`
+  - `gear`
+  - `quality`
+  - `assetModule`
+  - `skill`
+  - `lifeModule`
+  - `mechWeapon`
+  - `personalWeapon`
+  - `armor`
 
-    # Unified range bands for all ranged weapons
-    rangedWeaponBase:
-      system:
-        range:
-          type: object
-          properties:
-            close:
-              type: number
-              default: 0
-            near:
-              type: number
-              default: 0
-            far:
-              type: number
-              default: 0
-            extreme:
-              type: number
-              default: 0
-        optimalBand:
-          type: string
-          default: "near"
-          choices: ["close","near","far","extreme"]
 
-  # ---------------------------------------------------------------------------
-  # ITEM TYPE SCHEMAS
-  # ---------------------------------------------------------------------------
-  schemas:
+2. Shared Item Concerns
+-----------------------
 
-    # ======================= Skills =======================
-    skill:
-      templates: [base]
-      system:
-        category:
-          type: string
-          default: "general"
-          choices: ["physical","mental","social","vehicle","mech","general"]
-        rating:
-          type: number
-          default: 0
-        linkedAttribute:
-          type: string
-          default: "reflexes"
-          choices: ["strength","reflexes","intelligence","willpower","charisma","edge"]
-        specializations:
-          type: array
-          items: string
-          default: []
+Items separate three different concerns. These should not be conflated.
 
-    # ======================= Traits =======================
-    trait:
-      templates: [base]
-      system:
-        positive:
-          type: boolean
-          default: true
-        category:
-          type: string
-          default: "standard"
-          choices: ["standard","combat","social","mental","background","quality"]
-        cost:
-          type: number
-          default: 0
-        effect:
-          type: string
-          default: ""
+- Descriptive item data
+  - Stored directly on `system`
+  - Examples: damage, AP, rating, traits, notes
+- MWD modifiers
+  - Stored in `system.modifiers`
+  - Used by the system's roll/modifier pipeline
+- Foundry Active Effects
+  - Stored as embedded `ActiveEffect` documents on the item
+  - Used for runtime effect application when supported equipment is equipped
 
-    # ==================== Life Modules ====================
-    lifeModule:
-      templates: [base]
-      system:
-        stage:
-          type: string
-          default: "faction"
-          choices: ["faction","childhood","education","realLife","other"]
-        title:
-          type: string
-          default: ""
-        effect:
-          type: string
-          default: ""
-        tags:
-          type: array
-          items: string
-          default: []
+The live reusable `template.json` item templates are:
 
-    # ======================== Cue =========================
-    cue:
-      templates: [base]
-      system:
-        text:
-          type: string
-          default: ""
+- `modifiers`
+  - `system.modifiers: []`
+- `inactive`
+  - `system.inactive: false`
+- `references`
+  - `system.sourceReference: ""`
+  - `system.description: ""`
+  - `system.gmnotes: ""`
 
-    # ===================== Disposition ====================
-    disposition:
-      templates: [base]
-      system:
-        text:
-          type: string
-          default: ""
 
-    # ======================== Gear ========================
-    gear:
-      templates: [base]
-      system:
-        quantity:
-          type: number
-          default: 1
-        weight:
-          type: number
-          default: 0
-        equipped:
-          type: boolean
-          default: false
+3. World Items vs Owned Items
+-----------------------------
 
-    # ============= Character-scale Modules ================
-    assetModule:
-      templates: [base, moduleBase]
-      system:
-        scale:
-          type: string
-          default: "character"
-        uses:
-          type: number
-          default: 0
-        maxUses:
-          type: number
-          default: 0
+- World items are standalone configuration sources.
+- Owned items are embedded in an actor and may participate in:
+  - loadout state
+  - combat selection
+  - equipped effect sync
+- Actor-only controls such as equip, primary selection, and direct attack
+  should only be available when `item.actor` exists.
 
-    # ============= Vehicle-scale Upgrades =================
-    vehicleUpgrade:
-      templates: [base, moduleBase]
-      system:
-        scale:
-          type: string
-          default: "vehicle"
-        appliesTo:
-          type: string
-          default: "all"
-        passive:
-          type: boolean
-          default: true
 
-    # =============== Mech-scale Equipment =================
-    mechEquipment:
-      templates: [base, moduleBase]
-      system:
-        scale:
-          type: string
-          default: "mech"
-        slotType:
-          type: string
-          default: "equipment"
-          choices: ["equipment","hardpoint","other"]
-        heatModifier:
-          type: number
-          default: 0
+4. Current Item Types
+---------------------
 
-    # ==================================================================
-    #                       WEAPON TYPES (BY SCALE)
-    # ==================================================================
+Skill
+-----
 
-    # =================== Personal Weapons ==================
-    personalWeapon:
-      templates: [base, weaponBase, rangedWeaponBase]
-      system:
-        category:
-          type: string
-          default: "ranged"
-          choices: ["melee","ranged","thrown","other"]
-        ammo:
-          type: number
-          default: 0
-        armorPiercing:
-          type: number
-          default: 0
-        # Melee can just set all range values to 0 or only Close / Near
+- Templates: `inactive`, `references`
+- Fields:
+  - `code`
+  - `attribute`
+  - `value`
+  - `specialization`
+  - `hasDrain`
+  - `hasConvergence`
+  - `isSocial`
+  - `listspecialization`
 
-    # =================== Vehicle Weapons ===================
-    vehicleWeapon:
-      templates: [base, weaponBase, rangedWeaponBase]
-      system:
-        scale:
-          type: string
-          default: "vehicle"
-        category:
-          type: string
-          default: "cannon"
-          choices: ["cannon","missile","turret","support","beam"]
-        blast:
-          type: boolean
-          default: false
-        armorPiercing:
-          type: number
-          default: 0
+Quality
+-------
 
-    # ==================== Mech Weapons =====================
-    mechWeapon:
-      templates: [base, weaponBase, rangedWeaponBase]
-      system:
-        scale:
-          type: string
-          default: "mech"
-        type:
-          type: string
-          default: "ballistic"
-          choices: ["ballistic","energy","missile","support","melee"]
-        size:
-          type: string
-          default: "medium"
-          choices: ["small","medium","large"]
-        slotCost:
-          type: number
-          default: 1
-        isPrimary:
-          type: boolean
-          default: false
-        heat:
-          type: number
-          default: 0
-        location:
-          type: string
-          default: "A"
-          choices: ["H","A","T","L","other"]
-        group:
-          type: string
-          default: "A"
+- Templates: `modifiers`, `inactive`, `references`
+- Fields:
+  - `positive`
 
-    # ==================== Weapon Groups ====================
-    weaponGroup:
-      templates: [base]
-      system:
-        triggerKey:
-          type: string
-          default: ""
-        description:
-          type: string
-          default: ""
-        linkedWeapons:
-          type: array
-          items: string
-          default: []
+Asset Module
+------------
+
+- Templates: `modifiers`, `inactive`, `references`
+- Fields:
+  - `category`
+  - `level`
+
+Life Module
+-----------
+
+- Templates: `inactive`, `references`
+- Fields:
+  - `moduleType`
+
+Mech Weapon
+-----------
+
+- Templates: `modifiers`, `inactive`, `references`
+- Fields:
+  - `weaponCategory`
+  - `hardpointType`
+  - `hardpointSize`
+  - `mountLocation`
+  - `damage`
+  - `damageType`
+  - `heat`
+  - `area`
+  - `range.max`
+  - `range.close`
+  - `range.near`
+  - `range.far`
+  - `range.extreme`
+
+Personal Weapon
+---------------
+
+- Templates: `modifiers`, `inactive`, `references`
+- Fields:
+  - `equipped`
+  - `isPrimary`
+  - `category`
+  - `skill`
+  - `damage`
+  - `ap`
+  - `damageType`
+  - `attackRatingBand.close`
+  - `attackRatingBand.near`
+  - `attackRatingBand.far`
+  - `attackRatingBand.extreme`
+  - `range.max`
+  - `range.close`
+  - `range.near`
+  - `range.far`
+  - `range.extreme`
+  - `traits`
+  - `notes`
+
+Armor
+-----
+
+- Templates: `modifiers`, `inactive`, `references`
+- Fields:
+  - `equipped`
+  - `isPrimary`
+  - `rating`
+  - `defenseBonus`
+  - `mitigation.ballistic`
+  - `mitigation.energy`
+  - `mitigation.explosive`
+  - `mitigation.melee`
+  - `durability.current`
+  - `durability.max`
+  - `traits`
+  - `notes`
+
+Gear
+----
+
+- Templates: `inactive`, `references`
+- No additional guaranteed schema beyond the shared templates
+
+Contact
+-------
+
+- Templates: `inactive`, `references`
+- No additional guaranteed schema beyond the shared templates
+
+
+5. Item Sheet Architecture
+--------------------------
+
+All AppV2 item sheets derive from `BaseItemSheet`.
+
+Current design rules:
+
+- Item sheets use the MWD shell/theme, not a generic Foundry form
+- Item sheets are valid standalone editors for world items
+- Actor-dependent controls are ownership-gated
+- Item sheets separate the three item concerns into tabs:
+  - `Details`
+  - `Modifiers`
+  - `Effects`
+
+Current implementation state:
+
+- `personalWeapon`
+  - layout-driven V2 sheet
+  - layout id: `personal-weapon`
+  - shared root shell + extracted content partials
+- `armor`
+  - layout-driven V2 sheet
+  - layout id: `armor`
+  - shared root shell + extracted content partials
+- Other item types
+  - still use simpler V2 sheet templates
+  - not all are migrated to the layout-driven shell yet
+
+The goal is architectural consistency with the V2 actor-sheet approach:
+
+- thin sheet wrapper
+- shared shell
+- layout registry driven composition
+- named partials for content sections
+
+
+6. Effects and Equipped Runtime Behavior
+----------------------------------------
+
+Embedded `ActiveEffect`s are part of the item model.
+
+Supported equip-sync types:
+
+- `personalWeapon`
+- `armor`
+
+Runtime rule:
+
+- the item owns the effect definitions
+- the actor is the runtime host of applied effects
+
+Behavior:
+
+- if an owned supported item is equipped, its embedded item effects are synced
+  onto the owning actor as actor-side `ActiveEffect`s
+- if the item is unequipped, those synced actor effects are removed
+- world items never apply effects directly
+- item effect create/update/delete reconciles actor-side mirrors when the item
+  is currently applicable
+- duplicate synced actor effects for the same source item effect are not allowed
+
+Synced actor effects are marked with MWD metadata so they can be reconciled
+safely back to the source item/effect pair.
+
+
+7. Combat-Relevant Conventions
+------------------------------
+
+Personal combat currently depends on owned item data.
+
+Weapons:
+
+- equipped weapons are owned `personalWeapon` items with
+  `system.equipped === true`
+- `system.isPrimary` is the first tiebreaker for default weapon selection
+- if no equipped weapon exists, attack falls back to a synthetic unarmed profile
+
+Armor:
+
+- equipped armor is owned `armor` with `system.equipped === true`
+- `system.isPrimary` is the first tiebreaker for active armor selection
+- active armor feeds the actor armor monitor compatibility bridge
+- mitigation, defense bonus, and durability are item-driven
+- the actor armor monitor tracks damage taken for compatibility with existing
+  actor-side systems
+
+
+8. Design Boundaries
+--------------------
+
+The current item design intentionally keeps these separate:
+
+- descriptive item data
+- MWD modifier declarations
+- embedded Foundry `ActiveEffect` definitions
+- runtime actor application of equipped item effects
+
+Items describe equipment and own effect definitions.
+Actors host live applied effects and derived combat state.
+
+
+9. Outdated Concepts
+--------------------
+
+The following should not be treated as current source of truth for new work:
+
+- Anarchy-era item type lists such as `trait`, `cue`, `disposition`,
+  `vehicleUpgrade`, `mechEquipment`, `vehicleWeapon`, or `weaponGroup`
+- older `personalWeapon` field names such as `armorPiercing` as the canonical
+  AP field
+- assumptions that `traits`, `modifiers`, and `ActiveEffect`s are one system
+
+Use the canonical types and structures documented above instead.

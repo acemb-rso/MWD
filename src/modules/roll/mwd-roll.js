@@ -3,9 +3,11 @@ import { resolveIntent } from "./intent/resolve-intent.js";
 import { collectModifiers } from "./collect-modifiers.js";
 import { buildResolved } from "./build-resolved.js";
 import { renderChat } from "./renderers/render-chat.js";
-import { getSkillDef } from "../mwd/skills.js";
 import { MWDRollDialog } from "./mwd-roll-dialog.js";
 import { interpretOutcome } from "./outcome/interpret-outcome.js";
+import { SelectItem } from "../dialog/select-item.js";
+import { WeaponItem } from "../item/weapon-item.js";
+import { TEMPLATE } from "../constants.js";
 
 
 /**
@@ -63,6 +65,70 @@ function normalizePayload(payload = {}) {
   };
 }
 
+async function normalizeAttackPayload({ actor, payload } = {}) {
+  if (payload?.intent !== "attack") return payload;
+
+  const normalized = foundry.utils.deepClone(payload ?? {});
+  const loadout = actor.getPersonalCombatLoadout?.({ refresh: true }) ?? null;
+
+  const resolveWeaponProfile = (weaponId) => {
+    const item = actor.items?.get?.(weaponId) ?? null;
+    if (!item || !(item.isPersonalWeapon?.() ?? item.type === TEMPLATE.itemType.personalWeapon)) return null;
+    if (!item.system?.equipped) return null;
+    return item.getCombatProfile?.() ?? null;
+  };
+
+  if (normalized.weaponId) {
+    const profile = resolveWeaponProfile(normalized.weaponId);
+    if (!profile) {
+      throw new Error("Attack requires an owned equipped personal weapon.");
+    }
+
+    normalized.rangeBand = normalized.rangeBand ?? profile.defaultRangeBand ?? "close";
+    return normalized;
+  }
+
+  if (normalized.mode === "auto") {
+    if (loadout?.weaponChoiceRequired) {
+      const selected = await SelectItem.selectItem(
+        "Choose Weapon",
+        loadout.equippedWeapons ?? []
+      );
+      if (!selected) return null;
+
+      normalized.weaponId = selected.id;
+      normalized.rangeBand = normalized.rangeBand ?? selected.defaultRangeBand ?? "close";
+      delete normalized.mode;
+      return normalized;
+    }
+
+    if (loadout?.defaultWeapon?.isSynthetic || loadout?.defaultWeapon?.id === "unarmed") {
+      normalized.syntheticWeapon = foundry.utils.deepClone(loadout.defaultWeapon ?? WeaponItem.DEFAULT_UNARMED);
+      normalized.weaponId = normalized.syntheticWeapon.id;
+      normalized.rangeBand = normalized.rangeBand ?? "close";
+      delete normalized.mode;
+      return normalized;
+    }
+
+    if (loadout?.defaultWeapon?.id) {
+      normalized.weaponId = loadout.defaultWeapon.id;
+      normalized.rangeBand = normalized.rangeBand ?? loadout.defaultWeapon.defaultRangeBand ?? "close";
+      delete normalized.mode;
+      return normalized;
+    }
+  }
+
+  if (normalized.fallback === "unarmed") {
+    normalized.syntheticWeapon = foundry.utils.deepClone(WeaponItem.DEFAULT_UNARMED);
+    normalized.weaponId = normalized.syntheticWeapon.id;
+    normalized.rangeBand = normalized.rangeBand ?? "close";
+    delete normalized.mode;
+    return normalized;
+  }
+
+  throw new Error("Attack could not resolve a usable weapon.");
+}
+
 function normalizeManualModifierRows(rows) {
   if (!Array.isArray(rows)) return [];
   return rows.map(r => ({
@@ -80,6 +146,8 @@ async function execute({ actor, payload, event } = {}) {
   if (!actor) throw new Error("MWD.roll.execute requires actor");
   if (!payload?.intent) throw new Error("MWD.roll.execute requires payload.intent");
   payload = normalizePayload(payload);
+  payload = await normalizeAttackPayload({ actor, payload });
+  if (!payload) return null;
 
   /* -------------------------------- */
   /* 1) Resolve intent (always first) */

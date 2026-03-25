@@ -404,11 +404,12 @@
       "gear",
       "quality",
       "assetModule",
-      "skill",
-      "lifeModule",
-      "mechWeapon",
-      "personalWeapon"
-    ],
+        "skill",
+        "lifeModule",
+        "mechWeapon",
+        "personalWeapon",
+        "armor"
+      ],
     "templates": {
       "modifiers": {
         "modifiers": []
@@ -480,22 +481,49 @@
     },
     "personalWeapon": {
       "templates": ["modifiers", "inactive", "references"],
-      "skill": "",
-      "weaponCategory": "ranged",
-      "damageCategory": "physical",
+      "equipped": false,
+      "isPrimary": false,
+      "category": "ranged",
+      "skill": "firearms",
       "damage": 0,
-      "damageAttribute": "",
-      "damageType": "kinetic",
-      "defense": "physicalDefense",
-      "armorAvoidance": false,
-      "area": "none",
-      "range": {
-        "max": "close",
+      "ap": 0,
+      "damageType": "penetrating",
+      "attackRatingBand": {
         "close": 0,
         "near": 0,
         "far": 0,
         "extreme": 0
-      }
+      },
+      "range": {
+        "max": "near",
+        "close": 0,
+        "near": 0,
+        "far": 0,
+        "extreme": 0
+      },
+      "traits": [],
+      "notes": ""
+    },
+    "armor": {
+      "templates": ["modifiers", "inactive", "references"],
+      "equipped": false,
+      "isPrimary": false,
+      "rating": 0,
+      "defenseBonus": 0,
+      "mitigationByType": {
+        "penetrating": 0,
+        "concussive": 0,
+        "energy": 0,
+        "thermal": 0,
+        "electrical": 0
+      },
+      "durability": {
+        "current": 0,
+        "max": 0
+      },
+      "tags": [],
+      "traits": [],
+      "notes": ""
     },
     "gear": {
       "templates": [

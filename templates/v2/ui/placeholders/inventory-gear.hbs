@@ -1,3 +1,22 @@
-<div class="gear-placeholder">
-  <em>Gear (placeholder)</em>
+<div class="mwd-inventory-block">
+  <div class="mwd-inventory-block__toolbar">
+    <button type="button" data-action="createOwnedItem" data-item-type="gear">Add Gear</button>
+  </div>
+
+  {{#if personalInventory.gear.length}}
+    <div class="mwd-inventory-list">
+      {{#each personalInventory.gear as |item|}}
+        <div class="mwd-inventory-row" data-item-id="{{item.id}}">
+          <button type="button" class="mwd-inventory-row__name" data-action="editOwnedItem">{{item.name}}</button>
+          <span class="mwd-inventory-row__meta">Qty {{item.quantity}}</span>
+          {{#if item.equipped}}
+            <span class="mwd-inventory-row__meta">Equipped</span>
+          {{/if}}
+          <button type="button" data-action="deleteOwnedItem" data-item-id="{{item.id}}">Delete</button>
+        </div>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-inventory-empty">No gear yet.</div>
+  {{/if}}
 </div>

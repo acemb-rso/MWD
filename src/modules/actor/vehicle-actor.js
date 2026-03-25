@@ -141,7 +141,7 @@ export class VehicleActor extends AnarchyBaseActor {
       assetModules: ['assetModule'],
       vehicleUpgrades: ['vehicleUpgrade'],
       mechEquipment: ['mechEquipment'],
-      personalWeapons: ['personalWeapon'],
+      personalWeapons: ['personalWeapon', 'weapon'],
       vehicleWeapons: ['vehicleWeapon'],
       mechWeapons: ['mechWeapon'],
       weaponGroups: ['weaponGroup'],

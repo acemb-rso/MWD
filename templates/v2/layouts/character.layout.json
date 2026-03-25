@@ -125,6 +125,13 @@
                     "children": [
                       { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-weapons" }
                     ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Armor",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-armor" }
+                    ]
                   }
                 ]
               },

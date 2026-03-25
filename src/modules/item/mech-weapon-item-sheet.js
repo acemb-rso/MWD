@@ -3,12 +3,14 @@ import { TEMPLATES_PATH } from "../constants.js";
 
 /**
  * Mech-scale weapon item sheet (AppV2).
- * Same logic as WeaponItemSheet, but with a hardcoded template.
+ * Same logic as WeaponItemSheet, but rendered through the shared compact layout.
  */
 export class MechWeaponItemSheet extends WeaponItemSheet {
+  static LAYOUT_ID = "mech-weapon";
+
   static PARTS = {
     sheet: {
-      template: `${TEMPLATES_PATH}/item/mech-weapon.hbs`,
+      template: `${TEMPLATES_PATH}/v2/item/mech-weapon-root.hbs`,
       scrollable: [".sheet-body"]
     }
   };
