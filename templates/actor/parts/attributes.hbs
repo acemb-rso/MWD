@@ -1,3 +1,10 @@
+{{!--
+templates/actor/parts/attributes.hbs
+Purpose: Renders collections with `each` blocks.
+How it fits: Used by rendering code to produce UI fragments.
+--}}
+
+
 {{#each (sortedAttributes system.attributes) as |attribute key|}}
 {{> "systems/mwd/templates/actor/parts/attribute.hbs" attribute=attribute key=key}}
 {{/each}}

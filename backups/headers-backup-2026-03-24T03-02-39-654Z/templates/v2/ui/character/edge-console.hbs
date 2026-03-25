@@ -1,0 +1,101 @@
+<div class="mwd-edge-console mwd-edge-console--compact">
+
+
+  <div class="mwd-edge-cap">
+    <div class="mwd-edge-cap__label">Edge</div>
+    <div class="mwd-edge-cap__pips" aria-label="Edge cap">
+      {{#if @root.editing}}
+        <input
+          type="number"
+          name="system.attributes.edge.value"
+          value="{{@root.system.attributes.edge.value}}"
+          min="0"
+          step="1"
+          data-edit-field="staged"
+        />
+      {{else}}
+        {{#each edgeConsole.capPips as |n|}}
+          <span class="pip pip--filled" data-pip="{{n}}"></span>
+        {{/each}}
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="mwd-edge-groups mwd-edge-groups--grid">
+  {{#each edgeConsole.poolsOrdered as |pool|}}
+    <div class="mwd-edge-pool" data-pool="{{pool.key}}" data-domain="{{pool.domain}}">
+
+      {{#if @root.editing}}
+
+        <span class="mwd-edge-pool__name mwd-edge-pool__name--static">
+          {{pool.label}}
+        </span>
+
+        <div class="mwd-edge-pool__edit-fields">
+          <label class="mwd-edge-pool__field">
+            <span class="mwd-edge-pool__field-label">R</span>
+            <input
+              type="number"
+              name="{{pool.pathRating}}"
+              value="{{pool.rating}}"
+              min="0"
+              max="{{@root.edgeConsole.cap}}"
+              step="1"
+              data-edit-field="staged"
+              class="mwd-edge-pool__input"
+              title="Rating for {{pool.label}}"
+            />
+          </label>
+          <label class="mwd-edge-pool__field">
+            <span class="mwd-edge-pool__field-label">V</span>
+            <input
+              type="number"
+              name="{{pool.pathValue}}"
+              value="{{pool.value}}"
+              min="0"
+              max="{{pool.rating}}"
+              step="1"
+              data-edit-field="staged"
+              class="mwd-edge-pool__input"
+              title="Current value for {{pool.label}}"
+            />
+          </label>
+        </div>
+
+      {{else}}
+
+        <button
+          type="button"
+          class="mwd-edge-pool__name"
+          data-action="roll"
+          data-roll='{{pool.roll}}'
+          title="Edge — {{pool.label}}"
+        >
+          {{pool.label}}
+        </button>
+
+        <div class="mwd-edge-pool__pips" aria-label="{{pool.label}} {{pool.value}} of {{pool.max}}">
+          {{#each pool.pips as |pip|}}
+            <button
+              type="button"
+              class="pip {{#if pip.filled}}pip--filled{{else}}pip--empty{{/if}}"
+              data-action="edgeSet"
+              data-edge-pool="{{../key}}"
+              data-edge-value="{{pip.n}}"
+              title="Set {{../label}} to {{pip.n}}"
+            ></button>
+          {{/each}}
+
+          {{#if pool.isCapped}}
+            <span class="mwd-edge-pool__capped" title="Rating exceeds Edge cap">⌛</span>
+          {{/if}}
+        </div>
+
+      {{/if}}
+
+    </div>
+  {{/each}}
+</div>
+
+
+</div>

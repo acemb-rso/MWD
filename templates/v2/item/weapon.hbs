@@ -1,3 +1,10 @@
+{{!--
+templates/v2/item/weapon.hbs
+Purpose: Contains conditional display logic. Contains styled HTML nodes for UI layout. Includes form controls or labeled fields.
+How it fits: Used by rendering code to produce UI fragments.
+--}}
+
+
 
   <header class="sheet-header">
     <img class="anarchy-img profile-img" src="{{item.img}}" data-action="editImage" data-tooltip="{{item.name}}"/>
@@ -22,9 +29,7 @@
       <div class="form-group">
         <label for="system.skill">{{MWD.item.weapon.skill}} </label>
         <select class="select-weapon-skill" name="system.skill" data-dtype="String">
-            {{#select system.skill}}
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
-            {{/select}}
+            {{selectOptions ENUMS.skills selected=system.skill nameAttr="value" labelAttr="label" localize=false blank=""}}
         </select>
       </div>
       <div class="form-group">
@@ -37,9 +42,7 @@
           />
           <span>+
           <select name="system.damageAttribute" data-dtype="String">
-              {{#select system.damageAttribute}}
-              {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
-              {{/select}}
+              {{selectOptions ENUMS.attributes selected=system.damageAttribute nameAttr="value" labelAttr="label" localize=false blank=""}}
           </select>
           /2</span>
         </div>
@@ -55,9 +58,7 @@
         </label>
         <div>
           <select name="system.monitor" data-dtype="String">
-            {{#select system.monitor}}
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.monitors}}
-            {{/select}}
+            {{selectOptions ENUMS.monitors selected=system.monitor nameAttr="value" labelAttr="label" localize=false blank=""}}
           </select>
 
           <input class="item-field-value" name="system.noArmor" type="checkbox" {{checked system.noArmor}}>
@@ -68,9 +69,7 @@
       <div class="form-group">
         <label for="system.area" >{{MWD.item.weapon.area}} </label>
         <select name="system.area" data-dtype="String">
-          {{#select system.area}}
-          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.areas}}
-          {{/select}}
+          {{selectOptions ENUMS.areas selected=system.area nameAttr="value" labelAttr="label" localize=false blank=""}}
         </select>
       </div>
       <div class="form-group">
@@ -83,9 +82,7 @@
       <div class="form-group">
           <label for="system.range.max" >{{MWD.item.weapon.range.max}} </label>
           <select name="system.range.max">
-            {{#select system.range.max}}
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.ranges}}
-            {{/select}}
+            {{selectOptions ENUMS.ranges selected=system.range.max nameAttr="value" labelAttr="label" localize=false blank=""}}
           </select>
       </div>
       <div class="form-group">

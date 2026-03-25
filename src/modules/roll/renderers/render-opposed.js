@@ -1,3 +1,8 @@
+// src/modules/roll/renderers/render-opposed.js
+// Purpose: Defines function `enhanceOpposed`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/roll/renderers/render-opposed.js
 export function enhanceOpposed(resolved, vm) {
   const r = resolved ?? {};

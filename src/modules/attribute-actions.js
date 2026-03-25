@@ -1,3 +1,8 @@
+// src/modules/attribute-actions.js
+// Purpose: Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { ANARCHY } from "./config.js";
 import { ANARCHY_SYSTEM, TEMPLATE } from "./constants.js";
 import { ErrorManager } from "./error-manager.js";

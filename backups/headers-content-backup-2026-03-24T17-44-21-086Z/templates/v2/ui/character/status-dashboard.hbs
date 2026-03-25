@@ -1,0 +1,57 @@
+{{!--
+templates/v2/ui/character/status-dashboard.hbs
+Purpose: Handlebars template for status-dashboard. Used to render UI in the system.
+--}}
+
+<div class="mwd-combat-dashboard">
+  <div class="mwd-combat-dashboard__summary">
+    <div class="mwd-combat-dashboard__summary-line">{{combatDashboard.actionSummary}}</div>
+    <div class="mwd-combat-dashboard__summary-burn">Burn this activation: {{combatDashboard.burnThisActivationLabel}}</div>
+  </div>
+
+  {{#if combatDashboard.inactiveReason}}
+    <div class="mwd-combat-dashboard__notice">{{combatDashboard.inactiveReason}}</div>
+  {{/if}}
+
+  <div class="mwd-combat-dashboard__grid">
+    <div class="mwd-combat-dashboard__card">
+      <div class="mwd-combat-dashboard__label">Overloaded</div>
+      <div class="mwd-combat-dashboard__value">{{combatDashboard.overloadedLabel}}</div>
+    </div>
+
+    <div class="mwd-combat-dashboard__card">
+      <div class="mwd-combat-dashboard__label">Burn</div>
+      <div class="mwd-combat-dashboard__value">{{combatDashboard.burnLabel}}</div>
+    </div>
+
+    <div class="mwd-combat-dashboard__card">
+      <div class="mwd-combat-dashboard__label">Burn Penalty</div>
+      <div class="mwd-combat-dashboard__value">{{combatDashboard.burnPenaltyLabel}}</div>
+    </div>
+  </div>
+
+  <div class="mwd-combat-dashboard__section">
+    <div class="mwd-combat-dashboard__section-title">Active Effects</div>
+    <div class="mwd-combat-dashboard__chips">
+      {{#if combatDashboard.statuses.length}}
+        {{#each combatDashboard.statuses as |status|}}
+          <span class="chip">{{status.label}}</span>
+        {{/each}}
+      {{else}}
+        <span class="mwd-combat-dashboard__empty">No active effects.</span>
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="mwd-combat-dashboard__section">
+    <div class="mwd-combat-dashboard__section-title">Modifier Summary</div>
+    <div class="mwd-combat-dashboard__modifier-list">
+      {{#each combatDashboard.modifiers as |modifier|}}
+        <div class="mwd-combat-dashboard__modifier">
+          <span>{{modifier.label}}</span>
+          <strong>{{modifier.value}}</strong>
+        </div>
+      {{/each}}
+    </div>
+  </div>
+</div>

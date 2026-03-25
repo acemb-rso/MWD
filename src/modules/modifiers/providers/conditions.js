@@ -1,3 +1,8 @@
+// src/modules/modifiers/providers/conditions.js
+// Purpose: Provides module-level utilities or helpers.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/modifiers/providers/condition.js
 //
 // Condition penalties from Physical + Fatigue monitors.

@@ -1,3 +1,8 @@
+// src/modules/roll/roll-parameters.js
+// Purpose: Registers Foundry hooks: ready. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { ANARCHY } from "../config.js";
 import { ANARCHY_SYSTEM, LOG_HEAD, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { Enums } from "../enums.js";

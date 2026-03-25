@@ -1,0 +1,110 @@
+{{!--
+templates/item/armor.hbs
+Purpose: Handlebars template for armor. Used to render UI in the system.
+--}}
+
+<header class="sheet-header">
+  <img class="anarchy-img profile-img" src="{{item.img}}" data-action="editImage" data-tooltip="{{item.name}}"/>
+  {{> 'systems/mwd/templates/item/parts/itemname.hbs'
+    label=ANARCHY.itemType.singular.armor
+  }}
+</header>
+
+<nav class="sheet-tabs tabs" data-group="primary">
+  <div class="sheet-tab" data-tab="main">
+    <a>{{ANARCHY.item.tabs.main}}</a>
+  </div>
+  <div class="sheet-tab" data-tab="modifiers">
+    <a>{{ANARCHY.item.tabs.modifiers}}</a>
+  </div>
+  <div class="sheet-tab-fill"></div>
+</nav>
+
+<section class="sheet-body">
+  <div class="tab section-group" data-group="primary" data-tab="main">
+    {{#if itemSheet.canUseActorControls}}
+      <div class="form-group">
+        <label for="system.equipped">{{ANARCHY.item.armor.equipped}}</label>
+        <input type="checkbox" name="system.equipped" {{checked system.equipped}} />
+      </div>
+
+      <div class="form-group">
+        <label for="system.isPrimary">{{ANARCHY.item.armor.primary}}</label>
+        <input type="checkbox" name="system.isPrimary" {{checked system.isPrimary}} />
+      </div>
+    {{else}}
+      <p class="notes">Equip and primary controls become available when this armor is embedded in an actor.</p>
+    {{/if}}
+
+    <div class="form-group">
+      <label for="system.rating">{{ANARCHY.item.armor.rating}}</label>
+      <input class="type-numeric" type="number" name="system.rating" value="{{system.rating}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.defenseBonus">{{ANARCHY.item.armor.defenseBonus}}</label>
+      <input class="type-numeric" type="number" name="system.defenseBonus" value="{{system.defenseBonus}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label>{{ANARCHY.item.armor.durability}}</label>
+      <div class="flexrow flex-wrap">
+        <input class="type-numeric" type="number" name="system.durability.current" value="{{effectiveDurabilityCurrent}}" data-dtype="Number" />
+        <span>/</span>
+        <input class="type-numeric" type="number" name="system.durability.max" value="{{system.durability.max}}" data-dtype="Number" />
+      </div>
+      {{#if isActiveArmor}}
+        <p class="notes">Current armor rating is tracked on the item and mirrored to the actor armor monitor.</p>
+      {{/if}}
+    </div>
+
+    <h3>{{ANARCHY.item.armor.mitigation}}</h3>
+
+    <div class="form-group">
+      <label for="system.mitigationByType.penetrating">Penetrating</label>
+      <input class="type-numeric" type="number" name="system.mitigationByType.penetrating" value="{{system.mitigationByType.penetrating}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.mitigationByType.concussive">Concussive</label>
+      <input class="type-numeric" type="number" name="system.mitigationByType.concussive" value="{{system.mitigationByType.concussive}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.mitigationByType.energy">Energy</label>
+      <input class="type-numeric" type="number" name="system.mitigationByType.energy" value="{{system.mitigationByType.energy}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.mitigationByType.thermal">Thermal</label>
+      <input class="type-numeric" type="number" name="system.mitigationByType.thermal" value="{{system.mitigationByType.thermal}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.mitigationByType.electrical">Electrical</label>
+      <input class="type-numeric" type="number" name="system.mitigationByType.electrical" value="{{system.mitigationByType.electrical}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.tags">{{ANARCHY.item.armor.tags}}</label>
+      <input type="text" name="system.tags" value="{{join system.tags ', '}}" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.traits">{{ANARCHY.item.armor.traits}}</label>
+      <input type="text" name="system.traits" value="{{join system.traits ', '}}" />
+    </div>
+
+    <div class="form-group stacked">
+      <label for="system.notes">{{ANARCHY.item.armor.notes}}</label>
+      <textarea name="system.notes">{{system.notes}}</textarea>
+    </div>
+
+    {{> 'systems/mwd/templates/item/parts/inactive.hbs'}}
+    {{> 'systems/mwd/templates/item/parts/references.hbs'}}
+  </div>
+
+  <div class="tab section-group" data-group="primary" data-tab="modifiers">
+    {{> 'systems/mwd/templates/item/parts/modifiers.hbs'}}
+  </div>
+</section>

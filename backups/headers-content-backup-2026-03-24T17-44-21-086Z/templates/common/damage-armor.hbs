@@ -1,0 +1,10 @@
+{{!--
+templates/common/damage-armor.hbs
+Purpose: Handlebars template for damage-armor. Used to render UI in the system.
+--}}
+
+{{#if (eq armor 'avoidArmor')}}
+<span data-tooltip="{{ANARCHY.item.weapon.noArmor}}">{{{iconFA 'fas fa-user-times'}}}</span>
+{{else if (eq armor 'withArmor')}}
+<span data-tooltip="{{ANARCHY.item.weapon.withArmor}}">{{{iconFA 'fas fa-user-shield'}}}</span>
+{{/if}}

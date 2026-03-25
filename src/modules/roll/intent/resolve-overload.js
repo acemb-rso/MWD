@@ -1,3 +1,8 @@
+// src/modules/roll/intent/resolve-overload.js
+// Purpose: Defines function `resolveOverload`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/roll/intents/resolve-overload.js
 
 export async function resolveOverload({ actor }) {

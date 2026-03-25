@@ -1,3 +1,8 @@
+// src/modules/actor/character-actor.js
+// Purpose: Renders Handlebars templates at runtime. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { ANARCHY } from "../config.js";
 import { ACTOR_ATTRIBUTE_SETS, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { AnarchyBaseActor } from "./base-actor.js";

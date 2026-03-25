@@ -1,0 +1,22 @@
+{{!--
+templates/chat/celebrity-roll.hbs
+Purpose: Handlebars template for celebrity-roll. Used to render UI in the system.
+--}}
+
+<div class="{{#each options.classes as |cssClass|}}{{cssClass}}{{/each}} flexrow">
+  <div class="flex-shrink-left flexcol">
+    {{> 'systems/mwd/templates/chat/parts/actor-image.hbs'}}
+  </div>
+  <div>
+    <h3 class="chat-roll-title tooltip tooltip-dotted">
+      {{actor.name}} - {{ANARCHY.actor.celebrity}}: {{pool}}
+      <div class="tooltiptext tooltip-roll-parameters">
+        {{#each parameters as |parameter|}}
+          <div class="parameter">
+            {{> 'systems/mwd/templates/chat/parts/generic-parameter.hbs' parameter}}
+          </div>
+        {{/each}}
+      </div>
+    </h3>
+  </div>
+</div>

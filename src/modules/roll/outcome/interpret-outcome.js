@@ -1,4 +1,7 @@
 // src/modules/roll/outcome/interpret-outcome.js
+// Purpose: Defines function `interpretOutcome`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 
 import { interpretSimpleOutcome } from "./interpret-simple.js";
 import { interpretOpposedOutcome } from "./interpret-opposed.js";

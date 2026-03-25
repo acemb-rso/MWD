@@ -1,3 +1,8 @@
+// src/modules/item/base-item-sheet.js
+// Purpose: Provides a Sheet / UI class for entities (actor/item) or an application. Preloads or manages Handlebars templates.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { MWD } from "../config.js";
 import { SYSTEM_NAME, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { Enums } from "../enums.js";
@@ -225,6 +230,7 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       itemSheet: {
         canonicalType,
         typeLabel,
+        isArmorSheet: canonicalType === TEMPLATE.itemType.armor,
         isStandalone,
         canUseActorControls,
         supportsEffectSync: Boolean(this.item.supportsEquippedEffectSync?.()),

@@ -1,10 +1,7 @@
 // src/modules/gm/gm-anarchy.js
-export class GMAnarchyManager {
-  constructor() {
-    // You can wire this to a setting if you want persistence
-    this.value = 0;
-    this.max = 10;   // tweak for your game
-  }
+// Purpose: References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 
   getAnarchy() {
     return {

@@ -1,3 +1,8 @@
+// src/modules/item/anarchy-base-item.js
+// Purpose: Registers Foundry hooks: createItem, updateItem, deleteItem. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { LOG_HEAD, SYSTEM_NAME, TEMPLATE } from "../constants.js";
 import { MWD } from "../config.js";
 import { AttributeActions } from "../attribute-actions.js";

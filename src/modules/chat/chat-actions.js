@@ -1,5 +1,7 @@
 // src/modules/chat/chat-actions.js
-import { renderChat } from "../roll/renderers/render-chat.js";
+// Purpose: Registers Foundry hooks: renderChatMessageHTML.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 
 export function registerMWDChatActions() {
   Hooks.on("renderChatMessageHTML", (message, htmlElement) => {

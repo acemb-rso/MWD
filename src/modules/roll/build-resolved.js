@@ -1,3 +1,8 @@
+// src/modules/roll/build-resolved.js
+// Purpose: Defines function `buildResolved`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // systems/mwd/module/roll/build-resolved.js
 
 /**

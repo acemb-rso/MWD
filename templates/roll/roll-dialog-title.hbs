@@ -1,3 +1,10 @@
+{{!--
+templates/roll/roll-dialog-title.hbs
+Purpose: Contains conditional display logic.
+How it fits: Used by rendering code to produce UI fragments.
+--}}
+
+
 {{{actor.name}}}
 {{#if (eq mode 'attribute')}}
   {{#if item}} - {{{item.name}}}{{/if}}:

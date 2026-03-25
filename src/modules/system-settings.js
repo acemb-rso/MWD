@@ -1,3 +1,8 @@
+// src/modules/system-settings.js
+// Purpose: Registers system settings. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { ANARCHY } from "./config.js";
 import { SYSTEM_NAME } from "./constants.js";
 

@@ -1,0 +1,11 @@
+{{!--
+templates/v2/ui/nodes/include.hbs
+Purpose: Handlebars template for include. Used to render UI in the system.
+--}}
+
+{{!-- include a known partial alias; pass root context through plus include context --}}
+{{#if node.partial}}
+  {{> (lookup node "partial") @root node=node context=node.context}}
+{{else}}
+  <div class="warning">Missing include partial</div>
+{{/if}}

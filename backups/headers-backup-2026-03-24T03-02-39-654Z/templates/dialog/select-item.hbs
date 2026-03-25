@@ -1,0 +1,17 @@
+<div class="dialog-content">
+  {{#if items.length}}
+    <ul class="select-actor-list">
+      {{#each items as |item|}}
+        <li class="click-select-item" data-item-id="{{item.id}}">
+          <span>{{item.name}}</span>
+        </li>
+      {{/each}}
+    </ul>
+  {{else}}
+    <p>No items available.</p>
+  {{/if}}
+
+  <footer class="dialog-buttons">
+    <button type="button" data-action="cancel">Cancel</button>
+  </footer>
+</div>

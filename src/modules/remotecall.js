@@ -1,3 +1,8 @@
+// src/modules/remotecall.js
+// Purpose: References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { LOG_HEAD, SYSTEM_SOCKET } from "./constants.js";
 import { AnarchyUsers } from "./users.js";
 

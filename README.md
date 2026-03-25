@@ -1,73 +1,101 @@
-# MechWarrior: Destiny-ish for Foundry VTT
+# MechWarrior: Destiny for Foundry VTT
 
-This system brings a ruleset inspired by Catalyst Game Labs' **MechWarrior: Destiny** to Foundry VTT with support for characters, vehicles, and full BattleMechs. It began as a Shadowrun: Anarchy fork and now ships with Destiny-specific terminology, condition tracks, and sheet layouts.
+This is a fan-built Foundry VTT system for **MechWarrior: Destiny**. The project is actively moving away from its older Shadowrun/Anarchy roots toward a dedicated MWD rules implementation, so some parts of the system are already modernized while others are still in transition.
 
-## What you get
+If you are starting a campaign today, the strongest support is for **characters and personal-scale play**. NPCs, vehicles, and BattleMechs are present and usable, but they are not all at the same level of polish yet.
 
-- **Multiple actor types** for characters, vehicles, and BattleMechs with dedicated sheets and resource tracking.
-- **Streamlined rolls** for attributes, skills, and weapons that can be launched from sheets or the token HUD, including opposed rolls for targeted tokens.
-- **GM Manager overlay** with shared plot/anarchy pool controls and configurable difficulty pool shortcuts.
-- **Customization hooks** for alternate skill sets and hacks exposed through Foundry settings.
-- **Styling options** via bundled themes (light/dark variants) and SCSS sources for deeper customization.
+## Current status
 
-## Installing the system
+- Foundry compatibility: **minimum v11**, **verified through v13**
+- Actor types: `character`, `npc`, `vehicle`, `battlemech`
+- Item types: `contact`, `gear`, `quality`, `assetModule`, `skill`, `lifeModule`, `personalWeapon`, `mechWeapon`
+- Active modernized systems: the **V2 character sheet**, **MWD roll engine**, **GM Gadget**, and **personal combat tracker**
+- Transitional areas: NPC/vehicle/BattleMech sheets still lean on older templates in places, and item sheets are still using older implementations
 
-1. In Foundry VTT, open **Configuration and Setup → Game Systems → Install System**.
-2. Paste the manifest URL: `https://raw.githubusercontent.com/acemb-rso/MWD/main/system.json`.
-3. Alternatively, download the latest archive (`https://github.com/acemb-rso/MWD/archive/refs/heads/main.zip`) and extract it into `Data/systems/mwd`.
+## What works well today
 
-The system targets Foundry **v13**. After installation, you can select MechWarrior: Destiny when creating a new world.
+### Characters and personal combat
 
-## Using the system
+- Destiny-style character attributes are in place: **Strength, Reflexes, Intelligence, Willpower, Charisma, and Edge**
+- Characters track **Physical**, **Fatigue**, and **Armor** monitors plus **Burn** and **Overloaded** state
+- The character V2 sheet includes a clickable **six-pool Edge console**:
+  `Grit`, `Insight`, `Legend`, `Chaos`, `Rumor`, and `Credibility`
+- The personal combat dashboard tracks **SA / FA / RA**, active statuses, Burn pressure, and overload readiness
+- Equipped personal weapons can roll directly into the active combat and chat flow
 
-### Characters
+### Rolling and chat flow
 
-- Sheets offer full, enhanced, tabbed, and limited views to fit different table needs.
-- Destiny attributes replace the Anarchy set (e.g., **Reflexes** for Agility, **Intelligence** for Logic) alongside Strength, Willpower, Charisma, and Edge.
-- Condition monitors track **Physical** and **Fatigue** damage; armor is used when applicable.
-- Items currently mirror the Anarchy categories (skills, weapons, gear, asset modules, contacts) while Destiny-specific equipment work continues. Matrix artifacts such as cyberdecks or sprites are kept only for backward compatibility.
+- The active roll pipeline supports `attribute`, `skill`, `attack`, `defense`, `resistance`, `initiative`, `edge`, and `overload` intents
+- Rolls use the new AppV2 dialog and chat card flow
+- Modifier collection already supports manual modifiers, condition penalties, status-based modifiers, item-based modifiers, and Edge spending
+- Chat cards support **post-roll Edge rerolls** for failed dice when allowed
+- The GM Gadget manages **DN presets** for the next roll and can optionally announce changes in chat
 
 ### Vehicles and BattleMechs
 
-- **Vehicles** manage structure and armor with simplified loadouts aimed at personal-scale play.
-- **BattleMechs** include heat management, mount-aware weapon grouping, and chassis systems tailored for mech engagements.
+- Vehicle and BattleMech actors have dedicated document types and derived data for **structure**, **armor**, and **heat**
+- BattleMechs already prepare **weapon groups**, **primary group selection**, **melee profiles**, and **heat state bands**
+- This side of the project is still being stabilized, so expect more legacy UI and more unfinished workflows than on the character side
 
-### Rolling and GM tools
+## Known limitations
 
-- Roll attributes, skills, and weapons directly from sheets or via token HUD shortcuts; targeted rolls prompt defenders for opposed checks.
-- Open the **GM Manager** from the chat sidebar to adjust the shared plot/anarchy pool and trigger predefined difficulty pools. These settings sync across clients through world data.
+- The V2 character sheet is the most complete sheet in the system
+- The V2 **inventory**, **armor**, **assigned systems**, and **bio** panels on the character sheet are still placeholders
+- NPC, vehicle, and BattleMech V2 sheets are registered as defaults, but they are not yet as fully wired as the character sheet
+- Item V2 registration exists in the codebase, but it is not the active path yet
+- Some code, docs, and settings still use older **Anarchy** naming while the system continues to migrate toward MWD terminology
+- The repository includes only lightweight compendium support; no licensed game content is distributed
 
-### Compendiums
+## Compendiums
 
-The repository includes stub packs for macros, GM information, and skills. No licensed game content is distributed; you will need your own copy of MechWarrior: Destiny to play.
+The repository currently ships with compendiums for:
 
-## Developing and contributing
+- **Skills**
+- **Macros**
+- **Gamemaster information**
+
+You will still need your own copy of **MechWarrior: Destiny** for the actual game rules and setting content.
+
+## Installing the system
+
+1. In Foundry VTT, open **Configuration and Setup -> Game Systems -> Install System**
+2. Paste the manifest URL:
+   `https://raw.githubusercontent.com/acemb-rso/MWD/main/system.json`
+3. Or download the latest archive:
+   `https://github.com/acemb-rso/MWD/archive/refs/heads/main.zip`
+4. Extract it to `Data/systems/mwd` if you are installing manually
+
+After installation, select **MechWarrior: Destiny** when creating a world.
+
+## Development
 
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) LTS
-- [Yarn](https://yarnpkg.com/) or npm
+- `npm`
 
 ### Common tasks
 
-- **Install dependencies:** `npm install`
-- **Start a dev server with hot reload:** `npm run run`
-- **Build production assets:** `npm run build`
-- **Validate JSON manifests:** `npm run validate:json`
-- **Pack/unpack compendiums:**
-  - To public directory: `npm run packCompendiumsToPublic`
-  - To `dist/` for release builds: `npm run packCompendiumsToDist`
-  - Unpack from public directory: `npm run unpackCompendiumsFromPublic`
+- Install dependencies: `npm install`
+- Start the Vite dev server: `npm run run`
+- Build production assets: `npm run build`
+- Watch SCSS: `npm run css`
+- Validate JSON manifests: `npm run validate:json`
+- Pack compendiums to `dist/`: `npm run packCompendiumsToDist`
+- Pack compendiums to the public directory: `npm run packCompendiumsToPublic`
+- Unpack compendiums from the public directory: `npm run unpackCompendiumsFromPublic`
 
-### Repository structure highlights
+## Repository layout
 
-- `system.json` – Foundry manifest with compatibility info, assets, languages, and data packs.
-- `index.mjs` and `src/start.js` – Entry point that boots the system.
-- `src/` – Core logic for actors, items, rolls, GM utilities, and styling.
-- `templates/` – Handlebars templates for sheets, dialogs, and chat cards.
-- `style/` and `src/styles/` – Prebuilt CSS themes and SCSS sources.
-- `docs/` – Additional design notes and a codebase map.
+- `system.json` - Foundry manifest and compatibility data
+- `template.json` - actor and item data templates
+- `src/modules/` - actor classes, items, rolls, combat flow, GM utilities, and migrations
+- `templates/v2/` - active AppV2 UI work
+- `templates/` - older legacy templates still used in transitional areas
+- `docs/` - design notes, sheet references, and stabilization plans
 
-### License and attribution
+## License and attribution
 
-This project is released under [Creative Commons Attribution 4.0](LICENSE.md). MechWarrior, BattleTech, and MechWarrior: Destiny are trademarks of their respective owners and are used here under fan project guidelines.
+This project is released under [Creative Commons Attribution 4.0](LICENSE.md).
+
+MechWarrior, BattleTech, and MechWarrior: Destiny are trademarks of their respective owners. This repository is a fan project and does not distribute licensed rulebook content.

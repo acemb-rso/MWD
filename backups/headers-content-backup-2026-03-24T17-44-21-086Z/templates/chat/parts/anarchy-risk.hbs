@@ -1,0 +1,18 @@
+{{!--
+templates/chat/parts/anarchy-risk.hbs
+Purpose: Handlebars template for anarchy-risk. Used to render UI in the system.
+--}}
+
+<div class="risk-glitch risk-glitch-{{@root.roll.riskOutcome}}">
+  <label>
+    {{> 'systems/mwd/templates/common/label.hbs' this}}:
+  </label>
+  {{#each @root.roll.subrolls.risk.terms.[0].results as |dice|}}
+    <span class="risk-glitch-dice {{@root.roll.riskOutcome}}">
+      {{{iconD6 dice.result}}}
+    </span>
+  {{/each}}
+  <label>
+    {{lookup ANARCHY.common.roll.risk @root.roll.riskOutcome}}
+  </label>
+</div>

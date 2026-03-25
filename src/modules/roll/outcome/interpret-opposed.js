@@ -1,4 +1,7 @@
 // src/modules/roll/outcome/interpret-opposed.js
+// Purpose: Defines function `interpretOpposedOutcome`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 
 import { toInt, computeEdgeEarned, getEdgeEarnConfig, getEdgePoolKey } from "./_outcome-helpers.js";
 

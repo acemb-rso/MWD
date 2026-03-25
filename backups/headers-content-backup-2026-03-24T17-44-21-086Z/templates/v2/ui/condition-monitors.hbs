@@ -1,0 +1,54 @@
+{{!--
+templates/v2/ui/condition-monitors.hbs
+Purpose: Handlebars template for condition-monitors. Used to render UI in the system.
+--}}
+
+{{!--
+  condition-monitors.hbs
+  Renders one or more condition monitor tracks.
+  Expects `monitors` to be an array of prepared track objects:
+  {
+    id,        // data id, e.g. "physical", "heat"
+    kind,      // visual kind, e.g. "wound", "heat", "armor"
+    label,     // display label
+    segments,  // [{ value, filled, breakpoint? }]
+    editable   // boolean
+  }
+--}}
+
+
+<div class="mwd-condition-monitors mwd-condition-monitors--compact">
+  {{#each conditionMonitors as |track|}}
+    <section class="mwd-monitor" data-monitor="{{track.id}}">
+      <header class="mwd-monitor__header">
+        <div class="mwd-monitor__label">
+          {{track.label}}
+        </div>
+
+        {{#if track.status}}
+          <div class="mwd-monitor__status">
+            <span class="mwd-monitor__status-label">{{track.status.label}}</span>
+            <span class="mwd-monitor__status-value">{{track.status.value}}</span>
+          </div>
+        {{/if}}
+      </header>
+
+      <div class="mwd-monitor__pips" role="group" aria-label="{{track.label}}">
+        {{#each track.segments as |seg|}}
+          <button
+            type="button"
+            class="pip pip--monitor pip--{{../kind}}
+                   {{#if seg.filled}}pip--filled{{else}}pip--empty{{/if}}
+                   {{#if seg.breakpoint}}pip--breakpoint{{/if}}"
+            data-action="monitorSet"
+            data-monitor="{{../id}}"
+            data-value="{{seg.value}}"
+            aria-label="Set {{../label}} to {{seg.value}}"
+            {{#unless ../editable}}aria-disabled="true"{{/unless}}
+          ></button>
+        {{/each}}
+      </div>
+    </section>
+  {{/each}}
+</div>
+

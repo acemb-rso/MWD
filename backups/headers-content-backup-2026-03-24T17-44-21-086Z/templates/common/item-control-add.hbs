@@ -1,0 +1,11 @@
+{{!--
+templates/common/item-control-add.hbs
+Purpose: Handlebars template for item-control-add. Used to render UI in the system.
+--}}
+
+{{#unless @root.options.viewMode}}
+<a class="define-item-type item-control click-item-add"
+    data-tooltip="{{ANARCHY.common.add}}"
+    data-item-type="{{itemType}}">
+  {{{iconFA 'fas fa-plus-circle'}}}
+{{/unless}}

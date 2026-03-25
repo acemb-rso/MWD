@@ -1,0 +1,80 @@
+{{!--
+templates/v2/ui/placeholders/inventory-weapons.hbs
+Purpose: Handlebars template for inventory-weapons. Used to render UI in the system.
+--}}
+
+<div class="mwd-inv">
+  <div class="mwd-inv__toolbar">
+    <button type="button" class="mwd-inv__add-btn" data-action="createOwnedItem" data-item-type="personalWeapon" title="Add Weapon">
+      <i class="fas fa-plus"></i> Add
+    </button>
+  </div>
+
+  {{#if personalInventory.warnings.length}}
+    <div class="mwd-inv__warnings">
+      {{#each personalInventory.warnings as |warning|}}
+        <div class="mwd-inv__warning">{{warning}}</div>
+      {{/each}}
+    </div>
+  {{/if}}
+
+  {{#if personalInventory.weapons.length}}
+    <div class="mwd-inv__table">
+      <div class="mwd-inv__col-headers">
+        <span class="mwd-inv__col mwd-inv__col--img"></span>
+        <span class="mwd-inv__col mwd-inv__col--name">Weapon</span>
+        <span class="mwd-inv__col mwd-inv__col--stat" title="Damage Value">DV</span>
+        <span class="mwd-inv__col mwd-inv__col--stat" title="Armor Penetration">AP</span>
+        <span class="mwd-inv__col mwd-inv__col--stat-wide">Type</span>
+        <span class="mwd-inv__col mwd-inv__col--icon" title="Equipped">Eqp</span>
+        <span class="mwd-inv__col mwd-inv__col--icon" title="Primary"></span>
+        <span class="mwd-inv__col mwd-inv__col--icon"></span>
+      </div>
+      {{#each personalInventory.weapons as |weapon|}}
+        <div class="mwd-inv__row {{#if weapon.equipped}}is-equipped{{/if}} {{#if weapon.isPrimary}}is-primary{{/if}}" data-item-id="{{weapon.id}}">
+          <button type="button"
+                  class="mwd-inv__col mwd-inv__col--img mwd-inv__thumb-btn mwd-inv__thumb-btn--roll"
+                  data-action="attackWeapon"
+                  data-roll='{{weapon.attackRoll}}'
+                  data-item-id="{{weapon.id}}"
+                  title="{{#if weapon.equipped}}Attack with {{weapon.name}}{{else}}Equip to attack{{/if}}"
+                  {{#unless weapon.equipped}}disabled{{/unless}}>
+            <img class="mwd-inv__thumb" src="{{weapon.img}}" alt="">
+          </button>
+          <button type="button" class="mwd-inv__col mwd-inv__col--name mwd-inv__name-btn" data-action="editOwnedItem">
+            {{weapon.name}}
+          </button>
+          <span class="mwd-inv__col mwd-inv__col--stat">{{weapon.damage}}</span>
+          <span class="mwd-inv__col mwd-inv__col--stat">{{weapon.ap}}</span>
+          <span class="mwd-inv__col mwd-inv__col--stat-wide mwd-inv__stat--muted">{{weapon.damageType}}</span>
+          <button type="button"
+                  class="mwd-inv__col mwd-inv__col--icon mwd-inv__icon-btn {{#if weapon.equipped}}is-on{{/if}}"
+                  data-action="toggleOwnedItemEquipped"
+                  data-item-id="{{weapon.id}}"
+                  title="{{#if weapon.equipped}}Unequip{{else}}Equip{{/if}}">
+            <i class="fas {{#if weapon.equipped}}fa-check-circle{{else}}fa-circle{{/if}}"></i>
+          </button>
+          <button type="button"
+                  class="mwd-inv__col mwd-inv__col--icon mwd-inv__icon-btn mwd-inv__icon-btn--star {{#if weapon.isPrimary}}is-on{{/if}}"
+                  data-action="setOwnedItemPrimary"
+                  data-item-id="{{weapon.id}}"
+                  title="{{#if weapon.isPrimary}}Clear primary{{else}}Set as primary{{/if}}">
+            <i class="{{#if weapon.isPrimary}}fas{{else}}far{{/if}} fa-star"></i>
+          </button>
+          <button type="button"
+                  class="mwd-inv__col mwd-inv__col--icon mwd-inv__icon-btn mwd-inv__icon-btn--delete"
+                  data-action="deleteOwnedItem"
+                  data-item-id="{{weapon.id}}"
+                  title="Delete">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        {{#if weapon.traitsLabel}}
+          <div class="mwd-inv__row-note">{{weapon.traitsLabel}}</div>
+        {{/if}}
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-inv__empty">No weapons.</div>
+  {{/if}}
+</div>

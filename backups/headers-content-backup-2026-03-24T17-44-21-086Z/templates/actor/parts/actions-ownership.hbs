@@ -1,0 +1,18 @@
+{{!--
+templates/actor/parts/actions-ownership.hbs
+Purpose: Handlebars template for actions-ownership. Used to render UI in the system.
+--}}
+
+{{#unless options.limited}}
+<div class=".passport-action-row">
+  <div class="passport-action">
+    {{> "systems/mwd/templates/actor/parts/attributebuttons.hbs"}}
+  </div>
+  {{#if ownerActor}}
+  <div class="passport-owner">
+    {{> 'systems/mwd/templates/actor/parts/ownership.hbs'}}
+  </div>
+  {{/if}}
+</div>
+{{/unless}}
+

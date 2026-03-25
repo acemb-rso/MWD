@@ -1,12 +1,41 @@
+// src/modules/roll/intent/resolve-attack.js
+// Purpose: Defines function `getTargets`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { getSkillDef } from "../../mwd/skills.js";
 import { WeaponItem } from "../../item/weapon-item.js";
 
-function getSingleTarget() {
-  const targets = Array.from(game.user?.targets ?? []);
-  if (targets.length !== 1) {
-    throw new Error("Personal attacks require exactly one targeted token.");
-  }
-  return targets[0];
+function getTargets() {
+  return Array.from(game.user?.targets ?? []);
+}
+
+function buildTargetSnapshot(targetToken) {
+  const targetActor = targetToken?.actor ?? null;
+  if (!targetActor) return null;
+
+  const targetLoadout = targetActor?.getPersonalCombatLoadout?.() ?? null;
+  const targetArmor = targetLoadout?.activeArmor ?? null;
+
+  return {
+    tokenId: targetToken?.id ?? null,
+    tokenUuid: targetToken?.document?.uuid ?? null,
+    actorId: targetActor.id,
+    actorUuid: targetActor.uuid,
+    name: targetActor.name ?? targetToken?.name ?? "Target",
+    activeArmor: targetArmor ? {
+      armorId: targetArmor.id,
+      rating: Number(targetArmor.ratingCurrent ?? targetArmor.rating ?? 0),
+      currentArmorRating: Number(targetArmor.currentArmorRating ?? targetArmor.durability?.current ?? 0),
+      remainingDurability: Number(targetArmor.remainingDurability ?? targetArmor.durability?.current ?? 0),
+      baseMitigation: Number(targetArmor.baseMitigation ?? targetArmor.baseResistance ?? 0),
+      baseResistance: Number(targetArmor.baseMitigation ?? targetArmor.baseResistance ?? 0),
+      mitigationByType: { ...(targetArmor.mitigationByType ?? targetArmor.typedMitigation ?? {}) },
+      tags: [...(targetArmor.tags ?? [])],
+      isDestroyed: Boolean(targetArmor.isDestroyed),
+      defenseBonus: Number(targetArmor.defenseBonus ?? 0)
+    } : null
+  };
 }
 
 function getWeaponProfile(actor, payload) {
@@ -48,30 +77,7 @@ export async function resolveAttack({ actor, payload } = {}) {
   const bonus = skillBonus + accuracyBonus;
   const rangeBand = String(payload?.rangeBand ?? weapon.defaultRangeBand ?? "close").trim() || "close";
   const attackRating = Number(weapon?.attackRatingBand?.[rangeBand] ?? 0) || 0;
-  const targetToken = getSingleTarget();
-  const targetActor = targetToken?.actor ?? null;
-  const targetLoadout = targetActor?.getPersonalCombatLoadout?.() ?? null;
-  const targetArmor = targetLoadout?.activeArmor ?? null;
-
-  const targetSnapshot = targetActor ? {
-    tokenId: targetToken?.id ?? null,
-    tokenUuid: targetToken?.document?.uuid ?? null,
-    actorId: targetActor.id,
-    actorUuid: targetActor.uuid,
-    name: targetActor.name ?? targetToken?.name ?? "Target",
-    activeArmor: targetArmor ? {
-      armorId: targetArmor.id,
-      rating: Number(targetArmor.ratingCurrent ?? targetArmor.rating ?? 0),
-      currentArmorRating: Number(targetArmor.currentArmorRating ?? targetArmor.durability?.current ?? 0),
-      remainingDurability: Number(targetArmor.remainingDurability ?? targetArmor.durability?.current ?? 0),
-      baseMitigation: Number(targetArmor.baseMitigation ?? targetArmor.baseResistance ?? 0),
-      baseResistance: Number(targetArmor.baseMitigation ?? targetArmor.baseResistance ?? 0),
-      mitigationByType: { ...(targetArmor.mitigationByType ?? targetArmor.typedMitigation ?? {}) },
-      tags: [...(targetArmor.tags ?? [])],
-      isDestroyed: Boolean(targetArmor.isDestroyed),
-      defenseBonus: Number(targetArmor.defenseBonus ?? 0)
-    } : null
-  } : null;
+  const targets = getTargets().map(buildTargetSnapshot).filter(Boolean);
 
   return {
     intent: "attack",
@@ -103,7 +109,7 @@ export async function resolveAttack({ actor, payload } = {}) {
         label: skillDef.label ?? weapon.skill,
         attribute: attrKey
       },
-      target: targetSnapshot
+      targets
     }
   };
 }

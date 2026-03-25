@@ -1,0 +1,81 @@
+<div class="mwd-combat-actions-panel">
+  <div class="mwd-combat-actions-panel__utility-row">
+    {{#each combatActions.utilityButtons as |action|}}
+      <button
+        type="button"
+        class="mwd-combat-actions-panel__utility-button"
+        data-action="{{action.handler}}"
+        {{#if action.roll}}data-roll='{{action.roll}}'{{/if}}
+        {{#if action.reason}}title="{{action.reason}}"{{/if}}
+        {{#if action.disabled}}disabled{{/if}}>
+        {{action.label}}
+      </button>
+    {{/each}}
+  </div>
+
+  <div class="mwd-combat-actions-panel__summary">
+    {{#each combatActions.summaryPills as |pill|}}
+      <span class="mwd-combat-actions-panel__pill">{{pill.label}} {{pill.value}}</span>
+    {{/each}}
+  </div>
+
+  <div class="mwd-combat-actions-panel__log">
+    <div class="mwd-combat-actions-panel__section-title">This Activation</div>
+    {{#if combatActions.activationLog.length}}
+      <ol class="mwd-combat-actions-panel__log-list">
+        {{#each combatActions.activationLog as |entry|}}
+          <li class="mwd-combat-actions-panel__log-entry">
+            <span class="mwd-combat-actions-panel__log-label">{{entry.label}}</span>
+            {{#if entry.costLabel}}
+              <span class="mwd-combat-actions-panel__log-cost">{{entry.costLabel}}</span>
+            {{/if}}
+          </li>
+        {{/each}}
+      </ol>
+    {{else}}
+      <div class="mwd-combat-actions-panel__empty">No actions taken this activation.</div>
+    {{/if}}
+  </div>
+
+  <div class="mwd-combat-actions-panel__menus">
+    {{#each combatActions.menus as |menu|}}
+      <div class="mwd-combat-menu {{#if menu.isOpen}}is-open{{/if}}">
+        <button
+          type="button"
+          class="mwd-combat-actions-panel__menu-trigger"
+          data-action="toggleCombatMenu"
+          data-combat-menu="{{menu.id}}">
+          <span class="mwd-combat-actions-panel__menu-label">{{menu.label}}</span>
+          <span class="mwd-combat-actions-panel__menu-chevron" aria-hidden="true"></span>
+        </button>
+
+        {{#if menu.isOpen}}
+          <div class="mwd-combat-actions-panel__menu-popup">
+            <div class="mwd-combat-actions-panel__menu-actions">
+              {{#each menu.actions as |action|}}
+                <button
+                  type="button"
+                  class="mwd-combat-action {{#if action.prominent}}is-prominent{{/if}} {{#if action.handler}}{{else}}is-stub{{/if}}"
+                  {{#if action.handler}}data-action="{{action.handler}}"{{/if}}
+                  {{#if action.resource}}data-resource="{{action.resource}}"{{/if}}
+                  {{#if action.cost}}data-cost="{{action.cost}}"{{/if}}
+                  data-combat-action="{{action.id}}"
+                  data-combat-label="{{action.label}}"
+                  data-combat-cost-label="{{action.costLabel}}"
+                  {{#if action.roll}}data-roll='{{action.roll}}'{{/if}}
+                  {{#if action.reason}}title="{{action.reason}}"{{/if}}
+                  {{#if action.disabled}}disabled{{/if}}>
+                  <span class="mwd-combat-action__label">{{action.label}}</span>
+                  <span class="mwd-combat-action__cost">{{action.costLabel}}</span>
+                  {{#if action.reason}}
+                    <span class="mwd-combat-action__reason">{{action.reason}}</span>
+                  {{/if}}
+                </button>
+              {{/each}}
+            </div>
+          </div>
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
+</div>

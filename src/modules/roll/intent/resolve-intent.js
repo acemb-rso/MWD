@@ -1,3 +1,8 @@
+// src/modules/roll/intent/resolve-intent.js
+// Purpose: Defines function `resolveIntent`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/roll/intent/resolve-intent.js
 import { resolveSkill } from "./resolve-skill.js";
 import { resolveEdge } from "./resolve-edge.js";

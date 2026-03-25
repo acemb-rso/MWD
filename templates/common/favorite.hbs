@@ -1,3 +1,10 @@
+{{!--
+templates/common/favorite.hbs
+Purpose: Contains conditional display logic.
+How it fits: Used by rendering code to produce UI fragments.
+--}}
+
+
 <a class="{{#if isFavorite}}favorite-control{{else}}item-control{{/if}} click-favorite" 
     data-tooltip="{{#if isFavorite}}{{ANARCHY.common.delFavorite}}{{else}}{{ANARCHY.common.addFavorite}}{{/if}}"
     {{#if skill}}data-skill-id="{{skill._id}}"{{/if}}

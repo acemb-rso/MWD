@@ -1,3 +1,8 @@
+// src/modules/roll/dice-cursor.js
+// Purpose: Registers Foundry hooks: ready. Renders Handlebars templates at runtime. Preloads or manages Handlebars templates.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { Misc } from "../misc.js";
 
 const { loadTemplates, renderTemplate } = foundry.applications.handlebars;

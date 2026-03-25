@@ -1,3 +1,8 @@
+// src/modules/migrations.js
+// Purpose: Registers Foundry hooks. Registers system settings. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { ANARCHY_SYSTEM, LOG_HEAD, SYSTEM_NAME, SYSTEM_SCOPE, TEMPLATE } from "./constants.js";
 //import { ANARCHY_SKILLS } from "./skills.js";
 import { ANARCHY_HOOKS, HooksManager } from "./hooks-manager.js";

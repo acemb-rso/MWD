@@ -1,3 +1,8 @@
+// src/modules/sheets/base-actor-sheet-v2.js
+// Purpose: Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { LOG_HEAD, SYSTEM_NAME } from "../constants.js";
 import { Misc } from "../misc.js";
 import { buildSkillDisplay } from "../mwd/skills.js";

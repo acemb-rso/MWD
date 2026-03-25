@@ -1,0 +1,14 @@
+{{!--
+templates/actor/vehicle/vehicle-weapons.hbs
+Purpose: Handlebars template for vehicle-weapons. Used to render UI in the system.
+--}}
+
+<div class="define-item-type" data-item-type="weapon">
+  <h2 class="section-group-header">{{ANARCHY.itemType.plural.weapon}}</h2>
+  <div class="items-group-list">
+    {{#each items.weapon as |weapon|}}
+    {{> 'systems/mwd/templates/actor/parts/weapon.hbs' weapon}}
+    {{/each}}
+  </div>
+</div>
+

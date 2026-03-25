@@ -1,3 +1,8 @@
+// src/modules/constants.js
+// Purpose: References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 /**
  * The constants file contains things that do not change
  *

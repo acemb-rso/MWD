@@ -1,0 +1,9 @@
+{{!--
+templates/actor/parts/attributebuttons.hbs
+Purpose: Handlebars template for attributebuttons. Used to render UI in the system.
+--}}
+
+{{#each ENUMS.attributeAction as |attributeAction|}}
+    {{> "systems/mwd/templates/actor/parts/attributebutton.hbs" attributeAction}}
+{{/each}}
+

@@ -1,3 +1,10 @@
+{{!--
+templates/v2/ui/nodes/include.hbs
+Purpose: Contains conditional display logic. Contains styled HTML nodes for UI layout.
+How it fits: Used by rendering code to produce UI fragments.
+--}}
+
+
 {{!-- include a known partial alias; pass root context through plus include context --}}
 {{#if node.partial}}
   {{> (lookup node "partial") @root node=node context=node.context}}

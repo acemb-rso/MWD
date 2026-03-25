@@ -1,3 +1,8 @@
+// src/modules/app/handle-drag.js
+// Purpose: Registers system settings.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 
 export class HandleDragApplication {
   constructor(getDocElement, options = {}) {

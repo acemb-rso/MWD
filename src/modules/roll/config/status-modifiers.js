@@ -1,3 +1,8 @@
+// src/modules/roll/config/status-modifiers.js
+// Purpose: Provides module-level utilities or helpers.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/roll/config/status-modifiers.js
 
 export const STATUS_MAP = {

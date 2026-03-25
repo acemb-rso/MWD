@@ -1,0 +1,12 @@
+<div class="flexcol anarchy-monitor">
+  <h3 class="anarchy-armor flexrow">
+    <label>{{ANARCHY.actor.monitors.armor}}</label>
+    <span class="monitor-max">{{sum system.monitors.armor.max system.monitors.armor.maxBonus}}</span>
+  </h3>
+  {{> "systems/mwd/templates/common/checkbar.hbs"
+    code='armor'
+    value=system.monitors.armor.value
+    max=(sum system.monitors.armor.max system.monitors.armor.maxBonus)
+    rowlength=3
+  }}
+</div>

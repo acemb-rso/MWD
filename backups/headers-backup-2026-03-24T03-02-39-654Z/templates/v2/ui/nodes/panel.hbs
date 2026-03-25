@@ -1,0 +1,13 @@
+<section class="mwd-panel panel {{#if node.classes}}{{join node.classes " "}}{{/if}}">
+  {{#if node.title}}
+    <header class="mwd-panel__header">
+      <h3 class="mwd-panel__title">{{node.title}}</h3>
+    </header>
+  {{/if}}
+
+  <div class="mwd-panel__body">
+    {{#each node.children as |child|}}
+      {{> (lookup child "template") node=child}}
+    {{/each}}
+  </div>
+</section>

@@ -1,3 +1,8 @@
+// src/modules/template-guards.js
+// Purpose: Preloads or manages Handlebars templates.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { LOG_HEAD } from "./constants.js";
 
 /**

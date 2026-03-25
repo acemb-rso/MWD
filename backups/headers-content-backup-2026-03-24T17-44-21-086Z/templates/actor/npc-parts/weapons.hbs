@@ -1,0 +1,17 @@
+{{!--
+templates/actor/npc-parts/weapons.hbs
+Purpose: Handlebars template for weapons. Used to render UI in the system.
+--}}
+
+<div class="define-item-type" data-item-type="weapon">
+  <h2 class="section-group-header">
+    {{ANARCHY.itemType.plural.weapon}}
+    {{> 'systems/mwd/templates/common/item-control-add.hbs' itemType='weapon'}}
+  </h2>
+  <ul class="weapon-list">
+    {{#each items.weapon as |weapon|}}
+    {{> "systems/mwd/templates/actor/npc-parts/weapon.hbs" weapon}}
+    {{/each}}
+  </ul>
+</div>
+

@@ -1,0 +1,21 @@
+{{!--
+  entry point: expects node=<root node>
+  node.template must be a registered Handlebars partial key (alias), e.g. "mwd.v2.ui.nodes.stack"
+--}}
+
+{{#if node}}
+  {{#if (lookup node "template")}}
+    {{> (lookup node "template") node=node}}
+  {{else}}
+    <div class="mwd-template-error">
+      <strong>MWD layout error:</strong> root node missing <code>template</code>.
+      {{#if (lookup node "type")}}
+        <div>type: <code>{{node.type}}</code></div>
+      {{/if}}
+    </div>
+  {{/if}}
+{{else}}
+  <div class="mwd-template-error">
+    <strong>MWD layout error:</strong> layout-root called without <code>node</code>.
+  </div>
+{{/if}}

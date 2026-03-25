@@ -1,3 +1,8 @@
+// src/modules/anarchy-system.js
+// Purpose: Registers Foundry hooks: init, ready. Registers custom actor/item sheets. Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { MWD } from './config.js';
 import { Enums } from './enums.js';
 import { LOG_HEAD, SYSTEM_NAME } from './constants.js';
@@ -27,6 +32,7 @@ import { registerMWDChatActions } from "./chat/chat-actions.js";
 import { registerMWDGMGadgetSettings } from "./gm/mwd-gmgadget.js";
 import { getMWDGMGadget } from "./gm/mwd-gmgadget.js";
 import { getSkillDef, listSkillDefs } from "./mwd/skills.js";
+import { HarmEngine } from "./harm/harm-engine.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -112,10 +118,12 @@ export class AnarchySystem {
     // Roll API (new AppV2 path)
     game.mwd.roll = MWDRoll;
     game.mwd.personalCombat = PersonalCombatTracker;
+    game.mwd.harm = HarmEngine;
 
     // Optional alias if you want it under the system object too:
     this.roll = MWDRoll;
     this.personalCombat = PersonalCombatTracker;
+    this.harm = HarmEngine;
     this.skills = createMWDSkillsService();
 
     // initialize remote calls registry first: used by other singleton managers

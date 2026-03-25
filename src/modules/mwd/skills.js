@@ -1,10 +1,7 @@
-// /mwd/src/modules/mwd/skills.js
-// Canonical core skills catalog for MWD (fixed set).
-//
-// Design contract:
-// - Core skill ratings live on Actor: system.skills.<code>.rating
-// - Variable / named skills (Knowledge, Language, Lore, etc.) should be Item documents later
-//   and therefore are NOT included in this core list.
+// src/modules/mwd/skills.js
+// Purpose: Defines function `normalizeSkillDef`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 
 import { ICONS_SKILLS_PATH, SYSTEM_PATH } from "../constants.js";
 import { Enums } from "../enums.js"; // if you want pretty attribute labels (optional)

@@ -1,0 +1,27 @@
+{{!--
+templates/v2/ui/nodes/tabs.hbs
+Purpose: Handlebars template for tabs. Used to render UI in the system.
+--}}
+
+<div class="csb-tabs {{#if node.classes}}{{join node.classes " "}}{{/if}}" data-group="{{node.group}}" data-default="{{node.default}}">
+  <nav class="csb-tab-bar">
+    {{#each node.tabs as |t|}}
+      <a
+        class="csb-tab-link"
+        data-action="tab"
+        data-tab="{{t.id}}">
+        {{t.label}}
+      </a>
+    {{/each}}
+  </nav>
+
+  <section class="csb-tab-panels">
+    {{#each node.tabs as |t|}}
+      <div class="csb-tab-panel" data-tab="{{t.id}}">
+        {{#each t.children as |child|}}
+          {{> (lookup child "template") node=child}}
+        {{/each}}
+      </div>
+    {{/each}}
+  </section>
+</div>

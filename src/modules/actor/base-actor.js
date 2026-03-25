@@ -1,3 +1,8 @@
+// src/modules/actor/base-actor.js
+// Purpose: Registers Foundry hooks: updateActor. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { AttributeActions } from "../attribute-actions.js";
 import { Checkbars } from "../common/checkbars.js";
 import { ANARCHY } from "../config.js";

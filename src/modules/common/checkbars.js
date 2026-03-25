@@ -1,3 +1,8 @@
+// src/modules/common/checkbars.js
+// Purpose: Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { ErrorManager } from "../error-manager.js";
 import { ANARCHY } from "../config.js";
 import { AnarchyUsers } from "../users.js";

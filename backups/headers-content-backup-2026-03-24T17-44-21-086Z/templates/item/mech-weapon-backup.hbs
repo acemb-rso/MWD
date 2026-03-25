@@ -1,0 +1,57 @@
+{{!--
+templates/item/mech-weapon-backup.hbs
+Purpose: Handlebars template for mech-weapon-backup. Used to render UI in the system.
+NOTE: Marked LEGACY — no references found across the codebase. May support an older system.
+--}}
+
+{{!-- Mech-scale weapon item sheet --}}
+<div>
+<header class="sheet-header">
+  <img class="anarchy-img profile-img" src="{{item.img}}" data-action="editImage" data-tooltip="{{item.name}}"/>
+  {{> 'systems/mwd/templates/item/parts/itemname.hbs'
+    label=(lookup ANARCHY.itemType.singular item.type)
+  }}
+</header>
+
+<nav class="sheet-tabs tabs" data-group="primary">
+  <a class="item" data-tab="main">Details</a>
+  <a class="item" data-tab="modifiers">Modifiers</a>
+</nav>
+
+<section class="sheet-body">
+ <div class="tab" data-group="primary" data-tab="main" style="color: #000000 !important;">
+  <div class="form-group">
+    <label for="system.skill">{{ANARCHY.item.weapon.skill}} </label>
+    <select class="select-weapon-skill" name="system.skill" data-dtype="String" data-action="weaponSkillChange">
+        {{#select system.skill}}
+        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
+        {{/select}}
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="system.damage">
+      {{ANARCHY.item.weapon.damage}}
+    </label>
+    <div class="flexrow flex-wrap">
+      <input class="type-numeric" type="number" data-dtype="Number"
+        name="system.damage" value="{{system.damage}}"
+      />
+      <span>+
+      <select name="system.damageAttribute" data-dtype="String">
+          {{#select system.damageAttribute}}
+          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
+          {{/select}}
+      </select>
+      /2</span>
+    </div>
+  </div>
+  {{!-- ALL the rest of your form fields from your original template --}}
+  {{> 'systems/mwd/templates/item/parts/inactive.hbs'}}
+  {{> 'systems/mwd/templates/item/parts/references.hbs'}}
+</div>
+  
+  <div class="tab" data-group="primary" data-tab="modifiers" style="color: #000000 !important;">
+    {{> 'systems/mwd/templates/item/parts/modifiers.hbs'}}
+  </div>
+</section>
+</div>

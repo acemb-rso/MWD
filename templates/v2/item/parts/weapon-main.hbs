@@ -1,3 +1,10 @@
+{{!--
+templates/v2/item/parts/weapon-main.hbs
+Purpose: Contains conditional display logic. Contains styled HTML nodes for UI layout. Includes form controls or labeled fields.
+How it fits: Used by rendering code to produce UI fragments.
+--}}
+
+
 <div class="mwd-item-main-grid">
   <section class="panel mwd-item-section">
     <header class="mwd-panel__header">
@@ -38,20 +45,14 @@
       <div class="form-group">
         <label for="system.skill">{{MWD.item.personalWeapon.skill}}</label>
         <select class="select-weapon-skill" name="system.skill" data-dtype="String" data-action="weaponSkillChange">
-          {{#select system.skill}}
-            {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.skills}}
-          {{/select}}
+          {{selectOptions ENUMS.skills selected=system.skill nameAttr="value" labelAttr="label" localize=false blank=""}}
         </select>
       </div>
 
       <div class="form-group">
         <label for="system.category">{{MWD.item.personalWeapon.category}}</label>
         <select name="system.category" data-dtype="String">
-          {{#select system.category}}
-            {{#each weaponEditor.categories as |entry|}}
-              <option value="{{entry.value}}">{{entry.label}}</option>
-            {{/each}}
-          {{/select}}
+          {{selectOptions weaponEditor.categories selected=system.category nameAttr="value" labelAttr="label" localize=false}}
         </select>
       </div>
 
@@ -68,11 +69,7 @@
       <div class="form-group">
         <label for="system.damageType">{{MWD.item.personalWeapon.damageType}}</label>
         <select name="system.damageType" data-dtype="String">
-          {{#select system.damageType}}
-            {{#each weaponEditor.damageTypes as |entry|}}
-              <option value="{{entry.value}}">{{entry.label}}</option>
-            {{/each}}
-          {{/select}}
+          {{selectOptions weaponEditor.damageTypes selected=system.damageType nameAttr="value" labelAttr="label" localize=false}}
         </select>
       </div>
 
@@ -118,11 +115,7 @@
       <div class="form-group">
         <label for="system.range.max">{{MWD.item.personalWeapon.range.max}}</label>
         <select name="system.range.max" data-dtype="String">
-          {{#select weaponProfile.range.max}}
-            {{#each weaponEditor.ranges as |entry|}}
-              <option value="{{entry.value}}">{{entry.label}}</option>
-            {{/each}}
-          {{/select}}
+          {{selectOptions weaponEditor.ranges selected=weaponProfile.range.max nameAttr="value" labelAttr="label" localize=false}}
         </select>
       </div>
 

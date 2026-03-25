@@ -1,4 +1,7 @@
-// mwd/src/modules/roll/intent/resolve-initiative.js
+// src/modules/roll/intent/resolve-initiative.js
+// Purpose: Defines function `resolveInitiative`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 
 export async function resolveInitiative({ actor } = {}) {
   const ref  = Number(actor.system?.attributes?.reflexes?.value ?? 0);

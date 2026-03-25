@@ -1,0 +1,151 @@
+<div class="mwd-item-main-grid">
+  <section class="panel mwd-item-section">
+    <header class="mwd-panel__header">
+      <h3 class="mwd-panel__title">Loadout</h3>
+    </header>
+    <div class="mwd-panel__body">
+      {{#if itemSheet.canUseActorControls}}
+        <div class="mwd-item-toggle-grid">
+          <label class="mwd-item-toggle">
+            <span>{{MWD.item.personalWeapon.equipped}}</span>
+            <input type="checkbox" name="system.equipped" {{checked system.equipped}} />
+          </label>
+
+          <label class="mwd-item-toggle">
+            <span>{{MWD.item.personalWeapon.primary}}</span>
+            <input type="checkbox" name="system.isPrimary" {{checked system.isPrimary}} />
+          </label>
+        </div>
+
+        {{#if itemSheet.canAttack}}
+          <div class="button-row">
+            <button type="button" data-action="attackWeapon" {{#if itemSheet.attackDisabled}}disabled{{/if}}>Attack With Weapon</button>
+          </div>
+        {{/if}}
+      {{else}}
+        <div class="mwd-item-note">
+          This is a standalone item. Equip, primary, and attack controls appear after the weapon is embedded in a character or NPC.
+        </div>
+      {{/if}}
+    </div>
+  </section>
+
+  <section class="panel mwd-item-section">
+    <header class="mwd-panel__header">
+      <h3 class="mwd-panel__title">Weapon Profile</h3>
+    </header>
+    <div class="mwd-panel__body mwd-item-form-grid">
+      <div class="form-group">
+        <label for="system.skill">{{MWD.item.personalWeapon.skill}}</label>
+        <select class="select-weapon-skill" name="system.skill" data-dtype="String" data-action="weaponSkillChange">
+          {{selectOptions ENUMS.skills selected=system.skill nameAttr="value" labelAttr="label" localize=false blank=""}}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="system.category">{{MWD.item.personalWeapon.category}}</label>
+        <select name="system.category" data-dtype="String">
+          {{selectOptions weaponEditor.categories selected=system.category nameAttr="value" labelAttr="label" localize=false}}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="system.damage">{{MWD.item.personalWeapon.damage}}</label>
+        <input class="type-numeric" type="number" name="system.damage" value="{{system.damage}}" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.ap">{{MWD.item.personalWeapon.ap}}</label>
+        <input class="type-numeric" type="number" name="system.ap" value="{{system.ap}}" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.damageType">{{MWD.item.personalWeapon.damageType}}</label>
+        <select name="system.damageType" data-dtype="String">
+          {{selectOptions weaponEditor.damageTypes selected=system.damageType nameAttr="value" labelAttr="label" localize=false}}
+        </select>
+      </div>
+
+      <div class="form-group mwd-item-field--wide">
+        <label for="system.traits">{{MWD.item.personalWeapon.traits}}</label>
+        <input type="text" name="system.traits" value="{{join weaponProfile.traits ', '}}" />
+      </div>
+    </div>
+  </section>
+
+  <section class="panel mwd-item-section">
+    <header class="mwd-panel__header">
+      <h3 class="mwd-panel__title">{{MWD.item.personalWeapon.attackRatingBand.label}}</h3>
+    </header>
+    <div class="mwd-panel__body mwd-item-form-grid">
+      <div class="form-group">
+        <label for="system.attackRatingBand.close">{{MWD.item.personalWeapon.attackRatingBand.close}}</label>
+        <input class="type-numeric" type="number" name="system.attackRatingBand.close" value="{{system.attackRatingBand.close}}" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.attackRatingBand.near">{{MWD.item.personalWeapon.attackRatingBand.near}}</label>
+        <input class="type-numeric" type="number" name="system.attackRatingBand.near" value="{{system.attackRatingBand.near}}" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.attackRatingBand.far">{{MWD.item.personalWeapon.attackRatingBand.far}}</label>
+        <input class="type-numeric" type="number" name="system.attackRatingBand.far" value="{{system.attackRatingBand.far}}" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.attackRatingBand.extreme">{{MWD.item.personalWeapon.attackRatingBand.extreme}}</label>
+        <input class="type-numeric" type="number" name="system.attackRatingBand.extreme" value="{{system.attackRatingBand.extreme}}" data-dtype="Number" />
+      </div>
+    </div>
+  </section>
+
+  <section class="panel mwd-item-section">
+    <header class="mwd-panel__header">
+      <h3 class="mwd-panel__title">Range Bands</h3>
+    </header>
+    <div class="mwd-panel__body mwd-item-form-grid">
+      <div class="form-group">
+        <label for="system.range.max">{{MWD.item.personalWeapon.range.max}}</label>
+        <select name="system.range.max" data-dtype="String">
+          {{selectOptions weaponEditor.ranges selected=weaponProfile.range.max nameAttr="value" labelAttr="label" localize=false}}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="system.range.close">{{MWD.item.personalWeapon.attackRatingBand.close}}</label>
+        <input class="type-numeric" type="number" name="system.range.close" value="{{weaponProfile.range.close}}" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.range.near">{{MWD.item.personalWeapon.attackRatingBand.near}}</label>
+        <input class="type-numeric" type="number" name="system.range.near" value="{{weaponProfile.range.near}}" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.range.far">{{MWD.item.personalWeapon.attackRatingBand.far}}</label>
+        <input class="type-numeric" type="number" name="system.range.far" value="{{weaponProfile.range.far}}" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.range.extreme">{{MWD.item.personalWeapon.attackRatingBand.extreme}}</label>
+        <input class="type-numeric" type="number" name="system.range.extreme" value="{{weaponProfile.range.extreme}}" data-dtype="Number" />
+      </div>
+    </div>
+  </section>
+
+  <section class="panel mwd-item-section mwd-item-section--full">
+    <header class="mwd-panel__header">
+      <h3 class="mwd-panel__title">Notes</h3>
+    </header>
+    <div class="mwd-panel__body">
+      <div class="form-group stacked">
+        <label for="system.notes">{{MWD.item.personalWeapon.notes}}</label>
+        <textarea name="system.notes">{{system.notes}}</textarea>
+      </div>
+    </div>
+  </section>
+</div>
+
+{{> "systems/mwd/templates/v2/item/parts/inactive.hbs"}}
+{{> "systems/mwd/templates/v2/item/parts/references.hbs"}}

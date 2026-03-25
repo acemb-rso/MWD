@@ -1,0 +1,16 @@
+{{!--
+templates/monitors/edge-pool.hbs
+Purpose: Handlebars template for edge-pool. Used to render UI in the system.
+--}}
+
+<div class="flexcol anarchy-monitor edge-pools">
+  <h3 class="monitor-label">{{ANARCHY.actor.counters.edgePools.title}}</h3>
+  <div class="edge-pool-grid">
+    {{#each system.counters.edgePools as |pool key|}}
+    <label class="edge-pool-entry" for="system.counters.edgePools.{{key}}.value">
+      <span class="edge-pool-label">{{lookup ANARCHY.actor.counters.edgePools key}}</span>
+      <input type="number" name="system.counters.edgePools.{{key}}.value" value="{{pool.value}}" data-dtype="Number" min="0" />
+    </label>
+    {{/each}}
+  </div>
+</div>

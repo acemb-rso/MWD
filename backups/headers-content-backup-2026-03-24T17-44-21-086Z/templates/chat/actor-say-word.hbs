@@ -1,0 +1,13 @@
+{{!--
+templates/chat/actor-say-word.hbs
+Purpose: Handlebars template for actor-say-word. Used to render UI in the system.
+--}}
+
+<div class="{{#each options.classes as |cssClass|}}{{cssClass}}{{/each}} flexrow">
+  <div class="flex-shrink-left flexcol">
+    {{> 'systems/mwd/templates/chat/parts/actor-image.hbs'}}
+  </div>
+  <div>
+    {{wordsToSay}}
+  </div>
+</div>

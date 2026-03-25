@@ -1,0 +1,14 @@
+<div class="mwd-hexabox {{mwdClassList node.classes}}"
+{{#if node.style}}style="{{node.style}}"{{/if}}>
+
+  {{#if node.title}}<h3 class="mwd-hexabox__title">{{node.title}}</h3>{{/if}}
+
+  {{#if @partial-block}}
+    {{> @partial-block}}
+  {{else}}
+    {{#each node.children as |child|}}
+      {{> (lookup child "template") node=child}}
+    {{/each}}
+  {{/if}}
+
+</div>

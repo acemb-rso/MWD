@@ -1,0 +1,6 @@
+{{!-- include a known partial alias; pass root context through plus include context --}}
+{{#if node.partial}}
+  {{> (lookup node "partial") @root node=node context=node.context}}
+{{else}}
+  <div class="warning">Missing include partial</div>
+{{/if}}

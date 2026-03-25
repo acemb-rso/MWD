@@ -1,0 +1,14 @@
+{{!--
+templates/chat/parts/result-mode-weapon.hbs
+Purpose: Handlebars template for result-mode-weapon. Used to render UI in the system.
+--}}
+
+<br>
+{{ANARCHY.item.weapon.damage}}
+{{> 'systems/mwd/templates/common/damage-code.hbs'
+    damageAttribute=weapon.system.damageAttribute
+    actorAttribute=(actorAttribute weapon.system.damageAttribute actor)
+    damage=weapon.system.damage
+    monitor=weapon.system.monitor
+    armor=(weaponArmorMode weapon.system.monitor weapon.system.noArmor)
+}}

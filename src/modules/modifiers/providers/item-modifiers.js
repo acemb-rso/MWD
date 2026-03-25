@@ -1,3 +1,8 @@
+// src/modules/modifiers/providers/item-modifiers.js
+// Purpose: Defines function `coerceNumber`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/modifiers/providers/item-modifier.js
 
 const KNOWN_DOMAINS = new Set(["physical", "mental", "social"]); // extend later (mech/vehicle)

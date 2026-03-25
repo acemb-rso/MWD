@@ -1,3 +1,8 @@
+// src/modules/styles.js
+// Purpose: Registers Foundry hooks: ready. Registers system settings. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { MWD } from "./config.js";
 import { LOG_HEAD, SYSTEM_NAME } from "./constants.js";
 import { ANARCHY_HOOKS, HooksManager } from "./hooks-manager.js";

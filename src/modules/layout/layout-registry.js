@@ -1,3 +1,8 @@
+// src/modules/layout/layout-registry.js
+// Purpose: Defines helper or exported constant `walk`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { SYSTEM_NAME, LOG_HEAD } from "../constants.js";
 
 /**

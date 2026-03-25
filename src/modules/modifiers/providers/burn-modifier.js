@@ -1,3 +1,8 @@
+// src/modules/modifiers/providers/burn-modifier.js
+// Purpose: Provides module-level utilities or helpers.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 export const burnModifier = {
   id: "burn",
 

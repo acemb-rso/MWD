@@ -1,0 +1,119 @@
+{{!--
+templates/v2/item/weapon.hbs
+Purpose: Handlebars template for weapon. Used to render UI in the system.
+--}}
+
+
+  <header class="sheet-header">
+    <img class="anarchy-img profile-img" src="{{item.img}}" data-action="editImage" data-tooltip="{{item.name}}"/>
+    {{> 'systems/mwd/templates/v2/item/parts/itemname.hbs'
+      label=MWD.itemType.singular.weapon
+      type="weapon"
+    }}
+  </header>
+
+  <nav class="sheet-tabs tabs" data-group="primary" data-default="main">
+    <div class="sheet-tab" data-tab="main">
+      <a>{{tabs.main.label}}</a>
+    </div>
+    <div class="sheet-tab" data-tab="modifiers">
+      <a>{{tabs.modifiers.label}}</a>
+    </div>
+    <div class="sheet-tab-fill"></div>
+  </nav>
+
+  <section class="sheet-body">
+    <div class="tab section-group" data-group="primary" data-tab="main">
+      <div class="form-group">
+        <label for="system.skill">{{MWD.item.weapon.skill}} </label>
+        <select class="select-weapon-skill" name="system.skill" data-dtype="String">
+            {{selectOptions ENUMS.skills selected=system.skill nameAttr="value" labelAttr="label" localize=false blank=""}}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="system.damage">
+          {{MWD.item.weapon.damage}}
+        </label>
+        <div class="flexrow flex-wrap">
+          <input class="type-numeric" type="number" data-dtype="Number"
+            name="system.damage" value="{{system.damage}}"
+          />
+          <span>+
+          <select name="system.damageAttribute" data-dtype="String">
+              {{selectOptions ENUMS.attributes selected=system.damageAttribute nameAttr="value" labelAttr="label" localize=false blank=""}}
+          </select>
+          /2</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>
+          {{> 'systems/mwd/templates/common/damage-code.hbs'
+              strength=system.strength
+              damage=system.damage
+              monitor=system.monitor
+              armor=(weaponArmorMode system.monitor system.noArmor)
+          }}
+        </label>
+        <div>
+          <select name="system.monitor" data-dtype="String">
+            {{selectOptions ENUMS.monitors selected=system.monitor nameAttr="value" labelAttr="label" localize=false blank=""}}
+          </select>
+
+          <input class="item-field-value" name="system.noArmor" type="checkbox" {{checked system.noArmor}}>
+            <label>{{MWD.item.weapon.noArmor}}</label>
+          </input>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="system.area" >{{MWD.item.weapon.area}} </label>
+        <select name="system.area" data-dtype="String">
+          {{selectOptions ENUMS.areas selected=system.area nameAttr="value" labelAttr="label" localize=false blank=""}}
+        </select>
+      </div>
+      <div class="form-group">
+          <label for="system.defense" >{{MWD.item.weapon.defense}} </label>
+          <select name="system.defense">
+            {{selectOptions ENUMS.defenses selected=(fixedDefenseCode system.defense)
+            nameAttr="code" labelAttr="label" localize=false blank=''}}
+          </select>
+      </div>
+      <div class="form-group">
+          <label for="system.range.max" >{{MWD.item.weapon.range.max}} </label>
+          <select name="system.range.max">
+            {{selectOptions ENUMS.ranges selected=system.range.max nameAttr="value" labelAttr="label" localize=false blank=""}}
+          </select>
+      </div>
+      <div class="form-group">
+          <label for="system.range.short" >{{MWD.range.short}} </label>
+          <input class="type-numeric" type="number" data-dtype="Number"
+            name="system.range.short" value="{{numberFormat system.range.short decimals=0 sign=false}}"
+          />
+      </div>
+      {{#unless (eq system.range.max "short")}}
+        <div class="form-group">
+            <label for="system.range.medium" >{{MWD.range.medium}} </label>
+            <input class="type-numeric" type="number" data-dtype="Number"
+              name="system.range.medium" value="{{numberFormat system.range.medium decimals=0 sign=false}}"
+            />
+        </div>
+      {{/unless}}
+
+      {{#if (eq system.range.max "long")}}
+      <div class="form-group">
+          <label for="system.range.long" >{{MWD.range.long}} </label>
+          <input class="type-numeric" type="number" data-dtype="Number"
+            name="system.range.long" value="{{numberFormat system.range.long decimals=0 sign=false}}"
+          />
+      </div>
+      {{/if}}
+      {{> 'systems/mwd/templates/v2/item/parts/inactive.hbs'}}
+      {{> 'systems/mwd/templates/v2/item/parts/references.hbs'}}
+    </div>
+    <div class="tab section-group" data-group="primary" data-tab="modifiers">
+      <div class="form-group">
+        {{> 'systems/mwd/templates/v2/item/parts/modifiers.hbs'}}
+      </div>
+    </div>
+  </section>
+
+

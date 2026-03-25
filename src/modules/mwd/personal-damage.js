@@ -1,3 +1,8 @@
+// src/modules/mwd/personal-damage.js
+// Purpose: Defines function `normalizeStringList`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 const PERSONAL_DAMAGE_TYPE_LABELS = Object.freeze({
   penetrating: "Penetrating",
   concussive: "Concussive",

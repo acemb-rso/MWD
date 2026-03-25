@@ -1,3 +1,8 @@
+// src/modules/roll/collect-modifiers.js
+// Purpose: Defines function `coerceNumber`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/roll/collect-modifiers.js
 import { modifierProviders } from "../modifiers/index.js";
 

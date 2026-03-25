@@ -1,3 +1,8 @@
+// src/modules/modifiers/provider-registry.js
+// Purpose: Provides module-level utilities or helpers.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 export class ModifierProviderRegistry {
   #providers = new Map();
 

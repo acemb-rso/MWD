@@ -1,3 +1,8 @@
+// src/modules/hooks-manager.js
+// Purpose: Registers Foundry hooks: updateSetting, ready, getSceneControlButtons. Registers system settings. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { CHECKBARS, Checkbars } from "./common/checkbars.js";
 import { ANARCHY } from "./config.js";
 import { LOG_HEAD, SYSTEM_NAME } from "./constants.js";

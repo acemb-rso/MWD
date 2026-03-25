@@ -1,0 +1,63 @@
+{{!--
+  burn-monitor.hbs
+  Bespoke windowed Burn track (10-pip window, overflow badge, gold threshold at 6).
+  Context: burn, burnPips, burnOverflow, burnPenalty (all from @root)
+--}}
+
+<div class="mwd-burn-monitor {{#if burn.overloaded}}mwd-burn-monitor--overloaded{{/if}}">
+
+  <div class="mwd-burn-monitor__header">
+    <span class="mwd-burn-monitor__label">
+      Burn
+      {{#if burnOverflow}}
+        <span class="mwd-burn-overflow">+{{burnOverflow}}</span>
+      {{/if}}
+    </span>
+    <span class="mwd-burn-monitor__status">
+      {{#if @root.editing}}
+        <input
+          class="mwd-burn-input"
+          type="number"
+          name="system.burn.value"
+          value="{{burn.value}}"
+          min="0"
+          step="1"
+          data-edit-field="staged"
+          aria-label="Burn value"
+        />
+      {{/if}}
+      <span class="mwd-monitor__status-label">Penalty</span>
+      <span class="mwd-monitor__status-value">−{{burnPenalty}}</span>
+    </span>
+  </div>
+
+  <div class="mwd-burn-track" role="group" aria-label="Burn track">
+    {{#each burnPips as |pip|}}
+      {{#if pip.threshold}}
+        <span class="mwd-burn-pip-wrapper--threshold">
+          <button
+            type="button"
+            class="mwd-burn-pip {{#if pip.filled}}mwd-burn-pip--filled{{/if}}"
+            data-action="monitorSet"
+            data-monitor="burn"
+            data-value="{{pip.pipValue}}"
+            aria-label="Set Burn to {{pip.pipValue}}"
+            {{#unless @root.editable}}disabled{{/unless}}
+          ></button>
+        </span>
+      {{else}}
+        <button
+          type="button"
+          class="mwd-burn-pip {{#if pip.filled}}mwd-burn-pip--filled{{/if}}"
+          data-action="monitorSet"
+          data-monitor="burn"
+          data-value="{{pip.pipValue}}"
+          aria-label="Set Burn to {{pip.pipValue}}"
+          {{#unless @root.editable}}disabled{{/unless}}
+        ></button>
+      {{/if}}
+    {{/each}}
+  </div>
+
+
+</div>

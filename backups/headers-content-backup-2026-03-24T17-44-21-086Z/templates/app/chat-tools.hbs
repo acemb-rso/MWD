@@ -1,0 +1,11 @@
+{{!--
+templates/app/chat-tools.hbs
+Purpose: Handlebars template for chat-tools. Used to render UI in the system.
+--}}
+
+<div class="chat-tools">
+    {{#if isGM}}
+        <button class="gmmanager">{{title}}</button>
+    {{/if}}
+    <button class="rolldice">{{rollDice}}</button>
+</div>

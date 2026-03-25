@@ -1,3 +1,8 @@
+// src/modules/combat/personal-combat-tracker.js
+// Purpose: Registers Foundry hooks: updateCombat, updateCombatant, createCombatant.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { humanizeStatusKey } from "../dialog/token-status-dialog.js";
 
 const FLAG_SCOPE = "mwd";

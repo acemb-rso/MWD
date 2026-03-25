@@ -1,3 +1,8 @@
+// src/modules/actor/anarchy-actor-sheet.js
+// Purpose: Provides a Sheet / UI class for entities (actor/item) or an application. Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 ﻿import { ANARCHY } from "../config.js";
 import { LOG_HEAD, TEMPLATES_PATH } from "../constants.js";
 import { ConfirmationDialog } from "../confirmation.js";

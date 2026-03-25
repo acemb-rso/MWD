@@ -1,0 +1,24 @@
+<section class="{{cssClass}} mwd-sheet" data-application-part="sheet">
+  <header class="sheet-header">
+    <div class="header-left">
+      <img class="profile" src="{{actor.img}}" alt="{{actor.name}}" data-action="editImage" />
+      <h1 class="name">
+        {{#if editable}}
+          <input name="name" type="text" value="{{actor.name}}" data-edit-field="staged"/>
+        {{else}}
+          {{actor.name}}
+        {{/if}}
+      </h1>
+    </div>
+
+    <div class="header-right">
+      {{#if editable}}
+        {{> "mwd.common.view-mode"}}
+      {{/if}}
+    </div>
+  </header>
+
+  <section class="sheet-body">
+    {{> @partial-block}}
+  </section>
+</section>

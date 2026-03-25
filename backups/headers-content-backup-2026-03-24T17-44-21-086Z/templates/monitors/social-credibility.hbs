@@ -1,0 +1,24 @@
+{{!--
+templates/monitors/social-credibility.hbs
+Purpose: Handlebars template for social-credibility. Used to render UI in the system.
+--}}
+
+<div class="flexcol anarchy-monitor">
+  <label class="monitor-label">
+    {{ANARCHY.actor.counters.social.credibility}}
+    <input class="info-value"
+      type="number" data-dtype="Number" min="0" max="10"
+      name="system.counters.social.credibility.max"
+      data-counter-social="credibility"
+      value="{{system.counters.social.credibility.max}}"
+      {{#if @root.options.viewMode}}disabled{{/if}}
+      />
+  </label>
+  {{> "systems/mwd/templates/common/checkbar.hbs"
+    code='credibility'
+    label=ANARCHY.actor.counters.social.credibility
+    value=system.counters.social.credibility.value
+    max=system.counters.social.credibility.max
+    rowlength=5
+  }}
+</div>

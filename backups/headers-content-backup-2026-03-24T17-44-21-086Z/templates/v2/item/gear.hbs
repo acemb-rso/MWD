@@ -1,0 +1,20 @@
+{{!--
+templates/v2/item/gear.hbs
+Purpose: Handlebars template for gear. Used to render UI in the system.
+--}}
+
+<div class="{{cssClass}}">
+  <header class="sheet-header">
+    <img class="anarchy-img profile-img" src="{{item.img}}" data-action="editImage" data-tooltip="{{item.name}}"/>
+    {{> 'systems/mwd/templates/v2/item/parts/itemname.hbs'
+      label=MWD.itemType.singular.gear
+      type="gear"
+    }}
+  </header>
+  <section class="sheet-body">
+    {{> 'systems/mwd/templates/v2/item/parts/inactive.hbs'}}
+    {{> 'systems/mwd/templates/v2/item/parts/references.hbs'}}
+  </section>
+
+</div>
+

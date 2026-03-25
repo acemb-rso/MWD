@@ -1,0 +1,8 @@
+{{!--
+templates/actor/character/capacity.hbs
+Purpose: Handlebars template for capacity. Used to render UI in the system.
+--}}
+
+<label class="passport-label" for="system.capacity">{{ANARCHY.actor.capacity}}</label>
+<input class="passport-input" type="text" name="system.capacity" value="{{system.capacity}}" {{#if options.viewMode}}disabled{{/if}} />
+

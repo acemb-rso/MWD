@@ -1,0 +1,10 @@
+{{!--
+templates/v2/ui/nodes/stack.hbs
+Purpose: Handlebars template for stack. Used to render UI in the system.
+--}}
+
+<div class="{{#if node.classes}}{{join node.classes " "}}{{/if}}">
+  {{#each node.children as |child|}}
+    {{> (lookup child "template") node=child}}
+  {{/each}}
+</div>

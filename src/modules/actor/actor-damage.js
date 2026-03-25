@@ -1,3 +1,8 @@
+// src/modules/actor/actor-damage.js
+// Purpose: Registers Foundry hooks: updateSetting, ready. Registers system settings. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { Checkbars } from "../common/checkbars.js";
 import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
@@ -6,12 +11,10 @@ import { ANARCHY_HOOKS, HooksManager } from "../hooks-manager.js";
 import { Modifiers } from "../modifiers/anarchy-modifiers.js";
 import { formatString } from "../strings.js";
 import {
-  applyArmorTagEffects,
-  computePersonalArmorMitigation,
   getPersonalDamageTypeLabel,
   isPersonalDamageType,
-  normalizePersonalDamageType,
 } from "../mwd/personal-damage.js";
+import { HarmEngine } from "../harm/harm-engine.js";
 
 const DAMAGE_MODE = 'damage-mode'
 const SETTING_KEY_DAMAGE_MODE = `${SYSTEM_NAME}.${DAMAGE_MODE}`;
@@ -90,67 +93,33 @@ export class ActorDamageManager {
 
   static async sufferPersonalDamageV2(actor, monitor, damageType, damage, success, avoidArmor, sourceActor, attackWeapon) {
     const weaponProfile = attackWeapon?.getCombatProfile?.() ?? attackWeapon ?? null;
-    const normalizedDamageType = normalizePersonalDamageType(damageType ?? weaponProfile?.damageType);
-    const baseDamage = Math.max(0, Number(damage ?? weaponProfile?.damage ?? 0) || 0);
-    const netHits = Math.max(0, Number(success ?? 0) || 0);
-    const effects = weaponProfile?.effects ?? {};
-    const loadout = actor.getPersonalCombatLoadout?.({ refresh: true }) ?? null;
-    const activeArmor = loadout?.activeArmor ?? null;
-    const armorCurrentRating = Math.max(0, Number(activeArmor?.currentArmorRating ?? activeArmor?.durability?.current ?? 0) || 0);
-
-    let damageIncoming = baseDamage + netHits;
-    const baseIncoming = damageIncoming;
-    const tagEffectResult = armorCurrentRating > 0
-      ? applyArmorTagEffects({
-          damageIncoming,
-          armorTags: activeArmor?.tags ?? [],
-          effects,
-        })
-      : { damageIncoming, applied: [] };
-    damageIncoming = tagEffectResult.damageIncoming;
-
-    const armorMitigation = computePersonalArmorMitigation({
-      currentArmorRating: armorCurrentRating,
-      mitigationByType: activeArmor?.mitigationByType ?? {},
-      damageType: normalizedDamageType,
+    const result = await HarmEngine.apply({
+      actor,
+      payload: {
+        mode: "attackDamage",
+        track: monitor,
+        damage: Number(damage ?? weaponProfile?.damage ?? 0) || 0,
+        netHits: Number(success ?? 0) || 0,
+        damageType: damageType ?? weaponProfile?.damageType,
+        ap: Number(weaponProfile?.ap ?? 0) || 0,
+        effects: weaponProfile?.effects ?? {},
+      },
+      options: {
+        logToChat: false,
+      }
     });
 
-    const effectArmorModifier = 0;
-    const effectiveAp = Math.max(
-      0,
-      (Number(weaponProfile?.ap ?? 0) || 0) + (Number(effects?.ap ?? 0) || 0)
-    );
-    const netResistance = armorMitigation.isDestroyed
-      ? 0
-      : Math.max(0, armorMitigation.baseMitigation + armorMitigation.typeMitigationMod + effectArmorModifier - effectiveAp);
-    const finalDamage = Math.max(0, Math.ceil(damageIncoming - netResistance));
-
-    if (finalDamage > 0) {
-      await Checkbars.addCounter(actor, monitor, finalDamage);
-    }
-
-    await ActorDamageManager._degradePersonalArmorOnHit(actor, activeArmor);
+    if (!result?.ok) return;
 
     ActorDamageManager._notifyPersonalArmorMitigation(actor, {
-      damageType: normalizedDamageType,
-      baseIncoming,
-      adjustedIncoming: damageIncoming,
-      finalDamage,
-      armorMitigation,
-      effectiveAp,
-      tagEffectResult,
+      damageType: result.damageType,
+      baseIncoming: Number(result.requestedDelta ?? 0),
+      adjustedIncoming: Number(result.adjustedIncoming ?? result.damageIncoming ?? 0),
+      finalDamage: Number(result.finalDamage ?? 0),
+      armorMitigation: result.mitigation ?? {},
+      effectiveAp: Number(result.effectiveAp ?? 0),
+      tagEffectResult: result.tagEffectResult ?? { applied: [] },
     });
-  }
-
-  static async _degradePersonalArmorOnHit(actor, activeArmor) {
-    const item = activeArmor?.item ?? actor?.items?.get?.(activeArmor?.id ?? "");
-    if (!item?.id) return;
-
-    const current = Math.max(0, Number(item.system?.durability?.current ?? 0) || 0);
-    const next = Math.max(0, current - 1);
-    if (next === current) return;
-
-    await item.update({ "system.durability.current": next });
   }
 
   static _notifyPersonalArmorMitigation(actor, detail = {}) {

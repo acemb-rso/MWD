@@ -1,4 +1,7 @@
 // src/modules/roll/outcome/interpret-net.js
+// Purpose: Defines function `interpretNetOutcome`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 
 import {
   getDN,

@@ -1,0 +1,17 @@
+{{!--
+templates/actor/parts/qualities.hbs
+Purpose: Handlebars template for qualities. Used to render UI in the system.
+--}}
+
+<div class="define-item-type" data-item-type="quality">
+  <h2 class="section-group-header">
+    {{ANARCHY.itemType.plural.quality}}
+    {{> 'systems/mwd/templates/common/item-control-add.hbs' itemType='quality'}}
+  </h2>
+  <div class="items-group-list">
+    {{#each items.quality as |quality|}}
+    {{> "systems/mwd/templates/actor/parts/quality.hbs" quality}}
+    {{/each}}
+  </div>
+</div>
+

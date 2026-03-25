@@ -1,3 +1,8 @@
+// src/modules/anarchy-combat.js
+// Purpose: Registers Foundry hooks: createCombatant, deleteCombatant, deleteCombat. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { Misc } from "./misc.js";
 import { AnarchyUsers } from "./users.js";
 

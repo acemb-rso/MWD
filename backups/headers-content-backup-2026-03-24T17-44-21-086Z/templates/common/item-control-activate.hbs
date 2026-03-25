@@ -1,0 +1,12 @@
+{{!--
+templates/common/item-control-activate.hbs
+Purpose: Handlebars template for item-control-activate. Used to render UI in the system.
+--}}
+
+<a class="item-control click-item-activate" data-tooltip="{{ANARCHY.common.activate}}">
+  {{#if system.inactive}}
+  {{{iconFA 'fas fa-toggle-off'}}}
+  {{else}}
+  {{{iconFA 'fas fa-toggle-on'}}}
+  {{/if}}
+</a>

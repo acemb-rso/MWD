@@ -1,3 +1,10 @@
+{{!--
+templates/actor/parts/words.hbs
+Purpose: Renders collections with `each` blocks. Contains conditional display logic. Contains styled HTML nodes for UI layout.
+How it fits: Used by rendering code to produce UI fragments.
+--}}
+
+
 <h3 class="define-wordType" data-word-type="{{wordType}}">
   {{lookup ANARCHY.actor.words wordType}}
   {{#unless @root.options.viewMode}}

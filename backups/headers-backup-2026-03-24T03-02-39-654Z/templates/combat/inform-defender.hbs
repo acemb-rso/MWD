@@ -1,0 +1,52 @@
+<div class="{{#each options.classes as |cssClass|}}{{cssClass}}{{/each}} flexrow">
+  <div class="column-images">
+    {{> 'systems/mwd/templates/chat/parts/actor-image.hbs' actor=defender}}
+  </div>
+  <div class="column-details">
+    <div>
+      {{defender.name}}: {{lookup ANARCHY.defense (fixedDefenseCode attack.defense)}}
+    </div>
+    {{#if defenseRoll}}
+      <p>
+        <hr>
+        {{#if attack.isHit}}
+          Attack exceeds defense of {{attack.success}} success
+        {{else}}
+          The attack is fully defended
+        {{/if}}
+      </p>
+    {{else}}
+      <div class="anarchy-button defend-attack click-defend-attack">
+        <a>
+          <label>
+            Defense against {{attack.success}} success
+          </label>
+        </a>
+      </div>
+    {{/if}}
+
+    {{#if attack.isHit}}
+    <div class="anarchy-button apply-attack-damage click-apply-attack-damage">
+      <a>
+        <label>
+          {{#if (eq attack.damage.monitor 'marks')}}
+          Apply {{concat
+              attack.damage.value
+              (weaponDamageLetter attack.damage.monitor)
+              (iconCheckbarHit attack.damage.monitor)
+              }}
+          {{else}}
+          Apply {{concat
+              (sum attack.damage.value attack.success)
+              (weaponDamageLetter attack.damage.monitor)
+              (iconCheckbarHit attack.damage.monitor)
+              }}
+          {{/if}}
+          {{> 'systems/mwd/templates/common/damage-armor.hbs' armor=attack.damage.armorMode}}
+        </label>
+      </a>
+    </div>
+    {{/if}}
+  </div>
+
+</div>

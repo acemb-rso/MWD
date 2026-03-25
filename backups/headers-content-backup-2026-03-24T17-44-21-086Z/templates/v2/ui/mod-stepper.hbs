@@ -1,0 +1,26 @@
+{{!--
+templates/v2/ui/mod-stepper.hbs
+Purpose: Handlebars template for mod-stepper. Used to render UI in the system.
+--}}
+
+<div class="mwd-mod-stepper" data-id="{{id}}">
+  {{#each steps}}
+    <button
+      type="button"
+      class="mwd-mod-stepper__pip
+             {{#if active}}is-active{{/if}}
+             {{#if neg}}is-neg{{/if}}
+             {{#if pos}}is-pos{{/if}}"
+      title="{{title}}"
+      data-action="{{../action}}"
+      data-id="{{../id}}"
+      data-value="{{value}}"
+    >
+      <span
+        class="mwd-mod-stepper__die"
+        style="--mwd-die-url: url('{{icon}}');"
+        aria-hidden="true"
+      ></span>
+    </button>
+  {{/each}}
+</div>

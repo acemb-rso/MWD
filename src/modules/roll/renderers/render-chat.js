@@ -1,3 +1,8 @@
+// src/modules/roll/renderers/render-chat.js
+// Purpose: Renders Handlebars templates at runtime.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/roll/renderers/render-chat.js
 import { enhanceSkill } from "./render-skill.js";
 import { enhanceNet } from "./render-net.js";

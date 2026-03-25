@@ -1,3 +1,8 @@
+// src/modules/item/skill-item.js
+// Purpose: References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { MWDItem } from "./anarchy-base-item.js";
 
 export class SkillItem extends MWDItem {

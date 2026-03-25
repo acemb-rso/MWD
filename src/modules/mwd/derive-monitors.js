@@ -1,3 +1,7 @@
+// src/modules/mwd/derive-monitors.js
+// Purpose: Defines function `penaltyFromDamage`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 // systems/mwd/modules/mwd/derive-monitors.js
 
 export function penaltyFromDamage(damage) {

@@ -1,3 +1,8 @@
+// src/modules/roll/renderers/render-net.js
+// Purpose: Defines function `enhanceNet`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/roll/renderers/render-net.js
 export function enhanceNet(resolved, vm) {
   const r = resolved ?? {};

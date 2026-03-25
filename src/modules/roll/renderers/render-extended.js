@@ -1,3 +1,8 @@
+// src/modules/roll/renderers/render-extended.js
+// Purpose: Defines function `enhanceExtended`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/roll/renderers/render-extended.js
 export function enhanceExtended(resolved, vm) {
   const r = resolved ?? {};

@@ -1,0 +1,8 @@
+{{#each difficultyPools}}
+<a class="click-roll-difficulty-pool" 
+   data-pool="{{pool}}" 
+   data-difficulty="{{difficulty}}"
+   title="Roll {{pool}}d6 for {{difficulty}} difficulty">
+  {{#if difficulty}}{{difficulty}}: {{/if}}{{pool}}d6
+</a>
+{{/each}}

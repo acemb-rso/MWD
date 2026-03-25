@@ -1,3 +1,8 @@
+// src/modules/modifiers/anarchy-modifiers.js
+// Purpose: Registers Foundry hooks: ready. Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { AttributeActions } from "../attribute-actions.js";
 import { ANARCHY } from "../config.js";
 import { TEMPLATE } from "../constants.js";

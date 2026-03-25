@@ -1,4 +1,7 @@
 // src/modules/roll/outcome/interpret-extended.js
+// Purpose: Defines function `interpretExtendedOutcome`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 
 import { toInt, clampInt } from "./_outcome-helpers.js";
 

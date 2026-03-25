@@ -1,4 +1,7 @@
 // src/modules/roll/outcome/_outcome-helpers.js
+// Purpose: Defines function `toInt`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 
 export function toInt(n, fallback = 0) {
   const x = Number(n);

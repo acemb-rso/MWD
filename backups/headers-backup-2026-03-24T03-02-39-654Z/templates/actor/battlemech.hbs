@@ -1,0 +1,73 @@
+<form class="{{cssClass}} battlemech-sheet flexcol" autocomplete="off">
+  <header class="sheet-header">
+    <div class="passport-header">
+      <div class="passport-img">
+        <img class="anarchy-img profile-img" src="{{data.img}}" data-action="editImage" data-tooltip="{{data.name}}" />
+      </div>
+
+      <div class="passport-column">
+        <div class="passport-details-row">
+          <div class="passport-detail">
+            <label for="name">Name</label>
+            <input id="name" class="info-value" type="text" name="name" value="{{data.name}}" />
+          </div>
+
+          {{!-- If you later add chassis/model fields, put them here --}}
+        </div>
+
+        <div class="passport-action-row">
+          <div class="passport-action">
+            {{> "systems/mwd/templates/actor/parts/mech-quick-actions.hbs"}}
+          </div>
+        </div>
+      </div>
+
+      {{> "systems/mwd/templates/common/view-mode.hbs"}}
+    </div>
+
+    <nav class="tabs sheet-tabs" data-group="primary">
+      <a data-tab="loadout">Loadout</a>
+      <a data-tab="weapons">Weapons</a>
+      <a data-tab="hardpoints">Hardpoints</a>
+      <a data-tab="notes">Notes</a>
+    </nav>
+  </header>
+
+  <section class="sheet-body">
+    <div class="tab" data-group="primary" data-tab="loadout">
+      <div class="section-group items-group">
+        {{> "systems/mwd/templates/actor/parts/battlemech-loadout.hbs"}}
+      </div>
+
+      <div class="section-group monitors-row">
+        {{!-- If you later add Structure/Heat/Armor monitors, include them here --}}
+        {{> "systems/mwd/templates/monitors/armor.hbs"}}
+        {{> "systems/mwd/templates/monitors/structure.hbs"}}
+        {{> "systems/mwd/templates/monitors/heat.hbs"}}
+      </div>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="weapons">
+      <div class="section-group items-group">
+        {{> "systems/mwd/templates/actor/parts/battlemech-weapons.hbs"}}
+      </div>
+
+      <div class="section-group items-group">
+        {{> "systems/mwd/templates/actor/parts/battlemech-weapon-groups.hbs"}}
+      </div>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="hardpoints">
+      <div class="section-group items-group">
+        {{> "systems/mwd/templates/actor/parts/battlemech-hardpoints.hbs"}}
+      </div>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="notes">
+      <div class="anarchy-block">
+        {{> "systems/mwd/templates/actor/parts/description.hbs"}}
+        {{> "systems/mwd/templates/actor/parts/gmnotes.hbs"}}
+      </div>
+    </div>
+  </section>
+</form>

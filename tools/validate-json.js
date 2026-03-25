@@ -1,3 +1,6 @@
+// tools/validate-json.js
+// Purpose: Project source file validate-json.js. Purpose: provides functionality for the system; update this description with details.
+
 const fs = require("fs");
 const path = require("path");
 

@@ -1378,6 +1378,54 @@
   text-shadow: 0 1px 0 rgba(255, 248, 228, 0.84);
 }
 
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .sheet-header .header-right {
+  flex: 0 0 10rem;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-item-sheet__state {
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-item-sheet__state-chip {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-main-grid {
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-main-grid > .mwd-item-section {
+  min-width: 0;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-profile-grid,
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-mitigation-grid {
+  grid-template-columns: 1fr;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-profile-grid__durability,
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-profile-grid__tags,
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-profile-grid__traits {
+  grid-column: 1/-1;
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-profile-grid .mwd-field-cluster {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--csb-space-1);
+}
+
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-main-grid__notes textarea {
+  width: 100%;
+  min-height: 6.5rem;
+  resize: vertical;
+}
+
 .mwd-weapon-compact {
   display: flex;
   flex-direction: column;
@@ -1583,6 +1631,29 @@
   background: rgba(255, 251, 241, 0.48);
 }
 
+@media (max-width: 980px) {
+  .mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-main-grid {
+    grid-template-columns: 1fr;
+  }
+  .mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .sheet-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .sheet-header .header-left {
+    width: 100%;
+  }
+  .mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .sheet-header .header-right {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+  .mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-item-sheet__state {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-item-sheet__state-chip {
+    width: auto;
+  }
+}
 @media (max-width: 720px) {
   .mwd-sheet.item-sheet .sheet-header {
     flex-direction: column;
@@ -2588,6 +2659,273 @@
   opacity: 0.85;
 }
 
+/* =========================================================
+   Inventory Blocks (.mwd-inv)
+   Compact table-style rows for weapons, armor, and gear.
+   ========================================================= */
+.mwd-inv {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csb-space-2);
+}
+
+/* Toolbar: add button floated right */
+.mwd-inv__toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mwd-inv__add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 10px;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--csb-border);
+  border-radius: var(--csb-radius-pill);
+  background: var(--csb-surface-2);
+  color: var(--csb-text-muted);
+  cursor: pointer;
+}
+
+.mwd-inv__add-btn:hover {
+  background: var(--csb-surface-3);
+  color: var(--csb-text);
+}
+
+/* Table: column headers + rows share the same flex layout */
+.mwd-inv__table {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.mwd-inv__col-headers,
+.mwd-inv__row {
+  display: flex;
+  align-items: center;
+  gap: var(--csb-space-1);
+}
+
+/* Column header row */
+.mwd-inv__col-headers {
+  padding: 0 4px 4px;
+  border-bottom: 1px solid var(--csb-border);
+  font-size: 0.72rem;
+  font-family: var(--mwd-font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--csb-text-faint);
+}
+
+/* Data rows */
+.mwd-inv__row {
+  padding: 3px 4px;
+  border-radius: var(--csb-radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.mwd-inv__row:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.mwd-inv__row.is-equipped {
+  background: rgba(106, 167, 255, 0.07);
+}
+
+/* Column widths */
+.mwd-inv__col--img {
+  flex: 0 0 20px;
+  width: 20px;
+}
+
+.mwd-inv__col--name {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mwd-inv__col--stat {
+  flex: 0 0 3rem;
+  width: 3rem;
+  text-align: center;
+}
+
+.mwd-inv__col--stat-wide {
+  flex: 0 0 5rem;
+  width: 5rem;
+  text-align: center;
+}
+
+.mwd-inv__col--icon {
+  flex: 0 0 1.75rem;
+  width: 1.75rem;
+  text-align: center;
+}
+
+/* Item thumbnail */
+.mwd-inv__thumb {
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 3px;
+  opacity: 0.85;
+}
+
+/* Thumbnail as a clickable button.
+   NOTE: .mwd-sheet .sheet-body button has specificity (0,2,1) and forces
+   height/padding on all buttons. The scoped rule below uses (0,3,0) to win. */
+.mwd-inv__thumb-btn {
+  appearance: none;
+  background: none;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 3px;
+  display: block;
+  line-height: 0;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  box-sizing: border-box;
+  color: inherit;
+}
+
+/* (0,3,0) beats the generic (0,2,1) .sheet-body button rule */
+.mwd-sheet .mwd-inv .mwd-inv__thumb-btn {
+  height: 20px;
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.mwd-inv__thumb-btn:hover .mwd-inv__thumb {
+  opacity: 1;
+  outline: 2px solid var(--csb-border-strong);
+  outline-offset: 1px;
+}
+
+/* Roll-capable icon: orange glow on hover */
+.mwd-inv__thumb-btn--roll:not([disabled]):hover .mwd-inv__thumb {
+  outline-color: #e07a30;
+  box-shadow: 0 0 6px rgba(224, 122, 48, 0.5);
+}
+
+.mwd-inv__thumb-btn[disabled] {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* Name button: looks like a link, not a button */
+.mwd-inv__name-btn {
+  all: unset;
+  /* restore flex-item sizing lost by all:unset */
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  display: block;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--csb-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mwd-inv__name-btn:hover {
+  color: var(--csb-accent);
+  text-decoration: underline;
+}
+
+/* Stat cells */
+.mwd-inv__col--stat,
+.mwd-inv__col--stat-wide {
+  font-size: 0.85rem;
+  color: var(--csb-text-muted);
+}
+
+.mwd-inv__stat--muted {
+  color: var(--csb-text-faint);
+  font-size: 0.78rem;
+}
+
+/* Icon buttons: small, borderless, icon-only */
+.mwd-inv__icon-btn {
+  all: unset;
+  /* restore flex-item sizing lost by all:unset */
+  flex: 0 0 1.75rem;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--csb-radius-sm);
+  font-size: 0.85rem;
+  color: var(--csb-text-faint);
+  cursor: pointer;
+  transition: color 0.1s, background 0.1s;
+}
+
+.mwd-inv__icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--csb-text);
+}
+
+.mwd-inv__icon-btn.is-on {
+  color: var(--csb-accent);
+}
+
+.mwd-inv__icon-btn--star.is-on {
+  color: #e8c94a;
+}
+
+.mwd-inv__icon-btn--delete:hover {
+  color: var(--csb-danger);
+  background: rgba(209, 75, 75, 0.12);
+}
+
+/* Trait / mitigation notes */
+.mwd-inv__row-note {
+  padding: 0 4px 4px calc(20px + var(--csb-space-1) + var(--csb-space-1));
+  font-size: 0.78rem;
+  color: var(--csb-text-faint);
+  font-style: italic;
+}
+
+/* Warnings */
+.mwd-inv__warnings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csb-space-1);
+}
+
+.mwd-inv__warning {
+  padding: 4px 8px;
+  border-radius: var(--csb-radius-sm);
+  background: rgba(184, 134, 11, 0.15);
+  border: 1px solid rgba(184, 134, 11, 0.3);
+  font-size: 0.8rem;
+  color: var(--csb-warning);
+}
+
+/* Empty state */
+.mwd-inv__empty {
+  padding: 6px 4px;
+  font-size: 0.82rem;
+  color: var(--csb-text-faint);
+  font-style: italic;
+}
+
 @media (max-width: 760px) {
   .mwd-combat-dashboard__grid,
   .mwd-combat-actions-panel__menus {
@@ -3313,6 +3651,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-height: 0;
+  height: 100%;
   padding: 0.75rem;
   background: var(--gadget-bg);
   border: 1px solid var(--gadget-border);
@@ -3320,6 +3660,59 @@
   color: var(--gadget-text);
   font-family: var(--mwd-body-font, inherit);
   font-size: 0.9rem;
+}
+
+.mwd-gmgadget__root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.mwd-gmgadget__tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+  flex: 0 0 auto;
+}
+
+.mwd-gmgadget__panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.2rem;
+}
+
+.mwd-gmgadget__tab {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--gadget-border);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--gadget-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.mwd-gmgadget__tab:hover {
+  border-color: var(--gadget-accent);
+  color: var(--gadget-text);
+}
+.mwd-gmgadget__tab.is-active {
+  border-color: var(--gadget-accent);
+  background: linear-gradient(to bottom, rgba(199, 169, 74, 0.22), rgba(0, 0, 0, 0.45));
+  color: var(--gadget-accent);
+}
+
+.mwd-gmgadget__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: min-content;
 }
 
 /* ----------------------------------------- */
@@ -3398,6 +3791,119 @@
   font-weight: 600;
 }
 
+.mwd-gmgadget__btn--apply {
+  width: 100%;
+}
+
+.mwd-gmgadget__target-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--gadget-border);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.mwd-gmgadget__target-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.mwd-gmgadget__target-value {
+  font-weight: 600;
+}
+
+.mwd-gmgadget__target-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.mwd-gmgadget__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.mwd-gmgadget__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.mwd-gmgadget__field-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gadget-muted);
+}
+
+.mwd-gmgadget__field input,
+.mwd-gmgadget__field select,
+.mwd-gmgadget__field textarea {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--gadget-border);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--gadget-text);
+}
+
+.mwd-gmgadget__field select option,
+.mwd-gmgadget__field select optgroup {
+  color: #17130f;
+  background: #efe5d1;
+}
+
+.mwd-gmgadget__field select option:checked,
+.mwd-gmgadget__field select option:hover {
+  color: #100d0a;
+  background: #d6c19c;
+}
+
+.mwd-gmgadget__field textarea {
+  resize: vertical;
+  min-height: 5rem;
+}
+
+.mwd-gmgadget__toggle--field {
+  align-self: end;
+  padding-bottom: 0.2rem;
+}
+
+.mwd-gmgadget__mini-btn {
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--gadget-border);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--gadget-text);
+  cursor: pointer;
+}
+.mwd-gmgadget__mini-btn:hover {
+  border-color: var(--gadget-accent);
+  color: var(--gadget-accent);
+}
+
+.mwd-gmgadget__pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--gadget-border);
+  border-radius: 999px;
+  background: rgba(199, 169, 74, 0.18);
+  font-size: 0.72rem;
+  color: var(--gadget-accent);
+}
+
+.mwd-gmgadget__hint {
+  font-size: 0.76rem;
+  color: var(--gadget-muted);
+}
+
 /* ----------------------------------------- */
 /* Footer / Toggle                           */
 /* ----------------------------------------- */
@@ -3417,6 +3923,11 @@
   margin-right: 0.4rem;
 }
 
+@media (max-width: 520px) {
+  .mwd-gmgadget__grid {
+    grid-template-columns: 1fr;
+  }
+}
 /* ----------------------------------------- */
 /* Chat Notice Styling                       */
 /* ----------------------------------------- */

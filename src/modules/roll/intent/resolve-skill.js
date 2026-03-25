@@ -1,3 +1,8 @@
+// src/modules/roll/intent/resolve-skill.js
+// Purpose: Defines function `resolveSkill`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/roll/intent/resolve-skill.js
 import { getSkillDef } from "../../mwd/skills.js";
 

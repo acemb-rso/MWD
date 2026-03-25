@@ -1,3 +1,8 @@
+// src/modules/modifiers/providers/status-effects.js
+// Purpose: Provides module-level utilities or helpers.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/modifiers/providers/status-effects.js
 import { STATUS_MAP } from "../../roll/config/status-modifiers.js"; 
 

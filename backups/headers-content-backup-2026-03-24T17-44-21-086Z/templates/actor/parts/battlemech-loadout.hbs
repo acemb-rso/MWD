@@ -1,0 +1,14 @@
+{{!--
+templates/actor/parts/battlemech-loadout.hbs
+Purpose: Handlebars template for battlemech-loadout. Used to render UI in the system.
+--}}
+
+<div class="section-group column">
+  <h2 class="section-group-header">{{ANARCHY.actor.battlemech.loadout}}</h2>
+  <div class="items-group-list">
+    {{#each system.loadout as |slot key|}}
+    <div class="item"><strong>{{key}}:</strong> {{slot}}</div>
+    {{/each}}
+  </div>
+</div>
+

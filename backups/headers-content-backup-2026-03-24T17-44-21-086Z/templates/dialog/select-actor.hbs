@@ -1,0 +1,14 @@
+{{!--
+templates/dialog/select-actor.hbs
+Purpose: Handlebars template for select-actor. Used to render UI in the system.
+--}}
+
+<form class="anarchy-dialog select-actor">
+  <div class="flexcol">
+    {{#each actors as |actor key|}}
+      <a class="click-select-actor" data-actor-id="{{actor.id}}">
+        {{> 'systems/mwd/templates/common/actor-reference.hbs' actor}}
+      </a>
+    {{/each}}
+  </div>
+</form>

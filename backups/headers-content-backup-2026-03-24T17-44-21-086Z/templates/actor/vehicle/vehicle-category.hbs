@@ -1,0 +1,11 @@
+{{!--
+templates/actor/vehicle/vehicle-category.hbs
+Purpose: Handlebars template for vehicle-category. Used to render UI in the system.
+--}}
+
+<select class="info-value" name="system.category">
+  {{#select system.category}}
+  {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.vehicleCategories  noEmpty=true}}
+  {{/select}}
+</select>
+

@@ -1,34 +1,205 @@
+{{!--
+templates/v2/mwd-gmgadget.hbs
+Purpose: Renders collections with `each` blocks. Contains conditional display logic. Contains styled HTML nodes for UI layout. Includes form controls or labeled fields.
+How it fits: Used by rendering code to produce UI fragments.
+--}}
+
+
 <section class="mwd-gmgadget__root">
-  <header class="mwd-gmgadget__header">
-    <div><b>Next Roll Difficulty</b></div>
-    <div class="mwd-gmgadget__sub">DN = hits needed</div>
-  </header>
+  <nav class="mwd-gmgadget__tabs" aria-label="GM Gadget Tools">
+    <button
+      type="button"
+      class="mwd-gmgadget__tab {{#if (eq currentTab 'difficulty')}}is-active{{/if}}"
+      data-action="switchTab"
+      data-tab="difficulty">
+      Difficulty
+    </button>
+    <button
+      type="button"
+      class="mwd-gmgadget__tab {{#if (eq currentTab 'harm')}}is-active{{/if}}"
+      data-action="switchTab"
+      data-tab="harm">
+      Harm
+    </button>
+  </nav>
 
-  <div class="mwd-gmgadget__current">
-    <span>Current:</span>
-    <b>DN {{currentDn}}</b>
-    <a class="mwd-gmgadget__clear" data-action="clearDn">Reset</a>
+  <div class="mwd-gmgadget__panel">
+    {{#if (eq currentTab "difficulty")}}
+      <section class="mwd-gmgadget__section">
+        <header class="mwd-gmgadget__header">
+          <div><b>Next Roll Difficulty</b></div>
+          <div class="mwd-gmgadget__sub">DN = hits needed</div>
+        </header>
+
+        <div class="mwd-gmgadget__current">
+          <span>Current:</span>
+          <b>DN {{currentDn}}</b>
+          <a class="mwd-gmgadget__clear" data-action="clearDn">Reset</a>
+        </div>
+
+        <div class="mwd-gmgadget__bar">
+          {{#each presets as |p|}}
+            <button
+              type="button"
+              class="mwd-gmgadget__btn {{#if (eq ../currentDn p.dn)}}is-active{{/if}}"
+              data-action="setDn"
+              data-dn="{{p.dn}}"
+              data-label="{{p.label}}"
+              title="Set next roll DN to {{p.dn}}">
+              {{p.label}} ({{p.dn}})
+            </button>
+          {{/each}}
+        </div>
+
+        <footer class="mwd-gmgadget__footer">
+          <label class="mwd-gmgadget__toggle">
+            <input type="checkbox" {{#if announce}}checked{{/if}} data-action="toggleAnnounce" />
+            Announce to chat
+          </label>
+        </footer>
+      </section>
+    {{/if}}
+
+    {{#if (eq currentTab "harm")}}
+      <section class="mwd-gmgadget__section mwd-gmgadget__section--harm">
+        <header class="mwd-gmgadget__header">
+          <div><b>GM Harm</b></div>
+          <div class="mwd-gmgadget__sub">Direct adjudication for character harm and recovery</div>
+        </header>
+
+        <div class="mwd-gmgadget__target-block">
+          <div class="mwd-gmgadget__target-row">
+            <div>
+              <div class="mwd-gmgadget__field-label">Scene Target</div>
+              <div class="mwd-gmgadget__target-value">{{harm.sceneTarget.label}}</div>
+              {{#if harm.sceneTarget.reason}}
+                <div class="mwd-gmgadget__hint">{{harm.sceneTarget.reason}}</div>
+              {{/if}}
+            </div>
+            <button type="button" class="mwd-gmgadget__mini-btn" data-action="refreshHarmTarget">Refresh</button>
+          </div>
+
+          <label class="mwd-gmgadget__field">
+            <span class="mwd-gmgadget__field-label">Actor Fallback</span>
+            <select name="harm-actorId" data-action="harmInputChange" data-harm-key="actorId">
+              <option value="">Select character...</option>
+              {{#each harm.actorOptions as |actor|}}
+                <option value="{{actor.id}}" {{#if (eq ../harm.state.actorId actor.id)}}selected{{/if}}>{{actor.name}}</option>
+              {{/each}}
+            </select>
+          </label>
+
+          <div class="mwd-gmgadget__target-summary">
+            <span class="mwd-gmgadget__field-label">Effective Target</span>
+            <strong>{{harm.effectiveTarget.label}}</strong>
+            {{#if harm.effectiveTarget.source}}
+              <span class="mwd-gmgadget__pill">{{harm.effectiveTarget.source}}</span>
+            {{/if}}
+          </div>
+        </div>
+
+        <div class="mwd-gmgadget__grid">
+          <label class="mwd-gmgadget__field">
+            <span class="mwd-gmgadget__field-label">Operation</span>
+            <select name="harm-mode" data-action="harmInputChange" data-harm-key="mode">
+              {{#each harm.modes as |mode|}}
+                <option value="{{mode.value}}" {{#if (eq ../harm.state.mode mode.value)}}selected{{/if}}>{{mode.label}}</option>
+              {{/each}}
+            </select>
+          </label>
+
+          {{#if harm.showDeltaFields}}
+            <label class="mwd-gmgadget__field">
+              <span class="mwd-gmgadget__field-label">Delta</span>
+              <input
+                type="number"
+                name="harm-delta"
+                value="{{harm.state.delta}}"
+                data-action="harmInputChange"
+                data-harm-key="delta" />
+            </label>
+          {{/if}}
+
+          {{#if harm.useArmorAvailable}}
+            <label class="mwd-gmgadget__toggle mwd-gmgadget__toggle--field">
+              <input
+                type="checkbox"
+                name="harm-useArmor"
+                {{#if harm.state.useArmor}}checked{{/if}}
+                data-action="harmInputChange"
+                data-harm-key="useArmor" />
+              Use armor mitigation
+            </label>
+          {{/if}}
+
+          {{#if harm.showDamageType}}
+            <label class="mwd-gmgadget__field">
+              <span class="mwd-gmgadget__field-label">Damage Type</span>
+              <select name="harm-damageType" data-action="harmInputChange" data-harm-key="damageType">
+                {{#each harm.damageTypes as |type|}}
+                  <option value="{{type.value}}" {{#if (eq ../harm.state.damageType type.value)}}selected{{/if}}>{{type.label}}</option>
+                {{/each}}
+              </select>
+            </label>
+          {{/if}}
+
+          {{#if harm.showStatusFields}}
+            <label class="mwd-gmgadget__field">
+              <span class="mwd-gmgadget__field-label">Status</span>
+              <select name="harm-statusId" data-action="harmInputChange" data-harm-key="statusId">
+                {{#each harm.statusOptions as |status|}}
+                  <option value="{{status.value}}" {{#if (eq ../harm.state.statusId status.value)}}selected{{/if}}>
+                    {{status.label}}{{#if status.active}} (active){{/if}}
+                  </option>
+                {{/each}}
+              </select>
+            </label>
+
+            <label class="mwd-gmgadget__field">
+              <span class="mwd-gmgadget__field-label">Action</span>
+              <select name="harm-statusActive" data-action="harmInputChange" data-harm-key="statusActive">
+                <option value="add" {{#if harm.state.statusActive}}selected{{/if}}>Apply</option>
+                <option value="remove" {{#unless harm.state.statusActive}}selected{{/unless}}>Remove</option>
+              </select>
+            </label>
+          {{/if}}
+        </div>
+
+        <label class="mwd-gmgadget__field">
+          <span class="mwd-gmgadget__field-label">Source</span>
+          <input
+            type="text"
+            name="harm-source"
+            value="{{harm.state.source}}"
+            placeholder="Forced march, poison, hazard..."
+            data-action="harmInputChange"
+            data-harm-key="source" />
+        </label>
+
+        <label class="mwd-gmgadget__field">
+          <span class="mwd-gmgadget__field-label">Notes</span>
+          <textarea
+            name="harm-notes"
+            rows="3"
+            placeholder="Optional GM notes"
+            data-action="harmInputChange"
+            data-harm-key="notes">{{harm.state.notes}}</textarea>
+        </label>
+
+        {{#if harm.applyReason}}
+          <div class="mwd-gmgadget__hint">{{harm.applyReason}}</div>
+        {{/if}}
+
+        <footer class="mwd-gmgadget__footer">
+          <button
+            type="button"
+            class="mwd-gmgadget__btn mwd-gmgadget__btn--apply"
+            data-action="applyHarm"
+            {{#unless harm.canApply}}disabled{{/unless}}>
+            Apply Harm
+          </button>
+        </footer>
+      </section>
+    {{/if}}
   </div>
-
-  <div class="mwd-gmgadget__bar">
-    {{#each presets as |p|}}
-      <button
-        type="button"
-        class="mwd-gmgadget__btn {{#if (eq ../currentDn p.dn)}}is-active{{/if}}"
-        data-action="setDn"
-        data-dn="{{p.dn}}"
-        data-label="{{p.label}}"
-        title="Set next roll DN to {{p.dn}}"
-      >
-        {{p.label}} ({{p.dn}})
-      </button>
-    {{/each}}
-  </div>
-
-  <footer class="mwd-gmgadget__footer">
-    <label class="mwd-gmgadget__toggle">
-      <input type="checkbox" {{#if announce}}checked{{/if}} data-action="toggleAnnounce" />
-      Announce to chat
-    </label>
-  </footer>
 </section>

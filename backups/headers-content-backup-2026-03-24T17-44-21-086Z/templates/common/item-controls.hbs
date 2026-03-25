@@ -1,0 +1,13 @@
+{{!--
+templates/common/item-controls.hbs
+Purpose: Handlebars template for item-controls. Used to render UI in the system.
+--}}
+
+{{#unless @root.options.viewMode}}
+<a class="item-control click-item-edit" data-tooltip="{{ANARCHY.common.edit}}">
+  {{{iconFA 'fas fa-edit'}}}
+</a>
+<a class="item-control click-item-delete" data-tooltip="{{ANARCHY.common.del}}">
+  {{{iconFA 'fas fa-trash'}}}
+</a>
+{{/unless}}

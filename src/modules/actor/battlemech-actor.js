@@ -1,3 +1,8 @@
+// src/modules/actor/battlemech-actor.js
+// Purpose: References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { ANARCHY } from "../config.js";
 import { ANARCHY_SYSTEM, ICONS_PATH, TEMPLATE } from "../constants.js";
 import { SkillItem } from "../item/skill-item.js";

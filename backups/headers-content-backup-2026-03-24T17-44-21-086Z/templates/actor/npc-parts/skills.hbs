@@ -1,0 +1,16 @@
+{{!--
+templates/actor/npc-parts/skills.hbs
+Purpose: Handlebars template for skills. Used to render UI in the system.
+--}}
+
+<div class="define-item-type" data-item-type="skill">
+  <h2 class="section-group-header">
+    {{ANARCHY.itemType.plural.skill}}
+    {{> 'systems/mwd/templates/common/item-control-add.hbs' itemType='skill'}}
+  </h2>
+  <div class="items-group-list">
+    {{#each items.skill as |skill|}}
+    {{> "systems/mwd/templates/actor/npc-parts/skill.hbs" skill}}
+    {{/each}}
+  </div>
+</div>

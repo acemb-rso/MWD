@@ -1,0 +1,16 @@
+{{!--
+templates/actor/parts/contacts.hbs
+Purpose: Handlebars template for contacts. Used to render UI in the system.
+--}}
+
+<div class="define-item-type" data-item-type="contact">
+  <h2 class="section-group-header">
+    {{ANARCHY.itemType.plural.contact}}
+    {{> 'systems/mwd/templates/common/item-control-add.hbs' itemType='contact'}}
+  </h2>
+  <div class="flexrow flex-wrap">
+    {{#each items.contact as |contact|}}
+    {{> "systems/mwd/templates/actor/parts/contact.hbs" contact}}
+    {{/each}}
+  </div>
+</div>

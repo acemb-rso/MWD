@@ -1,0 +1,34 @@
+<div class="form-group">
+  <label for="sourceReference">{{MWD.common.sourceReference}} </label>
+  <input class="item-field-value" type="text" data-dtype="String"
+      name="system.sourceReference" value="{{system.sourceReference}}" 
+      placeholder="{{MWD.common.sourceReferenceHelp}}"
+  />
+</div>
+<div class="section-group form-group">
+  <div class="flexcol">
+    <span><label>{{MWD.common.description}}</label></span>
+    <div class="editor">
+      {{editor enrichedDescription
+        target="system.description"
+        owner=options.owner
+        button=true
+        editable=options.editable}}
+    </div>
+  </div>
+</div>
+
+{{#if options.isGM}}
+<div class="section-group form-group">
+  <div class="flexcol">
+    <span><label>{{MWD.common.gmNotes}}</label></span>
+    <div class="editor">
+      {{editor enrichedGMNotes
+        target="system.gmNotes"
+        owner=options.owner
+        button=true
+        editable=options.editable}}
+    </div>
+  </div>
+</div>
+{{/if}}

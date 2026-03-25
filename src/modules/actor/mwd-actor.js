@@ -1,12 +1,19 @@
-// /mwd/src/modules/actor/mwd-actor.js
-import { ensureCoreSkillRatings } from "../mwd/skills.js";
+// src/modules/actor/mwd-actor.js
+// Purpose: Defines function `mitigationLabel`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 import { MONITOR_DEFS, TEMPLATE } from "../constants.js";
-import { DERIVE_FNS, resolveDerivedSource,  deriveMonitors } from "../mwd/derive-monitors.js";
 import { WeaponItem } from "../item/weapon-item.js";
 import {
   computeArmorBaseMitigation,
   normalizeArmorMitigationByType,
 } from "../mwd/personal-damage.js";
+import { ensureCoreSkillRatings } from "../mwd/skills.js";
+import {
+  DERIVE_FNS,
+  deriveMonitors,
+  resolveDerivedSource,
+} from "../mwd/derive-monitors.js";
 
 function mitigationLabel(mitigation = {}) {
   return Object.entries(normalizeArmorMitigationByType(mitigation))

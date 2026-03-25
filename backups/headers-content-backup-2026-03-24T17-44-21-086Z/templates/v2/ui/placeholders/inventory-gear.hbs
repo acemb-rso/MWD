@@ -1,0 +1,47 @@
+{{!--
+templates/v2/ui/placeholders/inventory-gear.hbs
+Purpose: Handlebars template for inventory-gear. Used to render UI in the system.
+--}}
+
+<div class="mwd-inv">
+  <div class="mwd-inv__toolbar">
+    <button type="button" class="mwd-inv__add-btn" data-action="createOwnedItem" data-item-type="gear" title="Add Gear">
+      <i class="fas fa-plus"></i> Add
+    </button>
+  </div>
+
+  {{#if personalInventory.gear.length}}
+    <div class="mwd-inv__table">
+      <div class="mwd-inv__col-headers">
+        <span class="mwd-inv__col mwd-inv__col--img"></span>
+        <span class="mwd-inv__col mwd-inv__col--name">Item</span>
+        <span class="mwd-inv__col mwd-inv__col--stat">Qty</span>
+        <span class="mwd-inv__col mwd-inv__col--icon"></span>
+      </div>
+      {{#each personalInventory.gear as |item|}}
+        <div class="mwd-inv__row {{#if item.equipped}}is-equipped{{/if}}" data-item-id="{{item.id}}">
+          <button type="button"
+                  class="mwd-inv__col mwd-inv__col--img mwd-inv__thumb-btn"
+                  data-action="editOwnedItem"
+                  data-item-id="{{item.id}}"
+                  title="Open {{item.name}}">
+            <img class="mwd-inv__thumb" src="{{item.img}}" alt="">
+          </button>
+          <button type="button" class="mwd-inv__col mwd-inv__col--name mwd-inv__name-btn" data-action="editOwnedItem">
+            {{item.name}}
+          </button>
+          <span class="mwd-inv__col mwd-inv__col--stat">{{item.quantity}}</span>
+          <button type="button"
+                  class="mwd-inv__col mwd-inv__col--icon mwd-inv__icon-btn mwd-inv__icon-btn--delete"
+                  data-action="deleteOwnedItem"
+                  data-item-id="{{item.id}}"
+                  title="Delete">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-inv__empty">No gear.</div>
+  {{/if}}
+</div>

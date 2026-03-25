@@ -1,3 +1,8 @@
+// src/modules/handlebars-manager.js
+// Purpose: Registers Foundry hooks: init. Preloads or manages Handlebars templates.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // handlebars-manager.js
 import { Damage } from "./damage.js";
 import { Enums } from "./enums.js";

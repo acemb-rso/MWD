@@ -1,0 +1,10 @@
+{{!--
+templates/chat/parts/pool-mode-skill.hbs
+Purpose: Handlebars template for pool-mode-skill. Used to render UI in the system.
+--}}
+
+<div>{{localizeAttribute attribute1}}: {{actorAttribute attribute1 actor ''}}</div>
+<div>{{skill.name}}: {{either skill.system.value 0}}</div>
+{{#if modifiers.specialization.used}}
+<div>{{ANARCHY.item.skill.specialization}} {{specialization}}: {{numberFormat modifiers.specialization.value decimals=0 sign=true}}</div>
+{{/if}}

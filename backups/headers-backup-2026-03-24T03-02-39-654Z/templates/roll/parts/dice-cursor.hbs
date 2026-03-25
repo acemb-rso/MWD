@@ -1,0 +1,8 @@
+{{#each (dice-cursor-array min max) as |dice|}}
+{{#if ../editable}}
+<a class="{{dice-cursor-color dice ../editable}} {{dice-cursor-active dice ../value}}" data-dice="{{dice}}"><i
+    class="{{dice-cursor-fas dice ../value}}"></i></a>
+{{else if (ne dice 0)}}
+<a class="{{dice-cursor-color dice ../editable}} {{dice-cursor-active dice ../value}}"><i class="{{dice-cursor-fas dice ../value}}"></i></a>
+{{/if}}
+{{/each}}

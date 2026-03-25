@@ -1,0 +1,24 @@
+{{!--
+templates/actor/vehicle/vehicle-attributes.hbs
+Purpose: Handlebars template for vehicle-attributes. Used to render UI in the system.
+--}}
+
+<div class="attribute-box secondary-attribute">
+  <label for="system.moves">{{ANARCHY.actor.vehicle.moves}}</label>
+  <input type="number" data-dtype="Number" maxlength="2"
+    name="system.moves" value="{{system.moves}}" 
+  />
+</div>
+<div class="attribute-box secondary-attribute">
+  <label for="system.attacks">{{ANARCHY.actor.vehicle.attacks}}</label>
+  <input type="number" data-dtype="Number" maxlength="2"
+    name="system.attacks" value="{{system.attacks}}" 
+  />
+</div>
+<div class="attribute-box secondary-attribute">
+  <label for="system.stealth">{{ANARCHY.actor.vehicle.stealth}}</label>
+  <input type="number" data-dtype="Number" maxlength="2"
+    name="system.stealth" value="{{system.stealth}}" 
+  />
+</div>
+

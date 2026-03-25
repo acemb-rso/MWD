@@ -1,13 +1,7 @@
 // src/modules/roll/mwd-roll.js
-import { resolveIntent } from "./intent/resolve-intent.js";
-import { collectModifiers } from "./collect-modifiers.js";
-import { buildResolved } from "./build-resolved.js";
-import { renderChat } from "./renderers/render-chat.js";
-import { MWDRollDialog } from "./mwd-roll-dialog.js";
-import { interpretOutcome } from "./outcome/interpret-outcome.js";
-import { SelectItem } from "../dialog/select-item.js";
-import { WeaponItem } from "../item/weapon-item.js";
-import { TEMPLATE } from "../constants.js";
+// Purpose: Defines function `pickMostMissingEdgePool`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 
 
 /**

@@ -1,8 +1,27 @@
+// src/modules/item/armor-item-sheet.js
+// Purpose: Provides a Sheet / UI class for entities (actor/item) or an application.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { BaseItemSheet } from "./base-item-sheet.js";
 import { TEMPLATES_PATH } from "../constants.js";
 
 export class ArmorItemSheet extends BaseItemSheet {
   static LAYOUT_ID = "armor";
+
+  static get DEFAULT_OPTIONS() {
+    return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+      position: {
+        width: 960,
+        height: 860
+      },
+      window: {
+        ...super.DEFAULT_OPTIONS.window,
+        minWidth: 920,
+        minHeight: 760
+      }
+    }, { inplace: false });
+  }
 
   static PARTS = {
     sheet: {

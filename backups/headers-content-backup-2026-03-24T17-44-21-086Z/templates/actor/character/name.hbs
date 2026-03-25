@@ -1,0 +1,8 @@
+{{!--
+templates/actor/character/name.hbs
+Purpose: Handlebars template for name. Used to render UI in the system.
+--}}
+
+<label class="passport-label" for="name">{{ANARCHY.actor.name}}</label>
+<input class="passport-input" type="text" name="name" value="{{actor.name}}" {{#if options.viewMode}}disabled{{/if}} />
+

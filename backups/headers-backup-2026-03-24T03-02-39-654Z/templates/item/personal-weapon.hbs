@@ -1,0 +1,154 @@
+<header class="sheet-header">
+  <img class="anarchy-img profile-img" src="{{item.img}}" data-action="editImage" data-tooltip="{{item.name}}"/>
+  {{> 'systems/mwd/templates/item/parts/itemname.hbs'
+    label=ANARCHY.itemType.singular.personalWeapon
+  }}
+</header>
+
+<nav class="sheet-tabs tabs" data-group="primary">
+  <div class="sheet-tab" data-tab="main">
+    <a>{{ANARCHY.item.tabs.main}}</a>
+  </div>
+  <div class="sheet-tab" data-tab="modifiers">
+    <a>{{ANARCHY.item.tabs.modifiers}}</a>
+  </div>
+  <div class="sheet-tab-fill"></div>
+</nav>
+
+<section class="sheet-body">
+  <div class="tab section-group" data-group="primary" data-tab="main">
+    {{#if itemSheet.canUseActorControls}}
+      <div class="form-group">
+        <label for="system.equipped">{{ANARCHY.item.personalWeapon.equipped}}</label>
+        <input type="checkbox" name="system.equipped" {{checked system.equipped}} />
+      </div>
+
+      <div class="form-group">
+        <label for="system.isPrimary">{{ANARCHY.item.personalWeapon.primary}}</label>
+        <input type="checkbox" name="system.isPrimary" {{checked system.isPrimary}} />
+      </div>
+    {{else}}
+      <p class="notes">Equip, primary, and attack controls become available when this weapon is owned by a character or NPC.</p>
+    {{/if}}
+
+    <div class="form-group">
+      <label for="system.skill">{{ANARCHY.item.personalWeapon.skill}}</label>
+      <select class="select-weapon-skill" name="system.skill" data-dtype="String" data-action="weaponSkillChange">
+        {{#select system.skill}}
+        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
+        {{/select}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="system.category">{{ANARCHY.item.personalWeapon.category}}</label>
+      <select name="system.category" data-dtype="String">
+        {{#select system.category}}
+          {{#each weaponEditor.categories as |entry|}}
+            <option value="{{entry.value}}">{{entry.label}}</option>
+          {{/each}}
+        {{/select}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="system.damage">{{ANARCHY.item.personalWeapon.damage}}</label>
+      <input class="type-numeric" type="number" name="system.damage" value="{{system.damage}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.ap">{{ANARCHY.item.personalWeapon.ap}}</label>
+      <input class="type-numeric" type="number" name="system.ap" value="{{system.ap}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.damageType">{{ANARCHY.item.personalWeapon.damageType}}</label>
+      <select name="system.damageType" data-dtype="String">
+        {{#select system.damageType}}
+          {{#each weaponEditor.damageTypes as |entry|}}
+            <option value="{{entry.value}}">{{entry.label}}</option>
+          {{/each}}
+        {{/select}}
+      </select>
+    </div>
+
+    <h3>{{ANARCHY.item.personalWeapon.attackRatingBand.label}}</h3>
+
+    <div class="form-group">
+      <label for="system.attackRatingBand.close">{{ANARCHY.item.personalWeapon.attackRatingBand.close}}</label>
+      <input class="type-numeric" type="number" name="system.attackRatingBand.close" value="{{system.attackRatingBand.close}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.attackRatingBand.near">{{ANARCHY.item.personalWeapon.attackRatingBand.near}}</label>
+      <input class="type-numeric" type="number" name="system.attackRatingBand.near" value="{{system.attackRatingBand.near}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.attackRatingBand.far">{{ANARCHY.item.personalWeapon.attackRatingBand.far}}</label>
+      <input class="type-numeric" type="number" name="system.attackRatingBand.far" value="{{system.attackRatingBand.far}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.attackRatingBand.extreme">{{ANARCHY.item.personalWeapon.attackRatingBand.extreme}}</label>
+      <input class="type-numeric" type="number" name="system.attackRatingBand.extreme" value="{{system.attackRatingBand.extreme}}" data-dtype="Number" />
+    </div>
+
+    <h3>Range Bands</h3>
+
+    <div class="form-group">
+      <label for="system.range.max">{{ANARCHY.item.personalWeapon.range.max}}</label>
+      <select name="system.range.max" data-dtype="String">
+        {{#select weaponProfile.range.max}}
+          {{#each weaponEditor.ranges as |entry|}}
+            <option value="{{entry.value}}">{{entry.label}}</option>
+          {{/each}}
+        {{/select}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="system.range.close">{{ANARCHY.item.personalWeapon.attackRatingBand.close}}</label>
+      <input class="type-numeric" type="number" name="system.range.close" value="{{weaponProfile.range.close}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.range.near">{{ANARCHY.item.personalWeapon.attackRatingBand.near}}</label>
+      <input class="type-numeric" type="number" name="system.range.near" value="{{weaponProfile.range.near}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.range.far">{{ANARCHY.item.personalWeapon.attackRatingBand.far}}</label>
+      <input class="type-numeric" type="number" name="system.range.far" value="{{weaponProfile.range.far}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.range.extreme">{{ANARCHY.item.personalWeapon.attackRatingBand.extreme}}</label>
+      <input class="type-numeric" type="number" name="system.range.extreme" value="{{weaponProfile.range.extreme}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.traits">{{ANARCHY.item.personalWeapon.traits}}</label>
+      <input type="text" name="system.traits" value="{{join weaponProfile.traits ', '}}" />
+    </div>
+
+    <div class="form-group stacked">
+      <label for="system.notes">{{ANARCHY.item.personalWeapon.notes}}</label>
+      <textarea name="system.notes">{{system.notes}}</textarea>
+    </div>
+
+    {{#if itemSheet.canAttack}}
+      <div class="form-group">
+        <label>Combat</label>
+        <button type="button" data-action="attackWeapon" {{#if itemSheet.attackDisabled}}disabled{{/if}}>Attack</button>
+      </div>
+    {{/if}}
+
+    {{> 'systems/mwd/templates/item/parts/inactive.hbs'}}
+    {{> 'systems/mwd/templates/item/parts/references.hbs'}}
+  </div>
+
+  <div class="tab section-group" data-group="primary" data-tab="modifiers">
+    {{> 'systems/mwd/templates/item/parts/modifiers.hbs'}}
+  </div>
+</section>

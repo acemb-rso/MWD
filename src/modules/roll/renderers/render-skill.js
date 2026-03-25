@@ -1,3 +1,8 @@
+// src/modules/roll/renderers/render-skill.js
+// Purpose: Defines function `enhanceSkill`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/roll/renderers/render-skill.js
 
 /**

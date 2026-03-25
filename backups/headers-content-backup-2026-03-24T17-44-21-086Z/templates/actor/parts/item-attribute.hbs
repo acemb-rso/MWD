@@ -1,0 +1,14 @@
+{{!--
+templates/actor/parts/item-attribute.hbs
+Purpose: Handlebars template for item-attribute. Used to render UI in the system.
+--}}
+
+<div class="attribute-box anarchy-attribute" data-attribute="{{key}}">
+  <a class="click-roll-attribute">
+    <label for="system.attributes.{{key}}.value">{{localizeAttribute key}}</label>
+    <div class="attribute-value">
+      {{attribute.value}}
+    </div>
+  </a>
+</div>
+

@@ -1,3 +1,8 @@
+// src/modules/sheets/preload-templates.js
+// Purpose: Preloads or manages Handlebars templates.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // sheets/preload-templates.js
 import { SYSTEM_NAME, LOG_HEAD } from "../constants.js";
 

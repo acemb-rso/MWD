@@ -1,4 +1,7 @@
 // src/modules/roll/outcome/interpret-simple.js
+// Purpose: Defines function `interpretSimpleOutcome`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
 
 import { getDN, toInt, computeEdgeEarned, getEdgeEarnConfig, getEdgePoolKey,
   isCriticalSuccessMargin, isCriticalFailureOnes } from "./_outcome-helpers.js";

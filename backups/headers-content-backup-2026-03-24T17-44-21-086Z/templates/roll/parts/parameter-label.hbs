@@ -1,0 +1,13 @@
+{{!--
+templates/roll/parts/parameter-label.hbs
+Purpose: Handlebars template for parameter-label. Used to render UI in the system.
+--}}
+
+<span class="flexrow parameter-label">
+  <label class="parameter-label">
+      {{> 'systems/mwd/templates/common/label.hbs' this}}
+  </label>
+  {{#if flags.optional}}
+    <input class="parameter-selection check-optional" type="checkbox" {{checked used}} />
+  {{/if}}
+</span>

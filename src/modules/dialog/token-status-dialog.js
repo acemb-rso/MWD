@@ -1,3 +1,8 @@
+// src/modules/dialog/token-status-dialog.js
+// Purpose: Defines function `asTokenDocument`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 const MANAGED_STATUS_IDS = new Set(["overloaded"]);
 
 function asTokenDocument(token) {
@@ -45,17 +50,28 @@ function getStatusLabel(effect) {
 }
 
 function getStatusIcon(effect) {
-  return String(effect?.icon ?? effect?.img ?? "").trim();
+  const imagePath = typeof effect?.img === "string" ? effect.img.trim() : "";
+  if (imagePath) return imagePath;
+
+  // Avoid touching the deprecated StatusEffectConfig#icon getter when possible.
+  const legacyDescriptor = effect
+    ? Object.getOwnPropertyDescriptor(effect, "icon")
+    : null;
+  if ("value" in (legacyDescriptor ?? {})) {
+    return String(legacyDescriptor.value ?? "").trim();
+  }
+
+  return "";
 }
 
-function getCurrentStatusState(actor, statusId) {
+export function getCurrentStatusState(actor, statusId) {
   if (statusId === "overloaded") {
     return !!actor?.system?.burn?.overloaded || !!actor?.statuses?.has?.(statusId);
   }
   return actor?.statuses?.has?.(statusId) ?? false;
 }
 
-function getToggleableStatusEffects(actor) {
+export function getToggleableStatusEffects(actor) {
   const seen = new Set();
 
   return (CONFIG.statusEffects ?? [])
@@ -108,39 +124,37 @@ function buildDialogContent(effects) {
   }).join("");
 
   return `
-    <form class="mwd-token-status-dialog">
+    <div class="mwd-token-status-dialog">
       <p style="margin-top: 0;">Toggle the statuses shown on this token.</p>
       <div style="display: grid; gap: 0.2rem; max-height: 20rem; overflow-y: auto; padding-right: 0.25rem;">
         ${rows}
       </div>
-    </form>
+    </div>
   `;
 }
 
 async function applyStatusSelection({ actor, effects, selectedStatusIds }) {
   const selected = new Set(selectedStatusIds);
-  const updates = {};
-  const toggles = [];
 
   for (const effect of effects) {
     const isSelected = selected.has(effect.id);
-    const isActive = getCurrentStatusState(actor, effect.id);
+    await applyManagedStatusUpdate({ actor, statusId: effect.id, active: isSelected });
+  }
+}
 
-    if (isSelected === isActive) continue;
+export async function applyManagedStatusUpdate({ actor, statusId, active }) {
+  if (!actor || !statusId) return false;
 
-    if (effect.id === "overloaded") {
-      updates["system.burn.overloaded"] = isSelected;
-      continue;
-    }
+  const isActive = getCurrentStatusState(actor, statusId);
+  if (Boolean(active) === isActive) return false;
 
-    toggles.push(actor.toggleStatusEffect(effect.id, { active: isSelected, overlay: false }));
+  if (statusId === "overloaded") {
+    await actor.update({ "system.burn.overloaded": Boolean(active) });
+    return true;
   }
 
-  if (Object.keys(updates).length) {
-    await actor.update(updates);
-  }
-
-  if (toggles.length) await Promise.all(toggles);
+  await actor.toggleStatusEffect(statusId, { active: Boolean(active), overlay: false });
+  return true;
 }
 
 export async function openTokenStatusDialog({ actor, token } = {}) {
@@ -153,44 +167,42 @@ export async function openTokenStatusDialog({ actor, token } = {}) {
     return false;
   }
 
-  return new Promise(resolve => {
-    let settled = false;
+  return foundry.applications.api.DialogV2.wait({
+    window: {
+      title: `Token Statuses: ${token.name ?? actor.name ?? "Token"}`
+    },
+    position: {
+      width: 420
+    },
+    content: buildDialogContent(effects),
+    buttons: [
+      {
+        action: "apply",
+        label: "Apply",
+        icon: "fa-solid fa-check",
+        default: true,
+        callback: async (_event, button) => {
+          try {
+            const selectedStatusIds = Array.from(
+              button.form?.querySelectorAll('input[name="status"]:checked') ?? []
+            ).map(element => element.value);
 
-    new Dialog({
-      title: `Token Statuses: ${token.name ?? actor.name ?? "Token"}`,
-      content: buildDialogContent(effects),
-      buttons: {
-        apply: {
-          label: "Apply",
-          callback: async (html) => {
-            settled = true;
-            try {
-              const selectedStatusIds = html
-                .find('input[name="status"]:checked')
-                .map((_, element) => element.value)
-                .get();
-
-              await applyStatusSelection({ actor: actorWriteTarget, effects, selectedStatusIds });
-              resolve(true);
-            } catch (error) {
-              console.error("MWD | Failed to update token statuses", error);
-              ui.notifications?.error("Unable to update token statuses.");
-              resolve(false);
-            }
-          }
-        },
-        cancel: {
-          label: "Cancel",
-          callback: () => {
-            settled = true;
-            resolve(false);
+            await applyStatusSelection({ actor: actorWriteTarget, effects, selectedStatusIds });
+            return true;
+          } catch (error) {
+            console.error("MWD | Failed to update token statuses", error);
+            ui.notifications?.error("Unable to update token statuses.");
+            return false;
           }
         }
       },
-      default: "apply",
-      close: () => {
-        if (!settled) resolve(false);
+      {
+        action: "cancel",
+        label: "Cancel",
+        icon: "fa-solid fa-xmark",
+        callback: () => false
       }
-    }).render(true);
+    ],
+    close: () => false
   });
 }

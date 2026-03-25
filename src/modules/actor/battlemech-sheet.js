@@ -1,3 +1,8 @@
+// src/modules/actor/battlemech-sheet.js
+// Purpose: Provides a Sheet / UI class for entities (actor/item) or an application. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { ANARCHY } from "../config.js";
 import { VehicleSheet } from "./vehicle-sheet.js";
 

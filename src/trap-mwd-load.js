@@ -1,3 +1,7 @@
+// src/trap-mwd-load.js
+// Purpose: Project source file trap-mwd-load.js. Purpose: provides functionality for the system; update this description with details.
+// NOTE: Marked LEGACY — no references found across the codebase. May support an older system.
+
 // put this at the very top of trap-mwd-load.js (before MutationObserver)
 (() => {
   const TARGET = "mwd-roll-dialog";

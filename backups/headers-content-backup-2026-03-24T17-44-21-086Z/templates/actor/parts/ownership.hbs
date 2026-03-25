@@ -1,0 +1,13 @@
+{{!--
+templates/actor/parts/ownership.hbs
+Purpose: Handlebars template for ownership. Used to render UI in the system.
+--}}
+
+{{#if ownerActor}}
+<label class="info-label">
+  {{> 'systems/mwd/templates/common/actor-reference.hbs' ownerActor}}
+  <a class="item-control click-owner-actor-unlink" data-tooltip="{{ANARCHY.common.del}}">
+    {{{iconFA 'fas fa-trash'}}}
+  </a>
+</label>
+{{/if}}

@@ -1,3 +1,8 @@
+// src/modules/roll/mwd-roll-dialog.js
+// Purpose: Preloads or manages Handlebars templates.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // systems/mwd/module/roll/mwd-roll-dialog.js
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 

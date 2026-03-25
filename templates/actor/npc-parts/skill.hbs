@@ -1,3 +1,10 @@
+{{!--
+templates/actor/npc-parts/skill.hbs
+Purpose: Contains conditional display logic. Contains styled HTML nodes for UI layout. Includes form controls or labeled fields.
+How it fits: Used by rendering code to produce UI fragments.
+--}}
+
+
 <div class="item anarchy-skill {{#if system.inactive}}inactive{{/if}}" data-item-id="{{_id}}" data-item-type="skill" draggable="true">
   {{#if (or (eq system.code 'knowledge') (eq system.attribute 'knowledge')) }}
   <span data-tooltip="{{ANARCHY.attributes.knowledge}}">

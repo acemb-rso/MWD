@@ -1,0 +1,13 @@
+{{!--
+templates/roll/parts/dice-cursor.hbs
+Purpose: Handlebars template for dice-cursor. Used to render UI in the system.
+--}}
+
+{{#each (dice-cursor-array min max) as |dice|}}
+{{#if ../editable}}
+<a class="{{dice-cursor-color dice ../editable}} {{dice-cursor-active dice ../value}}" data-dice="{{dice}}"><i
+    class="{{dice-cursor-fas dice ../value}}"></i></a>
+{{else if (ne dice 0)}}
+<a class="{{dice-cursor-color dice ../editable}} {{dice-cursor-active dice ../value}}"><i class="{{dice-cursor-fas dice ../value}}"></i></a>
+{{/if}}
+{{/each}}

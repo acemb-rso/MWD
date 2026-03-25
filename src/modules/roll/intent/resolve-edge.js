@@ -1,3 +1,8 @@
+// src/modules/roll/intent/resolve-edge.js
+// Purpose: Defines function `resolveEdge`.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 // modules/roll/intent/resolve-edge.js
 const EDGE_POOLS = new Set([
   "grit",

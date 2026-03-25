@@ -1,0 +1,14 @@
+{{!--
+templates/actor/npc-parts/asset-modules.hbs
+Purpose: Handlebars template for asset-modules. Used to render UI in the system.
+--}}
+
+<div class="define-item-type" data-item-type="assetModule">
+  <h2 class="section-group-header">{{ANARCHY.itemType.plural.assetModule}}</h2>
+  <div class="items-group-list">
+    {{#each items.assetModule as |assetModule|}}
+    {{> 'systems/mwd/templates/actor/npc-parts/asset-module.hbs' assetModule}}
+    {{/each}}
+  </div>
+</div>
+

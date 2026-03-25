@@ -1,0 +1,18 @@
+{{!--
+templates/monitors/edge.hbs
+Purpose: Handlebars template for edge. Used to render UI in the system.
+--}}
+
+<div class="flexcol anarchy-monitor">
+  <label class="info-label">
+    {{ANARCHY.actor.counters.edge}}
+  </label>
+  {{> "systems/mwd/templates/common/checkbar.hbs"
+    code='edge'
+    label=ANARCHY.actor.counters.edge
+    value=system.counters.edge.value
+    max=(actorAttribute 'edge' @root.actor)
+    rowlength=6
+  }}
+  </span>
+</div>

@@ -1,0 +1,14 @@
+{{!--
+templates/actor/parts/owned-actor.hbs
+Purpose: Handlebars template for owned-actor. Used to render UI in the system.
+--}}
+
+<div class="item define-owned-actor" data-actor-id="{{id}}">
+  <a class="click-owned-actor-view">
+    {{> 'systems/mwd/templates/common/actor-reference.hbs' this}}
+  </a>
+  <a class="item-control click-owned-actor-unlink" data-tooltip="{{ANARCHY.common.del}}">
+    {{{iconFA 'fas fa-trash'}}}
+  </a>
+</div>
+

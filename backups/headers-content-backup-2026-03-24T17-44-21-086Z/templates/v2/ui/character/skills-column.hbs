@@ -1,0 +1,6 @@
+{{!-- templates/v2/ui/character/skills-column.hbs --}}
+<div class="mwd-skills-col">
+  {{#each (lookup @root.skillsDisplay context.skills) as |s|}}
+    {{> "mwd.v2.ui.character.skill-row" s=s}}
+  {{/each}}
+</div>

@@ -1,3 +1,8 @@
+// src/modules/roll/anarchy-roll.js
+// Purpose: Registers Foundry hooks: ready. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { ANARCHY } from "../config.js";
 import { GLITCH_COLORSET, RISK_COLORSET } from "./dice.js";
 

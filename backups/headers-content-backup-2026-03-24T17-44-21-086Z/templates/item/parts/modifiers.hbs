@@ -1,0 +1,24 @@
+{{!--
+templates/item/parts/modifiers.hbs
+Purpose: Handlebars template for modifiers. Used to render UI in the system.
+--}}
+
+<table class="modifier-list">
+  <tr class="modifier-header">
+    <th class="modifier-column" colspan="2">{{ANARCHY.modifier.column.effect}}
+      <a class="item-control click-modifier-add" 
+          data-tooltip="{{ANARCHY.common.add}}"
+          data-item-type="{{itemType}}">
+        {{{iconFA 'fas fa-plus-circle'}}}
+      </a>
+    </th>
+    <th class="modifier-column" colspan="2">{{ANARCHY.modifier.column.category}}</th>
+    <th class="modifier-column">{{ANARCHY.modifier.column.value}}</th>
+    <th class="modifier-column">{{ANARCHY.modifier.column.condition}}</th>
+  </tr>
+
+  {{#each system.modifiers as |modifier|}}
+  {{> "systems/mwd/templates/item/parts/modifier.hbs" modifier}}
+  {{/each}}
+</table>
+

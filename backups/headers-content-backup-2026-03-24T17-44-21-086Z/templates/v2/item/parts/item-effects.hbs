@@ -1,0 +1,71 @@
+{{!--
+templates/v2/item/parts/item-effects.hbs
+Purpose: Handlebars template for item-effects. Used to render UI in the system.
+--}}
+
+<section class="panel mwd-item-section mwd-item-section--full">
+  <header class="mwd-panel__header">
+    <h3 class="mwd-panel__title">Active Effects</h3>
+  </header>
+
+  <div class="mwd-panel__body">
+    {{#if itemSheet.isCompactWeaponSheet}}
+      <div class="mwd-item-note mwd-item-help">
+        Active Effects are Foundry effect definitions on the item and can sync to the actor when the weapon is equipped.
+      </div>
+    {{/if}}
+
+    <div class="mwd-effects-toolbar">
+      <button type="button" data-action="effectCreate">Add Effect</button>
+      {{#if itemSheet.supportsEffectSync}}
+        <span class="mwd-item-note">
+          {{#if options.isOwned}}
+            {{#if system.equipped}}
+              Equipped effects sync to the owning actor as runtime Active Effects.
+            {{else}}
+              Effects are stored on the item now and will apply to the actor when this item is equipped.
+            {{/if}}
+          {{else}}
+            World items store effect definitions. Effects apply only after the item is embedded in an actor and equipped.
+          {{/if}}
+        </span>
+      {{/if}}
+    </div>
+
+    {{#if itemSheet.effectEntries.length}}
+      <div class="mwd-effects-list">
+        {{#each itemSheet.effectEntries as |effect|}}
+          <div class="mwd-effects-row" data-effect-id="{{effect.id}}">
+            <div class="mwd-effects-row__main">
+              <img class="mwd-effects-row__icon" src="{{effect.img}}" alt="{{effect.name}}" />
+              <div class="mwd-effects-row__content">
+                <div class="mwd-effects-row__title">{{effect.name}}</div>
+                <div class="mwd-effects-row__meta">
+                  <span class="chip">{{effect.durationLabel}}</span>
+                  <span class="chip">{{effect.changesCount}} change{{#unless (eq effect.changesCount 1)}}s{{/unless}}</span>
+                  {{#if effect.statusesCount}}
+                    <span class="chip">{{effect.statusesCount}} status{{#unless (eq effect.statusesCount 1)}}es{{/unless}}</span>
+                  {{/if}}
+                  {{#if effect.disabled}}
+                    <span class="chip">Disabled</span>
+                  {{/if}}
+                  <span class="chip">{{effect.syncLabel}}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="button-row is-compact">
+              <button type="button" data-action="effectToggleDisabled" data-effect-id="{{effect.id}}">
+                {{#if effect.disabled}}Enable{{else}}Disable{{/if}}
+              </button>
+              <button type="button" data-action="effectEdit" data-effect-id="{{effect.id}}">Edit</button>
+              <button type="button" data-action="effectDelete" data-effect-id="{{effect.id}}">Delete</button>
+            </div>
+          </div>
+        {{/each}}
+      </div>
+    {{else}}
+      <div class="mwd-item-empty">No active effects configured on this item.</div>
+    {{/if}}
+  </div>
+</section>

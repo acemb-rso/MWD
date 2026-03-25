@@ -1,3 +1,8 @@
+// src/modules/dialog/roll-celebrity.js
+// Purpose: Renders Handlebars templates at runtime. Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { ANARCHY } from "../config.js";
 import { TEMPLATES_PATH } from "../constants.js";
 import { Misc } from "../misc.js";

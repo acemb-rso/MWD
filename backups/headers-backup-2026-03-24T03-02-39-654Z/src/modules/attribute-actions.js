@@ -1,0 +1,121 @@
+import { ANARCHY } from "./config.js";
+import { ANARCHY_SYSTEM, TEMPLATE } from "./constants.js";
+import { ErrorManager } from "./error-manager.js";
+import { Icons } from "./icons.js";
+
+function action(code, attributeFunction1, attributeFunction2, icon, actorTypes, condition = actor => true) {
+  return {
+    code: code,
+    labelkey: ANARCHY.attributeAction[code],
+    label: ANARCHY.attributeAction[code],
+    attributeFunction1: attributeFunction1 ?? (__ => undefined),
+    attributeFunction2: attributeFunction2 ?? (__ => undefined),
+    icon: icon,
+    actorTypes: actorTypes,
+    condition: condition
+  }
+}
+
+function defense(code, actionCode) {
+  return {
+    code: code,
+    labelkey: ANARCHY.defense[code],
+    label: ANARCHY.defense[code],
+    actionCode: actionCode
+  }
+}
+
+const ATTR = TEMPLATE.actorAttributes;
+const ACTOR = TEMPLATE.actorTypes;
+const ACTION = ANARCHY_SYSTEM.actions;
+const DEFENSE = ANARCHY_SYSTEM.defenses;
+
+const ATTRIBUTE_ACTIONS = [
+  action(ACTION.defense, __ => ATTR.reflexes, __ => ATTR.intelligence, Icons.fontAwesome('fas fa-shield-alt'), [ACTOR.character, ACTOR.npc]),
+  action(ACTION.defense, __ => ATTR.handling, __ => ATTR.chassis, Icons.fontAwesome('fas fa-tachometer-alt'), [ACTOR.vehicle, ACTOR.battlemech]),
+  action(ACTION.resistTorture, __ => ATTR.strength, __ => ATTR.willpower, Icons.fontAwesome('fas fa-angry'), [ACTOR.character, ACTOR.npc]),
+
+  action(ACTION.perception, __ => ATTR.logic, __ => ATTR.willpower, Icons.fontAwesome('fas fa-eye'), [ACTOR.character, ACTOR.npc]),
+  action(ACTION.perception, __ => ATTR.system, __ => ATTR.handling, Icons.fontAwesome('fas fa-video'), [ACTOR.vehicle, ACTOR.battlemech]),
+
+  action(ACTION.composure, __ => ATTR.charisma, __ => ATTR.willpower, Icons.fontAwesome('fas fa-meh'), [ACTOR.character, ACTOR.npc]),
+  action(ACTION.judgeIntentions, __ => ATTR.charisma, __ => ATTR.charisma, Icons.fontAwesome('fas fa-theater-masks'), [ACTOR.character, ACTOR.npc]),
+  action(ACTION.memory, __ => ATTR.logic, __ => ATTR.logic, Icons.fontAwesome('fas fa-brain'), [ACTOR.character, ACTOR.npc]),
+  action(ACTION.catch, __ => ATTR.reflexes, __ => ATTR.reflexes, Icons.fontAwesome('fas fa-baseball-ball'), [ACTOR.character, ACTOR.npc]),
+  action(ACTION.lift, __ => ATTR.strength, __ => ATTR.strength, Icons.fontAwesome('fas fa-dumbbell'), [ACTOR.character, ACTOR.npc]),
+
+]
+
+const DEFENSES = [
+  defense(DEFENSE.physicalDefense, ACTION.defense),
+  defense(DEFENSE.physicalResistance, ACTION.resistTorture),
+  defense(DEFENSE.socialDefense, ACTION.composure),
+  defense(DEFENSE.mentalResistance, ACTION.perception),
+]
+
+export class AttributeActions {
+  static init() {
+    Handlebars.registerHelper('fixedDefenseCode', code => AttributeActions.fixedDefenseCode(code));
+  }
+
+  static all(filter = undefined) {
+    return filter
+      ? ATTRIBUTE_ACTIONS.filter(filter)
+      : ATTRIBUTE_ACTIONS;
+  }
+
+  static getActorActions(actor) {
+    return ATTRIBUTE_ACTIONS.filter(it => it.actorTypes.includes(actor.type) && it.condition(actor));
+  }
+
+  static fixedDefenseCode(code) {
+    return ANARCHY_SYSTEM.fixedDefenseCode[code] ?? code;
+  }
+  static getActorDefenses(actor) {
+    return DEFENSES
+      .map(defense => {
+        const actorAction = AttributeActions.getActorAction(actor, defense.actionCode);
+        return AttributeActions._convertToDefense(actorAction, defense);
+      })
+      .filter(it => it?.code);
+  }
+
+  static getDefenseAttributeAction(defenseCode) {
+    return DEFENSES.find(it => it.code == defenseCode)?.actionCode
+  }
+
+  static getActorAction(actor, actionCode) {
+    return AttributeActions.getActorActions(actor).find(it => it.code == actionCode);
+  }
+
+  static getActorDefense(actor, defenseCode) {
+    defenseCode = AttributeActions.fixedDefenseCode(defenseCode);
+    const defense = DEFENSES.find(it => it.code == defenseCode);
+    const actorAction = AttributeActions.getActorAction(actor, defense.actionCode);
+    ErrorManager.checkActorDefenseAction(actorAction, actor, defense);
+    return AttributeActions._convertToDefense(actorAction, defense);
+  }
+
+  static _convertToDefense(actorAction, defense) {
+    return actorAction ? foundry.utils.mergeObject(defense,
+      actorAction ?? {},
+      { overwrite: false, inplace: false }
+    ) : undefined;
+  }
+
+  static getDefenses() {
+    return DEFENSES;
+  }
+
+  static prepareShortcut(actor, actionCode) {
+    const action = AttributeActions.getActorActions(actor).find(a => a.code == actionCode);
+    if (action) {
+      return {
+        icon: action.icon,
+        label: action.labelkey,
+        callback: (token) => token.actor.rollAttributeAction(actionCode),
+      };
+    }
+    return undefined;
+  }
+}

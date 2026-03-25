@@ -1,3 +1,8 @@
+// src/modules/item/weapon-item.js
+// Purpose: Registers Foundry hooks. References legacy Anarchy system behavior.
+// How it fits: Describes role within src/modules or template rendering pipeline.
+
+
 import { TEMPLATE, TEMPLATES_PATH } from "../constants.js";
 import { MWD } from "../config.js";
 import { Enums } from "../enums.js";

@@ -1,0 +1,18 @@
+<section class="{{cssClass}}">
+  <header class="sheet-header">
+    <img class="profile" src="{{actor.img}}" data-edit="img" />
+    <h1 class="name">
+      {{#if editable}}<input name="name" type="text" value="{{actor.name}}" />{{else}}{{actor.name}}{{/if}}
+    </h1>
+
+    {{#if editable}}
+      <button type="button" data-action="toggleEditing">
+        {{#if editing}}View{{else}}Edit{{/if}}
+      </button>
+    {{/if}}
+  </header>
+
+  <section class="sheet-body">
+    {{> "systems/mwd/templates/v2/actor/vehicle-main.hbs"}}
+  </section>
+</section>
