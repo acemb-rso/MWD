@@ -27,13 +27,15 @@ How it fits: Used by rendering code to produce UI fragments.
   <div class="tab section-group" data-group="primary" data-tab="main">
     {{#if itemSheet.canUseActorControls}}
       <div class="form-group">
-        <label for="system.equipped">{{MWD.item.armor.equipped}}</label>
-        <input type="checkbox" name="system.equipped" {{checked system.equipped}} />
+        {{#> "mwd.v2.components.checkbox" classes="mwd-checkbox--inline" label=MWD.item.armor.equipped}}
+          <input type="checkbox" name="system.equipped" {{checked system.equipped}} />
+        {{/ "mwd.v2.components.checkbox"}}
       </div>
 
       <div class="form-group">
-        <label for="system.isPrimary">{{MWD.item.armor.primary}}</label>
-        <input type="checkbox" name="system.isPrimary" {{checked system.isPrimary}} />
+        {{#> "mwd.v2.components.checkbox" classes="mwd-checkbox--inline" label=MWD.item.armor.primary}}
+          <input type="checkbox" name="system.isPrimary" {{checked system.isPrimary}} />
+        {{/ "mwd.v2.components.checkbox"}}
       </div>
     {{else}}
       <p class="notes">Equip and primary controls become available when this armor is embedded in an actor.</p>
@@ -103,7 +105,6 @@ How it fits: Used by rendering code to produce UI fragments.
       <textarea name="system.notes">{{system.notes}}</textarea>
     </div>
 
-    {{> 'systems/mwd/templates/v2/item/parts/inactive.hbs'}}
     {{> 'systems/mwd/templates/v2/item/parts/references.hbs'}}
   </div>
 

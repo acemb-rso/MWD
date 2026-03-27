@@ -10,11 +10,74 @@ import { EDGE_POOL_GROUPS } from "../constants.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 
+function toNumber(value, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function stripHtml(value) {
+  return String(value ?? "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function toSnippet(value, max = 180) {
+  const plain = stripHtml(value);
+  if (!plain) return "";
+  if (plain.length <= max) return plain;
+  return `${plain.slice(0, Math.max(0, max - 3)).trim()}...`;
+}
+
+function compactList(values = []) {
+  return values
+    .map(value => String(value ?? "").trim())
+    .filter(Boolean);
+}
+
+function buildSummaryStats(stats = []) {
+  return stats
+    .filter(stat => stat && stat.value !== undefined && stat.value !== null && String(stat.value).trim() !== "")
+    .map(stat => ({
+      label: String(stat.label ?? "").trim(),
+      value: String(stat.value ?? "").trim(),
+      emphasis: stat.emphasis ?? ""
+    }));
+}
+
+function buildDetailTags(tags = []) {
+  return compactList(tags).map(label => ({ label }));
+}
+
+function buildDetailRows(rows = []) {
+  return rows
+    .filter(row => row && row.value !== undefined && row.value !== null && String(row.value).trim() !== "")
+    .map(row => ({
+      label: String(row.label ?? "").trim(),
+      value: String(row.value ?? "").trim()
+    }));
+}
+
+function formatBandValues(bands = {}, order = ["close", "near", "far", "extreme"]) {
+  return order
+    .map(key => {
+      const value = toNumber(bands?.[key], 0);
+      return `${key.charAt(0).toUpperCase() + key.slice(1)} ${value}`;
+    })
+    .join(" | ");
+}
+
+function formatRangeBandLabel(rangeKey = "") {
+  const value = String(rangeKey ?? "").trim().toLowerCase();
+  if (!value) return "";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
 export class CharacterSheetV2 extends BaseActorSheetV2 {
   #openCombatMenuId = null;
   #combatMenuOutsideHandler = null;
   #pendingScrollRestore = null;
+  #expandedInventoryRows = new Set();
 
   static PARTS = {
     sheet: {
@@ -41,6 +104,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       createOwnedItem: CharacterSheetV2.prototype._onCreateOwnedItem,
       editOwnedItem: CharacterSheetV2.prototype._onEditOwnedItem,
       deleteOwnedItem: CharacterSheetV2.prototype._onDeleteOwnedItem,
+      toggleInventoryAccordion: CharacterSheetV2.prototype._onToggleInventoryAccordion,
       toggleOwnedItemEquipped: CharacterSheetV2.prototype._onToggleOwnedItemEquipped,
       setOwnedItemPrimary: CharacterSheetV2.prototype._onSetOwnedItemPrimary,
       attackWeapon: CharacterSheetV2.prototype._onAttackWeapon
@@ -230,50 +294,127 @@ ctx.edgeConsole.poolsOrdered = order
     const loadout = this.actor.getPersonalCombatLoadout?.() ?? null;
     ctx.personalInventory = {
       warnings: [...(loadout?.warnings ?? [])],
-      weapons: (loadout?.weapons ?? []).map(weapon => ({
-        id: weapon.id,
-        name: weapon.name,
-        img: weapon.img,
-        category: weapon.category,
-        skill: weapon.skill,
-        damage: weapon.damage,
-        ap: weapon.ap,
-        damageType: weapon.damageType,
-        equipped: !!weapon.equipped,
-        isPrimary: !!weapon.isPrimary,
-        traitsLabel: (weapon.traits ?? []).join(", "),
-        attackRoll: JSON.stringify({
-          intent: "attack",
-          weaponId: weapon.id,
-          edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-          tags: ["combat", "attack"]
-        })
-      })),
-      armor: (loadout?.armor ?? []).map(armor => {
-        const activeArmor = loadout?.activeArmor?.id === armor.id ? loadout.activeArmor : null;
+      weapons: (loadout?.weapons ?? []).map(weapon => {
+        const accordionId = this.#inventoryAccordionId("weapons", weapon.id);
+        const ammoTracked = Boolean(weapon?.ammoState?.isTracked);
+        const ammoLabel = weapon?.ammoLabel ? `Loaded ${weapon.ammoLabel}` : "";
+        const ammoCount = ammoTracked
+          ? `${toNumber(weapon?.ammoState?.current, 0)}/${toNumber(weapon?.ammoState?.max, 0)}`
+          : "";
+        const detailRows = buildDetailRows([
+          { label: "Skill", value: weapon.skillDef?.label ?? weapon.skill ?? "" },
+          { label: "Category", value: weapon.category ?? "" },
+          { label: "Max Range", value: formatRangeBandLabel(weapon.range?.max ?? weapon.defaultRangeBand ?? "") },
+          { label: "Attack Rating", value: formatBandValues(weapon.attackRatingBand) },
+          { label: "Ammo", value: ammoTracked ? `${ammoCount} tracked` : (weapon.ammoLabel || "Untracked") },
+          { label: "Traits", value: compactList(weapon.traits ?? []).join(", ") }
+        ]);
+
         return {
-          id: armor.id,
-          name: armor.name,
-          img: armor.img,
-          rating: Number(activeArmor?.ratingCurrent ?? armor.rating ?? 0),
-          baseResistance: Number(activeArmor?.baseMitigation ?? activeArmor?.baseResistance ?? 0),
-          defenseBonus: Number(armor.defenseBonus ?? 0),
-          equipped: !!armor.equipped,
-          isPrimary: !!armor.isPrimary,
-          durability: `${Number(activeArmor?.durability?.current ?? armor.durability?.current ?? 0)}/${Number(activeArmor?.durability?.max ?? armor.durability?.max ?? 0)}`,
-          mitigationLabel: Object.entries(activeArmor?.mitigationByType ?? activeArmor?.typedMitigation ?? armor.mitigationByType ?? {})
-            .filter(([, value]) => Number(value) > 0)
-            .map(([key, value]) => `${key} +${value}`)
-            .join(", ")
+          id: weapon.id,
+          accordionId,
+          isExpanded: this.#expandedInventoryRows.has(accordionId),
+          name: weapon.name,
+          img: weapon.img,
+          subtitle: weapon.skillDef?.label ?? weapon.category ?? "",
+          summaryStats: buildSummaryStats([
+            { label: "DV", value: toNumber(weapon.damage, 0), emphasis: "strong" },
+            { label: "AP", value: toNumber(weapon.ap, 0) },
+            { label: "Type", value: weapon.damageTypeLabel ?? weapon.damageType ?? "" },
+            { label: "Ammo", value: ammoTracked ? ammoCount : (weapon.ammoLabel || "--") }
+          ]),
+          detailTags: buildDetailTags([
+            weapon.equipped ? "Equipped" : "",
+            weapon.isPrimary ? "Primary" : "",
+            ammoLabel,
+            ...compactList(weapon.traits ?? [])
+          ]),
+          detailRows,
+          detailText: toSnippet(weapon.notes),
+          equipped: !!weapon.equipped,
+          isPrimary: !!weapon.isPrimary,
+          attackRoll: JSON.stringify({
+            intent: "attack",
+            weaponId: weapon.id,
+            ammoTypeId: weapon?.ammoState?.activeTypeId ?? "",
+            edge: { pool: "physical.grit", allowed: ["pre", "post"] },
+            tags: ["combat", "attack"]
+          })
         };
       }),
-      gear: (ctx.items?.gear ?? []).map(item => ({
-        id: item.id,
-        name: item.name,
-        img: item.img,
-        quantity: Number(item.system?.quantity ?? 1) || 1,
-        equipped: !!item.system?.equipped
-      }))
+      armor: (loadout?.armor ?? []).map(armor => {
+        const activeArmor = loadout?.activeArmor?.id === armor.id ? loadout.activeArmor : null;
+        const accordionId = this.#inventoryAccordionId("armor", armor.id);
+        const reinforcedMax = toNumber(activeArmor?.traitState?.reinforced?.max ?? armor?.traitState?.reinforced?.max, 0);
+        const reinforcedLabel = reinforcedMax > 0
+          ? `${toNumber(activeArmor?.traitState?.reinforced?.current ?? armor?.traitState?.reinforced?.current, 0)}/${reinforcedMax}`
+          : "";
+        const mitigationLabel = [
+          Object.entries(activeArmor?.mitigationByType ?? activeArmor?.typedMitigation ?? armor.mitigationByType ?? {})
+            .filter(([, value]) => Number(value) > 0)
+            .map(([key, value]) => `${key} +${value}`)
+            .join(", "),
+          reinforcedLabel ? `Reinforced ${reinforcedLabel}` : ""
+        ].filter(Boolean).join(" | ");
+
+        return {
+          id: armor.id,
+          accordionId,
+          isExpanded: this.#expandedInventoryRows.has(accordionId),
+          name: armor.name,
+          img: armor.img,
+          subtitle: armor.tags?.length ? armor.tags.join(", ") : "Armor",
+          summaryStats: buildSummaryStats([
+            { label: "Rating", value: toNumber(activeArmor?.ratingCurrent ?? armor.rating, 0), emphasis: "strong" },
+            { label: "Res", value: toNumber(activeArmor?.baseMitigation ?? activeArmor?.baseResistance, 0) },
+            { label: "Def", value: toNumber(armor.defenseBonus, 0) },
+            { label: "Dur", value: `${toNumber(activeArmor?.durability?.current ?? armor.durability?.current, 0)}/${toNumber(activeArmor?.durability?.max ?? armor.durability?.max, 0)}` }
+          ]),
+          detailTags: buildDetailTags([
+            armor.equipped ? "Equipped" : "",
+            armor.isPrimary ? "Primary" : "",
+            reinforcedLabel ? `Reinforced ${reinforcedLabel}` : "",
+            ...compactList(armor.traits ?? [])
+          ]),
+          detailRows: buildDetailRows([
+            { label: "Mitigation", value: mitigationLabel },
+            { label: "Defense Bonus", value: toNumber(armor.defenseBonus, 0) },
+            { label: "Traits", value: compactList(armor.traits ?? []).join(", ") },
+            { label: "Tags", value: compactList(armor.tags ?? []).join(", ") }
+          ]),
+          detailText: toSnippet(armor.notes),
+          equipped: !!armor.equipped,
+          isPrimary: !!armor.isPrimary,
+        };
+      }),
+      gear: (ctx.items?.gear ?? []).map(item => {
+        const accordionId = this.#inventoryAccordionId("gear", item.id);
+        const quantity = toNumber(item.system?.quantity ?? 1, 1) || 1;
+        const tags = compactList(item.system?.tags ?? item.system?.traits ?? []);
+        return {
+          id: item.id,
+          accordionId,
+          isExpanded: this.#expandedInventoryRows.has(accordionId),
+          name: item.name,
+          img: item.img,
+          subtitle: item.system?.category ?? item.type ?? "Gear",
+          summaryStats: buildSummaryStats([
+            { label: "Qty", value: quantity, emphasis: "strong" },
+            { label: "State", value: item.system?.equipped ? "Readied" : "" }
+          ]),
+          detailTags: buildDetailTags([
+            item.system?.equipped ? "Readied" : "",
+            ...tags
+          ]),
+          detailRows: buildDetailRows([
+            { label: "Quantity", value: quantity },
+            { label: "Source", value: item.system?.sourceReference ?? "" },
+            { label: "Tags", value: tags.join(", ") }
+          ]),
+          detailText: toSnippet(item.system?.notes ?? item.system?.description),
+          equipped: !!item.system?.equipped
+        };
+      })
     };
 
     return ctx;
@@ -655,6 +796,28 @@ ctx.edgeConsole.poolsOrdered = order
   this.#renderPreservingScroll({ force: true });
  }
 
+ async _onToggleInventoryAccordion(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  const accordionId = String(
+    target?.dataset?.accordionId
+    ?? target?.closest?.("[data-accordion-id]")?.dataset?.accordionId
+    ?? event?.target?.closest?.("[data-accordion-id]")?.dataset?.accordionId
+    ?? ""
+  ).trim();
+
+  if (!accordionId) return;
+
+  if (this.#expandedInventoryRows.has(accordionId)) {
+    this.#expandedInventoryRows.delete(accordionId);
+  } else {
+    this.#expandedInventoryRows.add(accordionId);
+  }
+
+  this.#renderPreservingScroll(false);
+ }
+
  async _onToggleOwnedItemEquipped(event, target) {
   event?.preventDefault?.();
   event?.stopPropagation?.();
@@ -719,6 +882,10 @@ ctx.edgeConsole.poolsOrdered = order
 
   if (!itemId) return null;
   return this.actor.items.get(itemId) ?? null;
+ }
+
+ #inventoryAccordionId(section, itemId) {
+  return `${String(section ?? "").trim()}:${String(itemId ?? "").trim()}`;
  }
 
 

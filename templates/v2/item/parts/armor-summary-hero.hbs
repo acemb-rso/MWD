@@ -1,0 +1,31 @@
+{{!--
+templates/v2/item/parts/armor-summary-hero.hbs
+Purpose: Renders the armor hero stat strip.
+How it fits: Used by the CSB-driven armor details layout.
+--}}
+
+
+<section class="mwd-item-hero mwd-item-hero--armor">
+  <div class="mwd-item-hero__stat">
+    <span class="mwd-item-hero__label">Rating</span>
+    <span class="mwd-item-hero__value">{{system.rating}}</span>
+  </div>
+  <div class="mwd-item-hero__stat">
+    <span class="mwd-item-hero__label">Resist</span>
+    <span class="mwd-item-hero__value">{{armorState.baseMitigation}}</span>
+  </div>
+  <div class="mwd-item-hero__stat">
+    <span class="mwd-item-hero__label">Defense</span>
+    <span class="mwd-item-hero__value">{{system.defenseBonus}}</span>
+  </div>
+  <div class="mwd-item-hero__stat">
+    <span class="mwd-item-hero__label">Durability</span>
+    <span class="mwd-item-hero__value">{{effectiveDurabilityCurrent}} / {{system.durability.max}}</span>
+  </div>
+  {{#if system.traitState.reinforced.max}}
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Reinforced</span>
+      <span class="mwd-item-hero__value">{{system.traitState.reinforced.current}} / {{system.traitState.reinforced.max}}</span>
+    </div>
+  {{/if}}
+</section>

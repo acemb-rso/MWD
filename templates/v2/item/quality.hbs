@@ -26,10 +26,10 @@ How it fits: Used by rendering code to produce UI fragments.
   <section class="sheet-body">
     <div class="tab section-group" data-group="primary" data-tab="main">
       <div class="form-group">
-        <label for="system.positive">{{MWD.item.quality.positive}} </label>
-        <input class="item-field-value" type="checkbox" name="system.positive" {{checked system.positive}} />
+        {{#> "mwd.v2.components.checkbox" classes="mwd-checkbox--inline" label=MWD.item.quality.positive}}
+          <input class="item-field-value" type="checkbox" name="system.positive" {{checked system.positive}} />
+        {{/ "mwd.v2.components.checkbox"}}
       </div>
-      {{> 'systems/mwd/templates/v2/item/parts/inactive.hbs'}}
       {{> 'systems/mwd/templates/v2/item/parts/references.hbs'}}
     </div>
     <div class="tab section-group" data-group="primary" data-tab="modifiers">

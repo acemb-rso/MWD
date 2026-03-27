@@ -164,6 +164,10 @@ export class MWDActor extends Actor {
     return this.items?.get?.(itemId) ?? null;
   }
 
+  async setCheckbarValue(path, value) {
+    return await this.update({ [path]: value });
+  }
+
   getPersonalCombatLoadout({ refresh = false } = {}) {
     if (!refresh) {
       const cached = this._mwdDerived?.personalCombat;

@@ -193,7 +193,7 @@ export class Modifiers {
   }
 
   static _activeItems(items) {
-    return items.filter(it => it.isActive());
+    return items;
   }
 
 }

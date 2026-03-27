@@ -11,8 +11,12 @@ import { AttributeActions } from "./attribute-actions.js";
 import { MESSAGE_DATA } from "./chat/chat-manager.js";
 import {
   migrateLegacyArmorMitigation,
+  normalizeArmorStandardTraits,
   normalizePersonalDamageType,
   normalizeArmorTags,
+  normalizeWeaponAmmo,
+  normalizeWeaponStandardTraits,
+  resolveArmorTraitEffects,
 } from "./mwd/personal-damage.js";
 
 export const DECLARE_MIGRATIONS = 'anarchy-declareMigration';
@@ -756,6 +760,48 @@ class _13_7_0_PersonalDamageModelV2 extends Migration {
   }
 }
 
+class _13_8_0_StandardGearTraitsAndAmmo extends Migration {
+  get version() { return "13.8.0"; }
+  get code() { return "standard-gear-traits-and-ammo"; }
+
+  async migrate() {
+    await this.applyItemsUpdates(items => items
+      .filter(item => [TEMPLATE.itemType.personalWeapon, TEMPLATE.itemType.armor].includes(item.canonicalType ?? item.type))
+      .map(item => this._collectItemUpdate(item))
+      .filter(Boolean));
+  }
+
+  _collectItemUpdate(item) {
+    const canonicalType = item.canonicalType ?? item.type;
+    if (canonicalType === TEMPLATE.itemType.personalWeapon) {
+      const ammo = normalizeWeaponAmmo(item.system?.ammo);
+      const standardTraits = normalizeWeaponStandardTraits(item.system?.standardTraits);
+      return {
+        _id: item.id,
+        "system.ammo": ammo,
+        "system.standardTraits": standardTraits,
+      };
+    }
+
+    if (canonicalType === TEMPLATE.itemType.armor) {
+      const standardTraits = normalizeArmorStandardTraits(item.system?.standardTraits);
+      const traitState = resolveArmorTraitEffects({
+        standardTraits,
+        traits: item.system?.traits,
+        traitState: item.system?.traitState,
+      }).traitState;
+
+      return {
+        _id: item.id,
+        "system.standardTraits": standardTraits,
+        "system.traitState": traitState,
+      };
+    }
+
+    return null;
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -780,6 +826,7 @@ export class Migrations {
       new _13_6_1_RenameShadowampsToAssetModules(),
       new _13_6_2_AddMwdVehicleScaffold(),
       new _13_7_0_PersonalDamageModelV2(),
+      new _13_8_0_StandardGearTraitsAndAmmo(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

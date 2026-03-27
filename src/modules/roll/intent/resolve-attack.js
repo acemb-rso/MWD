@@ -53,7 +53,7 @@ function getWeaponProfile(actor, payload) {
     throw new Error("Attack requires an equipped personal weapon.");
   }
 
-  return item.getCombatProfile?.() ?? null;
+  return item.getCombatProfile?.({ ammoTypeId: payload?.ammoTypeId }) ?? null;
 }
 
 export async function resolveAttack({ actor, payload } = {}) {
@@ -78,6 +78,7 @@ export async function resolveAttack({ actor, payload } = {}) {
   const rangeBand = String(payload?.rangeBand ?? weapon.defaultRangeBand ?? "close").trim() || "close";
   const attackRating = Number(weapon?.attackRatingBand?.[rangeBand] ?? 0) || 0;
   const targets = getTargets().map(buildTargetSnapshot).filter(Boolean);
+  const totalAp = Number(weapon.ap ?? 0) + Number(weapon?.effects?.ap ?? 0);
 
   return {
     intent: "attack",
@@ -98,7 +99,7 @@ export async function resolveAttack({ actor, payload } = {}) {
       { id: "bonus", label: "Skill Bonus", value: skillBonus },
       { id: "weaponAccuracy", label: "Weapon Accuracy", value: accuracyBonus },
       { id: "damage", label: "Damage", value: Number(weapon.damage ?? 0) || 0 },
-      { id: "ap", label: "AP", value: Number(weapon.ap ?? 0) + Number(weapon?.effects?.ap ?? 0) },
+      { id: "ap", label: "AP", value: totalAp },
       { id: "attackRating", label: `Attack Rating (${rangeBand})`, value: attackRating }
     ],
     attack: {
@@ -109,7 +110,10 @@ export async function resolveAttack({ actor, payload } = {}) {
         label: skillDef.label ?? weapon.skill,
         attribute: attrKey
       },
-      targets
+      targets,
+      ammo: weapon?.ammoState ?? null,
+      ammoLabel: weapon?.ammoLabel ?? "",
+      totalAp
     }
   };
 }

@@ -35,7 +35,6 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
         // Items
         itemAdd: this._onItemAdd,
         itemEdit: this._onItemEdit,
-        itemActivate: this._onItemActivate,
         itemDelete: this._onItemDelete,
 
         // Favorites
@@ -252,14 +251,6 @@ export class AnarchyActorSheet extends HandlebarsApplicationMixin(foundry.applic
     event.stopPropagation();
     const item = this._getItemFromTarget(target);
     item?.sheet?.render(true);
-  }
-
-  static async _onItemActivate(event, target) {
-    event.preventDefault();
-    event.stopPropagation();
-    const item = this._getItemFromTarget(target);
-    if (!item) return;
-    await item.update({ "system.inactive": !item.system.inactive });
   }
 
   static async _onItemDelete(event, target) {

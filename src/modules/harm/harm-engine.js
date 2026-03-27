@@ -81,6 +81,11 @@ function buildChatContent(result) {
       lines.push(
         `<div><b>Mitigation:</b> base ${Number(result.mitigation.baseMitigation ?? 0)} + type ${Number(result.mitigation.typeMitigationMod ?? 0)} - AP ${Number(result.effectiveAp ?? 0)} = ${Number(result.mitigation.netResistance ?? 0)}</div>`
       );
+      if (Number(result.mitigation.reinforcedMax ?? 0) > 0) {
+        lines.push(
+          `<div><b>Reinforced:</b> ${Number(result.mitigation.reinforcedAfter ?? 0)}/${Number(result.mitigation.reinforcedMax ?? 0)}</div>`
+        );
+      }
     }
   }
 
@@ -419,10 +424,25 @@ export class HarmEngine {
 
     const armorBefore = Math.max(0, Number(activeArmor?.durability?.current ?? 0) || 0);
     let armorAfter = armorBefore;
+    const reinforcedBefore = Math.max(0, Number(activeArmor?.traitState?.reinforced?.current ?? 0) || 0);
+    const reinforcedMax = Math.max(0, Number(activeArmor?.traitState?.reinforced?.max ?? 0) || 0);
+    let reinforcedAfter = reinforcedBefore;
     if (baseDamage + netHits > 0 && activeArmor?.item?.id) {
-      armorAfter = Math.max(0, armorBefore - 1);
-      if (armorAfter !== armorBefore) {
-        await activeArmor.item.update({ "system.durability.current": armorAfter });
+      const armorUpdate = {};
+      if (reinforcedBefore > 0) {
+        reinforcedAfter = Math.max(0, reinforcedBefore - 1);
+        if (reinforcedAfter !== reinforcedBefore) {
+          armorUpdate["system.traitState.reinforced.current"] = reinforcedAfter;
+        }
+      } else {
+        armorAfter = Math.max(0, armorBefore - 1);
+        if (armorAfter !== armorBefore) {
+          armorUpdate["system.durability.current"] = armorAfter;
+        }
+      }
+
+      if (Object.keys(armorUpdate).length > 0) {
+        await activeArmor.item.update(armorUpdate);
       }
     }
 
@@ -441,6 +461,9 @@ export class HarmEngine {
         netResistance,
         armorBefore,
         armorAfter,
+        reinforcedBefore,
+        reinforcedAfter,
+        reinforcedMax,
       },
       damageIncoming,
       adjustedIncoming: damageIncoming,

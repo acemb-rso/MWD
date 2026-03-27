@@ -148,6 +148,7 @@ export function buildResolved({
     subtitle: ctx?.subtitle ?? (actor.name ?? "Actor"),
     intent: ctx?.intent ?? payload.intent,
     domains: Array.isArray(ctx?.domains) ? ctx.domains : [],
+    attack: ctx?.attack ?? null,
 
     // Minimal context snapshot so chat-actions can recompute interpretation
     // after post-spend rerolls mutate hits.

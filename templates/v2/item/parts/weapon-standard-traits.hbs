@@ -1,0 +1,37 @@
+{{!--
+templates/v2/item/parts/weapon-standard-traits.hbs
+Purpose: Renders structured standard trait controls for personal weapons.
+How it fits: Used by the CSB-driven personal weapon details layout.
+--}}
+
+
+<section class="mwd-combat-sheet__subsection">
+  <header class="mwd-combat-sheet__subheader">
+    <h4 class="mwd-combat-sheet__subtitle">Standard Traits</h4>
+    <button type="button" class="mwd-standard-trait-add"><i class="fas fa-plus"></i> Add</button>
+  </header>
+
+  {{#if system.standardTraits.length}}
+    {{#each system.standardTraits as |trait|}}
+      <div class="mwd-weapon-compact__row mwd-weapon-compact__row--actions" data-trait-id="{{trait.id}}">
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Trait</label>
+          <select class="mwd-standard-trait-field" data-trait-id="{{trait.id}}" data-field="key">
+            {{selectOptions ../weaponEditor.standardTraits selected=trait.key valueAttr="value" labelAttr="label" localize=false}}
+          </select>
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Rating</label>
+          <input class="type-numeric mwd-standard-trait-field" type="number" value="{{trait.rating}}" data-trait-id="{{trait.id}}" data-field="rating" />
+        </div>
+
+        <button type="button" class="mwd-record__icon-btn is-danger mwd-standard-trait-delete" data-trait-id="{{trait.id}}" title="Remove">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    {{/each}}
+  {{else}}
+    <div class="mwd-item-note">No standard weapon traits defined.</div>
+  {{/if}}
+</section>

@@ -15,7 +15,51 @@
             "id": "main",
             "label": "Details",
             "children": [
-              { "type": "include", "partial": "mwd.v2.item.parts.weapon-compact-main" }
+              { "type": "include", "partial": "mwd.v2.item.parts.weapon-summary-hero" },
+              {
+                "type": "stack",
+                "classes": ["mwd-item-main-grid"],
+                "children": [
+                  {
+                    "type": "panel",
+                    "title": "Combat Essentials",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.item.parts.weapon-combat-essentials" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Usage and Bands",
+                    "classes": ["mwd-item-section--usage-bands"],
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.item.parts.weapon-usage-bands" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Traits and Ammunition",
+                    "classes": ["mwd-item-section--full"],
+                    "children": [
+                      {
+                        "type": "stack",
+                        "classes": ["mwd-combat-sheet__split"],
+                        "children": [
+                          { "type": "include", "partial": "mwd.v2.item.parts.weapon-standard-traits" },
+                          { "type": "include", "partial": "mwd.v2.item.parts.weapon-ammo-profiles" }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Notes and Reference",
+                    "classes": ["mwd-item-section--full"],
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.item.parts.weapon-notes-reference" }
+                    ]
+                  }
+                ]
+              }
             ]
           },
           {

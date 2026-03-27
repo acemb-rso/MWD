@@ -1,0 +1,26 @@
+{{!--
+templates/v2/components/checkbox.hbs
+Purpose: Shared styled checkbox control for AppV2 sheet templates.
+How it fits: Wraps a native checkbox input supplied by the caller and renders a standardized faux box.
+--}}
+
+
+<label class="mwd-checkbox{{#if classes}} {{classes}}{{/if}}">
+  {{#if controlFirst}}
+    <span class="mwd-checkbox__control{{#if controlClass}} {{controlClass}}{{/if}}">
+      {{> @partial-block}}
+      <span class="mwd-checkbox__box" aria-hidden="true"></span>
+    </span>
+  {{/if}}
+
+  {{#if label}}
+    <span class="mwd-checkbox__label{{#if labelClass}} {{labelClass}}{{/if}}">{{label}}</span>
+  {{/if}}
+
+  {{#unless controlFirst}}
+    <span class="mwd-checkbox__control{{#if controlClass}} {{controlClass}}{{/if}}">
+      {{> @partial-block}}
+      <span class="mwd-checkbox__box" aria-hidden="true"></span>
+    </span>
+  {{/unless}}
+</label>

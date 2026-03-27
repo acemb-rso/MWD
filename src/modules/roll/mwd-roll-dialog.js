@@ -100,7 +100,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         setManualStepper: MWDRollDialog.prototype._onSetManualStepper,
         setEdgePrePool: MWDRollDialog.prototype._onSetEdgePrePool,
         toggleCheckbox: MWDRollDialog.prototype._onToggleCheckbox,
-        setDn: MWDRollDialog.prototype._onSetDn
+        setDn: MWDRollDialog.prototype._onSetDn,
+        setAmmoType: MWDRollDialog.prototype._onSetAmmoType
       }
     },
     { inplace: false }
@@ -234,6 +235,12 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const selected = edgeChoices.find(c => c.selected);
     const selectedLabel = selected?.label ?? null;
+    const attack = bc?.resolved?.attack ?? null;
+    const ammoTypes = Array.isArray(attack?.weapon?.ammoState?.types)
+      ? attack.weapon.ammoState.types
+      : [];
+    const selectedAmmoTypeId = String(st?.payload?.ammoTypeId ?? attack?.weapon?.ammoState?.activeTypeId ?? "").trim();
+    const selectedAmmoType = ammoTypes.find(type => type.id === selectedAmmoTypeId) ?? null;
 
 
     return {
@@ -261,7 +268,21 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         : st.toggles,
       totalPool,
       intent,
-      dn
+      dn,
+      attack: attack ? {
+        weaponName: attack?.weapon?.name ?? "Weapon",
+        rangeBand: attack?.rangeBand ?? "",
+        damageType: selectedAmmoType?.damageType || attack?.weapon?.damageTypeLabel || attack?.weapon?.damageType || "",
+        ammo: attack?.weapon?.ammoState ?? null,
+        ammoTypes: ammoTypes.map(type => ({
+          id: type.id,
+          name: type.name,
+          damageType: type.damageType,
+          selected: type.id === selectedAmmoTypeId,
+        })),
+        selectedAmmoTypeId,
+        selectedAmmoLabel: selectedAmmoType?.name ?? attack?.weapon?.ammoLabel ?? "",
+      } : null
     };
   }
 
@@ -397,6 +418,25 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
     this._mwd.state.payload.dn = Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : null;
     return this.render(false);
+  }
+
+  async _onSetAmmoType(event, target) {
+    event?.preventDefault();
+    this._mwd.state.payload.ammoTypeId = String(target?.value ?? "").trim();
+    return this.render(false);
+  }
+
+  _onRender(context, options) {
+    super._onRender?.(context, options);
+
+    const root = (this.element instanceof HTMLElement) ? this.element : this.element?.[0];
+    if (!root) return;
+
+    root.querySelectorAll("[data-action='setAmmoType']").forEach(select => {
+      select.addEventListener("change", event => {
+        void this._onSetAmmoType(event, event.currentTarget);
+      });
+    });
   }
 
   /**

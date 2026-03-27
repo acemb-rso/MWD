@@ -1,0 +1,51 @@
+{{!--
+templates/v2/item/parts/weapon-usage-bands.hbs
+Purpose: Renders loadout controls, attack entry, and range/AR bands for personal weapons.
+How it fits: Used by the CSB-driven personal weapon details layout.
+--}}
+
+
+<section class="mwd-combat-sheet__subsection mwd-combat-sheet__subsection--usage-top">
+  {{#if itemSheet.canUseActorControls}}
+    <div class="mwd-usage-bands__controls">
+      {{#> "mwd.v2.components.checkbox" classes="mwd-checkbox--stack mwd-checkbox--usage-bands" label=MWD.item.personalWeapon.equipped}}
+        <input type="checkbox" name="system.equipped" {{checked system.equipped}} />
+      {{/ "mwd.v2.components.checkbox"}}
+
+      {{#> "mwd.v2.components.checkbox" classes="mwd-checkbox--stack mwd-checkbox--usage-bands" label=MWD.item.personalWeapon.primary}}
+        <input type="checkbox" name="system.isPrimary" {{checked system.isPrimary}} />
+      {{/ "mwd.v2.components.checkbox"}}
+    </div>
+  {{else}}
+    <div class="mwd-item-note mwd-usage-bands__note">
+      This is a standalone item. Equip and primary controls appear after the weapon is embedded in a character or NPC.
+    </div>
+  {{/if}}
+</section>
+
+<section class="mwd-combat-sheet__subsection mwd-combat-sheet__subsection--bands">
+  <header class="mwd-combat-sheet__subheader">
+    <h4 class="mwd-combat-sheet__subtitle">{{MWD.item.personalWeapon.attackRatingBand.label}}</h4>
+  </header>
+  <div class="mwd-weapon-compact__band-grid">
+    <div class="form-group mwd-weapon-compact__field">
+      <label for="system.attackRatingBand.close">{{MWD.item.personalWeapon.attackRatingBand.close}}</label>
+      <input class="type-numeric" type="number" name="system.attackRatingBand.close" value="{{system.attackRatingBand.close}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group mwd-weapon-compact__field">
+      <label for="system.attackRatingBand.near">{{MWD.item.personalWeapon.attackRatingBand.near}}</label>
+      <input class="type-numeric" type="number" name="system.attackRatingBand.near" value="{{system.attackRatingBand.near}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group mwd-weapon-compact__field">
+      <label for="system.attackRatingBand.far">{{MWD.item.personalWeapon.attackRatingBand.far}}</label>
+      <input class="type-numeric" type="number" name="system.attackRatingBand.far" value="{{system.attackRatingBand.far}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group mwd-weapon-compact__field">
+      <label for="system.attackRatingBand.extreme">{{MWD.item.personalWeapon.attackRatingBand.extreme}}</label>
+      <input class="type-numeric" type="number" name="system.attackRatingBand.extreme" value="{{system.attackRatingBand.extreme}}" data-dtype="Number" />
+    </div>
+  </div>
+</section>

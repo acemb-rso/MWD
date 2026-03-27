@@ -93,6 +93,10 @@ export class WeaponItem extends MWDItem {
     damageType: "concussive",
     attackRatingBand: { close: 0, near: 0, far: 0, extreme: 0 },
     range: { max: "close", close: 0, near: 0, far: 0, extreme: 0 },
+    standardTraits: [],
+    ammo: { current: 0, max: 0, consumePerAttack: 1, activeTypeId: "", types: [] },
+    ammoState: { current: 0, max: 0, consumePerAttack: 1, activeTypeId: "", types: [], isTracked: false, ammoLabel: "" },
+    ammoLabel: "",
     traits: [],
     notes: ""
   });

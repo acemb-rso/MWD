@@ -10,7 +10,7 @@ How it fits: Used by rendering code to produce UI fragments.
     <select class="select-modifier-change" data-modifier-select='group'>
     {{selectOptions (modifierSelectOption 'group')
       selected=group 
-      nameAttr="key" labelAttr="label"
+      valueAttr="key" labelAttr="label"
       localize=false blank=''}}
     </select>
   </td>
@@ -18,7 +18,7 @@ How it fits: Used by rendering code to produce UI fragments.
     <select class="select-modifier-change" data-modifier-select='effect'>
     {{selectOptions (modifierSelectOption 'effect' group=group)
       selected=effect
-      nameAttr="key" labelAttr="label"
+      valueAttr="key" labelAttr="label"
       localize=false blank=''}}
     </select>
   </td>
@@ -27,7 +27,7 @@ How it fits: Used by rendering code to produce UI fragments.
       <select class="select-modifier-change" data-modifier-select='category'>
         {{selectOptions (modifierSelectOption 'category' group=group effect=effect)
           selected=category
-          nameAttr="key" labelAttr="label"
+          valueAttr="key" labelAttr="label"
           localize=false blank=''}}
       </select>
     {{/if}}
@@ -37,7 +37,7 @@ How it fits: Used by rendering code to produce UI fragments.
       <select class="select-modifier-change" data-modifier-select='subCategory'>
         {{selectOptions (modifierSelectOption 'subCategory' group=group effect=effect category=category)
           selected=subCategory
-          nameAttr="key" labelAttr="label"
+          valueAttr="key" labelAttr="label"
           localize=false blank=''}}
       </select>
     {{/if}}

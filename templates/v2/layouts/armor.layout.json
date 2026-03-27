@@ -15,7 +15,46 @@
             "id": "main",
             "label": "Details",
             "children": [
-              { "type": "include", "partial": "mwd.v2.item.parts.armor-main" }
+              { "type": "include", "partial": "mwd.v2.item.parts.armor-summary-hero" },
+              {
+                "type": "stack",
+                "classes": ["mwd-armor-main-grid"],
+                "children": [
+                  {
+                    "type": "panel",
+                    "title": "Combat Essentials",
+                    "classes": ["mwd-item-section"],
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.item.parts.armor-combat-essentials" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Usage and Protection",
+                    "classes": ["mwd-item-section"],
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.item.parts.armor-usage-protection" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Traits and Construction",
+                    "classes": ["mwd-item-section"],
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.item.parts.armor-identity-fields" },
+                      { "type": "include", "partial": "mwd.v2.item.parts.armor-standard-traits" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Notes",
+                    "classes": ["mwd-item-section", "mwd-item-section--full"],
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.item.parts.armor-notes-reference" }
+                    ]
+                  }
+                ]
+              }
             ]
           },
           {

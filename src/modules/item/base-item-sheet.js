@@ -439,10 +439,6 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
    */
   _getHeaderControls() {
     const buttons = super._getHeaderControls();
-    
-    // Add any item-specific controls here
-    // Example: Toggle inactive state, etc.
-    
     return buttons;
   }
 

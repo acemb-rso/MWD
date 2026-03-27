@@ -953,11 +953,6 @@
   transform: translateX(4px);
 }
 
-.character-sheet.sra-enhanced .item.inactive {
-  background: rgba(200, 200, 200, 0.3);
-  opacity: 0.6;
-}
-
 .character-sheet.sra-enhanced .item-img {
   width: 36px;
   height: 36px;

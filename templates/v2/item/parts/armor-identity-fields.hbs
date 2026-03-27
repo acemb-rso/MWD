@@ -1,0 +1,18 @@
+{{!--
+templates/v2/item/parts/armor-identity-fields.hbs
+Purpose: Renders freeform armor tags and legacy traits.
+How it fits: Used by the CSB-driven armor details layout.
+--}}
+
+
+<div class="mwd-item-form-grid mwd-armor-profile-grid">
+  <div class="form-group mwd-item-field--wide mwd-armor-profile-grid__tags">
+    <label for="system.tags">{{MWD.item.armor.tags}}</label>
+    <input type="text" name="system.tags" value="{{join system.tags ', '}}" />
+  </div>
+
+  <div class="form-group mwd-item-field--wide mwd-armor-profile-grid__traits">
+    <label for="system.traits">Legacy Traits</label>
+    <input type="text" name="system.traits" value="{{join system.traits ', '}}" />
+  </div>
+</div>

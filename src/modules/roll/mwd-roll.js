@@ -2,7 +2,15 @@
 // Purpose: Defines function `pickMostMissingEdgePool`.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
-
+import { resolveIntent } from "./intent/resolve-intent.js";
+import { collectModifiers } from "./collect-modifiers.js";
+import { buildResolved } from "./build-resolved.js";
+import { renderChat } from "./renderers/render-chat.js";
+import { interpretOutcome } from "./outcome/interpret-outcome.js";
+import { MWDRollDialog } from "./mwd-roll-dialog.js";
+import { WeaponItem } from "../item/weapon-item.js";
+import { SelectItem } from "../dialog/select-item.js";
+import { TEMPLATE } from "../constants.js";
 
 /**
  * Public roll API.
@@ -69,7 +77,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     const item = actor.items?.get?.(weaponId) ?? null;
     if (!item || !(item.isPersonalWeapon?.() ?? item.type === TEMPLATE.itemType.personalWeapon)) return null;
     if (!item.system?.equipped) return null;
-    return item.getCombatProfile?.() ?? null;
+    return item.getCombatProfile?.({ ammoTypeId: normalized?.ammoTypeId }) ?? null;
   };
 
   if (normalized.weaponId) {
@@ -79,6 +87,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     }
 
     normalized.rangeBand = normalized.rangeBand ?? profile.defaultRangeBand ?? "close";
+    normalized.ammoTypeId = normalized.ammoTypeId ?? profile?.ammoState?.activeTypeId ?? "";
     return normalized;
   }
 
@@ -92,6 +101,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
 
       normalized.weaponId = selected.id;
       normalized.rangeBand = normalized.rangeBand ?? selected.defaultRangeBand ?? "close";
+      normalized.ammoTypeId = normalized.ammoTypeId ?? selected?.ammoState?.activeTypeId ?? "";
       delete normalized.mode;
       return normalized;
     }
@@ -100,6 +110,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
       normalized.syntheticWeapon = foundry.utils.deepClone(loadout.defaultWeapon ?? WeaponItem.DEFAULT_UNARMED);
       normalized.weaponId = normalized.syntheticWeapon.id;
       normalized.rangeBand = normalized.rangeBand ?? "close";
+      normalized.ammoTypeId = normalized.ammoTypeId ?? normalized.syntheticWeapon?.ammoState?.activeTypeId ?? "";
       delete normalized.mode;
       return normalized;
     }
@@ -107,6 +118,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     if (loadout?.defaultWeapon?.id) {
       normalized.weaponId = loadout.defaultWeapon.id;
       normalized.rangeBand = normalized.rangeBand ?? loadout.defaultWeapon.defaultRangeBand ?? "close";
+      normalized.ammoTypeId = normalized.ammoTypeId ?? loadout.defaultWeapon?.ammoState?.activeTypeId ?? "";
       delete normalized.mode;
       return normalized;
     }
@@ -116,6 +128,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     normalized.syntheticWeapon = foundry.utils.deepClone(WeaponItem.DEFAULT_UNARMED);
     normalized.weaponId = normalized.syntheticWeapon.id;
     normalized.rangeBand = normalized.rangeBand ?? "close";
+    normalized.ammoTypeId = normalized.ammoTypeId ?? normalized.syntheticWeapon?.ammoState?.activeTypeId ?? "";
     delete normalized.mode;
     return normalized;
   }
@@ -147,7 +160,7 @@ async function execute({ actor, payload, event } = {}) {
   /* 1) Resolve intent (always first) */
   /* -------------------------------- */
 
-  const ctx = await resolveIntent({ actor, payload, event });
+  let ctx = await resolveIntent({ actor, payload, event });
 
   /* --------------------------------------------------- */
   /* 2) Collect modifiers (items, status, etc — no UI)  */
@@ -186,6 +199,25 @@ async function execute({ actor, payload, event } = {}) {
   if (!updatedPayload) return null;
 
   payload = normalizePayload(updatedPayload);
+  ctx = await resolveIntent({ actor, payload, event });
+
+  if (payload.intent === "attack" && payload.weaponId) {
+    const weaponItem = actor.items?.get?.(payload.weaponId) ?? null;
+    if (weaponItem?.isPersonalWeapon?.()) {
+      const selectedAmmoTypeId = String(payload.ammoTypeId ?? "").trim();
+      const activeAmmoTypeId = String(weaponItem.system?.ammo?.activeTypeId ?? "").trim();
+      if (selectedAmmoTypeId && selectedAmmoTypeId !== activeAmmoTypeId) {
+        await weaponItem.setActiveAmmoType?.(selectedAmmoTypeId);
+      }
+
+      if (!weaponItem.canConsumeAmmo?.({ ammoTypeId: selectedAmmoTypeId })) {
+        const ammoProfile = weaponItem.getAmmoState?.({ ammoTypeId: selectedAmmoTypeId });
+        const ammoName = ammoProfile?.ammoLabel ? ` (${ammoProfile.ammoLabel})` : "";
+        ui.notifications?.warn(`Not enough ammo${ammoName} for ${weaponItem.name}.`);
+        return null;
+      }
+    }
+  }
 
   /* -------------------------------------- */
   /* 3.5) Recollect modifiers (final pass) */
@@ -329,6 +361,16 @@ async function execute({ actor, payload, event } = {}) {
   /* --------------------------- */
 
   const html = await renderChat({ resolved });
+
+  if (payload.intent === "attack" && payload.weaponId) {
+    const weaponItem = actor.items?.get?.(payload.weaponId) ?? null;
+    if (weaponItem?.isPersonalWeapon?.()) {
+      const consumed = await weaponItem.consumeAmmo?.({ ammoTypeId: payload.ammoTypeId });
+      if (!consumed) {
+        ui.notifications?.warn(`Ammo could not be consumed for ${weaponItem.name}.`);
+      }
+    }
+  }
 
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),

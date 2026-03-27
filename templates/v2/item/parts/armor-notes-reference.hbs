@@ -1,0 +1,13 @@
+{{!--
+templates/v2/item/parts/armor-notes-reference.hbs
+Purpose: Renders notes and auxiliary reference controls for armor.
+How it fits: Used by the CSB-driven armor details layout.
+--}}
+
+
+<div class="form-group stacked">
+  <label for="system.notes">{{MWD.item.armor.notes}}</label>
+  <textarea name="system.notes">{{system.notes}}</textarea>
+</div>
+
+{{> "mwd.v2.item.parts.references"}}

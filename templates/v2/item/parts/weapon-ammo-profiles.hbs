@@ -1,0 +1,106 @@
+{{!--
+templates/v2/item/parts/weapon-ammo-profiles.hbs
+Purpose: Renders structured ammo profile controls for personal weapons.
+How it fits: Used by the CSB-driven personal weapon details layout.
+--}}
+
+
+<section class="mwd-combat-sheet__subsection">
+  <header class="mwd-combat-sheet__subheader">
+    <h4 class="mwd-combat-sheet__subtitle">Ammo Profiles</h4>
+    <button type="button" class="mwd-ammo-type-add"><i class="fas fa-plus"></i> Add</button>
+  </header>
+
+  {{#if system.ammo.types.length}}
+    <div class="mwd-ammo-profiles">
+      {{#each system.ammo.types as |ammoType|}}
+        <div class="mwd-ammo-profile define-ammo-type" data-ammo-type-id="{{ammoType.id}}">
+          <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+            <div class="form-group mwd-weapon-compact__field">
+              <label>Name</label>
+              <input type="text" value="{{ammoType.name}}" class="mwd-ammo-type-field" data-ammo-type-id="{{ammoType.id}}" data-field="name" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label>Damage Type</label>
+              <select class="mwd-ammo-type-field" data-ammo-type-id="{{ammoType.id}}" data-field="damageType">
+                {{selectOptions ../weaponEditor.ammoDamageTypes selected=ammoType.damageType valueAttr="value" labelAttr="label" localize=false}}
+              </select>
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label>AP Mod</label>
+              <input class="type-numeric mwd-ammo-type-field" type="number" value="{{ammoType.apMod}}" data-ammo-type-id="{{ammoType.id}}" data-field="apMod" />
+            </div>
+
+            <button type="button" class="mwd-record__icon-btn is-danger mwd-ammo-type-delete" data-ammo-type-id="{{ammoType.id}}" title="Remove">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="mwd-weapon-compact__band-grid">
+            <div class="form-group mwd-weapon-compact__field">
+              <label>AR Close</label>
+              <input class="type-numeric mwd-ammo-type-field" type="number" value="{{ammoType.attackRatingBandMod.close}}" data-ammo-type-id="{{ammoType.id}}" data-field="attackRatingBandMod.close" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label>AR Near</label>
+              <input class="type-numeric mwd-ammo-type-field" type="number" value="{{ammoType.attackRatingBandMod.near}}" data-ammo-type-id="{{ammoType.id}}" data-field="attackRatingBandMod.near" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label>AR Far</label>
+              <input class="type-numeric mwd-ammo-type-field" type="number" value="{{ammoType.attackRatingBandMod.far}}" data-ammo-type-id="{{ammoType.id}}" data-field="attackRatingBandMod.far" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label>AR Extreme</label>
+              <input class="type-numeric mwd-ammo-type-field" type="number" value="{{ammoType.attackRatingBandMod.extreme}}" data-ammo-type-id="{{ammoType.id}}" data-field="attackRatingBandMod.extreme" />
+            </div>
+          </div>
+
+          <div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
+            <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+              <label>Legacy Traits</label>
+              <input type="text" value="{{join ammoType.traits ', '}}" class="mwd-ammo-type-field" data-ammo-type-id="{{ammoType.id}}" data-field="traits" />
+            </div>
+          </div>
+
+          <div class="mwd-combat-sheet__subsection mwd-combat-sheet__subsection--nested">
+            <header class="mwd-combat-sheet__subheader">
+              <h4 class="mwd-combat-sheet__subtitle">Ammo Standard Traits</h4>
+              <button type="button" class="mwd-ammo-type-standard-trait-add" data-ammo-type-id="{{ammoType.id}}"><i class="fas fa-plus"></i> Add</button>
+            </header>
+
+            {{#if ammoType.standardTraits.length}}
+              {{#each ammoType.standardTraits as |trait|}}
+                <div class="mwd-weapon-compact__row mwd-weapon-compact__row--actions" data-ammo-type-id="{{../ammoType.id}}" data-trait-id="{{trait.id}}">
+                  <div class="form-group mwd-weapon-compact__field">
+                    <label>Trait</label>
+                    <select class="mwd-ammo-type-standard-trait-field" data-ammo-type-id="{{../ammoType.id}}" data-trait-id="{{trait.id}}" data-field="key">
+                      {{selectOptions ../../weaponEditor.standardTraits selected=trait.key valueAttr="value" labelAttr="label" localize=false}}
+                    </select>
+                  </div>
+
+                  <div class="form-group mwd-weapon-compact__field">
+                    <label>Rating</label>
+                    <input class="type-numeric mwd-ammo-type-standard-trait-field" type="number" value="{{trait.rating}}" data-ammo-type-id="{{../ammoType.id}}" data-trait-id="{{trait.id}}" data-field="rating" />
+                  </div>
+
+                  <button type="button" class="mwd-record__icon-btn is-danger mwd-ammo-type-standard-trait-delete" data-ammo-type-id="{{../ammoType.id}}" data-trait-id="{{trait.id}}" title="Remove">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              {{/each}}
+            {{else}}
+              <div class="mwd-item-note">No standard ammo traits defined.</div>
+            {{/if}}
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-item-note">No ammo profiles defined. Leave max at 0 for untracked ammo.</div>
+  {{/if}}
+</section>

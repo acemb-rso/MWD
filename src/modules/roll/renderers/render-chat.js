@@ -50,7 +50,7 @@ function buildBaseCardVM(resolved) {
     ? r.breakdownRows.map(x => `${x.label}: ${x.value}`).join("\n")
     : "";
 
-  return {
+  const vm = {
     header: { left: r?.title ?? "Roll", right: r?.subtitle ?? "" },
     intent: r?.intent ?? "unknown",
     domains: Array.isArray(r?.domains) ? r.domains : [],
@@ -70,4 +70,23 @@ function buildBaseCardVM(resolved) {
     opposed: null,
     extended: null,
   };
+
+  const attack = r?.attack ?? null;
+  if (attack?.weapon?.name) {
+    const rangeBand = String(attack?.rangeBand ?? "").trim();
+    const damageType = String(attack?.weapon?.damageTypeLabel ?? attack?.weapon?.damageType ?? "").trim();
+    const ammoLabel = String(attack?.ammoLabel ?? attack?.weapon?.ammoLabel ?? "").trim();
+    vm.metaRows.push({
+      text: `Weapon: ${attack.weapon.name}${rangeBand ? ` • Range: ${rangeBand}` : ""}${damageType ? ` • Type: ${damageType}` : ""}${ammoLabel ? ` • Ammo: ${ammoLabel}` : ""}`,
+      title: ""
+    });
+    if (attack?.ammo?.isTracked) {
+      vm.footerRows.push({
+        text: `Ammo: ${Number(attack.ammo.current ?? 0)}/${Number(attack.ammo.max ?? 0)}`,
+        title: ""
+      });
+    }
+  }
+
+  return vm;
 }

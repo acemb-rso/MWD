@@ -5,7 +5,7 @@ How it fits: Used by rendering code to produce UI fragments.
 --}}
 
 
-<li class="define-item-type item anarchy-weapon {{#if system.inactive}}inactive{{/if}}" draggable="true"
+<li class="define-item-type item anarchy-weapon" draggable="true"
     data-item-id="{{_id}}" data-item-type="weapon">
   <div class="weapon-column weapon-img">
     <a class="click-weapon-roll">
@@ -50,7 +50,6 @@ How it fits: Used by rendering code to produce UI fragments.
       isFavorite=(actorHasFavorite @root.actor.id id=_id type=type)
       weapon=this
     }}
-    {{> 'systems/mwd/templates/common/item-control-activate.hbs'}}
     {{> 'systems/mwd/templates/common/item-controls.hbs'}}
   </div>
 

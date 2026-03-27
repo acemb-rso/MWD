@@ -442,10 +442,6 @@ export const MWD = {
       "main": "Details",
       "modifiers": "Modifiers"
     },
-    "common": {
-      "inactive": "Inactive for actor"
-    },
-
     "skill": {
       "code": "Internal code",
       "copyDefault": "Configure skill",

@@ -1,0 +1,33 @@
+{{!--
+templates/v2/item/parts/weapon-notes-reference.hbs
+Purpose: Renders notes, description, and auxiliary reference controls for personal weapons.
+How it fits: Used by the CSB-driven personal weapon details layout.
+--}}
+
+
+<div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--full">
+  <label for="system.notes">{{MWD.item.personalWeapon.notes}}</label>
+  <textarea name="system.notes">{{system.notes}}</textarea>
+</div>
+
+<div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--full">
+  <label for="sourceReference">{{MWD.common.sourceReference}}</label>
+  <input class="item-field-value" type="text" data-dtype="String"
+    name="system.sourceReference"
+    value="{{system.sourceReference}}"
+    placeholder="{{MWD.common.sourceReferenceHelp}}"
+  />
+</div>
+
+<div class="section-group form-group mwd-weapon-compact__field mwd-weapon-compact__field--full mwd-weapon-compact__field--references">
+  <div class="flexcol">
+    <span><label>{{MWD.common.description}}</label></span>
+    <div class="editor">
+      {{editor enrichedDescription
+        target="system.description"
+        owner=options.owner
+        button=true
+        editable=options.editable}}
+    </div>
+  </div>
+</div>

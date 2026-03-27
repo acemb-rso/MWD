@@ -27,6 +27,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/mod-stepper.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/condition-monitors.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/roll/_mwd-roll-card.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/components/checkbox.hbs`,
 
   // Character UI
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/attributes.hbs`,
@@ -36,6 +37,8 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/edge-console.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/burn-monitor.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/status-dashboard.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/inventory-section.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/inventory-record.hbs`,
 
   // Sheet wrapper
   `systems/${SYSTEM_NAME}/templates/v2/actor/_sheet-root.hbs`,
@@ -53,13 +56,24 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/item/mech-weapon-root.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/armor-root.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/itemname.hbs`,
-  `systems/${SYSTEM_NAME}/templates/v2/item/parts/inactive.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/references.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/modifier.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/modifiers.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-main.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-compact-main.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-summary-hero.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-combat-essentials.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-usage-bands.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-standard-traits.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-ammo-profiles.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-notes-reference.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/armor-main.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/armor-summary-hero.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/armor-combat-essentials.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/armor-usage-protection.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/armor-identity-fields.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/armor-standard-traits.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/armor-notes-reference.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/item-effects.hbs`,
 
   // Actors

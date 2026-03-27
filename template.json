@@ -501,6 +501,14 @@
         "far": 0,
         "extreme": 0
       },
+      "standardTraits": [],
+      "ammo": {
+        "current": 0,
+        "max": 0,
+        "consumePerAttack": 1,
+        "activeTypeId": "",
+        "types": []
+      },
       "traits": [],
       "notes": ""
     },
@@ -520,6 +528,13 @@
       "durability": {
         "current": 0,
         "max": 0
+      },
+      "standardTraits": [],
+      "traitState": {
+        "reinforced": {
+          "current": 0,
+          "max": 0
+        }
       },
       "tags": [],
       "traits": [],

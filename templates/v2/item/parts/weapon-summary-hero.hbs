@@ -1,0 +1,43 @@
+{{!--
+templates/v2/item/parts/weapon-summary-hero.hbs
+Purpose: Renders the personal weapon hero stat strip.
+How it fits: Used by the CSB-driven personal weapon details layout.
+--}}
+
+
+{{#unless (eq itemSheet.weaponSheetVariant "mech")}}
+  <section class="mwd-item-hero">
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">DV</span>
+      <span class="mwd-item-hero__value">{{system.damage}}</span>
+    </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">AP</span>
+      <span class="mwd-item-hero__value">{{system.ap}}</span>
+    </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Type</span>
+      <span class="mwd-item-hero__value">{{weaponProfile.damageTypeLabel}}</span>
+    </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Range</span>
+      <span class="mwd-item-hero__value">{{weaponProfile.range.max}}</span>
+    </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Ammo</span>
+      <span class="mwd-item-hero__value">
+        {{#if weaponProfile.ammoState.isTracked}}
+          {{weaponProfile.ammoState.current}}/{{weaponProfile.ammoState.max}}
+        {{else if weaponProfile.ammoLabel}}
+          {{weaponProfile.ammoLabel}}
+        {{else}}
+          Untracked
+        {{/if}}
+      </span>
+    </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Skill</span>
+      <span class="mwd-item-hero__value">{{weaponProfile.skillDef.label}}</span>
+    </div>
+  </section>
+{{/unless}}

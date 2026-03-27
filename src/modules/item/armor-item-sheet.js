@@ -5,6 +5,7 @@
 
 import { BaseItemSheet } from "./base-item-sheet.js";
 import { TEMPLATES_PATH } from "../constants.js";
+import { ARMOR_STANDARD_TRAITS } from "../mwd/personal-damage.js";
 
 export class ArmorItemSheet extends BaseItemSheet {
   static LAYOUT_ID = "armor";
@@ -49,13 +50,16 @@ export class ArmorItemSheet extends BaseItemSheet {
     );
     context.itemSheet = foundry.utils.mergeObject(context.itemSheet ?? {}, {});
     context.itemSheet.summaryChips = this._getSummaryChips(armorState);
+    context.armorEditor = {
+      standardTraits: [...ARMOR_STANDARD_TRAITS]
+    };
 
     return context;
   }
 
   _getSummaryChips(activeArmorState = null) {
     const system = this.item.system ?? {};
-    return [
+    const chips = [
       { label: "Rating", value: String(Number(activeArmorState?.ratingCurrent ?? system.rating ?? 0)) },
       { label: "Defense", value: String(Number(system.defenseBonus ?? 0)) },
       {
@@ -67,5 +71,47 @@ export class ArmorItemSheet extends BaseItemSheet {
         value: String(Number(activeArmorState?.baseMitigation ?? activeArmorState?.baseResistance ?? 0))
       }
     ];
+
+    const reinforcedMax = Number(activeArmorState?.traitState?.reinforced?.max ?? system?.traitState?.reinforced?.max ?? 0);
+    if (reinforcedMax > 0) {
+      chips.push({
+        label: "Reinforced",
+        value: `${Number(activeArmorState?.traitState?.reinforced?.current ?? system?.traitState?.reinforced?.current ?? 0)}/${reinforcedMax}`
+      });
+    }
+
+    return chips;
+  }
+
+  _onRender(context, options) {
+    super._onRender?.(context, options);
+
+    const root = this._getRootElement?.();
+    if (!root) return;
+
+    root.querySelectorAll(".mwd-armor-standard-trait-add").forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        void this.item.createArmorStandardTrait?.();
+      });
+    });
+
+    root.querySelectorAll(".mwd-armor-standard-trait-delete").forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        void this.item.deleteArmorStandardTrait?.(button.dataset.traitId);
+      });
+    });
+
+    root.querySelectorAll(".mwd-armor-standard-trait-field").forEach(field => {
+      field.addEventListener("change", event => {
+        event.preventDefault();
+        void this.item.updateArmorStandardTrait?.(
+          field.dataset.traitId,
+          field.dataset.field,
+          field.value
+        );
+      });
+    });
   }
 }

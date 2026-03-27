@@ -18,7 +18,7 @@ How it fits: Used by rendering code to produce UI fragments.
     {{/if}}
 
     <div class="mwd-effects-toolbar">
-      <button type="button" data-action="effectCreate">Add Effect</button>
+      <button type="button" data-action="effectCreate"><i class="fas fa-plus"></i> Add</button>
       {{#if itemSheet.supportsEffectSync}}
         <span class="mwd-item-note">
           {{#if options.isOwned}}
@@ -61,7 +61,9 @@ How it fits: Used by rendering code to produce UI fragments.
                 {{#if effect.disabled}}Enable{{else}}Disable{{/if}}
               </button>
               <button type="button" data-action="effectEdit" data-effect-id="{{effect.id}}">Edit</button>
-              <button type="button" data-action="effectDelete" data-effect-id="{{effect.id}}">Delete</button>
+              <button type="button" class="mwd-record__icon-btn is-danger" data-action="effectDelete" data-effect-id="{{effect.id}}" title="Delete">
+                <i class="fas fa-times"></i>
+              </button>
             </div>
           </div>
         {{/each}}

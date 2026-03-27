@@ -1,0 +1,38 @@
+{{!--
+templates/v2/item/parts/armor-combat-essentials.hbs
+Purpose: Renders the core editable protection fields for armor.
+How it fits: Used by the CSB-driven armor details layout.
+--}}
+
+
+<div class="mwd-item-form-grid mwd-armor-profile-grid">
+  <div class="form-group">
+    <label for="system.rating">{{MWD.item.armor.rating}}</label>
+    <input class="type-numeric" type="number" name="system.rating" value="{{system.rating}}" data-dtype="Number" />
+  </div>
+
+  <div class="form-group">
+    <label for="system.defenseBonus">{{MWD.item.armor.defenseBonus}}</label>
+    <input class="type-numeric" type="number" name="system.defenseBonus" value="{{system.defenseBonus}}" data-dtype="Number" />
+  </div>
+
+  <div class="form-group mwd-armor-profile-grid__durability">
+    <label>{{MWD.item.armor.durability}}</label>
+    <div class="mwd-field-cluster">
+      <input class="type-numeric" type="number" name="system.durability.current" value="{{effectiveDurabilityCurrent}}" data-dtype="Number" />
+      <span>/</span>
+      <input class="type-numeric" type="number" name="system.durability.max" value="{{system.durability.max}}" data-dtype="Number" />
+    </div>
+  </div>
+
+  {{#if system.traitState.reinforced.max}}
+    <div class="form-group">
+      <label for="system.traitState.reinforced.current">Reinforced Buffer</label>
+      <div class="mwd-field-cluster">
+        <input class="type-numeric" type="number" name="system.traitState.reinforced.current" value="{{system.traitState.reinforced.current}}" data-dtype="Number" />
+        <span>/</span>
+        <input class="type-numeric" type="number" value="{{system.traitState.reinforced.max}}" disabled />
+      </div>
+    </div>
+  {{/if}}
+</div>

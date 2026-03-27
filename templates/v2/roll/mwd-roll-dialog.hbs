@@ -71,6 +71,48 @@ How it fits: Used by rendering code to produce UI fragments.
     </div>
   </div>
 
+  {{#if attack}}
+    <div class="mwd-roll-dialog__panel">
+      <div class="mwd-roll-dialog__panel-title">Attack Load</div>
+
+      <div class="mwd-roll-dialog__grid">
+        <div class="mwd-roll-dialog__row">
+          <div class="mwd-roll-dialog__label">Weapon</div>
+          <div class="mwd-roll-dialog__pill">{{attack.weaponName}}</div>
+        </div>
+
+        <div class="mwd-roll-dialog__row">
+          <div class="mwd-roll-dialog__label">Range</div>
+          <div class="mwd-roll-dialog__pill">{{attack.rangeBand}}</div>
+        </div>
+
+        <div class="mwd-roll-dialog__row">
+          <div class="mwd-roll-dialog__label">Type</div>
+          <div class="mwd-roll-dialog__pill">{{attack.damageType}}</div>
+        </div>
+
+        <div class="mwd-roll-dialog__row">
+          <div class="mwd-roll-dialog__label">Ammo</div>
+          <div class="mwd-roll-dialog__pill">
+            {{#if attack.selectedAmmoLabel}}{{attack.selectedAmmoLabel}}{{else}}Default{{/if}}
+            {{#if attack.ammo.isTracked}} ({{attack.ammo.current}}/{{attack.ammo.max}}){{/if}}
+          </div>
+        </div>
+      </div>
+
+      {{#if attack.ammoTypes.length}}
+        <div class="mwd-field">
+          <label>Loaded Ammo</label>
+          <select data-action="setAmmoType">
+            {{#each attack.ammoTypes as |ammoType|}}
+              <option value="{{ammoType.id}}" {{#if ammoType.selected}}selected{{/if}}>{{ammoType.name}}</option>
+            {{/each}}
+          </select>
+        </div>
+      {{/if}}
+    </div>
+  {{/if}}
+
   <div class="mwd-field">
     <label>DN (Hits Needed)</label>
     <input

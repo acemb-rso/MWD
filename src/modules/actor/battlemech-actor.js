@@ -220,7 +220,7 @@ export class BattlemechActor extends VehicleActor {
     const configuredGroups = (this.system.mwd?.weaponGroupDetails ?? [])
       .map(group => ({
         ...group,
-        weapons: (group.weapons ?? []).filter(weapon => weapon?.isActive?.()),
+        weapons: group.weapons ?? [],
       }))
       .filter(group => group.weapons.length > 0);
 
@@ -233,7 +233,7 @@ export class BattlemechActor extends VehicleActor {
       }));
     }
 
-    const weapons = this.items.filter(it => it.type === TEMPLATE.itemType.mechWeapon && it.isActive());
+    const weapons = this.items.filter(it => it.type === TEMPLATE.itemType.mechWeapon);
     if (weapons.length === 0) {
       return [];
     }
@@ -270,7 +270,6 @@ export class BattlemechActor extends VehicleActor {
 
     const meleeWeapons = this.items.filter(it =>
       it.type === TEMPLATE.itemType.mechWeapon
-      && it.isActive()
       && it.system.skill === 'meleeCombat');
 
     profiles.push(...meleeWeapons.map(weapon => ({

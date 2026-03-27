@@ -8,6 +8,7 @@ import { BaseItemSheet } from "./base-item-sheet.js";
 import { WeaponItem } from "./weapon-item.js";
 import {
   PERSONAL_DAMAGE_TYPES,
+  WEAPON_STANDARD_TRAITS,
   getPersonalDamageTypeLabel,
 } from "../mwd/personal-damage.js";
 
@@ -104,14 +105,19 @@ export class WeaponItemSheet extends BaseItemSheet {
       ranges: WeaponItem.RANGE_ORDER.map(value => ({
         value,
         label: value.charAt(0).toUpperCase() + value.slice(1)
-      }))
+      })),
+      standardTraits: [...WEAPON_STANDARD_TRAITS],
+      ammoDamageTypes: [{ value: "", label: "Use Weapon Default" }, ...PERSONAL_DAMAGE_TYPES]
     };
 
     context.itemSheet = foundry.utils.mergeObject(context.itemSheet ?? {}, {
       isCompactWeaponSheet: true,
       weaponSheetVariant: canonicalType === "mechWeapon" ? "mech" : "personal"
     });
-    context.itemSheet.stateChips = (context.itemSheet.stateChips ?? []).filter(chip => chip.kind !== "ownership");
+    context.itemSheet.stateChips = (context.itemSheet.stateChips ?? []).filter(
+      chip => !["ownership", "equipment", "role"].includes(chip.kind)
+    );
+    context.itemSheet.currentAmmoLabel = context.weaponProfile?.ammoLabel ?? "";
     
     return context;
   }

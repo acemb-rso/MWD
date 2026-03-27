@@ -1,0 +1,117 @@
+{{!--
+templates/v2/ui/character/inventory-record.hbs
+Purpose: Renders a single compact inventory record row with optional accordion details.
+How it fits: Shared by the character inventory section partials.
+--}}
+
+
+<article class="mwd-record{{#if record.isExpanded}} is-expanded{{/if}}{{#if record.equipped}} is-equipped{{/if}}{{#if record.isPrimary}} is-primary{{/if}}"
+         data-item-id="{{record.id}}"
+         data-accordion-id="{{record.accordionId}}">
+  <div class="mwd-record__header">
+    <button type="button"
+            class="mwd-record__toggle"
+            data-action="toggleInventoryAccordion"
+            data-accordion-id="{{record.accordionId}}"
+            title="{{#if record.isExpanded}}Hide details{{else}}Show details{{/if}}">
+      <i class="fas {{#if record.isExpanded}}fa-chevron-down{{else}}fa-chevron-right{{/if}}"></i>
+    </button>
+
+    {{#if supportsAttack}}
+      <button type="button"
+              class="mwd-record__media mwd-record__media--roll"
+              data-action="attackWeapon"
+              data-roll='{{record.attackRoll}}'
+              title="{{#if record.equipped}}Attack with {{record.name}}{{else}}Equip to attack{{/if}}"
+              {{#unless record.equipped}}disabled{{/unless}}>
+        <img class="mwd-record__thumb" src="{{record.img}}" alt="">
+      </button>
+    {{else}}
+      <button type="button"
+              class="mwd-record__media"
+              data-action="editOwnedItem"
+              title="Open {{record.name}}">
+        <img class="mwd-record__thumb" src="{{record.img}}" alt="">
+      </button>
+    {{/if}}
+
+    <div class="mwd-record__main">
+      <div class="mwd-record__topline">
+        <button type="button" class="mwd-record__title-btn" data-action="editOwnedItem">{{record.name}}</button>
+        <div class="mwd-record__stats">
+          {{#each record.summaryStats as |stat|}}
+            <span class="mwd-record__stat{{#if stat.emphasis}} is-{{stat.emphasis}}{{/if}}">
+              <span class="mwd-record__stat-label">{{stat.label}}</span>
+              <span class="mwd-record__stat-value">{{stat.value}}</span>
+            </span>
+          {{/each}}
+        </div>
+      </div>
+
+      {{#if record.subtitle}}
+        <div class="mwd-record__subtitle">{{record.subtitle}}</div>
+      {{/if}}
+
+      {{#if record.detailTags.length}}
+        <div class="mwd-record__tags">
+          {{#each record.detailTags as |tag|}}
+            <span class="mwd-record__tag">{{tag.label}}</span>
+          {{/each}}
+        </div>
+      {{/if}}
+    </div>
+
+    <div class="mwd-record__actions">
+      {{#if supportsEquip}}
+        <button type="button"
+                class="mwd-record__icon-btn {{#if record.equipped}}is-on{{/if}}"
+                data-action="toggleOwnedItemEquipped"
+                title="{{#if record.equipped}}Unequip{{else}}Equip{{/if}}">
+          <i class="fas {{#if record.equipped}}fa-check-circle{{else}}fa-circle{{/if}}"></i>
+        </button>
+      {{/if}}
+
+      {{#if supportsPrimary}}
+        <button type="button"
+                class="mwd-record__icon-btn {{#if record.isPrimary}}is-on is-star{{/if}}"
+                data-action="setOwnedItemPrimary"
+                title="{{#if record.isPrimary}}Clear primary{{else}}Set as primary{{/if}}">
+          <i class="{{#if record.isPrimary}}fas{{else}}far{{/if}} fa-star"></i>
+        </button>
+      {{/if}}
+
+      <button type="button"
+              class="mwd-record__icon-btn"
+              data-action="editOwnedItem"
+              title="Open">
+        <i class="fas fa-pen"></i>
+      </button>
+
+      <button type="button"
+              class="mwd-record__icon-btn is-danger"
+              data-action="deleteOwnedItem"
+              title="Delete">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  {{#if record.isExpanded}}
+    <div class="mwd-record__body">
+      {{#if record.detailRows.length}}
+        <div class="mwd-record__details">
+          {{#each record.detailRows as |row|}}
+            <div class="mwd-record__detail">
+              <span class="mwd-record__detail-label">{{row.label}}</span>
+              <span class="mwd-record__detail-value">{{row.value}}</span>
+            </div>
+          {{/each}}
+        </div>
+      {{/if}}
+
+      {{#if record.detailText}}
+        <div class="mwd-record__text">{{record.detailText}}</div>
+      {{/if}}
+    </div>
+  {{/if}}
+</article>

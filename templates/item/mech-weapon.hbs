@@ -75,7 +75,7 @@ How it fits: Used by rendering code to produce UI fragments.
       <label for="system.defense">Defense</label>
       <select name="system.defense">
         {{selectOptions ENUMS.defenses selected=(fixedDefenseCode system.defense)
-        nameAttr="code" labelAttr="label" localize=false blank=''}}
+        valueAttr="code" labelAttr="label" localize=false blank=''}}
       </select>
     </div>
     
@@ -113,7 +113,6 @@ How it fits: Used by rendering code to produce UI fragments.
     </div>
     {{/if}}
     
-    {{> 'systems/mwd/templates/item/parts/inactive.hbs'}}
     {{> 'systems/mwd/templates/item/parts/references.hbs'}}
   </div>
   

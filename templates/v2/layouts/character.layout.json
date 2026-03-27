@@ -113,24 +113,30 @@
                 "label": "Inventory",
                 "children": [
                   {
-                    "type": "panel",
-                    "title": "Gear",
+                    "type": "stack",
+                    "classes": ["mwd-inventory-layout"],
                     "children": [
-                      { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-gear" }
-                    ]
-                  },
-                  {
-                    "type": "panel",
-                    "title": "Weapons",
-                    "children": [
-                      { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-weapons" }
-                    ]
-                  },
-                  {
-                    "type": "panel",
-                    "title": "Armor",
-                    "children": [
-                      { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-armor" }
+                      {
+                        "type": "panel",
+                        "title": "Gear",
+                        "children": [
+                          { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-gear" }
+                        ]
+                      },
+                      {
+                        "type": "panel",
+                        "title": "Weapons",
+                        "children": [
+                          { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-weapons" }
+                        ]
+                      },
+                      {
+                        "type": "panel",
+                        "title": "Armor",
+                        "children": [
+                          { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-armor" }
+                        ]
+                      }
                     ]
                   }
                 ]

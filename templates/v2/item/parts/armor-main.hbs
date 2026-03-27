@@ -1,122 +1,49 @@
 {{!--
 templates/v2/item/parts/armor-main.hbs
-Purpose: Contains conditional display logic. Contains styled HTML nodes for UI layout. Includes form controls or labeled fields.
-How it fits: Used by rendering code to produce UI fragments.
+Purpose: Legacy compatibility wrapper for the armor details composition.
+How it fits: Kept as an aggregate partial while the CSB layout now composes smaller section partials directly.
 --}}
 
 
-<div class="mwd-item-main-grid mwd-armor-main-grid">
-  <section class="panel mwd-item-section mwd-armor-main-grid__loadout">
-    <header class="mwd-panel__header">
-      <h3 class="mwd-panel__title">Loadout</h3>
-    </header>
-    <div class="mwd-panel__body">
-      {{#if itemSheet.canUseActorControls}}
-        <div class="mwd-item-toggle-grid">
-          <label class="mwd-item-toggle">
-            <span>{{MWD.item.armor.equipped}}</span>
-            <input type="checkbox" name="system.equipped" {{checked system.equipped}} />
-          </label>
+<div class="mwd-armor-sheet">
+  {{> "mwd.v2.item.parts.armor-summary-hero"}}
 
-          <label class="mwd-item-toggle">
-            <span>{{MWD.item.armor.primary}}</span>
-            <input type="checkbox" name="system.isPrimary" {{checked system.isPrimary}} />
-          </label>
-        </div>
-
-        {{#if isActiveArmor}}
-          <div class="mwd-item-note">
-            This armor is currently the actor's active armor. Current armor rating is tracked on the item and mirrored to the actor armor monitor.
-          </div>
-        {{/if}}
-      {{else}}
-        <div class="mwd-item-note">
-          This is a standalone item. Equip and primary controls appear after the armor is embedded in an actor.
-        </div>
-      {{/if}}
-    </div>
-  </section>
-
-  <section class="panel mwd-item-section mwd-armor-main-grid__profile">
-    <header class="mwd-panel__header">
-      <h3 class="mwd-panel__title">Armor Profile</h3>
-    </header>
-    <div class="mwd-panel__body mwd-item-form-grid mwd-armor-profile-grid">
-      <div class="form-group">
-        <label for="system.rating">{{MWD.item.armor.rating}}</label>
-        <input class="type-numeric" type="number" name="system.rating" value="{{system.rating}}" data-dtype="Number" />
+  <div class="mwd-armor-main-grid">
+    <section class="panel mwd-item-section">
+      <header class="mwd-panel__header">
+        <h3 class="mwd-panel__title">Combat Essentials</h3>
+      </header>
+      <div class="mwd-panel__body">
+        {{> "mwd.v2.item.parts.armor-combat-essentials"}}
       </div>
+    </section>
 
-      <div class="form-group">
-        <label for="system.defenseBonus">{{MWD.item.armor.defenseBonus}}</label>
-        <input class="type-numeric" type="number" name="system.defenseBonus" value="{{system.defenseBonus}}" data-dtype="Number" />
+    <section class="panel mwd-item-section">
+      <header class="mwd-panel__header">
+        <h3 class="mwd-panel__title">Usage and Protection</h3>
+      </header>
+      <div class="mwd-panel__body">
+        {{> "mwd.v2.item.parts.armor-usage-protection"}}
       </div>
+    </section>
 
-      <div class="form-group mwd-armor-profile-grid__durability">
-        <label>{{MWD.item.armor.durability}}</label>
-        <div class="mwd-field-cluster">
-          <input class="type-numeric" type="number" name="system.durability.current" value="{{effectiveDurabilityCurrent}}" data-dtype="Number" />
-          <span>/</span>
-          <input class="type-numeric" type="number" name="system.durability.max" value="{{system.durability.max}}" data-dtype="Number" />
-        </div>
+    <section class="panel mwd-item-section">
+      <header class="mwd-panel__header">
+        <h3 class="mwd-panel__title">Traits and Construction</h3>
+      </header>
+      <div class="mwd-panel__body">
+        {{> "mwd.v2.item.parts.armor-identity-fields"}}
+        {{> "mwd.v2.item.parts.armor-standard-traits"}}
       </div>
+    </section>
 
-      <div class="form-group mwd-item-field--wide mwd-armor-profile-grid__tags">
-        <label for="system.tags">{{MWD.item.armor.tags}}</label>
-        <input type="text" name="system.tags" value="{{join system.tags ', '}}" />
+    <section class="panel mwd-item-section mwd-item-section--full">
+      <header class="mwd-panel__header">
+        <h3 class="mwd-panel__title">Notes</h3>
+      </header>
+      <div class="mwd-panel__body">
+        {{> "mwd.v2.item.parts.armor-notes-reference"}}
       </div>
-
-      <div class="form-group mwd-item-field--wide mwd-armor-profile-grid__traits">
-        <label for="system.traits">{{MWD.item.armor.traits}}</label>
-        <input type="text" name="system.traits" value="{{join system.traits ', '}}" />
-      </div>
-    </div>
-  </section>
-
-  <section class="panel mwd-item-section mwd-armor-main-grid__modifiers">
-    <header class="mwd-panel__header">
-      <h3 class="mwd-panel__title">{{MWD.item.armor.mitigation}}</h3>
-    </header>
-    <div class="mwd-panel__body mwd-item-form-grid mwd-armor-mitigation-grid">
-      <div class="form-group">
-        <label for="system.mitigationByType.penetrating">Penetrating</label>
-        <input class="type-numeric" type="number" name="system.mitigationByType.penetrating" value="{{system.mitigationByType.penetrating}}" data-dtype="Number" />
-      </div>
-
-      <div class="form-group">
-        <label for="system.mitigationByType.concussive">Concussive</label>
-        <input class="type-numeric" type="number" name="system.mitigationByType.concussive" value="{{system.mitigationByType.concussive}}" data-dtype="Number" />
-      </div>
-
-      <div class="form-group">
-        <label for="system.mitigationByType.energy">Energy</label>
-        <input class="type-numeric" type="number" name="system.mitigationByType.energy" value="{{system.mitigationByType.energy}}" data-dtype="Number" />
-      </div>
-
-      <div class="form-group">
-        <label for="system.mitigationByType.thermal">Thermal</label>
-        <input class="type-numeric" type="number" name="system.mitigationByType.thermal" value="{{system.mitigationByType.thermal}}" data-dtype="Number" />
-      </div>
-
-      <div class="form-group">
-        <label for="system.mitigationByType.electrical">Electrical</label>
-        <input class="type-numeric" type="number" name="system.mitigationByType.electrical" value="{{system.mitigationByType.electrical}}" data-dtype="Number" />
-      </div>
-    </div>
-  </section>
-
-  <section class="panel mwd-item-section mwd-item-section--full mwd-armor-main-grid__notes">
-    <header class="mwd-panel__header">
-      <h3 class="mwd-panel__title">Notes</h3>
-    </header>
-    <div class="mwd-panel__body">
-      <div class="form-group stacked">
-        <label for="system.notes">{{MWD.item.armor.notes}}</label>
-        <textarea name="system.notes">{{system.notes}}</textarea>
-      </div>
-    </div>
-  </section>
+    </section>
+  </div>
 </div>
-
-{{> "systems/mwd/templates/v2/item/parts/inactive.hbs"}}
-{{> "systems/mwd/templates/v2/item/parts/references.hbs"}}

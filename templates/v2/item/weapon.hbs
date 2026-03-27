@@ -29,7 +29,7 @@ How it fits: Used by rendering code to produce UI fragments.
       <div class="form-group">
         <label for="system.skill">{{MWD.item.weapon.skill}} </label>
         <select class="select-weapon-skill" name="system.skill" data-dtype="String">
-            {{selectOptions ENUMS.skills selected=system.skill nameAttr="value" labelAttr="label" localize=false blank=""}}
+            {{selectOptions ENUMS.skills selected=system.skill valueAttr="value" labelAttr="label" localize=false blank=""}}
         </select>
       </div>
       <div class="form-group">
@@ -42,7 +42,7 @@ How it fits: Used by rendering code to produce UI fragments.
           />
           <span>+
           <select name="system.damageAttribute" data-dtype="String">
-              {{selectOptions ENUMS.attributes selected=system.damageAttribute nameAttr="value" labelAttr="label" localize=false blank=""}}
+              {{selectOptions ENUMS.attributes selected=system.damageAttribute valueAttr="value" labelAttr="label" localize=false blank=""}}
           </select>
           /2</span>
         </div>
@@ -58,31 +58,31 @@ How it fits: Used by rendering code to produce UI fragments.
         </label>
         <div>
           <select name="system.monitor" data-dtype="String">
-            {{selectOptions ENUMS.monitors selected=system.monitor nameAttr="value" labelAttr="label" localize=false blank=""}}
+            {{selectOptions ENUMS.monitors selected=system.monitor valueAttr="value" labelAttr="label" localize=false blank=""}}
           </select>
 
-          <input class="item-field-value" name="system.noArmor" type="checkbox" {{checked system.noArmor}}>
-            <label>{{MWD.item.weapon.noArmor}}</label>
-          </input>
+          {{#> "mwd.v2.components.checkbox" classes="mwd-checkbox--inline" label=MWD.item.weapon.noArmor}}
+            <input class="item-field-value" name="system.noArmor" type="checkbox" {{checked system.noArmor}} />
+          {{/ "mwd.v2.components.checkbox"}}
         </div>
       </div>
       <div class="form-group">
         <label for="system.area" >{{MWD.item.weapon.area}} </label>
         <select name="system.area" data-dtype="String">
-          {{selectOptions ENUMS.areas selected=system.area nameAttr="value" labelAttr="label" localize=false blank=""}}
+          {{selectOptions ENUMS.areas selected=system.area valueAttr="value" labelAttr="label" localize=false blank=""}}
         </select>
       </div>
       <div class="form-group">
           <label for="system.defense" >{{MWD.item.weapon.defense}} </label>
           <select name="system.defense">
             {{selectOptions ENUMS.defenses selected=(fixedDefenseCode system.defense)
-            nameAttr="code" labelAttr="label" localize=false blank=''}}
+            valueAttr="code" labelAttr="label" localize=false blank=''}}
           </select>
       </div>
       <div class="form-group">
           <label for="system.range.max" >{{MWD.item.weapon.range.max}} </label>
           <select name="system.range.max">
-            {{selectOptions ENUMS.ranges selected=system.range.max nameAttr="value" labelAttr="label" localize=false blank=""}}
+            {{selectOptions ENUMS.ranges selected=system.range.max valueAttr="value" labelAttr="label" localize=false blank=""}}
           </select>
       </div>
       <div class="form-group">
@@ -108,7 +108,6 @@ How it fits: Used by rendering code to produce UI fragments.
           />
       </div>
       {{/if}}
-      {{> 'systems/mwd/templates/v2/item/parts/inactive.hbs'}}
       {{> 'systems/mwd/templates/v2/item/parts/references.hbs'}}
     </div>
     <div class="tab section-group" data-group="primary" data-tab="modifiers">

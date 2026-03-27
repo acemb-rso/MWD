@@ -17,11 +17,20 @@ import { getSkillDef } from "../mwd/skills.js";
 import {
   computeArmorBaseMitigation,
   deriveWeaponEffectsFromTraits,
+  getArmorTraitLabels,
   getPersonalDamageTypeLabel,
+  getWeaponTraitLabels,
+  mergeArmorMitigationByType,
   normalizeArmorMitigationByType,
+  normalizeArmorStandardTraits,
   normalizeArmorTags,
   normalizePersonalDamageType,
+  normalizeWeaponAmmo,
+  normalizeWeaponStandardTraits,
   normalizeWeaponTraits,
+  resolveArmorTraitEffects,
+  resolveEffectiveWeaponProfile,
+  resolveWeaponAmmo,
 } from "../mwd/personal-damage.js";
 
 const LEGACY_ITEM_TYPE_MAP = Object.freeze({
@@ -183,6 +192,10 @@ export class MWDItem extends Item {
     damageType: "concussive",
     attackRatingBand: { close: 0, near: 0, far: 0, extreme: 0 },
     range: { max: "close", close: 0, near: 0, far: 0, extreme: 0 },
+    standardTraits: [],
+    ammo: { current: 0, max: 0, consumePerAttack: 1, activeTypeId: "", types: [] },
+    ammoState: { current: 0, max: 0, consumePerAttack: 1, activeTypeId: "", types: [], isTracked: false, ammoLabel: "" },
+    ammoLabel: "",
     traits: [],
     notes: ""
   });
@@ -294,6 +307,33 @@ export class MWDItem extends Item {
       await super._preUpdate(changed, options, userId);
     }
 
+    const nextSystem = changed?.system
+      ? foundry.utils.mergeObject(foundry.utils.deepClone(this.system ?? {}), foundry.utils.deepClone(changed.system), { inplace: false })
+      : null;
+
+    if (nextSystem && this.isPersonalWeapon()) {
+      changed.system ??= {};
+      changed.system.standardTraits = normalizeWeaponStandardTraits(nextSystem.standardTraits);
+      changed.system.ammo = normalizeWeaponAmmo(nextSystem.ammo);
+      changed.system.traits = normalizeTraits(nextSystem.traits);
+      changed.system.attackRatingBand = normalizeAttackRatingBand(nextSystem.attackRatingBand);
+      changed.system.range = normalizeRangeData(nextSystem.range);
+      changed.system.damageType = normalizePersonalDamageType(nextSystem.damageType);
+    }
+
+    if (nextSystem && this.isArmor()) {
+      changed.system ??= {};
+      changed.system.mitigationByType = normalizeArmorMitigationByType(nextSystem.mitigationByType ?? nextSystem.mitigation);
+      changed.system.tags = normalizeArmorTags(nextSystem.tags);
+      changed.system.traits = normalizeTraits(nextSystem.traits);
+      changed.system.standardTraits = normalizeArmorStandardTraits(nextSystem.standardTraits);
+      changed.system.traitState = resolveArmorTraitEffects({
+        standardTraits: changed.system.standardTraits,
+        traits: changed.system.traits,
+        traitState: nextSystem.traitState,
+      }).traitState;
+    }
+
     if (!this.isSkill()) return;
 
     const newCode = changed?.system?.code;
@@ -331,6 +371,8 @@ export class MWDItem extends Item {
     system.damageType = normalizePersonalDamageType(system.damageType);
     system.attackRatingBand = normalizeAttackRatingBand(system.attackRatingBand);
     system.range = normalizeRangeData(system.range);
+    system.standardTraits = normalizeWeaponStandardTraits(system.standardTraits);
+    system.ammo = normalizeWeaponAmmo(system.ammo);
     system.traits = normalizeTraits(system.traits);
     system.notes = String(system.notes ?? "").trim();
   }
@@ -349,8 +391,14 @@ export class MWDItem extends Item {
       system.durability.max,
       Math.max(0, Number(system.durability.current ?? system.durability.max ?? system.rating ?? 0))
     );
+    system.standardTraits = normalizeArmorStandardTraits(system.standardTraits);
     system.tags = normalizeArmorTags(system.tags);
     system.traits = normalizeTraits(system.traits);
+    system.traitState = resolveArmorTraitEffects({
+      standardTraits: system.standardTraits,
+      traits: system.traits,
+      traitState: system.traitState,
+    }).traitState;
     system.notes = String(system.notes ?? "").trim();
   }
 
@@ -359,7 +407,7 @@ export class MWDItem extends Item {
   }
 
   getUsableAttributes() {
-    return this.isActive() ? this.getAttributes() : [];
+    return this.getAttributes();
   }
 
   getAttributeValue(attribute) {
@@ -499,8 +547,6 @@ export class MWDItem extends Item {
     return this.canonicalType === TEMPLATE.itemType.skill;
   }
 
-  isActive() { return !this.system.inactive; }
-
   async rollAttribute(attribute) {
     if (this.parent) {
       await RollDialog.itemAttributeRoll(this, attribute);
@@ -583,7 +629,198 @@ export class MWDItem extends Item {
     await this.update({ "system.modifiers": modifiers });
   }
 
-  getCombatProfile() {
+  async _mutateWeaponStandardTraits(mutation = values => values) {
+    const next = mutation(foundry.utils.deepClone(normalizeWeaponStandardTraits(this.system?.standardTraits)));
+    await this.update({ "system.standardTraits": normalizeWeaponStandardTraits(next) });
+  }
+
+  async createWeaponStandardTrait(entry = {}) {
+    await this._mutateWeaponStandardTraits(traits => traits.concat([{
+      id: entry.id ?? foundry.utils.randomID(),
+      key: entry.key ?? "armorPiercing",
+      rating: Math.max(0, Number(entry.rating ?? 0) || 0),
+    }]));
+  }
+
+  async deleteWeaponStandardTrait(entryId) {
+    await this._mutateWeaponStandardTraits(traits => traits.filter(entry => entry.id !== entryId));
+  }
+
+  async updateWeaponStandardTrait(entryId, field, value) {
+    await this._mutateWeaponStandardTraits(traits => traits.map(entry => {
+      if (entry.id !== entryId) return entry;
+      if (field === "key") entry.key = value;
+      if (field === "rating") entry.rating = Math.max(0, Number(value ?? 0) || 0);
+      return entry;
+    }));
+  }
+
+  async _mutateArmorStandardTraits(mutation = values => values) {
+    const next = mutation(foundry.utils.deepClone(normalizeArmorStandardTraits(this.system?.standardTraits)));
+    await this.update({ "system.standardTraits": normalizeArmorStandardTraits(next) });
+  }
+
+  async createArmorStandardTrait(entry = {}) {
+    await this._mutateArmorStandardTraits(traits => traits.concat([{
+      id: entry.id ?? foundry.utils.randomID(),
+      key: entry.key ?? "ablative",
+      rating: Math.max(0, Number(entry.rating ?? 0) || 0),
+    }]));
+  }
+
+  async deleteArmorStandardTrait(entryId) {
+    await this._mutateArmorStandardTraits(traits => traits.filter(entry => entry.id !== entryId));
+  }
+
+  async updateArmorStandardTrait(entryId, field, value) {
+    await this._mutateArmorStandardTraits(traits => traits.map(entry => {
+      if (entry.id !== entryId) return entry;
+      if (field === "key") entry.key = value;
+      if (field === "rating") entry.rating = Math.max(0, Number(value ?? 0) || 0);
+      return entry;
+    }));
+  }
+
+  async _mutateAmmo(mutation = ammo => ammo) {
+    const next = mutation(foundry.utils.deepClone(normalizeWeaponAmmo(this.system?.ammo)));
+    await this.update({ "system.ammo": normalizeWeaponAmmo(next) });
+  }
+
+  async updateAmmoField(field, value) {
+    await this._mutateAmmo(ammo => {
+      if (field === "activeTypeId") {
+        ammo.activeTypeId = String(value ?? "").trim();
+      } else {
+        foundry.utils.setProperty(ammo, field, value);
+      }
+      return ammo;
+    });
+  }
+
+  async createAmmoType(entry = {}) {
+    await this._mutateAmmo(ammo => {
+      ammo.types.push({
+        id: entry.id ?? foundry.utils.randomID(),
+        name: entry.name ?? "Ammo",
+        damageType: entry.damageType ?? "",
+        apMod: Number(entry.apMod ?? 0) || 0,
+        attackRatingBandMod: entry.attackRatingBandMod ?? {},
+        standardTraits: entry.standardTraits ?? [],
+        traits: entry.traits ?? [],
+      });
+      ammo.activeTypeId = ammo.activeTypeId || ammo.types[ammo.types.length - 1]?.id || "";
+      return ammo;
+    });
+  }
+
+  async deleteAmmoType(ammoTypeId) {
+    await this._mutateAmmo(ammo => {
+      ammo.types = ammo.types.filter(type => type.id !== ammoTypeId);
+      if (ammo.activeTypeId === ammoTypeId) {
+        ammo.activeTypeId = ammo.types[0]?.id ?? "";
+      }
+      return ammo;
+    });
+  }
+
+  async updateAmmoType(ammoTypeId, field, value) {
+    await this._mutateAmmo(ammo => {
+      ammo.types = ammo.types.map(type => {
+        if (type.id !== ammoTypeId) return type;
+        if (field === "traits") {
+          type.traits = value;
+        } else if (field === "damageType") {
+          type.damageType = value;
+        } else if (field === "apMod") {
+          type.apMod = Number(value ?? 0) || 0;
+        } else if (field.startsWith("attackRatingBandMod.")) {
+          const band = field.split(".")[1];
+          type.attackRatingBandMod ??= {};
+          type.attackRatingBandMod[band] = Number(value ?? 0) || 0;
+        } else {
+          type[field] = value;
+        }
+        return type;
+      });
+      return ammo;
+    });
+  }
+
+  async createAmmoTypeStandardTrait(ammoTypeId, entry = {}) {
+    await this._mutateAmmo(ammo => {
+      ammo.types = ammo.types.map(type => {
+        if (type.id !== ammoTypeId) return type;
+        type.standardTraits = normalizeWeaponStandardTraits(type.standardTraits).concat([{
+          id: entry.id ?? foundry.utils.randomID(),
+          key: entry.key ?? "armorPiercing",
+          rating: Math.max(0, Number(entry.rating ?? 0) || 0),
+        }]);
+        return type;
+      });
+      return ammo;
+    });
+  }
+
+  async deleteAmmoTypeStandardTrait(ammoTypeId, entryId) {
+    await this._mutateAmmo(ammo => {
+      ammo.types = ammo.types.map(type => {
+        if (type.id !== ammoTypeId) return type;
+        type.standardTraits = normalizeWeaponStandardTraits(type.standardTraits)
+          .filter(entry => entry.id !== entryId);
+        return type;
+      });
+      return ammo;
+    });
+  }
+
+  async updateAmmoTypeStandardTrait(ammoTypeId, entryId, field, value) {
+    await this._mutateAmmo(ammo => {
+      ammo.types = ammo.types.map(type => {
+        if (type.id !== ammoTypeId) return type;
+        type.standardTraits = normalizeWeaponStandardTraits(type.standardTraits)
+          .map(entry => {
+            if (entry.id !== entryId) return entry;
+            if (field === "key") entry.key = value;
+            if (field === "rating") entry.rating = Math.max(0, Number(value ?? 0) || 0);
+            return entry;
+          });
+        return type;
+      });
+      return ammo;
+    });
+  }
+
+  getAmmoState({ ammoTypeId = "" } = {}) {
+    return resolveWeaponAmmo(this.system?.ammo, ammoTypeId);
+  }
+
+  async setActiveAmmoType(ammoTypeId) {
+    await this.updateAmmoField("activeTypeId", ammoTypeId);
+  }
+
+  canConsumeAmmo({ ammoTypeId = "" } = {}) {
+    const ammoState = this.getAmmoState({ ammoTypeId });
+    if (!ammoState?.isTracked) return true;
+    return Number(ammoState?.ammo?.current ?? 0) >= Number(ammoState?.ammo?.consumePerAttack ?? 1);
+  }
+
+  async consumeAmmo({ ammoTypeId = "" } = {}) {
+    const ammoState = this.getAmmoState({ ammoTypeId });
+    if (!ammoState?.isTracked) return true;
+
+    const consumePerAttack = Math.max(1, Number(ammoState?.ammo?.consumePerAttack ?? 1) || 1);
+    const current = Math.max(0, Number(ammoState?.ammo?.current ?? 0) || 0);
+    if (current < consumePerAttack) return false;
+
+    await this._mutateAmmo(ammo => {
+      ammo.activeTypeId = ammoState.activeTypeId || ammo.activeTypeId || "";
+      ammo.current = Math.max(0, current - consumePerAttack);
+      return ammo;
+    });
+    return true;
+  }
+
+  getCombatProfile({ ammoTypeId = "" } = {}) {
     if (!this.isPersonalWeapon()) return null;
 
     const system = this.system ?? {};
@@ -591,10 +828,16 @@ export class MWDItem extends Item {
     const skillCode = String(system.skill ?? "").trim();
     const skillDef = getSkillDef(skillCode);
     const damage = Number(system.damage ?? 0) || 0;
-    const ap = Number(system.ap ?? system.armorPiercing ?? 0) || 0;
     const category = String(system.category ?? system.weaponCategory ?? "ranged").trim() || "ranged";
-    const traits = normalizeTraits(system.traits);
-    const effects = deriveWeaponEffectsFromTraits(traits);
+    const effectiveProfile = resolveEffectiveWeaponProfile({
+      damageType: system.damageType,
+      ap: Number(system.ap ?? system.armorPiercing ?? 0) || 0,
+      attackRatingBand: normalizeAttackRatingBand(system.attackRatingBand),
+      traits: normalizeTraits(system.traits),
+      standardTraits: normalizeWeaponStandardTraits(system.standardTraits),
+      ammo: normalizeWeaponAmmo(system.ammo),
+      ammoTypeId,
+    });
 
     return {
       id: this.id ?? "weapon",
@@ -609,13 +852,18 @@ export class MWDItem extends Item {
       skill: skillCode || "firearms",
       skillDef,
       damage,
-      ap,
-      damageType: normalizePersonalDamageType(system.damageType),
-      attackRatingBand: normalizeAttackRatingBand(system.attackRatingBand),
+      ap: effectiveProfile.ap,
+      damageType: effectiveProfile.damageType,
+      damageTypeLabel: getPersonalDamageTypeLabel(effectiveProfile.damageType),
+      attackRatingBand: effectiveProfile.attackRatingBand,
       range,
       defaultRangeBand: this.getDefaultRangeBand(range),
-      traits,
-      effects,
+      traits: effectiveProfile.traits,
+      standardTraits: effectiveProfile.standardTraits,
+      effects: effectiveProfile.effects,
+      ammoLabel: effectiveProfile.ammoLabel,
+      ammoType: effectiveProfile.ammoType,
+      ammoState: effectiveProfile.ammoState,
       notes: String(system.notes ?? system.description ?? "").trim()
     };
   }
@@ -631,6 +879,11 @@ export class MWDItem extends Item {
       Math.max(0, Number(system?.durability?.current ?? maxDurability))
     );
     const mitigationByType = normalizeArmorMitigationByType(system?.mitigationByType ?? system?.mitigation);
+    const armorTraitEffects = resolveArmorTraitEffects({
+      standardTraits: normalizeArmorStandardTraits(system?.standardTraits),
+      traits: normalizeTraits(system?.traits),
+      traitState: system?.traitState,
+    });
     const tags = normalizeArmorTags(system?.tags);
     const baseMitigation = computeArmorBaseMitigation(currentDurability);
 
@@ -649,14 +902,19 @@ export class MWDItem extends Item {
       currentArmorRating: currentDurability,
       baseMitigation,
       baseResistance: baseMitigation,
-      mitigationByType,
+      mitigationByType: mergeArmorMitigationByType(mitigationByType, armorTraitEffects.mitigationByType),
       tags,
       isDestroyed: currentDurability <= 0,
       durability: {
         current: currentDurability,
         max: maxDurability,
       },
-      traits: normalizeTraits(system.traits),
+      traitState: armorTraitEffects.traitState,
+      standardTraits: normalizeArmorStandardTraits(system.standardTraits),
+      traits: getArmorTraitLabels({
+        traits: normalizeTraits(system.traits),
+        standardTraits: normalizeArmorStandardTraits(system.standardTraits),
+      }),
       notes: String(system.notes ?? "").trim(),
     };
   }
@@ -698,6 +956,7 @@ export class MWDItem extends Item {
     const damageAttributeValue = this.system.damageAttribute
       ? (this.parent.getAttributeValue(this.system.damageAttribute) ?? 0)
       : 0;
+    const profile = this.isPersonalWeapon() ? this.getCombatProfile() : null;
 
     return {
       value: damageValue(
@@ -707,8 +966,8 @@ export class MWDItem extends Item {
         damageAttributeValue
       ),
       monitor,
-      damageType: this.system.damageType,
-      damageTypeLabel: this.getDamageTypeLabel(),
+      damageType: profile?.damageType ?? this.system.damageType,
+      damageTypeLabel: profile?.damageTypeLabel ?? this.getDamageTypeLabel(),
       noArmor: this.system.noArmor ?? this.system.armorAvoidance,
       armorMode: armorMode(monitor, this.system.noArmor ?? this.system.armorAvoidance)
     };
@@ -724,7 +983,7 @@ export class MWDItem extends Item {
 
   getDamageTypeLabel() {
     if (this.isPersonalWeapon()) {
-      return getPersonalDamageTypeLabel(this.system.damageType);
+      return getPersonalDamageTypeLabel(this.getCombatProfile()?.damageType ?? this.system.damageType);
     }
     const labelKey = MWD.mwd.weaponDamageType[this.system.damageType]
       ?? MWD.mwd.personalDamageType[this.system.damageType];

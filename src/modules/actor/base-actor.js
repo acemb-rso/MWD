@@ -246,7 +246,7 @@ export class AnarchyBaseActor extends Actor {
 
   getUsableAttributes(item = undefined) {
     const itemsAttributes = (item ? [item] : this.items)
-      .map(it => it.getUsableAttributes())
+      .map(it => it.getAttributes())
       .reduce((a, b) => a.concat(b), [])
     const usableAttributes = Misc.distinct(this.getAttributes().concat(itemsAttributes));
     usableAttributes.sort(Misc.ascendingBySortedArray(Enums.sortedAttributeKeys));
@@ -261,7 +261,7 @@ export class AnarchyBaseActor extends Actor {
         value = this.system.attributes[attribute].value;
       }
       else if (!item) {
-        const candidateItems = this.items.filter(item => item.isActive() && item.getAttributes().includes(attribute))
+        const candidateItems = this.items.filter(item => item.getAttributes().includes(attribute))
         if (candidateItems.length > 0) {
           const candidateValues = candidateItems.map(it => it.getAttributeValue(attribute) ?? 0)
           value = Math.max(...candidateValues)

@@ -5,70 +5,11 @@ How it fits: Used by rendering code to produce UI fragments.
 --}}
 
 
-<div class="mwd-inv">
-  <div class="mwd-inv__toolbar">
-    <button type="button" class="mwd-inv__add-btn" data-action="createOwnedItem" data-item-type="armor" title="Add Armor">
-      <i class="fas fa-plus"></i> Add
-    </button>
-  </div>
-
-  {{#if personalInventory.armor.length}}
-    <div class="mwd-inv__table">
-      <div class="mwd-inv__col-headers">
-        <span class="mwd-inv__col mwd-inv__col--img"></span>
-        <span class="mwd-inv__col mwd-inv__col--name">Armor</span>
-        <span class="mwd-inv__col mwd-inv__col--stat" title="Armor Rating">Rat.</span>
-        <span class="mwd-inv__col mwd-inv__col--stat" title="Base Resistance">Res.</span>
-        <span class="mwd-inv__col mwd-inv__col--stat" title="Defense Bonus">Def.</span>
-        <span class="mwd-inv__col mwd-inv__col--stat-wide" title="Durability">Dur.</span>
-        <span class="mwd-inv__col mwd-inv__col--icon" title="Equipped">Eqp</span>
-        <span class="mwd-inv__col mwd-inv__col--icon" title="Primary"></span>
-        <span class="mwd-inv__col mwd-inv__col--icon"></span>
-      </div>
-      {{#each personalInventory.armor as |armor|}}
-        <div class="mwd-inv__row {{#if armor.equipped}}is-equipped{{/if}} {{#if armor.isPrimary}}is-primary{{/if}}" data-item-id="{{armor.id}}">
-          <button type="button"
-                  class="mwd-inv__col mwd-inv__col--img mwd-inv__thumb-btn"
-                  data-action="editOwnedItem"
-                  data-item-id="{{armor.id}}"
-                  title="Open {{armor.name}}">
-            <img class="mwd-inv__thumb" src="{{armor.img}}" alt="">
-          </button>
-          <button type="button" class="mwd-inv__col mwd-inv__col--name mwd-inv__name-btn" data-action="editOwnedItem">
-            {{armor.name}}
-          </button>
-          <span class="mwd-inv__col mwd-inv__col--stat">{{armor.rating}}</span>
-          <span class="mwd-inv__col mwd-inv__col--stat">{{armor.baseResistance}}</span>
-          <span class="mwd-inv__col mwd-inv__col--stat">{{armor.defenseBonus}}</span>
-          <span class="mwd-inv__col mwd-inv__col--stat-wide mwd-inv__stat--muted">{{armor.durability}}</span>
-          <button type="button"
-                  class="mwd-inv__col mwd-inv__col--icon mwd-inv__icon-btn {{#if armor.equipped}}is-on{{/if}}"
-                  data-action="toggleOwnedItemEquipped"
-                  data-item-id="{{armor.id}}"
-                  title="{{#if armor.equipped}}Unequip{{else}}Equip{{/if}}">
-            <i class="fas {{#if armor.equipped}}fa-check-circle{{else}}fa-circle{{/if}}"></i>
-          </button>
-          <button type="button"
-                  class="mwd-inv__col mwd-inv__col--icon mwd-inv__icon-btn mwd-inv__icon-btn--star {{#if armor.isPrimary}}is-on{{/if}}"
-                  data-action="setOwnedItemPrimary"
-                  data-item-id="{{armor.id}}"
-                  title="{{#if armor.isPrimary}}Clear primary{{else}}Set as primary{{/if}}">
-            <i class="{{#if armor.isPrimary}}fas{{else}}far{{/if}} fa-star"></i>
-          </button>
-          <button type="button"
-                  class="mwd-inv__col mwd-inv__col--icon mwd-inv__icon-btn mwd-inv__icon-btn--delete"
-                  data-action="deleteOwnedItem"
-                  data-item-id="{{armor.id}}"
-                  title="Delete">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        {{#if armor.mitigationLabel}}
-          <div class="mwd-inv__row-note">{{armor.mitigationLabel}}</div>
-        {{/if}}
-      {{/each}}
-    </div>
-  {{else}}
-    <div class="mwd-inv__empty">No armor.</div>
-  {{/if}}
-</div>
+{{> "mwd.v2.ui.character.inventory-section"
+    sectionKey="armor"
+    itemType="armor"
+    addLabel="Add"
+    addTitle="Add Armor"
+    emptyLabel="No armor."
+    supportsEquip=true
+    supportsPrimary=true}}

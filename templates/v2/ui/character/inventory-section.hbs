@@ -1,0 +1,40 @@
+{{!--
+templates/v2/ui/character/inventory-section.hbs
+Purpose: Renders one inventory section using a shared compact record list.
+How it fits: Used by character inventory placeholder partials.
+--}}
+
+
+<div class="mwd-inv">
+  <div class="mwd-inv__toolbar">
+    <button type="button" class="mwd-inv__add-btn" data-action="createOwnedItem" data-item-type="{{itemType}}" title="{{addTitle}}">
+      <i class="fas fa-plus"></i> {{addLabel}}
+    </button>
+  </div>
+
+  {{#if showWarnings}}
+    {{#if personalInventory.warnings.length}}
+      <div class="mwd-inv__warnings">
+        {{#each personalInventory.warnings as |warning|}}
+          <div class="mwd-inv__warning">{{warning}}</div>
+        {{/each}}
+      </div>
+    {{/if}}
+  {{/if}}
+
+  {{#with (lookup personalInventory sectionKey) as |records|}}
+    {{#if records.length}}
+      <div class="mwd-records mwd-records--inventory">
+        {{#each records as |record|}}
+          {{> "mwd.v2.ui.character.inventory-record"
+              record=record
+              supportsAttack=../supportsAttack
+              supportsEquip=../supportsEquip
+              supportsPrimary=../supportsPrimary}}
+        {{/each}}
+      </div>
+    {{else}}
+      <div class="mwd-inv__empty">{{emptyLabel}}</div>
+    {{/if}}
+  {{/with}}
+</div>
