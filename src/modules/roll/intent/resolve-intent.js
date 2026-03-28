@@ -51,10 +51,11 @@ export function normalizeResolvedContext(ctx, { intent } = {}) {
   const attribute = Number(pool.attribute ?? pool.base ?? 0);
   const skill = Number(pool.skill ?? pool.rating ?? 0);
   const bonus = Number(pool.bonus ?? 0);
+  const specialization = Number(pool.specialization ?? 0);
 
-  if (![attribute, skill, bonus].every(Number.isFinite)) {
+  if (![attribute, skill, bonus, specialization].every(Number.isFinite)) {
     console.error("MWD | Invalid pool parts after intent resolution", { intent, ctx });
-    throw new Error(`MWD.roll: pool parts must be numeric (attribute/skill/bonus).`);
+    throw new Error(`MWD.roll: pool parts must be numeric (attribute/skill/bonus/specialization).`);
   }
 
   // Normalize keys + compute totals consistently
@@ -62,7 +63,8 @@ export function normalizeResolvedContext(ctx, { intent } = {}) {
     attribute,
     skill,
     bonus,
-    totalBase: attribute + skill + bonus
+    specialization,
+    totalBase: attribute + skill + bonus + specialization
   };
 
   // --- Roll semantics defaults ---
@@ -86,7 +88,8 @@ export function normalizeResolvedContext(ctx, { intent } = {}) {
     ctx.breakdown = [
       { id: "attribute", label: "Attribute", value: attribute },
       { id: "skill", label: "Skill", value: skill },
-      { id: "bonus", label: "Bonus", value: bonus }
+      { id: "bonus", label: "Bonus", value: bonus },
+      ...(specialization ? [{ id: "specialization", label: "Specialization", value: specialization }] : [])
     ];
   }
 

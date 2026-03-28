@@ -4,6 +4,10 @@
 
 
 // systems/mwd/module/roll/mwd-roll-dialog.js
+import {
+  getOwnedSkillSpecializations,
+  getSkillSpecializationLabel,
+} from "../mwd/skills.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
@@ -62,6 +66,20 @@ function writeToggles(payload, toggles) {
   payload.toggles.opponentRoll = Boolean(toggles.opponentRoll);
 }
 
+function writeSpecializationPayload(payload, skillCode, specializationKey) {
+  const normalizedKey = String(specializationKey ?? "").trim();
+  const label = normalizedKey ? getSkillSpecializationLabel(skillCode, normalizedKey) : "";
+
+  if (normalizedKey && label) {
+    payload.specializationKey = normalizedKey;
+    payload.specializationLabel = label;
+    return;
+  }
+
+  delete payload.specializationKey;
+  delete payload.specializationLabel;
+}
+
 /**
  * TEMP fallback: read dice parts from resolved.breakdown if present.
  * Prefer passing explicit dice parts into prompt() (see MWDRollDialog.prompt).
@@ -73,7 +91,8 @@ function diceFromResolvedBreakdown(resolved) {
   return {
     attribute: get("attribute"),
     skill: get("skill"),
-    bonus: get("bonus")
+    bonus: get("bonus"),
+    specialization: get("specialization")
   };
 }
 
@@ -101,7 +120,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         setEdgePrePool: MWDRollDialog.prototype._onSetEdgePrePool,
         toggleCheckbox: MWDRollDialog.prototype._onToggleCheckbox,
         setDn: MWDRollDialog.prototype._onSetDn,
-        setAmmoType: MWDRollDialog.prototype._onSetAmmoType
+        setAmmoType: MWDRollDialog.prototype._onSetAmmoType,
+        setSpecialization: MWDRollDialog.prototype._onSetSpecialization
       }
     },
     { inplace: false }
@@ -207,11 +227,12 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         attribute: Number(bc?.dice?.attribute ?? 0),
         skill: Number(bc?.dice?.skill ?? 0),
         bonus: Number(bc?.dice?.bonus ?? 0),
+        specialization: Number(bc?.dice?.specialization ?? 0),
         modifiers: Number(bc?.dice?.modifiers ?? 0)
       };
 
       const modifiersTotal = dice.modifiers + manualTotal;
-      const baseTotal = dice.attribute + dice.skill + dice.bonus;
+      const baseTotal = dice.attribute + dice.skill + dice.bonus + dice.specialization;
       totalPool = Math.max(0, baseTotal + modifiersTotal);
     }
 
@@ -236,6 +257,26 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const selected = edgeChoices.find(c => c.selected);
     const selectedLabel = selected?.label ?? null;
     const attack = bc?.resolved?.attack ?? null;
+    const specializationSkillCode = String(
+      attack?.skill?.code
+      ?? bc?.resolved?.specialization?.skillKey
+      ?? bc?.resolved?.data?.skillKey
+      ?? bc?.payload?.key
+      ?? ""
+    ).trim();
+    const specializationOptions = specializationSkillCode
+      ? getOwnedSkillSpecializations(this.actor?.system ?? {}, specializationSkillCode)
+      : [];
+    const selectedSpecializationKey = String(st?.payload?.specializationKey ?? "").trim();
+    const selectedSpecialization = specializationOptions.find(option => option.key === selectedSpecializationKey) ?? null;
+    if (intent !== "edge") {
+      dice.specialization = selectedSpecialization
+        ? Number(bc?.resolved?.specialization?.value ?? 2)
+        : 0;
+      const modifiersTotal = dice.modifiers + manualTotal;
+      const baseTotal = dice.attribute + dice.skill + dice.bonus + dice.specialization;
+      totalPool = Math.max(0, baseTotal + modifiersTotal);
+    }
     const ammoTypes = Array.isArray(attack?.weapon?.ammoState?.types)
       ? attack.weapon.ammoState.types
       : [];
@@ -269,6 +310,16 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       totalPool,
       intent,
       dn,
+      specialization: specializationOptions.length ? {
+        skillCode: specializationSkillCode,
+        options: specializationOptions.map(option => ({
+          key: option.key,
+          label: option.label,
+          selected: option.key === selectedSpecializationKey
+        })),
+        selectedKey: selectedSpecializationKey,
+        selectedLabel: selectedSpecialization?.label ?? "",
+      } : null,
       attack: attack ? {
         weaponName: attack?.weapon?.name ?? "Weapon",
         rangeBand: attack?.rangeBand ?? "",
@@ -316,6 +367,13 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // Apply toggles back onto payload (flat + nested for compatibility).
     writeToggles(st.payload, st.toggles ?? {});
+    writeSpecializationPayload(
+      st.payload,
+      st.payload?.intent === "attack"
+        ? st.payload?.skillKey ?? this._mwd.baseContext?.resolved?.attack?.skill?.code
+        : st.payload?.key ?? this._mwd.baseContext?.resolved?.data?.skillKey,
+      st.payload?.specializationKey
+    );
 
     if (this.#resolvePrompt) {
       const resolve = this.#resolvePrompt;
@@ -426,6 +484,17 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     return this.render(false);
   }
 
+  async _onSetSpecialization(event, target) {
+    event?.preventDefault();
+
+    const skillCode = String(target?.dataset?.skillCode ?? "").trim();
+    const specializationKey = String(target?.value ?? "").trim();
+    if (!skillCode) return;
+
+    writeSpecializationPayload(this._mwd.state.payload, skillCode, specializationKey);
+    return this.render(false);
+  }
+
   _onRender(context, options) {
     super._onRender?.(context, options);
 
@@ -435,6 +504,12 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     root.querySelectorAll("[data-action='setAmmoType']").forEach(select => {
       select.addEventListener("change", event => {
         void this._onSetAmmoType(event, event.currentTarget);
+      });
+    });
+
+    root.querySelectorAll("[data-action='setSpecialization']").forEach(select => {
+      select.addEventListener("change", event => {
+        void this._onSetSpecialization(event, event.currentTarget);
       });
     });
   }
@@ -481,6 +556,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       attribute: Number(parts?.attribute ?? 0),
       skill: Number(parts?.skill ?? 0),
       bonus: Number(parts?.bonus ?? 0),
+      specialization: Number(parts?.specialization ?? 0),
       modifiers: Number(modTotal ?? 0)
     };
 

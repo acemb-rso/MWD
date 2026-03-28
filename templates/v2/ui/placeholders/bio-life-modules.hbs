@@ -1,0 +1,42 @@
+{{!--
+templates/v2/ui/placeholders/bio-life-modules.hbs
+Purpose: Renders 4 fixed life module slots (Faction, Childhood, Higher Education, Real Life).
+How it fits: Included by the Bio tab Life Modules panel in the character sheet.
+--}}
+
+<div class="mwd-life-modules">
+  {{#each lifeModules as |slot|}}
+    <div class="mwd-life-module-slot" data-module-type="{{slot.moduleType}}">
+      <span class="mwd-life-module-slot__label">{{slot.label}}</span>
+      {{#if slot.item}}
+        <div class="mwd-life-module-slot__record">
+          <span class="mwd-life-module-slot__name">{{slot.item.name}}</span>
+          <div class="mwd-life-module-slot__actions">
+            <button type="button"
+                    class="mwd-record__icon-btn"
+                    data-action="editOwnedItem"
+                    data-item-id="{{slot.item.id}}"
+                    title="Open {{slot.item.name}}">
+              <i class="fas fa-pen"></i>
+            </button>
+            <button type="button"
+                    class="mwd-record__icon-btn is-danger"
+                    data-action="deleteOwnedItem"
+                    data-item-id="{{slot.item.id}}"
+                    title="Remove {{slot.item.name}}">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      {{else}}
+        <button type="button"
+                class="mwd-life-module-slot__add"
+                data-action="createLifeModuleItem"
+                data-module-type="{{slot.moduleType}}"
+                title="Add {{slot.label}} life module">
+          <i class="fas fa-plus"></i> Add
+        </button>
+      {{/if}}
+    </div>
+  {{/each}}
+</div>

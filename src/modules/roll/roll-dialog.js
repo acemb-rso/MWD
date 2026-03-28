@@ -97,7 +97,7 @@ export class RollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       weapon: weapon,
       skill: skill,
       attribute1: skill?.system.attribute ?? actor.getPhysicalAgility(),
-      specialization: skill?.system.specialization,
+      specialization: undefined,
       targeting: targeting
     });
     await RollDialog.create(rollData);

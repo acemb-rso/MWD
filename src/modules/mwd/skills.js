@@ -3,7 +3,7 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { ICONS_SKILLS_PATH, SYSTEM_PATH } from "../constants.js";
+import { ICONS_SKILLS_PATH, SYSTEM_NAME, SYSTEM_PATH } from "../constants.js";
 import { Enums } from "../enums.js"; // if you want pretty attribute labels (optional)
 
 
@@ -15,12 +15,26 @@ import { Enums } from "../enums.js"; // if you want pretty attribute labels (opt
  * @property {string} [icon]            Optional icon path
  * @property {string} [defense]         Optional roll hint (e.g. "physicalDefense")
  * @property {string[]} [domains]       Optional list of domains (e.g. ["physical", "mental"])
+ * @property {{key: string, label: string}[]} [specializations]
  */
+
+export const SKILL_SPECIALIZATION_BONUS = 2;
+export const SETTING_SKILL_SPECIALIZATION_CATALOG = "skillSpecializationCatalog";
+
+const ATHLETICS_SPECIALIZATIONS = [
+  { key: "running", label: "Running" },
+  { key: "jumping", label: "Jumping" },
+  { key: "swimming", label: "Swimming" },
+  { key: "climbing", label: "Climbing" },
+  { key: "acrobatics", label: "Acrobatics" }
+];
+
+const KNOWN_SKILL_CODES = new Set();
 
 /** @type {MWDSkillDef[]} */
 export const MWD_SKILLS = [
   // Strength
-  { code: "athletics",       label: "Athletics",       attribute: "strength",  icon: `${ICONS_SKILLS_PATH}/athletics.svg`, domains: ["physical"] },
+  { code: "athletics",       label: "Athletics",       attribute: "strength",  icon: `${ICONS_SKILLS_PATH}/athletics.svg`, domains: ["physical"], specializations: ATHLETICS_SPECIALIZATIONS },
   { code: "heavyWeapons",    label: "Heavy Weapons",   attribute: "strength",  icon: `${ICONS_SKILLS_PATH}/heavy-weapons.svg`, defense: "physicalDefense", domains: ["physical"] },
 
   // Reflexes
@@ -62,6 +76,10 @@ export const MWD_SKILLS = [
   { code: "intimidation", label: "Intimidation", attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/intimidation.svg`, domains: ["social", "mental"] }
 ].map(normalizeSkillDef);
 
+for (const skill of MWD_SKILLS) {
+  KNOWN_SKILL_CODES.add(skill.code);
+}
+
 /**
  * Normalize skill entries so callers can assume label/icon exist.
  * @param {MWDSkillDef} s
@@ -71,8 +89,138 @@ function normalizeSkillDef(s) {
   return {
     ...s,
     label: s.label ?? s.code,
-    icon: s.icon ?? `${SYSTEM_PATH}/icons/skills/skills.svg`
+    icon: s.icon ?? `${SYSTEM_PATH}/icons/skills/skills.svg`,
+    specializations: normalizeSpecializationDefs(s.specializations)
   };
+}
+
+function normalizeSpecializationKey(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function normalizeSpecializationDefs(values = []) {
+  const seen = new Set();
+  return (Array.isArray(values) ? values : [])
+    .map(value => {
+      const key = normalizeSpecializationKey(value?.key ?? value?.label ?? value);
+      if (!key || seen.has(key)) return null;
+      seen.add(key);
+      return {
+        key,
+        label: String(value?.label ?? value?.key ?? value ?? key).trim() || key
+      };
+    })
+    .filter(Boolean);
+}
+
+function createValidationError(messages = []) {
+  const error = new Error(messages[0] ?? "Invalid skill specialization data.");
+  error.validationErrors = messages;
+  return error;
+}
+
+function buildDefaultSpecializationCatalog() {
+  const catalog = {};
+  for (const skill of MWD_SKILLS) {
+    const labels = (Array.isArray(skill.specializations) ? skill.specializations : [])
+      .map(entry => String(entry?.label ?? "").trim())
+      .filter(Boolean);
+    if (labels.length) catalog[skill.code] = labels;
+  }
+  return catalog;
+}
+
+const DEFAULT_SKILL_SPECIALIZATION_CATALOG = Object.freeze(buildDefaultSpecializationCatalog());
+
+function normalizeCatalogLabels(skillCode, values = [], { strict = false, errors = [] } = {}) {
+  if (!Array.isArray(values)) {
+    if (strict) {
+      const skillLabel = getBaseSkillDef(skillCode)?.label ?? skillCode;
+      errors.push(`${skillLabel}: expected an array of specialization labels.`);
+    }
+    return [];
+  }
+
+  const entries = [];
+  for (const value of values) {
+    const label = String(value ?? "").trim();
+    if (!label) {
+      if (strict) {
+        const skillLabel = getBaseSkillDef(skillCode)?.label ?? skillCode;
+        errors.push(`${skillLabel}: specialization labels cannot be blank.`);
+      }
+      continue;
+    }
+    entries.push(label);
+  }
+
+  return normalizeSpecializationDefs(entries).map(entry => entry.label);
+}
+
+function getBaseSkillDef(code) {
+  return MWD_SKILLS.find((s) => s.code === code);
+}
+
+function getResolvedSpecializationCatalog(rawCatalog, { strict = false } = {}) {
+  const source = rawCatalog && typeof rawCatalog === "object" && !Array.isArray(rawCatalog) ? rawCatalog : {};
+  const errors = [];
+  const normalized = {};
+
+  for (const [skillCode, labels] of Object.entries(source)) {
+    if (!KNOWN_SKILL_CODES.has(skillCode)) {
+      if (strict) errors.push(`Unknown skill code "${skillCode}".`);
+      continue;
+    }
+
+    const nextLabels = normalizeCatalogLabels(skillCode, labels, { strict, errors });
+    if (nextLabels.length) normalized[skillCode] = nextLabels;
+  }
+
+  if (strict && errors.length) throw createValidationError(errors);
+
+  return Object.fromEntries(
+    MWD_SKILLS
+      .map(skill => [skill.code, normalized[skill.code]])
+      .filter(([, labels]) => Array.isArray(labels) && labels.length)
+  );
+}
+
+function readSpecializationCatalogSetting() {
+  try {
+    if (game?.settings?.settings?.has?.(`${SYSTEM_NAME}.${SETTING_SKILL_SPECIALIZATION_CATALOG}`)) {
+      return game.settings.get(SYSTEM_NAME, SETTING_SKILL_SPECIALIZATION_CATALOG);
+    }
+  } catch (_) {
+    // Fall through to shipped defaults during early boot or if settings are unavailable.
+  }
+
+  return getDefaultSkillSpecializationCatalog();
+}
+
+function getRuntimeSpecializationCatalog() {
+  const normalized = getResolvedSpecializationCatalog(readSpecializationCatalogSetting(), { strict: false });
+  return Object.fromEntries(
+    Object.entries(normalized).map(([skillCode, labels]) => [
+      skillCode,
+      normalizeSpecializationDefs(labels)
+    ])
+  );
+}
+
+function normalizeSpecializationKeys(values = [], { allowedKeys = null } = {}) {
+  const seen = new Set();
+  return (Array.isArray(values) ? values : [])
+    .map(value => normalizeSpecializationKey(value))
+    .filter(key => {
+      if (!key || seen.has(key)) return false;
+      if (allowedKeys && !allowedKeys.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 /**
@@ -81,7 +229,12 @@ function normalizeSkillDef(s) {
  * @returns {MWDSkillDef | undefined}
  */
 export function getSkillDef(code) {
-  return MWD_SKILLS.find((s) => s.code === code);
+  const base = getBaseSkillDef(code);
+  if (!base) return undefined;
+  return {
+    ...base,
+    specializations: getSkillSpecializationDefs(base.code)
+  };
 }
 
 /**
@@ -89,7 +242,67 @@ export function getSkillDef(code) {
  * @returns {MWDSkillDef[]}
  */
 export function listSkillDefs() {
-  return [...MWD_SKILLS].sort((a, b) => a.label.localeCompare(b.label));
+  const catalog = getRuntimeSpecializationCatalog();
+  return [...MWD_SKILLS]
+    .map(skill => ({
+      ...skill,
+      specializations: [...(catalog[skill.code] ?? [])]
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+export function getSkillSpecializationDefs(skillCode) {
+  return [...(getRuntimeSpecializationCatalog()[skillCode] ?? [])];
+}
+
+export function getSkillSpecializationDef(skillCode, specializationKey) {
+  const normalizedKey = normalizeSpecializationKey(specializationKey);
+  if (!normalizedKey) return undefined;
+  return getSkillSpecializationDefs(skillCode).find(entry => entry.key === normalizedKey);
+}
+
+export function getSkillSpecializationLabel(skillCode, specializationKey) {
+  return getSkillSpecializationDef(skillCode, specializationKey)?.label ?? "";
+}
+
+export function getDefaultSkillSpecializationCatalog() {
+  return foundry.utils.deepClone(DEFAULT_SKILL_SPECIALIZATION_CATALOG);
+}
+
+export function normalizeSkillSpecializationCatalog(value, { strict = false } = {}) {
+  return getResolvedSpecializationCatalog(value, { strict });
+}
+
+export function normalizeStoredSkillSpecializationKeys(values = []) {
+  return normalizeSpecializationKeys(values);
+}
+
+export function normalizeOwnedSkillSpecializations(skillCode, values = []) {
+  const allowedKeys = new Set(getSkillSpecializationDefs(skillCode).map(entry => entry.key));
+  const selectedKeys = new Set(normalizeSpecializationKeys(values, { allowedKeys }));
+
+  return getSkillSpecializationDefs(skillCode)
+    .filter(entry => selectedKeys.has(entry.key))
+    .map(entry => entry.key);
+}
+
+export function getStoredSkillSpecializationKeys(systemData, skillCode) {
+  return normalizeStoredSkillSpecializationKeys(
+    systemData?.skills?.[skillCode]?.specializations ?? []
+  );
+}
+
+export function getOwnedSkillSpecializationKeys(systemData, skillCode) {
+  return normalizeOwnedSkillSpecializations(
+    skillCode,
+    getStoredSkillSpecializationKeys(systemData, skillCode)
+  );
+}
+
+export function getOwnedSkillSpecializations(systemData, skillCode) {
+  const ownedKeys = new Set(getOwnedSkillSpecializationKeys(systemData, skillCode));
+  return getSkillSpecializationDefs(skillCode)
+    .filter(entry => ownedKeys.has(entry.key));
 }
 
 /**
@@ -113,6 +326,8 @@ export function ensureCoreSkillRatings(systemData) {
   for (const s of MWD_SKILLS) {
     const entry = (systemData.skills[s.code] ??= {});
     if (entry.rating == null) entry.rating = 0;
+    if (entry.bonus == null) entry.bonus = 0;
+    entry.specializations = normalizeStoredSkillSpecializationKeys(entry.specializations);
   }
 }
 export function buildSkillDisplay(systemData) {
@@ -130,6 +345,9 @@ export function buildSkillDisplay(systemData) {
 
     // Bonus/modifiers: placeholder field (you can later feed Active Effects into this)
     const bonus = Number(systemData?.skills?.[code]?.bonus ?? 0);
+    const ownedSpecializations = getOwnedSkillSpecializations(systemData, code);
+    const remainingSpecializations = getSkillSpecializationDefs(code)
+      .filter(entry => !ownedSpecializations.some(owned => owned.key === entry.key));
 
     const total = base + rating + bonus;
 
@@ -143,6 +361,18 @@ export function buildSkillDisplay(systemData) {
       base,
       bonus,
       total,
+      rollPayload: JSON.stringify({ intent: "skill", key: code }),
+      canAddSpecialization: remainingSpecializations.length > 0,
+      specializations: ownedSpecializations.map(entry => ({
+        ...entry,
+        bonus: SKILL_SPECIALIZATION_BONUS,
+        rollPayload: JSON.stringify({
+          intent: "skill",
+          key: code,
+          specializationKey: entry.key,
+          specializationLabel: entry.label
+        })
+      })),
 
       // Input wiring paths (so templates don’t concat strings themselves)
       pathRating: `system.skills.${code}.rating`,

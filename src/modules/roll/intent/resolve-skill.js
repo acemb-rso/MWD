@@ -4,7 +4,12 @@
 
 
 // modules/roll/intent/resolve-skill.js
-import { getSkillDef } from "../../mwd/skills.js";
+import {
+  getOwnedSkillSpecializationKeys,
+  getSkillDef,
+  getSkillSpecializationDef,
+  SKILL_SPECIALIZATION_BONUS,
+} from "../../mwd/skills.js";
 
 export async function resolveSkill({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveSkill requires actor");
@@ -22,6 +27,12 @@ export async function resolveSkill({ actor, payload } = {}) {
   const attribute = Number(sys?.attributes?.[attrKey]?.value ?? 0);
   const skill = Number(sys?.skills?.[code]?.rating ?? 0);
   const bonus = Number(sys?.skills?.[code]?.bonus ?? 0);
+  const ownedSpecializations = new Set(getOwnedSkillSpecializationKeys(sys, code));
+  const requestedSpecialization = getSkillSpecializationDef(code, payload?.specializationKey);
+  const selectedSpecialization = requestedSpecialization && ownedSpecializations.has(requestedSpecialization.key)
+    ? requestedSpecialization
+    : null;
+  const specializationBonus = selectedSpecialization ? SKILL_SPECIALIZATION_BONUS : 0;
 
   const domains = Array.isArray(payload?.domains) ? payload.domains : (def.domains ?? []);
 
@@ -52,19 +63,32 @@ export async function resolveSkill({ actor, payload } = {}) {
     edge: {
         earn: { enabled: true, rate: 4, maxPerRoll: 1 }
       },
-    pool: { attribute, skill, bonus },
+    pool: { attribute, skill, bonus, specialization: specializationBonus },
 
     breakdown: [
       { id: "attribute", label: "Attribute", value: attribute },
       { id: "skill", label: "Skill", value: skill },
-      { id: "bonus", label: "Bonus", value: bonus }
+      { id: "bonus", label: "Bonus", value: bonus },
+      ...(selectedSpecialization ? [{
+        id: "specialization",
+        label: `Specialization (${selectedSpecialization.label})`,
+        value: specializationBonus
+      }] : [])
     ],
+    specialization: selectedSpecialization ? {
+      key: selectedSpecialization.key,
+      label: selectedSpecialization.label,
+      value: specializationBonus,
+      skillKey: code
+    } : null,
 
     // optional extra metadata (safe to stash)
     data: {
       skillKey: code,
       attrKey,
-      label: `${attrKey}+${def.label}`
+      label: `${attrKey}+${def.label}`,
+      specializationKey: selectedSpecialization?.key ?? "",
+      specializationLabel: selectedSpecialization?.label ?? ""
     }
   };
 }

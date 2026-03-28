@@ -64,6 +64,31 @@ function statusLabelFromConfig(statusId) {
   return humanizeStatusKey(raw);
 }
 
+function formatSignedValue(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric === 0) return "0";
+  return numeric > 0 ? `+${numeric}` : String(numeric);
+}
+
+function parseModifierValue(value) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+
+  const match = String(value ?? "").trim().match(/[-+]?\d+(\.\d+)?/);
+  return match ? Number(match[0]) : 0;
+}
+
+function getTokenCenter(token) {
+  return token?.center ?? token?.object?.center ?? null;
+}
+
+function formatDistanceLabel(distance, units = "") {
+  if (!Number.isFinite(distance)) return "";
+
+  const rounded = Math.round(distance * 10) / 10;
+  const value = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  return units ? `${value} ${units}` : value;
+}
+
 export class PersonalCombatTracker {
   static init() {
     Hooks.on("updateCombat", (combat, changed) => this._onUpdateCombat(combat, changed));
@@ -71,6 +96,7 @@ export class PersonalCombatTracker {
     Hooks.on("createCombatant", combatant => this._onCreateCombatant(combatant));
     Hooks.on("deleteCombatant", combatant => this._onDeleteCombatant(combatant));
     Hooks.on("deleteCombat", combat => this._onDeleteCombat(combat));
+    Hooks.on("targetToken", user => this._onTargetToken(user));
   }
 
   static async onReady() {
@@ -193,6 +219,115 @@ export class PersonalCombatTracker {
       ?? null;
   }
 
+  static _measureTokenDistance(sourceToken, targetToken) {
+    const grid = canvas?.grid;
+    const source = getTokenCenter(sourceToken);
+    const target = getTokenCenter(targetToken);
+    const RayCtor = globalThis.Ray;
+
+    if (!grid || !source || !target) return null;
+
+    if (typeof grid.measureDistances === "function" && typeof RayCtor === "function") {
+      try {
+        const distances = grid.measureDistances([{ ray: new RayCtor(source, target) }], { gridSpaces: true });
+        const distance = Number(Array.isArray(distances) ? distances[0] : NaN);
+        if (Number.isFinite(distance)) return distance;
+      } catch (_error) {
+        // Fall through to newer grid APIs when available.
+      }
+    }
+
+    if (typeof grid.measurePath === "function") {
+      try {
+        const measurement = grid.measurePath([source, target], { gridSpaces: true });
+        const distance = Number(
+          measurement?.distance
+          ?? measurement?.cost
+          ?? measurement?.totalDistance
+          ?? measurement?.totalCost
+          ?? NaN
+        );
+        if (Number.isFinite(distance)) return distance;
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    return null;
+  }
+
+  static getTargetingSnapshot(sourceToken = null) {
+    const targets = Array.from(game.user?.targets ?? []).filter(Boolean);
+    const count = targets.length;
+
+    if (count === 0) {
+      return {
+        count: 0,
+        none: true,
+        single: false,
+        multiple: false,
+        heading: "Target",
+        primaryLabel: "No target selected",
+        detailRows: [],
+        target: null
+      };
+    }
+
+    if (count > 1) {
+      return {
+        count,
+        none: false,
+        single: false,
+        multiple: true,
+        heading: "Targets",
+        primaryLabel: `${count} selected`,
+        detailRows: [],
+        target: null
+      };
+    }
+
+    const targetToken = targets[0];
+    const distance = this._measureTokenDistance(sourceToken, targetToken);
+    const units = String(canvas?.scene?.grid?.units ?? game.system?.grid?.units ?? "").trim();
+    const distanceLabel = formatDistanceLabel(distance, units);
+    const name = String(targetToken?.name ?? targetToken?.actor?.name ?? "Target").trim() || "Target";
+
+    return {
+      count,
+      none: false,
+      single: true,
+      multiple: false,
+      heading: "Target",
+      primaryLabel: name,
+      detailRows: distanceLabel ? [{ label: "Distance", value: distanceLabel }] : [],
+      target: {
+        id: targetToken?.id ?? null,
+        name,
+        img: targetToken?.document?.texture?.src ?? targetToken?.texture?.src ?? "",
+        distance: Number.isFinite(distance) ? distance : null,
+        distanceLabel
+      }
+    };
+  }
+
+  static getRollImpact(modifiers = []) {
+    const entries = (Array.isArray(modifiers) ? modifiers : []).map(entry => {
+      const numericValue = parseModifierValue(entry?.numericValue ?? entry?.value ?? 0);
+      return {
+        label: String(entry?.label ?? "").trim() || "Modifier",
+        numericValue,
+        value: String(entry?.value ?? formatSignedValue(numericValue)).trim() || formatSignedValue(numericValue)
+      };
+    });
+
+    const total = entries.reduce((sum, entry) => sum + entry.numericValue, 0);
+    return {
+      total,
+      totalLabel: formatSignedValue(total),
+      entries
+    };
+  }
+
   static getCombat(actor, token = null) {
     const sceneId = canvas?.scene?.id;
     const combat = game.combat;
@@ -278,6 +413,10 @@ export class PersonalCombatTracker {
     const burnPenalty = Math.floor(burnValue / 2);
     const overloaded = !!actor?.system?.burn?.overloaded;
     const statuses = this.getActiveStatuses(actor);
+    const effects = statuses.filter(status => !(overloaded && status.id === "overloaded"));
+    const modifierSummary = this.getModifierSummary(actor, burnPenalty);
+    const rollImpact = this.getRollImpact(modifierSummary);
+    const burnThisActivation = Math.max(0, Number(state.burnThisActivation ?? 0));
     const reason = !combatant
       ? "No combatant on the current scene."
       : !isCurrentTurn
@@ -298,10 +437,24 @@ export class PersonalCombatTracker {
         canOverloadCheck: burnValue >= 6 && !overloaded
       },
       state,
+      targeting: this.getTargetingSnapshot(resolvedToken),
+      states: overloaded ? [{ id: "overloaded", label: "Overloaded" }] : [],
+      effects,
       statuses,
+      rollImpact,
       summaryText: `SA: ${state.saRemaining} / ${BASE_SA}   FA: ${state.faRemaining}   RA: ${state.raRemaining}`,
+      activation: {
+        burnThisActivation,
+        burnThisActivationLabel: `+${burnThisActivation}`,
+        items: [
+          { label: "SA", value: `${state.saRemaining}/${BASE_SA}` },
+          { label: "FA", value: String(state.faRemaining) },
+          { label: "RA", value: String(state.raRemaining) },
+          { label: "Burn", value: `+${burnThisActivation}`, detail: "this activation" }
+        ]
+      },
       inactiveReason: reason,
-      modifierSummary: this.getModifierSummary(actor, burnPenalty)
+      modifierSummary
     };
   }
 
@@ -309,23 +462,38 @@ export class PersonalCombatTracker {
     const condition = actor?.system?.derived?.condition ?? {};
     const entries = [];
 
-    entries.push({
-      label: "Burn Penalty",
-      value: burnPenalty > 0 ? `-${burnPenalty}` : "0"
-    });
+    if (burnPenalty > 0) {
+      entries.push({
+        label: "Burn Penalty",
+        numericValue: -burnPenalty,
+        value: formatSignedValue(-burnPenalty)
+      });
+    }
 
     const fatiguePenalty = Number(condition.fatiguePenalty ?? 0);
     if (fatiguePenalty) {
-      entries.push({ label: "Fatigue", value: `${fatiguePenalty}` });
+      entries.push({
+        label: "Fatigue",
+        numericValue: fatiguePenalty,
+        value: formatSignedValue(fatiguePenalty)
+      });
     }
 
     const physicalPenalty = Number(condition.physicalPenalty ?? 0);
     if (physicalPenalty) {
-      entries.push({ label: "Physical", value: `${physicalPenalty}` });
+      entries.push({
+        label: "Physical",
+        numericValue: physicalPenalty,
+        value: formatSignedValue(physicalPenalty)
+      });
     }
 
     if (!entries.length) {
-      entries.push({ label: "Modifiers", value: "0" });
+      entries.push({
+        label: "Current Modifiers",
+        numericValue: 0,
+        value: "0"
+      });
     }
 
     return entries;
@@ -406,7 +574,8 @@ export class PersonalCombatTracker {
       summaryPills: [
         { label: "SA", value: `${snapshot.state.saRemaining}/${BASE_SA}` },
         { label: "FA", value: `${snapshot.state.faRemaining}` },
-        { label: "RA", value: `${snapshot.state.raRemaining}` }
+        { label: "RA", value: `${snapshot.state.raRemaining}` },
+        { label: "Burn/Turn", value: `+${Math.max(0, Number(snapshot.state?.burnThisActivation ?? 0))}` }
       ],
       activationLog: normalizeActionLog(snapshot.state?.actionLog).map((entry, index) => ({
         ...entry,
@@ -643,10 +812,19 @@ export class PersonalCombatTracker {
     }
   }
 
+  static _onTargetToken(user) {
+    if (user?.id !== game.user?.id) return;
+    this.renderOpenCharacterSheets();
+  }
+
   static renderOpenCharacterSheets(actorId = null) {
     const apps = Object.values(ui.windows ?? {}).filter(app => app?.actor?.type === "character");
     for (const app of apps) {
       if (actorId && app.actor?.id !== actorId) continue;
+      if (typeof app.requestCombatDashboardRefresh === "function") {
+        app.requestCombatDashboardRefresh();
+        continue;
+      }
       app.render(false);
     }
   }

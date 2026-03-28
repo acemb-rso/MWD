@@ -258,6 +258,15 @@
       "burn": {
         "value": 0,
         "overloaded": false
+      },
+      "biography": {
+        "faction": "",
+        "age": 0,
+        "rank": "",
+        "height": 0,
+        "weight": 0,
+        "history": "",
+        "experienceLevel": "green"
       }
     },
     "npc": {
@@ -431,11 +440,9 @@
       "code": "",
       "attribute": "knowledge",
       "value": 0,
-      "specialization": "",
       "hasDrain": false,
       "hasConvergence": false,
-      "isSocial": false,
-      "listspecialization": []
+      "isSocial": false
     },
     "quality": {
       "templates": [

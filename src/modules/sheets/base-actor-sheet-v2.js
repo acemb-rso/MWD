@@ -370,6 +370,10 @@ _initializeApplicationOptions(options) {
 
       if (el instanceof HTMLInputElement) {
         if (el.type === "checkbox") value = el.checked;
+        else if (el.type === "radio") {
+          if (!el.checked) continue; // only commit the selected radio
+          value = el.value;
+        }
         else if (el.type === "number") value = Number(el.value);
         else value = el.value;
       } else {

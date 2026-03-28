@@ -14,7 +14,6 @@ import { ANARCHY_HOOKS } from "../hooks-manager.js";
 import { AttributeActions } from "../attribute-actions.js";
 import { ErrorManager } from "../error-manager.js";
 import { Misc } from "../misc.js";
-import { SkillItem } from "./skill-item.js";
 import { formatString } from "../strings.js";
 import { getSkillDef } from "../mwd/skills.js";
 import {
@@ -239,20 +238,23 @@ export class WeaponItem extends MWDItem {
     return preferred.find(key => WeaponItem.RANGE_ORDER.indexOf(key) <= maxIndex) ?? "close";
   }
 
-  isWeaponSkill(item) {
-    return item.type == 'skill' && item.system.code === this.system.skill;
-  }
-
   getWeaponSkill() {
-    const actorSkill = this.actor?.items.find(skill => this.isWeaponSkill(skill))
-    if (actorSkill) {
-      return actorSkill
-    }
-    const worldSkill = game.items.find(skill => this.isWeaponSkill(skill))
-    if (worldSkill) {
-      return worldSkill
-    }
-    return SkillItem.prepareSkill(this.system.skill)
+    const actorSkill = this.actor?.items.find(skill =>
+      skill.type === TEMPLATE.itemType.skill && skill.system.code === this.system.skill
+    );
+    if (actorSkill) return actorSkill;
+
+    const skillDef = getSkillDef(String(this.system.skill ?? "").trim());
+    if (!skillDef) return null;
+
+    return {
+      name: skillDef.label,
+      system: {
+        code: skillDef.code,
+        attribute: skillDef.attribute,
+        value: 0
+      }
+    };
   }
 
   getDefense() {

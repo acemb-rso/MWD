@@ -5,11 +5,11 @@
 
 import { ANARCHY } from "../config.js";
 import { ANARCHY_SYSTEM, ICONS_PATH, TEMPLATE } from "../constants.js";
-import { SkillItem } from "../item/skill-item.js";
 import { RollDialog } from "../roll/roll-dialog.js";
 import { VehicleActor } from "./vehicle-actor.js";
 import { formatString } from "../strings.js";
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
+import { getSkillDef } from "../mwd/skills.js";
 
 export class BattlemechActor extends VehicleActor {
 
@@ -201,19 +201,17 @@ export class BattlemechActor extends VehicleActor {
       return skill;
     }
 
-    const prepared = SkillItem.prepareSkill(code);
-    if (prepared) {
-      const labelKey = ANARCHY.skill?.[code];
-      return {
-        name: prepared.name ?? (labelKey ? labelKey : code),
-        system: foundry.utils.mergeObject({
-          code: code,
-          attribute: prepared.system?.attribute,
-          value: 0
-        }, prepared.system ?? {})
+    const skillDef = getSkillDef(code);
+    if (!skillDef) return undefined;
+
+    return {
+      name: skillDef.label ?? (ANARCHY.skill?.[code] ?? code),
+      system: {
+        code,
+        attribute: skillDef.attribute,
+        value: 0
       }
-    }
-    return undefined;
+    };
   }
 
   _prepareWeaponGroups() {
@@ -289,7 +287,7 @@ export class BattlemechActor extends VehicleActor {
       mode: ANARCHY_SYSTEM.rollType.skill,
       skill: skill,
       attribute1: attribute,
-      specialization: skill?.system?.specialization
+      specialization: undefined
     });
 
     if (options.quickAction) {

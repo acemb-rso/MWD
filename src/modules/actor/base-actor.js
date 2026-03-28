@@ -468,7 +468,7 @@ async spendEdge(count, pool = TEMPLATE.counters.edgePools.grit) {
       return 0;
     }
     const attribute = this.getAttributeValue(skill.system.attribute);
-    return this.getSkillRating(skill) + attribute + (specialization && skill.system.specialization ? 2 : 0);
+    return this.getSkillRating(skill) + attribute + (specialization ? 2 : 0);
   }
 
   getWounds() {

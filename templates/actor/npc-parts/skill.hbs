@@ -18,14 +18,6 @@ How it fits: Used by rendering code to produce UI fragments.
           {{name}}: {{skillValue @root.actor _id}}
         </a>
       </span>
-      {{#if system.specialization}}
-        <span class="flexrow">
-          <a class="click-skill-roll" data-item-specialization="{{system.specialization}}">(
-            <label>{{system.specialization}}</label>
-            <label>{{specializationValue @root.actor _id}}</label>
-          )</a>
-        </span>
-      {{/if}}
     </div>
   {{/if}}
   <div class="item-controls">

@@ -57,6 +57,13 @@ How it fits: Used by rendering code to produce UI fragments.
       <div class="mwd-roll-dialog__pill">{{dice.bonus}}</div>
     </div>
 
+    {{#if dice.specialization}}
+      <div class="mwd-roll-dialog__row">
+        <div class="mwd-roll-dialog__label">Specialization</div>
+        <div class="mwd-roll-dialog__pill">{{dice.specialization}}</div>
+      </div>
+    {{/if}}
+
     <div class="mwd-roll-dialog__row">
       <div class="mwd-roll-dialog__label">Existing Mods</div>
       <div class="mwd-roll-dialog__pill">{{dice.modifiers}}</div>
@@ -110,6 +117,18 @@ How it fits: Used by rendering code to produce UI fragments.
           </select>
         </div>
       {{/if}}
+    </div>
+  {{/if}}
+
+  {{#if specialization}}
+    <div class="mwd-field">
+      <label>Specialization</label>
+      <select data-action="setSpecialization" data-skill-code="{{specialization.skillCode}}">
+        <option value="">None</option>
+        {{#each specialization.options as |option|}}
+          <option value="{{option.key}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+        {{/each}}
+      </select>
     </div>
   {{/if}}
 

@@ -1,0 +1,148 @@
+{{!--
+templates/v2/ui/character/bio-identity.hbs
+Purpose: Renders biography identity fields as input pills and an experience level selector.
+How it fits: Included by the Bio tab Identity panel in the character sheet.
+--}}
+
+<div class="mwd-bio-identity">
+
+  <div class="mwd-bio-pills">
+
+    {{!-- Faction --}}
+    <span class="mwd-pill {{#if editing}}is-editable{{/if}}" title="Faction">
+      <span class="mwd-pill__tag">Faction</span>
+      {{#if editing}}
+        <input class="mwd-pill__input mwd-pill__input--wide"
+               type="text"
+               name="system.biography.faction"
+               value="{{bio.faction}}"
+               data-edit-field="staged"
+               placeholder="—" />
+      {{else}}
+        <span class="mwd-pill__val">{{#if bio.faction}}{{bio.faction}}{{else}}—{{/if}}</span>
+      {{/if}}
+    </span>
+
+    {{!-- Rank --}}
+    <span class="mwd-pill {{#if editing}}is-editable{{/if}}" title="Rank">
+      <span class="mwd-pill__tag">Rank</span>
+      {{#if editing}}
+        <input class="mwd-pill__input mwd-pill__input--wide"
+               type="text"
+               name="system.biography.rank"
+               value="{{bio.rank}}"
+               data-edit-field="staged"
+               placeholder="—" />
+      {{else}}
+        <span class="mwd-pill__val">{{#if bio.rank}}{{bio.rank}}{{else}}—{{/if}}</span>
+      {{/if}}
+    </span>
+
+    {{!-- Age --}}
+    <span class="mwd-pill {{#if editing}}is-editable{{/if}}" title="Age">
+      <span class="mwd-pill__tag">Age</span>
+      {{#if editing}}
+        <input class="mwd-pill__input"
+               type="number"
+               name="system.biography.age"
+               value="{{bio.age}}"
+               data-edit-field="staged"
+               min="0" step="1" />
+      {{else}}
+        <span class="mwd-pill__val">{{#if bio.age}}{{bio.age}}{{else}}—{{/if}}</span>
+      {{/if}}
+    </span>
+
+    {{!-- Height --}}
+    <span class="mwd-pill {{#if editing}}is-editable{{/if}}" title="Height (m)">
+      <span class="mwd-pill__tag">Height</span>
+      {{#if editing}}
+        <input class="mwd-pill__input"
+               type="number"
+               name="system.biography.height"
+               value="{{bio.height}}"
+               data-edit-field="staged"
+               min="0" step="0.01" />
+      {{else}}
+        <span class="mwd-pill__val">{{#if bio.height}}{{bio.height}}{{else}}—{{/if}}</span>
+      {{/if}}
+      <span class="mwd-pill__suffix">m</span>
+    </span>
+
+    {{!-- Weight --}}
+    <span class="mwd-pill {{#if editing}}is-editable{{/if}}" title="Weight (kg)">
+      <span class="mwd-pill__tag">Weight</span>
+      {{#if editing}}
+        <input class="mwd-pill__input"
+               type="number"
+               name="system.biography.weight"
+               value="{{bio.weight}}"
+               data-edit-field="staged"
+               min="0" step="0.1" />
+      {{else}}
+        <span class="mwd-pill__val">{{#if bio.weight}}{{bio.weight}}{{else}}—{{/if}}</span>
+      {{/if}}
+      <span class="mwd-pill__suffix">kg</span>
+    </span>
+
+    {{!-- XP --}}
+    <span class="mwd-pill {{#if editing}}is-editable{{/if}}" title="XP Earned / Spent">
+      <span class="mwd-pill__tag">XP</span>
+      {{#if editing}}
+        <input class="mwd-pill__input"
+               type="number"
+               name="system.counters.xp.total"
+               value="{{bio.xpTotal}}"
+               data-edit-field="staged"
+               min="0" step="1" />
+        <span class="mwd-pill__sep">/</span>
+        <input class="mwd-pill__input"
+               type="number"
+               name="system.counters.xp.value"
+               value="{{bio.xpSpent}}"
+               data-edit-field="staged"
+               min="0" step="1" />
+      {{else}}
+        <span class="mwd-pill__val">{{bio.xpTotal}}</span>
+        <span class="mwd-pill__sep">/</span>
+        <span class="mwd-pill__val">{{bio.xpSpent}}</span>
+      {{/if}}
+      <span class="mwd-pill__suffix">earned/spent</span>
+    </span>
+
+  </div>
+
+  <div class="mwd-bio-exp-level">
+    <div class="mwd-bio-exp-level__header">Experience Level</div>
+    <div class="mwd-bio-exp-level__grid">
+      {{#> "mwd.v2.components.radio" label="Green" controlFirst=true classes="mwd-radio--inline"}}
+        <input type="radio" name="system.biography.experienceLevel" value="green"
+               data-edit-field="staged"
+               {{#if (eq bio.experienceLevel "green")}}checked{{/if}}
+               {{#unless editing}}disabled{{/unless}} />
+      {{/ "mwd.v2.components.radio"}}
+
+      {{#> "mwd.v2.components.radio" label="Regular" controlFirst=true classes="mwd-radio--inline"}}
+        <input type="radio" name="system.biography.experienceLevel" value="regular"
+               data-edit-field="staged"
+               {{#if (eq bio.experienceLevel "regular")}}checked{{/if}}
+               {{#unless editing}}disabled{{/unless}} />
+      {{/ "mwd.v2.components.radio"}}
+
+      {{#> "mwd.v2.components.radio" label="Veteran" controlFirst=true classes="mwd-radio--inline"}}
+        <input type="radio" name="system.biography.experienceLevel" value="veteran"
+               data-edit-field="staged"
+               {{#if (eq bio.experienceLevel "veteran")}}checked{{/if}}
+               {{#unless editing}}disabled{{/unless}} />
+      {{/ "mwd.v2.components.radio"}}
+
+      {{#> "mwd.v2.components.radio" label="Elite" controlFirst=true classes="mwd-radio--inline"}}
+        <input type="radio" name="system.biography.experienceLevel" value="elite"
+               data-edit-field="staged"
+               {{#if (eq bio.experienceLevel "elite")}}checked{{/if}}
+               {{#unless editing}}disabled{{/unless}} />
+      {{/ "mwd.v2.components.radio"}}
+    </div>
+  </div>
+
+</div>

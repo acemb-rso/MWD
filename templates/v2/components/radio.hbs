@@ -1,0 +1,25 @@
+{{!--
+templates/v2/components/radio.hbs
+Purpose: Shared styled radio control for AppV2 sheet templates, mirroring the checkbox component.
+How it fits: Wraps a native radio input supplied by the caller and renders a standardized faux indicator.
+--}}
+
+<label class="mwd-radio{{#if classes}} {{classes}}{{/if}}">
+  {{#if controlFirst}}
+    <span class="mwd-radio__control{{#if controlClass}} {{controlClass}}{{/if}}">
+      {{> @partial-block}}
+      <span class="mwd-radio__box" aria-hidden="true"></span>
+    </span>
+  {{/if}}
+
+  {{#if label}}
+    <span class="mwd-radio__label{{#if labelClass}} {{labelClass}}{{/if}}">{{label}}</span>
+  {{/if}}
+
+  {{#unless controlFirst}}
+    <span class="mwd-radio__control{{#if controlClass}} {{controlClass}}{{/if}}">
+      {{> @partial-block}}
+      <span class="mwd-radio__box" aria-hidden="true"></span>
+    </span>
+  {{/unless}}
+</label>

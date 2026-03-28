@@ -5,11 +5,16 @@
 
 import { ANARCHY } from "./config.js";
 import { SYSTEM_NAME } from "./constants.js";
+import { registerGMDnPresetSettingsEditor } from "./settings/gm-dn-preset-settings.js";
+import { registerSkillSpecializationSettingsEditor } from "./settings/skill-specialization-settings.js";
 
 
 export class SystemSettings {
 
   static register() {
+    registerGMDnPresetSettingsEditor();
+    registerSkillSpecializationSettingsEditor();
+
     game.settings.register(SYSTEM_NAME, "useDestinyMechanics", {
       name: ANARCHY.settings.useDestinyMechanics.name,
       hint: ANARCHY.settings.useDestinyMechanics.hint,

@@ -6,54 +6,67 @@ How it fits: Used by rendering code to produce UI fragments.
 
 
 <div class="mwd-combat-dashboard">
-  <div class="mwd-combat-dashboard__summary">
-    <div class="mwd-combat-dashboard__summary-line">{{combatDashboard.actionSummary}}</div>
-    <div class="mwd-combat-dashboard__summary-burn">Burn this activation: {{combatDashboard.burnThisActivationLabel}}</div>
-  </div>
-
   {{#if combatDashboard.inactiveReason}}
     <div class="mwd-combat-dashboard__notice">{{combatDashboard.inactiveReason}}</div>
   {{/if}}
 
   <div class="mwd-combat-dashboard__grid">
     <div class="mwd-combat-dashboard__card">
-      <div class="mwd-combat-dashboard__label">Overloaded</div>
-      <div class="mwd-combat-dashboard__value">{{combatDashboard.overloadedLabel}}</div>
-    </div>
+      <div class="mwd-combat-dashboard__label">{{combatDashboard.targeting.heading}}</div>
+      <div class="mwd-combat-dashboard__value">{{combatDashboard.targeting.primaryLabel}}</div>
 
-    <div class="mwd-combat-dashboard__card">
-      <div class="mwd-combat-dashboard__label">Burn</div>
-      <div class="mwd-combat-dashboard__value">{{combatDashboard.burnLabel}}</div>
-    </div>
-
-    <div class="mwd-combat-dashboard__card">
-      <div class="mwd-combat-dashboard__label">Burn Penalty</div>
-      <div class="mwd-combat-dashboard__value">{{combatDashboard.burnPenaltyLabel}}</div>
-    </div>
-  </div>
-
-  <div class="mwd-combat-dashboard__section">
-    <div class="mwd-combat-dashboard__section-title">Active Effects</div>
-    <div class="mwd-combat-dashboard__chips">
-      {{#if combatDashboard.statuses.length}}
-        {{#each combatDashboard.statuses as |status|}}
-          <span class="chip">{{status.label}}</span>
-        {{/each}}
-      {{else}}
-        <span class="mwd-combat-dashboard__empty">No active effects.</span>
+      {{#if combatDashboard.targeting.detailRows.length}}
+        <div class="mwd-combat-dashboard__detail-list">
+          {{#each combatDashboard.targeting.detailRows as |row|}}
+            <div class="mwd-combat-dashboard__detail-row">
+              <span>{{row.label}}</span>
+              <strong>{{row.value}}</strong>
+            </div>
+          {{/each}}
+        </div>
       {{/if}}
     </div>
+
+    <div class="mwd-combat-dashboard__card">
+      <div class="mwd-combat-dashboard__label">Roll Impact</div>
+      <div class="mwd-combat-dashboard__value mwd-combat-dashboard__value--impact">{{combatDashboard.rollImpact.totalLabel}}</div>
+
+      <div class="mwd-combat-dashboard__modifier-list">
+        {{#each combatDashboard.rollImpact.entries as |modifier|}}
+          <div class="mwd-combat-dashboard__modifier">
+            <span>{{modifier.label}}</span>
+            <strong>{{modifier.value}}</strong>
+          </div>
+        {{/each}}
+      </div>
+    </div>
   </div>
 
-  <div class="mwd-combat-dashboard__section">
-    <div class="mwd-combat-dashboard__section-title">Modifier Summary</div>
-    <div class="mwd-combat-dashboard__modifier-list">
-      {{#each combatDashboard.modifiers as |modifier|}}
-        <div class="mwd-combat-dashboard__modifier">
-          <span>{{modifier.label}}</span>
-          <strong>{{modifier.value}}</strong>
-        </div>
-      {{/each}}
+  <div class="mwd-combat-dashboard__columns">
+    <div class="mwd-combat-dashboard__section">
+      <div class="mwd-combat-dashboard__section-title">States</div>
+      <div class="mwd-combat-dashboard__chips">
+        {{#if combatDashboard.states.length}}
+          {{#each combatDashboard.states as |state|}}
+            <span class="chip mwd-combat-dashboard__chip mwd-combat-dashboard__chip--state">{{state.label}}</span>
+          {{/each}}
+        {{else}}
+          <span class="mwd-combat-dashboard__empty">No active states.</span>
+        {{/if}}
+      </div>
+    </div>
+
+    <div class="mwd-combat-dashboard__section">
+      <div class="mwd-combat-dashboard__section-title">Effects</div>
+      <div class="mwd-combat-dashboard__chips">
+        {{#if combatDashboard.effects.length}}
+          {{#each combatDashboard.effects as |effect|}}
+            <span class="chip mwd-combat-dashboard__chip">{{effect.label}}</span>
+          {{/each}}
+        {{else}}
+          <span class="mwd-combat-dashboard__empty">No active effects.</span>
+        {{/if}}
+      </div>
     </div>
   </div>
 </div>

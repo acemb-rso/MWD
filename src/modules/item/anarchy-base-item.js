@@ -1063,8 +1063,8 @@ export class MWDItem extends Item {
     if (this.isSkill()) {
       return {
         img: this.img,
-        label: this.system.specialization ? `${this.name}: ${this.system.specialization}` : this.name,
-        callback: token => token.actor.rollSkill(this, this.system.specialization),
+        label: this.name,
+        callback: token => token.actor.rollSkill(this),
       };
     }
 

@@ -3,7 +3,12 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { getSkillDef } from "../../mwd/skills.js";
+import {
+  getOwnedSkillSpecializationKeys,
+  getSkillDef,
+  getSkillSpecializationDef,
+  SKILL_SPECIALIZATION_BONUS,
+} from "../../mwd/skills.js";
 import { WeaponItem } from "../../item/weapon-item.js";
 
 function getTargets() {
@@ -73,6 +78,12 @@ export async function resolveAttack({ actor, payload } = {}) {
   const attribute = actor.getAttributeValue?.(attrKey) ?? Number(actor.system?.attributes?.[attrKey]?.value ?? 0);
   const skill = actor.getSkillRating?.(weapon.skill) ?? Number(actor.system?.skills?.[weapon.skill]?.rating ?? 0);
   const skillBonus = Number(actor.system?.skills?.[weapon.skill]?.bonus ?? 0);
+  const ownedSpecializations = new Set(getOwnedSkillSpecializationKeys(actor.system ?? {}, weapon.skill));
+  const requestedSpecialization = getSkillSpecializationDef(weapon.skill, payload?.specializationKey);
+  const selectedSpecialization = requestedSpecialization && ownedSpecializations.has(requestedSpecialization.key)
+    ? requestedSpecialization
+    : null;
+  const specializationBonus = selectedSpecialization ? SKILL_SPECIALIZATION_BONUS : 0;
   const accuracyBonus = Number(weapon?.effects?.accuracyMod ?? 0) || 0;
   const bonus = skillBonus + accuracyBonus;
   const rangeBand = String(payload?.rangeBand ?? weapon.defaultRangeBand ?? "close").trim() || "close";
@@ -92,11 +103,16 @@ export async function resolveAttack({ actor, payload } = {}) {
     edge: {
       earn: { enabled: true, rate: 4, maxPerRoll: 1 }
     },
-    pool: { attribute, skill, bonus },
+    pool: { attribute, skill, bonus, specialization: specializationBonus },
     breakdown: [
       { id: "attribute", label: "Attribute", value: attribute },
       { id: "skill", label: skillDef.label, value: skill },
       { id: "bonus", label: "Skill Bonus", value: skillBonus },
+      ...(selectedSpecialization ? [{
+        id: "specialization",
+        label: `Specialization (${selectedSpecialization.label})`,
+        value: specializationBonus
+      }] : []),
       { id: "weaponAccuracy", label: "Weapon Accuracy", value: accuracyBonus },
       { id: "damage", label: "Damage", value: Number(weapon.damage ?? 0) || 0 },
       { id: "ap", label: "AP", value: totalAp },
@@ -108,12 +124,23 @@ export async function resolveAttack({ actor, payload } = {}) {
       skill: {
         code: skillDef.code ?? weapon.skill,
         label: skillDef.label ?? weapon.skill,
-        attribute: attrKey
+        attribute: attrKey,
+        specialization: selectedSpecialization ? {
+          key: selectedSpecialization.key,
+          label: selectedSpecialization.label,
+          value: specializationBonus
+        } : null
       },
       targets,
       ammo: weapon?.ammoState ?? null,
       ammoLabel: weapon?.ammoLabel ?? "",
       totalAp
-    }
+    },
+    specialization: selectedSpecialization ? {
+      key: selectedSpecialization.key,
+      label: selectedSpecialization.label,
+      value: specializationBonus,
+      skillKey: skillDef.code ?? weapon.skill
+    } : null
   };
 }

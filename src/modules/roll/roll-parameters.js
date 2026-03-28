@@ -102,15 +102,14 @@ const DEFAULT_ROLL_PARAMETERS = [
       hbsTemplateRoll: `${TEMPLATES_PATH}/roll/parts/check-option.hbs`,
     },
     isUsed: (p) => p.used,
-    condition: context => (context.mode == 'skill' && context.specialization)
-      || (context.mode == 'weapon' && context.skill?.system.specialization),
+    condition: context => Boolean(context.specialization),
     onChecked: (p, checked) => {
       p.used = checked;
       p.value = checked ? 2 : 0;
     },
     factory: context => {
       return {
-        label: context.specialization ?? context.skill.system.specialization,
+        label: context.specialization,
         used: context.specialization != undefined,
         value: 2
       }

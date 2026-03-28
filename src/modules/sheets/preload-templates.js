@@ -28,6 +28,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/condition-monitors.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/roll/_mwd-roll-card.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/components/checkbox.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/components/radio.hbs`,
 
   // Character UI
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/attributes.hbs`,
@@ -39,6 +40,8 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/status-dashboard.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/inventory-section.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/inventory-record.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/bio-identity.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/bio-history.hbs`,
 
   // Sheet wrapper
   `systems/${SYSTEM_NAME}/templates/v2/actor/_sheet-root.hbs`,
@@ -49,6 +52,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-armor.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-weapons.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-description.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-life-modules.hbs`,
 
   // V2 item partials
   `systems/${SYSTEM_NAME}/templates/v2/item/_item-sheet-root.hbs`,

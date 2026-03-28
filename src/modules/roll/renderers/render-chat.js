@@ -72,6 +72,12 @@ function buildBaseCardVM(resolved) {
   };
 
   const attack = r?.attack ?? null;
+  if (r?.specialization?.label) {
+    vm.metaRows.push({
+      text: `Specialization: ${r.specialization.label} (+${Number(r.specialization.value ?? 0)})`,
+      title: ""
+    });
+  }
   if (attack?.weapon?.name) {
     const rangeBand = String(attack?.rangeBand ?? "").trim();
     const damageType = String(attack?.weapon?.damageTypeLabel ?? attack?.weapon?.damageType ?? "").trim();

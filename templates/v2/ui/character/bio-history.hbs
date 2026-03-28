@@ -1,0 +1,15 @@
+{{!--
+templates/v2/ui/character/bio-history.hbs
+Purpose: Renders the character history rich-text editor field.
+How it fits: Included by the Bio tab History panel in the character sheet.
+--}}
+
+<div class="mwd-bio-history">
+  <div class="editor">
+    {{editor bio.enrichedHistory
+      target="system.biography.history"
+      owner=owner
+      button=true
+      editable=editable}}
+  </div>
+</div>

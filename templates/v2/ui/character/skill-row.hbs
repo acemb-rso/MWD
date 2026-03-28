@@ -4,49 +4,91 @@ Purpose: Contains conditional display logic. Contains styled HTML nodes for UI l
 How it fits: Used by rendering code to produce UI fragments.
 --}}
 
-
 <div class="mwd-skill">
-+  <div class="mwd-skill__left"
-+       data-action="roll"
-+       data-roll='{"intent":"skill","key":"{{s.code}}"}'
-+       title="Roll {{s.label}} (Shift = quick)">
-    {{#if s.icon}}
-      <img class="mwd-skill__icon" src="{{s.icon}}" />
-    {{/if}}
+  <div class="mwd-skill__main">
+    <div class="mwd-skill__left"
+         data-action="roll"
+         data-roll='{{s.rollPayload}}'
+         title="Roll {{s.label}} (Shift = quick)">
+      {{#if s.icon}}
+        <img class="mwd-skill__icon" src="{{s.icon}}" />
+      {{/if}}
 
-    <div class="mwd-skill__text">
-      <span class="mwd-skill__name">{{s.label}}</span>
-      <span class="mwd-skill__attr" title="Linked Attribute">({{s.attributeLabel}})</span>
+      <div class="mwd-skill__text">
+        <span class="mwd-skill__name">{{s.label}}</span>
+        <span class="mwd-skill__attr" title="Linked Attribute">({{s.attributeLabel}})</span>
+      </div>
+    </div>
+
+    <div class="mwd-skill__right">
+      <div class="mwd-skill__pills">
+        <span class="mwd-pill" title="Base (from {{s.attributeLabel}})">
+          <span class="mwd-pill__tag">B</span>
+          <span class="mwd-pill__val">{{s.base}}</span>
+        </span>
+
+        <span class="mwd-pill {{#if @root.editing}}is-editable{{/if}}" title="Rating (points invested)">
+          <span class="mwd-pill__tag">R</span>
+
+          {{#if @root.editing}}
+            <input class="mwd-pill__input"
+                   type="number"
+                   name="{{s.pathRating}}"
+                   value="{{s.rating}}"
+                   data-edit-field="staged"
+                   min="0"
+                   max="12"
+                   step="1" />
+          {{else}}
+            <span class="mwd-pill__value">{{s.rating}}</span>
+          {{/if}}
+        </span>
+
+        <span class="mwd-pill" title="Total = Base + Rating + Bonus">
+          <span class="mwd-pill__tag">T</span>
+          <span class="mwd-pill__val">{{s.total}}</span>
+        </span>
+      </div>
+
+      {{#if @root.editing}}
+        {{#if s.canAddSpecialization}}
+          <button type="button"
+                  class="mwd-skill__add"
+                  data-action="addSkillSpecialization"
+                  data-skill-key="{{s.code}}"
+                  title="Add specialization to {{s.label}}">
+            +
+          </button>
+        {{/if}}
+      {{/if}}
     </div>
   </div>
 
-  <div class="mwd-skill__pills">
-    <span class="mwd-pill" title="Base (from {{s.attributeLabel}})">
-      <span class="mwd-pill__tag">B</span>
-      <span class="mwd-pill__val">{{s.base}}</span>
-    </span>
-
-<span class="mwd-pill {{#if @root.editing}}is-editable{{/if}}" title="Rating (points invested)">
-  <span class="mwd-pill__tag">R</span>
-
-  {{#if @root.editing}}
-    <input class="mwd-pill__input"
-           type="number"
-           name="{{s.pathRating}}"
-           value="{{s.rating}}"
-           data-edit-field="staged"
-           min="0"
-           max="12"
-           step="1" />
-  {{else}}
-    <span class="mwd-pill__value">{{s.rating}}</span>
+  {{#if s.specializations.length}}
+    <div class="mwd-skill__specializations">
+      {{#each s.specializations as |specialization|}}
+        {{#if @root.editing}}
+          <button type="button"
+                  class="mwd-skill-spec mwd-skill-spec--edit"
+                  data-action="removeSkillSpecialization"
+                  data-skill-key="{{../s.code}}"
+                  data-specialization-key="{{specialization.key}}"
+                  title="Remove {{specialization.label}}">
+            <span class="mwd-skill-spec__label">{{specialization.label}}</span>
+            <span class="mwd-skill-spec__bonus">+{{specialization.bonus}}</span>
+            <span class="mwd-skill-spec__remove">x</span>
+          </button>
+        {{else}}
+          <button type="button"
+                  class="mwd-skill-spec"
+                  data-action="roll"
+                  data-roll='{{specialization.rollPayload}}'
+                  title="Roll {{../s.label}}: {{specialization.label}}">
+            <span class="mwd-skill-spec__label">{{specialization.label}}</span>
+            <span class="mwd-skill-spec__bonus">+{{specialization.bonus}}</span>
+          </button>
+        {{/if}}
+      {{/each}}
+    </div>
   {{/if}}
-</span>
-
-
-    <span class="mwd-pill" title="Total = Base + Rating + Bonus">
-      <span class="mwd-pill__tag">T</span>
-      <span class="mwd-pill__val">{{s.total}}</span>
-    </span>
-  </div>
 </div>

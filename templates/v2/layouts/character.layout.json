@@ -160,9 +160,23 @@
                 "children": [
                   {
                     "type": "panel",
-                    "title": "Description",
+                    "title": "Identity",
                     "children": [
-                      { "type": "include", "partial": "mwd.v2.ui.placeholders.bio-description" }
+                      { "type": "include", "partial": "mwd.v2.ui.character.bio-identity" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "History",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.character.bio-history" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Life Modules",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.placeholders.bio-life-modules" }
                     ]
                   }
                 ]

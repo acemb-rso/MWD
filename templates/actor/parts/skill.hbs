@@ -23,15 +23,6 @@ How it fits: Used by rendering code to produce UI fragments.
           </label>
         </a>
       </span>
-      {{#if system.specialization}}
-        <span class="flexrow">
-          <a class="click-skill-roll" data-item-specialization="{{system.specialization}}">
-            <label data-tooltip="{{localizeAttribute system.attribute}} + {{system.value}} + 2">
-              ({{system.specialization}}: {{specializationValue @root.actor _id}})
-            </label>
-          </a>
-        </span>
-      {{/if}}
     </div>
   {{/if}}
   <div class="item-controls">

@@ -1,0 +1,129 @@
+{{!--
+templates/settings/collection-editor.hbs
+Purpose: Renders a reusable settings collection editor with row and bulk JSON modes.
+How it fits: Used by Configure Game Settings submenus registered through the settings collection framework.
+--}}
+
+<form class="mwd-settings-editor__form" autocomplete="off">
+  <header class="mwd-settings-editor__header">
+    <div>
+      <h2>{{title}}</h2>
+      {{#if description}}
+        <p class="mwd-settings-editor__description">{{description}}</p>
+      {{/if}}
+    </div>
+
+    <div class="mwd-settings-editor__tabs">
+      <button
+        type="button"
+        class="mwd-settings-editor__tab {{#if isRowsTab}}is-active{{/if}}"
+        data-action="switchRows">
+        Rows
+      </button>
+      <button
+        type="button"
+        class="mwd-settings-editor__tab {{#if isBulkTab}}is-active{{/if}}"
+        data-action="switchBulk">
+        Bulk JSON
+      </button>
+    </div>
+  </header>
+
+  {{#if errors.length}}
+    <div class="mwd-settings-editor__errors">
+      {{#each errors as |error|}}
+        <div class="mwd-settings-editor__error">{{error}}</div>
+      {{/each}}
+    </div>
+  {{/if}}
+
+  {{#if isRowsTab}}
+    <section class="mwd-settings-editor__panel">
+      {{#if helpText}}
+        <p class="mwd-settings-editor__help">{{helpText}}</p>
+      {{/if}}
+
+      <div class="mwd-settings-editor__toolbar">
+        <button type="button" class="mwd-settings-editor__action" data-action="addRow">{{addRowLabel}}</button>
+      </div>
+
+      {{#if hasRows}}
+        <div class="mwd-settings-editor__table-wrap">
+          <table class="mwd-settings-editor__table">
+            <thead>
+              <tr>
+                {{#each columns as |column|}}
+                  <th>{{column.label}}</th>
+                {{/each}}
+                <th>Order</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each rows as |row|}}
+                <tr>
+                  {{#each row.fields as |field|}}
+                    <td>
+                      {{#if (eq field.type "select")}}
+                        <select name="{{field.name}}">
+                          {{#each field.options as |option|}}
+                            <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+                          {{/each}}
+                        </select>
+                      {{else}}
+                        <input
+                          type="{{field.inputType}}"
+                          name="{{field.name}}"
+                          value="{{field.value}}"
+                          min="{{field.min}}"
+                          max="{{field.max}}"
+                          step="{{field.step}}"
+                          placeholder="{{field.placeholder}}" />
+                      {{/if}}
+                    </td>
+                  {{/each}}
+                  <td class="mwd-settings-editor__order">
+                    <button type="button" data-action="moveRowUp" data-index="{{row.index}}" {{#unless row.canMoveUp}}disabled{{/unless}}>Up</button>
+                    <button type="button" data-action="moveRowDown" data-index="{{row.index}}" {{#unless row.canMoveDown}}disabled{{/unless}}>Down</button>
+                  </td>
+                  <td class="mwd-settings-editor__row-actions">
+                    <button type="button" data-action="removeRow" data-index="{{row.index}}">Remove</button>
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      {{else}}
+        <div class="mwd-settings-editor__empty">
+          {{emptyStateText}}
+        </div>
+      {{/if}}
+    </section>
+  {{/if}}
+
+  {{#if isBulkTab}}
+    <section class="mwd-settings-editor__panel">
+      {{#if bulkHelpText}}
+        <p class="mwd-settings-editor__help">{{bulkHelpText}}</p>
+      {{/if}}
+
+      <textarea
+        class="mwd-settings-editor__textarea"
+        name="bulkText"
+        spellcheck="false">{{bulkText}}</textarea>
+
+      <div class="mwd-settings-editor__toolbar">
+        <button type="button" class="mwd-settings-editor__action" data-action="formatBulk">Format JSON</button>
+        <button type="button" class="mwd-settings-editor__action" data-action="loadBulk">Load JSON to Rows</button>
+      </div>
+    </section>
+  {{/if}}
+
+  <footer class="mwd-settings-editor__footer">
+    <button type="button" data-action="resetSetting">{{resetLabel}}</button>
+    <button type="button" data-action="restoreDefaults">{{defaultsLabel}}</button>
+    <button type="button" data-action="cancel">{{cancelLabel}}</button>
+    <button type="submit" class="default">{{saveLabel}}</button>
+  </footer>
+</form>

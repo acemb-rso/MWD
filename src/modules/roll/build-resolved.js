@@ -149,6 +149,7 @@ export function buildResolved({
     intent: ctx?.intent ?? payload.intent,
     domains: Array.isArray(ctx?.domains) ? ctx.domains : [],
     attack: ctx?.attack ?? null,
+    specialization: ctx?.specialization ?? null,
 
     // Minimal context snapshot so chat-actions can recompute interpretation
     // after post-spend rerolls mutate hits.

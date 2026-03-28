@@ -187,7 +187,8 @@ async function execute({ actor, payload, event } = {}) {
     diceParts: {
       attribute: ctx?.pool?.attribute ?? 0,
       skill: ctx?.pool?.skill ?? 0,
-      bonus: ctx?.pool?.bonus ?? 0
+      bonus: ctx?.pool?.bonus ?? 0,
+      specialization: ctx?.pool?.specialization ?? 0
     },
     mods: collected.mods,
     modTotal: collected.total,
@@ -250,7 +251,8 @@ async function execute({ actor, payload, event } = {}) {
   const basePool =
   Number(ctx?.pool?.attribute ?? 0) +
   Number(ctx?.pool?.skill ?? 0) +
-  Number(ctx?.pool?.bonus ?? 0);
+  Number(ctx?.pool?.bonus ?? 0) +
+  Number(ctx?.pool?.specialization ?? 0);
 
   const pool = Math.max(0, basePool + Number(modTotal ?? 0));
 

@@ -9,6 +9,12 @@ import { LayoutRegistry } from "../layout/layout-registry.js";
 import { EDGE_POOL_GROUPS } from "../constants.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import {
+  getOwnedSkillSpecializationKeys,
+  getStoredSkillSpecializationKeys,
+  getSkillSpecializationDefs,
+  normalizeStoredSkillSpecializationKeys,
+} from "../mwd/skills.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -102,6 +108,9 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       combatOverloadCheck: CharacterSheetV2.prototype._onCombatOverloadCheck,
       combatAttack: CharacterSheetV2.prototype._onCombatAttack,
       createOwnedItem: CharacterSheetV2.prototype._onCreateOwnedItem,
+      addSkillSpecialization: CharacterSheetV2.prototype._onAddSkillSpecialization,
+      removeSkillSpecialization: CharacterSheetV2.prototype._onRemoveSkillSpecialization,
+      createLifeModuleItem: CharacterSheetV2.prototype._onCreateLifeModuleItem,
       editOwnedItem: CharacterSheetV2.prototype._onEditOwnedItem,
       deleteOwnedItem: CharacterSheetV2.prototype._onDeleteOwnedItem,
       toggleInventoryAccordion: CharacterSheetV2.prototype._onToggleInventoryAccordion,
@@ -267,13 +276,11 @@ ctx.edgeConsole.poolsOrdered = order
 
     const combatSnapshot = PersonalCombatTracker.getSnapshot(this.actor, { token: sheetToken });
     ctx.combatDashboard = {
-      overloadedLabel: combatSnapshot.overloaded ? "Yes" : "No",
-      burnLabel: String(combatSnapshot.burn.value),
-      burnPenaltyLabel: combatSnapshot.burn.penalty > 0 ? `-${combatSnapshot.burn.penalty}` : "0",
-      actionSummary: combatSnapshot.summaryText,
-      burnThisActivationLabel: `+${Math.max(0, Number(combatSnapshot.state.burnThisActivation ?? 0))}`,
-      statuses: combatSnapshot.statuses,
-      modifiers: combatSnapshot.modifierSummary,
+      targeting: combatSnapshot.targeting,
+      rollImpact: combatSnapshot.rollImpact,
+      states: combatSnapshot.states,
+      effects: combatSnapshot.effects,
+      activation: combatSnapshot.activation,
       inactiveReason: combatSnapshot.inactiveReason
     };
 
@@ -417,6 +424,41 @@ ctx.edgeConsole.poolsOrdered = order
       })
     };
 
+    /* -------------------------------------------- */
+    /* Bio                                          */
+    /* -------------------------------------------- */
+
+    ctx.bio = {
+      faction:         sys.biography?.faction         ?? "",
+      age:             sys.biography?.age             ?? "",
+      rank:            sys.biography?.rank            ?? "",
+      height:          sys.biography?.height          ?? "",
+      weight:          sys.biography?.weight          ?? "",
+      xpTotal:         sys.counters?.xp?.total        ?? 0,
+      xpSpent:         sys.counters?.xp?.value        ?? 0,
+      experienceLevel: sys.biography?.experienceLevel ?? "green",
+      enrichedHistory: await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+        sys.biography?.history ?? "",
+        { async: true, secrets: this.actor.isOwner, relativeTo: this.actor }
+      )
+    };
+
+    const LIFE_MODULE_SLOTS = [
+      { moduleType: "faction",          label: "Faction" },
+      { moduleType: "childhood",        label: "Childhood" },
+      { moduleType: "higherEducation",  label: "Higher Education" },
+      { moduleType: "realLife",         label: "Real Life" }
+    ];
+    const lifeModuleItems = (this.actor.items ?? []).filter(i => i.type === "lifeModule");
+    ctx.lifeModules = LIFE_MODULE_SLOTS.map(slot => {
+      const item = lifeModuleItems.find(i => i.system?.moduleType === slot.moduleType) ?? null;
+      return {
+        moduleType: slot.moduleType,
+        label:      slot.label,
+        item: item ? { id: item.id, name: item.name, img: item.img } : null
+      };
+    });
+
     return ctx;
   }
 
@@ -429,6 +471,10 @@ ctx.edgeConsole.poolsOrdered = order
  async close(options = {}) {
   this.#removeCombatMenuOutsideHandler();
   return super.close(options);
+ }
+
+ requestCombatDashboardRefresh() {
+  this.#renderPreservingScroll(false);
  }
 
  async _onEdgeSet(event, target) {
@@ -747,6 +793,87 @@ ctx.edgeConsole.poolsOrdered = order
     console.error("MWD | Failed to launch attack", error);
     ui.notifications?.error(error?.message ?? "Unable to launch attack.");
   }
+ }
+
+ async _onAddSkillSpecialization(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable || !this.editing) return;
+
+  const skillKey = String(target?.dataset?.skillKey ?? "").trim();
+  if (!skillKey) return;
+
+  const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+  const rawKeys = getStoredSkillSpecializationKeys(actorWriteTarget.system ?? {}, skillKey);
+  const ownedKeys = getOwnedSkillSpecializationKeys(actorWriteTarget.system ?? {}, skillKey);
+  const choices = getSkillSpecializationDefs(skillKey)
+    .filter(entry => !ownedKeys.includes(entry.key));
+
+  if (choices.length === 0) return;
+
+  let selectedKey = choices[0]?.key ?? "";
+  if (choices.length > 1) {
+    const content = `<form class="mwd-quick-select"><div class="mwd-field"><label>Specialization</label><select name="specialization">${choices.map(choice => `<option value="${choice.key}">${choice.label}</option>`).join("")}</select></div></form>`;
+    selectedKey = await Dialog.prompt({
+      title: "Add Skill Specialization",
+      content,
+      label: "Add",
+      callback: html => html.find('select[name="specialization"]').val() ?? choices[0]?.key ?? ""
+    });
+  }
+
+  const nextKeys = normalizeStoredSkillSpecializationKeys(
+    rawKeys.concat([selectedKey])
+  );
+
+  await actorWriteTarget.update({
+    [`system.skills.${skillKey}.specializations`]: nextKeys
+  });
+  this.#renderPreservingScroll({ force: true });
+ }
+
+ async _onRemoveSkillSpecialization(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable || !this.editing) return;
+
+  const skillKey = String(target?.dataset?.skillKey ?? "").trim();
+  const specializationKey = String(target?.dataset?.specializationKey ?? "").trim();
+  if (!skillKey || !specializationKey) return;
+
+  const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+  const nextKeys = normalizeStoredSkillSpecializationKeys(
+    getStoredSkillSpecializationKeys(actorWriteTarget.system ?? {}, skillKey)
+      .filter(key => key !== specializationKey)
+  );
+
+  await actorWriteTarget.update({
+    [`system.skills.${skillKey}.specializations`]: nextKeys
+  });
+  this.#renderPreservingScroll({ force: true });
+ }
+
+ async _onCreateLifeModuleItem(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  if (!this.isEditable) return;
+
+  const moduleType = String(target?.dataset?.moduleType ?? "").trim();
+  if (!moduleType) return;
+
+  const actor = this.getPersistentActor() ?? this.actor;
+  const labelMap = {
+    faction: "Faction", childhood: "Childhood",
+    higherEducation: "Higher Education", realLife: "Real Life"
+  };
+  await actor.createEmbeddedDocuments("Item", [{
+    name: labelMap[moduleType] ?? moduleType,
+    type: "lifeModule",
+    system: { moduleType }
+  }]);
+  this.#renderPreservingScroll({ force: true });
  }
 
  async _onCreateOwnedItem(event, target) {

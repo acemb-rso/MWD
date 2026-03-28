@@ -13,6 +13,13 @@ export const SETTING_DN_PRESETS = "gmDnPresets";
 export const SETTING_NEXT_DN = "gmNextDn";
 export const SETTING_ANNOUNCE = "gmDnAnnounceToChat";
 
+const DEFAULT_DN_PRESETS = Object.freeze([
+  { label: "Standard", dn: 1 },
+  { label: "Challenging", dn: 2 },
+  { label: "Hard", dn: 3 },
+  { label: "Extreme", dn: 4 }
+]);
+
 const TEMPLATE_GM_GADGET = "systems/mwd/templates/v2/mwd-gmgadget.hbs";
 
 const DEFAULT_HARM_STATE = Object.freeze({
@@ -27,9 +34,8 @@ const DEFAULT_HARM_STATE = Object.freeze({
   notes: ""
 });
 
-function parseDnPresets(str) {
-  const raw = typeof str === "string" ? str : "";
-  return raw
+function parseLegacyDnPresetString(value = "") {
+  return String(value ?? "")
     .split(",")
     .map((chunk) => chunk.trim())
     .filter(Boolean)
@@ -43,6 +49,65 @@ function parseDnPresets(str) {
       };
     })
     .filter((p) => Number.isFinite(p.dn));
+}
+
+function createDnPresetValidationError(messages = []) {
+  const error = new Error(messages[0] ?? "Invalid GM DN presets.");
+  error.validationErrors = Array.isArray(messages) ? messages.filter(Boolean) : [];
+  return error;
+}
+
+export function getDefaultDnPresets() {
+  return foundry.utils.deepClone(DEFAULT_DN_PRESETS);
+}
+
+export function normalizeDnPresetCollection(value, { strict = false } = {}) {
+  const source = typeof value === "string"
+    ? parseLegacyDnPresetString(value)
+    : Array.isArray(value)
+      ? value
+      : [];
+
+  const normalized = [];
+  const errors = [];
+  const seenLabels = new Set();
+
+  source.forEach((entry, index) => {
+    const label = String(entry?.label ?? "").trim();
+    const rawDn = entry?.dn;
+    const prefix = `Preset ${index + 1}`;
+
+    if (!label) {
+      if (strict) errors.push(`${prefix}: label cannot be blank.`);
+      return;
+    }
+
+    const labelKey = label.toLowerCase();
+    if (seenLabels.has(labelKey)) {
+      if (strict) errors.push(`${prefix}: duplicate label "${label}".`);
+      return;
+    }
+
+    const dn = Number(rawDn);
+    if (!Number.isFinite(dn)) {
+      if (strict) errors.push(`${prefix}: DN must be numeric.`);
+      return;
+    }
+
+    if (dn < 0) {
+      if (strict) errors.push(`${prefix}: DN cannot be negative.`);
+      return;
+    }
+
+    seenLabels.add(labelKey);
+    normalized.push({
+      label,
+      dn: Math.trunc(dn)
+    });
+  });
+
+  if (strict && errors.length) throw createDnPresetValidationError(errors);
+  return normalized;
 }
 
 function cloneHarmState(state = {}) {
@@ -95,15 +160,6 @@ function normalizeStatusOptions(actor) {
 }
 
 export function registerMWDGMGadgetSettings(systemId = "mwd") {
-  game.settings.register(systemId, SETTING_DN_PRESETS, {
-    scope: "world",
-    config: true,
-    name: "GM Difficulty Presets (DN hits)",
-    hint: "Comma-separated list like: Standard:1,Challenging:2,Hard:3,Extreme:4",
-    type: String,
-    default: "Standard:1,Challenging:2,Hard:3,Extreme:4"
-  });
-
   game.settings.register(systemId, SETTING_NEXT_DN, {
     scope: "client",
     config: false,
@@ -163,8 +219,10 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const presetStr = game.settings.get(this.systemId, SETTING_DN_PRESETS);
-    const presets = parseDnPresets(presetStr);
+    const presets = normalizeDnPresetCollection(
+      game.settings.get(this.systemId, SETTING_DN_PRESETS),
+      { strict: false }
+    );
     const currentDn = Number(game.settings.get(this.systemId, SETTING_NEXT_DN) ?? 1);
     const announce = Boolean(game.settings.get(this.systemId, SETTING_ANNOUNCE));
 
