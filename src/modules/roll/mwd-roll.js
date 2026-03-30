@@ -55,9 +55,11 @@ function normalizeManualMods(payload) {
 
 function normalizePayload(payload = {}) {
   const toggles = payload.toggles ?? {};
+  const payloadId = String(payload?.payloadId ?? payload?.ammoTypeId ?? "").trim();
 
   return {
     ...payload,
+    ...(payloadId ? { payloadId } : {}),
     toggles: {
       useEdge: !!toggles.useEdge,
       takeRisks: !!toggles.takeRisks,
@@ -77,7 +79,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     const item = actor.items?.get?.(weaponId) ?? null;
     if (!item || !(item.isPersonalWeapon?.() ?? item.type === TEMPLATE.itemType.personalWeapon)) return null;
     if (!item.system?.equipped) return null;
-    return item.getCombatProfile?.({ ammoTypeId: normalized?.ammoTypeId }) ?? null;
+    return item.getCombatProfile?.({ payloadId: normalized?.payloadId }) ?? null;
   };
 
   if (normalized.weaponId) {
@@ -87,7 +89,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     }
 
     normalized.rangeBand = normalized.rangeBand ?? profile.defaultRangeBand ?? "close";
-    normalized.ammoTypeId = normalized.ammoTypeId ?? profile?.ammoState?.activeTypeId ?? "";
+    normalized.payloadId = normalized.payloadId ?? profile?.payloadState?.activePayloadId ?? "";
     return normalized;
   }
 
@@ -101,7 +103,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
 
       normalized.weaponId = selected.id;
       normalized.rangeBand = normalized.rangeBand ?? selected.defaultRangeBand ?? "close";
-      normalized.ammoTypeId = normalized.ammoTypeId ?? selected?.ammoState?.activeTypeId ?? "";
+      normalized.payloadId = normalized.payloadId ?? selected?.payloadState?.activePayloadId ?? "";
       delete normalized.mode;
       return normalized;
     }
@@ -110,7 +112,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
       normalized.syntheticWeapon = foundry.utils.deepClone(loadout.defaultWeapon ?? WeaponItem.DEFAULT_UNARMED);
       normalized.weaponId = normalized.syntheticWeapon.id;
       normalized.rangeBand = normalized.rangeBand ?? "close";
-      normalized.ammoTypeId = normalized.ammoTypeId ?? normalized.syntheticWeapon?.ammoState?.activeTypeId ?? "";
+      normalized.payloadId = normalized.payloadId ?? normalized.syntheticWeapon?.payloadState?.activePayloadId ?? "";
       delete normalized.mode;
       return normalized;
     }
@@ -118,7 +120,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     if (loadout?.defaultWeapon?.id) {
       normalized.weaponId = loadout.defaultWeapon.id;
       normalized.rangeBand = normalized.rangeBand ?? loadout.defaultWeapon.defaultRangeBand ?? "close";
-      normalized.ammoTypeId = normalized.ammoTypeId ?? loadout.defaultWeapon?.ammoState?.activeTypeId ?? "";
+      normalized.payloadId = normalized.payloadId ?? loadout.defaultWeapon?.payloadState?.activePayloadId ?? "";
       delete normalized.mode;
       return normalized;
     }
@@ -128,7 +130,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     normalized.syntheticWeapon = foundry.utils.deepClone(WeaponItem.DEFAULT_UNARMED);
     normalized.weaponId = normalized.syntheticWeapon.id;
     normalized.rangeBand = normalized.rangeBand ?? "close";
-    normalized.ammoTypeId = normalized.ammoTypeId ?? normalized.syntheticWeapon?.ammoState?.activeTypeId ?? "";
+    normalized.payloadId = normalized.payloadId ?? normalized.syntheticWeapon?.payloadState?.activePayloadId ?? "";
     delete normalized.mode;
     return normalized;
   }
@@ -205,16 +207,16 @@ async function execute({ actor, payload, event } = {}) {
   if (payload.intent === "attack" && payload.weaponId) {
     const weaponItem = actor.items?.get?.(payload.weaponId) ?? null;
     if (weaponItem?.isPersonalWeapon?.()) {
-      const selectedAmmoTypeId = String(payload.ammoTypeId ?? "").trim();
-      const activeAmmoTypeId = String(weaponItem.system?.ammo?.activeTypeId ?? "").trim();
-      if (selectedAmmoTypeId && selectedAmmoTypeId !== activeAmmoTypeId) {
-        await weaponItem.setActiveAmmoType?.(selectedAmmoTypeId);
+      const selectedPayloadId = String(payload.payloadId ?? "").trim();
+      const activePayloadId = String(weaponItem.system?.selectedPayloadId ?? "").trim();
+      if (selectedPayloadId && selectedPayloadId !== activePayloadId) {
+        await weaponItem.setActivePayload?.(selectedPayloadId);
       }
 
-      if (!weaponItem.canConsumeAmmo?.({ ammoTypeId: selectedAmmoTypeId })) {
-        const ammoProfile = weaponItem.getAmmoState?.({ ammoTypeId: selectedAmmoTypeId });
-        const ammoName = ammoProfile?.ammoLabel ? ` (${ammoProfile.ammoLabel})` : "";
-        ui.notifications?.warn(`Not enough ammo${ammoName} for ${weaponItem.name}.`);
+      if (!weaponItem.canConsumePayload?.({ payloadId: selectedPayloadId })) {
+        const payloadState = weaponItem.getPayloadState?.({ payloadId: selectedPayloadId });
+        const payloadName = payloadState?.payloadLabel ? ` (${payloadState.payloadLabel})` : "";
+        ui.notifications?.warn(`Not enough payload${payloadName} for ${weaponItem.name}.`);
         return null;
       }
     }
@@ -367,9 +369,9 @@ async function execute({ actor, payload, event } = {}) {
   if (payload.intent === "attack" && payload.weaponId) {
     const weaponItem = actor.items?.get?.(payload.weaponId) ?? null;
     if (weaponItem?.isPersonalWeapon?.()) {
-      const consumed = await weaponItem.consumeAmmo?.({ ammoTypeId: payload.ammoTypeId });
+      const consumed = await weaponItem.consumePayload?.({ payloadId: payload.payloadId });
       if (!consumed) {
-        ui.notifications?.warn(`Ammo could not be consumed for ${weaponItem.name}.`);
+        ui.notifications?.warn(`Payload could not be consumed for ${weaponItem.name}.`);
       }
     }
   }

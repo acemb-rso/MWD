@@ -107,7 +107,13 @@ export class WeaponItemSheet extends BaseItemSheet {
         label: value.charAt(0).toUpperCase() + value.slice(1)
       })),
       standardTraits: [...WEAPON_STANDARD_TRAITS],
-      ammoDamageTypes: [{ value: "", label: "Use Weapon Default" }, ...PERSONAL_DAMAGE_TYPES]
+      ammoDamageTypes: [{ value: "", label: "Use Weapon Default" }, ...PERSONAL_DAMAGE_TYPES],
+      payloadSourceKinds: [
+        { value: "untracked", label: "Untracked" },
+        { value: "internal", label: "Internal" },
+        { value: "actorResource", label: "Actor Resource" },
+        { value: "itemRef", label: "Linked Item" }
+      ]
     };
 
     context.itemSheet = foundry.utils.mergeObject(context.itemSheet ?? {}, {
@@ -117,7 +123,7 @@ export class WeaponItemSheet extends BaseItemSheet {
     context.itemSheet.stateChips = (context.itemSheet.stateChips ?? []).filter(
       chip => !["ownership", "equipment", "role"].includes(chip.kind)
     );
-    context.itemSheet.currentAmmoLabel = context.weaponProfile?.ammoLabel ?? "";
+    context.itemSheet.currentPayloadLabel = context.weaponProfile?.payloadLabel ?? "";
     
     return context;
   }

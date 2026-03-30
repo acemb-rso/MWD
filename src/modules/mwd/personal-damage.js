@@ -421,7 +421,7 @@ function normalizeAmmoType(entry) {
   };
 }
 
-export function normalizeWeaponAmmo(value) {
+function normalizeLegacyWeaponAmmo(value) {
   const source = value ?? {};
   const max = Math.max(0, Number(source.max ?? 0) || 0);
   const rawCurrent = Number(source.current);
@@ -443,18 +443,423 @@ export function normalizeWeaponAmmo(value) {
   };
 }
 
-export function resolveWeaponAmmo(ammo = {}, ammoTypeId = "") {
-  const normalizedAmmo = normalizeWeaponAmmo(ammo);
-  const explicitId = String(ammoTypeId ?? "").trim();
-  const selectedId = explicitId || normalizedAmmo.activeTypeId;
-  const activeType = normalizedAmmo.types.find(type => type.id === selectedId) ?? null;
+function normalizeConsumptionType(value, fallback = "untracked") {
+  const normalized = String(value ?? "").trim();
+  if (!normalized) return fallback;
+
+  if (normalized === "linked") return "internal";
+  if (normalized === "perAttack") return fallback;
+  if (["untracked", "internal", "actorResource", "itemRef"].includes(normalized)) {
+    return normalized;
+  }
+
+  return fallback;
+}
+
+function normalizePayloadConsumption(value = {}) {
+  const source = value ?? {};
 
   return {
-    ammo: normalizedAmmo,
-    activeType,
-    activeTypeId: activeType?.id ?? "",
-    ammoLabel: activeType?.name ?? "",
-    isTracked: normalizedAmmo.max > 0,
+    amount: Math.max(1, Number(source.amount ?? source.consumePerUse ?? source.consumePerAttack ?? 1) || 1),
+    sourceId: String(source.sourceId ?? "").trim(),
+  };
+}
+
+function normalizePayloadModifies(value = {}) {
+  const source = value ?? {};
+  return {
+    damageType: normalizeOptionalPersonalDamageType(source.damageType),
+    ap: Number(source.ap ?? source.apMod ?? 0) || 0,
+    attackRatingBand: normalizeAttackRatingBandValue(source.attackRatingBand ?? source.attackRatingBandMod),
+    standardTraits: normalizeWeaponStandardTraits(source.standardTraits),
+    traits: normalizeWeaponTraits(source.traits),
+  };
+}
+
+function normalizePayloadResolution(value = {}) {
+  const source = value ?? {};
+  const resolverKey = String(source.resolverKey ?? source.damageModel ?? source.resolver ?? "standard").trim() || "standard";
+  const damageModel = String(source.damageModel ?? "").trim();
+  const rawEffect = source.onHitEffect;
+
+  return {
+    resolverKey,
+    damageModel,
+    onHitEffect: rawEffect === null ? null : (String(rawEffect ?? "").trim() || null),
+  };
+}
+
+function isUnloadedPayloadId(value) {
+  return String(value ?? "").trim().toLowerCase() === "unloaded";
+}
+
+export function normalizePayloadProfile(entry) {
+  const source = entry ?? {};
+  const id = String(source.id ?? "").trim() || randomId("payload");
+
+  if (isUnloadedPayloadId(id)) {
+    return {
+      id: "unloaded",
+      label: "Unloaded",
+      family: "state",
+      compatibleWith: [],
+      modifies: normalizePayloadModifies({}),
+      resolution: normalizePayloadResolution({ resolverKey: "standard" }),
+      consumption: normalizePayloadConsumption({ amount: 1, sourceId: "" }),
+    };
+  }
+
+  return {
+    id,
+    label: String(source.label ?? source.name ?? "").trim() || "Payload",
+    family: String(source.family ?? source.kind ?? "munition").trim() || "munition",
+    compatibleWith: normalizeStringList(source.compatibleWith ?? source.compatible),
+    modifies: normalizePayloadModifies(source.modifies ?? source),
+    resolution: normalizePayloadResolution(source.resolution ?? source),
+    consumption: normalizePayloadConsumption(source.consumption ?? source),
+  };
+}
+
+export function normalizeConsumptionSource(entry) {
+  const source = entry ?? {};
+  const kind = normalizeConsumptionType(
+    source.kind
+      || source.type
+      || (source.link?.actorPath || source.actorPath ? "actorResource" : "")
+      || (source.link?.itemId || source.itemId || source.link?.itemPath || source.itemPath ? "itemRef" : "")
+      || (source.tracking || source.current !== undefined || source.max !== undefined ? "internal" : "")
+      || "untracked",
+    "untracked"
+  );
+
+  const trackingSource = source.tracking ?? source;
+  const max = Math.max(0, Number(trackingSource.max ?? 0) || 0);
+  const rawCurrent = Number(trackingSource.current);
+  const current = Number.isFinite(rawCurrent)
+    ? Math.max(0, Math.min(rawCurrent, max > 0 ? max : rawCurrent))
+    : Math.max(0, max);
+
+  return {
+    id: String(source.id ?? "").trim() || randomId("source"),
+    label: String(source.label ?? source.name ?? "").trim() || "Source",
+    kind,
+    tracking: {
+      current,
+      max,
+    },
+    link: {
+      actorPath: String(source.link?.actorPath ?? source.actorPath ?? "").trim(),
+      itemId: String(source.link?.itemId ?? source.itemId ?? "").trim(),
+      itemPath: String(source.link?.itemPath ?? source.itemPath ?? "").trim(),
+    },
+  };
+}
+
+function defaultPayloadModel() {
+  return {
+    payloads: [normalizePayloadProfile({
+      id: "unloaded",
+      label: "Unloaded",
+      family: "munition",
+      resolution: { resolverKey: "standard" },
+      consumption: { amount: 1, sourceId: "" },
+    })],
+    selectedPayloadId: "unloaded",
+    consumptionSources: [normalizeConsumptionSource({
+      id: "untracked",
+      label: "Untracked",
+      kind: "untracked",
+    })],
+  };
+}
+
+function isMeleeWeaponCategory(category) {
+  return String(category ?? "").trim().toLowerCase() === "melee";
+}
+
+function ensureUnloadedPayload(payloads = []) {
+  const normalized = normalizeCollection(payloads).map(normalizePayloadProfile).filter(Boolean);
+  if (normalized.some(payload => payload.id === "unloaded")) return normalized;
+
+  return [
+    normalizePayloadProfile({
+      id: "unloaded",
+      label: "Unloaded",
+      family: "munition",
+      resolution: { resolverKey: "standard" },
+      consumption: { amount: 1, sourceId: "" },
+    }),
+    ...normalized,
+  ];
+}
+
+export function migrateLegacyAmmoToPayloadModel(ammo = {}) {
+  const normalizedAmmo = normalizeLegacyWeaponAmmo(ammo);
+  const consumePerAttack = Math.max(1, Number(normalizedAmmo.consumePerAttack ?? 1) || 1);
+  const isTracked = normalizedAmmo.max > 0;
+  const sourceId = isTracked ? "internal-magazine" : "untracked";
+  const consumptionSources = [normalizeConsumptionSource(isTracked
+    ? {
+        id: sourceId,
+        label: "Internal Source",
+        kind: "internal",
+        tracking: {
+          current: normalizedAmmo.current,
+          max: normalizedAmmo.max,
+        },
+      }
+    : {
+        id: sourceId,
+        label: "Untracked",
+        kind: "untracked",
+        tracking: {},
+      })];
+
+  const payloads = normalizedAmmo.types.length
+    ? normalizedAmmo.types.map(type => normalizePayloadProfile({
+        id: type.id,
+        label: type.name,
+        family: "munition",
+        modifies: {
+          damageType: type.damageType,
+          ap: type.apMod,
+          attackRatingBand: type.attackRatingBandMod,
+          standardTraits: type.standardTraits,
+          traits: type.traits,
+        },
+        resolution: { resolverKey: "standard" },
+        consumption: {
+          amount: consumePerAttack,
+          sourceId: isTracked ? sourceId : "",
+        },
+      }))
+    : [normalizePayloadProfile({
+        id: "unloaded",
+        label: "Unloaded",
+        family: "munition",
+        resolution: { resolverKey: "standard" },
+        consumption: {
+          amount: consumePerAttack,
+          sourceId: isTracked ? sourceId : "",
+        },
+      })];
+
+  const normalizedPayloads = ensureUnloadedPayload(payloads);
+  const selectedPayloadId = normalizedPayloads.some(payload => payload.id === normalizedAmmo.activeTypeId)
+    ? normalizedAmmo.activeTypeId
+    : (normalizedPayloads[0]?.id ?? "unloaded");
+
+  return {
+    payloads: normalizedPayloads,
+    selectedPayloadId,
+    consumptionSources,
+  };
+}
+
+export function normalizeWeaponPayloads(value, { legacyAmmo = null, category = "" } = {}) {
+  if (isMeleeWeaponCategory(category)) return [];
+  const payloads = normalizeCollection(value).map(normalizePayloadProfile).filter(Boolean);
+  if (payloads.length > 0) return ensureUnloadedPayload(payloads);
+  if (legacyAmmo) return ensureUnloadedPayload(migrateLegacyAmmoToPayloadModel(legacyAmmo).payloads);
+  return defaultPayloadModel().payloads;
+}
+
+export function normalizeWeaponConsumptionSources(value, { legacyAmmo = null } = {}) {
+  const sources = normalizeCollection(value).map(normalizeConsumptionSource).filter(Boolean);
+  if (sources.length > 0) return sources;
+  if (legacyAmmo) return migrateLegacyAmmoToPayloadModel(legacyAmmo).consumptionSources;
+  return defaultPayloadModel().consumptionSources;
+}
+
+export function normalizeSelectedPayloadId(value, payloads = [], { legacyAmmo = null, category = "" } = {}) {
+  if (isMeleeWeaponCategory(category)) return "";
+
+  const normalizedPayloads = normalizeWeaponPayloads(payloads, { legacyAmmo, category });
+  const explicitId = String(value ?? "").trim();
+  if (normalizedPayloads.some(payload => payload.id === explicitId)) return explicitId;
+  if (legacyAmmo) {
+    const migratedId = migrateLegacyAmmoToPayloadModel(legacyAmmo).selectedPayloadId;
+    if (normalizedPayloads.some(payload => payload.id === migratedId)) return migratedId;
+  }
+  return normalizedPayloads[0]?.id ?? "unloaded";
+}
+
+function resolveTrackingValue({ root = null, path = "", fallback = {} } = {}) {
+  const normalizedPath = String(path ?? "").trim();
+  if (!root || !normalizedPath) {
+    return {
+      current: Math.max(0, Number(fallback.current ?? 0) || 0),
+      max: Math.max(0, Number(fallback.max ?? 0) || 0),
+      currentPath: normalizedPath,
+    };
+  }
+
+  const rawValue = foundry.utils.getProperty(root, normalizedPath);
+  if (rawValue && typeof rawValue === "object") {
+    const max = Math.max(0, Number(rawValue.max ?? fallback.max ?? 0) || 0);
+    const rawCurrent = Number(rawValue.current);
+    return {
+      current: Number.isFinite(rawCurrent)
+        ? Math.max(0, Math.min(rawCurrent, max > 0 ? max : rawCurrent))
+        : Math.max(0, max),
+      max,
+      currentPath: `${normalizedPath}.current`,
+    };
+  }
+
+  const current = Math.max(0, Number(rawValue ?? fallback.current ?? 0) || 0);
+  const max = Math.max(current, Math.max(0, Number(fallback.max ?? 0) || 0));
+  return {
+    current: max > 0 ? Math.min(current, max) : current,
+    max,
+    currentPath: normalizedPath,
+  };
+}
+
+function resolveSourceState({ source = null, actor = null } = {}) {
+  if (!source) {
+    return {
+      id: "",
+      label: "",
+      kind: "untracked",
+      isTracked: false,
+      current: 0,
+      max: 0,
+      consumePerUse: 1,
+      actorPath: "",
+      itemId: "",
+      itemPath: "",
+    };
+  }
+
+  const base = {
+    id: source.id,
+    label: source.label,
+    kind: source.kind,
+    actorPath: String(source.link?.actorPath ?? "").trim(),
+    itemId: String(source.link?.itemId ?? "").trim(),
+    itemPath: String(source.link?.itemPath ?? "").trim(),
+  };
+
+  if (source.kind === "internal") {
+    const current = Math.max(0, Number(source.tracking?.current ?? 0) || 0);
+    const max = Math.max(0, Number(source.tracking?.max ?? 0) || 0);
+    return {
+      ...base,
+      isTracked: max > 0 || current > 0,
+      current,
+      max,
+      currentPath: "",
+    };
+  }
+
+  if (source.kind === "actorResource") {
+    const tracking = resolveTrackingValue({
+      root: actor?.system ?? null,
+      path: base.actorPath,
+      fallback: source.tracking,
+    });
+    return {
+      ...base,
+      isTracked: true,
+      current: tracking.current,
+      max: tracking.max,
+      currentPath: tracking.currentPath,
+    };
+  }
+
+  if (source.kind === "itemRef") {
+    const sourceItem = actor?.items?.get?.(base.itemId) ?? null;
+    const tracking = resolveTrackingValue({
+      root: sourceItem?.system ?? null,
+      path: base.itemPath,
+      fallback: source.tracking,
+    });
+    return {
+      ...base,
+      isTracked: true,
+      current: tracking.current,
+      max: tracking.max,
+      currentPath: tracking.currentPath,
+      sourceItem,
+    };
+  }
+
+  return {
+    ...base,
+    isTracked: false,
+    current: 0,
+    max: 0,
+    currentPath: "",
+  };
+}
+
+export function resolveWeaponPayloadState({
+  payloads = [],
+  selectedPayloadId = "",
+  consumptionSources = [],
+  actor = null,
+  payloadId = "",
+  category = "",
+} = {}) {
+  const normalizedPayloads = normalizeWeaponPayloads(payloads, { category });
+  const normalizedSources = normalizeWeaponConsumptionSources(consumptionSources);
+  const activePayloadId = normalizeSelectedPayloadId(payloadId || selectedPayloadId, normalizedPayloads, { category });
+  const activePayload = normalizedPayloads.find(payload => payload.id === activePayloadId) ?? normalizedPayloads[0] ?? null;
+  const activeConsumption = activePayload?.consumption ?? normalizePayloadConsumption();
+  const source = activeConsumption.sourceId
+    ? normalizedSources.find(entry => entry.id === activeConsumption.sourceId) ?? null
+    : normalizedSources.find(entry => entry.kind === "untracked") ?? normalizeConsumptionSource({
+        id: "untracked",
+        label: "Untracked",
+        kind: "untracked",
+      });
+
+  const sourceState = resolveSourceState({ source, actor });
+
+  return {
+    payloads: normalizedPayloads,
+    activePayload,
+    activePayloadId: activePayload?.id ?? "",
+    payloadLabel: activePayload?.label ?? "",
+    source,
+    sourceState: {
+      ...sourceState,
+      consumePerUse: Math.max(1, Number(activeConsumption.amount ?? 1) || 1),
+      sourceId: source?.id ?? "",
+    },
+  };
+}
+
+export function normalizeWeaponAmmo(value) {
+  return normalizeLegacyWeaponAmmo(value);
+}
+
+export function resolveWeaponAmmo(ammo = {}, ammoTypeId = "") {
+  const migrated = migrateLegacyAmmoToPayloadModel(ammo);
+  const payloadState = resolveWeaponPayloadState({
+    payloads: migrated.payloads,
+    selectedPayloadId: migrated.selectedPayloadId,
+    consumptionSources: migrated.consumptionSources,
+    payloadId: ammoTypeId,
+  });
+
+  return {
+    ammo: normalizeLegacyWeaponAmmo(ammo),
+    activeType: payloadState.activePayload
+      ? {
+          id: payloadState.activePayload.id,
+          name: payloadState.activePayload.label,
+          damageType: payloadState.activePayload.modifies?.damageType ?? "",
+          apMod: Number(payloadState.activePayload.modifies?.ap ?? 0) || 0,
+          attackRatingBandMod: payloadState.activePayload.modifies?.attackRatingBand ?? {},
+          standardTraits: payloadState.activePayload.modifies?.standardTraits ?? [],
+          traits: payloadState.activePayload.modifies?.traits ?? [],
+        }
+      : null,
+    activeTypeId: payloadState.activePayloadId,
+    ammoLabel: payloadState.payloadLabel,
+    isTracked: payloadState.sourceState.isTracked,
   };
 }
 
@@ -464,30 +869,56 @@ export function resolveEffectiveWeaponProfile({
   attackRatingBand = {},
   traits = [],
   standardTraits = [],
-  ammo = {},
+  payloads = [],
+  selectedPayloadId = "",
+  consumptionSources = [],
+  payloadId = "",
+  actor = null,
+  ammo = null,
   ammoTypeId = "",
+  category = "",
 } = {}) {
-  const ammoResolution = resolveWeaponAmmo(ammo, ammoTypeId);
-  const ammoType = ammoResolution.activeType;
+  const payloadState = resolveWeaponPayloadState({
+    payloads: payloads?.length ? payloads : undefined,
+    selectedPayloadId: selectedPayloadId || ammoTypeId,
+    consumptionSources,
+    actor,
+    payloadId: payloadId || ammoTypeId,
+    category,
+  });
+  const fallbackState = (!payloads || payloads.length === 0) && ammo
+    ? resolveWeaponPayloadState({
+        ...migrateLegacyAmmoToPayloadModel(ammo),
+        actor,
+        payloadId: payloadId || ammoTypeId,
+        category,
+      })
+    : null;
+  const effectivePayloadState = fallbackState ?? payloadState;
+  const activePayload = effectivePayloadState.activePayload;
   const combinedStandardTraits = [
     ...normalizeWeaponStandardTraits(standardTraits),
-    ...normalizeWeaponStandardTraits(ammoType?.standardTraits),
+    ...normalizeWeaponStandardTraits(activePayload?.modifies?.standardTraits),
   ];
   const combinedLegacyTraits = [
     ...normalizeWeaponTraits(traits),
-    ...normalizeWeaponTraits(ammoType?.traits),
+    ...normalizeWeaponTraits(activePayload?.modifies?.traits),
   ];
   const combinedEffects = deriveWeaponEffectsFromTraits({
     traits: combinedLegacyTraits,
     standardTraits: combinedStandardTraits,
   });
+  const publicSourceState = {
+    ...effectivePayloadState.sourceState,
+  };
+  delete publicSourceState.sourceItem;
 
   return {
-    damageType: ammoType?.damageType || normalizePersonalDamageType(damageType),
-    ap: (Number(ap ?? 0) || 0) + (Number(ammoType?.apMod ?? 0) || 0),
+    damageType: activePayload?.modifies?.damageType || normalizePersonalDamageType(damageType),
+    ap: (Number(ap ?? 0) || 0) + (Number(activePayload?.modifies?.ap ?? 0) || 0),
     attackRatingBand: mergeAttackRatingBands(
       attackRatingBand,
-      ammoType?.attackRatingBandMod ?? {}
+      activePayload?.modifies?.attackRatingBand ?? {}
     ),
     effects: combinedEffects,
     traits: getWeaponTraitLabels({
@@ -495,13 +926,37 @@ export function resolveEffectiveWeaponProfile({
       standardTraits: combinedStandardTraits,
     }),
     standardTraits: combinedStandardTraits,
-    ammoLabel: ammoResolution.ammoLabel,
-    ammoType: ammoType ? foundry.utils.deepClone(ammoType) : null,
+    payloadLabel: effectivePayloadState.payloadLabel,
+    payload: activePayload ? foundry.utils.deepClone(activePayload) : null,
+    payloadState: {
+      payloads: effectivePayloadState.payloads.map(payload => foundry.utils.deepClone(payload)),
+      activePayloadId: effectivePayloadState.activePayloadId,
+      payloadLabel: effectivePayloadState.payloadLabel,
+      sourceId: effectivePayloadState.source?.id ?? "",
+      sourceLabel: effectivePayloadState.sourceState.label ?? "",
+      sourceKind: effectivePayloadState.sourceState.kind ?? "untracked",
+      isTracked: effectivePayloadState.sourceState.isTracked,
+      current: effectivePayloadState.sourceState.current,
+      max: effectivePayloadState.sourceState.max,
+      consumePerUse: effectivePayloadState.sourceState.consumePerUse,
+    },
+    source: effectivePayloadState.source ? foundry.utils.deepClone(effectivePayloadState.source) : null,
+    sourceState: foundry.utils.deepClone(publicSourceState),
+    resolverKey: String(activePayload?.resolution?.resolverKey ?? "standard").trim() || "standard",
+    ammoLabel: effectivePayloadState.payloadLabel,
+    ammoType: activePayload ? foundry.utils.deepClone(activePayload) : null,
     ammoState: {
-      ...ammoResolution.ammo,
-      activeTypeId: ammoResolution.activeTypeId,
-      ammoLabel: ammoResolution.ammoLabel,
-      isTracked: ammoResolution.isTracked,
+      current: publicSourceState.current,
+      max: publicSourceState.max,
+      consumePerAttack: publicSourceState.consumePerUse,
+      activeTypeId: effectivePayloadState.activePayloadId,
+      types: effectivePayloadState.payloads.map(payload => ({
+        id: payload.id,
+        name: payload.label,
+        damageType: payload.modifies?.damageType ?? "",
+      })),
+      isTracked: publicSourceState.isTracked,
+      ammoLabel: effectivePayloadState.payloadLabel,
     },
   };
 }

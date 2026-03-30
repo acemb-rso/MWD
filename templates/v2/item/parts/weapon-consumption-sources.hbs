@@ -1,0 +1,86 @@
+{{!--
+templates/v2/item/parts/weapon-consumption-sources.hbs
+Purpose: Renders consumption source controls for personal weapons.
+How it fits: Used by the CSB-driven personal weapon details layout.
+--}}
+
+
+<section class="mwd-combat-sheet__subsection">
+  <header class="mwd-combat-sheet__subheader">
+    <h4 class="mwd-combat-sheet__subtitle">Consumption Sources</h4>
+    {{#unless (eq system.category "melee")}}
+      <button type="button" class="mwd-source-add"><i class="fas fa-plus"></i> Add</button>
+    {{/unless}}
+  </header>
+
+  {{#if (eq system.category "melee")}}
+    <div class="mwd-item-note">Melee weapons do not use payload sources.</div>
+  {{else if system.consumptionSources.length}}
+    <div class="mwd-ammo-profiles">
+      {{#each system.consumptionSources as |source|}}
+        <div class="mwd-ammo-profile define-source" data-source-id="{{source.id}}">
+          <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+            <div class="form-group mwd-weapon-compact__field">
+              <label>Label</label>
+              <input type="text" value="{{source.label}}" class="mwd-source-field" data-source-id="{{source.id}}" data-field="label" />
+            </div>
+
+            <div class="form-group mwd-weapon-compact__field">
+              <label>Kind</label>
+              <select class="mwd-source-field" data-source-id="{{source.id}}" data-field="kind">
+                {{selectOptions ../weaponEditor.payloadSourceKinds selected=source.kind valueAttr="value" labelAttr="label" localize=false}}
+              </select>
+            </div>
+
+            {{#unless (eq source.kind "untracked")}}
+              <div class="form-group mwd-weapon-compact__field">
+                <label>Current</label>
+                <input class="type-numeric mwd-source-field" type="number" value="{{source.tracking.current}}" data-source-id="{{source.id}}" data-field="tracking.current" />
+              </div>
+            {{/unless}}
+
+            <button type="button" class="mwd-record__icon-btn is-danger mwd-source-delete" data-source-id="{{source.id}}" title="Remove">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          {{#unless (eq source.kind "untracked")}}
+            <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+              {{#unless (eq source.kind "actorResource")}}
+                {{#unless (eq source.kind "itemRef")}}
+                  <div class="form-group mwd-weapon-compact__field">
+                    <label>Max</label>
+                    <input class="type-numeric mwd-source-field" type="number" value="{{source.tracking.max}}" data-source-id="{{source.id}}" data-field="tracking.max" />
+                  </div>
+                {{/unless}}
+              {{/unless}}
+
+              {{#if (eq source.kind "actorResource")}}
+                <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+                  <label>Actor Path</label>
+                  <input type="text" value="{{source.link.actorPath}}" class="mwd-source-field" data-source-id="{{source.id}}" data-field="link.actorPath" />
+                </div>
+              {{/if}}
+
+              {{#if (eq source.kind "itemRef")}}
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Item Id</label>
+                  <input type="text" value="{{source.link.itemId}}" class="mwd-source-field" data-source-id="{{source.id}}" data-field="link.itemId" />
+                </div>
+              {{/if}}
+
+              {{#if (eq source.kind "itemRef")}}
+                <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+                  <label>Item Path</label>
+                  <input type="text" value="{{source.link.itemPath}}" class="mwd-source-field" data-source-id="{{source.id}}" data-field="link.itemPath" />
+                </div>
+              {{/if}}
+            </div>
+          {{/unless}}
+        </div>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-item-note">No consumption sources defined.</div>
+  {{/if}}
+</section>

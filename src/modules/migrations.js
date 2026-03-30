@@ -10,11 +10,15 @@ import { Misc } from "./misc.js";
 import { AttributeActions } from "./attribute-actions.js";
 import { MESSAGE_DATA } from "./chat/chat-manager.js";
 import {
+  migrateLegacyAmmoToPayloadModel,
   migrateLegacyArmorMitigation,
   normalizeArmorStandardTraits,
+  normalizeSelectedPayloadId,
   normalizePersonalDamageType,
   normalizeArmorTags,
   normalizeWeaponAmmo,
+  normalizeWeaponConsumptionSources,
+  normalizeWeaponPayloads,
   normalizeWeaponStandardTraits,
   resolveArmorTraitEffects,
 } from "./mwd/personal-damage.js";
@@ -802,6 +806,40 @@ class _13_8_0_StandardGearTraitsAndAmmo extends Migration {
   }
 }
 
+class _13_9_0_PayloadArchitecture extends Migration {
+  get version() { return "13.9.0"; }
+  get code() { return "payload-architecture"; }
+
+  async migrate() {
+    await this.applyItemsUpdates(items => items
+      .filter(item => (item.canonicalType ?? item.type) === TEMPLATE.itemType.personalWeapon)
+      .map(item => this._collectWeaponUpdate(item))
+      .filter(Boolean));
+  }
+
+  _collectWeaponUpdate(item) {
+    const legacyAmmo = item.system?.ammo;
+    const migrated = legacyAmmo
+      ? migrateLegacyAmmoToPayloadModel(legacyAmmo)
+      : null;
+    const payloads = normalizeWeaponPayloads(item.system?.payloads, { legacyAmmo });
+    const consumptionSources = normalizeWeaponConsumptionSources(item.system?.consumptionSources, { legacyAmmo });
+    const selectedPayloadId = normalizeSelectedPayloadId(
+      item.system?.selectedPayloadId,
+      payloads,
+      { legacyAmmo }
+    );
+
+    return {
+      _id: item.id,
+      "system.payloads": payloads,
+      "system.consumptionSources": consumptionSources,
+      "system.selectedPayloadId": selectedPayloadId || migrated?.selectedPayloadId || "standard",
+      "system.-=ammo": null,
+    };
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -827,6 +865,7 @@ export class Migrations {
       new _13_6_2_AddMwdVehicleScaffold(),
       new _13_7_0_PersonalDamageModelV2(),
       new _13_8_0_StandardGearTraitsAndAmmo(),
+      new _13_9_0_PayloadArchitecture(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

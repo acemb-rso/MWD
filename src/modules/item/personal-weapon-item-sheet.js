@@ -62,17 +62,22 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
   _getSummaryChips(profile = this.item.getCombatProfile?.() ?? null) {
     if (!profile) return [];
 
-    return [
+    const chips = [
       { label: "Category", value: String(profile.category ?? "").trim() || "Ranged" },
       { label: "Skill", value: profile.skillDef?.label ?? profile.skill ?? "Firearms" },
       { label: "DV", value: String(Number(profile.damage ?? 0)) },
       { label: "AP", value: String(Number(profile.ap ?? 0)) },
       { label: "Type", value: getPersonalDamageTypeLabel(profile.damageType) || "Penetrating" },
       { label: "Range", value: String(profile.range?.max ?? "near").trim() || "Near" },
-      profile?.ammoState?.isTracked
-        ? { label: "Ammo", value: `${Number(profile.ammoState.current ?? 0)}/${Number(profile.ammoState.max ?? 0)}` }
-        : { label: "Ammo", value: profile?.ammoLabel || "Untracked" }
     ];
+
+    if (String(profile.category ?? "").trim().toLowerCase() !== "melee") {
+      chips.push(profile?.sourceState?.isTracked
+        ? { label: "Payload", value: `${profile?.payloadLabel || "Unloaded"} (${Number(profile.sourceState.current ?? 0)}/${Number(profile.sourceState.max ?? 0)})` }
+        : { label: "Payload", value: profile?.payloadLabel || "Unloaded" });
+    }
+
+    return chips;
   }
 
   static async _onAttackWeapon(event) {
@@ -87,7 +92,7 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
       payload: {
         intent: "attack",
         weaponId: this.item.id,
-        ammoTypeId: this.item.system?.ammo?.activeTypeId ?? "",
+        payloadId: this.item.system?.selectedPayloadId ?? "",
         edge: { pool: "physical.grit", allowed: ["pre", "post"] },
         tags: ["combat", "attack"]
       },
@@ -126,51 +131,76 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
       });
     });
 
-    root.querySelectorAll(".mwd-ammo-type-add").forEach(button => {
+    root.querySelectorAll(".mwd-payload-add").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.createAmmoType?.();
+        void this.item.createPayload?.();
       });
     });
 
-    root.querySelectorAll(".mwd-ammo-type-delete").forEach(button => {
+    root.querySelectorAll(".mwd-payload-delete").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.deleteAmmoType?.(button.dataset.ammoTypeId);
+        void this.item.deletePayload?.(button.dataset.payloadId);
       });
     });
 
-    root.querySelectorAll(".mwd-ammo-type-field").forEach(field => {
+    root.querySelectorAll(".mwd-payload-field").forEach(field => {
       field.addEventListener("change", event => {
         event.preventDefault();
-        void this.item.updateAmmoType?.(
-          field.dataset.ammoTypeId,
+        void this.item.updatePayloadField?.(
+          field.dataset.payloadId,
           field.dataset.field,
           field.value
         );
       });
     });
 
-    root.querySelectorAll(".mwd-ammo-type-standard-trait-add").forEach(button => {
+    root.querySelectorAll(".mwd-payload-standard-trait-add").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.createAmmoTypeStandardTrait?.(button.dataset.ammoTypeId);
+        void this.item.createPayloadStandardTrait?.(button.dataset.payloadId);
       });
     });
 
-    root.querySelectorAll(".mwd-ammo-type-standard-trait-delete").forEach(button => {
+    root.querySelectorAll(".mwd-payload-standard-trait-delete").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.deleteAmmoTypeStandardTrait?.(button.dataset.ammoTypeId, button.dataset.traitId);
+        void this.item.deletePayloadStandardTrait?.(button.dataset.payloadId, button.dataset.traitId);
       });
     });
 
-    root.querySelectorAll(".mwd-ammo-type-standard-trait-field").forEach(field => {
+    root.querySelectorAll(".mwd-payload-standard-trait-field").forEach(field => {
       field.addEventListener("change", event => {
         event.preventDefault();
-        void this.item.updateAmmoTypeStandardTrait?.(
-          field.dataset.ammoTypeId,
+        void this.item.updatePayloadStandardTrait?.(
+          field.dataset.payloadId,
           field.dataset.traitId,
+          field.dataset.field,
+          field.value
+        );
+      });
+    });
+
+    root.querySelectorAll(".mwd-source-add").forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        void this.item.createConsumptionSource?.();
+      });
+    });
+
+    root.querySelectorAll(".mwd-source-delete").forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        void this.item.deleteConsumptionSource?.(button.dataset.sourceId);
+      });
+    });
+
+    root.querySelectorAll(".mwd-source-field").forEach(field => {
+      field.addEventListener("change", event => {
+        event.preventDefault();
+        void this.item.updateConsumptionSourceField?.(
+          field.dataset.sourceId,
           field.dataset.field,
           field.value
         );

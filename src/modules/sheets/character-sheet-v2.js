@@ -303,17 +303,18 @@ ctx.edgeConsole.poolsOrdered = order
       warnings: [...(loadout?.warnings ?? [])],
       weapons: (loadout?.weapons ?? []).map(weapon => {
         const accordionId = this.#inventoryAccordionId("weapons", weapon.id);
-        const ammoTracked = Boolean(weapon?.ammoState?.isTracked);
-        const ammoLabel = weapon?.ammoLabel ? `Loaded ${weapon.ammoLabel}` : "";
-        const ammoCount = ammoTracked
-          ? `${toNumber(weapon?.ammoState?.current, 0)}/${toNumber(weapon?.ammoState?.max, 0)}`
+        const usesPayloads = String(weapon?.category ?? "").trim().toLowerCase() !== "melee";
+        const payloadTracked = Boolean(weapon?.sourceState?.isTracked);
+        const payloadLabel = usesPayloads && weapon?.payloadLabel ? `Loaded ${weapon.payloadLabel}` : "";
+        const payloadCount = usesPayloads && payloadTracked
+          ? `${toNumber(weapon?.sourceState?.current, 0)}/${toNumber(weapon?.sourceState?.max, 0)}`
           : "";
         const detailRows = buildDetailRows([
           { label: "Skill", value: weapon.skillDef?.label ?? weapon.skill ?? "" },
           { label: "Category", value: weapon.category ?? "" },
           { label: "Max Range", value: formatRangeBandLabel(weapon.range?.max ?? weapon.defaultRangeBand ?? "") },
           { label: "Attack Rating", value: formatBandValues(weapon.attackRatingBand) },
-          { label: "Ammo", value: ammoTracked ? `${ammoCount} tracked` : (weapon.ammoLabel || "Untracked") },
+          { label: "Payload", value: usesPayloads ? (payloadTracked ? `${payloadCount} tracked` : (weapon.payloadLabel || "Unloaded")) : "" },
           { label: "Traits", value: compactList(weapon.traits ?? []).join(", ") }
         ]);
 
@@ -328,12 +329,12 @@ ctx.edgeConsole.poolsOrdered = order
             { label: "DV", value: toNumber(weapon.damage, 0), emphasis: "strong" },
             { label: "AP", value: toNumber(weapon.ap, 0) },
             { label: "Type", value: weapon.damageTypeLabel ?? weapon.damageType ?? "" },
-            { label: "Ammo", value: ammoTracked ? ammoCount : (weapon.ammoLabel || "--") }
+            { label: "Payload", value: usesPayloads ? (payloadTracked ? payloadCount : (weapon.payloadLabel || "Unloaded")) : "" }
           ]),
           detailTags: buildDetailTags([
             weapon.equipped ? "Equipped" : "",
             weapon.isPrimary ? "Primary" : "",
-            ammoLabel,
+            payloadLabel,
             ...compactList(weapon.traits ?? [])
           ]),
           detailRows,
@@ -343,7 +344,7 @@ ctx.edgeConsole.poolsOrdered = order
           attackRoll: JSON.stringify({
             intent: "attack",
             weaponId: weapon.id,
-            ammoTypeId: weapon?.ammoState?.activeTypeId ?? "",
+            payloadId: weapon?.payloadState?.activePayloadId ?? "",
             edge: { pool: "physical.grit", allowed: ["pre", "post"] },
             tags: ["combat", "attack"]
           })
@@ -474,7 +475,7 @@ ctx.edgeConsole.poolsOrdered = order
  }
 
  requestCombatDashboardRefresh() {
-  this.#renderPreservingScroll(false);
+  this.#renderPreservingScroll({ force: true });
  }
 
  async _onEdgeSet(event, target) {

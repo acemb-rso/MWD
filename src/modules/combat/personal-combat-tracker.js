@@ -4,6 +4,7 @@
 
 
 import { humanizeStatusKey } from "../dialog/token-status-dialog.js";
+import { getCommonCheckPayload } from "../roll/config/common-checks.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -78,7 +79,18 @@ function parseModifierValue(value) {
 }
 
 function getTokenCenter(token) {
-  return token?.center ?? token?.object?.center ?? null;
+  const tokenDoc = token?.document ?? token ?? null;
+  const tokenObject = token?.object ?? tokenDoc?.object ?? token ?? null;
+  const tokenId = String(tokenDoc?.id ?? "").trim();
+  const pendingPosition = PersonalCombatTracker._pendingTokenPositions.get(tokenId) ?? null;
+  const x = Number(pendingPosition?.x ?? tokenDoc?.x);
+  const y = Number(pendingPosition?.y ?? tokenDoc?.y);
+
+  if (tokenObject && Number.isFinite(x) && Number.isFinite(y) && typeof tokenObject.getCenter === "function") {
+    return tokenObject.getCenter(x, y);
+  }
+
+  return tokenObject?.center ?? tokenDoc?.object?.center ?? null;
 }
 
 function formatDistanceLabel(distance, units = "") {
@@ -90,13 +102,17 @@ function formatDistanceLabel(distance, units = "") {
 }
 
 export class PersonalCombatTracker {
+  static _targetRefreshTimeout = null;
+  static _pendingTokenPositions = new Map();
+
   static init() {
     Hooks.on("updateCombat", (combat, changed) => this._onUpdateCombat(combat, changed));
     Hooks.on("updateCombatant", (combatant, changed) => this._onUpdateCombatant(combatant, changed));
+    Hooks.on("updateToken", (tokenDocument, changed) => this._onUpdateToken(tokenDocument, changed));
     Hooks.on("createCombatant", combatant => this._onCreateCombatant(combatant));
     Hooks.on("deleteCombatant", combatant => this._onDeleteCombatant(combatant));
     Hooks.on("deleteCombat", combat => this._onDeleteCombat(combat));
-    Hooks.on("targetToken", user => this._onTargetToken(user));
+    Hooks.on("targetToken", (user, token, targeted) => this._onTargetToken(user, token, targeted));
   }
 
   static async onReady() {
@@ -256,8 +272,21 @@ export class PersonalCombatTracker {
     return null;
   }
 
-  static getTargetingSnapshot(sourceToken = null) {
-    const targets = Array.from(game.user?.targets ?? []).filter(Boolean);
+  static getUserTargetTokens(user = game.user) {
+    const targetIds = Array.isArray(user?.targets?.ids) ? user.targets.ids : [];
+    const targetsById = targetIds
+      .map(id => this._getSceneTokenById(id))
+      .filter(Boolean);
+
+    if (targetsById.length) return targetsById;
+
+    return Array.from(user?.targets ?? [])
+      .map(token => token?.object ?? token)
+      .filter(Boolean);
+  }
+
+  static getTargetingSnapshot(sourceToken = null, user = game.user) {
+    const targets = this.getUserTargetTokens(user);
     const count = targets.length;
 
     if (count === 0) {
@@ -552,6 +581,19 @@ export class PersonalCombatTracker {
       || (!snapshot.burn.canOverloadCheck ? (snapshot.overloaded ? "Already Overloaded." : "Burn below 6.") : "");
 
     const resourceReason = notInCombatReason || notTurnReason;
+    const buildCommonUtilityButton = (id) => {
+      const payload = getCommonCheckPayload(id);
+      if (!payload) return null;
+
+      return {
+        id,
+        label: payload.label,
+        handler: "roll",
+        roll: JSON.stringify(payload),
+        disabled: false,
+        reason: ""
+      };
+    };
 
     return {
       utilityButtons: [
@@ -569,8 +611,13 @@ export class PersonalCombatTracker {
           handler: "toggleStatuses",
           disabled: false,
           reason: snapshot.token ? "" : "Requires a token on the current scene."
-        }
-      ],
+        },
+        buildCommonUtilityButton("composure"),
+        buildCommonUtilityButton("judgeIntent"),
+        buildCommonUtilityButton("memory"),
+        buildCommonUtilityButton("lift"),
+        buildCommonUtilityButton("endure")
+      ].filter(Boolean),
       summaryPills: [
         { label: "SA", value: `${snapshot.state.saRemaining}/${BASE_SA}` },
         { label: "FA", value: `${snapshot.state.faRemaining}` },
@@ -812,20 +859,78 @@ export class PersonalCombatTracker {
     }
   }
 
-  static _onTargetToken(user) {
+  static _onTargetToken(user, _token, _targeted) {
     if (user?.id !== game.user?.id) return;
-    this.renderOpenCharacterSheets();
+    this.queueCharacterSheetRefresh();
+  }
+
+  static _onUpdateToken(tokenDocument, changed) {
+    const touchesPosition = ["x", "y", "elevation"].some(key =>
+      Object.prototype.hasOwnProperty.call(changed ?? {}, key)
+    );
+    if (!touchesPosition) return;
+    if (tokenDocument?.parent?.id !== canvas?.scene?.id) return;
+
+    const tokenId = String(tokenDocument?.id ?? "").trim();
+    if (tokenId) {
+      const nextX = Object.prototype.hasOwnProperty.call(changed ?? {}, "x")
+        ? Number(changed.x)
+        : Number(tokenDocument?.x);
+      const nextY = Object.prototype.hasOwnProperty.call(changed ?? {}, "y")
+        ? Number(changed.y)
+        : Number(tokenDocument?.y);
+
+      if (Number.isFinite(nextX) && Number.isFinite(nextY)) {
+        this._pendingTokenPositions.set(tokenId, { x: nextX, y: nextY });
+      }
+    }
+
+    this.queueCharacterSheetRefresh();
+  }
+
+  static queueCharacterSheetRefresh(actorId = null) {
+    if (this._targetRefreshTimeout) {
+      clearTimeout(this._targetRefreshTimeout);
+    }
+
+    this._targetRefreshTimeout = setTimeout(() => {
+      this._targetRefreshTimeout = null;
+      this.renderOpenCharacterSheets(actorId);
+    }, 0);
+  }
+
+  static _collectOpenCharacterSheetApps() {
+    const apps = new Set();
+    const addApps = actorLike => {
+      for (const app of Object.values(actorLike?.apps ?? {})) {
+        if (app?.actor?.type === "character") apps.add(app);
+      }
+    };
+
+    for (const actor of Array.from(game.actors ?? [])) {
+      addApps(actor);
+    }
+
+    for (const token of Array.from(canvas?.tokens?.placeables ?? [])) {
+      addApps(token?.actor);
+    }
+
+    for (const app of Object.values(ui.windows ?? {})) {
+      if (app?.actor?.type === "character") apps.add(app);
+    }
+
+    return Array.from(apps);
   }
 
   static renderOpenCharacterSheets(actorId = null) {
-    const apps = Object.values(ui.windows ?? {}).filter(app => app?.actor?.type === "character");
+    const apps = this._collectOpenCharacterSheetApps();
     for (const app of apps) {
       if (actorId && app.actor?.id !== actorId) continue;
       if (typeof app.requestCombatDashboardRefresh === "function") {
         app.requestCombatDashboardRefresh();
         continue;
       }
-      app.render(false);
+      app.render({ force: true });
     }
   }
 }

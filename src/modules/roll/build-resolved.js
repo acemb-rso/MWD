@@ -146,6 +146,7 @@ export function buildResolved({
     // Render header
     title: ctx?.title ?? "Roll",
     subtitle: ctx?.subtitle ?? (actor.name ?? "Actor"),
+    formula: String(ctx?.formula ?? "").trim(),
     intent: ctx?.intent ?? payload.intent,
     domains: Array.isArray(ctx?.domains) ? ctx.domains : [],
     attack: ctx?.attack ?? null,

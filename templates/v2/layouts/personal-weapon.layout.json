@@ -37,15 +37,36 @@
                   },
                   {
                     "type": "panel",
-                    "title": "Traits and Ammunition",
+                    "title": "Traits, Payloads, and Sources",
                     "classes": ["mwd-item-section--full"],
                     "children": [
                       {
-                        "type": "stack",
-                        "classes": ["mwd-combat-sheet__split"],
-                        "children": [
-                          { "type": "include", "partial": "mwd.v2.item.parts.weapon-standard-traits" },
-                          { "type": "include", "partial": "mwd.v2.item.parts.weapon-ammo-profiles" }
+                        "type": "tabs",
+                        "group": "weapon-load-config",
+                        "default": "traits",
+                        "classes": ["mwd-combat-sheet__detail-tabs"],
+                        "tabs": [
+                          {
+                            "id": "traits",
+                            "label": "Traits",
+                            "children": [
+                              { "type": "include", "partial": "mwd.v2.item.parts.weapon-standard-traits" }
+                            ]
+                          },
+                          {
+                            "id": "payloads",
+                            "label": "Payloads",
+                            "children": [
+                              { "type": "include", "partial": "mwd.v2.item.parts.weapon-ammo-profiles" }
+                            ]
+                          },
+                          {
+                            "id": "sources",
+                            "label": "Sources",
+                            "children": [
+                              { "type": "include", "partial": "mwd.v2.item.parts.weapon-consumption-sources" }
+                            ]
+                          }
                         ]
                       }
                     ]

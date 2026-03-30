@@ -26,6 +26,7 @@ import { StatusEffectsProvider } from "../modules/modifiers/providers/status-eff
 import { BaseRollModifiersProvider } from "../modules/modifiers/providers/base-modifiers.js";
 import { ConditionModifiersProvider } from "../modules/modifiers/providers/conditions.js";
 import { burnModifier } from "../modules/modifiers/providers/burn-modifier.js";
+import { SceneModifiersProvider } from "../modules/modifiers/providers/scene-modifiers.js";
 import { Modifiers } from "./modifiers/anarchy-modifiers.js";
 import { PersonalCombatTracker } from "./combat/personal-combat-tracker.js";
 import { registerMWDChatActions } from "./chat/chat-actions.js";
@@ -138,6 +139,7 @@ export class AnarchySystem {
     modifierProviders.register(new BaseRollModifiersProvider());
     modifierProviders.register(new ConditionModifiersProvider());
     modifierProviders.register(burnModifier);
+    modifierProviders.register(new SceneModifiersProvider());
 
     //register handlebars helpers early
     Handlebars.registerHelper("mwdClassList", (classes) => {

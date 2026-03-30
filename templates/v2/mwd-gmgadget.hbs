@@ -21,6 +21,13 @@ How it fits: Used by rendering code to produce UI fragments.
       data-tab="harm">
       Harm
     </button>
+    <button
+      type="button"
+      class="mwd-gmgadget__tab {{#if (eq currentTab 'scene')}}is-active{{/if}}"
+      data-action="switchTab"
+      data-tab="scene">
+      Scene
+    </button>
   </nav>
 
   <div class="mwd-gmgadget__panel">
@@ -199,6 +206,135 @@ How it fits: Used by rendering code to produce UI fragments.
             Apply Harm
           </button>
         </footer>
+      </section>
+    {{/if}}
+
+    {{#if (eq currentTab "scene")}}
+      <section class="mwd-gmgadget__section mwd-gmgadget__section--scene">
+        <header class="mwd-gmgadget__header">
+          <div><b>Scene Modifiers</b></div>
+          <div class="mwd-gmgadget__sub">Environmental and contextual roll modifiers for this scene</div>
+        </header>
+
+        {{#unless scene.hasScene}}
+          <div class="mwd-gmgadget__hint">No active scene. Load a scene to manage scene modifiers.</div>
+        {{else}}
+
+          {{!-- Active Modifiers List --}}
+          <div class="mwd-gmgadget__scene-list">
+            {{#if scene.activeModifiers.length}}
+              {{#each scene.activeModifiers as |mod|}}
+                <div class="mwd-gmgadget__scene-row {{#unless mod.enabled}}is-disabled{{/unless}}">
+                  <button
+                    type="button"
+                    class="mwd-gmgadget__scene-toggle"
+                    data-action="toggleSceneModifier"
+                    data-mod-id="{{mod.id}}"
+                    title="{{#if mod.enabled}}Disable{{else}}Enable{{/if}} modifier">
+                    {{#if mod.enabled}}●{{else}}○{{/if}}
+                  </button>
+                  <span class="mwd-gmgadget__scene-label">{{mod.label}}</span>
+                  <span class="mwd-gmgadget__scene-value {{#if mod.isPositive}}is-positive{{else}}is-negative{{/if}}">
+                    {{mod.signedValue}}
+                  </span>
+                  <span class="mwd-gmgadget__scene-filters">
+                    {{#if mod.attributeFilterLabel}}
+                      <span class="mwd-gmgadget__pill">{{mod.attributeFilterLabel}}</span>
+                    {{/if}}
+                    {{#if mod.intentFilterLabel}}
+                      <span class="mwd-gmgadget__pill">{{mod.intentFilterLabel}}</span>
+                    {{/if}}
+                    {{#if mod.source}}
+                      <span class="mwd-gmgadget__pill mwd-gmgadget__pill--source">
+                        {{#if (eq mod.source "preset")}}Preset{{else}}Custom{{/if}}
+                      </span>
+                    {{/if}}
+                  </span>
+                  <button
+                    type="button"
+                    class="mwd-gmgadget__scene-delete"
+                    data-action="removeSceneModifier"
+                    data-mod-id="{{mod.id}}"
+                    title="Remove modifier">✕</button>
+                </div>
+              {{/each}}
+            {{else}}
+              <div class="mwd-gmgadget__hint">No scene modifiers active.</div>
+            {{/if}}
+          </div>
+
+          {{!-- Add from Preset --}}
+          <div class="mwd-gmgadget__scene-add-block">
+            <div class="mwd-gmgadget__field-label">Add from Preset</div>
+            {{#if scene.templates.length}}
+              <div class="mwd-gmgadget__scene-preset-row">
+                <select name="scene-preset-index" class="mwd-gmgadget__scene-preset-select">
+                  {{#each scene.templates as |t|}}
+                    <option value="{{t.index}}">
+                      {{t.label}} ({{t.signedValue}}{{#if t.attributeFilter}} · {{t.attributeFilter}}{{/if}}{{#if t.intentFilter}} · {{t.intentFilter}}{{/if}})
+                    </option>
+                  {{/each}}
+                </select>
+                <button
+                  type="button"
+                  class="mwd-gmgadget__mini-btn"
+                  data-action="addSceneModifierFromPreset">
+                  Add
+                </button>
+              </div>
+            {{else}}
+              <div class="mwd-gmgadget__hint">No templates configured. Add some in Settings → Scene Modifier Templates.</div>
+            {{/if}}
+          </div>
+
+          {{!-- Add Custom --}}
+          <div class="mwd-gmgadget__scene-add-block">
+            <div class="mwd-gmgadget__field-label">Add Custom</div>
+            <div class="mwd-gmgadget__grid">
+              <label class="mwd-gmgadget__field">
+                <span class="mwd-gmgadget__field-label">Label</span>
+                <input type="text" name="scene-adhoc-label" placeholder="Darkness, Rain..." />
+              </label>
+              <label class="mwd-gmgadget__field">
+                <span class="mwd-gmgadget__field-label">Value</span>
+                <input type="number" name="scene-adhoc-value" value="0" step="1" />
+              </label>
+              <label class="mwd-gmgadget__field">
+                <span class="mwd-gmgadget__field-label">Attribute</span>
+                <select name="scene-adhoc-attributeFilter">
+                  {{#each scene.attributeFilterOptions as |opt|}}
+                    <option value="{{opt.value}}">{{opt.label}}</option>
+                  {{/each}}
+                </select>
+              </label>
+              <label class="mwd-gmgadget__field">
+                <span class="mwd-gmgadget__field-label">Intent</span>
+                <select name="scene-adhoc-intentFilter">
+                  {{#each scene.intentFilterOptions as |opt|}}
+                    <option value="{{opt.value}}">{{opt.label}}</option>
+                  {{/each}}
+                </select>
+              </label>
+            </div>
+            <button
+              type="button"
+              class="mwd-gmgadget__mini-btn"
+              data-action="addSceneModifierAdhoc">
+              Add Custom
+            </button>
+          </div>
+
+          <footer class="mwd-gmgadget__footer">
+            <button
+              type="button"
+              class="mwd-gmgadget__btn mwd-gmgadget__btn--danger"
+              data-action="clearSceneModifiers"
+              {{#unless scene.activeModifiers.length}}disabled{{/unless}}>
+              Clear All Modifiers
+            </button>
+          </footer>
+
+        {{/unless}}
       </section>
     {{/if}}
   </div>

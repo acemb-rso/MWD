@@ -23,18 +23,20 @@ How it fits: Used by the CSB-driven personal weapon details layout.
       <span class="mwd-item-hero__label">Range</span>
       <span class="mwd-item-hero__value">{{weaponProfile.range.max}}</span>
     </div>
-    <div class="mwd-item-hero__stat">
-      <span class="mwd-item-hero__label">Ammo</span>
-      <span class="mwd-item-hero__value">
-        {{#if weaponProfile.ammoState.isTracked}}
-          {{weaponProfile.ammoState.current}}/{{weaponProfile.ammoState.max}}
-        {{else if weaponProfile.ammoLabel}}
-          {{weaponProfile.ammoLabel}}
-        {{else}}
-          Untracked
-        {{/if}}
-      </span>
-    </div>
+    {{#unless (eq system.category "melee")}}
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Payload</span>
+        <span class="mwd-item-hero__value">
+          {{#if weaponProfile.sourceState.isTracked}}
+            {{weaponProfile.payloadLabel}} {{weaponProfile.sourceState.current}}/{{weaponProfile.sourceState.max}}
+          {{else if weaponProfile.payloadLabel}}
+            {{weaponProfile.payloadLabel}}
+          {{else}}
+            Unloaded
+          {{/if}}
+        </span>
+      </div>
+    {{/unless}}
     <div class="mwd-item-hero__stat">
       <span class="mwd-item-hero__label">Skill</span>
       <span class="mwd-item-hero__value">{{weaponProfile.skillDef.label}}</span>

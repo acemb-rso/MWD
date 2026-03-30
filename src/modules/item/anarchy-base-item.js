@@ -20,17 +20,22 @@ import {
   getArmorTraitLabels,
   getPersonalDamageTypeLabel,
   getWeaponTraitLabels,
+  migrateLegacyAmmoToPayloadModel,
   mergeArmorMitigationByType,
+  normalizeConsumptionSource,
   normalizeArmorMitigationByType,
   normalizeArmorStandardTraits,
   normalizeArmorTags,
+  normalizePayloadProfile,
   normalizePersonalDamageType,
-  normalizeWeaponAmmo,
+  normalizeSelectedPayloadId,
   normalizeWeaponStandardTraits,
+  normalizeWeaponConsumptionSources,
+  normalizeWeaponPayloads,
   normalizeWeaponTraits,
   resolveArmorTraitEffects,
   resolveEffectiveWeaponProfile,
-  resolveWeaponAmmo,
+  resolveWeaponPayloadState,
 } from "../mwd/personal-damage.js";
 
 const LEGACY_ITEM_TYPE_MAP = Object.freeze({
@@ -193,9 +198,28 @@ export class MWDItem extends Item {
     attackRatingBand: { close: 0, near: 0, far: 0, extreme: 0 },
     range: { max: "close", close: 0, near: 0, far: 0, extreme: 0 },
     standardTraits: [],
-    ammo: { current: 0, max: 0, consumePerAttack: 1, activeTypeId: "", types: [] },
-    ammoState: { current: 0, max: 0, consumePerAttack: 1, activeTypeId: "", types: [], isTracked: false, ammoLabel: "" },
-    ammoLabel: "",
+    payloads: [],
+    selectedPayloadId: "",
+    consumptionSources: [{
+      id: "untracked",
+      label: "Untracked",
+      kind: "untracked",
+      tracking: { current: 0, max: 0 },
+      link: { actorPath: "", itemId: "", itemPath: "" },
+    }],
+    payloadState: {
+      payloads: [],
+      activePayloadId: "",
+      payloadLabel: "",
+      sourceId: "",
+      sourceLabel: "",
+      sourceKind: "",
+      current: 0,
+      max: 0,
+      consumePerUse: 1,
+      isTracked: false,
+    },
+    payloadLabel: "",
     traits: [],
     notes: ""
   });
@@ -313,12 +337,21 @@ export class MWDItem extends Item {
 
     if (nextSystem && this.isPersonalWeapon()) {
       changed.system ??= {};
+      const legacyAmmo = nextSystem.ammo;
       changed.system.standardTraits = normalizeWeaponStandardTraits(nextSystem.standardTraits);
-      changed.system.ammo = normalizeWeaponAmmo(nextSystem.ammo);
+      changed.system.payloads = normalizeWeaponPayloads(nextSystem.payloads, { legacyAmmo, category: nextSystem.category });
+      changed.system.consumptionSources = normalizeWeaponConsumptionSources(nextSystem.consumptionSources, { legacyAmmo });
+      changed.system.selectedPayloadId = normalizeSelectedPayloadId(
+        nextSystem.selectedPayloadId,
+        changed.system.payloads,
+        { legacyAmmo, category: nextSystem.category }
+      );
       changed.system.traits = normalizeTraits(nextSystem.traits);
       changed.system.attackRatingBand = normalizeAttackRatingBand(nextSystem.attackRatingBand);
       changed.system.range = normalizeRangeData(nextSystem.range);
       changed.system.damageType = normalizePersonalDamageType(nextSystem.damageType);
+      changed.system["-=ammo"] = null;
+      delete changed.system.ammo;
     }
 
     if (nextSystem && this.isArmor()) {
@@ -362,6 +395,7 @@ export class MWDItem extends Item {
 
   _preparePersonalWeaponBaseData() {
     const system = this.system ?? {};
+    const legacyAmmo = system.ammo;
     system.equipped = Boolean(system.equipped);
     system.isPrimary = Boolean(system.isPrimary);
     system.category = String(system.category ?? system.weaponCategory ?? "ranged").trim() || "ranged";
@@ -372,7 +406,10 @@ export class MWDItem extends Item {
     system.attackRatingBand = normalizeAttackRatingBand(system.attackRatingBand);
     system.range = normalizeRangeData(system.range);
     system.standardTraits = normalizeWeaponStandardTraits(system.standardTraits);
-    system.ammo = normalizeWeaponAmmo(system.ammo);
+    system.payloads = normalizeWeaponPayloads(system.payloads, { legacyAmmo, category: system.category });
+    system.consumptionSources = normalizeWeaponConsumptionSources(system.consumptionSources, { legacyAmmo });
+    system.selectedPayloadId = normalizeSelectedPayloadId(system.selectedPayloadId, system.payloads, { legacyAmmo, category: system.category });
+    delete system.ammo;
     system.traits = normalizeTraits(system.traits);
     system.notes = String(system.notes ?? "").trim();
   }
@@ -681,146 +718,263 @@ export class MWDItem extends Item {
     }));
   }
 
-  async _mutateAmmo(mutation = ammo => ammo) {
-    const next = mutation(foundry.utils.deepClone(normalizeWeaponAmmo(this.system?.ammo)));
-    await this.update({ "system.ammo": normalizeWeaponAmmo(next) });
-  }
-
-  async updateAmmoField(field, value) {
-    await this._mutateAmmo(ammo => {
-      if (field === "activeTypeId") {
-        ammo.activeTypeId = String(value ?? "").trim();
-      } else {
-        foundry.utils.setProperty(ammo, field, value);
-      }
-      return ammo;
+  async _mutatePayloads(mutation = payloads => payloads) {
+    const next = mutation(foundry.utils.deepClone(
+      normalizeWeaponPayloads(this.system?.payloads, {
+        legacyAmmo: this.system?.ammo,
+        category: this.system?.category ?? this.system?.weaponCategory,
+      })
+    )).map(normalizePayloadProfile);
+    const selectedPayloadId = normalizeSelectedPayloadId(this.system?.selectedPayloadId, next, {
+      category: this.system?.category ?? this.system?.weaponCategory,
+    });
+    await this.update({
+      "system.payloads": next,
+      "system.selectedPayloadId": selectedPayloadId,
+      "system.-=ammo": null,
     });
   }
 
-  async createAmmoType(entry = {}) {
-    await this._mutateAmmo(ammo => {
-      ammo.types.push({
+  async _mutateConsumptionSources(mutation = sources => sources) {
+    const next = mutation(foundry.utils.deepClone(
+      normalizeWeaponConsumptionSources(this.system?.consumptionSources, { legacyAmmo: this.system?.ammo })
+    )).map(normalizeConsumptionSource);
+    await this.update({
+      "system.consumptionSources": next,
+      "system.-=ammo": null,
+    });
+  }
+
+  async updatePayloadField(payloadId, field, value) {
+    if (String(payloadId ?? "").trim() === "unloaded") return;
+    await this._mutatePayloads(payloads => payloads.map(payload => {
+      if (payload.id !== payloadId) return payload;
+      foundry.utils.setProperty(payload, field, value);
+      return normalizePayloadProfile(payload);
+    }));
+  }
+
+  async createPayload(entry = {}) {
+    await this._mutatePayloads(payloads => payloads.concat([normalizePayloadProfile({
+      id: entry.id ?? foundry.utils.randomID(),
+      label: entry.label ?? entry.name ?? "Payload",
+      family: entry.family ?? "munition",
+      compatibleWith: entry.compatibleWith ?? [],
+      modifies: entry.modifies ?? {},
+      resolution: entry.resolution ?? { resolverKey: "standard" },
+      consumption: entry.consumption ?? { amount: 1, sourceId: "" },
+    })]));
+  }
+
+  async deletePayload(payloadId) {
+    if (String(payloadId ?? "").trim() === "unloaded") return;
+    const category = this.system?.category ?? this.system?.weaponCategory;
+    const nextPayloads = normalizeWeaponPayloads(this.system?.payloads, {
+      legacyAmmo: this.system?.ammo,
+      category,
+    })
+      .filter(payload => payload.id !== payloadId);
+    const fallback = nextPayloads[0]?.id ?? "unloaded";
+    await this.update({
+      "system.payloads": nextPayloads.length
+        ? nextPayloads
+        : normalizeWeaponPayloads([], { category }),
+      "system.selectedPayloadId": nextPayloads.some(payload => payload.id === this.system?.selectedPayloadId)
+        ? this.system.selectedPayloadId
+        : (nextPayloads.length ? fallback : ""),
+      "system.-=ammo": null,
+    });
+  }
+
+  async createPayloadStandardTrait(payloadId, entry = {}) {
+    if (String(payloadId ?? "").trim() === "unloaded") return;
+    await this._mutatePayloads(payloads => payloads.map(payload => {
+      if (payload.id !== payloadId) return payload;
+      payload.modifies ??= {};
+      payload.modifies.standardTraits = normalizeWeaponStandardTraits(payload.modifies.standardTraits).concat([{
         id: entry.id ?? foundry.utils.randomID(),
-        name: entry.name ?? "Ammo",
-        damageType: entry.damageType ?? "",
-        apMod: Number(entry.apMod ?? 0) || 0,
-        attackRatingBandMod: entry.attackRatingBandMod ?? {},
-        standardTraits: entry.standardTraits ?? [],
-        traits: entry.traits ?? [],
-      });
-      ammo.activeTypeId = ammo.activeTypeId || ammo.types[ammo.types.length - 1]?.id || "";
-      return ammo;
+        key: entry.key ?? "armorPiercing",
+        rating: Math.max(0, Number(entry.rating ?? 0) || 0),
+      }]);
+      return normalizePayloadProfile(payload);
+    }));
+  }
+
+  async deletePayloadStandardTrait(payloadId, entryId) {
+    if (String(payloadId ?? "").trim() === "unloaded") return;
+    await this._mutatePayloads(payloads => payloads.map(payload => {
+      if (payload.id !== payloadId) return payload;
+      payload.modifies ??= {};
+      payload.modifies.standardTraits = normalizeWeaponStandardTraits(payload.modifies.standardTraits)
+        .filter(entry => entry.id !== entryId);
+      return normalizePayloadProfile(payload);
+    }));
+  }
+
+  async updatePayloadStandardTrait(payloadId, entryId, field, value) {
+    if (String(payloadId ?? "").trim() === "unloaded") return;
+    await this._mutatePayloads(payloads => payloads.map(payload => {
+      if (payload.id !== payloadId) return payload;
+      payload.modifies ??= {};
+      payload.modifies.standardTraits = normalizeWeaponStandardTraits(payload.modifies.standardTraits)
+        .map(entry => {
+          if (entry.id !== entryId) return entry;
+          if (field === "key") entry.key = value;
+          if (field === "rating") entry.rating = Math.max(0, Number(value ?? 0) || 0);
+          return entry;
+        });
+      return normalizePayloadProfile(payload);
+    }));
+  }
+
+  async createConsumptionSource(entry = {}) {
+    await this._mutateConsumptionSources(sources => sources.concat([normalizeConsumptionSource({
+      id: entry.id ?? foundry.utils.randomID(),
+      label: entry.label ?? "Source",
+      kind: entry.kind ?? "internal",
+      tracking: entry.tracking ?? { current: 0, max: 0 },
+      link: entry.link ?? {},
+    })]));
+  }
+
+  async deleteConsumptionSource(sourceId) {
+    await this._mutateConsumptionSources(sources => sources.filter(source => source.id !== sourceId));
+    await this._mutatePayloads(payloads => payloads.map(payload => {
+      if (payload?.consumption?.sourceId !== sourceId) return payload;
+      payload.consumption.sourceId = "";
+      return normalizePayloadProfile(payload);
+    }));
+  }
+
+  async updateConsumptionSourceField(sourceId, field, value) {
+    await this._mutateConsumptionSources(sources => sources.map(source => {
+      if (source.id !== sourceId) return source;
+      foundry.utils.setProperty(source, field, value);
+      return normalizeConsumptionSource(source);
+    }));
+  }
+
+  getPayloadState({ payloadId = "", ammoTypeId = "" } = {}) {
+    return resolveWeaponPayloadState({
+      payloads: this.system?.payloads,
+      selectedPayloadId: this.system?.selectedPayloadId,
+      consumptionSources: this.system?.consumptionSources,
+      actor: this.actor ?? null,
+      payloadId: payloadId || ammoTypeId,
+      category: this.system?.category ?? this.system?.weaponCategory,
     });
   }
 
-  async deleteAmmoType(ammoTypeId) {
-    await this._mutateAmmo(ammo => {
-      ammo.types = ammo.types.filter(type => type.id !== ammoTypeId);
-      if (ammo.activeTypeId === ammoTypeId) {
-        ammo.activeTypeId = ammo.types[0]?.id ?? "";
+  async setActivePayload(payloadId) {
+    const normalizedId = normalizeSelectedPayloadId(
+      payloadId,
+      normalizeWeaponPayloads(this.system?.payloads, {
+        legacyAmmo: this.system?.ammo,
+        category: this.system?.category ?? this.system?.weaponCategory,
+      }),
+      {
+        category: this.system?.category ?? this.system?.weaponCategory,
       }
-      return ammo;
+    );
+    await this.update({
+      "system.selectedPayloadId": normalizedId,
+      "system.-=ammo": null,
     });
   }
 
-  async updateAmmoType(ammoTypeId, field, value) {
-    await this._mutateAmmo(ammo => {
-      ammo.types = ammo.types.map(type => {
-        if (type.id !== ammoTypeId) return type;
-        if (field === "traits") {
-          type.traits = value;
-        } else if (field === "damageType") {
-          type.damageType = value;
-        } else if (field === "apMod") {
-          type.apMod = Number(value ?? 0) || 0;
-        } else if (field.startsWith("attackRatingBandMod.")) {
-          const band = field.split(".")[1];
-          type.attackRatingBandMod ??= {};
-          type.attackRatingBandMod[band] = Number(value ?? 0) || 0;
-        } else {
-          type[field] = value;
-        }
-        return type;
-      });
-      return ammo;
-    });
+  canConsumePayload({ payloadId = "", ammoTypeId = "" } = {}) {
+    const payloadState = this.getPayloadState({ payloadId: payloadId || ammoTypeId });
+    if (!payloadState?.sourceState?.isTracked) return true;
+    return Number(payloadState.sourceState.current ?? 0) >= Number(payloadState.sourceState.consumePerUse ?? 1);
   }
 
-  async createAmmoTypeStandardTrait(ammoTypeId, entry = {}) {
-    await this._mutateAmmo(ammo => {
-      ammo.types = ammo.types.map(type => {
-        if (type.id !== ammoTypeId) return type;
-        type.standardTraits = normalizeWeaponStandardTraits(type.standardTraits).concat([{
-          id: entry.id ?? foundry.utils.randomID(),
-          key: entry.key ?? "armorPiercing",
-          rating: Math.max(0, Number(entry.rating ?? 0) || 0),
-        }]);
-        return type;
-      });
-      return ammo;
-    });
-  }
+  async consumePayload({ payloadId = "", ammoTypeId = "" } = {}) {
+    const payloadState = this.getPayloadState({ payloadId: payloadId || ammoTypeId });
+    if (!payloadState?.sourceState?.isTracked) return true;
 
-  async deleteAmmoTypeStandardTrait(ammoTypeId, entryId) {
-    await this._mutateAmmo(ammo => {
-      ammo.types = ammo.types.map(type => {
-        if (type.id !== ammoTypeId) return type;
-        type.standardTraits = normalizeWeaponStandardTraits(type.standardTraits)
-          .filter(entry => entry.id !== entryId);
-        return type;
-      });
-      return ammo;
-    });
-  }
+    const consumePerUse = Math.max(1, Number(payloadState.sourceState.consumePerUse ?? 1) || 1);
+    const current = Math.max(0, Number(payloadState.sourceState.current ?? 0) || 0);
+    if (current < consumePerUse) return false;
 
-  async updateAmmoTypeStandardTrait(ammoTypeId, entryId, field, value) {
-    await this._mutateAmmo(ammo => {
-      ammo.types = ammo.types.map(type => {
-        if (type.id !== ammoTypeId) return type;
-        type.standardTraits = normalizeWeaponStandardTraits(type.standardTraits)
-          .map(entry => {
-            if (entry.id !== entryId) return entry;
-            if (field === "key") entry.key = value;
-            if (field === "rating") entry.rating = Math.max(0, Number(value ?? 0) || 0);
-            return entry;
-          });
-        return type;
+    if (payloadState.sourceState.kind === "internal") {
+      await this._mutateConsumptionSources(sources => sources.map(source => {
+        if (source.id !== payloadState.source?.id) return source;
+        source.tracking ??= {};
+        source.tracking.current = Math.max(0, current - consumePerUse);
+        return normalizeConsumptionSource(source);
+      }));
+      return true;
+    }
+
+    if (payloadState.sourceState.kind === "actorResource" && this.actor && payloadState.sourceState.currentPath) {
+      await this.actor.update({
+        [payloadState.sourceState.currentPath]: Math.max(0, current - consumePerUse),
       });
-      return ammo;
-    });
+      return true;
+    }
+
+    if (payloadState.sourceState.kind === "itemRef" && payloadState.sourceState.sourceItem && payloadState.sourceState.currentPath) {
+      await payloadState.sourceState.sourceItem.update({
+        [payloadState.sourceState.currentPath]: Math.max(0, current - consumePerUse),
+      });
+      return true;
+    }
+
+    return false;
   }
 
   getAmmoState({ ammoTypeId = "" } = {}) {
-    return resolveWeaponAmmo(this.system?.ammo, ammoTypeId);
+    return this.getPayloadState({ payloadId: ammoTypeId });
   }
 
   async setActiveAmmoType(ammoTypeId) {
-    await this.updateAmmoField("activeTypeId", ammoTypeId);
+    await this.setActivePayload(ammoTypeId);
   }
 
   canConsumeAmmo({ ammoTypeId = "" } = {}) {
-    const ammoState = this.getAmmoState({ ammoTypeId });
-    if (!ammoState?.isTracked) return true;
-    return Number(ammoState?.ammo?.current ?? 0) >= Number(ammoState?.ammo?.consumePerAttack ?? 1);
+    return this.canConsumePayload({ payloadId: ammoTypeId });
   }
 
   async consumeAmmo({ ammoTypeId = "" } = {}) {
-    const ammoState = this.getAmmoState({ ammoTypeId });
-    if (!ammoState?.isTracked) return true;
-
-    const consumePerAttack = Math.max(1, Number(ammoState?.ammo?.consumePerAttack ?? 1) || 1);
-    const current = Math.max(0, Number(ammoState?.ammo?.current ?? 0) || 0);
-    if (current < consumePerAttack) return false;
-
-    await this._mutateAmmo(ammo => {
-      ammo.activeTypeId = ammoState.activeTypeId || ammo.activeTypeId || "";
-      ammo.current = Math.max(0, current - consumePerAttack);
-      return ammo;
-    });
-    return true;
+    return this.consumePayload({ payloadId: ammoTypeId });
   }
 
-  getCombatProfile({ ammoTypeId = "" } = {}) {
+  async createAmmoType(entry = {}) {
+    await this.createPayload(entry);
+  }
+
+  async deleteAmmoType(ammoTypeId) {
+    await this.deletePayload(ammoTypeId);
+  }
+
+  async updateAmmoType(ammoTypeId, field, value) {
+    const mappedField = field === "name"
+      ? "label"
+      : field === "damageType"
+        ? "modifies.damageType"
+        : field === "apMod"
+          ? "modifies.ap"
+          : field.startsWith("attackRatingBandMod.")
+            ? `modifies.attackRatingBand.${field.split(".")[1]}`
+            : field === "traits"
+              ? "modifies.traits"
+              : field;
+    await this.updatePayloadField(ammoTypeId, mappedField, value);
+  }
+
+  async createAmmoTypeStandardTrait(ammoTypeId, entry = {}) {
+    await this.createPayloadStandardTrait(ammoTypeId, entry);
+  }
+
+  async deleteAmmoTypeStandardTrait(ammoTypeId, entryId) {
+    await this.deletePayloadStandardTrait(ammoTypeId, entryId);
+  }
+
+  async updateAmmoTypeStandardTrait(ammoTypeId, entryId, field, value) {
+    await this.updatePayloadStandardTrait(ammoTypeId, entryId, field, value);
+  }
+
+  getCombatProfile({ payloadId = "", ammoTypeId = "" } = {}) {
     if (!this.isPersonalWeapon()) return null;
 
     const system = this.system ?? {};
@@ -835,8 +989,12 @@ export class MWDItem extends Item {
       attackRatingBand: normalizeAttackRatingBand(system.attackRatingBand),
       traits: normalizeTraits(system.traits),
       standardTraits: normalizeWeaponStandardTraits(system.standardTraits),
-      ammo: normalizeWeaponAmmo(system.ammo),
-      ammoTypeId,
+      payloads: normalizeWeaponPayloads(system.payloads, { legacyAmmo: system.ammo, category }),
+      selectedPayloadId: normalizeSelectedPayloadId(system.selectedPayloadId, system.payloads, { legacyAmmo: system.ammo, category }),
+      consumptionSources: normalizeWeaponConsumptionSources(system.consumptionSources, { legacyAmmo: system.ammo }),
+      payloadId: payloadId || ammoTypeId,
+      actor: this.actor ?? null,
+      category,
     });
 
     return {
@@ -861,8 +1019,14 @@ export class MWDItem extends Item {
       traits: effectiveProfile.traits,
       standardTraits: effectiveProfile.standardTraits,
       effects: effectiveProfile.effects,
-      ammoLabel: effectiveProfile.ammoLabel,
-      ammoType: effectiveProfile.ammoType,
+      payloadLabel: effectiveProfile.payloadLabel,
+      payload: effectiveProfile.payload,
+      payloadState: effectiveProfile.payloadState,
+      source: effectiveProfile.source,
+      sourceState: effectiveProfile.sourceState,
+      resolverKey: effectiveProfile.resolverKey,
+      ammoLabel: effectiveProfile.payloadLabel,
+      ammoType: effectiveProfile.payload,
       ammoState: effectiveProfile.ammoState,
       notes: String(system.notes ?? system.description ?? "").trim()
     };

@@ -7,6 +7,7 @@ import { ANARCHY } from "./config.js";
 import { SYSTEM_NAME } from "./constants.js";
 import { registerGMDnPresetSettingsEditor } from "./settings/gm-dn-preset-settings.js";
 import { registerSkillSpecializationSettingsEditor } from "./settings/skill-specialization-settings.js";
+import { registerSceneModifierTemplateSettingsEditor } from "./settings/scene-modifier-template-settings.js";
 
 
 export class SystemSettings {
@@ -14,6 +15,7 @@ export class SystemSettings {
   static register() {
     registerGMDnPresetSettingsEditor();
     registerSkillSpecializationSettingsEditor();
+    registerSceneModifierTemplateSettingsEditor();
 
     game.settings.register(SYSTEM_NAME, "useDestinyMechanics", {
       name: ANARCHY.settings.useDestinyMechanics.name,

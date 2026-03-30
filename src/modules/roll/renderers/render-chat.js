@@ -52,6 +52,7 @@ function buildBaseCardVM(resolved) {
 
   const vm = {
     header: { left: r?.title ?? "Roll", right: r?.subtitle ?? "" },
+    formula: String(r?.formula ?? "").trim(),
     intent: r?.intent ?? "unknown",
     domains: Array.isArray(r?.domains) ? r.domains : [],
 
@@ -81,14 +82,14 @@ function buildBaseCardVM(resolved) {
   if (attack?.weapon?.name) {
     const rangeBand = String(attack?.rangeBand ?? "").trim();
     const damageType = String(attack?.weapon?.damageTypeLabel ?? attack?.weapon?.damageType ?? "").trim();
-    const ammoLabel = String(attack?.ammoLabel ?? attack?.weapon?.ammoLabel ?? "").trim();
+    const payloadLabel = String(attack?.payload?.label ?? attack?.weapon?.payloadLabel ?? "").trim();
     vm.metaRows.push({
-      text: `Weapon: ${attack.weapon.name}${rangeBand ? ` • Range: ${rangeBand}` : ""}${damageType ? ` • Type: ${damageType}` : ""}${ammoLabel ? ` • Ammo: ${ammoLabel}` : ""}`,
+      text: `Weapon: ${attack.weapon.name}${rangeBand ? ` • Range: ${rangeBand}` : ""}${damageType ? ` • Type: ${damageType}` : ""}${payloadLabel ? ` • Payload: ${payloadLabel}` : ""}`,
       title: ""
     });
-    if (attack?.ammo?.isTracked) {
+    if (attack?.sourceState?.isTracked) {
       vm.footerRows.push({
-        text: `Ammo: ${Number(attack.ammo.current ?? 0)}/${Number(attack.ammo.max ?? 0)}`,
+        text: `Source: ${Number(attack.sourceState.current ?? 0)}/${Number(attack.sourceState.max ?? 0)}`,
         title: ""
       });
     }

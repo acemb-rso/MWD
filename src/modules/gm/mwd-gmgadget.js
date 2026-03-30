@@ -4,6 +4,13 @@
 
 
 import { HARM_DAMAGE_TYPE_OPTIONS, HarmEngine } from "../harm/harm-engine.js";
+import {
+  SCENE_MODIFIERS_FLAG,
+  SCENE_MODIFIER_ATTRIBUTE_OPTIONS,
+  SCENE_MODIFIER_INTENT_OPTIONS,
+  normalizeActiveModifier
+} from "../modifiers/providers/scene-modifiers.js";
+import { SETTING_SCENE_MODIFIER_TEMPLATES } from "../settings/scene-modifier-template-settings.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -197,7 +204,12 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
       toggleAnnounce: MWDGMGadget.prototype._onToggleAnnounce,
       harmInputChange: MWDGMGadget.prototype._onHarmInputChange,
       refreshHarmTarget: MWDGMGadget.prototype._onRefreshHarmTarget,
-      applyHarm: MWDGMGadget.prototype._onApplyHarm
+      applyHarm: MWDGMGadget.prototype._onApplyHarm,
+      addSceneModifierFromPreset: MWDGMGadget.prototype._onAddSceneModifierFromPreset,
+      addSceneModifierAdhoc: MWDGMGadget.prototype._onAddSceneModifierAdhoc,
+      toggleSceneModifier: MWDGMGadget.prototype._onToggleSceneModifier,
+      removeSceneModifier: MWDGMGadget.prototype._onRemoveSceneModifier,
+      clearSceneModifiers: MWDGMGadget.prototype._onClearSceneModifiers
     }
   };
 
@@ -243,12 +255,26 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
       this.harmState.statusId = harmState.statusId;
     }
 
+    const sceneTemplates = normalizeSceneModifierTemplates(
+      game.settings.get(this.systemId, SETTING_SCENE_MODIFIER_TEMPLATES)
+    );
+    const activeSceneModifiers = normalizeActiveSceneModifiers(
+      canvas?.scene?.getFlag("mwd", SCENE_MODIFIERS_FLAG)
+    );
+
     return foundry.utils.mergeObject(context, {
       presets,
       currentDn,
       currentTab: this.activeTab,
       announce,
       isGM: game.user?.isGM ?? false,
+      scene: {
+        hasScene: !!canvas?.scene,
+        templates: sceneTemplates,
+        activeModifiers: activeSceneModifiers,
+        attributeFilterOptions: SCENE_MODIFIER_ATTRIBUTE_OPTIONS,
+        intentFilterOptions: SCENE_MODIFIER_INTENT_OPTIONS
+      },
       harm: {
         state: harmState,
         actorOptions,
@@ -446,6 +472,156 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
 
     return null;
   }
+
+  // ---- Scene modifier actions ----
+
+  async _onAddSceneModifierFromPreset(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!game.user?.isGM) return;
+
+    const root = target?.closest?.(".mwd-gmgadget__root") ?? this._getRootElement();
+    const selectEl = root instanceof HTMLElement
+      ? root.querySelector('select[name="scene-preset-index"]')
+      : null;
+    const index = selectEl instanceof HTMLSelectElement ? Number(selectEl.value) : NaN;
+
+    const templates = normalizeSceneModifierTemplates(
+      game.settings.get(this.systemId, SETTING_SCENE_MODIFIER_TEMPLATES)
+    );
+    const template = Number.isFinite(index) ? templates[index] : null;
+    if (!template) return;
+
+    await this._mutateSceneModifiers(mods => [
+      ...mods,
+      {
+        id: foundry.utils.randomID(),
+        label: template.label,
+        value: template.value,
+        enabled: true,
+        attributeFilter: template.attributeFilter || null,
+        intentFilter: template.intentFilter || null,
+        source: "preset"
+      }
+    ]);
+  }
+
+  async _onAddSceneModifierAdhoc(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!game.user?.isGM) return;
+
+    const entry = this._captureAdhocFormFromDom(target);
+    if (!entry) {
+      ui.notifications?.warn("Label and a numeric value are required.");
+      return;
+    }
+
+    await this._mutateSceneModifiers(mods => [...mods, entry]);
+  }
+
+  async _onToggleSceneModifier(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!game.user?.isGM) return;
+
+    const id = String(target?.dataset?.modId ?? "").trim();
+    if (!id) return;
+
+    await this._mutateSceneModifiers(mods =>
+      mods.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m)
+    );
+  }
+
+  async _onRemoveSceneModifier(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!game.user?.isGM) return;
+
+    const id = String(target?.dataset?.modId ?? "").trim();
+    if (!id) return;
+
+    await this._mutateSceneModifiers(mods => mods.filter(m => m.id !== id));
+  }
+
+  async _onClearSceneModifiers(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!game.user?.isGM) return;
+    await this._mutateSceneModifiers(() => []);
+  }
+
+  async _mutateSceneModifiers(mutatorFn) {
+    const scene = canvas?.scene;
+    if (!scene) return;
+
+    const current = normalizeActiveSceneModifiers(scene.getFlag("mwd", SCENE_MODIFIERS_FLAG));
+    const next = await mutatorFn(current);
+    await scene.setFlag("mwd", SCENE_MODIFIERS_FLAG, next);
+    return this.render({ parts: ["body"] });
+  }
+
+  _captureAdhocFormFromDom(target) {
+    const root = target?.closest?.(".mwd-gmgadget__root") ?? this._getRootElement();
+    if (!(root instanceof HTMLElement)) return null;
+
+    const readValue = selector => {
+      const el = root.querySelector(selector);
+      return el instanceof HTMLInputElement || el instanceof HTMLSelectElement ? el.value : "";
+    };
+
+    const label = readValue('[name="scene-adhoc-label"]').trim();
+    const rawValue = readValue('[name="scene-adhoc-value"]').trim();
+    const attributeFilter = readValue('[name="scene-adhoc-attributeFilter"]').trim() || null;
+    const intentFilter = readValue('[name="scene-adhoc-intentFilter"]').trim() || null;
+
+    if (!label) return null;
+    const value = Number(rawValue);
+    if (!Number.isFinite(value)) return null;
+
+    return {
+      id: foundry.utils.randomID(),
+      label,
+      value: Math.trunc(value),
+      enabled: true,
+      attributeFilter,
+      intentFilter,
+      source: "adhoc"
+    };
+  }
+}
+
+function normalizeSceneModifierTemplates(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(t => t?.label && Number.isFinite(Number(t?.value)))
+    .map((t, index) => {
+      const value = Math.trunc(Number(t.value));
+      return {
+        index,
+        label: String(t.label).trim(),
+        value,
+        signedValue: value >= 0 ? `+${value}` : String(value),
+        attributeFilter: String(t.attributeFilter ?? "").trim() || null,
+        intentFilter: String(t.intentFilter ?? "").trim() || null
+      };
+    });
+}
+
+function normalizeActiveSceneModifiers(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map(entry => {
+    const mod = normalizeActiveModifier(entry);
+    const attrLabel = SCENE_MODIFIER_ATTRIBUTE_OPTIONS.find(o => o.value === (mod.attributeFilter ?? ""))?.label ?? null;
+    const intentLabel = SCENE_MODIFIER_INTENT_OPTIONS.find(o => o.value === (mod.intentFilter ?? ""))?.label ?? null;
+    return {
+      ...mod,
+      attributeFilterLabel: mod.attributeFilter ? attrLabel : null,
+      intentFilterLabel: mod.intentFilter ? intentLabel : null,
+      signedValue: mod.value >= 0 ? `+${mod.value}` : String(mod.value),
+      isPositive: mod.value > 0
+    };
+  });
 }
 
 function normalizeNumber(value, fallback = 0) {

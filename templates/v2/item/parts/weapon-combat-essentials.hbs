@@ -35,7 +35,7 @@ How it fits: Used by the CSB-driven personal weapon details layout.
   </div>
 </div>
 
-<div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+<div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
   <div class="form-group mwd-weapon-compact__field">
     <label for="system.damage">{{MWD.item.personalWeapon.damageShort}}</label>
     <input class="type-numeric" type="number" name="system.damage" value="{{system.damage}}" data-dtype="Number" />
@@ -46,33 +46,19 @@ How it fits: Used by the CSB-driven personal weapon details layout.
     <input class="type-numeric" type="number" name="system.ap" value="{{system.ap}}" data-dtype="Number" />
   </div>
 
-  <div class="form-group mwd-weapon-compact__field">
-    <label for="system.ammo.current">Ammo Current</label>
-    <input class="type-numeric" type="number" name="system.ammo.current" value="{{system.ammo.current}}" data-dtype="Number" />
-  </div>
-
-  <div class="form-group mwd-weapon-compact__field">
-    <label for="system.ammo.max">Ammo Max</label>
-    <input class="type-numeric" type="number" name="system.ammo.max" value="{{system.ammo.max}}" data-dtype="Number" />
-  </div>
+  {{#unless (eq system.category "melee")}}
+    <div class="form-group mwd-weapon-compact__field">
+      <label for="system.selectedPayloadId">Selected Payload</label>
+      <select name="system.selectedPayloadId" data-dtype="String">
+        {{#each system.payloads as |payload|}}
+          <option value="{{payload.id}}" {{#if (eq payload.id ../system.selectedPayloadId)}}selected{{/if}}>{{payload.label}}</option>
+        {{/each}}
+      </select>
+    </div>
+  {{/unless}}
 </div>
 
-<div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
-  <div class="form-group mwd-weapon-compact__field">
-    <label for="system.ammo.consumePerAttack">Use / Attack</label>
-    <input class="type-numeric" type="number" name="system.ammo.consumePerAttack" value="{{system.ammo.consumePerAttack}}" data-dtype="Number" />
-  </div>
-
-  <div class="form-group mwd-weapon-compact__field">
-    <label for="system.ammo.activeTypeId">Ammo Loaded</label>
-    <select name="system.ammo.activeTypeId" data-dtype="String">
-      <option value="">None</option>
-      {{#each system.ammo.types as |ammoType|}}
-        <option value="{{ammoType.id}}" {{#if (eq ammoType.id ../system.ammo.activeTypeId)}}selected{{/if}}>{{ammoType.name}}</option>
-      {{/each}}
-    </select>
-  </div>
-
+<div class="mwd-weapon-compact__row">
   <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
     <label for="system.traits">Legacy Traits</label>
     <input type="text" name="system.traits" value="{{join system.traits ', '}}" data-dtype="String" />

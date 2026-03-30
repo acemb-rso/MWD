@@ -120,7 +120,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         setEdgePrePool: MWDRollDialog.prototype._onSetEdgePrePool,
         toggleCheckbox: MWDRollDialog.prototype._onToggleCheckbox,
         setDn: MWDRollDialog.prototype._onSetDn,
-        setAmmoType: MWDRollDialog.prototype._onSetAmmoType,
+        setPayload: MWDRollDialog.prototype._onSetPayload,
         setSpecialization: MWDRollDialog.prototype._onSetSpecialization
       }
     },
@@ -277,11 +277,12 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       const baseTotal = dice.attribute + dice.skill + dice.bonus + dice.specialization;
       totalPool = Math.max(0, baseTotal + modifiersTotal);
     }
-    const ammoTypes = Array.isArray(attack?.weapon?.ammoState?.types)
-      ? attack.weapon.ammoState.types
+    const payloads = Array.isArray(attack?.payloadState?.payloads)
+      ? attack.payloadState.payloads
       : [];
-    const selectedAmmoTypeId = String(st?.payload?.ammoTypeId ?? attack?.weapon?.ammoState?.activeTypeId ?? "").trim();
-    const selectedAmmoType = ammoTypes.find(type => type.id === selectedAmmoTypeId) ?? null;
+    const usesPayloads = String(attack?.weapon?.category ?? "").trim().toLowerCase() !== "melee" && payloads.length > 0;
+    const selectedPayloadId = String(st?.payload?.payloadId ?? attack?.payloadState?.activePayloadId ?? "").trim();
+    const selectedPayload = payloads.find(type => type.id === selectedPayloadId) ?? null;
 
 
     return {
@@ -289,6 +290,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         left: bc?.header?.left ?? "Roll",
         right: bc?.header?.right ?? (this.actor?.name ?? "")
       },
+      formula: String(bc?.formula ?? bc?.resolved?.formula ?? "").trim(),
 
       dice,
       modifiers: Array.isArray(bc.modifiers) ? bc.modifiers : [],
@@ -323,16 +325,18 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       attack: attack ? {
         weaponName: attack?.weapon?.name ?? "Weapon",
         rangeBand: attack?.rangeBand ?? "",
-        damageType: selectedAmmoType?.damageType || attack?.weapon?.damageTypeLabel || attack?.weapon?.damageType || "",
-        ammo: attack?.weapon?.ammoState ?? null,
-        ammoTypes: ammoTypes.map(type => ({
+        damageType: selectedPayload?.modifies?.damageType || attack?.weapon?.damageTypeLabel || attack?.weapon?.damageType || "",
+        usesPayloads,
+        source: attack?.sourceState ?? null,
+        payloads: payloads.map(type => ({
           id: type.id,
-          name: type.name,
-          damageType: type.damageType,
-          selected: type.id === selectedAmmoTypeId,
+          name: type.label,
+          damageType: type.modifies?.damageType,
+          selected: type.id === selectedPayloadId,
         })),
-        selectedAmmoTypeId,
-        selectedAmmoLabel: selectedAmmoType?.name ?? attack?.weapon?.ammoLabel ?? "",
+        selectedPayloadId,
+        selectedPayloadLabel: selectedPayload?.label ?? attack?.payload?.label ?? attack?.weapon?.payloadLabel ?? "",
+        selectedSourceLabel: attack?.sourceState?.label ?? "",
       } : null
     };
   }
@@ -478,9 +482,9 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     return this.render(false);
   }
 
-  async _onSetAmmoType(event, target) {
+  async _onSetPayload(event, target) {
     event?.preventDefault();
-    this._mwd.state.payload.ammoTypeId = String(target?.value ?? "").trim();
+    this._mwd.state.payload.payloadId = String(target?.value ?? "").trim();
     return this.render(false);
   }
 
@@ -501,9 +505,9 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const root = (this.element instanceof HTMLElement) ? this.element : this.element?.[0];
     if (!root) return;
 
-    root.querySelectorAll("[data-action='setAmmoType']").forEach(select => {
+    root.querySelectorAll("[data-action='setPayload']").forEach(select => {
       select.addEventListener("change", event => {
-        void this._onSetAmmoType(event, event.currentTarget);
+        void this._onSetPayload(event, event.currentTarget);
       });
     });
 
@@ -574,6 +578,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       baseContext: {
         intent: resolved?.intent ?? "skill",
         header,
+        formula: String(resolved?.formula ?? "").trim(),
         dice,
         modifiers,
         payload,

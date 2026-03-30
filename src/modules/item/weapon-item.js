@@ -17,7 +17,6 @@ import { Misc } from "../misc.js";
 import { formatString } from "../strings.js";
 import { getSkillDef } from "../mwd/skills.js";
 import {
-  deriveWeaponEffectsFromTraits,
   getPersonalDamageTypeLabel,
   normalizePersonalDamageType,
   normalizeWeaponTraits,
@@ -82,23 +81,7 @@ const WEAPON_AREA_PARAMETER = {
 export class WeaponItem extends MWDItem {
 
   static RANGE_ORDER = ['close', 'near', 'far', 'extreme'];
-  static DEFAULT_UNARMED = Object.freeze({
-    id: "unarmed",
-    name: "Unarmed",
-    category: "melee",
-    skill: "meleeCombat",
-    damage: 1,
-    ap: 0,
-    damageType: "concussive",
-    attackRatingBand: { close: 0, near: 0, far: 0, extreme: 0 },
-    range: { max: "close", close: 0, near: 0, far: 0, extreme: 0 },
-    standardTraits: [],
-    ammo: { current: 0, max: 0, consumePerAttack: 1, activeTypeId: "", types: [] },
-    ammoState: { current: 0, max: 0, consumePerAttack: 1, activeTypeId: "", types: [], isTracked: false, ammoLabel: "" },
-    ammoLabel: "",
-    traits: [],
-    notes: ""
-  });
+  static DEFAULT_UNARMED = MWDItem.DEFAULT_UNARMED;
 
   static init() {
     Hooks.once(ANARCHY_HOOKS.REGISTER_ROLL_PARAMETERS, register => {
@@ -194,7 +177,11 @@ export class WeaponItem extends MWDItem {
     };
   }
 
-  getCombatProfile() {
+  getCombatProfile(options = {}) {
+    if ((this.canonicalType ?? this.type) === TEMPLATE.itemType.personalWeapon) {
+      return super.getCombatProfile(options);
+    }
+
     const system = this.system ?? {};
     const canonicalType = this.canonicalType ?? this.type;
     const range = WeaponItem.normalizeRangeData(system.range);
@@ -204,7 +191,6 @@ export class WeaponItem extends MWDItem {
     const ap = Number(system.ap ?? system.armorPiercing ?? 0) || 0;
     const category = String(system.category ?? system.weaponCategory ?? "ranged").trim() || "ranged";
     const traits = WeaponItem.normalizeTraits(system.traits);
-    const effects = deriveWeaponEffectsFromTraits(traits);
 
     return {
       id: this.id ?? "weapon",
@@ -227,7 +213,7 @@ export class WeaponItem extends MWDItem {
       range,
       defaultRangeBand: this.getDefaultRangeBand(range),
       traits,
-      effects: canonicalType === TEMPLATE.itemType.personalWeapon ? effects : {},
+      effects: {},
       notes: String(system.notes ?? system.description ?? "").trim()
     };
   }

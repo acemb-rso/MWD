@@ -7,6 +7,7 @@
 import { resolveSkill } from "./resolve-skill.js";
 import { resolveEdge } from "./resolve-edge.js";
 import { resolveAttribute } from "./resolve-attribute.js";
+import { resolveCommon } from "./resolve-common.js";
 import { resolveAttack } from "./resolve-attack.js";
 import { resolveDefense } from "./resolve-defense.js";
 import { resolveResistance } from "./resolve-resistance.js";
@@ -18,6 +19,7 @@ const RESOLVERS = {
   skill: resolveSkill,
   edge: resolveEdge,
   attribute: resolveAttribute,
+  common: resolveCommon,
   attack: resolveAttack,
   defense: resolveDefense,
   resistance: resolveResistance,

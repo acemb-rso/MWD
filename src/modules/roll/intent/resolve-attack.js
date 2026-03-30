@@ -58,7 +58,7 @@ function getWeaponProfile(actor, payload) {
     throw new Error("Attack requires an equipped personal weapon.");
   }
 
-  return item.getCombatProfile?.({ ammoTypeId: payload?.ammoTypeId }) ?? null;
+  return item.getCombatProfile?.({ payloadId: payload?.payloadId }) ?? null;
 }
 
 export async function resolveAttack({ actor, payload } = {}) {
@@ -121,6 +121,11 @@ export async function resolveAttack({ actor, payload } = {}) {
     attack: {
       rangeBand,
       weapon,
+      payload: weapon?.payload ?? null,
+      payloadState: weapon?.payloadState ?? null,
+      source: weapon?.source ?? null,
+      sourceState: weapon?.sourceState ?? null,
+      resolverKey: weapon?.resolverKey ?? "standard",
       skill: {
         code: skillDef.code ?? weapon.skill,
         label: skillDef.label ?? weapon.skill,
@@ -132,8 +137,6 @@ export async function resolveAttack({ actor, payload } = {}) {
         } : null
       },
       targets,
-      ammo: weapon?.ammoState ?? null,
-      ammoLabel: weapon?.ammoLabel ?? "",
       totalAp
     },
     specialization: selectedSpecialization ? {
