@@ -42,7 +42,7 @@ export async function resolveCommon({ actor, payload } = {}) {
   return {
     intent: "common",
     rollType: "simple",
-    title: String(definition.label ?? payload?.label ?? id).trim() || id,
+    title: String(definition.label ?? id).trim() || id,
     subtitle: actor.name ?? "Actor",
     domains,
     tags,
@@ -66,7 +66,7 @@ export async function resolveCommon({ actor, payload } = {}) {
     })),
     data: {
       commonCheckId: id,
-      label: String(definition.label ?? payload?.label ?? id).trim() || id,
+      label: String(definition.label ?? id).trim() || id,
       formulaCodes,
       tags,
       attributes

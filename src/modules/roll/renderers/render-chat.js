@@ -5,6 +5,7 @@
 
 // modules/roll/renderers/render-chat.js
 import { enhanceSkill } from "./render-skill.js";
+import { enhanceAttack } from "./render-attack.js";
 import { enhanceNet } from "./render-net.js";
 import { enhanceOpposed } from "./render-opposed.js";
 import { enhanceExtended } from "./render-extended.js";
@@ -13,6 +14,7 @@ import { enhanceExtended } from "./render-extended.js";
 
 const ENHANCERS = {
   skill: enhanceSkill,
+  attack: enhanceAttack,
   net: enhanceNet,
   opposed: enhanceOpposed,
   extended: enhanceExtended,

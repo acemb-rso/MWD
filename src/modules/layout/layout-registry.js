@@ -64,6 +64,16 @@ export class LayoutRegistry {
       }));
     }
 
+    // Normalize accordion sections once
+    if (node.type === "accordion" && Array.isArray(node.sections)) {
+      node.sections = node.sections.map(section => ({
+        ...section,
+        children: (Array.isArray(section.children) ? section.children : []).map(walk)
+      }));
+    } else if (node.type === "accordion") {
+      node.sections = [];
+    }
+
     return node;
   };
 
@@ -81,6 +91,7 @@ export class LayoutRegistry {
       case "panel": return "mwd.v2.ui.nodes.panel";
       case "include": return "mwd.v2.ui.nodes.include";
       case "tabs": return "mwd.v2.ui.nodes.tabs";
+      case "accordion": return "mwd.v2.ui.nodes.accordion";
       default: return "mwd.v2.ui.nodes.unknown";
     }
   }

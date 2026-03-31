@@ -18,6 +18,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/panel.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/include.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/tabs.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/accordion.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/unknown.hbs`,
   `systems/${SYSTEM_NAME}/templates/common/view-mode.hbs`,
   `systems/${SYSTEM_NAME}/templates/common/label.hbs`,
@@ -52,6 +53,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-armor.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-weapons.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-description.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-traits.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-life-modules.hbs`,
 
   // V2 item partials
@@ -60,6 +62,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/item/mech-weapon-root.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/armor-root.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/itemname.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/inactive.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/references.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/modifier.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/modifiers.hbs`,

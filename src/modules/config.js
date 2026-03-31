@@ -456,7 +456,27 @@ export const MWD = {
     },
 
     "quality": {
-      "positive": "Positive if checked"
+      "positive": "Legacy positive flag",
+      "category": "Category",
+      "tier": "Tier",
+      "activation": "Activation",
+      "tags": "Tags",
+      "effects": "Effects",
+      "prerequisites": "Prerequisites",
+      "limits": "Limits",
+      "categoryOptions": {
+        "positive": "Positive",
+        "negative": "Negative",
+        "narrative": "Narrative"
+      },
+      "tierOptions": {
+        "minor": "Minor",
+        "major": "Major"
+      },
+      "activationOptions": {
+        "passive": "Passive",
+        "triggered": "Triggered"
+      }
     },
 
     "assetModule": {

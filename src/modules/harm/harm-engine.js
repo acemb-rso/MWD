@@ -18,6 +18,11 @@ import {
   normalizePersonalDamageType,
   PERSONAL_DAMAGE_TYPES,
 } from "../mwd/personal-damage.js";
+import {
+  applyTraitMutations,
+  buildDamageTraitFacts,
+  evaluateTraitPhase,
+} from "../mwd/traits.js";
 
 function asTokenDocument(token) {
   if (!token) return null;
@@ -134,7 +139,7 @@ export class HarmEngine {
   ]);
 
   static supportsActor(actor) {
-    return actor?.type === TEMPLATE.actorTypes.character;
+    return actor?.type === TEMPLATE.actorTypes.character || actor?.type === TEMPLATE.actorTypes.npc;
   }
 
   static getActorOptions() {
@@ -416,7 +421,32 @@ export class HarmEngine {
     const netResistance = armorMitigation.isDestroyed
       ? 0
       : Math.max(0, armorMitigation.baseMitigation + armorMitigation.typeMitigationMod - effectiveAp);
-    const finalDamage = Math.max(0, Math.ceil(damageIncoming - netResistance));
+    let finalDamage = Math.max(0, Math.ceil(damageIncoming - netResistance));
+
+    const runtime = {
+      snapshot: PersonalCombatTracker.getSnapshot?.(actor) ?? null,
+    };
+    const damagePhase = evaluateTraitPhase({
+      actor,
+      phase: "onDamageResolved",
+      facts: buildDamageTraitFacts({
+        actor,
+        packet: {
+          amount: finalDamage,
+          track,
+          damageType: normalizedDamageType,
+        },
+        runtime,
+      }),
+      packet: {
+        amount: finalDamage,
+        track,
+        damageType: normalizedDamageType,
+      },
+      options: { runtime, consumeUsage: true },
+    });
+    await applyTraitMutations({ actor, mutations: damagePhase.mutations, runtime });
+    finalDamage = Math.max(0, Number(damagePhase.packet.amount ?? finalDamage) || 0);
 
     if (finalDamage > 0) {
       await Checkbars.addCounter(actor, track, finalDamage);

@@ -1,0 +1,11 @@
+{{!--
+templates/v2/item/parts/inactive.hbs
+Purpose: Conditional notice displayed when an item is marked as inactive.
+How it fits: Included by item sheets to surface the inactive state to the sheet author.
+--}}
+
+{{#if system.inactive}}
+  <div class="mwd-item-note mwd-item-note--warning">
+    This item is marked as inactive and will not apply its effects.
+  </div>
+{{/if}}

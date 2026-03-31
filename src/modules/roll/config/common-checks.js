@@ -1,6 +1,6 @@
 // src/modules/roll/config/common-checks.js
 // Purpose: Defines reusable common two-attribute checks for the modern roll engine.
-// How it fits: Shared source of truth for UI payload generation and resolver lookup.
+// How it fits: Shared source of truth for declarative payload references and resolver lookup.
 
 import { ACTOR_ATTRIBUTES } from "../../constants.js";
 
@@ -69,11 +69,7 @@ export function getCommonCheckPayload(id) {
 
   return {
     intent: "common",
-    id: definition.id,
-    label: definition.label,
-    formula: [...definition.formula],
-    tags: [...definition.tags],
-    domains: [...definition.domains]
+    id: definition.id
   };
 }
 

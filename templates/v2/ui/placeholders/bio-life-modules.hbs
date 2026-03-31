@@ -10,7 +10,19 @@ How it fits: Included by the Bio tab Life Modules panel in the character sheet.
       <span class="mwd-life-module-slot__label">{{slot.label}}</span>
       {{#if slot.item}}
         <div class="mwd-life-module-slot__record">
-          <span class="mwd-life-module-slot__name">{{slot.item.name}}</span>
+          <div class="mwd-life-module-slot__summary">
+            <span class="mwd-life-module-slot__name">{{slot.item.name}}</span>
+            {{#each slot.item.bonusLabels as |bonusLabel|}}
+              <span class="mwd-item-note">{{bonusLabel}}</span>
+            {{/each}}
+            <span class="chip{{#unless slot.item.isActive}} is-muted{{/unless}}">{{slot.item.statusLabel}}</span>
+            {{#if slot.item.statusReason}}
+              <span class="mwd-item-note">{{slot.item.statusReason}}</span>
+            {{/if}}
+            {{#each slot.item.warningLabels as |warningLabel|}}
+              <span class="mwd-item-note">{{warningLabel}}</span>
+            {{/each}}
+          </div>
           <div class="mwd-life-module-slot__actions">
             <button type="button"
                     class="mwd-record__icon-btn"
@@ -33,9 +45,13 @@ How it fits: Included by the Bio tab Life Modules panel in the character sheet.
                 class="mwd-life-module-slot__add"
                 data-action="createLifeModuleItem"
                 data-module-type="{{slot.moduleType}}"
-                title="Add {{slot.label}} life module">
+                title="{{slot.emptyState}}"
+                {{#unless slot.hasCatalogEntries}}disabled{{/unless}}>
           <i class="fas fa-plus"></i> Add
         </button>
+        {{#unless slot.hasCatalogEntries}}
+          <div class="mwd-item-note">No catalog entries configured for this slot.</div>
+        {{/unless}}
       {{/if}}
     </div>
   {{/each}}

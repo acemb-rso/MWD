@@ -1,0 +1,31 @@
+{{!--
+templates/v2/ui/nodes/accordion.hbs
+Purpose: Renders vertical accordion groups for layout JSON.
+How it fits: Provides a shared decluttering container alongside stack and tabs.
+--}}
+
+
+<div class="csb-accordion {{#if node.classes}}{{join node.classes " "}}{{/if}}" data-group="{{node.group}}" data-default="{{node.default}}">
+  {{#each node.sections as |section|}}
+    <section class="csb-accordion__section" data-section="{{section.id}}">
+      <h3 class="csb-accordion__heading">
+        <button type="button"
+                class="csb-accordion__trigger"
+                data-action="accordion"
+                data-group="{{../node.group}}"
+                data-section="{{section.id}}"
+                aria-expanded="false"
+                aria-controls="csb-accordion-panel-{{../node.group}}-{{section.id}}">
+          <span class="csb-accordion__label">{{#if section.label}}{{section.label}}{{else}}{{section.id}}{{/if}}</span>
+          <span class="csb-accordion__chevron" aria-hidden="true"></span>
+        </button>
+      </h3>
+
+      <div class="csb-accordion__panel" id="csb-accordion-panel-{{../node.group}}-{{section.id}}">
+        {{#each section.children as |child|}}
+          {{> (lookup child "template") node=child}}
+        {{/each}}
+      </div>
+    </section>
+  {{/each}}
+</div>

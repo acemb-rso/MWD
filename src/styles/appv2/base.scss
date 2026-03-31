@@ -314,8 +314,8 @@
    - only the tab panels scroll
    ========================================================= */
 
-/* 1) Stop Foundry/default scrolling at sheet-body */
-.window-app .window-content .mwd-sheet.sheet > .sheet-body {
+/* 1) Stop Foundry/default scrolling at sheet-body (actor sheets only — item sheets scroll here) */
+.window-app .window-content .mwd-sheet.sheet:not(.item-sheet) > .sheet-body {
   display: flex;
   flex-direction: column;
   min-height: 0;

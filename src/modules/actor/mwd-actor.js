@@ -14,6 +14,12 @@ import {
   deriveMonitors,
   resolveDerivedSource,
 } from "../mwd/derive-monitors.js";
+import { evaluateActorLifeModules } from "../mwd/life-modules.js";
+import {
+  applyTraitMutations,
+  buildEdgeTraitFacts,
+  evaluateTraitPhase,
+} from "../mwd/traits.js";
 
 function mitigationLabel(mitigation = {}) {
   return Object.entries(normalizeArmorMitigationByType(mitigation))
@@ -43,6 +49,7 @@ export class MWDActor extends Actor {
         }
         delete system.skills.skills;
       }
+
     }
 
     // Edge pools: schema hygiene only
@@ -102,6 +109,9 @@ export class MWDActor extends Actor {
     this._mwdDerived.edgePools = null;
 
     const cap = this.getEdgeCap();
+    const lifeModulePoolBonuses = this.type === "character"
+      ? (evaluateActorLifeModules(this).bonusByEdgePool ?? {})
+      : {};
 
     // Characters: compute derived for real pools if present
     if (this.type === "character" && this.hasEdgePools()) {
@@ -111,20 +121,24 @@ export class MWDActor extends Actor {
       for (const [key, p] of Object.entries(pools)) {
         const rating = Math.max(0, Number(p?.rating ?? 0));
         const value = Math.max(0, Number(p?.value ?? 0));
+        const ratingBonus = Math.max(0, Number(lifeModulePoolBonuses?.[key] ?? 0));
+        const effectiveRating = rating + ratingBonus;
 
-        const effectiveMax = Math.min(rating, cap);
+        const effectiveMax = Math.min(effectiveRating, cap);
         const effectiveValue = Math.min(value, effectiveMax);
 
         derived[key] = {
           key,
           rating,
+          ratingBonus,
+          effectiveRating,
           value,
           cap,
           effectiveMax,
           effectiveValue,
           hasPools: true,
           isEmpty: effectiveValue <= 0,
-          isCapped: rating > cap,
+          isCapped: effectiveRating > cap,
         };
       }
 
@@ -377,6 +391,8 @@ export class MWDActor extends Actor {
         key: cached.key,
         value: cached.value,
         rating: cached.rating,
+        ratingBonus: cached.ratingBonus,
+        effectiveRating: cached.effectiveRating,
         effectiveValue: cached.effectiveValue,
         effectiveMax: cached.effectiveMax,
         cap: cached.cap,
@@ -388,13 +404,17 @@ export class MWDActor extends Actor {
     const raw = this.getEdgePoolRaw(poolKey);
     const rating = Math.max(0, Number(raw?.rating ?? 0));
     const value = Math.max(0, Number(raw?.value ?? 0));
-    const effectiveMax = Math.min(rating, cap);
+    const ratingBonus = Math.max(0, Number(evaluateActorLifeModules(this).bonusByEdgePool?.[poolKey] ?? 0));
+    const effectiveRating = rating + ratingBonus;
+    const effectiveMax = Math.min(effectiveRating, cap);
     const effectiveValue = Math.min(value, effectiveMax);
 
     return {
       key: poolKey,
       value,
       rating,
+      ratingBonus,
+      effectiveRating,
       effectiveValue,
       effectiveMax,
       cap,
@@ -419,11 +439,7 @@ export class MWDActor extends Actor {
   async setEdgePoolValue(poolKey, newValue) {
     if (!this.hasEdgePools()) return;
 
-    // Compute clamp from raw rating + cap (do not depend on derived fields)
-    const cap = this.getEdgeCap();
-    const raw = this.getEdgePoolRaw(poolKey);
-    const rating = Math.max(0, Number(raw?.rating ?? 0));
-    const effectiveMax = Math.min(rating, cap);
+    const effectiveMax = Math.max(0, Number(this.getEdgePool(poolKey)?.effectiveMax ?? 0));
 
     const v = Number(newValue ?? 0);
     const clamped = Math.max(0, Math.min(v, effectiveMax));
@@ -453,7 +469,8 @@ export class MWDActor extends Actor {
 
     const cap = this.getEdgeCap();
     const rating = Math.max(0, Number(newRating ?? 0));
-    const effectiveMax = Math.min(rating, cap);
+    const ratingBonus = Math.max(0, Number(evaluateActorLifeModules(this).bonusByEdgePool?.[poolKey] ?? 0));
+    const effectiveMax = Math.min(rating + ratingBonus, cap);
 
     const rawValue = Math.max(0, Number(this.getEdgePoolRaw(poolKey)?.value ?? 0));
     const value = Math.min(rawValue, effectiveMax);
@@ -481,7 +498,7 @@ export class MWDActor extends Actor {
             return {
               ...p,
               isEmpty: (p.effectiveValue ?? 0) <= 0,
-              isCapped: (p.rating ?? 0) > (p.cap ?? cap),
+              isCapped: (p.effectiveRating ?? p.rating ?? 0) > (p.cap ?? cap),
             };
           });
           return { id: groupId, pools };
@@ -495,7 +512,7 @@ export class MWDActor extends Actor {
         return {
           ...p,
           isEmpty: (p.effectiveValue ?? 0) <= 0,
-          isCapped: (p.rating ?? 0) > (p.cap ?? cap),
+          isCapped: (p.effectiveRating ?? p.rating ?? 0) > (p.cap ?? cap),
         };
       });
 
@@ -512,25 +529,64 @@ export class MWDActor extends Actor {
    * - Amount defaults to 1
    * - Safe no-op if pool missing
    */
-  async spendEdge(poolKey, amount = 1) {
+  async spendEdge(poolKey, amount = 1, options = {}) {
     if (!this.hasEdgePools()) return;
-    const a = Math.max(0, Number(amount ?? 1));
+    const requested = Math.max(0, Number(amount ?? 1));
+    if (!requested) return;
+
+    let actualAmount = requested;
+    if (!options.skipTraitHooks) {
+      const runtime = options.runtime ?? {};
+      const packet = {
+        poolKey,
+        amount: requested,
+        source: String(options.source ?? "").trim(),
+        eventKey: String(options.eventKey ?? "").trim(),
+      };
+      const phaseResult = evaluateTraitPhase({
+        actor: this,
+        phase: "onEdgeSpend",
+        facts: buildEdgeTraitFacts({ actor: this, packet, phase: "onEdgeSpend", runtime }),
+        packet,
+        options: { runtime, consumeUsage: true },
+      });
+      await applyTraitMutations({ actor: this, mutations: phaseResult.mutations, runtime });
+      actualAmount = Math.max(0, Number(phaseResult.packet.amount ?? requested) || 0);
+    }
+
+    const a = actualAmount;
     if (!a) return;
 
     // delta spend: subtract
     return this.adjustEdgePoolValue(poolKey, -a);
   }
 
-  async gainEdge(poolKey, amount = 1) {
+  async gainEdge(poolKey, amount = 1, options = {}) {
     if (!this.hasEdgePools()) return;
+    const requested = Number(amount ?? 0);
+    if (!requested) return;
 
-    const current = Math.max(
-      0,
-      Number(this.getEdgePoolRaw(poolKey)?.value ?? 0)
-    );
+    let actualAmount = requested;
+    if (!options.skipTraitHooks) {
+      const runtime = options.runtime ?? {};
+      const packet = {
+        poolKey,
+        amount: requested,
+        source: String(options.source ?? "").trim(),
+        eventKey: String(options.eventKey ?? "").trim(),
+      };
+      const phaseResult = evaluateTraitPhase({
+        actor: this,
+        phase: "onEdgeGain",
+        facts: buildEdgeTraitFacts({ actor: this, packet, phase: "onEdgeGain", runtime }),
+        packet,
+        options: { runtime, consumeUsage: true },
+      });
+      await applyTraitMutations({ actor: this, mutations: phaseResult.mutations, runtime });
+      actualAmount = Number(phaseResult.packet.amount ?? requested) || 0;
+    }
 
-    const delta = Number(amount ?? 0);
-    return this.adjustEdgePoolValue(poolKey, delta);
+    return this.adjustEdgePoolValue(poolKey, actualAmount);
   }
 
   /* -------------------------------------------- */

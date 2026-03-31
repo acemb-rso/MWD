@@ -4,7 +4,17 @@
 
 
 import { humanizeStatusKey } from "../dialog/token-status-dialog.js";
-import { getCommonCheckPayload } from "../roll/config/common-checks.js";
+import {
+  getCommonCheckDefinition,
+  getCommonCheckPayload
+} from "../roll/config/common-checks.js";
+import {
+  applyTraitMutations,
+  buildActionCostTraitFacts,
+  buildBurnTraitFacts,
+  buildEndOfActivationTraitFacts,
+  evaluateTraitPhase,
+} from "../mwd/traits.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -29,6 +39,11 @@ function defaultState(activation = null) {
     saSpentThisActivation: 0,
     burnThisActivation: 0,
     attacksThisActivation: 0,
+    reactionBurnSinceLastActivation: 0,
+    traitUsage: {
+      activation: {},
+      round: {}
+    },
     actionLog: [],
     activation
   };
@@ -104,6 +119,7 @@ function formatDistanceLabel(distance, units = "") {
 export class PersonalCombatTracker {
   static _targetRefreshTimeout = null;
   static _pendingTokenPositions = new Map();
+  static _lastActivationByCombat = new Map();
 
   static init() {
     Hooks.on("updateCombat", (combat, changed) => this._onUpdateCombat(combat, changed));
@@ -117,6 +133,9 @@ export class PersonalCombatTracker {
 
   static async onReady() {
     await this.ensureCurrentCombatantState();
+    if (game.combat?.id) {
+      this._lastActivationByCombat.set(game.combat.id, game.combat.combatant?.id ?? null);
+    }
     this.renderOpenCharacterSheets();
   }
 
@@ -542,6 +561,7 @@ export class PersonalCombatTracker {
     const notInCombatReason = snapshot.hasCombatant ? "" : "No current-scene combatant.";
     const notTurnReason = snapshot.isCurrentTurn ? "" : "Only during your activation.";
     const overloadedReason = snapshot.overloaded ? "Overloaded: only Burn recovery is allowed." : "";
+    const saCapacityRemaining = getSaCapacityRemaining(actor, snapshot);
 
     const saReason = notInCombatReason || notTurnReason || overloadedReason;
     const directSupported = [
@@ -550,12 +570,16 @@ export class PersonalCombatTracker {
       { id: "reload", label: "Reload", resource: "sa", cost: 1, supported: true },
       { id: "assist", label: "Assist", resource: "sa", cost: 1, supported: true },
       { id: "stand", label: "Stand", resource: "sa", cost: 1, supported: true }
-    ].map(action => this._buildSpendAction(snapshot, action, saReason));
+    ].map(action => this._buildSpendAction(
+      snapshot,
+      action,
+      saReason || (saCapacityRemaining < action.cost ? "Activation SA cap reached." : "")
+    ));
 
     const attackReason = notInCombatReason
       || notTurnReason
       || overloadedReason
-      || (snapshot.state.saRemaining < 2 ? "Need 2 SA remaining." : "");
+      || (saCapacityRemaining < 2 ? "Activation SA cap reached." : "");
 
     const complexActions = [
       {
@@ -573,7 +597,7 @@ export class PersonalCombatTracker {
 
     const reduceBurnReason = notInCombatReason
       || notTurnReason
-      || (snapshot.state.saRemaining <= 0 ? "No SA remaining." : "")
+      || (saCapacityRemaining <= 0 ? "Activation SA cap reached." : "")
       || (snapshot.burn.value <= 0 ? "Burn is already at 0." : "");
 
     const overloadReason = notInCombatReason
@@ -582,12 +606,13 @@ export class PersonalCombatTracker {
 
     const resourceReason = notInCombatReason || notTurnReason;
     const buildCommonUtilityButton = (id) => {
+      const definition = getCommonCheckDefinition(id);
       const payload = getCommonCheckPayload(id);
-      if (!payload) return null;
+      if (!payload || !definition) return null;
 
       return {
         id,
-        label: payload.label,
+        label: definition.label,
         handler: "roll",
         roll: JSON.stringify(payload),
         disabled: false,
@@ -620,6 +645,7 @@ export class PersonalCombatTracker {
       ].filter(Boolean),
       summaryPills: [
         { label: "SA", value: `${snapshot.state.saRemaining}/${BASE_SA}` },
+        { label: "Cap", value: `${Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0))}/${getActivationMaxSA(actor)}` },
         { label: "FA", value: `${snapshot.state.faRemaining}` },
         { label: "RA", value: `${snapshot.state.raRemaining}` },
         { label: "Burn/Turn", value: `+${Math.max(0, Number(snapshot.state?.burnThisActivation ?? 0))}` }
@@ -690,7 +716,9 @@ export class PersonalCombatTracker {
 
   static _buildSpendAction(snapshot, action, sharedReason = "") {
     const remaining = Number(snapshot.state?.[`${action.resource}Remaining`] ?? 0);
-    const insufficientReason = remaining < action.cost ? `No ${String(action.resource).toUpperCase()} remaining.` : "";
+    const insufficientReason = action.resource === "sa"
+      ? ""
+      : (remaining < action.cost ? `No ${String(action.resource).toUpperCase()} remaining.` : "");
     const reason = sharedReason || insufficientReason;
     const costLabel = this._formatCostLabel(action.resource, action.cost);
 
@@ -773,17 +801,47 @@ export class PersonalCombatTracker {
       return { ok: false, reason: "Only available during your activation." };
     }
 
+    const runtime = {
+      combat: snapshot.combat,
+      combatant: snapshot.combatant,
+      state: cloneState(snapshot.state, this.getActivationIdentity(snapshot.combat, snapshot.combatant)),
+      sceneId: canvas?.scene?.id ?? "",
+      snapshot,
+    };
+
+    let finalCost = Math.max(0, Number(cost ?? 0) || 0);
+    const costPhase = evaluateTraitPhase({
+      actor,
+      phase: "onBeforeActionCostFinalized",
+      facts: buildActionCostTraitFacts({
+        actor,
+        packet: { actionId, resource, cost: finalCost },
+        runtime,
+      }),
+      packet: { actionId, resource, cost: finalCost },
+      options: { runtime, consumeUsage: true },
+    });
+    finalCost = Math.max(0, Number(costPhase.packet.cost ?? finalCost) || 0);
+    runtime.pendingMutations = (runtime.pendingMutations ?? []).concat(costPhase.mutations);
+
     const remainingKey = `${resource}Remaining`;
     const remaining = Number(snapshot.state?.[remainingKey] ?? 0);
-    if (remaining < cost) {
+    if (resource !== "sa" && remaining < finalCost) {
       return { ok: false, reason: `No ${String(resource).toUpperCase()} remaining.` };
     }
 
-    const nextState = cloneState(snapshot.state, this.getActivationIdentity(snapshot.combat, snapshot.combatant));
-    nextState[remainingKey] = Math.max(0, remaining - cost);
+    const nextState = runtime.state;
+    const activationCap = resource === "sa" ? getActivationMaxSA(actor) : 0;
+    const spentBefore = Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0) || 0);
+
+    if (resource === "sa" && (spentBefore + finalCost) > activationCap) {
+      return { ok: false, reason: "Activation SA cap reached." };
+    }
+
+    nextState[remainingKey] = Math.max(0, remaining - finalCost);
 
     if (resource === "sa") {
-      nextState.saSpentThisActivation = Number(nextState.saSpentThisActivation ?? 0) + cost;
+      nextState.saSpentThisActivation = spentBefore + finalCost;
       if (actionId === "attack") {
         nextState.attacksThisActivation = Number(nextState.attacksThisActivation ?? 0) + 1;
       }
@@ -792,10 +850,93 @@ export class PersonalCombatTracker {
     this._appendActionLog(nextState, {
       id: actionId,
       label: actionLabel,
-      costLabel: actionCostLabel || this._formatCostLabel(resource, cost)
+      costLabel: actionCostLabel || this._formatCostLabel(resource, finalCost)
     });
 
-    await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextState);
+    let burnDelta = 0;
+    if (resource === "sa") {
+      const extraBefore = Math.max(0, spentBefore - BASE_SA);
+      const extraAfter = Math.max(0, nextState.saSpentThisActivation - BASE_SA);
+      const attackCountBefore = Math.max(0, Number(snapshot.state?.attacksThisActivation ?? 0) || 0);
+      const attackCountAfter = Math.max(0, Number(nextState.attacksThisActivation ?? 0) || 0);
+
+      for (let index = extraBefore + 1; index <= extraAfter; index += 1) {
+        const burnPhase = evaluateTraitPhase({
+          actor,
+          phase: "onBeforeBurnApplied",
+          facts: buildBurnTraitFacts({
+            actor,
+            packet: {
+              actionId,
+              resource,
+              amount: 1,
+              source: "extraSA",
+              extraSaIndex: index,
+            },
+            runtime,
+          }),
+          packet: {
+            actionId,
+            resource,
+            amount: 1,
+            source: "extraSA",
+            extraSaIndex: index,
+          },
+          options: { runtime, consumeUsage: true },
+        });
+        runtime.pendingMutations = (runtime.pendingMutations ?? []).concat(burnPhase.mutations);
+        burnDelta += Math.max(0, Number(burnPhase.packet.amount ?? 0) || 0);
+      }
+
+      for (let index = attackCountBefore + 1; index <= attackCountAfter; index += 1) {
+        if (index <= 1) continue;
+        const burnPhase = evaluateTraitPhase({
+          actor,
+          phase: "onBeforeBurnApplied",
+          facts: buildBurnTraitFacts({
+            actor,
+            packet: {
+              actionId,
+              resource,
+              amount: 1,
+              source: "attack",
+              attackIndex: index,
+            },
+            runtime,
+          }),
+          packet: {
+            actionId,
+            resource,
+            amount: 1,
+            source: "attack",
+            attackIndex: index,
+          },
+          options: { runtime, consumeUsage: true },
+        });
+        runtime.pendingMutations = (runtime.pendingMutations ?? []).concat(burnPhase.mutations);
+        burnDelta += Math.max(0, Number(burnPhase.packet.amount ?? 0) || 0);
+      }
+
+      nextState.burnThisActivation = Math.max(0, Number(nextState.burnThisActivation ?? 0) + burnDelta);
+    }
+
+    if (runtime.pendingMutations?.length) {
+      await applyTraitMutations({
+        actor,
+        mutations: runtime.pendingMutations,
+        runtime: {
+          ...runtime,
+          state: nextState,
+        },
+      });
+    } else {
+      await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextState);
+    }
+
+    if (burnDelta > 0) {
+      await actor.update({ "system.burn.value": Math.max(0, Number(actor.system?.burn?.value ?? 0) + burnDelta) });
+    }
+
     return { ok: true, snapshot: this.getSnapshot(actor, { token: snapshot.token }) };
   }
 
@@ -803,7 +944,7 @@ export class PersonalCombatTracker {
     const snapshot = this.getSnapshot(actor, { token });
     if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
     if (!snapshot.isCurrentTurn) return { ok: false, reason: "Only available during your activation." };
-    if (snapshot.state.saRemaining <= 0) return { ok: false, reason: "No SA remaining." };
+    if (getSaCapacityRemaining(actor, snapshot) <= 0) return { ok: false, reason: "Activation SA cap reached." };
     if (snapshot.burn.value <= 0) return { ok: false, reason: "Burn is already at 0." };
 
     const spend = await this.spendResource(actor, {
@@ -826,12 +967,79 @@ export class PersonalCombatTracker {
     return { ok: true, snapshot: this.getSnapshot(actor, { token: snapshot.token }) };
   }
 
+  static async finalizeActivation(combat, combatantId) {
+    if (!game.user.isGM) return;
+    if (!combatantId || !combat) return;
+
+    const combatant = combat.combatants?.get?.(combatantId) ?? null;
+    const actor = combatant?.actor ?? null;
+    if (!combatant || !actor) return;
+
+    const stored = combatant.getFlag(FLAG_SCOPE, FLAG_KEY);
+    const state = sameActivation(stored, this.getActivationIdentity(combat, combatant))
+      ? cloneState(stored, this.getActivationIdentity(combat, combatant))
+      : cloneState(stored);
+
+    const passiveCoolOffEligible = Number(state.saSpentThisActivation ?? 0) <= BASE_SA
+      && Number(state.burnThisActivation ?? 0) <= 0
+      && Number(state.reactionBurnSinceLastActivation ?? 0) <= 0;
+
+    const packet = {
+      burnDelta: passiveCoolOffEligible ? -2 : 0,
+      edgeAdjustments: [],
+    };
+
+    const runtime = {
+      combat,
+      combatant,
+      state,
+      sceneId: combat.scene?.id ?? canvas?.scene?.id ?? "",
+    };
+
+    const endPhase = evaluateTraitPhase({
+      actor,
+      phase: "onEndOfActivation",
+      facts: buildEndOfActivationTraitFacts({ actor, packet, runtime }),
+      packet,
+      options: { runtime, consumeUsage: true },
+    });
+
+    await applyTraitMutations({ actor, mutations: endPhase.mutations, runtime });
+
+    const burnDelta = Number(endPhase.packet.burnDelta ?? packet.burnDelta) || 0;
+    if (burnDelta) {
+      const nextBurn = Math.max(0, Number(actor.system?.burn?.value ?? 0) + burnDelta);
+      const update = { "system.burn.value": nextBurn };
+      if (nextBurn === 0 && actor.system?.burn?.overloaded) {
+        update["system.burn.overloaded"] = false;
+      }
+      await actor.update(update);
+    }
+
+    for (const adjustment of endPhase.packet.edgeAdjustments ?? []) {
+      const amount = Number(adjustment?.amount ?? 0) || 0;
+      if (!amount || !adjustment?.poolKey) continue;
+      if (amount > 0) {
+        await actor.gainEdge(adjustment.poolKey, amount, { skipTraitHooks: true, source: "endOfActivationTrait" });
+      } else {
+        await actor.spendEdge(adjustment.poolKey, Math.abs(amount), { skipTraitHooks: true, source: "endOfActivationTrait" });
+      }
+    }
+  }
+
   static async _onUpdateCombat(combat, changed) {
     const touchedTurn = Object.prototype.hasOwnProperty.call(changed ?? {}, "turn")
       || Object.prototype.hasOwnProperty.call(changed ?? {}, "round");
 
     if (touchedTurn) {
+      const previousCombatantId = this._lastActivationByCombat.get(combat?.id) ?? null;
+      if (previousCombatantId && previousCombatantId !== combat?.combatant?.id) {
+        await this.finalizeActivation(combat, previousCombatantId);
+      }
       await this.ensureCurrentCombatantState();
+      if (combat?.id) {
+        this._lastActivationByCombat.set(combat.id, combat.combatant?.id ?? null);
+      }
     }
 
     this.renderOpenCharacterSheets();
@@ -850,6 +1058,9 @@ export class PersonalCombatTracker {
   }
 
   static _onDeleteCombat(_combat) {
+    if (_combat?.id) {
+      this._lastActivationByCombat.delete(_combat.id);
+    }
     this.renderOpenCharacterSheets();
   }
 
@@ -933,4 +1144,14 @@ export class PersonalCombatTracker {
       app.render({ force: true });
     }
   }
+}
+
+function getActivationMaxSA(actor) {
+  const reflexes = Math.max(0, Number(actor?.system?.attributes?.reflexes?.value ?? 0) || 0);
+  const willpower = Math.max(0, Number(actor?.system?.attributes?.willpower?.value ?? 0) || 0);
+  return BASE_SA + Math.floor((reflexes + willpower) / 2);
+}
+
+function getSaCapacityRemaining(actor, snapshot) {
+  return Math.max(0, getActivationMaxSA(actor) - Math.max(0, Number(snapshot?.state?.saSpentThisActivation ?? 0) || 0));
 }

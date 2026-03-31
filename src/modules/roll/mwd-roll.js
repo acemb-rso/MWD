@@ -11,6 +11,13 @@ import { MWDRollDialog } from "./mwd-roll-dialog.js";
 import { WeaponItem } from "../item/weapon-item.js";
 import { SelectItem } from "../dialog/select-item.js";
 import { TEMPLATE } from "../constants.js";
+import { resolveAttackExecution } from "./attack-resolution.js";
+import {
+  applyTraitMutations,
+  buildInitiativeTraitFacts,
+  buildRollTraitFacts,
+  evaluateTraitPhase,
+} from "../mwd/traits.js";
 
 /**
  * Public roll API.
@@ -247,8 +254,8 @@ async function execute({ actor, payload, event } = {}) {
   const { mods: manualMods, total: manualTotal } = normalizeManualMods(payload);
 
   // Final mods used for roll + chat
-  const mods = [...providerMods, ...manualMods];
-  const modTotal = Number(providerTotal ?? 0) + Number(manualTotal ?? 0);
+  let mods = [...providerMods, ...manualMods];
+  let modTotal = Number(providerTotal ?? 0) + Number(manualTotal ?? 0);
 
   const basePool =
   Number(ctx?.pool?.attribute ?? 0) +
@@ -269,6 +276,18 @@ async function execute({ actor, payload, event } = {}) {
 
   const edgeInfo = edgeAllowed ? computeEdgeInfo({ actor, ctx, payload }) : null;
   const diceTarget = edgeInfo?.pre?.spent ? 4 : Number(ctx.diceTarget ?? ctx.target ?? 5);
+
+  const runtime = {
+    snapshot: game.mwd?.personalCombat?.getSnapshot?.(actor) ?? null,
+  };
+  const traitBuildResult = evaluateTraitPhase({
+    actor,
+    phase: "onBuildRoll",
+    facts: buildRollTraitFacts({ actor, resolved: ctx, payload, runtime }),
+    packet: {},
+    options: { runtime, consumeUsage: true },
+  });
+  await applyTraitMutations({ actor, mutations: traitBuildResult.mutations, runtime });
 
   // Spend pre-edge (once) before rolling
   if (edgeAllowed && edgeInfo?.pre?.spent && edgeInfo?.pre?.poolKey) {
@@ -309,7 +328,31 @@ async function execute({ actor, payload, event } = {}) {
   }
 
   if (ctx.intent === "initiative" && roll?.total != null) {
-    await applyInitiativeToCombat({ actor, total: roll.total });
+    const initiativePacket = { total: Number(roll.total ?? 0) + Number(modTotal ?? 0) };
+    const initiativePhase = evaluateTraitPhase({
+      actor,
+      phase: "onInitiativeResolved",
+      facts: buildInitiativeTraitFacts({ actor, packet: initiativePacket, runtime }),
+      packet: initiativePacket,
+      options: { runtime, consumeUsage: true },
+    });
+    await applyTraitMutations({ actor, mutations: initiativePhase.mutations, runtime });
+
+    if (initiativePhase.modifiers.length) {
+      const initiativeDelta = initiativePhase.modifiers.reduce((sum, modifier) => sum + Number(modifier.value ?? 0), 0);
+      mods = mods.concat(initiativePhase.modifiers);
+      modTotal += initiativeDelta;
+      hits = Number(initiativePhase.packet.total ?? 0);
+      await applyInitiativeToCombat({ actor, total: initiativePhase.packet.total ?? roll.total });
+      ctx.breakdown = (ctx.breakdown ?? []).concat(initiativePhase.modifiers.map((modifier, index) => ({
+        id: `traitInitiative${index + 1}`,
+        label: modifier.label,
+        value: Number(modifier.value ?? 0),
+      })));
+    } else {
+      hits = Number(initiativePacket.total ?? 0);
+      await applyInitiativeToCombat({ actor, total: initiativePacket.total });
+    }
   }
 
   /* -------------------------------- */
@@ -341,6 +384,15 @@ async function execute({ actor, payload, event } = {}) {
     await applyOverloadResult({ actor, passed: outcomeModel.passed });
   }
 
+  let attackExecution = null;
+  if (ctx.intent === "attack") {
+    attackExecution = await resolveAttackExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel
+    });
+  }
+
   /* --------------------------- */
   /* 7) Build resolved payload  */
   /* --------------------------- */
@@ -359,6 +411,11 @@ async function execute({ actor, payload, event } = {}) {
     edge: edgeInfo,
     outcomeModel
   });
+
+  if (attackExecution) {
+    resolved.attackResult = attackExecution;
+    resolved.damageResult = attackExecution.damageResult;
+  }
 
   /* --------------------------- */
   /* 8) Render chat             */

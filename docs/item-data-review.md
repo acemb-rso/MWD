@@ -11,7 +11,7 @@ The following types are registered in `template.json` and `system.json`. The can
 | Canonical type | Description | Document class |
 |----------------|-------------|----------------|
 | `skill` | Skills with attribute link and specializations | `SkillItem` |
-| `quality` | Traits (positive or negative) | `QualityItem` |
+| `quality` | Traits / qualities authored as item-backed rule packets | `QualityItem` |
 | `lifeModule` | Background/character-creation modules | `LifeModuleItem` |
 | `gear` | Generic inventory items | `GearItem` |
 | `assetModule` | Character-scale shadowamps/modules | `AssetModuleItem` |
@@ -203,13 +203,13 @@ PersonalWeaponItemSheet         ← LAYOUT_ID = "personal-weapon"
   ↓ _prepareContext → ctx.layout
 personal-weapon-root.hbs        ← PARTS entry point
   ↓ _item-sheet-root.hbs        ← block partial: header + shell
-    ↓ layout-root.hbs → node type templates (tabs, stack, panel, include)
+    ↓ layout-root.hbs → node type templates (tabs, accordion, stack, panel, include)
       ↓ weapon-main.hbs         ← content partial (Details tab)
       ↓ modifiers.hbs           ← content partial (Modifiers tab)
       ↓ item-effects.hbs        ← content partial (Effects tab)
 ```
 
-Layout JSON format: `templates/v2/layouts/{id}.layout.json`. Node types: `stack`, `panel`, `tabs`, `include`. These are the same node types used by the character sheet — no item-specific node types exist.
+Layout JSON format: `templates/v2/layouts/{id}.layout.json`. Node types: `stack`, `panel`, `tabs`, `accordion`, `include`. These are the same node types used by the character sheet — no item-specific node types exist.
 
 **To add a new layout-driven item sheet:**
 1. Create `templates/v2/layouts/{type}.layout.json`

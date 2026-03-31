@@ -10,6 +10,7 @@ import {
   SKILL_SPECIALIZATION_BONUS,
 } from "../../mwd/skills.js";
 import { WeaponItem } from "../../item/weapon-item.js";
+import { createUserFacingRollError } from "../roll-errors.js";
 
 function getTargets() {
   return Array.from(game.user?.targets ?? []);
@@ -89,6 +90,9 @@ export async function resolveAttack({ actor, payload } = {}) {
   const rangeBand = String(payload?.rangeBand ?? weapon.defaultRangeBand ?? "close").trim() || "close";
   const attackRating = Number(weapon?.attackRatingBand?.[rangeBand] ?? 0) || 0;
   const targets = getTargets().map(buildTargetSnapshot).filter(Boolean);
+  if (targets.length === 0) {
+    throw createUserFacingRollError("Target at least one token to attack.", { severity: "warn" });
+  }
   const totalAp = Number(weapon.ap ?? 0) + Number(weapon?.effects?.ap ?? 0);
 
   return {

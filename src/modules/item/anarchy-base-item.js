@@ -15,6 +15,16 @@ import { AnarchyUsers } from "../users.js";
 import { formatString } from "../strings.js";
 import { getSkillDef } from "../mwd/skills.js";
 import {
+  getLifeModuleCatalogEntry,
+  normalizeLifeModuleItemSystem,
+} from "../mwd/life-modules.js";
+import {
+  normalizeQualityTraitSystem,
+  normalizeTraitEffects,
+  normalizeTraitLimits,
+  normalizeTraitPrerequisites,
+} from "../mwd/traits.js";
+import {
   computeArmorBaseMitigation,
   deriveWeaponEffectsFromTraits,
   getArmorTraitLabels,
@@ -173,6 +183,16 @@ function prepareSkillDefaults(skillCode) {
   return updates;
 }
 
+function prepareLifeModuleDefaults(system = {}) {
+  const normalizedSystem = normalizeLifeModuleItemSystem(system);
+  const catalog = getLifeModuleCatalogEntry(normalizedSystem.catalogId);
+
+  return {
+    system: normalizedSystem,
+    ...(catalog ? { name: catalog.label } : {})
+  };
+}
+
 function shouldApplyDefaultIcon(img) {
   const current = String(img ?? "").trim();
   if (!current) return true;
@@ -321,6 +341,14 @@ export class MWDItem extends Item {
       updates.name = "MWD.itemType.singular.lifeModule";
     }
 
+    if (canonicalType === TEMPLATE.itemType.lifeModule) {
+      const defaults = prepareLifeModuleDefaults(data?.system ?? this.system ?? {});
+      updates.system = defaults.system;
+      if (defaults.name && (!data?.name || data.name === "DOCUMENT.Item")) {
+        updates.name = defaults.name;
+      }
+    }
+
     if (Object.keys(updates).length) {
       this.updateSource(updates);
     }
@@ -367,6 +395,21 @@ export class MWDItem extends Item {
       }).traitState;
     }
 
+    if (nextSystem && this.isLifeModule()) {
+      const defaults = prepareLifeModuleDefaults(nextSystem);
+      changed.system ??= {};
+      foundry.utils.mergeObject(changed.system, defaults.system, { inplace: true, overwrite: true });
+      if (defaults.name) changed.name = defaults.name;
+      return;
+    }
+
+    if (nextSystem && this.isQuality()) {
+      changed.system ??= {};
+      const normalized = normalizeQualityTraitSystem(nextSystem);
+      foundry.utils.mergeObject(changed.system, normalized, { inplace: true, overwrite: true });
+      return;
+    }
+
     if (!this.isSkill()) return;
 
     const newCode = changed?.system?.code;
@@ -390,6 +433,10 @@ export class MWDItem extends Item {
       this._preparePersonalWeaponBaseData();
     } else if (canonicalType === TEMPLATE.itemType.armor) {
       this._prepareArmorBaseData();
+    } else if (canonicalType === TEMPLATE.itemType.lifeModule) {
+      this._prepareLifeModuleBaseData();
+    } else if (canonicalType === TEMPLATE.itemType.quality) {
+      this._prepareQualityBaseData();
     }
   }
 
@@ -439,6 +486,16 @@ export class MWDItem extends Item {
     system.notes = String(system.notes ?? "").trim();
   }
 
+  _prepareLifeModuleBaseData() {
+    const normalized = prepareLifeModuleDefaults(this.system ?? {});
+    foundry.utils.mergeObject(this.system, normalized.system, { inplace: true, overwrite: true });
+  }
+
+  _prepareQualityBaseData() {
+    const normalized = normalizeQualityTraitSystem(this.system ?? {});
+    foundry.utils.mergeObject(this.system, normalized, { inplace: true, overwrite: true });
+  }
+
   getAttributes() {
     return [];
   }
@@ -473,6 +530,14 @@ export class MWDItem extends Item {
 
   isArmor() {
     return this.canonicalType === TEMPLATE.itemType.armor;
+  }
+
+  isLifeModule() {
+    return this.canonicalType === TEMPLATE.itemType.lifeModule;
+  }
+
+  isQuality() {
+    return this.canonicalType === TEMPLATE.itemType.quality;
   }
 
   supportsEquippedEffectSync() {
@@ -664,6 +729,148 @@ export class MWDItem extends Item {
     const modifiers = mutation(this.system.modifiers);
     Misc.reindexIds(modifiers);
     await this.update({ "system.modifiers": modifiers });
+  }
+
+  async _mutateQualitySystem(mutation = system => system) {
+    const next = mutation(foundry.utils.deepClone(normalizeQualityTraitSystem(this.system ?? {})));
+    await this.update({ system: normalizeQualityTraitSystem(next) });
+  }
+
+  async createQualityPrerequisite(entry = {}) {
+    await this._mutateQualitySystem(system => {
+      system.prerequisites = normalizeTraitPrerequisites(system.prerequisites).concat([{
+        id: entry.id ?? foundry.utils.randomID(),
+        fact: entry.fact ?? "",
+        comparator: entry.comparator ?? "eq",
+        value: entry.value ?? "",
+      }]);
+      return system;
+    });
+  }
+
+  async deleteQualityPrerequisite(entryId) {
+    await this._mutateQualitySystem(system => {
+      system.prerequisites = normalizeTraitPrerequisites(system.prerequisites)
+        .filter(entry => entry.id !== entryId);
+      return system;
+    });
+  }
+
+  async updateQualityPrerequisite(entryId, field, value) {
+    await this._mutateQualitySystem(system => {
+      system.prerequisites = normalizeTraitPrerequisites(system.prerequisites)
+        .map(entry => {
+          if (entry.id !== entryId) return entry;
+          if (field === "fact") entry.fact = value;
+          if (field === "comparator") entry.comparator = value;
+          if (field === "value") entry.value = value;
+          return entry;
+        });
+      return system;
+    });
+  }
+
+  async createQualityEffect(entry = {}) {
+    await this._mutateQualitySystem(system => {
+      system.effects = normalizeTraitEffects(system.effects).concat([{
+        id: entry.id ?? foundry.utils.randomID(),
+        type: entry.type ?? "rollMod",
+        phase: entry.phase ?? "onBuildRoll",
+        selector: entry.selector ?? "",
+        label: entry.label ?? "",
+        value: Number(entry.value ?? 0) || 0,
+        min: entry.min ?? null,
+        max: entry.max ?? null,
+        pool: entry.pool ?? "",
+        operation: entry.operation ?? "adjustAmount",
+        conditions: normalizeTraitPrerequisites(entry.conditions ?? []),
+        limit: normalizeTraitLimits(entry.limit ?? {}),
+      }]);
+      return system;
+    });
+  }
+
+  async deleteQualityEffect(entryId) {
+    await this._mutateQualitySystem(system => {
+      system.effects = normalizeTraitEffects(system.effects)
+        .filter(entry => entry.id !== entryId);
+      return system;
+    });
+  }
+
+  async updateQualityEffect(entryId, field, value) {
+    await this._mutateQualitySystem(system => {
+      system.effects = normalizeTraitEffects(system.effects)
+        .map(entry => {
+          if (entry.id !== entryId) return entry;
+          if (field === "type") entry.type = value;
+          if (field === "phase") entry.phase = value;
+          if (field === "selector") entry.selector = value;
+          if (field === "label") entry.label = value;
+          if (field === "value") entry.value = Number(value ?? 0) || 0;
+          if (field === "min") entry.min = value === "" ? null : Number(value ?? 0);
+          if (field === "max") entry.max = value === "" ? null : Number(value ?? 0);
+          if (field === "pool") entry.pool = value;
+          if (field === "operation") entry.operation = value;
+          if (field === "limit.perActivation") {
+            entry.limit = normalizeTraitLimits({ ...(entry.limit ?? {}), perActivation: value });
+          }
+          if (field === "limit.perRound") {
+            entry.limit = normalizeTraitLimits({ ...(entry.limit ?? {}), perRound: value });
+          }
+          if (field === "limit.perScene") {
+            entry.limit = normalizeTraitLimits({ ...(entry.limit ?? {}), perScene: value });
+          }
+          return entry;
+        });
+      return system;
+    });
+  }
+
+  async createQualityEffectCondition(effectId, entry = {}) {
+    await this._mutateQualitySystem(system => {
+      system.effects = normalizeTraitEffects(system.effects).map(effect => {
+        if (effect.id !== effectId) return effect;
+        effect.conditions = normalizeTraitPrerequisites(effect.conditions).concat([{
+          id: entry.id ?? foundry.utils.randomID(),
+          fact: entry.fact ?? "",
+          comparator: entry.comparator ?? "eq",
+          value: entry.value ?? "",
+        }]);
+        return effect;
+      });
+      return system;
+    });
+  }
+
+  async deleteQualityEffectCondition(effectId, conditionId) {
+    await this._mutateQualitySystem(system => {
+      system.effects = normalizeTraitEffects(system.effects).map(effect => {
+        if (effect.id !== effectId) return effect;
+        effect.conditions = normalizeTraitPrerequisites(effect.conditions)
+          .filter(entry => entry.id !== conditionId);
+        return effect;
+      });
+      return system;
+    });
+  }
+
+  async updateQualityEffectCondition(effectId, conditionId, field, value) {
+    await this._mutateQualitySystem(system => {
+      system.effects = normalizeTraitEffects(system.effects).map(effect => {
+        if (effect.id !== effectId) return effect;
+        effect.conditions = normalizeTraitPrerequisites(effect.conditions)
+          .map(entry => {
+            if (entry.id !== conditionId) return entry;
+            if (field === "fact") entry.fact = value;
+            if (field === "comparator") entry.comparator = value;
+            if (field === "value") entry.value = value;
+            return entry;
+          });
+        return effect;
+      });
+      return system;
+    });
   }
 
   async _mutateWeaponStandardTraits(mutation = values => values) {

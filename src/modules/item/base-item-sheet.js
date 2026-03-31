@@ -21,6 +21,7 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
  */
 export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ItemSheetV2) {
   #activeTabsByGroup = new Map();
+  #activeAccordionSectionsByGroup = new Map();
 
   static LAYOUT_ID = null;
 
@@ -47,6 +48,7 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       actions: {
         editImage: BaseItemSheet._onEditImage,
         tab: BaseItemSheet.prototype._onClickTab,
+        accordion: BaseItemSheet.prototype._onClickAccordion,
         checkbarElement: BaseItemSheet._onClickCheckbar,
         modifierAdd: BaseItemSheet._onModifierAdd,
         modifierDelete: BaseItemSheet._onModifierDelete,
@@ -362,6 +364,26 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     this.#applyTabState(this._getRootElement(), group, tabId);
   }
 
+  _onClickAccordion(event, target) {
+    const accordionTrigger =
+      target?.closest?.(".csb-accordion__trigger[data-section]") ??
+      event?.target?.closest?.(".csb-accordion__trigger[data-section]");
+    if (!accordionTrigger) return;
+
+    const sectionId = accordionTrigger.dataset.section;
+    const accordionRoot = accordionTrigger.closest(".csb-accordion");
+    if (!accordionRoot || !sectionId) return;
+
+    const group = accordionRoot.dataset.group || "default";
+    const currentSectionId = this.#activeAccordionSectionsByGroup.has(group)
+      ? this.#activeAccordionSectionsByGroup.get(group)
+      : (accordionRoot.dataset.default || null);
+    const nextSectionId = currentSectionId === sectionId ? null : sectionId;
+
+    this.#activeAccordionSectionsByGroup.set(group, nextSectionId);
+    this.#applyAccordionState(accordionRoot, nextSectionId);
+  }
+
   _onRender(context, options) {
     super._onRender?.(context, options);
 
@@ -408,6 +430,14 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
         this.#applyTabState(root, group, activeTab);
       }
     }
+
+    for (const accordionRoot of root.querySelectorAll(".csb-accordion")) {
+      const group = accordionRoot.dataset.group || "default";
+      const activeSection = this.#activeAccordionSectionsByGroup.has(group)
+        ? this.#activeAccordionSectionsByGroup.get(group)
+        : (accordionRoot.dataset.default || null);
+      this.#applyAccordionState(accordionRoot, activeSection);
+    }
   }
 
   #applyTabState(root, group, tabId) {
@@ -429,6 +459,27 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
 
     root.querySelectorAll(`.tab[data-group="${group}"]`).forEach(panel => {
       panel.classList.toggle("active", panel.dataset.tab === tabId);
+    });
+  }
+
+  #applyAccordionState(accordionRoot, sectionId) {
+    accordionRoot.dataset.activeSection = sectionId ?? "";
+
+    accordionRoot.querySelectorAll(".csb-accordion__section").forEach(section => {
+      const isActive = section.dataset.section === sectionId;
+      section.classList.toggle("is-active", isActive);
+    });
+
+    accordionRoot.querySelectorAll(".csb-accordion__trigger").forEach(trigger => {
+      const isActive = trigger.dataset.section === sectionId;
+      trigger.classList.toggle("is-active", isActive);
+      trigger.setAttribute("aria-expanded", isActive ? "true" : "false");
+    });
+
+    accordionRoot.querySelectorAll(".csb-accordion__panel").forEach(panel => {
+      const parentSection = panel.closest(".csb-accordion__section");
+      const isActive = parentSection?.dataset.section === sectionId;
+      panel.classList.toggle("is-active", isActive);
     });
   }
 

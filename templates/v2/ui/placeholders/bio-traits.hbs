@@ -1,0 +1,34 @@
+{{!--
+templates/v2/ui/placeholders/bio-traits.hbs
+Purpose: Renders owned quality items as categorized trait records on the Bio tab.
+How it fits: Keeps traits visible as character content while item sheets remain the authoring surface.
+--}}
+
+<div class="mwd-inv">
+  <div class="mwd-inv__toolbar">
+    <button type="button" class="mwd-inv__add-btn" data-action="createOwnedItem" data-item-type="quality" title="Create Trait">
+      <i class="fas fa-plus"></i> Add Trait
+    </button>
+  </div>
+
+  {{#if qualityGroups.length}}
+    <div class="mwd-records mwd-records--inventory">
+      {{#each qualityGroups as |group|}}
+        <section class="mwd-inv__group">
+          <h4 class="mwd-inv__group-title">{{group.label}}</h4>
+          {{#if group.records.length}}
+            <div class="mwd-records mwd-records--inventory">
+              {{#each group.records as |record|}}
+                {{> "mwd.v2.ui.character.inventory-record" record=record}}
+              {{/each}}
+            </div>
+          {{else}}
+            <div class="mwd-inv__empty">No traits assigned in this category.</div>
+          {{/if}}
+        </section>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-inv__empty">No traits assigned.</div>
+  {{/if}}
+</div>

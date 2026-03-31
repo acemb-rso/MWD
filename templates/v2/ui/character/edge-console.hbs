@@ -60,7 +60,7 @@ How it fits: Used by rendering code to produce UI fragments.
               name="{{pool.pathValue}}"
               value="{{pool.value}}"
               min="0"
-              max="{{pool.rating}}"
+              max="{{pool.max}}"
               step="1"
               data-edit-field="staged"
               class="mwd-edge-pool__input"
@@ -68,7 +68,6 @@ How it fits: Used by rendering code to produce UI fragments.
             />
           </label>
         </div>
-
       {{else}}
 
         <button
@@ -97,7 +96,6 @@ How it fits: Used by rendering code to produce UI fragments.
             <span class="mwd-edge-pool__capped" title="Rating exceeds Edge cap">⌛</span>
           {{/if}}
         </div>
-
       {{/if}}
 
     </div>

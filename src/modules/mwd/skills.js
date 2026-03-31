@@ -330,7 +330,7 @@ export function ensureCoreSkillRatings(systemData) {
     entry.specializations = normalizeStoredSkillSpecializationKeys(entry.specializations);
   }
 }
-export function buildSkillDisplay(systemData) {
+export function buildSkillDisplay(systemData, { bonusBySkill = null } = {}) {
   const defs = listSkillDefs();
   const { left, right } = splitSkillsTwoColumns(defs);
 
@@ -344,7 +344,9 @@ export function buildSkillDisplay(systemData) {
     const base = Number(systemData?.attributes?.[attr]?.value ?? 0);
 
     // Bonus/modifiers: placeholder field (you can later feed Active Effects into this)
-    const bonus = Number(systemData?.skills?.[code]?.bonus ?? 0);
+    const baseBonus = Number(systemData?.skills?.[code]?.bonus ?? 0);
+    const derivedBonus = Number(bonusBySkill?.[code] ?? 0);
+    const bonus = baseBonus + derivedBonus;
     const ownedSpecializations = getOwnedSkillSpecializations(systemData, code);
     const remainingSpecializations = getSkillSpecializationDefs(code)
       .filter(entry => !ownedSpecializations.some(owned => owned.key === entry.key));

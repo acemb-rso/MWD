@@ -24,7 +24,7 @@ The following fields documented in `character_sheet.txt` exist as **item types**
 | Feature | Current state |
 |---------|---------------|
 | Life modules | `lifeModule` item type registered; sheet rendering of embedded list TBD |
-| Traits / Qualities | `quality` item type registered; rendered as embedded list |
+| Traits / Qualities | `quality` item type registered; quality items now act as item-backed traits with declarative effect packets |
 | Cues & Dispositions | No dedicated item type or structured field; currently free-text in description |
 | Personal weapons | `personalWeapon` item type registered; rendered in combat section |
 | Asset modules | `assetModule` item type registered; rendered as embedded list |

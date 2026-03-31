@@ -8,6 +8,7 @@ what appears
 in what order
 
 in which grouping container (stack, tabs, panel)
+in which grouping container (stack, tabs, accordion, panel)
 
 which partials are included
 
@@ -38,6 +39,8 @@ include = render one partial
 stack = vertical grouping
 
 tabs = tab grouping
+
+accordion = vertical disclosure grouping
 
 Never bury global components in tabs
 Top-band components (Attributes, Edge console, Condition Monitors) belong above tabs.
@@ -127,6 +130,35 @@ renderMode: "stack"
 classes: string[]
 
 Tab object:
+
+id: string
+
+label: string
+
+children: node[]
+
+accordion
+
+Defines vertically stacked disclosure sections. In v1, it behaves like vertical tabs with collapse-all support:
+
+- only one section may be open at a time
+- clicking a different header switches sections
+- clicking the open header collapses all sections
+
+Required:
+
+type: "accordion"
+
+group: string
+
+sections: accordionSection[]
+Optional:
+
+default: string
+
+classes: string[]
+
+Accordion section object:
 
 id: string
 

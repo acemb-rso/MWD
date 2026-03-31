@@ -44,6 +44,13 @@ How it fits: Used by rendering code to produce UI fragments.
           {{/if}}
         </span>
 
+        {{#if s.bonus}}
+          <span class="mwd-pill" title="Roll bonus from life modules and other derived effects">
+            <span class="mwd-pill__tag">M</span>
+            <span class="mwd-pill__val">{{s.bonus}}</span>
+          </span>
+        {{/if}}
+
         <span class="mwd-pill" title="Total = Base + Rating + Bonus">
           <span class="mwd-pill__tag">T</span>
           <span class="mwd-pill__val">{{s.total}}</span>

@@ -6,6 +6,7 @@
 import { LOG_HEAD, SYSTEM_NAME } from "../constants.js";
 import { Misc } from "../misc.js";
 import { buildSkillDisplay } from "../mwd/skills.js";
+import { notifyRollError } from "../roll/roll-errors.js";
 
 
 /**
@@ -29,6 +30,7 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
 
   /** Track active CSB tab per group across rerenders */
   #activeTabsByGroup = new Map(); // group -> tabId
+  #activeAccordionSectionsByGroup = new Map(); // group -> sectionId|null
 
   /** @override */
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
@@ -38,6 +40,7 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
     actions: {
       toggleViewMode: BaseActorSheetV2.prototype._onToggleViewMode,
       tab: BaseActorSheetV2.prototype._onClickTab,
+      accordion: BaseActorSheetV2.prototype._onClickAccordion,
       roll: BaseActorSheetV2.prototype._onRollAction,
       monitorSet: BaseActorSheetV2.prototype._onMonitorSet,
       editImage: BaseActorSheetV2.prototype._onEditImage
@@ -257,6 +260,26 @@ _initializeApplicationOptions(options) {
 
     this.#applyTabState(tabs, tabId);
   }
+
+  _onClickAccordion(event, target) {
+    const el =
+      target?.closest?.(".csb-accordion__trigger[data-section]") ??
+      event?.target?.closest?.(".csb-accordion__trigger[data-section]");
+    if (!el) return;
+
+    const sectionId = el.dataset.section;
+    const accordion = el.closest(".csb-accordion");
+    if (!accordion || !sectionId) return;
+
+    const group = accordion.dataset.group || "default";
+    const current = this.#activeAccordionSectionsByGroup.has(group)
+      ? this.#activeAccordionSectionsByGroup.get(group)
+      : (accordion.dataset.default || null);
+    const nextSectionId = current === sectionId ? null : sectionId;
+
+    this.#activeAccordionSectionsByGroup.set(group, nextSectionId);
+    this.#applyAccordionState(accordion, nextSectionId);
+  }
   
   /**
    * Universal roll action: data-action="roll" + data-roll='{"intent":"skill","key":"gunnery"}'
@@ -287,7 +310,13 @@ _initializeApplicationOptions(options) {
       return;
     }
 
-    return rollApi.execute({ actor: this.actor, payload, event, quick });
+    try {
+      return await rollApi.execute({ actor: this.actor, payload, event, quick });
+    } catch (error) {
+      console.error("MWD | Failed to execute roll action", error);
+      notifyRollError(error, "Unable to execute that roll.");
+      return null;
+    }
   }
 
   async _onEditImage(event, target) {
@@ -340,6 +369,15 @@ _initializeApplicationOptions(options) {
 
       this.#applyTabState(tabs, tabId);
     }
+
+    for (const accordion of root.querySelectorAll(".csb-accordion")) {
+      const group = accordion.dataset.group || "default";
+      const sectionId = this.#activeAccordionSectionsByGroup.has(group)
+        ? this.#activeAccordionSectionsByGroup.get(group)
+        : (accordion.dataset.default || null);
+      this.#applyAccordionState(accordion, sectionId);
+    }
+
       // Debugging aid: warn if tabs exist but no active tab applied
     if (root.querySelectorAll(".csb-tabs").length && !root.querySelector(".csb-tab-panel.is-active")) {
       console.warn(`${LOG_HEAD} CSB tabs present but no active tab applied. Check element root resolution and CSS .is-active selectors.`, { sheet: this.constructor?.name
@@ -415,6 +453,27 @@ _initializeApplicationOptions(options) {
 
     tabsRoot.querySelectorAll(".csb-tab-panel").forEach(p => {
       p.classList.toggle("is-active", p.dataset.tab === tabId);
+    });
+  }
+
+  #applyAccordionState(accordionRoot, sectionId) {
+    accordionRoot.dataset.activeSection = sectionId ?? "";
+
+    accordionRoot.querySelectorAll(".csb-accordion__section").forEach(section => {
+      const isActive = section.dataset.section === sectionId;
+      section.classList.toggle("is-active", isActive);
+    });
+
+    accordionRoot.querySelectorAll(".csb-accordion__trigger").forEach(trigger => {
+      const isActive = trigger.dataset.section === sectionId;
+      trigger.classList.toggle("is-active", isActive);
+      trigger.setAttribute("aria-expanded", isActive ? "true" : "false");
+    });
+
+    accordionRoot.querySelectorAll(".csb-accordion__panel").forEach(panel => {
+      const parentSection = panel.closest(".csb-accordion__section");
+      const isActive = parentSection?.dataset.section === sectionId;
+      panel.classList.toggle("is-active", isActive);
     });
   }
 

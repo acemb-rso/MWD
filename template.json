@@ -450,7 +450,18 @@
         "inactive",
         "references"
       ],
-      "positive": true
+      "positive": true,
+      "category": "positive",
+      "tier": "minor",
+      "tags": [],
+      "activation": "passive",
+      "effects": [],
+      "prerequisites": [],
+      "limits": {
+        "perActivation": 0,
+        "perRound": 0,
+        "perScene": 0
+      }
     },
     "assetModule": {
       "templates": [

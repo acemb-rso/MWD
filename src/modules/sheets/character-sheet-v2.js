@@ -10,11 +10,26 @@ import { EDGE_POOL_GROUPS } from "../constants.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import {
+  evaluateActorLifeModules,
+  getLifeModuleCatalogEntry,
+  getLifeModuleGrantSelectionFields,
+  getLifeModuleTypeLabel,
+  listLifeModuleCatalogEntriesByType,
+  normalizeLifeModuleItemSystem,
+} from "../mwd/life-modules.js";
+import {
+  buildSkillDisplay,
   getOwnedSkillSpecializationKeys,
   getStoredSkillSpecializationKeys,
   getSkillSpecializationDefs,
   normalizeStoredSkillSpecializationKeys,
 } from "../mwd/skills.js";
+import { notifyRollError } from "../roll/roll-errors.js";
+import {
+  getQualityCategoryLabel,
+  getQualityTierLabel,
+  normalizeQualityTraitSystem,
+} from "../mwd/traits.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -77,6 +92,29 @@ function formatRangeBandLabel(rangeKey = "") {
   const value = String(rangeKey ?? "").trim().toLowerCase();
   if (!value) return "";
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+async function promptSelectOption({ title, label, options = [], confirmLabel = "Select" } = {}) {
+  const choices = Array.isArray(options) ? options.filter(option => option?.value) : [];
+  if (!choices.length) return "";
+  if (choices.length === 1) return String(choices[0].value ?? "").trim();
+
+  const content = `<form class="mwd-quick-select"><div class="mwd-field"><label>${escapeHtml(label)}</label><select name="selection">${choices.map(option => `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label ?? option.value)}</option>`).join("")}</select></div></form>`;
+  return await Dialog.prompt({
+    title,
+    content,
+    label: confirmLabel,
+    callback: html => String(html.find('select[name="selection"]').val() ?? choices[0]?.value ?? "").trim()
+  });
 }
 
 export class CharacterSheetV2 extends BaseActorSheetV2 {
@@ -172,7 +210,9 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
             value,
             max,
             rating: Number(p.rating ?? 0),
-            isCapped: Number(p.rating ?? 0) > Number(p.cap ?? cap),
+            ratingBonus: Number(p.ratingBonus ?? 0),
+            effectiveRating: Number(p.effectiveRating ?? p.rating ?? 0),
+            isCapped: Number(p.effectiveRating ?? p.rating ?? 0) > Number(p.cap ?? cap),
             pips,
 
             // Paths for edit-mode inputs
@@ -444,21 +484,81 @@ ctx.edgeConsole.poolsOrdered = order
       )
     };
 
-    const LIFE_MODULE_SLOTS = [
-      { moduleType: "faction",          label: "Faction" },
-      { moduleType: "childhood",        label: "Childhood" },
-      { moduleType: "higherEducation",  label: "Higher Education" },
-      { moduleType: "realLife",         label: "Real Life" }
-    ];
-    const lifeModuleItems = (this.actor.items ?? []).filter(i => i.type === "lifeModule");
-    ctx.lifeModules = LIFE_MODULE_SLOTS.map(slot => {
-      const item = lifeModuleItems.find(i => i.system?.moduleType === slot.moduleType) ?? null;
+    const lifeModuleEvaluation = evaluateActorLifeModules(this.actor);
+    ctx.skillsDisplay = buildSkillDisplay(this.actor?.system ?? {}, {
+      bonusBySkill: lifeModuleEvaluation.bonusBySkill
+    });
+    ctx.lifeModules = lifeModuleEvaluation.slotStates.map(slot => {
+      const itemState = slot.state;
       return {
         moduleType: slot.moduleType,
-        label:      slot.label,
-        item: item ? { id: item.id, name: item.name, img: item.img } : null
+        label: slot.label,
+        hasCatalogEntries: slot.availableEntries.length > 0,
+        emptyState: slot.availableEntries.length > 0
+          ? `Add ${slot.label}`
+          : `No ${slot.label} catalog entries configured`,
+        item: itemState ? {
+          id: itemState.itemId,
+          name: itemState.label,
+          img: itemState.item.img,
+          bonusLabels: [...(itemState.selectedChoiceLabels ?? [])],
+          warningLabels: [...(itemState.warningLabels ?? [])],
+          isActive: itemState.isActive,
+          statusLabel: itemState.isActive ? "Active" : "Inactive",
+          statusReason: itemState.inactiveReason
+        } : null
       };
     });
+
+    const qualityCategoryOrder = ["positive", "negative", "narrative"];
+    const qualityTierOrder = ["major", "minor"];
+    const qualities = [...(ctx.items?.quality ?? [])]
+      .sort((left, right) => {
+        const leftSystem = normalizeQualityTraitSystem(left.system ?? {});
+        const rightSystem = normalizeQualityTraitSystem(right.system ?? {});
+        const categoryDelta = qualityCategoryOrder.indexOf(leftSystem.category) - qualityCategoryOrder.indexOf(rightSystem.category);
+        if (categoryDelta !== 0) return categoryDelta;
+        const tierDelta = qualityTierOrder.indexOf(leftSystem.tier) - qualityTierOrder.indexOf(rightSystem.tier);
+        if (tierDelta !== 0) return tierDelta;
+        return String(left.name ?? "").localeCompare(String(right.name ?? ""));
+      });
+
+    ctx.qualityGroups = qualityCategoryOrder.map(category => ({
+      id: category,
+      label: getQualityCategoryLabel(category),
+      records: qualities
+        .filter(item => normalizeQualityTraitSystem(item.system ?? {}).category === category)
+        .map(item => {
+          const system = normalizeQualityTraitSystem(item.system ?? {});
+          const accordionId = this.#inventoryAccordionId("quality", item.id);
+          return {
+            id: item.id,
+            accordionId,
+            isExpanded: this.#expandedInventoryRows.has(accordionId),
+            name: item.name,
+            img: item.img,
+            subtitle: `${getQualityTierLabel(system.tier)} ${getQualityCategoryLabel(system.category)}`,
+            summaryStats: buildSummaryStats([
+              { label: "Tier", value: getQualityTierLabel(system.tier), emphasis: "strong" },
+              { label: "Activation", value: system.activation || "passive" },
+              { label: "Effects", value: String(system.effects?.length ?? 0) },
+            ]),
+            detailTags: buildDetailTags([
+              system.inactive ? "Inactive" : "",
+              ...(system.tags ?? []),
+            ]),
+            detailRows: buildDetailRows([
+              { label: "Category", value: getQualityCategoryLabel(system.category) },
+              { label: "Tier", value: getQualityTierLabel(system.tier) },
+              { label: "Activation", value: system.activation || "passive" },
+              { label: "Prerequisites", value: String(system.prerequisites?.length ?? 0) },
+              { label: "Effects", value: String(system.effects?.length ?? 0) },
+              { label: "Tags", value: compactList(system.tags ?? []).join(", ") },
+            ]),
+            detailText: toSnippet(item.system?.description),
+          };
+        }),
+    }));
 
     return ctx;
   }
@@ -755,8 +855,13 @@ ctx.edgeConsole.poolsOrdered = order
     ui.notifications?.warn("Overloaded actors can only recover Burn.");
     return;
   }
-  if (snapshot.state.saRemaining < 2) {
-    ui.notifications?.warn("Need 2 SA remaining to attack.");
+  const activationCap = 3 + Math.floor((
+    Math.max(0, Number(actorWriteTarget.system?.attributes?.reflexes?.value ?? 0))
+    + Math.max(0, Number(actorWriteTarget.system?.attributes?.willpower?.value ?? 0))
+  ) / 2);
+  const saCapacityRemaining = Math.max(0, activationCap - Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0)));
+  if (saCapacityRemaining < 2) {
+    ui.notifications?.warn("Activation SA cap reached.");
     return;
   }
 
@@ -792,9 +897,9 @@ ctx.edgeConsole.poolsOrdered = order
     this.#renderPreservingScroll({ force: true });
   } catch (error) {
     console.error("MWD | Failed to launch attack", error);
-    ui.notifications?.error(error?.message ?? "Unable to launch attack.");
+    notifyRollError(error, "Unable to launch attack.");
   }
- }
+}
 
  async _onAddSkillSpecialization(event, target) {
   event?.preventDefault?.();
@@ -865,14 +970,54 @@ ctx.edgeConsole.poolsOrdered = order
   if (!moduleType) return;
 
   const actor = this.getPersistentActor() ?? this.actor;
-  const labelMap = {
-    faction: "Faction", childhood: "Childhood",
-    higherEducation: "Higher Education", realLife: "Real Life"
-  };
+  const entries = listLifeModuleCatalogEntriesByType(moduleType);
+  if (!entries.length) {
+    ui.notifications?.warn(`No ${getLifeModuleTypeLabel(moduleType)} life modules are configured in game settings.`);
+    return;
+  }
+
+  const selectedCatalogId = await promptSelectOption({
+    title: `Choose ${getLifeModuleTypeLabel(moduleType)} Life Module`,
+    label: "Life Module",
+    confirmLabel: "Create",
+    options: entries.map(entry => ({
+      value: entry.id,
+      label: entry.label
+    }))
+  });
+  if (!selectedCatalogId) return;
+
+  const catalogEntry = getLifeModuleCatalogEntry(selectedCatalogId);
+  if (!catalogEntry) {
+    ui.notifications?.warn("That life module catalog entry no longer exists.");
+    return;
+  }
+
+  const grantFields = getLifeModuleGrantSelectionFields(catalogEntry, {});
+  const selectedGrants = {};
+
+  for (const grant of grantFields.filter(field => field.hasMultipleChoices)) {
+    const selectedGrant = await promptSelectOption({
+      title: `Choose Bonus for ${catalogEntry.label}`,
+      label: grant.label,
+      confirmLabel: "Apply",
+      options: grant.options.map(option => ({
+        value: option.value,
+        label: option.label
+      }))
+    });
+    if (!selectedGrant) return;
+    selectedGrants[grant.id] = selectedGrant;
+  }
+
   await actor.createEmbeddedDocuments("Item", [{
-    name: labelMap[moduleType] ?? moduleType,
+    name: catalogEntry.label,
     type: "lifeModule",
-    system: { moduleType }
+    system: normalizeLifeModuleItemSystem({
+      moduleType,
+      catalogId: catalogEntry.id,
+      selectedGrants
+    })
   }]);
   this.#renderPreservingScroll({ force: true });
  }
@@ -996,9 +1141,9 @@ ctx.edgeConsole.poolsOrdered = order
     this.#renderPreservingScroll({ force: true });
   } catch (error) {
     console.error("MWD | Failed to launch weapon attack", error);
-    ui.notifications?.error(error?.message ?? "Unable to attack with that weapon.");
+    notifyRollError(error, "Unable to attack with that weapon.");
   }
- }
+}
 
  #getOwnedItemFromTarget(target, event) {
   const itemId = String(

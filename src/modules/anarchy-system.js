@@ -26,14 +26,37 @@ import { StatusEffectsProvider } from "../modules/modifiers/providers/status-eff
 import { BaseRollModifiersProvider } from "../modules/modifiers/providers/base-modifiers.js";
 import { ConditionModifiersProvider } from "../modules/modifiers/providers/conditions.js";
 import { burnModifier } from "../modules/modifiers/providers/burn-modifier.js";
+import { LifeModuleModifiersProvider } from "../modules/modifiers/providers/life-modules.js";
 import { SceneModifiersProvider } from "../modules/modifiers/providers/scene-modifiers.js";
+import { TraitModifiersProvider } from "../modules/modifiers/providers/traits.js";
 import { Modifiers } from "./modifiers/anarchy-modifiers.js";
 import { PersonalCombatTracker } from "./combat/personal-combat-tracker.js";
 import { registerMWDChatActions } from "./chat/chat-actions.js";
 import { registerMWDGMGadgetSettings } from "./gm/mwd-gmgadget.js";
 import { getMWDGMGadget } from "./gm/mwd-gmgadget.js";
+import {
+  ensureLifeModuleCatalogDefaults,
+  evaluateActorLifeModules,
+  getLifeModuleCatalogEntry,
+  getLifeModuleTypeLabel,
+  listLifeModuleCatalogEntries,
+  listLifeModuleCatalogEntriesByType,
+} from "./mwd/life-modules.js";
 import { getSkillDef, listSkillDefs } from "./mwd/skills.js";
 import { HarmEngine } from "./harm/harm-engine.js";
+import {
+  applyTraitMutations,
+  buildActionCostTraitFacts,
+  buildBurnTraitFacts,
+  buildDamageTraitFacts,
+  buildEdgeTraitFacts,
+  buildEndOfActivationTraitFacts,
+  buildInitiativeTraitFacts,
+  buildRollTraitFacts,
+  evaluateTraitPhase,
+  getTraitEditorConfig,
+  normalizeQualityTraitSystem,
+} from "./mwd/traits.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -98,6 +121,64 @@ function createMWDSkillsService() {
   };
 }
 
+function createMWDLifeModulesService() {
+  return {
+    get(catalogId) {
+      return getLifeModuleCatalogEntry(catalogId);
+    },
+    list() {
+      return listLifeModuleCatalogEntries();
+    },
+    listByType(moduleType) {
+      return listLifeModuleCatalogEntriesByType(moduleType);
+    },
+    getTypeLabel(moduleType) {
+      return getLifeModuleTypeLabel(moduleType);
+    },
+    evaluate(actor) {
+      return evaluateActorLifeModules(actor);
+    }
+  };
+}
+
+function createMWDTraitsService() {
+  return {
+    normalizeQualitySystem(system) {
+      return normalizeQualityTraitSystem(system);
+    },
+    getEditorConfig() {
+      return getTraitEditorConfig();
+    },
+    evaluatePhase(args) {
+      return evaluateTraitPhase(args);
+    },
+    applyMutations(args) {
+      return applyTraitMutations(args);
+    },
+    buildRollFacts(args) {
+      return buildRollTraitFacts(args);
+    },
+    buildActionCostFacts(args) {
+      return buildActionCostTraitFacts(args);
+    },
+    buildBurnFacts(args) {
+      return buildBurnTraitFacts(args);
+    },
+    buildInitiativeFacts(args) {
+      return buildInitiativeTraitFacts(args);
+    },
+    buildDamageFacts(args) {
+      return buildDamageTraitFacts(args);
+    },
+    buildEdgeFacts(args) {
+      return buildEdgeTraitFacts(args);
+    },
+    buildEndOfActivationFacts(args) {
+      return buildEndOfActivationTraitFacts(args);
+    }
+  };
+}
+
 export class AnarchySystem {
 
   static start() {
@@ -126,11 +207,17 @@ export class AnarchySystem {
     this.personalCombat = PersonalCombatTracker;
     this.harm = HarmEngine;
     this.skills = createMWDSkillsService();
+    this.lifeModules = createMWDLifeModulesService();
+    this.traits = createMWDTraitsService();
 
     // initialize remote calls registry first: used by other singleton managers
     this.remoteCall = new RemoteCall();
     game.system.mwd.skills = this.skills;
+    game.system.mwd.lifeModules = this.lifeModules;
+    game.system.mwd.traits = this.traits;
     game.mwd.skills = this.skills;
+    game.mwd.lifeModules = this.lifeModules;
+    game.mwd.traits = this.traits;
     Enums.init();
     this.modifiers = new Modifiers();
 
@@ -139,6 +226,8 @@ export class AnarchySystem {
     modifierProviders.register(new BaseRollModifiersProvider());
     modifierProviders.register(new ConditionModifiersProvider());
     modifierProviders.register(burnModifier);
+    modifierProviders.register(new LifeModuleModifiersProvider());
+    modifierProviders.register(new TraitModifiersProvider());
     modifierProviders.register(new SceneModifiersProvider());
 
     //register handlebars helpers early
@@ -192,6 +281,8 @@ export class AnarchySystem {
     await PersonalCombatTracker.onReady();
 
     if (!game.user.isGM) return;
+
+    await ensureLifeModuleCatalogDefaults();
 
     const enabled = game.settings.get(SYSTEM_NAME, "enableGMGadget");
 

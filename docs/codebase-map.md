@@ -76,7 +76,7 @@ This document summarizes the key files in the MechWarrior: Destiny Foundry VTT s
 - `src/modules/item/contact-item.js` – Contact: loyalty/connection stats.
 - `src/modules/item/asset-module-item.js` – Asset module: level sorting, activation.
 - `src/modules/item/lifemodule-item.js` – Life module: attribute modifiers for character creation.
-- `src/modules/item/quality-item.js` – Quality/trait: positive/negative, favoriting.
+- `src/modules/item/quality-item.js` – Quality/trait document placeholder; live trait behavior is driven by normalized quality item data plus the trait rule engine.
 
 ### Item sheets (AppV2)
 

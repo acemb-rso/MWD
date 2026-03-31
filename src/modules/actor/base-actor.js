@@ -86,18 +86,20 @@ export class AnarchyBaseActor extends Actor {
     if (!qualities) {
       return []
     }
+    const categoryOrder = ["positive", "negative", "narrative"];
+    const tierOrder = ["major", "minor"];
     return qualities.sort((qa, qb) => {
-      // same type of quality
-      if (qa.system.positive === qb.system.positive) {
-        if (qa.name > qb.name) return 1;
-        if (qa.name < qb.name) return -1;
-        return 0;
-      }
+      const leftCategory = String(qa.system?.category ?? (qa.system?.positive === false ? "negative" : "positive")).trim() || "positive";
+      const rightCategory = String(qb.system?.category ?? (qb.system?.positive === false ? "negative" : "positive")).trim() || "positive";
+      const categoryDelta = categoryOrder.indexOf(leftCategory) - categoryOrder.indexOf(rightCategory);
+      if (categoryDelta !== 0) return categoryDelta;
 
-      if (qa.system.positive) return -1;
-      if (qb.system.positive) return 1;
+      const leftTier = String(qa.system?.tier ?? "minor").trim() || "minor";
+      const rightTier = String(qb.system?.tier ?? "minor").trim() || "minor";
+      const tierDelta = tierOrder.indexOf(leftTier) - tierOrder.indexOf(rightTier);
+      if (tierDelta !== 0) return tierDelta;
 
-      return 0;
+      return String(qa.name ?? "").localeCompare(String(qb.name ?? ""));
     })
   }
 
