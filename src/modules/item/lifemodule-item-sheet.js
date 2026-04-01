@@ -3,6 +3,7 @@
 // How it fits: Lets owned actor life modules reference canonical catalog definitions and chosen skill bonuses.
 
 import { BaseItemSheet } from "./base-item-sheet.js";
+import { TEMPLATES_PATH } from "../constants.js";
 import {
   describeLifeModuleChoice,
   evaluateActorLifeModules,
@@ -16,6 +17,15 @@ import {
 } from "../mwd/life-modules.js";
 
 export class LifeModuleItemSheet extends BaseItemSheet {
+  static LAYOUT_ID = "life-module";
+
+  static PARTS = {
+    sheet: {
+      template: `${TEMPLATES_PATH}/v2/item/lifeModule.hbs`,
+      scrollable: [".sheet-body"]
+    }
+  };
+
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       position: {

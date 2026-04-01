@@ -13,11 +13,21 @@ export class LayoutRegistry {
   static #cache = new Map();
 
   static async get(layoutId) {
-    if (this.#cache.has(layoutId)) return this.#cache.get(layoutId);
+    if (this.#cache.has(layoutId)) {
+      const cached = await this.#cache.get(layoutId);
+      if (Number(cached?.version ?? 0) > 0) return cached;
+      this.#cache.delete(layoutId);
+    }
 
-    const p = this.#load(layoutId);
-    this.#cache.set(layoutId, p);
-    return p;
+    const pending = this.#load(layoutId);
+    this.#cache.set(layoutId, pending);
+
+    const layout = await pending;
+    if (Number(layout?.version ?? 0) <= 0) {
+      this.#cache.delete(layoutId);
+    }
+
+    return layout;
   }
 
   static async #load(layoutId) {

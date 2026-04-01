@@ -1,0 +1,18 @@
+{
+  "id": "contact",
+  "version": 1,
+  "root": {
+    "type": "stack",
+    "classes": ["csb-layout", "mwd-item-layout"],
+    "children": [
+      {
+        "type": "panel",
+        "title": "Notes and Reference",
+        "classes": ["mwd-item-section"],
+        "children": [
+          { "type": "include", "partial": "mwd.v2.item.parts.references" }
+        ]
+      }
+    ]
+  }
+}

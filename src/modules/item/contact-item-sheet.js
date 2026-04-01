@@ -7,6 +7,8 @@ import { BaseItemSheet } from "./base-item-sheet.js";
 import { TEMPLATES_PATH } from "../constants.js";
 
 export class ContactItemSheet extends BaseItemSheet {
+  static LAYOUT_ID = "contact";
+
   static PARTS = {
     sheet: {
       template: `${TEMPLATES_PATH}/v2/item/contact.hbs`,

@@ -22,6 +22,7 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ItemSheetV2) {
   #activeTabsByGroup = new Map();
   #activeAccordionSectionsByGroup = new Map();
+  #pendingScrollRestore = null;
 
   static LAYOUT_ID = null;
 
@@ -438,6 +439,56 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
         : (accordionRoot.dataset.default || null);
       this.#applyAccordionState(accordionRoot, activeSection);
     }
+
+    this._restoreScrollPositions();
+  }
+
+  _getScrollRestoreSelectors() {
+    return [".sheet-body", ".csb-tab-panels"];
+  }
+
+  _captureScrollPositions() {
+    const root = this._getRootElement();
+    if (!root) {
+      this.#pendingScrollRestore = null;
+      return;
+    }
+
+    const positions = [];
+    for (const selector of this._getScrollRestoreSelectors()) {
+      root.querySelectorAll(selector).forEach((element, index) => {
+        if (!(element instanceof HTMLElement)) return;
+        positions.push({
+          selector,
+          index,
+          top: element.scrollTop,
+          left: element.scrollLeft,
+        });
+      });
+    }
+
+    this.#pendingScrollRestore = positions.length ? positions : null;
+  }
+
+  _restoreScrollPositions() {
+    const pending = this.#pendingScrollRestore;
+    if (!pending?.length) return;
+
+    const apply = () => {
+      const root = this._getRootElement();
+      if (!root) return;
+
+      for (const entry of pending) {
+        const element = root.querySelectorAll(entry.selector).item(entry.index);
+        if (!(element instanceof HTMLElement)) continue;
+        element.scrollTop = entry.top;
+        element.scrollLeft = entry.left;
+      }
+    };
+
+    apply();
+    requestAnimationFrame(apply);
+    this.#pendingScrollRestore = null;
   }
 
   #applyTabState(root, group, tabId) {

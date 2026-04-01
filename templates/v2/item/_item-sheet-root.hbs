@@ -5,7 +5,7 @@ How it fits: Used by rendering code to produce UI fragments.
 --}}
 
 
-<section class="{{cssClass}} mwd-sheet mwd-item-sheet{{#if itemSheet.isCompactWeaponSheet}} mwd-item-sheet--weapon-compact{{/if}}{{#if itemSheet.isArmorSheet}} mwd-item-sheet--armor-fixed{{/if}}" data-application-part="sheet">
+<section class="{{cssClass}} mwd-sheet mwd-item-sheet{{#if itemSheet.isCompactWeaponSheet}} mwd-item-sheet--weapon-compact{{/if}}{{#if itemSheet.isArmorSheet}} mwd-item-sheet--armor-fixed{{/if}}{{#if itemSheet.sheetClass}} {{itemSheet.sheetClass}}{{/if}}" data-application-part="sheet">
   <header class="sheet-header">
     <div class="header-left">
       <div class="mwd-item-sheet__media">

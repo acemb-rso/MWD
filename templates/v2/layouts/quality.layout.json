@@ -1,0 +1,48 @@
+{
+  "id": "quality",
+  "version": 1,
+  "root": {
+    "type": "stack",
+    "classes": ["csb-layout", "mwd-item-layout"],
+    "children": [
+      {
+        "type": "panel",
+        "title": "Trait Setup",
+        "classes": ["mwd-item-section"],
+        "children": [
+          { "type": "include", "partial": "mwd.v2.item.parts.quality-main" }
+        ]
+      },
+      {
+        "type": "panel",
+        "title": "Trait Limits",
+        "classes": ["mwd-item-section"],
+        "children": [
+          { "type": "include", "partial": "mwd.v2.item.parts.quality-limits" }
+        ]
+      },
+      {
+        "type": "panel",
+        "classes": ["mwd-item-section"],
+        "children": [
+          { "type": "include", "partial": "mwd.v2.item.parts.quality-prerequisites" }
+        ]
+      },
+      {
+        "type": "panel",
+        "classes": ["mwd-item-section"],
+        "children": [
+          { "type": "include", "partial": "mwd.v2.item.parts.quality-effects" }
+        ]
+      },
+      {
+        "type": "panel",
+        "title": "Notes and Reference",
+        "classes": ["mwd-item-section"],
+        "children": [
+          { "type": "include", "partial": "mwd.v2.item.parts.references" }
+        ]
+      }
+    ]
+  }
+}

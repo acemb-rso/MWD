@@ -7,6 +7,8 @@ import { BaseItemSheet } from "./base-item-sheet.js";
 import { TEMPLATES_PATH } from "../constants.js";
 
 export class AssetModuleItemSheet extends BaseItemSheet {
+  static LAYOUT_ID = "asset-module";
+
   static PARTS = {
     sheet: {
       template: `${TEMPLATES_PATH}/v2/item/assetModule.hbs`,

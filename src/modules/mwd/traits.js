@@ -154,9 +154,7 @@ function normalizeComparatorEntry(entry = {}) {
 
 export function normalizeTraitPrerequisites(entries = []) {
   const source = Array.isArray(entries) ? entries : [];
-  return source
-    .map(normalizeComparatorEntry)
-    .filter(entry => entry.fact);
+  return source.map(normalizeComparatorEntry);
 }
 
 function normalizeTraitEffect(entry = {}) {
@@ -177,6 +175,7 @@ function normalizeTraitEffect(entry = {}) {
     type,
     phase,
     selector: toTrimmedString(source.selector),
+    skillKeys: normalizeStringArray(source.skillKeys),
     label: toTrimmedString(source.label),
     value: toNumber(source.value, 0),
     min: source.min === undefined || source.min === null || source.min === ""
@@ -190,6 +189,11 @@ function normalizeTraitEffect(entry = {}) {
     conditions: normalizeTraitPrerequisites(source.conditions),
     limit: normalizeTraitLimits(source.limit),
   };
+}
+
+export function traitEffectUsesSkillSelector(effect = {}) {
+  const selector = toTrimmedString(effect?.selector);
+  return selector === "intent.skill" || selector.startsWith("intent.skill.");
 }
 
 export function normalizeTraitEffects(entries = []) {
@@ -347,6 +351,7 @@ function compareValues(actual, comparator, expected) {
 }
 
 function evaluateComparatorEntry(entry, facts) {
+  if (!toTrimmedString(entry?.fact)) return true;
   const actual = foundry.utils.getProperty(facts, entry.fact);
   return compareValues(actual, entry.comparator, entry.value);
 }
@@ -504,10 +509,23 @@ export function buildRollTraitFacts({ actor, resolved, payload, runtime = {} } =
   const domains = Array.isArray(resolved?.domains) ? resolved.domains : [];
   const rangeBand = toTrimmedString(resolved?.attack?.rangeBand ?? payload?.rangeBand);
   const prePoolKey = toTrimmedString(payload?.edge?.pre?.poolKey ?? payload?.edge?.poolKey ?? "");
+  const skillKey = toTrimmedString(
+    resolved?.data?.skillKey
+    ?? resolved?.specialization?.skillKey
+    ?? (intent === "skill" ? payload?.key : "")
+  );
+  const skillLabel = toTrimmedString(
+    resolved?.breakdown?.find?.(entry => entry?.id === "skill")?.label
+    ?? resolved?.title
+  );
 
   facts.intent = intent;
   facts.domains = domains;
   facts.rangeBand = rangeBand;
+  facts.skill = {
+    key: skillKey,
+    label: skillLabel,
+  };
   facts.edge = {
     stage: payload?.toggles?.useEdge ? "pre" : "",
     pool: prePoolKey,
@@ -516,6 +534,7 @@ export function buildRollTraitFacts({ actor, resolved, payload, runtime = {} } =
   facts.selectors.push(`intent.${intent}`);
   domains.forEach(domain => facts.selectors.push(`domain.${domain}`));
   if (rangeBand) facts.selectors.push(`range.${rangeBand}`);
+  if (intent === "skill" && skillKey) facts.selectors.push(`skill.${skillKey}`);
   if (payload?.toggles?.useEdge) facts.selectors.push("edge.pre");
   return facts;
 }
@@ -623,7 +642,9 @@ export function evaluateTraitPhase({ actor, phase, facts = {}, packet = {}, opti
       continue;
     }
 
-    const unmetPrereqs = system.prerequisites.filter(entry => !evaluateComparatorEntry(entry, facts));
+    const unmetPrereqs = system.prerequisites
+      .filter(entry => toTrimmedString(entry?.fact))
+      .filter(entry => !evaluateComparatorEntry(entry, facts));
     if (unmetPrereqs.length) {
       result.skipped.push({
         traitItemId: item.id,
@@ -645,7 +666,22 @@ export function evaluateTraitPhase({ actor, phase, facts = {}, packet = {}, opti
         continue;
       }
 
-      const unmetConditions = effect.conditions.filter(entry => !evaluateComparatorEntry(entry, facts));
+      if (traitEffectUsesSkillSelector(effect) && effect.skillKeys.length) {
+        const skillKey = toTrimmedString(facts?.skill?.key);
+        if (!skillKey || !effect.skillKeys.includes(skillKey)) {
+          result.skipped.push({
+            traitItemId: item.id,
+            traitEffectId: effect.id,
+            label: effect.label || item.name,
+            reason: `Skill did not match (${effect.skillKeys.join(", ")})`,
+          });
+          continue;
+        }
+      }
+
+      const unmetConditions = effect.conditions
+        .filter(entry => toTrimmedString(entry?.fact))
+        .filter(entry => !evaluateComparatorEntry(entry, facts));
       if (unmetConditions.length) {
         result.skipped.push({
           traitItemId: item.id,

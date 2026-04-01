@@ -1,0 +1,256 @@
+{{!--
+templates/v2/item/parts/quality-effects.hbs
+Purpose: Renders editable quality effects and per-effect conditions.
+How it fits: Included by the layout-backed quality sheet.
+--}}
+
+<div class="mwd-record mwd-record--embedded">
+  <div class="mwd-record__header">
+    <div class="mwd-record__main">
+      <div class="mwd-record__topline">
+        <span class="mwd-record__title-btn">Effects</span>
+      </div>
+      <div class="mwd-record__subtitle">Rule packets consumed by the engine at specific pipeline phases. Each effect fires independently. A trait with no effects is descriptive only.</div>
+    </div>
+    <div class="mwd-record__actions">
+      <button type="button" class="mwd-record__icon-btn mwd-quality-effect-add" title="Add effect">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+  </div>
+  <div class="mwd-record__body">
+    {{#if system.effects.length}}
+      <div class="mwd-records">
+        {{#each system.effects as |effect|}}
+          <div class="mwd-record is-expanded" data-effect-id="{{effect.id}}">
+            <div class="mwd-record__header">
+              <div class="mwd-record__main">
+                <div class="mwd-record__topline">
+                  <span class="mwd-record__title-btn">{{#if effect.label}}{{effect.label}}{{else}}Effect{{/if}}</span>
+                  <div class="mwd-record__stats">
+                    <span class="mwd-record__stat">
+                      <span class="mwd-record__stat-label">Type</span>
+                      <span class="mwd-record__stat-value">{{effect.type}}</span>
+                    </span>
+                    <span class="mwd-record__stat">
+                      <span class="mwd-record__stat-label">Phase</span>
+                      <span class="mwd-record__stat-value">{{effect.phase}}</span>
+                    </span>
+                  </div>
+                </div>
+                {{#if effect.selector}}
+                  <div class="mwd-record__subtitle">{{effect.selector}}</div>
+                {{/if}}
+              </div>
+              <div class="mwd-record__actions">
+                <button type="button" class="mwd-record__icon-btn is-danger mwd-quality-effect-delete" data-effect-id="{{effect.id}}" title="Delete effect">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <div class="mwd-record__body">
+              <div class="mwd-two-col">
+                <div class="form-group">
+                  <label data-tooltip="Roll Modifier: adds dice to a roll pool. Burn Adjust: modifies burn cost or amount. Action Cost Mod: modifies action point cost. Initiative Mod: modifies initiative total. Damage Intake Mod: modifies damage received. Edge Event: adjusts edge gained/spent, or grants an edge pool at end of activation.">Type</label>
+                  <select class="mwd-quality-effect-field" data-effect-id="{{effect.id}}" data-field="type">
+                    {{selectOptions ../traitEditor.effectTypes selected=effect.type valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label data-tooltip="When in the engine pipeline this effect fires. Match to the Type: Build Roll for dice mods; Before Burn Applied for burn; Before Action Cost Finalized for AP cost; Initiative Resolved for initiative; Damage Resolved for damage intake; End of Activation for cleanup; Edge Spend/Gain for edge events.">Phase</label>
+                  <select class="mwd-quality-effect-field" data-effect-id="{{effect.id}}" data-field="phase">
+                    {{selectOptions ../traitEditor.phases selected=effect.phase valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label data-tooltip="Shown in roll breakdowns and modifier summaries. Defaults to the trait name if left blank.">Label</label>
+                  <input class="mwd-quality-effect-field" type="text" value="{{effect.label}}" data-effect-id="{{effect.id}}" data-field="label" placeholder="Marksman" />
+                </div>
+                <div class="form-group">
+                  <label data-tooltip="Restricts this effect to specific roll intents or domains. Leave blank to match all rolls in this phase. Examples: intent.attack; intent.skill; domain.combat; range.close; range.near; edge.pre. Uses prefix matching; 'intent' matches intent.attack, intent.skill, etc.">Selector</label>
+                  <input class="mwd-quality-effect-field" type="text" value="{{effect.selector}}" data-effect-id="{{effect.id}}" data-field="selector" placeholder="intent.attack" />
+                </div>
+              </div>
+              <div class="mwd-item-note">
+                <strong>Phase guide:</strong>
+                Roll Modifier -> Build Roll &nbsp;&middot;&nbsp;
+                Burn Adjust -> Before Burn Applied &nbsp;&middot;&nbsp;
+                Action Cost -> Before Action Cost Finalized &nbsp;&middot;&nbsp;
+                Initiative -> Initiative Resolved &nbsp;&middot;&nbsp;
+                Damage Intake -> Damage Resolved &nbsp;&middot;&nbsp;
+                Edge Event -> Edge Spend / Edge Gain
+              </div>
+
+              {{#if effect.showSkillPicker}}
+                <div class="form-group mwd-quality-skill-picker">
+                  <label data-tooltip="Restrict this effect to one or more skills. This filter is only applied for effects authored with the selector 'intent.skill'. Leave all skills unselected to match every skill roll.">Skills</label>
+                  <div class="mwd-item-toggle-grid mwd-quality-skill-picker__grid">
+                    {{#each ../traitEditor.skills as |skill|}}
+                      {{#> "mwd.v2.components.checkbox" classes="mwd-checkbox--card mwd-quality-skill-picker__option" label=skill.label}}
+                        <input
+                          class="mwd-quality-effect-skill-toggle"
+                          type="checkbox"
+                          data-effect-id="{{effect.id}}"
+                          data-field="skillKeys"
+                          value="{{skill.value}}"
+                          {{checked (includes effect.skillKeys skill.value)}} />
+                      {{/ "mwd.v2.components.checkbox"}}
+                    {{/each}}
+                  </div>
+                </div>
+                <div class="mwd-item-note">
+                  Toggle any number of skills. Leave all skills unchecked to affect every skill roll.
+                </div>
+              {{/if}}
+
+              <div class="mwd-form-section-label">Modifier Amount</div>
+              <div class="mwd-three-col">
+                <div class="form-group">
+                  <label data-tooltip="The numeric modifier applied by this effect. Added to the dice pool (Roll Modifier), burn amount (Burn Adjust), action point cost, initiative total, or damage as appropriate for the Type. Use negative numbers to reduce.">Amount</label>
+                  <input class="type-numeric mwd-quality-effect-field" type="number" step="1" value="{{effect.value}}" data-effect-id="{{effect.id}}" data-field="value" />
+                </div>
+                <div class="form-group">
+                  <label data-tooltip="Optional floor: the result cannot go below this after applying Amount. Leave blank for no minimum.">Min</label>
+                  <input class="type-numeric mwd-quality-effect-field" type="number" step="1" value="{{effect.min}}" data-effect-id="{{effect.id}}" data-field="min" />
+                </div>
+                <div class="form-group">
+                  <label data-tooltip="Optional ceiling: the result cannot go above this after applying Amount. Leave blank for no maximum.">Max</label>
+                  <input class="type-numeric mwd-quality-effect-field" type="number" step="1" value="{{effect.max}}" data-effect-id="{{effect.id}}" data-field="max" />
+                </div>
+              </div>
+
+              {{#if effect.isEdgeEvent}}
+                <div class="mwd-form-section-label">Edge Settings</div>
+                <div class="mwd-two-col">
+                  <div class="form-group">
+                    <label data-tooltip="Edge pool to target. Only used by Edge Event effects with the 'Grant Pool' operation. Valid keys: grit, chaos, insight, legend.">Pool</label>
+                    <input class="mwd-quality-effect-field" type="text" value="{{effect.pool}}" data-effect-id="{{effect.id}}" data-field="pool" placeholder="grit" />
+                  </div>
+                  <div class="form-group">
+                    <label data-tooltip="Adjust Amount: modifies the edge amount being gained or spent by the Amount value. Grant Pool: adds Amount to the named Pool at end of activation.">Edge Operation</label>
+                    <select class="mwd-quality-effect-field" data-effect-id="{{effect.id}}" data-field="operation">
+                      {{selectOptions ../traitEditor.edgeOperations selected=effect.operation valueAttr="value" labelAttr="label" localize=false}}
+                    </select>
+                  </div>
+                </div>
+              {{/if}}
+
+              <div class="mwd-form-section-label">Fire Limits</div>
+              <div class="mwd-three-col">
+                <div class="form-group">
+                  <label data-tooltip="How many times this effect may fire within one character activation. Overrides the trait-level limit when set. 0 = no limit.">Per Activation</label>
+                  <input class="type-numeric mwd-quality-effect-field" type="number" min="0" step="1" value="{{effect.limit.perActivation}}" data-effect-id="{{effect.id}}" data-field="limit.perActivation" />
+                </div>
+                <div class="form-group">
+                  <label data-tooltip="How many times this effect may fire per combat round. Overrides the trait-level limit when set. 0 = no limit.">Per Round</label>
+                  <input class="type-numeric mwd-quality-effect-field" type="number" min="0" step="1" value="{{effect.limit.perRound}}" data-effect-id="{{effect.id}}" data-field="limit.perRound" />
+                </div>
+                <div class="form-group">
+                  <label data-tooltip="How many times this effect may fire per scene. Overrides the trait-level limit when set. 0 = no limit.">Per Scene</label>
+                  <input class="type-numeric mwd-quality-effect-field" type="number" min="0" step="1" value="{{effect.limit.perScene}}" data-effect-id="{{effect.id}}" data-field="limit.perScene" />
+                </div>
+              </div>
+
+              <div class="mwd-record mwd-record--embedded">
+                <div class="mwd-record__header">
+                  <div class="mwd-record__main">
+                    <div class="mwd-record__topline">
+                      <span class="mwd-record__title-btn">Conditions</span>
+                    </div>
+                    <div class="mwd-record__subtitle">Per-effect fact checks in addition to trait prerequisites. All must pass for this effect to fire.</div>
+                  </div>
+                  <div class="mwd-record__actions">
+                    <button type="button"
+                            class="mwd-record__icon-btn mwd-quality-effect-condition-add"
+                            data-effect-id="{{effect.id}}"
+                            title="Add condition">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="mwd-record__body">
+                  <div class="csb-accordion" data-group="quality-effect-reference-{{effect.id}}">
+                    <section class="csb-accordion__section" data-section="reference">
+                      <h3 class="csb-accordion__heading">
+                        <button type="button"
+                                class="csb-accordion__trigger"
+                                data-action="accordion"
+                                data-group="quality-effect-reference-{{effect.id}}"
+                                data-section="reference"
+                                aria-expanded="false"
+                                aria-controls="quality-effect-reference-panel-{{effect.id}}">
+                          <span class="csb-accordion__label">State Path Reference</span>
+                          <span class="csb-accordion__chevron" aria-hidden="true"></span>
+                        </button>
+                      </h3>
+                      <div class="csb-accordion__panel" id="quality-effect-reference-panel-{{effect.id}}">
+                        <div class="mwd-item-note">
+                          <strong>State paths:</strong>
+                          <code>activation.moved</code> (bool) &nbsp;&middot;&nbsp;
+                          <code>burn.current</code> (num) &nbsp;&middot;&nbsp;
+                          <code>burn.overloaded</code> (bool) &nbsp;&middot;&nbsp;
+                          <code>intent</code> (string) &nbsp;&middot;&nbsp;
+                          <code>rangeBand</code> (string) &nbsp;&middot;&nbsp;
+                          <code>edge.spent</code> (bool)
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+
+                  {{#if effect.conditions.length}}
+                    <div class="mwd-records">
+                      {{#each effect.conditions as |condition|}}
+                        <div class="mwd-weapon-compact__row mwd-weapon-compact__row--actions" data-condition-id="{{condition.id}}">
+                          <div class="form-group">
+                            <label data-tooltip="A dotted path into the engine fact object. Same paths as Prerequisites: activation.moved, burn.current, intent, rangeBand, edge.spent, etc.">State Path</label>
+                            <input class="mwd-quality-effect-condition-field"
+                                   type="text"
+                                   value="{{condition.fact}}"
+                                   data-effect-id="{{effect.id}}"
+                                   data-condition-id="{{condition.id}}"
+                                   data-field="fact"
+                                   placeholder="burn.current" />
+                          </div>
+                          <div class="form-group">
+                            <label data-tooltip="How to compare the fact to the value. Use 'Is True' or 'Is False' for boolean checks with no Against value.">Test</label>
+                            <select class="mwd-quality-effect-condition-field"
+                                    data-effect-id="{{effect.id}}"
+                                    data-condition-id="{{condition.id}}"
+                                    data-field="comparator">
+                              {{selectOptions ../../traitEditor.comparators selected=condition.comparator valueAttr="value" labelAttr="label" localize=false}}
+                            </select>
+                          </div>
+                          <div class="form-group">
+                            <label data-tooltip="Auto-typed: 'true'/'false' become booleans, plain numbers become numerics. Leave blank for 'Is True' / 'Is False'.">Against</label>
+                            <input class="mwd-quality-effect-condition-field"
+                                   type="text"
+                                   value="{{condition.value}}"
+                                   data-effect-id="{{effect.id}}"
+                                   data-condition-id="{{condition.id}}"
+                                   data-field="value"
+                                   placeholder="3, false, grit" />
+                          </div>
+                          <button type="button"
+                                  class="mwd-record__icon-btn is-danger mwd-quality-effect-condition-delete"
+                                  data-effect-id="{{effect.id}}"
+                                  data-condition-id="{{condition.id}}"
+                                  title="Remove condition">
+                            <i class="fas fa-times"></i>
+                          </button>
+                        </div>
+                      {{/each}}
+                    </div>
+                  {{else}}
+                    <div class="mwd-item-note">No conditions; this effect fires whenever the phase and selector match (and any trait prerequisites pass).</div>
+                  {{/if}}
+                </div>
+              </div>
+            </div>
+          </div>
+        {{/each}}
+      </div>
+    {{else}}
+      <div class="mwd-item-note">No effects defined. This quality is descriptive only until rule packets are added.</div>
+    {{/if}}
+  </div>
+</div>

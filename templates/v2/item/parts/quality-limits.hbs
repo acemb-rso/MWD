@@ -1,0 +1,26 @@
+{{!--
+templates/v2/item/parts/quality-limits.hbs
+Purpose: Renders trait-level fire limit controls for quality effects.
+How it fits: Included by the layout-backed quality sheet.
+--}}
+
+<div class="mwd-record__body">
+  <div class="mwd-item-note">
+    Optional shared usage limits. Effect-level limits take precedence when set; these only apply to effects with no limit of their own. Leave at 0 for unlimited.
+  </div>
+
+  <div class="mwd-three-col">
+    <div class="form-group">
+      <label for="system.limits.perActivation" data-tooltip="Maximum times any effect on this trait may fire within one character activation. Resets at the start of each activation. 0 = no limit.">Per Activation</label>
+      <input class="type-numeric" type="number" min="0" step="1" name="system.limits.perActivation" value="{{system.limits.perActivation}}" />
+    </div>
+    <div class="form-group">
+      <label for="system.limits.perRound" data-tooltip="Maximum times any effect on this trait may fire per combat round. Resets when the round advances. 0 = no limit.">Per Round</label>
+      <input class="type-numeric" type="number" min="0" step="1" name="system.limits.perRound" value="{{system.limits.perRound}}" />
+    </div>
+    <div class="form-group">
+      <label for="system.limits.perScene" data-tooltip="Maximum times any effect on this trait may fire per scene. Persists across rounds until the scene changes. 0 = no limit.">Per Scene</label>
+      <input class="type-numeric" type="number" min="0" step="1" name="system.limits.perScene" value="{{system.limits.perScene}}" />
+    </div>
+  </div>
+</div>

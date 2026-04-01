@@ -1,0 +1,86 @@
+{{!--
+templates/v2/item/parts/life-module-main.hbs
+Purpose: Renders the catalog-driven configuration controls for life module items.
+How it fits: Included by the layout-backed life module item sheet.
+--}}
+
+<div class="section-group">
+  <div class="form-group">
+    <label>{{MWD.item.lifeModule.moduleType}}</label>
+    {{#if lifeModuleEditor.isOwned}}
+      <input type="text" value="{{lifeModuleEditor.moduleTypeLabel}}" disabled />
+      <input type="hidden" name="system.moduleType" value="{{lifeModuleEditor.moduleType}}" />
+    {{else}}
+      <select name="system.moduleType" data-dtype="String">
+        <option value="">Select a slot</option>
+        {{#each lifeModuleEditor.moduleTypes as |option|}}
+          <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+        {{/each}}
+      </select>
+    {{/if}}
+  </div>
+
+  <div class="form-group">
+    <label>Catalog Entry</label>
+    {{#if lifeModuleEditor.hasAvailableEntries}}
+      <select name="system.catalogId" data-dtype="String">
+        <option value="">Select a life module</option>
+        {{#each lifeModuleEditor.availableEntries as |entry|}}
+          <option value="{{entry.id}}" {{#if entry.selected}}selected{{/if}}>{{entry.label}}</option>
+        {{/each}}
+      </select>
+    {{else}}
+      <div class="mwd-item-note">No catalog entries are configured for this slot yet.</div>
+    {{/if}}
+  </div>
+
+  {{#if lifeModuleEditor.selectedEntry}}
+    {{#each lifeModuleEditor.grantFields as |grant|}}
+      <div class="form-group">
+        <label>{{grant.label}}</label>
+        {{#if grant.hasMultipleChoices}}
+          <select name="{{grant.selectionPath}}" data-dtype="String">
+            <option value="">Select a bonus</option>
+            {{#each grant.options as |option|}}
+              <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+            {{/each}}
+          </select>
+        {{else if grant.singleOption}}
+          <input type="text" value="{{grant.singleOption.displayLabel}}" disabled />
+          <input type="hidden" name="{{grant.selectionPath}}" value="{{grant.singleOption.value}}" />
+        {{else}}
+          <div class="mwd-item-note">This catalog entry does not define any valid bonus choices.</div>
+        {{/if}}
+      </div>
+    {{/each}}
+
+    <div class="form-group">
+      <label>Status</label>
+      <input type="text" value="{{lifeModuleEditor.statusLabel}}" disabled />
+    </div>
+
+    {{#if lifeModuleEditor.statusReason}}
+      <div class="mwd-item-note">{{lifeModuleEditor.statusReason}}</div>
+    {{/if}}
+
+    {{#each lifeModuleEditor.warningLabels as |warningLabel|}}
+      <div class="mwd-item-note">{{warningLabel}}</div>
+    {{/each}}
+
+    {{#if lifeModuleEditor.requiresAnyLabels.length}}
+      <div class="form-group">
+        <label>Requires One Of</label>
+        <input type="text" value="{{join lifeModuleEditor.requiresAnyLabels ', '}}" disabled />
+      </div>
+    {{/if}}
+
+    {{#if lifeModuleEditor.excludesAnyLabels.length}}
+      <div class="form-group">
+        <label>Blocked By</label>
+        <input type="text" value="{{join lifeModuleEditor.excludesAnyLabels ', '}}" disabled />
+      </div>
+    {{/if}}
+  {{else}}
+    <div class="mwd-item-note">Select a catalog entry to configure this life module.</div>
+  {{/if}}
+</div>

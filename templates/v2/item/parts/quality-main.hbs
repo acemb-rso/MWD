@@ -1,0 +1,37 @@
+{{!--
+templates/v2/item/parts/quality-main.hbs
+Purpose: Renders the core metadata fields for quality-backed traits.
+How it fits: Included by the layout-backed quality sheet.
+--}}
+
+<div class="mwd-record__body">
+  {{> "mwd.v2.item.parts.inactive"}}
+
+  <div class="mwd-two-col">
+    <div class="form-group">
+      <label for="system.category" data-tooltip="Positive: a trait that benefits the character. Negative: a drawback or limitation. Narrative: story-only; the engine applies no mechanical effects.">Category</label>
+      <select name="system.category">
+        {{selectOptions traitEditor.categories selected=system.category valueAttr="value" labelAttr="label" localize=false}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="system.tier" data-tooltip="Minor: a smaller benefit or drawback (1 build point). Major: a significant benefit or drawback (2 build points).">Tier</label>
+      <select name="system.tier">
+        {{selectOptions traitEditor.tiers selected=system.tier valueAttr="value" labelAttr="label" localize=false}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="system.activation" data-tooltip="Passive: the trait is always active and the engine applies it automatically when conditions are met. Triggered: the trait only applies when a player or game event explicitly activates it.">Activation</label>
+      <select name="system.activation">
+        {{selectOptions traitEditor.activations selected=system.activation valueAttr="value" labelAttr="label" localize=false}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="system.tags" data-tooltip="Comma-separated keywords, e.g. combat, burn, narrative. Tags help categorize this trait for filtering and display. Leave blank if unused.">Tags</label>
+      <input type="text" name="system.tags" value="{{tagsText}}" placeholder="combat, burn, narrative" />
+    </div>
+  </div>
+</div>

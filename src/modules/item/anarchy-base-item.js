@@ -777,6 +777,7 @@ export class MWDItem extends Item {
         type: entry.type ?? "rollMod",
         phase: entry.phase ?? "onBuildRoll",
         selector: entry.selector ?? "",
+        skillKeys: entry.skillKeys ?? [],
         label: entry.label ?? "",
         value: Number(entry.value ?? 0) || 0,
         min: entry.min ?? null,
@@ -806,6 +807,7 @@ export class MWDItem extends Item {
           if (field === "type") entry.type = value;
           if (field === "phase") entry.phase = value;
           if (field === "selector") entry.selector = value;
+          if (field === "skillKeys") entry.skillKeys = Array.isArray(value) ? value : [];
           if (field === "label") entry.label = value;
           if (field === "value") entry.value = Number(value ?? 0) || 0;
           if (field === "min") entry.min = value === "" ? null : Number(value ?? 0);

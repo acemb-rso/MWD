@@ -10,9 +10,12 @@ import {
   getQualityTierLabel,
   getTraitEditorConfig,
   normalizeQualityTraitSystem,
+  traitEffectUsesSkillSelector,
 } from "../mwd/traits.js";
 
 export class QualityItemSheet extends BaseItemSheet {
+  static LAYOUT_ID = "quality";
+
   static PARTS = {
     sheet: {
       template: `${TEMPLATES_PATH}/v2/item/quality.hbs`,
@@ -24,10 +27,27 @@ export class QualityItemSheet extends BaseItemSheet {
     const context = await super._prepareContext(options);
     const system = normalizeQualityTraitSystem(this.item.system ?? {});
     const traitEditor = getTraitEditorConfig();
+    const skillOptions = Array.isArray(context.ENUMS?.skills)
+      ? context.ENUMS.skills.map(skill => ({
+          value: String(skill?.value ?? "").trim(),
+          label: String(skill?.label ?? skill?.value ?? "").trim(),
+        })).filter(skill => skill.value)
+      : [];
 
-    context.system = system;
-    context.traitEditor = traitEditor;
+    context.system = {
+      ...system,
+      effects: (Array.isArray(system.effects) ? system.effects : []).map(effect => ({
+        ...effect,
+        showSkillPicker: traitEffectUsesSkillSelector(effect) || (Array.isArray(effect.skillKeys) && effect.skillKeys.length > 0),
+        isEdgeEvent: effect.type === 'edgeEvent',
+      })),
+    };
+    context.traitEditor = {
+      ...traitEditor,
+      skills: skillOptions,
+    };
     context.itemSheet = foundry.utils.mergeObject(context.itemSheet ?? {}, {
+      sheetClass: "mwd-item-sheet--quality",
       summaryChips: [
         { label: "Category", value: getQualityCategoryLabel(system.category) },
         { label: "Tier", value: getQualityTierLabel(system.tier) },
@@ -45,80 +65,111 @@ export class QualityItemSheet extends BaseItemSheet {
 
     const root = this._getRootElement?.();
     if (!root) return;
+    const preserveScroll = (work) => {
+      this._captureScrollPositions?.();
+      return work();
+    };
 
     root.querySelectorAll(".mwd-quality-prereq-add").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.createQualityPrerequisite?.();
+        event.stopPropagation();
+        void preserveScroll(() => this.item.createQualityPrerequisite?.());
       });
     });
 
     root.querySelectorAll(".mwd-quality-prereq-delete").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.deleteQualityPrerequisite?.(button.dataset.prereqId);
+        event.stopPropagation();
+        void preserveScroll(() => this.item.deleteQualityPrerequisite?.(button.dataset.prereqId));
       });
     });
 
     root.querySelectorAll(".mwd-quality-prereq-field").forEach(field => {
       field.addEventListener("change", event => {
         event.preventDefault();
-        void this.item.updateQualityPrerequisite?.(
+        event.stopPropagation();
+        void preserveScroll(() => this.item.updateQualityPrerequisite?.(
           field.dataset.prereqId,
           field.dataset.field,
           field.value
-        );
+        ));
       });
     });
 
     root.querySelectorAll(".mwd-quality-effect-add").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.createQualityEffect?.();
+        event.stopPropagation();
+        void preserveScroll(() => this.item.createQualityEffect?.());
       });
     });
 
     root.querySelectorAll(".mwd-quality-effect-delete").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.deleteQualityEffect?.(button.dataset.effectId);
+        event.stopPropagation();
+        void preserveScroll(() => this.item.deleteQualityEffect?.(button.dataset.effectId));
       });
     });
 
     root.querySelectorAll(".mwd-quality-effect-field").forEach(field => {
       field.addEventListener("change", event => {
         event.preventDefault();
-        void this.item.updateQualityEffect?.(
+        event.stopPropagation();
+        void preserveScroll(() => this.item.updateQualityEffect?.(
           field.dataset.effectId,
           field.dataset.field,
-          field.value
-        );
+          field instanceof HTMLSelectElement && field.multiple
+            ? Array.from(field.selectedOptions).map(option => option.value)
+            : field.value
+        ));
+      });
+    });
+
+    root.querySelectorAll(".mwd-quality-effect-skill-toggle").forEach(field => {
+      field.addEventListener("change", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const effectId = field.dataset.effectId;
+        const values = Array.from(root.querySelectorAll(`.mwd-quality-effect-skill-toggle[data-effect-id="${effectId}"]`))
+          .filter(input => input instanceof HTMLInputElement && input.checked)
+          .map(input => input.value);
+        void preserveScroll(() => this.item.updateQualityEffect?.(
+          effectId,
+          field.dataset.field,
+          values
+        ));
       });
     });
 
     root.querySelectorAll(".mwd-quality-effect-condition-add").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.createQualityEffectCondition?.(button.dataset.effectId);
+        event.stopPropagation();
+        void preserveScroll(() => this.item.createQualityEffectCondition?.(button.dataset.effectId));
       });
     });
 
     root.querySelectorAll(".mwd-quality-effect-condition-delete").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.deleteQualityEffectCondition?.(button.dataset.effectId, button.dataset.conditionId);
+        event.stopPropagation();
+        void preserveScroll(() => this.item.deleteQualityEffectCondition?.(button.dataset.effectId, button.dataset.conditionId));
       });
     });
 
     root.querySelectorAll(".mwd-quality-effect-condition-field").forEach(field => {
       field.addEventListener("change", event => {
         event.preventDefault();
-        void this.item.updateQualityEffectCondition?.(
+        event.stopPropagation();
+        void preserveScroll(() => this.item.updateQualityEffectCondition?.(
           field.dataset.effectId,
           field.dataset.conditionId,
           field.dataset.field,
           field.value
-        );
+        ));
       });
     });
   }

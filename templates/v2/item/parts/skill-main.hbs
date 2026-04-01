@@ -1,0 +1,28 @@
+{{!--
+templates/v2/item/parts/skill-main.hbs
+Purpose: Renders the editable skill-specific fields for the V2 skill item sheet.
+How it fits: Included by the layout-backed skill sheet.
+--}}
+
+<div class="section-group">
+  <div class="form-group">
+    <label>{{MWD.item.skill.code}}</label>
+    <select class="select-skill-code" name="system.code" data-dtype="String">
+      {{selectOptions ENUMS.skills selected=system.code valueAttr="value" labelAttr="label" localize=false blank=""}}
+    </select>
+  </div>
+
+  {{#unless (or (eq system.code "knowledge") (eq system.attribute "knowledge"))}}
+    <div class="form-group">
+      <label for="system.value">{{MWD.item.skill.value}}</label>
+      <input class="type-numeric" type="number" name="system.value" value="{{system.value}}" data-dtype="Number" />
+    </div>
+
+    <div class="form-group">
+      <label for="system.attribute">{{MWD.item.skill.attribute}}</label>
+      <select class="item-field-value" name="system.attribute" data-dtype="String">
+        {{selectOptions ENUMS.attributes selected=system.attribute valueAttr="value" labelAttr="label" localize=false blank=""}}
+      </select>
+    </div>
+  {{/unless}}
+</div>

@@ -1,0 +1,81 @@
+{{!--
+templates/v2/item/parts/quality-prerequisites.hbs
+Purpose: Renders editable trait-wide prerequisites for quality rules.
+How it fits: Included by the layout-backed quality sheet.
+--}}
+
+<div class="mwd-record mwd-record--embedded">
+  <div class="mwd-record__header">
+    <div class="mwd-record__main">
+      <div class="mwd-record__topline">
+        <span class="mwd-record__title-btn">Prerequisites</span>
+      </div>
+      <div class="mwd-record__subtitle">Trait-wide conditions checked before any effect fires. All must pass. Uses dotted fact paths to read engine state; see the reference below.</div>
+    </div>
+    <div class="mwd-record__actions">
+      <button type="button" class="mwd-record__icon-btn mwd-quality-prereq-add" title="Add prerequisite">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+  </div>
+  <div class="mwd-record__body">
+    <div class="csb-accordion" data-group="quality-prereq-reference">
+      <section class="csb-accordion__section" data-section="reference">
+        <h3 class="csb-accordion__heading">
+          <button type="button"
+                  class="csb-accordion__trigger"
+                  data-action="accordion"
+                  data-group="quality-prereq-reference"
+                  data-section="reference"
+                  aria-expanded="false"
+                  aria-controls="quality-prereq-reference-panel">
+            <span class="csb-accordion__label">State Path Reference</span>
+            <span class="csb-accordion__chevron" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="csb-accordion__panel" id="quality-prereq-reference-panel">
+          <div class="mwd-item-note">
+            <strong>State path reference:</strong>
+            <code>activation.moved</code> (bool) &nbsp;&middot;&nbsp;
+            <code>activation.attacksThisActivation</code> (num) &nbsp;&middot;&nbsp;
+            <code>activation.saSpent</code> (num) &nbsp;&middot;&nbsp;
+            <code>burn.current</code> (num) &nbsp;&middot;&nbsp;
+            <code>burn.overloaded</code> (bool) &nbsp;&middot;&nbsp;
+            <code>timing.firstAttackThisActivation</code> (bool) &nbsp;&middot;&nbsp;
+            <code>intent</code> (string: attack, skill...) &nbsp;&middot;&nbsp;
+            <code>rangeBand</code> (string: close, near, far, extreme) &nbsp;&middot;&nbsp;
+            <code>edge.spent</code> (bool)
+          </div>
+        </div>
+      </section>
+    </div>
+
+    {{#if system.prerequisites.length}}
+      <div class="mwd-records">
+        {{#each system.prerequisites as |prereq|}}
+          <div class="mwd-weapon-compact__row mwd-weapon-compact__row--actions" data-prereq-id="{{prereq.id}}">
+            <div class="form-group">
+              <label data-tooltip="A dotted path into the engine fact object, e.g. activation.moved or burn.current. See the state path reference above for available paths.">State Path</label>
+              <input class="mwd-quality-prereq-field" type="text" value="{{prereq.fact}}" data-prereq-id="{{prereq.id}}" data-field="fact" placeholder="activation.moved" />
+            </div>
+            <div class="form-group">
+              <label data-tooltip="How to compare the fact to the value. Use 'Is True' or 'Is False' for boolean checks with no Against value. Use = for exact match.">Test</label>
+              <select class="mwd-quality-prereq-field" data-prereq-id="{{prereq.id}}" data-field="comparator">
+                {{selectOptions ../traitEditor.comparators selected=prereq.comparator valueAttr="value" labelAttr="label" localize=false}}
+              </select>
+            </div>
+            <div class="form-group">
+              <label data-tooltip="The value to compare against. Auto-typed: 'true'/'false' become booleans, plain numbers become numerics, anything else is a string. Leave blank when using 'Is True' or 'Is False'.">Against</label>
+              <input class="mwd-quality-prereq-field" type="text" value="{{prereq.value}}" data-prereq-id="{{prereq.id}}" data-field="value" placeholder="false, 3, grit" />
+            </div>
+            <button type="button" class="mwd-record__icon-btn is-danger mwd-quality-prereq-delete" data-prereq-id="{{prereq.id}}" title="Remove prerequisite">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        {{/each}}
+      </div>
+    {{else}}
+      <div class="mwd-item-note">No prerequisites defined; all effects will fire whenever their phase and selector match.</div>
+    {{/if}}
+  </div>
+</div>

@@ -111,105 +111,109 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
 
     const root = this._getRootElement?.();
     if (!root) return;
+    const preserveScroll = (work) => {
+      this._captureScrollPositions?.();
+      return work();
+    };
 
     root.querySelectorAll(".mwd-standard-trait-add").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.createWeaponStandardTrait?.();
+        void preserveScroll(() => this.item.createWeaponStandardTrait?.());
       });
     });
 
     root.querySelectorAll(".mwd-standard-trait-delete").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.deleteWeaponStandardTrait?.(button.dataset.traitId);
+        void preserveScroll(() => this.item.deleteWeaponStandardTrait?.(button.dataset.traitId));
       });
     });
 
     root.querySelectorAll(".mwd-standard-trait-field").forEach(field => {
       field.addEventListener("change", event => {
         event.preventDefault();
-        void this.item.updateWeaponStandardTrait?.(
+        void preserveScroll(() => this.item.updateWeaponStandardTrait?.(
           field.dataset.traitId,
           field.dataset.field,
           field.value
-        );
+        ));
       });
     });
 
     root.querySelectorAll(".mwd-payload-add").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.createPayload?.();
+        void preserveScroll(() => this.item.createPayload?.());
       });
     });
 
     root.querySelectorAll(".mwd-payload-delete").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.deletePayload?.(button.dataset.payloadId);
+        void preserveScroll(() => this.item.deletePayload?.(button.dataset.payloadId));
       });
     });
 
     root.querySelectorAll(".mwd-payload-field").forEach(field => {
       field.addEventListener("change", event => {
         event.preventDefault();
-        void this.item.updatePayloadField?.(
+        void preserveScroll(() => this.item.updatePayloadField?.(
           field.dataset.payloadId,
           field.dataset.field,
           field.value
-        );
+        ));
       });
     });
 
     root.querySelectorAll(".mwd-payload-standard-trait-add").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.createPayloadStandardTrait?.(button.dataset.payloadId);
+        void preserveScroll(() => this.item.createPayloadStandardTrait?.(button.dataset.payloadId));
       });
     });
 
     root.querySelectorAll(".mwd-payload-standard-trait-delete").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.deletePayloadStandardTrait?.(button.dataset.payloadId, button.dataset.traitId);
+        void preserveScroll(() => this.item.deletePayloadStandardTrait?.(button.dataset.payloadId, button.dataset.traitId));
       });
     });
 
     root.querySelectorAll(".mwd-payload-standard-trait-field").forEach(field => {
       field.addEventListener("change", event => {
         event.preventDefault();
-        void this.item.updatePayloadStandardTrait?.(
+        void preserveScroll(() => this.item.updatePayloadStandardTrait?.(
           field.dataset.payloadId,
           field.dataset.traitId,
           field.dataset.field,
           field.value
-        );
+        ));
       });
     });
 
     root.querySelectorAll(".mwd-source-add").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.createConsumptionSource?.();
+        void preserveScroll(() => this.item.createConsumptionSource?.());
       });
     });
 
     root.querySelectorAll(".mwd-source-delete").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
-        void this.item.deleteConsumptionSource?.(button.dataset.sourceId);
+        void preserveScroll(() => this.item.deleteConsumptionSource?.(button.dataset.sourceId));
       });
     });
 
     root.querySelectorAll(".mwd-source-field").forEach(field => {
       field.addEventListener("change", event => {
         event.preventDefault();
-        void this.item.updateConsumptionSourceField?.(
+        void preserveScroll(() => this.item.updateConsumptionSourceField?.(
           field.dataset.sourceId,
           field.dataset.field,
           field.value
-        );
+        ));
       });
     });
   }
