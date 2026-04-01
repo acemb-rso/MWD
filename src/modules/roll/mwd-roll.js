@@ -12,6 +12,7 @@ import { WeaponItem } from "../item/weapon-item.js";
 import { SelectItem } from "../dialog/select-item.js";
 import { TEMPLATE } from "../constants.js";
 import { resolveAttackExecution } from "./attack-resolution.js";
+import { placeTemplatedAttack } from "./template-placement.js";
 import {
   applyTraitMutations,
   buildInitiativeTraitFacts,
@@ -211,6 +212,11 @@ async function execute({ actor, payload, event } = {}) {
   payload = normalizePayload(updatedPayload);
   ctx = await resolveIntent({ actor, payload, event });
 
+  if (payload.intent === "attack" && !ctx?.attack?.capabilityReport?.isTemplated) {
+    delete payload.targetSnapshots;
+    delete payload.templatePlacement;
+  }
+
   if (payload.intent === "attack" && payload.weaponId) {
     const weaponItem = actor.items?.get?.(payload.weaponId) ?? null;
     if (weaponItem?.isPersonalWeapon?.()) {
@@ -227,6 +233,23 @@ async function execute({ actor, payload, event } = {}) {
         return null;
       }
     }
+  }
+
+  if (payload.intent === "attack" && ctx?.attack?.capabilityReport?.isTemplated) {
+    const placementResult = await placeTemplatedAttack({
+      actor,
+      attack: ctx.attack,
+    });
+
+    if (!placementResult) return null;
+    if (!Array.isArray(placementResult.targetSnapshots) || placementResult.targetSnapshots.length === 0) {
+      ui.notifications?.warn("Template placement did not affect any targets.");
+      return null;
+    }
+
+    payload.targetSnapshots = placementResult.targetSnapshots;
+    payload.templatePlacement = placementResult.placement;
+    ctx = await resolveIntent({ actor, payload, event });
   }
 
   /* -------------------------------------- */

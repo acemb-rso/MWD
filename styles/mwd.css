@@ -1244,6 +1244,26 @@
   text-shadow: 0 1px 0 rgba(255, 248, 228, 0.9);
 }
 
+/* Item sheets use a tan/parchment background. Override the dark theme defaults so all content is readable. */
+.mwd-sheet.item-sheet .mwd-item-sheet__eyebrow {
+  color: rgba(79, 67, 41, 0.9);
+  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.9);
+}
+
+.mwd-sheet.item-sheet .sheet-body {
+  color: rgba(52, 43, 27, 0.96);
+  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.76);
+}
+
+.mwd-sheet.item-sheet .sheet-body input,
+.mwd-sheet.item-sheet .sheet-body select,
+.mwd-sheet.item-sheet .sheet-body textarea {
+  color: rgba(38, 31, 20, 0.96);
+  background: rgba(255, 248, 228, 0.45);
+  border-color: rgba(96, 80, 52, 0.28);
+  text-shadow: none;
+}
+
 .mwd-item-sheet__summary-chip,
 .mwd-item-sheet__state-chip {
   gap: 6px;
@@ -1589,20 +1609,6 @@
   margin: var(--csb-space-3) 0 var(--csb-space-1) 0;
   padding-bottom: var(--csb-space-1);
   border-bottom: 1px solid var(--csb-panel-border);
-}
-
-/* Quality sheet: ink-on-parchment text so all body content is readable on the tan background */
-.mwd-sheet.item-sheet.mwd-item-sheet--quality .sheet-body {
-  color: rgba(52, 43, 27, 0.96);
-  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.84);
-}
-
-.mwd-sheet.item-sheet.mwd-item-sheet--quality .sheet-body select,
-.mwd-sheet.item-sheet.mwd-item-sheet--quality .sheet-body input {
-  color: rgba(38, 31, 20, 0.96);
-  background: rgba(255, 248, 228, 0.45);
-  border: 1px solid rgba(96, 80, 52, 0.28);
-  text-shadow: none;
 }
 
 .mwd-sheet.item-sheet .mwd-item-note,

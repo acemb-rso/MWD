@@ -19,9 +19,17 @@ import {
   normalizeWeaponAmmo,
   normalizeWeaponConsumptionSources,
   normalizeWeaponPayloads,
+  normalizeWeaponFireModes,
+  normalizeWeaponKeywords,
+  normalizeWeaponResolution,
   normalizeWeaponStandardTraits,
   resolveArmorTraitEffects,
 } from "./mwd/personal-damage.js";
+import {
+  createCapabilityMigrationReport,
+  normalizeWeaponCapabilityState,
+  validateTemplatedCapability,
+} from "./mwd/personal-weapon-capabilities.js";
 
 export const DECLARE_MIGRATIONS = 'anarchy-declareMigration';
 const SYSTEM_MIGRATION_CURRENT_VERSION = "systemMigrationVersion";
@@ -840,6 +848,134 @@ class _13_9_0_PayloadArchitecture extends Migration {
   }
 }
 
+class _13_10_0_PersonalWeaponCapabilityModelV1 extends Migration {
+  get version() { return "13.10.0"; }
+  get code() { return "personal-weapon-capability-model-v1"; }
+
+  async migrate() {
+    const reportEntries = [];
+    const isPersonalWeapon = item => (item.canonicalType ?? item.type) === TEMPLATE.itemType.personalWeapon;
+
+    for (const actor of game.actors) {
+      const updates = actor.items
+        .filter(isPersonalWeapon)
+        .map(item => this._collectWeaponUpdate(item))
+        .filter(Boolean);
+
+      if (!updates.length) continue;
+
+      reportEntries.push(...updates.flatMap(entry => entry.reports));
+      await actor.updateEmbeddedDocuments("Item", updates.map(entry => entry.update));
+    }
+
+    const worldUpdates = game.items
+      .filter(isPersonalWeapon)
+      .map(item => this._collectWeaponUpdate(item))
+      .filter(Boolean);
+
+    if (worldUpdates.length) {
+      reportEntries.push(...worldUpdates.flatMap(entry => entry.reports));
+      await Item.updateDocuments(worldUpdates.map(entry => entry.update));
+    }
+
+    if (reportEntries.length > 0) {
+      await ChatMessage.create({
+        whisper: ChatMessage.getWhisperRecipients("GM"),
+        content: this._renderReport(reportEntries),
+      });
+    }
+  }
+
+  _collectWeaponUpdate(item) {
+    const legacyAmmo = item.system?.ammo;
+    const category = String(item.system?.category ?? item.system?.weaponCategory ?? "ranged").trim() || "ranged";
+    const report = createCapabilityMigrationReport();
+    const capabilityState = normalizeWeaponCapabilityState({
+      traits: item.system?.traits,
+      keywords: item.system?.keywords,
+      report,
+      path: "system.traits",
+    });
+    const payloads = normalizeWeaponPayloads(item.system?.payloads, {
+      legacyAmmo,
+      category,
+      report,
+      path: "system.payloads",
+    });
+    const selectedPayloadId = normalizeSelectedPayloadId(
+      item.system?.selectedPayloadId,
+      payloads,
+      { legacyAmmo, category }
+    );
+    const activePayload = payloads.find(payload => payload.id === selectedPayloadId) ?? payloads[0] ?? null;
+    const resolution = normalizeWeaponResolution(item.system?.resolution, "standard");
+    const fireModes = normalizeWeaponFireModes(item.system?.fireModes);
+
+    if (activePayload) {
+      validateTemplatedCapability({
+        weapon: {
+          traits: capabilityState.traits,
+          resolution,
+        },
+        payload: activePayload,
+        effectiveTraits: Array.from(new Set([
+          ...capabilityState.traits,
+          ...(activePayload.traits ?? []),
+        ])),
+        effectiveResolution: activePayload?.resolution?.resolverKey ? activePayload.resolution : resolution,
+        report,
+      });
+    }
+
+    const reports = [
+      ...report.movedToKeywords.map(entry => ({
+        itemName: item.name ?? "Weapon",
+        itemOwner: item.actor?.name ?? "World Item",
+        type: "moved",
+        message: `${entry.value} moved from ${entry.from} to ${entry.to}`,
+      })),
+      ...report.errors.map(entry => ({
+        itemName: item.name ?? "Weapon",
+        itemOwner: item.actor?.name ?? "World Item",
+        type: "error",
+        message: entry.message,
+      })),
+    ];
+
+    return {
+      update: {
+        _id: item.id,
+        "system.standardTraits": [],
+        "system.traits": capabilityState.traits,
+        "system.keywords": normalizeWeaponKeywords(capabilityState.keywords),
+        "system.resolution": resolution,
+        "system.fireModes": fireModes,
+        "system.payloads": payloads,
+        "system.consumptionSources": normalizeWeaponConsumptionSources(item.system?.consumptionSources, { legacyAmmo }),
+        "system.selectedPayloadId": selectedPayloadId,
+        "system.-=ammo": null,
+      },
+      reports,
+    };
+  }
+
+  _renderReport(entries = []) {
+    const rows = entries.map(entry => {
+      const itemLabel = entry.itemOwner && entry.itemOwner !== "World Item"
+        ? `${entry.itemOwner} / ${entry.itemName}`
+        : entry.itemName;
+      const tag = entry.type === "error" ? "Invalid" : "Moved";
+      return `<li><strong>${tag}</strong> ${itemLabel}: ${entry.message}</li>`;
+    });
+
+    return [
+      `<h2>${this.version} Personal Weapon Capability Migration</h2>`,
+      "<p>Legacy personal weapon/payload traits were normalized into capability traits, keywords, and explicit config.</p>",
+      `<ul>${rows.join("")}</ul>`,
+    ].join("");
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -866,6 +1002,7 @@ export class Migrations {
       new _13_7_0_PersonalDamageModelV2(),
       new _13_8_0_StandardGearTraitsAndAmmo(),
       new _13_9_0_PayloadArchitecture(),
+      new _13_10_0_PersonalWeaponCapabilityModelV1(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

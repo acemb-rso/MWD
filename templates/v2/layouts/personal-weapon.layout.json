@@ -43,16 +43,9 @@
                       {
                         "type": "tabs",
                         "group": "weapon-load-config",
-                        "default": "traits",
+                        "default": "payloads",
                         "classes": ["mwd-combat-sheet__detail-tabs"],
                         "tabs": [
-                          {
-                            "id": "traits",
-                            "label": "Traits",
-                            "children": [
-                              { "type": "include", "partial": "mwd.v2.item.parts.weapon-standard-traits" }
-                            ]
-                          },
                           {
                             "id": "payloads",
                             "label": "Payloads",

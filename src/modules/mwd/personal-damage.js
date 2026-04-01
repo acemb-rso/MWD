@@ -1,6 +1,17 @@
 // src/modules/mwd/personal-damage.js
-// Purpose: Defines function `normalizeStringList`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+// Purpose: Defines personal-scale damage/profile normalization and resolution helpers.
+// How it fits: Provides the personal weapon/armor data model used by sheets and attack resolution.
+
+import {
+  createCapabilityMigrationReport,
+  normalizePayloadCapabilityState,
+  normalizePersonalWeaponFireModes,
+  normalizePersonalWeaponKeywords,
+  normalizePersonalWeaponResolution,
+  normalizePersonalWeaponTemplate,
+  normalizeWeaponCapabilityState,
+  validateTemplatedCapability,
+} from "./personal-weapon-capabilities.js";
 
 
 const PERSONAL_DAMAGE_TYPE_LABELS = Object.freeze({
@@ -36,50 +47,9 @@ export const ARMOR_MITIGATION_TYPE_KEYS = Object.freeze(
   PERSONAL_DAMAGE_TYPES.map(entry => entry.value)
 );
 
-const WEAPON_STANDARD_TRAIT_DEFS = Object.freeze({
-  armorPiercing: Object.freeze({
-    key: "armorPiercing",
-    label: "Armor Piercing",
-    rated: false,
-    aliases: ["armor piercing", "armorpiercing"],
-    resolve: () => ({ ap: 2 }),
-  }),
-  antiFerro: Object.freeze({
-    key: "antiFerro",
-    label: "Anti-Ferro",
-    rated: false,
-    aliases: ["anti-ferro", "antiferro"],
-    resolve: () => ({ bonusVsArmorTag: { ferroFibrous: 0.33 } }),
-  }),
-  blast: Object.freeze({
-    key: "blast",
-    label: "Blast",
-    rated: false,
-    aliases: ["blast"],
-    resolve: () => ({ flags: ["blast", "area"] }),
-  }),
-  corrosive: Object.freeze({
-    key: "corrosive",
-    label: "Corrosive",
-    rated: false,
-    aliases: ["corrosive"],
-    resolve: () => ({ flags: ["corrosive"] }),
-  }),
-  emp: Object.freeze({
-    key: "emp",
-    label: "EMP",
-    rated: false,
-    aliases: ["emp"],
-    resolve: () => ({ flags: ["emp"] }),
-  }),
-  inaccurate: Object.freeze({
-    key: "inaccurate",
-    label: "Inaccurate",
-    rated: false,
-    aliases: ["inaccurate"],
-    resolve: () => ({ accuracyMod: -1 }),
-  }),
-});
+// Weapon and payload standard traits are disabled until their rules are
+// explored and backed by concrete system behavior.
+const WEAPON_STANDARD_TRAIT_DEFS = Object.freeze({});
 
 const ARMOR_STANDARD_TRAIT_DEFS = Object.freeze({
   ablative: Object.freeze({
@@ -119,13 +89,7 @@ const ARMOR_STANDARD_TRAIT_DEFS = Object.freeze({
   }),
 });
 
-export const WEAPON_STANDARD_TRAITS = Object.freeze(
-  Object.values(WEAPON_STANDARD_TRAIT_DEFS).map(entry => ({
-    value: entry.key,
-    label: entry.label,
-    rated: entry.rated,
-  }))
-);
+export const WEAPON_STANDARD_TRAITS = Object.freeze([]);
 
 export const ARMOR_STANDARD_TRAITS = Object.freeze(
   Object.values(ARMOR_STANDARD_TRAIT_DEFS).map(entry => ({
@@ -138,14 +102,7 @@ export const ARMOR_STANDARD_TRAITS = Object.freeze(
 const WEAPON_STANDARD_TRAIT_ALIAS_MAP = buildAliasMap(WEAPON_STANDARD_TRAIT_DEFS);
 const ARMOR_STANDARD_TRAIT_ALIAS_MAP = buildAliasMap(ARMOR_STANDARD_TRAIT_DEFS);
 
-export const TRAIT_REGISTRY = Object.freeze(
-  Object.fromEntries(
-    Object.values(WEAPON_STANDARD_TRAIT_DEFS).flatMap(def => {
-      const aliases = [def.key, ...(def.aliases ?? [])];
-      return aliases.map(alias => [String(alias).trim().toLowerCase(), def.resolve]);
-    })
-  )
-);
+export const TRAIT_REGISTRY = Object.freeze({});
 
 function normalizeStringList(value) {
   if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -224,6 +181,22 @@ export function normalizeArmorTags(value) {
 
 export function normalizeWeaponTraits(value) {
   return normalizeStringList(value);
+}
+
+export function normalizeWeaponKeywords(value) {
+  return normalizePersonalWeaponKeywords(value);
+}
+
+export function normalizeWeaponResolution(value = {}, fallback = "standard") {
+  return normalizePersonalWeaponResolution(value, fallback);
+}
+
+export function normalizeWeaponFireModes(value = {}) {
+  return normalizePersonalWeaponFireModes(value);
+}
+
+export function normalizePayloadTemplate(value = null) {
+  return normalizePersonalWeaponTemplate(value);
 }
 
 function randomId(prefix = "id") {
@@ -410,14 +383,22 @@ export function getWeaponTraitLabels({ traits = [], standardTraits = [] } = {}) 
 
 function normalizeAmmoType(entry) {
   const source = entry ?? {};
+  const capabilityReport = createCapabilityMigrationReport();
+  const capabilityState = normalizePayloadCapabilityState({
+    traits: source.traits,
+    keywords: source.keywords,
+    report: capabilityReport,
+    path: "ammo.types[].traits",
+  });
   return {
     id: String(source.id ?? "").trim() || randomId("ammo"),
     name: String(source.name ?? "").trim() || "Ammo",
     damageType: normalizeOptionalPersonalDamageType(source.damageType),
     apMod: Number(source.apMod ?? source.ap ?? 0) || 0,
     attackRatingBandMod: normalizeAttackRatingBandValue(source.attackRatingBandMod ?? source.attackRatingBand),
-    standardTraits: normalizeWeaponStandardTraits(source.standardTraits),
-    traits: normalizeWeaponTraits(source.traits),
+    traits: capabilityState.traits,
+    keywords: capabilityState.keywords,
+    migration: capabilityReport,
   };
 }
 
@@ -471,39 +452,38 @@ function normalizePayloadModifies(value = {}) {
     damageType: normalizeOptionalPersonalDamageType(source.damageType),
     ap: Number(source.ap ?? source.apMod ?? 0) || 0,
     attackRatingBand: normalizeAttackRatingBandValue(source.attackRatingBand ?? source.attackRatingBandMod),
-    standardTraits: normalizeWeaponStandardTraits(source.standardTraits),
-    traits: normalizeWeaponTraits(source.traits),
   };
 }
 
 function normalizePayloadResolution(value = {}) {
-  const source = value ?? {};
-  const resolverKey = String(source.resolverKey ?? source.damageModel ?? source.resolver ?? "standard").trim() || "standard";
-  const damageModel = String(source.damageModel ?? "").trim();
-  const rawEffect = source.onHitEffect;
-
-  return {
-    resolverKey,
-    damageModel,
-    onHitEffect: rawEffect === null ? null : (String(rawEffect ?? "").trim() || null),
-  };
+  return normalizePersonalWeaponResolution(value, "standard");
 }
 
 function isUnloadedPayloadId(value) {
   return String(value ?? "").trim().toLowerCase() === "unloaded";
 }
 
-export function normalizePayloadProfile(entry) {
+export function normalizePayloadProfile(entry, { report = null, path = "system.payloads[]" } = {}) {
   const source = entry ?? {};
   const id = String(source.id ?? "").trim() || randomId("payload");
+  const capabilityState = normalizePayloadCapabilityState({
+    traits: source.traits ?? source.modifies?.traits,
+    keywords: source.keywords,
+    report,
+    path: `${path}.traits`,
+  });
+  const compatibleWith = normalizeStringList(source.compatibleWith ?? source.compatible);
+  const template = normalizePayloadTemplate(source.template);
 
   if (isUnloadedPayloadId(id)) {
     return {
       id: "unloaded",
       label: "Unloaded",
-      family: "state",
       compatibleWith: [],
       modifies: normalizePayloadModifies({}),
+      traits: [],
+      keywords: [],
+      template: null,
       resolution: normalizePayloadResolution({ resolverKey: "standard" }),
       consumption: normalizePayloadConsumption({ amount: 1, sourceId: "" }),
     };
@@ -512,9 +492,11 @@ export function normalizePayloadProfile(entry) {
   return {
     id,
     label: String(source.label ?? source.name ?? "").trim() || "Payload",
-    family: String(source.family ?? source.kind ?? "munition").trim() || "munition",
-    compatibleWith: normalizeStringList(source.compatibleWith ?? source.compatible),
+    compatibleWith,
     modifies: normalizePayloadModifies(source.modifies ?? source),
+    traits: capabilityState.traits,
+    keywords: capabilityState.keywords,
+    template,
     resolution: normalizePayloadResolution(source.resolution ?? source),
     consumption: normalizePayloadConsumption(source.consumption ?? source),
   };
@@ -555,15 +537,14 @@ export function normalizeConsumptionSource(entry) {
   };
 }
 
-function defaultPayloadModel() {
+function defaultPayloadModel({ report = null, path = "system.payloads" } = {}) {
   return {
     payloads: [normalizePayloadProfile({
       id: "unloaded",
       label: "Unloaded",
-      family: "munition",
       resolution: { resolverKey: "standard" },
       consumption: { amount: 1, sourceId: "" },
-    })],
+    }, { report, path: `${path}[0]` })],
     selectedPayloadId: "unloaded",
     consumptionSources: [normalizeConsumptionSource({
       id: "untracked",
@@ -577,23 +558,24 @@ function isMeleeWeaponCategory(category) {
   return String(category ?? "").trim().toLowerCase() === "melee";
 }
 
-function ensureUnloadedPayload(payloads = []) {
-  const normalized = normalizeCollection(payloads).map(normalizePayloadProfile).filter(Boolean);
+function ensureUnloadedPayload(payloads = [], { report = null, path = "system.payloads" } = {}) {
+  const normalized = normalizeCollection(payloads)
+    .map((entry, index) => normalizePayloadProfile(entry, { report, path: `${path}[${index}]` }))
+    .filter(Boolean);
   if (normalized.some(payload => payload.id === "unloaded")) return normalized;
 
   return [
     normalizePayloadProfile({
       id: "unloaded",
       label: "Unloaded",
-      family: "munition",
       resolution: { resolverKey: "standard" },
       consumption: { amount: 1, sourceId: "" },
-    }),
+    }, { report, path: `${path}[0]` }),
     ...normalized,
   ];
 }
 
-export function migrateLegacyAmmoToPayloadModel(ammo = {}) {
+export function migrateLegacyAmmoToPayloadModel(ammo = {}, { report = null, path = "system.payloads" } = {}) {
   const normalizedAmmo = normalizeLegacyWeaponAmmo(ammo);
   const consumePerAttack = Math.max(1, Number(normalizedAmmo.consumePerAttack ?? 1) || 1);
   const isTracked = normalizedAmmo.max > 0;
@@ -616,35 +598,33 @@ export function migrateLegacyAmmoToPayloadModel(ammo = {}) {
       })];
 
   const payloads = normalizedAmmo.types.length
-    ? normalizedAmmo.types.map(type => normalizePayloadProfile({
+    ? normalizedAmmo.types.map((type, index) => normalizePayloadProfile({
         id: type.id,
         label: type.name,
-        family: "munition",
         modifies: {
           damageType: type.damageType,
           ap: type.apMod,
           attackRatingBand: type.attackRatingBandMod,
-          standardTraits: type.standardTraits,
           traits: type.traits,
         },
+        keywords: type.keywords,
         resolution: { resolverKey: "standard" },
         consumption: {
           amount: consumePerAttack,
           sourceId: isTracked ? sourceId : "",
         },
-      }))
+      }, { report, path: `${path}[${index}]` }))
     : [normalizePayloadProfile({
         id: "unloaded",
         label: "Unloaded",
-        family: "munition",
         resolution: { resolverKey: "standard" },
         consumption: {
           amount: consumePerAttack,
           sourceId: isTracked ? sourceId : "",
         },
-      })];
+      }, { report, path: `${path}[0]` })];
 
-  const normalizedPayloads = ensureUnloadedPayload(payloads);
+  const normalizedPayloads = ensureUnloadedPayload(payloads, { report, path });
   const selectedPayloadId = normalizedPayloads.some(payload => payload.id === normalizedAmmo.activeTypeId)
     ? normalizedAmmo.activeTypeId
     : (normalizedPayloads[0]?.id ?? "unloaded");
@@ -656,12 +636,14 @@ export function migrateLegacyAmmoToPayloadModel(ammo = {}) {
   };
 }
 
-export function normalizeWeaponPayloads(value, { legacyAmmo = null, category = "" } = {}) {
+export function normalizeWeaponPayloads(value, { legacyAmmo = null, category = "", report = null, path = "system.payloads" } = {}) {
   if (isMeleeWeaponCategory(category)) return [];
-  const payloads = normalizeCollection(value).map(normalizePayloadProfile).filter(Boolean);
-  if (payloads.length > 0) return ensureUnloadedPayload(payloads);
-  if (legacyAmmo) return ensureUnloadedPayload(migrateLegacyAmmoToPayloadModel(legacyAmmo).payloads);
-  return defaultPayloadModel().payloads;
+  const payloads = normalizeCollection(value)
+    .map((entry, index) => normalizePayloadProfile(entry, { report, path: `${path}[${index}]` }))
+    .filter(Boolean);
+  if (payloads.length > 0) return ensureUnloadedPayload(payloads, { report, path });
+  if (legacyAmmo) return ensureUnloadedPayload(migrateLegacyAmmoToPayloadModel(legacyAmmo, { report, path }).payloads, { report, path });
+  return defaultPayloadModel({ report, path }).payloads;
 }
 
 export function normalizeWeaponConsumptionSources(value, { legacyAmmo = null } = {}) {
@@ -853,8 +835,8 @@ export function resolveWeaponAmmo(ammo = {}, ammoTypeId = "") {
           damageType: payloadState.activePayload.modifies?.damageType ?? "",
           apMod: Number(payloadState.activePayload.modifies?.ap ?? 0) || 0,
           attackRatingBandMod: payloadState.activePayload.modifies?.attackRatingBand ?? {},
-          standardTraits: payloadState.activePayload.modifies?.standardTraits ?? [],
-          traits: payloadState.activePayload.modifies?.traits ?? [],
+          traits: payloadState.activePayload.traits ?? [],
+          keywords: payloadState.activePayload.keywords ?? [],
         }
       : null,
     activeTypeId: payloadState.activePayloadId,
@@ -868,7 +850,10 @@ export function resolveEffectiveWeaponProfile({
   ap = 0,
   attackRatingBand = {},
   traits = [],
+  keywords = [],
   standardTraits = [],
+  resolution = {},
+  fireModes = {},
   payloads = [],
   selectedPayloadId = "",
   consumptionSources = [],
@@ -896,16 +881,37 @@ export function resolveEffectiveWeaponProfile({
     : null;
   const effectivePayloadState = fallbackState ?? payloadState;
   const activePayload = effectivePayloadState.activePayload;
-  const combinedStandardTraits = [
-    ...normalizeWeaponStandardTraits(standardTraits),
-    ...normalizeWeaponStandardTraits(activePayload?.modifies?.standardTraits),
-  ];
-  const combinedLegacyTraits = [
-    ...normalizeWeaponTraits(traits),
-    ...normalizeWeaponTraits(activePayload?.modifies?.traits),
-  ];
+  const weaponCapabilityState = normalizeWeaponCapabilityState({
+    traits,
+    keywords,
+  });
+  const combinedTraits = Array.from(new Set([
+    ...weaponCapabilityState.traits,
+    ...normalizeWeaponTraits(activePayload?.traits),
+  ]));
+  const combinedKeywords = normalizePersonalWeaponKeywords([
+    ...weaponCapabilityState.keywords,
+    ...normalizePersonalWeaponKeywords(activePayload?.keywords),
+  ]);
+  const normalizedWeaponResolution = normalizeWeaponResolution(resolution, "standard");
+  const effectiveResolution = activePayload?.resolution?.resolverKey
+    ? normalizePayloadResolution(activePayload.resolution)
+    : normalizedWeaponResolution;
+  const normalizedFireModes = normalizeWeaponFireModes(fireModes);
+  const capabilityReport = createCapabilityMigrationReport();
+  const capabilityValidation = validateTemplatedCapability({
+    weapon: {
+      traits: weaponCapabilityState.traits,
+      resolution: normalizedWeaponResolution,
+    },
+    payload: activePayload,
+    effectiveTraits: combinedTraits,
+    effectiveResolution,
+    report: capabilityReport,
+  });
+  const combinedStandardTraits = normalizeWeaponStandardTraits(standardTraits);
   const combinedEffects = deriveWeaponEffectsFromTraits({
-    traits: combinedLegacyTraits,
+    traits: [],
     standardTraits: combinedStandardTraits,
   });
   const publicSourceState = {
@@ -921,10 +927,8 @@ export function resolveEffectiveWeaponProfile({
       activePayload?.modifies?.attackRatingBand ?? {}
     ),
     effects: combinedEffects,
-    traits: getWeaponTraitLabels({
-      traits: combinedLegacyTraits,
-      standardTraits: combinedStandardTraits,
-    }),
+    traits: combinedTraits,
+    keywords: combinedKeywords,
     standardTraits: combinedStandardTraits,
     payloadLabel: effectivePayloadState.payloadLabel,
     payload: activePayload ? foundry.utils.deepClone(activePayload) : null,
@@ -942,7 +946,17 @@ export function resolveEffectiveWeaponProfile({
     },
     source: effectivePayloadState.source ? foundry.utils.deepClone(effectivePayloadState.source) : null,
     sourceState: foundry.utils.deepClone(publicSourceState),
-    resolverKey: String(activePayload?.resolution?.resolverKey ?? "standard").trim() || "standard",
+    template: capabilityValidation.template ? foundry.utils.deepClone(capabilityValidation.template) : null,
+    resolution: foundry.utils.deepClone(effectiveResolution),
+    resolverKey: String(effectiveResolution?.resolverKey ?? "standard").trim() || "standard",
+    fireModes: foundry.utils.deepClone(normalizedFireModes),
+    capabilityReport: {
+      ...capabilityReport,
+      liveCapabilities: capabilityValidation.liveCapabilities,
+      isTemplated: capabilityValidation.isTemplated,
+      template: capabilityValidation.template ? foundry.utils.deepClone(capabilityValidation.template) : null,
+      resolverKey: String(effectiveResolution?.resolverKey ?? "standard").trim() || "standard",
+    },
     ammoLabel: effectivePayloadState.payloadLabel,
     ammoType: activePayload ? foundry.utils.deepClone(activePayload) : null,
     ammoState: {
@@ -954,6 +968,8 @@ export function resolveEffectiveWeaponProfile({
         id: payload.id,
         name: payload.label,
         damageType: payload.modifies?.damageType ?? "",
+        traits: payload.traits ?? [],
+        keywords: payload.keywords ?? [],
       })),
       isTracked: publicSourceState.isTracked,
       ammoLabel: effectivePayloadState.payloadLabel,

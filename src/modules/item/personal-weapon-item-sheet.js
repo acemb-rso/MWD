@@ -116,31 +116,6 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
       return work();
     };
 
-    root.querySelectorAll(".mwd-standard-trait-add").forEach(button => {
-      button.addEventListener("click", event => {
-        event.preventDefault();
-        void preserveScroll(() => this.item.createWeaponStandardTrait?.());
-      });
-    });
-
-    root.querySelectorAll(".mwd-standard-trait-delete").forEach(button => {
-      button.addEventListener("click", event => {
-        event.preventDefault();
-        void preserveScroll(() => this.item.deleteWeaponStandardTrait?.(button.dataset.traitId));
-      });
-    });
-
-    root.querySelectorAll(".mwd-standard-trait-field").forEach(field => {
-      field.addEventListener("change", event => {
-        event.preventDefault();
-        void preserveScroll(() => this.item.updateWeaponStandardTrait?.(
-          field.dataset.traitId,
-          field.dataset.field,
-          field.value
-        ));
-      });
-    });
-
     root.querySelectorAll(".mwd-payload-add").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
@@ -160,32 +135,6 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
         event.preventDefault();
         void preserveScroll(() => this.item.updatePayloadField?.(
           field.dataset.payloadId,
-          field.dataset.field,
-          field.value
-        ));
-      });
-    });
-
-    root.querySelectorAll(".mwd-payload-standard-trait-add").forEach(button => {
-      button.addEventListener("click", event => {
-        event.preventDefault();
-        void preserveScroll(() => this.item.createPayloadStandardTrait?.(button.dataset.payloadId));
-      });
-    });
-
-    root.querySelectorAll(".mwd-payload-standard-trait-delete").forEach(button => {
-      button.addEventListener("click", event => {
-        event.preventDefault();
-        void preserveScroll(() => this.item.deletePayloadStandardTrait?.(button.dataset.payloadId, button.dataset.traitId));
-      });
-    });
-
-    root.querySelectorAll(".mwd-payload-standard-trait-field").forEach(field => {
-      field.addEventListener("change", event => {
-        event.preventDefault();
-        void preserveScroll(() => this.item.updatePayloadStandardTrait?.(
-          field.dataset.payloadId,
-          field.dataset.traitId,
           field.dataset.field,
           field.value
         ));

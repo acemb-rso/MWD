@@ -23,19 +23,14 @@ How it fits: Used by the CSB-driven personal weapon details layout.
             <div class="mwd-weapon-compact__row">
               <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
                 <label>Built-In State</label>
-                <div class="mwd-item-note">Unloaded is the default empty state for ranged weapons. It does not apply modifiers, consume sources, or define munition traits.</div>
+                <div class="mwd-item-note">Unloaded is the default empty state for ranged weapons. It does not apply modifiers or consume sources.</div>
               </div>
             </div>
           {{else}}
-            <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+            <div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
               <div class="form-group mwd-weapon-compact__field">
                 <label>Label</label>
                 <input type="text" value="{{payload.label}}" class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="label" />
-              </div>
-
-              <div class="form-group mwd-weapon-compact__field">
-                <label>Family</label>
-                <input type="text" value="{{payload.family}}" class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="family" />
               </div>
 
               <div class="form-group mwd-weapon-compact__field">
@@ -79,6 +74,18 @@ How it fits: Used by the CSB-driven personal weapon details layout.
               </div>
             </div>
 
+            <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+              <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+                <label>Traits</label>
+                <input type="text" value="{{join payload.traits ', '}}" class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="traits" />
+              </div>
+
+              <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+                <label>Keywords</label>
+                <input type="text" value="{{join payload.keywords ', '}}" class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="keywords" />
+              </div>
+            </div>
+
             <div class="mwd-weapon-compact__band-grid">
               <div class="form-group mwd-weapon-compact__field">
                 <label>AR Close</label>
@@ -101,42 +108,34 @@ How it fits: Used by the CSB-driven personal weapon details layout.
               </div>
             </div>
 
-            <div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
-              <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
-                <label>Legacy Traits</label>
-                <input type="text" value="{{join payload.modifies.traits ', '}}" class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="modifies.traits" />
+            <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+              <div class="form-group mwd-weapon-compact__field">
+                <label>Resolver</label>
+                <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="resolution.resolverKey">
+                  {{selectOptions ../weaponEditor.resolverKeys selected=payload.resolution.resolverKey valueAttr="value" labelAttr="label" localize=false}}
+                </select>
               </div>
-            </div>
 
-            <div class="mwd-combat-sheet__subsection mwd-combat-sheet__subsection--nested">
-              <header class="mwd-combat-sheet__subheader">
-                <h4 class="mwd-combat-sheet__subtitle">Payload Standard Traits</h4>
-                <button type="button" class="mwd-payload-standard-trait-add" data-payload-id="{{payload.id}}"><i class="fas fa-plus"></i> Add</button>
-              </header>
+              <div class="form-group mwd-weapon-compact__field">
+                <label>Template Shape</label>
+                <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="template.shape">
+                  <option value=""></option>
+                  {{selectOptions ../weaponEditor.payloadTemplateShapes selected=payload.template.shape valueAttr="value" labelAttr="label" localize=false}}
+                </select>
+              </div>
 
-              {{#if payload.modifies.standardTraits.length}}
-                {{#each payload.modifies.standardTraits as |trait|}}
-                  <div class="mwd-weapon-compact__row mwd-weapon-compact__row--actions" data-payload-id="{{../payload.id}}" data-trait-id="{{trait.id}}">
-                    <div class="form-group mwd-weapon-compact__field">
-                      <label>Trait</label>
-                      <select class="mwd-payload-standard-trait-field" data-payload-id="{{../payload.id}}" data-trait-id="{{trait.id}}" data-field="key">
-                        {{selectOptions ../../weaponEditor.standardTraits selected=trait.key valueAttr="value" labelAttr="label" localize=false}}
-                      </select>
-                    </div>
+              <div class="form-group mwd-weapon-compact__field">
+                <label>Template Size</label>
+                <input class="type-numeric mwd-payload-field" type="number" value="{{payload.template.size}}" data-payload-id="{{payload.id}}" data-field="template.size" />
+              </div>
 
-                    <div class="form-group mwd-weapon-compact__field">
-                      <label>Rating</label>
-                      <input class="type-numeric mwd-payload-standard-trait-field" type="number" value="{{trait.rating}}" data-payload-id="{{../payload.id}}" data-trait-id="{{trait.id}}" data-field="rating" />
-                    </div>
-
-                    <button type="button" class="mwd-record__icon-btn is-danger mwd-payload-standard-trait-delete" data-payload-id="{{../payload.id}}" data-trait-id="{{trait.id}}" title="Remove">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                {{/each}}
-              {{else}}
-                <div class="mwd-item-note">No standard payload traits defined.</div>
-              {{/if}}
+              <div class="form-group mwd-weapon-compact__field">
+                <label>Placement</label>
+                <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="template.placement">
+                  <option value=""></option>
+                  {{selectOptions ../weaponEditor.payloadTemplatePlacements selected=payload.template.placement valueAttr="value" labelAttr="label" localize=false}}
+                </select>
+              </div>
             </div>
           {{/if}}
         </div>

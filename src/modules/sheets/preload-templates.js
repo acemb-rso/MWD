@@ -83,7 +83,6 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-summary-hero.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-combat-essentials.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-usage-bands.hbs`,
-  `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-standard-traits.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-ammo-profiles.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-consumption-sources.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/weapon-notes-reference.hbs`,

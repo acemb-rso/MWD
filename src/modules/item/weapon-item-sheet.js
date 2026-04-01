@@ -8,9 +8,12 @@ import { BaseItemSheet } from "./base-item-sheet.js";
 import { WeaponItem } from "./weapon-item.js";
 import {
   PERSONAL_DAMAGE_TYPES,
-  WEAPON_STANDARD_TRAITS,
   getPersonalDamageTypeLabel,
 } from "../mwd/personal-damage.js";
+import {
+  PERSONAL_WEAPON_TEMPLATE_PLACEMENTS,
+  PERSONAL_WEAPON_TEMPLATE_SHAPES,
+} from "../mwd/personal-weapon-capabilities.js";
 
 const PERSONAL_WEAPON_SKILL_CODES = Object.freeze([
   "firearms",
@@ -106,8 +109,13 @@ export class WeaponItemSheet extends BaseItemSheet {
         value,
         label: value.charAt(0).toUpperCase() + value.slice(1)
       })),
-      standardTraits: [...WEAPON_STANDARD_TRAITS],
       ammoDamageTypes: [{ value: "", label: "Use Weapon Default" }, ...PERSONAL_DAMAGE_TYPES],
+      payloadTemplateShapes: PERSONAL_WEAPON_TEMPLATE_SHAPES,
+      payloadTemplatePlacements: PERSONAL_WEAPON_TEMPLATE_PLACEMENTS,
+      resolverKeys: [
+        { value: "standard", label: "Standard" },
+        { value: "template", label: "Template" },
+      ],
       payloadSourceKinds: [
         { value: "untracked", label: "Untracked" },
         { value: "internal", label: "Internal" },

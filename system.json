@@ -1,7 +1,7 @@
 {
   "id": "mwd",
   "type": "system",
-  "version": "0.4.7",
+  "version": "0.4.8",
   "title": "MechWarrior: Destiny",
   "description": "MechWarrior: Destiny RPG for FoundryVTT",
   "compatibility": {

@@ -11,37 +11,14 @@ import {
 } from "../../mwd/skills.js";
 import { WeaponItem } from "../../item/weapon-item.js";
 import { createUserFacingRollError } from "../roll-errors.js";
+import { buildTargetSnapshot } from "../template-placement.js";
 
-function getTargets() {
-  return Array.from(game.user?.targets ?? []);
-}
+function getTargets(payload = {}) {
+  if (Array.isArray(payload?.targetSnapshots)) {
+    return payload.targetSnapshots;
+  }
 
-function buildTargetSnapshot(targetToken) {
-  const targetActor = targetToken?.actor ?? null;
-  if (!targetActor) return null;
-
-  const targetLoadout = targetActor?.getPersonalCombatLoadout?.() ?? null;
-  const targetArmor = targetLoadout?.activeArmor ?? null;
-
-  return {
-    tokenId: targetToken?.id ?? null,
-    tokenUuid: targetToken?.document?.uuid ?? null,
-    actorId: targetActor.id,
-    actorUuid: targetActor.uuid,
-    name: targetActor.name ?? targetToken?.name ?? "Target",
-    activeArmor: targetArmor ? {
-      armorId: targetArmor.id,
-      rating: Number(targetArmor.ratingCurrent ?? targetArmor.rating ?? 0),
-      currentArmorRating: Number(targetArmor.currentArmorRating ?? targetArmor.durability?.current ?? 0),
-      remainingDurability: Number(targetArmor.remainingDurability ?? targetArmor.durability?.current ?? 0),
-      baseMitigation: Number(targetArmor.baseMitigation ?? targetArmor.baseResistance ?? 0),
-      baseResistance: Number(targetArmor.baseMitigation ?? targetArmor.baseResistance ?? 0),
-      mitigationByType: { ...(targetArmor.mitigationByType ?? targetArmor.typedMitigation ?? {}) },
-      tags: [...(targetArmor.tags ?? [])],
-      isDestroyed: Boolean(targetArmor.isDestroyed),
-      defenseBonus: Number(targetArmor.defenseBonus ?? 0)
-    } : null
-  };
+  return Array.from(game.user?.targets ?? []).map(buildTargetSnapshot).filter(Boolean);
 }
 
 function getWeaponProfile(actor, payload) {
@@ -67,6 +44,12 @@ export async function resolveAttack({ actor, payload } = {}) {
 
   const weapon = getWeaponProfile(actor, payload);
   if (!weapon) throw new Error("Unable to resolve weapon profile.");
+  if (Array.isArray(weapon?.capabilityReport?.errors) && weapon.capabilityReport.errors.length > 0) {
+    throw createUserFacingRollError(
+      weapon.capabilityReport.errors[0]?.message ?? "Weapon capability data is invalid for this attack.",
+      { severity: "warn" }
+    );
+  }
 
   const skillDef = getSkillDef(weapon.skill) ?? {
     code: weapon.skill,
@@ -89,8 +72,9 @@ export async function resolveAttack({ actor, payload } = {}) {
   const bonus = skillBonus + accuracyBonus;
   const rangeBand = String(payload?.rangeBand ?? weapon.defaultRangeBand ?? "close").trim() || "close";
   const attackRating = Number(weapon?.attackRatingBand?.[rangeBand] ?? 0) || 0;
-  const targets = getTargets().map(buildTargetSnapshot).filter(Boolean);
-  if (targets.length === 0) {
+  const targets = getTargets(payload);
+  const requiresTemplatedWorkflow = Boolean(weapon?.capabilityReport?.isTemplated);
+  if (!requiresTemplatedWorkflow && targets.length === 0) {
     throw createUserFacingRollError("Target at least one token to attack.", { severity: "warn" });
   }
   const totalAp = Number(weapon.ap ?? 0) + Number(weapon?.effects?.ap ?? 0);
@@ -129,7 +113,13 @@ export async function resolveAttack({ actor, payload } = {}) {
       payloadState: weapon?.payloadState ?? null,
       source: weapon?.source ?? null,
       sourceState: weapon?.sourceState ?? null,
+      template: weapon?.template ?? null,
+      templatePlacement: payload?.templatePlacement ?? null,
+      resolution: weapon?.resolution ?? null,
       resolverKey: weapon?.resolverKey ?? "standard",
+      fireModes: weapon?.fireModes ?? null,
+      keywords: weapon?.keywords ?? [],
+      capabilityReport: weapon?.capabilityReport ?? null,
       skill: {
         code: skillDef.code ?? weapon.skill,
         label: skillDef.label ?? weapon.skill,

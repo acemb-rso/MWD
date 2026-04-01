@@ -26,11 +26,8 @@ import {
 } from "../mwd/traits.js";
 import {
   computeArmorBaseMitigation,
-  deriveWeaponEffectsFromTraits,
   getArmorTraitLabels,
   getPersonalDamageTypeLabel,
-  getWeaponTraitLabels,
-  migrateLegacyAmmoToPayloadModel,
   mergeArmorMitigationByType,
   normalizeConsumptionSource,
   normalizeArmorMitigationByType,
@@ -40,6 +37,9 @@ import {
   normalizePersonalDamageType,
   normalizeSelectedPayloadId,
   normalizeWeaponStandardTraits,
+  normalizeWeaponFireModes,
+  normalizeWeaponKeywords,
+  normalizeWeaponResolution,
   normalizeWeaponConsumptionSources,
   normalizeWeaponPayloads,
   normalizeWeaponTraits,
@@ -47,6 +47,10 @@ import {
   resolveEffectiveWeaponProfile,
   resolveWeaponPayloadState,
 } from "../mwd/personal-damage.js";
+import {
+  createCapabilityMigrationReport,
+  normalizeWeaponCapabilityState,
+} from "../mwd/personal-weapon-capabilities.js";
 
 const LEGACY_ITEM_TYPE_MAP = Object.freeze({
   weapon: TEMPLATE.itemType.personalWeapon,
@@ -78,6 +82,20 @@ const AREA_TARGETS = Object.freeze({
 
 function normalizeTraits(value) {
   return normalizeWeaponTraits(value);
+}
+
+function normalizePersonalWeaponCapabilityFields(system = {}) {
+  const capabilityState = normalizeWeaponCapabilityState({
+    traits: system.traits,
+    keywords: system.keywords,
+    report: createCapabilityMigrationReport(),
+    path: "system.traits",
+  });
+
+  return {
+    traits: capabilityState.traits,
+    keywords: capabilityState.keywords,
+  };
 }
 
 function normalizeRangeKey(rangeKey) {
@@ -218,6 +236,13 @@ export class MWDItem extends Item {
     attackRatingBand: { close: 0, near: 0, far: 0, extreme: 0 },
     range: { max: "close", close: 0, near: 0, far: 0, extreme: 0 },
     standardTraits: [],
+    keywords: [],
+    resolution: { resolverKey: "standard", damageModel: "", onHitEffect: null },
+    fireModes: {
+      single: { enabled: false },
+      burst: { enabled: false },
+      fullAuto: { enabled: false },
+    },
     payloads: [],
     selectedPayloadId: "",
     consumptionSources: [{
@@ -366,7 +391,8 @@ export class MWDItem extends Item {
     if (nextSystem && this.isPersonalWeapon()) {
       changed.system ??= {};
       const legacyAmmo = nextSystem.ammo;
-      changed.system.standardTraits = normalizeWeaponStandardTraits(nextSystem.standardTraits);
+      const capabilityFields = normalizePersonalWeaponCapabilityFields(nextSystem);
+      changed.system.standardTraits = [];
       changed.system.payloads = normalizeWeaponPayloads(nextSystem.payloads, { legacyAmmo, category: nextSystem.category });
       changed.system.consumptionSources = normalizeWeaponConsumptionSources(nextSystem.consumptionSources, { legacyAmmo });
       changed.system.selectedPayloadId = normalizeSelectedPayloadId(
@@ -374,7 +400,10 @@ export class MWDItem extends Item {
         changed.system.payloads,
         { legacyAmmo, category: nextSystem.category }
       );
-      changed.system.traits = normalizeTraits(nextSystem.traits);
+      changed.system.traits = capabilityFields.traits;
+      changed.system.keywords = capabilityFields.keywords;
+      changed.system.resolution = normalizeWeaponResolution(nextSystem.resolution, "standard");
+      changed.system.fireModes = normalizeWeaponFireModes(nextSystem.fireModes);
       changed.system.attackRatingBand = normalizeAttackRatingBand(nextSystem.attackRatingBand);
       changed.system.range = normalizeRangeData(nextSystem.range);
       changed.system.damageType = normalizePersonalDamageType(nextSystem.damageType);
@@ -452,12 +481,16 @@ export class MWDItem extends Item {
     system.damageType = normalizePersonalDamageType(system.damageType);
     system.attackRatingBand = normalizeAttackRatingBand(system.attackRatingBand);
     system.range = normalizeRangeData(system.range);
-    system.standardTraits = normalizeWeaponStandardTraits(system.standardTraits);
+    const capabilityFields = normalizePersonalWeaponCapabilityFields(system);
+    system.standardTraits = [];
+    system.traits = capabilityFields.traits;
+    system.keywords = capabilityFields.keywords;
+    system.resolution = normalizeWeaponResolution(system.resolution, "standard");
+    system.fireModes = normalizeWeaponFireModes(system.fireModes);
     system.payloads = normalizeWeaponPayloads(system.payloads, { legacyAmmo, category: system.category });
     system.consumptionSources = normalizeWeaponConsumptionSources(system.consumptionSources, { legacyAmmo });
     system.selectedPayloadId = normalizeSelectedPayloadId(system.selectedPayloadId, system.payloads, { legacyAmmo, category: system.category });
     delete system.ammo;
-    system.traits = normalizeTraits(system.traits);
     system.notes = String(system.notes ?? "").trim();
   }
 
@@ -967,9 +1000,11 @@ export class MWDItem extends Item {
     await this._mutatePayloads(payloads => payloads.concat([normalizePayloadProfile({
       id: entry.id ?? foundry.utils.randomID(),
       label: entry.label ?? entry.name ?? "Payload",
-      family: entry.family ?? "munition",
       compatibleWith: entry.compatibleWith ?? [],
       modifies: entry.modifies ?? {},
+      traits: entry.traits ?? [],
+      keywords: entry.keywords ?? [],
+      template: entry.template ?? null,
       resolution: entry.resolution ?? { resolverKey: "standard" },
       consumption: entry.consumption ?? { amount: 1, sourceId: "" },
     })]));
@@ -1166,7 +1201,9 @@ export class MWDItem extends Item {
           : field.startsWith("attackRatingBandMod.")
             ? `modifies.attackRatingBand.${field.split(".")[1]}`
             : field === "traits"
-              ? "modifies.traits"
+              ? "traits"
+              : field === "keywords"
+                ? "keywords"
               : field;
     await this.updatePayloadField(ammoTypeId, mappedField, value);
   }
@@ -1197,7 +1234,10 @@ export class MWDItem extends Item {
       ap: Number(system.ap ?? system.armorPiercing ?? 0) || 0,
       attackRatingBand: normalizeAttackRatingBand(system.attackRatingBand),
       traits: normalizeTraits(system.traits),
-      standardTraits: normalizeWeaponStandardTraits(system.standardTraits),
+      keywords: normalizeWeaponKeywords(system.keywords),
+      standardTraits: [],
+      resolution: normalizeWeaponResolution(system.resolution, "standard"),
+      fireModes: normalizeWeaponFireModes(system.fireModes),
       payloads: normalizeWeaponPayloads(system.payloads, { legacyAmmo: system.ammo, category }),
       selectedPayloadId: normalizeSelectedPayloadId(system.selectedPayloadId, system.payloads, { legacyAmmo: system.ammo, category }),
       consumptionSources: normalizeWeaponConsumptionSources(system.consumptionSources, { legacyAmmo: system.ammo }),
@@ -1226,6 +1266,7 @@ export class MWDItem extends Item {
       range,
       defaultRangeBand: this.getDefaultRangeBand(range),
       traits: effectiveProfile.traits,
+      keywords: effectiveProfile.keywords,
       standardTraits: effectiveProfile.standardTraits,
       effects: effectiveProfile.effects,
       payloadLabel: effectiveProfile.payloadLabel,
@@ -1233,7 +1274,11 @@ export class MWDItem extends Item {
       payloadState: effectiveProfile.payloadState,
       source: effectiveProfile.source,
       sourceState: effectiveProfile.sourceState,
+      template: effectiveProfile.template,
+      resolution: effectiveProfile.resolution,
       resolverKey: effectiveProfile.resolverKey,
+      fireModes: effectiveProfile.fireModes,
+      capabilityReport: effectiveProfile.capabilityReport,
       ammoLabel: effectiveProfile.payloadLabel,
       ammoType: effectiveProfile.payload,
       ammoState: effectiveProfile.ammoState,
