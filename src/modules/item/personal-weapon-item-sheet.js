@@ -165,5 +165,31 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
         ));
       });
     });
+
+    root.querySelectorAll(".mwd-capability-picker").forEach(field => {
+      field.addEventListener("change", event => {
+        event.preventDefault();
+        const selected = String(field.value ?? "").trim();
+        if (!selected) return;
+
+        const current = String(field.dataset.values ?? "")
+          .split(",")
+          .map(entry => entry.trim())
+          .filter(Boolean);
+        const next = Array.from(new Set([...current, selected]));
+        field.value = "";
+
+        const payloadId = String(field.dataset.payloadId ?? "").trim();
+        const targetField = String(field.dataset.field ?? "").trim();
+        if (!targetField) return;
+
+        if (payloadId) {
+          void preserveScroll(() => this.item.updatePayloadField?.(payloadId, targetField, next.join(", ")));
+          return;
+        }
+
+        void preserveScroll(() => this.item.update({ [targetField]: next }));
+      });
+    });
   }
 }

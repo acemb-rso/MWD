@@ -76,11 +76,19 @@ How it fits: Used by the CSB-driven personal weapon details layout.
 
             <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
               <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
-                <label>Traits</label>
+                <label data-tooltip="Capability traits unlock supported payload behavior. Use the picker to add known capabilities such as templated, smoke, or clustered.">Traits</label>
                 <input type="text" value="{{join payload.traits ', '}}" class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="traits" />
               </div>
 
-              <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+              <div class="form-group mwd-weapon-compact__field">
+                <label data-tooltip="Add a supported payload capability trait to the Traits field.">Add Trait</label>
+                <select class="mwd-capability-picker" data-payload-id="{{payload.id}}" data-field="traits" data-values="{{join payload.traits ', '}}">
+                  <option value=""></option>
+                  {{selectOptions ../weaponEditor.payloadCapabilityOptions selected="" valueAttr="value" labelAttr="label" localize=false}}
+                </select>
+              </div>
+
+              <div class="form-group mwd-weapon-compact__field">
                 <label>Keywords</label>
                 <input type="text" value="{{join payload.keywords ', '}}" class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="keywords" />
               </div>
@@ -108,35 +116,43 @@ How it fits: Used by the CSB-driven personal weapon details layout.
               </div>
             </div>
 
-            <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
-              <div class="form-group mwd-weapon-compact__field">
-                <label>Resolver</label>
-                <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="resolution.resolverKey">
-                  {{selectOptions ../weaponEditor.resolverKeys selected=payload.resolution.resolverKey valueAttr="value" labelAttr="label" localize=false}}
-                </select>
+            {{#if (includes payload.traits "templated")}}
+              <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Resolver</label>
+                  <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="resolution.resolverKey">
+                    {{selectOptions ../weaponEditor.resolverKeys selected=payload.resolution.resolverKey valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
+                </div>
+
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Template Shape</label>
+                  <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="template.shape">
+                    <option value=""></option>
+                    {{selectOptions ../weaponEditor.payloadTemplateShapes selected=payload.template.shape valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
+                </div>
+
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Template Size</label>
+                  <input class="type-numeric mwd-payload-field" type="number" value="{{payload.template.size}}" data-payload-id="{{payload.id}}" data-field="template.size" />
+                </div>
+
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Placement</label>
+                  <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="template.placement">
+                    <option value=""></option>
+                    {{selectOptions ../weaponEditor.payloadTemplatePlacements selected=payload.template.placement valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
+                </div>
               </div>
 
-              <div class="form-group mwd-weapon-compact__field">
-                <label>Template Shape</label>
-                <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="template.shape">
-                  <option value=""></option>
-                  {{selectOptions ../weaponEditor.payloadTemplateShapes selected=payload.template.shape valueAttr="value" labelAttr="label" localize=false}}
-                </select>
+              <div class="mwd-weapon-compact__row">
+                <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+                  <div class="mwd-item-note">Template attacks still require the <strong>templated</strong> trait and valid template config.</div>
+                </div>
               </div>
-
-              <div class="form-group mwd-weapon-compact__field">
-                <label>Template Size</label>
-                <input class="type-numeric mwd-payload-field" type="number" value="{{payload.template.size}}" data-payload-id="{{payload.id}}" data-field="template.size" />
-              </div>
-
-              <div class="form-group mwd-weapon-compact__field">
-                <label>Placement</label>
-                <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="template.placement">
-                  <option value=""></option>
-                  {{selectOptions ../weaponEditor.payloadTemplatePlacements selected=payload.template.placement valueAttr="value" labelAttr="label" localize=false}}
-                </select>
-              </div>
-            </div>
+            {{/if}}
           {{/if}}
         </div>
       {{/each}}

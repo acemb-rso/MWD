@@ -53,6 +53,21 @@ export const PERSONAL_WEAPON_RESERVED_PAYLOAD_CAPABILITIES = Object.freeze([
   "emp",
 ]);
 
+export const PERSONAL_WEAPON_WEAPON_CAPABILITY_OPTIONS = Object.freeze([
+  { value: "burstCapable", label: "Burst Capable" },
+  { value: "fullAutoCapable", label: "Full Auto Capable" },
+  { value: "salvoCapable", label: "Salvo Capable" },
+]);
+
+export const PERSONAL_WEAPON_PAYLOAD_CAPABILITY_OPTIONS = Object.freeze([
+  { value: "templated", label: "Templated" },
+  { value: "clustered", label: "Clustered" },
+  { value: "mineLayer", label: "Mine Layer" },
+  { value: "smoke", label: "Smoke" },
+  { value: "incendiary", label: "Incendiary" },
+  { value: "emp", label: "EMP" },
+]);
+
 export const PERSONAL_WEAPON_TEMPLATE_SHAPES = Object.freeze([
   { value: "blast", label: "Blast" },
   { value: "cone", label: "Cone" },

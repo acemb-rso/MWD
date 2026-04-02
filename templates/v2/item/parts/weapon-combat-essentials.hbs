@@ -60,78 +60,93 @@ How it fits: Used by the CSB-driven personal weapon details layout.
 
 <div class="mwd-weapon-compact__row">
   <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
-    <label for="system.traits">Traits</label>
+    <label for="system.traits" data-tooltip="Capability traits unlock supported weapon behavior. Use the picker to add known capabilities such as burstCapable or fullAutoCapable.">Traits</label>
     <input type="text" name="system.traits" value="{{join system.traits ', '}}" data-dtype="String" />
-  </div>
-</div>
-
-<div class="mwd-weapon-compact__row mwd-weapon-compact__row--2">
-  <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
-    <label for="system.keywords">Keywords</label>
-    <input type="text" name="system.keywords" value="{{join system.keywords ', '}}" data-dtype="String" />
   </div>
 
   <div class="form-group mwd-weapon-compact__field">
-    <label for="system.resolution.resolverKey">Resolver</label>
-    <select name="system.resolution.resolverKey" data-dtype="String">
-      {{selectOptions weaponEditor.resolverKeys selected=system.resolution.resolverKey valueAttr="value" labelAttr="label" localize=false}}
+    <label data-tooltip="Add a supported weapon capability trait to the Traits field.">Add Trait</label>
+    <select class="mwd-capability-picker" data-field="system.traits" data-values="{{join system.traits ', '}}">
+      <option value=""></option>
+      {{selectOptions weaponEditor.weaponCapabilityOptions selected="" valueAttr="value" labelAttr="label" localize=false}}
     </select>
   </div>
 </div>
 
-<div class="mwd-weapon-compact__band-grid">
-  <div class="form-group mwd-weapon-compact__field">
-    <label>
-      <input type="checkbox" name="system.fireModes.single.enabled" {{checked system.fireModes.single.enabled}} data-dtype="Boolean" />
-      Single
-    </label>
-  </div>
-
-  <div class="form-group mwd-weapon-compact__field">
-    <label>
-      <input type="checkbox" name="system.fireModes.burst.enabled" {{checked system.fireModes.burst.enabled}} data-dtype="Boolean" />
-      Burst
-    </label>
-  </div>
-
-  <div class="form-group mwd-weapon-compact__field">
-    <label>
-      <input type="checkbox" name="system.fireModes.fullAuto.enabled" {{checked system.fireModes.fullAuto.enabled}} data-dtype="Boolean" />
-      Full Auto
-    </label>
+<div class="mwd-weapon-compact__row">
+  <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+    <label for="system.keywords">Keywords</label>
+    <input type="text" name="system.keywords" value="{{join system.keywords ', '}}" data-dtype="String" />
   </div>
 </div>
 
-<div class="mwd-weapon-compact__band-grid">
-  <div class="form-group mwd-weapon-compact__field">
-    <label for="system.fireModes.burst.shots">Burst Shots</label>
-    <input class="type-numeric" type="number" name="system.fireModes.burst.shots" value="{{system.fireModes.burst.shots}}" data-dtype="Number" />
+{{#if (or (includes system.traits "burstCapable") (includes system.traits "fullAutoCapable") (includes system.traits "salvoCapable"))}}
+  <div class="mwd-weapon-compact__band-grid">
+    <div class="form-group mwd-weapon-compact__field">
+      <label>
+        <input type="checkbox" name="system.fireModes.single.enabled" {{checked system.fireModes.single.enabled}} data-dtype="Boolean" />
+        Single
+      </label>
+    </div>
+
+    {{#if (includes system.traits "burstCapable")}}
+      <div class="form-group mwd-weapon-compact__field">
+        <label>
+          <input type="checkbox" name="system.fireModes.burst.enabled" {{checked system.fireModes.burst.enabled}} data-dtype="Boolean" />
+          Burst
+        </label>
+      </div>
+    {{else}}
+      <div class="form-group mwd-weapon-compact__field"></div>
+    {{/if}}
+
+    {{#if (or (includes system.traits "fullAutoCapable") (includes system.traits "salvoCapable"))}}
+      <div class="form-group mwd-weapon-compact__field">
+        <label>
+          <input type="checkbox" name="system.fireModes.fullAuto.enabled" {{checked system.fireModes.fullAuto.enabled}} data-dtype="Boolean" />
+          {{#if (includes system.traits "salvoCapable")}}Salvo{{else}}Full Auto{{/if}}
+        </label>
+      </div>
+    {{else}}
+      <div class="form-group mwd-weapon-compact__field"></div>
+    {{/if}}
   </div>
 
-  <div class="form-group mwd-weapon-compact__field">
-    <label for="system.fireModes.burst.accuracyMod">Burst Acc.</label>
-    <input class="type-numeric" type="number" name="system.fireModes.burst.accuracyMod" value="{{system.fireModes.burst.accuracyMod}}" data-dtype="Number" />
-  </div>
+  {{#if (includes system.traits "burstCapable")}}
+    <div class="mwd-weapon-compact__band-grid">
+      <div class="form-group mwd-weapon-compact__field">
+        <label for="system.fireModes.burst.shots">Burst Shots</label>
+        <input class="type-numeric" type="number" name="system.fireModes.burst.shots" value="{{system.fireModes.burst.shots}}" data-dtype="Number" />
+      </div>
 
-  <div class="form-group mwd-weapon-compact__field">
-    <label for="system.fireModes.burst.addHeat">Burst Heat</label>
-    <input class="type-numeric" type="number" name="system.fireModes.burst.addHeat" value="{{system.fireModes.burst.addHeat}}" data-dtype="Number" />
-  </div>
-</div>
+      <div class="form-group mwd-weapon-compact__field">
+        <label for="system.fireModes.burst.accuracyMod">Burst Acc.</label>
+        <input class="type-numeric" type="number" name="system.fireModes.burst.accuracyMod" value="{{system.fireModes.burst.accuracyMod}}" data-dtype="Number" />
+      </div>
 
-<div class="mwd-weapon-compact__band-grid">
-  <div class="form-group mwd-weapon-compact__field">
-    <label for="system.fireModes.fullAuto.shots">Auto Shots</label>
-    <input class="type-numeric" type="number" name="system.fireModes.fullAuto.shots" value="{{system.fireModes.fullAuto.shots}}" data-dtype="Number" />
-  </div>
+      <div class="form-group mwd-weapon-compact__field">
+        <label for="system.fireModes.burst.addHeat">Burst Heat</label>
+        <input class="type-numeric" type="number" name="system.fireModes.burst.addHeat" value="{{system.fireModes.burst.addHeat}}" data-dtype="Number" />
+      </div>
+    </div>
+  {{/if}}
 
-  <div class="form-group mwd-weapon-compact__field">
-    <label for="system.fireModes.fullAuto.accuracyMod">Auto Acc.</label>
-    <input class="type-numeric" type="number" name="system.fireModes.fullAuto.accuracyMod" value="{{system.fireModes.fullAuto.accuracyMod}}" data-dtype="Number" />
-  </div>
+  {{#if (or (includes system.traits "fullAutoCapable") (includes system.traits "salvoCapable"))}}
+    <div class="mwd-weapon-compact__band-grid">
+      <div class="form-group mwd-weapon-compact__field">
+        <label for="system.fireModes.fullAuto.shots">{{#if (includes system.traits "salvoCapable")}}Salvo{{else}}Auto{{/if}} Shots</label>
+        <input class="type-numeric" type="number" name="system.fireModes.fullAuto.shots" value="{{system.fireModes.fullAuto.shots}}" data-dtype="Number" />
+      </div>
 
-  <div class="form-group mwd-weapon-compact__field">
-    <label for="system.fireModes.fullAuto.addHeat">Auto Heat</label>
-    <input class="type-numeric" type="number" name="system.fireModes.fullAuto.addHeat" value="{{system.fireModes.fullAuto.addHeat}}" data-dtype="Number" />
-  </div>
-</div>
+      <div class="form-group mwd-weapon-compact__field">
+        <label for="system.fireModes.fullAuto.accuracyMod">{{#if (includes system.traits "salvoCapable")}}Salvo{{else}}Auto{{/if}} Acc.</label>
+        <input class="type-numeric" type="number" name="system.fireModes.fullAuto.accuracyMod" value="{{system.fireModes.fullAuto.accuracyMod}}" data-dtype="Number" />
+      </div>
+
+      <div class="form-group mwd-weapon-compact__field">
+        <label for="system.fireModes.fullAuto.addHeat">{{#if (includes system.traits "salvoCapable")}}Salvo{{else}}Auto{{/if}} Heat</label>
+        <input class="type-numeric" type="number" name="system.fireModes.fullAuto.addHeat" value="{{system.fireModes.fullAuto.addHeat}}" data-dtype="Number" />
+      </div>
+    </div>
+  {{/if}}
+{{/if}}

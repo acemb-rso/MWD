@@ -11,8 +11,10 @@ import {
   getPersonalDamageTypeLabel,
 } from "../mwd/personal-damage.js";
 import {
+  PERSONAL_WEAPON_PAYLOAD_CAPABILITY_OPTIONS,
   PERSONAL_WEAPON_TEMPLATE_PLACEMENTS,
   PERSONAL_WEAPON_TEMPLATE_SHAPES,
+  PERSONAL_WEAPON_WEAPON_CAPABILITY_OPTIONS,
 } from "../mwd/personal-weapon-capabilities.js";
 
 const PERSONAL_WEAPON_SKILL_CODES = Object.freeze([
@@ -109,6 +111,8 @@ export class WeaponItemSheet extends BaseItemSheet {
         value,
         label: value.charAt(0).toUpperCase() + value.slice(1)
       })),
+      weaponCapabilityOptions: PERSONAL_WEAPON_WEAPON_CAPABILITY_OPTIONS,
+      payloadCapabilityOptions: PERSONAL_WEAPON_PAYLOAD_CAPABILITY_OPTIONS,
       ammoDamageTypes: [{ value: "", label: "Use Weapon Default" }, ...PERSONAL_DAMAGE_TYPES],
       payloadTemplateShapes: PERSONAL_WEAPON_TEMPLATE_SHAPES,
       payloadTemplatePlacements: PERSONAL_WEAPON_TEMPLATE_PLACEMENTS,

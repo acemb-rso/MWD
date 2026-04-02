@@ -3347,3 +3347,91 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   ITEM SHEET CONTRAST FIX
+   Tan/parchment item sheets need dark ink, not inherited light text.
+   Put late in the file so it overrides earlier generic rules.
+   ========================================================= */
+
+.mwd-sheet.item-sheet {
+  --mwd-item-ink: rgba(30, 24, 16, 0.96);
+  --mwd-item-ink-soft: rgba(63, 52, 31, 0.94);
+  --mwd-item-ink-muted: rgba(88, 71, 42, 0.88);
+  --mwd-item-halo: 0 1px 0 rgba(255, 248, 228, 0.88);
+}
+
+/* Default readable text on item sheets */
+.mwd-sheet.item-sheet,
+.mwd-sheet.item-sheet .sheet-header,
+.mwd-sheet.item-sheet .sheet-body,
+.mwd-sheet.item-sheet .csb-layout,
+.mwd-sheet.item-sheet .csb-tab-panel {
+  color: var(--mwd-item-ink);
+}
+
+/* Small labels / field labels / metadata labels */
+.mwd-sheet.item-sheet label,
+.mwd-sheet.item-sheet .form-group label,
+.mwd-sheet.item-sheet .mwd-form-section-label,
+.mwd-sheet.item-sheet .mwd-item-hero__label,
+.mwd-sheet.item-sheet .mwd-weapon-compact__field label,
+.mwd-sheet.item-sheet .mwd-weapon-compact__toggle span,
+.mwd-sheet.item-sheet .mwd-weapon-compact__action-label,
+.mwd-sheet.item-sheet .mwd-record__stat-label,
+.mwd-sheet.item-sheet .mwd-record__detail-label {
+  color: var(--mwd-item-ink-soft);
+  text-shadow: var(--mwd-item-halo);
+}
+
+/* Values next to those labels */
+.mwd-sheet.item-sheet .mwd-item-hero__value,
+.mwd-sheet.item-sheet .mwd-record__stat-value,
+.mwd-sheet.item-sheet .mwd-record__detail-value,
+.mwd-sheet.item-sheet .mwd-item-sheet__summary,
+.mwd-sheet.item-sheet .mwd-item-sheet__state,
+.mwd-sheet.item-sheet .mwd-item-note,
+.mwd-sheet.item-sheet .mwd-item-empty,
+.mwd-sheet.item-sheet .mwd-item-help {
+  color: var(--mwd-item-ink);
+  text-shadow: var(--mwd-item-halo);
+}
+
+/* Tabs on item sheets */
+.mwd-sheet.item-sheet .csb-tab-link {
+  color: var(--mwd-item-ink-soft);
+  text-shadow: var(--mwd-item-halo);
+}
+
+.mwd-sheet.item-sheet .csb-tab-link:hover {
+  color: var(--mwd-item-ink);
+}
+
+.mwd-sheet.item-sheet .csb-tab-link.is-active {
+  color: rgba(245, 246, 248, 0.96);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* Compact weapon sheet top metadata strip */
+.mwd-sheet.item-sheet .mwd-item-hero,
+.mwd-sheet.item-sheet .mwd-weapon-compact__toggle,
+.mwd-sheet.item-sheet .mwd-weapon-compact__action,
+.mwd-sheet.item-sheet .mwd-weapon-compact__band-row,
+.mwd-sheet.item-sheet .mwd-item-sheet__summary-chip,
+.mwd-sheet.item-sheet .mwd-item-sheet__state-chip {
+  color: var(--mwd-item-ink);
+}
+
+/* Prevent bright inherited text in selects/inputs on the parchment background */
+.mwd-sheet.item-sheet input,
+.mwd-sheet.item-sheet select,
+.mwd-sheet.item-sheet textarea {
+  color: var(--mwd-item-ink);
+  text-shadow: none;
+}
+
+.mwd-sheet.item-sheet select option,
+.mwd-sheet.item-sheet select optgroup {
+  color: var(--mwd-item-ink);
+  background: #f4ead2;
+}
