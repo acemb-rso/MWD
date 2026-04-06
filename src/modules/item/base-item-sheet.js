@@ -159,6 +159,7 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     const context = await super._prepareContext(options);
     const modifierEnums = game.system.mwd.modifiers?.getEnums?.() ?? {};
     const templateOptions = foundry.utils.deepClone(context?.options ?? {});
+    const systemFields = context?.fields ?? this.item.system?.schema?.fields ?? {};
     
     // Get actor attributes if this item is owned
     const actorAttributes = this.item.actor?.getAttributes?.(this.item) ?? [];
@@ -185,21 +186,20 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     templateOptions.classes = baseClasses;
     templateOptions.cssClass = cssClass;
 
-    // Prepare enriched description (for display in templates)
-    const enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(this.item.system.description ?? "", {
-      async: true,
-      secrets: this.item.isOwner,
-      relativeTo: this.item
-    });
+    const enrichField = async (value, { secrets = this.item.isOwner } = {}) =>
+      foundry.applications.ux.TextEditor.implementation.enrichHTML(value ?? "", {
+        async: true,
+        secrets,
+        relativeTo: this.item
+      });
 
-    // Prepare enriched GM notes (if applicable)
-    const enrichedGMNotes = game.user.isGM && this.item.system.gmnotes
-      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(this.item.system.gmnotes, {
-          async: true,
-          secrets: true,
-          relativeTo: this.item
-        })
-      : "";
+    const enriched = foundry.utils.expandObject({
+      "system.notes": await enrichField(this.item.system.notes ?? ""),
+      "system.description": await enrichField(this.item.system.description ?? ""),
+      "system.gmnotes": game.user.isGM
+        ? await enrichField(this.item.system.gmnotes ?? "", { secrets: true })
+        : ""
+    });
 
     // Build complete context
     const merged = foundry.utils.mergeObject(context, {
@@ -208,9 +208,11 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       data: this.item,
       system: this.item.system,
       
-      // Enriched content
-      enrichedDescription,
-      enrichedGMNotes,
+      // Form field metadata and enriched content for App V2 rich text helpers
+      fields: systemFields,
+      enriched,
+      enrichedDescription: enriched?.system?.description ?? "",
+      enrichedGMNotes: enriched?.system?.gmnotes ?? "",
       
       // Options for templates
       options: {

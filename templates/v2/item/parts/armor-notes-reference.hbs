@@ -7,7 +7,12 @@ How it fits: Used by the CSB-driven armor details layout.
 
 <div class="form-group stacked">
   <label for="system.notes">{{MWD.item.armor.notes}}</label>
-  <textarea name="system.notes">{{system.notes}}</textarea>
+  <div class="editor">
+    {{formInput fields.notes
+      value=system.notes
+      enriched=enriched.system.notes
+      toggled=true}}
+  </div>
 </div>
 
 {{> "mwd.v2.item.parts.references"}}
