@@ -16,7 +16,22 @@ How it fits: Provides a shared decluttering container alongside stack and tabs.
                 data-section="{{section.id}}"
                 aria-expanded="false"
                 aria-controls="csb-accordion-panel-{{../node.group}}-{{section.id}}">
-          <span class="csb-accordion__label">{{#if section.label}}{{section.label}}{{else}}{{section.id}}{{/if}}</span>
+          {{#if (or section.summaryPath section.summary)}}
+            <span class="mwd-accordion__trigger-copy">
+              <span class="csb-accordion__label">{{#if section.label}}{{section.label}}{{else}}{{section.id}}{{/if}}</span>
+              {{#if section.summaryPath}}
+                {{#with (getProperty @root section.summaryPath) as |summary|}}
+                  {{#if summary}}
+                    <span class="mwd-accordion__summary">{{summary}}</span>
+                  {{/if}}
+                {{/with}}
+              {{else if section.summary}}
+                <span class="mwd-accordion__summary">{{section.summary}}</span>
+              {{/if}}
+            </span>
+          {{else}}
+            <span class="csb-accordion__label">{{#if section.label}}{{section.label}}{{else}}{{section.id}}{{/if}}</span>
+          {{/if}}
           <span class="csb-accordion__chevron" aria-hidden="true"></span>
         </button>
       </h3>

@@ -5,7 +5,7 @@ How it fits: Used by rendering code to produce UI fragments.
 --}}
 
 
-<section class="{{cssClass}} mwd-sheet" data-application-part="sheet">
+<form class="{{cssClass}} mwd-sheet" data-application-part="sheet" autocomplete="off">
   <header class="sheet-header">
     <div class="header-left">
       <img class="profile" src="{{actor.img}}" alt="{{actor.name}}" data-action="editImage" />
@@ -28,4 +28,4 @@ How it fits: Used by rendering code to produce UI fragments.
   <section class="sheet-body">
     {{> @partial-block}}
   </section>
-</section>
+</form>

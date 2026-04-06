@@ -485,6 +485,14 @@ export const MWD = {
       "levelShort": "Lvl"
     },
 
+    "gear": {
+      "quantity": "Quantity",
+      "quantityShort": "Qty",
+      "rating": "Rating",
+      "category": "Category",
+      "tags": "Tags"
+    },
+
     "lifeModule": {
       "moduleType": "Module Type",
       "type": {

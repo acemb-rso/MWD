@@ -29,7 +29,8 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
       },
       actions: {
         ...super.DEFAULT_OPTIONS.actions,
-        attackWeapon: PersonalWeaponItemSheet._onAttackWeapon
+        attackWeapon: PersonalWeaponItemSheet._onAttackWeapon,
+        reloadWeaponPayload: PersonalWeaponItemSheet._onReloadWeaponPayload,
       }
     }, { inplace: false });
   }
@@ -44,6 +45,7 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const actor = this.item.actor ?? null;
+    const profile = context.weaponProfile ?? null;
     const canAttack = Boolean(
       actor
       && typeof actor.isCharacterLike === "function"
@@ -55,9 +57,32 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
       canAttack,
       attackDisabled: !canAttack || !Boolean(this.item.system?.equipped)
     });
-    context.itemSheet.summaryChips = this._getSummaryChips(context.weaponProfile ?? null);
+    context.itemSheet.summaryChips = this._getSummaryChips(profile);
+    context.itemSheet.reloadState = this._getReloadDisplayState(profile);
 
     return context;
+  }
+
+  _getReloadDisplayState(profile = this.item.getCombatProfile?.() ?? null) {
+    const reloadState = this.item.canReloadActivePayload?.({ detailed: true }) ?? { canReload: false, reason: "" };
+    const tracked = Boolean(profile?.sourceState?.isTracked);
+    const payloadLabel = String(profile?.payloadLabel ?? reloadState?.payloadLabel ?? "").trim() || "Unloaded";
+    const current = Number(profile?.sourceState?.current ?? reloadState?.current ?? 0) || 0;
+    const max = Number(profile?.sourceState?.max ?? reloadState?.max ?? 0) || 0;
+    const value = tracked ? `${payloadLabel} ${current}/${max}` : payloadLabel;
+    const hint = reloadState.canReload
+      ? "Click to reload"
+      : (String(reloadState.reason ?? "").trim() || "Payload read-only");
+
+    return {
+      canReload: Boolean(reloadState.canReload),
+      disabled: !reloadState.canReload,
+      value,
+      hint,
+      title: reloadState.canReload
+        ? `Reload ${payloadLabel}`
+        : hint,
+    };
   }
 
   _getSummaryChips(profile = this.item.getCombatProfile?.() ?? null) {
@@ -103,6 +128,19 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
     } catch (error) {
       console.error("MWD | Failed to launch weapon sheet attack", error);
       notifyRollError(error, "Unable to attack with that weapon.");
+    }
+  }
+
+  static async _onReloadWeaponPayload(event) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (!this.item?.isPersonalWeapon?.()) return;
+
+    this._captureScrollPositions?.();
+    const result = await this.item.reloadActivePayload?.();
+    if (!result?.ok) {
+      ui.notifications?.warn(result?.reason ?? "Unable to reload that weapon.");
     }
   }
 

@@ -18,6 +18,8 @@ How it fits: Used by rendering code to produce UI fragments.
     <div class="editor">
       {{editor enrichedDescription
         target="system.description"
+        engine="prosemirror"
+        collaborate=false
         owner=options.owner
         button=true
         editable=options.editable}}
@@ -28,10 +30,12 @@ How it fits: Used by rendering code to produce UI fragments.
 {{#if options.isGM}}
 <div class="section-group form-group">
   <div class="flexcol">
-    <span><label>{{MWD.common.gmNotes}}</label></span>
+    <span><label>{{MWD.common.gmnotes}}</label></span>
     <div class="editor">
       {{editor enrichedGMNotes
-        target="system.gmNotes"
+        target="system.gmnotes"
+        engine="prosemirror"
+        collaborate=false
         owner=options.owner
         button=true
         editable=options.editable}}

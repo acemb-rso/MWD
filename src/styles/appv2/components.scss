@@ -352,7 +352,7 @@
   border: 0;
   border-radius: 0;
   background: rgba(0, 0, 0, 0.08);
-  color: inherit;
+  color: rgba(242, 239, 230, 0.98);
   text-align: left;
 }
 
@@ -362,6 +362,7 @@
 
 .mwd-sheet .sheet-body .csb-accordion__trigger.is-active {
   background: rgba(255, 248, 228, 0.5);
+  color: rgba(70, 58, 38, 0.96);
 }
 
 .mwd-sheet .csb-accordion__label {
@@ -370,6 +371,29 @@
   font-size: 0.92rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.mwd-accordion__trigger-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  gap: 0.18rem;
+}
+
+.mwd-accordion__summary {
+  min-width: 0;
+  color: rgba(224, 214, 193, 0.96);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-transform: none;
+}
+
+.mwd-sheet .sheet-body .csb-accordion__trigger.is-active .mwd-accordion__summary {
+  display: none;
 }
 
 .mwd-sheet .csb-accordion__chevron {
@@ -1129,6 +1153,10 @@
   min-width: 0;
 }
 
+.mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-main-grid > .csb-accordion {
+  min-width: 0;
+}
+
 .mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-profile-grid,
 .mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-mitigation-grid {
   grid-template-columns: 1fr;
@@ -1381,6 +1409,38 @@
   background: rgba(70, 56, 35, 0.08);
 }
 
+.mwd-sheet .sheet-body .mwd-item-hero__stat--button {
+  appearance: none;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  background: rgba(70, 56, 35, 0.08);
+  box-shadow: none;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  line-height: inherit;
+  white-space: normal;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, background-color 120ms ease;
+}
+
+.mwd-sheet .sheet-body .mwd-item-hero__stat--button.is-action:hover,
+.mwd-sheet .sheet-body .mwd-item-hero__stat--button.is-action:focus-visible {
+  border-color: rgba(154, 103, 28, 0.38);
+  background: rgba(112, 84, 33, 0.14);
+  transform: translateY(-1px);
+}
+
+.mwd-sheet .sheet-body .mwd-item-hero__stat--button.is-disabled {
+  cursor: default;
+  opacity: 0.78;
+}
+
 .mwd-item-hero__label {
   font-size: 0.72rem;
   font-weight: 700;
@@ -1397,6 +1457,12 @@
   color: rgba(39, 32, 21, 0.98);
   text-shadow: 0 1px 0 rgba(255, 248, 228, 0.9);
   overflow-wrap: anywhere;
+}
+
+.mwd-item-hero__hint {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  color: rgba(102, 82, 51, 0.86);
 }
 
 .mwd-combat-sheet__split {

@@ -562,7 +562,11 @@
       "templates": [
         "inactive",
         "references"
-      ]
+      ],
+      "quantity": 1,
+      "rating": 0,
+      "category": "",
+      "tags": []
     },
     "contact": {
       "templates": [

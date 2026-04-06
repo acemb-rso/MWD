@@ -79,6 +79,46 @@ function buildDetailRows(rows = []) {
     }));
 }
 
+const ARMOR_MODIFIER_LABELS = {
+  penetrating: "Penetrating",
+  concussive: "Concussive",
+  energy: "Energy",
+  thermal: "Thermal",
+  electrical: "Electrical",
+};
+
+const GEAR_CATEGORY_LABELS = {
+  audiovisual: "Audiovisual Gear",
+  communication: "Communication Gear",
+  computing: "Computing Gear",
+  espionage: "Espionage Gear",
+  hostileEnvironment: "Hostile Environment Gear",
+  medical: "Medical Gear",
+  optical: "Optical Gear",
+  power: "Power Gear",
+  repairSalvage: "Repair/Salvage Gear",
+  survival: "Survival Gear",
+  surveillance: "Surveillance Gear",
+};
+
+function formatSignedValue(value) {
+  const numeric = Number(value ?? 0) || 0;
+  return numeric > 0 ? `+${numeric}` : `${numeric}`;
+}
+
+function buildArmorModifierSummary({ defenseBonus = 0, mitigationByType = {} } = {}) {
+  const summary = [];
+  const defense = Number(defenseBonus ?? 0) || 0;
+  if (defense !== 0) summary.push(`Defense ${formatSignedValue(defense)}`);
+
+  for (const [key, label] of Object.entries(ARMOR_MODIFIER_LABELS)) {
+    const value = Number(mitigationByType?.[key] ?? 0) || 0;
+    if (value !== 0) summary.push(`${label} ${formatSignedValue(value)}`);
+  }
+
+  return summary.join(" | ");
+}
+
 function formatBandValues(bands = {}, order = ["close", "near", "far", "extreme"]) {
   return order
     .map(key => {
@@ -86,6 +126,12 @@ function formatBandValues(bands = {}, order = ["close", "near", "far", "extreme"
       return `${key.charAt(0).toUpperCase() + key.slice(1)} ${value}`;
     })
     .join(" | ");
+}
+
+function formatCompactBandValues(bands = {}) {
+  return ["close", "near", "far", "extreme"]
+    .map(key => `${key.charAt(0).toUpperCase()}${toNumber(bands?.[key], 0)}`)
+    .join(" ");
 }
 
 function formatRangeBandLabel(rangeKey = "") {
@@ -154,6 +200,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       toggleInventoryAccordion: CharacterSheetV2.prototype._onToggleInventoryAccordion,
       toggleOwnedItemEquipped: CharacterSheetV2.prototype._onToggleOwnedItemEquipped,
       setOwnedItemPrimary: CharacterSheetV2.prototype._onSetOwnedItemPrimary,
+      adjustGearQuantity: CharacterSheetV2.prototype._onAdjustGearQuantity,
       attackWeapon: CharacterSheetV2.prototype._onAttackWeapon
     }
   });
@@ -345,16 +392,25 @@ ctx.edgeConsole.poolsOrdered = order
         const accordionId = this.#inventoryAccordionId("weapons", weapon.id);
         const usesPayloads = String(weapon?.category ?? "").trim().toLowerCase() !== "melee";
         const payloadTracked = Boolean(weapon?.sourceState?.isTracked);
-        const payloadLabel = usesPayloads && weapon?.payloadLabel ? `Loaded ${weapon.payloadLabel}` : "";
+        const payloadName = String(weapon?.payloadLabel ?? "").trim() || "Unloaded";
         const payloadCount = usesPayloads && payloadTracked
           ? `${toNumber(weapon?.sourceState?.current, 0)}/${toNumber(weapon?.sourceState?.max, 0)}`
           : "";
+        const payloadDetail = usesPayloads
+          ? (payloadTracked ? `${payloadName} ${payloadCount}` : payloadName)
+          : "";
+        const payloadTag = usesPayloads
+          ? (payloadTracked ? `Payload ${payloadCount}` : `Payload ${payloadName}`)
+          : "";
+        const cqBands = formatBandValues(weapon.attackRatingBand);
+        const cqBandsCompact = formatCompactBandValues(weapon.attackRatingBand);
         const detailRows = buildDetailRows([
           { label: "Skill", value: weapon.skillDef?.label ?? weapon.skill ?? "" },
           { label: "Category", value: weapon.category ?? "" },
+          { label: "Damage Type", value: weapon.damageTypeLabel ?? weapon.damageType ?? "" },
           { label: "Max Range", value: formatRangeBandLabel(weapon.range?.max ?? weapon.defaultRangeBand ?? "") },
-          { label: "Attack Rating", value: formatBandValues(weapon.attackRatingBand) },
-          { label: "Payload", value: usesPayloads ? (payloadTracked ? `${payloadCount} tracked` : (weapon.payloadLabel || "Unloaded")) : "" },
+          { label: "CQ Bands", value: cqBands },
+          { label: "Payload", value: payloadDetail },
           { label: "Traits", value: compactList(weapon.traits ?? []).join(", ") }
         ]);
 
@@ -369,12 +425,12 @@ ctx.edgeConsole.poolsOrdered = order
             { label: "DV", value: toNumber(weapon.damage, 0), emphasis: "strong" },
             { label: "AP", value: toNumber(weapon.ap, 0) },
             { label: "Type", value: weapon.damageTypeLabel ?? weapon.damageType ?? "" },
-            { label: "Payload", value: usesPayloads ? (payloadTracked ? payloadCount : (weapon.payloadLabel || "Unloaded")) : "" }
+            { label: "CQ", value: cqBandsCompact }
           ]),
           detailTags: buildDetailTags([
             weapon.equipped ? "Equipped" : "",
             weapon.isPrimary ? "Primary" : "",
-            payloadLabel,
+            payloadTag,
             ...compactList(weapon.traits ?? [])
           ]),
           detailRows,
@@ -397,13 +453,10 @@ ctx.edgeConsole.poolsOrdered = order
         const reinforcedLabel = reinforcedMax > 0
           ? `${toNumber(activeArmor?.traitState?.reinforced?.current ?? armor?.traitState?.reinforced?.current, 0)}/${reinforcedMax}`
           : "";
-        const mitigationLabel = [
-          Object.entries(activeArmor?.mitigationByType ?? activeArmor?.typedMitigation ?? armor.mitigationByType ?? {})
-            .filter(([, value]) => Number(value) > 0)
-            .map(([key, value]) => `${key} +${value}`)
-            .join(", "),
-          reinforcedLabel ? `Reinforced ${reinforcedLabel}` : ""
-        ].filter(Boolean).join(" | ");
+        const modifierSummary = buildArmorModifierSummary({
+          defenseBonus: armor.defenseBonus,
+          mitigationByType: activeArmor?.mitigationByType ?? activeArmor?.typedMitigation ?? armor.mitigationByType ?? {}
+        });
 
         return {
           id: armor.id,
@@ -425,8 +478,7 @@ ctx.edgeConsole.poolsOrdered = order
             ...compactList(armor.traits ?? [])
           ]),
           detailRows: buildDetailRows([
-            { label: "Mitigation", value: mitigationLabel },
-            { label: "Defense Bonus", value: toNumber(armor.defenseBonus, 0) },
+            { label: "Modifiers", value: modifierSummary },
             { label: "Traits", value: compactList(armor.traits ?? []).join(", ") },
             { label: "Tags", value: compactList(armor.tags ?? []).join(", ") }
           ]),
@@ -437,30 +489,38 @@ ctx.edgeConsole.poolsOrdered = order
       }),
       gear: (ctx.items?.gear ?? []).map(item => {
         const accordionId = this.#inventoryAccordionId("gear", item.id);
-        const quantity = toNumber(item.system?.quantity ?? 1, 1) || 1;
-        const tags = compactList(item.system?.tags ?? item.system?.traits ?? []);
+        const quantity = Math.max(0, Math.trunc(toNumber(item.system?.quantity ?? 1, 1)));
+        const rating = Math.max(0, Math.trunc(toNumber(item.system?.rating ?? 0, 0)));
+        const tags = compactList(item.system?.tags ?? []);
+        const category = String(item.system?.category ?? "").trim();
+        const categoryLabel = GEAR_CATEGORY_LABELS[category] ?? category;
         return {
           id: item.id,
+          itemType: "gear",
+          isGear: true,
           accordionId,
           isExpanded: this.#expandedInventoryRows.has(accordionId),
           name: item.name,
           img: item.img,
-          subtitle: item.system?.category ?? item.type ?? "Gear",
+          subtitle: categoryLabel || "Gear",
           summaryStats: buildSummaryStats([
             { label: "Qty", value: quantity, emphasis: "strong" },
-            { label: "State", value: item.system?.equipped ? "Readied" : "" }
+            { label: "Rating", value: rating }
           ]),
           detailTags: buildDetailTags([
-            item.system?.equipped ? "Readied" : "",
-            ...tags
+            ...tags,
+            item.system?.inactive ? "Inactive" : ""
           ]),
           detailRows: buildDetailRows([
             { label: "Quantity", value: quantity },
+            { label: "Rating", value: rating },
             { label: "Source", value: item.system?.sourceReference ?? "" },
+            { label: "Category", value: categoryLabel },
             { label: "Tags", value: tags.join(", ") }
           ]),
-          detailText: toSnippet(item.system?.notes ?? item.system?.description),
-          equipped: !!item.system?.equipped
+          detailText: toSnippet(item.system?.description),
+          quantity,
+          canAdjustQuantity: this.isEditable
         };
       })
     };
@@ -1116,6 +1176,31 @@ ctx.edgeConsole.poolsOrdered = order
 
   const actorWriteTarget = this.getPersistentActor() ?? this.actor;
   await actorWriteTarget.setOwnedItemPrimary?.(item.id, !item.system?.isPrimary);
+  this.#renderPreservingScroll({ force: true });
+ }
+
+ async _onAdjustGearQuantity(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable) return;
+
+  const item = this.#getOwnedItemFromTarget(target, event);
+  if (!item || item.canonicalType !== "gear") return;
+
+  const delta = Math.trunc(Number(
+    target?.dataset?.delta
+    ?? target?.closest?.("[data-delta]")?.dataset?.delta
+    ?? event?.target?.closest?.("[data-delta]")?.dataset?.delta
+    ?? 0
+  ) || 0);
+  if (!delta) return;
+
+  const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+  const targetItem = actorWriteTarget.items.get(item.id) ?? item;
+  const nextQuantity = Math.max(0, Math.trunc(Number(targetItem.system?.quantity ?? 1) || 0) + delta);
+
+  await targetItem.update({ "system.quantity": nextQuantity });
   this.#renderPreservingScroll({ force: true });
  }
 

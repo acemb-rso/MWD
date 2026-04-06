@@ -1,0 +1,30 @@
+{{!--
+templates/v2/item/parts/gear-main.hbs
+Purpose: Renders the editable inventory profile fields for Gear items.
+How it fits: Included by the layout-backed Gear sheet.
+--}}
+
+<div class="section-group">
+  <div class="form-group">
+    <label for="system.quantity">{{MWD.item.gear.quantity}}</label>
+    <input class="type-numeric" type="number" name="system.quantity" value="{{system.quantity}}" min="0" step="1" data-dtype="Number" />
+  </div>
+
+  <div class="form-group">
+    <label for="system.rating">{{MWD.item.gear.rating}}</label>
+    <input class="type-numeric" type="number" name="system.rating" value="{{system.rating}}" min="0" step="1" data-dtype="Number" />
+  </div>
+
+  <div class="form-group">
+    <label for="system.category">{{MWD.item.gear.category}}</label>
+    <select name="system.category" data-dtype="String">
+      <option value="">Select category</option>
+      {{selectOptions gearEditor.categories selected=system.category valueAttr="value" labelAttr="label" localize=false}}
+    </select>
+  </div>
+
+  <div class="form-group mwd-item-field--wide">
+    <label for="system.tags">{{MWD.item.gear.tags}}</label>
+    <input type="text" name="system.tags" value="{{tagsText}}" placeholder="survival, consumable, medical" />
+  </div>
+</div>

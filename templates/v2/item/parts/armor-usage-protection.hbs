@@ -18,7 +18,7 @@ How it fits: Used by the CSB-driven armor details layout.
 
   {{#if isActiveArmor}}
     <div class="mwd-item-note">
-      This armor is currently the actor's active armor. Current armor rating is tracked on the item and mirrored to the actor armor monitor.
+      This armor is currently the actor's active armor. Resistance uses the armor rating, durability is spent with each use, and the effective rating only drops if durability falls below the rating.
     </div>
   {{/if}}
 {{else}}
@@ -26,30 +26,3 @@ How it fits: Used by the CSB-driven armor details layout.
     This is a standalone item. Equip and primary controls appear after the armor is embedded in an actor.
   </div>
 {{/if}}
-
-<div class="mwd-item-form-grid mwd-armor-mitigation-grid">
-  <div class="form-group">
-    <label for="system.mitigationByType.penetrating">Penetrating</label>
-    <input class="type-numeric" type="number" name="system.mitigationByType.penetrating" value="{{system.mitigationByType.penetrating}}" data-dtype="Number" />
-  </div>
-
-  <div class="form-group">
-    <label for="system.mitigationByType.concussive">Concussive</label>
-    <input class="type-numeric" type="number" name="system.mitigationByType.concussive" value="{{system.mitigationByType.concussive}}" data-dtype="Number" />
-  </div>
-
-  <div class="form-group">
-    <label for="system.mitigationByType.energy">Energy</label>
-    <input class="type-numeric" type="number" name="system.mitigationByType.energy" value="{{system.mitigationByType.energy}}" data-dtype="Number" />
-  </div>
-
-  <div class="form-group">
-    <label for="system.mitigationByType.thermal">Thermal</label>
-    <input class="type-numeric" type="number" name="system.mitigationByType.thermal" value="{{system.mitigationByType.thermal}}" data-dtype="Number" />
-  </div>
-
-  <div class="form-group">
-    <label for="system.mitigationByType.electrical">Electrical</label>
-    <input class="type-numeric" type="number" name="system.mitigationByType.electrical" value="{{system.mitigationByType.electrical}}" data-dtype="Number" />
-  </div>
-</div>

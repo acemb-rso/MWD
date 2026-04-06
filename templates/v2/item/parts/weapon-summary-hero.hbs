@@ -9,11 +9,11 @@ How it fits: Used by the CSB-driven personal weapon details layout.
   <section class="mwd-item-hero">
     <div class="mwd-item-hero__stat">
       <span class="mwd-item-hero__label">DV</span>
-      <span class="mwd-item-hero__value">{{system.damage}}</span>
+      <span class="mwd-item-hero__value">{{weaponProfile.damage}}</span>
     </div>
     <div class="mwd-item-hero__stat">
       <span class="mwd-item-hero__label">AP</span>
-      <span class="mwd-item-hero__value">{{system.ap}}</span>
+      <span class="mwd-item-hero__value">{{weaponProfile.ap}}</span>
     </div>
     <div class="mwd-item-hero__stat">
       <span class="mwd-item-hero__label">Type</span>
@@ -24,18 +24,15 @@ How it fits: Used by the CSB-driven personal weapon details layout.
       <span class="mwd-item-hero__value">{{weaponProfile.range.max}}</span>
     </div>
     {{#unless (eq system.category "melee")}}
-      <div class="mwd-item-hero__stat">
+      <button type="button"
+              class="mwd-item-hero__stat mwd-item-hero__stat--button{{#if itemSheet.reloadState.canReload}} is-action{{else}} is-disabled{{/if}}"
+              data-action="reloadWeaponPayload"
+              title="{{itemSheet.reloadState.title}}"
+              {{#if itemSheet.reloadState.disabled}}disabled{{/if}}>
         <span class="mwd-item-hero__label">Payload</span>
-        <span class="mwd-item-hero__value">
-          {{#if weaponProfile.sourceState.isTracked}}
-            {{weaponProfile.payloadLabel}} {{weaponProfile.sourceState.current}}/{{weaponProfile.sourceState.max}}
-          {{else if weaponProfile.payloadLabel}}
-            {{weaponProfile.payloadLabel}}
-          {{else}}
-            Unloaded
-          {{/if}}
-        </span>
-      </div>
+        <span class="mwd-item-hero__value">{{itemSheet.reloadState.value}}</span>
+        <span class="mwd-item-hero__hint">{{itemSheet.reloadState.hint}}</span>
+      </button>
     {{/unless}}
     <div class="mwd-item-hero__stat">
       <span class="mwd-item-hero__label">Skill</span>

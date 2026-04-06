@@ -1,6 +1,6 @@
 {
   "id": "armor",
-  "version": 1,
+  "version": 2,
   "root": {
     "type": "stack",
     "classes": ["csb-layout", "mwd-item-layout"],
@@ -21,11 +21,17 @@
                 "classes": ["mwd-armor-main-grid"],
                 "children": [
                   {
-                    "type": "panel",
-                    "title": "Combat Essentials",
-                    "classes": ["mwd-item-section"],
-                    "children": [
-                      { "type": "include", "partial": "mwd.v2.item.parts.armor-combat-essentials" }
+                    "type": "accordion",
+                    "group": "armor-essentials",
+                    "default": "",
+                    "sections": [
+                      {
+                        "id": "essentials",
+                        "label": "Essentials",
+                        "children": [
+                          { "type": "include", "partial": "mwd.v2.item.parts.armor-combat-essentials" }
+                        ]
+                      }
                     ]
                   },
                   {
@@ -33,7 +39,22 @@
                     "title": "Usage and Protection",
                     "classes": ["mwd-item-section"],
                     "children": [
-                      { "type": "include", "partial": "mwd.v2.item.parts.armor-usage-protection" }
+                      { "type": "include", "partial": "mwd.v2.item.parts.armor-usage-protection" },
+                      {
+                        "type": "accordion",
+                        "group": "armor-resistance-modifiers",
+                        "default": "",
+                        "sections": [
+                          {
+                            "id": "modifiers",
+                            "label": "Protection Modifiers",
+                            "summaryPath": "armorModifierSummary",
+                            "children": [
+                              { "type": "include", "partial": "mwd.v2.item.parts.armor-resistance-modifiers" }
+                            ]
+                          }
+                        ]
+                      }
                     ]
                   },
                   {

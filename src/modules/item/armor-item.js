@@ -56,9 +56,10 @@ export class ArmorItem extends MWDItem {
       maxDurability,
       Math.max(0, Number(system?.durability?.current ?? maxDurability))
     );
+    const currentArmorRating = Math.min(rating, currentDurability);
     const mitigationByType = normalizeArmorMitigationByType(system?.mitigationByType ?? system?.mitigation);
     const tags = normalizeArmorTags(system?.tags);
-    const baseMitigation = computeArmorBaseMitigation(currentDurability);
+    const baseMitigation = computeArmorBaseMitigation(currentArmorRating);
 
     return {
       id: this.id ?? "armor",
@@ -72,7 +73,9 @@ export class ArmorItem extends MWDItem {
       isPrimary: Boolean(system.isPrimary),
       rating,
       defenseBonus: Number(system.defenseBonus ?? 0) || 0,
-      currentArmorRating: currentDurability,
+      currentArmorRating,
+      ratingCurrent: currentArmorRating,
+      remainingDurability: currentDurability,
       baseMitigation,
       baseResistance: baseMitigation,
       mitigationByType,

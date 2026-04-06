@@ -45,6 +45,27 @@ How it fits: Shared by the character inventory section partials.
               <span class="mwd-record__stat-value">{{stat.value}}</span>
             </span>
           {{/each}}
+
+          {{#if record.canAdjustQuantity}}
+            <span class="mwd-record__stat">
+              <span class="mwd-record__stat-value">
+                <button type="button"
+                        class="mwd-record__icon-btn"
+                        data-action="adjustGearQuantity"
+                        data-delta="-1"
+                        title="Decrease quantity">
+                  <i class="fas fa-minus"></i>
+                </button>
+                <button type="button"
+                        class="mwd-record__icon-btn"
+                        data-action="adjustGearQuantity"
+                        data-delta="1"
+                        title="Increase quantity">
+                  <i class="fas fa-plus"></i>
+                </button>
+              </span>
+            </span>
+          {{/if}}
         </div>
       </div>
 

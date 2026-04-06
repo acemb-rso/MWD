@@ -14,6 +14,7 @@ import { RollDialog } from "../roll/roll-dialog.js";
 import { AnarchyUsers } from "../users.js";
 import { formatString } from "../strings.js";
 import { getSkillDef } from "../mwd/skills.js";
+import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import {
   getLifeModuleCatalogEntry,
   normalizeLifeModuleItemSystem,
@@ -123,6 +124,34 @@ function normalizeAttackRatingBand(bands) {
     far: Number(bands?.far ?? bands?.long ?? 0) || 0,
     extreme: Number(bands?.extreme ?? 0) || 0
   };
+}
+
+function normalizeGearQuantity(value, fallback = 1) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return Math.max(0, Math.trunc(Number(fallback) || 0));
+  return Math.max(0, Math.trunc(numeric));
+}
+
+function normalizeGearRating(value, fallback = 0) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return Math.max(0, Math.trunc(Number(fallback) || 0));
+  return Math.max(0, Math.trunc(numeric));
+}
+
+function normalizeGearCategory(value) {
+  return String(value ?? "").trim();
+}
+
+function normalizeGearTags(value) {
+  const raw = Array.isArray(value)
+    ? value
+    : typeof value === "string"
+      ? value.split(",")
+      : [];
+
+  return raw
+    .map(entry => String(entry ?? "").trim())
+    .filter(Boolean);
 }
 
 function maxRangeIndex(maxKey) {
@@ -439,6 +468,15 @@ export class MWDItem extends Item {
       return;
     }
 
+    if (nextSystem && this.isGear()) {
+      changed.system ??= {};
+      changed.system.quantity = normalizeGearQuantity(nextSystem.quantity, 1);
+      changed.system.rating = normalizeGearRating(nextSystem.rating, 0);
+      changed.system.category = normalizeGearCategory(nextSystem.category);
+      changed.system.tags = normalizeGearTags(nextSystem.tags);
+      return;
+    }
+
     if (!this.isSkill()) return;
 
     const newCode = changed?.system?.code;
@@ -466,6 +504,8 @@ export class MWDItem extends Item {
       this._prepareLifeModuleBaseData();
     } else if (canonicalType === TEMPLATE.itemType.quality) {
       this._prepareQualityBaseData();
+    } else if (canonicalType === TEMPLATE.itemType.gear) {
+      this._prepareGearBaseData();
     }
   }
 
@@ -529,6 +569,14 @@ export class MWDItem extends Item {
     foundry.utils.mergeObject(this.system, normalized, { inplace: true, overwrite: true });
   }
 
+  _prepareGearBaseData() {
+    const system = this.system ?? {};
+    system.quantity = normalizeGearQuantity(system.quantity, 1);
+    system.rating = normalizeGearRating(system.rating, 0);
+    system.category = normalizeGearCategory(system.category);
+    system.tags = normalizeGearTags(system.tags);
+  }
+
   getAttributes() {
     return [];
   }
@@ -571,6 +619,10 @@ export class MWDItem extends Item {
 
   isQuality() {
     return this.canonicalType === TEMPLATE.itemType.quality;
+  }
+
+  isGear() {
+    return this.canonicalType === TEMPLATE.itemType.gear;
   }
 
   supportsEquippedEffectSync() {
@@ -1109,6 +1161,176 @@ export class MWDItem extends Item {
     });
   }
 
+  getActivePayloadReloadState({ payloadId = "", ammoTypeId = "", user = game.user } = {}) {
+    const category = String(this.system?.category ?? this.system?.weaponCategory ?? "").trim().toLowerCase();
+    const emptyState = {
+      canReload: false,
+      reason: "",
+      payloadLabel: "",
+      activePayloadId: "",
+      current: 0,
+      max: 0,
+      inCombat: false,
+      source: null,
+      sourceState: null,
+      payloadState: null,
+    };
+
+    if (!this.isPersonalWeapon()) {
+      return { ...emptyState, reason: "Only personal weapons can be reloaded from this sheet." };
+    }
+
+    if (!this.actor) {
+      return { ...emptyState, reason: "Reload is only available for weapons owned by an actor." };
+    }
+
+    if (category === "melee") {
+      return { ...emptyState, reason: "Melee weapons do not use reloadable payloads." };
+    }
+
+    const payloadState = this.getPayloadState({ payloadId: payloadId || ammoTypeId });
+    const sourceState = payloadState?.sourceState ?? null;
+    const source = payloadState?.source ?? null;
+    const activePayloadId = String(payloadState?.activePayloadId ?? "").trim();
+    const payloadLabel = String(payloadState?.payloadLabel ?? "").trim() || "Unloaded";
+    const current = Math.max(0, Number(sourceState?.current ?? 0) || 0);
+    const max = Math.max(0, Number(sourceState?.max ?? 0) || 0);
+    const inCombat = Boolean(PersonalCombatTracker.getCombat(this.actor)?.combatant);
+
+    if (!activePayloadId || activePayloadId === "unloaded") {
+      return {
+        ...emptyState,
+        reason: "Select a payload before reloading.",
+        payloadLabel,
+        activePayloadId,
+        payloadState,
+        source,
+        sourceState,
+        current,
+        max,
+        inCombat,
+      };
+    }
+
+    if (!sourceState?.isTracked) {
+      return {
+        ...emptyState,
+        reason: "This payload is untracked and does not need to be reloaded.",
+        payloadLabel,
+        activePayloadId,
+        payloadState,
+        source,
+        sourceState,
+        current,
+        max,
+        inCombat,
+      };
+    }
+
+    if (sourceState.kind !== "internal") {
+      return {
+        ...emptyState,
+        reason: "Linked ammo sources are read-only from the weapon sheet.",
+        payloadLabel,
+        activePayloadId,
+        payloadState,
+        source,
+        sourceState,
+        current,
+        max,
+        inCombat,
+      };
+    }
+
+    if (max <= 0) {
+      return {
+        ...emptyState,
+        reason: "This payload source has no reloadable capacity.",
+        payloadLabel,
+        activePayloadId,
+        payloadState,
+        source,
+        sourceState,
+        current,
+        max,
+        inCombat,
+      };
+    }
+
+    if (inCombat && !user?.isGM) {
+      return {
+        ...emptyState,
+        reason: "Only a GM can reload from the weapon sheet during combat.",
+        payloadLabel,
+        activePayloadId,
+        payloadState,
+        source,
+        sourceState,
+        current,
+        max,
+        inCombat,
+      };
+    }
+
+    if (current >= max) {
+      return {
+        ...emptyState,
+        reason: "Magazine already full.",
+        payloadLabel,
+        activePayloadId,
+        payloadState,
+        source,
+        sourceState,
+        current,
+        max,
+        inCombat,
+      };
+    }
+
+    return {
+      canReload: true,
+      reason: "",
+      payloadLabel,
+      activePayloadId,
+      payloadState,
+      source,
+      sourceState,
+      current,
+      max,
+      inCombat,
+    };
+  }
+
+  canReloadActivePayload({ detailed = false, ...options } = {}) {
+    const state = this.getActivePayloadReloadState(options);
+    return detailed ? state : state.canReload;
+  }
+
+  async reloadActivePayload({ payloadId = "", ammoTypeId = "" } = {}) {
+    const state = this.getActivePayloadReloadState({ payloadId, ammoTypeId });
+    if (!state.canReload || !state.source?.id) {
+      return { ok: false, ...state };
+    }
+
+    await this._mutateConsumptionSources(sources => sources.map(source => {
+      if (source.id !== state.source.id) return source;
+      source.tracking ??= {};
+      source.tracking.max = Math.max(0, Number(source.tracking?.max ?? state.max) || state.max);
+      source.tracking.current = state.max;
+      return normalizeConsumptionSource(source);
+    }));
+
+    return {
+      ok: true,
+      payloadLabel: state.payloadLabel,
+      activePayloadId: state.activePayloadId,
+      current: state.max,
+      max: state.max,
+      reloadedAmount: Math.max(0, state.max - state.current),
+      sourceId: state.source.id,
+    };
+  }
+
   async setActivePayload(payloadId) {
     const normalizedId = normalizeSelectedPayloadId(
       payloadId,
@@ -1296,6 +1518,7 @@ export class MWDItem extends Item {
       maxDurability,
       Math.max(0, Number(system?.durability?.current ?? maxDurability))
     );
+    const currentArmorRating = Math.min(rating, currentDurability);
     const mitigationByType = normalizeArmorMitigationByType(system?.mitigationByType ?? system?.mitigation);
     const armorTraitEffects = resolveArmorTraitEffects({
       standardTraits: normalizeArmorStandardTraits(system?.standardTraits),
@@ -1303,7 +1526,7 @@ export class MWDItem extends Item {
       traitState: system?.traitState,
     });
     const tags = normalizeArmorTags(system?.tags);
-    const baseMitigation = computeArmorBaseMitigation(currentDurability);
+    const baseMitigation = computeArmorBaseMitigation(currentArmorRating);
 
     return {
       id: this.id ?? "armor",
@@ -1317,7 +1540,9 @@ export class MWDItem extends Item {
       isPrimary: Boolean(system.isPrimary),
       rating,
       defenseBonus: Number(system.defenseBonus ?? 0) || 0,
-      currentArmorRating: currentDurability,
+      currentArmorRating,
+      ratingCurrent: currentArmorRating,
+      remainingDurability: currentDurability,
       baseMitigation,
       baseResistance: baseMitigation,
       mitigationByType: mergeArmorMitigationByType(mitigationByType, armorTraitEffects.mitigationByType),

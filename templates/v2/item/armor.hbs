@@ -59,7 +59,7 @@ How it fits: Used by rendering code to produce UI fragments.
         <input class="type-numeric" type="number" name="system.durability.max" value="{{system.durability.max}}" data-dtype="Number" />
       </div>
       {{#if isActiveArmor}}
-        <p class="notes">Current armor rating is tracked on the item and mirrored to the actor armor monitor.</p>
+        <p class="notes">Resistance uses the armor rating, durability is spent with each use, and the effective rating only drops if durability falls below the rating.</p>
       {{/if}}
     </div>
 

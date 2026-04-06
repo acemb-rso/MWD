@@ -273,26 +273,28 @@ export class MWDActor extends Actor {
     if (!armorProfile) return null;
 
     const max = Math.max(0, Number(armorProfile?.durability?.max ?? armorProfile?.rating ?? 0));
-    const current = Math.min(
+    const durabilityCurrent = Math.min(
       max,
-      Math.max(0, Number(armorProfile?.durability?.current ?? armorProfile?.currentArmorRating ?? max))
+      Math.max(0, Number(armorProfile?.durability?.current ?? armorProfile?.remainingDurability ?? armorProfile?.currentArmorRating ?? max))
     );
+    const rating = Math.max(0, Number(armorProfile?.rating ?? 0));
+    const currentArmorRating = Math.min(rating, durabilityCurrent);
     const mitigationByType = normalizeArmorMitigationByType(armorProfile?.mitigationByType);
-    const baseMitigation = computeArmorBaseMitigation(current);
+    const baseMitigation = computeArmorBaseMitigation(currentArmorRating);
 
     return {
       ...armorProfile,
       armorId: armorProfile.id,
-      remainingDurability: current,
-      currentArmorRating: current,
+      remainingDurability: durabilityCurrent,
+      currentArmorRating,
       baseMitigation,
       baseResistance: baseMitigation,
       mitigationByType,
       typedMitigation: mitigationByType,
-      ratingCurrent: current,
-      isDestroyed: current <= 0,
+      ratingCurrent: currentArmorRating,
+      isDestroyed: durabilityCurrent <= 0,
       durability: {
-        current,
+        current: durabilityCurrent,
         max
       }
     };
@@ -722,9 +724,9 @@ export class MWDActor extends Actor {
 
     const activeArmor = loadout.activeArmor;
     const max = Math.max(0, Number(activeArmor?.durability?.max ?? 0));
-    const currentArmorRating = Math.max(0, Number(activeArmor?.currentArmorRating ?? activeArmor?.durability?.current ?? 0));
+    const remainingDurability = Math.max(0, Number(activeArmor?.remainingDurability ?? activeArmor?.durability?.current ?? 0));
     armorMonitor.max = max;
-    armorMonitor.value = Math.min(max, currentArmorRating);
+    armorMonitor.value = Math.min(max, remainingDurability);
     armorMonitor.resistance = {
       default: Number(activeArmor?.baseMitigation ?? activeArmor?.baseResistance ?? 0),
       byType: {}
