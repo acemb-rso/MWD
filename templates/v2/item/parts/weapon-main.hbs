@@ -113,7 +113,12 @@ How it fits: Used by rendering code to produce UI fragments.
     <div class="mwd-panel__body">
       <div class="form-group stacked">
         <label for="system.notes">{{MWD.item.personalWeapon.notes}}</label>
-        <textarea name="system.notes">{{system.notes}}</textarea>
+        <div class="editor">
+          {{formInput fields.notes
+            value=system.notes
+            enriched=enriched.system.notes
+            toggled=true}}
+        </div>
       </div>
     </div>
   </section>
