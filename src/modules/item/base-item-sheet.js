@@ -10,6 +10,23 @@ import { LayoutRegistry } from "../layout/layout-registry.js";
 import { Misc } from "../misc.js";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
+const { HTMLField, StringField } = foundry.data.fields;
+
+function createFormField(FieldType, name) {
+  const field = new FieldType({ required: false, blank: true, initial: "" });
+  field.name = name;
+  return field;
+}
+
+function getItemSystemFormFields(systemFields = {}) {
+  return {
+    ...systemFields,
+    sourceReference: systemFields.sourceReference ?? createFormField(StringField, "system.sourceReference"),
+    notes: systemFields.notes ?? createFormField(HTMLField, "system.notes"),
+    description: systemFields.description ?? createFormField(HTMLField, "system.description"),
+    gmnotes: systemFields.gmnotes ?? createFormField(HTMLField, "system.gmnotes"),
+  };
+}
 
 /**
  * Base item sheet for all MWD items, converted to ApplicationV2.
@@ -159,7 +176,7 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     const context = await super._prepareContext(options);
     const modifierEnums = game.system.mwd.modifiers?.getEnums?.() ?? {};
     const templateOptions = foundry.utils.deepClone(context?.options ?? {});
-    const systemFields = context?.fields ?? this.item.system?.schema?.fields ?? {};
+    const systemFields = getItemSystemFormFields(context?.fields ?? this.item.system?.schema?.fields ?? {});
     
     // Get actor attributes if this item is owned
     const actorAttributes = this.item.actor?.getAttributes?.(this.item) ?? [];
