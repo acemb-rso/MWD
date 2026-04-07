@@ -10,6 +10,9 @@ export function enhanceAttack(resolved, vm) {
   const targetResults = Array.isArray(attackResult?.results) ? attackResult.results : [];
   const summary = attackResult?.summary ?? summarizeTargetResults(targetResults);
   const hasAppliedMutation = targetResults.some(result => Boolean(result?.queuedMutation?.applied));
+  const pendingQueuedMutations = targetResults.filter(result =>
+    result?.queuedMutation && !result.queuedMutation.applied
+  );
 
   const modsApplied = Array.isArray(r?.modifiers?.applied) ? r.modifiers.applied : [];
   const modTotal = Number(r?.modifiers?.total ?? 0);
@@ -70,6 +73,14 @@ export function enhanceAttack(resolved, vm) {
     text: `Targets: ${targetResults.length || 0}`,
     title: ""
   });
+
+  if (targetResults.length > 1 && pendingQueuedMutations.length > 1) {
+    vm.actions.push({
+      action: "applyAllAttackDamage",
+      label: `Apply All Damage (${pendingQueuedMutations.length})`,
+      cssClass: "mwd-apply-all-attack-damage"
+    });
+  }
 
   for (const result of targetResults) {
     const arTotal = Number(result?.cq?.ar?.total ?? 0);

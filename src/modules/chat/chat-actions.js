@@ -18,6 +18,7 @@ export function registerMWDChatActions() {
 
       if (action === "edgePostReroll") void onEdgePostReroll(ev, message);
       if (action === "applyAttackDamage") void onApplyAttackDamage(ev, message);
+      if (action === "applyAllAttackDamage") void onApplyAllAttackDamage(ev, message);
     });
   });
 }
@@ -75,15 +76,75 @@ async function onApplyAttackDamage(ev, message) {
   const resolved = foundry.utils.deepClone(message?.flags?.mwd?.resolved);
   if (!resolved) return;
 
+  const result = await applyQueuedAttackDamageAtIndex(resolved, resultIndex);
+  if (!result.ok) {
+    ui.notifications?.warn?.(result.reason ?? "Unable to apply attack damage.");
+    return;
+  }
+  if (result.skipped) {
+    ui.notifications?.info?.(result.reason ?? "That attack damage has already been applied.");
+    return;
+  }
+
+  const htmlContent = await renderChat({ resolved });
+  await message.update({
+    content: htmlContent,
+    "flags.mwd.resolved": resolved
+  });
+}
+
+async function onApplyAllAttackDamage(ev, message) {
+  ev.preventDefault();
+
+  const resolved = foundry.utils.deepClone(message?.flags?.mwd?.resolved);
+  if (!resolved) return;
+
+  const results = Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [];
+  const pendingIndexes = results
+    .map((result, index) => ({ result, index }))
+    .filter(({ result }) => result?.queuedMutation && !result.queuedMutation.applied)
+    .map(({ index }) => index);
+
+  if (!pendingIndexes.length) {
+    ui.notifications?.info?.("No queued attack damage remains to apply.");
+    return;
+  }
+
+  let applied = 0;
+  const failures = [];
+  for (const resultIndex of pendingIndexes) {
+    const result = await applyQueuedAttackDamageAtIndex(resolved, resultIndex);
+    if (result.ok && result.applied) {
+      applied += 1;
+    } else if (!result.ok) {
+      failures.push(result.reason ?? `Target ${resultIndex + 1} failed.`);
+    }
+  }
+
+  if (applied <= 0) {
+    ui.notifications?.warn?.(failures[0] ?? "Unable to apply queued attack damage.");
+    return;
+  }
+
+  const htmlContent = await renderChat({ resolved });
+  await message.update({
+    content: htmlContent,
+    "flags.mwd.resolved": resolved
+  });
+
+  if (failures.length) {
+    ui.notifications?.warn?.(`Applied ${applied} queued damage result${applied === 1 ? "" : "s"}; ${failures.length} failed.`);
+  }
+}
+
+async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
   const result = resolved?.attackResult?.results?.[resultIndex] ?? null;
   const mutation = result?.queuedMutation ?? null;
   if (!mutation) {
-    ui.notifications?.warn?.("No queued attack damage to apply.");
-    return;
+    return { ok: false, reason: "No queued attack damage to apply." };
   }
   if (mutation.applied) {
-    ui.notifications?.info?.("That attack damage has already been applied.");
-    return;
+    return { ok: true, skipped: true, reason: "That attack damage has already been applied." };
   }
 
   let applyResult = null;
@@ -101,8 +162,7 @@ async function onApplyAttackDamage(ev, message) {
     });
   } catch (error) {
     console.warn("MWD | Unable to apply queued attack damage", error);
-    ui.notifications?.warn?.("Unable to apply attack damage to that target.");
-    return;
+    return { ok: false, reason: "Unable to apply attack damage to that target." };
   }
 
   const summary = summarizeAttackDamageResult(
@@ -113,8 +173,7 @@ async function onApplyAttackDamage(ev, message) {
   );
 
   if (!applyResult?.ok) {
-    ui.notifications?.warn?.(summary.reason ?? "Unable to apply attack damage.");
-    return;
+    return { ok: false, reason: summary.reason ?? "Unable to apply attack damage." };
   }
 
   mutation.applied = true;
@@ -129,11 +188,7 @@ async function onApplyAttackDamage(ev, message) {
     canPostRerollFailures: false
   };
 
-  const htmlContent = await renderChat({ resolved });
-  await message.update({
-    content: htmlContent,
-    "flags.mwd.resolved": resolved
-  });
+  return { ok: true, applied: true };
 }
 
 async function onEdgePostReroll(ev, message) {

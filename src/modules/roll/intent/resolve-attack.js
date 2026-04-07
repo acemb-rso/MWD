@@ -23,9 +23,15 @@ function getTargets(payload = {}) {
 
 function getWeaponProfile(actor, payload) {
   if (payload?.syntheticWeapon?.id === "unarmed") {
+    const unarmed = WeaponItem.buildDefaultUnarmedProfile(actor);
     return {
-      ...WeaponItem.DEFAULT_UNARMED,
+      ...unarmed,
       ...payload.syntheticWeapon,
+      damage: unarmed.damage,
+      attackRatingBand: {
+        ...(payload.syntheticWeapon?.attackRatingBand ?? unarmed.attackRatingBand),
+        close: unarmed.attackRatingBand.close
+      },
       isSynthetic: true,
       defaultRangeBand: "close"
     };

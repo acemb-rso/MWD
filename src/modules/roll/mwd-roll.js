@@ -117,7 +117,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     }
 
     if (loadout?.defaultWeapon?.isSynthetic || loadout?.defaultWeapon?.id === "unarmed") {
-      normalized.syntheticWeapon = foundry.utils.deepClone(loadout.defaultWeapon ?? WeaponItem.DEFAULT_UNARMED);
+      normalized.syntheticWeapon = foundry.utils.deepClone(loadout.defaultWeapon ?? WeaponItem.buildDefaultUnarmedProfile(actor));
       normalized.weaponId = normalized.syntheticWeapon.id;
       normalized.rangeBand = normalized.rangeBand ?? "close";
       normalized.payloadId = normalized.payloadId ?? normalized.syntheticWeapon?.payloadState?.activePayloadId ?? "";
@@ -135,7 +135,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
   }
 
   if (normalized.fallback === "unarmed") {
-    normalized.syntheticWeapon = foundry.utils.deepClone(WeaponItem.DEFAULT_UNARMED);
+    normalized.syntheticWeapon = foundry.utils.deepClone(WeaponItem.buildDefaultUnarmedProfile(actor));
     normalized.weaponId = normalized.syntheticWeapon.id;
     normalized.rangeBand = normalized.rangeBand ?? "close";
     normalized.payloadId = normalized.payloadId ?? normalized.syntheticWeapon?.payloadState?.activePayloadId ?? "";
