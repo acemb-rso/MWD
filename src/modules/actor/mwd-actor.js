@@ -227,16 +227,7 @@ export class MWDActor extends Actor {
     } else if (equippedWeapons.length > 1) {
       weaponChoiceRequired = true;
     } else {
-      defaultWeapon = {
-        ...WeaponItem.DEFAULT_UNARMED,
-        uuid: null,
-        img: null,
-        item: null,
-        equipped: true,
-        isPrimary: false,
-        defaultRangeBand: "close",
-        isSynthetic: true
-      };
+      defaultWeapon = WeaponItem.buildDefaultUnarmedProfile(this);
     }
 
     let primaryArmorItem = null;

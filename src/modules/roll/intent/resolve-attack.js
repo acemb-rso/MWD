@@ -23,9 +23,15 @@ function getTargets(payload = {}) {
 
 function getWeaponProfile(actor, payload) {
   if (payload?.syntheticWeapon?.id === "unarmed") {
+    const unarmed = WeaponItem.buildDefaultUnarmedProfile(actor);
     return {
-      ...WeaponItem.DEFAULT_UNARMED,
+      ...unarmed,
       ...payload.syntheticWeapon,
+      damage: unarmed.damage,
+      attackRatingBand: {
+        ...(payload.syntheticWeapon?.attackRatingBand ?? unarmed.attackRatingBand),
+        close: unarmed.attackRatingBand.close
+      },
       isSynthetic: true,
       defaultRangeBand: "close"
     };
@@ -78,6 +84,7 @@ export async function resolveAttack({ actor, payload } = {}) {
     throw createUserFacingRollError("Target at least one token to attack.", { severity: "warn" });
   }
   const totalAp = Number(weapon.ap ?? 0) + Number(weapon?.effects?.ap ?? 0);
+  const dn = Number.isFinite(Number(payload?.dn)) ? Number(payload.dn) : 1;
 
   return {
     intent: "attack",
@@ -87,7 +94,16 @@ export async function resolveAttack({ actor, payload } = {}) {
     domains: Array.isArray(skillDef.domains) && skillDef.domains.length ? skillDef.domains : ["physical"],
     domainTags: ["combat", "attack"],
     diceTarget: Number.isFinite(Number(payload?.diceTarget)) ? Number(payload.diceTarget) : 5,
-    difficulty: { dn: Number.isFinite(Number(payload?.dn)) ? Number(payload.dn) : 1 },
+    difficulty: { dn },
+    dn: {
+      parts: [{
+        id: "difficulty.current",
+        label: "DN",
+        value: dn,
+        tags: ["manual"]
+      }],
+      total: dn
+    },
     edge: {
       earn: { enabled: true, rate: 4, maxPerRoll: 1 }
     },

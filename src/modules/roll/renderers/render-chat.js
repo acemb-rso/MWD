@@ -39,7 +39,7 @@ function buildBaseCardVM(resolved) {
   const r = resolved ?? {};
 
   const tn   = Number(r?.roll?.target ?? 5);
-  const dn   = Number(r?.ctxSnapshot?.difficulty?.dn ?? 0);
+  const dn   = Number(r?.dn?.total ?? r?.ctxSnapshot?.dn?.total ?? r?.ctxSnapshot?.difficulty?.dn ?? 0);
   const pool = Number(r?.roll?.pool ?? 0);
   const hits = Number(r?.outcome?.hits ?? 0);
 

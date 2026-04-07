@@ -225,6 +225,14 @@ export function buildTargetSnapshot(targetToken) {
     actorId: targetActor.id,
     actorUuid: targetActor.uuid,
     name: targetActor.name ?? targetToken?.name ?? "Target",
+    attributes: {
+      reflexes: Number(targetActor?.system?.attributes?.reflexes?.value ?? 0) || 0,
+    },
+    skills: {
+      tactics: {
+        rating: Number(targetActor?.system?.skills?.tactics?.rating ?? 0) || 0,
+      },
+    },
     activeArmor: targetArmor ? {
       armorId: targetArmor.id,
       rating: Number(targetArmor.ratingCurrent ?? targetArmor.rating ?? 0),

@@ -83,6 +83,39 @@ export class WeaponItem extends MWDItem {
   static RANGE_ORDER = ['close', 'near', 'far', 'extreme'];
   static DEFAULT_UNARMED = MWDItem.DEFAULT_UNARMED;
 
+  static buildDefaultUnarmedProfile(actor = null) {
+    const strength = Math.max(0, Number(
+      actor?.getAttributeValue?.(TEMPLATE.actorAttributes.strength)
+        ?? actor?.system?.attributes?.strength?.value
+        ?? 0
+    ) || 0);
+    const reflexes = Math.max(0, Number(
+      actor?.getAttributeValue?.(TEMPLATE.actorAttributes.reflexes)
+        ?? actor?.system?.attributes?.reflexes?.value
+        ?? 0
+    ) || 0);
+
+    return {
+      ...foundry.utils.deepClone(this.DEFAULT_UNARMED),
+      damage: Math.ceil(strength / 2),
+      attackRatingBand: {
+        ...this.DEFAULT_UNARMED.attackRatingBand,
+        close: reflexes
+      },
+      range: {
+        ...this.DEFAULT_UNARMED.range,
+        max: "close"
+      },
+      uuid: null,
+      img: null,
+      item: null,
+      equipped: true,
+      isPrimary: false,
+      defaultRangeBand: "close",
+      isSynthetic: true
+    };
+  }
+
   static init() {
     Hooks.once(ANARCHY_HOOKS.REGISTER_ROLL_PARAMETERS, register => {
       register(WEAPON_AREA_PARAMETER);
