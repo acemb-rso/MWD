@@ -27,20 +27,3 @@ How it fits: Used by rendering code to produce UI fragments.
     </div>
   </div>
 
-{{#if options.isGM}}
-  <div class="section-group form-group">
-    <div class="flexcol">
-      <span><label>{{ANARCHY.common.gmnotes}}</label></span>
-      <div class="editor">
-        {{editor enrichedGMNotes
-          target="system.gmnotes"
-          engine="prosemirror"
-          collaborate=false
-          owner=options.owner
-          button=true
-          editable=options.editable}}
-      </div>
-    </div>
-  </div>
-{{/if}}
-

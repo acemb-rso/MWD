@@ -194,8 +194,7 @@ export const MWD = {
 
     "sourceReference": "Source reference",
     "sourceReferenceHelp": "rulebook, page, ...",
-    "description": "Description",
-    "gmnotes": "GM notes"
+    "description": "Description"
   },
 
   "actor": {

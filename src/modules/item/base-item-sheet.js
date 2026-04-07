@@ -11,7 +11,7 @@ import { Misc } from "../misc.js";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { HTMLField, StringField } = foundry.data.fields;
-const RICH_TEXT_ITEM_FIELDS = new Set(["system.notes", "system.description", "system.gmnotes"]);
+const RICH_TEXT_ITEM_FIELDS = new Set(["system.notes", "system.description"]);
 
 function createFormField(FieldType, name) {
   const field = new FieldType({ required: false, blank: true, initial: "" });
@@ -25,7 +25,6 @@ function getItemSystemFormFields(systemFields = {}) {
     sourceReference: systemFields.sourceReference ?? createFormField(StringField, "system.sourceReference"),
     notes: systemFields.notes ?? createFormField(HTMLField, "system.notes"),
     description: systemFields.description ?? createFormField(HTMLField, "system.description"),
-    gmnotes: systemFields.gmnotes ?? createFormField(HTMLField, "system.gmnotes"),
   };
 }
 
@@ -213,10 +212,7 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
 
     const enriched = foundry.utils.expandObject({
       "system.notes": await enrichField(this.item.system.notes ?? ""),
-      "system.description": await enrichField(this.item.system.description ?? ""),
-      "system.gmnotes": game.user.isGM
-        ? await enrichField(this.item.system.gmnotes ?? "", { secrets: true })
-        : ""
+      "system.description": await enrichField(this.item.system.description ?? "")
     });
 
     // Build complete context
@@ -231,7 +227,6 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       fields: systemFields,
       enriched,
       enrichedDescription: enriched?.system?.description ?? "",
-      enrichedGMNotes: enriched?.system?.gmnotes ?? "",
       
       // Options for templates
       options: {
