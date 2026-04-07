@@ -772,9 +772,11 @@ ctx.edgeConsole.poolsOrdered = order
   if (rerender) this.#renderPreservingScroll(false);
  }
 
-  async _onToggleStatuses(event) {
+  async _onToggleStatuses(event, target) {
   event?.preventDefault?.();
   event?.stopPropagation?.();
+
+  if (this.#notifyUnavailableAction(target, event, "Statuses are not available right now.")) return;
 
   if (!this.isEditable) return;
 
@@ -797,6 +799,8 @@ ctx.edgeConsole.poolsOrdered = order
  async _onCombatSpend(event, target) {
   event?.preventDefault?.();
   event?.stopPropagation?.();
+
+  if (this.#notifyUnavailableAction(target, event, "That combat action is not available right now.")) return;
 
   if (!this.isEditable) return;
 
@@ -833,9 +837,11 @@ ctx.edgeConsole.poolsOrdered = order
   }
  }
 
- async _onCombatReduceBurn(event) {
+ async _onCombatReduceBurn(event, target) {
   event?.preventDefault?.();
   event?.stopPropagation?.();
+
+  if (this.#notifyUnavailableAction(target, event, "Burn recovery is not available right now.")) return;
 
   if (!this.isEditable) return;
 
@@ -863,6 +869,8 @@ ctx.edgeConsole.poolsOrdered = order
  async _onCombatOverloadCheck(event, target) {
   event?.preventDefault?.();
   event?.stopPropagation?.();
+
+  if (this.#notifyUnavailableAction(target, event, "Overload check is not available right now.")) return;
 
   if (!this.isEditable) return;
 
@@ -892,9 +900,11 @@ ctx.edgeConsole.poolsOrdered = order
   }
  }
 
- async _onCombatAttack(event) {
+ async _onCombatAttack(event, target) {
   event?.preventDefault?.();
   event?.stopPropagation?.();
+
+  if (this.#notifyUnavailableAction(target, event, "Attack is not available right now.")) return;
 
   if (!this.isEditable) return;
 
@@ -982,11 +992,13 @@ ctx.edgeConsole.poolsOrdered = order
   let selectedKey = choices[0]?.key ?? "";
   if (choices.length > 1) {
     const content = `<form class="mwd-quick-select"><div class="mwd-field"><label>Specialization</label><select name="specialization">${choices.map(choice => `<option value="${choice.key}">${choice.label}</option>`).join("")}</select></div></form>`;
-    selectedKey = await Dialog.prompt({
-      title: "Add Skill Specialization",
+    selectedKey = await foundry.applications.api.DialogV2.prompt({
+      window: { title: "Add Skill Specialization" },
       content,
-      label: "Add",
-      callback: html => html.find('select[name="specialization"]').val() ?? choices[0]?.key ?? ""
+      ok: {
+        label: "Add",
+        callback: (_event, button) => button.form.elements.specialization?.value ?? choices[0]?.key ?? ""
+      }
     });
   }
 
@@ -1209,6 +1221,8 @@ ctx.edgeConsole.poolsOrdered = order
   event?.preventDefault?.();
   event?.stopPropagation?.();
 
+  if (this.#notifyUnavailableAction(target, event, "Equip that weapon before attacking.")) return;
+
   const raw = target?.dataset?.roll ?? event?.target?.closest?.("[data-roll]")?.dataset?.roll;
   if (!raw) return;
 
@@ -1241,6 +1255,17 @@ ctx.edgeConsole.poolsOrdered = order
 
   if (!itemId) return null;
   return this.actor.items.get(itemId) ?? null;
+ }
+
+ #notifyUnavailableAction(target, event, fallback = "That action is not available right now.") {
+  const el =
+    target?.closest?.("[data-action-disabled='true']")
+    ?? event?.target?.closest?.("[data-action-disabled='true']");
+  if (!el) return false;
+
+  const reason = String(el.dataset?.actionReason ?? fallback).trim() || fallback;
+  ui.notifications?.warn(reason);
+  return true;
  }
 
  #inventoryAccordionId(section, itemId) {

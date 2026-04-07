@@ -8,14 +8,16 @@
 
 ** Outcome
 
-[Margin] = -1 AND [CombatQuality] > 0 => [Graze]
-[Margin] = 0 AND [CombatQuality] < 0 => [Graze]
-[Margin] >= 1 => [Hit]
+[CombatQuality] > 0 AND [Margin] = 0 => [Graze]
+[CombatQuality] > 0 AND [Margin] >= 1 => [Hit]
+[CombatQuality] = 0 AND [Margin] >= 1 => [Hit]
+[CombatQuality] < 0 AND [Margin] = 1 => [Graze]
+[CombatQuality] < 0 AND [Margin] >= 2 => [Hit]
 Else => [Miss]
 
-** NetHits (bounded AR; Hit only)
+** NetHits (Hit only)
 
-[Hit] => [NetHits] = max(0, [Margin] + min([CombatQuality], [Margin]))
+[Hit] => [NetHits] = max(0, [Margin])
 [Graze OR Miss] => [NetHits] = 0
 
 ** Graze damage

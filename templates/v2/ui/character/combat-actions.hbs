@@ -62,7 +62,7 @@ How it fits: Used by rendering code to produce UI fragments.
               {{#each menu.actions as |action|}}
                 <button
                   type="button"
-                  class="mwd-combat-action {{#if action.prominent}}is-prominent{{/if}} {{#if action.handler}}{{else}}is-stub{{/if}}"
+                  class="mwd-combat-action {{#if action.prominent}}is-prominent{{/if}} {{#if action.disabled}}is-disabled{{/if}} {{#if action.handler}}{{else}}is-stub{{/if}}"
                   {{#if action.handler}}data-action="{{action.handler}}"{{/if}}
                   {{#if action.resource}}data-resource="{{action.resource}}"{{/if}}
                   {{#if action.cost}}data-cost="{{action.cost}}"{{/if}}
@@ -71,7 +71,8 @@ How it fits: Used by rendering code to produce UI fragments.
                   data-combat-cost-label="{{action.costLabel}}"
                   {{#if action.roll}}data-roll='{{action.roll}}'{{/if}}
                   {{#if action.reason}}title="{{action.reason}}"{{/if}}
-                  {{#if action.disabled}}disabled{{/if}}>
+                  {{#if action.disabled}}data-action-disabled="true" data-action-reason="{{action.reason}}" aria-disabled="true"{{/if}}
+                  {{#if action.disabled}}{{#unless action.handler}}disabled{{/unless}}{{/if}}>
                   <span class="mwd-combat-action__label">{{action.label}}</span>
                   <span class="mwd-combat-action__cost">{{action.costLabel}}</span>
                   {{#if action.reason}}

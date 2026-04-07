@@ -101,8 +101,13 @@ function getTokenCenter(token) {
   const x = Number(pendingPosition?.x ?? tokenDoc?.x);
   const y = Number(pendingPosition?.y ?? tokenDoc?.y);
 
-  if (tokenObject && Number.isFinite(x) && Number.isFinite(y) && typeof tokenObject.getCenter === "function") {
-    return tokenObject.getCenter(x, y);
+  if (tokenObject && Number.isFinite(x) && Number.isFinite(y)) {
+    if (typeof tokenObject.getCenterPoint === "function") {
+      return tokenObject.getCenterPoint({ x, y });
+    }
+    if (typeof tokenObject.getCenter === "function") {
+      return tokenObject.getCenter(x, y);
+    }
   }
 
   return tokenObject?.center ?? tokenDoc?.object?.center ?? null;
@@ -134,7 +139,10 @@ export class PersonalCombatTracker {
   static async onReady() {
     await this.ensureCurrentCombatantState();
     if (game.combat?.id) {
-      this._lastActivationByCombat.set(game.combat.id, game.combat.combatant?.id ?? null);
+      this._lastActivationByCombat.set(
+        game.combat.id,
+        this.getActivationIdentity(game.combat, game.combat.combatant)
+      );
     }
     this.renderOpenCharacterSheets();
   }
@@ -258,19 +266,8 @@ export class PersonalCombatTracker {
     const grid = canvas?.grid;
     const source = getTokenCenter(sourceToken);
     const target = getTokenCenter(targetToken);
-    const RayCtor = globalThis.Ray;
 
     if (!grid || !source || !target) return null;
-
-    if (typeof grid.measureDistances === "function" && typeof RayCtor === "function") {
-      try {
-        const distances = grid.measureDistances([{ ray: new RayCtor(source, target) }], { gridSpaces: true });
-        const distance = Number(Array.isArray(distances) ? distances[0] : NaN);
-        if (Number.isFinite(distance)) return distance;
-      } catch (_error) {
-        // Fall through to newer grid APIs when available.
-      }
-    }
 
     if (typeof grid.measurePath === "function") {
       try {
@@ -282,6 +279,18 @@ export class PersonalCombatTracker {
           ?? measurement?.totalCost
           ?? NaN
         );
+        if (Number.isFinite(distance)) return distance;
+      } catch (_error) {
+        // Fall through to legacy API.
+      }
+    }
+
+    // Legacy fallback for Foundry < v12
+    const RayCtor = foundry?.canvas?.geometry?.Ray ?? globalThis.Ray;
+    if (typeof grid.measureDistances === "function" && typeof RayCtor === "function") {
+      try {
+        const distances = grid.measureDistances([{ ray: new RayCtor(source, target) }], { gridSpaces: true });
+        const distance = Number(Array.isArray(distances) ? distances[0] : NaN);
         if (Number.isFinite(distance)) return distance;
       } catch (_error) {
         return null;
@@ -1032,13 +1041,21 @@ export class PersonalCombatTracker {
       || Object.prototype.hasOwnProperty.call(changed ?? {}, "round");
 
     if (touchedTurn) {
-      const previousCombatantId = this._lastActivationByCombat.get(combat?.id) ?? null;
-      if (previousCombatantId && previousCombatantId !== combat?.combatant?.id) {
+      const previousActivation = this._lastActivationByCombat.get(combat?.id) ?? null;
+      const previousCombatantId = typeof previousActivation === "string"
+        ? previousActivation
+        : previousActivation?.combatantId ?? null;
+      const currentActivation = this.getActivationIdentity(combat, combat?.combatant);
+      const advancedActivation = previousActivation && typeof previousActivation === "object"
+        ? !sameActivation(previousActivation, currentActivation)
+        : previousCombatantId && previousCombatantId !== currentActivation.combatantId;
+
+      if (previousCombatantId && advancedActivation) {
         await this.finalizeActivation(combat, previousCombatantId);
       }
       await this.ensureCurrentCombatantState();
       if (combat?.id) {
-        this._lastActivationByCombat.set(combat.id, combat.combatant?.id ?? null);
+        this._lastActivationByCombat.set(combat.id, currentActivation);
       }
     }
 

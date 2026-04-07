@@ -328,7 +328,7 @@ async function execute({ actor, payload, event } = {}) {
 
   if (ctx.rollType === "sum" && ctx.sum?.formula) {
 
-    roll = await new Roll(ctx.sum.formula, ctx.sum.data ?? {}).evaluate({ async: true });
+    roll = await new Roll(ctx.sum.formula, ctx.sum.data ?? {}).evaluate();
 
     const baseTotal = Number(roll.total ?? 0);
     const totalWithMods = baseTotal + Number(modTotal ?? 0);
@@ -336,8 +336,7 @@ async function execute({ actor, payload, event } = {}) {
 
   } else {
 
-    roll = await new Roll(`${pool}d6cs>=${diceTarget}`)
-      .evaluate({ async: true });
+    roll = await new Roll(`${pool}d6cs>=${diceTarget}`).evaluate();
 
     const dice = roll.dice?.[0];
 

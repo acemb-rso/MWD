@@ -2337,6 +2337,11 @@
   box-shadow: 0 0 0 1px rgba(201, 123, 46, 0.34);
 }
 
+.mwd-record__media--roll.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .mwd-record__thumb {
   width: 100%;
   height: 100%;
@@ -3720,6 +3725,11 @@
 .mwd-combat-action.is-prominent {
   border-color: rgba(255, 196, 0, 0.55) !important;
   box-shadow: 0 0 0 1px rgba(255, 196, 0, 0.18);
+}
+
+.mwd-combat-action.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 .mwd-combat-action.is-stub {

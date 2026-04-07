@@ -261,10 +261,13 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
 async function resolveTargetAttack({ attacker, ctx, outcomeModel, target } = {}) {
   const cq = await buildCQBreakdown({ attacker, ctx, target });
   const margin = Number(outcomeModel?.margin ?? 0);
-  const rawNetHits = margin + Math.min(cq.value, margin);
-  const outcome = margin >= 1
-    ? (rawNetHits > 0 ? "hit" : "graze")
-    : "miss";
+  const cqValue = Number(cq.value ?? 0);
+  const rawNetHits = margin;
+  const outcome = cqValue > 0
+    ? (margin >= 1 ? "hit" : (margin === 0 ? "graze" : "miss"))
+    : cqValue < 0
+      ? (margin >= 2 ? "hit" : (margin === 1 ? "graze" : "miss"))
+      : (margin >= 1 ? "hit" : "miss");
   const netHits = outcome === "hit" ? Math.max(0, rawNetHits) : 0;
   const damage = buildDamageSnapshot(ctx, { outcome, netHits });
   const damageResult = await queueAttackDamage({
