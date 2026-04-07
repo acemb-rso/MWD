@@ -9,6 +9,7 @@ How it fits: Used by the CSB-driven personal weapon details layout.
   <label for="system.notes">{{MWD.item.personalWeapon.notes}}</label>
   <div class="editor">
     {{formInput fields.notes
+      name="system.notes"
       value=system.notes
       enriched=enriched.system.notes
       toggled=true}}
@@ -29,6 +30,7 @@ How it fits: Used by the CSB-driven personal weapon details layout.
     <span><label>{{MWD.common.description}}</label></span>
     <div class="editor">
       {{formInput fields.description
+        name="system.description"
         value=system.description
         enriched=enriched.system.description
         toggled=true}}

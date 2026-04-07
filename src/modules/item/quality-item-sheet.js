@@ -46,7 +46,8 @@ export class QualityItemSheet extends BaseItemSheet {
       ...traitEditor,
       skills: skillOptions,
     };
-    context.itemSheet = foundry.utils.mergeObject(context.itemSheet ?? {}, {
+    context.itemSheet = {
+      ...(context.itemSheet ?? {}),
       sheetClass: "mwd-item-sheet--quality",
       summaryChips: [
         { label: "Category", value: getQualityCategoryLabel(system.category) },
@@ -54,7 +55,7 @@ export class QualityItemSheet extends BaseItemSheet {
         { label: "Activation", value: String(system.activation ?? "passive").trim() || "Passive" },
         { label: "Effects", value: String(system.effects?.length ?? 0) },
       ]
-    });
+    };
     context.tagsText = Array.isArray(system.tags) ? system.tags.join(", ") : "";
 
     return context;

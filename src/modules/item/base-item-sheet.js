@@ -11,6 +11,7 @@ import { Misc } from "../misc.js";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { HTMLField, StringField } = foundry.data.fields;
+const RICH_TEXT_ITEM_FIELDS = new Set(["system.notes", "system.description", "system.gmnotes"]);
 
 function createFormField(FieldType, name) {
   const field = new FieldType({ required: false, blank: true, initial: "" });
@@ -219,7 +220,8 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     });
 
     // Build complete context
-    const merged = foundry.utils.mergeObject(context, {
+    const merged = {
+      ...context,
       // Item data
       item: this.item,
       data: this.item,
@@ -244,10 +246,10 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       },
       
       // Configuration data
-      ENUMS: foundry.utils.mergeObject(
-        Enums.getEnums(usableAttribute, withKnowledge), 
-        modifierEnums
-      ),
+      ENUMS: {
+        ...Enums.getEnums(usableAttribute, withKnowledge),
+        ...modifierEnums
+      },
       MWD,
       itemSheet: {
         canonicalType,
@@ -268,7 +270,7 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       
       // Tab configuration
       tabs: this._getTabs()
-    });
+    };
 
     if (layoutId) {
       merged.layout = await LayoutRegistry.get(layoutId);
@@ -459,7 +461,32 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       this.#applyAccordionState(accordionRoot, activeSection);
     }
 
+    for (const editor of root.querySelectorAll("prose-mirror[name]")) {
+      const name = editor.getAttribute("name") ?? "";
+      if (!RICH_TEXT_ITEM_FIELDS.has(name)) continue;
+      editor.addEventListener("change", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        void this._updateRichTextField(editor);
+      });
+    }
+
     this._restoreScrollPositions();
+  }
+
+  async _updateRichTextField(editor) {
+    const name = String(editor?.getAttribute?.("name") ?? editor?.name ?? "");
+    if (!this.isEditable || !RICH_TEXT_ITEM_FIELDS.has(name)) return;
+
+    const value = String(editor.value ?? "");
+    const current = String(foundry.utils.getProperty(this.item, name) ?? "");
+    if (value === current) return;
+
+    try {
+      await this.item.update({ [name]: value });
+    } catch (err) {
+      console.warn("MWD | Rich text item update failed:", err);
+    }
   }
 
   _getScrollRestoreSelectors() {

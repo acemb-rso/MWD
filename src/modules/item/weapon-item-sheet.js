@@ -77,10 +77,10 @@ export class WeaponItemSheet extends BaseItemSheet {
     const context = await super._prepareContext(options);
     const canonicalType = this._getCanonicalItemType();
 
-    context.ENUMS = foundry.utils.mergeObject(
-      { defenses: AttributeActions.getDefenses() },
-      context.ENUMS
-    );
+    context.ENUMS = {
+      ...(context.ENUMS ?? {}),
+      defenses: AttributeActions.getDefenses()
+    };
 
     const allSkills = Array.isArray(context.ENUMS?.skills) ? context.ENUMS.skills : [];
     const selectedSkill = this.item.system?.skill;
@@ -128,10 +128,11 @@ export class WeaponItemSheet extends BaseItemSheet {
       ]
     };
 
-    context.itemSheet = foundry.utils.mergeObject(context.itemSheet ?? {}, {
+    context.itemSheet = {
+      ...(context.itemSheet ?? {}),
       isCompactWeaponSheet: true,
       weaponSheetVariant: canonicalType === "mechWeapon" ? "mech" : "personal"
-    });
+    };
     context.itemSheet.stateChips = (context.itemSheet.stateChips ?? []).filter(
       chip => !["ownership", "equipment", "role"].includes(chip.kind)
     );

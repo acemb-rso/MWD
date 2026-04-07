@@ -47,7 +47,8 @@ export class GearItemSheet extends BaseItemSheet {
       categories: GEAR_CATEGORY_OPTIONS.map(option => ({ ...option }))
     };
     context.tagsText = context.system.tags.join(", ");
-    context.itemSheet = foundry.utils.mergeObject(context.itemSheet ?? {}, {
+    context.itemSheet = {
+      ...(context.itemSheet ?? {}),
       summaryChips: [
         { label: "Qty", value: String(context.system.quantity) },
         { label: "Rating", value: String(context.system.rating) },
@@ -56,7 +57,7 @@ export class GearItemSheet extends BaseItemSheet {
           value: GEAR_CATEGORY_OPTIONS.find(option => option.value === context.system.category)?.label ?? "Uncategorized"
         }
       ]
-    });
+    };
 
     return context;
   }

@@ -1,14 +1,14 @@
-var Sl = Object.defineProperty;
-var Al = Object.getPrototypeOf;
-var wl = Reflect.get;
-var zr = (s) => {
+var kl = Object.defineProperty;
+var vl = Object.getPrototypeOf;
+var Ml = Reflect.get;
+var Ur = (s) => {
   throw TypeError(s);
 };
-var Tl = (s, e, t) => e in s ? Sl(s, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : s[e] = t;
-var N = (s, e, t) => Tl(s, typeof e != "symbol" ? e + "" : e, t), aa = (s, e, t) => e.has(s) || zr("Cannot " + t);
-var B = (s, e, t) => (aa(s, e, "read from private field"), t ? t.call(s) : e.get(s)), ye = (s, e, t) => e.has(s) ? zr("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(s) : e.set(s, t), Pe = (s, e, t, i) => (aa(s, e, "write to private field"), i ? i.call(s, t) : e.set(s, t), t), M = (s, e, t) => (aa(s, e, "access private method"), t);
-var yi = (s, e, t) => wl(Al(s), t, e);
-const ge = {
+var El = (s, e, t) => e in s ? kl(s, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : s[e] = t;
+var N = (s, e, t) => El(s, typeof e != "symbol" ? e + "" : e, t), ra = (s, e, t) => e.has(s) || Ur("Cannot " + t);
+var F = (s, e, t) => (ra(s, e, "read from private field"), t ? t.call(s) : e.get(s)), be = (s, e, t) => e.has(s) ? Ur("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(s) : e.set(s, t), Pe = (s, e, t, i) => (ra(s, e, "write to private field"), i ? i.call(s, t) : e.set(s, t), t), E = (s, e, t) => (ra(s, e, "access private method"), t);
+var yi = (s, e, t) => Ml(vl(s), t, e);
+const ye = {
   TYPES: {
     Actor: {
       character: "Character",
@@ -804,7 +804,7 @@ const ge = {
       always: "Always"
     }
   }
-}, k = ge, T = "mwd", kl = "MechWarrior: Destiny", Ea = `system.${T}`, vl = T, rs = `systems/${T}`, Wn = `${rs}/style`, Wi = `${rs}/third-party/style`, H = `systems/${T}/templates`, Us = `${rs}/img/icons`, J = `${Us}/skills`, le = "MWD | ", Ml = 2, El = 5, Cl = 4, jn = 8, Ht = {
+}, k = ye, T = "mwd", Cl = "MechWarrior: Destiny", Pa = `system.${T}`, Pl = T, rs = `systems/${T}`, Gn = `${rs}/style`, Wi = `${rs}/third-party/style`, G = `systems/${T}/templates`, js = `${rs}/img/icons`, X = `${js}/skills`, ue = "MWD | ", Nl = 2, Rl = 5, Dl = 4, qn = 8, jt = {
   reflexes: "reflexes",
   strength: "strength",
   willpower: "willpower",
@@ -815,21 +815,21 @@ const ge = {
   system: "system",
   chassis: "chassis",
   condition: "condition"
-}, Ca = {
+}, Na = {
   autopilot: "autopilot",
   firewall: "firewall",
   knowledge: "knowledge"
-}, Ge = {
+}, je = {
   grit: "grit",
   chaos: "chaos",
   insight: "insight",
   rumor: "rumor",
   legend: "legend",
   credibility: "credibility"
-}, hr = {
-  physical: [Ge.grit, Ge.chaos],
-  mental: [Ge.insight, Ge.rumor],
-  social: [Ge.legend, Ge.credibility]
+}, yr = {
+  physical: [je.grit, je.chaos],
+  mental: [je.insight, je.rumor],
+  social: [je.legend, je.credibility]
 }, S = {
   actorTypes: {
     character: "character",
@@ -848,9 +848,9 @@ const ge = {
     contact: "contact",
     lifeModule: "lifeModule"
   },
-  actorAttributes: Ht,
-  itemAttributes: Ca,
-  attributes: { ...Ht, ...Ca },
+  actorAttributes: jt,
+  itemAttributes: Na,
+  attributes: { ...jt, ...Na },
   monitors: {
     fatigue: "fatigue",
     armor: "armor",
@@ -863,21 +863,21 @@ const ge = {
     xpTotal: "xpTotal",
     xpUnused: "xpUnused",
     edge: "edge",
-    edgePools: Ge,
-    edgePoolGroups: hr,
+    edgePools: je,
+    edgePoolGroups: yr,
     physical: {
-      grit: Ge.grit,
-      chaos: Ge.chaos
+      grit: je.grit,
+      chaos: je.chaos
     },
     mental: {
-      insight: Ge.insight,
-      rumor: Ge.rumor
+      insight: je.insight,
+      rumor: je.rumor
     },
     social: {
-      legend: Ge.legend,
-      credibility: Ge.credibility
+      legend: je.legend,
+      credibility: je.credibility
     },
-    chaos: Ge.chaos
+    chaos: je.chaos
   },
   area: {
     none: "none",
@@ -887,12 +887,12 @@ const ge = {
     rect: "rect",
     ray: "ray"
   }
-}, Pl = Object.freeze({
+}, Il = Object.freeze({
   physical: "physical",
   mental: "mental",
   social: "social"
 });
-Object.freeze(Object.values(Pl));
+Object.freeze(Object.values(Il));
 const Ii = {
   [S.actorTypes.character]: [
     S.actorAttributes.strength,
@@ -922,7 +922,7 @@ const Ii = {
     S.actorAttributes.chassis,
     S.actorAttributes.condition
   ]
-}, ra = {
+}, na = {
   character: {
     physical: {
       status: { label: "Penalty", path: "derived.penalty" },
@@ -974,7 +974,7 @@ const Ii = {
       }
     }
   }
-}, Be = {
+}, xe = {
   rollType: {
     attributeAction: "attributeAction",
     defense: "defense",
@@ -1005,25 +1005,25 @@ const Ii = {
 };
 globalThis.ANARCHY_CONSTANTS = {
   SYSTEM_NAME: T,
-  SYSTEM_DESCRIPTION: kl,
-  SYSTEM_SOCKET: Ea,
-  SYSTEM_SCOPE: vl,
+  SYSTEM_DESCRIPTION: Cl,
+  SYSTEM_SOCKET: Pa,
+  SYSTEM_SCOPE: Pl,
   SYSTEM_PATH: rs,
-  STYLE_PATH: Wn,
+  STYLE_PATH: Gn,
   THIRD_PARTY_STYLE_PATH: Wi,
-  TEMPLATES_PATH: H,
-  ICONS_PATH: Us,
-  ICONS_SKILLS_PATH: J,
-  LOG_HEAD: le,
-  SPECIALIZATION_BONUS: Ml,
-  TARGET_SUCCESS: El,
-  TARGET_SUCCESS_EDGE: Cl,
-  BASE_MONITOR: jn,
-  ACTOR_ATTRIBUTES: Ht,
-  ITEM_ATTRIBUTES: Ca,
-  EDGE_POOL_GROUPS: hr,
+  TEMPLATES_PATH: G,
+  ICONS_PATH: js,
+  ICONS_SKILLS_PATH: X,
+  LOG_HEAD: ue,
+  SPECIALIZATION_BONUS: Nl,
+  TARGET_SUCCESS: Rl,
+  TARGET_SUCCESS_EDGE: Dl,
+  BASE_MONITOR: qn,
+  ACTOR_ATTRIBUTES: jt,
+  ITEM_ATTRIBUTES: Na,
+  EDGE_POOL_GROUPS: yr,
   TEMPLATE: S,
-  ANARCHY_SYSTEM: Be
+  ANARCHY_SYSTEM: xe
 };
 const lt = class lt {
   static ascending(e = (t) => t) {
@@ -1100,7 +1100,7 @@ const lt = class lt {
 };
 N(lt, "isString", (e) => typeof e == "string" || e instanceof String);
 let Q = lt;
-const Nl = {
+const Ol = {
   keyword: "keywords",
   disposition: "dispositions",
   cue: "cues"
@@ -1110,10 +1110,10 @@ const Nl = {
    * Call once during system init/setup after config/constants are available.
    */
   static init() {
-    var t, i, a, r, n, o, l, c, u, d, m, p;
-    C.hbsAttributes = C.mapObjectToKeyValue(k.attributes).filter((f) => f.value !== "knowledge" && f.value !== "noAttribute"), C.hbsItemTypes = C.mapObjectToKeyValue(k.itemType), C.hbsMonitors = C.mapObjectToKeyValue(k.monitor), C.hbsMonitorLetters = C.mapObjectToKeyValue(k.monitorLetter), C.hbsAssetModuleCategories = C.mapObjectToKeyValue(k.assetModuleCategory), (i = (t = k.item) == null ? void 0 : t.lifeModule) != null && i.type ? C.hbsLifeModuleTypes = C.mapObjectToKeyValue(k.item.lifeModule.type) : (console.warn("MWD | MWD.item.lifeModule.type is missing; life module enums disabled."), C.hbsLifeModuleTypes = []), C.hbsAreas = C.mapObjectToKeyValue(k.area), C.hbsRanges = C.mapObjectToKeyValue(k.range), C.hbsVehicleCategories = C.mapObjectToKeyValue(k.vehicleCategory), C.hbsMwdWeightClasses = C.mapObjectToKeyValue((a = k.mwd) == null ? void 0 : a.weightClass), C.hbsMwdHardpointTypes = C.mapObjectToKeyValue((r = k.mwd) == null ? void 0 : r.hardpointType), C.hbsMwdHardpointSizes = C.mapObjectToKeyValue((n = k.mwd) == null ? void 0 : n.hardpointSize), C.hbsMwdHardpointLocations = C.mapObjectToKeyValue((o = k.mwd) == null ? void 0 : o.hardpointLocation), C.hbsMwdPrimaryModes = C.mapObjectToKeyValue((l = k.mwd) == null ? void 0 : l.primarySlotMode), C.hbsMwdWeaponCategories = C.mapObjectToKeyValue((c = k.mwd) == null ? void 0 : c.weaponCategory), C.hbsMwdWeaponDamageTypes = C.mapObjectToKeyValue((u = k.mwd) == null ? void 0 : u.weaponDamageType), C.hbsPersonalWeaponDamageTypes = C.mapObjectToKeyValue((d = k.mwd) == null ? void 0 : d.personalDamageType), C.hbsPersonalWeaponDamageCategories = C.mapObjectToKeyValue((m = k.mwd) == null ? void 0 : m.personalDamageCategory), C.hbsMwdMeleeLocations = C.mapObjectToKeyValue((p = k.mwd) == null ? void 0 : p.meleeLocation), C.hbsDamageTypes = Q.distinct(
+    var t, i, a, r, n, o, l, c, u, d, m, f;
+    C.hbsAttributes = C.mapObjectToKeyValue(k.attributes).filter((p) => p.value !== "knowledge" && p.value !== "noAttribute"), C.hbsItemTypes = C.mapObjectToKeyValue(k.itemType), C.hbsMonitors = C.mapObjectToKeyValue(k.monitor), C.hbsMonitorLetters = C.mapObjectToKeyValue(k.monitorLetter), C.hbsAssetModuleCategories = C.mapObjectToKeyValue(k.assetModuleCategory), (i = (t = k.item) == null ? void 0 : t.lifeModule) != null && i.type ? C.hbsLifeModuleTypes = C.mapObjectToKeyValue(k.item.lifeModule.type) : (console.warn("MWD | MWD.item.lifeModule.type is missing; life module enums disabled."), C.hbsLifeModuleTypes = []), C.hbsAreas = C.mapObjectToKeyValue(k.area), C.hbsRanges = C.mapObjectToKeyValue(k.range), C.hbsVehicleCategories = C.mapObjectToKeyValue(k.vehicleCategory), C.hbsMwdWeightClasses = C.mapObjectToKeyValue((a = k.mwd) == null ? void 0 : a.weightClass), C.hbsMwdHardpointTypes = C.mapObjectToKeyValue((r = k.mwd) == null ? void 0 : r.hardpointType), C.hbsMwdHardpointSizes = C.mapObjectToKeyValue((n = k.mwd) == null ? void 0 : n.hardpointSize), C.hbsMwdHardpointLocations = C.mapObjectToKeyValue((o = k.mwd) == null ? void 0 : o.hardpointLocation), C.hbsMwdPrimaryModes = C.mapObjectToKeyValue((l = k.mwd) == null ? void 0 : l.primarySlotMode), C.hbsMwdWeaponCategories = C.mapObjectToKeyValue((c = k.mwd) == null ? void 0 : c.weaponCategory), C.hbsMwdWeaponDamageTypes = C.mapObjectToKeyValue((u = k.mwd) == null ? void 0 : u.weaponDamageType), C.hbsPersonalWeaponDamageTypes = C.mapObjectToKeyValue((d = k.mwd) == null ? void 0 : d.personalDamageType), C.hbsPersonalWeaponDamageCategories = C.mapObjectToKeyValue((m = k.mwd) == null ? void 0 : m.personalDamageCategory), C.hbsMwdMeleeLocations = C.mapObjectToKeyValue((f = k.mwd) == null ? void 0 : f.meleeLocation), C.hbsDamageTypes = Q.distinct(
       (C.hbsMwdWeaponDamageTypes ?? []).concat(C.hbsPersonalWeaponDamageTypes ?? []),
-      (f) => f.value
+      (p) => p.value
     );
     const e = Object.values(Ii).flat();
     C.sortedAttributeKeys = Q.distinct(
@@ -1140,7 +1140,7 @@ const Nl = {
     return (C.hbsAttributes ?? []).filter((t) => e(t.value));
   }
   static getActorWordTypes() {
-    return Nl;
+    return Ol;
   }
   static getMonitors() {
     return C.hbsMonitors ?? [];
@@ -1209,7 +1209,7 @@ N(C, "ENUMS"), // HBS-friendly arrays of { value, label } (or key/value dependin
 N(C, "hbsAttributes"), N(C, "hbsItemTypes"), N(C, "hbsMonitors"), N(C, "hbsMonitorLetters"), N(C, "hbsAssetModuleCategories"), N(C, "hbsLifeModuleTypes"), N(C, "hbsAreas"), N(C, "hbsRanges"), N(C, "hbsVehicleCategories"), // MWD-specific enum groups
 N(C, "hbsMwdWeightClasses"), N(C, "hbsMwdHardpointTypes"), N(C, "hbsMwdHardpointSizes"), N(C, "hbsMwdHardpointLocations"), N(C, "hbsMwdPrimaryModes"), N(C, "hbsMwdWeaponCategories"), N(C, "hbsMwdWeaponDamageTypes"), N(C, "hbsPersonalWeaponDamageTypes"), N(C, "hbsPersonalWeaponDamageCategories"), N(C, "hbsDamageTypes"), N(C, "hbsMwdMeleeLocations"), N(C, "sortedAttributeKeys");
 let ie = C;
-class Rl {
+class _l {
   static monitor(e) {
     return ie.getFromList(ie.getMonitors(), e) ?? "";
   }
@@ -1217,7 +1217,7 @@ class Rl {
     return ie.getFromList(ie.getMonitorLetters(), e) ?? "";
   }
 }
-class Dl {
+class Ll {
   static toLowerCaseNoAccent(e) {
     return e == null ? void 0 : e.normalize("NFD").toLowerCase().replace(/[\u0300-\u036f]/g, "");
   }
@@ -1225,7 +1225,7 @@ class Dl {
     return e == null ? void 0 : e.normalize("NFD").toUpperCase().replace(/[\u0300-\u036f]/g, "");
   }
 }
-const Il = [
+const $l = [
   "fas fa-dice",
   "fas fa-dice-one",
   "fas fa-dice-two",
@@ -1239,7 +1239,7 @@ class W {
     return `<i class="${e}"></i>`;
   }
   static iconSystemPath(e, t) {
-    return W.iconPath(`${Wn}/${e}`, t);
+    return W.iconPath(`${Gn}/${e}`, t);
   }
   static iconPath(e, t) {
     return `<img class="${t}" src="${e}" />`;
@@ -1247,76 +1247,76 @@ class W {
   static iconD6(e) {
     if (e < 0 || e > 6)
       throw `Dice ${e} is out of dice range [1..6] or 0 for multidice`;
-    return W.fontAwesome(Il[e]);
+    return W.fontAwesome($l[e]);
   }
 }
 globalThis.ANARCHY_ICONS = W;
-const me = (s, e = {}) => s.replace(/\{(.*?)\}/g, (t, i) => e[i] ?? "");
-function gr(s) {
-  return s && typeof s == "object" && !Array.isArray(s) ? Object.values(s).flatMap((e) => gr(e)) : Array.isArray(s) ? s.map((e) => String(e ?? "").trim()).filter(Boolean) : String(s ?? "").split(",").map((e) => e.trim()).filter(Boolean);
+const fe = (s, e = {}) => s.replace(/\{(.*?)\}/g, (t, i) => e[i] ?? "");
+function br(s) {
+  return s && typeof s == "object" && !Array.isArray(s) ? Object.values(s).flatMap((e) => br(e)) : Array.isArray(s) ? s.map((e) => String(e ?? "").trim()).filter(Boolean) : String(s ?? "").split(",").map((e) => e.trim()).filter(Boolean);
 }
 function Xi(s = []) {
   return Array.from(new Set(s.map((e) => String(e ?? "").trim()).filter(Boolean)));
 }
-function As(s, e = "standard") {
+function ws(s, e = "standard") {
   return String(s ?? "").trim() || e;
 }
-function Ol(s, e = {}) {
+function xl(s, e = {}) {
   s && (s.movedToKeywords ?? (s.movedToKeywords = []), s.movedToKeywords.push(e));
 }
-function _l(s, e, t = {}) {
+function Bl(s, e, t = {}) {
   s && (s.errors ?? (s.errors = []), s.errors.push({ message: e, ...t }));
 }
-const yr = Object.freeze(["templated"]), Ll = Object.freeze([
+const Sr = Object.freeze(["templated"]), Fl = Object.freeze([
   "burstCapable",
   "fullAutoCapable",
   "salvoCapable"
-]), $l = Object.freeze([
+]), zl = Object.freeze([
   "clustered",
   "mineLayer",
   "smoke",
   "incendiary",
   "emp"
-]), xl = Object.freeze([
+]), Wl = Object.freeze([
   { value: "burstCapable", label: "Burst Capable" },
   { value: "fullAutoCapable", label: "Full Auto Capable" },
   { value: "salvoCapable", label: "Salvo Capable" }
-]), Bl = Object.freeze([
+]), Hl = Object.freeze([
   { value: "templated", label: "Templated" },
   { value: "clustered", label: "Clustered" },
   { value: "mineLayer", label: "Mine Layer" },
   { value: "smoke", label: "Smoke" },
   { value: "incendiary", label: "Incendiary" },
   { value: "emp", label: "EMP" }
-]), Un = Object.freeze([
+]), Vn = Object.freeze([
   { value: "blast", label: "Blast" },
   { value: "cone", label: "Cone" },
   { value: "line", label: "Line" },
   { value: "cloud", label: "Cloud" },
   { value: "minefield", label: "Minefield" }
-]), Hn = Object.freeze([
+]), Kn = Object.freeze([
   { value: "targeted", label: "Targeted" },
   { value: "origin", label: "Origin" },
   { value: "placed", label: "Placed" }
-]), Fl = Object.freeze(["blast", "cone", "line"]);
-new Set(yr);
-const zl = /* @__PURE__ */ new Set([
-  ...yr,
-  ...Ll
-]), Wl = /* @__PURE__ */ new Set([
-  ...yr,
-  ...$l
+]), Ul = Object.freeze(["blast", "cone", "line"]);
+new Set(Sr);
+const jl = /* @__PURE__ */ new Set([
+  ...Sr,
+  ...Fl
+]), Gl = /* @__PURE__ */ new Set([
+  ...Sr,
+  ...zl
 ]);
-function br() {
+function Ar() {
   return {
     movedToKeywords: [],
     errors: []
   };
 }
-function Is(s) {
-  return Xi(gr(s));
+function Os(s) {
+  return Xi(br(s));
 }
-function Gn({
+function Yn({
   traits: s = [],
   keywords: e = [],
   recognized: t = /* @__PURE__ */ new Set(),
@@ -1324,13 +1324,13 @@ function Gn({
   owner: a = "weapon",
   path: r = ""
 } = {}) {
-  const n = gr(s), o = Is(e), l = [], c = [...o];
+  const n = br(s), o = Os(e), l = [], c = [...o];
   for (const u of n) {
     if (t.has(u)) {
       l.push(u);
       continue;
     }
-    c.push(u), Ol(i, {
+    c.push(u), xl(i, {
       owner: a,
       from: r || "traits",
       to: r ? r.replace(/traits$/u, "keywords") : "keywords",
@@ -1342,38 +1342,38 @@ function Gn({
     keywords: Xi(c)
   };
 }
-function qn({
+function Qn({
   traits: s = [],
   keywords: e = [],
   report: t = null,
   path: i = "system.traits"
 } = {}) {
-  return Gn({
+  return Yn({
     traits: s,
     keywords: e,
-    recognized: zl,
+    recognized: jl,
     report: t,
     owner: "weapon",
     path: i
   });
 }
-function Vn({
+function Jn({
   traits: s = [],
   keywords: e = [],
   report: t = null,
   path: i = "system.payloads[].traits"
 } = {}) {
-  return Gn({
+  return Yn({
     traits: s,
     keywords: e,
-    recognized: Wl,
+    recognized: Gl,
     report: t,
     owner: "payload",
     path: i
   });
 }
-function Kn(s = {}, e = "standard") {
-  const t = s ?? {}, i = As(
+function Xn(s = {}, e = "standard") {
+  const t = s ?? {}, i = ws(
     t.resolverKey ?? t.damageModel ?? t.resolver,
     e
   ), a = String(t.damageModel ?? "").trim(), r = t.onHitEffect;
@@ -1383,7 +1383,7 @@ function Kn(s = {}, e = "standard") {
     onHitEffect: r === null ? null : String(r ?? "").trim() || null
   };
 }
-function na(s = {}) {
+function oa(s = {}) {
   const e = s ?? {}, t = !!e.enabled, i = e.shots, a = e.accuracyMod, r = e.addHeat, n = e.consumption;
   return {
     enabled: t,
@@ -1393,31 +1393,31 @@ function na(s = {}) {
     ...n !== void 0 ? { consumption: Math.max(0, Number(n ?? 0) || 0) } : {}
   };
 }
-function jl(s = {}) {
+function ql(s = {}) {
   const e = s ?? {};
   return {
-    single: na(e.single),
-    burst: na(e.burst),
-    fullAuto: na(e.fullAuto)
+    single: oa(e.single),
+    burst: oa(e.burst),
+    fullAuto: oa(e.fullAuto)
   };
 }
-function Ul(s) {
+function Vl(s) {
   const e = String(s ?? "").trim().toLowerCase();
-  return e === "circle" ? "blast" : e === "ray" ? "line" : Un.some((t) => t.value === e) ? e : "";
+  return e === "circle" ? "blast" : e === "ray" ? "line" : Vn.some((t) => t.value === e) ? e : "";
 }
-function Hl(s) {
+function Kl(s) {
   const e = String(s ?? "").trim().toLowerCase();
-  return ["target", "targeted"].includes(e) ? "targeted" : Hn.some((t) => t.value === e) ? e : "";
+  return ["target", "targeted"].includes(e) ? "targeted" : Kn.some((t) => t.value === e) ? e : "";
 }
-function Gl(s = null) {
-  const e = s ?? {}, t = Ul(e.shape ?? e.t ?? e.type), i = e.size ?? e.distance ?? e.radius ?? e.length, a = Hl(e.placement ?? e.origin ?? e.mode);
+function Yl(s = null) {
+  const e = s ?? {}, t = Vl(e.shape ?? e.t ?? e.type), i = e.size ?? e.distance ?? e.radius ?? e.length, a = Kl(e.placement ?? e.origin ?? e.mode);
   return !t && i === void 0 && !a ? null : {
     shape: t,
     size: Math.max(0, Number(i ?? 0) || 0),
     placement: a || "targeted"
   };
 }
-function ql({
+function Ql({
   weapon: s = {},
   payload: e = {},
   effectiveTraits: t = [],
@@ -1425,35 +1425,35 @@ function ql({
   report: a = null
 } = {}) {
   var g, y;
-  const r = Xi((s == null ? void 0 : s.traits) ?? []), n = Xi((e == null ? void 0 : e.traits) ?? []), o = t.includes("templated"), l = r.includes("templated"), c = n.includes("templated"), u = (e == null ? void 0 : e.template) ?? null, d = (s == null ? void 0 : s.template) ?? null, m = As((g = e == null ? void 0 : e.resolution) == null ? void 0 : g.resolverKey, ""), p = As((y = s == null ? void 0 : s.resolution) == null ? void 0 : y.resolverKey, ""), f = As(i == null ? void 0 : i.resolverKey, "standard"), h = [];
+  const r = Xi((s == null ? void 0 : s.traits) ?? []), n = Xi((e == null ? void 0 : e.traits) ?? []), o = t.includes("templated"), l = r.includes("templated"), c = n.includes("templated"), u = (e == null ? void 0 : e.template) ?? null, d = (s == null ? void 0 : s.template) ?? null, m = ws((g = e == null ? void 0 : e.resolution) == null ? void 0 : g.resolverKey, ""), f = ws((y = s == null ? void 0 : s.resolution) == null ? void 0 : y.resolverKey, ""), p = ws(i == null ? void 0 : i.resolverKey, "standard"), h = [];
   if (!o)
     return {
       errors: h,
       liveCapabilities: [],
       template: null,
-      resolverKey: f,
+      resolverKey: p,
       isTemplated: !1
     };
-  l && h.push("Weapon-authored templated attacks are not supported in personal weapon capability v1."), l && c && h.push("Templated capability cannot be authored on both weapon and payload."), d && h.push("Template configuration must be authored on the payload for templated attacks."), c || h.push("Templated attacks require the active payload to author the templated capability."), (!(u != null && u.shape) || !(Number(u == null ? void 0 : u.size) > 0)) && h.push("Templated payloads require a valid template shape and size."), u != null && u.placement || h.push("Templated payloads require a template placement mode."), f !== "template" && h.push("Templated attacks require resolution.resolverKey to be template."), m && m !== "template" && h.push("Payload templated attacks must author resolution.resolverKey as template."), p === "template" && h.push("Weapon-level template resolver routing is not supported for personal weapon capability v1.");
+  l && h.push("Weapon-authored templated attacks are not supported in personal weapon capability v1."), l && c && h.push("Templated capability cannot be authored on both weapon and payload."), d && h.push("Template configuration must be authored on the payload for templated attacks."), c || h.push("Templated attacks require the active payload to author the templated capability."), (!(u != null && u.shape) || !(Number(u == null ? void 0 : u.size) > 0)) && h.push("Templated payloads require a valid template shape and size."), u != null && u.placement || h.push("Templated payloads require a template placement mode."), p !== "template" && h.push("Templated attacks require resolution.resolverKey to be template."), m && m !== "template" && h.push("Payload templated attacks must author resolution.resolverKey as template."), f === "template" && h.push("Weapon-level template resolver routing is not supported for personal weapon capability v1.");
   for (const b of h)
-    _l(a, b, { capability: "templated" });
+    Bl(a, b, { capability: "templated" });
   return {
     errors: h,
     liveCapabilities: ["templated"],
     template: u,
-    resolverKey: f,
+    resolverKey: p,
     isTemplated: !0
   };
 }
-const Yn = Object.freeze({
+const Zn = Object.freeze({
   penetrating: "Penetrating",
   concussive: "Concussive",
   energy: "Energy",
   thermal: "Thermal",
   electrical: "Electrical"
-}), Os = Object.freeze(
-  Object.entries(Yn).map(([s, e]) => ({ value: s, label: e }))
-), Vl = Object.freeze({
+}), _s = Object.freeze(
+  Object.entries(Zn).map(([s, e]) => ({ value: s, label: e }))
+), Jl = Object.freeze({
   ballistic: "penetrating",
   kinetic: "concussive",
   explosive: "concussive",
@@ -1468,9 +1468,9 @@ const Yn = Object.freeze({
   concussive: "concussive",
   energy: "energy",
   thermal: "thermal"
-}), Kl = Object.freeze(
-  Os.map((s) => s.value)
-), Pa = Object.freeze({}), Hs = Object.freeze({
+}), Xl = Object.freeze(
+  _s.map((s) => s.value)
+), Ra = Object.freeze({}), Gs = Object.freeze({
   ablative: Object.freeze({
     key: "ablative",
     label: "Ablative",
@@ -1506,31 +1506,31 @@ const Yn = Object.freeze({
     aliases: ["insulated"],
     resolve: () => ({ mitigationByType: { thermal: 2 } })
   })
-}), Yl = Object.freeze(
-  Object.values(Hs).map((s) => ({
+}), Zl = Object.freeze(
+  Object.values(Gs).map((s) => ({
     value: s.key,
     label: s.label,
     rated: s.rated
   }))
-), Qn = eo(Pa), Jn = eo(Hs);
-function Gs(s) {
-  return s && typeof s == "object" && !Array.isArray(s) ? Object.values(s).flatMap((e) => Gs(e)) : Array.isArray(s) ? s.map((e) => String(e ?? "").trim()).filter(Boolean) : String(s ?? "").split(",").map((e) => e.trim()).filter(Boolean);
+), eo = ao(Ra), to = ao(Gs);
+function qs(s) {
+  return s && typeof s == "object" && !Array.isArray(s) ? Object.values(s).flatMap((e) => qs(e)) : Array.isArray(s) ? s.map((e) => String(e ?? "").trim()).filter(Boolean) : String(s ?? "").split(",").map((e) => e.trim()).filter(Boolean);
 }
 function pt(s, e = "penetrating") {
   const t = String(s ?? "").trim().toLowerCase();
-  return Vl[t] ?? e;
+  return Jl[t] ?? e;
 }
-function Xn(s) {
+function io(s) {
   const e = String(s ?? "").trim();
   return e ? pt(e, "") : "";
 }
-function Zn(s) {
+function so(s) {
   const e = String(s ?? "").trim().toLowerCase();
-  return Kl.includes(e);
+  return Xl.includes(e);
 }
 function vt(s) {
   const e = pt(s, "");
-  return Yn[e] ?? String(s ?? "").trim();
+  return Zn[e] ?? String(s ?? "").trim();
 }
 function mt(s) {
   const e = s ?? {}, t = Number(e.ballistic ?? 0) || 0, i = Number(e.melee ?? 0) || 0;
@@ -1542,30 +1542,30 @@ function mt(s) {
     electrical: Number(e.electrical ?? 0) || 0
   };
 }
-function ws(s) {
-  return Gs(s);
+function Ts(s) {
+  return qs(s);
 }
 function Bi(s) {
-  return Gs(s);
+  return qs(s);
 }
-function Ql(s) {
-  return Is(s);
+function ec(s) {
+  return Os(s);
 }
-function Ts(s = {}, e = "standard") {
-  return Kn(s, e);
+function ks(s = {}, e = "standard") {
+  return Xn(s, e);
 }
-function ks(s = {}) {
-  return jl(s);
+function vs(s = {}) {
+  return ql(s);
 }
-function Jl(s = null) {
-  return Gl(s);
+function tc(s = null) {
+  return Yl(s);
 }
 function Oi(s = "id") {
   var t, i;
   const e = (i = (t = globalThis.foundry) == null ? void 0 : t.utils) == null ? void 0 : i.randomID;
   return typeof e == "function" ? e() : `${s}-${Math.random().toString(36).slice(2, 10)}`;
 }
-function eo(s) {
+function ao(s) {
   const e = {};
   return Object.values(s).forEach((t) => {
     [t.key, ...t.aliases ?? []].forEach((i) => {
@@ -1579,10 +1579,10 @@ function Zi(s) {
 function Fi(s) {
   return Array.isArray(s) ? s : s && typeof s == "object" ? Object.values(s) : s == null || s === "" ? [] : [s];
 }
-function to(s, e) {
-  return Fi(s).map((t) => Xl(t, e)).filter(Boolean);
+function ro(s, e) {
+  return Fi(s).map((t) => ic(t, e)).filter(Boolean);
 }
-function Xl(s, e) {
+function ic(s, e) {
   if (typeof s == "string" || typeof s == "number") {
     const i = e[Zi(s)];
     return i ? { id: Oi("trait"), key: i, rating: 1 } : null;
@@ -1596,12 +1596,12 @@ function Xl(s, e) {
   } : null;
 }
 function ri(s) {
-  return to(s, Qn);
+  return ro(s, eo);
 }
 function St(s) {
-  return to(s, Jn);
+  return ro(s, to);
 }
-function _s(s) {
+function Ls(s) {
   return {
     close: Number((s == null ? void 0 : s.close) ?? (s == null ? void 0 : s.short) ?? 0) || 0,
     near: Number((s == null ? void 0 : s.near) ?? (s == null ? void 0 : s.medium) ?? 0) || 0,
@@ -1609,8 +1609,8 @@ function _s(s) {
     extreme: Number((s == null ? void 0 : s.extreme) ?? 0) || 0
   };
 }
-function Zl(s = {}, e = {}) {
-  const t = _s(s), i = _s(e);
+function sc(s = {}, e = {}) {
+  const t = Ls(s), i = Ls(e);
   return {
     close: t.close + i.close,
     near: t.near + i.near,
@@ -1618,35 +1618,35 @@ function Zl(s = {}, e = {}) {
     extreme: t.extreme + i.extreme
   };
 }
-function ec(s, e) {
+function ac(s, e) {
   var t;
   return ((t = e[s]) == null ? void 0 : t.label) ?? s;
 }
-function io(s, e) {
+function no(s, e) {
   var a;
-  const t = ec(s == null ? void 0 : s.key, e), i = Math.max(0, Number((s == null ? void 0 : s.rating) ?? 0) || 0);
+  const t = ac(s == null ? void 0 : s.key, e), i = Math.max(0, Number((s == null ? void 0 : s.rating) ?? 0) || 0);
   return (a = e[s == null ? void 0 : s.key]) != null && a.rated && i > 0 ? `${t} ${i}` : t;
 }
-function so(s, e) {
+function oo(s, e) {
   return Fi(s).map((t) => {
     const i = t == null ? void 0 : t.key, a = e[i];
     return a != null && a.resolve ? {
       entry: t,
       effect: a.resolve(t),
-      label: io(t, e)
+      label: no(t, e)
     } : null;
   }).filter(Boolean);
 }
-function tc(s, e) {
+function rc(s, e) {
   const t = { ...s ?? {} };
   return Object.entries(e ?? {}).forEach(([i, a]) => {
     t[i] = (Number(t[i] ?? 0) || 0) + (Number(a ?? 0) || 0);
   }), t;
 }
-function ic(s = []) {
+function nc(s = []) {
   const e = {}, t = /* @__PURE__ */ new Set();
   for (const i of s.filter(Boolean)) {
-    i.accuracyMod !== void 0 && (e.accuracyMod = (Number(e.accuracyMod ?? 0) || 0) + (Number(i.accuracyMod ?? 0) || 0)), i.ap !== void 0 && (e.ap = (Number(e.ap ?? 0) || 0) + (Number(i.ap ?? 0) || 0)), i.addHeat !== void 0 && (e.addHeat = (Number(e.addHeat ?? 0) || 0) + (Number(i.addHeat ?? 0) || 0)), i.bonusVsArmorTag && (e.bonusVsArmorTag = tc(e.bonusVsArmorTag, i.bonusVsArmorTag));
+    i.accuracyMod !== void 0 && (e.accuracyMod = (Number(e.accuracyMod ?? 0) || 0) + (Number(i.accuracyMod ?? 0) || 0)), i.ap !== void 0 && (e.ap = (Number(e.ap ?? 0) || 0) + (Number(i.ap ?? 0) || 0)), i.addHeat !== void 0 && (e.addHeat = (Number(e.addHeat ?? 0) || 0) + (Number(i.addHeat ?? 0) || 0)), i.bonusVsArmorTag && (e.bonusVsArmorTag = rc(e.bonusVsArmorTag, i.bonusVsArmorTag));
     for (const a of i.flags ?? []) {
       const r = String(a ?? "").trim();
       r && t.add(r);
@@ -1654,21 +1654,21 @@ function ic(s = []) {
   }
   return t.size > 0 && (e.flags = Array.from(t)), e;
 }
-function sc(s = [], e = []) {
-  const t = Array.isArray(s) || typeof s == "string" ? { traits: s, standardTraits: e } : s ?? {}, i = Bi(t.traits), a = ri(t.standardTraits), r = so(a, Pa), n = i.map((o) => {
+function oc(s = [], e = []) {
+  const t = Array.isArray(s) || typeof s == "string" ? { traits: s, standardTraits: e } : s ?? {}, i = Bi(t.traits), a = ri(t.standardTraits), r = oo(a, Ra), n = i.map((o) => {
     var u;
-    const l = Qn[Zi(o)];
+    const l = eo[Zi(o)];
     if (!l) return null;
-    const c = (u = Pa[l]) == null ? void 0 : u.resolve;
+    const c = (u = Ra[l]) == null ? void 0 : u.resolve;
     return typeof c == "function" ? c({ key: l, rating: 1 }) : null;
   });
-  return ic([
+  return nc([
     ...r.map((o) => o.effect),
     ...n
   ]);
 }
-function ac(s) {
-  const e = s ?? {}, t = br(), i = Vn({
+function lc(s) {
+  const e = s ?? {}, t = Ar(), i = Jn({
     traits: e.traits,
     keywords: e.keywords,
     report: t,
@@ -1677,17 +1677,17 @@ function ac(s) {
   return {
     id: String(e.id ?? "").trim() || Oi("ammo"),
     name: String(e.name ?? "").trim() || "Ammo",
-    damageType: Xn(e.damageType),
+    damageType: io(e.damageType),
     apMod: Number(e.apMod ?? e.ap ?? 0) || 0,
-    attackRatingBandMod: _s(e.attackRatingBandMod ?? e.attackRatingBand),
+    attackRatingBandMod: Ls(e.attackRatingBandMod ?? e.attackRatingBand),
     traits: i.traits,
     keywords: i.keywords,
     migration: t
   };
 }
-function rc(s) {
+function cc(s) {
   var l;
-  const e = s ?? {}, t = Math.max(0, Number(e.max ?? 0) || 0), i = Number(e.current), a = Number.isFinite(i) ? Math.max(0, Math.min(i, t > 0 ? t : i)) : Math.max(0, t), r = Fi(e.types).map(ac), n = String(e.activeTypeId ?? "").trim(), o = r.some((c) => c.id === n) ? n : ((l = r[0]) == null ? void 0 : l.id) ?? "";
+  const e = s ?? {}, t = Math.max(0, Number(e.max ?? 0) || 0), i = Number(e.current), a = Number.isFinite(i) ? Math.max(0, Math.min(i, t > 0 ? t : i)) : Math.max(0, t), r = Fi(e.types).map(lc), n = String(e.activeTypeId ?? "").trim(), o = r.some((c) => c.id === n) ? n : ((l = r[0]) == null ? void 0 : l.id) ?? "";
   return {
     current: a,
     max: t,
@@ -1696,64 +1696,64 @@ function rc(s) {
     types: r
   };
 }
-function nc(s, e = "untracked") {
+function uc(s, e = "untracked") {
   const t = String(s ?? "").trim();
   return t ? t === "linked" ? "internal" : t === "perAttack" ? e : ["untracked", "internal", "actorResource", "itemRef"].includes(t) ? t : e : e;
 }
-function Na(s = {}) {
+function Da(s = {}) {
   const e = s ?? {};
   return {
     amount: Math.max(1, Number(e.amount ?? e.consumePerUse ?? e.consumePerAttack ?? 1) || 1),
     sourceId: String(e.sourceId ?? "").trim()
   };
 }
-function Wr(s = {}) {
+function jr(s = {}) {
   const e = s ?? {};
   return {
-    damageType: Xn(e.damageType),
+    damageType: io(e.damageType),
     ap: Number(e.ap ?? e.apMod ?? 0) || 0,
-    attackRatingBand: _s(e.attackRatingBand ?? e.attackRatingBandMod)
+    attackRatingBand: Ls(e.attackRatingBand ?? e.attackRatingBandMod)
   };
 }
-function Ra(s = {}) {
-  return Kn(s, "standard");
+function Ia(s = {}) {
+  return Xn(s, "standard");
 }
-function oc(s) {
+function dc(s) {
   return String(s ?? "").trim().toLowerCase() === "unloaded";
 }
-function Ve(s, { report: e = null, path: t = "system.payloads[]" } = {}) {
+function qe(s, { report: e = null, path: t = "system.payloads[]" } = {}) {
   var l;
-  const i = s ?? {}, a = String(i.id ?? "").trim() || Oi("payload"), r = Vn({
+  const i = s ?? {}, a = String(i.id ?? "").trim() || Oi("payload"), r = Jn({
     traits: i.traits ?? ((l = i.modifies) == null ? void 0 : l.traits),
     keywords: i.keywords,
     report: e,
     path: `${t}.traits`
-  }), n = Gs(i.compatibleWith ?? i.compatible), o = Jl(i.template);
-  return oc(a) ? {
+  }), n = qs(i.compatibleWith ?? i.compatible), o = tc(i.template);
+  return dc(a) ? {
     id: "unloaded",
     label: "Unloaded",
     compatibleWith: [],
-    modifies: Wr({}),
+    modifies: jr({}),
     traits: [],
     keywords: [],
     template: null,
-    resolution: Ra({ resolverKey: "standard" }),
-    consumption: Na({ amount: 1, sourceId: "" })
+    resolution: Ia({ resolverKey: "standard" }),
+    consumption: Da({ amount: 1, sourceId: "" })
   } : {
     id: a,
     label: String(i.label ?? i.name ?? "").trim() || "Payload",
     compatibleWith: n,
-    modifies: Wr(i.modifies ?? i),
+    modifies: jr(i.modifies ?? i),
     traits: r.traits,
     keywords: r.keywords,
     template: o,
-    resolution: Ra(i.resolution ?? i),
-    consumption: Na(i.consumption ?? i)
+    resolution: Ia(i.resolution ?? i),
+    consumption: Da(i.consumption ?? i)
   };
 }
 function kt(s) {
   var o, l, c, u, d, m;
-  const e = s ?? {}, t = nc(
+  const e = s ?? {}, t = uc(
     e.kind || e.type || ((o = e.link) != null && o.actorPath || e.actorPath ? "actorResource" : "") || ((l = e.link) != null && l.itemId || e.itemId || (c = e.link) != null && c.itemPath || e.itemPath ? "itemRef" : "") || (e.tracking || e.current !== void 0 || e.max !== void 0 ? "internal" : "") || "untracked",
     "untracked"
   ), i = e.tracking ?? e, a = Math.max(0, Number(i.max ?? 0) || 0), r = Number(i.current), n = Number.isFinite(r) ? Math.max(0, Math.min(r, a > 0 ? a : r)) : Math.max(0, a);
@@ -1772,9 +1772,9 @@ function kt(s) {
     }
   };
 }
-function ao({ report: s = null, path: e = "system.payloads" } = {}) {
+function lo({ report: s = null, path: e = "system.payloads" } = {}) {
   return {
-    payloads: [Ve({
+    payloads: [qe({
       id: "unloaded",
       label: "Unloaded",
       resolution: { resolverKey: "standard" },
@@ -1788,13 +1788,13 @@ function ao({ report: s = null, path: e = "system.payloads" } = {}) {
     })]
   };
 }
-function ro(s) {
+function co(s) {
   return String(s ?? "").trim().toLowerCase() === "melee";
 }
-function Da(s = [], { report: e = null, path: t = "system.payloads" } = {}) {
-  const i = Fi(s).map((a, r) => Ve(a, { report: e, path: `${t}[${r}]` })).filter(Boolean);
+function Oa(s = [], { report: e = null, path: t = "system.payloads" } = {}) {
+  const i = Fi(s).map((a, r) => qe(a, { report: e, path: `${t}[${r}]` })).filter(Boolean);
   return i.some((a) => a.id === "unloaded") ? i : [
-    Ve({
+    qe({
       id: "unloaded",
       label: "Unloaded",
       resolution: { resolverKey: "standard" },
@@ -1803,9 +1803,9 @@ function Da(s = [], { report: e = null, path: t = "system.payloads" } = {}) {
     ...i
   ];
 }
-function qs(s = {}, { report: e = null, path: t = "system.payloads" } = {}) {
+function Vs(s = {}, { report: e = null, path: t = "system.payloads" } = {}) {
   var d;
-  const i = rc(s), a = Math.max(1, Number(i.consumePerAttack ?? 1) || 1), r = i.max > 0, n = r ? "internal-magazine" : "untracked", o = [kt(r ? {
+  const i = cc(s), a = Math.max(1, Number(i.consumePerAttack ?? 1) || 1), r = i.max > 0, n = r ? "internal-magazine" : "untracked", o = [kt(r ? {
     id: n,
     label: "Internal Source",
     kind: "internal",
@@ -1818,7 +1818,7 @@ function qs(s = {}, { report: e = null, path: t = "system.payloads" } = {}) {
     label: "Untracked",
     kind: "untracked",
     tracking: {}
-  })], l = i.types.length ? i.types.map((m, p) => Ve({
+  })], l = i.types.length ? i.types.map((m, f) => qe({
     id: m.id,
     label: m.name,
     modifies: {
@@ -1833,7 +1833,7 @@ function qs(s = {}, { report: e = null, path: t = "system.payloads" } = {}) {
       amount: a,
       sourceId: r ? n : ""
     }
-  }, { report: e, path: `${t}[${p}]` })) : [Ve({
+  }, { report: e, path: `${t}[${f}]` })) : [qe({
     id: "unloaded",
     label: "Unloaded",
     resolution: { resolverKey: "standard" },
@@ -1841,7 +1841,7 @@ function qs(s = {}, { report: e = null, path: t = "system.payloads" } = {}) {
       amount: a,
       sourceId: r ? n : ""
     }
-  }, { report: e, path: `${t}[0]` })], c = Da(l, { report: e, path: t }), u = c.some((m) => m.id === i.activeTypeId) ? i.activeTypeId : ((d = c[0]) == null ? void 0 : d.id) ?? "unloaded";
+  }, { report: e, path: `${t}[0]` })], c = Oa(l, { report: e, path: t }), u = c.some((m) => m.id === i.activeTypeId) ? i.activeTypeId : ((d = c[0]) == null ? void 0 : d.id) ?? "unloaded";
   return {
     payloads: c,
     selectedPayloadId: u,
@@ -1849,26 +1849,26 @@ function qs(s = {}, { report: e = null, path: t = "system.payloads" } = {}) {
   };
 }
 function At(s, { legacyAmmo: e = null, category: t = "", report: i = null, path: a = "system.payloads" } = {}) {
-  if (ro(t)) return [];
-  const r = Fi(s).map((n, o) => Ve(n, { report: i, path: `${a}[${o}]` })).filter(Boolean);
-  return r.length > 0 ? Da(r, { report: i, path: a }) : e ? Da(qs(e, { report: i, path: a }).payloads, { report: i, path: a }) : ao({ report: i, path: a }).payloads;
+  if (co(t)) return [];
+  const r = Fi(s).map((n, o) => qe(n, { report: i, path: `${a}[${o}]` })).filter(Boolean);
+  return r.length > 0 ? Oa(r, { report: i, path: a }) : e ? Oa(Vs(e, { report: i, path: a }).payloads, { report: i, path: a }) : lo({ report: i, path: a }).payloads;
 }
-function ji(s, { legacyAmmo: e = null } = {}) {
+function Hi(s, { legacyAmmo: e = null } = {}) {
   const t = Fi(s).map(kt).filter(Boolean);
-  return t.length > 0 ? t : e ? qs(e).consumptionSources : ao().consumptionSources;
+  return t.length > 0 ? t : e ? Vs(e).consumptionSources : lo().consumptionSources;
 }
 function ki(s, e = [], { legacyAmmo: t = null, category: i = "" } = {}) {
   var n;
-  if (ro(i)) return "";
+  if (co(i)) return "";
   const a = At(e, { legacyAmmo: t, category: i }), r = String(s ?? "").trim();
   if (a.some((o) => o.id === r)) return r;
   if (t) {
-    const o = qs(t).selectedPayloadId;
+    const o = Vs(t).selectedPayloadId;
     if (a.some((l) => l.id === o)) return o;
   }
   return ((n = a[0]) == null ? void 0 : n.id) ?? "unloaded";
 }
-function jr({ root: s = null, path: e = "", fallback: t = {} } = {}) {
+function Gr({ root: s = null, path: e = "", fallback: t = {} } = {}) {
   const i = String(e ?? "").trim();
   if (!s || !i)
     return {
@@ -1892,7 +1892,7 @@ function jr({ root: s = null, path: e = "", fallback: t = {} } = {}) {
     currentPath: i
   };
 }
-function lc({ source: s = null, actor: e = null } = {}) {
+function mc({ source: s = null, actor: e = null } = {}) {
   var i, a, r, n, o, l, c;
   if (!s)
     return {
@@ -1926,7 +1926,7 @@ function lc({ source: s = null, actor: e = null } = {}) {
     };
   }
   if (s.kind === "actorResource") {
-    const u = jr({
+    const u = Gr({
       root: (e == null ? void 0 : e.system) ?? null,
       path: t.actorPath,
       fallback: s.tracking
@@ -1940,7 +1940,7 @@ function lc({ source: s = null, actor: e = null } = {}) {
     };
   }
   if (s.kind === "itemRef") {
-    const u = ((c = (l = e == null ? void 0 : e.items) == null ? void 0 : l.get) == null ? void 0 : c.call(l, t.itemId)) ?? null, d = jr({
+    const u = ((c = (l = e == null ? void 0 : e.items) == null ? void 0 : l.get) == null ? void 0 : c.call(l, t.itemId)) ?? null, d = Gr({
       root: (u == null ? void 0 : u.system) ?? null,
       path: t.itemPath,
       fallback: s.tracking
@@ -1962,7 +1962,7 @@ function lc({ source: s = null, actor: e = null } = {}) {
     currentPath: ""
   };
 }
-function Ia({
+function _a({
   payloads: s = [],
   selectedPayloadId: e = "",
   consumptionSources: t = [],
@@ -1970,11 +1970,11 @@ function Ia({
   payloadId: a = "",
   category: r = ""
 } = {}) {
-  const n = At(s, { category: r }), o = ji(t), l = ki(a || e, n, { category: r }), c = n.find((p) => p.id === l) ?? n[0] ?? null, u = (c == null ? void 0 : c.consumption) ?? Na(), d = u.sourceId ? o.find((p) => p.id === u.sourceId) ?? null : o.find((p) => p.kind === "untracked") ?? kt({
+  const n = At(s, { category: r }), o = Hi(t), l = ki(a || e, n, { category: r }), c = n.find((f) => f.id === l) ?? n[0] ?? null, u = (c == null ? void 0 : c.consumption) ?? Da(), d = u.sourceId ? o.find((f) => f.id === u.sourceId) ?? null : o.find((f) => f.kind === "untracked") ?? kt({
     id: "untracked",
     label: "Untracked",
     kind: "untracked"
-  }), m = lc({ source: d, actor: i });
+  }), m = mc({ source: d, actor: i });
   return {
     payloads: n,
     activePayload: c,
@@ -1988,7 +1988,7 @@ function Ia({
     }
   };
 }
-function cc({
+function pc({
   damageType: s = "penetrating",
   ap: e = 0,
   attackRatingBand: t = {},
@@ -2002,62 +2002,62 @@ function cc({
   consumptionSources: u = [],
   payloadId: d = "",
   actor: m = null,
-  ammo: p = null,
-  ammoTypeId: f = "",
+  ammo: f = null,
+  ammoTypeId: p = "",
   category: h = ""
 } = {}) {
-  var F, pe, Se, he, Ce;
-  const g = Ia({
+  var B, ne, oe, he, Ce;
+  const g = _a({
     payloads: l != null && l.length ? l : void 0,
-    selectedPayloadId: c || f,
+    selectedPayloadId: c || p,
     consumptionSources: u,
     actor: m,
-    payloadId: d || f,
+    payloadId: d || p,
     category: h
-  }), b = ((!l || l.length === 0) && p ? Ia({
-    ...qs(p),
+  }), b = ((!l || l.length === 0) && f ? _a({
+    ...Vs(f),
     actor: m,
-    payloadId: d || f,
+    payloadId: d || p,
     category: h
-  }) : null) ?? g, A = b.activePayload, w = qn({
+  }) : null) ?? g, A = b.activePayload, w = Qn({
     traits: i,
     keywords: a
-  }), E = Array.from(/* @__PURE__ */ new Set([
+  }), M = Array.from(/* @__PURE__ */ new Set([
     ...w.traits,
     ...Bi(A == null ? void 0 : A.traits)
-  ])), I = Is([
+  ])), I = Os([
     ...w.keywords,
-    ...Is(A == null ? void 0 : A.keywords)
-  ]), R = Ts(n, "standard"), _ = (F = A == null ? void 0 : A.resolution) != null && F.resolverKey ? Ra(A.resolution) : R, q = ks(o), Y = br(), K = ql({
+    ...Os(A == null ? void 0 : A.keywords)
+  ]), D = ks(n, "standard"), L = (B = A == null ? void 0 : A.resolution) != null && B.resolverKey ? Ia(A.resolution) : D, V = vs(o), Y = Ar(), K = Ql({
     weapon: {
       traits: w.traits,
-      resolution: R
+      resolution: D
     },
     payload: A,
-    effectiveTraits: E,
-    effectiveResolution: _,
+    effectiveTraits: M,
+    effectiveResolution: L,
     report: Y
-  }), O = ri(r), D = sc({
+  }), O = ri(r), R = oc({
     traits: [],
     standardTraits: O
-  }), V = {
+  }), U = {
     ...b.sourceState
   };
-  return delete V.sourceItem, {
-    damageType: ((pe = A == null ? void 0 : A.modifies) == null ? void 0 : pe.damageType) || pt(s),
-    ap: (Number(e ?? 0) || 0) + (Number(((Se = A == null ? void 0 : A.modifies) == null ? void 0 : Se.ap) ?? 0) || 0),
-    attackRatingBand: Zl(
+  return delete U.sourceItem, {
+    damageType: ((ne = A == null ? void 0 : A.modifies) == null ? void 0 : ne.damageType) || pt(s),
+    ap: (Number(e ?? 0) || 0) + (Number(((oe = A == null ? void 0 : A.modifies) == null ? void 0 : oe.ap) ?? 0) || 0),
+    attackRatingBand: sc(
       t,
       ((he = A == null ? void 0 : A.modifies) == null ? void 0 : he.attackRatingBand) ?? {}
     ),
-    effects: D,
-    traits: E,
+    effects: R,
+    traits: M,
     keywords: I,
     standardTraits: O,
     payloadLabel: b.payloadLabel,
     payload: A ? foundry.utils.deepClone(A) : null,
     payloadState: {
-      payloads: b.payloads.map((Oe) => foundry.utils.deepClone(Oe)),
+      payloads: b.payloads.map((De) => foundry.utils.deepClone(De)),
       activePayloadId: b.activePayloadId,
       payloadLabel: b.payloadLabel,
       sourceId: ((Ce = b.source) == null ? void 0 : Ce.id) ?? "",
@@ -2069,41 +2069,41 @@ function cc({
       consumePerUse: b.sourceState.consumePerUse
     },
     source: b.source ? foundry.utils.deepClone(b.source) : null,
-    sourceState: foundry.utils.deepClone(V),
+    sourceState: foundry.utils.deepClone(U),
     template: K.template ? foundry.utils.deepClone(K.template) : null,
-    resolution: foundry.utils.deepClone(_),
-    resolverKey: String((_ == null ? void 0 : _.resolverKey) ?? "standard").trim() || "standard",
-    fireModes: foundry.utils.deepClone(q),
+    resolution: foundry.utils.deepClone(L),
+    resolverKey: String((L == null ? void 0 : L.resolverKey) ?? "standard").trim() || "standard",
+    fireModes: foundry.utils.deepClone(V),
     capabilityReport: {
       ...Y,
       liveCapabilities: K.liveCapabilities,
       isTemplated: K.isTemplated,
       template: K.template ? foundry.utils.deepClone(K.template) : null,
-      resolverKey: String((_ == null ? void 0 : _.resolverKey) ?? "standard").trim() || "standard"
+      resolverKey: String((L == null ? void 0 : L.resolverKey) ?? "standard").trim() || "standard"
     },
     ammoLabel: b.payloadLabel,
     ammoType: A ? foundry.utils.deepClone(A) : null,
     ammoState: {
-      current: V.current,
-      max: V.max,
-      consumePerAttack: V.consumePerUse,
+      current: U.current,
+      max: U.max,
+      consumePerAttack: U.consumePerUse,
       activeTypeId: b.activePayloadId,
-      types: b.payloads.map((Oe) => {
-        var Qe;
+      types: b.payloads.map((De) => {
+        var Ye;
         return {
-          id: Oe.id,
-          name: Oe.label,
-          damageType: ((Qe = Oe.modifies) == null ? void 0 : Qe.damageType) ?? "",
-          traits: Oe.traits ?? [],
-          keywords: Oe.keywords ?? []
+          id: De.id,
+          name: De.label,
+          damageType: ((Ye = De.modifies) == null ? void 0 : Ye.damageType) ?? "",
+          traits: De.traits ?? [],
+          keywords: De.keywords ?? []
         };
       }),
-      isTracked: V.isTracked,
+      isTracked: U.isTracked,
       ammoLabel: b.payloadLabel
     }
   };
 }
-function no(s = {}, e = {}) {
+function uo(s = {}, e = {}) {
   const t = mt(s), i = mt(e);
   return {
     penetrating: t.penetrating + i.penetrating,
@@ -2113,24 +2113,24 @@ function no(s = {}, e = {}) {
     electrical: t.electrical + i.electrical
   };
 }
-function oa({ standardTraits: s = [], traits: e = [], traitState: t = {} } = {}) {
-  var m, p;
-  const i = St(s), r = Bi(e).map((f) => {
-    const h = Jn[Zi(f)];
+function la({ standardTraits: s = [], traits: e = [], traitState: t = {} } = {}) {
+  var m, f;
+  const i = St(s), r = Bi(e).map((p) => {
+    const h = to[Zi(p)];
     return h ? { id: Oi("trait"), key: h, rating: h === "reinforced" ? 1 : 0 } : null;
-  }).filter(Boolean), n = so(
+  }).filter(Boolean), n = oo(
     [...i, ...r],
-    Hs
-  ), o = n.reduce((f, h) => {
+    Gs
+  ), o = n.reduce((p, h) => {
     var g;
-    return no(f, ((g = h.effect) == null ? void 0 : g.mitigationByType) ?? {});
+    return uo(p, ((g = h.effect) == null ? void 0 : g.mitigationByType) ?? {});
   }, mt({})), l = n.reduce(
-    (f, h) => {
+    (p, h) => {
       var g;
-      return f + Math.max(0, Number(((g = h.effect) == null ? void 0 : g.reinforced) ?? 0) || 0);
+      return p + Math.max(0, Number(((g = h.effect) == null ? void 0 : g.reinforced) ?? 0) || 0);
     },
     0
-  ), c = Number((m = t == null ? void 0 : t.reinforced) == null ? void 0 : m.current), u = Number((p = t == null ? void 0 : t.reinforced) == null ? void 0 : p.max), d = Number.isFinite(c) ? c : Number.isFinite(u) ? u : l;
+  ), c = Number((m = t == null ? void 0 : t.reinforced) == null ? void 0 : m.current), u = Number((f = t == null ? void 0 : t.reinforced) == null ? void 0 : f.max), d = Number.isFinite(c) ? c : Number.isFinite(u) ? u : l;
   return {
     mitigationByType: o,
     reinforcedMax: l,
@@ -2140,21 +2140,21 @@ function oa({ standardTraits: s = [], traits: e = [], traitState: t = {} } = {})
         max: l
       }
     },
-    labels: n.map((f) => f.label),
+    labels: n.map((p) => p.label),
     standardTraits: i
   };
 }
-function uc({ traits: s = [], standardTraits: e = [] } = {}) {
+function fc({ traits: s = [], standardTraits: e = [] } = {}) {
   return [
     ...Bi(s),
-    ...St(e).map((i) => io(i, Hs))
+    ...St(e).map((i) => no(i, Gs))
   ].filter(Boolean);
 }
-function Sr(s) {
+function wr(s) {
   const e = Math.max(0, Number(s ?? 0) || 0);
   return e <= 0 ? 0 : Math.ceil(e / 4);
 }
-function dc({
+function hc({
   currentArmorRating: s = 0,
   mitigationByType: e = {},
   damageType: t
@@ -2168,7 +2168,7 @@ function dc({
       totalMitigation: 0,
       isDestroyed: !0
     };
-  const a = pt(t, "penetrating"), r = mt(e), n = Sr(i), o = Number(r[a] ?? 0) || 0;
+  const a = pt(t, "penetrating"), r = mt(e), n = wr(i), o = Number(r[a] ?? 0) || 0;
   return {
     currentArmorRating: i,
     baseMitigation: n,
@@ -2177,8 +2177,8 @@ function dc({
     isDestroyed: !1
   };
 }
-function mc({ damageIncoming: s = 0, armorTags: e = [], effects: t = {} } = {}) {
-  const i = new Set(ws(e));
+function gc({ damageIncoming: s = 0, armorTags: e = [], effects: t = {} } = {}) {
+  const i = new Set(Ts(e));
   let a = Number(s ?? 0) || 0;
   const r = [];
   return Object.entries((t == null ? void 0 : t.bonusVsArmorTag) ?? {}).forEach(([n, o]) => {
@@ -2193,7 +2193,7 @@ function mc({ damageIncoming: s = 0, armorTags: e = [], effects: t = {} } = {}) 
 class fi {
   static checkSufficient(e, t, i) {
     if (t > i) {
-      const a = me(k.common.errors.insufficient, {
+      const a = fe(k.common.errors.insufficient, {
         resource: e,
         required: t,
         available: i
@@ -2203,7 +2203,7 @@ class fi {
   }
   static checkOutOfRange(e, t, i, a) {
     if (t < i || t > a) {
-      const r = me(k.common.errors.outOfRange, {
+      const r = fe(k.common.errors.outOfRange, {
         resource: e,
         value: t,
         min: i,
@@ -2220,7 +2220,7 @@ class fi {
   }
   static checkItemType(e, t) {
     if (e.type != t) {
-      const i = me(k.common.errors.expectedType, {
+      const i = fe(k.common.errors.expectedType, {
         type: e.type ? k.itemType.singular[e.type] : e.type,
         expectedType: t
       });
@@ -2229,9 +2229,9 @@ class fi {
   }
   static checkActorCanReceiveDamage(e, t, i) {
     if (!t) {
-      const a = me(k.common.errors.actorCannotReceiveDamage, {
+      const a = fe(k.common.errors.actorCannotReceiveDamage, {
         actor: i.name,
-        damageType: Zn(e) ? vt(e) : k.actor.monitors[e] ?? k.mwd.weaponDamageType[e] ?? k.mwd.personalDamageType[e] ?? e
+        damageType: so(e) ? vt(e) : k.actor.monitors[e] ?? k.mwd.weaponDamageType[e] ?? k.mwd.personalDamageType[e] ?? e
       });
       throw ui.notifications.error(a), a;
     }
@@ -2240,13 +2240,13 @@ class fi {
     var a;
     const i = e.getDefense();
     if ((((a = e.isPersonalWeapon) == null ? void 0 : a.call(e)) ?? e.type === S.itemType.personalWeapon) && !i) {
-      const r = me(k.common.errors.noDefenseOnWeapon, { actor: t.name, weapon: e.name });
+      const r = fe(k.common.errors.noDefenseOnWeapon, { actor: t.name, weapon: e.name });
       throw ui.notifications.error(r), r;
     }
   }
   static checkTargetsCount(e, t, i) {
     if (e > 0 && t.length > e) {
-      const a = me(k.common.errors.maxTargetsExceedeed, {
+      const a = fe(k.common.errors.maxTargetsExceedeed, {
         weapon: this.name,
         area: k.area[i],
         count: t.length,
@@ -2257,7 +2257,7 @@ class fi {
   }
   static checkActorDefenseAction(e, t, i) {
     if (!e) {
-      const a = me(k.common.errors.actorDoesNotHaveDefense, {
+      const a = fe(k.common.errors.actorDoesNotHaveDefense, {
         actor: t.name,
         defense: i.labelkey,
         actorType: k.actorType[t.type]
@@ -2288,40 +2288,40 @@ function ls(s, e) {
     actionCode: e
   };
 }
-const Te = S.actorAttributes, ke = S.actorTypes, He = Be.actions, cs = Be.defenses, la = [
-  ot(He.defense, (s) => Te.reflexes, (s) => Te.intelligence, W.fontAwesome("fas fa-shield-alt"), [ke.character, ke.npc]),
-  ot(He.defense, (s) => Te.handling, (s) => Te.chassis, W.fontAwesome("fas fa-tachometer-alt"), [ke.vehicle, ke.battlemech]),
-  ot(He.resistTorture, (s) => Te.strength, (s) => Te.willpower, W.fontAwesome("fas fa-angry"), [ke.character, ke.npc]),
-  ot(He.perception, (s) => Te.logic, (s) => Te.willpower, W.fontAwesome("fas fa-eye"), [ke.character, ke.npc]),
-  ot(He.perception, (s) => Te.system, (s) => Te.handling, W.fontAwesome("fas fa-video"), [ke.vehicle, ke.battlemech]),
-  ot(He.composure, (s) => Te.charisma, (s) => Te.willpower, W.fontAwesome("fas fa-meh"), [ke.character, ke.npc]),
-  ot(He.judgeIntentions, (s) => Te.charisma, (s) => Te.charisma, W.fontAwesome("fas fa-theater-masks"), [ke.character, ke.npc]),
-  ot(He.memory, (s) => Te.logic, (s) => Te.logic, W.fontAwesome("fas fa-brain"), [ke.character, ke.npc]),
-  ot(He.catch, (s) => Te.reflexes, (s) => Te.reflexes, W.fontAwesome("fas fa-baseball-ball"), [ke.character, ke.npc]),
-  ot(He.lift, (s) => Te.strength, (s) => Te.strength, W.fontAwesome("fas fa-dumbbell"), [ke.character, ke.npc])
+const Te = S.actorAttributes, ke = S.actorTypes, Ue = xe.actions, cs = xe.defenses, ca = [
+  ot(Ue.defense, (s) => Te.reflexes, (s) => Te.intelligence, W.fontAwesome("fas fa-shield-alt"), [ke.character, ke.npc]),
+  ot(Ue.defense, (s) => Te.handling, (s) => Te.chassis, W.fontAwesome("fas fa-tachometer-alt"), [ke.vehicle, ke.battlemech]),
+  ot(Ue.resistTorture, (s) => Te.strength, (s) => Te.willpower, W.fontAwesome("fas fa-angry"), [ke.character, ke.npc]),
+  ot(Ue.perception, (s) => Te.logic, (s) => Te.willpower, W.fontAwesome("fas fa-eye"), [ke.character, ke.npc]),
+  ot(Ue.perception, (s) => Te.system, (s) => Te.handling, W.fontAwesome("fas fa-video"), [ke.vehicle, ke.battlemech]),
+  ot(Ue.composure, (s) => Te.charisma, (s) => Te.willpower, W.fontAwesome("fas fa-meh"), [ke.character, ke.npc]),
+  ot(Ue.judgeIntentions, (s) => Te.charisma, (s) => Te.charisma, W.fontAwesome("fas fa-theater-masks"), [ke.character, ke.npc]),
+  ot(Ue.memory, (s) => Te.logic, (s) => Te.logic, W.fontAwesome("fas fa-brain"), [ke.character, ke.npc]),
+  ot(Ue.catch, (s) => Te.reflexes, (s) => Te.reflexes, W.fontAwesome("fas fa-baseball-ball"), [ke.character, ke.npc]),
+  ot(Ue.lift, (s) => Te.strength, (s) => Te.strength, W.fontAwesome("fas fa-dumbbell"), [ke.character, ke.npc])
 ], us = [
-  ls(cs.physicalDefense, He.defense),
-  ls(cs.physicalResistance, He.resistTorture),
-  ls(cs.socialDefense, He.composure),
-  ls(cs.mentalResistance, He.perception)
+  ls(cs.physicalDefense, Ue.defense),
+  ls(cs.physicalResistance, Ue.resistTorture),
+  ls(cs.socialDefense, Ue.composure),
+  ls(cs.mentalResistance, Ue.perception)
 ];
-class be {
+class Se {
   static init() {
-    Handlebars.registerHelper("fixedDefenseCode", (e) => be.fixedDefenseCode(e));
+    Handlebars.registerHelper("fixedDefenseCode", (e) => Se.fixedDefenseCode(e));
   }
   static all(e = void 0) {
-    return e ? la.filter(e) : la;
+    return e ? ca.filter(e) : ca;
   }
   static getActorActions(e) {
-    return la.filter((t) => t.actorTypes.includes(e.type) && t.condition(e));
+    return ca.filter((t) => t.actorTypes.includes(e.type) && t.condition(e));
   }
   static fixedDefenseCode(e) {
-    return Be.fixedDefenseCode[e] ?? e;
+    return xe.fixedDefenseCode[e] ?? e;
   }
   static getActorDefenses(e) {
     return us.map((t) => {
-      const i = be.getActorAction(e, t.actionCode);
-      return be._convertToDefense(i, t);
+      const i = Se.getActorAction(e, t.actionCode);
+      return Se._convertToDefense(i, t);
     }).filter((t) => t == null ? void 0 : t.code);
   }
   static getDefenseAttributeAction(e) {
@@ -2329,12 +2329,12 @@ class be {
     return (t = us.find((i) => i.code == e)) == null ? void 0 : t.actionCode;
   }
   static getActorAction(e, t) {
-    return be.getActorActions(e).find((i) => i.code == t);
+    return Se.getActorActions(e).find((i) => i.code == t);
   }
   static getActorDefense(e, t) {
-    t = be.fixedDefenseCode(t);
-    const i = us.find((r) => r.code == t), a = be.getActorAction(e, i.actionCode);
-    return fi.checkActorDefenseAction(a, e, i), be._convertToDefense(a, i);
+    t = Se.fixedDefenseCode(t);
+    const i = us.find((r) => r.code == t), a = Se.getActorAction(e, i.actionCode);
+    return fi.checkActorDefenseAction(a, e, i), Se._convertToDefense(a, i);
   }
   static _convertToDefense(e, t) {
     return e ? foundry.utils.mergeObject(
@@ -2347,7 +2347,7 @@ class be {
     return us;
   }
   static prepareShortcut(e, t) {
-    const i = be.getActorActions(e).find((a) => a.code == t);
+    const i = Se.getActorActions(e).find((a) => a.code == t);
     if (i)
       return {
         icon: i.icon,
@@ -2356,9 +2356,9 @@ class be {
       };
   }
 }
-class Oa {
+class La {
   constructor() {
-    this.remoteCalls = {}, game.socket.on(Ea, async (e) => this.onSocketMessage(e));
+    this.remoteCalls = {}, game.socket.on(Pa, async (e) => this.onSocketMessage(e));
   }
   static async register(e, t) {
     game.system.anarchy.remoteCall._register(e, t);
@@ -2368,43 +2368,43 @@ class Oa {
       throw `RemoteCall msg ${e} is already registered`;
     foundry.utils.mergeObject(t, {
       callback: (i) => {
-        console.log(le + "RemoteCall [", e, "] (", i, ")");
+        console.log(ue + "RemoteCall [", e, "] (", i, ")");
       },
       condition: (i) => !0,
       multiple: !1
       /* true if multiple users should handle the message */
-    }, { overwrite: !1 }), this.remoteCalls[e] = t, console.log(le + "RemoteCall registered", e);
+    }, { overwrite: !1 }), this.remoteCalls[e] = t, console.log(ue + "RemoteCall registered", e);
   }
   static call(e, t) {
     return game.system.anarchy.remoteCall._remoteCall(e, t);
   }
   _remoteCall(e, t) {
     const i = this.remoteCalls[e];
-    return !i || i.condition(game.user) || !i.multiple && et.isUniqueConnectedGM() ? !1 : (game.socket.emit(Ea, { msg: e, data: t }), !0);
+    return !i || i.condition(game.user) || !i.multiple && et.isUniqueConnectedGM() ? !1 : (game.socket.emit(Pa, { msg: e, data: t }), !0);
   }
   async onSocketMessage(e) {
     const t = this.remoteCalls[e.msg];
     if (t) {
       const i = t.condition(game.user), a = t.multiple, r = et.isUniqueConnectedGM();
-      i && (a || r) ? t.callback(e.data) : console.log(le + "RemoteCall.onSocketMessage(", e, ") ignored :", i, a, r);
+      i && (a || r) ? t.callback(e.data) : console.log(ue + "RemoteCall.onSocketMessage(", e, ") ignored :", i, a, r);
     } else
-      console.log(le + "RemoteCall: No callback registered for", e);
+      console.log(ue + "RemoteCall: No callback registered for", e);
   }
 }
-const Ur = "Users.blindMessageToGM";
+const qr = "Users.blindMessageToGM";
 class et {
   static init() {
-    Oa.register(Ur, {
+    La.register(qr, {
       callback: (e) => et.blindMessageToGM(e),
       condition: (e) => e.isGM
     });
   }
   static blindMessageToGM(e) {
-    Oa.call(Ur, e) || ChatMessage.create({
+    La.call(qr, e) || ChatMessage.create({
       user: e.user,
       whisper: ChatMessage.getWhisperRecipients("GM"),
       blind: !0,
-      content: me(k.chat.blindMessageToGM, {
+      content: fe(k.chat.blindMessageToGM, {
         user: game.user.name,
         message: e.content
       })
@@ -2443,7 +2443,7 @@ class et {
     return game.user.character;
   }
 }
-const bi = k.actor.monitors, yt = k.actor.counters, oo = {
+const bi = k.actor.monitors, yt = k.actor.counters, mo = {
   armor: {
     path: "system.monitors.armor.value",
     monitor: (s) => s.system.monitors.armor,
@@ -2563,19 +2563,19 @@ const bi = k.actor.monitors, yt = k.actor.counters, oo = {
     iconUnchecked: W.iconPath("systems/mwd/icons/default/mystery-man.svg", "checkbar-img"),
     resource: yt.edgePools.rumor
   }
-}, Je = foundry.utils.mergeObject(oo, {});
-class L {
+}, Je = foundry.utils.mergeObject(mo, {});
+class _ {
   static init() {
-    Handlebars.registerHelper("iconCheckbar", L.iconCheckbar), Handlebars.registerHelper("iconCheckbarHit", L.iconHit);
+    Handlebars.registerHelper("iconCheckbar", _.iconCheckbar), Handlebars.registerHelper("iconCheckbarHit", _.iconHit);
   }
   static hackCheckbars(e) {
     if (e) {
-      const t = foundry.utils.mergeObject(oo, {});
+      const t = foundry.utils.mergeObject(mo, {});
       foundry.utils.mergeObject(t, e, { recursive: !0 }), foundry.utils.mergeObject(Je, t, { overwrite: !0 });
     }
   }
   static iconCheckbar(e, t) {
-    return t ? L.iconChecked(e) : L.iconUnchecked(e);
+    return t ? _.iconChecked(e) : _.iconUnchecked(e);
   }
   static iconChecked(e) {
     var t;
@@ -2604,11 +2604,11 @@ class L {
     return (i == null ? void 0 : i.value) ?? 0;
   }
   static resistance(e, t, i = void 0) {
-    return L.resistanceDetail(e, t, i).value;
+    return _.resistanceDetail(e, t, i).value;
   }
   static resistanceDetail(e, t, i = void 0) {
     var l, c;
-    const a = (l = Je[t]) == null ? void 0 : l.monitor(e), r = L._resolveResistance(a == null ? void 0 : a.resistance, i), n = L._resolveResistance(a == null ? void 0 : a.resistanceBonus, i), o = i === void 0 ? 0 : Number(((c = a == null ? void 0 : a.resistanceBonusByType) == null ? void 0 : c[i]) ?? 0);
+    const a = (l = Je[t]) == null ? void 0 : l.monitor(e), r = _._resolveResistance(a == null ? void 0 : a.resistance, i), n = _._resolveResistance(a == null ? void 0 : a.resistanceBonus, i), o = i === void 0 ? 0 : Number(((c = a == null ? void 0 : a.resistanceBonusByType) == null ? void 0 : c[i]) ?? 0);
     return {
       value: r.value + n.value + o,
       damageType: i,
@@ -2629,49 +2629,49 @@ class L {
     return e + (t ? 0 : 1);
   }
   static async switchMonitorCheck(e, t, i, a, r = void 0, n = void 0) {
-    await L.setCounter(e, t, L.newValue(i, a), r, n);
+    await _.setCounter(e, t, _.newValue(i, a), r, n);
   }
   static async addCounter(e, t, i, a = void 0) {
     if (i != 0) {
-      const r = L.getCounterValue(e, t, a) ?? 0;
-      await L.setCounter(e, t, r + i, a);
+      const r = _.getCounterValue(e, t, a) ?? 0;
+      await _.setCounter(e, t, r + i, a);
     }
   }
   static async setCounter(e, t, i, a = void 0, r = void 0) {
     switch (t) {
       case S.monitors.anarchy:
-        return await L.setAnarchy(e, i);
+        return await _.setAnarchy(e, i);
       case S.monitors.sceneAnarchy:
-        return await L.setSceneAnarchy(e, i);
+        return await _.setSceneAnarchy(e, i);
     }
-    return await L.setCheckbar(e, t, i);
+    return await _.setCheckbar(e, t, i);
   }
   static getCounterValue(e, t, i) {
     switch (t) {
       case S.monitors.anarchy:
-        return L.getAnarchy(e, t);
+        return _.getAnarchy(e, t);
     }
-    return L.value(e, t);
+    return _.value(e, t);
   }
   static async setCheckbar(e, t, i) {
-    if (i == L.getCounterValue(e, t))
+    if (i == _.getCounterValue(e, t))
       return;
     const a = Je[t];
     if (a.path) {
-      const r = L.max(e, t);
+      const r = _.max(e, t);
       if (r <= 0)
         return;
-      await L._manageOverflow(a, e, t, i, r), i = Math.min(i, r), fi.checkOutOfRange(a.resource, i, 0, r), await e.setCheckbarValue(a.path, i);
+      await _._manageOverflow(a, e, t, i, r), i = Math.min(i, r), fi.checkOutOfRange(a.resource, i, 0, r), await e.setCheckbarValue(a.path, i);
     }
   }
   static async _manageOverflow(e, t, i, a, r) {
     if (a > r) {
       const n = e.overflow ? e.overflow(t) : void 0, o = e.recomputeOverflow ? e.recomputeOverflow(a - r) : a - r;
-      n && o > 0 && (L._notifyOverflow(t, i, o, n), await L.addCounter(t, n, o));
+      n && o > 0 && (_._notifyOverflow(t, i, o, n), await _.addCounter(t, n, o));
     }
   }
   static _notifyOverflow(e, t, i, a) {
-    const r = me(k.actor.monitors.overflow, {
+    const r = fe(k.actor.monitors.overflow, {
       actor: e.name,
       monitor: k.actor.monitors[t],
       overflow: i,
@@ -2680,7 +2680,7 @@ class L {
     ui.notifications.warn(r);
   }
   static async _manageFatigueOverflow(e, t, i) {
-    await L.addCounter(e, S.monitors.physical, t - i);
+    await _.addCounter(e, S.monitors.physical, t - i);
   }
   static async setAnarchy(e, t) {
     if (e.hasOwnAnarchy()) {
@@ -2688,23 +2688,23 @@ class L {
         await game.system.anarchy.gmAnarchy.setAnarchy(t), e.render();
         return;
       }
-      await L._setAnarchyMonitor(e, S.monitors.anarchy, t);
+      await _._setAnarchyMonitor(e, S.monitors.anarchy, t);
     }
   }
   static async setSceneAnarchy(e, t) {
-    await L._setAnarchyMonitor(e, S.monitors.sceneAnarchy, t);
+    await _._setAnarchyMonitor(e, S.monitors.sceneAnarchy, t);
   }
   static async _setAnarchyMonitor(e, t, i) {
-    const a = L.value(e, t);
-    await L.setCheckbar(e, t, i), game.user.isGM || L.notifyAnarchyChange(e, t, a, i);
+    const a = _.value(e, t);
+    await _.setCheckbar(e, t, i), game.user.isGM || _.notifyAnarchyChange(e, t, a, i);
   }
   static getAnarchy(e, t) {
-    return !game.user.isGM && (!e.hasOwnAnarchy() || e.hasGMAnarchy()) || t == yt.anarchy && (!e.hasOwnAnarchy() || e.hasGMAnarchy()) ? 0 : L.value(e, t);
+    return !game.user.isGM && (!e.hasOwnAnarchy() || e.hasGMAnarchy()) || t == yt.anarchy && (!e.hasOwnAnarchy() || e.hasGMAnarchy()) ? 0 : _.value(e, t);
   }
   static notifyAnarchyChange(e, t, i, a) {
     et.blindMessageToGM({
       from: game.user.id,
-      content: me(
+      content: fe(
         k.gmManager.playerChangedAnarchy,
         {
           user: game.user.name,
@@ -2717,7 +2717,7 @@ class L {
     });
   }
 }
-const { loadTemplates: pc, renderTemplate: fc } = foundry.applications.handlebars, Hr = {
+const { loadTemplates: yc, renderTemplate: bc } = foundry.applications.handlebars, Vr = {
   highlighted: ["far fa-times-circle", "fas fa-dice-one", "fas fa-dice-two", "fas fa-dice-three", "fas fa-dice-four", "fas fa-dice-five", "fas fa-dice-six"],
   dimmed: ["far fa-times-circle", "far fa-dice-one", "far fa-dice-two", "far fa-dice-three", "far fa-dice-four", "far fa-dice-five", "far fa-dice-six"]
 };
@@ -2726,7 +2726,7 @@ class wt {
     Hooks.once("ready", async () => await this.onReady()), Handlebars.registerHelper("dice-cursor-array", (e, t) => wt.array(e ?? 0, t ?? 5)), Handlebars.registerHelper("dice-cursor-fas", (e, t) => wt.fasClass(e, t)), Handlebars.registerHelper("dice-cursor-active", (e, t) => wt.activeClass(e, t)), Handlebars.registerHelper("dice-cursor-color", (e, t) => wt.colorClass(e, t));
   }
   static async onReady() {
-    await pc([
+    await yc([
       "systems/mwd/templates/roll/parts/dice-cursor.hbs"
     ]);
   }
@@ -2741,7 +2741,7 @@ class wt {
     return wt.isActive(e, t) ? "active" : "inactive";
   }
   static fasClass(e, t) {
-    const i = wt.isActive(e, t) ? Hr.highlighted : Hr.dimmed;
+    const i = wt.isActive(e, t) ? Vr.highlighted : Vr.dimmed;
     return wt.$getFas(i, Math.abs(e));
   }
   static colorClass(e, t) {
@@ -2751,7 +2751,7 @@ class wt {
     return e[t > 6 ? t % 6 : t];
   }
   static async diceCursor({ value: e, min: t, max: i, editable: a }) {
-    return await fc("systems/mwd/templates/roll/parts/dice-cursor.hbs", {
+    return await bc("systems/mwd/templates/roll/parts/dice-cursor.hbs", {
       value: e,
       min: t,
       max: i,
@@ -2789,7 +2789,7 @@ const Ee = {
    * Hook allowing to provide alternate anarchy hack (TODO: document)
    */
   ANARCHY_HACK: "anarchy-hack"
-}, Gr = "anarchy-", lo = `${T}.${Ee.ANARCHY_HACK}`, _a = {
+}, Kr = "anarchy-", po = `${T}.${Ee.ANARCHY_HACK}`, $a = {
   id: T,
   name: "Standard Shadowrun Anarchy",
   hack: {
@@ -2797,11 +2797,11 @@ const Ee = {
   }
 };
 globalThis.ANARCHY_HOOKS = Ee;
-globalThis.SETTING_KEY_ANARCHY_HACK = lo;
-globalThis.SHADOWRUN_ANARCHY_NO_HACK = _a;
+globalThis.SETTING_KEY_ANARCHY_HACK = po;
+globalThis.SHADOWRUN_ANARCHY_NO_HACK = $a;
 class ci {
   constructor() {
-    this.hooks = [], this.hacks = {}, this.hackNames = {}, this.hookMethods = {}, this._register(Ee.ANARCHY_HACK), Hooks.on(Ee.ANARCHY_HACK, (e) => e(_a)), Hooks.on("updateSetting", async (e, t, i, a) => this.onUpdateSetting(e, t, i, a)), Hooks.once("ready", () => this.onReady()), Hooks.on("getSceneControlButtons", (e) => {
+    this.hooks = [], this.hacks = {}, this.hackNames = {}, this.hookMethods = {}, this._register(Ee.ANARCHY_HACK), Hooks.on(Ee.ANARCHY_HACK, (e) => e($a)), Hooks.on("updateSetting", async (e, t, i, a) => this.onUpdateSetting(e, t, i, a)), Hooks.once("ready", () => this.onReady()), Hooks.on("getSceneControlButtons", (e) => {
       var i;
       if (!((i = game.user) != null && i.isGM)) return;
       const t = Array.isArray(e) ? e.find((a) => a.name === "notes") : e == null ? void 0 : e.notes;
@@ -2832,17 +2832,17 @@ class ci {
       name: k.settings.anarchyHack.name,
       hint: k.settings.anarchyHack.hint,
       config: !0,
-      default: _a.id,
+      default: $a.id,
       choices: this.hackNames,
       type: String
     }), this.applySelectedAnarchyHack();
   }
   async onUpdateSetting(e, t, i, a) {
-    e.key == lo && this.applySelectedAnarchyHack();
+    e.key == po && this.applySelectedAnarchyHack();
   }
   applySelectedAnarchyHack() {
     const e = this.getSelectedHack();
-    e && L.hackCheckbars(e.hack.checkbars());
+    e && _.hackCheckbars(e.hack.checkbars());
   }
   selectHookMethod(e, t) {
     Hooks.callAll(t, (i, a) => {
@@ -2866,25 +2866,25 @@ class ci {
     ci.instance()._register(e);
   }
   _register(e) {
-    if (console.log(le + "HooksManager.register", e), !e.startsWith(Gr))
-      throw `For safety Anarchy Hooks names must be prefixed by '${Gr}'`;
+    if (console.log(ue + "HooksManager.register", e), !e.startsWith(Kr))
+      throw `For safety Anarchy Hooks names must be prefixed by '${Kr}'`;
     this.hooks.push(e);
   }
 }
-const qr = [
+const Yr = [
   S.itemType.assetModule,
   S.itemType.mechWeapon,
   S.itemType.personalWeapon,
   "weapon"
 ];
-class X {
+class Z {
   constructor() {
     this.modifiers = {
       groups: ie.mapObjetToKeyValue(k.modifier.group, "key", "label"),
-      roll: X._buildGroupOptions("roll"),
-      attribute: X._buildGroupOptions("attribute"),
-      monitor: X._buildGroupOptions("monitor"),
-      other: X._buildGroupOptions("other")
+      roll: Z._buildGroupOptions("roll"),
+      attribute: Z._buildGroupOptions("attribute"),
+      monitor: Z._buildGroupOptions("monitor"),
+      other: Z._buildGroupOptions("other")
     }, Hooks.once("ready", () => this.onReady());
   }
   static _buildGroupOptions(e) {
@@ -2946,7 +2946,7 @@ class X {
       case "skill":
         return game.system.anarchy.skills.getSkills().map((i) => ({ key: i.code, label: i.labelkey }));
       case "attributeAction":
-        const t = be.all().map((i) => ({ key: i.code, label: i.labelkey }));
+        const t = Se.all().map((i) => ({ key: i.code, label: i.labelkey }));
         return Q.distinct(t.map((i) => i.key)).map((i) => t.find((a) => a.key == i));
     }
     return [];
@@ -2964,13 +2964,13 @@ class X {
           case "skill":
             return i.subCategory == ((a = e.skill) == null ? void 0 : a.system.code);
           case "attributeAction":
-            return i.subCategory == e.attributeAction || i.subCategory == be.getDefenseAttributeAction(e.defenseAction);
+            return i.subCategory == e.attributeAction || i.subCategory == Se.getDefenseAttributeAction(e.defenseAction);
         }
       return !1;
     };
   }
   static computeRollModifiers(e, t, i) {
-    const a = X.buildRollModifiersFilter(t, i), r = (c) => c.group == "roll" && c.effect == i && a(c), n = X._activeItems(e).map((c) => X.itemModifiers(c, r)).reduce((c, u) => c.concat(u), []).sort(Q.descending((c) => c.modifier.value)), o = X.$sumAssetModuleModifiers(n.filter((c) => qr.includes(c.item.type)).map((c) => c.modifier.value)), l = Q.sumValues(n.filter((c) => !qr.includes(c.item.type)).map((c) => c.modifier.value));
+    const a = Z.buildRollModifiersFilter(t, i), r = (c) => c.group == "roll" && c.effect == i && a(c), n = Z._activeItems(e).map((c) => Z.itemModifiers(c, r)).reduce((c, u) => c.concat(u), []).sort(Q.descending((c) => c.modifier.value)), o = Z.$sumAssetModuleModifiers(n.filter((c) => Yr.includes(c.item.type)).map((c) => c.modifier.value)), l = Q.sumValues(n.filter((c) => !Yr.includes(c.item.type)).map((c) => c.modifier.value));
     return {
       value: o + l,
       sources: n
@@ -2981,28 +2981,28 @@ class X {
     return i + Math.max(a, t);
   }
   static computeModifiers(e, t, i = void 0, a = void 0) {
-    const r = X._createFilter(t, i, a), n = X._activeItems(e).map((l) => X.itemModifiers(l, r)).reduce((l, c) => l.concat(c), []);
+    const r = Z._createFilter(t, i, a), n = Z._activeItems(e).map((l) => Z.itemModifiers(l, r)).reduce((l, c) => l.concat(c), []);
     return {
       value: Q.sumValues(n, (l) => l.modifier.value),
       sources: n
     };
   }
   static sumMonitorModifiers(e, t, i, a = void 0) {
-    return X.sumModifiers(X._activeItems(e), "monitor", t, i, a);
+    return Z.sumModifiers(Z._activeItems(e), "monitor", t, i, a);
   }
   static sumModifiers(e, t, i, a, r = void 0) {
-    const n = X._createFilter(t, i, a, r), o = X._activeItems(e).map((l) => X.itemModifiers(l, n)).reduce((l, c) => l.concat(c), []);
+    const n = Z._createFilter(t, i, a, r), o = Z._activeItems(e).map((l) => Z.itemModifiers(l, n)).reduce((l, c) => l.concat(c), []);
     return Q.sumValues(o, (l) => l.modifier.value);
   }
   static _createFilter(e, t, i, a = void 0) {
     return (r) => r.group == e && r.effect == (t ?? r.effect) && r.category == (i ?? r.category) && (a == null ? !0 : r.subCategory == a);
   }
   static countModifiers(e, t, i = void 0, a = void 0) {
-    const r = X._createFilter(t, i, a);
-    return X._activeItems(e).map((o) => X.itemModifiers(o, r)).reduce((o, l) => o.concat(l), []).count;
+    const r = Z._createFilter(t, i, a);
+    return Z._activeItems(e).map((o) => Z.itemModifiers(o, r)).reduce((o, l) => o.concat(l), []).count;
   }
   static itemModifiers(e, t) {
-    return X._listItemModifiers(e, t).map((i) => X._itemModifier(e, i));
+    return Z._listItemModifiers(e, t).map((i) => Z._itemModifier(e, i));
   }
   static _listItemModifiers(e, t = (i) => !0) {
     return (e.system.modifiers ?? []).filter(t);
@@ -3017,7 +3017,7 @@ class X {
     return e;
   }
 }
-const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebars, oe = {
+const { loadTemplates: ua, renderTemplate: Lf } = foundry.applications.handlebars, ce = {
   pool: "pool",
   reroll: "reroll",
   rerollMax: "rerollMax",
@@ -3028,16 +3028,16 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
   risk: "risk",
   opponentPool: "opponentPool",
   opponentReroll: "opponentReroll"
-}, Vr = 4, hc = [
+}, Qr = 4, Sc = [
   // attribute1
   {
     code: "attribute1",
     options: {
       order: 1,
-      category: oe.pool,
-      hbsTemplateRoll: `${H}/roll/parts/select-attribute.hbs`
+      category: ce.pool,
+      hbsTemplateRoll: `${G}/roll/parts/select-attribute.hbs`
     },
-    condition: (s) => Object.values(Be.rollType).includes(s.mode),
+    condition: (s) => Object.values(xe.rollType).includes(s.mode),
     isUsed: (s) => !0,
     factory: (s) => {
       var t;
@@ -3056,11 +3056,11 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     code: "attribute2",
     options: {
       order: 1,
-      category: oe.pool,
-      hbsTemplateRoll: `${H}/roll/parts/select-attribute.hbs`,
-      hbsTemplateChat: `${H}/chat/parts/pool-attribute2.hbs`
+      category: ce.pool,
+      hbsTemplateRoll: `${G}/roll/parts/select-attribute.hbs`,
+      hbsTemplateChat: `${G}/chat/parts/pool-attribute2.hbs`
     },
-    condition: (s) => [Be.rollType.attribute, Be.rollType.attributeAction, Be.rollType.defense].includes(s.mode),
+    condition: (s) => [xe.rollType.attribute, xe.rollType.attributeAction, xe.rollType.defense].includes(s.mode),
     isUsed: (s) => s.used,
     onChecked: (s, e) => s.used = !!e,
     factory: (s) => {
@@ -3068,7 +3068,7 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
       return {
         labelkey: e ? k.attributes[e] : k.attributes.noAttributes,
         value: s.actor.getAttributeValue(e, s.activeItem),
-        flags: { editable: Be.rollType.attribute == s.mode },
+        flags: { editable: xe.rollType.attribute == s.mode },
         selected: e,
         choices: ie.getAttributes((t) => s.attributes.includes(t))
       };
@@ -3080,8 +3080,8 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     options: {
       flags: {},
       order: 3,
-      category: oe.pool,
-      hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`
+      category: ce.pool,
+      hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`
     },
     condition: (s) => ["skill", "weapon"].includes(s.mode),
     factory: (s) => {
@@ -3100,8 +3100,8 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
       flags: { optional: !0 },
       value: 2,
       order: 4,
-      category: oe.pool,
-      hbsTemplateRoll: `${H}/roll/parts/check-option.hbs`
+      category: ce.pool,
+      hbsTemplateRoll: `${G}/roll/parts/check-option.hbs`
     },
     isUsed: (s) => s.used,
     condition: (s) => !!s.specialization,
@@ -3120,10 +3120,10 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     options: {
       flags: { editDice: !0, editable: !0 },
       order: 5,
-      category: oe.pool,
+      category: ce.pool,
       value: 0,
       labelkey: k.common.roll.modifiers.social.credibility,
-      hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`
+      hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`
     },
     condition: (s) => {
       var e;
@@ -3141,12 +3141,12 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
       flags: { editDice: !0, editable: !0 },
       labelkey: k.common.roll.modifiers.poolModifiers,
       order: 5,
-      category: oe.pool,
-      hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`,
+      category: ce.pool,
+      hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`,
       min: -4,
       max: 4
     },
-    factory: (s) => ii.computeRollModifiers(oe.pool, s)
+    factory: (s) => ii.computeRollModifiers(ce.pool, s)
   },
   // wounds
   {
@@ -3154,9 +3154,9 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     options: {
       flags: { optional: !0 },
       order: 10,
-      category: oe.pool,
+      category: ce.pool,
       labelkey: k.common.roll.modifiers.wounds,
-      hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`
+      hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`
     },
     isUsed: (s) => s.used,
     condition: (s) => s.actor.getWounds(),
@@ -3180,10 +3180,10 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     options: {
       flags: { editDice: !0, editable: !0 },
       order: 25,
-      category: oe.pool,
+      category: ce.pool,
       value: 0,
       labelkey: k.common.roll.modifiers.other,
-      hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`,
+      hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`,
       min: -5,
       max: 5
     }
@@ -3194,17 +3194,17 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     options: {
       flags: { editDice: !0, editable: !0 },
       order: 40,
-      category: oe.glitch,
+      category: ce.glitch,
       value: 0,
       labelkey: k.common.roll.modifiers.glitch,
-      hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`,
-      hbsTemplateChat: `${H}/chat/parts/glitch.hbs`,
+      hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`,
+      hbsTemplateChat: `${G}/chat/parts/glitch.hbs`,
       min: 0,
       max: 5
     },
     isUsed: (s) => s.value > 0,
     factory: (s) => {
-      const e = s.actor.getWounds(), t = ii.computeRollModifiers(oe.glitch, s);
+      const e = s.actor.getWounds(), t = ii.computeRollModifiers(ce.glitch, s);
       return {
         value: (e == 0 ? 0 : 1) + (s.glitch ?? 0) + t.value
       };
@@ -3216,11 +3216,11 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     options: {
       flags: { editDice: !0, editable: !0 },
       order: 50,
-      category: oe.glitch,
+      category: ce.glitch,
       value: 0,
       labelkey: k.common.roll.modifiers.social.rumor,
-      hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`,
-      hbsTemplateChat: `${H}/chat/parts/glitch.hbs`,
+      hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`,
+      hbsTemplateChat: `${G}/chat/parts/glitch.hbs`,
       min: 0,
       max: 1
     },
@@ -3238,16 +3238,16 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     options: {
       flags: { editDice: !0, editable: !0 },
       order: 30,
-      category: oe.reroll,
+      category: ce.reroll,
       labelkey: k.common.roll.modifiers.reroll,
-      hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`,
+      hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`,
       min: 0,
-      max: Vr
+      max: Qr
     },
     factory: (s) => {
-      const e = ii.computeRollModifiers(oe.reroll, s), t = ii.computeRollModifiers(oe.rerollMax, s);
+      const e = ii.computeRollModifiers(ce.reroll, s), t = ii.computeRollModifiers(ce.rerollMax, s);
       return foundry.utils.mergeObject(e, {
-        max: Vr + Math.max(0, t.value ?? 0)
+        max: Qr + Math.max(0, t.value ?? 0)
       });
     }
   },
@@ -3256,9 +3256,9 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     code: "reduced",
     options: {
       order: 29,
-      category: oe.pool,
+      category: ce.pool,
       labelkey: k.common.roll.modifiers.reduced,
-      hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`,
+      hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`,
       min: -4,
       max: 0
     },
@@ -3280,15 +3280,15 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     code: "rerollForced",
     options: {
       order: 31,
-      category: oe.rerollForced,
+      category: ce.rerollForced,
       labelkey: k.common.roll.modifiers.rerollForced,
-      hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`,
+      hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`,
       min: -5,
       max: 0
     },
     factory: (s) => {
       var t;
-      const e = ii.computeRollModifiers(oe.successReroll, s);
+      const e = ii.computeRollModifiers(ce.successReroll, s);
       return e.value = -e.value - (((t = s.attackRoll) == null ? void 0 : t.param.opponentReroll) ?? 0), foundry.utils.mergeObject(e, {
         flags: { editDice: !0, used: !0, editable: !0 }
       });
@@ -3300,12 +3300,12 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     options: {
       flags: { optional: !0, isAnarchy: !0, forceDisplay: !0 },
       order: 70,
-      category: oe.pool,
+      category: ce.pool,
       value: 0,
       min: 0,
       max: 3,
       labelkey: k.common.roll.modifiers.anarchyDisposition,
-      hbsTemplateRoll: `${H}/roll/parts/check-option.hbs`
+      hbsTemplateRoll: `${G}/roll/parts/check-option.hbs`
     },
     isUsed: (s) => s.used,
     condition: (s) => s.actor.getAnarchyValue() > 0,
@@ -3319,11 +3319,11 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     options: {
       flags: { optional: !0, isAnarchy: !0, forceDisplay: !0 },
       order: 70,
-      category: oe.risk,
+      category: ce.risk,
       value: 0,
       labelkey: k.common.roll.modifiers.anarchyRisk,
-      hbsTemplateRoll: `${H}/roll/parts/check-option.hbs`,
-      hbsTemplateChat: `${H}/chat/parts/anarchy-risk.hbs`
+      hbsTemplateRoll: `${G}/roll/parts/check-option.hbs`,
+      hbsTemplateChat: `${G}/chat/parts/anarchy-risk.hbs`
     },
     isUsed: (s) => s.used,
     condition: (s) => s.actor.getAnarchyValue() > 0,
@@ -3338,9 +3338,9 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
       flags: { optional: !0, forceDisplay: !0 },
       value: 0,
       order: 70,
-      category: oe.edge,
+      category: ce.edge,
       labelkey: k.common.roll.modifiers.edge,
-      hbsTemplateRoll: `${H}/roll/parts/check-option.hbs`
+      hbsTemplateRoll: `${G}/roll/parts/check-option.hbs`
     },
     isUsed: (s) => s.used,
     condition: (s) => s.options.canUseEdge && s.actor.getRemainingEdge(),
@@ -3376,13 +3376,13 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     options: {
       flags: { editDice: !0, editable: !0, forceDisplay: !0 },
       order: 100,
-      category: oe.opponentPool,
+      category: ce.opponentPool,
       labelkey: k.common.roll.modifiers.opponentPool,
-      hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`,
+      hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`,
       min: 0,
       max: 4
     },
-    factory: (s) => ii.computeRollModifiers(oe.opponentPool, s),
+    factory: (s) => ii.computeRollModifiers(ce.opponentPool, s),
     condition: (s) => !s.attributeAction
   },
   // force opponent rerolls
@@ -3391,20 +3391,20 @@ const { loadTemplates: ca, renderTemplate: Cf } = foundry.applications.handlebar
     options: {
       flags: { editDice: !0, editable: !0, forceDisplay: !0 },
       order: 100,
-      category: oe.opponentReroll,
+      category: ce.opponentReroll,
       value: 0,
       labelkey: k.common.roll.modifiers.opponentReroll,
-      hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`,
+      hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`,
       min: 0,
       max: 4
     },
-    factory: (s) => ii.computeRollModifiers(oe.opponentReroll, s),
+    factory: (s) => ii.computeRollModifiers(ce.opponentReroll, s),
     condition: (s) => !s.attributeAction
   }
 ];
 class ii {
   constructor() {
-    this.registeredParameters = {}, ci.register(Ee.REGISTER_ROLL_PARAMETERS), ci.register(Ee.MODIFY_ROLL_PARAMETER), Hooks.on(Ee.MODIFY_ROLL_PARAMETER, (e) => this._validate(e)), Hooks.once(Ee.REGISTER_ROLL_PARAMETERS, (e) => hc.forEach(
+    this.registeredParameters = {}, ci.register(Ee.REGISTER_ROLL_PARAMETERS), ci.register(Ee.MODIFY_ROLL_PARAMETER), Hooks.on(Ee.MODIFY_ROLL_PARAMETER, (e) => this._validate(e)), Hooks.once(Ee.REGISTER_ROLL_PARAMETERS, (e) => Sc.forEach(
       (t) => e(t)
     )), Hooks.once("ready", () => this.onReady());
   }
@@ -3413,20 +3413,20 @@ class ii {
       Hooks.callAll(Ee.MODIFY_ROLL_PARAMETER, t), t.ignore || await this._register(t);
     });
     const e = Q.distinct([].concat(Object.values(this.registeredParameters).map((t) => t.options.hbsTemplateRoll)).concat(Object.values(this.registeredParameters).map((t) => t.options.hbsTemplateChat)).filter((t) => typeof t == "string" && t.length > 0));
-    await ca(Q.distinct(e)), await ca([`${H}/roll/parts/parameter-label.hbs`]);
+    await ua(Q.distinct(e)), await ua([`${G}/roll/parts/parameter-label.hbs`]);
   }
   _validate(e) {
-    e.code || (console.error(`${le} RollParameter does not have a code`, e), e.ignore = !0);
+    e.code || (console.error(`${ue} RollParameter does not have a code`, e), e.ignore = !0);
   }
   async _register(e) {
     if (this.registeredParameters[e.code]) {
-      console.error(`${le} RollParameter ${e.code} is already registered`, e);
+      console.error(`${ue} RollParameter ${e.code} is already registered`, e);
       return;
     }
     e.onChecked || (e.onChecked = (t, i) => t.used = i), e.onValue = (t, i) => t.value = i, this.registeredParameters[e.code] = e;
   }
   async _optionalLoadTemplate(e) {
-    e && await ca([e]);
+    e && await ua([e]);
   }
   build(e) {
     return Object.values(this.registeredParameters).filter((t) => !t.condition || t.condition(e)).map((t) => this._computeParameter(t, e));
@@ -3460,12 +3460,12 @@ class ii {
       var n;
       return !((n = r.isWeapon) != null && n.call(r)) || t.weapon && r.id == t.weapon.id;
     }, a = t.actor.items.filter(i);
-    return X.computeRollModifiers(a, t, e);
+    return Z.computeRollModifiers(a, t, e);
   }
 }
-const { ApplicationV2: gc, HandlebarsApplicationMixin: yc } = foundry.applications.api, { loadTemplates: bc, renderTemplate: Sc } = foundry.applications.handlebars;
-var js, co;
-const Ne = class Ne extends yc(gc) {
+const { ApplicationV2: Ac, HandlebarsApplicationMixin: wc } = foundry.applications.api, { loadTemplates: Tc, renderTemplate: kc } = foundry.applications.handlebars;
+var Us, fo;
+const Ne = class Ne extends wc(Ac) {
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       id: "roll-dialog",
@@ -3481,7 +3481,7 @@ const Ne = class Ne extends yc(gc) {
     Hooks.once("ready", async () => await this.onReady());
   }
   static async onReady() {
-    await bc([
+    await Tc([
       "systems/mwd/templates/roll/roll-parameters-category.hbs",
       "systems/mwd/templates/roll/parts/generic.hbs",
       "systems/mwd/templates/roll/parts/image-attribute.hbs",
@@ -3504,14 +3504,14 @@ const Ne = class Ne extends yc(gc) {
   }
   static async rollAttribute(e, t) {
     const i = foundry.utils.mergeObject(Ne.prepareActorRoll(e), {
-      mode: Be.rollType.attribute,
+      mode: xe.rollType.attribute,
       attribute1: t
     });
     await Ne.create(i);
   }
   static async rollAttributeAction(e, t) {
     const i = foundry.utils.mergeObject(Ne.prepareActorRoll(e), {
-      mode: Be.rollType.attributeAction,
+      mode: xe.rollType.attributeAction,
       attributeAction: t.code,
       attribute1: t.attributeFunction1(e),
       attribute2: t.attributeFunction2(e)
@@ -3520,7 +3520,7 @@ const Ne = class Ne extends yc(gc) {
   }
   static async rollSkill(e, t, i) {
     const a = foundry.utils.mergeObject(Ne.prepareActorRoll(e), {
-      mode: Be.rollType.skill,
+      mode: xe.rollType.skill,
       skill: t,
       attribute1: (t == null ? void 0 : t.system.attribute) ?? S.actorAttributes.reflexes,
       specialization: i
@@ -3529,7 +3529,7 @@ const Ne = class Ne extends yc(gc) {
   }
   static async rollWeapon(e, t, i, a) {
     const r = foundry.utils.mergeObject(Ne.prepareActorRoll(e), {
-      mode: Be.rollType.weapon,
+      mode: xe.rollType.weapon,
       weapon: i,
       skill: t,
       attribute1: (t == null ? void 0 : t.system.attribute) ?? e.getPhysicalAgility(),
@@ -3540,7 +3540,7 @@ const Ne = class Ne extends yc(gc) {
   }
   static async rollDefense(e, t, i) {
     const a = foundry.utils.mergeObject(Ne.prepareActorRoll(e), {
-      mode: Be.rollType.defense,
+      mode: xe.rollType.defense,
       attribute1: t.attributeFunction1(e),
       attribute2: t.attributeFunction2(e),
       defenseAction: t.code,
@@ -3552,7 +3552,7 @@ const Ne = class Ne extends yc(gc) {
   }
   static async itemAttributeRoll(e, t) {
     const i = foundry.utils.mergeObject(Ne.prepareActorRoll(e.actor), {
-      mode: Be.rollType.attribute,
+      mode: xe.rollType.attribute,
       item: e,
       attribute1: t,
       attributes: e.actor.getUsableAttributes(e)
@@ -3561,7 +3561,7 @@ const Ne = class Ne extends yc(gc) {
   }
   static async create(e) {
     var n;
-    const t = M(n = Ne, js, co).call(n, e), i = await Sc(`${H}/roll/roll-dialog-title.hbs`, t), a = {
+    const t = E(n = Ne, Us, fo).call(n, e), i = await kc(`${G}/roll/roll-dialog-title.hbs`, t), a = {
       id: `roll-dialog-${foundry.utils.randomID()}`,
       classes: [game.system.anarchy.styles.selectCssClass(), ...Ne.DEFAULT_OPTIONS.classes],
       window: { title: i }
@@ -3581,7 +3581,7 @@ const Ne = class Ne extends yc(gc) {
       this.roll[a.code] = n, await this._setParameterSelectedOption(a, n, o);
     }), this.html.find(".check-optional").click(async (i) => {
       const a = this._getRollParameter(i);
-      a.onChecked(a, i.currentTarget.checked), a.category == oe.pool && await this._updateParameterValue(a, a.value), a.code == "edge" && this.html.find(`.parameter[data-parameter-code='${a.code}'] .edge-pool-select`).prop("disabled", !a.used);
+      a.onChecked(a, i.currentTarget.checked), a.category == ce.pool && await this._updateParameterValue(a, a.value), a.code == "edge" && this.html.find(`.parameter[data-parameter-code='${a.code}'] .edge-pool-select`).prop("disabled", !a.used);
     }), this.activateDiceParameterClick(), this.html.find("input.parameter-value:not(:disabled)").on("input", async (i) => {
       const a = this._getRollParameter(i), r = Number.parseInt(i.currentTarget.value) ?? 0;
       await this._updateParameterValue(a, r);
@@ -3636,92 +3636,92 @@ const Ne = class Ne extends yc(gc) {
     return this.roll.parameters.find((i) => i.code == t);
   }
 };
-js = new WeakSet(), co = function(e) {
+Us = new WeakSet(), fo = function(e) {
   const t = game.system.anarchy.rollParameters.build(e).sort(Q.ascending((i) => i.order ?? 200));
   return foundry.utils.mergeObject(e, {
     ENUMS: ie.getEnums((i) => e.attributes.includes(i)),
     ANARCHY: k,
     parameters: t
   });
-}, ye(Ne, js), N(Ne, "PARTS", {
+}, be(Ne, Us), N(Ne, "PARTS", {
   body: {
-    template: `${H}/roll/roll-dialog.hbs`
+    template: `${G}/roll/roll-dialog.hbs`
   }
 });
 let ut = Ne;
-const Ar = 2, La = "skillSpecializationCatalog", Ac = [
+const Tr = 2, xa = "skillSpecializationCatalog", vc = [
   { key: "running", label: "Running" },
   { key: "jumping", label: "Jumping" },
   { key: "swimming", label: "Swimming" },
   { key: "climbing", label: "Climbing" },
   { key: "acrobatics", label: "Acrobatics" }
-], uo = /* @__PURE__ */ new Set(), ht = [
+], ho = /* @__PURE__ */ new Set(), ht = [
   // Strength
-  { code: "athletics", label: "Athletics", attribute: "strength", icon: `${J}/athletics.svg`, domains: ["physical"], specializations: Ac },
-  { code: "heavyWeapons", label: "Heavy Weapons", attribute: "strength", icon: `${J}/heavy-weapons.svg`, defense: "physicalDefense", domains: ["physical"] },
+  { code: "athletics", label: "Athletics", attribute: "strength", icon: `${X}/athletics.svg`, domains: ["physical"], specializations: vc },
+  { code: "heavyWeapons", label: "Heavy Weapons", attribute: "strength", icon: `${X}/heavy-weapons.svg`, defense: "physicalDefense", domains: ["physical"] },
   // Reflexes
-  { code: "escapeArtist", label: "Escape Artist", attribute: "reflexes", icon: `${J}/escape-artist.svg`, domains: ["physical"] },
-  { code: "gunnery", label: "Gunnery", attribute: "reflexes", icon: `${J}/vehicle-weapons.svg`, defense: "physicalDefense", domains: ["physical"] },
-  { code: "meleeCombat", label: "Melee Combat", attribute: "reflexes", icon: `${J}/close-combat.svg`, defense: "physicalDefense", domains: ["physical"] },
-  { code: "piloting", label: "Piloting", attribute: "reflexes", icon: `${J}/piloting-ground-steering-wheel.svg`, domains: ["physical"] },
-  { code: "projectileWeapons", label: "Projectile Weapons", attribute: "reflexes", icon: `${J}/projectile-weapons.svg`, defense: "physicalDefense", domains: ["physical"] },
-  { code: "firearms", label: "Firearms", attribute: "reflexes", icon: `${J}/firearms.svg`, defense: "physicalDefense", domains: ["physical"] },
-  { code: "stealth", label: "Stealth", attribute: "reflexes", icon: `${J}/stealth.svg`, domains: ["physical"] },
-  { code: "zeroGOps", label: "Zero-G Operations", attribute: "reflexes", icon: `${J}/fly.svg`, domains: ["physical"] },
+  { code: "escapeArtist", label: "Escape Artist", attribute: "reflexes", icon: `${X}/escape-artist.svg`, domains: ["physical"] },
+  { code: "gunnery", label: "Gunnery", attribute: "reflexes", icon: `${X}/vehicle-weapons.svg`, defense: "physicalDefense", domains: ["physical"] },
+  { code: "meleeCombat", label: "Melee Combat", attribute: "reflexes", icon: `${X}/close-combat.svg`, defense: "physicalDefense", domains: ["physical"] },
+  { code: "piloting", label: "Piloting", attribute: "reflexes", icon: `${X}/piloting-ground-steering-wheel.svg`, domains: ["physical"] },
+  { code: "projectileWeapons", label: "Projectile Weapons", attribute: "reflexes", icon: `${X}/projectile-weapons.svg`, defense: "physicalDefense", domains: ["physical"] },
+  { code: "firearms", label: "Firearms", attribute: "reflexes", icon: `${X}/firearms.svg`, defense: "physicalDefense", domains: ["physical"] },
+  { code: "stealth", label: "Stealth", attribute: "reflexes", icon: `${X}/stealth.svg`, domains: ["physical"] },
+  { code: "zeroGOps", label: "Zero-G Operations", attribute: "reflexes", icon: `${X}/fly.svg`, domains: ["physical"] },
   // Intelligence
-  { code: "art", label: "Art", attribute: "intelligence", icon: `${J}/art.svg`, domains: ["mental"] },
-  { code: "artillery", label: "Artillery", attribute: "intelligence", icon: `${J}/artillery.svg`, domains: ["mental"] },
-  { code: "systemOps", label: "System Operations", attribute: "intelligence", icon: `${J}/electronics.svg`, domains: ["mental"] },
-  { code: "computers", label: "Computers", attribute: "intelligence", icon: `${J}/hacking.svg`, domains: ["mental"] },
-  { code: "demolitions", label: "Demolitions", attribute: "intelligence", icon: `${J}/demolition.svg`, domains: ["mental"] },
-  { code: "medTech", label: "Medtech", attribute: "intelligence", icon: `${J}/biotech.svg`, domains: ["mental"] },
-  { code: "science", label: "Science", attribute: "intelligence", icon: `${J}/skills.svg`, domains: ["mental"] },
-  { code: "perception", label: "Perception", attribute: "intelligence", icon: `${J}/skills.svg`, domains: ["mental"] },
-  { code: "tactics", label: "Tactics", attribute: "intelligence", icon: `${J}/skills.svg`, domains: ["mental"] },
-  { code: "technician", label: "Technician", attribute: "intelligence", icon: `${J}/engineering.svg`, domains: ["mental"] },
-  { code: "tracking", label: "Tracking", attribute: "intelligence", icon: `${J}/tracking.svg`, domains: ["physical", "mental"] },
-  { code: "navigation", label: "Navigation", attribute: "intelligence", icon: `${J}/piloting-other.svg`, domains: ["mental"] },
+  { code: "art", label: "Art", attribute: "intelligence", icon: `${X}/art.svg`, domains: ["mental"] },
+  { code: "artillery", label: "Artillery", attribute: "intelligence", icon: `${X}/artillery.svg`, domains: ["mental"] },
+  { code: "systemOps", label: "System Operations", attribute: "intelligence", icon: `${X}/electronics.svg`, domains: ["mental"] },
+  { code: "computers", label: "Computers", attribute: "intelligence", icon: `${X}/hacking.svg`, domains: ["mental"] },
+  { code: "demolitions", label: "Demolitions", attribute: "intelligence", icon: `${X}/demolition.svg`, domains: ["mental"] },
+  { code: "medTech", label: "Medtech", attribute: "intelligence", icon: `${X}/biotech.svg`, domains: ["mental"] },
+  { code: "science", label: "Science", attribute: "intelligence", icon: `${X}/skills.svg`, domains: ["mental"] },
+  { code: "perception", label: "Perception", attribute: "intelligence", icon: `${X}/skills.svg`, domains: ["mental"] },
+  { code: "tactics", label: "Tactics", attribute: "intelligence", icon: `${X}/skills.svg`, domains: ["mental"] },
+  { code: "technician", label: "Technician", attribute: "intelligence", icon: `${X}/engineering.svg`, domains: ["mental"] },
+  { code: "tracking", label: "Tracking", attribute: "intelligence", icon: `${X}/tracking.svg`, domains: ["physical", "mental"] },
+  { code: "navigation", label: "Navigation", attribute: "intelligence", icon: `${X}/piloting-other.svg`, domains: ["mental"] },
   // Guts
-  { code: "administration", label: "Administration", attribute: "willpower", icon: `${J}/knowledge.svg`, domains: ["social", "mental"] },
-  { code: "animalHandling", label: "Animal Handling", attribute: "willpower", icon: `${J}/animals.svg`, domains: ["physical", "mental"] },
-  { code: "survival", label: "Survival", attribute: "willpower", icon: `${J}/survival.svg`, domains: ["physical", "mental"] },
+  { code: "administration", label: "Administration", attribute: "willpower", icon: `${X}/knowledge.svg`, domains: ["social", "mental"] },
+  { code: "animalHandling", label: "Animal Handling", attribute: "willpower", icon: `${X}/animals.svg`, domains: ["physical", "mental"] },
+  { code: "survival", label: "Survival", attribute: "willpower", icon: `${X}/survival.svg`, domains: ["physical", "mental"] },
   // Charisma
-  { code: "acting", label: "Acting", attribute: "charisma", icon: `${J}/con-art.svg`, domains: ["social"] },
-  { code: "disguise", label: "Disguise", attribute: "charisma", icon: `${J}/disguise.svg`, domains: ["social", "mental"] },
-  { code: "leadership", label: "Leadership", attribute: "charisma", icon: `${J}/psychology.svg`, domains: ["social"] },
-  { code: "negotiation", label: "Negotiation", attribute: "charisma", icon: `${J}/negotiation.svg`, domains: ["social"] },
-  { code: "etiquette", label: "Etiquette", attribute: "charisma", icon: `${J}/etiquette.svg`, domains: ["social"] },
-  { code: "streetwise", label: "Streetwise", attribute: "charisma", icon: `${J}/etiquette2.svg`, domains: ["social"] },
-  { code: "intimidation", label: "Intimidation", attribute: "charisma", icon: `${J}/intimidation.svg`, domains: ["social", "mental"] }
-].map(wc);
+  { code: "acting", label: "Acting", attribute: "charisma", icon: `${X}/con-art.svg`, domains: ["social"] },
+  { code: "disguise", label: "Disguise", attribute: "charisma", icon: `${X}/disguise.svg`, domains: ["social", "mental"] },
+  { code: "leadership", label: "Leadership", attribute: "charisma", icon: `${X}/psychology.svg`, domains: ["social"] },
+  { code: "negotiation", label: "Negotiation", attribute: "charisma", icon: `${X}/negotiation.svg`, domains: ["social"] },
+  { code: "etiquette", label: "Etiquette", attribute: "charisma", icon: `${X}/etiquette.svg`, domains: ["social"] },
+  { code: "streetwise", label: "Streetwise", attribute: "charisma", icon: `${X}/etiquette2.svg`, domains: ["social"] },
+  { code: "intimidation", label: "Intimidation", attribute: "charisma", icon: `${X}/intimidation.svg`, domains: ["social", "mental"] }
+].map(Mc);
 for (const s of ht)
-  uo.add(s.code);
-function wc(s) {
+  ho.add(s.code);
+function Mc(s) {
   return {
     ...s,
     label: s.label ?? s.code,
     icon: s.icon ?? `${rs}/icons/skills/skills.svg`,
-    specializations: Tr(s.specializations)
+    specializations: vr(s.specializations)
   };
 }
-function wr(s) {
+function kr(s) {
   return String(s ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
-function Tr(s = []) {
+function vr(s = []) {
   const e = /* @__PURE__ */ new Set();
   return (Array.isArray(s) ? s : []).map((t) => {
-    const i = wr((t == null ? void 0 : t.key) ?? (t == null ? void 0 : t.label) ?? t);
+    const i = kr((t == null ? void 0 : t.key) ?? (t == null ? void 0 : t.label) ?? t);
     return !i || e.has(i) ? null : (e.add(i), {
       key: i,
       label: String((t == null ? void 0 : t.label) ?? (t == null ? void 0 : t.key) ?? t ?? i).trim() || i
     });
   }).filter(Boolean);
 }
-function Tc(s = []) {
+function Ec(s = []) {
   const e = new Error(s[0] ?? "Invalid skill specialization data.");
   return e.validationErrors = s, e;
 }
-function kc() {
+function Cc() {
   const s = {};
   for (const e of ht) {
     const t = (Array.isArray(e.specializations) ? e.specializations : []).map((i) => String((i == null ? void 0 : i.label) ?? "").trim()).filter(Boolean);
@@ -3729,12 +3729,12 @@ function kc() {
   }
   return s;
 }
-const vc = Object.freeze(kc());
-function Mc(s, e = [], { strict: t = !1, errors: i = [] } = {}) {
+const Pc = Object.freeze(Cc());
+function Nc(s, e = [], { strict: t = !1, errors: i = [] } = {}) {
   var r, n;
   if (!Array.isArray(e)) {
     if (t) {
-      const o = ((r = $a(s)) == null ? void 0 : r.label) ?? s;
+      const o = ((r = Ba(s)) == null ? void 0 : r.label) ?? s;
       i.push(`${o}: expected an array of specialization labels.`);
     }
     return [];
@@ -3744,127 +3744,127 @@ function Mc(s, e = [], { strict: t = !1, errors: i = [] } = {}) {
     const l = String(o ?? "").trim();
     if (!l) {
       if (t) {
-        const c = ((n = $a(s)) == null ? void 0 : n.label) ?? s;
+        const c = ((n = Ba(s)) == null ? void 0 : n.label) ?? s;
         i.push(`${c}: specialization labels cannot be blank.`);
       }
       continue;
     }
     a.push(l);
   }
-  return Tr(a).map((o) => o.label);
+  return vr(a).map((o) => o.label);
 }
-function $a(s) {
+function Ba(s) {
   return ht.find((e) => e.code === s);
 }
-function mo(s, { strict: e = !1 } = {}) {
+function go(s, { strict: e = !1 } = {}) {
   const t = s && typeof s == "object" && !Array.isArray(s) ? s : {}, i = [], a = {};
   for (const [r, n] of Object.entries(t)) {
-    if (!uo.has(r)) {
+    if (!ho.has(r)) {
       e && i.push(`Unknown skill code "${r}".`);
       continue;
     }
-    const o = Mc(r, n, { strict: e, errors: i });
+    const o = Nc(r, n, { strict: e, errors: i });
     o.length && (a[r] = o);
   }
-  if (e && i.length) throw Tc(i);
+  if (e && i.length) throw Ec(i);
   return Object.fromEntries(
     ht.map((r) => [r.code, a[r.code]]).filter(([, r]) => Array.isArray(r) && r.length)
   );
 }
-function Ec() {
+function Rc() {
   var s, e, t;
   try {
-    if ((t = (e = (s = game == null ? void 0 : game.settings) == null ? void 0 : s.settings) == null ? void 0 : e.has) != null && t.call(e, `${T}.${La}`))
-      return game.settings.get(T, La);
+    if ((t = (e = (s = game == null ? void 0 : game.settings) == null ? void 0 : s.settings) == null ? void 0 : e.has) != null && t.call(e, `${T}.${xa}`))
+      return game.settings.get(T, xa);
   } catch {
   }
-  return ho();
+  return So();
 }
-function po() {
-  const s = mo(Ec(), { strict: !1 });
+function yo() {
+  const s = go(Rc(), { strict: !1 });
   return Object.fromEntries(
     Object.entries(s).map(([e, t]) => [
       e,
-      Tr(t)
+      vr(t)
     ])
   );
 }
-function fo(s = [], { allowedKeys: e = null } = {}) {
+function bo(s = [], { allowedKeys: e = null } = {}) {
   const t = /* @__PURE__ */ new Set();
-  return (Array.isArray(s) ? s : []).map((i) => wr(i)).filter((i) => !i || t.has(i) || e && !e.has(i) ? !1 : (t.add(i), !0));
+  return (Array.isArray(s) ? s : []).map((i) => kr(i)).filter((i) => !i || t.has(i) || e && !e.has(i) ? !1 : (t.add(i), !0));
 }
 function at(s) {
-  const e = $a(s);
+  const e = Ba(s);
   if (e)
     return {
       ...e,
       specializations: di(e.code)
     };
 }
-function Ls() {
-  const s = po();
+function $s() {
+  const s = yo();
   return [...ht].map((e) => ({
     ...e,
     specializations: [...s[e.code] ?? []]
   })).sort((e, t) => e.label.localeCompare(t.label));
 }
 function di(s) {
-  return [...po()[s] ?? []];
+  return [...yo()[s] ?? []];
 }
-function kr(s, e) {
-  const t = wr(e);
+function Mr(s, e) {
+  const t = kr(e);
   if (t)
     return di(s).find((i) => i.key === t);
 }
-function Cc(s, e) {
+function Dc(s, e) {
   var t;
-  return ((t = kr(s, e)) == null ? void 0 : t.label) ?? "";
+  return ((t = Mr(s, e)) == null ? void 0 : t.label) ?? "";
 }
-function ho() {
-  return foundry.utils.deepClone(vc);
+function So() {
+  return foundry.utils.deepClone(Pc);
 }
-function Vs(s, { strict: e = !1 } = {}) {
-  return mo(s, { strict: e });
+function Ks(s, { strict: e = !1 } = {}) {
+  return go(s, { strict: e });
 }
-function $s(s = []) {
-  return fo(s);
+function xs(s = []) {
+  return bo(s);
 }
-function Pc(s, e = []) {
-  const t = new Set(di(s).map((a) => a.key)), i = new Set(fo(e, { allowedKeys: t }));
+function Ic(s, e = []) {
+  const t = new Set(di(s).map((a) => a.key)), i = new Set(bo(e, { allowedKeys: t }));
   return di(s).filter((a) => i.has(a.key)).map((a) => a.key);
 }
-function xa(s, e) {
+function Fa(s, e) {
   var t, i;
-  return $s(
+  return xs(
     ((i = (t = s == null ? void 0 : s.skills) == null ? void 0 : t[e]) == null ? void 0 : i.specializations) ?? []
   );
 }
-function Ks(s, e) {
-  return Pc(
+function Ys(s, e) {
+  return Ic(
     e,
-    xa(s, e)
+    Fa(s, e)
   );
 }
-function go(s, e) {
-  const t = new Set(Ks(s, e));
+function Ao(s, e) {
+  const t = new Set(Ys(s, e));
   return di(e).filter((i) => t.has(i.key));
 }
-function Nc(s) {
+function Oc(s) {
   const e = Math.ceil(s.length / 2);
   return { left: s.slice(0, e), right: s.slice(e) };
 }
-function Rc(s) {
+function _c(s) {
   var e, t;
   s.skills ?? (s.skills = {});
   for (const i of ht) {
     const a = (e = s.skills)[t = i.code] ?? (e[t] = {});
-    a.rating == null && (a.rating = 0), a.bonus == null && (a.bonus = 0), a.specializations = $s(a.specializations);
+    a.rating == null && (a.rating = 0), a.bonus == null && (a.bonus = 0), a.specializations = xs(a.specializations);
   }
 }
-function yo(s, { bonusBySkill: e = null } = {}) {
-  const t = Ls(), { left: i, right: a } = Nc(t), r = (n) => {
-    var y, b, A, w, E, I;
-    const o = n.code, l = n.attribute, c = Number(((b = (y = s == null ? void 0 : s.skills) == null ? void 0 : y[o]) == null ? void 0 : b.rating) ?? 0), u = Number(((w = (A = s == null ? void 0 : s.attributes) == null ? void 0 : A[l]) == null ? void 0 : w.value) ?? 0), d = Number(((I = (E = s == null ? void 0 : s.skills) == null ? void 0 : E[o]) == null ? void 0 : I.bonus) ?? 0), m = Number((e == null ? void 0 : e[o]) ?? 0), p = d + m, f = go(s, o), h = di(o).filter((R) => !f.some((_) => _.key === R.key)), g = u + c + p;
+function wo(s, { bonusBySkill: e = null } = {}) {
+  const t = $s(), { left: i, right: a } = Oc(t), r = (n) => {
+    var y, b, A, w, M, I;
+    const o = n.code, l = n.attribute, c = Number(((b = (y = s == null ? void 0 : s.skills) == null ? void 0 : y[o]) == null ? void 0 : b.rating) ?? 0), u = Number(((w = (A = s == null ? void 0 : s.attributes) == null ? void 0 : A[l]) == null ? void 0 : w.value) ?? 0), d = Number(((I = (M = s == null ? void 0 : s.skills) == null ? void 0 : M[o]) == null ? void 0 : I.bonus) ?? 0), m = Number((e == null ? void 0 : e[o]) ?? 0), f = d + m, p = Ao(s, o), h = di(o).filter((D) => !p.some((L) => L.key === D.key)), g = u + c + f;
     return {
       code: o,
       label: n.label,
@@ -3873,18 +3873,18 @@ function yo(s, { bonusBySkill: e = null } = {}) {
       attributeLabel: ie != null && ie.localizeAttribute ? ie.localizeAttribute(l) : l,
       rating: c,
       base: u,
-      bonus: p,
+      bonus: f,
       total: g,
       rollPayload: JSON.stringify({ intent: "skill", key: o }),
       canAddSpecialization: h.length > 0,
-      specializations: f.map((R) => ({
-        ...R,
-        bonus: Ar,
+      specializations: p.map((D) => ({
+        ...D,
+        bonus: Tr,
         rollPayload: JSON.stringify({
           intent: "skill",
           key: o,
-          specializationKey: R.key,
-          specializationLabel: R.label
+          specializationKey: D.key,
+          specializationLabel: D.label
         })
       })),
       // Input wiring paths (so templates don’t concat strings themselves)
@@ -3897,37 +3897,37 @@ function yo(s, { bonusBySkill: e = null } = {}) {
     right: a.map(r)
   };
 }
-const Dc = /* @__PURE__ */ new Set(["overloaded"]);
-function Kr(s) {
+const Lc = /* @__PURE__ */ new Set(["overloaded"]);
+function Jr(s) {
   return s ? (s == null ? void 0 : s.document) ?? s : null;
 }
-function Ic(s, e) {
+function $c(s, e) {
   var i, a, r;
   if (!s) return null;
-  const t = Kr(e) ?? Kr(s == null ? void 0 : s.token);
+  const t = Jr(e) ?? Jr(s == null ? void 0 : s.token);
   return t ? t.isLinked ? t.baseActor ?? ((r = (i = game.actors) == null ? void 0 : i.get) == null ? void 0 : r.call(i, ((a = t == null ? void 0 : t.baseActor) == null ? void 0 : a.id) ?? "")) ?? t.actor ?? s : t.actor ?? s : s;
 }
-function bo(s) {
+function To(s) {
   const e = String(s ?? "").trim();
   if (!e) return "Status";
   const a = (e.includes(".") ? e.split(".").at(-1) : e).replace(/^status/i, "").replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ").trim();
   return a ? a.replace(/\b\w/g, (r) => r.toUpperCase()) : e;
 }
-function Oc(s) {
+function xc(s) {
   const e = String((s == null ? void 0 : s.name) ?? (s == null ? void 0 : s.label) ?? (s == null ? void 0 : s.id) ?? "Status").trim();
-  return e ? bo(e) : "Status";
+  return e ? To(e) : "Status";
 }
-function _c(s) {
+function Bc(s) {
   const e = typeof (s == null ? void 0 : s.img) == "string" ? s.img.trim() : "";
   if (e) return e;
   const t = s ? Object.getOwnPropertyDescriptor(s, "icon") : null;
   return "value" in (t ?? {}) ? String(t.value ?? "").trim() : "";
 }
-function xs(s, e) {
+function Bs(s, e) {
   var t, i, a, r, n, o;
   return e === "overloaded" ? !!((i = (t = s == null ? void 0 : s.system) == null ? void 0 : t.burn) != null && i.overloaded) || !!((r = (a = s == null ? void 0 : s.statuses) == null ? void 0 : a.has) != null && r.call(a, e)) : ((o = (n = s == null ? void 0 : s.statuses) == null ? void 0 : n.has) == null ? void 0 : o.call(n, e)) ?? !1;
 }
-function vr(s) {
+function Er(s) {
   const e = /* @__PURE__ */ new Set();
   return (CONFIG.statusEffects ?? []).filter((t) => {
     const i = String((t == null ? void 0 : t.id) ?? "").trim();
@@ -3936,14 +3936,14 @@ function vr(s) {
     const i = String(t.id).trim();
     return {
       id: i,
-      label: Oc(t),
-      icon: _c(t),
-      active: xs(s, i),
-      managed: Dc.has(i)
+      label: xc(t),
+      icon: Bc(t),
+      active: Bs(s, i),
+      managed: Lc.has(i)
     };
   }).sort((t, i) => t.active !== i.active ? t.active ? -1 : 1 : t.label.localeCompare(i.label));
 }
-function Lc(s) {
+function Fc(s) {
   if (!s.length)
     return "<p>No token statuses are configured.</p>";
   const e = foundry.utils.escapeHTML;
@@ -3966,22 +3966,22 @@ function Lc(s) {
     </div>
   `;
 }
-async function $c({ actor: s, effects: e, selectedStatusIds: t }) {
+async function zc({ actor: s, effects: e, selectedStatusIds: t }) {
   const i = new Set(t);
   for (const a of e) {
     const r = i.has(a.id);
-    await So({ actor: s, statusId: a.id, active: r });
+    await ko({ actor: s, statusId: a.id, active: r });
   }
 }
-async function So({ actor: s, statusId: e, active: t }) {
+async function ko({ actor: s, statusId: e, active: t }) {
   if (!s || !e) return !1;
-  const i = xs(s, e);
+  const i = Bs(s, e);
   return !!t === i ? !1 : e === "overloaded" ? (await s.update({ "system.burn.overloaded": !!t }), !0) : (await s.toggleStatusEffect(e, { active: !!t, overlay: !1 }), !0);
 }
-async function xc({ actor: s, token: e } = {}) {
+async function Wc({ actor: s, token: e } = {}) {
   var a;
   if (!s || !e) return !1;
-  const t = Ic(s, e), i = vr(t);
+  const t = $c(s, e), i = Er(t);
   return i.length ? foundry.applications.api.DialogV2.wait({
     window: {
       title: `Token Statuses: ${e.name ?? s.name ?? "Token"}`
@@ -3989,7 +3989,7 @@ async function xc({ actor: s, token: e } = {}) {
     position: {
       width: 420
     },
-    content: Lc(i),
+    content: Fc(i),
     buttons: [
       {
         action: "apply",
@@ -4002,7 +4002,7 @@ async function xc({ actor: s, token: e } = {}) {
             const c = Array.from(
               ((o = n.form) == null ? void 0 : o.querySelectorAll('input[name="status"]:checked')) ?? []
             ).map((u) => u.value);
-            return await $c({ actor: t, effects: i, selectedStatusIds: c }), !0;
+            return await zc({ actor: t, effects: i, selectedStatusIds: c }), !0;
           } catch (c) {
             return console.error("MWD | Failed to update token statuses", c), (l = ui.notifications) == null || l.error("Unable to update token statuses."), !1;
           }
@@ -4018,19 +4018,19 @@ async function xc({ actor: s, token: e } = {}) {
     close: () => !1
   }) : ((a = ui.notifications) == null || a.warn("No token statuses are configured."), !1);
 }
-const Bc = Object.freeze({
-  STR: Ht.strength,
-  REF: Ht.reflexes,
-  WIL: Ht.willpower,
-  INT: Ht.intelligence,
-  CHA: Ht.charisma
-}), Fc = Object.freeze({
+const Hc = Object.freeze({
+  STR: jt.strength,
+  REF: jt.reflexes,
+  WIL: jt.willpower,
+  INT: jt.intelligence,
+  CHA: jt.charisma
+}), Uc = Object.freeze({
   STR: "Strength",
   REF: "Reflexes",
   WIL: "Willpower",
   INT: "Intelligence",
   CHA: "Charisma"
-}), zc = Object.freeze({
+}), jc = Object.freeze({
   composure: {
     id: "composure",
     label: "Composure",
@@ -4067,44 +4067,44 @@ const Bc = Object.freeze({
     domains: ["physical", "mental"]
   }
 });
-function Mr(s) {
+function Cr(s) {
   const e = String(s ?? "").trim();
-  return e ? zc[e] ?? null : null;
+  return e ? jc[e] ?? null : null;
 }
-function Wc(s) {
-  const e = Mr(s);
+function Gc(s) {
+  const e = Cr(s);
   return e ? {
     intent: "common",
     id: e.id
   } : null;
 }
-function jc(s) {
-  return Bc[String(s ?? "").trim().toUpperCase()] ?? null;
+function qc(s) {
+  return Hc[String(s ?? "").trim().toUpperCase()] ?? null;
 }
-function Uc(s) {
-  return Fc[String(s ?? "").trim().toUpperCase()] ?? String(s ?? "").trim().toUpperCase();
+function Vc(s) {
+  return Uc[String(s ?? "").trim().toUpperCase()] ?? String(s ?? "").trim().toUpperCase();
 }
-function Hc(s = []) {
+function Kc(s = []) {
   return (Array.isArray(s) ? s : []).map((e) => String(e ?? "").trim().toUpperCase()).filter(Boolean).join(" + ");
 }
-const Er = Object.freeze([
+const Pr = Object.freeze([
   { value: "positive", label: "Positive" },
   { value: "negative", label: "Negative" },
   { value: "narrative", label: "Narrative" }
-]), Cr = Object.freeze([
+]), Nr = Object.freeze([
   { value: "minor", label: "Minor" },
   { value: "major", label: "Major" }
-]), Ao = Object.freeze([
+]), vo = Object.freeze([
   { value: "passive", label: "Passive" },
   { value: "triggered", label: "Triggered" }
-]), wo = Object.freeze([
+]), Mo = Object.freeze([
   { value: "rollMod", label: "Roll Modifier" },
   { value: "burnAdjust", label: "Burn Adjust" },
   { value: "actionCostMod", label: "Action Cost Mod" },
   { value: "initiativeMod", label: "Initiative Mod" },
   { value: "damageMod", label: "Damage Intake Mod" },
   { value: "edgeEvent", label: "Edge Event" }
-]), To = Object.freeze([
+]), Eo = Object.freeze([
   { value: "onBuildRoll", label: "Build Roll" },
   { value: "onBeforeBurnApplied", label: "Before Burn Applied" },
   { value: "onBeforeActionCostFinalized", label: "Before Action Cost Finalized" },
@@ -4113,7 +4113,7 @@ const Er = Object.freeze([
   { value: "onEndOfActivation", label: "End of Activation" },
   { value: "onEdgeSpend", label: "Edge Spend" },
   { value: "onEdgeGain", label: "Edge Gain" }
-]), Pr = Object.freeze([
+]), Rr = Object.freeze([
   { value: "eq", label: "=" },
   { value: "neq", label: "!=" },
   { value: "gt", label: ">" },
@@ -4124,24 +4124,24 @@ const Er = Object.freeze([
   { value: "notIncludes", label: "Excludes" },
   { value: "truthy", label: "Is True" },
   { value: "falsy", label: "Is False" }
-]), ko = Object.freeze([
+]), Co = Object.freeze([
   { value: "adjustAmount", label: "Adjust Amount" },
   { value: "grantPool", label: "Grant Pool" }
-]), Gc = new Set(Er.map((s) => s.value)), qc = new Set(Cr.map((s) => s.value)), Vc = new Set(Ao.map((s) => s.value)), Kc = new Set(wo.map((s) => s.value)), vo = new Set(To.map((s) => s.value)), Yc = new Set(Pr.map((s) => s.value)), Qc = new Set(ko.map((s) => s.value));
-function Z(s, e = "") {
+]), Yc = new Set(Pr.map((s) => s.value)), Qc = new Set(Nr.map((s) => s.value)), Jc = new Set(vo.map((s) => s.value)), Xc = new Set(Mo.map((s) => s.value)), Po = new Set(Eo.map((s) => s.value)), Zc = new Set(Rr.map((s) => s.value)), eu = new Set(Co.map((s) => s.value));
+function ee(s, e = "") {
   return String(s ?? "").trim() || e;
 }
 function se(s, e = 0) {
   const t = Number(s);
   return Number.isFinite(t) ? t : e;
 }
-function Bs(s) {
+function Fs(s) {
   return foundry.utils.deepClone(s);
 }
-function Mo(s = []) {
+function No(s = []) {
   return (Array.isArray(s) ? s : typeof s == "string" ? s.split(",") : []).map((t) => String(t ?? "").trim()).filter(Boolean);
 }
-function Jc(s) {
+function tu(s) {
   if (typeof s != "string") return s;
   const e = s.trim();
   if (!e) return "";
@@ -4156,87 +4156,87 @@ function Jc(s) {
     }
   return e;
 }
-function ua(s) {
+function da(s) {
   const e = Math.max(0, Math.trunc(se(s, 0)));
   return e > 0 ? e : 0;
 }
 function Yt(s = {}) {
   const e = s && typeof s == "object" ? s : {};
   return {
-    perActivation: ua(e.perActivation),
-    perRound: ua(e.perRound),
-    perScene: ua(e.perScene)
+    perActivation: da(e.perActivation),
+    perRound: da(e.perRound),
+    perScene: da(e.perScene)
   };
 }
-function Xc(s = {}) {
+function iu(s = {}) {
   const e = s && typeof s == "object" ? s : {}, t = {
-    id: Z(e.id, foundry.utils.randomID()),
-    fact: Z(e.fact)
-  }, i = Pr.find((r) => e[r.value] !== void 0 && e[r.value] !== null), a = (i == null ? void 0 : i.value) ?? (Yc.has(String(e.comparator ?? "").trim()) ? String(e.comparator).trim() : "eq");
-  return t.comparator = a, a !== "truthy" && a !== "falsy" && (t.value = Jc(e[a] ?? e.value ?? "")), t;
+    id: ee(e.id, foundry.utils.randomID()),
+    fact: ee(e.fact)
+  }, i = Rr.find((r) => e[r.value] !== void 0 && e[r.value] !== null), a = (i == null ? void 0 : i.value) ?? (Zc.has(String(e.comparator ?? "").trim()) ? String(e.comparator).trim() : "eq");
+  return t.comparator = a, a !== "truthy" && a !== "falsy" && (t.value = tu(e[a] ?? e.value ?? "")), t;
 }
 function Tt(s = []) {
-  return (Array.isArray(s) ? s : []).map(Xc);
+  return (Array.isArray(s) ? s : []).map(iu);
 }
-function Zc(s = {}) {
-  const e = s && typeof s == "object" ? s : {}, t = Kc.has(String(e.type ?? "").trim()) ? String(e.type).trim() : "rollMod", i = eu(t), a = vo.has(String(e.phase ?? "").trim()) ? String(e.phase).trim() : i, r = Qc.has(String(e.operation ?? "").trim()) ? String(e.operation).trim() : "adjustAmount";
+function su(s = {}) {
+  const e = s && typeof s == "object" ? s : {}, t = Xc.has(String(e.type ?? "").trim()) ? String(e.type).trim() : "rollMod", i = au(t), a = Po.has(String(e.phase ?? "").trim()) ? String(e.phase).trim() : i, r = eu.has(String(e.operation ?? "").trim()) ? String(e.operation).trim() : "adjustAmount";
   return {
-    id: Z(e.id, foundry.utils.randomID()),
+    id: ee(e.id, foundry.utils.randomID()),
     type: t,
     phase: a,
-    selector: Z(e.selector),
-    skillKeys: Mo(e.skillKeys),
-    label: Z(e.label),
+    selector: ee(e.selector),
+    skillKeys: No(e.skillKeys),
+    label: ee(e.label),
     value: se(e.value, 0),
     min: e.min === void 0 || e.min === null || e.min === "" ? null : se(e.min, 0),
     max: e.max === void 0 || e.max === null || e.max === "" ? null : se(e.max, 0),
-    pool: Z(e.pool),
+    pool: ee(e.pool),
     operation: r,
     conditions: Tt(e.conditions),
     limit: Yt(e.limit)
   };
 }
-function Eo(s = {}) {
-  const e = Z(s == null ? void 0 : s.selector);
+function Ro(s = {}) {
+  const e = ee(s == null ? void 0 : s.selector);
   return e === "intent.skill" || e.startsWith("intent.skill.");
 }
 function si(s = []) {
-  return (Array.isArray(s) ? s : []).map(Zc).filter((t) => t.phase && t.type);
+  return (Array.isArray(s) ? s : []).map(su).filter((t) => t.phase && t.type);
 }
 function tt(s = {}) {
-  const e = s && typeof s == "object" ? Bs(s) : {}, t = e.positive === !1 ? "negative" : "positive", i = Gc.has(String(e.category ?? "").trim()) ? String(e.category).trim() : t, a = qc.has(String(e.tier ?? "").trim()) ? String(e.tier).trim() : "minor", r = Vc.has(String(e.activation ?? "").trim()) ? String(e.activation).trim() : "passive";
+  const e = s && typeof s == "object" ? Fs(s) : {}, t = e.positive === !1 ? "negative" : "positive", i = Yc.has(String(e.category ?? "").trim()) ? String(e.category).trim() : t, a = Qc.has(String(e.tier ?? "").trim()) ? String(e.tier).trim() : "minor", r = Jc.has(String(e.activation ?? "").trim()) ? String(e.activation).trim() : "passive";
   return {
     ...e,
     positive: i === "positive",
     category: i,
     tier: a,
     activation: r,
-    tags: Mo(e.tags),
+    tags: No(e.tags),
     effects: si(e.effects),
     prerequisites: Tt(e.prerequisites),
     limits: Yt(e.limits)
   };
 }
-function Co() {
+function Do() {
   return {
-    categories: [...Er],
-    tiers: [...Cr],
-    activations: [...Ao],
-    effectTypes: [...wo],
-    phases: [...To],
-    comparators: [...Pr],
-    edgeOperations: [...ko]
+    categories: [...Pr],
+    tiers: [...Nr],
+    activations: [...vo],
+    effectTypes: [...Mo],
+    phases: [...Eo],
+    comparators: [...Rr],
+    edgeOperations: [...Co]
   };
-}
-function vs(s = "") {
-  var e;
-  return ((e = Er.find((t) => t.value === s)) == null ? void 0 : e.label) ?? "Positive";
 }
 function Ms(s = "") {
   var e;
-  return ((e = Cr.find((t) => t.value === s)) == null ? void 0 : e.label) ?? "Minor";
+  return ((e = Pr.find((t) => t.value === s)) == null ? void 0 : e.label) ?? "Positive";
 }
-function eu(s = "") {
+function Es(s = "") {
+  var e;
+  return ((e = Nr.find((t) => t.value === s)) == null ? void 0 : e.label) ?? "Minor";
+}
+function au(s = "") {
   switch (s) {
     case "burnAdjust":
       return "onBeforeBurnApplied";
@@ -4252,13 +4252,13 @@ function eu(s = "") {
       return "onBuildRoll";
   }
 }
-function tu(s) {
+function ru(s) {
   return Array.from((s == null ? void 0 : s.items) ?? []).filter((e) => ((e == null ? void 0 : e.canonicalType) ?? (e == null ? void 0 : e.type)) === "quality").map((e) => ({
     item: e,
     system: tt(e.system ?? {})
   }));
 }
-function iu(s = {}, e = {}) {
+function nu(s = {}, e = {}) {
   const t = Yt(s), i = Yt(e);
   return {
     perActivation: i.perActivation || t.perActivation,
@@ -4266,16 +4266,16 @@ function iu(s = {}, e = {}) {
     perScene: i.perScene || t.perScene
   };
 }
-function Po(s = {}) {
+function Io(s = {}) {
   var a, r, n;
-  const e = Z(s.combatId ?? ((a = s.combat) == null ? void 0 : a.id)), t = Math.max(0, Math.trunc(se(s.round ?? ((r = s.combat) == null ? void 0 : r.round), 0))), i = Z(s.sceneId ?? ((n = canvas == null ? void 0 : canvas.scene) == null ? void 0 : n.id));
+  const e = ee(s.combatId ?? ((a = s.combat) == null ? void 0 : a.id)), t = Math.max(0, Math.trunc(se(s.round ?? ((r = s.combat) == null ? void 0 : r.round), 0))), i = ee(s.sceneId ?? ((n = canvas == null ? void 0 : canvas.scene) == null ? void 0 : n.id));
   return {
-    activationKey: Z(s.activationKey),
+    activationKey: ee(s.activationKey),
     roundKey: e ? `${e}:${t}` : "",
     sceneKey: i
   };
 }
-function su(s, e = {}) {
+function ou(s, e = {}) {
   var r, n, o, l;
   const t = ((r = s == null ? void 0 : s.flags) == null ? void 0 : r[T]) ?? {}, i = ((n = t == null ? void 0 : t.traitUsage) == null ? void 0 : n.scene) ?? {}, a = e.state ?? {};
   return {
@@ -4284,7 +4284,7 @@ function su(s, e = {}) {
     scene: i
   };
 }
-function au(s, e, t, i) {
+function lu(s, e, t, i) {
   var a, r, n, o, l;
   switch (t) {
     case "perActivation":
@@ -4297,16 +4297,16 @@ function au(s, e, t, i) {
       return 0;
   }
 }
-function ru(s, e, t, i) {
+function cu(s, e, t, i) {
   const a = [];
   for (const r of ["perActivation", "perRound", "perScene"]) {
     const n = Math.max(0, Math.trunc(se(t == null ? void 0 : t[r], 0)));
     if (!n) continue;
-    au(s, e, r, i) >= n && a.push(`${r} limit reached`);
+    lu(s, e, r, i) >= n && a.push(`${r} limit reached`);
   }
   return a;
 }
-function nu(s, e, t) {
+function uu(s, e, t) {
   switch (e) {
     case "truthy":
       return !!s;
@@ -4331,25 +4331,25 @@ function nu(s, e, t) {
       return s === t;
   }
 }
-function Yr(s, e) {
-  if (!Z(s == null ? void 0 : s.fact)) return !0;
+function Xr(s, e) {
+  if (!ee(s == null ? void 0 : s.fact)) return !0;
   const t = foundry.utils.getProperty(e, s.fact);
-  return nu(t, s.comparator, s.value);
+  return uu(t, s.comparator, s.value);
 }
-function ou(s = "", e = {}) {
-  const t = Z(s);
+function du(s = "", e = {}) {
+  const t = ee(s);
   return t ? (Array.isArray(e == null ? void 0 : e.selectors) ? e.selectors : []).some(
     (a) => a === t || a.startsWith(`${t}.`)
   ) : !0;
 }
-function No(s, e) {
+function Oo(s, e) {
   return `${s.id}:${e.id}`;
 }
-function lu(s, e) {
+function mu(s, e) {
   var t;
   return !!((t = s.system) != null && t.inactive) || !!(e != null && e.inactive);
 }
-function Qr(s = []) {
+function Zr(s = []) {
   return s.map((e) => e.fact).filter(Boolean).join(", ");
 }
 function Si(s, e, t) {
@@ -4367,7 +4367,7 @@ function Wt(s, e, t, i, a) {
     traitEffectId: t.id
   });
 }
-function cu({ item: s, effect: e, phase: t, packet: i, result: a }) {
+function pu({ item: s, effect: e, phase: t, packet: i, result: a }) {
   switch (e.type) {
     case "rollMod": {
       const r = se(e.value, 0);
@@ -4408,12 +4408,12 @@ function cu({ item: s, effect: e, phase: t, packet: i, result: a }) {
       return 0;
   }
 }
-function uu(s, e, t) {
-  const i = No(s, e), a = [];
+function fu(s, e, t) {
+  const i = Oo(s, e), a = [];
   return t.perActivation > 0 && a.push({ kind: "usage", scope: "perActivation", key: i, delta: 1 }), t.perRound > 0 && a.push({ kind: "usage", scope: "perRound", key: i, delta: 1 }), t.perScene > 0 && a.push({ kind: "usage", scope: "perScene", key: i, delta: 1 }), a;
 }
-function du(s = "") {
-  const e = Z(s);
+function hu(s = "") {
+  const e = ee(s);
   return e ? [`action.${e}`] : [];
 }
 function hi(s, e = {}) {
@@ -4421,7 +4421,7 @@ function hi(s, e = {}) {
   const t = e.snapshot ?? null, i = e.state ?? (t == null ? void 0 : t.state) ?? {};
   return {
     activation: {
-      moved: (Array.isArray(i == null ? void 0 : i.actionLog) ? i.actionLog.map((c) => Z(c == null ? void 0 : c.id)).filter(Boolean) : []).includes("move"),
+      moved: (Array.isArray(i == null ? void 0 : i.actionLog) ? i.actionLog.map((c) => ee(c == null ? void 0 : c.id)).filter(Boolean) : []).includes("move"),
       saSpent: Math.max(0, Math.trunc(se(i == null ? void 0 : i.saSpentThisActivation, 0))),
       attacksThisActivation: Math.max(0, Math.trunc(se(i == null ? void 0 : i.attacksThisActivation, 0))),
       burnThisActivation: Math.max(0, Math.trunc(se(i == null ? void 0 : i.burnThisActivation, 0)))
@@ -4437,12 +4437,12 @@ function hi(s, e = {}) {
     selectors: []
   };
 }
-function Nr({ actor: s, resolved: e, payload: t, runtime: i = {} } = {}) {
-  var d, m, p, f, h, g, y, b, A, w, E, I;
-  const a = hi(s, i), r = Z((e == null ? void 0 : e.intent) ?? (t == null ? void 0 : t.intent), "skill"), n = Array.isArray(e == null ? void 0 : e.domains) ? e.domains : [], o = Z(((d = e == null ? void 0 : e.attack) == null ? void 0 : d.rangeBand) ?? (t == null ? void 0 : t.rangeBand)), l = Z(((p = (m = t == null ? void 0 : t.edge) == null ? void 0 : m.pre) == null ? void 0 : p.poolKey) ?? ((f = t == null ? void 0 : t.edge) == null ? void 0 : f.poolKey) ?? ""), c = Z(
+function Dr({ actor: s, resolved: e, payload: t, runtime: i = {} } = {}) {
+  var d, m, f, p, h, g, y, b, A, w, M, I;
+  const a = hi(s, i), r = ee((e == null ? void 0 : e.intent) ?? (t == null ? void 0 : t.intent), "skill"), n = Array.isArray(e == null ? void 0 : e.domains) ? e.domains : [], o = ee(((d = e == null ? void 0 : e.attack) == null ? void 0 : d.rangeBand) ?? (t == null ? void 0 : t.rangeBand)), l = ee(((f = (m = t == null ? void 0 : t.edge) == null ? void 0 : m.pre) == null ? void 0 : f.poolKey) ?? ((p = t == null ? void 0 : t.edge) == null ? void 0 : p.poolKey) ?? ""), c = ee(
     ((h = e == null ? void 0 : e.data) == null ? void 0 : h.skillKey) ?? ((g = e == null ? void 0 : e.specialization) == null ? void 0 : g.skillKey) ?? (r === "skill" ? t == null ? void 0 : t.key : "")
-  ), u = Z(
-    ((A = (b = (y = e == null ? void 0 : e.breakdown) == null ? void 0 : y.find) == null ? void 0 : b.call(y, (R) => (R == null ? void 0 : R.id) === "skill")) == null ? void 0 : A.label) ?? (e == null ? void 0 : e.title)
+  ), u = ee(
+    ((A = (b = (y = e == null ? void 0 : e.breakdown) == null ? void 0 : y.find) == null ? void 0 : b.call(y, (D) => (D == null ? void 0 : D.id) === "skill")) == null ? void 0 : A.label) ?? (e == null ? void 0 : e.title)
   );
   return a.intent = r, a.domains = n, a.rangeBand = o, a.skill = {
     key: c,
@@ -4450,52 +4450,52 @@ function Nr({ actor: s, resolved: e, payload: t, runtime: i = {} } = {}) {
   }, a.edge = {
     stage: (w = t == null ? void 0 : t.toggles) != null && w.useEdge ? "pre" : "",
     pool: l,
-    spent: !!((E = t == null ? void 0 : t.toggles) != null && E.useEdge)
-  }, a.selectors.push(`intent.${r}`), n.forEach((R) => a.selectors.push(`domain.${R}`)), o && a.selectors.push(`range.${o}`), r === "skill" && c && a.selectors.push(`skill.${c}`), (I = t == null ? void 0 : t.toggles) != null && I.useEdge && a.selectors.push("edge.pre"), a;
+    spent: !!((M = t == null ? void 0 : t.toggles) != null && M.useEdge)
+  }, a.selectors.push(`intent.${r}`), n.forEach((D) => a.selectors.push(`domain.${D}`)), o && a.selectors.push(`range.${o}`), r === "skill" && c && a.selectors.push(`skill.${c}`), (I = t == null ? void 0 : t.toggles) != null && I.useEdge && a.selectors.push("edge.pre"), a;
 }
-function Ro({ actor: s, packet: e = {}, runtime: t = {} } = {}) {
+function _o({ actor: s, packet: e = {}, runtime: t = {} } = {}) {
   const i = hi(s, t);
   return i.action = {
-    id: Z(e.actionId),
-    resource: Z(e.resource),
+    id: ee(e.actionId),
+    resource: ee(e.resource),
     cost: se(e.cost, 0)
-  }, i.selectors.push(...du(e.actionId)), i;
+  }, i.selectors.push(...hu(e.actionId)), i;
 }
-function Ba({ actor: s, packet: e = {}, runtime: t = {} } = {}) {
+function za({ actor: s, packet: e = {}, runtime: t = {} } = {}) {
   const i = hi(s, t);
   return i.action = {
-    id: Z(e.actionId),
-    resource: Z(e.resource)
+    id: ee(e.actionId),
+    resource: ee(e.resource)
   }, i.burn = {
     ...i.burn,
     amount: se(e.amount, 0),
-    source: Z(e.source)
+    source: ee(e.source)
   }, e.source === "extraSA" && e.extraSaIndex === 1 && i.selectors.push("activation.extraSA:first"), e.source && i.selectors.push(`burn.${e.source}`), i;
 }
-function Do({ actor: s, packet: e = {}, runtime: t = {} } = {}) {
+function Lo({ actor: s, packet: e = {}, runtime: t = {} } = {}) {
   const i = hi(s, t);
   return i.intent = "initiative", i.domains = ["combat"], i.initiative = {
     total: se(e.total, 0)
   }, i.selectors.push("intent.initiative"), i;
 }
-function Io({ actor: s, packet: e = {}, runtime: t = {} } = {}) {
+function $o({ actor: s, packet: e = {}, runtime: t = {} } = {}) {
   const i = hi(s, t);
   return i.damage = {
     amount: se(e.amount, 0),
-    track: Z(e.track),
-    damageType: Z(e.damageType)
+    track: ee(e.track),
+    damageType: ee(e.damageType)
   }, i.selectors.push("incoming"), i;
 }
-function Fa({ actor: s, packet: e = {}, phase: t = "onEdgeGain", runtime: i = {} } = {}) {
+function Wa({ actor: s, packet: e = {}, phase: t = "onEdgeGain", runtime: i = {} } = {}) {
   const a = hi(s, i);
   return a.edge = {
-    pool: Z(e.poolKey),
+    pool: ee(e.poolKey),
     amount: se(e.amount, 0),
-    eventKey: Z(e.eventKey),
-    source: Z(e.source)
+    eventKey: ee(e.eventKey),
+    source: ee(e.source)
   }, a.selectors.push(t === "onEdgeSpend" ? "edge.spend" : "edge.gain"), a.edge.eventKey && a.selectors.push(`event.${a.edge.eventKey}`), a;
 }
-function Oo({ actor: s, packet: e = {}, runtime: t = {} } = {}) {
+function xo({ actor: s, packet: e = {}, runtime: t = {} } = {}) {
   const i = hi(s, t);
   return i.event = {
     phase: "endOfActivation"
@@ -4504,17 +4504,17 @@ function Oo({ actor: s, packet: e = {}, runtime: t = {} } = {}) {
 function it({ actor: s, phase: e, facts: t = {}, packet: i = {}, options: a = {} } = {}) {
   var u;
   const r = {
-    packet: Bs(i),
+    packet: Fs(i),
     modifiers: [],
     mutations: [],
     applied: [],
     skipped: []
   };
-  if (!s || !vo.has(String(e ?? "").trim()))
+  if (!s || !Po.has(String(e ?? "").trim()))
     return r;
-  const n = a.runtime ?? {}, o = su(s, n), l = Po(n), c = tu(s);
+  const n = a.runtime ?? {}, o = ou(s, n), l = Io(n), c = ru(s);
   for (const { item: d, system: m } of c) {
-    if (lu(d, m)) {
+    if (mu(d, m)) {
       r.skipped.push({
         traitItemId: d.id,
         traitEffectId: "",
@@ -4523,85 +4523,85 @@ function it({ actor: s, phase: e, facts: t = {}, packet: i = {}, options: a = {}
       });
       continue;
     }
-    const p = m.prerequisites.filter((f) => Z(f == null ? void 0 : f.fact)).filter((f) => !Yr(f, t));
-    if (p.length) {
+    const f = m.prerequisites.filter((p) => ee(p == null ? void 0 : p.fact)).filter((p) => !Xr(p, t));
+    if (f.length) {
       r.skipped.push({
         traitItemId: d.id,
         traitEffectId: "",
         label: d.name,
-        reason: `Prerequisites not met: ${Qr(p)}`
+        reason: `Prerequisites not met: ${Zr(f)}`
       });
       continue;
     }
-    for (const f of m.effects.filter((h) => h.phase === e)) {
-      if (!ou(f.selector, t)) {
+    for (const p of m.effects.filter((h) => h.phase === e)) {
+      if (!du(p.selector, t)) {
         r.skipped.push({
           traitItemId: d.id,
-          traitEffectId: f.id,
-          label: f.label || d.name,
-          reason: `Selector did not match (${f.selector || "any"})`
+          traitEffectId: p.id,
+          label: p.label || d.name,
+          reason: `Selector did not match (${p.selector || "any"})`
         });
         continue;
       }
-      if (Eo(f) && f.skillKeys.length) {
-        const w = Z((u = t == null ? void 0 : t.skill) == null ? void 0 : u.key);
-        if (!w || !f.skillKeys.includes(w)) {
+      if (Ro(p) && p.skillKeys.length) {
+        const w = ee((u = t == null ? void 0 : t.skill) == null ? void 0 : u.key);
+        if (!w || !p.skillKeys.includes(w)) {
           r.skipped.push({
             traitItemId: d.id,
-            traitEffectId: f.id,
-            label: f.label || d.name,
-            reason: `Skill did not match (${f.skillKeys.join(", ")})`
+            traitEffectId: p.id,
+            label: p.label || d.name,
+            reason: `Skill did not match (${p.skillKeys.join(", ")})`
           });
           continue;
         }
       }
-      const h = f.conditions.filter((w) => Z(w == null ? void 0 : w.fact)).filter((w) => !Yr(w, t));
+      const h = p.conditions.filter((w) => ee(w == null ? void 0 : w.fact)).filter((w) => !Xr(w, t));
       if (h.length) {
         r.skipped.push({
           traitItemId: d.id,
-          traitEffectId: f.id,
-          label: f.label || d.name,
-          reason: `Conditions not met: ${Qr(h)}`
+          traitEffectId: p.id,
+          label: p.label || d.name,
+          reason: `Conditions not met: ${Zr(h)}`
         });
         continue;
       }
-      const g = iu(m.limits, f.limit), y = No(d, f), b = ru(o, l, g, y);
+      const g = nu(m.limits, p.limit), y = Oo(d, p), b = cu(o, l, g, y);
       if (b.length) {
         r.skipped.push({
           traitItemId: d.id,
-          traitEffectId: f.id,
-          label: f.label || d.name,
+          traitEffectId: p.id,
+          label: p.label || d.name,
           reason: b.join(", ")
         });
         continue;
       }
-      const A = cu({
+      const A = pu({
         item: d,
-        effect: f,
+        effect: p,
         phase: e,
         packet: r.packet,
         result: r
       });
       r.applied.push({
         traitItemId: d.id,
-        traitEffectId: f.id,
-        label: f.label || d.name,
+        traitEffectId: p.id,
+        label: p.label || d.name,
         value: A,
         phase: e,
         source: d.name
-      }), a.consumeUsage && r.mutations.push(...uu(d, f, g));
+      }), a.consumeUsage && r.mutations.push(...fu(d, p, g));
     }
   }
   return r;
 }
 async function Xt({ actor: s, mutations: e = [], runtime: t = {} } = {}) {
-  var o, l, c, u, d, m, p, f, h;
+  var o, l, c, u, d, m, f, p, h;
   if (!s || !Array.isArray(e) || !e.length) return;
   const i = e.filter((g) => (g == null ? void 0 : g.kind) === "usage");
   if (!i.length) return;
-  const a = Bs(((c = (l = (o = s.flags) == null ? void 0 : o[T]) == null ? void 0 : l.traitUsage) == null ? void 0 : c.scene) ?? {}), r = t.state ? Bs(t.state) : null, n = Po(t);
+  const a = Fs(((c = (l = (o = s.flags) == null ? void 0 : o[T]) == null ? void 0 : l.traitUsage) == null ? void 0 : c.scene) ?? {}), r = t.state ? Fs(t.state) : null, n = Io(t);
   for (const g of i) {
-    const y = Z(g.key), b = Math.max(0, Math.trunc(se(g.delta, 0)));
+    const y = ee(g.key), b = Math.max(0, Math.trunc(se(g.delta, 0)));
     if (!(!y || !b))
       switch (g.scope) {
         case "perActivation": {
@@ -4611,7 +4611,7 @@ async function Xt({ actor: s, mutations: e = [], runtime: t = {} } = {}) {
         }
         case "perRound": {
           if (!r || !n.roundKey) break;
-          r.traitUsage ?? (r.traitUsage = {}), (d = r.traitUsage).round ?? (d.round = {}), (m = r.traitUsage.round)[p = n.roundKey] ?? (m[p] = {}), r.traitUsage.round[n.roundKey][y] = Math.max(
+          r.traitUsage ?? (r.traitUsage = {}), (d = r.traitUsage).round ?? (d.round = {}), (m = r.traitUsage.round)[f = n.roundKey] ?? (m[f] = {}), r.traitUsage.round[n.roundKey][y] = Math.max(
             0,
             se(r.traitUsage.round[n.roundKey][y], 0) + b
           );
@@ -4619,22 +4619,22 @@ async function Xt({ actor: s, mutations: e = [], runtime: t = {} } = {}) {
         }
         case "perScene": {
           if (!n.sceneKey) break;
-          a[f = n.sceneKey] ?? (a[f] = {}), a[n.sceneKey][y] = Math.max(0, se(a[n.sceneKey][y], 0) + b);
+          a[p = n.sceneKey] ?? (a[p] = {}), a[n.sceneKey][y] = Math.max(0, se(a[n.sceneKey][y], 0) + b);
           break;
         }
       }
   }
   r && ((h = t.combatant) != null && h.id) && await t.combatant.setFlag(T, "personalCombat", r), await s.setFlag(T, "traitUsage", { scene: a });
 }
-const Ai = "mwd", wi = "personalCombat", Ut = 3, mu = 1, pu = 1;
-function da(s, e) {
+const Ai = "mwd", wi = "personalCombat", Ut = 3, gu = 1, yu = 1;
+function ma(s, e) {
   return !(s != null && s.activation) || !e ? !1 : s.activation.combatId === e.combatId && Number(s.activation.round ?? -1) === Number(e.round ?? -1) && Number(s.activation.turn ?? -1) === Number(e.turn ?? -1) && s.activation.combatantId === e.combatantId;
 }
-function za(s = null) {
+function Ha(s = null) {
   return {
     saRemaining: Ut,
-    faRemaining: mu,
-    raRemaining: pu,
+    faRemaining: gu,
+    raRemaining: yu,
     saSpentThisActivation: 0,
     burnThisActivation: 0,
     attacksThisActivation: 0,
@@ -4649,12 +4649,12 @@ function za(s = null) {
 }
 function ds(s, e = null) {
   return foundry.utils.mergeObject(
-    za(e),
+    Ha(e),
     foundry.utils.deepClone(s ?? {}),
     { inplace: !1, overwrite: !0 }
   );
 }
-function ma(s) {
+function pa(s) {
   return Array.isArray(s) ? s.map((e) => {
     const t = String((e == null ? void 0 : e.label) ?? "").trim();
     return t ? {
@@ -4664,25 +4664,25 @@ function ma(s) {
     } : null;
   }).filter(Boolean) : [];
 }
-function fu(s) {
+function bu(s) {
   const e = (CONFIG.statusEffects ?? []).find((i) => String((i == null ? void 0 : i.id) ?? "").trim() === s), t = String((e == null ? void 0 : e.name) ?? (e == null ? void 0 : e.label) ?? s ?? "").trim();
-  return bo(t);
+  return To(t);
 }
 function Ti(s) {
   const e = Number(s);
   return !Number.isFinite(e) || e === 0 ? "0" : e > 0 ? `+${e}` : String(e);
 }
-function hu(s) {
+function Su(s) {
   if (typeof s == "number") return Number.isFinite(s) ? s : 0;
   const e = String(s ?? "").trim().match(/[-+]?\d+(\.\d+)?/);
   return e ? Number(e[0]) : 0;
 }
-function Jr(s) {
+function en(s) {
   var o;
   const e = (s == null ? void 0 : s.document) ?? s ?? null, t = (s == null ? void 0 : s.object) ?? (e == null ? void 0 : e.object) ?? s ?? null, i = String((e == null ? void 0 : e.id) ?? "").trim(), a = re._pendingTokenPositions.get(i) ?? null, r = Number((a == null ? void 0 : a.x) ?? (e == null ? void 0 : e.x)), n = Number((a == null ? void 0 : a.y) ?? (e == null ? void 0 : e.y));
   return t && Number.isFinite(r) && Number.isFinite(n) && typeof t.getCenter == "function" ? t.getCenter(r, n) : (t == null ? void 0 : t.center) ?? ((o = e == null ? void 0 : e.object) == null ? void 0 : o.center) ?? null;
 }
-function gu(s, e = "") {
+function Au(s, e = "") {
   if (!Number.isFinite(s)) return "";
   const t = Math.round(s * 10) / 10, i = Number.isInteger(t) ? String(t) : t.toFixed(1);
   return e ? `${i} ${e}` : i;
@@ -4742,8 +4742,8 @@ class re {
     return t ? t.object ?? this._getSceneTokenById(t.id) : null;
   }
   static getCurrentSceneTokenDocument(e, t = null) {
-    var f, h, g, y;
-    const i = (f = canvas == null ? void 0 : canvas.scene) == null ? void 0 : f.id, a = this._asTokenDocument(t);
+    var p, h, g, y;
+    const i = (p = canvas == null ? void 0 : canvas.scene) == null ? void 0 : p.id, a = this._asTokenDocument(t);
     if (this._getTokenSceneId(a) === i) return a;
     const r = String((a == null ? void 0 : a.id) ?? (t == null ? void 0 : t.id) ?? "").trim();
     if (r) {
@@ -4764,8 +4764,8 @@ class re {
     if (c) return c;
     const u = Array.from(((y = canvas == null ? void 0 : canvas.scene) == null ? void 0 : y.tokens) ?? []), d = this._collectActorIds(e, n), m = u.filter((b) => this._tokenDocumentMatchesActor(b, e, d));
     return m.find((b) => {
-      var A, w, E;
-      return ((A = b == null ? void 0 : b.combatant) == null ? void 0 : A.id) === ((E = (w = game.combat) == null ? void 0 : w.combatant) == null ? void 0 : E.id);
+      var A, w, M;
+      return ((A = b == null ? void 0 : b.combatant) == null ? void 0 : A.id) === ((M = (w = game.combat) == null ? void 0 : w.combatant) == null ? void 0 : M.id);
     }) ?? null ?? m[0] ?? null;
   }
   static getCurrentSceneToken(e, t = null) {
@@ -4777,7 +4777,7 @@ class re {
     return e ? ((i = (t = canvas == null ? void 0 : canvas.tokens) == null ? void 0 : t.get) == null ? void 0 : i.call(t, e)) ?? ((r = (a = canvas == null ? void 0 : canvas.tokens) == null ? void 0 : a.placeables) == null ? void 0 : r.find((n) => n.id === e)) ?? null : null;
   }
   static _measureTokenDistance(e, t) {
-    const i = canvas == null ? void 0 : canvas.grid, a = Jr(e), r = Jr(t), n = globalThis.Ray;
+    const i = canvas == null ? void 0 : canvas.grid, a = en(e), r = en(t), n = globalThis.Ray;
     if (!i || !a || !r) return null;
     if (typeof i.measureDistances == "function" && typeof n == "function")
       try {
@@ -4802,7 +4802,7 @@ class re {
     return i.length ? i : Array.from((e == null ? void 0 : e.targets) ?? []).map((r) => (r == null ? void 0 : r.object) ?? r).filter(Boolean);
   }
   static getTargetingSnapshot(e = null, t = game.user) {
-    var u, d, m, p, f, h, g, y;
+    var u, d, m, f, p, h, g, y;
     const i = this.getUserTargetTokens(t), a = i.length;
     if (a === 0)
       return {
@@ -4826,7 +4826,7 @@ class re {
         detailRows: [],
         target: null
       };
-    const r = i[0], n = this._measureTokenDistance(e, r), o = String(((d = (u = canvas == null ? void 0 : canvas.scene) == null ? void 0 : u.grid) == null ? void 0 : d.units) ?? ((p = (m = game.system) == null ? void 0 : m.grid) == null ? void 0 : p.units) ?? "").trim(), l = gu(n, o), c = String((r == null ? void 0 : r.name) ?? ((f = r == null ? void 0 : r.actor) == null ? void 0 : f.name) ?? "Target").trim() || "Target";
+    const r = i[0], n = this._measureTokenDistance(e, r), o = String(((d = (u = canvas == null ? void 0 : canvas.scene) == null ? void 0 : u.grid) == null ? void 0 : d.units) ?? ((f = (m = game.system) == null ? void 0 : m.grid) == null ? void 0 : f.units) ?? "").trim(), l = Au(n, o), c = String((r == null ? void 0 : r.name) ?? ((p = r == null ? void 0 : r.actor) == null ? void 0 : p.name) ?? "Target").trim() || "Target";
     return {
       count: a,
       none: !1,
@@ -4846,7 +4846,7 @@ class re {
   }
   static getRollImpact(e = []) {
     const t = (Array.isArray(e) ? e : []).map((a) => {
-      const r = hu((a == null ? void 0 : a.numericValue) ?? (a == null ? void 0 : a.value) ?? 0);
+      const r = Su((a == null ? void 0 : a.numericValue) ?? (a == null ? void 0 : a.value) ?? 0);
       return {
         label: String((a == null ? void 0 : a.label) ?? "").trim() || "Modifier",
         numericValue: r,
@@ -4860,26 +4860,26 @@ class re {
     };
   }
   static getCombat(e, t = null) {
-    var m, p, f, h;
+    var m, f, p, h;
     const i = (m = canvas == null ? void 0 : canvas.scene) == null ? void 0 : m.id, a = game.combat, r = this.getCurrentSceneTokenDocument(e, t), n = (r == null ? void 0 : r.object) ?? this._getSceneTokenById((r == null ? void 0 : r.id) ?? null);
-    if (!a || ((p = a.scene) == null ? void 0 : p.id) !== i)
+    if (!a || ((f = a.scene) == null ? void 0 : f.id) !== i)
       return {
         combat: null,
         combatant: null,
         token: n,
         tokenDocument: r
       };
-    let o = ((h = (f = r == null ? void 0 : r.combatant) == null ? void 0 : f.combat) == null ? void 0 : h.id) === a.id ? r.combatant : null;
+    let o = ((h = (p = r == null ? void 0 : r.combatant) == null ? void 0 : p.combat) == null ? void 0 : h.id) === a.id ? r.combatant : null;
     const l = Array.from(a.combatants ?? []);
     if (!o) {
       const g = this._collectActorIds(e, r), y = l.filter((w) => {
-        const E = String((w == null ? void 0 : w.tokenId) ?? "").trim();
-        if (r && E === String(r.id ?? "").trim() || g.has(String((w == null ? void 0 : w.actorId) ?? "").trim())) return !0;
-        const I = this._asTokenDocument(w == null ? void 0 : w.token) ?? this._getSceneTokenDocumentById(E, i);
+        const M = String((w == null ? void 0 : w.tokenId) ?? "").trim();
+        if (r && M === String(r.id ?? "").trim() || g.has(String((w == null ? void 0 : w.actorId) ?? "").trim())) return !0;
+        const I = this._asTokenDocument(w == null ? void 0 : w.token) ?? this._getSceneTokenDocumentById(M, i);
         return this._tokenDocumentMatchesActor(I, e, g);
       }), b = y.find((w) => {
-        var E;
-        return w.id === ((E = a == null ? void 0 : a.combatant) == null ? void 0 : E.id);
+        var M;
+        return w.id === ((M = a == null ? void 0 : a.combatant) == null ? void 0 : M.id);
       }) ?? null, A = y.find(
         (w) => r && String((w == null ? void 0 : w.tokenId) ?? "").trim() === String(r.id ?? "").trim()
       ) ?? null;
@@ -4895,15 +4895,15 @@ class re {
     };
   }
   static getSnapshot(e, { token: t = null } = {}) {
-    var w, E, I, R, _;
+    var w, M, I, D, L;
     const {
       combat: i,
       combatant: a,
       token: r,
       tokenDocument: n
-    } = this.getCombat(e, t), o = !!a && ((w = i == null ? void 0 : i.combatant) == null ? void 0 : w.id) === a.id, l = a ? this.getActivationIdentity(i, a) : null, c = a ? a.getFlag(Ai, wi) : null, u = a && o && da(c, l) ? ds(c, l) : za(l);
-    u.actionLog = ma(u.actionLog);
-    const d = Math.max(0, Number(((I = (E = e == null ? void 0 : e.system) == null ? void 0 : E.burn) == null ? void 0 : I.value) ?? 0)), m = Math.floor(d / 2), p = !!((_ = (R = e == null ? void 0 : e.system) == null ? void 0 : R.burn) != null && _.overloaded), f = this.getActiveStatuses(e), h = f.filter((q) => !(p && q.id === "overloaded")), g = this.getModifierSummary(e, m), y = this.getRollImpact(g), b = Math.max(0, Number(u.burnThisActivation ?? 0)), A = a ? o ? "" : "Waiting for this combatant's activation." : "No combatant on the current scene.";
+    } = this.getCombat(e, t), o = !!a && ((w = i == null ? void 0 : i.combatant) == null ? void 0 : w.id) === a.id, l = a ? this.getActivationIdentity(i, a) : null, c = a ? a.getFlag(Ai, wi) : null, u = a && o && ma(c, l) ? ds(c, l) : Ha(l);
+    u.actionLog = pa(u.actionLog);
+    const d = Math.max(0, Number(((I = (M = e == null ? void 0 : e.system) == null ? void 0 : M.burn) == null ? void 0 : I.value) ?? 0)), m = Math.floor(d / 2), f = !!((L = (D = e == null ? void 0 : e.system) == null ? void 0 : D.burn) != null && L.overloaded), p = this.getActiveStatuses(e), h = p.filter((V) => !(f && V.id === "overloaded")), g = this.getModifierSummary(e, m), y = this.getRollImpact(g), b = Math.max(0, Number(u.burnThisActivation ?? 0)), A = a ? o ? "" : "Waiting for this combatant's activation." : "No combatant on the current scene.";
     return {
       token: r,
       tokenDocument: n,
@@ -4911,17 +4911,17 @@ class re {
       combatant: a,
       hasCombatant: !!a,
       isCurrentTurn: o,
-      overloaded: p,
+      overloaded: f,
       burn: {
         value: d,
         penalty: m,
-        canOverloadCheck: d >= 6 && !p
+        canOverloadCheck: d >= 6 && !f
       },
       state: u,
       targeting: this.getTargetingSnapshot(r),
-      states: p ? [{ id: "overloaded", label: "Overloaded" }] : [],
+      states: f ? [{ id: "overloaded", label: "Overloaded" }] : [],
       effects: h,
-      statuses: f,
+      statuses: p,
       rollImpact: y,
       summaryText: `SA: ${u.saRemaining} / ${Ut}   FA: ${u.faRemaining}   RA: ${u.raRemaining}`,
       activation: {
@@ -4966,12 +4966,12 @@ class re {
   static getActiveStatuses(e) {
     return Array.from((e == null ? void 0 : e.statuses) ?? []).map((i) => ({
       id: i,
-      label: fu(i)
+      label: bu(i)
     })).sort((i, a) => i.label.localeCompare(a.label));
   }
   static buildActionModel(e, t) {
     var h, g, y;
-    const i = t.hasCombatant ? "" : "No current-scene combatant.", a = t.isCurrentTurn ? "" : "Only during your activation.", r = t.overloaded ? "Overloaded: only Burn recovery is allowed." : "", n = Xr(e, t), o = i || a || r, l = [
+    const i = t.hasCombatant ? "" : "No current-scene combatant.", a = t.isCurrentTurn ? "" : "Only during your activation.", r = t.overloaded ? "Overloaded: only Burn recovery is allowed." : "", n = tn(e, t), o = i || a || r, l = [
       { id: "move", label: "Move", resource: "sa", cost: 1, supported: !0 },
       { id: "aim", label: "Aim", resource: "sa", cost: 1, supported: !0 },
       { id: "reload", label: "Reload", resource: "sa", cost: 1, supported: !0 },
@@ -4993,8 +4993,8 @@ class re {
       },
       { id: "firstAid", label: "First Aid", costLabel: "2 SA" },
       { id: "emergencyRepair", label: "Emergency Repair", costLabel: "2 SA" }
-    ].map((b) => b.handler ? b : this._buildStubAction(b)), d = i || a || (n <= 0 ? "Activation SA cap reached." : "") || (t.burn.value <= 0 ? "Burn is already at 0." : ""), m = i || a || (t.burn.canOverloadCheck ? "" : t.overloaded ? "Already Overloaded." : "Burn below 6."), p = i || a, f = (b) => {
-      const A = Mr(b), w = Wc(b);
+    ].map((b) => b.handler ? b : this._buildStubAction(b)), d = i || a || (n <= 0 ? "Activation SA cap reached." : "") || (t.burn.value <= 0 ? "Burn is already at 0." : ""), m = i || a || (t.burn.canOverloadCheck ? "" : t.overloaded ? "Already Overloaded." : "Burn below 6."), f = i || a, p = (b) => {
+      const A = Cr(b), w = Gc(b);
       return !w || !A ? null : {
         id: b,
         label: A.label,
@@ -5021,20 +5021,20 @@ class re {
           disabled: !1,
           reason: t.token ? "" : "Requires a token on the current scene."
         },
-        f("composure"),
-        f("judgeIntent"),
-        f("memory"),
-        f("lift"),
-        f("endure")
+        p("composure"),
+        p("judgeIntent"),
+        p("memory"),
+        p("lift"),
+        p("endure")
       ].filter(Boolean),
       summaryPills: [
         { label: "SA", value: `${t.state.saRemaining}/${Ut}` },
-        { label: "Cap", value: `${Math.max(0, Number(((h = t.state) == null ? void 0 : h.saSpentThisActivation) ?? 0))}/${Wa(e)}` },
+        { label: "Cap", value: `${Math.max(0, Number(((h = t.state) == null ? void 0 : h.saSpentThisActivation) ?? 0))}/${Ua(e)}` },
         { label: "FA", value: `${t.state.faRemaining}` },
         { label: "RA", value: `${t.state.raRemaining}` },
         { label: "Burn/Turn", value: `+${Math.max(0, Number(((g = t.state) == null ? void 0 : g.burnThisActivation) ?? 0))}` }
       ],
-      activationLog: ma((y = t.state) == null ? void 0 : y.actionLog).map((b, A) => ({
+      activationLog: pa((y = t.state) == null ? void 0 : y.actionLog).map((b, A) => ({
         ...b,
         index: A + 1
       })),
@@ -5084,14 +5084,14 @@ class re {
               resource: "fa",
               cost: 1,
               supported: !0
-            }, p),
+            }, f),
             this._buildSpendAction(t, {
               id: "spendRA",
               label: "Spend RA",
               resource: "ra",
               cost: 1,
               supported: !0
-            }, p)
+            }, f)
           ]
         }
       ]
@@ -5126,7 +5126,7 @@ class re {
   static _appendActionLog(e, { id: t = "", label: i = "", costLabel: a = "" } = {}) {
     const r = String(i ?? "").trim();
     if (!r) return;
-    const n = ma(e == null ? void 0 : e.actionLog);
+    const n = pa(e == null ? void 0 : e.actionLog);
     n.push({
       id: String(t ?? "").trim(),
       label: r,
@@ -5147,7 +5147,7 @@ class re {
     const e = game.combat, t = e == null ? void 0 : e.combatant;
     if (!e || !t || ((r = e.scene) == null ? void 0 : r.id) !== ((n = canvas == null ? void 0 : canvas.scene) == null ? void 0 : n.id)) return;
     const i = this.getActivationIdentity(e, t), a = t.getFlag(Ai, wi);
-    da(a, i) || await t.setFlag(Ai, wi, za(i));
+    ma(a, i) || await t.setFlag(Ai, wi, Ha(i));
   }
   static async spendResource(e, {
     token: t = null,
@@ -5157,7 +5157,7 @@ class re {
     actionLabel: n = "",
     actionCostLabel: o = ""
   } = {}) {
-    var b, A, w, E, I, R, _;
+    var b, A, w, M, I, D, L;
     const l = this.getSnapshot(e, { token: t });
     if (!l.hasCombatant)
       return { ok: !1, reason: "No combatant on the current scene." };
@@ -5174,7 +5174,7 @@ class re {
     const d = it({
       actor: e,
       phase: "onBeforeActionCostFinalized",
-      facts: Ro({
+      facts: _o({
         actor: e,
         packet: { actionId: r, resource: i, cost: u },
         runtime: c
@@ -5183,32 +5183,32 @@ class re {
       options: { runtime: c, consumeUsage: !0 }
     });
     u = Math.max(0, Number(d.packet.cost ?? u) || 0), c.pendingMutations = (c.pendingMutations ?? []).concat(d.mutations);
-    const m = `${i}Remaining`, p = Number(((A = l.state) == null ? void 0 : A[m]) ?? 0);
-    if (i !== "sa" && p < u)
+    const m = `${i}Remaining`, f = Number(((A = l.state) == null ? void 0 : A[m]) ?? 0);
+    if (i !== "sa" && f < u)
       return { ok: !1, reason: `No ${String(i).toUpperCase()} remaining.` };
-    const f = c.state, h = i === "sa" ? Wa(e) : 0, g = Math.max(0, Number(((w = l.state) == null ? void 0 : w.saSpentThisActivation) ?? 0) || 0);
+    const p = c.state, h = i === "sa" ? Ua(e) : 0, g = Math.max(0, Number(((w = l.state) == null ? void 0 : w.saSpentThisActivation) ?? 0) || 0);
     if (i === "sa" && g + u > h)
       return { ok: !1, reason: "Activation SA cap reached." };
-    f[m] = Math.max(0, p - u), i === "sa" && (f.saSpentThisActivation = g + u, r === "attack" && (f.attacksThisActivation = Number(f.attacksThisActivation ?? 0) + 1)), this._appendActionLog(f, {
+    p[m] = Math.max(0, f - u), i === "sa" && (p.saSpentThisActivation = g + u, r === "attack" && (p.attacksThisActivation = Number(p.attacksThisActivation ?? 0) + 1)), this._appendActionLog(p, {
       id: r,
       label: n,
       costLabel: o || this._formatCostLabel(i, u)
     });
     let y = 0;
     if (i === "sa") {
-      const q = Math.max(0, g - Ut), Y = Math.max(0, f.saSpentThisActivation - Ut), K = Math.max(0, Number(((E = l.state) == null ? void 0 : E.attacksThisActivation) ?? 0) || 0), O = Math.max(0, Number(f.attacksThisActivation ?? 0) || 0);
-      for (let D = q + 1; D <= Y; D += 1) {
-        const V = it({
+      const V = Math.max(0, g - Ut), Y = Math.max(0, p.saSpentThisActivation - Ut), K = Math.max(0, Number(((M = l.state) == null ? void 0 : M.attacksThisActivation) ?? 0) || 0), O = Math.max(0, Number(p.attacksThisActivation ?? 0) || 0);
+      for (let R = V + 1; R <= Y; R += 1) {
+        const U = it({
           actor: e,
           phase: "onBeforeBurnApplied",
-          facts: Ba({
+          facts: za({
             actor: e,
             packet: {
               actionId: r,
               resource: i,
               amount: 1,
               source: "extraSA",
-              extraSaIndex: D
+              extraSaIndex: R
             },
             runtime: c
           }),
@@ -5217,18 +5217,18 @@ class re {
             resource: i,
             amount: 1,
             source: "extraSA",
-            extraSaIndex: D
+            extraSaIndex: R
           },
           options: { runtime: c, consumeUsage: !0 }
         });
-        c.pendingMutations = (c.pendingMutations ?? []).concat(V.mutations), y += Math.max(0, Number(V.packet.amount ?? 0) || 0);
+        c.pendingMutations = (c.pendingMutations ?? []).concat(U.mutations), y += Math.max(0, Number(U.packet.amount ?? 0) || 0);
       }
-      for (let D = K + 1; D <= O; D += 1) {
-        if (D <= 1) continue;
-        const V = it({
+      for (let R = K + 1; R <= O; R += 1) {
+        if (R <= 1) continue;
+        const U = it({
           actor: e,
           phase: "onBeforeBurnApplied",
-          facts: Ba({
+          facts: za({
             actor: e,
             packet: {
               actionId: r,
@@ -5243,29 +5243,29 @@ class re {
             resource: i,
             amount: 1,
             source: "attack",
-            attackIndex: D
+            attackIndex: R
           },
           options: { runtime: c, consumeUsage: !0 }
         });
-        c.pendingMutations = (c.pendingMutations ?? []).concat(V.mutations), y += Math.max(0, Number(V.packet.amount ?? 0) || 0);
+        c.pendingMutations = (c.pendingMutations ?? []).concat(U.mutations), y += Math.max(0, Number(U.packet.amount ?? 0) || 0);
       }
-      f.burnThisActivation = Math.max(0, Number(f.burnThisActivation ?? 0) + y);
+      p.burnThisActivation = Math.max(0, Number(p.burnThisActivation ?? 0) + y);
     }
     return (I = c.pendingMutations) != null && I.length ? await Xt({
       actor: e,
       mutations: c.pendingMutations,
       runtime: {
         ...c,
-        state: f
+        state: p
       }
-    }) : await l.combatant.setFlag(Ai, wi, f), y > 0 && await e.update({ "system.burn.value": Math.max(0, Number(((_ = (R = e.system) == null ? void 0 : R.burn) == null ? void 0 : _.value) ?? 0) + y) }), { ok: !0, snapshot: this.getSnapshot(e, { token: l.token }) };
+    }) : await l.combatant.setFlag(Ai, wi, p), y > 0 && await e.update({ "system.burn.value": Math.max(0, Number(((L = (D = e.system) == null ? void 0 : D.burn) == null ? void 0 : L.value) ?? 0) + y) }), { ok: !0, snapshot: this.getSnapshot(e, { token: l.token }) };
   }
   static async reduceBurn(e, { token: t = null } = {}) {
     var o, l, c, u;
     const i = this.getSnapshot(e, { token: t });
     if (!i.hasCombatant) return { ok: !1, reason: "No combatant on the current scene." };
     if (!i.isCurrentTurn) return { ok: !1, reason: "Only available during your activation." };
-    if (Xr(e, i) <= 0) return { ok: !1, reason: "Activation SA cap reached." };
+    if (tn(e, i) <= 0) return { ok: !1, reason: "Activation SA cap reached." };
     if (i.burn.value <= 0) return { ok: !1, reason: "Burn is already at 0." };
     const a = await this.spendResource(e, {
       token: i.token,
@@ -5280,34 +5280,34 @@ class re {
     return r === 0 && ((u = (c = e.system) == null ? void 0 : c.burn) != null && u.overloaded) && (n["system.burn.overloaded"] = !1), await e.update(n), { ok: !0, snapshot: this.getSnapshot(e, { token: i.token }) };
   }
   static async finalizeActivation(e, t) {
-    var m, p, f, h, g, y, b, A;
+    var m, f, p, h, g, y, b, A;
     if (!game.user.isGM || !t || !e) return;
-    const i = ((p = (m = e.combatants) == null ? void 0 : m.get) == null ? void 0 : p.call(m, t)) ?? null, a = (i == null ? void 0 : i.actor) ?? null;
+    const i = ((f = (m = e.combatants) == null ? void 0 : m.get) == null ? void 0 : f.call(m, t)) ?? null, a = (i == null ? void 0 : i.actor) ?? null;
     if (!i || !a) return;
-    const r = i.getFlag(Ai, wi), n = da(r, this.getActivationIdentity(e, i)) ? ds(r, this.getActivationIdentity(e, i)) : ds(r), l = {
+    const r = i.getFlag(Ai, wi), n = ma(r, this.getActivationIdentity(e, i)) ? ds(r, this.getActivationIdentity(e, i)) : ds(r), l = {
       burnDelta: Number(n.saSpentThisActivation ?? 0) <= Ut && Number(n.burnThisActivation ?? 0) <= 0 && Number(n.reactionBurnSinceLastActivation ?? 0) <= 0 ? -2 : 0,
       edgeAdjustments: []
     }, c = {
       combat: e,
       combatant: i,
       state: n,
-      sceneId: ((f = e.scene) == null ? void 0 : f.id) ?? ((h = canvas == null ? void 0 : canvas.scene) == null ? void 0 : h.id) ?? ""
+      sceneId: ((p = e.scene) == null ? void 0 : p.id) ?? ((h = canvas == null ? void 0 : canvas.scene) == null ? void 0 : h.id) ?? ""
     }, u = it({
       actor: a,
       phase: "onEndOfActivation",
-      facts: Oo({ actor: a, packet: l, runtime: c }),
+      facts: xo({ actor: a, packet: l, runtime: c }),
       packet: l,
       options: { runtime: c, consumeUsage: !0 }
     });
     await Xt({ actor: a, mutations: u.mutations, runtime: c });
     const d = Number(u.packet.burnDelta ?? l.burnDelta) || 0;
     if (d) {
-      const w = Math.max(0, Number(((y = (g = a.system) == null ? void 0 : g.burn) == null ? void 0 : y.value) ?? 0) + d), E = { "system.burn.value": w };
-      w === 0 && ((A = (b = a.system) == null ? void 0 : b.burn) != null && A.overloaded) && (E["system.burn.overloaded"] = !1), await a.update(E);
+      const w = Math.max(0, Number(((y = (g = a.system) == null ? void 0 : g.burn) == null ? void 0 : y.value) ?? 0) + d), M = { "system.burn.value": w };
+      w === 0 && ((A = (b = a.system) == null ? void 0 : b.burn) != null && A.overloaded) && (M["system.burn.overloaded"] = !1), await a.update(M);
     }
     for (const w of u.packet.edgeAdjustments ?? []) {
-      const E = Number((w == null ? void 0 : w.amount) ?? 0) || 0;
-      !E || !(w != null && w.poolKey) || (E > 0 ? await a.gainEdge(w.poolKey, E, { skipTraitHooks: !0, source: "endOfActivationTrait" }) : await a.spendEdge(w.poolKey, Math.abs(E), { skipTraitHooks: !0, source: "endOfActivationTrait" }));
+      const M = Number((w == null ? void 0 : w.amount) ?? 0) || 0;
+      !M || !(w != null && w.poolKey) || (M > 0 ? await a.gainEdge(w.poolKey, M, { skipTraitHooks: !0, source: "endOfActivationTrait" }) : await a.spendEdge(w.poolKey, Math.abs(M), { skipTraitHooks: !0, source: "endOfActivationTrait" }));
     }
   }
   static async _onUpdateCombat(e, t) {
@@ -5383,33 +5383,33 @@ class re {
   }
 }
 N(re, "_targetRefreshTimeout", null), N(re, "_pendingTokenPositions", /* @__PURE__ */ new Map()), N(re, "_lastActivationByCombat", /* @__PURE__ */ new Map());
-function Wa(s) {
+function Ua(s) {
   var i, a, r, n, o, l;
   const e = Math.max(0, Number(((r = (a = (i = s == null ? void 0 : s.system) == null ? void 0 : i.attributes) == null ? void 0 : a.reflexes) == null ? void 0 : r.value) ?? 0) || 0), t = Math.max(0, Number(((l = (o = (n = s == null ? void 0 : s.system) == null ? void 0 : n.attributes) == null ? void 0 : o.willpower) == null ? void 0 : l.value) ?? 0) || 0);
   return Ut + Math.floor((e + t) / 2);
 }
-function Xr(s, e) {
+function tn(s, e) {
   var t;
-  return Math.max(0, Wa(s) - Math.max(0, Number(((t = e == null ? void 0 : e.state) == null ? void 0 : t.saSpentThisActivation) ?? 0) || 0));
+  return Math.max(0, Ua(s) - Math.max(0, Number(((t = e == null ? void 0 : e.state) == null ? void 0 : t.saSpentThisActivation) ?? 0) || 0));
 }
-const Ri = "lifeModuleCatalog", Ys = Object.freeze([
+const Ri = "lifeModuleCatalog", Qs = Object.freeze([
   { moduleType: "faction", label: "Faction" },
   { moduleType: "childhood", label: "Childhood" },
   { moduleType: "higherEducation", label: "Higher Education" },
   { moduleType: "realLife", label: "Real Life" }
-]), yu = Object.freeze(
-  Object.fromEntries(Ys.map((s) => [s.moduleType, s.label]))
-), bu = new Set(Ys.map((s) => s.moduleType)), Su = /* @__PURE__ */ new Set(["skill", "edgePool"]), Rr = Object.freeze({
+]), wu = Object.freeze(
+  Object.fromEntries(Qs.map((s) => [s.moduleType, s.label]))
+), Tu = new Set(Qs.map((s) => s.moduleType)), ku = /* @__PURE__ */ new Set(["skill", "edgePool"]), Ir = Object.freeze({
   grit: "Grit",
   chaos: "Chaos",
   insight: "Insight",
   rumor: "Rumor",
   legend: "Legend",
   credibility: "Credibility"
-}), _o = Object.freeze(Object.keys(Rr)), Au = Object.freeze({
+}), Bo = Object.freeze(Object.keys(Ir)), vu = Object.freeze({
   skill: "Skill",
   edgePool: "Edge Pool"
-}), wu = Object.freeze(Cu()), Tu = Object.freeze(Pu()), ku = /* @__PURE__ */ new Set(["artillery", "gunnery", "piloting", "heavyWeapons"]), vu = /* @__PURE__ */ new Set([
+}), Mu = Object.freeze(Du()), Eu = Object.freeze(Iu()), Cu = /* @__PURE__ */ new Set(["artillery", "gunnery", "piloting", "heavyWeapons"]), Pu = /* @__PURE__ */ new Set([
   "artillery",
   "gunnery",
   "heavyWeapons",
@@ -5417,9 +5417,9 @@ const Ri = "lifeModuleCatalog", Ys = Object.freeze([
   "piloting",
   "projectileWeapons",
   "firearms"
-]), Mu = Object.freeze(
-  ht.map((s) => s.code).filter((s) => !vu.has(s))
-), Eu = Object.freeze(gi([
+]), Nu = Object.freeze(
+  ht.map((s) => s.code).filter((s) => !Pu.has(s))
+), Ru = Object.freeze(gi([
   {
     id: "faction-capellan-confederation",
     label: "Capellan Confederation",
@@ -5526,8 +5526,8 @@ const Ri = "lifeModuleCatalog", Ys = Object.freeze([
     grants: [{
       id: "choice",
       choices: [
-        ...Mu.map((s) => ({ type: "skill", value: s })),
-        ..._o.map((s) => ({ type: "edgePool", value: s }))
+        ...Nu.map((s) => ({ type: "skill", value: s })),
+        ...Bo.map((s) => ({ type: "edgePool", value: s }))
       ]
     }]
   },
@@ -5589,7 +5589,7 @@ const Ri = "lifeModuleCatalog", Ys = Object.freeze([
     id: "real-life-vagabond",
     label: "Vagabond",
     moduleType: "realLife",
-    skillChoices: ht.map((s) => s.code).filter((s) => !ku.has(s)),
+    skillChoices: ht.map((s) => s.code).filter((s) => !Cu.has(s)),
     excludesAny: [
       "higher-education-military-enlistment",
       "higher-education-military-academy",
@@ -5598,7 +5598,7 @@ const Ri = "lifeModuleCatalog", Ys = Object.freeze([
     ]
   }
 ], { strict: !1 }));
-function Cu() {
+function Du() {
   const s = /* @__PURE__ */ new Map();
   for (const e of ht) {
     const t = String(e.code ?? "").trim(), i = String(e.label ?? "").trim();
@@ -5606,38 +5606,38 @@ function Cu() {
   }
   return s;
 }
-function Pu() {
+function Iu() {
   const s = /* @__PURE__ */ new Map();
-  for (const [e, t] of Object.entries(Rr))
+  for (const [e, t] of Object.entries(Ir))
     s.set(e.toLowerCase(), e), s.set(t.toLowerCase(), e), s.set(`${t.toLowerCase()} pool`, e);
   return s;
 }
-function Nu(s = []) {
+function Ou(s = []) {
   const e = Array.isArray(s) ? s.filter(Boolean) : [String(s ?? "").trim()].filter(Boolean), t = new Error(e[0] ?? "Invalid life module data.");
   return t.validationErrors = e, t;
 }
-function Lo(s) {
+function Fo(s) {
   return Array.isArray(s) ? s : typeof s == "string" ? s.split(",").map((e) => e.trim()).filter(Boolean) : [];
 }
 function ns(s) {
   return String(s ?? "").trim().toLowerCase().replace(/['\u2019]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
-function Qs(s) {
-  const e = String(s ?? "").trim();
-  return bu.has(e) ? e : "";
-}
 function Js(s) {
   const e = String(s ?? "").trim();
-  return e ? wu.get(e.toLowerCase()) ?? "" : "";
+  return Tu.has(e) ? e : "";
 }
-function Ru(s) {
+function Xs(s) {
   const e = String(s ?? "").trim();
-  return e ? Tu.get(e.toLowerCase()) ?? "" : "";
+  return e ? Mu.get(e.toLowerCase()) ?? "" : "";
 }
-function Du(s, { strict: e = !1, errors: t = [], prefix: i = "Entry" } = {}) {
+function _u(s) {
+  const e = String(s ?? "").trim();
+  return e ? Eu.get(e.toLowerCase()) ?? "" : "";
+}
+function Lu(s, { strict: e = !1, errors: t = [], prefix: i = "Entry" } = {}) {
   const a = /* @__PURE__ */ new Set(), r = [];
-  for (const n of Lo(s)) {
-    const o = Js(n);
+  for (const n of Fo(s)) {
+    const o = Xs(n);
     if (!o) {
       e && t.push(`${i}: unknown skill "${n}".`);
       continue;
@@ -5646,11 +5646,11 @@ function Du(s, { strict: e = !1, errors: t = [], prefix: i = "Entry" } = {}) {
   }
   return r;
 }
-function Zr(s) {
+function sn(s) {
   const e = /* @__PURE__ */ new Set();
-  return Lo(s).map(ns).filter((t) => !t || e.has(t) ? !1 : (e.add(t), !0));
+  return Fo(s).map(ns).filter((t) => !t || e.has(t) ? !1 : (e.add(t), !0));
 }
-function en(s = [], e = /* @__PURE__ */ new Map()) {
+function an(s = [], e = /* @__PURE__ */ new Map()) {
   return s.map((t) => {
     var i;
     return ((i = e.get(t)) == null ? void 0 : i.label) ?? t;
@@ -5659,38 +5659,38 @@ function en(s = [], e = /* @__PURE__ */ new Map()) {
 function _i(s = {}) {
   return `${s.type}:${s.value}`;
 }
-function Iu(s) {
+function $u(s) {
   var e;
   return ((e = at(s)) == null ? void 0 : e.label) ?? s;
 }
-function $o(s) {
-  return Rr[s] ?? s;
+function zo(s) {
+  return Ir[s] ?? s;
 }
-function Ou(s) {
-  return Au[s] ?? s;
+function xu(s) {
+  return vu[s] ?? s;
 }
-function _u(s = {}, { includeTypePrefix: e = !1 } = {}) {
+function Bu(s = {}, { includeTypePrefix: e = !1 } = {}) {
   const t = String((s == null ? void 0 : s.type) ?? "").trim(), i = String((s == null ? void 0 : s.value) ?? "").trim();
   if (!t || !i) return "";
-  const a = t === "skill" ? Iu(i) : `${$o(i)} Pool`;
-  return e ? `${Ou(t)}: ${a}` : a;
+  const a = t === "skill" ? $u(i) : `${zo(i)} Pool`;
+  return e ? `${xu(t)}: ${a}` : a;
 }
 function es(s = {}, { includeBonusText: e = !1, includeTypePrefix: t = !1 } = {}) {
-  const i = _u(s, { includeTypePrefix: t });
+  const i = Bu(s, { includeTypePrefix: t });
   return i ? e ? s.type === "skill" ? `+1 ${i} rolls` : `+1 ${i}` : i : "";
 }
-function Lu(s) {
+function Fu(s) {
   const e = String(s ?? "").trim(), t = e.indexOf(":");
   return t < 0 ? null : {
     type: e.slice(0, t).trim(),
     value: e.slice(t + 1).trim()
   };
 }
-function $u(s, { strict: e = !1, errors: t = [], prefix: i = "Entry", grantLabel: a = "Bonus" } = {}) {
-  const r = typeof s == "string" ? Lu(s) : s, n = String((r == null ? void 0 : r.type) ?? "").trim(), o = String((r == null ? void 0 : r.value) ?? "").trim();
-  if (!Su.has(n))
+function zu(s, { strict: e = !1, errors: t = [], prefix: i = "Entry", grantLabel: a = "Bonus" } = {}) {
+  const r = typeof s == "string" ? Fu(s) : s, n = String((r == null ? void 0 : r.type) ?? "").trim(), o = String((r == null ? void 0 : r.value) ?? "").trim();
+  if (!ku.has(n))
     return e && t.push(`${i} ${a}: unknown bonus type "${n || s}".`), null;
-  const l = n === "skill" ? Js(o) : Ru(o);
+  const l = n === "skill" ? Xs(o) : _u(o);
   return l ? {
     type: n,
     value: l
@@ -5699,22 +5699,22 @@ function $u(s, { strict: e = !1, errors: t = [], prefix: i = "Entry", grantLabel
 function ja(s, { strict: e = !1, errors: t = [], prefix: i = "Entry", grantLabel: a = "Bonus" } = {}) {
   const r = /* @__PURE__ */ new Set(), n = [], o = Array.isArray(s) ? s : [];
   for (const l of o) {
-    const c = $u(l, { strict: e, errors: t, prefix: i, grantLabel: a });
+    const c = zu(l, { strict: e, errors: t, prefix: i, grantLabel: a });
     if (!c) continue;
     const u = _i(c);
     r.has(u) || (r.add(u), n.push(c));
   }
   return n;
 }
-function xo(s, { strict: e = !1, errors: t = [], prefix: i = "Entry" } = {}) {
-  const a = Du(s, { strict: e, errors: t, prefix: i });
+function Wo(s, { strict: e = !1, errors: t = [], prefix: i = "Entry" } = {}) {
+  const a = Lu(s, { strict: e, errors: t, prefix: i });
   return a.length ? [{
     id: "skill",
     label: "",
     choices: a.map((r) => ({ type: "skill", value: r }))
   }] : [];
 }
-function xu(s, { strict: e = !1, errors: t = [], prefix: i = "Entry" } = {}) {
+function Wu(s, { strict: e = !1, errors: t = [], prefix: i = "Entry" } = {}) {
   const a = String(s ?? "").trim();
   return a ? a.split(";").map((n) => n.trim()).filter(Boolean).map((n, o) => {
     const l = `Bonus ${o + 1}`, c = ja(
@@ -5728,10 +5728,10 @@ function xu(s, { strict: e = !1, errors: t = [], prefix: i = "Entry" } = {}) {
     };
   }).filter((n) => n.choices.length) : [];
 }
-function Bo(s, e = "grant") {
+function Ho(s, e = "grant") {
   return ns(s) || e;
 }
-function Bu(s, e, { strict: t = !1, errors: i = [], prefix: a = "Entry" } = {}) {
+function Hu(s, e, { strict: t = !1, errors: i = [], prefix: a = "Entry" } = {}) {
   const r = `grant-${e + 1}`, n = `Bonus ${e + 1}`;
   if (typeof s == "string") {
     const u = ja(
@@ -5740,42 +5740,42 @@ function Bu(s, e, { strict: t = !1, errors: i = [], prefix: a = "Entry" } = {}) 
     );
     return u.length ? { id: r, label: "", choices: u } : null;
   }
-  const o = Bo(s == null ? void 0 : s.id, r), l = String((s == null ? void 0 : s.label) ?? "").trim(), c = ja(s == null ? void 0 : s.choices, { strict: t, errors: i, prefix: a, grantLabel: n });
+  const o = Ho(s == null ? void 0 : s.id, r), l = String((s == null ? void 0 : s.label) ?? "").trim(), c = ja(s == null ? void 0 : s.choices, { strict: t, errors: i, prefix: a, grantLabel: n });
   return c.length ? { id: o, label: l, choices: c } : (t && i.push(`${a} ${n}: define at least one bonus choice.`), null);
 }
-function Fu(s, { strict: e = !1, errors: t = [], prefix: i = "Entry" } = {}) {
+function Uu(s, { strict: e = !1, errors: t = [], prefix: i = "Entry" } = {}) {
   if (Array.isArray(s)) {
     if (s.every((r) => typeof r == "string" && !String(r).includes(":")))
-      return xo(s, { strict: e, errors: t, prefix: i });
+      return Wo(s, { strict: e, errors: t, prefix: i });
     const a = /* @__PURE__ */ new Set();
-    return s.map((r, n) => Bu(r, n, { strict: e, errors: t, prefix: i })).filter((r) => r ? a.has(r.id) ? (e && t.push(`${i}: duplicate bonus id "${r.id}".`), !1) : (a.add(r.id), !0) : !1);
+    return s.map((r, n) => Hu(r, n, { strict: e, errors: t, prefix: i })).filter((r) => r ? a.has(r.id) ? (e && t.push(`${i}: duplicate bonus id "${r.id}".`), !1) : (a.add(r.id), !0) : !1);
   }
-  return typeof s == "string" ? xu(s, { strict: e, errors: t, prefix: i }) : [];
+  return typeof s == "string" ? Wu(s, { strict: e, errors: t, prefix: i }) : [];
 }
-function zu(s = []) {
+function ju(s = []) {
   return (Array.isArray(s) ? s : []).map((e) => (Array.isArray(e == null ? void 0 : e.choices) ? e.choices : []).map((i) => `${i.type}:${i.value}`).join("|")).filter(Boolean).join("; ");
 }
-function Dr() {
-  return foundry.utils.deepClone(Eu);
+function Or() {
+  return foundry.utils.deepClone(Ru);
 }
 function Li(s) {
-  return yu[s] ?? (String(s ?? "").trim() || "Life Module");
+  return wu[s] ?? (String(s ?? "").trim() || "Life Module");
 }
-function Fo() {
-  return Ys.map((s) => ({
+function Uo() {
+  return Qs.map((s) => ({
     value: s.moduleType,
     label: s.label
   }));
 }
 function gi(s = [], { strict: e = !1 } = {}) {
   const t = Array.isArray(s) ? s : [], i = [], a = /* @__PURE__ */ new Set(), r = t.map((o, l) => {
-    const c = `Entry ${l + 1}`, u = String((o == null ? void 0 : o.label) ?? "").trim(), d = ns((o == null ? void 0 : o.id) ?? u), m = Qs(o == null ? void 0 : o.moduleType), p = (o == null ? void 0 : o.grants) != null ? Fu(o.grants, { strict: e, errors: i, prefix: c }) : xo(o == null ? void 0 : o.skillChoices, { strict: e, errors: i, prefix: c }), f = Zr(o == null ? void 0 : o.requiresAny), h = Zr(o == null ? void 0 : o.excludesAny);
-    return !d && e && i.push(`${c}: id cannot be blank.`), !u && e && i.push(`${c}: label cannot be blank.`), !m && e && i.push(`${c}: choose a valid module type.`), !p.length && e && i.push(`${c}: choose at least one bonus.`), d && a.has(d) && e && i.push(`${c}: duplicate id "${d}".`), d && a.add(d), {
+    const c = `Entry ${l + 1}`, u = String((o == null ? void 0 : o.label) ?? "").trim(), d = ns((o == null ? void 0 : o.id) ?? u), m = Js(o == null ? void 0 : o.moduleType), f = (o == null ? void 0 : o.grants) != null ? Uu(o.grants, { strict: e, errors: i, prefix: c }) : Wo(o == null ? void 0 : o.skillChoices, { strict: e, errors: i, prefix: c }), p = sn(o == null ? void 0 : o.requiresAny), h = sn(o == null ? void 0 : o.excludesAny);
+    return !d && e && i.push(`${c}: id cannot be blank.`), !u && e && i.push(`${c}: label cannot be blank.`), !m && e && i.push(`${c}: choose a valid module type.`), !f.length && e && i.push(`${c}: choose at least one bonus.`), d && a.has(d) && e && i.push(`${c}: duplicate id "${d}".`), d && a.add(d), {
       id: d,
       label: u,
       moduleType: m,
-      grants: p,
-      requiresAny: f,
+      grants: f,
+      requiresAny: p,
       excludesAny: h
     };
   }), n = new Map(r.map((o) => [o.id, o]));
@@ -5785,7 +5785,7 @@ function gi(s = [], { strict: e = !1 } = {}) {
     for (const l of o.excludesAny)
       l === o.id && e && i.push(`${o.label || o.id}: cannot exclude itself.`), !n.has(l) && e && i.push(`${o.label || o.id}: unknown exclusion "${l}".`);
   }
-  if (e && i.length) throw Nu(i);
+  if (e && i.length) throw Ou(i);
   return r.filter((o) => o.id && o.label && o.moduleType && o.grants.length).map((o) => ({
     id: o.id,
     label: o.label,
@@ -5802,68 +5802,68 @@ function gi(s = [], { strict: e = !1 } = {}) {
     excludesAny: [...o.excludesAny]
   }));
 }
-function zo(s = []) {
-  const e = new Map(Dr().map((r) => [r.id, r])), t = gi(s, { strict: !1 }), i = [...t], a = new Set(t.map((r) => r.id));
+function jo(s = []) {
+  const e = new Map(Or().map((r) => [r.id, r])), t = gi(s, { strict: !1 }), i = [...t], a = new Set(t.map((r) => r.id));
   for (const [r, n] of e.entries())
     a.has(r) || i.push(foundry.utils.deepClone(n));
   return i;
 }
-async function Wu() {
+async function Gu() {
   var s, e, t;
   try {
     if (!((t = (e = (s = game == null ? void 0 : game.settings) == null ? void 0 : s.settings) == null ? void 0 : e.has) != null && t.call(e, `${T}.${Ri}`))) return;
-    const i = game.settings.get(T, Ri), a = zo(i);
+    const i = game.settings.get(T, Ri), a = jo(i);
     JSON.stringify(i) !== JSON.stringify(a) && await game.settings.set(T, Ri, a);
   } catch {
   }
 }
-function ju() {
+function qu() {
   var s, e, t;
   try {
     if ((t = (e = (s = game == null ? void 0 : game.settings) == null ? void 0 : s.settings) == null ? void 0 : e.has) != null && t.call(e, `${T}.${Ri}`))
-      return zo(game.settings.get(T, Ri));
+      return jo(game.settings.get(T, Ri));
   } catch {
   }
-  return Dr();
+  return Or();
 }
-function Xs() {
-  return gi(ju(), { strict: !1 });
+function Zs() {
+  return gi(qu(), { strict: !1 });
 }
 function Qt(s) {
   const e = ns(s);
-  return e ? Xs().find((t) => t.id === e) ?? null : null;
+  return e ? Zs().find((t) => t.id === e) ?? null : null;
 }
-function Ir(s) {
-  const e = Qs(s);
-  return Xs().filter((t) => t.moduleType === e);
+function _r(s) {
+  const e = Js(s);
+  return Zs().filter((t) => t.moduleType === e);
 }
-function Wo(s) {
+function Go(s) {
   return !s || typeof s != "object" || Array.isArray(s) ? {} : Object.fromEntries(
-    Object.entries(s).map(([e, t]) => [Bo(e, ""), String(t ?? "").trim()]).filter(([e]) => !!e)
+    Object.entries(s).map(([e, t]) => [Ho(e, ""), String(t ?? "").trim()]).filter(([e]) => !!e)
   );
 }
-function jo(s, e = "", { legacySelectedSkill: t = "" } = {}) {
+function qo(s, e = "", { legacySelectedSkill: t = "" } = {}) {
   const i = new Set((Array.isArray(s == null ? void 0 : s.choices) ? s.choices : []).map(_i)), a = String(e ?? "").trim();
   if (i.has(a)) return a;
   if (t) {
-    const r = Js(t), n = r ? `skill:${r}` : "";
+    const r = Xs(t), n = r ? `skill:${r}` : "";
     if (n && i.has(n)) return n;
   }
   return i.size === 1 ? Array.from(i)[0] : "";
 }
-function Uo(s, e = {}, { legacySelectedSkill: t = "" } = {}) {
-  const i = Array.isArray(s == null ? void 0 : s.grants) ? s.grants : [], a = Wo(e);
+function Vo(s, e = {}, { legacySelectedSkill: t = "" } = {}) {
+  const i = Array.isArray(s == null ? void 0 : s.grants) ? s.grants : [], a = Go(e);
   return Object.fromEntries(
     i.map((r) => [
       r.id,
-      jo(r, a[r.id], { legacySelectedSkill: t })
+      qo(r, a[r.id], { legacySelectedSkill: t })
     ])
   );
 }
-function Zs(s, e = {}, { legacySelectedSkill: t = "" } = {}) {
-  const i = Array.isArray(s == null ? void 0 : s.grants) ? s.grants : [], a = Uo(s, e, { legacySelectedSkill: t });
+function ea(s, e = {}, { legacySelectedSkill: t = "" } = {}) {
+  const i = Array.isArray(s == null ? void 0 : s.grants) ? s.grants : [], a = Vo(s, e, { legacySelectedSkill: t });
   return i.map((r, n) => {
-    const o = jo(r, a[r.id], { legacySelectedSkill: t }), l = (Array.isArray(r.choices) ? r.choices : []).find((c) => _i(c) === o) ?? null;
+    const o = qo(r, a[r.id], { legacySelectedSkill: t }), l = (Array.isArray(r.choices) ? r.choices : []).find((c) => _i(c) === o) ?? null;
     return {
       id: r.id,
       index: n,
@@ -5875,16 +5875,16 @@ function Zs(s, e = {}, { legacySelectedSkill: t = "" } = {}) {
     };
   });
 }
-function Uu(s, e = {}, { legacySelectedSkill: t = "" } = {}) {
+function Vu(s, e = {}, { legacySelectedSkill: t = "" } = {}) {
   var i;
-  return ((i = Zs(s, e, { legacySelectedSkill: t }).map((a) => a.choice).find((a) => (a == null ? void 0 : a.type) === "skill")) == null ? void 0 : i.value) ?? "";
+  return ((i = ea(s, e, { legacySelectedSkill: t }).map((a) => a.choice).find((a) => (a == null ? void 0 : a.type) === "skill")) == null ? void 0 : i.value) ?? "";
 }
 function ts(s = {}) {
-  const e = foundry.utils.deepClone(s ?? {}), t = ns(e.catalogId), i = t ? Qt(t) : null, a = Qs(e.moduleType || (i == null ? void 0 : i.moduleType)), r = i ? Uo(i, e.selectedGrants, { legacySelectedSkill: e.selectedSkill }) : Wo(e.selectedGrants);
-  return e.moduleType = a, e.catalogId = t, e.selectedGrants = r, e.selectedSkill = i ? Uu(i, r, { legacySelectedSkill: e.selectedSkill }) : Js(e.selectedSkill), e;
+  const e = foundry.utils.deepClone(s ?? {}), t = ns(e.catalogId), i = t ? Qt(t) : null, a = Js(e.moduleType || (i == null ? void 0 : i.moduleType)), r = i ? Vo(i, e.selectedGrants, { legacySelectedSkill: e.selectedSkill }) : Go(e.selectedGrants);
+  return e.moduleType = a, e.catalogId = t, e.selectedGrants = r, e.selectedSkill = i ? Vu(i, r, { legacySelectedSkill: e.selectedSkill }) : Xs(e.selectedSkill), e;
 }
-function Ho(s, e = {}, { legacySelectedSkill: t = "" } = {}) {
-  return Zs(s, e, { legacySelectedSkill: t }).map((i) => {
+function Ko(s, e = {}, { legacySelectedSkill: t = "" } = {}) {
+  return ea(s, e, { legacySelectedSkill: t }).map((i) => {
     var l, c;
     const a = Array.isArray((c = (l = s == null ? void 0 : s.grants) == null ? void 0 : l[i.index]) == null ? void 0 : c.choices) ? s.grants[i.index].choices : [], r = new Set(a.map((u) => u.type)).size > 1, n = a.map((u) => ({
       value: _i(u),
@@ -5906,37 +5906,37 @@ function Ho(s, e = {}, { legacySelectedSkill: t = "" } = {}) {
     };
   });
 }
-function Hu(s, e) {
-  return s.isDuplicate ? `Duplicate ${Li(s.moduleType)} slot item.` : s.catalog ? s.unresolvedGrantCount > 0 ? "Choose valid bonus options." : s.excludedBy.length ? `Blocked by ${en(s.excludedBy, e).join(", ")}.` : s.requiresAny.length && !s.matchedRequirementIds.length ? `Requires ${en(s.requiresAny, e).join(" or ")}.` : "" : "Catalog entry is missing or unlinked.";
+function Ku(s, e) {
+  return s.isDuplicate ? `Duplicate ${Li(s.moduleType)} slot item.` : s.catalog ? s.unresolvedGrantCount > 0 ? "Choose valid bonus options." : s.excludedBy.length ? `Blocked by ${an(s.excludedBy, e).join(", ")}.` : s.requiresAny.length && !s.matchedRequirementIds.length ? `Requires ${an(s.requiresAny, e).join(" or ")}.` : "" : "Catalog entry is missing or unlinked.";
 }
-function Gu(s, e = [], t = {}) {
+function Yu(s, e = [], t = {}) {
   var a, r, n;
   if (!s || !Array.isArray(e) || !e.length) return [];
   const i = Math.max(0, Number(((n = (r = (a = s.system) == null ? void 0 : a.attributes) == null ? void 0 : r.edge) == null ? void 0 : n.value) ?? 0));
   return e.filter((o) => (o == null ? void 0 : o.type) === "edgePool").map((o) => {
-    var f, h, g, y;
-    const l = String(o.value ?? "").trim(), c = $o(l), u = Math.max(0, Number(((y = (g = (h = (f = s.system) == null ? void 0 : f.counters) == null ? void 0 : h.edgePools) == null ? void 0 : g[l]) == null ? void 0 : y.rating) ?? 0)), d = Math.max(0, Number((t == null ? void 0 : t[l]) ?? 0)), m = Math.max(0, u + d - i);
+    var p, h, g, y;
+    const l = String(o.value ?? "").trim(), c = zo(l), u = Math.max(0, Number(((y = (g = (h = (p = s.system) == null ? void 0 : p.counters) == null ? void 0 : h.edgePools) == null ? void 0 : g[l]) == null ? void 0 : y.rating) ?? 0)), d = Math.max(0, Number((t == null ? void 0 : t[l]) ?? 0)), m = Math.max(0, u + d - i);
     return m ? `${c} Pool bonus loses ${m} ${m === 1 ? "point" : "points"} to the Edge cap.` : "";
   }).filter(Boolean);
 }
 function Jt(s) {
   var m;
-  const e = Xs(), t = new Map(e.map((p) => [p.id, p])), i = Array.from((s == null ? void 0 : s.items) ?? []).filter((p) => p.type === S.itemType.lifeModule), a = /* @__PURE__ */ new Map();
-  for (const p of i) {
-    const f = Qs((m = p.system) == null ? void 0 : m.moduleType);
-    !f || a.has(f) || a.set(f, p.id);
+  const e = Zs(), t = new Map(e.map((f) => [f.id, f])), i = Array.from((s == null ? void 0 : s.items) ?? []).filter((f) => f.type === S.itemType.lifeModule), a = /* @__PURE__ */ new Map();
+  for (const f of i) {
+    const p = Js((m = f.system) == null ? void 0 : m.moduleType);
+    !p || a.has(p) || a.set(p, f.id);
   }
-  const r = i.map((p) => {
-    var E;
-    const f = ts(p.system ?? {}), h = t.get(f.catalogId) ?? null, g = f.moduleType || (h == null ? void 0 : h.moduleType) || "", y = h ? Zs(h, f.selectedGrants, { legacySelectedSkill: f.selectedSkill }) : [], b = y.map((I) => I.choice).filter(Boolean), A = ((E = b.find((I) => I.type === "skill")) == null ? void 0 : E.value) ?? "", w = A ? at(A) : null;
+  const r = i.map((f) => {
+    var M;
+    const p = ts(f.system ?? {}), h = t.get(p.catalogId) ?? null, g = p.moduleType || (h == null ? void 0 : h.moduleType) || "", y = h ? ea(h, p.selectedGrants, { legacySelectedSkill: p.selectedSkill }) : [], b = y.map((I) => I.choice).filter(Boolean), A = ((M = b.find((I) => I.type === "skill")) == null ? void 0 : M.value) ?? "", w = A ? at(A) : null;
     return {
-      item: p,
-      itemId: p.id,
+      item: f,
+      itemId: f.id,
       moduleType: g,
-      catalogId: (h == null ? void 0 : h.id) ?? f.catalogId,
+      catalogId: (h == null ? void 0 : h.id) ?? p.catalogId,
       catalog: h,
-      label: (h == null ? void 0 : h.label) ?? p.name,
-      selectedGrants: f.selectedGrants,
+      label: (h == null ? void 0 : h.label) ?? f.name,
+      selectedGrants: p.selectedGrants,
       resolvedGrants: y,
       unresolvedGrantCount: y.filter((I) => !I.isResolved).length,
       selectedChoices: b,
@@ -5947,48 +5947,48 @@ function Jt(s) {
       excludesAny: [...(h == null ? void 0 : h.excludesAny) ?? []],
       matchedRequirementIds: [],
       excludedBy: [],
-      isDuplicate: g ? a.get(g) !== p.id : !1,
+      isDuplicate: g ? a.get(g) !== f.id : !1,
       isActive: !1,
       inactiveReason: "",
       bonus: 0
     };
   }), n = /* @__PURE__ */ new Map();
-  for (const p of r) {
-    if (!p.catalogId) continue;
-    const f = n.get(p.catalogId) ?? [];
-    f.push(p), n.set(p.catalogId, f);
+  for (const f of r) {
+    if (!f.catalogId) continue;
+    const p = n.get(f.catalogId) ?? [];
+    p.push(f), n.set(f.catalogId, p);
   }
-  for (const p of r)
-    p.excludedBy = p.excludesAny.filter((f) => (n.get(f) ?? []).length > 0);
+  for (const f of r)
+    f.excludedBy = f.excludesAny.filter((p) => (n.get(p) ?? []).length > 0);
   let o = !0;
   for (; o; ) {
     o = !1;
-    for (const p of r) {
-      const f = p.requiresAny.filter(
+    for (const f of r) {
+      const p = f.requiresAny.filter(
         (g) => (n.get(g) ?? []).some((y) => y.isActive)
-      ), h = !p.isDuplicate && !!p.catalog && p.unresolvedGrantCount === 0 && p.excludedBy.length === 0 && (p.requiresAny.length === 0 || f.length > 0);
-      p.isActive !== h && (p.isActive = h, o = !0), p.matchedRequirementIds.join("|") !== f.join("|") && (p.matchedRequirementIds = f);
+      ), h = !f.isDuplicate && !!f.catalog && f.unresolvedGrantCount === 0 && f.excludedBy.length === 0 && (f.requiresAny.length === 0 || p.length > 0);
+      f.isActive !== h && (f.isActive = h, o = !0), f.matchedRequirementIds.join("|") !== p.join("|") && (f.matchedRequirementIds = p);
     }
   }
-  const l = Object.fromEntries(ht.map((p) => [p.code, 0])), c = Object.fromEntries(_o.map((p) => [p, 0])), u = /* @__PURE__ */ new Map();
-  for (const p of r) {
-    const f = p.isActive ? p.selectedChoices : [], h = f.filter((y) => y.type === "skill"), g = f.filter((y) => y.type === "edgePool");
-    p.bonus = h.length;
+  const l = Object.fromEntries(ht.map((f) => [f.code, 0])), c = Object.fromEntries(Bo.map((f) => [f, 0])), u = /* @__PURE__ */ new Map();
+  for (const f of r) {
+    const p = f.isActive ? f.selectedChoices : [], h = p.filter((y) => y.type === "skill"), g = p.filter((y) => y.type === "edgePool");
+    f.bonus = h.length;
     for (const y of h)
       l[y.value] = Number(l[y.value] ?? 0) + 1;
     for (const y of g)
       c[y.value] = Number(c[y.value] ?? 0) + 1;
-    p.inactiveReason = p.isActive ? "" : Hu(p, t), u.set(p.itemId, p);
+    f.inactiveReason = f.isActive ? "" : Ku(f, t), u.set(f.itemId, f);
   }
-  for (const p of r)
-    p.warningLabels = p.isActive ? Gu(s, p.selectedChoices, c) : [];
-  const d = Ys.map((p) => {
-    const f = r.find((h) => h.moduleType === p.moduleType && !h.isDuplicate) ?? null;
+  for (const f of r)
+    f.warningLabels = f.isActive ? Yu(s, f.selectedChoices, c) : [];
+  const d = Qs.map((f) => {
+    const p = r.find((h) => h.moduleType === f.moduleType && !h.isDuplicate) ?? null;
     return {
-      moduleType: p.moduleType,
-      label: p.label,
-      availableEntries: e.filter((h) => h.moduleType === p.moduleType),
-      state: f
+      moduleType: f.moduleType,
+      label: f.label,
+      availableEntries: e.filter((h) => h.moduleType === f.moduleType),
+      state: p
     };
   });
   return {
@@ -6000,13 +6000,13 @@ function Jt(s) {
     bonusByEdgePool: c
   };
 }
-function qu(s = {}) {
+function Qu(s = {}) {
   var t, i, a;
   const e = String((s == null ? void 0 : s.intent) ?? "").trim();
   return e === "skill" ? String(((t = s == null ? void 0 : s.data) == null ? void 0 : t.skillKey) ?? "").trim() : e === "attack" ? String(((a = (i = s == null ? void 0 : s.attack) == null ? void 0 : i.skill) == null ? void 0 : a.code) ?? "").trim() : "";
 }
-function Vu({ actor: s, resolved: e } = {}) {
-  const t = qu(e);
+function Ju({ actor: s, resolved: e } = {}) {
+  const t = Qu(e);
   return !s || !t ? [] : Jt(s).states.flatMap(
     (i) => i.isActive ? i.selectedChoices.filter((a) => a.type === "skill" && a.value === t).map((a) => ({
       id: `life-module:${i.itemId}:${_i(a)}`,
@@ -6017,10 +6017,10 @@ function Vu({ actor: s, resolved: e } = {}) {
     })) : []
   );
 }
-const tn = Object.freeze({
+const rn = Object.freeze({
   weapon: S.itemType.personalWeapon,
   shadowamp: S.itemType.assetModule
-}), Go = Object.freeze({
+}), Yo = Object.freeze({
   contact: "systems/mwd/img/default/mystery-man.svg",
   gear: "systems/mwd/img/default/Default_Gear.svg",
   quality: "systems/mwd/img/default/card-joker.svg",
@@ -6030,7 +6030,7 @@ const tn = Object.freeze({
   mechWeapon: "systems/mwd/img/default/Default_Weapon.svg",
   personalWeapon: "systems/mwd/img/colt-m1911.svg",
   armor: "systems/mwd/img/default/Default_Armor.svg"
-}), mi = Object.freeze(["close", "near", "far", "extreme"]), sn = Object.freeze({
+}), mi = Object.freeze(["close", "near", "far", "extreme"]), nn = Object.freeze({
   none: { targets: 1, adjust: [0] },
   shotgun: { targets: 2, adjust: [0, -2] },
   circle: { targets: void 0 },
@@ -6041,11 +6041,11 @@ const tn = Object.freeze({
 function zi(s) {
   return Bi(s);
 }
-function an(s = {}) {
-  const e = qn({
+function on(s = {}) {
+  const e = Qn({
     traits: s.traits,
     keywords: s.keywords,
-    report: br(),
+    report: Ar(),
     path: "system.traits"
   });
   return {
@@ -6053,19 +6053,19 @@ function an(s = {}) {
     keywords: e.keywords
   };
 }
-function qo(s) {
+function Qo(s) {
   return s === "long" ? "extreme" : s === "short" ? "close" : s === "medium" ? "near" : mi.includes(s) ? s : "near";
 }
 function vi(s) {
   return {
-    max: qo((s == null ? void 0 : s.max) ?? "near"),
+    max: Qo((s == null ? void 0 : s.max) ?? "near"),
     close: Number((s == null ? void 0 : s.close) ?? (s == null ? void 0 : s.short) ?? 0) || 0,
     near: Number((s == null ? void 0 : s.near) ?? (s == null ? void 0 : s.medium) ?? 0) || 0,
     far: Number((s == null ? void 0 : s.far) ?? (s == null ? void 0 : s.long) ?? 0) || 0,
     extreme: Number((s == null ? void 0 : s.extreme) ?? 0) || 0
   };
 }
-function pa(s) {
+function fa(s) {
   return {
     close: Number((s == null ? void 0 : s.close) ?? (s == null ? void 0 : s.short) ?? 0) || 0,
     near: Number((s == null ? void 0 : s.near) ?? (s == null ? void 0 : s.medium) ?? 0) || 0,
@@ -6073,30 +6073,30 @@ function pa(s) {
     extreme: Number((s == null ? void 0 : s.extreme) ?? 0) || 0
   };
 }
-function rn(s, e = 1) {
+function ln(s, e = 1) {
   const t = Number(s);
   return Number.isFinite(t) ? Math.max(0, Math.trunc(t)) : Math.max(0, Math.trunc(Number(e) || 0));
 }
-function nn(s, e = 0) {
+function cn(s, e = 0) {
   const t = Number(s);
   return Number.isFinite(t) ? Math.max(0, Math.trunc(t)) : Math.max(0, Math.trunc(Number(e) || 0));
 }
-function on(s) {
+function un(s) {
   return String(s ?? "").trim();
 }
-function ln(s) {
+function dn(s) {
   return (Array.isArray(s) ? s : typeof s == "string" ? s.split(",") : []).map((t) => String(t ?? "").trim()).filter(Boolean);
 }
-function Ku(s) {
+function Xu(s) {
   const e = mi.indexOf(s);
   return e >= 0 ? e : mi.indexOf("near");
 }
-function Yu(s = vi({})) {
-  const e = ["near", "close", "far", "extreme"], t = Ku(s.max);
+function Zu(s = vi({})) {
+  const e = ["near", "close", "far", "extreme"], t = Xu(s.max);
   return e.find((i) => mi.indexOf(i) <= t) ?? "close";
 }
-function Qu(s) {
-  const e = qo(s == null ? void 0 : s.max), t = mi.indexOf(e);
+function ed(s) {
+  const e = Qo(s == null ? void 0 : s.max), t = mi.indexOf(e);
   return mi.map((i, a) => ({
     key: i,
     allowed: t >= 0 ? a <= t : a === 0,
@@ -6104,27 +6104,27 @@ function Qu(s) {
     labelkey: ie.getFromList(ie.getEnums().ranges, i)
   }));
 }
-function Ju(s, e, t, i) {
+function td(s, e, t, i) {
   let a = Number(e);
   if (t)
     if (i !== void 0)
       a += Math.ceil(Number(i) / 2);
     else
-      return console.warn("Weapon not attached to an actor"), ge.item.personalWeapon.weaponWithoutActor;
+      return console.warn("Weapon not attached to an actor"), ye.item.personalWeapon.weaponWithoutActor;
   return a;
 }
-function Xu(s, e, t) {
+function id(s, e, t) {
   let i = "";
-  return t && ge.attributes[t] && (i += ge.attributes[t].substring(0, 3).toUpperCase() + "/2 + "), i += String(e), i;
+  return t && ye.attributes[t] && (i += ye.attributes[t].substring(0, 3).toUpperCase() + "/2 + "), i += String(e), i;
 }
-function Zu(s, e) {
-  return L.useArmor(s) ? e ? "noArmor" : "withArmor" : "";
+function sd(s, e) {
+  return _.useArmor(s) ? e ? "noArmor" : "withArmor" : "";
 }
-function cn(s) {
+function mn(s) {
   const e = game.system.mwd.skills.get(s);
   if (!e)
     return {
-      img: Go.skill,
+      img: Yo.skill,
       system: {
         code: s,
         attribute: ""
@@ -6139,47 +6139,47 @@ function cn(s) {
   };
   return e.code !== "knowledge" && (t.name = e.label), t;
 }
-function fa(s = {}) {
+function ha(s = {}) {
   const e = ts(s), t = Qt(e.catalogId);
   return {
     system: e,
     ...t ? { name: t.label } : {}
   };
 }
-function ed(s) {
+function ad(s) {
   const e = String(s ?? "").trim();
   return !!(!e || e.startsWith("icons/svg/") || e === "icons/mystery-man.svg");
 }
-var ss, rt, Ua, Vo, Es;
-const $e = class $e extends Item {
+var ss, rt, Ga, Jo, Cs;
+const Le = class Le extends Item {
   static init() {
-    B(this, ss) || (Pe(this, ss, !0), Hooks.on("createItem", (e, t, i) => {
+    F(this, ss) || (Pe(this, ss, !0), Hooks.on("createItem", (e, t, i) => {
       var a, r;
       Promise.resolve((a = e.onCreateItem) == null ? void 0 : a.call(e, t, i)).catch((n) => {
-        console.error(`${le}Item create hook failed`, n);
-      }), M(r = $e, rt, Ua).call(r, e);
+        console.error(`${ue}Item create hook failed`, n);
+      }), E(r = Le, rt, Ga).call(r, e);
     }), Hooks.on("updateItem", (e) => {
       var t;
-      M(t = $e, rt, Ua).call(t, e);
+      E(t = Le, rt, Ga).call(t, e);
     }), Hooks.on("deleteItem", (e) => {
       var t;
-      M(t = $e, rt, Vo).call(t, e);
+      E(t = Le, rt, Jo).call(t, e);
     }), Hooks.on("createActiveEffect", (e) => {
       var t;
-      M(t = $e, rt, Es).call(t, e);
+      E(t = Le, rt, Cs).call(t, e);
     }), Hooks.on("updateActiveEffect", (e) => {
       var t;
-      M(t = $e, rt, Es).call(t, e);
+      E(t = Le, rt, Cs).call(t, e);
     }), Hooks.on("deleteActiveEffect", (e) => {
       var t;
-      M(t = $e, rt, Es).call(t, e);
+      E(t = Le, rt, Cs).call(t, e);
     }));
   }
   static canonicalType(e) {
-    return tn[e] ?? e;
+    return rn[e] ?? e;
   }
   static defaultIconForType(e) {
-    return Go[this.canonicalType(e)];
+    return Yo[this.canonicalType(e)];
   }
   get canonicalType() {
     return this.constructor.canonicalType(this.type);
@@ -6189,12 +6189,12 @@ const $e = class $e extends Item {
   async _preCreate(e, t, i) {
     super._preCreate && await super._preCreate(e, t, i);
     const a = (e == null ? void 0 : e.type) ?? this.type, r = this.constructor.canonicalType(a), n = {};
-    if (a !== r && tn[a] && (n.type = r), ed((e == null ? void 0 : e.img) ?? this.img)) {
+    if (a !== r && rn[a] && (n.type = r), ad((e == null ? void 0 : e.img) ?? this.img)) {
       const o = this.constructor.defaultIconForType(r);
       o && (n.img = o);
     }
     if (r === S.itemType.lifeModule && (!(e != null && e.name) || e.name === "DOCUMENT.Item") && (n.name = "MWD.itemType.singular.lifeModule"), r === S.itemType.lifeModule) {
-      const o = fa((e == null ? void 0 : e.system) ?? this.system ?? {});
+      const o = ha((e == null ? void 0 : e.system) ?? this.system ?? {});
       n.system = o.system, o.name && (!(e != null && e.name) || e.name === "DOCUMENT.Item") && (n.name = o.name);
     }
     Object.keys(n).length && this.updateSource(n);
@@ -6205,19 +6205,19 @@ const $e = class $e extends Item {
     const a = e != null && e.system ? foundry.utils.mergeObject(foundry.utils.deepClone(this.system ?? {}), foundry.utils.deepClone(e.system), { inplace: !1 }) : null;
     if (a && this.isPersonalWeapon()) {
       e.system ?? (e.system = {});
-      const u = a.ammo, d = an(a);
-      e.system.standardTraits = [], e.system.payloads = At(a.payloads, { legacyAmmo: u, category: a.category }), e.system.consumptionSources = ji(a.consumptionSources, { legacyAmmo: u }), e.system.selectedPayloadId = ki(
+      const u = a.ammo, d = on(a);
+      e.system.standardTraits = [], e.system.payloads = At(a.payloads, { legacyAmmo: u, category: a.category }), e.system.consumptionSources = Hi(a.consumptionSources, { legacyAmmo: u }), e.system.selectedPayloadId = ki(
         a.selectedPayloadId,
         e.system.payloads,
         { legacyAmmo: u, category: a.category }
-      ), e.system.traits = d.traits, e.system.keywords = d.keywords, e.system.resolution = Ts(a.resolution, "standard"), e.system.fireModes = ks(a.fireModes), e.system.attackRatingBand = pa(a.attackRatingBand), e.system.range = vi(a.range), e.system.damageType = pt(a.damageType), e.system["-=ammo"] = null, delete e.system.ammo;
+      ), e.system.traits = d.traits, e.system.keywords = d.keywords, e.system.resolution = ks(a.resolution, "standard"), e.system.fireModes = vs(a.fireModes), e.system.attackRatingBand = fa(a.attackRatingBand), e.system.range = vi(a.range), e.system.damageType = pt(a.damageType), e.system["-=ammo"] = null, delete e.system.ammo;
     }
-    if (a && this.isArmor() && (e.system ?? (e.system = {}), e.system.mitigationByType = mt(a.mitigationByType ?? a.mitigation), e.system.tags = ws(a.tags), e.system.traits = zi(a.traits), e.system.standardTraits = St(a.standardTraits), e.system.traitState = oa({
+    if (a && this.isArmor() && (e.system ?? (e.system = {}), e.system.mitigationByType = mt(a.mitigationByType ?? a.mitigation), e.system.tags = Ts(a.tags), e.system.traits = zi(a.traits), e.system.standardTraits = St(a.standardTraits), e.system.traitState = la({
       standardTraits: e.system.standardTraits,
       traits: e.system.traits,
       traitState: a.traitState
     }).traitState), a && this.isLifeModule()) {
-      const u = fa(a);
+      const u = ha(a);
       e.system ?? (e.system = {}), foundry.utils.mergeObject(e.system, u.system, { inplace: !0, overwrite: !0 }), u.name && (e.name = u.name);
       return;
     }
@@ -6228,7 +6228,7 @@ const $e = class $e extends Item {
       return;
     }
     if (a && this.isGear()) {
-      e.system ?? (e.system = {}), e.system.quantity = rn(a.quantity, 1), e.system.rating = nn(a.rating, 0), e.system.category = on(a.category), e.system.tags = ln(a.tags);
+      e.system ?? (e.system = {}), e.system.quantity = ln(a.quantity, 1), e.system.rating = cn(a.rating, 0), e.system.category = un(a.category), e.system.tags = dn(a.tags);
       return;
     }
     if (!this.isSkill()) return;
@@ -6236,7 +6236,7 @@ const $e = class $e extends Item {
     if (r === void 0) return;
     const n = this.system.code;
     if (r === n) return;
-    const o = cn(r);
+    const o = mn(r);
     o && ((c = o == null ? void 0 : o.system) == null || delete c.code, foundry.utils.mergeObject(e, o, { inplace: !0 }));
   }
   prepareBaseData() {
@@ -6246,23 +6246,23 @@ const $e = class $e extends Item {
   }
   _preparePersonalWeaponBaseData() {
     const e = this.system ?? {}, t = e.ammo;
-    e.equipped = !!e.equipped, e.isPrimary = !!e.isPrimary, e.category = String(e.category ?? e.weaponCategory ?? "ranged").trim() || "ranged", e.skill = String(e.skill ?? "firearms").trim() || "firearms", e.ap = Number(e.ap ?? e.armorPiercing ?? 0) || 0, e.damage = Number(e.damage ?? 0) || 0, e.damageType = pt(e.damageType), e.attackRatingBand = pa(e.attackRatingBand), e.range = vi(e.range);
-    const i = an(e);
-    e.standardTraits = [], e.traits = i.traits, e.keywords = i.keywords, e.resolution = Ts(e.resolution, "standard"), e.fireModes = ks(e.fireModes), e.payloads = At(e.payloads, { legacyAmmo: t, category: e.category }), e.consumptionSources = ji(e.consumptionSources, { legacyAmmo: t }), e.selectedPayloadId = ki(e.selectedPayloadId, e.payloads, { legacyAmmo: t, category: e.category }), delete e.ammo, e.notes = String(e.notes ?? "").trim();
+    e.equipped = !!e.equipped, e.isPrimary = !!e.isPrimary, e.category = String(e.category ?? e.weaponCategory ?? "ranged").trim() || "ranged", e.skill = String(e.skill ?? "firearms").trim() || "firearms", e.ap = Number(e.ap ?? e.armorPiercing ?? 0) || 0, e.damage = Number(e.damage ?? 0) || 0, e.damageType = pt(e.damageType), e.attackRatingBand = fa(e.attackRatingBand), e.range = vi(e.range);
+    const i = on(e);
+    e.standardTraits = [], e.traits = i.traits, e.keywords = i.keywords, e.resolution = ks(e.resolution, "standard"), e.fireModes = vs(e.fireModes), e.payloads = At(e.payloads, { legacyAmmo: t, category: e.category }), e.consumptionSources = Hi(e.consumptionSources, { legacyAmmo: t }), e.selectedPayloadId = ki(e.selectedPayloadId, e.payloads, { legacyAmmo: t, category: e.category }), delete e.ammo, e.notes = String(e.notes ?? "").trim();
   }
   _prepareArmorBaseData() {
     const e = this.system ?? {};
     e.equipped = !!e.equipped, e.isPrimary = !!e.isPrimary, e.rating = Math.max(0, Number(e.rating ?? 0)), e.defenseBonus = Number(e.defenseBonus ?? 0) || 0, e.mitigationByType = mt(e.mitigationByType ?? e.mitigation), delete e.mitigation, e.durability ?? (e.durability = {}), e.durability.max = Math.max(0, Number(e.durability.max ?? e.rating ?? 0)), e.durability.current = Math.min(
       e.durability.max,
       Math.max(0, Number(e.durability.current ?? e.durability.max ?? e.rating ?? 0))
-    ), e.standardTraits = St(e.standardTraits), e.tags = ws(e.tags), e.traits = zi(e.traits), e.traitState = oa({
+    ), e.standardTraits = St(e.standardTraits), e.tags = Ts(e.tags), e.traits = zi(e.traits), e.traitState = la({
       standardTraits: e.standardTraits,
       traits: e.traits,
       traitState: e.traitState
     }).traitState, e.notes = String(e.notes ?? "").trim();
   }
   _prepareLifeModuleBaseData() {
-    const e = fa(this.system ?? {});
+    const e = ha(this.system ?? {});
     foundry.utils.mergeObject(this.system, e.system, { inplace: !0, overwrite: !0 });
   }
   _prepareQualityBaseData() {
@@ -6271,7 +6271,7 @@ const $e = class $e extends Item {
   }
   _prepareGearBaseData() {
     const e = this.system ?? {};
-    e.quantity = rn(e.quantity, 1), e.rating = nn(e.rating, 0), e.category = on(e.category), e.tags = ln(e.tags);
+    e.quantity = ln(e.quantity, 1), e.rating = cn(e.rating, 0), e.category = un(e.category), e.tags = dn(e.tags);
   }
   getAttributes() {
     return [];
@@ -6322,7 +6322,7 @@ const $e = class $e extends Item {
   getSyncedActorEffects({ actor: e = this.actor } = {}) {
     return e != null && e.effects ? e.effects.contents.filter((t) => {
       var a, r;
-      const i = (r = (a = t.flags) == null ? void 0 : a[T]) == null ? void 0 : r[$e.EQUIPPED_EFFECT_FLAG];
+      const i = (r = (a = t.flags) == null ? void 0 : a[T]) == null ? void 0 : r[Le.EQUIPPED_EFFECT_FLAG];
       return (i == null ? void 0 : i.sourceItemId) === this.id;
     }) : [];
   }
@@ -6331,7 +6331,7 @@ const $e = class $e extends Item {
     return !t.length || !e ? [] : e.deleteEmbeddedDocuments("ActiveEffect", t.map((i) => i.id));
   }
   async syncEquippedActorEffects({ actor: e = this.actor } = {}) {
-    var m, p, f, h;
+    var m, f, p, h;
     if (!e || !this.supportsEquippedEffectSync()) return { created: [], updated: [], deleted: [] };
     const t = this.getSyncedActorEffects({ actor: e }), i = Array.from(((m = this.effects) == null ? void 0 : m.contents) ?? []);
     if (!this.shouldApplyEquippedEffects()) {
@@ -6341,7 +6341,7 @@ const $e = class $e extends Item {
     }
     const a = /* @__PURE__ */ new Map();
     for (const g of t) {
-      const y = (h = (f = (p = g.flags) == null ? void 0 : p[T]) == null ? void 0 : f[$e.EQUIPPED_EFFECT_FLAG]) == null ? void 0 : h.sourceEffectId;
+      const y = (h = (p = (f = g.flags) == null ? void 0 : f[T]) == null ? void 0 : p[Le.EQUIPPED_EFFECT_FLAG]) == null ? void 0 : h.sourceEffectId;
       if (!y) continue;
       const b = a.get(y) ?? [];
       b.push(g), a.set(y, b);
@@ -6367,7 +6367,7 @@ const $e = class $e extends Item {
     const i = String(e.name ?? "Effect").trim() || "Effect", a = String(this.name ?? "Item").trim() || "Item", r = i.startsWith(a) ? i : `${a}: ${i}`;
     return t.name = r, t.transfer = !1, t.origin = e.uuid ?? this.uuid ?? t.origin ?? null, t.flags = foundry.utils.mergeObject(t.flags ?? {}, {
       [T]: {
-        [$e.EQUIPPED_EFFECT_FLAG]: {
+        [Le.EQUIPPED_EFFECT_FLAG]: {
           synced: !0,
           sourceItemId: this.id,
           sourceItemUuid: this.uuid ?? null,
@@ -6384,10 +6384,10 @@ const $e = class $e extends Item {
     this.parent && await ut.itemAttributeRoll(this, e);
   }
   async switchMonitorCheck(e, t, i, a = void 0) {
-    await L.switchMonitorCheck(this.parent, e, t, i, a, this);
+    await _.switchMonitorCheck(this.parent, e, t, i, a, this);
   }
   async setCounter(e, t) {
-    await L.setCounter(this, e, t);
+    await _.setCounter(this, e, t);
   }
   async createModifier(e = {}) {
     e = foundry.utils.mergeObject(e, {
@@ -6536,7 +6536,7 @@ const $e = class $e extends Item {
         legacyAmmo: (r = this.system) == null ? void 0 : r.ammo,
         category: ((n = this.system) == null ? void 0 : n.category) ?? ((o = this.system) == null ? void 0 : o.weaponCategory)
       })
-    )).map(Ve), i = ki((l = this.system) == null ? void 0 : l.selectedPayloadId, t, {
+    )).map(qe), i = ki((l = this.system) == null ? void 0 : l.selectedPayloadId, t, {
       category: ((c = this.system) == null ? void 0 : c.category) ?? ((u = this.system) == null ? void 0 : u.weaponCategory)
     });
     await this.update({
@@ -6548,7 +6548,7 @@ const $e = class $e extends Item {
   async _mutateConsumptionSources(e = (t) => t) {
     var i, a;
     const t = e(foundry.utils.deepClone(
-      ji((i = this.system) == null ? void 0 : i.consumptionSources, { legacyAmmo: (a = this.system) == null ? void 0 : a.ammo })
+      Hi((i = this.system) == null ? void 0 : i.consumptionSources, { legacyAmmo: (a = this.system) == null ? void 0 : a.ammo })
     )).map(kt);
     await this.update({
       "system.consumptionSources": t,
@@ -6556,10 +6556,10 @@ const $e = class $e extends Item {
     });
   }
   async updatePayloadField(e, t, i) {
-    String(e ?? "").trim() !== "unloaded" && await this._mutatePayloads((a) => a.map((r) => r.id !== e ? r : (foundry.utils.setProperty(r, t, i), Ve(r))));
+    String(e ?? "").trim() !== "unloaded" && await this._mutatePayloads((a) => a.map((r) => r.id !== e ? r : (foundry.utils.setProperty(r, t, i), qe(r))));
   }
   async createPayload(e = {}) {
-    await this._mutatePayloads((t) => t.concat([Ve({
+    await this._mutatePayloads((t) => t.concat([qe({
       id: e.id ?? foundry.utils.randomID(),
       label: e.label ?? e.name ?? "Payload",
       compatibleWith: e.compatibleWith ?? [],
@@ -6592,13 +6592,13 @@ const $e = class $e extends Item {
       id: t.id ?? foundry.utils.randomID(),
       key: t.key ?? "armorPiercing",
       rating: Math.max(0, Number(t.rating ?? 0) || 0)
-    }]), Ve(a))));
+    }]), qe(a))));
   }
   async deletePayloadStandardTrait(e, t) {
-    String(e ?? "").trim() !== "unloaded" && await this._mutatePayloads((i) => i.map((a) => a.id !== e ? a : (a.modifies ?? (a.modifies = {}), a.modifies.standardTraits = ri(a.modifies.standardTraits).filter((r) => r.id !== t), Ve(a))));
+    String(e ?? "").trim() !== "unloaded" && await this._mutatePayloads((i) => i.map((a) => a.id !== e ? a : (a.modifies ?? (a.modifies = {}), a.modifies.standardTraits = ri(a.modifies.standardTraits).filter((r) => r.id !== t), qe(a))));
   }
   async updatePayloadStandardTrait(e, t, i, a) {
-    String(e ?? "").trim() !== "unloaded" && await this._mutatePayloads((r) => r.map((n) => n.id !== e ? n : (n.modifies ?? (n.modifies = {}), n.modifies.standardTraits = ri(n.modifies.standardTraits).map((o) => (o.id !== t || (i === "key" && (o.key = a), i === "rating" && (o.rating = Math.max(0, Number(a ?? 0) || 0))), o)), Ve(n))));
+    String(e ?? "").trim() !== "unloaded" && await this._mutatePayloads((r) => r.map((n) => n.id !== e ? n : (n.modifies ?? (n.modifies = {}), n.modifies.standardTraits = ri(n.modifies.standardTraits).map((o) => (o.id !== t || (i === "key" && (o.key = a), i === "rating" && (o.rating = Math.max(0, Number(a ?? 0) || 0))), o)), qe(n))));
   }
   async createConsumptionSource(e = {}) {
     await this._mutateConsumptionSources((t) => t.concat([kt({
@@ -6612,7 +6612,7 @@ const $e = class $e extends Item {
   async deleteConsumptionSource(e) {
     await this._mutateConsumptionSources((t) => t.filter((i) => i.id !== e)), await this._mutatePayloads((t) => t.map((i) => {
       var a;
-      return ((a = i == null ? void 0 : i.consumption) == null ? void 0 : a.sourceId) !== e ? i : (i.consumption.sourceId = "", Ve(i));
+      return ((a = i == null ? void 0 : i.consumption) == null ? void 0 : a.sourceId) !== e ? i : (i.consumption.sourceId = "", qe(i));
     }));
   }
   async updateConsumptionSourceField(e, t, i) {
@@ -6620,7 +6620,7 @@ const $e = class $e extends Item {
   }
   getPayloadState({ payloadId: e = "", ammoTypeId: t = "" } = {}) {
     var i, a, r, n, o;
-    return Ia({
+    return _a({
       payloads: (i = this.system) == null ? void 0 : i.payloads,
       selectedPayloadId: (a = this.system) == null ? void 0 : a.selectedPayloadId,
       consumptionSources: (r = this.system) == null ? void 0 : r.consumptionSources,
@@ -6630,8 +6630,8 @@ const $e = class $e extends Item {
     });
   }
   getActivePayloadReloadState({ payloadId: e = "", ammoTypeId: t = "", user: i = game.user } = {}) {
-    var f, h, g;
-    const a = String(((f = this.system) == null ? void 0 : f.category) ?? ((h = this.system) == null ? void 0 : h.weaponCategory) ?? "").trim().toLowerCase(), r = {
+    var p, h, g;
+    const a = String(((p = this.system) == null ? void 0 : p.category) ?? ((h = this.system) == null ? void 0 : h.weaponCategory) ?? "").trim().toLowerCase(), r = {
       canReload: !1,
       reason: "",
       payloadLabel: "",
@@ -6649,7 +6649,7 @@ const $e = class $e extends Item {
       return { ...r, reason: "Reload is only available for weapons owned by an actor." };
     if (a === "melee")
       return { ...r, reason: "Melee weapons do not use reloadable payloads." };
-    const n = this.getPayloadState({ payloadId: e || t }), o = (n == null ? void 0 : n.sourceState) ?? null, l = (n == null ? void 0 : n.source) ?? null, c = String((n == null ? void 0 : n.activePayloadId) ?? "").trim(), u = String((n == null ? void 0 : n.payloadLabel) ?? "").trim() || "Unloaded", d = Math.max(0, Number((o == null ? void 0 : o.current) ?? 0) || 0), m = Math.max(0, Number((o == null ? void 0 : o.max) ?? 0) || 0), p = !!((g = re.getCombat(this.actor)) != null && g.combatant);
+    const n = this.getPayloadState({ payloadId: e || t }), o = (n == null ? void 0 : n.sourceState) ?? null, l = (n == null ? void 0 : n.source) ?? null, c = String((n == null ? void 0 : n.activePayloadId) ?? "").trim(), u = String((n == null ? void 0 : n.payloadLabel) ?? "").trim() || "Unloaded", d = Math.max(0, Number((o == null ? void 0 : o.current) ?? 0) || 0), m = Math.max(0, Number((o == null ? void 0 : o.max) ?? 0) || 0), f = !!((g = re.getCombat(this.actor)) != null && g.combatant);
     return !c || c === "unloaded" ? {
       ...r,
       reason: "Select a payload before reloading.",
@@ -6660,7 +6660,7 @@ const $e = class $e extends Item {
       sourceState: o,
       current: d,
       max: m,
-      inCombat: p
+      inCombat: f
     } : o != null && o.isTracked ? o.kind !== "internal" ? {
       ...r,
       reason: "Linked ammo sources are read-only from the weapon sheet.",
@@ -6671,7 +6671,7 @@ const $e = class $e extends Item {
       sourceState: o,
       current: d,
       max: m,
-      inCombat: p
+      inCombat: f
     } : m <= 0 ? {
       ...r,
       reason: "This payload source has no reloadable capacity.",
@@ -6682,8 +6682,8 @@ const $e = class $e extends Item {
       sourceState: o,
       current: d,
       max: m,
-      inCombat: p
-    } : p && !(i != null && i.isGM) ? {
+      inCombat: f
+    } : f && !(i != null && i.isGM) ? {
       ...r,
       reason: "Only a GM can reload from the weapon sheet during combat.",
       payloadLabel: u,
@@ -6693,7 +6693,7 @@ const $e = class $e extends Item {
       sourceState: o,
       current: d,
       max: m,
-      inCombat: p
+      inCombat: f
     } : d >= m ? {
       ...r,
       reason: "Magazine already full.",
@@ -6704,7 +6704,7 @@ const $e = class $e extends Item {
       sourceState: o,
       current: d,
       max: m,
-      inCombat: p
+      inCombat: f
     } : {
       canReload: !0,
       reason: "",
@@ -6715,7 +6715,7 @@ const $e = class $e extends Item {
       sourceState: o,
       current: d,
       max: m,
-      inCombat: p
+      inCombat: f
     } : {
       ...r,
       reason: "This payload is untracked and does not need to be reloaded.",
@@ -6726,7 +6726,7 @@ const $e = class $e extends Item {
       sourceState: o,
       current: d,
       max: m,
-      inCombat: p
+      inCombat: f
     };
   }
   canReloadActivePayload({ detailed: e = !1, ...t } = {}) {
@@ -6818,18 +6818,18 @@ const $e = class $e extends Item {
   }
   getCombatProfile({ payloadId: e = "", ammoTypeId: t = "" } = {}) {
     if (!this.isPersonalWeapon()) return null;
-    const i = this.system ?? {}, a = vi(i.range), r = String(i.skill ?? "").trim(), n = at(r), o = Number(i.damage ?? 0) || 0, l = String(i.category ?? i.weaponCategory ?? "ranged").trim() || "ranged", c = cc({
+    const i = this.system ?? {}, a = vi(i.range), r = String(i.skill ?? "").trim(), n = at(r), o = Number(i.damage ?? 0) || 0, l = String(i.category ?? i.weaponCategory ?? "ranged").trim() || "ranged", c = pc({
       damageType: i.damageType,
       ap: Number(i.ap ?? i.armorPiercing ?? 0) || 0,
-      attackRatingBand: pa(i.attackRatingBand),
+      attackRatingBand: fa(i.attackRatingBand),
       traits: zi(i.traits),
-      keywords: Ql(i.keywords),
+      keywords: ec(i.keywords),
       standardTraits: [],
-      resolution: Ts(i.resolution, "standard"),
-      fireModes: ks(i.fireModes),
+      resolution: ks(i.resolution, "standard"),
+      fireModes: vs(i.fireModes),
       payloads: At(i.payloads, { legacyAmmo: i.ammo, category: l }),
       selectedPayloadId: ki(i.selectedPayloadId, i.payloads, { legacyAmmo: i.ammo, category: l }),
-      consumptionSources: ji(i.consumptionSources, { legacyAmmo: i.ammo }),
+      consumptionSources: Hi(i.consumptionSources, { legacyAmmo: i.ammo }),
       payloadId: e || t,
       actor: this.actor ?? null,
       category: l
@@ -6879,11 +6879,11 @@ const $e = class $e extends Item {
     const t = this.system ?? {}, i = Math.max(0, Number(t.rating ?? 0)), a = Math.max(0, Number(((d = t == null ? void 0 : t.durability) == null ? void 0 : d.max) ?? i)), r = Math.min(
       a,
       Math.max(0, Number(((m = t == null ? void 0 : t.durability) == null ? void 0 : m.current) ?? a))
-    ), n = Math.min(i, r), o = mt((t == null ? void 0 : t.mitigationByType) ?? (t == null ? void 0 : t.mitigation)), l = oa({
+    ), n = Math.min(i, r), o = mt((t == null ? void 0 : t.mitigationByType) ?? (t == null ? void 0 : t.mitigation)), l = la({
       standardTraits: St(t == null ? void 0 : t.standardTraits),
       traits: zi(t == null ? void 0 : t.traits),
       traitState: t == null ? void 0 : t.traitState
-    }), c = ws(t == null ? void 0 : t.tags), u = Sr(n);
+    }), c = Ts(t == null ? void 0 : t.tags), u = wr(n);
     return {
       id: this.id ?? "armor",
       uuid: this.uuid ?? null,
@@ -6901,7 +6901,7 @@ const $e = class $e extends Item {
       remainingDurability: r,
       baseMitigation: u,
       baseResistance: u,
-      mitigationByType: no(o, l.mitigationByType),
+      mitigationByType: uo(o, l.mitigationByType),
       tags: c,
       isDestroyed: r <= 0,
       durability: {
@@ -6910,7 +6910,7 @@ const $e = class $e extends Item {
       },
       traitState: l.traitState,
       standardTraits: St(t.standardTraits),
-      traits: uc({
+      traits: fc({
         traits: zi(t.traits),
         standardTraits: St(t.standardTraits)
       }),
@@ -6918,7 +6918,7 @@ const $e = class $e extends Item {
     };
   }
   getDefaultRangeBand(e = vi(((t) => (t = this.system) == null ? void 0 : t.range)())) {
-    return Yu(e);
+    return Zu(e);
   }
   isWeaponSkill(e) {
     return ((e == null ? void 0 : e.canonicalType) ?? (e == null ? void 0 : e.type)) === S.itemType.skill && e.system.code === this.system.skill;
@@ -6928,21 +6928,21 @@ const $e = class $e extends Item {
     const e = (i = this.actor) == null ? void 0 : i.items.find((a) => this.isWeaponSkill(a));
     if (e) return e;
     const t = game.items.find((a) => this.isWeaponSkill(a));
-    return t || cn(this.system.skill);
+    return t || mn(this.system.skill);
   }
   getDefense() {
     if (!this.isPersonalWeapon())
-      return this.system.defense ? be.fixedDefenseCode(this.system.defense) : void 0;
+      return this.system.defense ? Se.fixedDefenseCode(this.system.defense) : void 0;
     if (this.system.defense)
-      return be.fixedDefenseCode(this.system.defense);
+      return Se.fixedDefenseCode(this.system.defense);
     const e = at(String(this.system.skill ?? "").trim());
-    return e != null && e.defense ? be.fixedDefenseCode(e.defense) : void 0;
+    return e != null && e.defense ? Se.fixedDefenseCode(e.defense) : void 0;
   }
   getDamage() {
     if (!this.parent) return;
     const e = this._getMonitor(), t = this.system.damageAttribute ? this.parent.getAttributeValue(this.system.damageAttribute) ?? 0 : 0, i = this.isPersonalWeapon() ? this.getCombatProfile() : null;
     return {
-      value: Ju(
+      value: td(
         e,
         this.system.damage,
         this.system.damageAttribute,
@@ -6952,11 +6952,11 @@ const $e = class $e extends Item {
       damageType: (i == null ? void 0 : i.damageType) ?? this.system.damageType,
       damageTypeLabel: (i == null ? void 0 : i.damageTypeLabel) ?? this.getDamageTypeLabel(),
       noArmor: this.system.noArmor ?? this.system.armorAvoidance,
-      armorMode: Zu(e, this.system.noArmor ?? this.system.armorAvoidance)
+      armorMode: sd(e, this.system.noArmor ?? this.system.armorAvoidance)
     };
   }
   getDamageCode() {
-    return Xu(
+    return id(
       this._getMonitor(),
       this.system.damage,
       this.system.damageAttribute
@@ -6966,11 +6966,11 @@ const $e = class $e extends Item {
     var t;
     if (this.isPersonalWeapon())
       return vt(((t = this.getCombatProfile()) == null ? void 0 : t.damageType) ?? this.system.damageType);
-    const e = ge.mwd.weaponDamageType[this.system.damageType] ?? ge.mwd.personalDamageType[this.system.damageType];
+    const e = ye.mwd.weaponDamageType[this.system.damageType] ?? ye.mwd.personalDamageType[this.system.damageType];
     return e || this.system.damageType;
   }
   getRanges() {
-    return Qu(vi(this.system.range)).filter((e) => e.allowed).map((e) => ({ value: e.value, labelkey: e.labelkey }));
+    return ed(vi(this.system.range)).filter((e) => e.allowed).map((e) => ({ value: e.value, labelkey: e.labelkey }));
   }
   validateTargets(e) {
     var n;
@@ -6982,14 +6982,14 @@ const $e = class $e extends Item {
       return !((l = o.actor) != null && l.canReceiveDamage(t));
     }).map((o) => o.name);
     if (r.length > 0) {
-      const o = me(ge.common.errors.ignoredTargets, {
+      const o = fe(ye.common.errors.ignoredTargets, {
         targets: r.reduce(Q.joiner(", "))
       });
       ui.notifications.info(o);
     }
     if (a.length === 0) {
-      const o = me(ge.common.errors.noTargetSelected, {
-        weapon: this.name ?? ge.itemType.singular.weapon
+      const o = fe(ye.common.errors.noTargetSelected, {
+        weapon: this.name ?? ye.itemType.singular.weapon
       });
       ui.notifications.info(o);
     } else
@@ -6997,11 +6997,11 @@ const $e = class $e extends Item {
     return a;
   }
   checkWeaponTargetsCount(e) {
-    const t = this.system.area, i = sn[t] ?? {};
+    const t = this.system.area, i = nn[t] ?? {};
     fi.checkTargetsCount(i.targets ?? 0, e, t);
   }
   getAreaModifier(e) {
-    const t = this.getArea(), i = sn[t] ?? {};
+    const t = this.getArea(), i = nn[t] ?? {};
     return i.targets && i.adjust && e <= i.targets ? i.adjust[e - 1] ?? 0 : 0;
   }
   getArea() {
@@ -7034,29 +7034,29 @@ const $e = class $e extends Item {
     return this.prepareShortcut();
   }
 };
-ss = new WeakMap(), rt = new WeakSet(), Ua = async function(e) {
+ss = new WeakMap(), rt = new WeakSet(), Ga = async function(e) {
   if (typeof (e == null ? void 0 : e.syncEquippedActorEffects) == "function")
     try {
       await e.syncEquippedActorEffects();
     } catch (t) {
-      console.error(`${le}Failed to sync equipped item effects`, { item: e, error: t });
+      console.error(`${ue}Failed to sync equipped item effects`, { item: e, error: t });
     }
-}, Vo = async function(e) {
+}, Jo = async function(e) {
   if (typeof (e == null ? void 0 : e.removeSyncedActorEffects) == "function")
     try {
       await e.removeSyncedActorEffects({ actor: e.actor ?? e.parent ?? null });
     } catch (t) {
-      console.error(`${le}Failed to remove synced item effects`, { item: e, error: t });
+      console.error(`${ue}Failed to remove synced item effects`, { item: e, error: t });
     }
-}, Es = async function(e) {
+}, Cs = async function(e) {
   const t = e == null ? void 0 : e.parent;
   if (typeof (t == null ? void 0 : t.syncEquippedActorEffects) == "function")
     try {
       await t.syncEquippedActorEffects();
     } catch (i) {
-      console.error(`${le}Failed to sync parent item effects`, { effect: e, error: i });
+      console.error(`${ue}Failed to sync parent item effects`, { effect: e, error: i });
     }
-}, ye($e, rt), ye($e, ss, !1), N($e, "RANGE_ORDER", mi), N($e, "EQUIPPED_EFFECT_FLAG", "equippedItemSync"), N($e, "DEFAULT_UNARMED", Object.freeze({
+}, be(Le, rt), be(Le, ss, !1), N(Le, "RANGE_ORDER", mi), N(Le, "EQUIPPED_EFFECT_FLAG", "equippedItemSync"), N(Le, "DEFAULT_UNARMED", Object.freeze({
   id: "unarmed",
   name: "Unarmed",
   category: "melee",
@@ -7099,22 +7099,22 @@ ss = new WeakMap(), rt = new WeakSet(), Ua = async function(e) {
   traits: [],
   notes: ""
 }));
-let $i = $e;
-const un = {
+let $i = Le;
+const pn = {
   none: { targets: 1, adjust: [0] },
   shotgun: { targets: 2, adjust: [0, -2] },
   circle: { targets: void 0 },
   cone: { targets: void 0 },
   rect: { targets: void 0 },
   ray: { targets: void 0 }
-}, td = {
+}, rd = {
   code: "weapon-range",
   options: {
     flags: { editable: !0 },
     order: 20,
-    category: oe.pool,
-    labelkey: ge.common.roll.modifiers.weaponRange,
-    hbsTemplateRoll: `${H}/roll/parts/select-option.hbs`,
+    category: ce.pool,
+    labelkey: ye.common.roll.modifiers.weaponRange,
+    hbsTemplateRoll: `${G}/roll/parts/select-option.hbs`,
     hbsTemplateChat: void 0
     //``
   },
@@ -7130,14 +7130,14 @@ const un = {
       selected: e[0].labelkey
     };
   }
-}, id = {
+}, nd = {
   code: "weapon-area",
   options: {
     used: !0,
     order: 20,
-    category: oe.pool,
-    labelkey: ge.common.roll.modifiers.weaponArea,
-    hbsTemplateRoll: `${H}/roll/parts/input-numeric.hbs`,
+    category: ce.pool,
+    labelkey: ye.common.roll.modifiers.weaponArea,
+    hbsTemplateRoll: `${G}/roll/parts/input-numeric.hbs`,
     hbsTemplateChat: void 0
     //``
   },
@@ -7153,20 +7153,20 @@ const un = {
       used: e > 1
     };
   }
-}, ue = class ue extends $i {
+}, me = class me extends $i {
   static init() {
     Hooks.once(Ee.REGISTER_ROLL_PARAMETERS, (e) => {
-      e(id), e(td);
+      e(nd), e(rd);
     });
   }
   prepareBaseData() {
     if (super.prepareBaseData(), (this.canonicalType ?? this.type) !== S.itemType.personalWeapon) return;
     const e = this.system ?? {};
-    e.equipped = !!e.equipped, e.isPrimary = !!e.isPrimary, e.category = String(e.category ?? e.weaponCategory ?? "ranged").trim() || "ranged", e.skill = String(e.skill ?? "firearms").trim() || "firearms", e.ap = Number(e.ap ?? e.armorPiercing ?? 0) || 0, e.damage = Number(e.damage ?? 0) || 0, e.damageType = pt(e.damageType), e.attackRatingBand = ue.normalizeAttackRatingBand(e.attackRatingBand), e.range = ue.normalizeRangeData(e.range), e.traits = ue.normalizeTraits(e.traits), e.notes = String(e.notes ?? "").trim();
+    e.equipped = !!e.equipped, e.isPrimary = !!e.isPrimary, e.category = String(e.category ?? e.weaponCategory ?? "ranged").trim() || "ranged", e.skill = String(e.skill ?? "firearms").trim() || "firearms", e.ap = Number(e.ap ?? e.armorPiercing ?? 0) || 0, e.damage = Number(e.damage ?? 0) || 0, e.damageType = pt(e.damageType), e.attackRatingBand = me.normalizeAttackRatingBand(e.attackRatingBand), e.range = me.normalizeRangeData(e.range), e.traits = me.normalizeTraits(e.traits), e.notes = String(e.notes ?? "").trim();
   }
   static maxIndex(e) {
-    const t = ue.RANGE_ORDER.indexOf(e);
-    return t >= 0 ? t : ue.RANGE_ORDER.indexOf("near");
+    const t = me.RANGE_ORDER.indexOf(e);
+    return t >= 0 ? t : me.RANGE_ORDER.indexOf("near");
   }
   /**
     * Compute UI-friendly range band data:
@@ -7175,7 +7175,7 @@ const un = {
     * - optimalKey: highest value among allowed (tie -> closest)
     */
   static getRangeBands(e) {
-    const t = e ?? {}, i = ue.normalizeRangeKey(t.max ?? "near"), a = ue.maxIndex(i), r = ue.RANGE_ORDER.map((l, c) => ({
+    const t = e ?? {}, i = me.normalizeRangeKey(t.max ?? "near"), a = me.maxIndex(i), r = me.RANGE_ORDER.map((l, c) => ({
       key: l,
       allowed: c <= a,
       value: Number(t[l] ?? (l === "extreme" && t.long !== void 0 ? t.long : 0))
@@ -7196,7 +7196,7 @@ const un = {
   }
   static normalizeRangeData(e) {
     return {
-      max: ue.normalizeRangeKey((e == null ? void 0 : e.max) ?? "near"),
+      max: me.normalizeRangeKey((e == null ? void 0 : e.max) ?? "near"),
       close: Number((e == null ? void 0 : e.close) ?? (e == null ? void 0 : e.short) ?? 0) || 0,
       near: Number((e == null ? void 0 : e.near) ?? (e == null ? void 0 : e.medium) ?? 0) || 0,
       far: Number((e == null ? void 0 : e.far) ?? (e == null ? void 0 : e.long) ?? 0) || 0,
@@ -7214,7 +7214,7 @@ const un = {
   getCombatProfile(e = {}) {
     if ((this.canonicalType ?? this.type) === S.itemType.personalWeapon)
       return super.getCombatProfile(e);
-    const t = this.system ?? {}, i = this.canonicalType ?? this.type, a = ue.normalizeRangeData(t.range), r = String(t.skill ?? "").trim(), n = at(r), o = Number(t.damage ?? 0) || 0, l = Number(t.ap ?? t.armorPiercing ?? 0) || 0, c = String(t.category ?? t.weaponCategory ?? "ranged").trim() || "ranged", u = ue.normalizeTraits(t.traits);
+    const t = this.system ?? {}, i = this.canonicalType ?? this.type, a = me.normalizeRangeData(t.range), r = String(t.skill ?? "").trim(), n = at(r), o = Number(t.damage ?? 0) || 0, l = Number(t.ap ?? t.armorPiercing ?? 0) || 0, c = String(t.category ?? t.weaponCategory ?? "ranged").trim() || "ranged", u = me.normalizeTraits(t.traits);
     return {
       id: this.id ?? "weapon",
       uuid: this.uuid ?? null,
@@ -7230,7 +7230,7 @@ const un = {
       damage: o,
       ap: l,
       damageType: i === S.itemType.personalWeapon ? pt(t.damageType) : String(t.damageType ?? "kinetic").trim() || "kinetic",
-      attackRatingBand: ue.normalizeAttackRatingBand(t.attackRatingBand),
+      attackRatingBand: me.normalizeAttackRatingBand(t.attackRatingBand),
       range: a,
       defaultRangeBand: this.getDefaultRangeBand(a),
       traits: u,
@@ -7238,9 +7238,9 @@ const un = {
       notes: String(t.notes ?? t.description ?? "").trim()
     };
   }
-  getDefaultRangeBand(e = ue.normalizeRangeData(((t) => (t = this.system) == null ? void 0 : t.range)())) {
-    const i = ["near", "close", "far", "extreme"], a = ue.maxIndex(e.max);
-    return i.find((r) => ue.RANGE_ORDER.indexOf(r) <= a) ?? "close";
+  getDefaultRangeBand(e = me.normalizeRangeData(((t) => (t = this.system) == null ? void 0 : t.range)())) {
+    const i = ["near", "close", "far", "extreme"], a = me.maxIndex(e.max);
+    return i.find((r) => me.RANGE_ORDER.indexOf(r) <= a) ?? "close";
   }
   getWeaponSkill() {
     var i;
@@ -7260,18 +7260,18 @@ const un = {
   }
   getDefense() {
     if ((this.canonicalType ?? this.type) !== S.itemType.personalWeapon)
-      return this.system.defense ? be.fixedDefenseCode(this.system.defense) : void 0;
+      return this.system.defense ? Se.fixedDefenseCode(this.system.defense) : void 0;
     if (this.system.defense)
-      return be.fixedDefenseCode(this.system.defense);
+      return Se.fixedDefenseCode(this.system.defense);
     const e = at(String(this.system.skill ?? "").trim());
-    return e != null && e.defense ? be.fixedDefenseCode(e.defense) : void 0;
+    return e != null && e.defense ? Se.fixedDefenseCode(e.defense) : void 0;
   }
   getDamage() {
     if (!this.parent)
       return;
     const e = this._getMonitor(), t = this.system.damageAttribute ? this.parent.getAttributeValue(this.system.damageAttribute) ?? 0 : 0;
     return {
-      value: ue.damageValue(
+      value: me.damageValue(
         e,
         this.system.damage,
         this.system.damageAttribute,
@@ -7281,7 +7281,7 @@ const un = {
       damageType: this.system.damageType,
       damageTypeLabel: this.getDamageTypeLabel(),
       noArmor: this.system.noArmor ?? this.system.armorAvoidance,
-      armorMode: ue.armorMode(e, this.system.noArmor ?? this.system.armorAvoidance)
+      armorMode: me.armorMode(e, this.system.noArmor ?? this.system.armorAvoidance)
     };
   }
   static damageValue(e, t, i, a) {
@@ -7289,11 +7289,11 @@ const un = {
       if (a !== void 0)
         t = t + Math.ceil(Number(a) / 2);
       else
-        return console.warn("Weapon not attached to an actor"), ge.item.personalWeapon.weaponWithoutActor;
+        return console.warn("Weapon not attached to an actor"), ye.item.personalWeapon.weaponWithoutActor;
     return t;
   }
   getDamageCode() {
-    return ue.damageCode(
+    return me.damageCode(
       this._getMonitor(),
       this.system.damage,
       this.system.damageAttribute
@@ -7301,26 +7301,26 @@ const un = {
   }
   static damageCode(e, t, i) {
     let a = "";
-    return i && ge.attributes[i] && (a += ge.attributes[i].substring(0, 3).toUpperCase() + "/2 + "), a += String(t), a;
+    return i && ye.attributes[i] && (a += ye.attributes[i].substring(0, 3).toUpperCase() + "/2 + "), a += String(t), a;
   }
   static armorMode(e, t) {
-    return L.useArmor(e) ? t ? "noArmor" : "withArmor" : "";
+    return _.useArmor(e) ? t ? "noArmor" : "withArmor" : "";
   }
   getDamageTypeLabel() {
     if ((this.canonicalType ?? this.type) === S.itemType.personalWeapon)
       return vt(this.system.damageType);
-    const e = ge.mwd.weaponDamageType[this.system.damageType] ?? ge.mwd.personalDamageType[this.system.damageType];
+    const e = ye.mwd.weaponDamageType[this.system.damageType] ?? ye.mwd.personalDamageType[this.system.damageType];
     return e || this.system.damageType;
   }
   getRanges() {
-    return ue.getRangeList(ue.normalizeRangeData(this.system.range)).filter((e) => e.allowed).map((e) => ({ value: e.value, labelkey: e.labelkey }));
+    return me.getRangeList(me.normalizeRangeData(this.system.range)).filter((e) => e.allowed).map((e) => ({ value: e.value, labelkey: e.labelkey }));
   }
   _getRange(e) {
     return { value: this.system.range[e], labelkey: ie.getFromList(ie.getEnums().ranges, e) };
   }
   static getRangeList(e) {
-    const t = ue.normalizeRangeKey(e == null ? void 0 : e.max), i = ue.RANGE_ORDER.indexOf(t);
-    return ue.RANGE_ORDER.map((a, r) => ({
+    const t = me.normalizeRangeKey(e == null ? void 0 : e.max), i = me.RANGE_ORDER.indexOf(t);
+    return me.RANGE_ORDER.map((a, r) => ({
       key: a,
       allowed: i >= 0 ? r <= i : r === 0,
       value: (e == null ? void 0 : e[a]) ?? (a === "extreme" && (e == null ? void 0 : e.long) !== void 0 ? e.long : void 0),
@@ -7347,14 +7347,14 @@ const un = {
       return !((l = o.actor) != null && l.canReceiveDamage(t));
     }).map((o) => o.name);
     if (r.length > 0) {
-      const o = me(ge.common.errors.ignoredTargets, {
+      const o = fe(ye.common.errors.ignoredTargets, {
         targets: r.reduce(Q.joiner(", "))
       });
       ui.notifications.info(o);
     }
     if (a.length == 0) {
-      const o = me(ge.common.errors.noTargetSelected, {
-        weapon: this.name ?? ge.itemType.singular.weapon
+      const o = fe(ye.common.errors.noTargetSelected, {
+        weapon: this.name ?? ye.itemType.singular.weapon
       });
       ui.notifications.info(o);
     } else
@@ -7362,11 +7362,11 @@ const un = {
     return a;
   }
   checkWeaponTargetsCount(e) {
-    const t = this.system.area, i = un[t] ?? {};
+    const t = this.system.area, i = pn[t] ?? {};
     fi.checkTargetsCount(i.targets ?? 0, e, t);
   }
   getAreaModifier(e) {
-    const t = this.getArea(), i = un[t] ?? {};
+    const t = this.getArea(), i = pn[t] ?? {};
     return i.targets && i.adjust && e <= i.targets ? i.adjust[e - 1] ?? 0 : 0;
   }
   getArea() {
@@ -7376,34 +7376,34 @@ const un = {
     return (this.canonicalType ?? this.type) === S.itemType.personalWeapon ? S.monitors.physical : this.system.monitor || S.monitors.physical;
   }
 };
-N(ue, "RANGE_ORDER", ["close", "near", "far", "extreme"]), N(ue, "DEFAULT_UNARMED", $i.DEFAULT_UNARMED);
-let st = ue;
-function sd(s) {
+N(me, "RANGE_ORDER", ["close", "near", "far", "extreme"]), N(me, "DEFAULT_UNARMED", $i.DEFAULT_UNARMED);
+let st = me;
+function od(s) {
   const e = [];
   for (let [t, i] of Object.entries(s ?? {}))
     i !== void 0 && (t = t.replace(/[A-Z]+(?![a-z])|[A-Z]/g, (a, r) => (r ? "-" : "") + a.toLowerCase()), e.push(`data-${t}="${Handlebars.escapeExpression(i)}"`));
   return new Handlebars.SafeString(e.join(" "));
 }
-function ad({ hash: s }) {
+function ld({ hash: s }) {
   return s;
 }
-function rd() {
+function cd() {
   var s, e;
   return ((e = (s = foundry == null ? void 0 : foundry.applications) == null ? void 0 : s.handlebars) == null ? void 0 : e.Handlebars) ?? Handlebars;
 }
-class Or {
+class Lr {
   constructor() {
     this.registerHelpers(), Hooks.once("init", () => {
-      this.registerHelpers(), console.log(`${le}Handlebars helpers registered (init)`);
-    }), console.log(`${le}Handlebars helpers registered (ctor)`);
+      this.registerHelpers(), console.log(`${ue}Handlebars helpers registered (init)`);
+    }), console.log(`${ue}Handlebars helpers registered (ctor)`);
   }
   registerHelpers() {
-    const e = rd(), t = {
+    const e = cd(), t = {
       // Foundry utils
       getProperty: foundry.utils.getProperty,
       // DND5E-inspired utilities
-      "mwd-dataset": sd,
-      "mwd-object": ad,
+      "mwd-dataset": od,
+      "mwd-object": ld,
       // Simple comparisons
       eq: (i, a) => i === a,
       ne: (i, a) => i !== a,
@@ -7413,7 +7413,7 @@ class Or {
       includes: (i, a) => i == null ? void 0 : i.includes(a),
       length: (i) => (i == null ? void 0 : i.length) || 0,
       substring: (i, a, r) => i == null ? void 0 : i.substring(a, r),
-      toUpperCase: Dl.toUpperCaseNoAccent,
+      toUpperCase: Ll.toUpperCaseNoAccent,
       // Math
       modulo: (i, a) => i % a,
       divint: Q.divint,
@@ -7424,12 +7424,12 @@ class Or {
       min: (i, a) => Math.min(i, a),
       max: (i, a) => Math.max(i, a),
       // Utility blocks
-      for: Or.hbsForLoop,
+      for: Lr.hbsForLoop,
       // fixes “Missing helper: for”
       range: (i, a) => Array.from({ length: a - i + 1 }, (r, n) => i + n),
       ifGte: (i, a, r) => i >= a ? r.fn(this) : r.inverse(this),
       // Damage / weapons (legacy-compatible)
-      weaponDamageLetter: Rl.letter,
+      weaponDamageLetter: _l.letter,
       weaponDamageCode: st.damageCode,
       weaponDamageValue: st.damageValue,
       weaponArmorMode: st.armorMode,
@@ -7450,21 +7450,21 @@ class Or {
     return a;
   }
 }
-const dn = "sheetTheme", Ha = "mwd-theme-default", nd = "mwd-theme-sra", od = [
-  { name: "Default (CSB)", cssClass: Ha },
-  { name: "SRA", cssClass: nd }
+const fn = "sheetTheme", qa = "mwd-theme-default", ud = "mwd-theme-sra", dd = [
+  { name: "Default (CSB)", cssClass: qa },
+  { name: "SRA", cssClass: ud }
 ];
-class ld {
+class md {
   constructor() {
-    this.availableStyles = {}, ci.register(Ee.REGISTER_STYLES), Hooks.once(Ee.REGISTER_STYLES, (e) => od.forEach((t) => e(t.cssClass, t.name))), Hooks.once("ready", () => this.onReady());
+    this.availableStyles = {}, ci.register(Ee.REGISTER_STYLES), Hooks.once(Ee.REGISTER_STYLES, (e) => dd.forEach((t) => e(t.cssClass, t.name))), Hooks.once("ready", () => this.onReady());
   }
   async onReady() {
-    Hooks.callAll(Ee.REGISTER_STYLES, (e, t) => this.availableStyles[e] = t), console.log(le + "Loaded styles", this.availableStyles), game.settings.register(T, dn, {
+    Hooks.callAll(Ee.REGISTER_STYLES, (e, t) => this.availableStyles[e] = t), console.log(ue + "Loaded styles", this.availableStyles), game.settings.register(T, fn, {
       scope: "world",
       name: "Sheet Theme",
       hint: "Select the visual theme used by MWD sheets.",
       config: !0,
-      default: Ha,
+      default: qa,
       choices: this.availableStyles,
       type: String,
       onChange: () => {
@@ -7480,20 +7480,20 @@ class ld {
     });
   }
   selectCssClass() {
-    const e = game.settings.get(T, dn);
-    return this.availableStyles[e] ? e : Ha;
+    const e = game.settings.get(T, fn);
+    return this.availableStyles[e] ? e : qa;
   }
 }
 function Yi(s) {
   return s ? (s == null ? void 0 : s.document) ?? s : null;
 }
-function ha(s, e) {
+function ga(s, e) {
   var i, a, r;
   if (!s) return null;
   const t = Yi(e) ?? Yi(s == null ? void 0 : s.token);
   return t ? t.isLinked ? t.baseActor ?? ((r = (i = game.actors) == null ? void 0 : i.get) == null ? void 0 : r.call(i, ((a = t == null ? void 0 : t.baseActor) == null ? void 0 : a.id) ?? "")) ?? t.actor ?? s : t.actor ?? s : s;
 }
-function mn(s) {
+function hn(s) {
   const e = Number(s ?? 0);
   return Number.isFinite(e) ? Math.trunc(e) : 0;
 }
@@ -7501,18 +7501,18 @@ function ms(s, e) {
   var t, i, a;
   return Math.max(0, Number(((a = (i = (t = s == null ? void 0 : s.system) == null ? void 0 : t.monitors) == null ? void 0 : i[e]) == null ? void 0 : a.value) ?? 0) || 0);
 }
-function pn(s) {
+function gn(s) {
   var e, t;
   return Math.max(0, Number(((t = (e = s == null ? void 0 : s.system) == null ? void 0 : e.burn) == null ? void 0 : t.value) ?? 0) || 0);
 }
 function Ui(s) {
   return s === S.monitors.physical ? "Physical" : s === S.monitors.fatigue ? "Fatigue" : String(s ?? "").trim() || "Track";
 }
-function cd(s, e) {
+function pd(s, e) {
   var t;
-  return ((t = vr(e).find((i) => i.id === s)) == null ? void 0 : t.label) ?? s;
+  return ((t = Er(e).find((i) => i.id === s)) == null ? void 0 : t.label) ?? s;
 }
-function ud(s) {
+function fd(s) {
   const e = foundry.utils.escapeHTML, t = [];
   if (s.mode === "attackDamage" || s.mode === "trackDelta") {
     const i = s.appliedDelta >= 0 ? "Applied" : "Recovered", a = Math.abs(Number(s.appliedDelta ?? 0)), r = a === 1 ? "point" : "points", n = s.usedArmor ? ` via armor-aware ${e(vt(s.damageType))}` : "";
@@ -7530,7 +7530,7 @@ function ud(s) {
     `<div><b>Status:</b> ${s.active ? "Applied" : "Removed"} ${e(s.statusLabel ?? s.statusId ?? "Status")}</div>`
   ), t.push(`<div><b>Target:</b> ${e(s.actorName ?? "Actor")}</div>`), s.beforeLabel && s.afterLabel && t.push(`<div><b>Result:</b> ${e(s.beforeLabel)} -> ${e(s.afterLabel)}</div>`), s.source && t.push(`<div><b>Source:</b> ${e(s.source)}</div>`), s.notes && t.push(`<div><b>Notes:</b> ${e(s.notes)}</div>`), `<div class="mwd-gm-notice"><b>GM Harm:</b>${t.join("")}</div>`;
 }
-function dd(s) {
+function hd(s) {
   var t, i;
   const e = (i = (t = game.settings) == null ? void 0 : t.get) == null ? void 0 : i.call(t, "core", "rollMode");
   return typeof ChatMessage.applyRollMode == "function" && ChatMessage.applyRollMode(s, e), s;
@@ -7546,7 +7546,7 @@ class Ze {
     }));
   }
   static getStatusOptions(e = null) {
-    return vr(e).map((t) => ({
+    return Er(e).map((t) => ({
       value: t.id,
       label: t.label,
       active: t.active
@@ -7558,14 +7558,14 @@ class Ze {
     if (e.length > 1)
       return { actor: null, token: null, reason: "Select only one controlled token." };
     if (e.length === 1) {
-      const r = Yi(e[0]), n = ha((r == null ? void 0 : r.actor) ?? null, r);
+      const r = Yi(e[0]), n = ga((r == null ? void 0 : r.actor) ?? null, r);
       return this._resolveSceneTargetResult(n, r);
     }
     const t = Array.from(((a = game.user) == null ? void 0 : a.targets) ?? []);
     if (t.length > 1)
       return { actor: null, token: null, reason: "Target only one token." };
     if (t.length === 1) {
-      const r = Yi(t[0]), n = ha((r == null ? void 0 : r.actor) ?? null, r);
+      const r = Yi(t[0]), n = ga((r == null ? void 0 : r.actor) ?? null, r);
       return this._resolveSceneTargetResult(n, r);
     }
     return { actor: null, token: null, reason: "No controlled or targeted token." };
@@ -7585,7 +7585,7 @@ class Ze {
     var o, l;
     const r = Yi(t);
     if (r) {
-      const c = ha((r == null ? void 0 : r.actor) ?? e, r), u = this._resolveSceneTargetResult(c, r);
+      const c = ga((r == null ? void 0 : r.actor) ?? e, r), u = this._resolveSceneTargetResult(c, r);
       if (u.actor) return { ...u, source: "token" };
     }
     if (a) {
@@ -7638,7 +7638,7 @@ class Ze {
       ...n
     };
     if (a.logToChat) {
-      const c = ud(o), u = dd({
+      const c = fd(o), u = hd({
         speaker: ChatMessage.getSpeaker({ actor: r.actor, token: r.token }),
         content: c
       });
@@ -7647,7 +7647,7 @@ class Ze {
     return (l = re.renderOpenCharacterSheets) == null || l.call(re, r.actor.id), o;
   }
   static async _applyTrackDelta(e, t) {
-    const i = (t == null ? void 0 : t.track) === S.monitors.fatigue ? S.monitors.fatigue : S.monitors.physical, a = mn((t == null ? void 0 : t.delta) ?? (t == null ? void 0 : t.amount) ?? 0);
+    const i = (t == null ? void 0 : t.track) === S.monitors.fatigue ? S.monitors.fatigue : S.monitors.physical, a = hn((t == null ? void 0 : t.delta) ?? (t == null ? void 0 : t.amount) ?? 0);
     if (!!(t != null && t.useArmor) && a > 0)
       return this._applyPersonalArmorAwareDamage(e, {
         mode: "trackDelta",
@@ -7660,7 +7660,7 @@ class Ze {
         notes: t == null ? void 0 : t.notes
       });
     const n = ms(e, i);
-    await L.addCounter(e, i, a);
+    await _.addCounter(e, i, a);
     const o = ms(e, i);
     return {
       mode: "trackDelta",
@@ -7676,9 +7676,9 @@ class Ze {
   }
   static async _applyBurnDelta(e, t) {
     var l, c;
-    const i = mn((t == null ? void 0 : t.delta) ?? (t == null ? void 0 : t.amount) ?? 0), a = pn(e), r = Math.max(0, a + i), n = { "system.burn.value": r };
+    const i = hn((t == null ? void 0 : t.delta) ?? (t == null ? void 0 : t.amount) ?? 0), a = gn(e), r = Math.max(0, a + i), n = { "system.burn.value": r };
     r === 0 && ((c = (l = e.system) == null ? void 0 : l.burn) != null && c.overloaded) && (n["system.burn.overloaded"] = !1), await e.update(n);
-    const o = pn(e);
+    const o = gn(e);
     return {
       mode: "burnDelta",
       requestedDelta: i,
@@ -7693,13 +7693,13 @@ class Ze {
     const i = String((t == null ? void 0 : t.statusId) ?? (t == null ? void 0 : t.status) ?? "").trim();
     if (!i)
       return { mode: "status", statusId: "", active: !1, statusLabel: "Status", beforeLabel: "", afterLabel: "" };
-    const a = xs(e, i), r = !!(t != null && t.active);
-    await So({ actor: e, statusId: i, active: r });
-    const n = xs(e, i);
+    const a = Bs(e, i), r = !!(t != null && t.active);
+    await ko({ actor: e, statusId: i, active: r });
+    const n = Bs(e, i);
     return {
       mode: "status",
       statusId: i,
-      statusLabel: cd(i, e),
+      statusLabel: pd(i, e),
       active: n,
       beforeLabel: a ? "Active" : "Inactive",
       afterLabel: n ? "Active" : "Inactive",
@@ -7721,30 +7721,30 @@ class Ze {
     });
   }
   static async _applyPersonalArmorAwareDamage(e, t) {
-    var Y, K, O, D, V, F, pe, Se, he;
+    var Y, K, O, R, U, B, ne, oe, he;
     const i = (t == null ? void 0 : t.track) === S.monitors.fatigue ? S.monitors.fatigue : S.monitors.physical, a = Math.max(0, Number((t == null ? void 0 : t.damage) ?? 0) || 0), r = Math.max(0, Number((t == null ? void 0 : t.netHits) ?? 0) || 0), n = (t == null ? void 0 : t.effects) ?? {}, o = ((Y = e.getPersonalCombatLoadout) == null ? void 0 : Y.call(e, { refresh: !0 })) ?? null, l = (o == null ? void 0 : o.activeArmor) ?? null, c = Math.max(0, Number((l == null ? void 0 : l.currentArmorRating) ?? ((K = l == null ? void 0 : l.durability) == null ? void 0 : K.current) ?? 0) || 0), u = pt(t == null ? void 0 : t.damageType, "concussive"), d = ms(e, i);
     let m = a + r;
-    const p = c > 0 ? mc({
+    const f = c > 0 ? gc({
       damageIncoming: m,
       armorTags: (l == null ? void 0 : l.tags) ?? [],
       effects: n
     }) : { damageIncoming: m, applied: [] };
-    m = p.damageIncoming;
-    const f = dc({
+    m = f.damageIncoming;
+    const p = hc({
       currentArmorRating: c,
       mitigationByType: (l == null ? void 0 : l.mitigationByType) ?? {},
       damageType: u
     }), h = Math.max(
       0,
       (Number((t == null ? void 0 : t.ap) ?? 0) || 0) + (Number((n == null ? void 0 : n.ap) ?? 0) || 0)
-    ), g = f.isDestroyed ? 0 : Math.max(0, f.baseMitigation + f.typeMitigationMod - h);
+    ), g = p.isDestroyed ? 0 : Math.max(0, p.baseMitigation + p.typeMitigationMod - h);
     let y = Math.max(0, Math.ceil(m - g));
     const b = {
       snapshot: ((O = re.getSnapshot) == null ? void 0 : O.call(re, e)) ?? null
     }, A = it({
       actor: e,
       phase: "onDamageResolved",
-      facts: Io({
+      facts: $o({
         actor: e,
         packet: {
           amount: y,
@@ -7760,39 +7760,39 @@ class Ze {
       },
       options: { runtime: b, consumeUsage: !0 }
     });
-    await Xt({ actor: e, mutations: A.mutations, runtime: b }), y = Math.max(0, Number(A.packet.amount ?? y) || 0), y > 0 && await L.addCounter(e, i, y);
-    const w = Math.max(0, Number(((D = l == null ? void 0 : l.durability) == null ? void 0 : D.current) ?? 0) || 0);
-    let E = w;
-    const I = Math.max(0, Number(((F = (V = l == null ? void 0 : l.traitState) == null ? void 0 : V.reinforced) == null ? void 0 : F.current) ?? 0) || 0), R = Math.max(0, Number(((Se = (pe = l == null ? void 0 : l.traitState) == null ? void 0 : pe.reinforced) == null ? void 0 : Se.max) ?? 0) || 0);
-    let _ = I;
+    await Xt({ actor: e, mutations: A.mutations, runtime: b }), y = Math.max(0, Number(A.packet.amount ?? y) || 0), y > 0 && await _.addCounter(e, i, y);
+    const w = Math.max(0, Number(((R = l == null ? void 0 : l.durability) == null ? void 0 : R.current) ?? 0) || 0);
+    let M = w;
+    const I = Math.max(0, Number(((B = (U = l == null ? void 0 : l.traitState) == null ? void 0 : U.reinforced) == null ? void 0 : B.current) ?? 0) || 0), D = Math.max(0, Number(((oe = (ne = l == null ? void 0 : l.traitState) == null ? void 0 : ne.reinforced) == null ? void 0 : oe.max) ?? 0) || 0);
+    let L = I;
     if (a + r > 0 && ((he = l == null ? void 0 : l.item) != null && he.id)) {
       const Ce = {};
-      I > 0 ? (_ = Math.max(0, I - 1), _ !== I && (Ce["system.traitState.reinforced.current"] = _)) : (E = Math.max(0, w - 1), E !== w && (Ce["system.durability.current"] = E)), Object.keys(Ce).length > 0 && await l.item.update(Ce);
+      I > 0 ? (L = Math.max(0, I - 1), L !== I && (Ce["system.traitState.reinforced.current"] = L)) : (M = Math.max(0, w - 1), M !== w && (Ce["system.durability.current"] = M)), Object.keys(Ce).length > 0 && await l.item.update(Ce);
     }
-    const q = ms(e, i);
+    const V = ms(e, i);
     return {
       mode: (t == null ? void 0 : t.mode) ?? "attackDamage",
       track: i,
       requestedDelta: a + r,
-      appliedDelta: q - d,
+      appliedDelta: V - d,
       usedArmor: !0,
       damageType: u,
       effectiveAp: h,
       mitigation: {
-        ...f,
+        ...p,
         netResistance: g,
         armorBefore: w,
-        armorAfter: E,
+        armorAfter: M,
         reinforcedBefore: I,
-        reinforcedAfter: _,
-        reinforcedMax: R
+        reinforcedAfter: L,
+        reinforcedMax: D
       },
       damageIncoming: m,
       adjustedIncoming: m,
       finalDamage: y,
-      tagEffectResult: p,
+      tagEffectResult: f,
       beforeLabel: `${Ui(i)} ${d}`,
-      afterLabel: `${Ui(i)} ${q}`,
+      afterLabel: `${Ui(i)} ${V}`,
       source: String((t == null ? void 0 : t.source) ?? "").trim(),
       notes: String((t == null ? void 0 : t.notes) ?? "").trim()
     };
@@ -7804,20 +7804,20 @@ N(Ze, "MODE_OPTIONS", Object.freeze([
   { value: "burn", label: "Burn" },
   { value: "status", label: "Status" }
 ]));
-const md = Os, Ga = "damage-mode", pd = `${T}.${Ga}`, ps = {}, ga = {};
-class ee {
+const gd = _s, Va = "damage-mode", yd = `${T}.${Va}`, ps = {}, ya = {};
+class te {
   static init() {
-    ci.register(Ee.PROVIDE_DAMAGE_MODE), Hooks.on("updateSetting", async (e, t, i, a) => ee.onUpdateSetting(e, t, i, a)), Hooks.on(Ee.PROVIDE_DAMAGE_MODE, (e) => {
-      e("resistanceArmorMonitor", k.settings.damageMode.values.resistanceArmorMonitor, ee.sufferDamageResistanceArmorMonitor), e("armorResistanceMonitor", k.settings.damageMode.values.armorResistanceMonitor, ee.sufferDamageArmorResistanceMonitor), e("armorGivesResistance", k.settings.damageMode.values.armorGivesResistance, ee.sufferDamageArmorAsResistance_Earthdawn), e("armorGiveResistanceHitsAvoid", k.settings.damageMode.values.armorGiveResistanceHitsAvoid, ee.sufferDamageArmorAsResistance_Cyberpunk);
-    }), Hooks.once("ready", () => ee.onReady());
+    ci.register(Ee.PROVIDE_DAMAGE_MODE), Hooks.on("updateSetting", async (e, t, i, a) => te.onUpdateSetting(e, t, i, a)), Hooks.on(Ee.PROVIDE_DAMAGE_MODE, (e) => {
+      e("resistanceArmorMonitor", k.settings.damageMode.values.resistanceArmorMonitor, te.sufferDamageResistanceArmorMonitor), e("armorResistanceMonitor", k.settings.damageMode.values.armorResistanceMonitor, te.sufferDamageArmorResistanceMonitor), e("armorGivesResistance", k.settings.damageMode.values.armorGivesResistance, te.sufferDamageArmorAsResistance_Earthdawn), e("armorGiveResistanceHitsAvoid", k.settings.damageMode.values.armorGiveResistanceHitsAvoid, te.sufferDamageArmorAsResistance_Cyberpunk);
+    }), Hooks.once("ready", () => te.onReady());
   }
   static onReady() {
-    ee._registerDamageModeSetting(), ee._selectDamageMode();
+    te._registerDamageModeSetting(), te._selectDamageMode();
   }
   static _registerDamageModeSetting() {
     Hooks.callAll(Ee.PROVIDE_DAMAGE_MODE, (e, t, i) => {
-      ps[e] = t, ga[e] = i;
-    }), game.settings.register(T, Ga, {
+      ps[e] = t, ya[e] = i;
+    }), game.settings.register(T, Va, {
       scope: "world",
       name: k.settings.damageMode.name,
       hint: k.settings.damageMode.hint,
@@ -7828,19 +7828,19 @@ class ee {
     });
   }
   static async onUpdateSetting(e, t, i, a) {
-    e.key == pd && ee._selectDamageMode();
+    e.key == yd && te._selectDamageMode();
   }
   static _selectDamageMode() {
-    let e = game.settings.get(T, Ga);
-    ga[e] || (e = Object.keys(ps)[0]), ee.damageModeCode = e, ee.damageModeMethod = ga[e];
+    let e = game.settings.get(T, Va);
+    ya[e] || (e = Object.keys(ps)[0]), te.damageModeCode = e, te.damageModeMethod = ya[e];
   }
   static async sufferDamage(e, t, i, a, r, n, o) {
-    const { monitor: l, damageType: c } = ee._resolveDamageContext(e, t, o);
-    if (fi.checkActorCanReceiveDamage(c ?? l, l, e), ee._shouldUsePersonalDamageV2(e, l, o)) {
-      await ee.sufferPersonalDamageV2(e, l, c, i, a, r, n, o);
+    const { monitor: l, damageType: c } = te._resolveDamageContext(e, t, o);
+    if (fi.checkActorCanReceiveDamage(c ?? l, l, e), te._shouldUsePersonalDamageV2(e, l, o)) {
+      await te.sufferPersonalDamageV2(e, l, c, i, a, r, n, o);
       return;
     }
-    await (ee.damageModeMethod ?? ee.sufferDamageResistanceArmorMonitor)(e, l, c, i, a, r, n), await e.applyArmorDamage(l, c, X.sumModifiers([o], "other", "damageArmor"));
+    await (te.damageModeMethod ?? te.sufferDamageResistanceArmorMonitor)(e, l, c, i, a, r, n), await e.applyArmorDamage(l, c, Z.sumModifiers([o], "other", "damageArmor"));
   }
   static _shouldUsePersonalDamageV2(e, t, i) {
     var a, r;
@@ -7863,7 +7863,7 @@ class ee {
         logToChat: !1
       }
     });
-    u != null && u.ok && ee._notifyPersonalArmorMitigation(e, {
+    u != null && u.ok && te._notifyPersonalArmorMitigation(e, {
       damageType: u.damageType,
       baseIncoming: Number(u.requestedDelta ?? 0),
       adjustedIncoming: Number(u.adjustedIncoming ?? u.damageIncoming ?? 0),
@@ -7875,50 +7875,50 @@ class ee {
   }
   static _notifyPersonalArmorMitigation(e, t = {}) {
     var u;
-    const i = t.armorMitigation ?? {}, a = ee._localizeDamageType(t.damageType), r = i.isDestroyed ? "Armor destroyed" : `Base ${Number(i.baseMitigation ?? 0)} + Type ${Number(i.typeMitigationMod ?? 0)} - AP ${Number(t.effectiveAp ?? 0)}`, n = Number(t.adjustedIncoming ?? t.baseIncoming ?? 0), o = Number(t.finalDamage ?? 0), l = (((u = t.tagEffectResult) == null ? void 0 : u.applied) ?? []).map((d) => `${d.tag} +${Math.round((Number(d.bonus ?? 0) || 0) * 100)}%`).join(", "), c = l ? ` [${l}]` : "";
+    const i = t.armorMitigation ?? {}, a = te._localizeDamageType(t.damageType), r = i.isDestroyed ? "Armor destroyed" : `Base ${Number(i.baseMitigation ?? 0)} + Type ${Number(i.typeMitigationMod ?? 0)} - AP ${Number(t.effectiveAp ?? 0)}`, n = Number(t.adjustedIncoming ?? t.baseIncoming ?? 0), o = Number(t.finalDamage ?? 0), l = (((u = t.tagEffectResult) == null ? void 0 : u.applied) ?? []).map((d) => `${d.tag} +${Math.round((Number(d.bonus ?? 0) || 0) * 100)}%`).join(", "), c = l ? ` [${l}]` : "";
     ui.notifications.info(
       `${e.name} mitigated ${a}: ${r}${c}. Incoming ${n}, final ${o}.`
     );
   }
   static async sufferDamageResistanceArmorMonitor(e, t, i, a, r, n, o) {
-    const l = L.resistanceDetail(e, t, i), c = l.value;
+    const l = _.resistanceDetail(e, t, i), c = l.value;
     let u = 0;
     if (n) {
       const d = Math.min(c, a), m = Math.min(c - d, r);
-      u = a - d, L.useArmor(t) && (u -= await ee.damageToArmor(e, i, u)), u += r - m;
+      u = a - d, _.useArmor(t) && (u -= await te.damageToArmor(e, i, u)), u += r - m;
     } else
-      u = a + r - c, L.useArmor(t) && (u -= await ee.damageToArmor(e, i, u));
-    u > 0 && await L.addCounter(e, t, u), ee._notifyResistanceUsage(e, t, i, l);
+      u = a + r - c, _.useArmor(t) && (u -= await te.damageToArmor(e, i, u));
+    u > 0 && await _.addCounter(e, t, u), te._notifyResistanceUsage(e, t, i, l);
   }
   static async sufferDamageArmorResistanceMonitor(e, t, i, a, r, n, o) {
     let l = 0;
-    L.useArmor(t) ? n ? (a -= await ee.damageToArmor(e, i, a), l = r + a) : (l = r + a, l -= await ee.damageToArmor(e, i, l)) : l = a + r;
-    const c = L.resistanceDetail(e, t, i);
-    return l -= c.value, l > 0 && await L.addCounter(e, t, l), ee._notifyResistanceUsage(e, t, i, c), l;
+    _.useArmor(t) ? n ? (a -= await te.damageToArmor(e, i, a), l = r + a) : (l = r + a, l -= await te.damageToArmor(e, i, l)) : l = a + r;
+    const c = _.resistanceDetail(e, t, i);
+    return l -= c.value, l > 0 && await _.addCounter(e, t, l), te._notifyResistanceUsage(e, t, i, c), l;
   }
   static async sufferDamageArmorAsResistance_Cyberpunk(e, t, i, a, r, n, o) {
     let l = a + r;
-    if (L.useArmor(t) && l > 0) {
-      const u = n ? r : 0, d = Math.max(0, ee._computeArmorResistance(e) - u);
-      d > 0 && (await L.addCounter(e, "armor", 1), l -= d);
+    if (_.useArmor(t) && l > 0) {
+      const u = n ? r : 0, d = Math.max(0, te._computeArmorResistance(e) - u);
+      d > 0 && (await _.addCounter(e, "armor", 1), l -= d);
     }
-    const c = L.resistanceDetail(e, t, i);
-    return l -= c.value, l > 0 && await L.addCounter(e, t, l), ee._notifyResistanceUsage(e, t, i, c), Math.max(l, 0);
+    const c = _.resistanceDetail(e, t, i);
+    return l -= c.value, l > 0 && await _.addCounter(e, t, l), te._notifyResistanceUsage(e, t, i, c), Math.max(l, 0);
   }
   static async sufferDamageArmorAsResistance_Earthdawn(e, t, i, a, r, n, o) {
     let l = a + r;
-    if (L.useArmor(t) && !n && l > 0) {
-      const u = ee._computeArmorResistance(e);
-      u > 0 && (await L.addCounter(e, "armor", 1), l -= u);
+    if (_.useArmor(t) && !n && l > 0) {
+      const u = te._computeArmorResistance(e);
+      u > 0 && (await _.addCounter(e, "armor", 1), l -= u);
     }
-    l -= ee._computeStrengthResistance(e, t);
-    const c = L.resistanceDetail(e, t, i);
-    return l -= c.value, l > 0 && await L.addCounter(e, t, l), ee._notifyResistanceUsage(e, t, i, c), l;
+    l -= te._computeStrengthResistance(e, t);
+    const c = _.resistanceDetail(e, t, i);
+    return l -= c.value, l > 0 && await _.addCounter(e, t, l), te._notifyResistanceUsage(e, t, i, c), l;
   }
   static async damageToArmor(e, t, i) {
     if (i > 0) {
-      const a = L.max(e, S.monitors.armor), r = L.getCounterValue(e, S.monitors.armor), n = Math.min(a - r, i), o = L.resistance(e, S.monitors.armor, t), l = Math.max(0, n - o);
-      return l > 0 && await L.addCounter(e, S.monitors.armor, l), n;
+      const a = _.max(e, S.monitors.armor), r = _.getCounterValue(e, S.monitors.armor), n = Math.min(a - r, i), o = _.resistance(e, S.monitors.armor, t), l = Math.max(0, n - o);
+      return l > 0 && await _.addCounter(e, S.monitors.armor, l), n;
     } else
       return 0;
   }
@@ -7931,7 +7931,7 @@ class ee {
     var u;
     if (!a || t === void 0)
       return;
-    const r = k.actor.monitors[t] ?? t, n = ee._localizeDamageType(i) ?? r, o = a.usedType ? "type" : "default", l = ((u = k.actor.monitors.resistanceSources) == null ? void 0 : u[o]) ?? o, c = me(k.actor.monitors.resistanceApplied, {
+    const r = k.actor.monitors[t] ?? t, n = te._localizeDamageType(i) ?? r, o = a.usedType ? "type" : "default", l = ((u = k.actor.monitors.resistanceSources) == null ? void 0 : u[o]) ?? o, c = fe(k.actor.monitors.resistanceApplied, {
       actor: e.name,
       monitor: r,
       damageType: n,
@@ -7942,10 +7942,10 @@ class ee {
   }
   static _localizeDamageType(e) {
     if (e)
-      return Zn(e) ? vt(e) : k.mwd.weaponDamageType[e] ?? k.mwd.personalDamageType[e] ?? k.actor.monitors[e] ?? e;
+      return so(e) ? vt(e) : k.mwd.weaponDamageType[e] ?? k.mwd.personalDamageType[e] ?? k.actor.monitors[e] ?? e;
   }
   static _computeArmorResistance(e) {
-    const t = L.max(e, "armor"), i = L.getCounterValue(e, "armor"), a = Math.max(0, t - i);
+    const t = _.max(e, "armor"), i = _.getCounterValue(e, "armor"), a = Math.max(0, t - i);
     return Math.max(0, Math.ceil(a / 3));
   }
   static _computeStrengthResistance(e, t) {
@@ -7953,7 +7953,7 @@ class ee {
     return Math.max(0, Math.floor(i / 4));
   }
 }
-class Ke extends Actor {
+class Ve extends Actor {
   static init() {
     Hooks.on("updateActor", (e, t, i, a) => {
       var r;
@@ -8002,8 +8002,8 @@ class Ke extends Actor {
       return [];
     const t = ["positive", "negative", "narrative"], i = ["major", "minor"];
     return e.sort((a, r) => {
-      var m, p, f, h, g, y;
-      const n = String(((m = a.system) == null ? void 0 : m.category) ?? (((p = a.system) == null ? void 0 : p.positive) === !1 ? "negative" : "positive")).trim() || "positive", o = String(((f = r.system) == null ? void 0 : f.category) ?? (((h = r.system) == null ? void 0 : h.positive) === !1 ? "negative" : "positive")).trim() || "positive", l = t.indexOf(n) - t.indexOf(o);
+      var m, f, p, h, g, y;
+      const n = String(((m = a.system) == null ? void 0 : m.category) ?? (((f = a.system) == null ? void 0 : f.positive) === !1 ? "negative" : "positive")).trim() || "positive", o = String(((p = r.system) == null ? void 0 : p.category) ?? (((h = r.system) == null ? void 0 : h.positive) === !1 ? "negative" : "positive")).trim() || "positive", l = t.indexOf(n) - t.indexOf(o);
       if (l !== 0) return l;
       const c = String(((g = a.system) == null ? void 0 : g.tier) ?? "minor").trim() || "minor", u = String(((y = r.system) == null ? void 0 : y.tier) ?? "minor").trim() || "minor", d = i.indexOf(c) - i.indexOf(u);
       return d !== 0 ? d : String(a.name ?? "").localeCompare(String(r.name ?? ""));
@@ -8038,12 +8038,12 @@ class Ke extends Actor {
   }
   prepareDerivedData() {
     if (this.system.modifiers = {
-      initiative: X.sumModifiers(this.items, "other", "initiative")
+      initiative: Z.sumModifiers(this.items, "other", "initiative")
     }, this.system.monitors) {
       const e = ie.getDamageTypes();
       Object.entries(this.system.monitors).forEach((t) => {
-        t[1].resistance = Ke.normalizeResistance(t[1].resistance), t[1].maxBonus = X.sumMonitorModifiers(this.items, t[0], "max"), t[1].resistanceBonus = X.sumMonitorModifiers(this.items, t[0], "resistance"), t[1].resistanceBonusByType = Object.fromEntries(
-          e.map((i) => [i.value, X.sumMonitorModifiers(this.items, t[0], "resistanceByType", i.value)]).filter(([, i]) => i)
+        t[1].resistance = Ve.normalizeResistance(t[1].resistance), t[1].maxBonus = Z.sumMonitorModifiers(this.items, t[0], "max"), t[1].resistanceBonus = Z.sumMonitorModifiers(this.items, t[0], "resistance"), t[1].resistanceBonusByType = Object.fromEntries(
+          e.map((i) => [i.value, Z.sumMonitorModifiers(this.items, t[0], "resistanceByType", i.value)]).filter(([, i]) => i)
         );
       });
     }
@@ -8095,10 +8095,10 @@ class Ke extends Actor {
   }
   _getMonitorMax(e) {
     const t = this.getAttributeValue(e);
-    return t == 0 ? 0 : jn + Q.divup(t, 2);
+    return t == 0 ? 0 : qn + Q.divup(t, 2);
   }
   getAttributeActions() {
-    return be.getActorActions(this);
+    return Se.getActorActions(this);
   }
   getUsableAttributes(e = void 0) {
     const t = (e ? [e] : this.items).map((a) => a.getAttributes()).reduce((a, r) => a.concat(r), []), i = Q.distinct(this.getAttributes().concat(t));
@@ -8118,7 +8118,7 @@ class Ke extends Actor {
           i = Math.max(...r);
         }
       }
-      i += X.sumModifiers(this.items, "attribute", e);
+      i += Z.sumModifiers(this.items, "attribute", e);
     }
     return i;
   }
@@ -8136,14 +8136,14 @@ class Ke extends Actor {
     switch (e = this.resolveDamageType(e), e) {
       case S.monitors.physical:
       case S.monitors.fatigue:
-        await ee.damageToArmor(this, t, i);
+        await te.damageToArmor(this, t, i);
     }
   }
   async rollAttribute(e) {
     await ut.rollAttribute(this, e);
   }
   async rollAttributeAction(e) {
-    const t = be.getActorAction(this, e);
+    const t = Se.getActorAction(this, e);
     await ut.rollAttributeAction(this, t);
   }
   async rollSkill(e, t) {
@@ -8162,17 +8162,17 @@ class Ke extends Actor {
     await ut.rollWeapon(this, a, e, i);
   }
   async rollDefense(e) {
-    const t = e.attack.defense, i = be.getActorDefense(this, t);
+    const t = e.attack.defense, i = Se.getActorDefense(this, t);
     await ut.rollDefense(this, i, e);
   }
   async switchMonitorCheck(e, t, i, a = void 0) {
-    await L.switchMonitorCheck(this, e, t, i, a);
+    await _.switchMonitorCheck(this, e, t, i, a);
   }
   async addCounter(e, t, i = void 0) {
-    await L.addCounter(this, e, t, i);
+    await _.addCounter(this, e, t, i);
   }
   async setCounter(e, t, i = void 0) {
-    await L.setCounter(this, e, t, i);
+    await _.setCounter(this, e, t, i);
   }
   canSetMarks() {
     return !1;
@@ -8191,11 +8191,11 @@ class Ke extends Actor {
     return this.canApplyDamage(e);
   }
   async onEnterCombat() {
-    const e = X.sumModifiers(this.items, "other", "sceneAnarchy");
-    e > 0 && await L.setCounter(this, S.monitors.sceneAnarchy, e);
+    const e = Z.sumModifiers(this.items, "other", "sceneAnarchy");
+    e > 0 && await _.setCounter(this, S.monitors.sceneAnarchy, e);
   }
   async onLeaveCombat() {
-    await L.setCounter(this, S.monitors.sceneAnarchy, 0);
+    await _.setCounter(this, S.monitors.sceneAnarchy, 0);
   }
   getCelebrityValue() {
     return 0;
@@ -8251,7 +8251,7 @@ class Ke extends Actor {
     return this.getAttributes().includes(S.actorAttributes.edge);
   }
   async spendEdgePool(e, t) {
-    t != 0 && await L.addCounter(this, e, -t);
+    t != 0 && await _.addCounter(this, e, -t);
   }
   async spendEdge(e, t = S.counters.edgePools.grit) {
     if (e != 0) {
@@ -8299,8 +8299,8 @@ class Ke extends Actor {
     return game.actors.filter((e) => e.system.ownerId == this.id);
   }
   hasFavorite(e, t) {
-    const i = Ke._prepareFavorite(e, t);
-    return !!this.system.favorites.find((a) => Ke._isSameFavorite(i, a));
+    const i = Ve._prepareFavorite(e, t);
+    return !!this.system.favorites.find((a) => Ve._isSameFavorite(i, a));
   }
   static _prepareFavorite(e, t) {
     return { type: e, id: t };
@@ -8309,7 +8309,7 @@ class Ke extends Actor {
     return e.id == t.id && e.type == t.type;
   }
   async switchFavorite(e, t, i) {
-    const a = Ke._prepareFavorite(t, i), r = this.system.favorites.filter((n) => !Ke._isSameFavorite(a, n));
+    const a = Ve._prepareFavorite(t, i), r = this.system.favorites.filter((n) => !Ve._isSameFavorite(a, n));
     e && r.push(a), this.update({ "system.favorites": r });
   }
   async cleanupFavorites() {
@@ -8324,9 +8324,9 @@ class Ke extends Actor {
   }
   getShortcut(e, t) {
     var a;
-    const i = Ke._prepareFavorite(e, t);
+    const i = Ve._prepareFavorite(e, t);
     if (e == "attributeAction") {
-      const r = be.prepareShortcut(this, t);
+      const r = Se.prepareShortcut(this, t);
       if (r)
         return foundry.utils.mergeObject(r, i);
     } else if (Object.values(S.itemType).includes(e)) {
@@ -8346,7 +8346,7 @@ class Ke extends Actor {
       return r.value = a, this.render(!1);
   }
 }
-const { ApplicationV2: fd, HandlebarsApplicationMixin: hd } = foundry.applications.api, { renderTemplate: fn } = foundry.applications.handlebars, gd = `${H}/chat/celebrity-roll.hbs`, Pi = class Pi extends hd(fd) {
+const { ApplicationV2: bd, HandlebarsApplicationMixin: Sd } = foundry.applications.api, { renderTemplate: yn } = foundry.applications.handlebars, Ad = `${G}/chat/celebrity-roll.hbs`, Pi = class Pi extends Sd(bd) {
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       id: "roll-celebrity",
@@ -8366,14 +8366,14 @@ const { ApplicationV2: fd, HandlebarsApplicationMixin: hd } = foundry.applicatio
       },
       modifiers: foundry.utils.mergeObject(
         { label: k.item.tabs.modifiers },
-        X.computeModifiers(e.items, "other", "celebrity")
+        Z.computeModifiers(e.items, "other", "celebrity")
       ),
       other: {
         label: k.common.roll.modifiers.other,
         value: 0
       },
       ANARCHY: k
-    }, i = await fn(`${H}/dialog/roll-celebrite-title.hbs`, t), a = {
+    }, i = await yn(`${G}/dialog/roll-celebrite-title.hbs`, t), a = {
       id: `roll-celebrity-${foundry.utils.randomID()}`,
       classes: [game.system.anarchy.styles.selectCssClass(), ...Pi.DEFAULT_OPTIONS.classes],
       window: { title: i }
@@ -8413,7 +8413,7 @@ const { ApplicationV2: fd, HandlebarsApplicationMixin: hd } = foundry.applicatio
       ANARCHY: k
     }, r = new Roll(`${i}d6cs>=5`);
     await r.evaluate();
-    const n = await fn(gd, a);
+    const n = await yn(Ad, a);
     await r.toMessage({ flavor: n });
   }
   // async roll() {
@@ -8440,20 +8440,20 @@ const { ApplicationV2: fd, HandlebarsApplicationMixin: hd } = foundry.applicatio
 };
 N(Pi, "PARTS", {
   body: {
-    template: `${H}/dialog/roll-celebrite.hbs`
+    template: `${G}/dialog/roll-celebrite.hbs`
   }
 });
-let qa = Pi;
-const { renderTemplate: yd } = foundry.applications.handlebars, bd = `${H}/chat/actor-say-word.hbs`;
-class hn extends Ke {
+let Ka = Pi;
+const { renderTemplate: wd } = foundry.applications.handlebars, Td = `${G}/chat/actor-say-word.hbs`;
+class bn extends Ve {
   static get initiative() {
-    return Ke.initiative + " + max(@attributes.reflexes.value, @attributes.intelligence.value)";
+    return Ve.initiative + " + max(@attributes.reflexes.value, @attributes.intelligence.value)";
   }
   hasOwnAnarchy() {
     return this.hasPlayerOwner;
   }
   prepareDerivedData() {
-    !this.system.monitors.fatigue && this.system.monitors.stun && (this.system.monitors.fatigue = foundry.utils.duplicate(this.system.monitors.stun)), this.system.monitors.physical.max = this._getMonitorMax(S.actorAttributes.strength), this.system.monitors.fatigue.max = this._getMonitorMax(S.actorAttributes.willpower), super.prepareDerivedData(), this.system.ignoreWounds = X.sumModifiers(this.items, "other", "ignoreWounds");
+    !this.system.monitors.fatigue && this.system.monitors.stun && (this.system.monitors.fatigue = foundry.utils.duplicate(this.system.monitors.stun)), this.system.monitors.physical.max = this._getMonitorMax(S.actorAttributes.strength), this.system.monitors.fatigue.max = this._getMonitorMax(S.actorAttributes.willpower), super.prepareDerivedData(), this.system.ignoreWounds = Z.sumModifiers(this.items, "other", "ignoreWounds");
   }
   computePhysicalState() {
     var l, c;
@@ -8491,8 +8491,8 @@ class hn extends Ke {
     const i = (a = this.getWord(e, t)) == null ? void 0 : a.word;
     i && ChatMessage.create({
       speaker: { alias: ((r = this.token) == null ? void 0 : r.name) ?? this.name },
-      content: await yd(
-        bd,
+      content: await wd(
+        Td,
         {
           actor: this,
           wordsToSay: i
@@ -8542,7 +8542,7 @@ class hn extends Ke {
       const t = this.getAnarchyScene(), i = this.getAnarchyValue();
       fi.checkSufficient(k.actor.counters.anarchy, e, i + t);
       const a = Math.min(t, e), r = e - a;
-      a > 0 && L.addCounter(this, S.monitors.sceneAnarchy, -a), this.hasPlayerOwner ? (await game.system.anarchy.gmAnarchy.actorGivesAnarchyToGM(this, e), L.addCounter(this, S.monitors.anarchy, -r)) : r > 0 && super.spendAnarchy(r);
+      a > 0 && _.addCounter(this, S.monitors.sceneAnarchy, -a), this.hasPlayerOwner ? (await game.system.anarchy.gmAnarchy.actorGivesAnarchyToGM(this, e), _.addCounter(this, S.monitors.anarchy, -r)) : r > 0 && super.spendAnarchy(r);
     }
   }
   canUseEdge() {
@@ -8553,18 +8553,18 @@ class hn extends Ke {
     return Math.max(0, e - this.system.ignoreWounds);
   }
   async rollCelebrity() {
-    await qa.create(this);
+    await Ka.create(this);
   }
 }
-class Ko extends Ke {
+class Xo extends Ve {
   prepareDerivedData() {
     this._prepareMwdAttributes(), this._prepareMwdMonitors(), this._prepareMwdItems(), super.prepareDerivedData();
   }
   static get defaultIcon() {
-    return `${Us}/default/Default_Vehicle.svg`;
+    return `${js}/default/Default_Vehicle.svg`;
   }
   static get initiative() {
-    return Ke.initiative + " + max(@attributes.system.value, @attributes.handling.value)";
+    return Ve.initiative + " + max(@attributes.system.value, @attributes.handling.value)";
   }
   computePhysicalState() {
     return {
@@ -8623,7 +8623,7 @@ class Ko extends Ke {
     const e = this.system.mwd = this.system.mwd ?? {}, t = this.system.monitors = this.system.monitors ?? {}, i = {
       value: ((a = t.structure) == null ? void 0 : a.value) ?? 0,
       max: ((r = t.structure) == null ? void 0 : r.max) ?? (this.type === S.actorTypes.battlemech ? 18 : 15),
-      resistance: Ke.normalizeResistance((n = t.structure) == null ? void 0 : n.resistance)
+      resistance: Ve.normalizeResistance((n = t.structure) == null ? void 0 : n.resistance)
     };
     if (t.structure = foundry.utils.mergeObject(
       foundry.utils.duplicate(i),
@@ -8637,7 +8637,7 @@ class Ko extends Ke {
       const m = {
         value: ((o = t.heat) == null ? void 0 : o.value) ?? ((l = e.heat) == null ? void 0 : l.current) ?? 0,
         max: ((c = t.heat) == null ? void 0 : c.max) ?? ((u = e.heat) == null ? void 0 : u.hardMax) ?? 4,
-        resistance: Ke.normalizeResistance((d = t.heat) == null ? void 0 : d.resistance)
+        resistance: Ve.normalizeResistance((d = t.heat) == null ? void 0 : d.resistance)
       };
       t.heat = foundry.utils.mergeObject(
         foundry.utils.duplicate(m),
@@ -8674,48 +8674,48 @@ class Ko extends Ke {
     );
   }
 }
-const gn = {
+const Sn = {
   light: 4,
   medium: 5,
   heavy: 6,
   assault: 7
-}, Sd = { mode: "normal", allowedWeaponIds: [], typeRestriction: "" }, Ad = {
+}, kd = { mode: "normal", allowedWeaponIds: [], typeRestriction: "" }, vd = {
   baseProfile: { name: "Unarmed", damage: "", notes: "" },
   maxWeapons: 0,
   allowedLocations: []
 };
-class wd {
+class Md {
   constructor(e) {
     this.actor = e, this.mwd = e.system.mwd ?? {};
   }
   compute() {
-    const e = this.mwd.weightClass ?? "medium", t = gn[e] ?? gn.medium, i = this._normalizeHardpoints(), a = this._normalizeWeaponGroups(), r = a.find((y) => y.isPrimary), n = a.filter((y) => y.isPrimary), o = this._primarySlot(), l = [], c = [];
+    const e = this.mwd.weightClass ?? "medium", t = Sn[e] ?? Sn.medium, i = this._normalizeHardpoints(), a = this._normalizeWeaponGroups(), r = a.find((y) => y.isPrimary), n = a.filter((y) => y.isPrimary), o = this._primarySlot(), l = [], c = [];
     n.length > 1 && l.push(k.mwd.loadout.errors.multiplePrimary);
     const u = r ? t - 1 : t, d = a.length + (r ? 1 : 0);
-    a.length > u && l.push(me(k.mwd.loadout.errors.mountPointsExceeded, {
+    a.length > u && l.push(fe(k.mwd.loadout.errors.mountPointsExceeded, {
       used: d,
       total: t
     }));
-    const m = this._getWeapons((y) => (y.system.weaponCategory ?? "ranged") !== "melee"), p = new Map(m.map((y) => [y.id, y])), f = /* @__PURE__ */ new Set(), h = i.map((y) => ({ ...y, occupiedBy: null, occupiedByName: void 0 }));
+    const m = this._getWeapons((y) => (y.system.weaponCategory ?? "ranged") !== "melee"), f = new Map(m.map((y) => [y.id, y])), p = /* @__PURE__ */ new Set(), h = i.map((y) => ({ ...y, occupiedBy: null, occupiedByName: void 0 }));
     for (const y of a)
       for (const b of y.weaponIds ?? []) {
-        const A = p.get(b);
+        const A = f.get(b);
         if (!A) {
-          c.push(me(k.mwd.loadout.warnings.weaponMissing, { weapon: b }));
+          c.push(fe(k.mwd.loadout.warnings.weaponMissing, { weapon: b }));
           continue;
         }
-        const w = A.system.hardpointType ?? "energy", E = A.system.hardpointSize ?? "small";
-        if (f.has(b)) {
-          l.push(me(k.mwd.loadout.errors.weaponAlreadyGrouped, { weapon: A.name }));
+        const w = A.system.hardpointType ?? "energy", M = A.system.hardpointSize ?? "small";
+        if (p.has(b)) {
+          l.push(fe(k.mwd.loadout.errors.weaponAlreadyGrouped, { weapon: A.name }));
           continue;
         }
-        if (f.add(b), y.isPrimary && this._validatePrimaryWeapon(A, w, E, o, l), (A.system.weaponCategory ?? "ranged") === "melee")
+        if (p.add(b), y.isPrimary && this._validatePrimaryWeapon(A, w, M, o, l), (A.system.weaponCategory ?? "ranged") === "melee")
           continue;
-        const I = h.find((R) => !R.occupiedBy && R.type === w && R.size === E);
-        I ? (I.occupiedBy = y.id, I.occupiedByName = y.name) : l.push(me(k.mwd.loadout.errors.hardpointUnavailable, {
+        const I = h.find((D) => !D.occupiedBy && D.type === w && D.size === M);
+        I ? (I.occupiedBy = y.id, I.occupiedByName = y.name) : l.push(fe(k.mwd.loadout.errors.hardpointUnavailable, {
           weapon: A.name,
           type: k.mwd.hardpointType[w] ?? w,
-          size: k.mwd.hardpointSize[E] ?? E
+          size: k.mwd.hardpointSize[M] ?? M
         }));
       }
     r && (!r.weaponIds || r.weaponIds.length === 0) && l.push(k.mwd.loadout.errors.primaryWithoutWeapon);
@@ -8739,7 +8739,7 @@ class wd {
   _normalizeWeaponGroups() {
     return (this.mwd.weaponGroups ?? []).map((e, t) => ({
       id: e.id ?? `group-${t + 1}`,
-      name: e.name || me(k.common.newName, { type: k.itemType.singular.weapon }),
+      name: e.name || fe(k.common.newName, { type: k.itemType.singular.weapon }),
       weaponIds: this._asArray(e.weaponIds),
       isPrimary: e.isPrimary ?? !1
     }));
@@ -8753,13 +8753,13 @@ class wd {
     }));
   }
   _primarySlot() {
-    const e = foundry.utils.mergeObject(foundry.utils.duplicate(Sd), this.mwd.primarySlot ?? {});
+    const e = foundry.utils.mergeObject(foundry.utils.duplicate(kd), this.mwd.primarySlot ?? {});
     return e.allowedWeaponIds = this._asArray(e.allowedWeaponIds), e;
   }
   _computeMeleeState(e) {
     var o, l, c;
-    const t = foundry.utils.mergeObject(foundry.utils.duplicate(Ad), this.mwd.melee ?? {}), i = this._getWeapons((u) => (u.system.weaponCategory ?? "ranged") === "melee"), a = [], r = Number(t.maxWeapons ?? 0);
-    i.length > r && e.push(me(k.mwd.loadout.errors.meleeLimitExceeded, {
+    const t = foundry.utils.mergeObject(foundry.utils.duplicate(vd), this.mwd.melee ?? {}), i = this._getWeapons((u) => (u.system.weaponCategory ?? "ranged") === "melee"), a = [], r = Number(t.maxWeapons ?? 0);
+    i.length > r && e.push(fe(k.mwd.loadout.errors.meleeLimitExceeded, {
       equipped: i.length,
       limit: r
     }));
@@ -8770,7 +8770,7 @@ class wd {
       notes: ((c = t.baseProfile) == null ? void 0 : c.notes) ?? ""
     }), i.forEach((u) => {
       var d;
-      n.length > 0 && u.system.mountLocation && !n.includes(u.system.mountLocation) && e.push(me(k.mwd.loadout.errors.meleeLocationRestricted, {
+      n.length > 0 && u.system.mountLocation && !n.includes(u.system.mountLocation) && e.push(fe(k.mwd.loadout.errors.meleeLocationRestricted, {
         weapon: u.name,
         location: k.mwd.meleeLocation[u.system.mountLocation] ?? u.system.mountLocation
       })), a.push({
@@ -8782,10 +8782,10 @@ class wd {
   }
   _validatePrimaryWeapon(e, t, i, a, r) {
     var n;
-    a.mode === "converted" ? (((n = a.allowedWeaponIds) == null ? void 0 : n.length) > 0 && !a.allowedWeaponIds.includes(e.id) && r.push(me(k.mwd.loadout.errors.primaryNotAllowedWeapon, { weapon: e.name })), a.typeRestriction && t !== a.typeRestriction && r.push(me(k.mwd.loadout.errors.primaryTypeRestriction, {
+    a.mode === "converted" ? (((n = a.allowedWeaponIds) == null ? void 0 : n.length) > 0 && !a.allowedWeaponIds.includes(e.id) && r.push(fe(k.mwd.loadout.errors.primaryNotAllowedWeapon, { weapon: e.name })), a.typeRestriction && t !== a.typeRestriction && r.push(fe(k.mwd.loadout.errors.primaryTypeRestriction, {
       weapon: e.name,
       type: k.mwd.hardpointType[a.typeRestriction] ?? a.typeRestriction
-    }))) : i !== "large" && r.push(me(k.mwd.loadout.errors.primaryNeedsLarge, { weapon: e.name }));
+    }))) : i !== "large" && r.push(fe(k.mwd.loadout.errors.primaryNeedsLarge, { weapon: e.name }));
   }
   _getWeapons(e) {
     return this.actor.items.filter((t) => t.type === S.itemType.mechWeapon).filter((t) => {
@@ -8797,13 +8797,13 @@ class wd {
     return Array.isArray(e) ? e : e == null || e === "" ? [] : [e];
   }
 }
-class Td extends Ko {
+class Ed extends Xo {
   static get defaultIcon() {
-    return `${Us}/vehicles/apc.svg`;
+    return `${js}/vehicles/apc.svg`;
   }
   prepareDerivedData() {
     var e;
-    super.prepareDerivedData(), this.system.mwd = this.system.mwd ?? {}, this.system.mwd.chassis = this.system.mwd.chassis ?? "", this.system.mwd.tonnage = this.system.mwd.tonnage ?? 0, this.system.mwd.loadout = new wd(this).compute(), this.system.mwd.weaponGroupDetails = this._prepareConfiguredWeaponGroups(), this.system.mwd.heat = this._prepareHeatTrack(), this.system.mwd.primaryGroupName = ((e = this.system.mwd.weaponGroupDetails.find((t) => t.isPrimary)) == null ? void 0 : e.name) ?? "", this.system.skills = this._prepareSkillMap(), this.system.weaponGroups = this._prepareWeaponGroups(), this.system.meleeProfiles = this._prepareMeleeProfiles(), this.system.quickActions = {
+    super.prepareDerivedData(), this.system.mwd = this.system.mwd ?? {}, this.system.mwd.chassis = this.system.mwd.chassis ?? "", this.system.mwd.tonnage = this.system.mwd.tonnage ?? 0, this.system.mwd.loadout = new Md(this).compute(), this.system.mwd.weaponGroupDetails = this._prepareConfiguredWeaponGroups(), this.system.mwd.heat = this._prepareHeatTrack(), this.system.mwd.primaryGroupName = ((e = this.system.mwd.weaponGroupDetails.find((t) => t.isPrimary)) == null ? void 0 : e.name) ?? "", this.system.skills = this._prepareSkillMap(), this.system.weaponGroups = this._prepareWeaponGroups(), this.system.meleeProfiles = this._prepareMeleeProfiles(), this.system.quickActions = {
       primaryWeaponGroup: this.system.weaponGroups.find((t) => t.isPrimary),
       hasSensorSweep: !!(this.system.skills.perception || this.system.skills.technician)
     };
@@ -8906,7 +8906,7 @@ class Td extends Ko {
       return {
         id: a.id ?? `group-${r + 1}`,
         index: r,
-        name: a.name || me(k.common.newName, { type: k.itemType.singular.weapon }),
+        name: a.name || fe(k.common.newName, { type: k.itemType.singular.weapon }),
         weaponIds: n,
         isPrimary: a.isPrimary ?? !1,
         weapons: o,
@@ -8981,7 +8981,7 @@ class Td extends Ko {
   async _rollQuickSkill(e, t = {}) {
     var r;
     const i = ((r = e == null ? void 0 : e.system) == null ? void 0 : r.attribute) ?? this.getPhysicalAgility(), a = foundry.utils.mergeObject(ut.prepareActorRoll(this), {
-      mode: Be.rollType.skill,
+      mode: xe.rollType.skill,
       skill: e,
       attribute1: i,
       specialization: void 0
@@ -9042,7 +9042,7 @@ class Td extends Ko {
     };
   }
 }
-const Cs = "activeModifiers", _r = [
+const Ps = "activeModifiers", $r = [
   { value: "", label: "All Attributes" },
   { value: "reflexes", label: "Reflexes" },
   { value: "strength", label: "Strength" },
@@ -9050,7 +9050,7 @@ const Cs = "activeModifiers", _r = [
   { value: "charisma", label: "Charisma" },
   { value: "intelligence", label: "Intelligence" },
   { value: "edge", label: "Edge" }
-], Lr = [
+], xr = [
   { value: "", label: "All Intents" },
   { value: "skill", label: "Skill" },
   { value: "attack", label: "Attack" },
@@ -9060,45 +9060,45 @@ const Cs = "activeModifiers", _r = [
   { value: "edge", label: "Edge" },
   { value: "initiative", label: "Initiative" }
 ];
-function yn(s) {
+function An(s) {
   const e = String(s ?? "").trim();
   return e === "" ? null : e;
 }
-function kd(s) {
+function Cd(s) {
   return String((s == null ? void 0 : s.intent) ?? "").trim() || null;
 }
-function vd(s) {
+function Pd(s) {
   var e, t, i;
   return ((e = s == null ? void 0 : s.data) == null ? void 0 : e.attrKey) ?? // skill rolls
   ((i = (t = s == null ? void 0 : s.attack) == null ? void 0 : t.skill) == null ? void 0 : i.attribute) ?? // attack rolls
   null;
 }
-function bn(s, e) {
+function wn(s, e) {
   return s ? e ? s === e : !1 : !0;
 }
-function Yo(s) {
+function Zo(s) {
   return {
     id: String((s == null ? void 0 : s.id) ?? ""),
     label: String((s == null ? void 0 : s.label) ?? "").trim(),
     value: Math.trunc(Number((s == null ? void 0 : s.value) ?? 0)) || 0,
     enabled: (s == null ? void 0 : s.enabled) !== !1,
-    attributeFilter: yn(s == null ? void 0 : s.attributeFilter),
-    intentFilter: yn(s == null ? void 0 : s.intentFilter),
+    attributeFilter: An(s == null ? void 0 : s.attributeFilter),
+    intentFilter: An(s == null ? void 0 : s.intentFilter),
     source: (s == null ? void 0 : s.source) === "preset" ? "preset" : "adhoc"
   };
 }
-class Md {
+class Nd {
   constructor() {
     N(this, "id", "mwd.sceneModifiers");
   }
   collect({ resolved: e } = {}) {
     var n;
-    const t = (n = canvas == null ? void 0 : canvas.scene) == null ? void 0 : n.getFlag("mwd", Cs);
+    const t = (n = canvas == null ? void 0 : canvas.scene) == null ? void 0 : n.getFlag("mwd", Ps);
     if (!Array.isArray(t) || !t.length) return [];
-    const i = kd(e), a = vd(e), r = [];
+    const i = Cd(e), a = Pd(e), r = [];
     for (const o of t) {
-      const l = Yo(o);
-      l.enabled && bn(l.intentFilter, i) && bn(l.attributeFilter, a) && r.push({
+      const l = Zo(o);
+      l.enabled && wn(l.intentFilter, i) && wn(l.attributeFilter, a) && r.push({
         id: l.id || `scene:${l.label}`,
         label: l.label,
         value: l.value,
@@ -9108,13 +9108,13 @@ class Md {
     return r;
   }
 }
-const Ed = `systems/${T}/templates/settings/collection-editor.hbs`, Qo = /* @__PURE__ */ new Map(), ya = /* @__PURE__ */ new Map();
+const Rd = `systems/${T}/templates/settings/collection-editor.hbs`, el = /* @__PURE__ */ new Map(), ba = /* @__PURE__ */ new Map();
 function pi(s = []) {
   const e = Array.isArray(s) ? s.filter(Boolean) : [String(s ?? "").trim()].filter(Boolean), t = new Error(e[0] ?? "Invalid settings data.");
   return t.validationErrors = e, t;
 }
-function ea(s) {
-  Pd(s), Qo.set(s.id, s), game.settings.register(T, s.settingKey, {
+function ta(s) {
+  Id(s), el.set(s.id, s), game.settings.register(T, s.settingKey, {
     scope: "world",
     config: !1,
     type: s.settingType ?? Object,
@@ -9124,14 +9124,14 @@ function ea(s) {
     label: s.menu.label,
     hint: s.menu.hint,
     icon: s.menu.icon,
-    type: Nd(s.id),
+    type: Od(s.id),
     restricted: s.menu.restricted ?? !0
   });
 }
-function Cd(s) {
-  return Qo.get(s) ?? null;
+function Dd(s) {
+  return el.get(s) ?? null;
 }
-function Pd(s) {
+function Id(s) {
   var e, t;
   if (!(s != null && s.id)) throw new Error("Settings collection definition requires an id.");
   if (!(s != null && s.settingKey)) throw new Error(`Settings collection definition "${s.id}" requires a settingKey.`);
@@ -9149,19 +9149,19 @@ function Pd(s) {
   if (!Array.isArray(s.rowSchema) || !s.rowSchema.length)
     throw new Error(`Settings collection definition "${s.id}" requires a non-empty rowSchema.`);
 }
-function Nd(s) {
-  if (ya.has(s))
-    return ya.get(s);
-  class e extends Jo {
+function Od(s) {
+  if (ba.has(s))
+    return ba.get(s);
+  class e extends tl {
   }
-  return N(e, "definitionId", s), ya.set(s, e), e;
+  return N(e, "definitionId", s), ba.set(s, e), e;
 }
-var G, Xo, Va, Ps, Ns, Mi, Ka, Hi, Zo, el, ze;
-class Jo extends FormApplication {
+var q, il, Ya, Ns, Rs, Mi, Qa, ji, sl, al, Fe;
+class tl extends FormApplication {
   constructor(t = {}, i = {}) {
     super(t, i);
-    ye(this, G);
-    const a = M(this, G, Ns).call(this);
+    be(this, q);
+    const a = E(this, q, Rs).call(this);
     this.editorState = {
       tab: "rows",
       rows: this.definition.toRows(a),
@@ -9173,7 +9173,7 @@ class Jo extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: `${T}-${this.definitionId}-editor`,
       classes: ["mwd", "mwd-settings-editor"],
-      template: Ed,
+      template: Rd,
       width: 880,
       height: 760,
       resizable: !0,
@@ -9182,7 +9182,7 @@ class Jo extends FormApplication {
     }, { inplace: !1 });
   }
   get definition() {
-    const t = Cd(this.constructor.definitionId);
+    const t = Dd(this.constructor.definitionId);
     if (!t)
       throw new Error(`Missing settings collection definition: ${this.constructor.definitionId}`);
     return t;
@@ -9192,9 +9192,9 @@ class Jo extends FormApplication {
     return this.definition.title ?? ((t = this.definition.menu) == null ? void 0 : t.name) ?? "Settings Editor";
   }
   getData(t = {}) {
-    const i = M(this, G, el).call(this), a = this.editorState.rows.map((r, n, o) => ({
+    const i = E(this, q, al).call(this), a = this.editorState.rows.map((r, n, o) => ({
       index: n,
-      fields: i.map((l) => M(this, G, Zo).call(this, l, r, n)),
+      fields: i.map((l) => E(this, q, sl).call(this, l, r, n)),
       canMoveUp: n > 0,
       canMoveDown: n < o.length - 1
     }));
@@ -9225,7 +9225,7 @@ class Jo extends FormApplication {
       a.addEventListener("click", (r) => {
         var l;
         const n = r.currentTarget, o = String(((l = n == null ? void 0 : n.dataset) == null ? void 0 : l.action) ?? "").trim();
-        o && M(this, G, Xo).call(this, o, r, n);
+        o && E(this, q, il).call(this, o, r, n);
       });
     });
   }
@@ -9234,68 +9234,68 @@ class Jo extends FormApplication {
   }
   async _updateObject(t, i) {
     var a;
-    M(this, G, ze).call(this, []);
+    E(this, q, Fe).call(this, []);
     try {
-      const r = this.editorState.tab === "bulk" ? this.definition.parseBulk(M(this, G, Hi).call(this)) : this.definition.rowsToValue(M(this, G, Ka).call(this));
+      const r = this.editorState.tab === "bulk" ? this.definition.parseBulk(E(this, q, ji).call(this)) : this.definition.rowsToValue(E(this, q, Qa).call(this));
       await game.settings.set(T, this.definition.settingKey, r);
-      const n = M(this, G, Ns).call(this);
-      M(this, G, Ps).call(this, n), await this.close();
+      const n = E(this, q, Rs).call(this);
+      E(this, q, Ns).call(this, n), await this.close();
     } catch (r) {
-      M(this, G, ze).call(this, fs(r)), this.editorState.errors.length && ((a = ui.notifications) == null || a.error(this.editorState.errors[0])), this.render(!1);
+      E(this, q, Fe).call(this, fs(r)), this.editorState.errors.length && ((a = ui.notifications) == null || a.error(this.editorState.errors[0])), this.render(!1);
     }
   }
 }
-G = new WeakSet(), Xo = async function(t, i, a) {
+q = new WeakSet(), il = async function(t, i, a) {
   var r, n, o, l, c, u, d, m;
   switch (i.preventDefault(), i.stopPropagation(), t) {
     case "switchRows":
-      M(this, G, Hi).call(this), this.editorState.tab = "rows", M(this, G, ze).call(this, []), this.render(!1);
+      E(this, q, ji).call(this), this.editorState.tab = "rows", E(this, q, Fe).call(this, []), this.render(!1);
       return;
     case "switchBulk":
-      M(this, G, Mi).call(this);
+      E(this, q, Mi).call(this);
       try {
-        const p = this.definition.rowsToValue(this.editorState.rows);
-        this.editorState.bulkText = this.definition.serializeBulk(p), this.editorState.tab = "bulk", M(this, G, ze).call(this, []);
-      } catch (p) {
-        M(this, G, ze).call(this, fs(p)), this.editorState.errors.length && ((r = ui.notifications) == null || r.warn(this.editorState.errors[0]));
+        const f = this.definition.rowsToValue(this.editorState.rows);
+        this.editorState.bulkText = this.definition.serializeBulk(f), this.editorState.tab = "bulk", E(this, q, Fe).call(this, []);
+      } catch (f) {
+        E(this, q, Fe).call(this, fs(f)), this.editorState.errors.length && ((r = ui.notifications) == null || r.warn(this.editorState.errors[0]));
       }
       this.render(!1);
       return;
     case "addRow":
-      M(this, G, Mi).call(this), this.editorState.rows.push(((o = (n = this.definition).createEmptyRow) == null ? void 0 : o.call(n)) ?? {}), M(this, G, ze).call(this, []), this.render(!1);
+      E(this, q, Mi).call(this), this.editorState.rows.push(((o = (n = this.definition).createEmptyRow) == null ? void 0 : o.call(n)) ?? {}), E(this, q, Fe).call(this, []), this.render(!1);
       return;
     case "removeRow":
-      M(this, G, Mi).call(this), this.editorState.rows.splice(Number(((l = a == null ? void 0 : a.dataset) == null ? void 0 : l.index) ?? -1), 1), M(this, G, ze).call(this, []), this.render(!1);
+      E(this, q, Mi).call(this), this.editorState.rows.splice(Number(((l = a == null ? void 0 : a.dataset) == null ? void 0 : l.index) ?? -1), 1), E(this, q, Fe).call(this, []), this.render(!1);
       return;
     case "moveRowUp":
-      M(this, G, Mi).call(this), M(this, G, Va).call(this, Number(((c = a == null ? void 0 : a.dataset) == null ? void 0 : c.index) ?? -1), -1), M(this, G, ze).call(this, []), this.render(!1);
+      E(this, q, Mi).call(this), E(this, q, Ya).call(this, Number(((c = a == null ? void 0 : a.dataset) == null ? void 0 : c.index) ?? -1), -1), E(this, q, Fe).call(this, []), this.render(!1);
       return;
     case "moveRowDown":
-      M(this, G, Mi).call(this), M(this, G, Va).call(this, Number(((u = a == null ? void 0 : a.dataset) == null ? void 0 : u.index) ?? -1), 1), M(this, G, ze).call(this, []), this.render(!1);
+      E(this, q, Mi).call(this), E(this, q, Ya).call(this, Number(((u = a == null ? void 0 : a.dataset) == null ? void 0 : u.index) ?? -1), 1), E(this, q, Fe).call(this, []), this.render(!1);
       return;
     case "loadBulk":
       try {
-        const p = this.definition.parseBulk(M(this, G, Hi).call(this));
-        this.editorState.rows = this.definition.toRows(p), this.editorState.bulkText = this.definition.serializeBulk(p), this.editorState.tab = "rows", M(this, G, ze).call(this, []);
-      } catch (p) {
-        M(this, G, ze).call(this, fs(p)), this.editorState.errors.length && ((d = ui.notifications) == null || d.warn(this.editorState.errors[0]));
+        const f = this.definition.parseBulk(E(this, q, ji).call(this));
+        this.editorState.rows = this.definition.toRows(f), this.editorState.bulkText = this.definition.serializeBulk(f), this.editorState.tab = "rows", E(this, q, Fe).call(this, []);
+      } catch (f) {
+        E(this, q, Fe).call(this, fs(f)), this.editorState.errors.length && ((d = ui.notifications) == null || d.warn(this.editorState.errors[0]));
       }
       this.render(!1);
       return;
     case "formatBulk":
       try {
-        const p = this.definition.parseBulk(M(this, G, Hi).call(this));
-        this.editorState.bulkText = this.definition.serializeBulk(p), M(this, G, ze).call(this, []);
-      } catch (p) {
-        M(this, G, ze).call(this, fs(p)), this.editorState.errors.length && ((m = ui.notifications) == null || m.warn(this.editorState.errors[0]));
+        const f = this.definition.parseBulk(E(this, q, ji).call(this));
+        this.editorState.bulkText = this.definition.serializeBulk(f), E(this, q, Fe).call(this, []);
+      } catch (f) {
+        E(this, q, Fe).call(this, fs(f)), this.editorState.errors.length && ((m = ui.notifications) == null || m.warn(this.editorState.errors[0]));
       }
       this.render(!1);
       return;
     case "resetSetting":
-      M(this, G, Ps).call(this, M(this, G, Ns).call(this)), this.render(!1);
+      E(this, q, Ns).call(this, E(this, q, Rs).call(this)), this.render(!1);
       return;
     case "restoreDefaults":
-      M(this, G, Ps).call(this, this.definition.defaultData()), this.render(!1);
+      E(this, q, Ns).call(this, this.definition.defaultData()), this.render(!1);
       return;
     case "cancel":
       await this.close();
@@ -9303,20 +9303,20 @@ G = new WeakSet(), Xo = async function(t, i, a) {
     default:
       return;
   }
-}, Va = function(t, i) {
+}, Ya = function(t, i) {
   if (!Number.isInteger(t)) return;
   const a = t + i;
   if (t < 0 || a < 0 || a >= this.editorState.rows.length) return;
   const r = [...this.editorState.rows], [n] = r.splice(t, 1);
   r.splice(a, 0, n), this.editorState.rows = r;
-}, Ps = function(t) {
-  this.editorState.rows = this.definition.toRows(t), this.editorState.bulkText = this.definition.serializeBulk(t), this.editorState.tab = "rows", M(this, G, ze).call(this, []);
-}, Ns = function() {
+}, Ns = function(t) {
+  this.editorState.rows = this.definition.toRows(t), this.editorState.bulkText = this.definition.serializeBulk(t), this.editorState.tab = "rows", E(this, q, Fe).call(this, []);
+}, Rs = function() {
   const t = game.settings.get(T, this.definition.settingKey);
   return foundry.utils.deepClone(t ?? this.definition.defaultData());
 }, Mi = function() {
-  this.editorState.rows = M(this, G, Ka).call(this);
-}, Ka = function() {
+  this.editorState.rows = E(this, q, Qa).call(this);
+}, Qa = function() {
   const t = foundry.utils.expandObject(this._getSubmitData()), i = (t == null ? void 0 : t.rows) ?? {};
   return Object.keys(i).sort((a, r) => Number(a) - Number(r)).map((a) => {
     const r = i[a] ?? {};
@@ -9327,12 +9327,12 @@ G = new WeakSet(), Xo = async function(t, i, a) {
       ])
     );
   });
-}, Hi = function() {
+}, ji = function() {
   var a;
   const t = this.form, i = (a = t == null ? void 0 : t.querySelector) == null ? void 0 : a.call(t, 'textarea[name="bulkText"]');
   return i instanceof HTMLTextAreaElement && (this.editorState.bulkText = i.value), this.editorState.bulkText ?? "";
-}, Zo = function(t, i, a) {
-  const r = t.type ?? "text", n = String((i == null ? void 0 : i[t.key]) ?? t.default ?? ""), o = r === "select" ? Rd(t).map((l) => ({
+}, sl = function(t, i, a) {
+  const r = t.type ?? "text", n = String((i == null ? void 0 : i[t.key]) ?? t.default ?? ""), o = r === "select" ? _d(t).map((l) => ({
     value: String(l.value ?? ""),
     label: String(l.label ?? l.value ?? ""),
     selected: String(l.value ?? "") === n
@@ -9350,15 +9350,15 @@ G = new WeakSet(), Xo = async function(t, i, a) {
     step: t.step ?? "",
     options: o
   };
-}, el = function() {
+}, al = function() {
   return this.definition.rowSchema.map((t) => ({
     ...t,
     type: t.type ?? "text"
   }));
-}, ze = function(t = []) {
+}, Fe = function(t = []) {
   this.editorState.errors = Array.isArray(t) ? t.filter(Boolean) : [];
-}, N(Jo, "definitionId", "");
-function Rd(s) {
+}, N(tl, "definitionId", "");
+function _d(s) {
   const e = typeof s.options == "function" ? s.options() : s.options;
   return Array.isArray(e) ? e : [];
 }
@@ -9366,12 +9366,12 @@ function fs(s) {
   const e = Array.isArray(s == null ? void 0 : s.validationErrors) ? s.validationErrors.filter(Boolean) : [String((s == null ? void 0 : s.message) ?? "Unable to save settings.").trim()].filter(Boolean);
   return e.length ? e : ["Unable to save settings."];
 }
-const Ya = "sceneModifierTemplates", Dd = "sceneModifierTemplateEditor", Id = Object.freeze([]);
+const Ja = "sceneModifierTemplates", Ld = "sceneModifierTemplateEditor", $d = Object.freeze([]);
 function Zt(s) {
   const e = String(s ?? "").trim();
   return e === "" ? "" : e;
 }
-function tl(s = []) {
+function rl(s = []) {
   const e = [], t = [], i = /* @__PURE__ */ new Set();
   if ((Array.isArray(s) ? s : []).forEach((a, r) => {
     const n = String((a == null ? void 0 : a.label) ?? "").trim(), o = String((a == null ? void 0 : a.value) ?? "").trim(), l = `Row ${r + 1}`;
@@ -9398,7 +9398,7 @@ function tl(s = []) {
   }), t.length) throw pi(t);
   return e;
 }
-function Od(s = []) {
+function xd(s = []) {
   return (Array.isArray(s) ? s : []).map((e) => ({
     label: String((e == null ? void 0 : e.label) ?? ""),
     value: String((e == null ? void 0 : e.value) ?? "0"),
@@ -9406,7 +9406,7 @@ function Od(s = []) {
     intentFilter: Zt(e == null ? void 0 : e.intentFilter)
   }));
 }
-function _d(s = "") {
+function Bd(s = "") {
   const e = String(s ?? "").trim();
   if (!e) return [];
   let t;
@@ -9419,14 +9419,14 @@ function _d(s = "") {
   }
   if (!Array.isArray(t))
     throw pi(["Bulk JSON must be an array."]);
-  return tl(t.map((i) => ({
+  return rl(t.map((i) => ({
     label: String((i == null ? void 0 : i.label) ?? ""),
     value: String((i == null ? void 0 : i.value) ?? "0"),
     attributeFilter: Zt(i == null ? void 0 : i.attributeFilter),
     intentFilter: Zt(i == null ? void 0 : i.intentFilter)
   })));
 }
-function Ld(s = []) {
+function Fd(s = []) {
   return JSON.stringify(
     (Array.isArray(s) ? s : []).map((e) => ({
       label: String((e == null ? void 0 : e.label) ?? ""),
@@ -9438,10 +9438,10 @@ function Ld(s = []) {
     2
   );
 }
-const $d = {
+const zd = {
   id: "scene-modifier-templates",
-  menuKey: Dd,
-  settingKey: Ya,
+  menuKey: Ld,
+  settingKey: Ja,
   settingType: Array,
   title: "Scene Modifier Templates",
   description: "Define reusable scene modifier presets that can be applied per scene via the GM Gadget.",
@@ -9467,13 +9467,13 @@ const $d = {
       key: "attributeFilter",
       label: "Attribute Filter",
       type: "select",
-      options: _r
+      options: $r
     },
     {
       key: "intentFilter",
       label: "Intent Filter",
       type: "select",
-      options: Lr
+      options: xr
     }
   ],
   menu: {
@@ -9483,27 +9483,27 @@ const $d = {
     icon: "fas fa-cloud",
     restricted: !0
   },
-  defaultData: () => foundry.utils.deepClone(Id),
+  defaultData: () => foundry.utils.deepClone($d),
   createEmptyRow: () => ({
     label: "",
     value: "0",
     attributeFilter: "",
     intentFilter: ""
   }),
-  toRows: Od,
-  rowsToValue: tl,
-  parseBulk: _d,
-  serializeBulk: Ld
+  toRows: xd,
+  rowsToValue: rl,
+  parseBulk: Bd,
+  serializeBulk: Fd
 };
-function xd() {
-  ea($d);
+function Wd() {
+  ta(zd);
 }
-const { ApplicationV2: Bd, HandlebarsApplicationMixin: Fd } = foundry.applications.api, zd = "mwd-gmgadget", il = "gmDnPresets", Rs = "gmNextDn", Gi = "gmDnAnnounceToChat", Wd = Object.freeze([
+const { ApplicationV2: Hd, HandlebarsApplicationMixin: Ud } = foundry.applications.api, jd = "mwd-gmgadget", nl = "gmDnPresets", Ds = "gmNextDn", Gi = "gmDnAnnounceToChat", Gd = Object.freeze([
   { label: "Standard", dn: 1 },
   { label: "Challenging", dn: 2 },
   { label: "Hard", dn: 3 },
   { label: "Extreme", dn: 4 }
-]), jd = "systems/mwd/templates/v2/mwd-gmgadget.hbs", qi = Object.freeze({
+]), qd = "systems/mwd/templates/v2/mwd-gmgadget.hbs", qi = Object.freeze({
   actorId: "",
   mode: "physical",
   delta: 1,
@@ -9514,7 +9514,7 @@ const { ApplicationV2: Bd, HandlebarsApplicationMixin: Fd } = foundry.applicatio
   source: "",
   notes: ""
 });
-function Ud(s = "") {
+function Vd(s = "") {
   return String(s ?? "").split(",").map((e) => e.trim()).filter(Boolean).map((e) => {
     const [t, i] = e.split(":").map((n) => (n ?? "").trim()), a = t || "DN", r = Number.isFinite(Number(i)) ? Number(i) : Number(t);
     return {
@@ -9523,15 +9523,15 @@ function Ud(s = "") {
     };
   }).filter((e) => Number.isFinite(e.dn));
 }
-function Hd(s = []) {
+function Kd(s = []) {
   const e = new Error(s[0] ?? "Invalid GM DN presets.");
   return e.validationErrors = Array.isArray(s) ? s.filter(Boolean) : [], e;
 }
-function Gd() {
-  return foundry.utils.deepClone(Wd);
+function Yd() {
+  return foundry.utils.deepClone(Gd);
 }
 function os(s, { strict: e = !1 } = {}) {
-  const t = typeof s == "string" ? Ud(s) : Array.isArray(s) ? s : [], i = [], a = [], r = /* @__PURE__ */ new Set();
+  const t = typeof s == "string" ? Vd(s) : Array.isArray(s) ? s : [], i = [], a = [], r = /* @__PURE__ */ new Set();
   if (t.forEach((n, o) => {
     const l = String((n == null ? void 0 : n.label) ?? "").trim(), c = n == null ? void 0 : n.dn, u = `Preset ${o + 1}`;
     if (!l) {
@@ -9556,17 +9556,17 @@ function os(s, { strict: e = !1 } = {}) {
       label: l,
       dn: Math.trunc(m)
     });
-  }), e && a.length) throw Hd(a);
+  }), e && a.length) throw Kd(a);
   return i;
 }
-function ba(s = {}) {
+function Sa(s = {}) {
   return foundry.utils.mergeObject(
     foundry.utils.deepClone(qi),
     s ?? {},
     { inplace: !1, overwrite: !0 }
   );
 }
-function qd(s) {
+function Qd(s) {
   var t, i;
   return !(s != null && s.token) || !(s != null && s.actor) ? {
     label: "No scene target",
@@ -9578,7 +9578,7 @@ function qd(s) {
     supported: !0
   };
 }
-function Vd(s) {
+function Jd(s) {
   var t;
   if (!(s != null && s.actor))
     return {
@@ -9593,11 +9593,11 @@ function Vd(s) {
     reason: ""
   };
 }
-function Kd(s) {
+function Xd(s) {
   return Ze.getStatusOptions(s);
 }
-function Yd(s = "mwd") {
-  game.settings.register(s, Rs, {
+function Zd(s = "mwd") {
+  game.settings.register(s, Ds, {
     scope: "client",
     config: !1,
     type: Number,
@@ -9611,29 +9611,29 @@ function Yd(s = "mwd") {
     default: !1
   });
 }
-const xe = class xe extends Fd(Bd) {
+const $e = class $e extends Ud(Hd) {
   constructor({ systemId: e = "mwd", ...t } = {}) {
-    super(t), this.systemId = e, this.activeTab = "difficulty", this.harmState = ba();
+    super(t), this.systemId = e, this.activeTab = "difficulty", this.harmState = Sa();
   }
   async render(e = {}) {
     var t;
     return (t = game.user) != null && t.isGM ? super.render(e) : this;
   }
   async _prepareContext(e) {
-    var f, h, g, y;
+    var p, h, g, y;
     const t = await super._prepareContext(e), i = os(
-      game.settings.get(this.systemId, il),
+      game.settings.get(this.systemId, nl),
       { strict: !1 }
-    ), a = Number(game.settings.get(this.systemId, Rs) ?? 1), r = !!game.settings.get(this.systemId, Gi), n = Ze.getActorOptions(), o = Ze.getSceneTarget(), l = this.harmState.actorId ? ((h = (f = game.actors) == null ? void 0 : f.get) == null ? void 0 : h.call(f, this.harmState.actorId)) ?? null : null, c = Ze.resolveTarget({
+    ), a = Number(game.settings.get(this.systemId, Ds) ?? 1), r = !!game.settings.get(this.systemId, Gi), n = Ze.getActorOptions(), o = Ze.getSceneTarget(), l = this.harmState.actorId ? ((h = (p = game.actors) == null ? void 0 : p.get) == null ? void 0 : h.call(p, this.harmState.actorId)) ?? null : null, c = Ze.resolveTarget({
       actor: l,
       actorId: this.harmState.actorId,
       preferSceneTarget: !0
-    }), u = Kd(c.actor ?? l ?? null), d = ba(this.harmState);
+    }), u = Xd(c.actor ?? l ?? null), d = Sa(this.harmState);
     !d.statusId && u.length && (d.statusId = u[0].value, this.harmState.statusId = d.statusId);
-    const m = Sn(
-      game.settings.get(this.systemId, Ya)
-    ), p = An(
-      (g = canvas == null ? void 0 : canvas.scene) == null ? void 0 : g.getFlag("mwd", Cs)
+    const m = Tn(
+      game.settings.get(this.systemId, Ja)
+    ), f = kn(
+      (g = canvas == null ? void 0 : canvas.scene) == null ? void 0 : g.getFlag("mwd", Ps)
     );
     return foundry.utils.mergeObject(t, {
       presets: i,
@@ -9644,18 +9644,18 @@ const xe = class xe extends Fd(Bd) {
       scene: {
         hasScene: !!(canvas != null && canvas.scene),
         templates: m,
-        activeModifiers: p,
-        attributeFilterOptions: _r,
-        intentFilterOptions: Lr
+        activeModifiers: f,
+        attributeFilterOptions: $r,
+        intentFilterOptions: xr
       },
       harm: {
         state: d,
         actorOptions: n,
         modes: Ze.MODE_OPTIONS,
-        damageTypes: md,
+        damageTypes: gd,
         statusOptions: u,
-        sceneTarget: qd(o),
-        effectiveTarget: Vd(c),
+        sceneTarget: Qd(o),
+        effectiveTarget: Jd(c),
         canApply: !!c.actor,
         applyReason: c.reason || "",
         useArmorAvailable: d.mode === "physical" || d.mode === "fatigue",
@@ -9680,7 +9680,7 @@ const xe = class xe extends Fd(Bd) {
       const l = t.querySelector(n);
       return l instanceof HTMLInputElement ? l.checked : o;
     };
-    return this.harmState = ba({
+    return this.harmState = Sa({
       actorId: i('[name="harm-actorId"]', this.harmState.actorId),
       mode: i('[name="harm-mode"]', this.harmState.mode),
       delta: Number(i('[name="harm-delta"]', this.harmState.delta)),
@@ -9697,7 +9697,7 @@ const xe = class xe extends Fd(Bd) {
     if (e.preventDefault(), e.stopPropagation(), !((r = game.user) != null && r.isGM)) return;
     const i = Math.max(0, Math.trunc(Number(((n = t == null ? void 0 : t.dataset) == null ? void 0 : n.dn) ?? NaN)));
     if (!Number.isFinite(i)) return;
-    if (await game.settings.set(this.systemId, Rs, i), !!game.settings.get(this.systemId, Gi)) {
+    if (await game.settings.set(this.systemId, Ds, i), !!game.settings.get(this.systemId, Gi)) {
       const l = String(((o = t == null ? void 0 : t.dataset) == null ? void 0 : o.label) ?? `DN ${i}`);
       await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ user: game.user }),
@@ -9716,7 +9716,7 @@ const xe = class xe extends Fd(Bd) {
   async _onClearDn(e, t) {
     var i;
     if (e.preventDefault(), e.stopPropagation(), !!((i = game.user) != null && i.isGM))
-      return await game.settings.set(this.systemId, Rs, 1), this.render({ parts: ["body"] });
+      return await game.settings.set(this.systemId, Ds, 1), this.render({ parts: ["body"] });
   }
   async _onToggleAnnounce(e, t) {
     var a;
@@ -9767,13 +9767,13 @@ const xe = class xe extends Fd(Bd) {
     }
     return a === "burn" ? {
       mode: "burnDelta",
-      delta: wn(e == null ? void 0 : e.delta, qi.delta),
+      delta: vn(e == null ? void 0 : e.delta, qi.delta),
       source: t,
       notes: i
     } : a === "physical" || a === "fatigue" ? {
       mode: "trackDelta",
       track: a,
-      delta: wn(e == null ? void 0 : e.delta, qi.delta),
+      delta: vn(e == null ? void 0 : e.delta, qi.delta),
       useArmor: !!(e != null && e.useArmor),
       damageType: (e == null ? void 0 : e.damageType) ?? qi.damageType,
       source: t,
@@ -9784,8 +9784,8 @@ const xe = class xe extends Fd(Bd) {
   async _onAddSceneModifierFromPreset(e, t) {
     var l, c, u, d;
     if ((l = e == null ? void 0 : e.preventDefault) == null || l.call(e), (c = e == null ? void 0 : e.stopPropagation) == null || c.call(e), !((u = game.user) != null && u.isGM)) return;
-    const i = ((d = t == null ? void 0 : t.closest) == null ? void 0 : d.call(t, ".mwd-gmgadget__root")) ?? this._getRootElement(), a = i instanceof HTMLElement ? i.querySelector('select[name="scene-preset-index"]') : null, r = a instanceof HTMLSelectElement ? Number(a.value) : NaN, n = Sn(
-      game.settings.get(this.systemId, Ya)
+    const i = ((d = t == null ? void 0 : t.closest) == null ? void 0 : d.call(t, ".mwd-gmgadget__root")) ?? this._getRootElement(), a = i instanceof HTMLElement ? i.querySelector('select[name="scene-preset-index"]') : null, r = a instanceof HTMLSelectElement ? Number(a.value) : NaN, n = Tn(
+      game.settings.get(this.systemId, Ja)
     ), o = Number.isFinite(r) ? n[r] : null;
     o && await this._mutateSceneModifiers((m) => [
       ...m,
@@ -9831,8 +9831,8 @@ const xe = class xe extends Fd(Bd) {
   async _mutateSceneModifiers(e) {
     const t = canvas == null ? void 0 : canvas.scene;
     if (!t) return;
-    const i = An(t.getFlag("mwd", Cs)), a = await e(i);
-    return await t.setFlag("mwd", Cs, a), this.render({ parts: ["body"] });
+    const i = kn(t.getFlag("mwd", Ps)), a = await e(i);
+    return await t.setFlag("mwd", Ps, a), this.render({ parts: ["body"] });
   }
   _captureAdhocFormFromDom(e) {
     var c;
@@ -9855,8 +9855,8 @@ const xe = class xe extends Fd(Bd) {
     } : null;
   }
 };
-N(xe, "DEFAULT_OPTIONS", {
-  id: zd,
+N($e, "DEFAULT_OPTIONS", {
+  id: jd,
   classes: ["mwd-gmgadget"],
   window: {
     title: "MWD GM Gadget",
@@ -9868,24 +9868,24 @@ N(xe, "DEFAULT_OPTIONS", {
     height: 620
   },
   actions: {
-    switchTab: xe.prototype._onSwitchTab,
-    setDn: xe.prototype._onSetDn,
-    clearDn: xe.prototype._onClearDn,
-    toggleAnnounce: xe.prototype._onToggleAnnounce,
-    harmInputChange: xe.prototype._onHarmInputChange,
-    refreshHarmTarget: xe.prototype._onRefreshHarmTarget,
-    applyHarm: xe.prototype._onApplyHarm,
-    addSceneModifierFromPreset: xe.prototype._onAddSceneModifierFromPreset,
-    addSceneModifierAdhoc: xe.prototype._onAddSceneModifierAdhoc,
-    toggleSceneModifier: xe.prototype._onToggleSceneModifier,
-    removeSceneModifier: xe.prototype._onRemoveSceneModifier,
-    clearSceneModifiers: xe.prototype._onClearSceneModifiers
+    switchTab: $e.prototype._onSwitchTab,
+    setDn: $e.prototype._onSetDn,
+    clearDn: $e.prototype._onClearDn,
+    toggleAnnounce: $e.prototype._onToggleAnnounce,
+    harmInputChange: $e.prototype._onHarmInputChange,
+    refreshHarmTarget: $e.prototype._onRefreshHarmTarget,
+    applyHarm: $e.prototype._onApplyHarm,
+    addSceneModifierFromPreset: $e.prototype._onAddSceneModifierFromPreset,
+    addSceneModifierAdhoc: $e.prototype._onAddSceneModifierAdhoc,
+    toggleSceneModifier: $e.prototype._onToggleSceneModifier,
+    removeSceneModifier: $e.prototype._onRemoveSceneModifier,
+    clearSceneModifiers: $e.prototype._onClearSceneModifiers
   }
-}), N(xe, "PARTS", {
-  body: { template: jd }
+}), N($e, "PARTS", {
+  body: { template: qd }
 });
-let Qa = xe;
-function Sn(s) {
+let Xa = $e;
+function Tn(s) {
   return Array.isArray(s) ? s.filter((e) => (e == null ? void 0 : e.label) && Number.isFinite(Number(e == null ? void 0 : e.value))).map((e, t) => {
     const i = Math.trunc(Number(e.value));
     return {
@@ -9898,10 +9898,10 @@ function Sn(s) {
     };
   }) : [];
 }
-function An(s) {
+function kn(s) {
   return Array.isArray(s) ? s.map((e) => {
     var r, n;
-    const t = Yo(e), i = ((r = _r.find((o) => o.value === (t.attributeFilter ?? ""))) == null ? void 0 : r.label) ?? null, a = ((n = Lr.find((o) => o.value === (t.intentFilter ?? ""))) == null ? void 0 : n.label) ?? null;
+    const t = Zo(e), i = ((r = $r.find((o) => o.value === (t.attributeFilter ?? ""))) == null ? void 0 : r.label) ?? null, a = ((n = xr.find((o) => o.value === (t.intentFilter ?? ""))) == null ? void 0 : n.label) ?? null;
     return {
       ...t,
       attributeFilterLabel: t.attributeFilter ? i : null,
@@ -9911,16 +9911,16 @@ function An(s) {
     };
   }) : [];
 }
-function wn(s, e = 0) {
+function vn(s, e = 0) {
   const t = Number(s);
   return Number.isFinite(t) ? Math.trunc(t) : e;
 }
-let Sa = null;
-function Qd({ systemId: s = "mwd" } = {}) {
-  return Sa || (Sa = new Qa({ systemId: s })), Sa;
+let Aa = null;
+function em({ systemId: s = "mwd" } = {}) {
+  return Aa || (Aa = new Xa({ systemId: s })), Aa;
 }
-const Jd = "gmDnPresetEditor";
-function Xd(s = []) {
+const tm = "gmDnPresetEditor";
+function im(s = []) {
   const e = [], t = [], i = /* @__PURE__ */ new Set();
   if ((Array.isArray(s) ? s : []).forEach((a, r) => {
     const n = String((a == null ? void 0 : a.label) ?? "").trim(), o = String((a == null ? void 0 : a.dn) ?? "").trim(), l = `Row ${r + 1}`;
@@ -9949,13 +9949,13 @@ function Xd(s = []) {
   }), t.length) throw pi(t);
   return os(e, { strict: !0 });
 }
-function Zd(s = []) {
+function sm(s = []) {
   return os(s, { strict: !1 }).map((e) => ({
     label: e.label,
     dn: String(e.dn)
   }));
 }
-function em(s = "") {
+function am(s = "") {
   const e = String(s ?? "").trim();
   if (!e) return [];
   let t;
@@ -9968,17 +9968,17 @@ function em(s = "") {
   }
   return os(t, { strict: !0 });
 }
-function tm(s = []) {
+function rm(s = []) {
   return JSON.stringify(
     os(s, { strict: !1 }),
     null,
     2
   );
 }
-const im = {
+const nm = {
   id: "gm-dn-presets",
-  menuKey: Jd,
-  settingKey: il,
+  menuKey: tm,
+  settingKey: nl,
   settingType: Array,
   title: "GM DN Presets",
   description: "Edit the preset DN buttons shown in the GM Gadget difficulty tab.",
@@ -10009,21 +10009,21 @@ const im = {
     icon: "fas fa-sliders-h",
     restricted: !0
   },
-  defaultData: Gd,
+  defaultData: Yd,
   createEmptyRow: () => ({
     label: "",
     dn: "1"
   }),
-  toRows: Zd,
-  rowsToValue: Xd,
-  parseBulk: em,
-  serializeBulk: tm
+  toRows: sm,
+  rowsToValue: im,
+  parseBulk: am,
+  serializeBulk: rm
 };
-function sm() {
-  ea(im);
+function om() {
+  ta(nm);
 }
-const am = "lifeModuleCatalogEditor";
-function rm(s = []) {
+const lm = "lifeModuleCatalogEditor";
+function cm(s = []) {
   return gi((Array.isArray(s) ? s : []).map((e) => ({
     id: String((e == null ? void 0 : e.id) ?? ""),
     moduleType: String((e == null ? void 0 : e.moduleType) ?? ""),
@@ -10033,17 +10033,17 @@ function rm(s = []) {
     excludesAny: String((e == null ? void 0 : e.excludesAny) ?? "")
   })), { strict: !0 });
 }
-function nm(s = []) {
+function um(s = []) {
   return gi(s, { strict: !1 }).map((e) => ({
     id: e.id,
     moduleType: e.moduleType,
     label: e.label,
-    grants: zu(e.grants),
+    grants: ju(e.grants),
     requiresAny: e.requiresAny.join(", "),
     excludesAny: e.excludesAny.join(", ")
   }));
 }
-function om(s = "") {
+function dm(s = "") {
   const e = String(s ?? "").trim();
   if (!e) return [];
   let t;
@@ -10059,16 +10059,16 @@ function om(s = "") {
   }
   return gi(t, { strict: !0 });
 }
-function lm(s = []) {
+function mm(s = []) {
   return JSON.stringify(
     gi(s, { strict: !1 }),
     null,
     2
   );
 }
-const cm = {
+const pm = {
   id: "life-module-catalog",
-  menuKey: am,
+  menuKey: lm,
   settingKey: Ri,
   settingType: Array,
   title: "Life Module Catalog",
@@ -10088,7 +10088,7 @@ const cm = {
       key: "moduleType",
       label: "Slot",
       type: "select",
-      options: Fo
+      options: Uo
     },
     {
       key: "label",
@@ -10122,7 +10122,7 @@ const cm = {
     icon: "fas fa-book-open",
     restricted: !0
   },
-  defaultData: Dr,
+  defaultData: Or,
   createEmptyRow: () => ({
     id: "",
     moduleType: "childhood",
@@ -10131,23 +10131,23 @@ const cm = {
     requiresAny: "",
     excludesAny: ""
   }),
-  toRows: nm,
-  rowsToValue: rm,
-  parseBulk: om,
-  serializeBulk: lm
+  toRows: um,
+  rowsToValue: cm,
+  parseBulk: dm,
+  serializeBulk: mm
 };
-function um() {
-  ea(cm);
+function fm() {
+  ta(pm);
 }
-const dm = "skillSpecializationEditor";
-function Ja() {
-  return Ls().map((s) => ({
+const hm = "skillSpecializationEditor";
+function Za() {
+  return $s().map((s) => ({
     value: s.code,
     label: s.label
   }));
 }
-function mm(s = []) {
-  const e = new Set(Ja().map((a) => a.value)), t = {}, i = [];
+function gm(s = []) {
+  const e = new Set(Za().map((a) => a.value)), t = {}, i = [];
   if ((Array.isArray(s) ? s : []).forEach((a, r) => {
     const n = String((a == null ? void 0 : a.skillCode) ?? "").trim(), o = String((a == null ? void 0 : a.label) ?? "").trim(), l = `Row ${r + 1}`;
     if (!n) {
@@ -10164,15 +10164,15 @@ function mm(s = []) {
     }
     (t[n] ?? (t[n] = [])).push(o);
   }), i.length) throw pi(i);
-  return Vs(t, { strict: !0 });
+  return Ks(t, { strict: !0 });
 }
-function pm(s = {}) {
-  const e = Vs(s, { strict: !1 });
+function ym(s = {}) {
+  const e = Ks(s, { strict: !1 });
   return Object.entries(e).flatMap(
     ([t, i]) => i.map((a) => ({ skillCode: t, label: a }))
   );
 }
-function fm(s = "") {
+function bm(s = "") {
   const e = String(s ?? "").trim();
   if (!e) return {};
   let t;
@@ -10183,19 +10183,19 @@ function fm(s = "") {
       `Bulk JSON must be valid JSON: ${i.message}`
     ]);
   }
-  return Vs(t, { strict: !0 });
+  return Ks(t, { strict: !0 });
 }
-function hm(s = {}) {
+function Sm(s = {}) {
   return JSON.stringify(
-    Vs(s, { strict: !1 }),
+    Ks(s, { strict: !1 }),
     null,
     2
   );
 }
-const gm = {
+const Am = {
   id: "skill-specializations",
-  menuKey: dm,
-  settingKey: La,
+  menuKey: hm,
+  settingKey: xa,
   title: "Skill Specializations",
   description: "Edit the world specialization catalog for existing skills. Omitted skills have no available specializations.",
   helpText: "Use rows for normal editing. Use the bulk JSON tab for fast import/export.",
@@ -10207,7 +10207,7 @@ const gm = {
       key: "skillCode",
       label: "Skill",
       type: "select",
-      options: Ja
+      options: Za
     },
     {
       key: "label",
@@ -10223,25 +10223,25 @@ const gm = {
     icon: "fas fa-list",
     restricted: !0
   },
-  defaultData: ho,
+  defaultData: So,
   createEmptyRow: () => {
     var s;
     return {
-      skillCode: ((s = Ja()[0]) == null ? void 0 : s.value) ?? "",
+      skillCode: ((s = Za()[0]) == null ? void 0 : s.value) ?? "",
       label: ""
     };
   },
-  toRows: pm,
-  rowsToValue: mm,
-  parseBulk: fm,
-  serializeBulk: hm
+  toRows: ym,
+  rowsToValue: gm,
+  parseBulk: bm,
+  serializeBulk: Sm
 };
-function ym() {
-  ea(gm);
+function wm() {
+  ta(Am);
 }
-class bm {
+class Tm {
   static register() {
-    sm(), um(), ym(), xd(), game.settings.register(T, "useDestinyMechanics", {
+    om(), fm(), wm(), Wd(), game.settings.register(T, "useDestinyMechanics", {
       name: k.settings.useDestinyMechanics.name,
       hint: k.settings.useDestinyMechanics.hint,
       scope: "world",
@@ -10261,30 +10261,34 @@ class bm {
     return game.settings.get(T, e) ?? t;
   }
 }
-class Sm extends Error {
+class km extends Error {
   constructor(e, { severity: t = "error" } = {}) {
     super(e), this.name = "UserFacingRollError", this.userFacing = !0, this.severity = t === "warn" ? "warn" : "error";
   }
 }
 function Ci(s, e = {}) {
-  return new Sm(s, e);
+  return new km(s, e);
 }
-function Fs(s, e = "Unable to execute roll.") {
+function zs(s, e = "Unable to execute roll.") {
   var i, a;
   const t = s != null && s.userFacing && (s == null ? void 0 : s.severity) === "warn" ? "warn" : "error";
   (a = (i = ui.notifications) == null ? void 0 : i[t]) == null || a.call(i, (s == null ? void 0 : s.message) ?? e);
 }
-const { HandlebarsApplicationMixin: Am } = foundry.applications.api;
-var Xe, as, Gt, ei, Xa, Za;
-const je = class je extends Am(foundry.applications.sheets.ActorSheetV2) {
+const { HandlebarsApplicationMixin: vm } = foundry.applications.api, { HTMLField: Mm } = foundry.data.fields;
+function Em(s) {
+  const e = new Mm({ required: !1, blank: !0, initial: "" });
+  return e.name = s, e;
+}
+var Xe, as, Gt, ei, er, tr;
+const We = class We extends vm(foundry.applications.sheets.ActorSheetV2) {
   constructor() {
     super(...arguments);
-    ye(this, ei);
-    ye(this, Xe, !1);
+    be(this, ei);
+    be(this, Xe, !1);
     /** Track active CSB tab per group across rerenders */
-    ye(this, as, /* @__PURE__ */ new Map());
+    be(this, as, /* @__PURE__ */ new Map());
     // group -> tabId
-    ye(this, Gt, /* @__PURE__ */ new Map());
+    be(this, Gt, /* @__PURE__ */ new Map());
   }
   /** @override */
   _updatePosition(t) {
@@ -10308,17 +10312,17 @@ const je = class je extends Am(foundry.applications.sheets.ActorSheetV2) {
   }
   /** Editing mode flag for templates */
   get editing() {
-    return B(this, Xe);
+    return F(this, Xe);
   }
   toggleEditing() {
     if (this.isEditable) {
-      if (B(this, Xe)) {
+      if (F(this, Xe)) {
         this._commitEditsToActor().finally(() => {
-          Pe(this, Xe, !B(this, Xe)), this.render({ force: !0 });
+          Pe(this, Xe, !F(this, Xe)), this.render({ force: !0 });
         });
         return;
       }
-      Pe(this, Xe, !B(this, Xe)), this.render({ force: !0 });
+      Pe(this, Xe, !F(this, Xe)), this.render({ force: !0 });
     }
   }
   /** Get the root HTMLElement for this application */
@@ -10409,7 +10413,7 @@ const je = class je extends Am(foundry.applications.sheets.ActorSheetV2) {
     const r = a.dataset.tab, n = a.closest(".csb-tabs");
     if (!n || !r) return;
     const o = n.dataset.group || "default";
-    B(this, as).set(o, r), M(this, ei, Xa).call(this, n, r);
+    F(this, as).set(o, r), E(this, ei, er).call(this, n, r);
   }
   _onClickAccordion(t, i) {
     var u, d, m;
@@ -10417,16 +10421,16 @@ const je = class je extends Am(foundry.applications.sheets.ActorSheetV2) {
     if (!a) return;
     const r = a.dataset.section, n = a.closest(".csb-accordion");
     if (!n || !r) return;
-    const o = n.dataset.group || "default", c = (B(this, Gt).has(o) ? B(this, Gt).get(o) : n.dataset.default || null) === r ? null : r;
-    B(this, Gt).set(o, c), M(this, ei, Za).call(this, n, c);
+    const o = n.dataset.group || "default", c = (F(this, Gt).has(o) ? F(this, Gt).get(o) : n.dataset.default || null) === r ? null : r;
+    F(this, Gt).set(o, c), E(this, ei, tr).call(this, n, c);
   }
   /**
    * Universal roll action: data-action="roll" + data-roll='{"intent":"skill","key":"gunnery"}'
    */
   async _onRollAction(t, i) {
-    var c, u, d, m, p, f, h, g, y;
+    var c, u, d, m, f, p, h, g, y;
     (c = t == null ? void 0 : t.preventDefault) == null || c.call(t);
-    const a = ((u = i == null ? void 0 : i.closest) == null ? void 0 : u.call(i, "[data-roll]")) ?? ((m = (d = t == null ? void 0 : t.target) == null ? void 0 : d.closest) == null ? void 0 : m.call(d, "[data-roll]")), r = (p = a == null ? void 0 : a.dataset) == null ? void 0 : p.roll;
+    const a = ((u = i == null ? void 0 : i.closest) == null ? void 0 : u.call(i, "[data-roll]")) ?? ((m = (d = t == null ? void 0 : t.target) == null ? void 0 : d.closest) == null ? void 0 : m.call(d, "[data-roll]")), r = (f = a == null ? void 0 : a.dataset) == null ? void 0 : f.roll;
     if (!r) return;
     let n;
     try {
@@ -10435,7 +10439,7 @@ const je = class je extends Am(foundry.applications.sheets.ActorSheetV2) {
       console.warn("MWD | Invalid data-roll JSON:", r, b);
       return;
     }
-    const o = !!(t != null && t.shiftKey), l = ((f = game.mwd) == null ? void 0 : f.roll) ?? ((g = (h = game.system) == null ? void 0 : h.mwd) == null ? void 0 : g.roll);
+    const o = !!(t != null && t.shiftKey), l = ((p = game.mwd) == null ? void 0 : p.roll) ?? ((g = (h = game.system) == null ? void 0 : h.mwd) == null ? void 0 : g.roll);
     if (!(l != null && l.execute)) {
       (y = ui.notifications) == null || y.error("MWD roll system not initialized (game.mwd.roll.execute missing).");
       return;
@@ -10443,7 +10447,7 @@ const je = class je extends Am(foundry.applications.sheets.ActorSheetV2) {
     try {
       return await l.execute({ actor: this.actor, payload: n, event: t, quick: o });
     } catch (b) {
-      return console.error("MWD | Failed to execute roll action", b), Fs(b, "Unable to execute that roll."), null;
+      return console.error("MWD | Failed to execute roll action", b), zs(b, "Unable to execute that roll."), null;
     }
   }
   async _onEditImage(t, i) {
@@ -10473,17 +10477,31 @@ const je = class je extends Am(foundry.applications.sheets.ActorSheetV2) {
     const a = this._getRootElement();
     if (a) {
       for (const l of a.querySelectorAll(".csb-tabs")) {
-        const c = l.dataset.group || "default", u = B(this, as).get(c), d = l.dataset.default || ((n = l.querySelector(".csb-tab-link[data-tab]")) == null ? void 0 : n.dataset.tab), m = u || d;
-        m && M(this, ei, Xa).call(this, l, m);
+        const c = l.dataset.group || "default", u = F(this, as).get(c), d = l.dataset.default || ((n = l.querySelector(".csb-tab-link[data-tab]")) == null ? void 0 : n.dataset.tab), m = u || d;
+        m && E(this, ei, er).call(this, l, m);
       }
       for (const l of a.querySelectorAll(".csb-accordion")) {
-        const c = l.dataset.group || "default", u = B(this, Gt).has(c) ? B(this, Gt).get(c) : l.dataset.default || null;
-        M(this, ei, Za).call(this, l, u);
+        const c = l.dataset.group || "default", u = F(this, Gt).has(c) ? F(this, Gt).get(c) : l.dataset.default || null;
+        E(this, ei, tr).call(this, l, u);
       }
-      a.querySelectorAll(".csb-tabs").length && !a.querySelector(".csb-tab-panel.is-active") && console.warn(`${le} CSB tabs present but no active tab applied. Check element root resolution and CSS .is-active selectors.`, {
+      a.querySelectorAll(".csb-tabs").length && !a.querySelector(".csb-tab-panel.is-active") && console.warn(`${ue} CSB tabs present but no active tab applied. Check element root resolution and CSS .is-active selectors.`, {
         sheet: (o = this.constructor) == null ? void 0 : o.name
       });
+      for (const l of a.querySelectorAll('prose-mirror[name="system.biography.history"]'))
+        l.addEventListener("change", (c) => {
+          c.preventDefault(), this._updateRichTextHistory(l);
+        });
     }
+  }
+  async _updateRichTextHistory(t) {
+    if (!this.isEditable || (t == null ? void 0 : t.name) !== "system.biography.history") return;
+    const i = String(t.value ?? ""), a = String(foundry.utils.getProperty(this.actor, "system.biography.history") ?? "");
+    if (i !== a)
+      try {
+        await (this.getPersistentActor() ?? this.actor).update({ "system.biography.history": i });
+      } catch (r) {
+        console.warn("MWD | Rich text history update failed:", r);
+      }
   }
   async _commitEditsToActor() {
     const t = this.element;
@@ -10514,8 +10532,8 @@ const je = class je extends Am(foundry.applications.sheets.ActorSheetV2) {
   }
   /** @override */
   async _prepareContext(t) {
-    var n, o, l, c, u, d, m, p, f, h, g;
-    console.log(`${le}BaseActorSheetV2._prepareContext:start`, {
+    var n, o, l, c, u, d, m, f, p, h, g;
+    console.log(`${ue}BaseActorSheetV2._prepareContext:start`, {
       actorName: (n = this.actor) == null ? void 0 : n.name,
       actorType: (o = this.actor) == null ? void 0 : o.type
     });
@@ -10529,7 +10547,7 @@ const je = class je extends Am(foundry.applications.sheets.ActorSheetV2) {
         editable: this.isEditable,
         owner: ((u = this.document) == null ? void 0 : u.isOwner) ?? !1,
         limited: !(((d = this.document) == null ? void 0 : d.isOwner) ?? !1),
-        editing: B(this, Xe),
+        editing: F(this, Xe),
         // Template contract
         data: this.actor,
         // legacy alias
@@ -10539,7 +10557,12 @@ const je = class je extends Am(foundry.applications.sheets.ActorSheetV2) {
       },
       { inplace: !1 }
     );
-    return r.options.owner = r.owner, r.options.limited = r.limited, r.options.editable = r.editable, r.options.editing = r.editing, r.options.viewMode = !r.editing, r.skillsDisplay = yo(((m = this.actor) == null ? void 0 : m.system) ?? {}), r.items ?? (r.items = {}), (p = this.actor) != null && p.items && typeof (Q == null ? void 0 : Q.classifyInto) == "function" && (Q.classifyInto(r.items, this.actor.items), r.items.weapon = [
+    return r.options.owner = r.owner, r.options.limited = r.limited, r.options.editable = r.editable, r.options.editing = r.editing, r.options.viewMode = !r.editing, r.skillsDisplay = wo(((m = this.actor) == null ? void 0 : m.system) ?? {}), r.bio = {
+      ...r.bio ?? {},
+      fields: {
+        history: Em("system.biography.history")
+      }
+    }, r.items ?? (r.items = {}), (f = this.actor) != null && f.items && typeof (Q == null ? void 0 : Q.classifyInto) == "function" && (Q.classifyInto(r.items, this.actor.items), r.items.weapon = [
       ...r.items.mechWeapon ?? [],
       ...r.items.personalWeapon ?? []
     ]), r.npcItems = {
@@ -10547,11 +10570,11 @@ const je = class je extends Am(foundry.applications.sheets.ActorSheetV2) {
       weapons: r.items.weapon ?? [],
       assetModules: r.items.assetModule ?? [],
       inventory: r.items.gear ?? []
-    }, console.log(`${le}BaseActorSheetV2._prepareContext:done`, {
-      actorType: (f = this.actor) == null ? void 0 : f.type,
+    }, console.log(`${ue}BaseActorSheetV2._prepareContext:done`, {
+      actorType: (p = this.actor) == null ? void 0 : p.type,
       cssClass: r.cssClass,
       itemCount: ((g = (h = this.actor) == null ? void 0 : h.items) == null ? void 0 : g.size) ?? 0,
-      editing: B(this, Xe)
+      editing: F(this, Xe)
     }), r;
   }
   /** Clamp certain actor system paths to valid ranges */
@@ -10560,9 +10583,9 @@ const je = class je extends Am(foundry.applications.sheets.ActorSheetV2) {
   }
   /** Action handler: Condition Monitor set */
   async _onMonitorSet(t, i) {
-    var p, f;
+    var f, p;
     if (t.preventDefault(), !this.isEditable) return;
-    const a = String(((p = i == null ? void 0 : i.dataset) == null ? void 0 : p.monitor) ?? "").trim(), r = Number((f = i == null ? void 0 : i.dataset) == null ? void 0 : f.value);
+    const a = String(((f = i == null ? void 0 : i.dataset) == null ? void 0 : f.monitor) ?? "").trim(), r = Number((p = i == null ? void 0 : i.dataset) == null ? void 0 : p.value);
     if (!a || !Number.isFinite(r)) return;
     const n = a === "burn" ? "system.burn.value" : `system.monitors.${a}.value`, o = Number(foundry.utils.getProperty(this.actor, n) ?? 0), l = a === "armor" ? r : o === r ? 0 : r, c = this.getPersistentActor() ?? this.actor;
     if (typeof (c == null ? void 0 : c.setMonitorValue) == "function")
@@ -10591,13 +10614,13 @@ Xe = new WeakMap(), as = new WeakMap(), Gt = new WeakMap(), ei = new WeakSet(), 
  * Apply active-state classes within a single .csb-tabs root.
  * Idempotent: safe to call every render.
  */
-Xa = function(t, i) {
+er = function(t, i) {
   t.querySelectorAll(".csb-tab-link").forEach((a) => {
     a.classList.toggle("is-active", a.dataset.tab === i);
   }), t.querySelectorAll(".csb-tab-panel").forEach((a) => {
     a.classList.toggle("is-active", a.dataset.tab === i);
   });
-}, Za = function(t, i) {
+}, tr = function(t, i) {
   t.dataset.activeSection = i ?? "", t.querySelectorAll(".csb-accordion__section").forEach((a) => {
     const r = a.dataset.section === i;
     a.classList.toggle("is-active", r);
@@ -10609,37 +10632,37 @@ Xa = function(t, i) {
     a.classList.toggle("is-active", n);
   });
 }, // ---- Hard minimum size (resize clamp) ----
-N(je, "MIN_WIDTH", 800), N(je, "MAX_WIDTH", 950), N(je, "MIN_HEIGHT", 600), N(je, "MAX_HEIGHT", 1400), // group -> sectionId|null
+N(We, "MIN_WIDTH", 800), N(We, "MAX_WIDTH", 950), N(We, "MIN_HEIGHT", 600), N(We, "MAX_HEIGHT", 1400), // group -> sectionId|null
 /** @override */
-N(je, "DEFAULT_OPTIONS", foundry.utils.mergeObject(yi(je, je, "DEFAULT_OPTIONS"), {
+N(We, "DEFAULT_OPTIONS", foundry.utils.mergeObject(yi(We, We, "DEFAULT_OPTIONS"), {
   classes: ["sheet", "actor", T, "appv2", "mwd-sheet", "mwd-character-sheet"],
   position: { width: 760, height: 760 },
   window: { resizable: !0, minimizable: !0 },
   actions: {
-    toggleViewMode: je.prototype._onToggleViewMode,
-    tab: je.prototype._onClickTab,
-    accordion: je.prototype._onClickAccordion,
-    roll: je.prototype._onRollAction,
-    monitorSet: je.prototype._onMonitorSet,
-    editImage: je.prototype._onEditImage
+    toggleViewMode: We.prototype._onToggleViewMode,
+    tab: We.prototype._onClickTab,
+    accordion: We.prototype._onClickAccordion,
+    roll: We.prototype._onRollAction,
+    monitorSet: We.prototype._onMonitorSet,
+    editImage: We.prototype._onEditImage
   }
 }, { inplace: !1 }));
-let xi = je;
-var qt, ti, sl, al, rl;
+let xi = We;
+var qt, ti, ol, ll, cl;
 const Qi = class Qi {
   static async get(e) {
-    if (B(this, qt).has(e)) {
-      const a = await B(this, qt).get(e);
+    if (F(this, qt).has(e)) {
+      const a = await F(this, qt).get(e);
       if (Number((a == null ? void 0 : a.version) ?? 0) > 0) return a;
-      B(this, qt).delete(e);
+      F(this, qt).delete(e);
     }
-    const t = M(this, ti, sl).call(this, e);
-    B(this, qt).set(e, t);
+    const t = E(this, ti, ol).call(this, e);
+    F(this, qt).set(e, t);
     const i = await t;
-    return Number((i == null ? void 0 : i.version) ?? 0) <= 0 && B(this, qt).delete(e), i;
+    return Number((i == null ? void 0 : i.version) ?? 0) <= 0 && F(this, qt).delete(e), i;
   }
 };
-qt = new WeakMap(), ti = new WeakSet(), sl = async function(e) {
+qt = new WeakMap(), ti = new WeakSet(), ol = async function(e) {
   const t = `systems/${T}/templates/v2/layouts/${e}.layout.json`;
   let i;
   try {
@@ -10647,13 +10670,13 @@ qt = new WeakMap(), ti = new WeakSet(), sl = async function(e) {
     if (!a.ok) throw new Error(`HTTP ${a.status} for ${t}`);
     i = await a.json();
   } catch (a) {
-    console.error(`${le}LayoutRegistry.get FAILED`, { layoutId: e, url: t, e: a }), i = { id: e, version: 0, root: { type: "stack", children: [] } };
+    console.error(`${ue}LayoutRegistry.get FAILED`, { layoutId: e, url: t, e: a }), i = { id: e, version: 0, root: { type: "stack", children: [] } };
   }
-  return M(this, ti, al).call(this, i);
-}, al = function(e) {
+  return E(this, ti, ll).call(this, i);
+}, ll = function(e) {
   const t = (i) => {
     var a;
-    return !i || typeof i != "object" || (i.template ?? (i.template = M(a = Qi, ti, rl).call(a, i)), i.children = Array.isArray(i.children) ? i.children : [], Array.isArray(i.classes) || (typeof i.classes == "string" ? i.classes = i.classes.split(/\s+/).filter(Boolean) : i.classes = []), i.children = i.children.map(t), i.type === "tabs" && Array.isArray(i.tabs) && (i.tabs = i.tabs.map((r) => ({
+    return !i || typeof i != "object" || (i.template ?? (i.template = E(a = Qi, ti, cl).call(a, i)), i.children = Array.isArray(i.children) ? i.children : [], Array.isArray(i.classes) || (typeof i.classes == "string" ? i.classes = i.classes.split(/\s+/).filter(Boolean) : i.classes = []), i.children = i.children.map(t), i.type === "tabs" && Array.isArray(i.tabs) && (i.tabs = i.tabs.map((r) => ({
       ...r,
       children: (Array.isArray(r.children) ? r.children : []).map(t)
     }))), i.type === "accordion" && Array.isArray(i.sections) ? i.sections = i.sections.map((r) => ({
@@ -10665,7 +10688,7 @@ qt = new WeakMap(), ti = new WeakSet(), sl = async function(e) {
     ...e,
     root: t(e.root ?? { type: "stack", children: [] })
   };
-}, rl = function(e) {
+}, cl = function(e) {
   switch (e.type) {
     case "stack":
       return "mwd.v2.ui.nodes.stack";
@@ -10682,20 +10705,20 @@ qt = new WeakMap(), ti = new WeakSet(), sl = async function(e) {
     default:
       return "mwd.v2.ui.nodes.unknown";
   }
-}, ye(Qi, ti), ye(Qi, qt, /* @__PURE__ */ new Map());
-let zs = Qi;
-function We(s, e = 0) {
+}, be(Qi, ti), be(Qi, qt, /* @__PURE__ */ new Map());
+let Ws = Qi;
+function ze(s, e = 0) {
   const t = Number(s);
   return Number.isFinite(t) ? t : e;
 }
-function wm(s) {
+function Cm(s) {
   return String(s ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 function hs(s, e = 180) {
-  const t = wm(s);
+  const t = Cm(s);
   return t ? t.length <= e ? t : `${t.slice(0, Math.max(0, e - 3)).trim()}...` : "";
 }
-function jt(s = []) {
+function Ht(s = []) {
   return s.map((e) => String(e ?? "").trim()).filter(Boolean);
 }
 function gs(s = []) {
@@ -10706,7 +10729,7 @@ function gs(s = []) {
   }));
 }
 function ys(s = []) {
-  return jt(s).map((e) => ({ label: e }));
+  return Ht(s).map((e) => ({ label: e }));
 }
 function bs(s = []) {
   return s.filter((e) => e && e.value !== void 0 && e.value !== null && String(e.value).trim() !== "").map((e) => ({
@@ -10714,13 +10737,13 @@ function bs(s = []) {
     value: String(e.value ?? "").trim()
   }));
 }
-const Tm = {
+const Pm = {
   penetrating: "Penetrating",
   concussive: "Concussive",
   energy: "Energy",
   thermal: "Thermal",
   electrical: "Electrical"
-}, km = {
+}, Nm = {
   audiovisual: "Audiovisual Gear",
   communication: "Communication Gear",
   computing: "Computing Gear",
@@ -10733,40 +10756,40 @@ const Tm = {
   survival: "Survival Gear",
   surveillance: "Surveillance Gear"
 };
-function Tn(s) {
+function Mn(s) {
   const e = Number(s ?? 0) || 0;
   return e > 0 ? `+${e}` : `${e}`;
 }
-function vm({ defenseBonus: s = 0, mitigationByType: e = {} } = {}) {
+function Rm({ defenseBonus: s = 0, mitigationByType: e = {} } = {}) {
   const t = [], i = Number(s ?? 0) || 0;
-  i !== 0 && t.push(`Defense ${Tn(i)}`);
-  for (const [a, r] of Object.entries(Tm)) {
+  i !== 0 && t.push(`Defense ${Mn(i)}`);
+  for (const [a, r] of Object.entries(Pm)) {
     const n = Number((e == null ? void 0 : e[a]) ?? 0) || 0;
-    n !== 0 && t.push(`${r} ${Tn(n)}`);
+    n !== 0 && t.push(`${r} ${Mn(n)}`);
   }
   return t.join(" | ");
 }
-function Mm(s = {}, e = ["close", "near", "far", "extreme"]) {
+function Dm(s = {}, e = ["close", "near", "far", "extreme"]) {
   return e.map((t) => {
-    const i = We(s == null ? void 0 : s[t], 0);
+    const i = ze(s == null ? void 0 : s[t], 0);
     return `${t.charAt(0).toUpperCase() + t.slice(1)} ${i}`;
   }).join(" | ");
 }
-function Em(s = {}) {
-  return ["close", "near", "far", "extreme"].map((e) => `${e.charAt(0).toUpperCase()}${We(s == null ? void 0 : s[e], 0)}`).join(" ");
+function Im(s = {}) {
+  return ["close", "near", "far", "extreme"].map((e) => `${e.charAt(0).toUpperCase()}${ze(s == null ? void 0 : s[e], 0)}`).join(" ");
 }
-function Cm(s = "") {
+function Om(s = "") {
   const e = String(s ?? "").trim().toLowerCase();
   return e ? e.charAt(0).toUpperCase() + e.slice(1) : "";
 }
-function Aa(s) {
+function wa(s) {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
-async function kn({ title: s, label: e, options: t = [], confirmLabel: i = "Select" } = {}) {
+async function En({ title: s, label: e, options: t = [], confirmLabel: i = "Select" } = {}) {
   const a = Array.isArray(t) ? t.filter((n) => n == null ? void 0 : n.value) : [];
   if (!a.length) return "";
   if (a.length === 1) return String(a[0].value ?? "").trim();
-  const r = `<form class="mwd-quick-select"><div class="mwd-field"><label>${Aa(e)}</label><select name="selection">${a.map((n) => `<option value="${Aa(n.value)}">${Aa(n.label ?? n.value)}</option>`).join("")}</select></div></form>`;
+  const r = `<form class="mwd-quick-select"><div class="mwd-field"><label>${wa(e)}</label><select name="selection">${a.map((n) => `<option value="${wa(n.value)}">${wa(n.label ?? n.value)}</option>`).join("")}</select></div></form>`;
   return await Dialog.prompt({
     title: s,
     content: r,
@@ -10777,29 +10800,29 @@ async function kn({ title: s, label: e, options: t = [], confirmLabel: i = "Sele
     }
   });
 }
-var Ye, Vt, ni, ct, z, nl, tr, Ds, ol, ll, ve, ai, Ei, Vi;
-const de = class de extends xi {
+var Ke, Vt, ni, ct, z, ul, sr, Is, dl, ml, ve, ai, Ei, Vi;
+const pe = class pe extends xi {
   constructor() {
     super(...arguments);
-    ye(this, z);
-    ye(this, Ye, null);
-    ye(this, Vt, null);
-    ye(this, ni, null);
-    ye(this, ct, /* @__PURE__ */ new Set());
+    be(this, z);
+    be(this, Ke, null);
+    be(this, Vt, null);
+    be(this, ni, null);
+    be(this, ct, /* @__PURE__ */ new Set());
   }
   /** @override */
   async _prepareContext(t) {
-    var O, D, V, F, pe, Se, he, Ce, Oe, Qe, Mt, Et, Ct, Pt, Nt, Rt, Dt, It, Ot, _t, Lt, $t, xt, nt, Bt, Ft;
+    var O, R, U, B, ne, oe, he, Ce, De, Ye, Mt, Et, Ct, Pt, Nt, Rt, Dt, It, Ot, _t, Lt, $t, xt, nt, Bt, Ft, zt;
     const i = await super._prepareContext(t), a = ((O = this.getSheetTokenDocument) == null ? void 0 : O.call(this)) ?? null;
-    i._mwdThemeClass = game.system.mwd.styles.selectCssClass(), i.layout = await zs.get("character");
-    const r = ((V = (D = this.actor).getEdgeCap) == null ? void 0 : V.call(D)) ?? Number(((Se = (pe = (F = this.actor.system) == null ? void 0 : F.attributes) == null ? void 0 : pe.edge) == null ? void 0 : Se.value) ?? 0), n = !!this.isEditable, o = { physical: "Physical", mental: "Mental", social: "Social" }, l = {
+    i._mwdThemeClass = game.system.mwd.styles.selectCssClass(), i.layout = await Ws.get("character");
+    const r = ((U = (R = this.actor).getEdgeCap) == null ? void 0 : U.call(R)) ?? Number(((oe = (ne = (B = this.actor.system) == null ? void 0 : B.attributes) == null ? void 0 : ne.edge) == null ? void 0 : oe.value) ?? 0), n = !!this.isEditable, o = { physical: "Physical", mental: "Mental", social: "Social" }, l = {
       grit: "Grit",
       insight: "Insight",
       legend: "Legend",
       chaos: "Chaos",
       rumor: "Rumor",
       credibility: "Credibility"
-    }, c = this.actor.getEdgePoolSummary ? this.actor.getEdgePoolSummary({ groups: hr }) : { groups: [] };
+    }, c = this.actor.getEdgePoolSummary ? this.actor.getEdgePoolSummary({ groups: yr }) : { groups: [] };
     i.edgeConsole = {
       cap: r,
       editable: n,
@@ -10808,20 +10831,20 @@ const de = class de extends xi {
         id: v.id,
         label: o[v.id] ?? v.id,
         pools: (v.pools ?? []).map((P) => {
-          const j = Number(P.effectiveValue ?? 0), ae = Number(P.effectiveMax ?? 0), ce = Array.from({ length: Math.max(0, ae) }, (we, Re) => {
-            const U = Re + 1;
-            return { n: U, filled: U <= j };
-          }), fe = String(P.key ?? "").split(".").pop();
+          const j = Number(P.effectiveValue ?? 0), ae = Number(P.effectiveMax ?? 0), de = Array.from({ length: Math.max(0, ae) }, (we, H) => {
+            const J = H + 1;
+            return { n: J, filled: J <= j };
+          }), ge = String(P.key ?? "").split(".").pop();
           return {
             key: P.key,
-            label: l[fe] ?? fe ?? P.key,
+            label: l[ge] ?? ge ?? P.key,
             value: j,
             max: ae,
             rating: Number(P.rating ?? 0),
             ratingBonus: Number(P.ratingBonus ?? 0),
             effectiveRating: Number(P.effectiveRating ?? P.rating ?? 0),
             isCapped: Number(P.effectiveRating ?? P.rating ?? 0) > Number(P.cap ?? r),
-            pips: ce,
+            pips: de,
             // Paths for edit-mode inputs
             pathRating: `system.counters.edgePools.${P.key}.rating`,
             pathValue: `system.counters.edgePools.${P.key}.value`,
@@ -10838,16 +10861,16 @@ const de = class de extends xi {
         j && d.set(j, P), P.domain = v.id;
       }
     i.edgeConsole.poolsOrdered = u.map((v) => d.get(v)).filter(Boolean);
-    const m = this.actor.system ?? {}, p = m.monitors ?? {}, f = [
+    const m = this.actor.system ?? {}, f = m.monitors ?? {}, p = [
       { id: "physical", label: "Physical", kind: "wound", status: { label: "Penalty", path: "derived.penalty" } },
       { id: "fatigue", label: "Fatigue", kind: "fatigue", status: { label: "Penalty", path: "derived.penalty" } },
       { id: "armor", label: "Armor", kind: "armor-personal", status: { label: "Resist", path: "derived.resistance" } }
     ], h = (v, P, j = 0) => {
-      const ae = foundry.utils.getProperty(v, P), ce = Number(ae);
-      return Number.isFinite(ce) ? ce : j;
+      const ae = foundry.utils.getProperty(v, P), de = Number(ae);
+      return Number.isFinite(de) ? de : j;
     };
-    i.conditionMonitors = f.map((v) => {
-      const P = (p == null ? void 0 : p[v.id]) ?? {}, j = Math.max(0, h(P, "max", 0)), ae = Math.min(Math.max(0, h(P, "value", 0)), j);
+    i.conditionMonitors = p.map((v) => {
+      const P = (f == null ? void 0 : f[v.id]) ?? {}, j = Math.max(0, h(P, "max", 0)), ae = Math.min(Math.max(0, h(P, "value", 0)), j);
       return {
         id: v.id,
         label: v.label,
@@ -10855,8 +10878,8 @@ const de = class de extends xi {
         editable: !!this.isEditable,
         value: ae,
         max: j,
-        segments: Array.from({ length: j }, (ce, fe) => {
-          const we = fe + 1;
+        segments: Array.from({ length: j }, (de, ge) => {
+          const we = ge + 1;
           return { value: we, filled: we <= ae };
         }),
         status: v.status ? { label: v.status.label, value: h(P, v.status.path, 0) } : null
@@ -10880,7 +10903,7 @@ const de = class de extends xi {
       penalty: Math.floor(g / 2),
       overflow: Math.max(0, g - 10),
       canOverloadCheck: g >= 6,
-      overloaded: !!((Qe = (Oe = this.actor.system) == null ? void 0 : Oe.burn) != null && Qe.overloaded)
+      overloaded: !!((Ye = (De = this.actor.system) == null ? void 0 : De.burn) != null && Ye.overloaded)
     };
     const w = re.getSnapshot(this.actor, { token: a });
     i.combatDashboard = {
@@ -10891,89 +10914,89 @@ const de = class de extends xi {
       activation: w.activation,
       inactiveReason: w.inactiveReason
     };
-    const E = re.buildActionModel(this.actor, w), I = new Set((E.menus ?? []).map((v) => v.id));
-    B(this, Ye) && !I.has(B(this, Ye)) && Pe(this, Ye, null), i.combatActions = {
-      ...E,
-      menus: (E.menus ?? []).map((v) => ({
+    const M = re.buildActionModel(this.actor, w), I = new Set((M.menus ?? []).map((v) => v.id));
+    F(this, Ke) && !I.has(F(this, Ke)) && Pe(this, Ke, null), i.combatActions = {
+      ...M,
+      menus: (M.menus ?? []).map((v) => ({
         ...v,
-        isOpen: v.id === B(this, Ye)
+        isOpen: v.id === F(this, Ke)
       }))
     };
-    const R = ((Et = (Mt = this.actor).getPersonalCombatLoadout) == null ? void 0 : Et.call(Mt)) ?? null;
+    const D = ((Et = (Mt = this.actor).getPersonalCombatLoadout) == null ? void 0 : Et.call(Mt)) ?? null;
     i.personalInventory = {
-      warnings: [...(R == null ? void 0 : R.warnings) ?? []],
-      weapons: ((R == null ? void 0 : R.weapons) ?? []).map((v) => {
-        var Ie, Le, Ue, x, ne, gt, Fe;
-        const P = M(this, z, Vi).call(this, "weapons", v.id), j = String((v == null ? void 0 : v.category) ?? "").trim().toLowerCase() !== "melee", ae = !!((Ie = v == null ? void 0 : v.sourceState) != null && Ie.isTracked), ce = String((v == null ? void 0 : v.payloadLabel) ?? "").trim() || "Unloaded", fe = j && ae ? `${We((Le = v == null ? void 0 : v.sourceState) == null ? void 0 : Le.current, 0)}/${We((Ue = v == null ? void 0 : v.sourceState) == null ? void 0 : Ue.max, 0)}` : "", we = j ? ae ? `${ce} ${fe}` : ce : "", Re = j ? ae ? `Payload ${fe}` : `Payload ${ce}` : "", U = Mm(v.attackRatingBand), te = Em(v.attackRatingBand), _e = bs([
-          { label: "Skill", value: ((x = v.skillDef) == null ? void 0 : x.label) ?? v.skill ?? "" },
+      warnings: [...(D == null ? void 0 : D.warnings) ?? []],
+      weapons: ((D == null ? void 0 : D.weapons) ?? []).map((v) => {
+        var _e, He, x, le, gt, Be, Qe;
+        const P = E(this, z, Vi).call(this, "weapons", v.id), j = String((v == null ? void 0 : v.category) ?? "").trim().toLowerCase() !== "melee", ae = !!((_e = v == null ? void 0 : v.sourceState) != null && _e.isTracked), de = String((v == null ? void 0 : v.payloadLabel) ?? "").trim() || "Unloaded", ge = j && ae ? `${ze((He = v == null ? void 0 : v.sourceState) == null ? void 0 : He.current, 0)}/${ze((x = v == null ? void 0 : v.sourceState) == null ? void 0 : x.max, 0)}` : "", we = j ? ae ? `${de} ${ge}` : de : "", H = j ? ae ? `Payload ${ge}` : `Payload ${de}` : "", J = Dm(v.attackRatingBand), Ie = Im(v.attackRatingBand), Oe = bs([
+          { label: "Skill", value: ((le = v.skillDef) == null ? void 0 : le.label) ?? v.skill ?? "" },
           { label: "Category", value: v.category ?? "" },
           { label: "Damage Type", value: v.damageTypeLabel ?? v.damageType ?? "" },
-          { label: "Max Range", value: Cm(((ne = v.range) == null ? void 0 : ne.max) ?? v.defaultRangeBand ?? "") },
-          { label: "CQ Bands", value: U },
+          { label: "Max Range", value: Om(((gt = v.range) == null ? void 0 : gt.max) ?? v.defaultRangeBand ?? "") },
+          { label: "CQ Bands", value: J },
           { label: "Payload", value: we },
-          { label: "Traits", value: jt(v.traits ?? []).join(", ") }
+          { label: "Traits", value: Ht(v.traits ?? []).join(", ") }
         ]);
         return {
           id: v.id,
           accordionId: P,
-          isExpanded: B(this, ct).has(P),
+          isExpanded: F(this, ct).has(P),
           name: v.name,
           img: v.img,
-          subtitle: ((gt = v.skillDef) == null ? void 0 : gt.label) ?? v.category ?? "",
+          subtitle: ((Be = v.skillDef) == null ? void 0 : Be.label) ?? v.category ?? "",
           summaryStats: gs([
-            { label: "DV", value: We(v.damage, 0), emphasis: "strong" },
-            { label: "AP", value: We(v.ap, 0) },
+            { label: "DV", value: ze(v.damage, 0), emphasis: "strong" },
+            { label: "AP", value: ze(v.ap, 0) },
             { label: "Type", value: v.damageTypeLabel ?? v.damageType ?? "" },
-            { label: "CQ", value: te }
+            { label: "CQ", value: Ie }
           ]),
           detailTags: ys([
             v.equipped ? "Equipped" : "",
             v.isPrimary ? "Primary" : "",
-            Re,
-            ...jt(v.traits ?? [])
+            H,
+            ...Ht(v.traits ?? [])
           ]),
-          detailRows: _e,
+          detailRows: Oe,
           detailText: hs(v.notes),
           equipped: !!v.equipped,
           isPrimary: !!v.isPrimary,
           attackRoll: JSON.stringify({
             intent: "attack",
             weaponId: v.id,
-            payloadId: ((Fe = v == null ? void 0 : v.payloadState) == null ? void 0 : Fe.activePayloadId) ?? "",
+            payloadId: ((Qe = v == null ? void 0 : v.payloadState) == null ? void 0 : Qe.activePayloadId) ?? "",
             edge: { pool: "physical.grit", allowed: ["pre", "post"] },
             tags: ["combat", "attack"]
           })
         };
       }),
-      armor: ((R == null ? void 0 : R.armor) ?? []).map((v) => {
-        var we, Re, U, te, _e, Ie, Le, Ue, x, ne, gt, Fe, zt, Fr;
-        const P = ((we = R == null ? void 0 : R.activeArmor) == null ? void 0 : we.id) === v.id ? R.activeArmor : null, j = M(this, z, Vi).call(this, "armor", v.id), ae = We(((U = (Re = P == null ? void 0 : P.traitState) == null ? void 0 : Re.reinforced) == null ? void 0 : U.max) ?? ((_e = (te = v == null ? void 0 : v.traitState) == null ? void 0 : te.reinforced) == null ? void 0 : _e.max), 0), ce = ae > 0 ? `${We(((Le = (Ie = P == null ? void 0 : P.traitState) == null ? void 0 : Ie.reinforced) == null ? void 0 : Le.current) ?? ((x = (Ue = v == null ? void 0 : v.traitState) == null ? void 0 : Ue.reinforced) == null ? void 0 : x.current), 0)}/${ae}` : "", fe = vm({
+      armor: ((D == null ? void 0 : D.armor) ?? []).map((v) => {
+        var we, H, J, Ie, Oe, _e, He, x, le, gt, Be, Qe, Wr, Hr;
+        const P = ((we = D == null ? void 0 : D.activeArmor) == null ? void 0 : we.id) === v.id ? D.activeArmor : null, j = E(this, z, Vi).call(this, "armor", v.id), ae = ze(((J = (H = P == null ? void 0 : P.traitState) == null ? void 0 : H.reinforced) == null ? void 0 : J.max) ?? ((Oe = (Ie = v == null ? void 0 : v.traitState) == null ? void 0 : Ie.reinforced) == null ? void 0 : Oe.max), 0), de = ae > 0 ? `${ze(((He = (_e = P == null ? void 0 : P.traitState) == null ? void 0 : _e.reinforced) == null ? void 0 : He.current) ?? ((le = (x = v == null ? void 0 : v.traitState) == null ? void 0 : x.reinforced) == null ? void 0 : le.current), 0)}/${ae}` : "", ge = Rm({
           defenseBonus: v.defenseBonus,
           mitigationByType: (P == null ? void 0 : P.mitigationByType) ?? (P == null ? void 0 : P.typedMitigation) ?? v.mitigationByType ?? {}
         });
         return {
           id: v.id,
           accordionId: j,
-          isExpanded: B(this, ct).has(j),
+          isExpanded: F(this, ct).has(j),
           name: v.name,
           img: v.img,
-          subtitle: (ne = v.tags) != null && ne.length ? v.tags.join(", ") : "Armor",
+          subtitle: (gt = v.tags) != null && gt.length ? v.tags.join(", ") : "Armor",
           summaryStats: gs([
-            { label: "Rating", value: We((P == null ? void 0 : P.ratingCurrent) ?? v.rating, 0), emphasis: "strong" },
-            { label: "Res", value: We((P == null ? void 0 : P.baseMitigation) ?? (P == null ? void 0 : P.baseResistance), 0) },
-            { label: "Def", value: We(v.defenseBonus, 0) },
-            { label: "Dur", value: `${We(((gt = P == null ? void 0 : P.durability) == null ? void 0 : gt.current) ?? ((Fe = v.durability) == null ? void 0 : Fe.current), 0)}/${We(((zt = P == null ? void 0 : P.durability) == null ? void 0 : zt.max) ?? ((Fr = v.durability) == null ? void 0 : Fr.max), 0)}` }
+            { label: "Rating", value: ze((P == null ? void 0 : P.ratingCurrent) ?? v.rating, 0), emphasis: "strong" },
+            { label: "Res", value: ze((P == null ? void 0 : P.baseMitigation) ?? (P == null ? void 0 : P.baseResistance), 0) },
+            { label: "Def", value: ze(v.defenseBonus, 0) },
+            { label: "Dur", value: `${ze(((Be = P == null ? void 0 : P.durability) == null ? void 0 : Be.current) ?? ((Qe = v.durability) == null ? void 0 : Qe.current), 0)}/${ze(((Wr = P == null ? void 0 : P.durability) == null ? void 0 : Wr.max) ?? ((Hr = v.durability) == null ? void 0 : Hr.max), 0)}` }
           ]),
           detailTags: ys([
             v.equipped ? "Equipped" : "",
             v.isPrimary ? "Primary" : "",
-            ce ? `Reinforced ${ce}` : "",
-            ...jt(v.traits ?? [])
+            de ? `Reinforced ${de}` : "",
+            ...Ht(v.traits ?? [])
           ]),
           detailRows: bs([
-            { label: "Modifiers", value: fe },
-            { label: "Traits", value: jt(v.traits ?? []).join(", ") },
-            { label: "Tags", value: jt(v.tags ?? []).join(", ") }
+            { label: "Modifiers", value: ge },
+            { label: "Traits", value: Ht(v.traits ?? []).join(", ") },
+            { label: "Tags", value: Ht(v.tags ?? []).join(", ") }
           ]),
           detailText: hs(v.notes),
           equipped: !!v.equipped,
@@ -10981,14 +11004,14 @@ const de = class de extends xi {
         };
       }),
       gear: (((Ct = i.items) == null ? void 0 : Ct.gear) ?? []).map((v) => {
-        var Re, U, te, _e, Ie, Le, Ue;
-        const P = M(this, z, Vi).call(this, "gear", v.id), j = Math.max(0, Math.trunc(We(((Re = v.system) == null ? void 0 : Re.quantity) ?? 1, 1))), ae = Math.max(0, Math.trunc(We(((U = v.system) == null ? void 0 : U.rating) ?? 0, 0))), ce = jt(((te = v.system) == null ? void 0 : te.tags) ?? []), fe = String(((_e = v.system) == null ? void 0 : _e.category) ?? "").trim(), we = km[fe] ?? fe;
+        var H, J, Ie, Oe, _e, He, x;
+        const P = E(this, z, Vi).call(this, "gear", v.id), j = Math.max(0, Math.trunc(ze(((H = v.system) == null ? void 0 : H.quantity) ?? 1, 1))), ae = Math.max(0, Math.trunc(ze(((J = v.system) == null ? void 0 : J.rating) ?? 0, 0))), de = Ht(((Ie = v.system) == null ? void 0 : Ie.tags) ?? []), ge = String(((Oe = v.system) == null ? void 0 : Oe.category) ?? "").trim(), we = Nm[ge] ?? ge;
         return {
           id: v.id,
           itemType: "gear",
           isGear: !0,
           accordionId: P,
-          isExpanded: B(this, ct).has(P),
+          isExpanded: F(this, ct).has(P),
           name: v.name,
           img: v.img,
           subtitle: we || "Gear",
@@ -10997,39 +11020,40 @@ const de = class de extends xi {
             { label: "Rating", value: ae }
           ]),
           detailTags: ys([
-            ...ce,
-            (Ie = v.system) != null && Ie.inactive ? "Inactive" : ""
+            ...de,
+            (_e = v.system) != null && _e.inactive ? "Inactive" : ""
           ]),
           detailRows: bs([
             { label: "Quantity", value: j },
             { label: "Rating", value: ae },
-            { label: "Source", value: ((Le = v.system) == null ? void 0 : Le.sourceReference) ?? "" },
+            { label: "Source", value: ((He = v.system) == null ? void 0 : He.sourceReference) ?? "" },
             { label: "Category", value: we },
-            { label: "Tags", value: ce.join(", ") }
+            { label: "Tags", value: de.join(", ") }
           ]),
-          detailText: hs((Ue = v.system) == null ? void 0 : Ue.description),
+          detailText: hs((x = v.system) == null ? void 0 : x.description),
           quantity: j,
           canAdjustQuantity: this.isEditable
         };
       })
     }, i.bio = {
-      faction: ((Pt = m.biography) == null ? void 0 : Pt.faction) ?? "",
-      age: ((Nt = m.biography) == null ? void 0 : Nt.age) ?? "",
-      rank: ((Rt = m.biography) == null ? void 0 : Rt.rank) ?? "",
-      height: ((Dt = m.biography) == null ? void 0 : Dt.height) ?? "",
-      weight: ((It = m.biography) == null ? void 0 : It.weight) ?? "",
-      xpTotal: ((_t = (Ot = m.counters) == null ? void 0 : Ot.xp) == null ? void 0 : _t.total) ?? 0,
-      xpSpent: (($t = (Lt = m.counters) == null ? void 0 : Lt.xp) == null ? void 0 : $t.value) ?? 0,
-      experienceLevel: ((xt = m.biography) == null ? void 0 : xt.experienceLevel) ?? "green",
+      fields: ((Pt = i.bio) == null ? void 0 : Pt.fields) ?? {},
+      faction: ((Nt = m.biography) == null ? void 0 : Nt.faction) ?? "",
+      age: ((Rt = m.biography) == null ? void 0 : Rt.age) ?? "",
+      rank: ((Dt = m.biography) == null ? void 0 : Dt.rank) ?? "",
+      height: ((It = m.biography) == null ? void 0 : It.height) ?? "",
+      weight: ((Ot = m.biography) == null ? void 0 : Ot.weight) ?? "",
+      xpTotal: ((Lt = (_t = m.counters) == null ? void 0 : _t.xp) == null ? void 0 : Lt.total) ?? 0,
+      xpSpent: ((xt = ($t = m.counters) == null ? void 0 : $t.xp) == null ? void 0 : xt.value) ?? 0,
+      experienceLevel: ((nt = m.biography) == null ? void 0 : nt.experienceLevel) ?? "green",
       enrichedHistory: await foundry.applications.ux.TextEditor.implementation.enrichHTML(
-        ((nt = m.biography) == null ? void 0 : nt.history) ?? "",
+        ((Bt = m.biography) == null ? void 0 : Bt.history) ?? "",
         { async: !0, secrets: this.actor.isOwner, relativeTo: this.actor }
       )
     };
-    const _ = Jt(this.actor);
-    i.skillsDisplay = yo(((Bt = this.actor) == null ? void 0 : Bt.system) ?? {}, {
-      bonusBySkill: _.bonusBySkill
-    }), i.lifeModules = _.slotStates.map((v) => {
+    const L = Jt(this.actor);
+    i.skillsDisplay = wo(((Ft = this.actor) == null ? void 0 : Ft.system) ?? {}, {
+      bonusBySkill: L.bonusBySkill
+    }), i.lifeModules = L.slotStates.map((v) => {
       const P = v.state;
       return {
         moduleType: v.moduleType,
@@ -11048,55 +11072,55 @@ const de = class de extends xi {
         } : null
       };
     });
-    const q = ["positive", "negative", "narrative"], Y = ["major", "minor"], K = [...((Ft = i.items) == null ? void 0 : Ft.quality) ?? []].sort((v, P) => {
-      const j = tt(v.system ?? {}), ae = tt(P.system ?? {}), ce = q.indexOf(j.category) - q.indexOf(ae.category);
-      if (ce !== 0) return ce;
-      const fe = Y.indexOf(j.tier) - Y.indexOf(ae.tier);
-      return fe !== 0 ? fe : String(v.name ?? "").localeCompare(String(P.name ?? ""));
+    const V = ["positive", "negative", "narrative"], Y = ["major", "minor"], K = [...((zt = i.items) == null ? void 0 : zt.quality) ?? []].sort((v, P) => {
+      const j = tt(v.system ?? {}), ae = tt(P.system ?? {}), de = V.indexOf(j.category) - V.indexOf(ae.category);
+      if (de !== 0) return de;
+      const ge = Y.indexOf(j.tier) - Y.indexOf(ae.tier);
+      return ge !== 0 ? ge : String(v.name ?? "").localeCompare(String(P.name ?? ""));
     });
-    return i.qualityGroups = q.map((v) => ({
+    return i.qualityGroups = V.map((v) => ({
       id: v,
-      label: vs(v),
+      label: Ms(v),
       records: K.filter((P) => tt(P.system ?? {}).category === v).map((P) => {
-        var ce, fe, we, Re;
-        const j = tt(P.system ?? {}), ae = M(this, z, Vi).call(this, "quality", P.id);
+        var de, ge, we, H;
+        const j = tt(P.system ?? {}), ae = E(this, z, Vi).call(this, "quality", P.id);
         return {
           id: P.id,
           accordionId: ae,
-          isExpanded: B(this, ct).has(ae),
+          isExpanded: F(this, ct).has(ae),
           name: P.name,
           img: P.img,
-          subtitle: `${Ms(j.tier)} ${vs(j.category)}`,
+          subtitle: `${Es(j.tier)} ${Ms(j.category)}`,
           summaryStats: gs([
-            { label: "Tier", value: Ms(j.tier), emphasis: "strong" },
+            { label: "Tier", value: Es(j.tier), emphasis: "strong" },
             { label: "Activation", value: j.activation || "passive" },
-            { label: "Effects", value: String(((ce = j.effects) == null ? void 0 : ce.length) ?? 0) }
+            { label: "Effects", value: String(((de = j.effects) == null ? void 0 : de.length) ?? 0) }
           ]),
           detailTags: ys([
             j.inactive ? "Inactive" : "",
             ...j.tags ?? []
           ]),
           detailRows: bs([
-            { label: "Category", value: vs(j.category) },
-            { label: "Tier", value: Ms(j.tier) },
+            { label: "Category", value: Ms(j.category) },
+            { label: "Tier", value: Es(j.tier) },
             { label: "Activation", value: j.activation || "passive" },
-            { label: "Prerequisites", value: String(((fe = j.prerequisites) == null ? void 0 : fe.length) ?? 0) },
+            { label: "Prerequisites", value: String(((ge = j.prerequisites) == null ? void 0 : ge.length) ?? 0) },
             { label: "Effects", value: String(((we = j.effects) == null ? void 0 : we.length) ?? 0) },
-            { label: "Tags", value: jt(j.tags ?? []).join(", ") }
+            { label: "Tags", value: Ht(j.tags ?? []).join(", ") }
           ]),
-          detailText: hs((Re = P.system) == null ? void 0 : Re.description)
+          detailText: hs((H = P.system) == null ? void 0 : H.description)
         };
       })
     })), i;
   }
   _onRender(t, i) {
-    super._onRender(t, i), M(this, z, nl).call(this), M(this, z, ll).call(this);
+    super._onRender(t, i), E(this, z, ul).call(this), E(this, z, ml).call(this);
   }
   async close(t = {}) {
-    return M(this, z, tr).call(this), super.close(t);
+    return E(this, z, sr).call(this), super.close(t);
   }
   requestCombatDashboardRefresh() {
-    M(this, z, ve).call(this, { force: !0 });
+    E(this, z, ve).call(this, { force: !0 });
   }
   async _onEdgeSet(t, i) {
     var c, u, d;
@@ -11116,7 +11140,7 @@ const de = class de extends xi {
     const a = String(
       ((o = i == null ? void 0 : i.dataset) == null ? void 0 : o.combatMenu) ?? ((d = (u = (c = (l = t == null ? void 0 : t.target) == null ? void 0 : l.closest) == null ? void 0 : c.call(l, "[data-combat-menu]")) == null ? void 0 : u.dataset) == null ? void 0 : d.combatMenu) ?? ""
     ).trim();
-    a && (Pe(this, Ye, B(this, Ye) === a ? null : a), M(this, z, ve).call(this, !1));
+    a && (Pe(this, Ke, F(this, Ke) === a ? null : a), E(this, z, ve).call(this, !1));
   }
   async _onToggleStatuses(t) {
     var r, n, o, l, c, u, d, m;
@@ -11126,15 +11150,15 @@ const de = class de extends xi {
       (m = ui.notifications) == null || m.warn("Statuses require a token for this actor on the current scene.");
       return;
     }
-    return xc({
+    return Wc({
       actor: i,
       token: a
     });
   }
   async _onCombatSpend(t, i) {
-    var c, u, d, m, p, f, h, g, y, b;
+    var c, u, d, m, f, p, h, g, y, b;
     if ((c = t == null ? void 0 : t.preventDefault) == null || c.call(t), (u = t == null ? void 0 : t.stopPropagation) == null || u.call(t), !this.isEditable) return;
-    const a = String(((d = i == null ? void 0 : i.dataset) == null ? void 0 : d.resource) ?? "").trim(), r = Math.max(0, Number(((m = i == null ? void 0 : i.dataset) == null ? void 0 : m.cost) ?? 0)), n = String(((p = i == null ? void 0 : i.dataset) == null ? void 0 : p.combatAction) ?? "").trim(), o = String(((f = i == null ? void 0 : i.dataset) == null ? void 0 : f.combatLabel) ?? "").trim(), l = String(((h = i == null ? void 0 : i.dataset) == null ? void 0 : h.combatCostLabel) ?? "").trim();
+    const a = String(((d = i == null ? void 0 : i.dataset) == null ? void 0 : d.resource) ?? "").trim(), r = Math.max(0, Number(((m = i == null ? void 0 : i.dataset) == null ? void 0 : m.cost) ?? 0)), n = String(((f = i == null ? void 0 : i.dataset) == null ? void 0 : f.combatAction) ?? "").trim(), o = String(((p = i == null ? void 0 : i.dataset) == null ? void 0 : p.combatLabel) ?? "").trim(), l = String(((h = i == null ? void 0 : i.dataset) == null ? void 0 : h.combatCostLabel) ?? "").trim();
     if (!(!a || !r || !n))
       try {
         const A = this.getPersistentActor() ?? this.actor, w = await re.spendResource(A, {
@@ -11149,7 +11173,7 @@ const de = class de extends xi {
           (y = ui.notifications) == null || y.warn((w == null ? void 0 : w.reason) ?? "Unable to spend action.");
           return;
         }
-        M(this, z, ai).call(this, { rerender: !1 }), M(this, z, ve).call(this, { force: !0 });
+        E(this, z, ai).call(this, { rerender: !1 }), E(this, z, ve).call(this, { force: !0 });
       } catch (A) {
         console.error("MWD | Failed to spend combat action", A), (b = ui.notifications) == null || b.error("Unable to spend action.");
       }
@@ -11165,13 +11189,13 @@ const de = class de extends xi {
           (n = ui.notifications) == null || n.warn((c == null ? void 0 : c.reason) ?? "Unable to reduce Burn.");
           return;
         }
-        M(this, z, ai).call(this, { rerender: !1 }), M(this, z, ve).call(this, { force: !0 });
+        E(this, z, ai).call(this, { rerender: !1 }), E(this, z, ve).call(this, { force: !0 });
       } catch (l) {
         console.error("MWD | Failed to reduce Burn", l), (o = ui.notifications) == null || o.error("Unable to reduce Burn.");
       }
   }
   async _onCombatOverloadCheck(t, i) {
-    var n, o, l, c, u, d, m, p, f, h, g;
+    var n, o, l, c, u, d, m, f, p, h, g;
     if ((n = t == null ? void 0 : t.preventDefault) == null || n.call(t), (o = t == null ? void 0 : t.stopPropagation) == null || o.call(t), !this.isEditable) return;
     const a = ((l = i == null ? void 0 : i.dataset) == null ? void 0 : l.roll) ?? ((m = (d = (u = (c = t == null ? void 0 : t.target) == null ? void 0 : c.closest) == null ? void 0 : u.call(c, "[data-roll]")) == null ? void 0 : d.dataset) == null ? void 0 : m.roll);
     if (!a) return;
@@ -11183,18 +11207,18 @@ const de = class de extends xi {
       return;
     }
     try {
-      const y = this.getPersistentActor() ?? this.actor, b = await ((h = (f = (p = game.mwd) == null ? void 0 : p.roll) == null ? void 0 : f.execute) == null ? void 0 : h.call(f, { actor: y, payload: r, event: t }));
-      if (M(this, z, ai).call(this, { rerender: !1 }), !b) {
-        M(this, z, ve).call(this, !1);
+      const y = this.getPersistentActor() ?? this.actor, b = await ((h = (p = (f = game.mwd) == null ? void 0 : f.roll) == null ? void 0 : p.execute) == null ? void 0 : h.call(p, { actor: y, payload: r, event: t }));
+      if (E(this, z, ai).call(this, { rerender: !1 }), !b) {
+        E(this, z, ve).call(this, !1);
         return;
       }
-      M(this, z, ve).call(this, { force: !0 });
+      E(this, z, ve).call(this, { force: !0 });
     } catch (y) {
       console.error("MWD | Failed to launch overload check", y), (g = ui.notifications) == null || g.error("Unable to launch overload check.");
     }
   }
   async _onCombatAttack(t) {
-    var c, u, d, m, p, f, h, g, y, b, A, w, E, I, R, _, q, Y;
+    var c, u, d, m, f, p, h, g, y, b, A, w, M, I, D, L, V, Y;
     if ((c = t == null ? void 0 : t.preventDefault) == null || c.call(t), (u = t == null ? void 0 : t.stopPropagation) == null || u.call(t), !this.isEditable) return;
     const i = this.getPersistentActor() ?? this.actor, a = ((d = this.getSheetTokenDocument) == null ? void 0 : d.call(this)) ?? re.getCurrentSceneTokenDocument(i) ?? re.getCurrentSceneTokenDocument(this.actor), r = re.getSnapshot(i, { token: a });
     if (!r.hasCombatant) {
@@ -11202,15 +11226,15 @@ const de = class de extends xi {
       return;
     }
     if (!r.isCurrentTurn) {
-      (p = ui.notifications) == null || p.warn("Only available during your activation.");
+      (f = ui.notifications) == null || f.warn("Only available during your activation.");
       return;
     }
     if (r.overloaded) {
-      (f = ui.notifications) == null || f.warn("Overloaded actors can only recover Burn.");
+      (p = ui.notifications) == null || p.warn("Overloaded actors can only recover Burn.");
       return;
     }
     const n = 3 + Math.floor((Math.max(0, Number(((y = (g = (h = i.system) == null ? void 0 : h.attributes) == null ? void 0 : g.reflexes) == null ? void 0 : y.value) ?? 0)) + Math.max(0, Number(((w = (A = (b = i.system) == null ? void 0 : b.attributes) == null ? void 0 : A.willpower) == null ? void 0 : w.value) ?? 0))) / 2);
-    if (Math.max(0, n - Math.max(0, Number(((E = r.state) == null ? void 0 : E.saSpentThisActivation) ?? 0))) < 2) {
+    if (Math.max(0, n - Math.max(0, Number(((M = r.state) == null ? void 0 : M.saSpentThisActivation) ?? 0))) < 2) {
       (I = ui.notifications) == null || I.warn("Activation SA cap reached.");
       return;
     }
@@ -11222,9 +11246,9 @@ const de = class de extends xi {
       tags: ["combat", "attack"]
     };
     try {
-      const K = await ((q = (_ = (R = game.mwd) == null ? void 0 : R.roll) == null ? void 0 : _.execute) == null ? void 0 : q.call(_, { actor: i, payload: l, event: t }));
-      if (M(this, z, ai).call(this, { rerender: !1 }), !K) {
-        M(this, z, ve).call(this, !1);
+      const K = await ((V = (L = (D = game.mwd) == null ? void 0 : D.roll) == null ? void 0 : L.execute) == null ? void 0 : V.call(L, { actor: i, payload: l, event: t }));
+      if (E(this, z, ai).call(this, { rerender: !1 }), !K) {
+        E(this, z, ve).call(this, !1);
         return;
       }
       const O = await re.spendResource(i, {
@@ -11235,19 +11259,19 @@ const de = class de extends xi {
         actionLabel: "Attack",
         actionCostLabel: "2 SA"
       });
-      O != null && O.ok || (Y = ui.notifications) == null || Y.warn((O == null ? void 0 : O.reason) ?? "Unable to spend attack action."), M(this, z, ve).call(this, { force: !0 });
+      O != null && O.ok || (Y = ui.notifications) == null || Y.warn((O == null ? void 0 : O.reason) ?? "Unable to spend attack action."), E(this, z, ve).call(this, { force: !0 });
     } catch (K) {
-      console.error("MWD | Failed to launch attack", K), Fs(K, "Unable to launch attack.");
+      console.error("MWD | Failed to launch attack", K), zs(K, "Unable to launch attack.");
     }
   }
   async _onAddSkillSpecialization(t, i) {
-    var d, m, p, f;
+    var d, m, f, p;
     if ((d = t == null ? void 0 : t.preventDefault) == null || d.call(t), (m = t == null ? void 0 : t.stopPropagation) == null || m.call(t), !this.isEditable || !this.editing) return;
-    const a = String(((p = i == null ? void 0 : i.dataset) == null ? void 0 : p.skillKey) ?? "").trim();
+    const a = String(((f = i == null ? void 0 : i.dataset) == null ? void 0 : f.skillKey) ?? "").trim();
     if (!a) return;
-    const r = this.getPersistentActor() ?? this.actor, n = xa(r.system ?? {}, a), o = Ks(r.system ?? {}, a), l = di(a).filter((h) => !o.includes(h.key));
+    const r = this.getPersistentActor() ?? this.actor, n = Fa(r.system ?? {}, a), o = Ys(r.system ?? {}, a), l = di(a).filter((h) => !o.includes(h.key));
     if (l.length === 0) return;
-    let c = ((f = l[0]) == null ? void 0 : f.key) ?? "";
+    let c = ((p = l[0]) == null ? void 0 : p.key) ?? "";
     if (l.length > 1) {
       const h = `<form class="mwd-quick-select"><div class="mwd-field"><label>Specialization</label><select name="specialization">${l.map((g) => `<option value="${g.key}">${g.label}</option>`).join("")}</select></div></form>`;
       c = await Dialog.prompt({
@@ -11260,36 +11284,36 @@ const de = class de extends xi {
         }
       });
     }
-    const u = $s(
+    const u = xs(
       n.concat([c])
     );
     await r.update({
       [`system.skills.${a}.specializations`]: u
-    }), M(this, z, ve).call(this, { force: !0 });
+    }), E(this, z, ve).call(this, { force: !0 });
   }
   async _onRemoveSkillSpecialization(t, i) {
     var l, c, u, d;
     if ((l = t == null ? void 0 : t.preventDefault) == null || l.call(t), (c = t == null ? void 0 : t.stopPropagation) == null || c.call(t), !this.isEditable || !this.editing) return;
     const a = String(((u = i == null ? void 0 : i.dataset) == null ? void 0 : u.skillKey) ?? "").trim(), r = String(((d = i == null ? void 0 : i.dataset) == null ? void 0 : d.specializationKey) ?? "").trim();
     if (!a || !r) return;
-    const n = this.getPersistentActor() ?? this.actor, o = $s(
-      xa(n.system ?? {}, a).filter((m) => m !== r)
+    const n = this.getPersistentActor() ?? this.actor, o = xs(
+      Fa(n.system ?? {}, a).filter((m) => m !== r)
     );
     await n.update({
       [`system.skills.${a}.specializations`]: o
-    }), M(this, z, ve).call(this, { force: !0 });
+    }), E(this, z, ve).call(this, { force: !0 });
   }
   async _onCreateLifeModuleItem(t, i) {
-    var d, m, p, f, h;
+    var d, m, f, p, h;
     if ((d = t == null ? void 0 : t.preventDefault) == null || d.call(t), (m = t == null ? void 0 : t.stopPropagation) == null || m.call(t), !this.isEditable) return;
-    const a = String(((p = i == null ? void 0 : i.dataset) == null ? void 0 : p.moduleType) ?? "").trim();
+    const a = String(((f = i == null ? void 0 : i.dataset) == null ? void 0 : f.moduleType) ?? "").trim();
     if (!a) return;
-    const r = this.getPersistentActor() ?? this.actor, n = Ir(a);
+    const r = this.getPersistentActor() ?? this.actor, n = _r(a);
     if (!n.length) {
-      (f = ui.notifications) == null || f.warn(`No ${Li(a)} life modules are configured in game settings.`);
+      (p = ui.notifications) == null || p.warn(`No ${Li(a)} life modules are configured in game settings.`);
       return;
     }
-    const o = await kn({
+    const o = await En({
       title: `Choose ${Li(a)} Life Module`,
       label: "Life Module",
       confirmLabel: "Create",
@@ -11304,9 +11328,9 @@ const de = class de extends xi {
       (h = ui.notifications) == null || h.warn("That life module catalog entry no longer exists.");
       return;
     }
-    const c = Ho(l, {}), u = {};
+    const c = Ko(l, {}), u = {};
     for (const g of c.filter((y) => y.hasMultipleChoices)) {
-      const y = await kn({
+      const y = await En({
         title: `Choose Bonus for ${l.label}`,
         label: g.label,
         confirmLabel: "Apply",
@@ -11326,7 +11350,7 @@ const de = class de extends xi {
         catalogId: l.id,
         selectedGrants: u
       })
-    }]), M(this, z, ve).call(this, { force: !0 });
+    }]), E(this, z, ve).call(this, { force: !0 });
   }
   async _onCreateOwnedItem(t, i) {
     var l, c, u;
@@ -11337,59 +11361,59 @@ const de = class de extends xi {
     await r.createEmbeddedDocuments("Item", [{
       name: `${o} ${n + 1}`,
       type: a
-    }]), M(this, z, ve).call(this, { force: !0 });
+    }]), E(this, z, ve).call(this, { force: !0 });
   }
   async _onEditOwnedItem(t, i) {
     var r, n, o;
     (r = t == null ? void 0 : t.preventDefault) == null || r.call(t), (n = t == null ? void 0 : t.stopPropagation) == null || n.call(t);
-    const a = M(this, z, Ei).call(this, i, t);
+    const a = E(this, z, Ei).call(this, i, t);
     (o = a == null ? void 0 : a.sheet) == null || o.render(!0);
   }
   async _onDeleteOwnedItem(t, i) {
     var n, o;
     if ((n = t == null ? void 0 : t.preventDefault) == null || n.call(t), (o = t == null ? void 0 : t.stopPropagation) == null || o.call(t), !this.isEditable) return;
-    const a = M(this, z, Ei).call(this, i, t);
+    const a = E(this, z, Ei).call(this, i, t);
     if (!a) return;
-    await (this.getPersistentActor() ?? this.actor).deleteEmbeddedDocuments("Item", [a.id]), M(this, z, ve).call(this, { force: !0 });
+    await (this.getPersistentActor() ?? this.actor).deleteEmbeddedDocuments("Item", [a.id]), E(this, z, ve).call(this, { force: !0 });
   }
   async _onToggleInventoryAccordion(t, i) {
-    var r, n, o, l, c, u, d, m, p, f;
+    var r, n, o, l, c, u, d, m, f, p;
     (r = t == null ? void 0 : t.preventDefault) == null || r.call(t), (n = t == null ? void 0 : t.stopPropagation) == null || n.call(t);
     const a = String(
-      ((o = i == null ? void 0 : i.dataset) == null ? void 0 : o.accordionId) ?? ((u = (c = (l = i == null ? void 0 : i.closest) == null ? void 0 : l.call(i, "[data-accordion-id]")) == null ? void 0 : c.dataset) == null ? void 0 : u.accordionId) ?? ((f = (p = (m = (d = t == null ? void 0 : t.target) == null ? void 0 : d.closest) == null ? void 0 : m.call(d, "[data-accordion-id]")) == null ? void 0 : p.dataset) == null ? void 0 : f.accordionId) ?? ""
+      ((o = i == null ? void 0 : i.dataset) == null ? void 0 : o.accordionId) ?? ((u = (c = (l = i == null ? void 0 : i.closest) == null ? void 0 : l.call(i, "[data-accordion-id]")) == null ? void 0 : c.dataset) == null ? void 0 : u.accordionId) ?? ((p = (f = (m = (d = t == null ? void 0 : t.target) == null ? void 0 : d.closest) == null ? void 0 : m.call(d, "[data-accordion-id]")) == null ? void 0 : f.dataset) == null ? void 0 : p.accordionId) ?? ""
     ).trim();
-    a && (B(this, ct).has(a) ? B(this, ct).delete(a) : B(this, ct).add(a), M(this, z, ve).call(this, !1));
+    a && (F(this, ct).has(a) ? F(this, ct).delete(a) : F(this, ct).add(a), E(this, z, ve).call(this, !1));
   }
   async _onToggleOwnedItemEquipped(t, i) {
     var n, o, l, c;
     if ((n = t == null ? void 0 : t.preventDefault) == null || n.call(t), (o = t == null ? void 0 : t.stopPropagation) == null || o.call(t), !this.isEditable) return;
-    const a = M(this, z, Ei).call(this, i, t);
+    const a = E(this, z, Ei).call(this, i, t);
     if (!a) return;
     const r = this.getPersistentActor() ?? this.actor;
-    await ((c = r.setOwnedItemEquipped) == null ? void 0 : c.call(r, a.id, !((l = a.system) != null && l.equipped))), M(this, z, ve).call(this, { force: !0 });
+    await ((c = r.setOwnedItemEquipped) == null ? void 0 : c.call(r, a.id, !((l = a.system) != null && l.equipped))), E(this, z, ve).call(this, { force: !0 });
   }
   async _onSetOwnedItemPrimary(t, i) {
     var n, o, l, c;
     if ((n = t == null ? void 0 : t.preventDefault) == null || n.call(t), (o = t == null ? void 0 : t.stopPropagation) == null || o.call(t), !this.isEditable) return;
-    const a = M(this, z, Ei).call(this, i, t);
+    const a = E(this, z, Ei).call(this, i, t);
     if (!a) return;
     const r = this.getPersistentActor() ?? this.actor;
-    await ((c = r.setOwnedItemPrimary) == null ? void 0 : c.call(r, a.id, !((l = a.system) != null && l.isPrimary))), M(this, z, ve).call(this, { force: !0 });
+    await ((c = r.setOwnedItemPrimary) == null ? void 0 : c.call(r, a.id, !((l = a.system) != null && l.isPrimary))), E(this, z, ve).call(this, { force: !0 });
   }
   async _onAdjustGearQuantity(t, i) {
-    var c, u, d, m, p, f, h, g, y, b, A;
+    var c, u, d, m, f, p, h, g, y, b, A;
     if ((c = t == null ? void 0 : t.preventDefault) == null || c.call(t), (u = t == null ? void 0 : t.stopPropagation) == null || u.call(t), !this.isEditable) return;
-    const a = M(this, z, Ei).call(this, i, t);
+    const a = E(this, z, Ei).call(this, i, t);
     if (!a || a.canonicalType !== "gear") return;
     const r = Math.trunc(Number(
-      ((d = i == null ? void 0 : i.dataset) == null ? void 0 : d.delta) ?? ((f = (p = (m = i == null ? void 0 : i.closest) == null ? void 0 : m.call(i, "[data-delta]")) == null ? void 0 : p.dataset) == null ? void 0 : f.delta) ?? ((b = (y = (g = (h = t == null ? void 0 : t.target) == null ? void 0 : h.closest) == null ? void 0 : g.call(h, "[data-delta]")) == null ? void 0 : y.dataset) == null ? void 0 : b.delta) ?? 0
+      ((d = i == null ? void 0 : i.dataset) == null ? void 0 : d.delta) ?? ((p = (f = (m = i == null ? void 0 : i.closest) == null ? void 0 : m.call(i, "[data-delta]")) == null ? void 0 : f.dataset) == null ? void 0 : p.delta) ?? ((b = (y = (g = (h = t == null ? void 0 : t.target) == null ? void 0 : h.closest) == null ? void 0 : g.call(h, "[data-delta]")) == null ? void 0 : y.dataset) == null ? void 0 : b.delta) ?? 0
     ) || 0);
     if (!r) return;
     const o = (this.getPersistentActor() ?? this.actor).items.get(a.id) ?? a, l = Math.max(0, Math.trunc(Number(((A = o.system) == null ? void 0 : A.quantity) ?? 1) || 0) + r);
-    await o.update({ "system.quantity": l }), M(this, z, ve).call(this, { force: !0 });
+    await o.update({ "system.quantity": l }), E(this, z, ve).call(this, { force: !0 });
   }
   async _onAttackWeapon(t, i) {
-    var n, o, l, c, u, d, m, p, f, h;
+    var n, o, l, c, u, d, m, f, p, h;
     (n = t == null ? void 0 : t.preventDefault) == null || n.call(t), (o = t == null ? void 0 : t.stopPropagation) == null || o.call(t);
     const a = ((l = i == null ? void 0 : i.dataset) == null ? void 0 : l.roll) ?? ((m = (d = (u = (c = t == null ? void 0 : t.target) == null ? void 0 : c.closest) == null ? void 0 : u.call(c, "[data-roll]")) == null ? void 0 : d.dataset) == null ? void 0 : m.roll);
     if (!a) return;
@@ -11402,34 +11426,34 @@ const de = class de extends xi {
     }
     try {
       const g = this.getPersistentActor() ?? this.actor;
-      if (!await ((h = (f = (p = game.mwd) == null ? void 0 : p.roll) == null ? void 0 : f.execute) == null ? void 0 : h.call(f, { actor: g, payload: r, event: t }))) return;
-      M(this, z, ve).call(this, { force: !0 });
+      if (!await ((h = (p = (f = game.mwd) == null ? void 0 : f.roll) == null ? void 0 : p.execute) == null ? void 0 : h.call(p, { actor: g, payload: r, event: t }))) return;
+      E(this, z, ve).call(this, { force: !0 });
     } catch (g) {
-      console.error("MWD | Failed to launch weapon attack", g), Fs(g, "Unable to attack with that weapon.");
+      console.error("MWD | Failed to launch weapon attack", g), zs(g, "Unable to attack with that weapon.");
     }
   }
 };
-Ye = new WeakMap(), Vt = new WeakMap(), ni = new WeakMap(), ct = new WeakMap(), z = new WeakSet(), nl = function() {
-  M(this, z, tr).call(this), B(this, Ye) && (Pe(this, Vt, (t) => {
+Ke = new WeakMap(), Vt = new WeakMap(), ni = new WeakMap(), ct = new WeakMap(), z = new WeakSet(), ul = function() {
+  E(this, z, sr).call(this), F(this, Ke) && (Pe(this, Vt, (t) => {
     var r;
     const i = this._getRootElement();
     if (!i) return;
     const a = t.target;
     if (a instanceof Node && !((r = a.closest) != null && r.call(a, ".mwd-combat-menu"))) {
       if (!i.contains(a)) {
-        M(this, z, ai).call(this);
+        E(this, z, ai).call(this);
         return;
       }
-      M(this, z, ai).call(this);
+      E(this, z, ai).call(this);
     }
-  }), document.addEventListener("click", B(this, Vt)));
-}, tr = function() {
-  B(this, Vt) && (document.removeEventListener("click", B(this, Vt)), Pe(this, Vt, null));
-}, Ds = function() {
+  }), document.addEventListener("click", F(this, Vt)));
+}, sr = function() {
+  F(this, Vt) && (document.removeEventListener("click", F(this, Vt)), Pe(this, Vt, null));
+}, Is = function() {
   const t = this._getRootElement();
   return t ? t.querySelector(".mwd-scroll-area") ?? t.querySelector(".csb-tab-panels") : null;
-}, ol = function() {
-  const t = M(this, z, Ds).call(this);
+}, dl = function() {
+  const t = E(this, z, Is).call(this);
   if (!(t instanceof HTMLElement)) {
     Pe(this, ni, null);
     return;
@@ -11438,18 +11462,18 @@ Ye = new WeakMap(), Vt = new WeakMap(), ni = new WeakMap(), ct = new WeakMap(), 
     top: t.scrollTop,
     left: t.scrollLeft
   });
-}, ll = function() {
-  const t = B(this, ni);
+}, ml = function() {
+  const t = F(this, ni);
   if (!t) return;
-  const i = M(this, z, Ds).call(this);
+  const i = E(this, z, Is).call(this);
   i instanceof HTMLElement && (i.scrollTop = t.top, i.scrollLeft = t.left, requestAnimationFrame(() => {
-    const a = M(this, z, Ds).call(this);
+    const a = E(this, z, Is).call(this);
     a instanceof HTMLElement && (a.scrollTop = t.top, a.scrollLeft = t.left);
   }), Pe(this, ni, null));
 }, ve = function(t = !1) {
-  M(this, z, ol).call(this), this.render(t);
+  E(this, z, dl).call(this), this.render(t);
 }, ai = function({ rerender: t = !0 } = {}) {
-  B(this, Ye) && (Pe(this, Ye, null), t && M(this, z, ve).call(this, !1));
+  F(this, Ke) && (Pe(this, Ke, null), t && E(this, z, ve).call(this, !1));
 }, Ei = function(t, i) {
   var r, n, o, l, c, u, d, m;
   const a = String(
@@ -11458,55 +11482,55 @@ Ye = new WeakMap(), Vt = new WeakMap(), ni = new WeakMap(), ct = new WeakMap(), 
   return a ? this.actor.items.get(a) ?? null : null;
 }, Vi = function(t, i) {
   return `${String(t ?? "").trim()}:${String(i ?? "").trim()}`;
-}, N(de, "PARTS", {
+}, N(pe, "PARTS", {
   sheet: {
     get template() {
-      return `${H}/v2/actor/character-sheet.hbs`;
+      return `${G}/v2/actor/character-sheet.hbs`;
     }
   }
-}), N(de, "DEFAULT_OPTIONS", foundry.utils.mergeObject(yi(de, de, "DEFAULT_OPTIONS"), {
+}), N(pe, "DEFAULT_OPTIONS", foundry.utils.mergeObject(yi(pe, pe, "DEFAULT_OPTIONS"), {
   classes: ["character-sheet", T, "actor-sheet-v2", "mwd-character-sheet", "mwd-sheet"],
   window: { minWidth: 450, minHeight: 740, resizable: !0 },
   position: { width: 980, height: 900 },
   actions: {
-    ...yi(de, de, "DEFAULT_OPTIONS").actions,
-    edgeSet: de.prototype._onEdgeSet,
-    toggleCombatMenu: de.prototype._onToggleCombatMenu,
-    toggleStatuses: de.prototype._onToggleStatuses,
-    combatSpend: de.prototype._onCombatSpend,
-    combatReduceBurn: de.prototype._onCombatReduceBurn,
-    combatOverloadCheck: de.prototype._onCombatOverloadCheck,
-    combatAttack: de.prototype._onCombatAttack,
-    createOwnedItem: de.prototype._onCreateOwnedItem,
-    addSkillSpecialization: de.prototype._onAddSkillSpecialization,
-    removeSkillSpecialization: de.prototype._onRemoveSkillSpecialization,
-    createLifeModuleItem: de.prototype._onCreateLifeModuleItem,
-    editOwnedItem: de.prototype._onEditOwnedItem,
-    deleteOwnedItem: de.prototype._onDeleteOwnedItem,
-    toggleInventoryAccordion: de.prototype._onToggleInventoryAccordion,
-    toggleOwnedItemEquipped: de.prototype._onToggleOwnedItemEquipped,
-    setOwnedItemPrimary: de.prototype._onSetOwnedItemPrimary,
-    adjustGearQuantity: de.prototype._onAdjustGearQuantity,
-    attackWeapon: de.prototype._onAttackWeapon
+    ...yi(pe, pe, "DEFAULT_OPTIONS").actions,
+    edgeSet: pe.prototype._onEdgeSet,
+    toggleCombatMenu: pe.prototype._onToggleCombatMenu,
+    toggleStatuses: pe.prototype._onToggleStatuses,
+    combatSpend: pe.prototype._onCombatSpend,
+    combatReduceBurn: pe.prototype._onCombatReduceBurn,
+    combatOverloadCheck: pe.prototype._onCombatOverloadCheck,
+    combatAttack: pe.prototype._onCombatAttack,
+    createOwnedItem: pe.prototype._onCreateOwnedItem,
+    addSkillSpecialization: pe.prototype._onAddSkillSpecialization,
+    removeSkillSpecialization: pe.prototype._onRemoveSkillSpecialization,
+    createLifeModuleItem: pe.prototype._onCreateLifeModuleItem,
+    editOwnedItem: pe.prototype._onEditOwnedItem,
+    deleteOwnedItem: pe.prototype._onDeleteOwnedItem,
+    toggleInventoryAccordion: pe.prototype._onToggleInventoryAccordion,
+    toggleOwnedItemEquipped: pe.prototype._onToggleOwnedItemEquipped,
+    setOwnedItemPrimary: pe.prototype._onSetOwnedItemPrimary,
+    adjustGearQuantity: pe.prototype._onAdjustGearQuantity,
+    attackWeapon: pe.prototype._onAttackWeapon
   }
 }));
-let er = de;
-class cl extends xi {
+let ir = pe;
+class pl extends xi {
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       classes: ["npc-sheet", T, "actor-sheet-v2"]
     });
   }
 }
-N(cl, "PARTS", {
+N(pl, "PARTS", {
   sheet: {
     get template() {
-      return `${H}/actor/npc.hbs`;
+      return `${G}/actor/npc.hbs`;
     },
     scrollable: [".sheet-body"]
   }
 });
-class ul extends xi {
+class fl extends xi {
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       classes: ["vehicle-sheet", T, "actor-sheet-v2"],
@@ -11514,15 +11538,15 @@ class ul extends xi {
     });
   }
 }
-N(ul, "PARTS", {
+N(fl, "PARTS", {
   sheet: {
     get template() {
-      return `${H}/actor/vehicle.hbs`;
+      return `${G}/actor/vehicle.hbs`;
     },
     scrollable: [".sheet-body"]
   }
 });
-class dl extends xi {
+class hl extends xi {
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       classes: ["battlemech-sheet", T, "actor-sheet-v2"],
@@ -11530,44 +11554,57 @@ class dl extends xi {
     });
   }
 }
-N(dl, "PARTS", {
+N(hl, "PARTS", {
   sheet: {
     get template() {
-      return `${H}/actor/battlemech.hbs`;
+      return `${G}/actor/battlemech.hbs`;
     },
     scrollable: [".sheet-body"]
   }
 });
-function Pm() {
-  console.log(`${le}Registering Actor sheets (V2)`);
+function _m() {
+  console.log(`${ue}Registering Actor sheets (V2)`);
   const { Actors: s } = foundry.documents.collections;
-  s.registerSheet(T, er, {
+  s.registerSheet(T, ir, {
     types: ["character"],
     makeDefault: !0,
     label: "Character (V2)"
-  }), s.registerSheet(T, cl, {
+  }), s.registerSheet(T, pl, {
     types: ["npc"],
     makeDefault: !0,
     label: "NPC (V2)"
-  }), s.registerSheet(T, ul, {
+  }), s.registerSheet(T, fl, {
     types: ["vehicle"],
     makeDefault: !0,
     label: "Vehicle (V2)"
-  }), s.registerSheet(T, dl, {
+  }), s.registerSheet(T, hl, {
     types: ["battlemech"],
     makeDefault: !0,
     label: "BattleMech (V2)"
   });
 }
-const { HandlebarsApplicationMixin: Nm } = foundry.applications.api;
-var oi, Kt, li, dt, Ki, ir;
-const De = class De extends Nm(foundry.applications.sheets.ItemSheetV2) {
+const { HandlebarsApplicationMixin: Lm } = foundry.applications.api, { HTMLField: Ta, StringField: $m } = foundry.data.fields, Cn = /* @__PURE__ */ new Set(["system.notes", "system.description", "system.gmnotes"]);
+function Ss(s, e) {
+  const t = new s({ required: !1, blank: !0, initial: "" });
+  return t.name = e, t;
+}
+function xm(s = {}) {
+  return {
+    ...s,
+    sourceReference: s.sourceReference ?? Ss($m, "system.sourceReference"),
+    notes: s.notes ?? Ss(Ta, "system.notes"),
+    description: s.description ?? Ss(Ta, "system.description"),
+    gmnotes: s.gmnotes ?? Ss(Ta, "system.gmnotes")
+  };
+}
+var oi, Kt, li, dt, Ki, ar;
+const Re = class Re extends Lm(foundry.applications.sheets.ItemSheetV2) {
   constructor() {
     super(...arguments);
-    ye(this, dt);
-    ye(this, oi, /* @__PURE__ */ new Map());
-    ye(this, Kt, /* @__PURE__ */ new Map());
-    ye(this, li, null);
+    be(this, dt);
+    be(this, oi, /* @__PURE__ */ new Map());
+    be(this, Kt, /* @__PURE__ */ new Map());
+    be(this, li, null);
     /** @override */
     N(this, "tabGroups", {
       primary: "main"
@@ -11594,19 +11631,19 @@ const De = class De extends Nm(foundry.applications.sheets.ItemSheetV2) {
         resizable: !0
       },
       actions: {
-        editImage: De._onEditImage,
-        tab: De.prototype._onClickTab,
-        accordion: De.prototype._onClickAccordion,
-        checkbarElement: De._onClickCheckbar,
-        modifierAdd: De._onModifierAdd,
-        modifierDelete: De._onModifierDelete,
-        modifierValueChange: De._onModifierValueChange,
-        modifierConditionChange: De._onModifierConditionChange,
-        modifierSelectionChange: De._onModifierSelectionChange,
-        effectCreate: De._onEffectCreate,
-        effectEdit: De._onEffectEdit,
-        effectDelete: De._onEffectDelete,
-        effectToggleDisabled: De._onEffectToggleDisabled
+        editImage: Re._onEditImage,
+        tab: Re.prototype._onClickTab,
+        accordion: Re.prototype._onClickAccordion,
+        checkbarElement: Re._onClickCheckbar,
+        modifierAdd: Re._onModifierAdd,
+        modifierDelete: Re._onModifierDelete,
+        modifierValueChange: Re._onModifierValueChange,
+        modifierConditionChange: Re._onModifierConditionChange,
+        modifierSelectionChange: Re._onModifierSelectionChange,
+        effectCreate: Re._onEffectCreate,
+        effectEdit: Re._onEffectEdit,
+        effectDelete: Re._onEffectDelete,
+        effectToggleDisabled: Re._onEffectToggleDisabled
       },
       form: {
         submitOnChange: !0,
@@ -11640,9 +11677,9 @@ const De = class De extends Nm(foundry.applications.sheets.ItemSheetV2) {
     if (t === "sheet") {
       const a = this._getCanonicalItemType();
       return {
-        [S.itemType.mechWeapon]: `${H}/v2/item/mech-weapon-root.hbs`,
-        [S.itemType.armor]: `${H}/v2/item/armor.hbs`
-      }[a] ?? `${H}/v2/item/${a}.hbs`;
+        [S.itemType.mechWeapon]: `${G}/v2/item/mech-weapon-root.hbs`,
+        [S.itemType.armor]: `${G}/v2/item/armor.hbs`
+      }[a] ?? `${G}/v2/item/${a}.hbs`;
     }
     return ((i = super._getPartTemplate) == null ? void 0 : i.call(this, t)) ?? "";
   }
@@ -11652,7 +11689,7 @@ const De = class De extends Nm(foundry.applications.sheets.ItemSheetV2) {
    */
   get title() {
     const t = this._getCanonicalItemType();
-    return `${ge.itemType.singular[t] ?? t}: ${this.item.name}`;
+    return `${ye.itemType.singular[t] ?? t}: ${this.item.name}`;
   }
   /**
    * Prepare context data for rendering.
@@ -11661,25 +11698,28 @@ const De = class De extends Nm(foundry.applications.sheets.ItemSheetV2) {
    * @override
    */
   async _prepareContext(t) {
-    var I, R, _, q, Y, K;
-    const i = await super._prepareContext(t), a = ((R = (I = game.system.mwd.modifiers) == null ? void 0 : I.getEnums) == null ? void 0 : R.call(I)) ?? {}, r = foundry.utils.deepClone((i == null ? void 0 : i.options) ?? {}), n = ((q = (_ = this.item.actor) == null ? void 0 : _.getAttributes) == null ? void 0 : q.call(_, this.item)) ?? [], o = this._getCanonicalItemType(), l = !this.item.actor, c = !!this.item.actor, u = ge.itemType.singular[o] ?? o, d = this._getEffectEntries(), m = d.filter((O) => O.syncedCount > 0).length, p = this.constructor.LAYOUT_ID, f = this.item.actor ? (O) => n.includes(O) : (O) => !0, h = o === S.itemType.skill, y = ["mwd", "item-sheet", this.isEditable ? "editable" : "locked"], b = y.join(" ");
-    r.classes = y, r.cssClass = b;
-    const A = await foundry.applications.ux.TextEditor.implementation.enrichHTML(this.item.system.description ?? "", {
+    var D, L, V, Y, K, O, R, U, B, ne;
+    const i = await super._prepareContext(t), a = ((L = (D = game.system.mwd.modifiers) == null ? void 0 : D.getEnums) == null ? void 0 : L.call(D)) ?? {}, r = foundry.utils.deepClone((i == null ? void 0 : i.options) ?? {}), n = xm((i == null ? void 0 : i.fields) ?? ((Y = (V = this.item.system) == null ? void 0 : V.schema) == null ? void 0 : Y.fields) ?? {}), o = ((O = (K = this.item.actor) == null ? void 0 : K.getAttributes) == null ? void 0 : O.call(K, this.item)) ?? [], l = this._getCanonicalItemType(), c = !this.item.actor, u = !!this.item.actor, d = ye.itemType.singular[l] ?? l, m = this._getEffectEntries(), f = m.filter((oe) => oe.syncedCount > 0).length, p = this.constructor.LAYOUT_ID, h = this.item.actor ? (oe) => o.includes(oe) : (oe) => !0, g = l === S.itemType.skill, b = ["mwd", "item-sheet", this.isEditable ? "editable" : "locked"], A = b.join(" ");
+    r.classes = b, r.cssClass = A;
+    const w = async (oe, { secrets: he = this.item.isOwner } = {}) => foundry.applications.ux.TextEditor.implementation.enrichHTML(oe ?? "", {
       async: !0,
-      secrets: this.item.isOwner,
+      secrets: he,
       relativeTo: this.item
-    }), w = game.user.isGM && this.item.system.gmnotes ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(this.item.system.gmnotes, {
-      async: !0,
-      secrets: !0,
-      relativeTo: this.item
-    }) : "", E = foundry.utils.mergeObject(i, {
+    }), M = foundry.utils.expandObject({
+      "system.notes": await w(this.item.system.notes ?? ""),
+      "system.description": await w(this.item.system.description ?? ""),
+      "system.gmnotes": game.user.isGM ? await w(this.item.system.gmnotes ?? "", { secrets: !0 }) : ""
+    }), I = {
+      ...i,
       // Item data
       item: this.item,
       data: this.item,
       system: this.item.system,
-      // Enriched content
-      enrichedDescription: A,
-      enrichedGMNotes: w,
+      // Form field metadata and enriched content for App V2 rich text helpers
+      fields: n,
+      enriched: M,
+      enrichedDescription: ((R = M == null ? void 0 : M.system) == null ? void 0 : R.description) ?? "",
+      enrichedGMNotes: ((U = M == null ? void 0 : M.system) == null ? void 0 : U.gmnotes) ?? "",
       // Options for templates
       options: {
         ...r,
@@ -11688,35 +11728,35 @@ const De = class De extends Nm(foundry.applications.sheets.ItemSheetV2) {
         owner: this.document.isOwner,
         isOwned: !!this.item.actor,
         editable: this.isEditable,
-        cssClass: b,
+        cssClass: A,
         viewMode: !1
         // Items don't have view mode like actors do
       },
       // Configuration data
-      ENUMS: foundry.utils.mergeObject(
-        ie.getEnums(f, h),
-        a
-      ),
-      MWD: ge,
+      ENUMS: {
+        ...ie.getEnums(h, g),
+        ...a
+      },
+      MWD: ye,
       itemSheet: {
-        canonicalType: o,
-        typeLabel: u,
-        isArmorSheet: o === S.itemType.armor,
-        isStandalone: l,
-        canUseActorControls: c,
-        supportsEffectSync: !!((K = (Y = this.item).supportsEquippedEffectSync) != null && K.call(Y)),
-        effectEntries: d,
-        effectCount: d.length,
-        syncedEffectCount: m,
+        canonicalType: l,
+        typeLabel: d,
+        isArmorSheet: l === S.itemType.armor,
+        isStandalone: c,
+        canUseActorControls: u,
+        supportsEffectSync: !!((ne = (B = this.item).supportsEquippedEffectSync) != null && ne.call(B)),
+        effectEntries: m,
+        effectCount: m.length,
+        syncedEffectCount: f,
         summaryChips: this._getSummaryChips(),
-        stateChips: this._getStateChips(d)
+        stateChips: this._getStateChips(m)
       },
       // CSS class for form element
-      cssClass: b,
+      cssClass: A,
       // Tab configuration
       tabs: this._getTabs()
-    });
-    return p && (E.layout = await zs.get(p)), E;
+    };
+    return p && (I.layout = await Ws.get(p)), I;
   }
   /**
    * Get tab configuration for this item type.
@@ -11757,7 +11797,7 @@ const De = class De extends Nm(foundry.applications.sheets.ItemSheetV2) {
       m.push(u), t.set(d, m);
     }
     return Array.from(((c = this.item.effects) == null ? void 0 : c.contents) ?? []).map((u) => {
-      var m, p, f, h, g, y, b;
+      var m, f, p, h, g, y, b;
       const d = t.get(u.id) ?? [];
       return {
         id: u.id,
@@ -11766,8 +11806,8 @@ const De = class De extends Nm(foundry.applications.sheets.ItemSheetV2) {
         disabled: !!u.disabled,
         transfer: !!u.transfer,
         changesCount: Array.isArray(u.changes) ? u.changes.length : 0,
-        statusesCount: Number(((m = u.statuses) == null ? void 0 : m.size) ?? ((p = u.statuses) == null ? void 0 : p.length) ?? 0),
-        durationLabel: (f = u.duration) != null && f.seconds ? `${u.duration.seconds}s` : (h = u.duration) != null && h.rounds ? `${u.duration.rounds} rounds` : "Passive",
+        statusesCount: Number(((m = u.statuses) == null ? void 0 : m.size) ?? ((f = u.statuses) == null ? void 0 : f.length) ?? 0),
+        durationLabel: (p = u.duration) != null && p.seconds ? `${u.duration.seconds}s` : (h = u.duration) != null && h.rounds ? `${u.duration.rounds} rounds` : "Passive",
         syncedCount: d.length,
         syncLabel: this.item.actor ? (y = (g = this.item).supportsEquippedEffectSync) != null && y.call(g) ? (b = this.item.system) != null && b.equipped ? d.length ? `Synced to actor (${d.length})` : "Pending sync" : "Applies when equipped" : "No equip sync" : "World item"
       };
@@ -11784,7 +11824,7 @@ const De = class De extends Nm(foundry.applications.sheets.ItemSheetV2) {
     const r = a.closest(".csb-tabs");
     if (!r) return;
     const n = r.dataset.group || "default", o = a.dataset.tab;
-    o && (B(this, oi).set(n, o), M(this, dt, Ki).call(this, this._getRootElement(), n, o));
+    o && (F(this, oi).set(n, o), E(this, dt, Ki).call(this, this._getRootElement(), n, o));
   }
   _onClickAccordion(t, i) {
     var u, d, m;
@@ -11792,8 +11832,8 @@ const De = class De extends Nm(foundry.applications.sheets.ItemSheetV2) {
     if (!a) return;
     const r = a.dataset.section, n = a.closest(".csb-accordion");
     if (!n || !r) return;
-    const o = n.dataset.group || "default", c = (B(this, Kt).has(o) ? B(this, Kt).get(o) : n.dataset.default || null) === r ? null : r;
-    B(this, Kt).set(o, c), M(this, dt, ir).call(this, n, c);
+    const o = n.dataset.group || "default", c = (F(this, Kt).has(o) ? F(this, Kt).get(o) : n.dataset.default || null) === r ? null : r;
+    F(this, Kt).set(o, c), E(this, dt, ar).call(this, n, c);
   }
   _onRender(t, i) {
     var r, n, o, l;
@@ -11807,23 +11847,41 @@ const De = class De extends Nm(foundry.applications.sheets.ItemSheetV2) {
           h.addEventListener("click", (g) => {
             g.preventDefault(), g.stopPropagation();
             const y = h.dataset.tab;
-            y && (B(this, oi).set(u, y), M(this, dt, Ki).call(this, a, u, y));
+            y && (F(this, oi).set(u, y), E(this, dt, Ki).call(this, a, u, y));
           });
-        const m = B(this, oi).get(u), p = c.dataset.default || ((o = d[0]) == null ? void 0 : o.dataset.tab), f = m || p;
-        f && M(this, dt, Ki).call(this, a, u, f);
+        const m = F(this, oi).get(u), f = c.dataset.default || ((o = d[0]) == null ? void 0 : o.dataset.tab), p = m || f;
+        p && E(this, dt, Ki).call(this, a, u, p);
       }
       for (const c of a.querySelectorAll(".csb-tabs")) {
         const u = c.dataset.group || "default", d = Array.from(c.querySelectorAll(".csb-tab-link[data-tab]"));
         if (!d.length) continue;
-        const m = B(this, oi).get(u), p = c.dataset.default || ((l = d[0]) == null ? void 0 : l.dataset.tab), f = m || p;
-        f && M(this, dt, Ki).call(this, a, u, f);
+        const m = F(this, oi).get(u), f = c.dataset.default || ((l = d[0]) == null ? void 0 : l.dataset.tab), p = m || f;
+        p && E(this, dt, Ki).call(this, a, u, p);
       }
       for (const c of a.querySelectorAll(".csb-accordion")) {
-        const u = c.dataset.group || "default", d = B(this, Kt).has(u) ? B(this, Kt).get(u) : c.dataset.default || null;
-        M(this, dt, ir).call(this, c, d);
+        const u = c.dataset.group || "default", d = F(this, Kt).has(u) ? F(this, Kt).get(u) : c.dataset.default || null;
+        E(this, dt, ar).call(this, c, d);
+      }
+      for (const c of a.querySelectorAll("prose-mirror[name]")) {
+        const u = c.getAttribute("name") ?? "";
+        Cn.has(u) && c.addEventListener("change", (d) => {
+          d.preventDefault(), d.stopPropagation(), this._updateRichTextField(c);
+        });
       }
       this._restoreScrollPositions();
     }
+  }
+  async _updateRichTextField(t) {
+    var n;
+    const i = String(((n = t == null ? void 0 : t.getAttribute) == null ? void 0 : n.call(t, "name")) ?? (t == null ? void 0 : t.name) ?? "");
+    if (!this.isEditable || !Cn.has(i)) return;
+    const a = String(t.value ?? ""), r = String(foundry.utils.getProperty(this.item, i) ?? "");
+    if (a !== r)
+      try {
+        await this.item.update({ [i]: a });
+      } catch (o) {
+        console.warn("MWD | Rich text item update failed:", o);
+      }
   }
   _getScrollRestoreSelectors() {
     return [".sheet-body", ".csb-tab-panels"];
@@ -11847,7 +11905,7 @@ const De = class De extends Nm(foundry.applications.sheets.ItemSheetV2) {
     Pe(this, li, i.length ? i : null);
   }
   _restoreScrollPositions() {
-    const t = B(this, li);
+    const t = F(this, li);
     if (!(t != null && t.length)) return;
     const i = () => {
       const a = this._getRootElement();
@@ -12005,7 +12063,7 @@ oi = new WeakMap(), Kt = new WeakMap(), li = new WeakMap(), dt = new WeakSet(), 
   }), t.querySelectorAll(`.tab[data-group="${i}"]`).forEach((r) => {
     r.classList.toggle("active", r.dataset.tab === a);
   }));
-}, ir = function(t, i) {
+}, ar = function(t, i) {
   t.dataset.activeSection = i ?? "", t.querySelectorAll(".csb-accordion__section").forEach((a) => {
     const r = a.dataset.section === i;
     a.classList.toggle("is-active", r);
@@ -12016,14 +12074,14 @@ oi = new WeakMap(), Kt = new WeakMap(), li = new WeakMap(), dt = new WeakSet(), 
     const r = a.closest(".csb-accordion__section"), n = (r == null ? void 0 : r.dataset.section) === i;
     a.classList.toggle("is-active", n);
   });
-}, N(De, "LAYOUT_ID", null), /** @override */
-N(De, "PARTS", {
+}, N(Re, "LAYOUT_ID", null), /** @override */
+N(Re, "PARTS", {
   sheet: {
     template: "",
     // Set dynamically in _getPartTemplate
     scrollable: [".sheet-body"]
   }
-}), N(De, "TABS", {
+}), N(Re, "TABS", {
   primary: {
     id: "primary",
     group: "primary",
@@ -12037,16 +12095,16 @@ N(De, "PARTS", {
     ]
   }
 });
-let ft = De;
-class sr extends ft {
+let ft = Re;
+class rr extends ft {
 }
-N(sr, "LAYOUT_ID", "contact"), N(sr, "PARTS", {
+N(rr, "LAYOUT_ID", "contact"), N(rr, "PARTS", {
   sheet: {
-    template: `${H}/v2/item/contact.hbs`,
+    template: `${G}/v2/item/contact.hbs`,
     scrollable: [".sheet-body"]
   }
 });
-const vn = Object.freeze([
+const Pn = Object.freeze([
   { value: "audiovisual", label: "Audiovisual Gear" },
   { value: "communication", label: "Communication Gear" },
   { value: "computing", label: "Computing Gear" },
@@ -12059,7 +12117,7 @@ const vn = Object.freeze([
   { value: "survival", label: "Survival Gear" },
   { value: "surveillance", label: "Surveillance Gear" }
 ]);
-class ar extends ft {
+class nr extends ft {
   async _prepareContext(e) {
     var a;
     const t = await super._prepareContext(e), i = this.item.system ?? {};
@@ -12070,29 +12128,30 @@ class ar extends ft {
       category: String(i.category ?? "").trim(),
       tags: Array.isArray(i.tags) ? i.tags.map((r) => String(r ?? "").trim()).filter(Boolean) : []
     }, t.gearEditor = {
-      categories: vn.map((r) => ({ ...r }))
-    }, t.tagsText = t.system.tags.join(", "), t.itemSheet = foundry.utils.mergeObject(t.itemSheet ?? {}, {
+      categories: Pn.map((r) => ({ ...r }))
+    }, t.tagsText = t.system.tags.join(", "), t.itemSheet = {
+      ...t.itemSheet ?? {},
       summaryChips: [
         { label: "Qty", value: String(t.system.quantity) },
         { label: "Rating", value: String(t.system.rating) },
         {
           label: "Category",
-          value: ((a = vn.find((r) => r.value === t.system.category)) == null ? void 0 : a.label) ?? "Uncategorized"
+          value: ((a = Pn.find((r) => r.value === t.system.category)) == null ? void 0 : a.label) ?? "Uncategorized"
         }
       ]
-    }), t;
+    }, t;
   }
 }
-N(ar, "LAYOUT_ID", "gear"), N(ar, "PARTS", {
+N(nr, "LAYOUT_ID", "gear"), N(nr, "PARTS", {
   sheet: {
-    template: `${H}/v2/item/gear.hbs`,
+    template: `${G}/v2/item/gear.hbs`,
     scrollable: [".sheet-body"]
   }
 });
-class rr extends ft {
+class or extends ft {
   async _prepareContext(e) {
     var n, o;
-    const t = await super._prepareContext(e), i = tt(this.item.system ?? {}), a = Co(), r = Array.isArray((n = t.ENUMS) == null ? void 0 : n.skills) ? t.ENUMS.skills.map((l) => ({
+    const t = await super._prepareContext(e), i = tt(this.item.system ?? {}), a = Do(), r = Array.isArray((n = t.ENUMS) == null ? void 0 : n.skills) ? t.ENUMS.skills.map((l) => ({
       value: String((l == null ? void 0 : l.value) ?? "").trim(),
       label: String((l == null ? void 0 : l.label) ?? (l == null ? void 0 : l.value) ?? "").trim()
     })).filter((l) => l.value) : [];
@@ -12100,21 +12159,22 @@ class rr extends ft {
       ...i,
       effects: (Array.isArray(i.effects) ? i.effects : []).map((l) => ({
         ...l,
-        showSkillPicker: Eo(l) || Array.isArray(l.skillKeys) && l.skillKeys.length > 0,
+        showSkillPicker: Ro(l) || Array.isArray(l.skillKeys) && l.skillKeys.length > 0,
         isEdgeEvent: l.type === "edgeEvent"
       }))
     }, t.traitEditor = {
       ...a,
       skills: r
-    }, t.itemSheet = foundry.utils.mergeObject(t.itemSheet ?? {}, {
+    }, t.itemSheet = {
+      ...t.itemSheet ?? {},
       sheetClass: "mwd-item-sheet--quality",
       summaryChips: [
-        { label: "Category", value: vs(i.category) },
-        { label: "Tier", value: Ms(i.tier) },
+        { label: "Category", value: Ms(i.category) },
+        { label: "Tier", value: Es(i.tier) },
         { label: "Activation", value: String(i.activation ?? "passive").trim() || "Passive" },
         { label: "Effects", value: String(((o = i.effects) == null ? void 0 : o.length) ?? 0) }
       ]
-    }), t.tagsText = Array.isArray(i.tags) ? i.tags.join(", ") : "", t;
+    }, t.tagsText = Array.isArray(i.tags) ? i.tags.join(", ") : "", t;
   }
   _onRender(e, t) {
     var r, n;
@@ -12221,21 +12281,21 @@ class rr extends ft {
     });
   }
 }
-N(rr, "LAYOUT_ID", "quality"), N(rr, "PARTS", {
+N(or, "LAYOUT_ID", "quality"), N(or, "PARTS", {
   sheet: {
-    template: `${H}/v2/item/quality.hbs`,
+    template: `${G}/v2/item/quality.hbs`,
     scrollable: [".sheet-body"]
   }
 });
-class nr extends ft {
+class lr extends ft {
 }
-N(nr, "LAYOUT_ID", "asset-module"), N(nr, "PARTS", {
+N(lr, "LAYOUT_ID", "asset-module"), N(lr, "PARTS", {
   sheet: {
-    template: `${H}/v2/item/assetModule.hbs`,
+    template: `${G}/v2/item/assetModule.hbs`,
     scrollable: [".sheet-body"]
   }
 });
-class or extends ft {
+class cr extends ft {
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       position: {
@@ -12255,7 +12315,7 @@ class or extends ft {
     };
   }
   _getSummaryChips() {
-    const e = ts(this.item.system ?? {}), t = Qt(e.catalogId), a = Zs(t, e.selectedGrants, { legacySelectedSkill: e.selectedSkill }).map((n) => n.choice).filter(Boolean).map((n) => es(n, { includeBonusText: !0 })).join(", "), r = this.item.actor ? Jt(this.item.actor).stateByItemId.get(this.item.id) ?? null : null;
+    const e = ts(this.item.system ?? {}), t = Qt(e.catalogId), a = ea(t, e.selectedGrants, { legacySelectedSkill: e.selectedSkill }).map((n) => n.choice).filter(Boolean).map((n) => es(n, { includeBonusText: !0 })).join(", "), r = this.item.actor ? Jt(this.item.actor).stateByItemId.get(this.item.id) ?? null : null;
     return [
       { label: "Slot", value: Li(e.moduleType) },
       { label: "Module", value: (t == null ? void 0 : t.label) ?? "Unlinked" },
@@ -12264,11 +12324,11 @@ class or extends ft {
     ].filter(Boolean);
   }
   async _prepareContext(e) {
-    const t = await super._prepareContext(e), i = ts(this.item.system ?? {}), a = i.moduleType, r = Qt(i.catalogId), n = a ? Ir(a) : [], o = Ho(r, i.selectedGrants, { legacySelectedSkill: i.selectedSkill }), l = this.item.actor ? Jt(this.item.actor).stateByItemId.get(this.item.id) ?? null : null;
+    const t = await super._prepareContext(e), i = ts(this.item.system ?? {}), a = i.moduleType, r = Qt(i.catalogId), n = a ? _r(a) : [], o = Ko(r, i.selectedGrants, { legacySelectedSkill: i.selectedSkill }), l = this.item.actor ? Jt(this.item.actor).stateByItemId.get(this.item.id) ?? null : null;
     return t.lifeModuleEditor = {
       moduleType: a,
       moduleTypeLabel: Li(a),
-      moduleTypes: Fo().map((c) => ({
+      moduleTypes: Uo().map((c) => ({
         ...c,
         selected: c.value === a
       })),
@@ -12297,26 +12357,26 @@ class or extends ft {
     }, t;
   }
 }
-N(or, "LAYOUT_ID", "life-module"), N(or, "PARTS", {
+N(cr, "LAYOUT_ID", "life-module"), N(cr, "PARTS", {
   sheet: {
-    template: `${H}/v2/item/lifeModule.hbs`,
+    template: `${G}/v2/item/lifeModule.hbs`,
     scrollable: [".sheet-body"]
   }
 });
-class lr extends ft {
+class ur extends ft {
 }
-N(lr, "LAYOUT_ID", "skill"), N(lr, "PARTS", {
+N(ur, "LAYOUT_ID", "skill"), N(ur, "PARTS", {
   sheet: {
-    template: `${H}/v2/item/skill.hbs`,
+    template: `${G}/v2/item/skill.hbs`,
     scrollable: [".sheet-body"]
   }
 });
-const Rm = Object.freeze([
+const Bm = Object.freeze([
   "firearms",
   "projectileWeapons",
   "heavyWeapons",
   "meleeCombat"
-]), Dm = Object.freeze([
+]), Fm = Object.freeze([
   { value: "energy", label: "Energy" },
   { value: "kinetic", label: "Kinetic" },
   { value: "ballistic", label: "Ballistic" },
@@ -12326,17 +12386,17 @@ const Rm = Object.freeze([
   { value: "melee", label: "Melee" },
   { value: "none", label: "None" }
 ]);
-function Mn(s, e, t) {
+function Nn(s, e, t) {
   const i = String(e ?? "").trim();
   return !i || s.some((a) => a.value === i) ? s : s.concat({ value: i, label: t(i) });
 }
-class ta extends ft {
+class ia extends ft {
   /** @override */
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       actions: {
         ...super.DEFAULT_OPTIONS.actions,
-        weaponSkillChange: ta._onWeaponSkillChange
+        weaponSkillChange: ia._onWeaponSkillChange
       }
     }, { inplace: !1 });
   }
@@ -12354,18 +12414,18 @@ class ta extends ft {
    * @override
    */
   async _prepareContext(e) {
-    var l, c, u, d, m, p;
+    var l, c, u, d, m, f;
     const t = await super._prepareContext(e), i = this._getCanonicalItemType();
-    t.ENUMS = foundry.utils.mergeObject(
-      { defenses: be.getDefenses() },
-      t.ENUMS
-    );
-    const a = Array.isArray((l = t.ENUMS) == null ? void 0 : l.skills) ? t.ENUMS.skills : [], r = (c = this.item.system) == null ? void 0 : c.skill, n = (u = this.item.system) == null ? void 0 : u.damageType, o = i === "personalWeapon" ? Mn(
-      a.filter((f) => Rm.includes(f.value)),
+    t.ENUMS = {
+      ...t.ENUMS ?? {},
+      defenses: Se.getDefenses()
+    };
+    const a = Array.isArray((l = t.ENUMS) == null ? void 0 : l.skills) ? t.ENUMS.skills : [], r = (c = this.item.system) == null ? void 0 : c.skill, n = (u = this.item.system) == null ? void 0 : u.damageType, o = i === "personalWeapon" ? Nn(
+      a.filter((p) => Bm.includes(p.value)),
       r,
-      (f) => {
+      (p) => {
         var h;
-        return ((h = a.find((g) => g.value === f)) == null ? void 0 : h.label) ?? f;
+        return ((h = a.find((g) => g.value === p)) == null ? void 0 : h.label) ?? p;
       }
     ) : a;
     return t.weaponProfile = ((m = (d = this.item).getCombatProfile) == null ? void 0 : m.call(d)) ?? null, t.weaponEditor = {
@@ -12376,20 +12436,20 @@ class ta extends ft {
         { value: "thrown", label: "Thrown" },
         { value: "other", label: "Other" }
       ],
-      damageTypes: Mn(
-        i === "personalWeapon" ? [...Os] : [...Dm],
+      damageTypes: Nn(
+        i === "personalWeapon" ? [..._s] : [...Fm],
         n,
-        (f) => i === "personalWeapon" ? vt(f) : f
+        (p) => i === "personalWeapon" ? vt(p) : p
       ),
-      ranges: st.RANGE_ORDER.map((f) => ({
-        value: f,
-        label: f.charAt(0).toUpperCase() + f.slice(1)
+      ranges: st.RANGE_ORDER.map((p) => ({
+        value: p,
+        label: p.charAt(0).toUpperCase() + p.slice(1)
       })),
-      weaponCapabilityOptions: xl,
-      payloadCapabilityOptions: Bl,
-      ammoDamageTypes: [{ value: "", label: "Use Weapon Default" }, ...Os],
-      payloadTemplateShapes: Un,
-      payloadTemplatePlacements: Hn,
+      weaponCapabilityOptions: Wl,
+      payloadCapabilityOptions: Hl,
+      ammoDamageTypes: [{ value: "", label: "Use Weapon Default" }, ..._s],
+      payloadTemplateShapes: Vn,
+      payloadTemplatePlacements: Kn,
       resolverKeys: [
         { value: "standard", label: "Standard" },
         { value: "template", label: "Template" }
@@ -12400,12 +12460,13 @@ class ta extends ft {
         { value: "actorResource", label: "Actor Resource" },
         { value: "itemRef", label: "Linked Item" }
       ]
-    }, t.itemSheet = foundry.utils.mergeObject(t.itemSheet ?? {}, {
+    }, t.itemSheet = {
+      ...t.itemSheet ?? {},
       isCompactWeaponSheet: !0,
       weaponSheetVariant: i === "mechWeapon" ? "mech" : "personal"
-    }), t.itemSheet.stateChips = (t.itemSheet.stateChips ?? []).filter(
-      (f) => !["ownership", "equipment", "role"].includes(f.kind)
-    ), t.itemSheet.currentPayloadLabel = ((p = t.weaponProfile) == null ? void 0 : p.payloadLabel) ?? "", t;
+    }, t.itemSheet.stateChips = (t.itemSheet.stateChips ?? []).filter(
+      (p) => !["ownership", "equipment", "role"].includes(p.kind)
+    ), t.itemSheet.currentPayloadLabel = ((f = t.weaponProfile) == null ? void 0 : f.payloadLabel) ?? "", t;
   }
   /**
    * Handle changing the weapon skill, which updates the defense attribute.
@@ -12420,7 +12481,7 @@ class ta extends ft {
     a != null && a.defense && await this.item.update({ "system.defense": a.defense }, { render: !1 });
   }
 }
-const Ni = class Ni extends ta {
+const Ni = class Ni extends ia {
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       position: {
@@ -12443,14 +12504,15 @@ const Ni = class Ni extends ta {
   async _prepareContext(e) {
     var n, o, l;
     const t = await super._prepareContext(e), i = this.item.actor ?? null, a = t.weaponProfile ?? null, r = !!(i && typeof i.isCharacterLike == "function" && i.isCharacterLike() && ((o = (n = this.item).isPersonalWeapon) != null && o.call(n)));
-    return t.itemSheet = foundry.utils.mergeObject(t.itemSheet ?? {}, {
+    return t.itemSheet = {
+      ...t.itemSheet ?? {},
       canAttack: r,
       attackDisabled: !r || !((l = this.item.system) != null && l.equipped)
-    }), t.itemSheet.summaryChips = this._getSummaryChips(a), t.itemSheet.reloadState = this._getReloadDisplayState(a), t;
+    }, t.itemSheet.summaryChips = this._getSummaryChips(a), t.itemSheet.reloadState = this._getReloadDisplayState(a), t;
   }
   _getReloadDisplayState(e = ((t) => ((i) => (i = (t = this.item).getCombatProfile) == null ? void 0 : i.call(t))())() ?? null) {
-    var d, m, p, f, h;
-    const a = ((m = (d = this.item).canReloadActivePayload) == null ? void 0 : m.call(d, { detailed: !0 })) ?? { canReload: !1, reason: "" }, r = !!((p = e == null ? void 0 : e.sourceState) != null && p.isTracked), n = String((e == null ? void 0 : e.payloadLabel) ?? (a == null ? void 0 : a.payloadLabel) ?? "").trim() || "Unloaded", o = Number(((f = e == null ? void 0 : e.sourceState) == null ? void 0 : f.current) ?? (a == null ? void 0 : a.current) ?? 0) || 0, l = Number(((h = e == null ? void 0 : e.sourceState) == null ? void 0 : h.max) ?? (a == null ? void 0 : a.max) ?? 0) || 0, c = r ? `${n} ${o}/${l}` : n, u = a.canReload ? "Click to reload" : String(a.reason ?? "").trim() || "Payload read-only";
+    var d, m, f, p, h;
+    const a = ((m = (d = this.item).canReloadActivePayload) == null ? void 0 : m.call(d, { detailed: !0 })) ?? { canReload: !1, reason: "" }, r = !!((f = e == null ? void 0 : e.sourceState) != null && f.isTracked), n = String((e == null ? void 0 : e.payloadLabel) ?? (a == null ? void 0 : a.payloadLabel) ?? "").trim() || "Unloaded", o = Number(((p = e == null ? void 0 : e.sourceState) == null ? void 0 : p.current) ?? (a == null ? void 0 : a.current) ?? 0) || 0, l = Number(((h = e == null ? void 0 : e.sourceState) == null ? void 0 : h.max) ?? (a == null ? void 0 : a.max) ?? 0) || 0, c = r ? `${n} ${o}/${l}` : n, u = a.canReload ? "Click to reload" : String(a.reason ?? "").trim() || "Payload read-only";
     return {
       canReload: !!a.canReload,
       disabled: !a.canReload,
@@ -12490,7 +12552,7 @@ const Ni = class Ni extends ta {
           event: e
         });
       } catch (l) {
-        console.error("MWD | Failed to launch weapon sheet attack", l), Fs(l, "Unable to attack with that weapon.");
+        console.error("MWD | Failed to launch weapon sheet attack", l), zs(l, "Unable to attack with that weapon.");
       }
   }
   static async _onReloadWeaponPayload(e) {
@@ -12566,18 +12628,18 @@ const Ni = class Ni extends ta {
         l.preventDefault();
         const c = String(o.value ?? "").trim();
         if (!c) return;
-        const u = String(o.dataset.values ?? "").split(",").map((f) => f.trim()).filter(Boolean), d = Array.from(/* @__PURE__ */ new Set([...u, c]));
+        const u = String(o.dataset.values ?? "").split(",").map((p) => p.trim()).filter(Boolean), d = Array.from(/* @__PURE__ */ new Set([...u, c]));
         o.value = "";
-        const m = String(o.dataset.payloadId ?? "").trim(), p = String(o.dataset.field ?? "").trim();
-        if (p) {
+        const m = String(o.dataset.payloadId ?? "").trim(), f = String(o.dataset.field ?? "").trim();
+        if (f) {
           if (m) {
             a(() => {
-              var f, h;
-              return (h = (f = this.item).updatePayloadField) == null ? void 0 : h.call(f, m, p, d.join(", "));
+              var p, h;
+              return (h = (p = this.item).updatePayloadField) == null ? void 0 : h.call(p, m, f, d.join(", "));
             });
             return;
           }
-          a(() => this.item.update({ [p]: d }));
+          a(() => this.item.update({ [f]: d }));
         }
       });
     });
@@ -12585,41 +12647,41 @@ const Ni = class Ni extends ta {
 };
 N(Ni, "LAYOUT_ID", "personal-weapon"), N(Ni, "PARTS", {
   sheet: {
-    template: `${H}/v2/item/personal-weapon-root.hbs`,
+    template: `${G}/v2/item/personal-weapon-root.hbs`,
     scrollable: [".sheet-body"]
   }
 });
-let cr = Ni;
-class ur extends ta {
+let dr = Ni;
+class mr extends ia {
 }
-N(ur, "LAYOUT_ID", "mech-weapon"), N(ur, "PARTS", {
+N(mr, "LAYOUT_ID", "mech-weapon"), N(mr, "PARTS", {
   sheet: {
-    template: `${H}/v2/item/mech-weapon-root.hbs`,
+    template: `${G}/v2/item/mech-weapon-root.hbs`,
     scrollable: [".sheet-body"]
   }
 });
-const Im = {
+const zm = {
   penetrating: "Penetrating",
   concussive: "Concussive",
   energy: "Energy",
   thermal: "Thermal",
   electrical: "Electrical"
 };
-function En(s) {
+function Rn(s) {
   const e = Number(s ?? 0) || 0;
   return e > 0 ? `+${e}` : `${e}`;
 }
-function Om({ defenseBonus: s = 0, mitigationByType: e = {} } = {}) {
+function Wm({ defenseBonus: s = 0, mitigationByType: e = {} } = {}) {
   const t = [], i = Number(s ?? 0) || 0;
-  i !== 0 && t.push(`Defense ${En(i)}`);
+  i !== 0 && t.push(`Defense ${Rn(i)}`);
   const a = mt(e);
-  for (const [r, n] of Object.entries(Im)) {
+  for (const [r, n] of Object.entries(zm)) {
     const o = Number((a == null ? void 0 : a[r]) ?? 0) || 0;
-    o !== 0 && t.push(`${n} ${En(o)}`);
+    o !== 0 && t.push(`${n} ${Rn(o)}`);
   }
   return t.join(" | ");
 }
-class dr extends ft {
+class pr extends ft {
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       position: {
@@ -12634,23 +12696,23 @@ class dr extends ft {
     }, { inplace: !1 });
   }
   async _prepareContext(e) {
-    var l, c, u, d, m, p, f, h, g, y, b, A, w, E, I, R;
+    var l, c, u, d, m, f, p, h, g, y, b, A, w, M, I, D;
     const t = await super._prepareContext(e), i = this.item, a = i.actor ?? null, r = ((l = a == null ? void 0 : a.getPersonalCombatLoadout) == null ? void 0 : l.call(a)) ?? null, n = ((c = r == null ? void 0 : r.activeArmor) == null ? void 0 : c.id) ?? null, o = ((u = r == null ? void 0 : r.activeArmor) == null ? void 0 : u.id) === i.id ? r.activeArmor : (d = i.getArmorProfile) == null ? void 0 : d.call(i, { actor: a });
     return t.armorState = o, t.isActiveArmor = n === i.id, t.effectiveDurabilityCurrent = Number(
-      ((m = o == null ? void 0 : o.durability) == null ? void 0 : m.current) ?? ((f = (p = i.system) == null ? void 0 : p.durability) == null ? void 0 : f.current) ?? ((g = (h = i.system) == null ? void 0 : h.durability) == null ? void 0 : g.max) ?? ((y = i.system) == null ? void 0 : y.rating) ?? 0
+      ((m = o == null ? void 0 : o.durability) == null ? void 0 : m.current) ?? ((p = (f = i.system) == null ? void 0 : f.durability) == null ? void 0 : p.current) ?? ((g = (h = i.system) == null ? void 0 : h.durability) == null ? void 0 : g.max) ?? ((y = i.system) == null ? void 0 : y.rating) ?? 0
     ), t.effectiveArmorRating = Number(
       (o == null ? void 0 : o.currentArmorRating) ?? (o == null ? void 0 : o.ratingCurrent) ?? Math.min(
         Number(((b = i.system) == null ? void 0 : b.rating) ?? 0),
-        Number(((w = (A = i.system) == null ? void 0 : A.durability) == null ? void 0 : w.current) ?? ((I = (E = i.system) == null ? void 0 : E.durability) == null ? void 0 : I.max) ?? ((R = i.system) == null ? void 0 : R.rating) ?? 0)
+        Number(((w = (A = i.system) == null ? void 0 : A.durability) == null ? void 0 : w.current) ?? ((I = (M = i.system) == null ? void 0 : M.durability) == null ? void 0 : I.max) ?? ((D = i.system) == null ? void 0 : D.rating) ?? 0)
       )
     ), t.effectiveArmorResist = Number(
       (o == null ? void 0 : o.baseMitigation) ?? (o == null ? void 0 : o.baseResistance) ?? 0
-    ), t.armorModifierSummary = this._getArmorModifierSummary(o), t.itemSheet = foundry.utils.mergeObject(t.itemSheet ?? {}, {}), t.itemSheet.summaryChips = this._getSummaryChips(o), t.armorEditor = {
-      standardTraits: [...Yl]
+    ), t.armorModifierSummary = this._getArmorModifierSummary(o), t.itemSheet = { ...t.itemSheet ?? {} }, t.itemSheet.summaryChips = this._getSummaryChips(o), t.armorEditor = {
+      standardTraits: [...Zl]
     }, t;
   }
   _getSummaryChips(e = null) {
-    var r, n, o, l, c, u, d, m, p, f, h, g, y, b, A;
+    var r, n, o, l, c, u, d, m, f, p, h, g, y, b, A;
     const t = this.item.system ?? {}, i = [
       {
         label: "Rating",
@@ -12670,7 +12732,7 @@ class dr extends ft {
         label: "Resist",
         value: String(Number((e == null ? void 0 : e.baseMitigation) ?? (e == null ? void 0 : e.baseResistance) ?? 0))
       }
-    ], a = Number(((p = (m = e == null ? void 0 : e.traitState) == null ? void 0 : m.reinforced) == null ? void 0 : p.max) ?? ((h = (f = t == null ? void 0 : t.traitState) == null ? void 0 : f.reinforced) == null ? void 0 : h.max) ?? 0);
+    ], a = Number(((f = (m = e == null ? void 0 : e.traitState) == null ? void 0 : m.reinforced) == null ? void 0 : f.max) ?? ((h = (p = t == null ? void 0 : t.traitState) == null ? void 0 : p.reinforced) == null ? void 0 : h.max) ?? 0);
     return a > 0 && i.push({
       label: "Reinforced",
       value: `${Number(((y = (g = e == null ? void 0 : e.traitState) == null ? void 0 : g.reinforced) == null ? void 0 : y.current) ?? ((A = (b = t == null ? void 0 : t.traitState) == null ? void 0 : b.reinforced) == null ? void 0 : A.current) ?? 0)}/${a}`
@@ -12678,7 +12740,7 @@ class dr extends ft {
   }
   _getArmorModifierSummary(e = null) {
     const t = this.item.system ?? {};
-    return Om({
+    return Wm({
       defenseBonus: (e == null ? void 0 : e.defenseBonus) ?? t.defenseBonus ?? 0,
       mitigationByType: (e == null ? void 0 : e.mitigationByType) ?? (e == null ? void 0 : e.typedMitigation) ?? t.mitigationByType ?? {}
     });
@@ -12710,18 +12772,18 @@ class dr extends ft {
     }));
   }
 }
-N(dr, "LAYOUT_ID", "armor"), N(dr, "PARTS", {
+N(pr, "LAYOUT_ID", "armor"), N(pr, "PARTS", {
   sheet: {
-    template: `${H}/v2/item/armor-root.hbs`,
+    template: `${G}/v2/item/armor-root.hbs`,
     scrollable: [".sheet-body"]
   }
 });
-function _m() {
-  console.log(`${le}Registering Item sheets (V2)`);
+function Hm() {
+  console.log(`${ue}Registering Item sheets (V2)`);
   const { Items: s } = foundry.documents.collections;
-  s.registerSheet(T, sr, { types: ["contact"], makeDefault: !0, label: "Contact (V2)" }), s.registerSheet(T, ar, { types: ["gear"], makeDefault: !0, label: "Gear (V2)" }), s.registerSheet(T, rr, { types: ["quality"], makeDefault: !0, label: "Quality (V2)" }), s.registerSheet(T, nr, { types: ["assetModule"], makeDefault: !0, label: "Asset Module (V2)" }), s.registerSheet(T, or, { types: ["lifeModule"], makeDefault: !0, label: "Life Module (V2)" }), s.registerSheet(T, lr, { types: ["skill"], makeDefault: !0, label: "Skill (V2)" }), s.registerSheet(T, cr, { types: ["personalWeapon", "weapon"], makeDefault: !0, label: "Personal Weapon (V2)" }), s.registerSheet(T, ur, { types: ["mechWeapon"], makeDefault: !0, label: "Mech Weapon (V2)" }), s.registerSheet(T, dr, { types: ["armor"], makeDefault: !0, label: "Armor (V2)" });
+  s.registerSheet(T, rr, { types: ["contact"], makeDefault: !0, label: "Contact (V2)" }), s.registerSheet(T, nr, { types: ["gear"], makeDefault: !0, label: "Gear (V2)" }), s.registerSheet(T, or, { types: ["quality"], makeDefault: !0, label: "Quality (V2)" }), s.registerSheet(T, lr, { types: ["assetModule"], makeDefault: !0, label: "Asset Module (V2)" }), s.registerSheet(T, cr, { types: ["lifeModule"], makeDefault: !0, label: "Life Module (V2)" }), s.registerSheet(T, ur, { types: ["skill"], makeDefault: !0, label: "Skill (V2)" }), s.registerSheet(T, dr, { types: ["personalWeapon", "weapon"], makeDefault: !0, label: "Personal Weapon (V2)" }), s.registerSheet(T, mr, { types: ["mechWeapon"], makeDefault: !0, label: "Mech Weapon (V2)" }), s.registerSheet(T, pr, { types: ["armor"], makeDefault: !0, label: "Armor (V2)" });
 }
-const Cn = [
+const Dn = [
   // UI (CSB render entry point + node types)
   `systems/${T}/templates/v2/ui/layout-root.hbs`,
   `systems/${T}/templates/v2/ui/nodes/hexabox.hbs`,
@@ -12806,21 +12868,21 @@ const Cn = [
   // Actors
   `systems/${T}/templates/v2/actor/character-sheet.hbs`
 ];
-function Lm(s) {
+function Um(s) {
   const e = String(s).replaceAll("\\", "/"), t = `systems/${T}/templates/`, i = e.indexOf(t);
   return `mwd.${(i >= 0 ? e.slice(i + t.length) : e).replace(/\.hbs$/i, "").split("/").filter(Boolean).map((o) => o.replace(/^_+/, "")).join(".")}`;
 }
-function $m() {
+function jm() {
   var s, e;
   return ((e = (s = foundry == null ? void 0 : foundry.applications) == null ? void 0 : s.handlebars) == null ? void 0 : e.Handlebars) ?? Handlebars;
 }
-async function xm() {
+async function Gm() {
   var e, t;
-  const s = $m();
+  const s = jm();
   try {
     const i = {};
-    for (const r of Cn)
-      i[Lm(r)] = r, i[r] = r;
+    for (const r of Dn)
+      i[Um(r)] = r, i[r] = r;
     await foundry.applications.handlebars.loadTemplates(i);
     const a = "mwd.v2.ui.layout-root";
     if (!((e = Handlebars.partials) != null && e[a])) {
@@ -12835,28 +12897,28 @@ async function xm() {
           } catch {
           }
     }
-    console.log(`${le}preloadTemplatesV2 OK`, { loaded: Cn.length });
+    console.log(`${ue}preloadTemplatesV2 OK`, { loaded: Dn.length });
   } catch (i) {
-    throw console.error(`${le}preloadTemplatesV2 FAILED`, i), i;
+    throw console.error(`${ue}preloadTemplatesV2 FAILED`, i), i;
   }
 }
-function Pn(s) {
+function In(s) {
   const e = Math.max(0, Number(s) || 0);
   return -Math.floor(e / 3);
 }
-function Bm(s) {
+function qm(s) {
   const e = Math.max(0, Number(s) || 0);
   return e === 0 ? 0 : Math.ceil(e / 4);
 }
-function Fm(s = {}) {
+function Vm(s = {}) {
   const e = s.physical ?? {}, t = s.fatigue ?? {}, i = s.armor ?? {}, a = Number(e.value) || 0, r = Number(t.value) || 0, n = Math.max(Number(i.value) || 0, Number(i.max) || 0);
   return {
-    physical: { penalty: Pn(a) },
-    fatigue: { penalty: Pn(r) },
-    armor: { resistance: Bm(n) }
+    physical: { penalty: In(a) },
+    fatigue: { penalty: In(r) },
+    armor: { resistance: qm(n) }
   };
 }
-const wa = {
+const ka = {
   penaltyPer3Damage: (s) => {
     const e = Math.max(0, Number(s) || 0);
     return -Math.floor(e / 3);
@@ -12867,7 +12929,7 @@ const wa = {
   }
   // heatPenaltyCurve: ...
 };
-function zm(s, e, t, i) {
+function Km(s, e, t, i) {
   const a = s.system ?? {}, r = `monitors.${e}`, n = Number(foundry.utils.getProperty(a, `${r}.max`)) || 0, o = Number(foundry.utils.getProperty(a, `${r}.value`)) || 0;
   switch (t) {
     case "value":
@@ -12882,10 +12944,10 @@ function zm(s, e, t, i) {
       return i;
   }
 }
-function Wm(s = {}) {
+function Ym(s = {}) {
   return Object.entries(mt(s)).filter(([, e]) => Number(e) > 0).map(([e, t]) => `${e} +${t}`).join(", ");
 }
-class jm extends Actor {
+class Qm extends Actor {
   /* -------------------------------------------- */
   /* Base & Derived Data                           */
   /* -------------------------------------------- */
@@ -12894,7 +12956,7 @@ class jm extends Actor {
     var e, t;
     if (super.prepareBaseData(), this.isCharacterLike()) {
       const i = this.system ?? {};
-      if (Rc(i), (e = i.skills) != null && e.skills && typeof i.skills.skills == "object") {
+      if (_c(i), (e = i.skills) != null && e.skills && typeof i.skills.skills == "object") {
         for (const [a, r] of Object.entries(i.skills.skills))
           (t = i.skills)[a] ?? (t[a] = r);
         delete i.skills.skills;
@@ -12938,7 +13000,7 @@ class jm extends Actor {
     if (this.type === "character" && this.hasEdgePools()) {
       const r = ((a = (i = this.system) == null ? void 0 : i.counters) == null ? void 0 : a.edgePools) ?? {}, n = {};
       for (const [o, l] of Object.entries(r)) {
-        const c = Math.max(0, Number((l == null ? void 0 : l.rating) ?? 0)), u = Math.max(0, Number((l == null ? void 0 : l.value) ?? 0)), d = Math.max(0, Number((t == null ? void 0 : t[o]) ?? 0)), m = c + d, p = Math.min(m, e), f = Math.min(u, p);
+        const c = Math.max(0, Number((l == null ? void 0 : l.rating) ?? 0)), u = Math.max(0, Number((l == null ? void 0 : l.value) ?? 0)), d = Math.max(0, Number((t == null ? void 0 : t[o]) ?? 0)), m = c + d, f = Math.min(m, e), p = Math.min(u, f);
         n[o] = {
           key: o,
           rating: c,
@@ -12946,10 +13008,10 @@ class jm extends Actor {
           effectiveRating: m,
           value: u,
           cap: e,
-          effectiveMax: p,
-          effectiveValue: f,
+          effectiveMax: f,
+          effectiveValue: p,
           hasPools: !0,
-          isEmpty: f <= 0,
+          isEmpty: p <= 0,
           isCapped: m > e
         };
       }
@@ -12996,19 +13058,19 @@ class jm extends Actor {
     return this._mwdDerived ?? (this._mwdDerived = {}), this._mwdDerived.personalCombat = t, t;
   }
   _computePersonalCombatLoadout() {
-    const e = [], t = this.items.filter((p) => {
-      var f;
-      return ((f = p.isPersonalWeapon) == null ? void 0 : f.call(p)) ?? p.type === S.itemType.personalWeapon;
-    }).map((p) => {
-      var f;
-      return ((f = p.getCombatProfile) == null ? void 0 : f.call(p)) ?? null;
-    }).filter(Boolean), i = this.items.filter((p) => {
-      var f;
-      return ((f = p.isArmor) == null ? void 0 : f.call(p)) ?? p.type === S.itemType.armor;
-    }).map((p) => {
-      var f;
-      return ((f = p.getArmorProfile) == null ? void 0 : f.call(p, { actor: this })) ?? null;
-    }).filter(Boolean), a = t.filter((p) => p.equipped), r = i.filter((p) => p.equipped), n = a.filter((p) => p.isPrimary), o = r.filter((p) => p.isPrimary);
+    const e = [], t = this.items.filter((f) => {
+      var p;
+      return ((p = f.isPersonalWeapon) == null ? void 0 : p.call(f)) ?? f.type === S.itemType.personalWeapon;
+    }).map((f) => {
+      var p;
+      return ((p = f.getCombatProfile) == null ? void 0 : p.call(f)) ?? null;
+    }).filter(Boolean), i = this.items.filter((f) => {
+      var p;
+      return ((p = f.isArmor) == null ? void 0 : p.call(f)) ?? f.type === S.itemType.armor;
+    }).map((f) => {
+      var p;
+      return ((p = f.getArmorProfile) == null ? void 0 : p.call(f, { actor: this })) ?? null;
+    }).filter(Boolean), a = t.filter((f) => f.equipped), r = i.filter((f) => f.equipped), n = a.filter((f) => f.isPrimary), o = r.filter((f) => f.isPrimary);
     let l = null, c = null, u = !1;
     n.length === 1 ? (c = n[0], l = c) : n.length > 1 ? (e.push("Multiple equipped primary weapons found; attack selection requires a chooser."), u = !0) : a.length === 1 ? l = a[0] : a.length > 1 ? u = !0 : l = {
       ...st.DEFAULT_UNARMED,
@@ -13040,7 +13102,7 @@ class jm extends Actor {
     const t = Math.max(0, Number(((l = e == null ? void 0 : e.durability) == null ? void 0 : l.max) ?? (e == null ? void 0 : e.rating) ?? 0)), i = Math.min(
       t,
       Math.max(0, Number(((c = e == null ? void 0 : e.durability) == null ? void 0 : c.current) ?? (e == null ? void 0 : e.remainingDurability) ?? (e == null ? void 0 : e.currentArmorRating) ?? t))
-    ), a = Math.max(0, Number((e == null ? void 0 : e.rating) ?? 0)), r = Math.min(a, i), n = mt(e == null ? void 0 : e.mitigationByType), o = Sr(r);
+    ), a = Math.max(0, Number((e == null ? void 0 : e.rating) ?? 0)), r = Math.min(a, i), n = mt(e == null ? void 0 : e.mitigationByType), o = wr(r);
     return {
       ...e,
       armorId: e.id,
@@ -13099,7 +13161,7 @@ class jm extends Actor {
    * - Vehicle/Mech: safe zeros
    */
   getEdgePool(e) {
-    var d, m, p, f;
+    var d, m, f, p;
     const t = this.getEdgeCap();
     if (this.type === "npc" && !this.hasEdgePools()) {
       const h = t, g = t;
@@ -13123,7 +13185,7 @@ class jm extends Actor {
         cap: t,
         hasPools: !1
       };
-    const i = (p = (m = (d = this._mwdDerived) == null ? void 0 : d.edgePools) == null ? void 0 : m.pools) == null ? void 0 : p[e];
+    const i = (f = (m = (d = this._mwdDerived) == null ? void 0 : d.edgePools) == null ? void 0 : m.pools) == null ? void 0 : f[e];
     if (i)
       return {
         key: i.key,
@@ -13136,7 +13198,7 @@ class jm extends Actor {
         cap: i.cap,
         hasPools: !0
       };
-    const a = this.getEdgePoolRaw(e), r = Math.max(0, Number((a == null ? void 0 : a.rating) ?? 0)), n = Math.max(0, Number((a == null ? void 0 : a.value) ?? 0)), o = Math.max(0, Number(((f = Jt(this).bonusByEdgePool) == null ? void 0 : f[e]) ?? 0)), l = r + o, c = Math.min(l, t), u = Math.min(n, c);
+    const a = this.getEdgePoolRaw(e), r = Math.max(0, Number((a == null ? void 0 : a.rating) ?? 0)), n = Math.max(0, Number((a == null ? void 0 : a.value) ?? 0)), o = Math.max(0, Number(((p = Jt(this).bonusByEdgePool) == null ? void 0 : p[e]) ?? 0)), l = r + o, c = Math.min(l, t), u = Math.min(n, c);
     return {
       key: e,
       value: n,
@@ -13202,12 +13264,12 @@ class jm extends Actor {
       const o = ((a = (i = this._mwdDerived) == null ? void 0 : i.edgePools) == null ? void 0 : a.pools) ?? {};
       if (e && typeof e == "object") {
         const c = Object.entries(e).map(([u, d]) => {
-          const m = (d ?? []).map((p) => {
-            const f = o[p] ?? this.getEdgePool(p);
+          const m = (d ?? []).map((f) => {
+            const p = o[f] ?? this.getEdgePool(f);
             return {
-              ...f,
-              isEmpty: (f.effectiveValue ?? 0) <= 0,
-              isCapped: (f.effectiveRating ?? f.rating ?? 0) > (f.cap ?? t)
+              ...p,
+              isEmpty: (p.effectiveValue ?? 0) <= 0,
+              isCapped: (p.effectiveRating ?? p.rating ?? 0) > (p.cap ?? t)
             };
           });
           return { id: u, pools: m };
@@ -13246,7 +13308,7 @@ class jm extends Actor {
       }, c = it({
         actor: this,
         phase: "onEdgeSpend",
-        facts: Fa({ actor: this, packet: l, phase: "onEdgeSpend", runtime: o }),
+        facts: Wa({ actor: this, packet: l, phase: "onEdgeSpend", runtime: o }),
         packet: l,
         options: { runtime: o, consumeUsage: !0 }
       });
@@ -13270,7 +13332,7 @@ class jm extends Actor {
       }, l = it({
         actor: this,
         phase: "onEdgeGain",
-        facts: Fa({ actor: this, packet: o, phase: "onEdgeGain", runtime: n }),
+        facts: Wa({ actor: this, packet: o, phase: "onEdgeGain", runtime: n }),
         packet: o,
         options: { runtime: n, consumeUsage: !0 }
       });
@@ -13309,7 +13371,7 @@ class jm extends Actor {
   /* Condition Monitors                            */
   /* -------------------------------------------- */
   async setMonitorValue(e, t, { source: i = "unknown" } = {}) {
-    var d, m, p, f, h, g;
+    var d, m, f, p, h, g;
     if (e === "burn") {
       const y = Math.max(0, Number(t) || 0);
       return this.update({ "system.burn.value": y });
@@ -13317,26 +13379,26 @@ class jm extends Actor {
     if (e === "armor" && this.isCharacterLike()) {
       const y = this.getPersonalCombatLoadout({ refresh: !0 }), b = ((d = y == null ? void 0 : y.activeArmor) == null ? void 0 : d.armorId) ?? ((m = y == null ? void 0 : y.activeArmor) == null ? void 0 : m.id) ?? null, A = b ? this.items.get(b) : null;
       if (!(A != null && A.id)) return null;
-      const w = Math.max(0, Number(((p = A.system) == null ? void 0 : p.rating) ?? 0) || 0), E = Math.max(0, Number(((h = (f = A.system) == null ? void 0 : f.durability) == null ? void 0 : h.max) ?? 0) || 0), I = E > 0 ? E : w, R = Math.min(Math.max(0, Number(t) || 0), I);
+      const w = Math.max(0, Number(((f = A.system) == null ? void 0 : f.rating) ?? 0) || 0), M = Math.max(0, Number(((h = (p = A.system) == null ? void 0 : p.durability) == null ? void 0 : h.max) ?? 0) || 0), I = M > 0 ? M : w, D = Math.min(Math.max(0, Number(t) || 0), I);
       return this.updateEmbeddedDocuments("Item", [{
         _id: A.id,
         "system.durability.max": I,
-        "system.durability.current": R
+        "system.durability.current": D
       }]);
     }
-    const a = `system.monitors.${e}`, r = Number(foundry.utils.getProperty(this, `${a}.max`)) || 0, n = Math.max(0, r), o = Math.min(Math.max(0, Number(t) || 0), n), l = { [`${a}.value`]: o }, c = this.type, u = (g = ra == null ? void 0 : ra[c]) == null ? void 0 : g[e];
+    const a = `system.monitors.${e}`, r = Number(foundry.utils.getProperty(this, `${a}.max`)) || 0, n = Math.max(0, r), o = Math.min(Math.max(0, Number(t) || 0), n), l = { [`${a}.value`]: o }, c = this.type, u = (g = na == null ? void 0 : na[c]) == null ? void 0 : g[e];
     if (u != null && u.derived)
       for (const [y, b] of Object.entries(u.derived)) {
-        const A = wa == null ? void 0 : wa[b.fn];
+        const A = ka == null ? void 0 : ka[b.fn];
         if (typeof A != "function") continue;
-        const w = zm(this, e, b.source, o);
+        const w = Km(this, e, b.source, o);
         l[`${a}.derived.${y}`] = A(w);
       }
     return this.update(l);
   }
   _prepareMonitors() {
     var n, o, l, c;
-    const e = this.system.monitors ?? {}, t = Fm(e);
+    const e = this.system.monitors ?? {}, t = Vm(e);
     (n = this.system).derived ?? (n.derived = {}), this.system.derived.monitors = t;
     const i = Number(((o = t == null ? void 0 : t.physical) == null ? void 0 : o.penalty) ?? 0), a = Number(((l = t == null ? void 0 : t.fatigue) == null ? void 0 : l.penalty) ?? 0), r = i + a;
     (c = this.system.derived).condition ?? (c.condition = {}), this.system.derived.condition.physicalPenalty = i, this.system.derived.condition.fatiguePenalty = a, this.system.derived.condition.totalPenalty = r, this.system.derived.conditionPenalty = r;
@@ -13350,29 +13412,29 @@ class jm extends Actor {
     t.max = a, t.value = Math.min(a, r), t.resistance = {
       default: Number((i == null ? void 0 : i.baseMitigation) ?? (i == null ? void 0 : i.baseResistance) ?? 0),
       byType: {}
-    }, t.resistanceBonusByType = i != null && i.isDestroyed ? {} : (i == null ? void 0 : i.mitigationByType) ?? (i == null ? void 0 : i.typedMitigation) ?? {}, t.derived ?? (t.derived = {}), t.derived.resistance = Number((i == null ? void 0 : i.baseMitigation) ?? (i == null ? void 0 : i.baseResistance) ?? 0), t.effect = i != null && i.isDestroyed ? "Destroyed" : i ? Wm(i.mitigationByType ?? i.typedMitigation) : "", (u = this.system).derived ?? (u.derived = {}), this.system.derived.personalCombat = {
+    }, t.resistanceBonusByType = i != null && i.isDestroyed ? {} : (i == null ? void 0 : i.mitigationByType) ?? (i == null ? void 0 : i.typedMitigation) ?? {}, t.derived ?? (t.derived = {}), t.derived.resistance = Number((i == null ? void 0 : i.baseMitigation) ?? (i == null ? void 0 : i.baseResistance) ?? 0), t.effect = i != null && i.isDestroyed ? "Destroyed" : i ? Ym(i.mitigationByType ?? i.typedMitigation) : "", (u = this.system).derived ?? (u.derived = {}), this.system.derived.personalCombat = {
       defaultWeaponId: ((d = e.defaultWeapon) == null ? void 0 : d.id) ?? null,
       activeArmorId: (i == null ? void 0 : i.id) ?? null,
       warnings: [...e.warnings ?? []]
     };
   }
 }
-async function Um({ actor: s, payload: e } = {}) {
-  var g, y, b, A, w, E;
+async function Jm({ actor: s, payload: e } = {}) {
+  var g, y, b, A, w, M;
   if (!s) throw new Error("resolveSkill requires actor");
   const t = String((e == null ? void 0 : e.key) ?? "").trim(), i = at(t);
   if (!i) throw new Error(`Unknown skill: ${t}`);
   const a = s.system ?? {}, r = String((e == null ? void 0 : e.attrKey) ?? i.attribute ?? "").trim();
   if (!r) throw new Error(`Skill ${t} missing attribute key`);
-  const n = Number(((y = (g = a == null ? void 0 : a.attributes) == null ? void 0 : g[r]) == null ? void 0 : y.value) ?? 0), o = Number(((A = (b = a == null ? void 0 : a.skills) == null ? void 0 : b[t]) == null ? void 0 : A.rating) ?? 0), l = Number(((E = (w = a == null ? void 0 : a.skills) == null ? void 0 : w[t]) == null ? void 0 : E.bonus) ?? 0), c = new Set(Ks(a, t)), u = kr(t, e == null ? void 0 : e.specializationKey), d = u && c.has(u.key) ? u : null, m = d ? Ar : 0, p = Array.isArray(e == null ? void 0 : e.domains) ? e.domains : i.domains ?? [], f = Number.isFinite(Number(e == null ? void 0 : e.diceTarget)) ? Number(e.diceTarget) : Number.isFinite(Number(e == null ? void 0 : e.target)) ? Number(e.target) : 5, h = Number.isFinite(Number(e == null ? void 0 : e.dn)) ? Number(e.dn) : 1;
+  const n = Number(((y = (g = a == null ? void 0 : a.attributes) == null ? void 0 : g[r]) == null ? void 0 : y.value) ?? 0), o = Number(((A = (b = a == null ? void 0 : a.skills) == null ? void 0 : b[t]) == null ? void 0 : A.rating) ?? 0), l = Number(((M = (w = a == null ? void 0 : a.skills) == null ? void 0 : w[t]) == null ? void 0 : M.bonus) ?? 0), c = new Set(Ys(a, t)), u = Mr(t, e == null ? void 0 : e.specializationKey), d = u && c.has(u.key) ? u : null, m = d ? Tr : 0, f = Array.isArray(e == null ? void 0 : e.domains) ? e.domains : i.domains ?? [], p = Number.isFinite(Number(e == null ? void 0 : e.diceTarget)) ? Number(e.diceTarget) : Number.isFinite(Number(e == null ? void 0 : e.target)) ? Number(e.target) : 5, h = Number.isFinite(Number(e == null ? void 0 : e.dn)) ? Number(e.dn) : 1;
   return {
     intent: "skill",
     rollType: "simple",
     title: `${i.label} (${r})`,
     subtitle: s.name ?? "Actor",
-    domains: p,
+    domains: f,
     // Per-die threshold (cs>=X). Kept separate from dnHits.
-    diceTarget: f,
+    diceTarget: p,
     // DN = hits needed for success
     difficulty: { dn: h },
     edge: {
@@ -13405,14 +13467,14 @@ async function Um({ actor: s, payload: e } = {}) {
     }
   };
 }
-const Hm = /* @__PURE__ */ new Set([
+const Xm = /* @__PURE__ */ new Set([
   "grit",
   "chaos",
   "insight",
   "rumor",
   "legend",
   "credibility"
-]), Gm = {
+]), Zm = {
   grit: "physical",
   chaos: "physical",
   insight: "mental",
@@ -13420,16 +13482,16 @@ const Hm = /* @__PURE__ */ new Set([
   legend: "social",
   credibility: "social"
 };
-async function qm({ actor: s, payload: e } = {}) {
+async function ep({ actor: s, payload: e } = {}) {
   if (!s) throw new Error("resolveEdge requires actor");
   const t = String((e == null ? void 0 : e.pool) ?? "").trim();
-  if (!Hm.has(t)) throw new Error(`Invalid edge pool: ${t}`);
+  if (!Xm.has(t)) throw new Error(`Invalid edge pool: ${t}`);
   const i = s.getEdgePool(t), a = Math.max(0, Number((i == null ? void 0 : i.effectiveValue) ?? 0));
   return {
     intent: "edge",
     title: `Edge — ${t}`,
     subtitle: s.name ?? "Actor",
-    domains: [Gm[t] ?? "unknown"],
+    domains: [Zm[t] ?? "unknown"],
     // drop "edge" tag unless you truly want it
     // ✅ Make it directly rollable by the core roll pipeline
     target: 5,
@@ -13443,7 +13505,7 @@ async function qm({ actor: s, payload: e } = {}) {
     data: { poolKey: t }
   };
 }
-async function Vm({ actor: s, payload: e, event: t } = {}) {
+async function tp({ actor: s, payload: e, event: t } = {}) {
   return {
     title: "Attribute",
     intent: "attribute",
@@ -13453,24 +13515,24 @@ async function Vm({ actor: s, payload: e, event: t } = {}) {
     mods: []
   };
 }
-async function Km({ actor: s, payload: e } = {}) {
+async function ip({ actor: s, payload: e } = {}) {
   if (!s) throw new Error("resolveCommon requires actor");
   const t = String((e == null ? void 0 : e.id) ?? "").trim();
   if (!t) throw new Error("Common rolls require payload.id");
-  const i = Mr(t);
+  const i = Cr(t);
   if (!i) throw new Error(`Unknown common check: ${t}`);
   const a = Array.isArray(i.formula) ? i.formula : [];
   if (a.length !== 2)
     throw new Error(`Common check ${t} must define exactly two attributes.`);
   const r = a.map((c) => {
-    var d, m, p;
-    const u = jc(c);
+    var d, m, f;
+    const u = qc(c);
     if (!u) throw new Error(`Common check ${t} uses unsupported attribute code: ${c}`);
     return {
       code: String(c).trim().toUpperCase(),
       key: u,
-      label: Uc(c),
-      value: Number(((p = (m = (d = s.system) == null ? void 0 : d.attributes) == null ? void 0 : m[u]) == null ? void 0 : p.value) ?? 0)
+      label: Vc(c),
+      value: Number(((f = (m = (d = s.system) == null ? void 0 : d.attributes) == null ? void 0 : m[u]) == null ? void 0 : f.value) ?? 0)
     };
   }), n = r.reduce((c, u) => c + Number(u.value ?? 0), 0), o = Array.isArray(i.tags) ? [...i.tags] : [], l = Array.isArray(i.domains) ? [...i.domains] : [];
   return {
@@ -13480,7 +13542,7 @@ async function Km({ actor: s, payload: e } = {}) {
     subtitle: s.name ?? "Actor",
     domains: l,
     tags: o,
-    formula: Hc(a),
+    formula: Kc(a),
     difficulty: {
       dn: Number.isFinite(Number(e == null ? void 0 : e.dn)) ? Number(e.dn) : 1
     },
@@ -13507,15 +13569,15 @@ async function Km({ actor: s, payload: e } = {}) {
     }
   };
 }
-const ia = 90;
-function Nn(s) {
+const sa = 90;
+function On(s) {
   const e = canvas.app.view.getBoundingClientRect(), t = new PIXI.Point(
     Number(s.clientX ?? 0) - e.left,
     Number(s.clientY ?? 0) - e.top
   );
   return canvas.stage.worldTransform.applyInverse(t);
 }
-function sa() {
+function aa() {
   var s, e, t;
   return Number(((e = (s = canvas.scene) == null ? void 0 : s.grid) == null ? void 0 : e.distance) ?? ((t = canvas.dimensions) == null ? void 0 : t.distance) ?? 1) || 1;
 }
@@ -13523,110 +13585,110 @@ function is() {
   var s, e;
   return Number(((s = canvas.grid) == null ? void 0 : s.size) ?? ((e = canvas.dimensions) == null ? void 0 : e.size) ?? 100) || 100;
 }
-function Rn(s = 0) {
-  return (Number(s ?? 0) || 0) * (is() / sa());
+function _n(s = 0) {
+  return (Number(s ?? 0) || 0) * (is() / aa());
 }
-function ml(s = {}) {
-  return Math.max(0, Number((s == null ? void 0 : s.size) ?? 0) || 0) * sa();
+function gl(s = {}) {
+  return Math.max(0, Number((s == null ? void 0 : s.size) ?? 0) || 0) * aa();
 }
-function Ym(s) {
+function sp(s) {
   let e = Number(s ?? 0) || 0;
   for (; e <= -180; ) e += 360;
   for (; e > 180; ) e -= 360;
   return e;
 }
-function mr(s) {
+function fr(s) {
   return (Number(s ?? 0) || 0) * (180 / Math.PI);
 }
-function Qm(s) {
+function ap(s) {
   return (Number(s ?? 0) || 0) * (Math.PI / 180);
 }
-function Dn(s, e) {
+function Ln(s, e) {
   const t = Number((e == null ? void 0 : e.x) ?? 0) - Number((s == null ? void 0 : s.x) ?? 0), i = Number((e == null ? void 0 : e.y) ?? 0) - Number((s == null ? void 0 : s.y) ?? 0);
-  return t === 0 && i === 0 ? 0 : mr(Math.atan2(i, t));
+  return t === 0 && i === 0 ? 0 : fr(Math.atan2(i, t));
 }
-function pl(s) {
+function yl(s) {
   var t, i, a, r;
   return ((i = (t = canvas.tokens) == null ? void 0 : t.controlled) == null ? void 0 : i.find((n) => {
     var o;
     return ((o = n.actor) == null ? void 0 : o.id) === (s == null ? void 0 : s.id);
   })) ?? null ?? ((r = (a = s == null ? void 0 : s.getActiveTokens) == null ? void 0 : a.call(s, !0, !0)) == null ? void 0 : r[0]) ?? null;
 }
-function fl(s) {
+function bl(s) {
   var n, o, l, c, u;
   const e = (s == null ? void 0 : s.center) ?? ((n = s == null ? void 0 : s.object) == null ? void 0 : n.center);
   if (e) return { x: Number(e.x ?? 0), y: Number(e.y ?? 0) };
   const t = Number((s == null ? void 0 : s.x) ?? ((o = s == null ? void 0 : s.document) == null ? void 0 : o.x) ?? 0), i = Number((s == null ? void 0 : s.y) ?? ((l = s == null ? void 0 : s.document) == null ? void 0 : l.y) ?? 0), a = Number((s == null ? void 0 : s.w) ?? (s == null ? void 0 : s.width) ?? ((c = s == null ? void 0 : s.document) == null ? void 0 : c.width) ?? 1) * is(), r = Number((s == null ? void 0 : s.h) ?? (s == null ? void 0 : s.height) ?? ((u = s == null ? void 0 : s.document) == null ? void 0 : u.height) ?? 1) * is();
   return { x: t + a / 2, y: i + r / 2 };
 }
-function Jm(s) {
+function rp(s) {
   var i, a, r, n;
   const e = Number((s == null ? void 0 : s.w) ?? ((i = s == null ? void 0 : s.object) == null ? void 0 : i.w) ?? 0) || Number(((a = s == null ? void 0 : s.document) == null ? void 0 : a.width) ?? 1) * is(), t = Number((s == null ? void 0 : s.h) ?? ((r = s == null ? void 0 : s.object) == null ? void 0 : r.h) ?? 0) || Number(((n = s == null ? void 0 : s.document) == null ? void 0 : n.height) ?? 1) * is();
   return Math.max(e, t) / 2;
 }
-function Xm(s = {}, e = { x: 0, y: 0 }, t = 0) {
+function np(s = {}, e = { x: 0, y: 0 }, t = 0) {
   var a, r;
   const i = {
     user: ((a = game.user) == null ? void 0 : a.id) ?? null,
     x: Number((e == null ? void 0 : e.x) ?? 0) || 0,
     y: Number((e == null ? void 0 : e.y) ?? 0) || 0,
     direction: Number(t ?? 0) || 0,
-    distance: ml(s),
+    distance: gl(s),
     fillColor: ((r = game.user) == null ? void 0 : r.color) ?? "#ff6400"
   };
   switch (s == null ? void 0 : s.shape) {
     case "blast":
       return { ...i, t: "circle" };
     case "cone":
-      return { ...i, t: "cone", angle: ia };
+      return { ...i, t: "cone", angle: sa };
     case "line":
-      return { ...i, t: "ray", width: sa() };
+      return { ...i, t: "ray", width: aa() };
     default:
       return i;
   }
 }
-function Zm({ anchor: s, radiusPx: e, tokenCenter: t, tokenRadius: i }) {
+function op({ anchor: s, radiusPx: e, tokenCenter: t, tokenRadius: i }) {
   const a = t.x - s.x, r = t.y - s.y;
   return Math.hypot(a, r) <= e + i;
 }
-function ep({ anchor: s, distancePx: e, widthPx: t, direction: i, tokenCenter: a, tokenRadius: r }) {
-  const n = a.x - s.x, o = a.y - s.y, l = Qm(i), c = Math.cos(l), u = Math.sin(l), d = n * c + o * u;
+function lp({ anchor: s, distancePx: e, widthPx: t, direction: i, tokenCenter: a, tokenRadius: r }) {
+  const n = a.x - s.x, o = a.y - s.y, l = ap(i), c = Math.cos(l), u = Math.sin(l), d = n * c + o * u;
   if (d < -r || d > e + r) return !1;
-  const m = s.x + Math.max(0, Math.min(e, d)) * c, p = s.y + Math.max(0, Math.min(e, d)) * u;
-  return Math.hypot(a.x - m, a.y - p) <= r + t / 2;
+  const m = s.x + Math.max(0, Math.min(e, d)) * c, f = s.y + Math.max(0, Math.min(e, d)) * u;
+  return Math.hypot(a.x - m, a.y - f) <= r + t / 2;
 }
-function tp({ anchor: s, distancePx: e, direction: t, angle: i, tokenCenter: a, tokenRadius: r }) {
+function cp({ anchor: s, distancePx: e, direction: t, angle: i, tokenCenter: a, tokenRadius: r }) {
   const n = a.x - s.x, o = a.y - s.y, l = Math.hypot(n, o);
   if (l > e + r) return !1;
   if (l === 0) return !0;
-  const c = mr(Math.atan2(o, n)), u = Math.abs(Ym(c - t)), d = Number(i ?? ia) / 2, m = mr(Math.asin(Math.min(1, r / Math.max(l, 1))));
+  const c = fr(Math.atan2(o, n)), u = Math.abs(sp(c - t)), d = Number(i ?? sa) / 2, m = fr(Math.asin(Math.min(1, r / Math.max(l, 1))));
   return u <= d + m;
 }
-function ip({ template: s, placement: e, token: t }) {
-  const i = fl(t), a = Jm(t), r = Rn(e.distance);
+function up({ template: s, placement: e, token: t }) {
+  const i = bl(t), a = rp(t), r = _n(e.distance);
   switch (s == null ? void 0 : s.shape) {
     case "blast":
-      return Zm({
+      return op({
         anchor: e.anchor,
         radiusPx: r,
         tokenCenter: i,
         tokenRadius: a
       });
     case "line":
-      return ep({
+      return lp({
         anchor: e.anchor,
         distancePx: r,
-        widthPx: Rn(sa()),
+        widthPx: _n(aa()),
         direction: e.direction,
         tokenCenter: i,
         tokenRadius: a
       });
     case "cone":
-      return tp({
+      return cp({
         anchor: e.anchor,
         distancePx: r,
         direction: e.direction,
-        angle: e.angle ?? ia,
+        angle: e.angle ?? sa,
         tokenCenter: i,
         tokenRadius: a
       });
@@ -13634,13 +13696,13 @@ function ip({ template: s, placement: e, token: t }) {
       return !1;
   }
 }
-function sp(s = {}) {
+function dp(s = {}) {
   var e, t, i, a, r, n, o;
   s.object && ((i = (t = (e = canvas.templates) == null ? void 0 : e.preview) == null ? void 0 : t.removeChild) == null || i.call(t, s.object), (r = (a = s.object).destroy) == null || r.call(a, { children: !0 })), (o = (n = canvas.templates) == null ? void 0 : n.clearPreviewContainer) == null || o.call(n);
 }
-async function ap(s = {}, e = {}, t = { x: 0, y: 0 }, i = 0) {
+async function mp(s = {}, e = {}, t = { x: 0, y: 0 }, i = 0) {
   var r, n, o, l;
-  const a = Xm(e, t, i);
+  const a = np(e, t, i);
   if (!s.object) {
     const c = CONFIG.MeasuredTemplate.documentClass, u = CONFIG.MeasuredTemplate.objectClass, d = new c(a, { parent: canvas.scene }), m = new u(d);
     s.object = m, await m.draw(), canvas.templates.preview.addChild(m);
@@ -13648,13 +13710,13 @@ async function ap(s = {}, e = {}, t = { x: 0, y: 0 }, i = 0) {
   }
   s.object.document.updateSource(a), (n = (r = s.object.renderFlags) == null ? void 0 : r.set) == null || n.call(r, { refreshState: !0, refreshShape: !0, refreshGrid: !0 }), (l = (o = s.object).refresh) == null || l.call(o);
 }
-function rp({ template: s, anchor: e, direction: t }) {
+function pp({ template: s, anchor: e, direction: t }) {
   return {
     shape: s.shape,
     placement: s.placement,
     size: Number(s.size ?? 0) || 0,
-    distance: ml(s),
-    angle: s.shape === "cone" ? ia : void 0,
+    distance: gl(s),
+    angle: s.shape === "cone" ? sa : void 0,
     anchor: {
       x: Number((e == null ? void 0 : e.x) ?? 0) || 0,
       y: Number((e == null ? void 0 : e.y) ?? 0) || 0
@@ -13662,7 +13724,7 @@ function rp({ template: s, anchor: e, direction: t }) {
     direction: Number(t ?? 0) || 0
   };
 }
-function hl(s) {
+function Sl(s) {
   var a, r, n, o;
   const e = (s == null ? void 0 : s.actor) ?? null;
   if (!e) return null;
@@ -13687,68 +13749,68 @@ function hl(s) {
     } : null
   };
 }
-function np({ template: s, placement: e, attacker: t } = {}) {
+function fp({ template: s, placement: e, attacker: t } = {}) {
   var r;
-  const i = pl(t), a = (i == null ? void 0 : i.id) ?? null;
-  return (((r = canvas.tokens) == null ? void 0 : r.placeables) ?? []).filter((n) => n == null ? void 0 : n.actor).filter((n) => n.id !== a || (s == null ? void 0 : s.placement) === "origin").filter((n) => ip({ template: s, placement: e, token: n })).map(hl).filter(Boolean);
+  const i = yl(t), a = (i == null ? void 0 : i.id) ?? null;
+  return (((r = canvas.tokens) == null ? void 0 : r.placeables) ?? []).filter((n) => n == null ? void 0 : n.actor).filter((n) => n.id !== a || (s == null ? void 0 : s.placement) === "origin").filter((n) => up({ template: s, placement: e, token: n })).map(Sl).filter(Boolean);
 }
-async function op({ actor: s, attack: e } = {}) {
-  var f;
-  if (!(canvas != null && canvas.scene) || !((f = canvas == null ? void 0 : canvas.templates) != null && f.preview))
+async function hp({ actor: s, attack: e } = {}) {
+  var p;
+  if (!(canvas != null && canvas.scene) || !((p = canvas == null ? void 0 : canvas.templates) != null && p.preview))
     throw Ci("Templated attacks require an active scene canvas.", { severity: "warn" });
   const t = (e == null ? void 0 : e.template) ?? null;
   if (!(t != null && t.shape) || !(Number(t == null ? void 0 : t.size) > 0))
     throw Ci("Templated attack is missing valid template configuration.", { severity: "warn" });
-  if (!Fl.includes(t.shape))
+  if (!Ul.includes(t.shape))
     throw Ci(`Template shape "${t.shape}" is normalized but not supported in v1.`, { severity: "warn" });
-  const i = pl(s);
+  const i = yl(s);
   if (t.placement === "origin" && !i)
     throw Ci("Origin-placed templated attacks require the attacker to have a token on the current scene.", { severity: "warn" });
   const a = {}, r = {
     phase: t.placement === "origin" ? "direction" : "anchor",
-    anchor: t.placement === "origin" ? fl(i) : null,
+    anchor: t.placement === "origin" ? bl(i) : null,
     direction: 0
   }, n = async (h, g = null, y = null) => {
-    if (window.removeEventListener("keydown", m, !0), canvas.app.view.removeEventListener("pointermove", u), canvas.app.view.removeEventListener("click", p, !0), canvas.app.view.removeEventListener("contextmenu", d, !0), sp(a), y) {
+    if (window.removeEventListener("keydown", m, !0), canvas.app.view.removeEventListener("pointermove", u), canvas.app.view.removeEventListener("click", f, !0), canvas.app.view.removeEventListener("contextmenu", d, !0), dp(a), y) {
       h(Promise.reject(y));
       return;
     }
     h(g);
   }, o = async (h = null) => {
-    !r.anchor && h && (r.anchor = { x: h.x, y: h.y }), r.anchor && (t.shape !== "blast" && h && (r.direction = Dn(r.anchor, h)), await ap(a, t, r.anchor, r.direction));
+    !r.anchor && h && (r.anchor = { x: h.x, y: h.y }), r.anchor && (t.shape !== "blast" && h && (r.direction = Ln(r.anchor, h)), await mp(a, t, r.anchor, r.direction));
   };
   let l = null;
   const c = new Promise((h) => {
     l = h;
   }), u = (h) => {
-    const g = Nn(h);
+    const g = On(h);
     o(g);
   }, d = (h) => {
     h.preventDefault(), n(l, null);
   }, m = (h) => {
     h.key === "Escape" && (h.preventDefault(), n(l, null));
-  }, p = (h) => {
+  }, f = (h) => {
     h.preventDefault(), h.stopPropagation();
-    const g = Nn(h);
+    const g = On(h);
     if (r.anchor || (r.anchor = { x: g.x, y: g.y }), r.phase === "anchor" && t.shape !== "blast") {
       r.phase = "direction", o(g);
       return;
     }
-    t.shape !== "blast" && (r.direction = Dn(r.anchor, g));
-    const y = rp({
+    t.shape !== "blast" && (r.direction = Ln(r.anchor, g));
+    const y = pp({
       template: t,
       anchor: r.anchor,
       direction: r.direction
-    }), b = np({ template: t, placement: y, attacker: s });
+    }), b = fp({ template: t, placement: y, attacker: s });
     n(l, { placement: y, targetSnapshots: b });
   };
-  return window.addEventListener("keydown", m, !0), canvas.app.view.addEventListener("pointermove", u), canvas.app.view.addEventListener("click", p, !0), canvas.app.view.addEventListener("contextmenu", d, !0), r.anchor && await o(r.anchor), c;
+  return window.addEventListener("keydown", m, !0), canvas.app.view.addEventListener("pointermove", u), canvas.app.view.addEventListener("click", f, !0), canvas.app.view.addEventListener("contextmenu", d, !0), r.anchor && await o(r.anchor), c;
 }
-function lp(s = {}) {
+function gp(s = {}) {
   var e;
-  return Array.isArray(s == null ? void 0 : s.targetSnapshots) ? s.targetSnapshots : Array.from(((e = game.user) == null ? void 0 : e.targets) ?? []).map(hl).filter(Boolean);
+  return Array.isArray(s == null ? void 0 : s.targetSnapshots) ? s.targetSnapshots : Array.from(((e = game.user) == null ? void 0 : e.targets) ?? []).map(Sl).filter(Boolean);
 }
-function cp(s, e) {
+function yp(s, e) {
   var i, a, r, n, o, l;
   if (((i = e == null ? void 0 : e.syntheticWeapon) == null ? void 0 : i.id) === "unarmed")
     return {
@@ -13762,10 +13824,10 @@ function cp(s, e) {
     throw new Error("Attack requires an equipped personal weapon.");
   return ((l = t.getCombatProfile) == null ? void 0 : l.call(t, { payloadId: e == null ? void 0 : e.payloadId })) ?? null;
 }
-async function up({ actor: s, payload: e } = {}) {
-  var A, w, E, I, R, _, q, Y, K, O, D, V, F, pe, Se, he, Ce;
+async function bp({ actor: s, payload: e } = {}) {
+  var A, w, M, I, D, L, V, Y, K, O, R, U, B, ne, oe, he, Ce;
   if (!s) throw new Error("resolveAttack requires actor");
-  const t = cp(s, e);
+  const t = yp(s, e);
   if (!t) throw new Error("Unable to resolve weapon profile.");
   if (Array.isArray((A = t == null ? void 0 : t.capabilityReport) == null ? void 0 : A.errors) && t.capabilityReport.errors.length > 0)
     throw Ci(
@@ -13777,7 +13839,7 @@ async function up({ actor: s, payload: e } = {}) {
     label: t.skill || "Attack",
     attribute: "reflexes",
     domains: ["physical"]
-  }, a = String(i.attribute ?? "reflexes").trim() || "reflexes", r = ((E = s.getAttributeValue) == null ? void 0 : E.call(s, a)) ?? Number(((_ = (R = (I = s.system) == null ? void 0 : I.attributes) == null ? void 0 : R[a]) == null ? void 0 : _.value) ?? 0), n = ((q = s.getSkillRating) == null ? void 0 : q.call(s, t.skill)) ?? Number(((O = (K = (Y = s.system) == null ? void 0 : Y.skills) == null ? void 0 : K[t.skill]) == null ? void 0 : O.rating) ?? 0), o = Number(((F = (V = (D = s.system) == null ? void 0 : D.skills) == null ? void 0 : V[t.skill]) == null ? void 0 : F.bonus) ?? 0), l = new Set(Ks(s.system ?? {}, t.skill)), c = kr(t.skill, e == null ? void 0 : e.specializationKey), u = c && l.has(c.key) ? c : null, d = u ? Ar : 0, m = Number(((pe = t == null ? void 0 : t.effects) == null ? void 0 : pe.accuracyMod) ?? 0) || 0, p = o + m, f = String((e == null ? void 0 : e.rangeBand) ?? t.defaultRangeBand ?? "close").trim() || "close", h = Number(((Se = t == null ? void 0 : t.attackRatingBand) == null ? void 0 : Se[f]) ?? 0) || 0, g = lp(e);
+  }, a = String(i.attribute ?? "reflexes").trim() || "reflexes", r = ((M = s.getAttributeValue) == null ? void 0 : M.call(s, a)) ?? Number(((L = (D = (I = s.system) == null ? void 0 : I.attributes) == null ? void 0 : D[a]) == null ? void 0 : L.value) ?? 0), n = ((V = s.getSkillRating) == null ? void 0 : V.call(s, t.skill)) ?? Number(((O = (K = (Y = s.system) == null ? void 0 : Y.skills) == null ? void 0 : K[t.skill]) == null ? void 0 : O.rating) ?? 0), o = Number(((B = (U = (R = s.system) == null ? void 0 : R.skills) == null ? void 0 : U[t.skill]) == null ? void 0 : B.bonus) ?? 0), l = new Set(Ys(s.system ?? {}, t.skill)), c = Mr(t.skill, e == null ? void 0 : e.specializationKey), u = c && l.has(c.key) ? c : null, d = u ? Tr : 0, m = Number(((ne = t == null ? void 0 : t.effects) == null ? void 0 : ne.accuracyMod) ?? 0) || 0, f = o + m, p = String((e == null ? void 0 : e.rangeBand) ?? t.defaultRangeBand ?? "close").trim() || "close", h = Number(((oe = t == null ? void 0 : t.attackRatingBand) == null ? void 0 : oe[p]) ?? 0) || 0, g = gp(e);
   if (!!!((he = t == null ? void 0 : t.capabilityReport) != null && he.isTemplated) && g.length === 0)
     throw Ci("Target at least one token to attack.", { severity: "warn" });
   const b = Number(t.ap ?? 0) + Number(((Ce = t == null ? void 0 : t.effects) == null ? void 0 : Ce.ap) ?? 0);
@@ -13793,7 +13855,7 @@ async function up({ actor: s, payload: e } = {}) {
     edge: {
       earn: { enabled: !0, rate: 4, maxPerRoll: 1 }
     },
-    pool: { attribute: r, skill: n, bonus: p, specialization: d },
+    pool: { attribute: r, skill: n, bonus: f, specialization: d },
     breakdown: [
       { id: "attribute", label: "Attribute", value: r },
       { id: "skill", label: i.label, value: n },
@@ -13806,10 +13868,10 @@ async function up({ actor: s, payload: e } = {}) {
       { id: "weaponAccuracy", label: "Weapon Accuracy", value: m },
       { id: "damage", label: "Damage", value: Number(t.damage ?? 0) || 0 },
       { id: "ap", label: "AP", value: b },
-      { id: "attackRating", label: `Attack Rating (${f})`, value: h }
+      { id: "attackRating", label: `Attack Rating (${p})`, value: h }
     ],
     attack: {
-      rangeBand: f,
+      rangeBand: p,
       weapon: t,
       payload: (t == null ? void 0 : t.payload) ?? null,
       payloadState: (t == null ? void 0 : t.payloadState) ?? null,
@@ -13843,7 +13905,7 @@ async function up({ actor: s, payload: e } = {}) {
     } : null
   };
 }
-async function dp({ actor: s, payload: e, event: t } = {}) {
+async function Sp({ actor: s, payload: e, event: t } = {}) {
   return {
     title: "Defense",
     intent: "defense",
@@ -13853,7 +13915,7 @@ async function dp({ actor: s, payload: e, event: t } = {}) {
     mods: []
   };
 }
-async function mp({ actor: s, payload: e, event: t } = {}) {
+async function Ap({ actor: s, payload: e, event: t } = {}) {
   return {
     title: "Resistance",
     intent: "resistance",
@@ -13863,7 +13925,7 @@ async function mp({ actor: s, payload: e, event: t } = {}) {
     mods: []
   };
 }
-async function pp({ actor: s } = {}) {
+async function wp({ actor: s } = {}) {
   var i, a, r, n, o, l;
   const e = Number(((r = (a = (i = s.system) == null ? void 0 : i.attributes) == null ? void 0 : a.reflexes) == null ? void 0 : r.value) ?? 0), t = Number(((l = (o = (n = s.system) == null ? void 0 : n.attributes) == null ? void 0 : o.edge) == null ? void 0 : l.value) ?? 0);
   return {
@@ -13886,7 +13948,7 @@ async function pp({ actor: s } = {}) {
     pool: { attribute: 0, skill: 0, bonus: 0 }
   };
 }
-async function fp({ actor: s }) {
+async function Tp({ actor: s }) {
   var i, a, r, n, o;
   const e = Number(((a = (i = s.system) == null ? void 0 : i.burn) == null ? void 0 : a.value) ?? 0);
   e < 6 && ui.notifications.warn("Overload check is only required at Burn 6+.");
@@ -13909,27 +13971,27 @@ async function fp({ actor: s }) {
     ]
   };
 }
-const hp = {
-  skill: Um,
-  edge: qm,
-  attribute: Vm,
-  common: Km,
-  attack: up,
-  defense: dp,
-  resistance: mp,
-  initiative: pp,
-  overload: fp
+const kp = {
+  skill: Jm,
+  edge: ep,
+  attribute: tp,
+  common: ip,
+  attack: bp,
+  defense: Sp,
+  resistance: Ap,
+  initiative: wp,
+  overload: Tp
 };
-async function Ta({ actor: s, payload: e, event: t } = {}) {
+async function va({ actor: s, payload: e, event: t } = {}) {
   if (!s) throw new Error("resolveIntent requires actor");
   const i = String((e == null ? void 0 : e.intent) ?? "").trim();
   if (!i) throw new Error("resolveIntent requires payload.intent");
-  const a = hp[i];
+  const a = kp[i];
   if (!a) throw new Error(`Unsupported roll intent: ${i}`);
   const r = await a({ actor: s, payload: e, event: t });
-  return gp(r, { intent: i });
+  return vp(r, { intent: i });
 }
-function gp(s, { intent: e } = {}) {
+function vp(s, { intent: e } = {}) {
   (!s || typeof s != "object") && (s = {}), s.intent = s.intent ?? e ?? "unknown", s.title = String(s.title ?? "Roll"), s.domains = Array.isArray(s.domains) ? s.domains : [], s.breakdown = Array.isArray(s.breakdown) ? s.breakdown : [], s.mods = Array.isArray(s.mods) ? s.mods : [];
   const t = s.pool && typeof s.pool == "object" ? s.pool : {}, i = Number(t.attribute ?? t.base ?? 0), a = Number(t.skill ?? t.rating ?? 0), r = Number(t.bonus ?? 0), n = Number(t.specialization ?? 0);
   if (![i, a, r, n].every(Number.isFinite))
@@ -13948,18 +14010,18 @@ function gp(s, { intent: e } = {}) {
   ]), s;
 }
 var Di;
-class yp {
+class Mp {
   constructor() {
-    ye(this, Di, /* @__PURE__ */ new Map());
+    be(this, Di, /* @__PURE__ */ new Map());
   }
   register(e) {
     if (!(e != null && e.id) || typeof e.collect != "function")
       throw new Error("Invalid ModifierProvider: missing id or collect()");
-    B(this, Di).has(e.id) || B(this, Di).set(e.id, e);
+    F(this, Di).has(e.id) || F(this, Di).set(e.id, e);
   }
   async collectAll(e) {
     const t = [];
-    for (const i of B(this, Di).values()) {
+    for (const i of F(this, Di).values()) {
       const a = await i.collect(e);
       if (console.log("MWD | provider", i.id, "returned", a), !!(a != null && a.length))
         for (const r of a)
@@ -13969,17 +14031,17 @@ class yp {
   }
 }
 Di = new WeakMap();
-const bt = new yp();
-function bp(s) {
+const bt = new Mp();
+function Ep(s) {
   if (s == null || s === "" || s === "—" || s === "–") return 0;
   const e = Number(s);
   return Number.isFinite(e) ? e : null;
 }
-function Sp(s) {
-  const e = bp(s == null ? void 0 : s.value);
+function Cp(s) {
+  const e = Ep(s == null ? void 0 : s.value);
   return e === null ? null : { ...s, value: e };
 }
-async function In({
+async function $n({
   actor: s,
   rollType: e,
   skillId: t,
@@ -13993,7 +14055,7 @@ async function In({
   console.log("MWD|condition collect called", o.rollType);
   let c = [];
   for (const d of l ?? []) {
-    const m = Sp(d);
+    const m = Cp(d);
     if (!m) {
       console.warn("MWD | Dropping invalid modifier value", d);
       continue;
@@ -14004,7 +14066,7 @@ async function In({
   const u = c.reduce((d, m) => d + m.value, 0);
   return { mods: c, total: u };
 }
-function Ap({
+function Pp({
   actor: s,
   payload: e,
   ctx: t,
@@ -14018,18 +14080,18 @@ function Ap({
   edge: u = null,
   outcomeModel: d = null
 } = {}) {
-  var q, Y, K;
+  var V, Y, K;
   if (!s) throw new Error("buildResolved requires actor");
   if (!(e != null && e.intent)) throw new Error("buildResolved requires payload.intent");
   if (!i) throw new Error("buildResolved requires roll");
-  const m = foundry.utils.randomID(), p = (q = i.dice) == null ? void 0 : q[0], h = (Array.isArray(p == null ? void 0 : p.results) ? p.results : []).map((O, D) => {
-    const V = `pool:${D}`, F = Number(O.result), pe = !!O.success;
+  const m = foundry.utils.randomID(), f = (V = i.dice) == null ? void 0 : V[0], h = (Array.isArray(f == null ? void 0 : f.results) ? f.results : []).map((O, R) => {
+    const U = `pool:${R}`, B = Number(O.result), ne = !!O.success;
     return {
-      ref: V,
-      face: F,
-      isSuccess: pe,
-      isFailure: !pe,
-      tooltip: pe ? `Die ${D + 1}: ${F} (Success vs TN ${Number(a ?? 5)})` : `Die ${D + 1}: ${F} (Failure vs TN ${Number(a ?? 5)})`
+      ref: U,
+      face: B,
+      isSuccess: ne,
+      isFailure: !ne,
+      tooltip: ne ? `Die ${R + 1}: ${B} (Success vs TN ${Number(a ?? 5)})` : `Die ${R + 1}: ${B} (Failure vs TN ${Number(a ?? 5)})`
     };
   }), g = h.filter((O) => O.isFailure).map((O) => O.ref), y = [{
     id: "pool",
@@ -14038,36 +14100,36 @@ function Ap({
     termIndex: 0,
     // informational only
     dice: h
-  }], b = (Array.isArray(n) ? n : []).map((O, D) => {
-    const V = Number(O.value ?? 0), F = `mod:${Tp(O.label ?? "mod")}:${D}`;
+  }], b = (Array.isArray(n) ? n : []).map((O, R) => {
+    const U = Number(O.value ?? 0), B = `mod:${Rp(O.label ?? "mod")}:${R}`;
     return {
-      id: O.id ?? F,
+      id: O.id ?? B,
       label: O.label ?? "Modifier",
-      value: V,
+      value: U,
       domain: O.domain ?? null,
       source: O.source ?? null,
-      tooltip: O.tooltip ?? `${O.label ?? "Modifier"} ${On(V)}`
+      tooltip: O.tooltip ?? `${O.label ?? "Modifier"} ${xn(U)}`
     };
-  }), A = b.map((O) => O.id), E = (Array.isArray(t == null ? void 0 : t.breakdown) ? t.breakdown : []).map((O) => ({
+  }), A = b.map((O) => O.id), M = (Array.isArray(t == null ? void 0 : t.breakdown) ? t.breakdown : []).map((O) => ({
     id: `pool.${O.id ?? foundry.utils.randomID()}`,
     label: O.label ?? O.id ?? "Row",
     value: Number(O.value ?? 0),
     tooltip: `Contribution from ${O.label ?? O.id}: ${Number(O.value ?? 0)}`
   }));
-  E.push({
+  M.push({
     id: "mods.total",
     label: "Mods",
     value: Number(o ?? 0),
     modIds: A,
-    tooltip: b.length ? b.map((O) => `${O.label}: ${On(O.value)}`).join(`
+    tooltip: b.length ? b.map((O) => `${O.label}: ${xn(O.value)}`).join(`
 `) : "No roll-time modifiers."
-  }), E.push({
+  }), M.push({
     id: "pool.final",
     label: "Final Pool",
     value: Number(r ?? 0),
     tooltip: `Final dice pool rolled: ${Number(r ?? 0)}d6`
   });
-  const I = Number.isFinite(Number(l)) ? Number(l) : h.filter((O) => O.isSuccess).length, R = Number.isFinite(Number(c)) ? Number(c) : h.filter((O) => O.face === 1).length, _ = wp(u, { payload: e });
+  const I = Number.isFinite(Number(l)) ? Number(l) : h.filter((O) => O.isSuccess).length, D = Number.isFinite(Number(c)) ? Number(c) : h.filter((O) => O.face === 1).length, L = Np(u, { payload: e });
   return {
     version: 2,
     id: m,
@@ -14106,26 +14168,26 @@ function Ap({
     // Outcome numbers
     outcome: {
       hits: I,
-      ones: R
+      ones: D
     },
     // New: engine-interpreted outcome (margin/net/converted/edgeEarned/etc
     outcomeModel: d,
     // Breakdown + modifiers
-    breakdownRows: E,
+    breakdownRows: M,
     modifiers: {
       applied: b,
       total: Number(o ?? 0)
     },
     // Edge snapshot / affordances
-    edge: _
+    edge: L
   };
 }
-function wp(s, { payload: e } = {}) {
-  var f, h, g, y, b, A, w, E, I, R, _, q, Y, K;
-  const t = !!((f = e == null ? void 0 : e.edge) != null && f.enabled), i = (s == null ? void 0 : s.domain) ?? null, a = (s == null ? void 0 : s.pools) ?? null, r = ((h = s == null ? void 0 : s.pre) == null ? void 0 : h.poolKey) ?? ((y = (g = e == null ? void 0 : e.edge) == null ? void 0 : g.pre) == null ? void 0 : y.poolKey) ?? (t ? ((b = e == null ? void 0 : e.edge) == null ? void 0 : b.poolKey) ?? null : null), n = Number(((A = s == null ? void 0 : s.pre) == null ? void 0 : A.spent) ?? ((E = (w = e == null ? void 0 : e.edge) == null ? void 0 : w.pre) == null ? void 0 : E.spent) ?? (t ? 1 : 0)) ? 1 : 0, o = ((I = s == null ? void 0 : s.post) == null ? void 0 : I.poolKey) ?? ((_ = (R = e == null ? void 0 : e.edge) == null ? void 0 : R.post) == null ? void 0 : _.poolKey) ?? null, l = Number(((q = s == null ? void 0 : s.post) == null ? void 0 : q.spent) ?? ((K = (Y = e == null ? void 0 : e.edge) == null ? void 0 : Y.post) == null ? void 0 : K.spent) ?? 0) ? 1 : 0, c = (a == null ? void 0 : a.a) ?? null, u = (a == null ? void 0 : a.b) ?? null, d = [c, u].filter(Boolean);
+function Np(s, { payload: e } = {}) {
+  var p, h, g, y, b, A, w, M, I, D, L, V, Y, K;
+  const t = !!((p = e == null ? void 0 : e.edge) != null && p.enabled), i = (s == null ? void 0 : s.domain) ?? null, a = (s == null ? void 0 : s.pools) ?? null, r = ((h = s == null ? void 0 : s.pre) == null ? void 0 : h.poolKey) ?? ((y = (g = e == null ? void 0 : e.edge) == null ? void 0 : g.pre) == null ? void 0 : y.poolKey) ?? (t ? ((b = e == null ? void 0 : e.edge) == null ? void 0 : b.poolKey) ?? null : null), n = Number(((A = s == null ? void 0 : s.pre) == null ? void 0 : A.spent) ?? ((M = (w = e == null ? void 0 : e.edge) == null ? void 0 : w.pre) == null ? void 0 : M.spent) ?? (t ? 1 : 0)) ? 1 : 0, o = ((I = s == null ? void 0 : s.post) == null ? void 0 : I.poolKey) ?? ((L = (D = e == null ? void 0 : e.edge) == null ? void 0 : D.post) == null ? void 0 : L.poolKey) ?? null, l = Number(((V = s == null ? void 0 : s.post) == null ? void 0 : V.spent) ?? ((K = (Y = e == null ? void 0 : e.edge) == null ? void 0 : Y.post) == null ? void 0 : K.spent) ?? 0) ? 1 : 0, c = (a == null ? void 0 : a.a) ?? null, u = (a == null ? void 0 : a.b) ?? null, d = [c, u].filter(Boolean);
   let m = [c, u].filter(Boolean);
   n && r && (m = m.filter((O) => O !== r));
-  const p = {
+  const f = {
     canSpendPre: d.length > 0 && !n,
     // spending pre after roll is not a thing
     canSpendPost: m.length > 0 && !l,
@@ -14140,30 +14202,30 @@ function wp(s, { payload: e } = {}) {
       prePools: d,
       postPools: m
     },
-    availableActions: p
+    availableActions: f
   };
 }
-function On(s) {
+function xn(s) {
   const e = Number(s ?? 0);
   return e >= 0 ? `+${e}` : `${e}`;
 }
-function Tp(s) {
+function Rp(s) {
   return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
-function kp(s, e) {
-  var c, u, d, m, p, f, h, g, y;
+function Dp(s, e) {
+  var c, u, d, m, f, p, h, g, y;
   const t = s ?? {}, i = Array.isArray((c = t == null ? void 0 : t.modifiers) == null ? void 0 : c.applied) ? t.modifiers.applied : [], a = Number(((u = t == null ? void 0 : t.modifiers) == null ? void 0 : u.total) ?? 0);
   if (i.length) {
     const b = Array.isArray(t == null ? void 0 : t.breakdownRows) ? t.breakdownRows.find((A) => A.id === "mods.total") : null;
     e.metaRows.push({
-      text: `Mods: ${i.map((A) => `${A.label} ${_n(A.value)}`).join(", ")} (Total ${_n(a)})`,
+      text: `Mods: ${i.map((A) => `${A.label} ${Bn(A.value)}`).join(", ")} (Total ${Bn(a)})`,
       title: (b == null ? void 0 : b.tooltip) ?? ""
     });
   }
-  const r = (t == null ? void 0 : t.edge) ?? null, n = Array.isArray((d = t == null ? void 0 : t.roll) == null ? void 0 : d.failureDiceRefs) ? t.roll.failureDiceRefs : [], o = !!((m = r == null ? void 0 : r.availableActions) != null && m.canPostRerollFailures), l = Array.isArray((p = r == null ? void 0 : r.allowed) == null ? void 0 : p.postPools) ? r.allowed.postPools : [];
+  const r = (t == null ? void 0 : t.edge) ?? null, n = Array.isArray((d = t == null ? void 0 : t.roll) == null ? void 0 : d.failureDiceRefs) ? t.roll.failureDiceRefs : [], o = !!((m = r == null ? void 0 : r.availableActions) != null && m.canPostRerollFailures), l = Array.isArray((f = r == null ? void 0 : r.allowed) == null ? void 0 : f.postPools) ? r.allowed.postPools : [];
   if (r != null && r.domain && (e.edge = {
     domain: r.domain,
-    earned: ((f = t == null ? void 0 : t.outcomeModel) == null ? void 0 : f.edgeEarned) ?? null,
+    earned: ((p = t == null ? void 0 : t.outcomeModel) == null ? void 0 : p.edgeEarned) ?? null,
     preSpent: Number(((h = r == null ? void 0 : r.pre) == null ? void 0 : h.spent) ?? 0),
     postSpent: Number(((g = r == null ? void 0 : r.post) == null ? void 0 : g.spent) ?? 0),
     canPost: o && n.length > 0 && l.length > 0,
@@ -14185,20 +14247,20 @@ function kp(s, e) {
       });
   }
 }
-function _n(s) {
+function Bn(s) {
   const e = Number(s ?? 0);
   return e >= 0 ? `+${e}` : `${e}`;
 }
-function vp(s, e) {
-  var p, f, h, g, y, b, A, w, E, I, R, _, q, Y, K, O;
+function Ip(s, e) {
+  var f, p, h, g, y, b, A, w, M, I, D, L, V, Y, K, O;
   const t = s ?? {}, i = (t == null ? void 0 : t.attackResult) ?? null;
   if (!i) return;
-  const a = Array.isArray(i == null ? void 0 : i.results) ? i.results : [], r = (i == null ? void 0 : i.summary) ?? Mp(a), n = Array.isArray((p = t == null ? void 0 : t.modifiers) == null ? void 0 : p.applied) ? t.modifiers.applied : [], o = Number(((f = t == null ? void 0 : t.modifiers) == null ? void 0 : f.total) ?? 0);
+  const a = Array.isArray(i == null ? void 0 : i.results) ? i.results : [], r = (i == null ? void 0 : i.summary) ?? Op(a), n = Array.isArray((f = t == null ? void 0 : t.modifiers) == null ? void 0 : f.applied) ? t.modifiers.applied : [], o = Number(((p = t == null ? void 0 : t.modifiers) == null ? void 0 : p.total) ?? 0);
   if (n.length) {
-    const D = Array.isArray(t == null ? void 0 : t.breakdownRows) ? t.breakdownRows.find((V) => V.id === "mods.total") : null;
+    const R = Array.isArray(t == null ? void 0 : t.breakdownRows) ? t.breakdownRows.find((U) => U.id === "mods.total") : null;
     e.metaRows.push({
-      text: `Mods: ${n.map((V) => `${V.label} ${Ss(V.value)}`).join(", ")} (Total ${Ss(o)})`,
-      title: (D == null ? void 0 : D.tooltip) ?? ""
+      text: `Mods: ${n.map((U) => `${U.label} ${As(U.value)}`).join(", ")} (Total ${As(o)})`,
+      title: (R == null ? void 0 : R.tooltip) ?? ""
     });
   }
   const l = (t == null ? void 0 : t.edge) ?? null, c = Array.isArray((h = t == null ? void 0 : t.roll) == null ? void 0 : h.failureDiceRefs) ? t.roll.failureDiceRefs : [], u = !!((g = l == null ? void 0 : l.availableActions) != null && g.canPostRerollFailures), d = Array.isArray((y = l == null ? void 0 : l.allowed) == null ? void 0 : y.postPools) ? l.allowed.postPools : [];
@@ -14213,15 +14275,15 @@ function vp(s, e) {
   }, e.metaRows.push({
     text: `Edge: ${l.domain} | pre ${e.edge.preSpent} | post ${e.edge.postSpent}`,
     title: ""
-  })), (E = e.edge) != null && E.canPost) {
+  })), (M = e.edge) != null && M.canPost) {
     e.footerRows.push({
       text: `Post-spend: Reroll ${e.edge.failureCount} failure${e.edge.failureCount === 1 ? "" : "s"}`
     });
-    for (const D of e.edge.postPools)
+    for (const R of e.edge.postPools)
       e.actions.push({
         action: "edgePostReroll",
-        label: `Spend ${D}`,
-        dataset: { "pool-key": D },
+        label: `Spend ${R}`,
+        dataset: { "pool-key": R },
         cssClass: "mwd-edge-post"
       });
   }
@@ -14230,34 +14292,34 @@ function vp(s, e) {
     text: `Targets: ${a.length || 0}`,
     title: ""
   });
-  for (const D of a)
+  for (const R of a)
     e.metaRows.push({
-      text: `${((I = D == null ? void 0 : D.target) == null ? void 0 : I.name) ?? "Target"}: ${String((D == null ? void 0 : D.outcome) ?? "miss").toUpperCase()} | CQ ${Ss(((R = D == null ? void 0 : D.cq) == null ? void 0 : R.value) ?? 0)} | Net ${Number((D == null ? void 0 : D.netHits) ?? 0)}`,
+      text: `${((I = R == null ? void 0 : R.target) == null ? void 0 : I.name) ?? "Target"}: ${String((R == null ? void 0 : R.outcome) ?? "miss").toUpperCase()} | CQ ${As(((D = R == null ? void 0 : R.cq) == null ? void 0 : D.value) ?? 0)} | Net ${Number((R == null ? void 0 : R.netHits) ?? 0)}`,
       title: ""
     });
-  for (const D of a) {
-    const V = (D == null ? void 0 : D.damage) ?? null;
-    V && (D == null ? void 0 : D.outcome) !== "miss" && e.footerRows.push({
-      text: `${((_ = D == null ? void 0 : D.target) == null ? void 0 : _.name) ?? "Target"}: ${V.damageTypeLabel} ${Ss(V.effectiveWeaponDamage)} weapon${V.netHits ? ` + ${V.netHits} net` : ""}`,
+  for (const R of a) {
+    const U = (R == null ? void 0 : R.damage) ?? null;
+    U && (R == null ? void 0 : R.outcome) !== "miss" && e.footerRows.push({
+      text: `${((L = R == null ? void 0 : R.target) == null ? void 0 : L.name) ?? "Target"}: ${U.damageTypeLabel} ${As(U.effectiveWeaponDamage)} weapon${U.netHits ? ` + ${U.netHits} net` : ""}`,
       title: ""
     });
-    const F = (D == null ? void 0 : D.damageResult) ?? null;
-    F != null && F.ok && !(F != null && F.skipped) ? (e.footerRows.push({
-      text: `${F.actorName ?? ((q = D == null ? void 0 : D.target) == null ? void 0 : q.name) ?? "Target"}: Applied ${Number(F.finalDamage ?? F.appliedDelta ?? 0)}`,
+    const B = (R == null ? void 0 : R.damageResult) ?? null;
+    B != null && B.ok && !(B != null && B.skipped) ? (e.footerRows.push({
+      text: `${B.actorName ?? ((V = R == null ? void 0 : R.target) == null ? void 0 : V.name) ?? "Target"}: Applied ${Number(B.finalDamage ?? B.appliedDelta ?? 0)}`,
       title: ""
-    }), F.beforeLabel && F.afterLabel && e.footerRows.push({
-      text: `${F.actorName ?? ((Y = D == null ? void 0 : D.target) == null ? void 0 : Y.name) ?? "Target"} Track: ${F.beforeLabel} -> ${F.afterLabel}`,
+    }), B.beforeLabel && B.afterLabel && e.footerRows.push({
+      text: `${B.actorName ?? ((Y = R == null ? void 0 : R.target) == null ? void 0 : Y.name) ?? "Target"} Track: ${B.beforeLabel} -> ${B.afterLabel}`,
       title: ""
-    }), F.usedArmor && F.mitigation && e.footerRows.push({
-      text: `${F.actorName ?? ((K = D == null ? void 0 : D.target) == null ? void 0 : K.name) ?? "Target"} Mitigation: ${Number(F.mitigation.baseMitigation ?? 0)} + ${Number(F.mitigation.typeMitigationMod ?? 0)} - ${Number(F.effectiveAp ?? 0)} = ${Number(F.mitigation.netResistance ?? 0)}`,
+    }), B.usedArmor && B.mitigation && e.footerRows.push({
+      text: `${B.actorName ?? ((K = R == null ? void 0 : R.target) == null ? void 0 : K.name) ?? "Target"} Mitigation: ${Number(B.mitigation.baseMitigation ?? 0)} + ${Number(B.mitigation.typeMitigationMod ?? 0)} - ${Number(B.effectiveAp ?? 0)} = ${Number(B.mitigation.netResistance ?? 0)}`,
       title: ""
-    })) : F != null && F.reason && e.footerRows.push({
-      text: `${((O = D == null ? void 0 : D.target) == null ? void 0 : O.name) ?? "Target"}: ${F.reason}`,
+    })) : B != null && B.reason && e.footerRows.push({
+      text: `${((O = R == null ? void 0 : R.target) == null ? void 0 : O.name) ?? "Target"}: ${B.reason}`,
       title: ""
     });
   }
 }
-function Mp(s = []) {
+function Op(s = []) {
   const e = { hits: 0, grazes: 0, misses: 0 };
   for (const t of s)
     (t == null ? void 0 : t.outcome) === "hit" ? e.hits += 1 : (t == null ? void 0 : t.outcome) === "graze" ? e.grazes += 1 : e.misses += 1;
@@ -14266,11 +14328,11 @@ function Mp(s = []) {
     overallOutcome: e.hits > 0 ? "hit" : e.grazes > 0 ? "graze" : "miss"
   };
 }
-function Ss(s) {
+function As(s) {
   const e = Number(s ?? 0);
   return e >= 0 ? `+${e}` : `${e}`;
 }
-function Ep(s, e) {
+function _p(s, e) {
   var c;
   const t = s ?? {}, i = (t == null ? void 0 : t.outcomeModel) ?? {}, a = (i == null ? void 0 : i.net) ?? null;
   if (!a) return;
@@ -14286,14 +14348,14 @@ function Ep(s, e) {
     title: l.reason ?? ""
   });
 }
-function Cp(s, e) {
+function Lp(s, e) {
   var l, c, u, d;
   const t = s ?? {}, i = (t == null ? void 0 : t.outcomeModel) ?? {}, a = Number(((l = i == null ? void 0 : i.attacker) == null ? void 0 : l.successes) ?? (i == null ? void 0 : i.attackerHits) ?? NaN), r = Number(((c = i == null ? void 0 : i.defender) == null ? void 0 : c.successes) ?? (i == null ? void 0 : i.defenderHits) ?? NaN), n = Number((i == null ? void 0 : i.netHits) ?? (i == null ? void 0 : i.net) ?? NaN);
   Number.isFinite(a) && Number.isFinite(r) && e.metaRows.push({ text: `Opposed: Att ${a} vs Def ${r} • Net ${Number.isFinite(n) ? n : a - r}` }), (u = t == null ? void 0 : t.incoming) != null && u.label && (e.incoming = { label: t.incoming.label, value: t.incoming.value ?? "" }, e.footerRows.push({ text: `Incoming: ${e.incoming.label} ${e.incoming.value}` }));
   const o = ((d = i == null ? void 0 : i.edgeEarned) == null ? void 0 : d.amount) > 0 ? i.edgeEarned : null;
   o && e.footerRows.push({ text: `Edge Earned: +${o.amount}${o.pool ? ` (${o.pool})` : ""}` });
 }
-function Pp(s, e) {
+function $p(s, e) {
   var c;
   const t = s ?? {}, i = (t == null ? void 0 : t.outcomeModel) ?? {}, a = (i == null ? void 0 : i.extended) ?? null;
   if (!a) return;
@@ -14306,25 +14368,25 @@ function Pp(s, e) {
   const l = ((c = i == null ? void 0 : i.edgeEarned) == null ? void 0 : c.amount) > 0 ? i.edgeEarned : null;
   l && e.footerRows.push({ text: `Edge Earned: +${l.amount}${l.pool ? ` (${l.pool})` : ""}` });
 }
-const Np = {
-  skill: kp,
-  attack: vp,
-  net: Ep,
-  opposed: Cp,
-  extended: Pp
+const xp = {
+  skill: Dp,
+  attack: Ip,
+  net: _p,
+  opposed: Lp,
+  extended: $p
   // defense: enhanceDefense,
   // edge: enhanceEdge,
 };
-async function gl({ resolved: s } = {}) {
-  const e = s ?? {}, t = Rp(e), i = Np[t.intent];
+async function Al({ resolved: s } = {}) {
+  const e = s ?? {}, t = Bp(e), i = xp[t.intent];
   return typeof i == "function" && i(e, t), await foundry.applications.handlebars.renderTemplate(
     "mwd.v2.roll.mwd-roll-card",
     t
   );
 }
-function Rp(s) {
-  var p, f, h, g, y, b, A, w, E, I, R, _;
-  const e = s ?? {}, t = Number(((p = e == null ? void 0 : e.roll) == null ? void 0 : p.target) ?? 5), i = Number(((h = (f = e == null ? void 0 : e.ctxSnapshot) == null ? void 0 : f.difficulty) == null ? void 0 : h.dn) ?? 0), a = Number(((g = e == null ? void 0 : e.roll) == null ? void 0 : g.pool) ?? 0), r = Number(((y = e == null ? void 0 : e.outcome) == null ? void 0 : y.hits) ?? 0), n = (e == null ? void 0 : e.outcomeModel) ?? {}, o = typeof n.passed == "boolean" ? n.passed : r >= i, l = Number.isFinite(Number(n.margin)) ? Number(n.margin) : r - i, c = n.tier ?? null, u = Array.isArray(e == null ? void 0 : e.breakdownRows) ? e.breakdownRows.map((q) => `${q.label}: ${q.value}`).join(`
+function Bp(s) {
+  var f, p, h, g, y, b, A, w, M, I, D, L;
+  const e = s ?? {}, t = Number(((f = e == null ? void 0 : e.roll) == null ? void 0 : f.target) ?? 5), i = Number(((h = (p = e == null ? void 0 : e.ctxSnapshot) == null ? void 0 : p.difficulty) == null ? void 0 : h.dn) ?? 0), a = Number(((g = e == null ? void 0 : e.roll) == null ? void 0 : g.pool) ?? 0), r = Number(((y = e == null ? void 0 : e.outcome) == null ? void 0 : y.hits) ?? 0), n = (e == null ? void 0 : e.outcomeModel) ?? {}, o = typeof n.passed == "boolean" ? n.passed : r >= i, l = Number.isFinite(Number(n.margin)) ? Number(n.margin) : r - i, c = n.tier ?? null, u = Array.isArray(e == null ? void 0 : e.breakdownRows) ? e.breakdownRows.map((V) => `${V.label}: ${V.value}`).join(`
 `) : "", d = {
     header: { left: (e == null ? void 0 : e.title) ?? "Roll", right: (e == null ? void 0 : e.subtitle) ?? "" },
     formula: String((e == null ? void 0 : e.formula) ?? "").trim(),
@@ -14351,11 +14413,11 @@ function Rp(s) {
     text: `Specialization: ${e.specialization.label} (+${Number(e.specialization.value ?? 0)})`,
     title: ""
   }), (A = m == null ? void 0 : m.weapon) != null && A.name) {
-    const q = String((m == null ? void 0 : m.rangeBand) ?? "").trim(), Y = String(((w = m == null ? void 0 : m.weapon) == null ? void 0 : w.damageTypeLabel) ?? ((E = m == null ? void 0 : m.weapon) == null ? void 0 : E.damageType) ?? "").trim(), K = String(((I = m == null ? void 0 : m.payload) == null ? void 0 : I.label) ?? ((R = m == null ? void 0 : m.weapon) == null ? void 0 : R.payloadLabel) ?? "").trim();
+    const V = String((m == null ? void 0 : m.rangeBand) ?? "").trim(), Y = String(((w = m == null ? void 0 : m.weapon) == null ? void 0 : w.damageTypeLabel) ?? ((M = m == null ? void 0 : m.weapon) == null ? void 0 : M.damageType) ?? "").trim(), K = String(((I = m == null ? void 0 : m.payload) == null ? void 0 : I.label) ?? ((D = m == null ? void 0 : m.weapon) == null ? void 0 : D.payloadLabel) ?? "").trim();
     d.metaRows.push({
-      text: `Weapon: ${m.weapon.name}${q ? ` • Range: ${q}` : ""}${Y ? ` • Type: ${Y}` : ""}${K ? ` • Payload: ${K}` : ""}`,
+      text: `Weapon: ${m.weapon.name}${V ? ` • Range: ${V}` : ""}${Y ? ` • Type: ${Y}` : ""}${K ? ` • Payload: ${K}` : ""}`,
       title: ""
-    }), (_ = m == null ? void 0 : m.sourceState) != null && _.isTracked && d.footerRows.push({
+    }), (L = m == null ? void 0 : m.sourceState) != null && L.isTracked && d.footerRows.push({
       text: `Source: ${Number(m.sourceState.current ?? 0)}/${Number(m.sourceState.max ?? 0)}`,
       title: ""
     });
@@ -14366,27 +14428,27 @@ function Ae(s, e = 0) {
   const t = Number(s);
   return Number.isFinite(t) ? Math.trunc(t) : e;
 }
-function ka(s, e = 0, t = Number.POSITIVE_INFINITY) {
+function Ma(s, e = 0, t = Number.POSITIVE_INFINITY) {
   const i = Ae(s, e);
   return Math.max(e, Math.min(t, i));
 }
-function yl(s, e = 1) {
+function wl(s, e = 1) {
   var i;
   const t = Ae((i = s == null ? void 0 : s.difficulty) == null ? void 0 : i.dn, Ae(e, 1));
   return Math.max(0, t);
 }
-function Dp(s, e) {
+function Fp(s, e) {
   return Math.max(0, Ae(s, 0) - Ae(e, 0));
 }
-function Ip({ convert: s, remainder: e, rate: t = 4 } = {}) {
+function zp({ convert: s, remainder: e, rate: t = 4 } = {}) {
   const i = Math.max(0, Ae(e, 0)), a = Math.max(1, Ae(t, 4)), r = Math.max(0, Ae(s, 0)), n = Math.floor(r / a) * a;
   return Math.min(i, n);
 }
-function $r(s, { rate: e = 4, maxPerRoll: t = Number.POSITIVE_INFINITY } = {}) {
+function Br(s, { rate: e = 4, maxPerRoll: t = Number.POSITIVE_INFINITY } = {}) {
   const i = Math.max(1, Ae(e, 4)), a = Math.floor(Math.max(0, Ae(s, 0)) / i), r = Number.isFinite(t) ? Math.max(0, Ae(t, 0)) : Number.POSITIVE_INFINITY;
   return { amount: Math.min(a, r), rate: i };
 }
-function xr(s) {
+function Fr(s) {
   var i;
   const e = ((i = s == null ? void 0 : s.edge) == null ? void 0 : i.earn) ?? {};
   return {
@@ -14395,12 +14457,12 @@ function xr(s) {
     maxPerRoll: (e == null ? void 0 : e.maxPerRoll) ?? Number.POSITIVE_INFINITY
   };
 }
-function Ws(s) {
+function Hs(s) {
   var t;
   const e = (t = s == null ? void 0 : s.edge) == null ? void 0 : t.pool;
   return e ? String(e) : null;
 }
-function Op(s) {
+function Wp(s) {
   let e = 0, t = 0;
   const i = (a) => {
     if (!a) return;
@@ -14419,18 +14481,18 @@ function Op(s) {
   };
   return i(s), { dice: e, ones: t };
 }
-function bl(s, e) {
+function Tl(s, e) {
   if (Ae(s, 0) !== 0) return !1;
-  const { dice: t, ones: i } = Op(e);
+  const { dice: t, ones: i } = Wp(e);
   return t <= 0 ? !1 : i >= Math.ceil(t / 2);
 }
-function _p(s, e, t = 4) {
+function Hp(s, e, t = 4) {
   return !!(s && Ae(e, 0) >= Ae(t, 4));
 }
-function Ln(s, e) {
-  const t = Ae(e == null ? void 0 : e.successes, 0), i = yl(s, 1), a = t >= i, r = t - i, n = _p(a, r, 4), o = bl(t, e == null ? void 0 : e.raw), l = xr(s), c = l.maxPerRoll ?? 1, u = l.enabled && r >= l.rate ? (() => {
-    const { amount: m, rate: p } = $r(r, { rate: l.rate, maxPerRoll: c }), f = Ws(s);
-    return m > 0 ? { amount: m, pool: f, reason: "net4", details: { margin: r, rate: p } } : null;
+function Fn(s, e) {
+  const t = Ae(e == null ? void 0 : e.successes, 0), i = wl(s, 1), a = t >= i, r = t - i, n = Hp(a, r, 4), o = Tl(t, e == null ? void 0 : e.raw), l = Fr(s), c = l.maxPerRoll ?? 1, u = l.enabled && r >= l.rate ? (() => {
+    const { amount: m, rate: f } = Br(r, { rate: l.rate, maxPerRoll: c }), p = Hs(s);
+    return m > 0 ? { amount: m, pool: p, reason: "net4", details: { margin: r, rate: f } } : null;
   })() : null;
   return {
     rollType: "simple",
@@ -14444,14 +14506,14 @@ function Ln(s, e) {
     edgeEarned: u
   };
 }
-function Lp(s, e, t) {
-  var m, p;
-  const i = Ae(e == null ? void 0 : e.successes, 0), a = Ae(t == null ? void 0 : t.successes, 0), r = !!((m = s == null ? void 0 : s.opposed) != null && m.net), n = String(((p = s == null ? void 0 : s.opposed) == null ? void 0 : p.dnTies) ?? "stalemate");
+function Up(s, e, t) {
+  var m, f;
+  const i = Ae(e == null ? void 0 : e.successes, 0), a = Ae(t == null ? void 0 : t.successes, 0), r = !!((m = s == null ? void 0 : s.opposed) != null && m.net), n = String(((f = s == null ? void 0 : s.opposed) == null ? void 0 : f.dnTies) ?? "stalemate");
   let o = null, l = !1;
   r ? (o = i - a, o > 0 ? l = !0 : o < 0 ? l = !1 : n === "attackerWins" ? l = !0 : l = !1) : i > a ? l = !0 : i < a ? l = !1 : n === "attackerWins" ? l = !0 : l = !1;
-  const c = xr(s), u = c.maxPerRoll ?? 1, d = c.enabled && r && typeof o == "number" && o >= c.rate ? (() => {
-    const { amount: f, rate: h } = $r(o, { rate: c.rate, maxPerRoll: u }), g = Ws(s);
-    return f > 0 ? { amount: f, pool: g, reason: "net4", details: { netHits: o, rate: h } } : null;
+  const c = Fr(s), u = c.maxPerRoll ?? 1, d = c.enabled && r && typeof o == "number" && o >= c.rate ? (() => {
+    const { amount: p, rate: h } = Br(o, { rate: c.rate, maxPerRoll: u }), g = Hs(s);
+    return p > 0 ? { amount: p, pool: g, reason: "net4", details: { netHits: o, rate: h } } : null;
   })() : null;
   return {
     rollType: "opposed",
@@ -14467,13 +14529,13 @@ function Lp(s, e, t) {
     edgeEarned: d
   };
 }
-function $p(s, e) {
+function jp(s, e) {
   var h, g, y;
-  const t = Ae(e == null ? void 0 : e.successes, 0), i = yl(s, 1), a = t >= i, r = bl(t, e == null ? void 0 : e.raw), n = Dp(t, i), o = ((h = s == null ? void 0 : s.net) == null ? void 0 : h.convert) ?? ((g = s == null ? void 0 : s.allocation) == null ? void 0 : g.convert) ?? 0, l = xr(s), c = l.rate, u = Ip({ convert: o, remainder: n, rate: c }), d = n - u, m = l.enabled && u >= c ? (() => {
-    const { amount: b } = $r(u, { rate: c, maxPerRoll: l.maxPerRoll }), A = Ws(s);
+  const t = Ae(e == null ? void 0 : e.successes, 0), i = wl(s, 1), a = t >= i, r = Tl(t, e == null ? void 0 : e.raw), n = Fp(t, i), o = ((h = s == null ? void 0 : s.net) == null ? void 0 : h.convert) ?? ((g = s == null ? void 0 : s.allocation) == null ? void 0 : g.convert) ?? 0, l = Fr(s), c = l.rate, u = zp({ convert: o, remainder: n, rate: c }), d = n - u, m = l.enabled && u >= c ? (() => {
+    const { amount: b } = Br(u, { rate: c, maxPerRoll: l.maxPerRoll }), A = Hs(s);
     return b > 0 ? { amount: b, pool: A, reason: "convert4", details: { converted: u, rate: c } } : null;
-  })() : null, p = r ? { amount: 1, pool: Ws(s), reason: "critFail", details: { onesRule: "halfOrMoreOnes" } } : null, f = [];
-  return m && f.push(m), p && f.push(p), f.length === 0 || (f.length === 1 ? f[0] : (f.reduce((b, A) => b + (Number(A == null ? void 0 : A.amount) || 0), 0), (y = f[0]) == null || y.pool)), {
+  })() : null, f = r ? { amount: 1, pool: Hs(s), reason: "critFail", details: { onesRule: "halfOrMoreOnes" } } : null, p = [];
+  return m && p.push(m), f && p.push(f), p.length === 0 || (p.length === 1 ? p[0] : (p.reduce((b, A) => b + (Number(A == null ? void 0 : A.amount) || 0), 0), (y = p[0]) == null || y.pool)), {
     rollType: "net",
     passed: a,
     successes: t,
@@ -14492,9 +14554,9 @@ function $p(s, e) {
     edgeEarned: m
   };
 }
-function xp(s, e) {
+function Gp(s, e) {
   var o, l, c, u;
-  const t = Ae(e == null ? void 0 : e.successes, 0), i = ka((o = s == null ? void 0 : s.extended) == null ? void 0 : o.target, 1, 1e4), a = ka((l = s == null ? void 0 : s.extended) == null ? void 0 : l.accumulated, 0, 1e4), r = ka(a + t, 0, 1e4), n = r >= i;
+  const t = Ae(e == null ? void 0 : e.successes, 0), i = Ma((o = s == null ? void 0 : s.extended) == null ? void 0 : o.target, 1, 1e4), a = Ma((l = s == null ? void 0 : s.extended) == null ? void 0 : l.accumulated, 0, 1e4), r = Ma(a + t, 0, 1e4), n = r >= i;
   return {
     rollType: "extended",
     passed: n,
@@ -14512,28 +14574,28 @@ function xp(s, e) {
     edgeEarned: null
   };
 }
-function Bp(s, e, t = null) {
+function qp(s, e, t = null) {
   var a;
   switch (String((s == null ? void 0 : s.rollType) ?? "simple")) {
     case "simple":
-      return Ln(s, e);
+      return Fn(s, e);
     case "opposed":
-      return Lp(s, e, t);
+      return Up(s, e, t);
     case "net":
-      return $p(s, e);
+      return jp(s, e);
     case "extended":
-      return xp(s, e);
+      return Gp(s, e);
     default: {
       const r = {
         ...s,
         difficulty: { dn: Number(((a = s == null ? void 0 : s.difficulty) == null ? void 0 : a.dn) ?? 1) || 1 }
       };
-      return Ln(r, e);
+      return Fn(r, e);
     }
   }
 }
-const { ApplicationV2: Fp, HandlebarsApplicationMixin: zp } = foundry.applications.api;
-function Wp(s, e = -3, t = 3) {
+const { ApplicationV2: Vp, HandlebarsApplicationMixin: Kp } = foundry.applications.api;
+function Yp(s, e = -3, t = 3) {
   const i = [], a = "../img/dice";
   for (let r = e; r <= t; r++) {
     const n = Math.abs(r), o = n === 0 ? `${a}/BlankDice.webp` : `${a}/D6_${n}.svg`;
@@ -14550,29 +14612,29 @@ function Wp(s, e = -3, t = 3) {
   }
   return i;
 }
-function $n(s) {
+function zn(s) {
   return (Array.isArray(s) ? s : []).map((t) => ({
     id: (t == null ? void 0 : t.id) ?? foundry.utils.randomID(),
     label: typeof (t == null ? void 0 : t.label) == "string" ? t.label : "Manual",
     value: Number((t == null ? void 0 : t.value) ?? 0)
   }));
 }
-function va(s, e) {
+function Ea(s, e) {
   const t = s == null ? void 0 : s.toggles;
   return t && typeof t == "object" && e in t ? !!t[e] : !!(s != null && s[e]);
 }
-function jp(s, e) {
+function Qp(s, e) {
   s.useEdge = !!e.useEdge, s.takeRisks = !!e.takeRisks, s.opponentRoll = !!e.opponentRoll, s.toggles = s.toggles && typeof s.toggles == "object" ? s.toggles : {}, s.toggles.useEdge = !!e.useEdge, s.toggles.takeRisks = !!e.takeRisks, s.toggles.opponentRoll = !!e.opponentRoll;
 }
-function xn(s, e, t) {
-  const i = String(t ?? "").trim(), a = i ? Cc(e, i) : "";
+function Wn(s, e, t) {
+  const i = String(t ?? "").trim(), a = i ? Dc(e, i) : "";
   if (i && a) {
     s.specializationKey = i, s.specializationLabel = a;
     return;
   }
   delete s.specializationKey, delete s.specializationLabel;
 }
-function Up(s) {
+function Jp(s) {
   const e = Array.isArray(s == null ? void 0 : s.breakdown) ? s.breakdown : [], t = (i) => {
     var a;
     return Number(((a = e.find((r) => (r == null ? void 0 : r.id) === i)) == null ? void 0 : a.value) ?? 0);
@@ -14584,24 +14646,24 @@ function Up(s) {
     specialization: t("specialization")
   };
 }
-var qe;
-const Me = class Me extends zp(Fp) {
+var Ge;
+const Me = class Me extends Kp(Vp) {
   constructor({ actor: t, baseContext: i, initialState: a = null, options: r = {} }) {
     var c, u;
     super(r);
-    ye(this, qe, null);
+    be(this, Ge, null);
     /** @type {{ baseContext: any, state: any }} */
     N(this, "_mwd", { baseContext: null, state: null });
     this.actor = t, this._mwd.baseContext = i ?? {};
-    const n = foundry.utils.deepClone(this._mwd.baseContext.payload ?? {}), o = $n(n.manualModifiers);
+    const n = foundry.utils.deepClone(this._mwd.baseContext.payload ?? {}), o = zn(n.manualModifiers);
     this._mwd.state = foundry.utils.mergeObject(
       {
         payload: n,
         manual: o,
         toggles: {
-          useEdge: va(n, "useEdge"),
-          takeRisks: va(n, "takeRisks"),
-          opponentRoll: va(n, "opponentRoll")
+          useEdge: Ea(n, "useEdge"),
+          takeRisks: Ea(n, "takeRisks"),
+          opponentRoll: Ea(n, "opponentRoll")
         }
       },
       a ?? {},
@@ -14614,13 +14676,13 @@ const Me = class Me extends zp(Fp) {
   }
   async wait() {
     return new Promise((t) => {
-      Pe(this, qe, t), this.render(!0);
+      Pe(this, Ge, t), this.render(!0);
     });
   }
   async close(t = {}) {
-    if (B(this, qe)) {
-      const i = B(this, qe);
-      Pe(this, qe, null), i(null);
+    if (F(this, Ge)) {
+      const i = F(this, Ge);
+      Pe(this, Ge, null), i(null);
     }
     return super.close(t);
   }
@@ -14628,64 +14690,64 @@ const Me = class Me extends zp(Fp) {
   /* Prepare Context             */
   /* --------------------------- */
   async _prepareContext(t) {
-    var q, Y, K, O, D, V, F, pe, Se, he, Ce, Oe, Qe, Mt, Et, Ct, Pt, Nt, Rt, Dt, It, Ot, _t, Lt, $t, xt, nt, Bt, Ft, v, P, j, ae, ce, fe, we, Re;
-    const i = this._mwd.baseContext ?? {}, a = this._mwd.state ?? {}, r = Number.isFinite(Number((q = a == null ? void 0 : a.payload) == null ? void 0 : q.dn)) ? Number(a.payload.dn) : Number.isFinite(Number(i == null ? void 0 : i.dn)) ? Number(i.dn) : Number.isFinite(Number((K = (Y = i == null ? void 0 : i.resolved) == null ? void 0 : Y.difficulty) == null ? void 0 : K.dn)) ? Number(i.resolved.difficulty.dn) : 1, n = (i == null ? void 0 : i.intent) ?? "skill";
+    var V, Y, K, O, R, U, B, ne, oe, he, Ce, De, Ye, Mt, Et, Ct, Pt, Nt, Rt, Dt, It, Ot, _t, Lt, $t, xt, nt, Bt, Ft, zt, v, P, j, ae, de, ge, we;
+    const i = this._mwd.baseContext ?? {}, a = this._mwd.state ?? {}, r = Number.isFinite(Number((V = a == null ? void 0 : a.payload) == null ? void 0 : V.dn)) ? Number(a.payload.dn) : Number.isFinite(Number(i == null ? void 0 : i.dn)) ? Number(i.dn) : Number.isFinite(Number((K = (Y = i == null ? void 0 : i.resolved) == null ? void 0 : Y.difficulty) == null ? void 0 : K.dn)) ? Number(i.resolved.difficulty.dn) : 1, n = (i == null ? void 0 : i.intent) ?? "skill";
     let o, l;
-    const c = Array.isArray(a.manual) ? a.manual.reduce((U, te) => U + Number((te == null ? void 0 : te.value) || 0), 0) : 0;
+    const c = Array.isArray(a.manual) ? a.manual.reduce((H, J) => H + Number((J == null ? void 0 : J.value) || 0), 0) : 0;
     if (n === "edge") {
-      const U = (i == null ? void 0 : i.resolved) ?? {}, te = Array.isArray(U.breakdown) ? U.breakdown : [], _e = (Le) => {
-        var Ue;
-        return Number(((Ue = te.find((x) => x.id === Le)) == null ? void 0 : Ue.value) ?? 0);
-      }, Ie = Number(((O = U == null ? void 0 : U.pool) == null ? void 0 : O.attribute) ?? 0);
+      const H = (i == null ? void 0 : i.resolved) ?? {}, J = Array.isArray(H.breakdown) ? H.breakdown : [], Ie = (_e) => {
+        var He;
+        return Number(((He = J.find((x) => x.id === _e)) == null ? void 0 : He.value) ?? 0);
+      }, Oe = Number(((O = H == null ? void 0 : H.pool) == null ? void 0 : O.attribute) ?? 0);
       o = {
-        pool: Ie,
-        rating: _e("rating"),
-        cap: _e("cap"),
-        modifiers: Number(((D = i == null ? void 0 : i.dice) == null ? void 0 : D.modifiers) ?? 0)
-      }, l = Math.max(0, Ie + o.modifiers + c);
+        pool: Oe,
+        rating: Ie("rating"),
+        cap: Ie("cap"),
+        modifiers: Number(((R = i == null ? void 0 : i.dice) == null ? void 0 : R.modifiers) ?? 0)
+      }, l = Math.max(0, Oe + o.modifiers + c);
     } else {
       o = {
-        attribute: Number(((V = i == null ? void 0 : i.dice) == null ? void 0 : V.attribute) ?? 0),
-        skill: Number(((F = i == null ? void 0 : i.dice) == null ? void 0 : F.skill) ?? 0),
-        bonus: Number(((pe = i == null ? void 0 : i.dice) == null ? void 0 : pe.bonus) ?? 0),
-        specialization: Number(((Se = i == null ? void 0 : i.dice) == null ? void 0 : Se.specialization) ?? 0),
+        attribute: Number(((U = i == null ? void 0 : i.dice) == null ? void 0 : U.attribute) ?? 0),
+        skill: Number(((B = i == null ? void 0 : i.dice) == null ? void 0 : B.skill) ?? 0),
+        bonus: Number(((ne = i == null ? void 0 : i.dice) == null ? void 0 : ne.bonus) ?? 0),
+        specialization: Number(((oe = i == null ? void 0 : i.dice) == null ? void 0 : oe.specialization) ?? 0),
         modifiers: Number(((he = i == null ? void 0 : i.dice) == null ? void 0 : he.modifiers) ?? 0)
       };
-      const U = o.modifiers + c, te = o.attribute + o.skill + o.bonus + o.specialization;
-      l = Math.max(0, te + U);
+      const H = o.modifiers + c, J = o.attribute + o.skill + o.bonus + o.specialization;
+      l = Math.max(0, J + H);
     }
-    const u = Array.isArray((Ce = i == null ? void 0 : i.resolved) == null ? void 0 : Ce.domains) ? i.resolved.domains : [], d = u.includes("physical") ? "physical" : u.includes("mental") ? "mental" : u.includes("social") ? "social" : null, p = (d === "physical" ? ["grit", "chaos"] : d === "mental" ? ["insight", "rumor"] : d === "social" ? ["legend", "credibility"] : []).map((U) => {
-      var te, _e, Ie, Le;
+    const u = Array.isArray((Ce = i == null ? void 0 : i.resolved) == null ? void 0 : Ce.domains) ? i.resolved.domains : [], d = u.includes("physical") ? "physical" : u.includes("mental") ? "mental" : u.includes("social") ? "social" : null, f = (d === "physical" ? ["grit", "chaos"] : d === "mental" ? ["insight", "rumor"] : d === "social" ? ["legend", "credibility"] : []).map((H) => {
+      var J, Ie, Oe, _e;
       return {
-        key: U,
-        label: U.charAt(0).toUpperCase() + U.slice(1),
-        available: Number(((Ie = (_e = (te = this.actor) == null ? void 0 : te.getEdgePool) == null ? void 0 : _e.call(te, U)) == null ? void 0 : Ie.effectiveValue) ?? 0),
-        selected: U === (((Le = a.edge) == null ? void 0 : Le.prePoolKey) ?? null)
+        key: H,
+        label: H.charAt(0).toUpperCase() + H.slice(1),
+        available: Number(((Oe = (Ie = (J = this.actor) == null ? void 0 : J.getEdgePool) == null ? void 0 : Ie.call(J, H)) == null ? void 0 : Oe.effectiveValue) ?? 0),
+        selected: H === (((_e = a.edge) == null ? void 0 : _e.prePoolKey) ?? null)
       };
-    }), f = p.find((U) => U.selected), h = (f == null ? void 0 : f.label) ?? null, g = ((Oe = i == null ? void 0 : i.resolved) == null ? void 0 : Oe.attack) ?? null, y = String(
-      ((Qe = g == null ? void 0 : g.skill) == null ? void 0 : Qe.code) ?? ((Et = (Mt = i == null ? void 0 : i.resolved) == null ? void 0 : Mt.specialization) == null ? void 0 : Et.skillKey) ?? ((Pt = (Ct = i == null ? void 0 : i.resolved) == null ? void 0 : Ct.data) == null ? void 0 : Pt.skillKey) ?? ((Nt = i == null ? void 0 : i.payload) == null ? void 0 : Nt.key) ?? ""
-    ).trim(), b = y ? go(((Rt = this.actor) == null ? void 0 : Rt.system) ?? {}, y) : [], A = String(((Dt = a == null ? void 0 : a.payload) == null ? void 0 : Dt.specializationKey) ?? "").trim(), w = b.find((U) => U.key === A) ?? null;
+    }), p = f.find((H) => H.selected), h = (p == null ? void 0 : p.label) ?? null, g = ((De = i == null ? void 0 : i.resolved) == null ? void 0 : De.attack) ?? null, y = String(
+      ((Ye = g == null ? void 0 : g.skill) == null ? void 0 : Ye.code) ?? ((Et = (Mt = i == null ? void 0 : i.resolved) == null ? void 0 : Mt.specialization) == null ? void 0 : Et.skillKey) ?? ((Pt = (Ct = i == null ? void 0 : i.resolved) == null ? void 0 : Ct.data) == null ? void 0 : Pt.skillKey) ?? ((Nt = i == null ? void 0 : i.payload) == null ? void 0 : Nt.key) ?? ""
+    ).trim(), b = y ? Ao(((Rt = this.actor) == null ? void 0 : Rt.system) ?? {}, y) : [], A = String(((Dt = a == null ? void 0 : a.payload) == null ? void 0 : Dt.specializationKey) ?? "").trim(), w = b.find((H) => H.key === A) ?? null;
     if (n !== "edge") {
       o.specialization = w ? Number(((Ot = (It = i == null ? void 0 : i.resolved) == null ? void 0 : It.specialization) == null ? void 0 : Ot.value) ?? 2) : 0;
-      const U = o.modifiers + c, te = o.attribute + o.skill + o.bonus + o.specialization;
-      l = Math.max(0, te + U);
+      const H = o.modifiers + c, J = o.attribute + o.skill + o.bonus + o.specialization;
+      l = Math.max(0, J + H);
     }
-    const E = Array.isArray((_t = g == null ? void 0 : g.payloadState) == null ? void 0 : _t.payloads) ? g.payloadState.payloads : [], I = String(((Lt = g == null ? void 0 : g.weapon) == null ? void 0 : Lt.category) ?? "").trim().toLowerCase() !== "melee" && E.length > 0, R = String((($t = a == null ? void 0 : a.payload) == null ? void 0 : $t.payloadId) ?? ((xt = g == null ? void 0 : g.payloadState) == null ? void 0 : xt.activePayloadId) ?? "").trim(), _ = E.find((U) => U.id === R) ?? null;
+    const M = Array.isArray((_t = g == null ? void 0 : g.payloadState) == null ? void 0 : _t.payloads) ? g.payloadState.payloads : [], I = String(((Lt = g == null ? void 0 : g.weapon) == null ? void 0 : Lt.category) ?? "").trim().toLowerCase() !== "melee" && M.length > 0, D = String((($t = a == null ? void 0 : a.payload) == null ? void 0 : $t.payloadId) ?? ((xt = g == null ? void 0 : g.payloadState) == null ? void 0 : xt.activePayloadId) ?? "").trim(), L = M.find((H) => H.id === D) ?? null;
     return {
       header: {
         left: ((nt = i == null ? void 0 : i.header) == null ? void 0 : nt.left) ?? "Roll",
         right: ((Bt = i == null ? void 0 : i.header) == null ? void 0 : Bt.right) ?? ((Ft = this.actor) == null ? void 0 : Ft.name) ?? ""
       },
-      formula: String((i == null ? void 0 : i.formula) ?? ((v = i == null ? void 0 : i.resolved) == null ? void 0 : v.formula) ?? "").trim(),
+      formula: String((i == null ? void 0 : i.formula) ?? ((zt = i == null ? void 0 : i.resolved) == null ? void 0 : zt.formula) ?? "").trim(),
       dice: o,
       modifiers: Array.isArray(i.modifiers) ? i.modifiers : [],
-      manual: (a.manual ?? []).map((U) => ({
-        ...U,
-        steps: Wp(Number(U.value ?? 0), -3, 3)
+      manual: (a.manual ?? []).map((H) => ({
+        ...H,
+        steps: Yp(Number(H.value ?? 0), -3, 3)
       })),
       edge: {
         domain: d,
-        choices: p,
+        choices: f,
         selectedLabel: h
       },
       toggles: n === "edge" ? { useEdge: !1, takeRisks: !1, opponentRoll: !1 } : a.toggles,
@@ -14694,32 +14756,32 @@ const Me = class Me extends zp(Fp) {
       dn: r,
       specialization: b.length ? {
         skillCode: y,
-        options: b.map((U) => ({
-          key: U.key,
-          label: U.label,
-          selected: U.key === A
+        options: b.map((H) => ({
+          key: H.key,
+          label: H.label,
+          selected: H.key === A
         })),
         selectedKey: A,
         selectedLabel: (w == null ? void 0 : w.label) ?? ""
       } : null,
       attack: g ? {
-        weaponName: ((P = g == null ? void 0 : g.weapon) == null ? void 0 : P.name) ?? "Weapon",
+        weaponName: ((v = g == null ? void 0 : g.weapon) == null ? void 0 : v.name) ?? "Weapon",
         rangeBand: (g == null ? void 0 : g.rangeBand) ?? "",
-        damageType: ((j = _ == null ? void 0 : _.modifies) == null ? void 0 : j.damageType) || ((ae = g == null ? void 0 : g.weapon) == null ? void 0 : ae.damageTypeLabel) || ((ce = g == null ? void 0 : g.weapon) == null ? void 0 : ce.damageType) || "",
+        damageType: ((P = L == null ? void 0 : L.modifies) == null ? void 0 : P.damageType) || ((j = g == null ? void 0 : g.weapon) == null ? void 0 : j.damageTypeLabel) || ((ae = g == null ? void 0 : g.weapon) == null ? void 0 : ae.damageType) || "",
         usesPayloads: I,
         source: (g == null ? void 0 : g.sourceState) ?? null,
-        payloads: E.map((U) => {
-          var te;
+        payloads: M.map((H) => {
+          var J;
           return {
-            id: U.id,
-            name: U.label,
-            damageType: (te = U.modifies) == null ? void 0 : te.damageType,
-            selected: U.id === R
+            id: H.id,
+            name: H.label,
+            damageType: (J = H.modifies) == null ? void 0 : J.damageType,
+            selected: H.id === D
           };
         }),
-        selectedPayloadId: R,
-        selectedPayloadLabel: (_ == null ? void 0 : _.label) ?? ((fe = g == null ? void 0 : g.payload) == null ? void 0 : fe.label) ?? ((we = g == null ? void 0 : g.weapon) == null ? void 0 : we.payloadLabel) ?? "",
-        selectedSourceLabel: ((Re = g == null ? void 0 : g.sourceState) == null ? void 0 : Re.label) ?? ""
+        selectedPayloadId: D,
+        selectedPayloadLabel: (L == null ? void 0 : L.label) ?? ((de = g == null ? void 0 : g.payload) == null ? void 0 : de.label) ?? ((ge = g == null ? void 0 : g.weapon) == null ? void 0 : ge.payloadLabel) ?? "",
+        selectedSourceLabel: ((we = g == null ? void 0 : g.sourceState) == null ? void 0 : we.label) ?? ""
       } : null
     };
   }
@@ -14727,14 +14789,14 @@ const Me = class Me extends zp(Fp) {
   /* Actions                     */
   /* --------------------------- */
   async _onCancel(t) {
-    if (t == null || t.preventDefault(), B(this, qe)) {
-      const i = B(this, qe);
-      Pe(this, qe, null), i(null);
+    if (t == null || t.preventDefault(), F(this, Ge)) {
+      const i = F(this, Ge);
+      Pe(this, Ge, null), i(null);
     }
     return this.close();
   }
   async _onSubmit(t) {
-    var a, r, n, o, l, c, u, d, m, p, f, h, g;
+    var a, r, n, o, l, c, u, d, m, f, p, h, g;
     t == null || t.preventDefault();
     const i = this._mwd.state;
     if (i.payload.manualModifiers = (i.manual ?? []).filter((y) => {
@@ -14747,13 +14809,13 @@ const Me = class Me extends zp(Fp) {
         label: ((b = y.label) == null ? void 0 : b.trim()) || "Manual",
         value: Number(y.value ?? 0)
       };
-    }), jp(i.payload, i.toggles ?? {}), xn(
+    }), Qp(i.payload, i.toggles ?? {}), Wn(
       i.payload,
-      ((a = i.payload) == null ? void 0 : a.intent) === "attack" ? ((r = i.payload) == null ? void 0 : r.skillKey) ?? ((c = (l = (o = (n = this._mwd.baseContext) == null ? void 0 : n.resolved) == null ? void 0 : o.attack) == null ? void 0 : l.skill) == null ? void 0 : c.code) : ((u = i.payload) == null ? void 0 : u.key) ?? ((p = (m = (d = this._mwd.baseContext) == null ? void 0 : d.resolved) == null ? void 0 : m.data) == null ? void 0 : p.skillKey),
-      (f = i.payload) == null ? void 0 : f.specializationKey
-    ), B(this, qe)) {
-      const y = B(this, qe);
-      Pe(this, qe, null), y({ payload: i.payload });
+      ((a = i.payload) == null ? void 0 : a.intent) === "attack" ? ((r = i.payload) == null ? void 0 : r.skillKey) ?? ((c = (l = (o = (n = this._mwd.baseContext) == null ? void 0 : n.resolved) == null ? void 0 : o.attack) == null ? void 0 : l.skill) == null ? void 0 : c.code) : ((u = i.payload) == null ? void 0 : u.key) ?? ((f = (m = (d = this._mwd.baseContext) == null ? void 0 : d.resolved) == null ? void 0 : m.data) == null ? void 0 : f.skillKey),
+      (p = i.payload) == null ? void 0 : p.specializationKey
+    ), F(this, Ge)) {
+      const y = F(this, Ge);
+      Pe(this, Ge, null), y({ payload: i.payload });
     }
     if (i.payload.edge = i.payload.edge && typeof i.payload.edge == "object" ? i.payload.edge : {}, i.payload.edge.pre = i.payload.edge.pre && typeof i.payload.edge.pre == "object" ? i.payload.edge.pre : {}, (h = i.toggles) != null && h.useEdge) {
       const y = String(((g = i.edge) == null ? void 0 : g.prePoolKey) ?? "").trim() || null;
@@ -14821,7 +14883,7 @@ const Me = class Me extends zp(Fp) {
     t == null || t.preventDefault();
     const a = String(((n = i == null ? void 0 : i.dataset) == null ? void 0 : n.skillCode) ?? "").trim(), r = String((i == null ? void 0 : i.value) ?? "").trim();
     if (a)
-      return xn(this._mwd.state.payload, a, r), this.render(!1);
+      return Wn(this._mwd.state.payload, a, r), this.render(!1);
   }
   _onRender(t, i) {
     var r, n;
@@ -14859,7 +14921,7 @@ const Me = class Me extends zp(Fp) {
     const c = {
       left: (a == null ? void 0 : a.title) ?? "Roll",
       right: (t == null ? void 0 : t.name) ?? ""
-    }, u = r ?? Up(a), d = {
+    }, u = r ?? Jp(a), d = {
       attribute: Number((u == null ? void 0 : u.attribute) ?? 0),
       skill: Number((u == null ? void 0 : u.skill) ?? 0),
       bonus: Number((u == null ? void 0 : u.bonus) ?? 0),
@@ -14870,8 +14932,8 @@ const Me = class Me extends zp(Fp) {
       source: g.source ?? "",
       value: Number(g.value ?? 0)
     }));
-    l.manualModifiers = $n(l.manualModifiers);
-    const f = await new Me({
+    l.manualModifiers = zn(l.manualModifiers);
+    const p = await new Me({
       actor: t,
       baseContext: {
         intent: (a == null ? void 0 : a.intent) ?? "skill",
@@ -14885,10 +14947,10 @@ const Me = class Me extends zp(Fp) {
         dn: Number((l == null ? void 0 : l.dn) ?? ((h = a == null ? void 0 : a.difficulty) == null ? void 0 : h.dn) ?? 1)
       }
     }).wait();
-    return (f == null ? void 0 : f.payload) ?? null;
+    return (p == null ? void 0 : p.payload) ?? null;
   }
 };
-qe = new WeakMap(), N(Me, "DEFAULT_OPTIONS", foundry.utils.mergeObject(
+Ge = new WeakMap(), N(Me, "DEFAULT_OPTIONS", foundry.utils.mergeObject(
   yi(Me, Me, "DEFAULT_OPTIONS"),
   {
     id: "mwd-roll-dialog",
@@ -14917,8 +14979,8 @@ qe = new WeakMap(), N(Me, "DEFAULT_OPTIONS", foundry.utils.mergeObject(
 )), N(Me, "PARTS", {
   body: { template: "systems/mwd/templates/v2/roll/mwd-roll-dialog.hbs" }
 });
-let pr = Me;
-const { ApplicationV2: Hp, HandlebarsApplicationMixin: Gp } = foundry.applications.api, Ji = class Ji extends Gp(Hp) {
+let hr = Me;
+const { ApplicationV2: Xp, HandlebarsApplicationMixin: Zp } = foundry.applications.api, Ji = class Ji extends Zp(Xp) {
   static get DEFAULT_OPTIONS() {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       id: "select-item",
@@ -14978,17 +15040,17 @@ const { ApplicationV2: Hp, HandlebarsApplicationMixin: Gp } = foundry.applicatio
 };
 N(Ji, "PARTS", {
   body: {
-    template: `${H}/dialog/select-item.hbs`
+    template: `${G}/dialog/select-item.hbs`
   }
 });
-let fr = Ji;
-function qp(s = {}) {
+let gr = Ji;
+function ef(s = {}) {
   var t;
   const e = Array.isArray((t = s == null ? void 0 : s.attack) == null ? void 0 : t.targets) ? s.attack.targets : [];
   if (!e.length) throw new Error("Attack requires at least one target.");
   return e;
 }
-function Vp(s = {}, e = {}) {
+function tf(s = {}, e = {}) {
   var a, r, n, o, l, c;
   const t = Math.max(0, Number(((o = (r = (a = s == null ? void 0 : s.attack) == null ? void 0 : a.weapon) == null ? void 0 : r.attackRatingBand) == null ? void 0 : o[(n = s == null ? void 0 : s.attack) == null ? void 0 : n.rangeBand]) ?? 0) || 0), i = Math.max(0, Number(((l = e == null ? void 0 : e.activeArmor) == null ? void 0 : l.defenseBonus) ?? 0) || 0);
   return {
@@ -15011,9 +15073,9 @@ function Vp(s = {}, e = {}) {
     value: t - i
   };
 }
-function Kp(s = {}, e = {}) {
-  var c, u, d, m, p;
-  const t = (s == null ? void 0 : s.attack) ?? {}, i = String(((u = (c = t == null ? void 0 : t.payload) == null ? void 0 : c.modifies) == null ? void 0 : u.damageType) ?? "").trim(), a = Math.max(0, Number(((d = t == null ? void 0 : t.weapon) == null ? void 0 : d.damage) ?? 0) || 0), r = pt(i || ((m = t == null ? void 0 : t.weapon) == null ? void 0 : m.damageType), "concussive"), n = Math.max(0, Number((t == null ? void 0 : t.totalAp) ?? ((p = t == null ? void 0 : t.weapon) == null ? void 0 : p.ap) ?? 0) || 0), o = e.outcome === "graze" ? a / 2 : e.outcome === "hit" ? a : 0, l = o + Number(e.netHits ?? 0);
+function sf(s = {}, e = {}) {
+  var c, u, d, m, f;
+  const t = (s == null ? void 0 : s.attack) ?? {}, i = String(((u = (c = t == null ? void 0 : t.payload) == null ? void 0 : c.modifies) == null ? void 0 : u.damageType) ?? "").trim(), a = Math.max(0, Number(((d = t == null ? void 0 : t.weapon) == null ? void 0 : d.damage) ?? 0) || 0), r = pt(i || ((m = t == null ? void 0 : t.weapon) == null ? void 0 : m.damageType), "concussive"), n = Math.max(0, Number((t == null ? void 0 : t.totalAp) ?? ((f = t == null ? void 0 : t.weapon) == null ? void 0 : f.ap) ?? 0) || 0), o = e.outcome === "graze" ? a / 2 : e.outcome === "hit" ? a : 0, l = o + Number(e.netHits ?? 0);
   return {
     baseDamage: a,
     effectiveWeaponDamage: o,
@@ -15024,7 +15086,7 @@ function Kp(s = {}, e = {}) {
     damageTypeLabel: vt(r)
   };
 }
-async function Yp({ attacker: s, ctx: e, target: t, outcome: i, damage: a } = {}) {
+async function af({ attacker: s, ctx: e, target: t, outcome: i, damage: a } = {}) {
   var l, c, u, d;
   if ((i == null ? void 0 : i.outcome) === "miss")
     return {
@@ -15080,8 +15142,8 @@ async function Yp({ attacker: s, ctx: e, target: t, outcome: i, damage: a } = {}
     notes: String(o.notes ?? "").trim()
   } : { ok: !1, reason: (o == null ? void 0 : o.reason) ?? "Unable to apply attack damage." };
 }
-async function Qp({ attacker: s, ctx: e, outcomeModel: t, target: i } = {}) {
-  const a = Vp(e, i), r = Number((t == null ? void 0 : t.margin) ?? 0), n = r + Math.min(a.value, r), o = r >= 1 ? n > 0 ? "hit" : "graze" : "miss", l = o === "hit" ? Math.max(0, n) : 0, c = Kp(e, { outcome: o, netHits: l }), u = await Yp({
+async function rf({ attacker: s, ctx: e, outcomeModel: t, target: i } = {}) {
+  const a = tf(e, i), r = Number((t == null ? void 0 : t.margin) ?? 0), n = r + Math.min(a.value, r), o = r >= 1 ? n > 0 ? "hit" : "graze" : "miss", l = o === "hit" ? Math.max(0, n) : 0, c = sf(e, { outcome: o, netHits: l }), u = await af({
     attacker: s,
     ctx: e,
     target: i,
@@ -15103,7 +15165,7 @@ async function Qp({ attacker: s, ctx: e, outcomeModel: t, target: i } = {}) {
     damageResult: u
   };
 }
-function Jp(s = []) {
+function nf(s = []) {
   const e = { hits: 0, grazes: 0, misses: 0 };
   for (const t of s)
     (t == null ? void 0 : t.outcome) === "hit" ? e.hits += 1 : (t == null ? void 0 : t.outcome) === "graze" ? e.grazes += 1 : e.misses += 1;
@@ -15112,24 +15174,24 @@ function Jp(s = []) {
     overallOutcome: e.hits > 0 ? "hit" : e.grazes > 0 ? "graze" : "miss"
   };
 }
-async function Xp({ attacker: s, ctx: e, outcomeModel: t } = {}) {
-  const i = qp(e), a = [];
+async function of({ attacker: s, ctx: e, outcomeModel: t } = {}) {
+  const i = ef(e), a = [];
   for (const r of i)
-    a.push(await Qp({ attacker: s, ctx: e, outcomeModel: t, target: r }));
+    a.push(await rf({ attacker: s, ctx: e, outcomeModel: t, target: r }));
   return {
     targetCount: i.length,
     results: a,
-    summary: Jp(a)
+    summary: nf(a)
   };
 }
-const Bn = { execute: rf }, Zp = {
+const Hn = { execute: pf }, lf = {
   physical: ["grit", "chaos"],
   mental: ["insight", "rumor"],
   social: ["legend", "credibility"]
 };
-function ef(s, e) {
+function cf(s, e) {
   var r;
-  const t = Zp[e] ?? [];
+  const t = lf[e] ?? [];
   let i = null, a = -1;
   for (const n of t) {
     const o = (r = s.getEdgePool) == null ? void 0 : r.call(s, n), l = Number((o == null ? void 0 : o.rating) ?? 0), c = Number((o == null ? void 0 : o.value) ?? 0), u = Math.max(0, l - c);
@@ -15137,7 +15199,7 @@ function ef(s, e) {
   }
   return i ?? t[0] ?? null;
 }
-function tf(s) {
+function uf(s) {
   const t = (Array.isArray(s == null ? void 0 : s.manualModifiers) ? s.manualModifiers : []).map((a) => ({
     id: a.id ?? foundry.utils.randomID(),
     label: (a.label ?? "Manual").trim() || "Manual",
@@ -15146,7 +15208,7 @@ function tf(s) {
   })).filter((a) => Number.isFinite(a.value) && a.value !== 0), i = t.reduce((a, r) => a + r.value, 0);
   return { mods: t, total: i };
 }
-function Fn(s = {}) {
+function Un(s = {}) {
   const e = s.toggles ?? {}, t = String((s == null ? void 0 : s.payloadId) ?? (s == null ? void 0 : s.ammoTypeId) ?? "").trim();
   return {
     ...s,
@@ -15156,16 +15218,16 @@ function Fn(s = {}) {
       takeRisks: !!e.takeRisks,
       opponentRoll: !!e.opponentRoll
     },
-    manualModifiers: af(s.manualModifiers)
+    manualModifiers: mf(s.manualModifiers)
   };
 }
-async function sf({ actor: s, payload: e } = {}) {
-  var r, n, o, l, c, u, d, m, p, f, h, g;
+async function df({ actor: s, payload: e } = {}) {
+  var r, n, o, l, c, u, d, m, f, p, h, g;
   if ((e == null ? void 0 : e.intent) !== "attack") return e;
   const t = foundry.utils.deepClone(e ?? {}), i = ((r = s.getPersonalCombatLoadout) == null ? void 0 : r.call(s, { refresh: !0 })) ?? null, a = (y) => {
-    var A, w, E, I, R;
+    var A, w, M, I, D;
     const b = ((w = (A = s.items) == null ? void 0 : A.get) == null ? void 0 : w.call(A, y)) ?? null;
-    return !b || !(((E = b.isPersonalWeapon) == null ? void 0 : E.call(b)) ?? b.type === S.itemType.personalWeapon) || !((I = b.system) != null && I.equipped) ? null : ((R = b.getCombatProfile) == null ? void 0 : R.call(b, { payloadId: t == null ? void 0 : t.payloadId })) ?? null;
+    return !b || !(((M = b.isPersonalWeapon) == null ? void 0 : M.call(b)) ?? b.type === S.itemType.personalWeapon) || !((I = b.system) != null && I.equipped) ? null : ((D = b.getCombatProfile) == null ? void 0 : D.call(b, { payloadId: t == null ? void 0 : t.payloadId })) ?? null;
   };
   if (t.weaponId) {
     const y = a(t.weaponId);
@@ -15175,7 +15237,7 @@ async function sf({ actor: s, payload: e } = {}) {
   }
   if (t.mode === "auto") {
     if (i != null && i.weaponChoiceRequired) {
-      const y = await fr.selectItem(
+      const y = await gr.selectItem(
         "Choose Weapon",
         i.equippedWeapons ?? []
       );
@@ -15184,25 +15246,25 @@ async function sf({ actor: s, payload: e } = {}) {
     if ((l = i == null ? void 0 : i.defaultWeapon) != null && l.isSynthetic || ((c = i == null ? void 0 : i.defaultWeapon) == null ? void 0 : c.id) === "unarmed")
       return t.syntheticWeapon = foundry.utils.deepClone(i.defaultWeapon ?? st.DEFAULT_UNARMED), t.weaponId = t.syntheticWeapon.id, t.rangeBand = t.rangeBand ?? "close", t.payloadId = t.payloadId ?? ((d = (u = t.syntheticWeapon) == null ? void 0 : u.payloadState) == null ? void 0 : d.activePayloadId) ?? "", delete t.mode, t;
     if ((m = i == null ? void 0 : i.defaultWeapon) != null && m.id)
-      return t.weaponId = i.defaultWeapon.id, t.rangeBand = t.rangeBand ?? i.defaultWeapon.defaultRangeBand ?? "close", t.payloadId = t.payloadId ?? ((f = (p = i.defaultWeapon) == null ? void 0 : p.payloadState) == null ? void 0 : f.activePayloadId) ?? "", delete t.mode, t;
+      return t.weaponId = i.defaultWeapon.id, t.rangeBand = t.rangeBand ?? i.defaultWeapon.defaultRangeBand ?? "close", t.payloadId = t.payloadId ?? ((p = (f = i.defaultWeapon) == null ? void 0 : f.payloadState) == null ? void 0 : p.activePayloadId) ?? "", delete t.mode, t;
   }
   if (t.fallback === "unarmed")
     return t.syntheticWeapon = foundry.utils.deepClone(st.DEFAULT_UNARMED), t.weaponId = t.syntheticWeapon.id, t.rangeBand = t.rangeBand ?? "close", t.payloadId = t.payloadId ?? ((g = (h = t.syntheticWeapon) == null ? void 0 : h.payloadState) == null ? void 0 : g.activePayloadId) ?? "", delete t.mode, t;
   throw new Error("Attack could not resolve a usable weapon.");
 }
-function af(s) {
+function mf(s) {
   return Array.isArray(s) ? s.map((e) => ({
     id: (e == null ? void 0 : e.id) ?? foundry.utils.randomID(),
     label: typeof (e == null ? void 0 : e.label) == "string" ? e.label : "Manual",
     value: Number((e == null ? void 0 : e.value) ?? 0)
   })) : [];
 }
-async function rf({ actor: s, payload: e, event: t } = {}) {
-  var K, O, D, V, F, pe, Se, he, Ce, Oe, Qe, Mt, Et, Ct, Pt, Nt, Rt, Dt, It, Ot, _t, Lt, $t, xt, nt, Bt, Ft, v, P, j, ae, ce, fe, we, Re, U, te, _e, Ie, Le, Ue;
+async function pf({ actor: s, payload: e, event: t } = {}) {
+  var K, O, R, U, B, ne, oe, he, Ce, De, Ye, Mt, Et, Ct, Pt, Nt, Rt, Dt, It, Ot, _t, Lt, $t, xt, nt, Bt, Ft, zt, v, P, j, ae, de, ge, we, H, J, Ie, Oe, _e, He;
   if (s != null && s.actor && (s = s.actor), (K = s == null ? void 0 : s.document) != null && K.actor && (s = s.document.actor), !s) throw new Error("MWD.roll.execute requires actor");
   if (!(e != null && e.intent)) throw new Error("MWD.roll.execute requires payload.intent");
-  if (e = Fn(e), e = await sf({ actor: s, payload: e }), !e) return null;
-  let i = await Ta({ actor: s, payload: e, event: t }), a = await In({
+  if (e = Un(e), e = await df({ actor: s, payload: e }), !e) return null;
+  let i = await va({ actor: s, payload: e, event: t }), a = await $n({
     actor: s,
     rollType: e.intent,
     skillId: e.key,
@@ -15211,15 +15273,15 @@ async function rf({ actor: s, payload: e, event: t } = {}) {
     resolved: i,
     context: { event: t }
   });
-  const r = await pr.prompt({
+  const r = await hr.prompt({
     actor: s,
     basePayload: e,
     resolved: i,
     diceParts: {
       attribute: ((O = i == null ? void 0 : i.pool) == null ? void 0 : O.attribute) ?? 0,
-      skill: ((D = i == null ? void 0 : i.pool) == null ? void 0 : D.skill) ?? 0,
-      bonus: ((V = i == null ? void 0 : i.pool) == null ? void 0 : V.bonus) ?? 0,
-      specialization: ((F = i == null ? void 0 : i.pool) == null ? void 0 : F.specialization) ?? 0
+      skill: ((R = i == null ? void 0 : i.pool) == null ? void 0 : R.skill) ?? 0,
+      bonus: ((U = i == null ? void 0 : i.pool) == null ? void 0 : U.bonus) ?? 0,
+      specialization: ((B = i == null ? void 0 : i.pool) == null ? void 0 : B.specialization) ?? 0
     },
     mods: a.mods,
     modTotal: a.total,
@@ -15228,27 +15290,27 @@ async function rf({ actor: s, payload: e, event: t } = {}) {
     }
   });
   if (!r) return null;
-  if (e = Fn(r), i = await Ta({ actor: s, payload: e, event: t }), e.intent === "attack" && !((Se = (pe = i == null ? void 0 : i.attack) == null ? void 0 : pe.capabilityReport) != null && Se.isTemplated) && (delete e.targetSnapshots, delete e.templatePlacement), e.intent === "attack" && e.weaponId) {
+  if (e = Un(r), i = await va({ actor: s, payload: e, event: t }), e.intent === "attack" && !((oe = (ne = i == null ? void 0 : i.attack) == null ? void 0 : ne.capabilityReport) != null && oe.isTemplated) && (delete e.targetSnapshots, delete e.templatePlacement), e.intent === "attack" && e.weaponId) {
     const x = ((Ce = (he = s.items) == null ? void 0 : he.get) == null ? void 0 : Ce.call(he, e.weaponId)) ?? null;
-    if ((Oe = x == null ? void 0 : x.isPersonalWeapon) != null && Oe.call(x)) {
-      const ne = String(e.payloadId ?? "").trim(), gt = String(((Qe = x.system) == null ? void 0 : Qe.selectedPayloadId) ?? "").trim();
-      if (ne && ne !== gt && await ((Mt = x.setActivePayload) == null ? void 0 : Mt.call(x, ne)), !((Et = x.canConsumePayload) != null && Et.call(x, { payloadId: ne }))) {
-        const Fe = (Ct = x.getPayloadState) == null ? void 0 : Ct.call(x, { payloadId: ne }), zt = Fe != null && Fe.payloadLabel ? ` (${Fe.payloadLabel})` : "";
-        return (Pt = ui.notifications) == null || Pt.warn(`Not enough payload${zt} for ${x.name}.`), null;
+    if ((De = x == null ? void 0 : x.isPersonalWeapon) != null && De.call(x)) {
+      const le = String(e.payloadId ?? "").trim(), gt = String(((Ye = x.system) == null ? void 0 : Ye.selectedPayloadId) ?? "").trim();
+      if (le && le !== gt && await ((Mt = x.setActivePayload) == null ? void 0 : Mt.call(x, le)), !((Et = x.canConsumePayload) != null && Et.call(x, { payloadId: le }))) {
+        const Be = (Ct = x.getPayloadState) == null ? void 0 : Ct.call(x, { payloadId: le }), Qe = Be != null && Be.payloadLabel ? ` (${Be.payloadLabel})` : "";
+        return (Pt = ui.notifications) == null || Pt.warn(`Not enough payload${Qe} for ${x.name}.`), null;
       }
     }
   }
   if (e.intent === "attack" && ((Rt = (Nt = i == null ? void 0 : i.attack) == null ? void 0 : Nt.capabilityReport) != null && Rt.isTemplated)) {
-    const x = await op({
+    const x = await hp({
       actor: s,
       attack: i.attack
     });
     if (!x) return null;
     if (!Array.isArray(x.targetSnapshots) || x.targetSnapshots.length === 0)
       return (Dt = ui.notifications) == null || Dt.warn("Template placement did not affect any targets."), null;
-    e.targetSnapshots = x.targetSnapshots, e.templatePlacement = x.placement, i = await Ta({ actor: s, payload: e, event: t });
+    e.targetSnapshots = x.targetSnapshots, e.templatePlacement = x.placement, i = await va({ actor: s, payload: e, event: t });
   }
-  a = await In({
+  a = await $n({
     actor: s,
     rollType: e.intent,
     skillId: e.key,
@@ -15257,80 +15319,80 @@ async function rf({ actor: s, payload: e, event: t } = {}) {
     resolved: i,
     context: { event: t }
   });
-  const { mods: n, total: o } = a, { mods: l, total: c } = tf(e);
+  const { mods: n, total: o } = a, { mods: l, total: c } = uf(e);
   let u = [...n, ...l], d = Number(o ?? 0) + Number(c ?? 0);
-  const m = Number(((It = i == null ? void 0 : i.pool) == null ? void 0 : It.attribute) ?? 0) + Number(((Ot = i == null ? void 0 : i.pool) == null ? void 0 : Ot.skill) ?? 0) + Number(((_t = i == null ? void 0 : i.pool) == null ? void 0 : _t.bonus) ?? 0) + Number(((Lt = i == null ? void 0 : i.pool) == null ? void 0 : Lt.specialization) ?? 0), p = Math.max(0, m + Number(d ?? 0)), f = e.intent !== "initiative", h = f ? nf({ actor: s, ctx: i, payload: e }) : null, g = ($t = h == null ? void 0 : h.pre) != null && $t.spent ? 4 : Number(i.diceTarget ?? i.target ?? 5), y = {
+  const m = Number(((It = i == null ? void 0 : i.pool) == null ? void 0 : It.attribute) ?? 0) + Number(((Ot = i == null ? void 0 : i.pool) == null ? void 0 : Ot.skill) ?? 0) + Number(((_t = i == null ? void 0 : i.pool) == null ? void 0 : _t.bonus) ?? 0) + Number(((Lt = i == null ? void 0 : i.pool) == null ? void 0 : Lt.specialization) ?? 0), f = Math.max(0, m + Number(d ?? 0)), p = e.intent !== "initiative", h = p ? ff({ actor: s, ctx: i, payload: e }) : null, g = ($t = h == null ? void 0 : h.pre) != null && $t.spent ? 4 : Number(i.diceTarget ?? i.target ?? 5), y = {
     snapshot: ((Bt = (nt = (xt = game.mwd) == null ? void 0 : xt.personalCombat) == null ? void 0 : nt.getSnapshot) == null ? void 0 : Bt.call(nt, s)) ?? null
   }, b = it({
     actor: s,
     phase: "onBuildRoll",
-    facts: Nr({ actor: s, resolved: i, payload: e, runtime: y }),
+    facts: Dr({ actor: s, resolved: i, payload: e, runtime: y }),
     packet: {},
     options: { runtime: y, consumeUsage: !0 }
   });
-  await Xt({ actor: s, mutations: b.mutations, runtime: y }), f && ((Ft = h == null ? void 0 : h.pre) != null && Ft.spent) && ((v = h == null ? void 0 : h.pre) != null && v.poolKey) && await ((P = s.spendEdge) == null ? void 0 : P.call(s, h.pre.poolKey, 1));
-  let A, w = 0, E = 0;
-  if (i.rollType === "sum" && ((j = i.sum) != null && j.formula))
+  await Xt({ actor: s, mutations: b.mutations, runtime: y }), p && ((Ft = h == null ? void 0 : h.pre) != null && Ft.spent) && ((zt = h == null ? void 0 : h.pre) != null && zt.poolKey) && await ((v = s.spendEdge) == null ? void 0 : v.call(s, h.pre.poolKey, 1));
+  let A, w = 0, M = 0;
+  if (i.rollType === "sum" && ((P = i.sum) != null && P.formula))
     A = await new Roll(i.sum.formula, i.sum.data ?? {}).evaluate({ async: !0 }), w = Number(A.total ?? 0) + Number(d ?? 0);
   else {
-    A = await new Roll(`${p}d6cs>=${g}`).evaluate({ async: !0 });
-    const x = (ae = A.dice) == null ? void 0 : ae[0];
-    w = Array.isArray(x == null ? void 0 : x.results) ? x.results.filter((ne) => ne.success).length : 0, E = Array.isArray(x == null ? void 0 : x.results) ? x.results.filter((ne) => ne.result === 1).length : 0;
+    A = await new Roll(`${f}d6cs>=${g}`).evaluate({ async: !0 });
+    const x = (j = A.dice) == null ? void 0 : j[0];
+    w = Array.isArray(x == null ? void 0 : x.results) ? x.results.filter((le) => le.success).length : 0, M = Array.isArray(x == null ? void 0 : x.results) ? x.results.filter((le) => le.result === 1).length : 0;
   }
   if (i.intent === "initiative" && (A == null ? void 0 : A.total) != null) {
-    const x = { total: Number(A.total ?? 0) + Number(d ?? 0) }, ne = it({
+    const x = { total: Number(A.total ?? 0) + Number(d ?? 0) }, le = it({
       actor: s,
       phase: "onInitiativeResolved",
-      facts: Do({ actor: s, packet: x, runtime: y }),
+      facts: Lo({ actor: s, packet: x, runtime: y }),
       packet: x,
       options: { runtime: y, consumeUsage: !0 }
     });
-    if (await Xt({ actor: s, mutations: ne.mutations, runtime: y }), ne.modifiers.length) {
-      const gt = ne.modifiers.reduce((Fe, zt) => Fe + Number(zt.value ?? 0), 0);
-      u = u.concat(ne.modifiers), d += gt, w = Number(ne.packet.total ?? 0), await zn({ actor: s, total: ne.packet.total ?? A.total }), i.breakdown = (i.breakdown ?? []).concat(ne.modifiers.map((Fe, zt) => ({
-        id: `traitInitiative${zt + 1}`,
-        label: Fe.label,
-        value: Number(Fe.value ?? 0)
+    if (await Xt({ actor: s, mutations: le.mutations, runtime: y }), le.modifiers.length) {
+      const gt = le.modifiers.reduce((Be, Qe) => Be + Number(Qe.value ?? 0), 0);
+      u = u.concat(le.modifiers), d += gt, w = Number(le.packet.total ?? 0), await jn({ actor: s, total: le.packet.total ?? A.total }), i.breakdown = (i.breakdown ?? []).concat(le.modifiers.map((Be, Qe) => ({
+        id: `traitInitiative${Qe + 1}`,
+        label: Be.label,
+        value: Number(Be.value ?? 0)
       })));
     } else
-      w = Number(x.total ?? 0), await zn({ actor: s, total: x.total });
+      w = Number(x.total ?? 0), await jn({ actor: s, total: x.total });
   }
-  const I = Bp(
+  const I = qp(
     i,
-    { successes: w, raw: (ce = A == null ? void 0 : A.toJSON) == null ? void 0 : ce.call(A) },
+    { successes: w, raw: (ae = A == null ? void 0 : A.toJSON) == null ? void 0 : ae.call(A) },
     null
     // opposed rolls can pass defender result later
-  ), R = I == null ? void 0 : I.edgeEarned;
-  if ((R == null ? void 0 : R.amount) > 0) {
-    const x = (fe = i == null ? void 0 : i.domains) != null && fe.includes("physical") ? "physical" : (we = i == null ? void 0 : i.domains) != null && we.includes("mental") ? "mental" : (Re = i == null ? void 0 : i.domains) != null && Re.includes("social") ? "social" : null, ne = ef(s, x);
-    await ((U = s.gainEdge) == null ? void 0 : U.call(s, ne, R.amount)), I.edgeEarned.pool = ne;
+  ), D = I == null ? void 0 : I.edgeEarned;
+  if ((D == null ? void 0 : D.amount) > 0) {
+    const x = (de = i == null ? void 0 : i.domains) != null && de.includes("physical") ? "physical" : (ge = i == null ? void 0 : i.domains) != null && ge.includes("mental") ? "mental" : (we = i == null ? void 0 : i.domains) != null && we.includes("social") ? "social" : null, le = cf(s, x);
+    await ((H = s.gainEdge) == null ? void 0 : H.call(s, le, D.amount)), I.edgeEarned.pool = le;
   }
-  i.intent === "overload" && await cf({ actor: s, passed: I.passed });
-  let _ = null;
-  i.intent === "attack" && (_ = await Xp({
+  i.intent === "overload" && await yf({ actor: s, passed: I.passed });
+  let L = null;
+  i.intent === "attack" && (L = await of({
     attacker: s,
     ctx: i,
     outcomeModel: I
   }));
-  const q = Ap({
+  const V = Pp({
     actor: s,
     payload: e,
     ctx: i,
     roll: A,
     target: g,
-    pool: p,
+    pool: f,
     mods: u,
     modTotal: d,
     hits: w,
-    ones: E,
+    ones: M,
     edge: h,
     outcomeModel: I
   });
-  _ && (q.attackResult = _, q.damageResult = _.damageResult);
-  const Y = await gl({ resolved: q });
+  L && (V.attackResult = L, V.damageResult = L.damageResult);
+  const Y = await Al({ resolved: V });
   if (e.intent === "attack" && e.weaponId) {
-    const x = ((_e = (te = s.items) == null ? void 0 : te.get) == null ? void 0 : _e.call(te, e.weaponId)) ?? null;
-    (Ie = x == null ? void 0 : x.isPersonalWeapon) != null && Ie.call(x) && (await ((Le = x.consumePayload) == null ? void 0 : Le.call(x, { payloadId: e.payloadId })) || (Ue = ui.notifications) == null || Ue.warn(`Payload could not be consumed for ${x.name}.`));
+    const x = ((Ie = (J = s.items) == null ? void 0 : J.get) == null ? void 0 : Ie.call(J, e.weaponId)) ?? null;
+    (Oe = x == null ? void 0 : x.isPersonalWeapon) != null && Oe.call(x) && (await ((_e = x.consumePayload) == null ? void 0 : _e.call(x, { payloadId: e.payloadId })) || (He = ui.notifications) == null || He.warn(`Payload could not be consumed for ${x.name}.`));
   }
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: s }),
@@ -15338,43 +15400,43 @@ async function rf({ actor: s, payload: e, event: t } = {}) {
     flags: {
       mwd: {
         payload: e,
-        resolved: q
+        resolved: V
       }
     }
   });
 }
-function nf({ actor: s, ctx: e, payload: t }) {
-  var f, h, g, y, b, A, w;
-  const i = of(e == null ? void 0 : e.domains), a = lf[i] ?? null, r = (a == null ? void 0 : a.a) ?? null, n = (a == null ? void 0 : a.b) ?? null, o = [r, n].filter(Boolean), l = !!((f = t == null ? void 0 : t.toggles) != null && f.useEdge) || !!(t != null && t.useEdge);
+function ff({ actor: s, ctx: e, payload: t }) {
+  var p, h, g, y, b, A, w;
+  const i = hf(e == null ? void 0 : e.domains), a = gf[i] ?? null, r = (a == null ? void 0 : a.a) ?? null, n = (a == null ? void 0 : a.b) ?? null, o = [r, n].filter(Boolean), l = !!((p = t == null ? void 0 : t.toggles) != null && p.useEdge) || !!(t != null && t.useEdge);
   let c = String(((g = (h = t == null ? void 0 : t.edge) == null ? void 0 : h.pre) == null ? void 0 : g.poolKey) ?? "").trim() || null;
   c && !o.includes(c) && (c = null);
   const u = l && c ? 1 : 0;
   let d = [...o];
-  u && c && (d = d.filter((E) => E !== c));
+  u && c && (d = d.filter((M) => M !== c));
   let m = String(((b = (y = t == null ? void 0 : t.edge) == null ? void 0 : y.post) == null ? void 0 : b.poolKey) ?? "").trim() || null;
   m && !d.includes(m) && (m = null);
-  const p = Number(((w = (A = t == null ? void 0 : t.edge) == null ? void 0 : A.post) == null ? void 0 : w.spent) ?? 0) ? 1 : 0;
+  const f = Number(((w = (A = t == null ? void 0 : t.edge) == null ? void 0 : A.post) == null ? void 0 : w.spent) ?? 0) ? 1 : 0;
   return {
     domain: i,
     pools: a ? { a: r, b: n } : null,
     pre: { poolKey: c, spent: u },
-    post: { poolKey: m, spent: p },
+    post: { poolKey: m, spent: f },
     allowed: { prePools: o, postPools: d }
   };
 }
-function of(s) {
+function hf(s) {
   return Array.isArray(s) ? s.includes("physical") ? "physical" : s.includes("mental") ? "mental" : s.includes("social") ? "social" : null : null;
 }
-const lf = {
+const gf = {
   physical: { a: "grit", b: "chaos" },
   mental: { a: "insight", b: "rumor" },
   social: { a: "legend", b: "credibility" }
 };
-async function zn({ actor: s, total: e }) {
+async function jn({ actor: s, total: e }) {
   var o, l, c, u, d;
   const t = (l = (o = canvas == null ? void 0 : canvas.tokens) == null ? void 0 : o.controlled) == null ? void 0 : l.find((m) => {
-    var p;
-    return ((p = m.actor) == null ? void 0 : p.id) === s.id;
+    var f;
+    return ((f = m.actor) == null ? void 0 : f.id) === s.id;
   }), i = ((u = (c = s.getActiveTokens) == null ? void 0 : c.call(s, !0, !0)) == null ? void 0 : u[0]) ?? null, a = t ?? i;
   if (!a) {
     (d = ui.notifications) == null || d.warn("Initiative requires a token on the current scene.");
@@ -15396,21 +15458,21 @@ async function zn({ actor: s, total: e }) {
   }
   n && await n.update({ initiative: Number(e) });
 }
-async function cf({ actor: s, passed: e }) {
+async function yf({ actor: s, passed: e }) {
   e || await s.update({ "system.burn.overloaded": !0 });
 }
-const uf = /* @__PURE__ */ new Set(["physical", "mental", "social"]);
-function df(s) {
+const bf = /* @__PURE__ */ new Set(["physical", "mental", "social"]);
+function Sf(s) {
   if (s == null || s === "" || s === "—" || s === "–") return 0;
   const e = Number(s);
   return Number.isFinite(e) ? e : null;
 }
-function mf(s) {
+function Af(s) {
   if (!s) return;
   const e = String(s).trim().toLowerCase();
-  return uf.has(e) ? e : void 0;
+  return bf.has(e) ? e : void 0;
 }
-class pf {
+class wf {
   constructor() {
     N(this, "id", "mwd.itemModifiers");
     N(this, "label", "Item Modifiers");
@@ -15425,7 +15487,7 @@ class pf {
       if (!(!Array.isArray(o) || o.length === 0))
         for (const l of o) {
           if (!l) continue;
-          const c = df(l.value);
+          const c = Sf(l.value);
           if (c === null) {
             console.warn("MWD | Dropping item modifier with invalid value", {
               actor: t.name,
@@ -15438,14 +15500,14 @@ class pf {
             label: l.label ?? n.name,
             value: c,
             source: n.name,
-            domain: mf(l.domain)
+            domain: Af(l.domain)
           });
         }
     }
     return i;
   }
 }
-const Ma = {
+const Ca = {
   prone: {
     label: "Prone",
     mods: [
@@ -15472,7 +15534,7 @@ const Ma = {
     ]
   }
 };
-class ff {
+class Tf {
   constructor() {
     N(this, "id", "mwd.statusEffects");
     N(this, "label", "Status Effects");
@@ -15483,7 +15545,7 @@ class ff {
     if (!e || !t) return [];
     const i = [];
     for (const r of t) {
-      const n = Ma == null ? void 0 : Ma[r];
+      const n = Ca == null ? void 0 : Ca[r];
       if ((a = n == null ? void 0 : n.mods) != null && a.length)
         for (const o of n.mods) {
           const l = Array.isArray(o.domains) ? o.domains : [], c = o.value;
@@ -15506,7 +15568,7 @@ class ff {
     return i;
   }
 }
-class hf {
+class kf {
   constructor() {
     N(this, "id", "mwd.baseRollModifiers");
     N(this, "label", "Roll (Base)");
@@ -15537,19 +15599,19 @@ class hf {
     }), t;
   }
 }
-class gf {
+class vf {
   constructor() {
     N(this, "id", "mwd.condition");
     N(this, "label", "Condition");
   }
   collect({ actor: e, rollType: t } = {}) {
-    var o, l, c, u, d, m, p, f;
+    var o, l, c, u, d, m, f, p;
     if (!e) return [];
     if (t === "edge") return [];
     const i = ((o = e.system) == null ? void 0 : o.derived) ?? {}, a = Number(
       ((l = i == null ? void 0 : i.condition) == null ? void 0 : l.physicalPenalty) ?? ((u = (c = i == null ? void 0 : i.monitors) == null ? void 0 : c.physical) == null ? void 0 : u.penalty) ?? 0
     ), r = Number(
-      ((d = i == null ? void 0 : i.condition) == null ? void 0 : d.fatiguePenalty) ?? ((p = (m = i == null ? void 0 : i.monitors) == null ? void 0 : m.fatigue) == null ? void 0 : p.penalty) ?? 0
+      ((d = i == null ? void 0 : i.condition) == null ? void 0 : d.fatiguePenalty) ?? ((f = (m = i == null ? void 0 : i.monitors) == null ? void 0 : m.fatigue) == null ? void 0 : f.penalty) ?? 0
     ), n = [];
     return Number.isFinite(a) && a !== 0 && n.push({
       id: "conditionPhysical",
@@ -15563,10 +15625,10 @@ class gf {
       value: r,
       source: "Fatigue Track"
       // domain: "physical" // optional
-    }), console.log("MWD|condition derived snapshot", e.name, foundry.utils.deepClone((f = e.system) == null ? void 0 : f.derived)), n;
+    }), console.log("MWD|condition derived snapshot", e.name, foundry.utils.deepClone((p = e.system) == null ? void 0 : p.derived)), n;
   }
 }
-const yf = {
+const Mf = {
   id: "burn",
   async collect(s) {
     var a, r;
@@ -15582,16 +15644,16 @@ const yf = {
     }];
   }
 };
-class bf {
+class Ef {
   constructor() {
     N(this, "id", "mwd.lifeModules");
     N(this, "label", "Life Modules");
   }
   collect({ actor: e, resolved: t } = {}) {
-    return Vu({ actor: e, resolved: t });
+    return Ju({ actor: e, resolved: t });
   }
 }
-class Sf {
+class Cf {
   constructor() {
     N(this, "id", "mwd.traits");
     N(this, "label", "Traits");
@@ -15605,36 +15667,36 @@ class Sf {
     return it({
       actor: e,
       phase: "onBuildRoll",
-      facts: Nr({ actor: e, resolved: t, payload: i, runtime: a }),
+      facts: Dr({ actor: e, resolved: t, payload: i, runtime: a }),
       packet: {},
       options: { runtime: a, consumeUsage: !1 }
     }).modifiers;
   }
 }
-function Af() {
+function Pf() {
   Hooks.on("renderChatMessageHTML", (s, e) => {
     e.addEventListener("click", (t) => {
       const i = t.target.closest("[data-mwd-action]");
       if (!i) return;
       const a = String(i.dataset.mwdAction || "").trim();
-      a && a === "edgePostReroll" && wf(t, s);
+      a && a === "edgePostReroll" && Nf(t, s);
     });
   });
 }
-async function wf(s, e) {
-  var f, h, g, y, b, A, w, E, I, R, _, q, Y, K, O, D, V;
+async function Nf(s, e) {
+  var p, h, g, y, b, A, w, M, I, D, L, V, Y, K, O, R, U;
   s.preventDefault();
-  const t = s.target.closest("[data-mwd-action='edgePostReroll']"), i = String(((f = t == null ? void 0 : t.dataset) == null ? void 0 : f.poolKey) ?? "").trim();
+  const t = s.target.closest("[data-mwd-action='edgePostReroll']"), i = String(((p = t == null ? void 0 : t.dataset) == null ? void 0 : p.poolKey) ?? "").trim();
   if (!i) return;
   const a = foundry.utils.deepClone((g = (h = e == null ? void 0 : e.flags) == null ? void 0 : h.mwd) == null ? void 0 : g.resolved);
   if (!a || Number(((b = (y = a == null ? void 0 : a.edge) == null ? void 0 : y.post) == null ? void 0 : b.spent) ?? 0) === 1) return;
   if (!(Array.isArray((w = (A = a == null ? void 0 : a.edge) == null ? void 0 : A.allowed) == null ? void 0 : w.postPools) ? a.edge.allowed.postPools : []).includes(i)) {
-    (I = (E = ui.notifications) == null ? void 0 : E.warn) == null || I.call(E, `Post-spend pool not allowed: ${i}`);
+    (I = (M = ui.notifications) == null ? void 0 : M.warn) == null || I.call(M, `Post-spend pool not allowed: ${i}`);
     return;
   }
-  const n = Array.isArray((R = a == null ? void 0 : a.roll) == null ? void 0 : R.failureDiceRefs) ? a.roll.failureDiceRefs : [];
+  const n = Array.isArray((D = a == null ? void 0 : a.roll) == null ? void 0 : D.failureDiceRefs) ? a.roll.failureDiceRefs : [];
   if (n.length <= 0) {
-    (q = (_ = ui.notifications) == null ? void 0 : _.info) == null || q.call(_, "No failures to reroll.");
+    (V = (L = ui.notifications) == null ? void 0 : L.info) == null || V.call(L, "No failures to reroll.");
     return;
   }
   const o = await fromUuid(a.actorUuid);
@@ -15643,7 +15705,7 @@ async function wf(s, e) {
     return;
   }
   await ((O = o.spendEdge) == null ? void 0 : O.call(o, i, 1));
-  const l = Number(((D = a == null ? void 0 : a.roll) == null ? void 0 : D.target) ?? 5), u = (V = (await new Roll(`${n.length}d6cs>=${l}`).evaluate()).dice) == null ? void 0 : V[0], d = Array.isArray(u == null ? void 0 : u.results) ? u.results : [], m = d.filter((F) => F.success).length;
+  const l = Number(((R = a == null ? void 0 : a.roll) == null ? void 0 : R.target) ?? 5), u = (U = (await new Roll(`${n.length}d6cs>=${l}`).evaluate()).dice) == null ? void 0 : U[0], d = Array.isArray(u == null ? void 0 : u.results) ? u.results : [], m = d.filter((B) => B.success).length;
   a.outcome = a.outcome ?? {}, a.outcome.hits = Number(a.outcome.hits ?? 0) + m, a.edge = a.edge ?? {}, a.edge.post = { poolKey: i, spent: 1 }, a.edge.availableActions = {
     ...a.edge.availableActions ?? {},
     canSpendPost: !1,
@@ -15653,25 +15715,25 @@ async function wf(s, e) {
     label: "Post Reroll",
     faces: 6,
     termIndex: null,
-    dice: d.map((F, pe) => {
-      const Se = Number(F.result), he = !!F.success;
+    dice: d.map((B, ne) => {
+      const oe = Number(B.result), he = !!B.success;
       return {
-        ref: `post:${pe}`,
-        face: Se,
+        ref: `post:${ne}`,
+        face: oe,
         isSuccess: he,
         isFailure: !he,
-        tooltip: he ? `Post die ${pe + 1}: ${Se} (Success vs TN ${l})` : `Post die ${pe + 1}: ${Se} (Failure vs TN ${l})`
+        tooltip: he ? `Post die ${ne + 1}: ${oe} (Success vs TN ${l})` : `Post die ${ne + 1}: ${oe} (Failure vs TN ${l})`
       };
     })
   });
-  const p = await gl({ resolved: a });
+  const f = await Al({ resolved: a });
   await e.update({
-    content: p,
+    content: f,
     "flags.mwd.resolved": a,
     "flags.mwd.payload.edge.post": { poolKey: i, spent: 1 }
   });
 }
-function Tf() {
+function Rf() {
   Object.assign(CONFIG.fontDefinitions, {
     "MWD UI": {
       editor: !0,
@@ -15714,29 +15776,29 @@ function Tf() {
     }
   });
 }
-function kf() {
+function Df() {
   return {
     get(s) {
       return at(s);
     },
     getSkills({ withKnowledge: s = !1 } = {}) {
-      return Ls();
+      return $s();
     },
     list() {
-      return Ls();
+      return $s();
     }
   };
 }
-function vf() {
+function If() {
   return {
     get(s) {
       return Qt(s);
     },
     list() {
-      return Xs();
+      return Zs();
     },
     listByType(s) {
-      return Ir(s);
+      return _r(s);
     },
     getTypeLabel(s) {
       return Li(s);
@@ -15746,13 +15808,13 @@ function vf() {
     }
   };
 }
-function Mf() {
+function Of() {
   return {
     normalizeQualitySystem(s) {
       return tt(s);
     },
     getEditorConfig() {
-      return Co();
+      return Do();
     },
     evaluatePhase(s) {
       return it(s);
@@ -15761,55 +15823,55 @@ function Mf() {
       return Xt(s);
     },
     buildRollFacts(s) {
-      return Nr(s);
+      return Dr(s);
     },
     buildActionCostFacts(s) {
-      return Ro(s);
+      return _o(s);
     },
     buildBurnFacts(s) {
-      return Ba(s);
+      return za(s);
     },
     buildInitiativeFacts(s) {
-      return Do(s);
+      return Lo(s);
     },
     buildDamageFacts(s) {
-      return Io(s);
+      return $o(s);
     },
     buildEdgeFacts(s) {
-      return Fa(s);
+      return Wa(s);
     },
     buildEndOfActivationFacts(s) {
-      return Oo(s);
+      return xo(s);
     }
   };
 }
-class Br {
+class zr {
   static start() {
-    const e = new Br();
+    const e = new zr();
     Hooks.once("init", () => e.onInit()), Hooks.once("ready", () => e.onReady());
   }
   async onInit() {
-    console.log(le + "AnarchySystem.onInit"), game.system.mwd = this, game.system.anarchy = this, game.mwd ?? (game.mwd = {}), Tf(), Af(), Yd("mwd"), game.mwd.roll = Bn, game.mwd.personalCombat = re, game.mwd.harm = Ze, this.roll = Bn, this.personalCombat = re, this.harm = Ze, this.skills = kf(), this.lifeModules = vf(), this.traits = Mf(), this.remoteCall = new Oa(), game.system.mwd.skills = this.skills, game.system.mwd.lifeModules = this.lifeModules, game.system.mwd.traits = this.traits, game.mwd.skills = this.skills, game.mwd.lifeModules = this.lifeModules, game.mwd.traits = this.traits, ie.init(), this.modifiers = new X(), bt.register(new pf()), bt.register(new ff()), bt.register(new hf()), bt.register(new gf()), bt.register(yf), bt.register(new bf()), bt.register(new Sf()), bt.register(new Md()), Handlebars.registerHelper("mwdClassList", (e) => Array.isArray(e) ? e.join(" ") : typeof e == "string" ? e : ""), this.actorClasses = {
-      character: hn,
-      npc: hn,
-      vehicle: Ko,
-      battlemech: Td
-    }, this.hooks = new ci(), this.styles = new ld(), this.handlebarsManager = new Or(), re.init(), bm.register(), console.log(le + "AnarchySystem.onInit | loading system"), CONFIG.ANARCHY = ge, CONFIG.Combat.initiative = { formula: "2d6" }, CONFIG.statusEffects.push({
+    console.log(ue + "AnarchySystem.onInit"), game.system.mwd = this, game.system.anarchy = this, game.mwd ?? (game.mwd = {}), Rf(), Pf(), Zd("mwd"), game.mwd.roll = Hn, game.mwd.personalCombat = re, game.mwd.harm = Ze, this.roll = Hn, this.personalCombat = re, this.harm = Ze, this.skills = Df(), this.lifeModules = If(), this.traits = Of(), this.remoteCall = new La(), game.system.mwd.skills = this.skills, game.system.mwd.lifeModules = this.lifeModules, game.system.mwd.traits = this.traits, game.mwd.skills = this.skills, game.mwd.lifeModules = this.lifeModules, game.mwd.traits = this.traits, ie.init(), this.modifiers = new Z(), bt.register(new wf()), bt.register(new Tf()), bt.register(new kf()), bt.register(new vf()), bt.register(Mf), bt.register(new Ef()), bt.register(new Cf()), bt.register(new Nd()), Handlebars.registerHelper("mwdClassList", (e) => Array.isArray(e) ? e.join(" ") : typeof e == "string" ? e : ""), this.actorClasses = {
+      character: bn,
+      npc: bn,
+      vehicle: Xo,
+      battlemech: Ed
+    }, this.hooks = new ci(), this.styles = new md(), this.handlebarsManager = new Lr(), re.init(), Tm.register(), console.log(ue + "AnarchySystem.onInit | loading system"), CONFIG.ANARCHY = ye, CONFIG.Combat.initiative = { formula: "2d6" }, CONFIG.statusEffects.push({
       id: "overloaded",
       name: "Overloaded",
       icon: "systems/mwd/img/icons/status/surge.svg"
-    }), CONFIG.Actor.documentClass = jm, CONFIG.Item.documentClass = $i, $i.init(), Pm(), _m(), await xm(), console.log(le + "AnarchySystem.onInit | done");
+    }), CONFIG.Actor.documentClass = Qm, CONFIG.Item.documentClass = $i, $i.init(), _m(), Hm(), await Gm(), console.log(ue + "AnarchySystem.onInit | done");
   }
   async onReady() {
-    if (console.log(le + "AnarchySystem.onReady"), await re.onReady(), !game.user.isGM) return;
-    await Wu();
+    if (console.log(ue + "AnarchySystem.onReady"), await re.onReady(), !game.user.isGM) return;
+    await Gu();
     const e = game.settings.get(T, "enableGMGadget");
     if (!e) {
-      console.log(`${le}GMManager render skipped (enableGMGadget=false)`);
+      console.log(`${ue}GMManager render skipped (enableGMGadget=false)`);
       return;
     }
-    game.mwd = game.mwd ?? {}, game.mwd.gmGadget = () => Qd({ systemId: T }).render({ force: !0 }), e && game.mwd.gmGadget();
+    game.mwd = game.mwd ?? {}, game.mwd.gmGadget = () => em({ systemId: T }).render({ force: !0 }), e && game.mwd.gmGadget();
   }
 }
-Br.start();
+zr.start();
 //# sourceMappingURL=index.mjs.map

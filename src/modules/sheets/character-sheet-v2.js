@@ -530,6 +530,7 @@ ctx.edgeConsole.poolsOrdered = order
     /* -------------------------------------------- */
 
     ctx.bio = {
+      fields:          ctx.bio?.fields          ?? {},
       faction:         sys.biography?.faction         ?? "",
       age:             sys.biography?.age             ?? "",
       rank:            sys.biography?.rank            ?? "",

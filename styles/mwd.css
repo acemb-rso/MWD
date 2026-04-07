@@ -4209,6 +4209,38 @@
   background: #f4ead2;
 }
 
+/* Item rich text needs its own contrast; Foundry editor content can otherwise inherit low-contrast chrome styles. */
+.mwd-sheet.item-sheet prose-mirror {
+  color: var(--mwd-item-ink);
+  text-shadow: none;
+}
+
+.mwd-sheet.item-sheet prose-mirror .editor-content,
+.mwd-sheet.item-sheet prose-mirror .ProseMirror {
+  min-height: 7rem;
+  padding: 0.65rem 0.75rem;
+  color: var(--mwd-item-ink);
+  text-shadow: none;
+  background: rgba(255, 248, 228, 0.68);
+  border: 1px solid rgba(96, 80, 52, 0.28);
+  border-radius: 8px;
+}
+
+.mwd-sheet.item-sheet prose-mirror .editor-content :where(p, div, span, li, td, th, blockquote, h1, h2, h3, h4, h5, h6),
+.mwd-sheet.item-sheet prose-mirror .ProseMirror :where(p, div, span, li, td, th, blockquote, h1, h2, h3, h4, h5, h6) {
+  color: inherit;
+  text-shadow: none;
+}
+
+/* Rich text content should not inherit the sheet chrome's uppercase styling. */
+.mwd-sheet prose-mirror .editor-content,
+.mwd-sheet prose-mirror .editor-content *,
+.mwd-sheet prose-mirror .ProseMirror,
+.mwd-sheet prose-mirror .ProseMirror * {
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 /* Visual mood / values */
 /* appv2/themes/_index.scss */
 /* Default theme: gunmetal, restrained contrast */

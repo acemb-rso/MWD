@@ -53,10 +53,11 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
       && this.item.isPersonalWeapon?.()
     );
 
-    context.itemSheet = foundry.utils.mergeObject(context.itemSheet ?? {}, {
+    context.itemSheet = {
+      ...(context.itemSheet ?? {}),
       canAttack,
       attackDisabled: !canAttack || !Boolean(this.item.system?.equipped)
-    });
+    };
     context.itemSheet.summaryChips = this._getSummaryChips(profile);
     context.itemSheet.reloadState = this._getReloadDisplayState(profile);
 

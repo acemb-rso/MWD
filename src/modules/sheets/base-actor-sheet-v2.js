@@ -18,6 +18,13 @@ import { notifyRollError } from "../roll/roll-errors.js";
  * - No i18n usage (fork requirement)
  */
 const { HandlebarsApplicationMixin } = foundry.applications.api;
+const { HTMLField } = foundry.data.fields;
+
+function createActorHTMLField(name) {
+  const field = new HTMLField({ required: false, blank: true, initial: "" });
+  field.name = name;
+  return field;
+}
 
 export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2) {
   #editing = false;
@@ -384,6 +391,27 @@ _initializeApplicationOptions(options) {
       });
      }
 
+    for (const editor of root.querySelectorAll('prose-mirror[name="system.biography.history"]')) {
+      editor.addEventListener("change", event => {
+        event.preventDefault();
+        void this._updateRichTextHistory(editor);
+      });
+    }
+  }
+
+  async _updateRichTextHistory(editor) {
+    if (!this.isEditable || editor?.name !== "system.biography.history") return;
+
+    const value = String(editor.value ?? "");
+    const current = String(foundry.utils.getProperty(this.actor, "system.biography.history") ?? "");
+    if (value === current) return;
+
+    try {
+      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+      await actorWriteTarget.update({ "system.biography.history": value });
+    } catch (err) {
+      console.warn("MWD | Rich text history update failed:", err);
+    }
   }
 
   async _commitEditsToActor() {
@@ -521,6 +549,12 @@ async _prepareContext(options) {
 
   // ---- Skills display model (CSB Skills tab expects this) ----
   hbsData.skillsDisplay = buildSkillDisplay(this.actor?.system ?? {});
+  hbsData.bio = {
+    ...(hbsData.bio ?? {}),
+    fields: {
+      history: createActorHTMLField("system.biography.history")
+    }
+  };
 
   // ---- Items: classify into buckets if helper exists ----
   hbsData.items ??= {};

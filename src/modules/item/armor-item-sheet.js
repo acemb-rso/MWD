@@ -94,7 +94,7 @@ export class ArmorItemSheet extends BaseItemSheet {
       ?? 0
     );
     context.armorModifierSummary = this._getArmorModifierSummary(armorState);
-    context.itemSheet = foundry.utils.mergeObject(context.itemSheet ?? {}, {});
+    context.itemSheet = { ...(context.itemSheet ?? {}) };
     context.itemSheet.summaryChips = this._getSummaryChips(armorState);
     context.armorEditor = {
       standardTraits: [...ARMOR_STANDARD_TRAITS]
