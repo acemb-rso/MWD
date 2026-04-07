@@ -151,12 +151,26 @@ export function buildResolved({
     domains: Array.isArray(ctx?.domains) ? ctx.domains : [],
     attack: ctx?.attack ?? null,
     specialization: ctx?.specialization ?? null,
+    dn: ctx?.dn ?? (
+      ctx?.difficulty?.dn !== undefined
+        ? {
+            parts: [{
+              id: "difficulty.current",
+              label: "DN",
+              value: Number(ctx.difficulty.dn ?? 0),
+              tags: ["manual"]
+            }],
+            total: Number(ctx.difficulty.dn ?? 0)
+          }
+        : null
+    ),
 
     // Minimal context snapshot so chat-actions can recompute interpretation
     // after post-spend rerolls mutate hits.
     ctxSnapshot: {
        rollType: ctx?.rollType ?? "simple",
        difficulty: ctx?.difficulty ?? null,
+       dn: ctx?.dn ?? null,
        opposed: ctx?.opposed ?? null,
        net: ctx?.net ?? null,
        edge: {

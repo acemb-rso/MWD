@@ -437,7 +437,6 @@ async function execute({ actor, payload, event } = {}) {
 
   if (attackExecution) {
     resolved.attackResult = attackExecution;
-    resolved.damageResult = attackExecution.damageResult;
   }
 
   /* --------------------------- */

@@ -9,6 +9,7 @@ export function enhanceAttack(resolved, vm) {
 
   const targetResults = Array.isArray(attackResult?.results) ? attackResult.results : [];
   const summary = attackResult?.summary ?? summarizeTargetResults(targetResults);
+  const hasAppliedMutation = targetResults.some(result => Boolean(result?.queuedMutation?.applied));
 
   const modsApplied = Array.isArray(r?.modifiers?.applied) ? r.modifiers.applied : [];
   const modTotal = Number(r?.modifiers?.total ?? 0);
@@ -25,7 +26,7 @@ export function enhanceAttack(resolved, vm) {
 
   const edge = r?.edge ?? null;
   const failureRefs = Array.isArray(r?.roll?.failureDiceRefs) ? r.roll.failureDiceRefs : [];
-  const canPost = Boolean(edge?.availableActions?.canPostRerollFailures);
+  const canPost = Boolean(edge?.availableActions?.canPostRerollFailures) && !hasAppliedMutation;
   const postPools = Array.isArray(edge?.allowed?.postPools) ? edge.allowed.postPools : [];
 
   if (edge?.domain) {
@@ -71,13 +72,15 @@ export function enhanceAttack(resolved, vm) {
   });
 
   for (const result of targetResults) {
+    const arTotal = Number(result?.cq?.ar?.total ?? 0);
+    const drTotal = Number(result?.cq?.dr?.total ?? 0);
     vm.metaRows.push({
-      text: `${result?.target?.name ?? "Target"}: ${String(result?.outcome ?? "miss").toUpperCase()} | CQ ${fmt(result?.cq?.value ?? 0)} | Net ${Number(result?.netHits ?? 0)}`,
-      title: ""
+      text: `${result?.target?.name ?? "Target"}: ${String(result?.outcome ?? "miss").toUpperCase()} | CQ ${fmt(result?.cq?.value ?? 0)} (AR ${arTotal} - DR ${drTotal}) | Net ${Number(result?.netHits ?? 0)}`,
+      title: cqTooltip(result?.cq)
     });
   }
 
-  for (const result of targetResults) {
+  for (const [index, result] of targetResults.entries()) {
     const damage = result?.damage ?? null;
     if (damage && result?.outcome !== "miss") {
       vm.footerRows.push({
@@ -88,8 +91,10 @@ export function enhanceAttack(resolved, vm) {
 
     const damageResult = result?.damageResult ?? null;
     if (damageResult?.ok && !damageResult?.skipped) {
+      const queuedMutation = result?.queuedMutation ?? damageResult?.queuedMutation ?? null;
+      const isApplied = Boolean(queuedMutation?.applied || damageResult?.applied);
       vm.footerRows.push({
-        text: `${damageResult.actorName ?? result?.target?.name ?? "Target"}: Applied ${Number(damageResult.finalDamage ?? damageResult.appliedDelta ?? 0)}`,
+        text: `${damageResult.actorName ?? result?.target?.name ?? "Target"}: ${isApplied ? "Applied" : "Queued"} ${Number(damageResult.finalDamage ?? damageResult.appliedDelta ?? 0)}`,
         title: ""
       });
       if (damageResult.beforeLabel && damageResult.afterLabel) {
@@ -104,6 +109,14 @@ export function enhanceAttack(resolved, vm) {
           title: ""
         });
       }
+      if (queuedMutation && !isApplied) {
+        vm.actions.push({
+          action: "applyAttackDamage",
+          label: `Apply Damage: ${damageResult.actorName ?? result?.target?.name ?? "Target"}`,
+          dataset: { "result-index": String(index) },
+          cssClass: "mwd-apply-attack-damage"
+        });
+      }
     } else if (damageResult?.reason) {
       vm.footerRows.push({
         text: `${result?.target?.name ?? "Target"}: ${damageResult.reason}`,
@@ -111,6 +124,15 @@ export function enhanceAttack(resolved, vm) {
       });
     }
   }
+}
+
+function cqTooltip(cq = {}) {
+  const ar = Array.isArray(cq?.ar?.parts) ? cq.ar.parts : [];
+  const dr = Array.isArray(cq?.dr?.parts) ? cq.dr.parts : [];
+  return [
+    ...ar.map(part => `AR - ${part.label}: ${fmt(part.value)}`),
+    ...dr.map(part => `DR - ${part.label}: ${fmt(part.value)}`)
+  ].join("\n");
 }
 
 function summarizeTargetResults(results = []) {

@@ -252,10 +252,10 @@ export class HarmEngine {
     let result;
     switch (String(payload?.mode ?? "").trim()) {
       case "attackDamage":
-        result = await this._applyAttackDamage(target.actor, payload);
+        result = await this._applyAttackDamage(target.actor, payload, options);
         break;
       case "trackDelta":
-        result = await this._applyTrackDelta(target.actor, payload);
+        result = await this._applyTrackDelta(target.actor, payload, options);
         break;
       case "burnDelta":
         result = await this._applyBurnDelta(target.actor, payload);
@@ -273,10 +273,11 @@ export class HarmEngine {
       token: target.token,
       actorName: target.actor.name || "Character",
       sourceType: target.source,
+      dryRun: Boolean(options.dryRun),
       ...result,
     };
 
-    if (options.logToChat) {
+    if (options.logToChat && !options.dryRun) {
       const content = buildChatContent(finalResult);
       const chatData = applyChatVisibility({
         speaker: ChatMessage.getSpeaker({ actor: target.actor, token: target.token }),
@@ -285,11 +286,13 @@ export class HarmEngine {
       await ChatMessage.create(chatData);
     }
 
-    PersonalCombatTracker.renderOpenCharacterSheets?.(target.actor.id);
+    if (!options.dryRun) {
+      PersonalCombatTracker.renderOpenCharacterSheets?.(target.actor.id);
+    }
     return finalResult;
   }
 
-  static async _applyTrackDelta(actor, payload) {
+  static async _applyTrackDelta(actor, payload, options = {}) {
     const track = payload?.track === TEMPLATE.monitors.fatigue
       ? TEMPLATE.monitors.fatigue
       : TEMPLATE.monitors.physical;
@@ -306,12 +309,14 @@ export class HarmEngine {
         effects: payload?.effects ?? {},
         source: payload?.source,
         notes: payload?.notes,
-      });
+      }, options);
     }
 
     const before = getMonitorValue(actor, track);
-    await Checkbars.addCounter(actor, track, delta);
-    const after = getMonitorValue(actor, track);
+    if (!options.dryRun) {
+      await Checkbars.addCounter(actor, track, delta);
+    }
+    const after = options.dryRun ? Math.max(0, before + delta) : getMonitorValue(actor, track);
 
     return {
       mode: "trackDelta",
@@ -372,7 +377,7 @@ export class HarmEngine {
     };
   }
 
-  static async _applyAttackDamage(actor, payload) {
+  static async _applyAttackDamage(actor, payload, options = {}) {
     return this._applyPersonalArmorAwareDamage(actor, {
       mode: "attackDamage",
       track: payload?.track ?? TEMPLATE.monitors.physical,
@@ -383,10 +388,11 @@ export class HarmEngine {
       effects: payload?.effects ?? {},
       source: payload?.source,
       notes: payload?.notes,
-    });
+    }, options);
   }
 
-  static async _applyPersonalArmorAwareDamage(actor, payload) {
+  static async _applyPersonalArmorAwareDamage(actor, payload, options = {}) {
+    const dryRun = Boolean(options.dryRun);
     const track = payload?.track === TEMPLATE.monitors.fatigue
       ? TEMPLATE.monitors.fatigue
       : TEMPLATE.monitors.physical;
@@ -445,10 +451,12 @@ export class HarmEngine {
       },
       options: { runtime, consumeUsage: true },
     });
-    await applyTraitMutations({ actor, mutations: damagePhase.mutations, runtime });
+    if (!dryRun) {
+      await applyTraitMutations({ actor, mutations: damagePhase.mutations, runtime });
+    }
     finalDamage = Math.max(0, Number(damagePhase.packet.amount ?? finalDamage) || 0);
 
-    if (finalDamage > 0) {
+    if (!dryRun && finalDamage > 0) {
       await Checkbars.addCounter(actor, track, finalDamage);
     }
 
@@ -471,12 +479,12 @@ export class HarmEngine {
         }
       }
 
-      if (Object.keys(armorUpdate).length > 0) {
+      if (!dryRun && Object.keys(armorUpdate).length > 0) {
         await activeArmor.item.update(armorUpdate);
       }
     }
 
-    const afterTrack = getMonitorValue(actor, track);
+    const afterTrack = dryRun ? Math.max(0, beforeTrack + finalDamage) : getMonitorValue(actor, track);
 
     return {
       mode: payload?.mode ?? "attackDamage",
