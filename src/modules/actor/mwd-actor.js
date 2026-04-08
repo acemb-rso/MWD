@@ -692,9 +692,22 @@ export class MWDActor extends Actor {
 
     const phys = Number(derived?.physical?.penalty ?? 0);
     const fat  = Number(derived?.fatigue?.penalty ?? 0);
+    const armorResistance = Number(derived?.armor?.resistance ?? 0);
 
     // Both apply (stack)
     const total = phys + fat;
+
+    monitors.physical ??= {};
+    monitors.physical.derived ??= {};
+    monitors.physical.derived.penalty = phys;
+
+    monitors.fatigue ??= {};
+    monitors.fatigue.derived ??= {};
+    monitors.fatigue.derived.penalty = fat;
+
+    monitors.armor ??= {};
+    monitors.armor.derived ??= {};
+    monitors.armor.derived.resistance = armorResistance;
 
     // Keep explicit components (useful for sheets + providers)
     this.system.derived.condition ??= {};

@@ -187,6 +187,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       edgeSet: CharacterSheetV2.prototype._onEdgeSet,
       toggleCombatMenu: CharacterSheetV2.prototype._onToggleCombatMenu,
       toggleStatuses: CharacterSheetV2.prototype._onToggleStatuses,
+      combatAction: CharacterSheetV2.prototype._onCombatAction,
       combatSpend: CharacterSheetV2.prototype._onCombatSpend,
       combatReduceBurn: CharacterSheetV2.prototype._onCombatReduceBurn,
       combatOverloadCheck: CharacterSheetV2.prototype._onCombatOverloadCheck,
@@ -837,6 +838,42 @@ ctx.edgeConsole.poolsOrdered = order
   }
  }
 
+ async _onCombatAction(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (this.#notifyUnavailableAction(target, event, "That combat action is not available right now.")) return;
+  if (!this.isEditable) return;
+
+  const actionId = String(target?.dataset?.combatAction ?? "").trim();
+  if (!actionId) return;
+
+  try {
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const metadata = await this.#getCombatActionMetadata(actionId);
+    if (!metadata) return;
+
+    const result = await PersonalCombatTracker.executeAction(actorWriteTarget, {
+      token: this.getSheetTokenDocument?.()
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
+      actionId,
+      metadata
+    });
+
+    if (!result?.ok) {
+      ui.notifications?.warn(result?.reason ?? "Unable to perform action.");
+      return;
+    }
+
+    this.#closeCombatMenu({ rerender: false });
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to perform combat action", error);
+    ui.notifications?.error("Unable to perform action.");
+  }
+ }
+
  async _onCombatReduceBurn(event, target) {
   event?.preventDefault?.();
   event?.stopPropagation?.();
@@ -958,7 +995,8 @@ ctx.edgeConsole.poolsOrdered = order
       cost: 2,
       actionId: "attack",
       actionLabel: "Attack",
-      actionCostLabel: "2 SA"
+      actionCostLabel: "2 SA",
+      actionCategory: "complex"
     });
 
     if (!spend?.ok) {
@@ -1255,6 +1293,34 @@ ctx.edgeConsole.poolsOrdered = order
 
   if (!itemId) return null;
   return this.actor.items.get(itemId) ?? null;
+ }
+
+ async #getCombatActionMetadata(actionId) {
+  if (actionId !== "prepare") return {};
+
+  const content = `
+    <form class="mwd-quick-select">
+      <div class="mwd-field">
+        <label>Trigger</label>
+        <input type="text" name="condition" placeholder="When..." />
+      </div>
+      <div class="mwd-field">
+        <label>Scope</label>
+        <input type="text" name="scope" placeholder="What you will do" />
+      </div>
+    </form>`;
+
+  const result = await Dialog.prompt({
+    title: "Prepare Interrupt",
+    content,
+    label: "Prepare",
+    callback: html => ({
+      condition: String(html.find('input[name="condition"]').val() ?? "").trim(),
+      scope: String(html.find('input[name="scope"]').val() ?? "").trim()
+    })
+  });
+
+  return result ? result : null;
  }
 
  #notifyUnavailableAction(target, event, fallback = "That action is not available right now.") {

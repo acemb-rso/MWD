@@ -484,12 +484,21 @@ function baseFacts(actor, runtime = {}) {
   const actionIds = Array.isArray(state?.actionLog)
     ? state.actionLog.map(entry => toTrimmedString(entry?.id)).filter(Boolean)
     : [];
+  const actionState = state?.actionState ?? {};
+  const selectors = [];
+  if (actionState?.aim) selectors.push("state.aim");
+  if (actionState?.preparedInterrupt) selectors.push("state.preparedInterrupt");
   return {
     activation: {
-      moved: actionIds.includes("move"),
+      moved: actionIds.includes("move") || Boolean(actionState?.move?.moved),
       saSpent: Math.max(0, Math.trunc(toNumber(state?.saSpentThisActivation, 0))),
       attacksThisActivation: Math.max(0, Math.trunc(toNumber(state?.attacksThisActivation, 0))),
       burnThisActivation: Math.max(0, Math.trunc(toNumber(state?.burnThisActivation, 0))),
+    },
+    actionState: {
+      aim: actionState?.aim ?? null,
+      move: actionState?.move ?? null,
+      preparedInterrupt: actionState?.preparedInterrupt ?? null,
     },
     burn: {
       current: Math.max(0, Math.trunc(toNumber(actor?.system?.burn?.value, 0))),
@@ -499,7 +508,7 @@ function baseFacts(actor, runtime = {}) {
       firstAttackThisActivation: Math.max(0, Math.trunc(toNumber(state?.attacksThisActivation, 0))) === 0,
       firstExtraSAThisActivation: Math.max(0, Math.trunc(toNumber(state?.saSpentThisActivation, 0))) <= 3,
     },
-    selectors: [],
+    selectors,
   };
 }
 
@@ -543,10 +552,14 @@ export function buildActionCostTraitFacts({ actor, packet = {}, runtime = {} } =
   const facts = baseFacts(actor, runtime);
   facts.action = {
     id: toTrimmedString(packet.actionId),
+    category: toTrimmedString(packet.category),
     resource: toTrimmedString(packet.resource),
     cost: toNumber(packet.cost, 0),
+    effectiveCost: toNumber(packet.effectiveCost ?? packet.cost, 0),
   };
   facts.selectors.push(...buildSelectorsForAction(packet.actionId));
+  if (facts.action.category) facts.selectors.push(`actionCategory.${facts.action.category}`);
+  if (facts.action.resource) facts.selectors.push(`actionResource.${facts.action.resource}`);
   return facts;
 }
 
@@ -554,6 +567,7 @@ export function buildBurnTraitFacts({ actor, packet = {}, runtime = {} } = {}) {
   const facts = baseFacts(actor, runtime);
   facts.action = {
     id: toTrimmedString(packet.actionId),
+    category: toTrimmedString(packet.category),
     resource: toTrimmedString(packet.resource),
   };
   facts.burn = {
@@ -565,6 +579,9 @@ export function buildBurnTraitFacts({ actor, packet = {}, runtime = {} } = {}) {
     facts.selectors.push("activation.extraSA:first");
   }
   if (packet.source) facts.selectors.push(`burn.${packet.source}`);
+  if (facts.action.id) facts.selectors.push(...buildSelectorsForAction(facts.action.id));
+  if (facts.action.category) facts.selectors.push(`actionCategory.${facts.action.category}`);
+  if (facts.action.category === "reaction") facts.selectors.push(`reaction.${facts.action.id}`);
   return facts;
 }
 

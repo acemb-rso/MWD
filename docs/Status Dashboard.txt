@@ -1,0 +1,286 @@
+Status Dashboard
+
+This is the combat readout surface.
+
+Its job is not to tell the player everything the system tracks. Its job is to summarize the current state of play in the most decision-relevant form possible. It is the readout of the greater combat decision surface, not the place where decisions are made.
+
+What belongs here
+
+The dashboard should summarize:
+
+current targeting context
+current roll impact
+current binary combat states
+activation economy snapshot
+active effects that matter now
+Targeting in the dashboard
+
+The old “No combatant on scene” space should be replaced with a Targeting Readout derived directly from Foundry’s native target set.
+
+Display rules:
+
+no targets → No target selected
+one target → show target name and tactical snapshot
+multiple targets → show selected count
+
+For a single target, the dashboard can later show tactical context such as:
+
+target name
+range band
+maybe motion / tracking snapshot later
+
+That is appropriate because target context is part of the combat situation and directly informs the attack resolver’s eventual RollContext. The attack resolver already expects attacker, target, range/motion, and tactical state as input.
+
+Roll impact in the dashboard
+
+The dashboard should prioritize player-facing consequences, not raw system variables.
+
+So instead of surfacing redundant raw Burn information as the dominant display, it should prioritize:
+
+total dice penalty / current modifier summary
+major state flags such as Overloaded
+active effects that currently matter
+
+That fits your engine design, where dice parts, DN parts, and CQ parts are the explainable output of resolution logic.
+
+Activation snapshot
+
+A compact activation line is still appropriate here:
+
+SA / FA / RA
+Burn generated this activation possibly other per-activation state
+
+But this should remain a compact subpanel, not dominate the dashboard.
+
+Status Dashboard responsibilities
+* summarize what currently affects actions
+* show target context from native Foundry targeting
+* show penalties, effects, and binary states
+* remain read-only / read-mostly
+
+## Example Status dashboard
+
+Target: Atlas AS7-D
+Range: Short
+Roll Impact: −4
+States: Off-Balance, Staggered
+Effects: Fatigue −3, Suppressed −1
+Activation: SA 3 / FA 1 / RA 1
+
+Foundry Targeting as shared tactical context
+
+This is now an explicit part of the combat surface design.
+
+# Foundry’s UserTargets is the canonical targeting system. The combat surfaces should be designed around that fact.
+
+Design rule
+
+Combat targeting uses Foundry native targeting exclusively. The action surface may help the user set targets, and the status dashboard may display target context, but neither may create or maintain a separate targeting state.
+
+What that means in practice
+Action surface may set or clear native Foundry targets
+Status dashboard reads current Foundry targets and displays them
+Resolvers consume current Foundry targets when building context
+No actor flag or sheet-local target cache exists as a source of truth
+
+This keeps the whole combat UI synchronized around one authoritative tactical context.
+
+Core Rule (Lock This)
+
+All targeting state comes from game.user.targets (UserTargets).
+The sheet never owns or stores target state.
+
+Everything else is just:
+
+UI helpers → mutate UserTargets
+Dashboard → reads UserTargets
+Resolver → consumes UserTargets
+🧱 Understanding the API (What matters)
+
+You have:
+
+game.user.targets instanceof UserTargets
+
+Which is:
+
+a Set<Token>
+with helper methods:
+.add(token)
+.delete(token)
+.clear()
+.ids → string[]
+
+So:
+
+const targets = game.user.targets; // Set<Token>
+
+This is already everything you need.
+
+🔧 Implementation Plan
+1. Reading targets (Dashboard)
+Basic extraction
+const targets = Array.from(game.user.targets);
+Derived state
+const targeting = {
+  count: targets.length,
+  none: targets.length === 0,
+  single: targets.length === 1,
+  multiple: targets.length > 1,
+  primary: targets[0] ?? null
+};
+2. Dashboard rendering model
+Suggested context shape
+ctx.targeting = {
+  count,
+  label,
+  target: {
+    id,
+    name,
+    img,
+    distance,     // optional
+    rangeBand     // optional
+  } || null
+};
+Display logic
+TARGET
+
+None selected
+TARGET
+
+Atlas AS7-D
+Range: Short
+TARGETS
+
+2 selected
+3. Mutating targets (Action Section)
+❗ Important constraint
+
+Do NOT directly call .add() unless you fully replicate Foundry behavior.
+
+Instead, use:
+
+token.setTarget(true, { user: game.user, releaseOthers: true });
+
+This ensures:
+
+proper UI highlight
+hooks fire
+other systems remain consistent
+Select Target action
+function selectTarget(token) {
+  token.setTarget(true, {
+    user: game.user,
+    releaseOthers: true
+  });
+}
+Multi-target version (future)
+token.setTarget(true, {
+  user: game.user,
+  releaseOthers: false
+});
+Clear targets
+game.user.targets.clear();
+canvas.tokens.releaseAll(); // optional visual sync
+4. Target picker (helper UI)
+
+This is optional but recommended.
+
+Viable token filtering
+const tokens = canvas.tokens.placeables.filter(t => {
+  if (!t.visible) return false;
+  if (t.document.disposition === CONST.TOKEN_DISPOSITIONS.SECRET) return false;
+  if (t === controlledToken) return false;
+  return true;
+});
+
+You can later extend with:
+
+LOS checks
+hostility checks
+range limits
+5. Resolver integration
+NEVER pass target from UI if avoidable
+
+Instead:
+
+const targets = Array.from(game.user.targets);
+Enforcement rules
+if (targets.length === 0) {
+  return promptSelectTarget();
+}
+
+if (targets.length > 1) {
+  return promptDisambiguation();
+}
+
+const target = targets[0];
+6. Why this aligns with your engine
+
+Your system already enforces:
+
+UI emits intent → resolver builds context → engine executes
+
+So:
+
+targeting is context input
+not part of payload
+not owned by sheet
+🧠 Key Architectural Insight
+
+UserTargets is already:
+
+a player-scoped, reactive, authoritative Set
+
+That means:
+
+no need for actor flags
+no need for combat state duplication
+no need for sync logic
+
+You just:
+
+read it
+react to it
+🔄 Reactive updates (important)
+
+To keep dashboard in sync, listen to:
+
+Hooks.on("targetToken", (user, token, targeted) => {
+  if (user !== game.user) return;
+  this.render(); // or rerender relevant component
+});
+
+This ensures:
+
+dashboard updates instantly
+no polling
+no stale UI
+🧪 Minimal working implementation
+Context prep
+_prepareContext() {
+  const targets = Array.from(game.user.targets);
+
+  return {
+    targeting: {
+      count: targets.length,
+      none: targets.length === 0,
+      single: targets.length === 1,
+      target: targets[0] ? {
+        name: targets[0].name,
+        id: targets[0].id
+      } : null
+    }
+  };
+}
+Template (Handlebars-style)
+<div class="target-panel">
+  <div class="label">TARGET</div>
+
+  {{#if targeting.none}}
+    <div class="empty">None selected</div>
+  {{else if targeting.single}}
+    <div class="target-name">{{targeting.target.name}}</div>
+  {{else}}
+    <div class="multi">{{targeting.count}} targets selected</div>
+  {{/if}}
+</div>

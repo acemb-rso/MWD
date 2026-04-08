@@ -2885,6 +2885,30 @@
   font-weight: 700;
 }
 
+.mwd-combat-actions-panel__threat-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.75rem !important;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 83, 65, 0.78) !important;
+  background: rgba(132, 24, 20, 0.82) !important;
+  color: rgba(255, 244, 238, 0.98) !important;
+  box-shadow: 0 0 0 1px rgba(255, 83, 65, 0.18), 0 0 14px rgba(255, 55, 34, 0.22);
+  font-size: 0.84em;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mwd-combat-actions-panel__threat-button:hover,
+.mwd-combat-actions-panel__threat-button:focus-visible {
+  border-color: rgba(255, 119, 92, 0.95) !important;
+  background: rgba(171, 35, 27, 0.92) !important;
+  box-shadow: 0 0 0 1px rgba(255, 119, 92, 0.28), 0 0 18px rgba(255, 65, 42, 0.32);
+}
+
 .mwd-combat-actions-panel__log {
   display: flex;
   flex-direction: column;

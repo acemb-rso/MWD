@@ -23,6 +23,21 @@ How it fits: Used by rendering code to produce UI fragments.
   <div class="mwd-combat-actions-panel__summary">
     {{#each combatActions.summaryPills as |pill|}}
       <span class="mwd-combat-actions-panel__pill">{{pill.label}} {{pill.value}}</span>
+      {{#if pill.action}}
+        <button
+          type="button"
+          class="mwd-combat-actions-panel__threat-button"
+          data-action="{{pill.action.handler}}"
+          {{#if pill.action.resource}}data-resource="{{pill.action.resource}}"{{/if}}
+          {{#if pill.action.cost}}data-cost="{{pill.action.cost}}"{{/if}}
+          {{#if pill.action.category}}data-action-category="{{pill.action.category}}"{{/if}}
+          data-combat-action="{{pill.action.id}}"
+          data-combat-label="{{pill.action.label}}"
+          data-combat-cost-label="{{pill.action.costLabel}}"
+          {{#if pill.action.roll}}data-roll='{{pill.action.roll}}'{{/if}}>
+          {{pill.action.label}}
+        </button>
+      {{/if}}
     {{/each}}
   </div>
 
@@ -66,6 +81,7 @@ How it fits: Used by rendering code to produce UI fragments.
                   {{#if action.handler}}data-action="{{action.handler}}"{{/if}}
                   {{#if action.resource}}data-resource="{{action.resource}}"{{/if}}
                   {{#if action.cost}}data-cost="{{action.cost}}"{{/if}}
+                  {{#if action.category}}data-action-category="{{action.category}}"{{/if}}
                   data-combat-action="{{action.id}}"
                   data-combat-label="{{action.label}}"
                   data-combat-cost-label="{{action.costLabel}}"

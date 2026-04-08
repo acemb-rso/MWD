@@ -15,6 +15,11 @@ import {
   buildEndOfActivationTraitFacts,
   evaluateTraitPhase,
 } from "../mwd/traits.js";
+import {
+  getPersonalAction,
+  getPersonalActionsByCategory,
+  PERSONAL_ACTION_CATEGORIES,
+} from "./personal-action-catalog.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -44,6 +49,11 @@ function defaultState(activation = null) {
       activation: {},
       round: {}
     },
+    actionState: {
+      aim: null,
+      move: null,
+      preparedInterrupt: null
+    },
     actionLog: [],
     activation
   };
@@ -55,6 +65,12 @@ function cloneState(state, activation = null) {
     foundry.utils.deepClone(state ?? {}),
     { inplace: false, overwrite: true }
   );
+}
+
+function cloneStoredState(stored, fallbackActivation = null) {
+  const state = cloneState(stored ?? {}, stored?.activation ?? fallbackActivation);
+  state.actionLog = normalizeActionLog(state.actionLog);
+  return state;
 }
 
 function normalizeActionLog(entries) {
@@ -72,6 +88,47 @@ function normalizeActionLog(entries) {
       };
     })
     .filter(Boolean);
+}
+
+function actionCostLabel(resource, cost) {
+  if (resource === "free") return "Free";
+  if (resource === "burn") return `+${cost} Burn`;
+  return `${cost} ${String(resource).toUpperCase()}`;
+}
+
+function mergeActionState(state = {}, actionId = "", { snapshot = null, metadata = {} } = {}) {
+  const nextState = foundry.utils.deepClone(state ?? {});
+  nextState.actionState ??= {};
+  const stamp = {
+    actionId,
+    round: Number(snapshot?.combat?.round ?? 0),
+    turn: Number(snapshot?.combat?.turn ?? 0),
+    combatantId: snapshot?.combatant?.id ?? null
+  };
+
+  if (actionId === "aim") {
+    nextState.actionState.aim = {
+      ...stamp,
+      target: snapshot?.targeting?.target ?? null
+    };
+  }
+
+  if (actionId === "move") {
+    nextState.actionState.move = {
+      ...stamp,
+      moved: true
+    };
+  }
+
+  if (actionId === "prepare") {
+    nextState.actionState.preparedInterrupt = {
+      ...stamp,
+      condition: String(metadata?.condition ?? "").trim(),
+      scope: String(metadata?.scope ?? "").trim()
+    };
+  }
+
+  return nextState;
 }
 
 function statusLabelFromConfig(statusId) {
@@ -169,6 +226,89 @@ export class PersonalCombatTracker {
       : game.scenes?.get?.(sceneId);
 
     return scene?.tokens?.get?.(normalizedId) ?? null;
+  }
+
+  static _getCombatantTokenDocument(combatant, sceneId = canvas?.scene?.id) {
+    const tokenDoc = this._asTokenDocument(combatant?.token);
+    if (tokenDoc && typeof tokenDoc === "object") return tokenDoc;
+    return this._getSceneTokenDocumentById(this._getCombatantTokenId(combatant), sceneId);
+  }
+
+  static _getCombatantTokenId(combatant) {
+    return String(
+      combatant?.tokenId
+      ?? combatant?.token?.id
+      ?? combatant?.token?._id
+      ?? combatant?.token?.document?.id
+      ?? combatant?._source?.tokenId
+      ?? ""
+    ).trim();
+  }
+
+  static _getCombatantActorId(combatant) {
+    const tokenDoc = this._asTokenDocument(combatant?.token);
+    return String(
+      combatant?.actorId
+      ?? combatant?.actor?.id
+      ?? combatant?._source?.actorId
+      ?? tokenDoc?.actorId
+      ?? tokenDoc?.actor?.id
+      ?? tokenDoc?.baseActor?.id
+      ?? ""
+    ).trim();
+  }
+
+  static _getCombatants(combat) {
+    if (!combat?.combatants) return [];
+    if (typeof combat.combatants.values === "function") return Array.from(combat.combatants.values());
+    return Array.from(combat.combatants ?? []);
+  }
+
+  static _getCombatSceneId(combat) {
+    return String(
+      combat?.scene?.id
+      ?? combat?.sceneId
+      ?? combat?._source?.scene
+      ?? combat?._source?.sceneId
+      ?? ""
+    ).trim();
+  }
+
+  static _getCombatantSceneId(combatant) {
+    const tokenDoc = this._asTokenDocument(combatant?.token);
+    return String(
+      combatant?.sceneId
+      ?? combatant?._source?.sceneId
+      ?? tokenDoc?.parent?.id
+      ?? tokenDoc?.scene?.id
+      ?? tokenDoc?.object?.scene?.id
+      ?? ""
+    ).trim();
+  }
+
+  static _findCombatantForToken(combat, tokenDoc = null, sceneId = canvas?.scene?.id) {
+    const resolvedTokenDoc = this._asTokenDocument(tokenDoc);
+    const tokenId = String(resolvedTokenDoc?.id ?? "").trim();
+    if (!combat || !tokenId) return null;
+
+    if (resolvedTokenDoc?.combatant?.combat?.id === combat.id) return resolvedTokenDoc.combatant;
+
+    let direct = null;
+    if (typeof combat.getCombatantByToken === "function") {
+      try {
+        direct = combat.getCombatantByToken(tokenId) ?? null;
+      } catch (_error) {
+        direct = null;
+      }
+    }
+    if (direct) return direct;
+
+    return this._getCombatants(combat).find(combatant => {
+      const combatantTokenDoc = this._getCombatantTokenDocument(combatant, sceneId);
+      const combatantTokenId = this._getCombatantTokenId(combatant) || String(combatantTokenDoc?.id ?? "").trim();
+      const combatantSceneId = this._getCombatantSceneId(combatant) || sceneId;
+      return combatantTokenId === tokenId && (!sceneId || !combatantSceneId || combatantSceneId === sceneId);
+    }) ?? null;
   }
 
   static _collectActorIds(actor, tokenDoc = null) {
@@ -388,11 +528,14 @@ export class PersonalCombatTracker {
   static getCombat(actor, token = null) {
     const sceneId = canvas?.scene?.id;
     const combat = game.combat;
+    const combatSceneId = this._getCombatSceneId(combat);
+    const explicitTokenDoc = this._asTokenDocument(token);
+    const hasExplicitToken = !!explicitTokenDoc;
     const preferredSceneTokenDoc = this.getCurrentSceneTokenDocument(actor, token);
     const preferredSceneToken = preferredSceneTokenDoc?.object
       ?? this._getSceneTokenById(preferredSceneTokenDoc?.id ?? null);
 
-    if (!combat || combat.scene?.id !== sceneId) {
+    if (!combat || (combatSceneId && sceneId && combatSceneId !== sceneId)) {
       return {
         combat: null,
         combatant: null,
@@ -401,46 +544,42 @@ export class PersonalCombatTracker {
       };
     }
 
-    let combatant = preferredSceneTokenDoc?.combatant?.combat?.id === combat.id
-      ? preferredSceneTokenDoc.combatant
-      : null;
+    let combatant = this._findCombatantForToken(combat, preferredSceneTokenDoc, sceneId);
 
-    const combatants = Array.from(combat.combatants ?? []);
+    const combatants = this._getCombatants(combat);
     if (!combatant) {
       const actorIds = this._collectActorIds(actor, preferredSceneTokenDoc);
+      const preferredSceneTokenId = String(preferredSceneTokenDoc?.id ?? "").trim();
       const matchingCombatants = combatants.filter(it => {
-        const tokenId = String(it?.tokenId ?? "").trim();
-        if (preferredSceneTokenDoc && tokenId === String(preferredSceneTokenDoc.id ?? "").trim()) return true;
-        if (actorIds.has(String(it?.actorId ?? "").trim())) return true;
-
-        const combatantTokenDoc = this._asTokenDocument(it?.token)
-          ?? this._getSceneTokenDocumentById(tokenId, sceneId);
+        const tokenId = this._getCombatantTokenId(it);
+        const combatantTokenDoc = this._getCombatantTokenDocument(it, sceneId);
+        const combatantTokenId = tokenId || String(combatantTokenDoc?.id ?? "").trim();
+        if (hasExplicitToken && preferredSceneTokenId) return combatantTokenId === preferredSceneTokenId;
+        if (actorIds.has(this._getCombatantActorId(it))) return true;
 
         return this._tokenDocumentMatchesActor(combatantTokenDoc, actor, actorIds);
       });
 
       const activeMatchingCombatant = matchingCombatants.find(it => it.id === combat?.combatant?.id) ?? null;
       const preferredTokenCombatant = matchingCombatants.find(it =>
-        preferredSceneTokenDoc
-        && String(it?.tokenId ?? "").trim() === String(preferredSceneTokenDoc.id ?? "").trim()
+        preferredSceneTokenId
+        && (
+          this._getCombatantTokenId(it)
+          || String(this._getCombatantTokenDocument(it, sceneId)?.id ?? "").trim()
+        ) === preferredSceneTokenId
       ) ?? null;
 
-      combatant = activeMatchingCombatant
-        ?? preferredTokenCombatant
+      combatant = preferredTokenCombatant
+        ?? activeMatchingCombatant
         ?? matchingCombatants[0]
         ?? null;
     }
 
-    if (!combatant && combatants.length === 1 && (preferredSceneToken || actor)) {
-      combatant = combatants[0];
-    }
-
-    const combatantTokenDoc = this._asTokenDocument(combatant?.token)
-      ?? this._getSceneTokenDocumentById(combatant?.tokenId ?? null, sceneId);
+    const combatantTokenDoc = this._getCombatantTokenDocument(combatant, sceneId);
     const resolvedTokenDoc = preferredSceneTokenDoc ?? combatantTokenDoc ?? null;
     const resolvedToken = preferredSceneToken
       ?? combatantTokenDoc?.object
-      ?? this._getSceneTokenById(combatant?.tokenId ?? null)
+      ?? this._getSceneTokenById(this._getCombatantTokenId(combatant))
       ?? null;
 
     return {
@@ -461,8 +600,10 @@ export class PersonalCombatTracker {
     const isCurrentTurn = !!combatant && combat?.combatant?.id === combatant.id;
     const activation = combatant ? this.getActivationIdentity(combat, combatant) : null;
     const stored = combatant ? combatant.getFlag(FLAG_SCOPE, FLAG_KEY) : null;
-    const state = (combatant && isCurrentTurn && sameActivation(stored, activation))
-      ? cloneState(stored, activation)
+    const state = combatant
+      ? (isCurrentTurn
+        ? (sameActivation(stored, activation) ? cloneStoredState(stored, activation) : defaultState(activation))
+        : cloneStoredState(stored, activation))
       : defaultState(activation);
     state.actionLog = normalizeActionLog(state.actionLog);
 
@@ -567,53 +708,6 @@ export class PersonalCombatTracker {
   }
 
   static buildActionModel(actor, snapshot) {
-    const notInCombatReason = snapshot.hasCombatant ? "" : "No current-scene combatant.";
-    const notTurnReason = snapshot.isCurrentTurn ? "" : "Only during your activation.";
-    const overloadedReason = snapshot.overloaded ? "Overloaded: only Burn recovery is allowed." : "";
-    const saCapacityRemaining = getSaCapacityRemaining(actor, snapshot);
-
-    const saReason = notInCombatReason || notTurnReason || overloadedReason;
-    const directSupported = [
-      { id: "move", label: "Move", resource: "sa", cost: 1, supported: true },
-      { id: "aim", label: "Aim", resource: "sa", cost: 1, supported: true },
-      { id: "reload", label: "Reload", resource: "sa", cost: 1, supported: true },
-      { id: "assist", label: "Assist", resource: "sa", cost: 1, supported: true },
-      { id: "stand", label: "Stand", resource: "sa", cost: 1, supported: true }
-    ].map(action => this._buildSpendAction(
-      snapshot,
-      action,
-      saReason || (saCapacityRemaining < action.cost ? "Activation SA cap reached." : "")
-    ));
-
-    const attackReason = notInCombatReason
-      || notTurnReason
-      || overloadedReason
-      || (saCapacityRemaining < 2 ? "Activation SA cap reached." : "");
-
-    const complexActions = [
-      {
-        id: "attack",
-        label: "Attack",
-        costLabel: "2 SA",
-        handler: "combatAttack",
-        disabled: !!attackReason,
-        reason: attackReason,
-        prominent: true
-      },
-      { id: "firstAid", label: "First Aid", costLabel: "2 SA" },
-      { id: "emergencyRepair", label: "Emergency Repair", costLabel: "2 SA" }
-    ].map(action => action.handler ? action : this._buildStubAction(action));
-
-    const reduceBurnReason = notInCombatReason
-      || notTurnReason
-      || (saCapacityRemaining <= 0 ? "Activation SA cap reached." : "")
-      || (snapshot.burn.value <= 0 ? "Burn is already at 0." : "");
-
-    const overloadReason = notInCombatReason
-      || notTurnReason
-      || (!snapshot.burn.canOverloadCheck ? (snapshot.overloaded ? "Already Overloaded." : "Burn below 6.") : "");
-
-    const resourceReason = notInCombatReason || notTurnReason;
     const buildCommonUtilityButton = (id) => {
       const definition = getCommonCheckDefinition(id);
       const payload = getCommonCheckPayload(id);
@@ -628,6 +722,32 @@ export class PersonalCombatTracker {
         reason: ""
       };
     };
+    const buildCategory = category => {
+      const actions = getPersonalActionsByCategory(category)
+        .filter(action => action.id !== "overloadCheck")
+        .filter(action => !(category === PERSONAL_ACTION_CATEGORIES.recovery && action.id === "reduceBurn"));
+
+      if (category === PERSONAL_ACTION_CATEGORIES.standard) {
+        const reduceBurnAction = getPersonalAction("reduceBurn");
+        if (reduceBurnAction && !actions.some(action => action.id === "reduceBurn")) {
+          actions.push(reduceBurnAction);
+        }
+      }
+
+      return actions.map(action => this._buildCatalogAction(actor, snapshot, action));
+    };
+
+    const buildSummaryAction = actionId => {
+      const action = getPersonalAction(actionId);
+      if (!action) return null;
+
+      const built = this._buildCatalogAction(actor, snapshot, action);
+      return built.disabled ? null : built;
+    };
+
+    const overloadCheckAction = snapshot.burn?.canOverloadCheck
+      ? buildSummaryAction("overloadCheck")
+      : null;
 
     return {
       utilityButtons: [
@@ -657,7 +777,11 @@ export class PersonalCombatTracker {
         { label: "Cap", value: `${Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0))}/${getActivationMaxSA(actor)}` },
         { label: "FA", value: `${snapshot.state.faRemaining}` },
         { label: "RA", value: `${snapshot.state.raRemaining}` },
-        { label: "Burn/Turn", value: `+${Math.max(0, Number(snapshot.state?.burnThisActivation ?? 0))}` }
+        {
+          label: "Burn/Turn",
+          value: `+${Math.max(0, Number(snapshot.state?.burnThisActivation ?? 0))}`,
+          action: overloadCheckAction
+        }
       ],
       activationLog: normalizeActionLog(snapshot.state?.actionLog).map((entry, index) => ({
         ...entry,
@@ -665,62 +789,273 @@ export class PersonalCombatTracker {
       })),
       menus: [
         {
-          id: "simple",
-          label: "Simple Actions",
-          actions: directSupported
-        },
-        {
-          id: "burn",
-          label: "Burn & Recovery",
-          actions: [
-            {
-              id: "reduceBurn",
-              label: "Reduce Burn",
-              costLabel: "1 SA",
-              handler: "combatReduceBurn",
-              disabled: !!reduceBurnReason,
-              reason: reduceBurnReason,
-              prominent: snapshot.burn.value >= 6
-            },
-            {
-              id: "overloadCheck",
-              label: "Overload Check",
-              costLabel: "Check",
-              handler: "combatOverloadCheck",
-              disabled: !!overloadReason,
-              reason: overloadReason,
-              roll: JSON.stringify({ intent: "overload" }),
-              prominent: snapshot.burn.value >= 6
-            }
-          ]
+          id: "standard",
+          label: "Standard Actions",
+          actions: buildCategory(PERSONAL_ACTION_CATEGORIES.standard)
         },
         {
           id: "complex",
           label: "Complex Actions",
-          actions: complexActions
+          actions: buildCategory(PERSONAL_ACTION_CATEGORIES.complex)
+        },
+        {
+          id: "free",
+          label: "Free Actions",
+          actions: buildCategory(PERSONAL_ACTION_CATEGORIES.free)
         },
         {
           id: "reaction",
-          label: "Free & Reaction",
-          actions: [
-            this._buildSpendAction(snapshot, {
-              id: "spendFA",
-              label: "Spend FA",
-              resource: "fa",
-              cost: 1,
-              supported: true
-            }, resourceReason),
-            this._buildSpendAction(snapshot, {
-              id: "spendRA",
-              label: "Spend RA",
-              resource: "ra",
-              cost: 1,
-              supported: true
-            }, resourceReason)
-          ]
+          label: "Reactions",
+          actions: buildCategory(PERSONAL_ACTION_CATEGORIES.reaction)
+        },
+        {
+          id: "burn",
+          label: "Burn & Recovery",
+          actions: buildCategory(PERSONAL_ACTION_CATEGORIES.recovery)
         }
-      ]
+      ].filter(menu => menu.actions.length)
     };
+  }
+
+  static _buildCatalogAction(actor, snapshot, action) {
+    const notInCombatReason = snapshot.hasCombatant ? "" : "No current-scene combatant.";
+    const notTurnReason = snapshot.isCurrentTurn ? "" : "Only during your activation.";
+    const overloadedReason = snapshot.overloaded ? "Overloaded actors can only recover Burn." : "";
+    const saCapacityRemaining = getSaCapacityRemaining(actor, snapshot);
+    const state = snapshot.state ?? {};
+    const category = action.category;
+    let resource = "sa";
+    let cost = Number(action.cost ?? 0) || 0;
+    let costLabel = actionCostLabel(resource, cost);
+    let reason = "";
+
+    if (action.id === "reduceBurn") {
+      resource = "sa";
+      cost = 1;
+      costLabel = "1 SA";
+      reason = notInCombatReason
+        || notTurnReason
+        || (saCapacityRemaining <= 0 ? "Activation SA cap reached." : "")
+        || (snapshot.burn.value <= 0 ? "Burn is already at 0." : "");
+    } else if (action.id === "overloadCheck") {
+      resource = "check";
+      cost = 0;
+      costLabel = "Check";
+      reason = notInCombatReason
+        || notTurnReason
+        || (!snapshot.burn.canOverloadCheck ? (snapshot.overloaded ? "Already Overloaded." : "Burn below 6.") : "");
+    } else if (category === PERSONAL_ACTION_CATEGORIES.standard) {
+      reason = notInCombatReason
+        || notTurnReason
+        || overloadedReason
+        || (saCapacityRemaining < cost ? "Activation SA cap reached." : "");
+    } else if (category === PERSONAL_ACTION_CATEGORIES.complex) {
+      reason = notInCombatReason
+        || notTurnReason
+        || overloadedReason
+        || (saCapacityRemaining < cost ? "Activation SA cap reached." : "");
+    } else if (category === PERSONAL_ACTION_CATEGORIES.free) {
+      const usesFreeAction = Number(state.faRemaining ?? 0) > 0;
+      resource = usesFreeAction ? "fa" : "sa";
+      cost = 1;
+      costLabel = usesFreeAction ? "Free" : "1 SA";
+      reason = notInCombatReason
+        || notTurnReason
+        || (!usesFreeAction && overloadedReason)
+        || (!usesFreeAction && saCapacityRemaining < 1 ? "Activation SA cap reached." : "");
+    } else if (category === PERSONAL_ACTION_CATEGORIES.reaction) {
+      const usesReaction = Number(state.raRemaining ?? 0) > 0;
+      resource = usesReaction ? "ra" : "burn";
+      cost = usesReaction ? 1 : 2;
+      costLabel = usesReaction ? "1 RA" : "+2 Burn";
+      reason = notInCombatReason
+        || (snapshot.isCurrentTurn ? "Only outside your activation." : "");
+    } else if (category === PERSONAL_ACTION_CATEGORIES.recovery) {
+      reason = notInCombatReason
+        || notTurnReason;
+    }
+
+    if (!action.handler) {
+      reason = action.reason || "Not yet implemented.";
+    }
+
+    return {
+      id: action.id,
+      label: action.label,
+      category,
+      handler: action.handler,
+      resource,
+      cost,
+      costLabel,
+      disabled: Boolean(reason),
+      reason,
+      roll: action.roll ? JSON.stringify(action.roll) : "",
+      prominent: Boolean(action.prominent || (action.prominentWhenBurning && snapshot.burn.value >= 6))
+    };
+  }
+
+  static async executeAction(actor, { token = null, actionId = "", metadata = {} } = {}) {
+    const action = getPersonalAction(actionId);
+    if (!action) return { ok: false, reason: "Unknown combat action." };
+    if (!action.handler) return { ok: false, reason: action.reason || "That action is not implemented yet." };
+
+    if (action.category === PERSONAL_ACTION_CATEGORIES.standard) {
+      return this._executeStandardAction(actor, { token, action, metadata });
+    }
+
+    if (action.category === PERSONAL_ACTION_CATEGORIES.free) {
+      return this._executeFreeAction(actor, { token, action, metadata });
+    }
+
+    if (action.category === PERSONAL_ACTION_CATEGORIES.reaction) {
+      return this._executeReactionAction(actor, { token, action, metadata });
+    }
+
+    return { ok: false, reason: action.reason || "That action is not implemented yet." };
+  }
+
+  static async _executeStandardAction(actor, { token = null, action, metadata = {} } = {}) {
+    const snapshot = this.getSnapshot(actor, { token });
+    if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
+    if (!snapshot.isCurrentTurn) return { ok: false, reason: "Only available during your activation." };
+    if (snapshot.overloaded) return { ok: false, reason: "Overloaded actors can only recover Burn." };
+    if (getSaCapacityRemaining(actor, snapshot) < Number(action.cost ?? 1)) {
+      return { ok: false, reason: "Activation SA cap reached." };
+    }
+
+    const spend = await this.spendResource(actor, {
+      token,
+      resource: "sa",
+      cost: Number(action.cost ?? 1) || 1,
+      actionId: action.id,
+      actionLabel: action.label,
+      actionCostLabel: `${Number(action.cost ?? 1) || 1} SA`,
+      actionCategory: action.category
+    });
+    if (!spend?.ok) return spend;
+
+    await this._applyActionState(actor, {
+      token,
+      actionId: action.id,
+      metadata,
+      snapshot: spend.snapshot
+    });
+    return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
+  }
+
+  static async _executeFreeAction(actor, { token = null, action, metadata = {} } = {}) {
+    const snapshot = this.getSnapshot(actor, { token });
+    if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
+    if (!snapshot.isCurrentTurn) return { ok: false, reason: "Only available during your activation." };
+
+    const usesFreeAction = Number(snapshot.state?.faRemaining ?? 0) > 0;
+    if (!usesFreeAction && snapshot.overloaded) {
+      return { ok: false, reason: "Overloaded actors can only recover Burn." };
+    }
+    if (!usesFreeAction && getSaCapacityRemaining(actor, snapshot) < 1) {
+      return { ok: false, reason: "Activation SA cap reached." };
+    }
+
+    const spend = await this.spendResource(actor, {
+      token,
+      resource: usesFreeAction ? "fa" : "sa",
+      cost: 1,
+      actionId: action.id,
+      actionLabel: action.label,
+      actionCostLabel: usesFreeAction ? "Free" : "1 SA",
+      actionCategory: action.category
+    });
+    if (!spend?.ok) return spend;
+
+    await this._applyActionState(actor, {
+      token,
+      actionId: action.id,
+      metadata,
+      snapshot: spend.snapshot
+    });
+    return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
+  }
+
+  static async _executeReactionAction(actor, { token = null, action, metadata = {} } = {}) {
+    const snapshot = this.getSnapshot(actor, { token });
+    if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
+    if (snapshot.isCurrentTurn) return { ok: false, reason: "Only outside your activation." };
+
+    const nextState = cloneStoredState(snapshot.combatant.getFlag(FLAG_SCOPE, FLAG_KEY), snapshot.state?.activation);
+    const usesReaction = Number(nextState.raRemaining ?? 0) > 0;
+    const runtime = {
+      combat: snapshot.combat,
+      combatant: snapshot.combatant,
+      state: nextState,
+      sceneId: canvas?.scene?.id ?? "",
+      snapshot: { ...snapshot, state: nextState }
+    };
+
+    let burnDelta = 0;
+    let costLabel = "1 RA";
+    if (usesReaction) {
+      nextState.raRemaining = Math.max(0, Number(nextState.raRemaining ?? 0) - 1);
+    } else {
+      const burnPhase = evaluateTraitPhase({
+        actor,
+        phase: "onBeforeBurnApplied",
+        facts: buildBurnTraitFacts({
+          actor,
+          packet: {
+            actionId: action.id,
+            category: action.category,
+            resource: "reaction",
+            amount: 2,
+            source: "reaction"
+          },
+          runtime,
+        }),
+        packet: {
+          actionId: action.id,
+          category: action.category,
+          resource: "reaction",
+          amount: 2,
+          source: "reaction"
+        },
+        options: { runtime, consumeUsage: true },
+      });
+      burnDelta = Math.max(0, Number(burnPhase.packet.amount ?? 0) || 0);
+      runtime.pendingMutations = (runtime.pendingMutations ?? []).concat(burnPhase.mutations);
+      nextState.reactionBurnSinceLastActivation = Math.max(
+        0,
+        Number(nextState.reactionBurnSinceLastActivation ?? 0) + burnDelta
+      );
+      costLabel = `+${burnDelta} Burn`;
+    }
+
+    this._appendActionLog(nextState, {
+      id: action.id,
+      label: action.label,
+      costLabel
+    });
+
+    if (runtime.pendingMutations?.length) {
+      await applyTraitMutations({ actor, mutations: runtime.pendingMutations, runtime });
+    } else {
+      await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextState);
+    }
+
+    if (burnDelta > 0) {
+      await actor.update({ "system.burn.value": Math.max(0, Number(actor.system?.burn?.value ?? 0) + burnDelta) });
+    }
+
+    return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
+  }
+
+  static async _applyActionState(actor, { token = null, actionId = "", metadata = {}, snapshot = null } = {}) {
+    const currentSnapshot = snapshot ?? this.getSnapshot(actor, { token });
+    if (!currentSnapshot?.combatant) return { ok: false, reason: "No combatant on the current scene." };
+    const nextState = mergeActionState(currentSnapshot.state, actionId, {
+      snapshot: currentSnapshot,
+      metadata
+    });
+    await currentSnapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextState);
+    return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
   }
 
   static _buildSpendAction(snapshot, action, sharedReason = "") {
@@ -800,7 +1135,8 @@ export class PersonalCombatTracker {
     cost = 1,
     actionId = "",
     actionLabel = "",
-    actionCostLabel = ""
+    actionCostLabel = "",
+    actionCategory = ""
   } = {}) {
     const snapshot = this.getSnapshot(actor, { token });
     if (!snapshot.hasCombatant) {
@@ -824,10 +1160,10 @@ export class PersonalCombatTracker {
       phase: "onBeforeActionCostFinalized",
       facts: buildActionCostTraitFacts({
         actor,
-        packet: { actionId, resource, cost: finalCost },
+        packet: { actionId, category: actionCategory, resource, cost: finalCost, effectiveCost: finalCost },
         runtime,
       }),
-      packet: { actionId, resource, cost: finalCost },
+      packet: { actionId, category: actionCategory, resource, cost: finalCost, effectiveCost: finalCost },
       options: { runtime, consumeUsage: true },
     });
     finalCost = Math.max(0, Number(costPhase.packet.cost ?? finalCost) || 0);
@@ -877,6 +1213,7 @@ export class PersonalCombatTracker {
             actor,
             packet: {
               actionId,
+              category: actionCategory,
               resource,
               amount: 1,
               source: "extraSA",
@@ -886,6 +1223,7 @@ export class PersonalCombatTracker {
           }),
           packet: {
             actionId,
+            category: actionCategory,
             resource,
             amount: 1,
             source: "extraSA",
@@ -906,6 +1244,7 @@ export class PersonalCombatTracker {
             actor,
             packet: {
               actionId,
+              category: actionCategory,
               resource,
               amount: 1,
               source: "attack",
@@ -915,6 +1254,7 @@ export class PersonalCombatTracker {
           }),
           packet: {
             actionId,
+            category: actionCategory,
             resource,
             amount: 1,
             source: "attack",
@@ -962,7 +1302,8 @@ export class PersonalCombatTracker {
       cost: 1,
       actionId: "reduceBurn",
       actionLabel: "Reduce Burn",
-      actionCostLabel: "1 SA"
+      actionCostLabel: "1 SA",
+      actionCategory: PERSONAL_ACTION_CATEGORIES.standard
     });
     if (!spend.ok) return spend;
 
