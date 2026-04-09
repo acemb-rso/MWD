@@ -89,6 +89,48 @@ How it fits: Used by rendering code to produce UI fragments.
     </div>
   {{/if}}
 
+  {{#if targetRows.length}}
+    <div class="mwd-roll-card__target-rows">
+      {{#each targetRows as |row|}}
+        <section class="mwd-roll-card__target-row {{#if row.applied}}is-applied{{/if}}">
+          <header class="mwd-roll-card__target-row-header">
+            <div class="mwd-roll-card__target-name">{{row.targetName}}</div>
+            <div class="mwd-roll-card__target-outcome">{{row.outcomeLabel}}</div>
+          </header>
+          <div class="mwd-roll-card__line">
+            <span class="k">Exposure</span>
+            <span class="v">{{row.exposureLabel}}</span>
+          </div>
+          <div class="mwd-roll-card__line">
+            <span class="k">Damage</span>
+            <span class="v">{{row.damageLabel}}</span>
+          </div>
+          {{#if row.reactionHint}}
+            <div class="mwd-roll-card__line muted">{{row.reactionHint}}</div>
+          {{/if}}
+          {{#if row.rowActions.length}}
+            <div class="mwd-roll-card__target-row-actions">
+              {{#each row.rowActions as |a|}}
+                <button
+                  type="button"
+                  class="{{a.cssClass}}"
+                  data-mwd-action="{{a.action}}"
+                  {{#if a.disabled}}disabled{{/if}}
+                  {{#if a.dataset}}
+                    {{#each a.dataset}}
+                      data-{{@key}}="{{this}}"
+                    {{/each}}
+                  {{/if}}>
+                  {{a.label}}
+                </button>
+              {{/each}}
+            </div>
+          {{/if}}
+        </section>
+      {{/each}}
+    </div>
+  {{/if}}
+
   {{!-- Action buttons (enhancer-friendly) --}}
   {{#if actions.length}}
     <div class="mwd-roll-card__actions">

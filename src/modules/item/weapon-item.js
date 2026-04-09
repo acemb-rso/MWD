@@ -21,6 +21,10 @@ import {
   normalizePersonalDamageType,
   normalizeWeaponTraits,
 } from "../mwd/personal-damage.js";
+import {
+  getPersonalRangeBandLabel,
+  normalizePersonalRangeData,
+} from "../mwd/personal-range-bands.js";
 
 const AREA_TARGETS = {
   none: { targets: 1, adjust: [0] },
@@ -137,7 +141,7 @@ export class WeaponItem extends MWDItem {
     system.damage = Number(system.damage ?? 0) || 0;
     system.damageType = normalizePersonalDamageType(system.damageType);
     system.attackRatingBand = WeaponItem.normalizeAttackRatingBand(system.attackRatingBand);
-    system.range = WeaponItem.normalizeRangeData(system.range);
+    system.range = WeaponItem.normalizePersonalRangeData(system.range);
     system.traits = WeaponItem.normalizeTraits(system.traits);
     system.notes = String(system.notes ?? "").trim();
   }
@@ -190,6 +194,12 @@ export class WeaponItem extends MWDItem {
     return normalizeWeaponTraits(value);
   }
 
+  static normalizePersonalRangeData(range) {
+    const normalized = normalizePersonalRangeData(range);
+    normalized.max = WeaponItem.normalizeRangeKey(normalized.max ?? range?.max ?? "extreme");
+    return normalized;
+  }
+
   static normalizeRangeData(range) {
     const max = WeaponItem.normalizeRangeKey(range?.max ?? "near");
     return {
@@ -217,7 +227,9 @@ export class WeaponItem extends MWDItem {
 
     const system = this.system ?? {};
     const canonicalType = this.canonicalType ?? this.type;
-    const range = WeaponItem.normalizeRangeData(system.range);
+    const range = canonicalType === TEMPLATE.itemType.personalWeapon
+      ? WeaponItem.normalizePersonalRangeData(system.range)
+      : WeaponItem.normalizeRangeData(system.range);
     const skillCode = String(system.skill ?? "").trim();
     const skillDef = getSkillDef(skillCode);
     const damage = Number(system.damage ?? 0) || 0;
@@ -359,7 +371,13 @@ export class WeaponItem extends MWDItem {
   }
 
   getRanges() {
-    return WeaponItem.getRangeList(WeaponItem.normalizeRangeData(this.system.range))
+    const personalScale = (this.canonicalType ?? this.type) === TEMPLATE.itemType.personalWeapon;
+    const range = personalScale
+      ? WeaponItem.normalizePersonalRangeData(this.system.range)
+      : WeaponItem.normalizeRangeData(this.system.range);
+    return WeaponItem.getRangeList(range, {
+      personalScale
+    })
       .filter(it => it.allowed)
       .map(it => ({ value: it.value, labelkey: it.labelkey }));
   }
@@ -368,7 +386,7 @@ export class WeaponItem extends MWDItem {
     return { value: this.system.range[range], labelkey: Enums.getFromList(Enums.getEnums().ranges, range) };
   }
 
-  static getRangeList(range) {
+  static getRangeList(range, { personalScale = false } = {}) {
     const normalizedMax = WeaponItem.normalizeRangeKey(range?.max);
     const maxIndex = WeaponItem.RANGE_ORDER.indexOf(normalizedMax);
     return WeaponItem.RANGE_ORDER.map((key, index) => {
@@ -376,7 +394,7 @@ export class WeaponItem extends MWDItem {
         key,
         allowed: maxIndex >= 0 ? index <= maxIndex : index === 0,
         value: range?.[key] ?? (key === 'extreme' && range?.long !== undefined ? range.long : undefined),
-        labelkey: Enums.getFromList(Enums.getEnums().ranges, key)
+        labelkey: personalScale ? getPersonalRangeBandLabel(key) : Enums.getFromList(Enums.getEnums().ranges, key)
       };
     });
   }

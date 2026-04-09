@@ -25,6 +25,7 @@ import {
   normalizeStoredSkillSpecializationKeys,
 } from "../mwd/skills.js";
 import { notifyRollError } from "../roll/roll-errors.js";
+import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
 import {
   getQualityCategoryLabel,
   getQualityTierLabel,
@@ -189,6 +190,9 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       toggleStatuses: CharacterSheetV2.prototype._onToggleStatuses,
       combatAction: CharacterSheetV2.prototype._onCombatAction,
       combatSpend: CharacterSheetV2.prototype._onCombatSpend,
+      combatAssist: CharacterSheetV2.prototype._onCombatAssist,
+      combatEvade: CharacterSheetV2.prototype._onCombatEvade,
+      combatInterrupt: CharacterSheetV2.prototype._onCombatInterrupt,
       combatReduceBurn: CharacterSheetV2.prototype._onCombatReduceBurn,
       combatOverloadCheck: CharacterSheetV2.prototype._onCombatOverloadCheck,
       combatAttack: CharacterSheetV2.prototype._onCombatAttack,
@@ -903,6 +907,147 @@ ctx.edgeConsole.poolsOrdered = order
   }
  }
 
+ async _onCombatAssist(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (this.#notifyUnavailableAction(target, event, "Assist is not available right now.")) return;
+  if (!this.isEditable) return;
+
+  try {
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const token = this.getSheetTokenDocument?.()
+      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
+    const snapshot = PersonalCombatTracker.getSnapshot(actorWriteTarget, { token });
+
+    if (!snapshot.hasCombatant) {
+      ui.notifications?.warn("No combatant on the current scene.");
+      return;
+    }
+    if (snapshot.isCurrentTurn) {
+      ui.notifications?.warn("Only outside your activation.");
+      return;
+    }
+
+    const assistTarget = await this.#promptAssistTarget(snapshot);
+    if (!assistTarget) return;
+
+    const result = await PersonalCombatTracker.executeAction(actorWriteTarget, {
+      token,
+      actionId: "assist",
+      metadata: {
+        targetCombatantId: assistTarget.combatantId,
+        targetActorUuid: assistTarget.actorUuid,
+        targetTokenUuid: assistTarget.tokenUuid,
+        targetName: assistTarget.name
+      }
+    });
+
+    if (!result?.ok) {
+      ui.notifications?.warn(result?.reason ?? "Unable to assist.");
+      return;
+    }
+
+    await this.#createAssistChatCard({
+      actor: actorWriteTarget,
+      token,
+      target: assistTarget,
+      costLabel: result.costLabel
+    });
+
+    this.#closeCombatMenu({ rerender: false });
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to assist", error);
+    ui.notifications?.error("Unable to assist.");
+  }
+ }
+
+ async _onCombatEvade(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (this.#notifyUnavailableAction(target, event, "Evade is not available right now.")) return;
+  if (!this.isEditable) return;
+
+  try {
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const token = this.getSheetTokenDocument?.()
+      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
+    const result = await activatePendingEvadeFromCombatMenu(actorWriteTarget, { token });
+    if (!result?.ok) {
+      ui.notifications?.warn(result?.reason ?? "Unable to activate Evade.");
+      return;
+    }
+
+    this.#closeCombatMenu({ rerender: false });
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to activate Evade", error);
+    ui.notifications?.error("Unable to activate Evade.");
+  }
+ }
+
+ async _onCombatInterrupt(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (this.#notifyUnavailableAction(target, event, "Interrupt is not available right now.")) return;
+  if (!this.isEditable) return;
+
+  try {
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const token = this.getSheetTokenDocument?.()
+      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
+    const snapshot = PersonalCombatTracker.getSnapshot(actorWriteTarget, { token });
+    const preparedInterrupt = PersonalCombatTracker.getPreparedInterrupt(snapshot);
+
+    if (!snapshot.hasCombatant) {
+      ui.notifications?.warn("No combatant on the current scene.");
+      return;
+    }
+    if (snapshot.isCurrentTurn) {
+      ui.notifications?.warn("Only outside your activation.");
+      return;
+    }
+    if (!preparedInterrupt) {
+      ui.notifications?.warn("Prepare an interrupt first.");
+      return;
+    }
+
+    const confirmed = await this.#confirmInterrupt(preparedInterrupt);
+    if (!confirmed) return;
+
+    const result = await PersonalCombatTracker.executeAction(actorWriteTarget, {
+      token,
+      actionId: "interrupt",
+      metadata: preparedInterrupt
+    });
+
+    if (!result?.ok) {
+      ui.notifications?.warn(result?.reason ?? "Unable to interrupt.");
+      return;
+    }
+
+    await PersonalCombatTracker.clearPreparedInterrupt(actorWriteTarget, { token });
+    await this.#createInterruptChatCard({
+      actor: actorWriteTarget,
+      token,
+      preparedInterrupt,
+      costLabel: result.costLabel
+    });
+
+    this.#closeCombatMenu({ rerender: false });
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to interrupt", error);
+    ui.notifications?.error("Unable to interrupt.");
+  }
+ }
+
  async _onCombatOverloadCheck(event, target) {
   event?.preventDefault?.();
   event?.stopPropagation?.();
@@ -949,28 +1094,38 @@ ctx.edgeConsole.poolsOrdered = order
   const token = this.getSheetTokenDocument?.()
     ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
     ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
+  const actionId = String(target?.dataset?.combatAction ?? "attack").trim() || "attack";
+  const actionLabel = String(target?.dataset?.combatLabel ?? (actionId === "opportunity" ? "Opportunity" : "Attack")).trim() || "Attack";
+  const isOpportunity = actionId === "opportunity";
 
   const snapshot = PersonalCombatTracker.getSnapshot(actorWriteTarget, { token });
+  const hasAim = Boolean(snapshot.state?.actionState?.aim);
   if (!snapshot.hasCombatant) {
     ui.notifications?.warn("No combatant on the current scene.");
     return;
   }
-  if (!snapshot.isCurrentTurn) {
+  if (isOpportunity && snapshot.isCurrentTurn) {
+    ui.notifications?.warn("Only outside your activation.");
+    return;
+  }
+  if (!isOpportunity && !snapshot.isCurrentTurn) {
     ui.notifications?.warn("Only available during your activation.");
     return;
   }
-  if (snapshot.overloaded) {
+  if (!isOpportunity && snapshot.overloaded) {
     ui.notifications?.warn("Overloaded actors can only recover Burn.");
     return;
   }
-  const activationCap = 3 + Math.floor((
-    Math.max(0, Number(actorWriteTarget.system?.attributes?.reflexes?.value ?? 0))
-    + Math.max(0, Number(actorWriteTarget.system?.attributes?.willpower?.value ?? 0))
-  ) / 2);
-  const saCapacityRemaining = Math.max(0, activationCap - Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0)));
-  if (saCapacityRemaining < 2) {
-    ui.notifications?.warn("Activation SA cap reached.");
-    return;
+  if (!isOpportunity) {
+    const activationCap = 3 + Math.floor((
+      Math.max(0, Number(actorWriteTarget.system?.attributes?.reflexes?.value ?? 0))
+      + Math.max(0, Number(actorWriteTarget.system?.attributes?.willpower?.value ?? 0))
+    ) / 2);
+    const saCapacityRemaining = Math.max(0, activationCap - Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0)));
+    if (saCapacityRemaining < 2) {
+      ui.notifications?.warn("Activation SA cap reached.");
+      return;
+    }
   }
 
   const payload = {
@@ -978,7 +1133,9 @@ ctx.edgeConsole.poolsOrdered = order
     mode: "auto",
     fallback: "unarmed",
     edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-    tags: ["combat", "attack"]
+    tags: isOpportunity ? ["combat", "attack", "reaction", "opportunity"] : ["combat", "attack"],
+    aim: hasAim ? { active: true } : null,
+    sourceTokenId: token?.id ?? null
   };
 
   try {
@@ -988,25 +1145,33 @@ ctx.edgeConsole.poolsOrdered = order
       this.#renderPreservingScroll(false);
       return;
     }
+    if (hasAim) {
+      await PersonalCombatTracker.clearAim(actorWriteTarget, { token });
+    }
 
-    const spend = await PersonalCombatTracker.spendResource(actorWriteTarget, {
-      token,
-      resource: "sa",
-      cost: 2,
-      actionId: "attack",
-      actionLabel: "Attack",
-      actionCostLabel: "2 SA",
-      actionCategory: "complex"
-    });
+    const spend = isOpportunity
+      ? await PersonalCombatTracker.executeAction(actorWriteTarget, {
+        token,
+        actionId: "opportunity"
+      })
+      : await PersonalCombatTracker.spendResource(actorWriteTarget, {
+        token,
+        resource: "sa",
+        cost: 2,
+        actionId: "attack",
+        actionLabel: "Attack",
+        actionCostLabel: "2 SA",
+        actionCategory: "complex"
+      });
 
     if (!spend?.ok) {
-      ui.notifications?.warn(spend?.reason ?? "Unable to spend attack action.");
+      ui.notifications?.warn(spend?.reason ?? `Unable to spend ${actionLabel} action.`);
     }
 
     this.#renderPreservingScroll({ force: true });
   } catch (error) {
-    console.error("MWD | Failed to launch attack", error);
-    notifyRollError(error, "Unable to launch attack.");
+    console.error(`MWD | Failed to launch ${actionLabel}`, error);
+    notifyRollError(error, `Unable to launch ${actionLabel}.`);
   }
 }
 
@@ -1274,8 +1439,19 @@ ctx.edgeConsole.poolsOrdered = order
 
   try {
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const token = this.getSheetTokenDocument?.()
+      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
+    const snapshot = PersonalCombatTracker.getSnapshot(actorWriteTarget, { token });
+    const hasAim = Boolean(snapshot.state?.actionState?.aim);
+    if (hasAim) payload.aim = { active: true };
+    payload.sourceTokenId = token?.id ?? null;
+
     const result = await game.mwd?.roll?.execute?.({ actor: actorWriteTarget, payload, event });
     if (!result) return;
+    if (hasAim) {
+      await PersonalCombatTracker.clearAim(actorWriteTarget, { token });
+    }
     this.#renderPreservingScroll({ force: true });
   } catch (error) {
     console.error("MWD | Failed to launch weapon attack", error);
@@ -1321,6 +1497,115 @@ ctx.edgeConsole.poolsOrdered = order
   });
 
   return result ? result : null;
+ }
+
+ async #confirmInterrupt(preparedInterrupt = {}) {
+  const condition = String(preparedInterrupt?.condition ?? "").trim();
+  const scope = String(preparedInterrupt?.scope ?? "").trim();
+  const content = `
+    <div class="mwd-quick-select">
+      <p><strong>Trigger:</strong> ${escapeHtml(condition || "Unspecified trigger")}</p>
+      <p><strong>Scope:</strong> ${escapeHtml(scope || "Unspecified response")}</p>
+    </div>`;
+
+  const result = await Dialog.confirm({
+    title: "Resolve Interrupt",
+    content,
+    yes: () => true,
+    no: () => false
+  });
+
+  return Boolean(result);
+ }
+
+ #getCombatants(combat) {
+  if (!combat?.combatants) return [];
+  if (typeof combat.combatants.values === "function") return Array.from(combat.combatants.values());
+  return Array.from(combat.combatants ?? []);
+ }
+
+ #getAssistTargetChoices(snapshot) {
+  const currentCombatantId = String(snapshot?.combatant?.id ?? "").trim();
+  return this.#getCombatants(snapshot?.combat)
+    .filter(combatant => combatant && String(combatant.id ?? "").trim() !== currentCombatantId)
+    .map(combatant => {
+      const tokenDoc = combatant.token?.document ?? combatant.token ?? null;
+      const actor = combatant.actor ?? tokenDoc?.actor ?? null;
+      const name = String(combatant.name ?? tokenDoc?.name ?? actor?.name ?? "Combatant").trim() || "Combatant";
+      return {
+        combatantId: String(combatant.id ?? "").trim(),
+        actorUuid: actor?.uuid ?? null,
+        tokenUuid: tokenDoc?.uuid ?? null,
+        name
+      };
+    })
+    .filter(choice => choice.combatantId && choice.name)
+    .sort((left, right) => left.name.localeCompare(right.name));
+ }
+
+ async #promptAssistTarget(snapshot) {
+  const choices = this.#getAssistTargetChoices(snapshot);
+  if (!choices.length) {
+    ui.notifications?.warn("No other combatants are available to assist.");
+    return null;
+  }
+
+  const content = `
+    <form class="mwd-quick-select">
+      <div class="mwd-field">
+        <label>Assist</label>
+        <select name="combatant">
+          ${choices.map(choice => `<option value="${escapeHtml(choice.combatantId)}">${escapeHtml(choice.name)}</option>`).join("")}
+        </select>
+      </div>
+    </form>`;
+
+  const selectedId = await Dialog.prompt({
+    title: "Assist Combatant",
+    content,
+    label: "Assist",
+    callback: html => String(html.find('select[name="combatant"]').val() ?? choices[0]?.combatantId ?? "").trim()
+  });
+
+  if (!selectedId) return null;
+  return choices.find(choice => choice.combatantId === selectedId) ?? null;
+ }
+
+ async #createAssistChatCard({ actor, token = null, target = null, costLabel = "" } = {}) {
+  const actorName = String(actor?.name ?? "Ally").trim() || "Ally";
+  const targetName = String(target?.name ?? "an ally").trim() || "an ally";
+  const cost = String(costLabel ?? "").trim();
+  const content = `
+    <div class="mwd-chat-card mwd-chat-card--assist">
+      <h3>Assist</h3>
+      <p><strong>${escapeHtml(actorName)}</strong> assists <strong>${escapeHtml(targetName)}</strong>.</p>
+      ${cost ? `<p><small>Cost: ${escapeHtml(cost)}</small></p>` : ""}
+    </div>`;
+
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor, token: token?.object ?? token }),
+    content
+  });
+ }
+
+ async #createInterruptChatCard({ actor, token = null, preparedInterrupt = null, costLabel = "" } = {}) {
+  const actorName = String(actor?.name ?? "Combatant").trim() || "Combatant";
+  const condition = String(preparedInterrupt?.condition ?? "").trim();
+  const scope = String(preparedInterrupt?.scope ?? "").trim();
+  const cost = String(costLabel ?? "").trim();
+  const content = `
+    <div class="mwd-chat-card mwd-chat-card--interrupt">
+      <h3>Interrupt</h3>
+      <p><strong>${escapeHtml(actorName)}</strong> resolves a prepared interrupt.</p>
+      ${condition ? `<p><strong>Trigger:</strong> ${escapeHtml(condition)}</p>` : ""}
+      ${scope ? `<p><strong>Scope:</strong> ${escapeHtml(scope)}</p>` : ""}
+      ${cost ? `<p><small>Cost: ${escapeHtml(cost)}</small></p>` : ""}
+    </div>`;
+
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor, token: token?.object ?? token }),
+    content
+  });
  }
 
  #notifyUnavailableAction(target, event, fallback = "That action is not available right now.") {

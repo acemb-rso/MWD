@@ -152,6 +152,54 @@ How it fits: Used by the CSB-driven personal weapon details layout.
                   <div class="mwd-item-note">Template attacks still require the <strong>templated</strong> trait and valid template config.</div>
                 </div>
               </div>
+
+              <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Area Effect</label>
+                  <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="areaEffect.kind">
+                    {{selectOptions ../weaponEditor.areaEffectKinds selected=payload.areaEffect.kind valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
+                </div>
+
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Start Exposure</label>
+                  <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="areaEffect.hazard.startExposure">
+                    {{selectOptions ../weaponEditor.exposureTiers selected=payload.areaEffect.hazard.startExposure valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
+                </div>
+
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Escalation Rate</label>
+                  <input class="type-numeric mwd-payload-field" type="number" value="{{payload.areaEffect.hazard.escalation.rate}}" data-payload-id="{{payload.id}}" data-field="areaEffect.hazard.escalation.rate" />
+                </div>
+
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Interval (Turns)</label>
+                  <input class="type-numeric mwd-payload-field" type="number" value="{{payload.areaEffect.hazard.escalation.intervalTurns}}" data-payload-id="{{payload.id}}" data-field="areaEffect.hazard.escalation.intervalTurns" />
+                </div>
+              </div>
+
+              <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Escalation Max</label>
+                  <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="areaEffect.hazard.escalation.max">
+                    {{selectOptions ../weaponEditor.exposureTiers selected=payload.areaEffect.hazard.escalation.max valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
+                </div>
+
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Full Burn</label>
+                  <input class="type-numeric mwd-payload-field" type="number" value="{{payload.areaEffect.hazard.onFull.burnDelta}}" data-payload-id="{{payload.id}}" data-field="areaEffect.hazard.onFull.burnDelta" />
+                </div>
+
+                <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+                  <label>Clear On Exit</label>
+                  <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="areaEffect.hazard.clearOnExit">
+                    <option value="true" {{#if payload.areaEffect.hazard.clearOnExit}}selected{{/if}}>Yes</option>
+                    <option value="false" {{#unless payload.areaEffect.hazard.clearOnExit}}selected{{/unless}}>No</option>
+                  </select>
+                </div>
+              </div>
             {{/if}}
           {{/if}}
         </div>

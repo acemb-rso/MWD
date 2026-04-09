@@ -10,12 +10,17 @@ import {
   PERSONAL_DAMAGE_TYPES,
   getPersonalDamageTypeLabel,
 } from "../mwd/personal-damage.js";
+import { getPersonalRangeBandLabel } from "../mwd/personal-range-bands.js";
 import {
   PERSONAL_WEAPON_PAYLOAD_CAPABILITY_OPTIONS,
   PERSONAL_WEAPON_TEMPLATE_PLACEMENTS,
   PERSONAL_WEAPON_TEMPLATE_SHAPES,
   PERSONAL_WEAPON_WEAPON_CAPABILITY_OPTIONS,
 } from "../mwd/personal-weapon-capabilities.js";
+import {
+  AREA_EFFECT_KINDS,
+  EXPOSURE_TIERS,
+} from "../area-effects/area-effect-engine.js";
 
 const PERSONAL_WEAPON_SKILL_CODES = Object.freeze([
   "firearms",
@@ -109,13 +114,30 @@ export class WeaponItemSheet extends BaseItemSheet {
       ),
       ranges: WeaponItem.RANGE_ORDER.map(value => ({
         value,
-        label: value.charAt(0).toUpperCase() + value.slice(1)
+        label: canonicalType === "personalWeapon"
+          ? getPersonalRangeBandLabel(value)
+          : value.charAt(0).toUpperCase() + value.slice(1)
       })),
+      rangeBandLabels: Object.fromEntries(WeaponItem.RANGE_ORDER.map(value => [
+        value,
+        canonicalType === "personalWeapon"
+          ? getPersonalRangeBandLabel(value)
+          : value.charAt(0).toUpperCase() + value.slice(1)
+      ])),
       weaponCapabilityOptions: PERSONAL_WEAPON_WEAPON_CAPABILITY_OPTIONS,
       payloadCapabilityOptions: PERSONAL_WEAPON_PAYLOAD_CAPABILITY_OPTIONS,
       ammoDamageTypes: [{ value: "", label: "Use Weapon Default" }, ...PERSONAL_DAMAGE_TYPES],
       payloadTemplateShapes: PERSONAL_WEAPON_TEMPLATE_SHAPES,
       payloadTemplatePlacements: PERSONAL_WEAPON_TEMPLATE_PLACEMENTS,
+      areaEffectKinds: [
+        { value: AREA_EFFECT_KINDS.discrete, label: "Discrete" },
+        { value: AREA_EFFECT_KINDS.persistent, label: "Persistent Hazard" },
+      ],
+      exposureTiers: [
+        { value: EXPOSURE_TIERS.minor, label: "Minor" },
+        { value: EXPOSURE_TIERS.major, label: "Major" },
+        { value: EXPOSURE_TIERS.full, label: "Full" },
+      ],
       resolverKeys: [
         { value: "standard", label: "Standard" },
         { value: "template", label: "Template" },

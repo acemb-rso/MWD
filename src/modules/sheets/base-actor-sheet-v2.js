@@ -607,6 +607,10 @@ async _prepareContext(options) {
       return Math.clamp(value, 0, 10);
     }
 
+    if (path === "system.speed") {
+      return Math.max(0, Math.trunc(value));
+    }
+
     return value;
   }
   

@@ -205,6 +205,8 @@ export function buildResolved({
       total: Number(modTotal ?? 0)
     },
 
+    areaEffectPreviewState: foundry.utils.deepClone(payload?.areaEffectPreviewState ?? {}),
+
     // Edge snapshot / affordances
     edge: edgeSnapshot
   };

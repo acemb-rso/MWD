@@ -19,6 +19,7 @@ import {
   buildRollTraitFacts,
   evaluateTraitPhase,
 } from "../mwd/traits.js";
+import { isPersistentAreaEffect } from "../area-effects/area-effect-engine.js";
 
 /**
  * Public roll API.
@@ -96,7 +97,6 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
       throw new Error("Attack requires an owned equipped personal weapon.");
     }
 
-    normalized.rangeBand = normalized.rangeBand ?? profile.defaultRangeBand ?? "close";
     normalized.payloadId = normalized.payloadId ?? profile?.payloadState?.activePayloadId ?? "";
     return normalized;
   }
@@ -110,7 +110,6 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
       if (!selected) return null;
 
       normalized.weaponId = selected.id;
-      normalized.rangeBand = normalized.rangeBand ?? selected.defaultRangeBand ?? "close";
       normalized.payloadId = normalized.payloadId ?? selected?.payloadState?.activePayloadId ?? "";
       delete normalized.mode;
       return normalized;
@@ -119,7 +118,6 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     if (loadout?.defaultWeapon?.isSynthetic || loadout?.defaultWeapon?.id === "unarmed") {
       normalized.syntheticWeapon = foundry.utils.deepClone(loadout.defaultWeapon ?? WeaponItem.buildDefaultUnarmedProfile(actor));
       normalized.weaponId = normalized.syntheticWeapon.id;
-      normalized.rangeBand = normalized.rangeBand ?? "close";
       normalized.payloadId = normalized.payloadId ?? normalized.syntheticWeapon?.payloadState?.activePayloadId ?? "";
       delete normalized.mode;
       return normalized;
@@ -127,7 +125,6 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
 
     if (loadout?.defaultWeapon?.id) {
       normalized.weaponId = loadout.defaultWeapon.id;
-      normalized.rangeBand = normalized.rangeBand ?? loadout.defaultWeapon.defaultRangeBand ?? "close";
       normalized.payloadId = normalized.payloadId ?? loadout.defaultWeapon?.payloadState?.activePayloadId ?? "";
       delete normalized.mode;
       return normalized;
@@ -137,7 +134,6 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
   if (normalized.fallback === "unarmed") {
     normalized.syntheticWeapon = foundry.utils.deepClone(WeaponItem.buildDefaultUnarmedProfile(actor));
     normalized.weaponId = normalized.syntheticWeapon.id;
-    normalized.rangeBand = normalized.rangeBand ?? "close";
     normalized.payloadId = normalized.payloadId ?? normalized.syntheticWeapon?.payloadState?.activePayloadId ?? "";
     delete normalized.mode;
     return normalized;
@@ -242,12 +238,15 @@ async function execute({ actor, payload, event } = {}) {
     });
 
     if (!placementResult) return null;
-    if (!Array.isArray(placementResult.targetSnapshots) || placementResult.targetSnapshots.length === 0) {
+    if (
+      !isPersistentAreaEffect(ctx?.attack?.areaEffect ?? ctx?.attack?.payload?.areaEffect ?? {})
+      && (!Array.isArray(placementResult.targetSnapshots) || placementResult.targetSnapshots.length === 0)
+    ) {
       ui.notifications?.warn("Template placement did not affect any targets.");
       return null;
     }
 
-    payload.targetSnapshots = placementResult.targetSnapshots;
+    payload.targetSnapshots = Array.isArray(placementResult.targetSnapshots) ? placementResult.targetSnapshots : [];
     payload.templatePlacement = placementResult.placement;
     ctx = await resolveIntent({ actor, payload, event });
   }

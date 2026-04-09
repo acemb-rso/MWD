@@ -20,9 +20,25 @@ import {
   getPersonalActionsByCategory,
   PERSONAL_ACTION_CATEGORIES,
 } from "./personal-action-catalog.js";
+import {
+  EXPOSURE_TIERS,
+  getExposureIndex,
+  getExposureLabel,
+  getRaisedExposureTier,
+  getReducedExposureTier,
+  normalizeExposureTier,
+  scaleDamageByExposure,
+} from "../area-effects/area-effect-engine.js";
+import {
+  getHazardRegionFlag,
+  getHazardRegionsForToken,
+} from "../area-effects/hazard-regions.js";
+import { renderHazardCard } from "../area-effects/hazard-chat.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
+const PREPARED_INTERRUPT_STATUS_ID = "preparedInterrupt";
+const PREPARED_INTERRUPT_ICON = "systems/mwd/img/icons/status/readied_action.svg";
 
 const BASE_SA = 3;
 const BASE_FA = 1;
@@ -54,6 +70,8 @@ function defaultState(activation = null) {
       move: null,
       preparedInterrupt: null
     },
+    hazards: {},
+    pendingReaction: null,
     actionLog: [],
     activation
   };
@@ -70,7 +88,47 @@ function cloneState(state, activation = null) {
 function cloneStoredState(stored, fallbackActivation = null) {
   const state = cloneState(stored ?? {}, stored?.activation ?? fallbackActivation);
   state.actionLog = normalizeActionLog(state.actionLog);
+  state.hazards = normalizeHazardStates(state.hazards);
+  state.pendingReaction = normalizePendingReaction(state.pendingReaction);
   return state;
+}
+
+function normalizeHazardStates(value) {
+  if (!value || typeof value !== "object") return {};
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .map(([regionId, state]) => {
+        const key = String(regionId ?? "").trim();
+        if (!key || !state || typeof state !== "object") return null;
+        return [key, {
+          tier: normalizeExposureTier(state.tier, EXPOSURE_TIERS.none),
+          turnsExposed: Math.max(0, Number(state.turnsExposed ?? 0) || 0),
+          evadeLocked: Boolean(state.evadeLocked),
+          lastProcessedRound: Number(state.lastProcessedRound ?? 0) || 0,
+        }];
+      })
+      .filter(Boolean)
+  );
+}
+
+function normalizePendingReaction(value) {
+  if (!value || typeof value !== "object") return null;
+
+  const type = String(value.type ?? "").trim();
+  if (!type) return null;
+
+  return {
+    type,
+    sourceKind: String(value.sourceKind ?? "").trim() || null,
+    sourceId: String(value.sourceId ?? "").trim() || null,
+    messageId: String(value.messageId ?? "").trim() || null,
+    resultIndex: Number.isInteger(Number(value.resultIndex)) ? Number(value.resultIndex) : null,
+    exposureBefore: normalizeExposureTier(value.exposureBefore, EXPOSURE_TIERS.none),
+    exposureAfterPreview: normalizeExposureTier(value.exposureAfterPreview, EXPOSURE_TIERS.none),
+    edgePoolKey: String(value.edgePoolKey ?? "").trim() || null,
+    allowCurrentTurn: Boolean(value.allowCurrentTurn),
+  };
 }
 
 function normalizeActionLog(entries) {
@@ -88,6 +146,21 @@ function normalizeActionLog(entries) {
       };
     })
     .filter(Boolean);
+}
+
+function filterReactionActionLog(entries = []) {
+  return normalizeActionLog(entries).filter(entry => {
+    const action = getPersonalAction(entry?.id);
+    return action?.category === PERSONAL_ACTION_CATEGORIES.reaction;
+  });
+}
+
+function nextActivationState(stored = null, activation = null) {
+  const state = defaultState(activation);
+  state.reactionBurnSinceLastActivation = Math.max(0, Number(stored?.reactionBurnSinceLastActivation ?? 0) || 0);
+  state.actionLog = filterReactionActionLog(stored?.actionLog);
+  state.hazards = normalizeHazardStates(stored?.hazards);
+  return state;
 }
 
 function actionCostLabel(resource, cost) {
@@ -129,6 +202,38 @@ function mergeActionState(state = {}, actionId = "", { snapshot = null, metadata
   }
 
   return nextState;
+}
+
+function getPreparedInterrupt(state = {}) {
+  const prepared = state?.actionState?.preparedInterrupt ?? null;
+  if (!prepared) return null;
+
+  const condition = String(prepared?.condition ?? "").trim();
+  const scope = String(prepared?.scope ?? "").trim();
+  if (!condition && !scope) return null;
+
+  return {
+    ...prepared,
+    condition,
+    scope
+  };
+}
+
+function buildPreparedInterruptHint(preparedInterrupt = null) {
+  if (!preparedInterrupt) return "";
+
+  const parts = [];
+  if (preparedInterrupt.condition) parts.push(`Trigger: ${preparedInterrupt.condition}`);
+  if (preparedInterrupt.scope) parts.push(`Scope: ${preparedInterrupt.scope}`);
+  return parts.join(" | ");
+}
+
+function getPreparedInterruptStatusConfig() {
+  return (CONFIG.statusEffects ?? []).find(effect => String(effect?.id ?? "").trim() === PREPARED_INTERRUPT_STATUS_ID) ?? {
+    id: PREPARED_INTERRUPT_STATUS_ID,
+    name: "Prepared",
+    icon: PREPARED_INTERRUPT_ICON
+  };
 }
 
 function statusLabelFromConfig(statusId) {
@@ -178,6 +283,31 @@ function formatDistanceLabel(distance, units = "") {
   return units ? `${value} ${units}` : value;
 }
 
+function applyChatVisibility(chatData) {
+  const rollMode = game.settings?.get?.("core", "rollMode");
+  if (typeof ChatMessage.applyRollMode === "function") {
+    ChatMessage.applyRollMode(chatData, rollMode);
+  }
+  return chatData;
+}
+
+function isHazardRegionDocument(region) {
+  return Boolean(getHazardRegionFlag(region));
+}
+
+function buildHazardOverlayText(hazards = []) {
+  const entries = Array.isArray(hazards) ? hazards.filter(Boolean) : [];
+  if (!entries.length) return "";
+
+  const highest = entries
+    .slice()
+    .sort((left, right) => getExposureIndex(right?.tier) - getExposureIndex(left?.tier))[0] ?? null;
+  if (!highest) return "";
+
+  const label = `HAZARD ${getExposureLabel(highest.tier)} (${Math.max(0, Number(highest.turnsExposed ?? 0) || 0)})`;
+  return highest.evadeLocked ? `${label} LOCK` : label;
+}
+
 export class PersonalCombatTracker {
   static _targetRefreshTimeout = null;
   static _pendingTokenPositions = new Map();
@@ -187,14 +317,20 @@ export class PersonalCombatTracker {
     Hooks.on("updateCombat", (combat, changed) => this._onUpdateCombat(combat, changed));
     Hooks.on("updateCombatant", (combatant, changed) => this._onUpdateCombatant(combatant, changed));
     Hooks.on("updateToken", (tokenDocument, changed) => this._onUpdateToken(tokenDocument, changed));
+    Hooks.on("refreshToken", token => this._onRefreshToken(token));
     Hooks.on("createCombatant", combatant => this._onCreateCombatant(combatant));
     Hooks.on("deleteCombatant", combatant => this._onDeleteCombatant(combatant));
     Hooks.on("deleteCombat", combat => this._onDeleteCombat(combat));
+    Hooks.on("createRegion", region => this._onCreateRegion(region));
+    Hooks.on("updateRegion", region => this._onUpdateRegion(region));
+    Hooks.on("deleteRegion", region => this._onDeleteRegion(region));
     Hooks.on("targetToken", (user, token, targeted) => this._onTargetToken(user, token, targeted));
   }
 
   static async onReady() {
     await this.ensureCurrentCombatantState();
+    await this.syncPreparedIndicators();
+    await this._syncAllSceneHazards();
     if (game.combat?.id) {
       this._lastActivationByCombat.set(
         game.combat.id,
@@ -602,7 +738,7 @@ export class PersonalCombatTracker {
     const stored = combatant ? combatant.getFlag(FLAG_SCOPE, FLAG_KEY) : null;
     const state = combatant
       ? (isCurrentTurn
-        ? (sameActivation(stored, activation) ? cloneStoredState(stored, activation) : defaultState(activation))
+        ? (sameActivation(stored, activation) ? cloneStoredState(stored, activation) : nextActivationState(stored, activation))
         : cloneStoredState(stored, activation))
       : defaultState(activation);
     state.actionLog = normalizeActionLog(state.actionLog);
@@ -610,8 +746,12 @@ export class PersonalCombatTracker {
     const burnValue = Math.max(0, Number(actor?.system?.burn?.value ?? 0));
     const burnPenalty = Math.floor(burnValue / 2);
     const overloaded = !!actor?.system?.burn?.overloaded;
+    const preparedInterrupt = getPreparedInterrupt(state);
     const statuses = this.getActiveStatuses(actor);
-    const effects = statuses.filter(status => !(overloaded && status.id === "overloaded"));
+    const effects = statuses.filter(status =>
+      !(overloaded && status.id === "overloaded")
+      && status.id !== PREPARED_INTERRUPT_STATUS_ID
+    );
     const modifierSummary = this.getModifierSummary(actor, burnPenalty);
     const rollImpact = this.getRollImpact(modifierSummary);
     const burnThisActivation = Math.max(0, Number(state.burnThisActivation ?? 0));
@@ -620,6 +760,30 @@ export class PersonalCombatTracker {
       : !isCurrentTurn
         ? "Waiting for this combatant's activation."
         : "";
+    const states = [];
+    if (overloaded) {
+      states.push({ id: "overloaded", label: "Overloaded" });
+    }
+    if (preparedInterrupt) {
+      states.push({
+        id: "preparedInterrupt",
+        label: "Prepared",
+        hint: buildPreparedInterruptHint(preparedInterrupt)
+      });
+    }
+    const hazardEntries = Object.entries(state.hazards ?? {});
+    if (hazardEntries.length) {
+      const highest = hazardEntries
+        .map(([, hazardState]) => hazardState)
+        .sort((left, right) => getExposureIndex(right?.tier) - getExposureIndex(left?.tier))[0] ?? null;
+      if (highest) {
+        states.push({
+          id: "hazard",
+          label: `Hazard ${getExposureLabel(highest.tier)}`,
+          hint: `${hazardEntries.length} active hazard${hazardEntries.length === 1 ? "" : "s"}`
+        });
+      }
+    }
 
     return {
       token: resolvedToken,
@@ -635,8 +799,11 @@ export class PersonalCombatTracker {
         canOverloadCheck: burnValue >= 6 && !overloaded
       },
       state,
+      hazards: state.hazards ?? {},
+      pendingReaction: state.pendingReaction ?? null,
+      preparedInterrupt,
       targeting: this.getTargetingSnapshot(resolvedToken),
-      states: overloaded ? [{ id: "overloaded", label: "Overloaded" }] : [],
+      states,
       effects,
       statuses,
       rollImpact,
@@ -654,6 +821,170 @@ export class PersonalCombatTracker {
       inactiveReason: reason,
       modifierSummary
     };
+  }
+
+  static getAvailableReactionEdgePools(actor) {
+    if (!actor?.hasEdgePools?.()) return [];
+    return (actor.getEdgePoolSummary?.().pools ?? [])
+      .filter(pool => Number(pool?.effectiveValue ?? 0) > 0)
+      .map(pool => ({
+        key: String(pool.key ?? "").trim(),
+        label: String(pool.key ?? "").trim(),
+        value: Number(pool.effectiveValue ?? 0),
+      }))
+      .filter(pool => pool.key);
+  }
+
+  static getReactionSpendPreview(actor, { token = null, edgePoolKey = "" } = {}) {
+    const snapshot = this.getSnapshot(actor, { token });
+    const usesReaction = Number(snapshot.state?.raRemaining ?? 0) > 0;
+    const edgePools = this.getAvailableReactionEdgePools(actor);
+    const normalizedEdgePoolKey = String(edgePoolKey ?? "").trim();
+    const canSpendEdge = !usesReaction && edgePools.some(pool => pool.key === normalizedEdgePoolKey);
+    const burnDelta = usesReaction ? 0 : (canSpendEdge ? 0 : 2);
+
+    return {
+      snapshot,
+      usesReaction,
+      burnDelta,
+      canSpendEdge: !usesReaction && edgePools.length > 0,
+      edgePools,
+      edgePoolKey: canSpendEdge ? normalizedEdgePoolKey : null,
+      costLabel: usesReaction
+        ? "1 RA"
+        : (canSpendEdge ? `1 Edge (${normalizedEdgePoolKey})` : "+2 Burn"),
+    };
+  }
+
+  static async commitReactionSpend(actor, {
+    token = null,
+    actionId = "",
+    actionLabel = "",
+    actionCategory = PERSONAL_ACTION_CATEGORIES.reaction,
+    logLabel = "",
+    edgePoolKey = "",
+    allowCurrentTurn = false,
+  } = {}) {
+    const preview = this.getReactionSpendPreview(actor, { token, edgePoolKey });
+    const snapshot = preview.snapshot;
+    if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
+    if (!allowCurrentTurn && snapshot.isCurrentTurn) return { ok: false, reason: "Only outside your activation." };
+
+    const nextState = cloneStoredState(snapshot.combatant.getFlag(FLAG_SCOPE, FLAG_KEY), snapshot.state?.activation);
+    const runtime = {
+      combat: snapshot.combat,
+      combatant: snapshot.combatant,
+      state: nextState,
+      sceneId: canvas?.scene?.id ?? "",
+      snapshot: { ...snapshot, state: nextState }
+    };
+
+    let burnDelta = 0;
+    let spentEdgePoolKey = null;
+    if (preview.usesReaction) {
+      nextState.raRemaining = Math.max(0, Number(nextState.raRemaining ?? 0) - 1);
+    } else {
+      const requestedBurn = preview.edgePoolKey ? 0 : 2;
+      const burnPhase = evaluateTraitPhase({
+        actor,
+        phase: "onBeforeBurnApplied",
+        facts: buildBurnTraitFacts({
+          actor,
+          packet: {
+            actionId,
+            category: actionCategory,
+            resource: "reaction",
+            amount: requestedBurn,
+            source: "reaction"
+          },
+          runtime,
+        }),
+        packet: {
+          actionId,
+          category: actionCategory,
+          resource: "reaction",
+          amount: requestedBurn,
+          source: "reaction"
+        },
+        options: { runtime, consumeUsage: true },
+      });
+      runtime.pendingMutations = (runtime.pendingMutations ?? []).concat(burnPhase.mutations);
+      burnDelta = Math.max(0, Number(burnPhase.packet.amount ?? requestedBurn) || 0);
+
+      if (preview.edgePoolKey) {
+        await actor.spendEdge(preview.edgePoolKey, 1, { source: "reactionBurnCancel" });
+        spentEdgePoolKey = preview.edgePoolKey;
+      } else if (burnDelta > 0) {
+        nextState.reactionBurnSinceLastActivation = Math.max(
+          0,
+          Number(nextState.reactionBurnSinceLastActivation ?? 0) + burnDelta
+        );
+      }
+    }
+
+    this._appendActionLog(nextState, {
+      id: actionId,
+      label: logLabel || actionLabel,
+      costLabel: preview.costLabel
+    });
+
+    if (runtime.pendingMutations?.length) {
+      await applyTraitMutations({ actor, mutations: runtime.pendingMutations, runtime });
+    } else {
+      await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextState);
+    }
+
+    if (burnDelta > 0) {
+      await actor.update({ "system.burn.value": Math.max(0, Number(actor.system?.burn?.value ?? 0) + burnDelta) });
+    }
+
+    return {
+      ok: true,
+      snapshot: this.getSnapshot(actor, { token }),
+      costLabel: preview.costLabel,
+      burnDelta,
+      spentEdgePoolKey,
+      usedReaction: preview.usesReaction,
+    };
+  }
+
+  static async updateCombatantState(actor, { token = null, mutate = null } = {}) {
+    const snapshot = this.getSnapshot(actor, { token });
+    if (!snapshot?.combatant) return { ok: false, reason: "No combatant on the current scene." };
+
+    const nextState = cloneStoredState(snapshot.combatant.getFlag(FLAG_SCOPE, FLAG_KEY), snapshot.state?.activation);
+    const mutated = typeof mutate === "function" ? mutate(nextState, snapshot) ?? nextState : nextState;
+    await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, mutated);
+    return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
+  }
+
+  static async setPendingReaction(actor, { token = null, pendingReaction = null } = {}) {
+    return this.updateCombatantState(actor, {
+      token,
+      mutate: state => {
+        state.pendingReaction = normalizePendingReaction(pendingReaction);
+        return state;
+      }
+    });
+  }
+
+  static async clearPendingReaction(actor, { token = null } = {}) {
+    return this.setPendingReaction(actor, { token, pendingReaction: null });
+  }
+
+  static async setHazardState(actor, { token = null, regionId = "", hazardState = null } = {}) {
+    const normalizedRegionId = String(regionId ?? "").trim();
+    if (!normalizedRegionId) return { ok: false, reason: "Hazard region id is required." };
+
+    return this.updateCombatantState(actor, {
+      token,
+      mutate: state => {
+        state.hazards ??= {};
+        if (!hazardState) delete state.hazards[normalizedRegionId];
+        else state.hazards[normalizedRegionId] = normalizeHazardStates({ [normalizedRegionId]: hazardState })[normalizedRegionId];
+        return state;
+      }
+    });
   }
 
   static getModifierSummary(actor, burnPenalty = Math.floor(Number(actor?.system?.burn?.value ?? 0) / 2)) {
@@ -844,6 +1175,25 @@ export class PersonalCombatTracker {
       reason = notInCombatReason
         || notTurnReason
         || (!snapshot.burn.canOverloadCheck ? (snapshot.overloaded ? "Already Overloaded." : "Burn below 6.") : "");
+    } else if (action.id === "interrupt") {
+      const preparedInterrupt = getPreparedInterrupt(state);
+      resource = Number(state.raRemaining ?? 0) > 0 ? "ra" : "burn";
+      cost = resource === "ra" ? 1 : 2;
+      costLabel = resource === "ra" ? "1 RA" : "+2 Burn";
+      reason = notInCombatReason
+        || (snapshot.isCurrentTurn ? "Only outside your activation." : "")
+        || (!preparedInterrupt ? "Prepare an interrupt first." : "");
+    } else if (action.id === "evade") {
+      const pendingReaction = normalizePendingReaction(state.pendingReaction);
+      const evadeTurnReason = snapshot.isCurrentTurn && !pendingReaction?.allowCurrentTurn
+        ? "Only outside your activation."
+        : "";
+      resource = Number(state.raRemaining ?? 0) > 0 ? "ra" : "burn";
+      cost = resource === "ra" ? 1 : 2;
+      costLabel = resource === "ra" ? "1 RA" : "+2 Burn";
+      reason = notInCombatReason
+        || evadeTurnReason
+        || (!pendingReaction ? "Use an area effect or hazard card to trigger Evade." : "");
     } else if (category === PERSONAL_ACTION_CATEGORIES.standard) {
       reason = notInCombatReason
         || notTurnReason
@@ -884,6 +1234,7 @@ export class PersonalCombatTracker {
       label: action.label,
       category,
       handler: action.handler,
+      description: String(action.description ?? "").trim(),
       resource,
       cost,
       costLabel,
@@ -976,75 +1327,74 @@ export class PersonalCombatTracker {
     return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
   }
 
+  static async _promptSpendEdgeForReaction(actor) {
+    if (!actor.hasEdgePools?.()) return null;
+
+    const allPools = Object.keys(actor.system?.counters?.edgePools ?? {}).map(key => actor.getEdgePool(key));
+    const available = allPools.filter(p => p.hasPools && p.effectiveValue > 0);
+    if (!available.length) return null;
+
+    const capitalize = s => String(s).charAt(0).toUpperCase() + String(s).slice(1);
+
+    let poolHtml;
+    if (available.length === 1) {
+      poolHtml = `<input type="hidden" name="poolKey" value="${available[0].key}">
+        <p>from <strong>${capitalize(available[0].key)}</strong> (${available[0].effectiveValue} available)</p>`;
+    } else {
+      poolHtml = available.map((p, i) => `
+        <label style="display:block">
+          <input type="radio" name="poolKey" value="${p.key}" ${i === 0 ? "checked" : ""}>
+          ${capitalize(p.key)} &mdash; ${p.effectiveValue} available
+        </label>
+      `).join("");
+    }
+
+    const content = `<p>This reaction costs <strong>+2 Burn</strong>. Spend 1 Edge to ignore it?</p><form>${poolHtml}</form>`;
+
+    return Dialog.confirm({
+      title: "Reaction: Spend Edge?",
+      content,
+      yes: (html) => {
+        const poolKey = html.find("[name='poolKey']:checked, [name='poolKey'][type='hidden']").first().val();
+        return String(poolKey ?? available[0].key).trim() || available[0].key;
+      },
+      no: () => null,
+      defaultYes: false,
+    });
+  }
+
   static async _executeReactionAction(actor, { token = null, action, metadata = {} } = {}) {
     const snapshot = this.getSnapshot(actor, { token });
     if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
-    if (snapshot.isCurrentTurn) return { ok: false, reason: "Only outside your activation." };
-
-    const nextState = cloneStoredState(snapshot.combatant.getFlag(FLAG_SCOPE, FLAG_KEY), snapshot.state?.activation);
-    const usesReaction = Number(nextState.raRemaining ?? 0) > 0;
-    const runtime = {
-      combat: snapshot.combat,
-      combatant: snapshot.combatant,
-      state: nextState,
-      sceneId: canvas?.scene?.id ?? "",
-      snapshot: { ...snapshot, state: nextState }
-    };
-
-    let burnDelta = 0;
-    let costLabel = "1 RA";
-    if (usesReaction) {
-      nextState.raRemaining = Math.max(0, Number(nextState.raRemaining ?? 0) - 1);
-    } else {
-      const burnPhase = evaluateTraitPhase({
-        actor,
-        phase: "onBeforeBurnApplied",
-        facts: buildBurnTraitFacts({
-          actor,
-          packet: {
-            actionId: action.id,
-            category: action.category,
-            resource: "reaction",
-            amount: 2,
-            source: "reaction"
-          },
-          runtime,
-        }),
-        packet: {
-          actionId: action.id,
-          category: action.category,
-          resource: "reaction",
-          amount: 2,
-          source: "reaction"
-        },
-        options: { runtime, consumeUsage: true },
-      });
-      burnDelta = Math.max(0, Number(burnPhase.packet.amount ?? 0) || 0);
-      runtime.pendingMutations = (runtime.pendingMutations ?? []).concat(burnPhase.mutations);
-      nextState.reactionBurnSinceLastActivation = Math.max(
-        0,
-        Number(nextState.reactionBurnSinceLastActivation ?? 0) + burnDelta
-      );
-      costLabel = `+${burnDelta} Burn`;
+    const pendingReaction = normalizePendingReaction(snapshot.state?.pendingReaction);
+    const allowCurrentTurn = action.id === "evade" && pendingReaction?.allowCurrentTurn;
+    if (snapshot.isCurrentTurn && !allowCurrentTurn) return { ok: false, reason: "Only outside your activation." };
+    if (action.id === "interrupt" && !getPreparedInterrupt(snapshot.state)) {
+      return { ok: false, reason: "Prepare an interrupt first." };
     }
 
-    this._appendActionLog(nextState, {
-      id: action.id,
-      label: action.label,
-      costLabel
+    const logLabel = action.id === "assist" && metadata?.targetName
+      ? `${action.label}: ${metadata.targetName}`
+      : action.id === "interrupt" && metadata?.scope
+        ? `${action.label}: ${String(metadata.scope).trim()}`
+        : action.label;
+    let edgePoolKey = String(metadata?.edgePoolKey ?? "").trim();
+    if (!edgePoolKey && Number(snapshot.state?.raRemaining ?? 0) <= 0) {
+      edgePoolKey = await PersonalCombatTracker._promptSpendEdgeForReaction(actor) ?? "";
+    }
+
+    const spend = await this.commitReactionSpend(actor, {
+      token,
+      actionId: action.id,
+      actionLabel: action.label,
+      actionCategory: action.category,
+      logLabel,
+      edgePoolKey,
+      allowCurrentTurn,
     });
+    if (!spend?.ok) return spend;
 
-    if (runtime.pendingMutations?.length) {
-      await applyTraitMutations({ actor, mutations: runtime.pendingMutations, runtime });
-    } else {
-      await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextState);
-    }
-
-    if (burnDelta > 0) {
-      await actor.update({ "system.burn.value": Math.max(0, Number(actor.system?.burn?.value ?? 0) + burnDelta) });
-    }
-
-    return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
+    return { ...spend, actionLabel: logLabel };
   }
 
   static async _applyActionState(actor, { token = null, actionId = "", metadata = {}, snapshot = null } = {}) {
@@ -1056,6 +1406,93 @@ export class PersonalCombatTracker {
     });
     await currentSnapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextState);
     return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
+  }
+
+  static async clearAim(actor, { token = null } = {}) {
+    const snapshot = this.getSnapshot(actor, { token });
+    if (!snapshot?.combatant) return { ok: false, reason: "No combatant on the current scene." };
+
+    const nextState = cloneStoredState(snapshot.combatant.getFlag(FLAG_SCOPE, FLAG_KEY), snapshot.state?.activation);
+    nextState.actionState ??= {};
+    if (!nextState.actionState.aim) return { ok: true, snapshot };
+
+    nextState.actionState.aim = null;
+    await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextState);
+    return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
+  }
+
+  static getPreparedInterrupt(snapshotOrState = null) {
+    const state = snapshotOrState?.state ?? snapshotOrState ?? {};
+    return getPreparedInterrupt(state);
+  }
+
+  static async clearPreparedInterrupt(actor, { token = null } = {}) {
+    const snapshot = this.getSnapshot(actor, { token });
+    if (!snapshot?.combatant) return { ok: false, reason: "No combatant on the current scene." };
+
+    const nextState = cloneStoredState(snapshot.combatant.getFlag(FLAG_SCOPE, FLAG_KEY), snapshot.state?.activation);
+    nextState.actionState ??= {};
+    if (!nextState.actionState.preparedInterrupt) return { ok: true, snapshot };
+
+    nextState.actionState.preparedInterrupt = null;
+    await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextState);
+    return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
+  }
+
+  static async _syncPreparedIndicatorForCombatant(combatant) {
+    if (!game.user.isGM || !combatant) return;
+
+    const sceneId = this._getCombatantSceneId(combatant) || canvas?.scene?.id;
+    const tokenDoc = this._getCombatantTokenDocument(combatant, sceneId);
+    if (!tokenDoc) return;
+
+    const stored = combatant.getFlag(FLAG_SCOPE, FLAG_KEY);
+    const shouldHaveIndicator = Boolean(getPreparedInterrupt(stored));
+    const statusConfig = getPreparedInterruptStatusConfig();
+    const currentEffects = Array.from(tokenDoc.effects ?? tokenDoc._source?.effects ?? []);
+    const hasIndicator = currentEffects.includes(PREPARED_INTERRUPT_ICON);
+
+    if (hasIndicator === shouldHaveIndicator) return;
+
+    if (typeof tokenDoc.toggleActiveEffect === "function") {
+      await tokenDoc.toggleActiveEffect(statusConfig, { active: shouldHaveIndicator, overlay: false });
+      return;
+    }
+
+    const nextEffects = shouldHaveIndicator
+      ? Array.from(new Set([...currentEffects, PREPARED_INTERRUPT_ICON]))
+      : currentEffects.filter(effect => effect !== PREPARED_INTERRUPT_ICON);
+
+    await tokenDoc.update({ effects: nextEffects });
+  }
+
+  static async syncPreparedIndicators(combat = game.combat) {
+    if (!game.user.isGM || !combat) return;
+
+    for (const combatant of this._getCombatants(combat)) {
+      await this._syncPreparedIndicatorForCombatant(combatant);
+    }
+  }
+
+  static async clearPreparedIndicatorForCombatant(combatant) {
+    if (!game.user.isGM || !combatant) return;
+
+    const sceneId = this._getCombatantSceneId(combatant) || canvas?.scene?.id;
+    const tokenDoc = this._getCombatantTokenDocument(combatant, sceneId);
+    if (!tokenDoc) return;
+    const statusConfig = getPreparedInterruptStatusConfig();
+
+    if (typeof tokenDoc.toggleActiveEffect === "function") {
+      await tokenDoc.toggleActiveEffect(statusConfig, { active: false, overlay: false });
+      return;
+    }
+
+    const currentEffects = Array.from(tokenDoc.effects ?? tokenDoc._source?.effects ?? []);
+    if (!currentEffects.includes(PREPARED_INTERRUPT_ICON)) return;
+
+    await tokenDoc.update({
+      effects: currentEffects.filter(effect => effect !== PREPARED_INTERRUPT_ICON)
+    });
   }
 
   static _buildSpendAction(snapshot, action, sharedReason = "") {
@@ -1126,7 +1563,7 @@ export class PersonalCombatTracker {
     const stored = combatant.getFlag(FLAG_SCOPE, FLAG_KEY);
     if (sameActivation(stored, activation)) return;
 
-    await combatant.setFlag(FLAG_SCOPE, FLAG_KEY, defaultState(activation));
+    await combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextActivationState(stored, activation));
   }
 
   static async spendResource(actor, {
@@ -1395,6 +1832,7 @@ export class PersonalCombatTracker {
         await this.finalizeActivation(combat, previousCombatantId);
       }
       await this.ensureCurrentCombatantState();
+      await this._processCurrentCombatantHazards(combat);
       if (combat?.id) {
         this._lastActivationByCombat.set(combat.id, currentActivation);
       }
@@ -1408,22 +1846,34 @@ export class PersonalCombatTracker {
     if (combat?.combatant?.id === combatant?.id) {
       await this.ensureCurrentCombatantState();
     }
+    await this._syncPreparedIndicatorForCombatant(combatant);
+    const tokenDoc = this._getCombatantTokenDocument(combatant, combat?.scene?.id ?? canvas?.scene?.id);
+    if (tokenDoc) {
+      await this._syncHazardPresenceForToken(tokenDoc);
+    }
     this.renderOpenCharacterSheets();
   }
 
-  static _onDeleteCombatant(_combatant) {
+  static async _onDeleteCombatant(combatant) {
+    await this.clearPreparedIndicatorForCombatant(combatant);
     this.renderOpenCharacterSheets();
   }
 
-  static _onDeleteCombat(_combat) {
-    if (_combat?.id) {
-      this._lastActivationByCombat.delete(_combat.id);
+  static async _onDeleteCombat(combat) {
+    if (combat?.id) {
+      this._lastActivationByCombat.delete(combat.id);
+    }
+    for (const combatant of this._getCombatants(combat)) {
+      await this.clearPreparedIndicatorForCombatant(combatant);
     }
     this.renderOpenCharacterSheets();
   }
 
   static _onUpdateCombatant(combatant, changed) {
     if (foundry.utils.hasProperty(changed, `flags.${FLAG_SCOPE}.${FLAG_KEY}`)) {
+      void this._syncPreparedIndicatorForCombatant(combatant);
+      const tokenDoc = this._getCombatantTokenDocument(combatant, this._getCombatantSceneId(combatant) || canvas?.scene?.id);
+      if (tokenDoc) this._queueHazardOverlayRefresh(tokenDoc);
       this.renderOpenCharacterSheets(combatant?.actor?.id);
     }
   }
@@ -1454,7 +1904,334 @@ export class PersonalCombatTracker {
       }
     }
 
+    void this._syncHazardPresenceForToken(tokenDocument);
     this.queueCharacterSheetRefresh();
+  }
+
+  static _onRefreshToken(token) {
+    this._refreshHazardOverlay(token);
+  }
+
+  static async _onCreateRegion(region) {
+    if (!isHazardRegionDocument(region)) return;
+    await this._syncAllSceneHazards(region?.parent ?? canvas?.scene ?? null);
+  }
+
+  static async _onUpdateRegion(region) {
+    if (!isHazardRegionDocument(region)) return;
+    await this._syncAllSceneHazards(region?.parent ?? canvas?.scene ?? null);
+  }
+
+  static async _onDeleteRegion(region) {
+    const deletedRegionId = String(region?.id ?? "").trim();
+    if (!deletedRegionId) return;
+
+    const scene = region?.parent ?? canvas?.scene ?? null;
+    const combat = game.combat;
+    for (const combatant of this._getCombatants(combat)) {
+      const tokenDoc = this._getCombatantTokenDocument(combatant, scene?.id ?? canvas?.scene?.id);
+      const actor = tokenDoc?.actor ?? combatant?.actor ?? null;
+      if (!actor || !tokenDoc) continue;
+      const snapshot = this.getSnapshot(actor, { token: tokenDoc });
+      if (!snapshot?.hazards?.[deletedRegionId]) continue;
+      await this.setHazardState(actor, { token: tokenDoc, regionId: deletedRegionId, hazardState: null });
+      if (snapshot?.pendingReaction?.sourceKind === "hazard" && snapshot.pendingReaction.sourceId === deletedRegionId) {
+        await this.clearPendingReaction(actor, { token: tokenDoc });
+      }
+      this._queueHazardOverlayRefresh(tokenDoc);
+    }
+  }
+
+  static async _syncAllSceneHazards(scene = canvas?.scene ?? null) {
+    if (!scene) return;
+
+    for (const tokenDoc of Array.from(scene.tokens ?? [])) {
+      await this._syncHazardPresenceForToken(tokenDoc);
+      this._queueHazardOverlayRefresh(tokenDoc);
+    }
+  }
+
+  static async _syncHazardPresenceForToken(tokenDocument) {
+    const tokenDoc = this._asTokenDocument(tokenDocument);
+    const actor = tokenDoc?.actor ?? null;
+    if (!this._supportsHazardActor(actor) || !tokenDoc) {
+      this._queueHazardOverlayRefresh(tokenDoc);
+      return;
+    }
+
+    const snapshot = this.getSnapshot(actor, { token: tokenDoc });
+    if (!snapshot?.hasCombatant) {
+      this._queueHazardOverlayRefresh(tokenDoc);
+      return;
+    }
+
+    const currentStates = normalizeHazardStates(snapshot.hazards);
+    const regionDocs = getHazardRegionsForToken(tokenDoc);
+    const activeHazards = new Map(
+      regionDocs
+        .map(region => {
+          const flag = getHazardRegionFlag(region);
+          return flag ? [String(region.id ?? "").trim(), { region, flag }] : null;
+        })
+        .filter(Boolean)
+    );
+
+    const entries = [];
+    const exits = [];
+    await this.updateCombatantState(actor, {
+      token: tokenDoc,
+      mutate: state => {
+        state.hazards ??= {};
+
+        for (const [regionId, { flag }] of activeHazards.entries()) {
+          if (state.hazards[regionId]) continue;
+          const hazardState = {
+            tier: normalizeExposureTier(flag?.hazardDef?.startExposure, EXPOSURE_TIERS.minor),
+            turnsExposed: 0,
+            evadeLocked: false,
+            lastProcessedRound: 0,
+          };
+          state.hazards[regionId] = hazardState;
+          entries.push({ regionId, flag, hazardState });
+        }
+
+        for (const [regionId, hazardState] of Object.entries(state.hazards ?? {})) {
+          if (activeHazards.has(regionId)) continue;
+          const previousFlag = getHazardRegionFlag(canvas?.scene?.regions?.get?.(regionId)) ?? null;
+          if (previousFlag?.hazardDef?.clearOnExit === false) continue;
+          delete state.hazards[regionId];
+          exits.push({ regionId, hazardState, flag: previousFlag });
+        }
+
+        return state;
+      }
+    });
+
+    for (const entry of entries) {
+      const region = activeHazards.get(entry.regionId)?.region ?? canvas?.scene?.regions?.get?.(entry.regionId) ?? null;
+      await this._createHazardEventChatCard({
+        actor,
+        token: tokenDoc,
+        region,
+        hazardFlag: entry.flag,
+        hazardState: entry.hazardState,
+        eventType: "entry",
+        nextTier: entry.hazardState.tier,
+        allowEvade: !entry.hazardState.evadeLocked,
+      });
+    }
+
+    for (const exit of exits) {
+      if (snapshot?.pendingReaction?.sourceKind === "hazard" && snapshot.pendingReaction.sourceId === exit.regionId) {
+        await this.clearPendingReaction(actor, { token: tokenDoc });
+      }
+      const regionName = String(exit?.flag?.label ?? "Hazard").trim() || "Hazard";
+      const content = `<div class="mwd-gm-notice"><b>${foundry.utils.escapeHTML(regionName)}:</b> ${foundry.utils.escapeHTML(actor.name ?? "Target")} leaves the zone.</div>`;
+      await ChatMessage.create(applyChatVisibility({
+        speaker: ChatMessage.getSpeaker({ actor, token: tokenDoc }),
+        content
+      }));
+    }
+
+    this._queueHazardOverlayRefresh(tokenDoc);
+  }
+
+  static async _processCurrentCombatantHazards(combat = game.combat) {
+    const combatant = combat?.combatant ?? null;
+    const tokenDoc = this._getCombatantTokenDocument(combatant, combat?.scene?.id ?? canvas?.scene?.id);
+    const actor = tokenDoc?.actor ?? combatant?.actor ?? null;
+    if (!combatant || !tokenDoc || !this._supportsHazardActor(actor)) return;
+
+    const snapshot = this.getSnapshot(actor, { token: tokenDoc });
+    const round = Number(combat?.round ?? 0) || 0;
+    const activeRegions = new Map(
+      getHazardRegionsForToken(tokenDoc)
+        .map(region => {
+          const flag = getHazardRegionFlag(region);
+          return flag ? [String(region.id ?? "").trim(), { region, flag }] : null;
+        })
+        .filter(Boolean)
+    );
+
+    for (const [regionId, hazardState] of Object.entries(snapshot.hazards ?? {})) {
+      if ((Number(hazardState?.lastProcessedRound ?? 0) || 0) >= round) continue;
+      const hazardEntry = activeRegions.get(regionId);
+      if (!hazardEntry) continue;
+
+      const nextTier = this._getHazardNextTier(hazardState, hazardEntry.flag?.hazardDef ?? {});
+      await this._createHazardEventChatCard({
+        actor,
+        token: tokenDoc,
+        region: hazardEntry.region,
+        hazardFlag: hazardEntry.flag,
+        hazardState,
+        eventType: "tick",
+        nextTier,
+        allowEvade: !hazardState.evadeLocked,
+      });
+
+      await this.setHazardState(actor, {
+        token: tokenDoc,
+        regionId,
+        hazardState: {
+          ...hazardState,
+          lastProcessedRound: round,
+        }
+      });
+    }
+
+    this._queueHazardOverlayRefresh(tokenDoc);
+  }
+
+  static _getHazardNextTier(hazardState = {}, hazardDef = {}) {
+    const turnsExposed = Math.max(0, Number(hazardState?.turnsExposed ?? 0) || 0);
+    const intervalTurns = Math.max(1, Number(hazardDef?.escalation?.intervalTurns ?? 1) || 1);
+    const rate = Math.max(0, Number(hazardDef?.escalation?.rate ?? 1) || 0);
+    const shouldEscalate = rate > 0 && ((turnsExposed + 1) % intervalTurns === 0);
+    if (!shouldEscalate) return normalizeExposureTier(hazardState?.tier, EXPOSURE_TIERS.none);
+
+    let nextTier = normalizeExposureTier(hazardState?.tier, EXPOSURE_TIERS.none);
+    for (let index = 0; index < rate; index += 1) {
+      nextTier = getRaisedExposureTier(nextTier, 1);
+      if (getExposureIndex(nextTier) >= getExposureIndex(hazardDef?.escalation?.max ?? EXPOSURE_TIERS.full)) {
+        nextTier = normalizeExposureTier(hazardDef?.escalation?.max, EXPOSURE_TIERS.full);
+        break;
+      }
+    }
+    return nextTier;
+  }
+
+  static async _createHazardEventChatCard({
+    actor = null,
+    token = null,
+    region = null,
+    hazardFlag = {},
+    hazardState = {},
+    eventType = "entry",
+    nextTier = null,
+    allowEvade = false,
+  } = {}) {
+    if (!actor) return null;
+
+    const currentTier = normalizeExposureTier(hazardState?.tier, EXPOSURE_TIERS.none);
+    const resolvedNextTier = normalizeExposureTier(nextTier, currentTier);
+    const reactionPreview = allowEvade && currentTier !== EXPOSURE_TIERS.none && !hazardState?.evadeLocked
+      ? this.getReactionSpendPreview(actor, { token })
+      : null;
+    const card = {
+      kind: "hazard",
+      eventType,
+      regionId: String(region?.id ?? "").trim(),
+      regionName: String(hazardFlag?.label ?? region?.name ?? "Hazard").trim() || "Hazard",
+      actorUuid: actor.uuid,
+      tokenUuid: token?.uuid ?? token?.document?.uuid ?? null,
+      actorName: actor.name ?? "Target",
+      turnsExposed: Math.max(0, Number(hazardState?.turnsExposed ?? 0) || 0),
+      baseDamage: Math.max(0, Number(hazardFlag?.damage ?? 0) || 0),
+      damageBefore: scaleDamageByExposure(Number(hazardFlag?.damage ?? 0) || 0, currentTier),
+      damageAfter: scaleDamageByExposure(
+        Number(hazardFlag?.damage ?? 0) || 0,
+        allowEvade && !hazardState?.evadeLocked ? getReducedExposureTier(currentTier, 1) : currentTier
+      ),
+      damageType: String(hazardFlag?.damageType ?? "concussive").trim() || "concussive",
+      ap: Math.max(0, Number(hazardFlag?.ap ?? 0) || 0),
+      onFullBurnDelta: Math.max(0, Number(hazardFlag?.hazardDef?.onFull?.burnDelta ?? 0) || 0),
+      source: String(hazardFlag?.label ?? region?.name ?? "Hazard").trim() || "Hazard",
+      nextTier: resolvedNextTier,
+      exposure: {
+        initialTier: currentTier,
+        finalTier: currentTier,
+        initialLabel: getExposureLabel(currentTier),
+        finalLabel: getExposureLabel(currentTier),
+        evadeLocked: Boolean(hazardState?.evadeLocked),
+      },
+      preview: {
+        evadeActive: false,
+        edgePoolKey: null,
+        finalTier: currentTier,
+        reactionPreview: reactionPreview ? {
+          burnDelta: Number(reactionPreview.burnDelta ?? 0),
+          canSpendEdge: Boolean(reactionPreview.canSpendEdge),
+          edgePools: Array.isArray(reactionPreview.edgePools) ? reactionPreview.edgePools : [],
+        } : {},
+      }
+    };
+
+    const content = await renderHazardCard(card, { actor, token });
+    const message = await ChatMessage.create(applyChatVisibility({
+      speaker: ChatMessage.getSpeaker({ actor, token }),
+      content,
+      flags: {
+        mwd: {
+          hazardCard: card
+        }
+      }
+    }));
+
+    if (message && reactionPreview && currentTier !== EXPOSURE_TIERS.none && !hazardState?.evadeLocked) {
+      await this.setPendingReaction(actor, {
+        token,
+        pendingReaction: {
+          type: "evade",
+          sourceKind: "hazard",
+          sourceId: String(region?.id ?? "").trim() || null,
+          messageId: message.id,
+          exposureBefore: currentTier,
+          exposureAfterPreview: getReducedExposureTier(currentTier, 1),
+          edgePoolKey: null,
+          allowCurrentTurn: true,
+        }
+      });
+    }
+
+    return message;
+  }
+
+  static _supportsHazardActor(actor) {
+    return actor?.type === "character" || actor?.type === "npc";
+  }
+
+  static _queueHazardOverlayRefresh(tokenDocument) {
+    const tokenObject = tokenDocument?.object ?? tokenDocument ?? null;
+    tokenObject?.refresh?.();
+  }
+
+  static _refreshHazardOverlay(token) {
+    const tokenObject = token?.object ?? token ?? null;
+    const tokenDoc = tokenObject?.document ?? token ?? null;
+    if (!tokenObject || !tokenDoc) return;
+
+    const actor = tokenDoc?.actor ?? null;
+    const snapshot = actor ? this.getSnapshot(actor, { token: tokenDoc }) : null;
+    const hazards = Object.values(snapshot?.hazards ?? {});
+    const overlayText = buildHazardOverlayText(hazards);
+
+    let overlay = tokenObject.mwdHazardOverlay ?? null;
+    if (!overlayText) {
+      if (overlay?.parent) overlay.parent.removeChild(overlay);
+      overlay?.destroy?.();
+      tokenObject.mwdHazardOverlay = null;
+      return;
+    }
+
+    if (!overlay) {
+      overlay = new PIXI.Text(overlayText, {
+        fontFamily: "MWD UI",
+        fontSize: 14,
+        fontWeight: "700",
+        fill: "#fff2d5",
+        stroke: "#23150d",
+        strokeThickness: 4,
+        align: "center",
+      });
+      overlay.anchor?.set?.(0, 1);
+      tokenObject.addChild(overlay);
+      tokenObject.mwdHazardOverlay = overlay;
+    }
+
+    overlay.text = overlayText;
+    overlay.x = 6;
+    overlay.y = Math.max(18, Number(tokenObject.h ?? 0) - 4);
   }
 
   static queueCharacterSheetRefresh(actorId = null) {

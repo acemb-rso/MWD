@@ -96,6 +96,87 @@
   --csb-chip-padding-y: 2px;
   --csb-chip-padding-x: 8px;
 
+  /* ---------- chat cards ---------- */
+  --mwd-chat-card-bg: color-mix(in srgb, var(--csb-surface-0) 82%, black 18%);
+  --mwd-chat-card-border: var(--csb-border-strong);
+  --mwd-chat-card-text: var(--csb-text);
+  --mwd-chat-card-text-muted: var(--csb-text-muted);
+  --mwd-chat-card-text-faint: var(--csb-text-faint);
+  --mwd-chat-card-stat-bg: color-mix(in srgb, var(--csb-surface-2) 72%, transparent);
+  --mwd-chat-card-rule: var(--csb-border-strong);
+  --mwd-chat-card-success: var(--csb-success);
+  --mwd-chat-card-failure: var(--csb-danger);
+
+  /* ---------- damage application cards ---------- */
+  --mwd-damage-card-bg: linear-gradient(180deg, rgba(246, 240, 226, 0.98), rgba(233, 223, 205, 0.98));
+  --mwd-damage-card-border: rgba(68, 56, 38, 0.28);
+  --mwd-damage-card-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 8px 18px rgba(0, 0, 0, 0.16);
+  --mwd-damage-card-text: rgba(28, 24, 19, 0.96);
+  --mwd-damage-card-text-strong: rgba(25, 21, 16, 0.98);
+  --mwd-damage-card-text-soft: rgba(72, 58, 39, 0.92);
+  --mwd-damage-card-text-muted: rgba(104, 85, 57, 0.88);
+  --mwd-damage-card-text-summary: rgba(51, 42, 29, 0.94);
+  --mwd-damage-card-portrait-bg: rgba(255, 250, 240, 0.72);
+  --mwd-damage-card-portrait-border: rgba(82, 67, 45, 0.18);
+  --mwd-damage-card-chip-bg: rgba(255, 248, 238, 0.82);
+  --mwd-damage-card-chip-border: rgba(87, 71, 48, 0.20);
+  --mwd-damage-card-row-bg: rgba(255, 250, 242, 0.72);
+  --mwd-damage-card-row-border: rgba(104, 85, 57, 0.12);
+  --mwd-damage-type-concussive: rgba(242, 184, 64, 0.98);
+  --mwd-damage-type-penetrating: rgba(240, 108, 92, 0.98);
+  --mwd-damage-type-energy: rgba(92, 204, 255, 0.98);
+  --mwd-damage-type-thermal: rgba(255, 146, 92, 0.98);
+  --mwd-damage-type-electrical: rgba(124, 214, 255, 0.98);
+  --mwd-damage-type-none: rgba(180, 190, 204, 0.92);
+  --mwd-damage-type-concussive-border: rgba(242, 184, 64, 0.45);
+  --mwd-damage-type-penetrating-border: rgba(224, 89, 68, 0.48);
+  --mwd-damage-type-energy-border: rgba(82, 186, 255, 0.52);
+  --mwd-damage-type-thermal-border: rgba(255, 134, 64, 0.50);
+  --mwd-damage-type-electrical-border: rgba(104, 204, 255, 0.50);
+  --mwd-damage-glow-light: 0 0 10px rgba(255, 255, 255, 0.08);
+  --mwd-damage-glow-medium: 0 0 12px rgba(255, 255, 255, 0.12);
+  --mwd-damage-glow-heavy: 0 0 14px rgba(255, 255, 255, 0.18);
+  --mwd-damage-glow-critical: 0 0 18px rgba(255, 255, 255, 0.22);
+
+  /* ---------- combat UI ---------- */
+  --mwd-combat-surface: color-mix(in srgb, var(--csb-surface-0) 74%, transparent);
+  --mwd-combat-surface-alt: color-mix(in srgb, var(--csb-surface-1) 62%, transparent);
+  --mwd-combat-surface-emphasis: color-mix(in srgb, var(--csb-surface-2) 72%, transparent);
+  --mwd-combat-border: var(--csb-border);
+  --mwd-combat-border-strong: var(--csb-border-strong);
+  --mwd-combat-text: var(--csb-text);
+  --mwd-combat-text-muted: var(--csb-text-muted);
+  --mwd-combat-text-faint: var(--csb-text-faint);
+  --mwd-combat-chip-bg: var(--csb-chip-bg);
+  --mwd-combat-state-border: color-mix(in srgb, #ffc654 32%, transparent);
+  --mwd-combat-state-bg: color-mix(in srgb, #ffc654 12%, transparent);
+  --mwd-combat-menu-bg: color-mix(in srgb, var(--csb-surface-0) 90%, black 10%);
+  --mwd-combat-menu-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+  --mwd-combat-menu-chevron: color-mix(in srgb, var(--csb-text) 62%, transparent);
+  --mwd-combat-menu-chevron-active: color-mix(in srgb, var(--csb-text) 92%, transparent);
+  --mwd-combat-prominent-border: color-mix(in srgb, var(--csb-warning) 55%, transparent);
+  --mwd-combat-prominent-shadow: 0 0 0 1px color-mix(in srgb, var(--csb-warning) 18%, transparent);
+  --mwd-combat-threat-border: rgba(255, 83, 65, 0.78);
+  --mwd-combat-threat-bg: rgba(132, 24, 20, 0.82);
+  --mwd-combat-threat-text: rgba(255, 244, 238, 0.98);
+  --mwd-combat-threat-shadow: 0 0 0 1px rgba(255, 83, 65, 0.18), 0 0 14px rgba(255, 55, 34, 0.22);
+  --mwd-combat-threat-border-hover: rgba(255, 119, 92, 0.95);
+  --mwd-combat-threat-bg-hover: rgba(171, 35, 27, 0.92);
+  --mwd-combat-threat-shadow-hover: 0 0 0 1px rgba(255, 119, 92, 0.28), 0 0 18px rgba(255, 65, 42, 0.32);
+
+  /* ---------- item sheet parchment ---------- */
+  --mwd-item-ink: rgba(30, 24, 16, 0.96);
+  --mwd-item-ink-soft: rgba(63, 52, 31, 0.94);
+  --mwd-item-ink-muted: rgba(88, 71, 42, 0.88);
+  --mwd-item-halo: 0 1px 0 rgba(255, 248, 228, 0.88);
+  --mwd-item-tab-active-text: rgba(245, 246, 248, 0.96);
+  --mwd-item-tab-active-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+  --mwd-item-select-bg: #f4ead2;
+  --mwd-item-richtext-bg: rgba(255, 248, 228, 0.68);
+  --mwd-item-richtext-border: rgba(96, 80, 52, 0.28);
+
   /* =========================================================
      Legacy alias layer (strip-mining friendliness)
      Keep these until migration is complete.

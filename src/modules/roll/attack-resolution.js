@@ -5,6 +5,17 @@
 import { HarmEngine } from "../harm/harm-engine.js";
 import { TEMPLATE } from "../constants.js";
 import { getPersonalDamageTypeLabel, normalizePersonalDamageType } from "../mwd/personal-damage.js";
+import { getPersonalRangeBandName } from "../mwd/personal-range-bands.js";
+import {
+  AREA_EFFECT_KINDS,
+  applyEvadeToExposure,
+  createExposureData,
+  getExposureLabel,
+  normalizeAreaEffect,
+  normalizeExposureTier,
+  scaleDamageByExposure,
+} from "../area-effects/area-effect-engine.js";
+import { createHazardRegionFromAttack } from "../area-effects/hazard-regions.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -13,7 +24,10 @@ function toNumber(value, fallback = 0) {
 
 function getTargetSnapshots(ctx = {}) {
   const targets = Array.isArray(ctx?.attack?.targets) ? ctx.attack.targets : [];
-  if (!targets.length) throw new Error("Attack requires at least one target.");
+  const areaEffect = normalizeAreaEffect(ctx?.attack?.areaEffect ?? ctx?.attack?.payload?.areaEffect ?? {});
+  if (!targets.length && areaEffect.kind !== AREA_EFFECT_KINDS.persistent) {
+    throw new Error("Attack requires at least one target.");
+  }
   return targets;
 }
 
@@ -63,7 +77,10 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
   const skillDelta = attackerSkill - defenderTactics;
   const skillAdvantage = Math.abs(skillDelta);
   const armorDefense = Math.max(0, Number(target?.activeArmor?.defenseBonus ?? 0) || 0);
-  const rangeLabel = String(ctx?.attack?.rangeBand ?? "").trim() || "range";
+  const rawRangeLabel = String(ctx?.attack?.rangeBand ?? "").trim() || "range";
+  const rangeLabel = (ctx?.attack?.weapon?.type === "personalWeapon" || ctx?.attack?.weapon?.isSynthetic)
+    ? getPersonalRangeBandName(rawRangeLabel)
+    : rawRangeLabel;
   const arParts = [{
     id: "weapon.attackRating",
     label: `Weapon AR (${rangeLabel})`,
@@ -86,6 +103,14 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
       id: "target.tacticsAdvantage",
       label: `Tactics over ${attackSkillLabel}`,
       value: skillAdvantage
+    });
+  }
+
+  if (ctx?.attack?.aim?.eligible) {
+    arParts.push({
+      id: "state.aim",
+      label: `Aim (${attackSkillLabel})`,
+      value: attackerSkill
     });
   }
 
@@ -130,28 +155,48 @@ function buildDamageSnapshot(ctx = {}, outcome = {}) {
   const ap = Math.max(0, Number(attack?.totalAp ?? attack?.weapon?.ap ?? 0) || 0);
   const effectiveWeaponDamage = outcome.outcome === "graze" ? (baseDamage / 2) : (outcome.outcome === "hit" ? baseDamage : 0);
   const incoming = effectiveWeaponDamage + Number(outcome.netHits ?? 0);
+  const exposure = applyEvadeToExposure(attack?.currentExposure ?? createExposureData({
+    tier: attack?.currentExposure?.initialTier ?? attack?.currentExposure?.tier ?? "none",
+  }), {
+    active: Boolean(attack?.evadeActive),
+    locked: Boolean(attack?.evadeLocked),
+  });
+  const areaEffect = normalizeAreaEffect(attack?.areaEffect ?? attack?.payload?.areaEffect ?? {});
+  const scaledIncoming = areaEffect.kind === AREA_EFFECT_KINDS.persistent
+    ? incoming
+    : scaleDamageByExposure(incoming, exposure.finalTier);
 
   return {
     baseDamage,
     effectiveWeaponDamage,
     netHits: Number(outcome.netHits ?? 0),
     incoming,
+    scaledIncoming,
     ap,
     damageType,
-    damageTypeLabel: getPersonalDamageTypeLabel(damageType)
+    damageTypeLabel: getPersonalDamageTypeLabel(damageType),
+    exposure,
+    areaEffect,
   };
+}
+
+function getTargetPreviewKey(target = {}) {
+  return String(target?.tokenUuid ?? target?.actorUuid ?? target?.tokenId ?? target?.actorId ?? target?.name ?? foundry.utils.randomID()).trim();
 }
 
 function buildQueuedDamagePayload({ attacker, ctx, damage } = {}) {
   return {
     mode: "attackDamage",
     track: TEMPLATE.monitors.physical,
-    damage: damage?.effectiveWeaponDamage ?? 0,
-    netHits: damage?.netHits ?? 0,
+    damage: damage?.scaledIncoming ?? 0,
+    netHits: 0,
     damageType: damage?.damageType,
     ap: damage?.ap ?? 0,
     effects: ctx?.attack?.weapon?.effects ?? {},
-    source: `${attacker?.name ?? "Attacker"}: ${ctx?.attack?.weapon?.name ?? "Attack"}`
+    source: `${attacker?.name ?? "Attacker"}: ${ctx?.attack?.weapon?.name ?? "Attack"}`,
+    notes: damage?.exposure?.initialTier
+      ? `Exposure ${getExposureLabel(damage.exposure.initialTier)}${damage.exposure.evadeUsed ? ` -> ${getExposureLabel(damage.exposure.finalTier)}` : ""}`
+      : "",
   };
 }
 
@@ -214,6 +259,18 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
     return summarizeAttackDamageResult(null, target, damage, { skipped: true, reason: "Missed target." });
   }
 
+  if (damage?.areaEffect?.kind === AREA_EFFECT_KINDS.persistent) {
+    return {
+      ok: true,
+      queued: true,
+      applied: false,
+      preview: true,
+      actorName: target?.name ?? "Target",
+      mode: "hazardEntry",
+      reason: "",
+    };
+  }
+
   let token = null;
   let actor = null;
   try {
@@ -258,18 +315,34 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
   return summarizeAttackDamageResult(result, target, damage, { reason: "Unable to preview attack damage." });
 }
 
-async function resolveTargetAttack({ attacker, ctx, outcomeModel, target } = {}) {
+async function resolveTargetAttack({ attacker, ctx, outcomeModel, target, previewState = {} } = {}) {
   const cq = await buildCQBreakdown({ attacker, ctx, target });
   const margin = Number(outcomeModel?.margin ?? 0);
   const cqValue = Number(cq.value ?? 0);
   const rawNetHits = margin;
-  const outcome = cqValue > 0
+  let outcome = cqValue > 0
     ? (margin >= 1 ? "hit" : (margin === 0 ? "graze" : "miss"))
     : cqValue < 0
       ? (margin >= 2 ? "hit" : (margin === 1 ? "graze" : "miss"))
       : (margin >= 1 ? "hit" : "miss");
+  if (String(ctx?.attack?.rangeBand ?? "").trim().toLowerCase() === "outofrange" && outcome === "hit") {
+    outcome = "graze";
+  }
   const netHits = outcome === "hit" ? Math.max(0, rawNetHits) : 0;
-  const damage = buildDamageSnapshot(ctx, { outcome, netHits });
+  const attack = ctx?.attack ?? {};
+  const previewKey = getTargetPreviewKey(target);
+  const targetPreview = previewState?.[previewKey] ?? {};
+  const currentExposure = target?.exposure ?? createExposureData({ tier: "none" });
+  const damage = buildDamageSnapshot({
+    ...ctx,
+    attack: {
+      ...attack,
+      currentExposure,
+      areaEffect: attack?.areaEffect ?? attack?.payload?.areaEffect ?? null,
+      evadeActive: Boolean(targetPreview?.evadeActive),
+      evadeLocked: Boolean(currentExposure?.evadeLocked),
+    }
+  }, { outcome, netHits });
   const damageResult = await queueAttackDamage({
     attacker,
     ctx,
@@ -284,6 +357,10 @@ async function resolveTargetAttack({ attacker, ctx, outcomeModel, target } = {})
       actorUuid: target?.actorUuid ?? null,
       tokenUuid: target?.tokenUuid ?? null
     },
+    previewKey,
+    exposure: currentExposure,
+    evadeActive: Boolean(targetPreview?.evadeActive),
+    evadeEdgePoolKey: String(targetPreview?.edgePoolKey ?? "").trim() || null,
     cq,
     margin,
     rawNetHits,
@@ -309,16 +386,29 @@ function summarizeTargetResults(results = []) {
   };
 }
 
-export async function resolveAttackExecution({ attacker, ctx, outcomeModel } = {}) {
+export async function resolveAttackExecution({ attacker, ctx, outcomeModel, previewState = {}, existingAttackResult = null } = {}) {
   const targets = getTargetSnapshots(ctx);
   const results = [];
   for (const target of targets) {
-    results.push(await resolveTargetAttack({ attacker, ctx, outcomeModel, target }));
+    results.push(await resolveTargetAttack({ attacker, ctx, outcomeModel, target, previewState }));
+  }
+
+  const areaEffect = normalizeAreaEffect(ctx?.attack?.areaEffect ?? ctx?.attack?.payload?.areaEffect ?? {});
+  let persistentRegionUuid = String(existingAttackResult?.persistentRegionUuid ?? "").trim() || null;
+  if (areaEffect.kind === AREA_EFFECT_KINDS.persistent && !persistentRegionUuid) {
+    const region = await createHazardRegionFromAttack({
+      attacker,
+      attack: ctx?.attack ?? {},
+      targetResult: results[0] ?? null,
+    });
+    persistentRegionUuid = region?.uuid ?? null;
   }
 
   return {
     targetCount: targets.length,
     results,
-    summary: summarizeTargetResults(results)
+    summary: summarizeTargetResults(results),
+    areaEffect,
+    persistentRegionUuid,
   };
 }

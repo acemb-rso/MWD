@@ -256,11 +256,20 @@ export class AnarchySystem {
     //CONFIG.Combat.documentClass = AnarchyCombat;
     CONFIG.Combat.initiative = { formula: "2d6" }
 
-    CONFIG.statusEffects.push({
-      id: "overloaded",
-      name: "Overloaded",
-      icon: "systems/mwd/img/icons/status/surge.svg"
-    });
+    if (!(CONFIG.statusEffects ?? []).some(effect => effect?.id === "overloaded")) {
+      CONFIG.statusEffects.push({
+        id: "overloaded",
+        name: "Overloaded",
+        icon: "systems/mwd/img/icons/status/surge.svg"
+      });
+    }
+    if (!(CONFIG.statusEffects ?? []).some(effect => effect?.id === "preparedInterrupt")) {
+      CONFIG.statusEffects.push({
+        id: "preparedInterrupt",
+        name: "Prepared",
+        icon: "systems/mwd/img/icons/status/readied_action.svg"
+      });
+    }
     CONFIG.Actor.documentClass = MWDActor;
     CONFIG.Item.documentClass = MWDItem;
     MWDItem.init();

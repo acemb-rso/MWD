@@ -1,0 +1,50 @@
+{{!--
+templates/v2/roll/_mwd-hazard-card.hbs
+Purpose: Renders a single persistent-hazard chat card with previewable Evade actions.
+How it fits: Used by combat hazard tracking and chat action updates.
+--}}
+
+<article class="{{classes}}">
+  <header class="mwd-hazard-card__header">
+    <div class="mwd-hazard-card__title">{{header.left}}</div>
+    <div class="mwd-hazard-card__subtitle">{{header.right}}</div>
+  </header>
+
+  <div class="mwd-hazard-card__target">
+    <img class="mwd-hazard-card__portrait" src="{{target.image}}" alt="{{target.name}}" />
+    <div class="mwd-hazard-card__target-copy">
+      <div class="mwd-hazard-card__target-name">{{target.name}}</div>
+    </div>
+  </div>
+
+  <div class="mwd-hazard-card__rows">
+    {{#each rows as |row|}}
+      <div class="mwd-hazard-card__row">
+        <span class="mwd-hazard-card__row-label">{{row.label}}</span>
+        <strong class="mwd-hazard-card__row-value">{{row.value}}</strong>
+      </div>
+    {{/each}}
+  </div>
+
+  {{#if reactionHint}}
+    <div class="mwd-hazard-card__hint">{{reactionHint}}</div>
+  {{/if}}
+
+  {{#if actions.length}}
+    <div class="mwd-hazard-card__actions">
+      {{#each actions as |action|}}
+        <button
+          type="button"
+          class="{{action.cssClass}}"
+          data-mwd-action="{{action.action}}"
+          {{#if action.dataset}}
+            {{#each action.dataset}}
+              data-{{@key}}="{{this}}"
+            {{/each}}
+          {{/if}}>
+          {{action.label}}
+        </button>
+      {{/each}}
+    </div>
+  {{/if}}
+</article>

@@ -9,6 +9,7 @@ import { enhanceAttack } from "./render-attack.js";
 import { enhanceNet } from "./render-net.js";
 import { enhanceOpposed } from "./render-opposed.js";
 import { enhanceExtended } from "./render-extended.js";
+import { getPersonalRangeBandName } from "../../mwd/personal-range-bands.js";
 // import { enhanceDefense } from "./render-defense.js";
 // import { enhanceEdge } from "./render-edge.js";
 
@@ -64,6 +65,7 @@ function buildBaseCardVM(resolved) {
     breakdownTooltip,
 
     metaRows: [],
+    targetRows: [],
     actions: [],
     footerRows: [],
 
@@ -82,7 +84,9 @@ function buildBaseCardVM(resolved) {
     });
   }
   if (attack?.weapon?.name) {
-    const rangeBand = String(attack?.rangeBand ?? "").trim();
+    const rangeBand = (attack?.weapon?.type === "personalWeapon" || attack?.weapon?.isSynthetic)
+      ? getPersonalRangeBandName(attack?.rangeBand ?? "")
+      : String(attack?.rangeBand ?? "").trim();
     const damageType = String(attack?.weapon?.damageTypeLabel ?? attack?.weapon?.damageType ?? "").trim();
     const payloadLabel = String(attack?.payload?.label ?? attack?.weapon?.payloadLabel ?? "").trim();
     vm.metaRows.push({

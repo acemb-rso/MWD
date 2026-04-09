@@ -252,6 +252,7 @@
         "displayBars": 40
       },
       "style": "",
+      "speed": 12,
       "keywords": [],
       "dispositions": [],
       "cues": [],
@@ -513,11 +514,11 @@
         "extreme": 0
       },
       "range": {
-        "max": "near",
-        "close": 0,
-        "near": 0,
-        "far": 0,
-        "extreme": 0
+        "max": "extreme",
+        "close": 5,
+        "near": 26,
+        "far": 62,
+        "extreme": 120
       },
       "standardTraits": [],
       "ammo": {

@@ -41,6 +41,7 @@ export class MWDActor extends Actor {
     if (this.isCharacterLike()) {
       const system = this.system ?? {};
       ensureCoreSkillRatings(system);
+      system.speed = Math.max(0, Math.trunc(Number(system.speed ?? 12) || 12));
 
       // Cleanup if any bad nesting already happened in-memory
       if (system.skills?.skills && typeof system.skills.skills === "object") {

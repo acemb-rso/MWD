@@ -8,6 +8,7 @@ import {
   getOwnedSkillSpecializations,
   getSkillSpecializationLabel,
 } from "../mwd/skills.js";
+import { getPersonalRangeBandName } from "../mwd/personal-range-bands.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
@@ -192,6 +193,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const st = this._mwd.state ?? {};
     const dn =
       Number.isFinite(Number(st?.payload?.dn)) ? Number(st.payload.dn) :
+      Number.isFinite(Number(bc?.resolved?.dn?.total)) ? Number(bc.resolved.dn.total) :
       Number.isFinite(Number(bc?.dn)) ? Number(bc.dn) :
       Number.isFinite(Number(bc?.resolved?.difficulty?.dn)) ? Number(bc.resolved.difficulty.dn) :
       1;
@@ -324,7 +326,9 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       } : null,
       attack: attack ? {
         weaponName: attack?.weapon?.name ?? "Weapon",
-        rangeBand: attack?.rangeBand ?? "",
+        rangeBand: (attack?.weapon?.type === "personalWeapon" || attack?.weapon?.isSynthetic)
+          ? getPersonalRangeBandName(attack?.rangeBand ?? "")
+          : (attack?.rangeBand ?? ""),
         damageType: selectedPayload?.modifies?.damageType || attack?.weapon?.damageTypeLabel || attack?.weapon?.damageType || "",
         usesPayloads,
         source: attack?.sourceState ?? null,
@@ -516,6 +520,12 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         void this._onSetSpecialization(event, event.currentTarget);
       });
     });
+
+    root.querySelectorAll("[data-action='setDn']").forEach(input => {
+      input.addEventListener("change", event => {
+        void this._onSetDn(event, event.currentTarget);
+      });
+    });
   }
 
   /**
@@ -540,7 +550,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     //
     try {
       const rollType = resolved?.rollType ?? "simple"; // until everything sets rollType explicitly
-      if (rollType === "simple" && payload?.dn == null) {
+      const intent = String(payload?.intent ?? resolved?.intent ?? "").trim().toLowerCase();
+      if (rollType === "simple" && intent !== "attack" && payload?.dn == null) {
         const gmDn = Number(game.settings.get(game.system.id, "gmNextDn"));
         if (Number.isFinite(gmDn)) payload.dn = Math.max(0, Math.trunc(gmDn));
       }
@@ -583,7 +594,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         modifiers,
         payload,
         resolved, // keep full resolved for edge display
-        dn: Number(payload?.dn ?? resolved?.difficulty?.dn ?? 1)
+        dn: Number(payload?.dn ?? resolved?.dn?.total ?? resolved?.difficulty?.dn ?? 1)
       }
     });
     const result = await dlg.wait();

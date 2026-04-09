@@ -90,7 +90,9 @@ How it fits: Used by rendering code to produce UI fragments.
                   {{#if action.disabled}}data-action-disabled="true" data-action-reason="{{action.reason}}" aria-disabled="true"{{/if}}
                   {{#if action.disabled}}{{#unless action.handler}}disabled{{/unless}}{{/if}}>
                   <span class="mwd-combat-action__label">{{action.label}}</span>
-                  <span class="mwd-combat-action__cost">{{action.costLabel}}</span>
+                  {{#if action.description}}
+                    <span class="mwd-combat-action__description">{{action.description}}</span>
+                  {{/if}}
                   {{#if action.reason}}
                     <span class="mwd-combat-action__reason">{{action.reason}}</span>
                   {{/if}}

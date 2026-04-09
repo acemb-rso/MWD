@@ -12,6 +12,9 @@ import {
   normalizeWeaponCapabilityState,
   validateTemplatedCapability,
 } from "./personal-weapon-capabilities.js";
+import {
+  normalizeAreaEffect,
+} from "../area-effects/area-effect-engine.js";
 
 
 const PERSONAL_DAMAGE_TYPE_LABELS = Object.freeze({
@@ -484,6 +487,7 @@ export function normalizePayloadProfile(entry, { report = null, path = "system.p
       traits: [],
       keywords: [],
       template: null,
+      areaEffect: normalizeAreaEffect({ kind: "discrete" }),
       resolution: normalizePayloadResolution({ resolverKey: "standard" }),
       consumption: normalizePayloadConsumption({ amount: 1, sourceId: "" }),
     };
@@ -497,6 +501,7 @@ export function normalizePayloadProfile(entry, { report = null, path = "system.p
     traits: capabilityState.traits,
     keywords: capabilityState.keywords,
     template,
+    areaEffect: normalizeAreaEffect(source.areaEffect ?? {}),
     resolution: normalizePayloadResolution(source.resolution ?? source),
     consumption: normalizePayloadConsumption(source.consumption ?? source),
   };
@@ -947,6 +952,7 @@ export function resolveEffectiveWeaponProfile({
     source: effectivePayloadState.source ? foundry.utils.deepClone(effectivePayloadState.source) : null,
     sourceState: foundry.utils.deepClone(publicSourceState),
     template: capabilityValidation.template ? foundry.utils.deepClone(capabilityValidation.template) : null,
+    areaEffect: normalizeAreaEffect(activePayload?.areaEffect ?? {}),
     resolution: foundry.utils.deepClone(effectiveResolution),
     resolverKey: String(effectiveResolution?.resolverKey ?? "standard").trim() || "standard",
     fireModes: foundry.utils.deepClone(normalizedFireModes),

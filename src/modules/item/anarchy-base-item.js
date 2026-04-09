@@ -16,6 +16,10 @@ import { formatString } from "../strings.js";
 import { getSkillDef } from "../mwd/skills.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import {
+  getPersonalRangeBandLabel,
+  normalizePersonalRangeData,
+} from "../mwd/personal-range-bands.js";
+import {
   getLifeModuleCatalogEntry,
   normalizeLifeModuleItemSystem,
 } from "../mwd/life-modules.js";
@@ -107,14 +111,9 @@ function normalizeRangeKey(rangeKey) {
 }
 
 function normalizeRangeData(range) {
-  const max = normalizeRangeKey(range?.max ?? "near");
-  return {
-    max,
-    close: Number(range?.close ?? range?.short ?? 0) || 0,
-    near: Number(range?.near ?? range?.medium ?? 0) || 0,
-    far: Number(range?.far ?? range?.long ?? 0) || 0,
-    extreme: Number(range?.extreme ?? 0) || 0
-  };
+  const normalized = normalizePersonalRangeData(range);
+  normalized.max = normalizeRangeKey(normalized.max ?? range?.max ?? "extreme");
+  return normalized;
 }
 
 function normalizeAttackRatingBand(bands) {
@@ -172,7 +171,7 @@ function getRangeList(range) {
     key,
     allowed: maxIndex >= 0 ? index <= maxIndex : index === 0,
     value: range?.[key] ?? undefined,
-    labelkey: Enums.getFromList(Enums.getEnums().ranges, key)
+    labelkey: getPersonalRangeBandLabel(key)
   }));
 }
 
@@ -1057,6 +1056,7 @@ export class MWDItem extends Item {
       traits: entry.traits ?? [],
       keywords: entry.keywords ?? [],
       template: entry.template ?? null,
+      areaEffect: entry.areaEffect ?? { kind: "discrete" },
       resolution: entry.resolution ?? { resolverKey: "standard" },
       consumption: entry.consumption ?? { amount: 1, sourceId: "" },
     })]));
@@ -1497,6 +1497,7 @@ export class MWDItem extends Item {
       source: effectiveProfile.source,
       sourceState: effectiveProfile.sourceState,
       template: effectiveProfile.template,
+      areaEffect: effectiveProfile.areaEffect,
       resolution: effectiveProfile.resolution,
       resolverKey: effectiveProfile.resolverKey,
       fireModes: effectiveProfile.fireModes,

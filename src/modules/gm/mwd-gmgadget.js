@@ -5,6 +5,13 @@
 
 import { HARM_DAMAGE_TYPE_OPTIONS, HarmEngine } from "../harm/harm-engine.js";
 import {
+  EXPOSURE_TIERS,
+  createRegionShapesFromTemplatePlacement,
+  getExposureLabel,
+  normalizeHazardDefinition,
+} from "../area-effects/area-effect-engine.js";
+import { HAZARD_REGION_FLAG } from "../area-effects/hazard-regions.js";
+import {
   SCENE_MODIFIERS_FLAG,
   SCENE_MODIFIER_ATTRIBUTE_OPTIONS,
   SCENE_MODIFIER_INTENT_OPTIONS,
@@ -39,6 +46,20 @@ const DEFAULT_HARM_STATE = Object.freeze({
   statusActive: true,
   source: "",
   notes: ""
+});
+
+const DEFAULT_HAZARD_STATE = Object.freeze({
+  label: "Hazard Zone",
+  startExposure: EXPOSURE_TIERS.minor,
+  escalationRate: 1,
+  escalationIntervalTurns: 1,
+  escalationMax: EXPOSURE_TIERS.full,
+  onFullBurnDelta: 0,
+  clearOnExit: true,
+  damage: 6,
+  ap: 0,
+  damageType: "thermal",
+  color: "#d86a2c"
 });
 
 function parseLegacyDnPresetString(value = "") {
@@ -125,6 +146,75 @@ function cloneHarmState(state = {}) {
   );
 }
 
+function cloneHazardState(state = {}) {
+  return foundry.utils.mergeObject(
+    foundry.utils.deepClone(DEFAULT_HAZARD_STATE),
+    state ?? {},
+    { inplace: false, overwrite: true }
+  );
+}
+
+function getSelectedMeasuredTemplate() {
+  const controlled = Array.from(canvas?.templates?.controlled ?? []);
+  if (controlled.length > 0) return controlled[0]?.document ?? controlled[0] ?? null;
+  const hovered = canvas?.activeLayer?.controlled?.[0];
+  return hovered?.document ?? hovered ?? null;
+}
+
+function describeSelectedHazardTemplate(templateDoc = null) {
+  const doc = templateDoc?.document ?? templateDoc ?? null;
+  if (!doc) {
+    return {
+      label: "No template selected",
+      reason: "Select a measured template on the current scene to turn it into a hazard region.",
+      supported: false
+    };
+  }
+
+  const rawType = String(doc.t ?? doc.type ?? "").trim().toLowerCase();
+  const shape = rawType === "circle" ? "blast" : rawType === "cone" ? "cone" : rawType === "ray" ? "line" : "";
+  if (!shape) {
+    return {
+      label: "Unsupported template",
+      reason: `The selected template type "${rawType || "unknown"}" is not supported for hazard conversion yet.`,
+      supported: false
+    };
+  }
+
+  return {
+    label: `${shape.toUpperCase()} ${Number(doc.distance ?? 0) || 0}${canvas?.scene?.grid?.units ? ` ${canvas.scene.grid.units}` : ""}`.trim(),
+    reason: "",
+    supported: true
+  };
+}
+
+function buildTemplatePlacementFromMeasuredTemplate(templateDoc = null) {
+  const doc = templateDoc?.document ?? templateDoc ?? null;
+  if (!doc) return null;
+
+  const rawType = String(doc.t ?? doc.type ?? "").trim().toLowerCase();
+  const shape = rawType === "circle" ? "blast" : rawType === "cone" ? "cone" : rawType === "ray" ? "line" : "";
+  if (!shape) return null;
+
+  return {
+    template: {
+      shape,
+      distance: Number(doc.distance ?? 0) || 0,
+      size: Number(doc.distance ?? 0) || 0,
+    },
+    placement: {
+      shape,
+      anchor: {
+        x: Number(doc.x ?? 0) || 0,
+        y: Number(doc.y ?? 0) || 0,
+      },
+      distance: Number(doc.distance ?? 0) || 0,
+      direction: Number(doc.direction ?? 0) || 0,
+      angle: Number(doc.angle ?? 90) || 90,
+    }
+  };
+}
+
 function describeSceneTarget(target) {
   if (!target?.token || !target?.actor) {
     return {
@@ -205,6 +295,9 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
       harmInputChange: MWDGMGadget.prototype._onHarmInputChange,
       refreshHarmTarget: MWDGMGadget.prototype._onRefreshHarmTarget,
       applyHarm: MWDGMGadget.prototype._onApplyHarm,
+      hazardInputChange: MWDGMGadget.prototype._onHazardInputChange,
+      refreshHazardTemplate: MWDGMGadget.prototype._onRefreshHazardTemplate,
+      createHazard: MWDGMGadget.prototype._onCreateHazard,
       addSceneModifierFromPreset: MWDGMGadget.prototype._onAddSceneModifierFromPreset,
       addSceneModifierAdhoc: MWDGMGadget.prototype._onAddSceneModifierAdhoc,
       toggleSceneModifier: MWDGMGadget.prototype._onToggleSceneModifier,
@@ -222,6 +315,7 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
     this.systemId = systemId;
     this.activeTab = "difficulty";
     this.harmState = cloneHarmState();
+    this.hazardState = cloneHazardState();
   }
 
   async render(options = {}) {
@@ -261,6 +355,9 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
     const activeSceneModifiers = normalizeActiveSceneModifiers(
       canvas?.scene?.getFlag("mwd", SCENE_MODIFIERS_FLAG)
     );
+    const selectedHazardTemplate = getSelectedMeasuredTemplate();
+    const hazardTemplateSummary = describeSelectedHazardTemplate(selectedHazardTemplate);
+    const hazardState = cloneHazardState(this.hazardState);
 
     return foundry.utils.mergeObject(context, {
       presets,
@@ -289,6 +386,18 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
         showDamageType: (harmState.mode === "physical" || harmState.mode === "fatigue") && harmState.useArmor,
         showStatusFields: harmState.mode === "status",
         showDeltaFields: harmState.mode !== "status"
+      },
+      hazard: {
+        state: hazardState,
+        template: hazardTemplateSummary,
+        exposureTiers: [
+          { value: EXPOSURE_TIERS.minor, label: "Minor" },
+          { value: EXPOSURE_TIERS.major, label: "Major" },
+          { value: EXPOSURE_TIERS.full, label: "Full" }
+        ],
+        damageTypes: HARM_DAMAGE_TYPE_OPTIONS,
+        canCreate: Boolean(canvas?.scene && hazardTemplateSummary.supported),
+        createReason: hazardTemplateSummary.reason || ""
       }
     });
   }
@@ -362,6 +471,7 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!nextTab || nextTab === this.activeTab) return;
 
     this._captureHarmStateFromDom(target);
+    this._captureHazardStateFromDom(target);
     this.activeTab = nextTab;
     return this.render({ parts: ["body"] });
   }
@@ -429,6 +539,111 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
       return this.render({ parts: ["body"] });
     }
 
+    return this.render({ parts: ["body"] });
+  }
+
+  _captureHazardStateFromDom(target = null) {
+    const root = target?.closest?.(".mwd-gmgadget__root") ?? this._getRootElement();
+    if (!(root instanceof HTMLElement)) return this.hazardState;
+
+    const readValue = (selector, fallback = "") => {
+      const el = root.querySelector(selector);
+      return el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement
+        ? el.value
+        : fallback;
+    };
+    const readChecked = (selector, fallback = false) => {
+      const el = root.querySelector(selector);
+      return el instanceof HTMLInputElement ? el.checked : fallback;
+    };
+
+    this.hazardState = cloneHazardState({
+      label: readValue('[name="hazard-label"]', this.hazardState.label),
+      startExposure: readValue('[name="hazard-startExposure"]', this.hazardState.startExposure),
+      escalationRate: Number(readValue('[name="hazard-escalationRate"]', this.hazardState.escalationRate)),
+      escalationIntervalTurns: Number(readValue('[name="hazard-escalationIntervalTurns"]', this.hazardState.escalationIntervalTurns)),
+      escalationMax: readValue('[name="hazard-escalationMax"]', this.hazardState.escalationMax),
+      onFullBurnDelta: Number(readValue('[name="hazard-onFullBurnDelta"]', this.hazardState.onFullBurnDelta)),
+      clearOnExit: readChecked('[name="hazard-clearOnExit"]', this.hazardState.clearOnExit),
+      damage: Number(readValue('[name="hazard-damage"]', this.hazardState.damage)),
+      ap: Number(readValue('[name="hazard-ap"]', this.hazardState.ap)),
+      damageType: readValue('[name="hazard-damageType"]', this.hazardState.damageType),
+      color: readValue('[name="hazard-color"]', this.hazardState.color),
+    });
+
+    return this.hazardState;
+  }
+
+  async _onHazardInputChange(event, target) {
+    event?.preventDefault?.();
+    this._captureHazardStateFromDom(target);
+  }
+
+  async _onRefreshHazardTemplate(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    this._captureHazardStateFromDom(target);
+    return this.render({ parts: ["body"] });
+  }
+
+  async _onCreateHazard(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!game.user?.isGM) return;
+
+    const state = this._captureHazardStateFromDom(target);
+    const templateDoc = getSelectedMeasuredTemplate();
+    const templatePlacement = buildTemplatePlacementFromMeasuredTemplate(templateDoc);
+    if (!canvas?.scene || !templatePlacement) {
+      ui.notifications?.warn("Select a supported measured template before creating a hazard.");
+      return;
+    }
+
+    const hazardDef = normalizeHazardDefinition({
+      startExposure: state.startExposure,
+      escalation: {
+        rate: Number(state.escalationRate ?? 1) || 1,
+        intervalTurns: Number(state.escalationIntervalTurns ?? 1) || 1,
+        max: state.escalationMax,
+      },
+      onFull: {
+        burnDelta: Number(state.onFullBurnDelta ?? 0) || 0,
+      },
+      clearOnExit: Boolean(state.clearOnExit),
+    });
+    const shapes = createRegionShapesFromTemplatePlacement(templatePlacement);
+    if (!shapes.length) {
+      ui.notifications?.warn("Unable to convert the selected template into a Region shape.");
+      return;
+    }
+
+    await canvas.scene.createEmbeddedDocuments("Region", [{
+      name: String(state.label ?? "Hazard Zone").trim() || "Hazard Zone",
+      color: String(state.color ?? "#d86a2c").trim() || "#d86a2c",
+      shapes,
+      flags: {
+        mwd: {
+          [HAZARD_REGION_FLAG]: {
+            sourceActorUuid: null,
+            sourceItemUuid: null,
+            payloadId: "gm-hazard",
+            templatePlacement: foundry.utils.deepClone(templatePlacement.placement),
+            template: foundry.utils.deepClone(templatePlacement.template),
+            damage: Math.max(0, Number(state.damage ?? 0) || 0),
+            ap: Math.max(0, Number(state.ap ?? 0) || 0),
+            damageType: String(state.damageType ?? "thermal").trim() || "thermal",
+            label: `${String(state.label ?? "Hazard Zone").trim() || "Hazard Zone"} (${getExposureLabel(hazardDef.startExposure)})`,
+            areaEffect: {
+              kind: "persistent",
+              hazard: hazardDef,
+            },
+            hazardDef,
+          }
+        }
+      }
+    }]);
+
+    ui.notifications?.info("Hazard region created from the selected template.");
     return this.render({ parts: ["body"] });
   }
 

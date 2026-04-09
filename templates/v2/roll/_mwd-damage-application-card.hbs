@@ -1,0 +1,42 @@
+{{!--
+templates/v2/roll/_mwd-damage-application-card.hbs
+Purpose: Presents a focused damage-application result card.
+How it fits: Used by chat-actions when queued attack damage is applied.
+--}}
+
+<article class="mwd-chat-card {{classes}}">
+  <header class="mwd-damage-card__header">
+    <div class="mwd-damage-card__title">{{header.left}}</div>
+    <div class="mwd-damage-card__subtitle">{{header.right}}</div>
+  </header>
+
+  <div class="mwd-damage-card__hero">
+    <img class="mwd-damage-card__portrait" src="{{target.image}}" alt="{{target.name}}">
+
+    <div class="mwd-damage-card__hero-copy">
+      <div class="mwd-damage-card__target"><strong>{{target.name}}</strong></div>
+      <div class="mwd-damage-card__summary">{{impactText}}</div>
+
+      <div class="mwd-damage-card__chips">
+        <div class="mwd-damage-card__chip">{{damageTypeLabel}}</div>
+        <div class="mwd-damage-card__chip">{{severityLabel}}</div>
+      </div>
+    </div>
+
+    <div class="mwd-damage-card__impact">
+      <div class="mwd-damage-card__impact-label">Damage</div>
+      <div class="mwd-damage-card__impact-value">{{impactValue}}</div>
+    </div>
+  </div>
+
+  {{#if rows.length}}
+    <div class="mwd-damage-card__details">
+      {{#each rows as |row|}}
+        <div class="mwd-damage-card__detail">
+          <span class="mwd-damage-card__detail-label">{{row.label}}</span>
+          <span class="mwd-damage-card__detail-value">{{row.value}}</span>
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+</article>

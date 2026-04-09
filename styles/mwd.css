@@ -170,6 +170,83 @@
   --csb-chip-radius: var(--csb-radius-pill);
   --csb-chip-padding-y: 2px;
   --csb-chip-padding-x: 8px;
+  /* ---------- chat cards ---------- */
+  --mwd-chat-card-bg: color-mix(in srgb, var(--csb-surface-0) 82%, black 18%);
+  --mwd-chat-card-border: var(--csb-border-strong);
+  --mwd-chat-card-text: var(--csb-text);
+  --mwd-chat-card-text-muted: var(--csb-text-muted);
+  --mwd-chat-card-text-faint: var(--csb-text-faint);
+  --mwd-chat-card-stat-bg: color-mix(in srgb, var(--csb-surface-2) 72%, transparent);
+  --mwd-chat-card-rule: var(--csb-border-strong);
+  --mwd-chat-card-success: var(--csb-success);
+  --mwd-chat-card-failure: var(--csb-danger);
+  /* ---------- damage application cards ---------- */
+  --mwd-damage-card-bg: linear-gradient(180deg, rgba(246, 240, 226, 0.98), rgba(233, 223, 205, 0.98));
+  --mwd-damage-card-border: rgba(68, 56, 38, 0.28);
+  --mwd-damage-card-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 8px 18px rgba(0, 0, 0, 0.16);
+  --mwd-damage-card-text: rgba(28, 24, 19, 0.96);
+  --mwd-damage-card-text-strong: rgba(25, 21, 16, 0.98);
+  --mwd-damage-card-text-soft: rgba(72, 58, 39, 0.92);
+  --mwd-damage-card-text-muted: rgba(104, 85, 57, 0.88);
+  --mwd-damage-card-text-summary: rgba(51, 42, 29, 0.94);
+  --mwd-damage-card-portrait-bg: rgba(255, 250, 240, 0.72);
+  --mwd-damage-card-portrait-border: rgba(82, 67, 45, 0.18);
+  --mwd-damage-card-chip-bg: rgba(255, 248, 238, 0.82);
+  --mwd-damage-card-chip-border: rgba(87, 71, 48, 0.20);
+  --mwd-damage-card-row-bg: rgba(255, 250, 242, 0.72);
+  --mwd-damage-card-row-border: rgba(104, 85, 57, 0.12);
+  --mwd-damage-type-concussive: rgba(242, 184, 64, 0.98);
+  --mwd-damage-type-penetrating: rgba(240, 108, 92, 0.98);
+  --mwd-damage-type-energy: rgba(92, 204, 255, 0.98);
+  --mwd-damage-type-thermal: rgba(255, 146, 92, 0.98);
+  --mwd-damage-type-electrical: rgba(124, 214, 255, 0.98);
+  --mwd-damage-type-none: rgba(180, 190, 204, 0.92);
+  --mwd-damage-type-concussive-border: rgba(242, 184, 64, 0.45);
+  --mwd-damage-type-penetrating-border: rgba(224, 89, 68, 0.48);
+  --mwd-damage-type-energy-border: rgba(82, 186, 255, 0.52);
+  --mwd-damage-type-thermal-border: rgba(255, 134, 64, 0.50);
+  --mwd-damage-type-electrical-border: rgba(104, 204, 255, 0.50);
+  --mwd-damage-glow-light: 0 0 10px rgba(255, 255, 255, 0.08);
+  --mwd-damage-glow-medium: 0 0 12px rgba(255, 255, 255, 0.12);
+  --mwd-damage-glow-heavy: 0 0 14px rgba(255, 255, 255, 0.18);
+  --mwd-damage-glow-critical: 0 0 18px rgba(255, 255, 255, 0.22);
+  /* ---------- combat UI ---------- */
+  --mwd-combat-surface: color-mix(in srgb, var(--csb-surface-0) 74%, transparent);
+  --mwd-combat-surface-alt: color-mix(in srgb, var(--csb-surface-1) 62%, transparent);
+  --mwd-combat-surface-emphasis: color-mix(in srgb, var(--csb-surface-2) 72%, transparent);
+  --mwd-combat-border: var(--csb-border);
+  --mwd-combat-border-strong: var(--csb-border-strong);
+  --mwd-combat-text: var(--csb-text);
+  --mwd-combat-text-muted: var(--csb-text-muted);
+  --mwd-combat-text-faint: var(--csb-text-faint);
+  --mwd-combat-chip-bg: var(--csb-chip-bg);
+  --mwd-combat-state-border: color-mix(in srgb, #ffc654 32%, transparent);
+  --mwd-combat-state-bg: color-mix(in srgb, #ffc654 12%, transparent);
+  --mwd-combat-menu-bg: color-mix(in srgb, var(--csb-surface-0) 90%, black 10%);
+  --mwd-combat-menu-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+  --mwd-combat-menu-chevron: color-mix(in srgb, var(--csb-text) 62%, transparent);
+  --mwd-combat-menu-chevron-active: color-mix(in srgb, var(--csb-text) 92%, transparent);
+  --mwd-combat-prominent-border: color-mix(in srgb, var(--csb-warning) 55%, transparent);
+  --mwd-combat-prominent-shadow: 0 0 0 1px color-mix(in srgb, var(--csb-warning) 18%, transparent);
+  --mwd-combat-threat-border: rgba(255, 83, 65, 0.78);
+  --mwd-combat-threat-bg: rgba(132, 24, 20, 0.82);
+  --mwd-combat-threat-text: rgba(255, 244, 238, 0.98);
+  --mwd-combat-threat-shadow: 0 0 0 1px rgba(255, 83, 65, 0.18), 0 0 14px rgba(255, 55, 34, 0.22);
+  --mwd-combat-threat-border-hover: rgba(255, 119, 92, 0.95);
+  --mwd-combat-threat-bg-hover: rgba(171, 35, 27, 0.92);
+  --mwd-combat-threat-shadow-hover: 0 0 0 1px rgba(255, 119, 92, 0.28), 0 0 18px rgba(255, 65, 42, 0.32);
+  /* ---------- item sheet parchment ---------- */
+  --mwd-item-ink: rgba(30, 24, 16, 0.96);
+  --mwd-item-ink-soft: rgba(63, 52, 31, 0.94);
+  --mwd-item-ink-muted: rgba(88, 71, 42, 0.88);
+  --mwd-item-halo: 0 1px 0 rgba(255, 248, 228, 0.88);
+  --mwd-item-tab-active-text: rgba(245, 246, 248, 0.96);
+  --mwd-item-tab-active-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+  --mwd-item-select-bg: #f4ead2;
+  --mwd-item-richtext-bg: rgba(255, 248, 228, 0.68);
+  --mwd-item-richtext-border: rgba(96, 80, 52, 0.28);
   /* =========================================================
      Legacy alias layer (strip-mining friendliness)
      Keep these until migration is complete.
@@ -891,7 +968,7 @@
    ------------------------- */
 .csb-topband__attributes .attributes-row {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: var(--csb-space-2);
   padding-bottom: var(--csb-space-3);
 }
@@ -2646,7 +2723,7 @@
 
 .mwd-sheet .mwd-attributes .attributes-row {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: var(--csb-space-3);
   align-items: end;
 }
@@ -3375,13 +3452,14 @@
    ========================================================= */
 .mwd-chat-roll {
   padding: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--mwd-chat-card-border);
+  background: var(--mwd-chat-card-bg);
+  color: var(--mwd-chat-card-text);
 }
 
 .mwd-roll-summary {
   font-size: 11px;
-  opacity: 0.85;
+  color: var(--mwd-chat-card-text-muted);
   margin-bottom: 4px;
 }
 
@@ -3391,7 +3469,8 @@
 }
 
 .mwd-roll-stat {
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--mwd-chat-card-border);
+  background: var(--mwd-chat-card-stat-bg);
   padding: 4px 6px;
   min-width: 52px;
   text-align: right;
@@ -3399,12 +3478,13 @@
 
 .mwd-roll-stat .k {
   font-size: 10px;
-  opacity: 0.6;
+  color: var(--mwd-chat-card-text-faint);
 }
 
 .mwd-roll-stat .v {
   font-weight: 700;
   font-size: 14px;
+  color: var(--mwd-chat-card-text);
 }
 
 .mwd-roll-result {
@@ -3413,18 +3493,215 @@
   text-align: center;
   font-weight: 800;
   letter-spacing: 0.12em;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid var(--mwd-chat-card-rule);
+  border-bottom: 1px solid var(--mwd-chat-card-rule);
 }
 
 .mwd-chat-roll.is-success .mwd-roll-result {
-  color: #8fdc8f;
+  color: var(--mwd-chat-card-success);
 }
 
 .mwd-chat-roll.is-failure .mwd-roll-result {
-  color: #ff8a8a;
+  color: var(--mwd-chat-card-failure);
 }
 
+.mwd-damage-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.8rem;
+  border: 1px solid var(--mwd-damage-card-border);
+  border-radius: 8px;
+  color: var(--mwd-damage-card-text);
+  background: var(--mwd-damage-card-bg);
+  box-shadow: var(--mwd-damage-card-shadow);
+}
+
+.mwd-damage-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+}
+
+.mwd-damage-card__title,
+.mwd-damage-card__subtitle,
+.mwd-damage-card__impact-label,
+.mwd-damage-card__detail-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mwd-damage-card-text-soft);
+}
+
+.mwd-damage-card__subtitle,
+.mwd-damage-card__impact-label,
+.mwd-damage-card__detail-label {
+  color: var(--mwd-damage-card-text-muted);
+}
+
+.mwd-damage-card__hero {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.mwd-damage-card__portrait {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--mwd-damage-card-portrait-border);
+  background: var(--mwd-damage-card-portrait-bg);
+}
+
+.mwd-damage-card__hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.mwd-damage-card__target {
+  font-size: 1rem;
+  line-height: 1.2;
+  color: var(--mwd-damage-card-text-strong);
+}
+
+.mwd-damage-card__summary {
+  line-height: 1.3;
+  color: var(--mwd-damage-card-text-summary);
+}
+
+.mwd-damage-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.mwd-damage-card__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--mwd-damage-card-chip-border);
+  border-radius: 999px;
+  background: var(--mwd-damage-card-chip-bg);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--mwd-damage-card-text-summary);
+}
+
+.mwd-damage-card__impact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  text-align: right;
+}
+
+.mwd-damage-card__impact-value {
+  min-width: 2.5rem;
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.mwd-damage-card__details {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.mwd-damage-card__detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  background: var(--mwd-damage-card-row-bg);
+  border: 1px solid var(--mwd-damage-card-row-border);
+}
+
+.mwd-damage-card__detail-value {
+  text-align: right;
+  font-weight: 700;
+  color: var(--mwd-damage-card-text);
+}
+
+.mwd-damage-card.is-concussive {
+  border-color: var(--mwd-damage-type-concussive-border);
+}
+
+.mwd-damage-card.is-penetrating {
+  border-color: var(--mwd-damage-type-penetrating-border);
+}
+
+.mwd-damage-card.is-energy {
+  border-color: var(--mwd-damage-type-energy-border);
+}
+
+.mwd-damage-card.is-thermal {
+  border-color: var(--mwd-damage-type-thermal-border);
+}
+
+.mwd-damage-card.is-electrical {
+  border-color: var(--mwd-damage-type-electrical-border);
+}
+
+.mwd-damage-card.is-concussive .mwd-damage-card__impact-value {
+  color: var(--mwd-damage-type-concussive);
+}
+
+.mwd-damage-card.is-penetrating .mwd-damage-card__impact-value {
+  color: var(--mwd-damage-type-penetrating);
+}
+
+.mwd-damage-card.is-energy .mwd-damage-card__impact-value {
+  color: var(--mwd-damage-type-energy);
+}
+
+.mwd-damage-card.is-thermal .mwd-damage-card__impact-value {
+  color: var(--mwd-damage-type-thermal);
+}
+
+.mwd-damage-card.is-electrical .mwd-damage-card__impact-value {
+  color: var(--mwd-damage-type-electrical);
+}
+
+.mwd-damage-card.is-none .mwd-damage-card__impact-value {
+  color: var(--mwd-damage-type-none);
+}
+
+.mwd-damage-card.is-light .mwd-damage-card__impact-value {
+  text-shadow: var(--mwd-damage-glow-light);
+}
+
+.mwd-damage-card.is-medium .mwd-damage-card__impact-value {
+  text-shadow: var(--mwd-damage-glow-medium);
+}
+
+.mwd-damage-card.is-heavy .mwd-damage-card__impact-value {
+  text-shadow: var(--mwd-damage-glow-heavy);
+}
+
+.mwd-damage-card.is-critical .mwd-damage-card__impact-value {
+  text-shadow: var(--mwd-damage-glow-critical);
+}
+
+@media (max-width: 520px) {
+  .mwd-damage-card__hero {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+  .mwd-damage-card__impact {
+    grid-column: 1/-1;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    text-align: left;
+  }
+}
 .mwd-portrait.is-editable {
   cursor: pointer;
   outline: 2px dashed var(--mwd-accent);
@@ -3454,11 +3731,11 @@
 .mwd-combat-dashboard__notice,
 .mwd-combat-actions-panel__notice {
   padding: 0.5rem 0.65rem;
-  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border: 1px dashed var(--mwd-combat-border-strong);
   border-radius: 0.65rem;
-  background: rgba(0, 0, 0, 0.12);
+  background: var(--mwd-combat-surface);
+  color: var(--mwd-combat-text-muted);
   font-size: 0.92em;
-  opacity: 0.88;
 }
 
 .mwd-combat-dashboard__grid {
@@ -3469,9 +3746,9 @@
 
 .mwd-combat-dashboard__card {
   padding: 0.6rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--mwd-combat-border);
   border-radius: 0.75rem;
-  background: rgba(0, 0, 0, 0.16);
+  background: var(--mwd-combat-surface-alt);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -3483,7 +3760,7 @@
   font-size: 0.76rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  opacity: 0.72;
+  color: var(--mwd-combat-text-muted);
 }
 
 .mwd-combat-dashboard__value {
@@ -3509,7 +3786,7 @@
   align-items: baseline;
   padding: 0.4rem 0.55rem;
   border-radius: 0.6rem;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--mwd-combat-chip-bg);
 }
 
 .mwd-combat-dashboard__columns {
@@ -3532,17 +3809,17 @@
 }
 
 .mwd-combat-dashboard__empty {
-  opacity: 0.7;
+  color: var(--mwd-combat-text-faint);
   font-size: 0.92em;
 }
 
 .mwd-combat-dashboard__chip {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--mwd-combat-chip-bg);
 }
 
 .mwd-combat-dashboard__chip--state {
-  border-color: rgba(255, 202, 84, 0.32);
-  background: rgba(255, 202, 84, 0.12);
+  border-color: var(--mwd-combat-state-border);
+  background: var(--mwd-combat-state-bg);
 }
 
 .mwd-combat-dashboard__modifier-list {
@@ -3568,8 +3845,9 @@
   min-width: 4.5rem;
   padding: 0.35rem 0.6rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--mwd-combat-border);
+  background: var(--mwd-combat-chip-bg);
+  color: var(--mwd-combat-text);
   font-size: 0.92em;
   font-weight: 700;
 }
@@ -3581,10 +3859,10 @@
   min-height: 2rem;
   padding: 0.35rem 0.75rem !important;
   border-radius: 999px;
-  border: 1px solid rgba(255, 83, 65, 0.78) !important;
-  background: rgba(132, 24, 20, 0.82) !important;
-  color: rgba(255, 244, 238, 0.98) !important;
-  box-shadow: 0 0 0 1px rgba(255, 83, 65, 0.18), 0 0 14px rgba(255, 55, 34, 0.22);
+  border: 1px solid var(--mwd-combat-threat-border) !important;
+  background: var(--mwd-combat-threat-bg) !important;
+  color: var(--mwd-combat-threat-text) !important;
+  box-shadow: var(--mwd-combat-threat-shadow);
   font-size: 0.84em;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -3593,9 +3871,9 @@
 
 .mwd-combat-actions-panel__threat-button:hover,
 .mwd-combat-actions-panel__threat-button:focus-visible {
-  border-color: rgba(255, 119, 92, 0.95) !important;
-  background: rgba(171, 35, 27, 0.92) !important;
-  box-shadow: 0 0 0 1px rgba(255, 119, 92, 0.28), 0 0 18px rgba(255, 65, 42, 0.32);
+  border-color: var(--mwd-combat-threat-border-hover) !important;
+  background: var(--mwd-combat-threat-bg-hover) !important;
+  box-shadow: var(--mwd-combat-threat-shadow-hover);
 }
 
 .mwd-combat-actions-panel__log {
@@ -3603,9 +3881,9 @@
   flex-direction: column;
   gap: 0.45rem;
   padding: 0.65rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--mwd-combat-border);
   border-radius: 0.75rem;
-  background: rgba(0, 0, 0, 0.14);
+  background: var(--mwd-combat-surface);
 }
 
 .mwd-combat-actions-panel__log-list {
@@ -3623,7 +3901,7 @@
   gap: 0.45rem;
   padding: 0.35rem 0.55rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--mwd-combat-chip-bg);
   font-size: 0.9em;
 }
 
@@ -3639,7 +3917,7 @@
 }
 
 .mwd-combat-actions-panel__empty {
-  opacity: 0.74;
+  color: var(--mwd-combat-text-faint);
   font-size: 0.92em;
 }
 
@@ -3670,8 +3948,8 @@
 }
 
 .mwd-combat-menu.is-open .mwd-combat-actions-panel__menu-trigger {
-  border-color: rgba(255, 255, 255, 0.22) !important;
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--mwd-combat-border-strong) !important;
+  background: var(--mwd-combat-surface-emphasis);
 }
 
 .mwd-combat-actions-panel__menu-label {
@@ -3682,14 +3960,14 @@
   width: 0.7rem;
   height: 0.7rem;
   flex: 0 0 auto;
-  border-right: 2px solid rgba(255, 255, 255, 0.62);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.62);
+  border-right: 2px solid var(--mwd-combat-menu-chevron);
+  border-bottom: 2px solid var(--mwd-combat-menu-chevron);
   transform: translateY(-0.08rem) rotate(45deg);
   transition: transform 0.14s ease, border-color 0.14s ease;
 }
 
 .mwd-combat-menu.is-open .mwd-combat-actions-panel__menu-chevron {
-  border-color: rgba(255, 255, 255, 0.92);
+  border-color: var(--mwd-combat-menu-chevron-active);
   transform: translateY(0.08rem) rotate(225deg);
 }
 
@@ -3702,10 +3980,10 @@
   width: max-content;
   max-width: min(24rem, 100vw - 4rem);
   padding: 0.6rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--mwd-combat-border);
   border-radius: 0.8rem;
-  background: rgba(7, 10, 16, 0.94);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+  background: var(--mwd-combat-menu-bg);
+  box-shadow: var(--mwd-combat-menu-shadow);
   max-height: min(24rem, 60vh);
   overflow: auto;
   backdrop-filter: blur(8px);
@@ -3734,9 +4012,11 @@
   line-height: 1.15;
 }
 
-.mwd-combat-action__cost {
+.mwd-combat-action__description {
   font-size: 0.8em;
   opacity: 0.78;
+  line-height: 1.2;
+  white-space: normal;
 }
 
 .mwd-combat-action__reason {
@@ -3747,8 +4027,8 @@
 }
 
 .mwd-combat-action.is-prominent {
-  border-color: rgba(255, 196, 0, 0.55) !important;
-  box-shadow: 0 0 0 1px rgba(255, 196, 0, 0.18);
+  border-color: var(--mwd-combat-prominent-border) !important;
+  box-shadow: var(--mwd-combat-prominent-shadow);
 }
 
 .mwd-combat-action.is-disabled {
@@ -4161,13 +4441,6 @@
    Tan/parchment item sheets need dark ink, not inherited light text.
    Put late in the file so it overrides earlier generic rules.
    ========================================================= */
-.mwd-sheet.item-sheet {
-  --mwd-item-ink: rgba(30, 24, 16, 0.96);
-  --mwd-item-ink-soft: rgba(63, 52, 31, 0.94);
-  --mwd-item-ink-muted: rgba(88, 71, 42, 0.88);
-  --mwd-item-halo: 0 1px 0 rgba(255, 248, 228, 0.88);
-}
-
 /* Default readable text on item sheets */
 .mwd-sheet.item-sheet,
 .mwd-sheet.item-sheet .sheet-header,
@@ -4215,8 +4488,8 @@
 }
 
 .mwd-sheet.item-sheet .csb-tab-link.is-active {
-  color: rgba(245, 246, 248, 0.96);
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+  color: var(--mwd-item-tab-active-text);
+  text-shadow: var(--mwd-item-tab-active-shadow);
 }
 
 /* Compact weapon sheet top metadata strip */
@@ -4240,7 +4513,7 @@
 .mwd-sheet.item-sheet select option,
 .mwd-sheet.item-sheet select optgroup {
   color: var(--mwd-item-ink);
-  background: #f4ead2;
+  background: var(--mwd-item-select-bg);
 }
 
 /* Item rich text needs its own contrast; Foundry editor content can otherwise inherit low-contrast chrome styles. */
@@ -4255,8 +4528,8 @@
   padding: 0.65rem 0.75rem;
   color: var(--mwd-item-ink);
   text-shadow: none;
-  background: rgba(255, 248, 228, 0.68);
-  border: 1px solid rgba(96, 80, 52, 0.28);
+  background: var(--mwd-item-richtext-bg);
+  border: 1px solid var(--mwd-item-richtext-border);
   border-radius: 8px;
 }
 

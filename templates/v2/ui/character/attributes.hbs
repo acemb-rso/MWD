@@ -98,5 +98,22 @@ How it fits: Used by rendering code to produce UI fragments.
       {{/ "mwd.v2.ui.nodes.hexabox"}}
     </div>
 
+    <div class="attribute">
+      <label for="system-speed">Speed (m)</label>
+      {{#> "mwd.v2.ui.nodes.hexabox" node=(hash classes="attribute-hex")}}
+        {{#if @root.editable}}
+          <input id="system-speed"
+                 type="number"
+                 name="system.speed"
+                 value="{{system.speed}}"
+                 data-edit-field="staged"
+                 min="0"
+                 step="1" />
+        {{else}}
+          <span class="attribute-value">{{system.speed}} m</span>
+        {{/if}}
+      {{/ "mwd.v2.ui.nodes.hexabox"}}
+    </div>
+
   </div>
 </div>

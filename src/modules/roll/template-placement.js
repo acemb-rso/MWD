@@ -6,6 +6,12 @@ import {
   PERSONAL_WEAPON_EXECUTABLE_TEMPLATE_SHAPES,
 } from "../mwd/personal-weapon-capabilities.js";
 import { createUserFacingRollError } from "./roll-errors.js";
+import {
+  classifyTemplateExposure,
+  createExposureData,
+  getExposureLabel,
+  EXPOSURE_TIERS,
+} from "../area-effects/area-effect-engine.js";
 
 const DEFAULT_CONE_ANGLE = 90;
 
@@ -171,6 +177,13 @@ function templateHitsToken({ template, placement, token }) {
 }
 
 function cleanupPreview(previewState = {}) {
+  if (Array.isArray(previewState.targetMarkers)) {
+    for (const marker of previewState.targetMarkers) {
+      marker?.ring?.destroy?.({ children: true });
+      marker?.label?.destroy?.({ children: true });
+    }
+    previewState.targetMarkers = [];
+  }
   if (previewState.object) {
     canvas.templates?.preview?.removeChild?.(previewState.object);
     previewState.object.destroy?.({ children: true });
@@ -212,7 +225,54 @@ function buildPlacementResult({ template, anchor, direction }) {
   };
 }
 
-export function buildTargetSnapshot(targetToken) {
+function getExposureColor(tier = EXPOSURE_TIERS.none) {
+  if (tier === EXPOSURE_TIERS.full) return 0xd64545;
+  if (tier === EXPOSURE_TIERS.major) return 0xe78b2f;
+  if (tier === EXPOSURE_TIERS.minor) return 0xf0d451;
+  return 0x9aa4b2;
+}
+
+function drawTargetMarkers(previewState = {}, markers = []) {
+  if (!canvas?.templates?.preview) return;
+
+  if (Array.isArray(previewState.targetMarkers)) {
+    for (const marker of previewState.targetMarkers) {
+      marker?.ring?.destroy?.({ children: true });
+      marker?.label?.destroy?.({ children: true });
+    }
+  }
+  previewState.targetMarkers = [];
+
+  for (const marker of markers) {
+    const center = getTokenCenter(marker.token);
+    const radius = Math.max(20, getTokenRadius(marker.token) + 12);
+    const color = getExposureColor(marker.exposureTier);
+
+    const ring = new PIXI.Graphics();
+    ring.lineStyle(4, color, 0.95);
+    ring.beginFill(color, 0.14);
+    ring.drawCircle(center.x, center.y, radius);
+    ring.endFill();
+
+    const label = new PIXI.Text(getExposureLabel(marker.exposureTier), {
+      fontFamily: "MWD UI",
+      fontSize: 18,
+      fontWeight: "700",
+      fill: color,
+      stroke: 0x111111,
+      strokeThickness: 4,
+      align: "center",
+    });
+    label.anchor.set(0.5, 1);
+    label.position.set(center.x, center.y - radius - 6);
+
+    canvas.templates.preview.addChild(ring);
+    canvas.templates.preview.addChild(label);
+    previewState.targetMarkers.push({ ring, label });
+  }
+}
+
+export function buildTargetSnapshot(targetToken, extras = {}) {
   const targetActor = targetToken?.actor ?? null;
   if (!targetActor) return null;
 
@@ -245,6 +305,13 @@ export function buildTargetSnapshot(targetToken) {
       isDestroyed: Boolean(targetArmor.isDestroyed),
       defenseBonus: Number(targetArmor.defenseBonus ?? 0),
     } : null,
+    exposure: createExposureData({
+      tier: extras?.exposure?.initialTier ?? extras?.exposure?.tier ?? extras?.exposureTier ?? EXPOSURE_TIERS.none,
+      appliedTier: extras?.exposure?.finalTier ?? extras?.exposure?.appliedTier ?? extras?.exposureTier ?? EXPOSURE_TIERS.none,
+      evadeUsed: Boolean(extras?.exposure?.evadeUsed),
+      evadeLocked: Boolean(extras?.exposure?.evadeLocked),
+    }),
+    areaEffect: extras?.areaEffect ? foundry.utils.deepClone(extras.areaEffect) : null,
   };
 }
 
@@ -256,7 +323,16 @@ function deriveTemplateTargets({ template, placement, attacker } = {}) {
     .filter(token => token?.actor)
     .filter(token => token.id !== attackerTokenId || template?.placement === "origin")
     .filter(token => templateHitsToken({ template, placement, token }))
-    .map(buildTargetSnapshot)
+    .map(token => {
+      const tier = classifyTemplateExposure({ template, placement, token });
+      return buildTargetSnapshot(token, {
+        exposureTier: tier,
+        areaEffect: {
+          templateShape: template?.shape ?? "",
+          templatePlacement: template?.placement ?? "",
+        },
+      });
+    })
     .filter(Boolean);
 }
 
@@ -313,6 +389,20 @@ export async function placeTemplatedAttack({ actor, attack } = {}) {
     }
 
     await drawPreview(previewState, template, stageState.anchor, stageState.direction);
+
+    const placement = buildPlacementResult({
+      template,
+      anchor: stageState.anchor,
+      direction: stageState.direction,
+    });
+    const targetMarkers = (canvas.tokens?.placeables ?? [])
+      .filter(token => token?.actor)
+      .filter(token => templateHitsToken({ template, placement, token }))
+      .map(token => ({
+        token,
+        exposureTier: classifyTemplateExposure({ template, placement, token }),
+      }));
+    drawTargetMarkers(previewState, targetMarkers);
   };
 
   let settle = null;

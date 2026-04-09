@@ -13,6 +13,7 @@ export function enhanceAttack(resolved, vm) {
   const pendingQueuedMutations = targetResults.filter(result =>
     result?.queuedMutation && !result.queuedMutation.applied
   );
+  const isAreaEffect = Boolean(r?.attack?.capabilityReport?.isTemplated);
 
   const modsApplied = Array.isArray(r?.modifiers?.applied) ? r.modifiers.applied : [];
   const modTotal = Number(r?.modifiers?.total ?? 0);
@@ -74,6 +75,71 @@ export function enhanceAttack(resolved, vm) {
     title: ""
   });
 
+  if (isAreaEffect) {
+    vm.targetRows = targetResults.map((result, index) => {
+      const previewState = r?.areaEffectPreviewState?.[result?.previewKey] ?? {};
+      const exposure = result?.damage?.exposure ?? result?.exposure ?? null;
+      const initialExposure = String(exposure?.initialLabel ?? "NONE").trim() || "NONE";
+      const finalExposure = String(exposure?.finalLabel ?? initialExposure).trim() || initialExposure;
+      const damageBefore = Number(result?.damage?.incoming ?? 0);
+      const damageAfter = Number(result?.damage?.scaledIncoming ?? damageBefore);
+      const queuedMutation = result?.queuedMutation ?? null;
+      const isApplied = Boolean(queuedMutation?.applied || result?.damageResult?.applied);
+      const reactionPreview = previewState?.reactionPreview ?? null;
+      const rowActions = [];
+
+      if (!isApplied && initialExposure !== "NONE" && result?.damageResult?.ok && !result?.damageResult?.skipped) {
+        rowActions.push({
+          action: "toggleEvade",
+          label: result?.evadeActive ? "Clear Evade" : "Use Reaction",
+          dataset: { "preview-key": result.previewKey },
+          cssClass: `mwd-target-row__action ${result?.evadeActive ? "is-active" : ""}`
+        });
+      }
+
+      if (result?.evadeActive && reactionPreview?.canSpendEdge && Array.isArray(reactionPreview.edgePools)) {
+        for (const pool of reactionPreview.edgePools) {
+          rowActions.push({
+            action: "toggleEvadeEdge",
+            label: previewState?.edgePoolKey === pool.key ? `Edge: ${pool.key}` : `Use ${pool.key}`,
+            dataset: {
+              "preview-key": result.previewKey,
+              "pool-key": pool.key,
+            },
+            cssClass: `mwd-target-row__action ${previewState?.edgePoolKey === pool.key ? "is-active" : ""}`
+          });
+        }
+      }
+
+      if (queuedMutation && !isApplied) {
+        rowActions.push({
+          action: "applyAttackDamage",
+          label: "Apply Damage",
+          dataset: { "result-index": String(index) },
+          cssClass: "mwd-target-row__action mwd-apply-attack-damage"
+        });
+      }
+
+      return {
+        targetName: result?.target?.name ?? "Target",
+        applied: isApplied,
+        outcomeLabel: String(result?.outcome ?? "miss").toUpperCase(),
+        exposureLabel: initialExposure === finalExposure
+          ? initialExposure
+          : `${initialExposure} -> ${finalExposure}`,
+        damageLabel: damageBefore === damageAfter
+          ? String(damageAfter)
+          : `${damageBefore} -> ${damageAfter}`,
+        reactionHint: result?.evadeActive
+          ? (previewState?.edgePoolKey
+            ? "Evade active. Reaction Burn canceled by Edge."
+            : (reactionPreview?.burnDelta > 0 ? `Evade active. This reaction adds +${reactionPreview.burnDelta} Burn.` : "Evade active."))
+          : "",
+        rowActions
+      };
+    });
+  }
+
   if (targetResults.length > 1 && pendingQueuedMutations.length > 1) {
     vm.actions.push({
       action: "applyAllAttackDamage",
@@ -82,57 +148,45 @@ export function enhanceAttack(resolved, vm) {
     });
   }
 
-  for (const result of targetResults) {
-    const arTotal = Number(result?.cq?.ar?.total ?? 0);
-    const drTotal = Number(result?.cq?.dr?.total ?? 0);
-    vm.metaRows.push({
-      text: `${result?.target?.name ?? "Target"}: ${String(result?.outcome ?? "miss").toUpperCase()} | CQ ${fmt(result?.cq?.value ?? 0)} (AR ${arTotal} - DR ${drTotal}) | Net ${Number(result?.netHits ?? 0)}`,
-      title: cqTooltip(result?.cq)
-    });
-  }
-
-  for (const [index, result] of targetResults.entries()) {
-    const damage = result?.damage ?? null;
-    if (damage && result?.outcome !== "miss") {
-      vm.footerRows.push({
-        text: `${result?.target?.name ?? "Target"}: ${damage.damageTypeLabel} ${fmt(damage.effectiveWeaponDamage)} weapon${damage.netHits ? ` + ${damage.netHits} net` : ""}`,
-        title: ""
+  if (!isAreaEffect) {
+    for (const result of targetResults) {
+      const arTotal = Number(result?.cq?.ar?.total ?? 0);
+      const drTotal = Number(result?.cq?.dr?.total ?? 0);
+      vm.metaRows.push({
+        text: `${result?.target?.name ?? "Target"}: ${String(result?.outcome ?? "miss").toUpperCase()} | CQ ${fmt(result?.cq?.value ?? 0)} (AR ${arTotal} - DR ${drTotal}) | Net ${Number(result?.netHits ?? 0)}`,
+        title: cqTooltip(result?.cq)
       });
     }
+  }
 
-    const damageResult = result?.damageResult ?? null;
-    if (damageResult?.ok && !damageResult?.skipped) {
-      const queuedMutation = result?.queuedMutation ?? damageResult?.queuedMutation ?? null;
-      const isApplied = Boolean(queuedMutation?.applied || damageResult?.applied);
-      vm.footerRows.push({
-        text: `${damageResult.actorName ?? result?.target?.name ?? "Target"}: ${isApplied ? "Applied" : "Queued"} ${Number(damageResult.finalDamage ?? damageResult.appliedDelta ?? 0)}`,
-        title: ""
-      });
-      if (damageResult.beforeLabel && damageResult.afterLabel) {
+  if (!isAreaEffect) {
+    for (const [index, result] of targetResults.entries()) {
+      const damage = result?.damage ?? null;
+      if (damage && result?.outcome !== "miss") {
         vm.footerRows.push({
-          text: `${damageResult.actorName ?? result?.target?.name ?? "Target"} Track: ${damageResult.beforeLabel} -> ${damageResult.afterLabel}`,
+          text: `${result?.target?.name ?? "Target"}: ${damage.damageTypeLabel} ${fmt(damage.effectiveWeaponDamage)} weapon${damage.netHits ? ` + ${damage.netHits} net` : ""}`,
           title: ""
         });
       }
-      if (damageResult.usedArmor && damageResult.mitigation) {
+
+      const damageResult = result?.damageResult ?? null;
+      if (damageResult?.ok && !damageResult?.skipped) {
+        const queuedMutation = result?.queuedMutation ?? damageResult?.queuedMutation ?? null;
+        const isApplied = Boolean(queuedMutation?.applied || damageResult?.applied);
+        if (queuedMutation && !isApplied) {
+          vm.actions.push({
+            action: "applyAttackDamage",
+            label: `Apply Damage: ${damageResult.actorName ?? result?.target?.name ?? "Target"}`,
+            dataset: { "result-index": String(index) },
+            cssClass: "mwd-apply-attack-damage"
+          });
+        }
+      } else if (damageResult?.reason) {
         vm.footerRows.push({
-          text: `${damageResult.actorName ?? result?.target?.name ?? "Target"} Mitigation: ${Number(damageResult.mitigation.baseMitigation ?? 0)} + ${Number(damageResult.mitigation.typeMitigationMod ?? 0)} - ${Number(damageResult.effectiveAp ?? 0)} = ${Number(damageResult.mitigation.netResistance ?? 0)}`,
+          text: `${result?.target?.name ?? "Target"}: ${damageResult.reason}`,
           title: ""
         });
       }
-      if (queuedMutation && !isApplied) {
-        vm.actions.push({
-          action: "applyAttackDamage",
-          label: `Apply Damage: ${damageResult.actorName ?? result?.target?.name ?? "Target"}`,
-          dataset: { "result-index": String(index) },
-          cssClass: "mwd-apply-attack-damage"
-        });
-      }
-    } else if (damageResult?.reason) {
-      vm.footerRows.push({
-        text: `${result?.target?.name ?? "Target"}: ${damageResult.reason}`,
-        title: ""
-      });
     }
   }
 }

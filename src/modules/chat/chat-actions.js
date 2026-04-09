@@ -3,9 +3,22 @@
 // How it fits: Wires chat-card post-roll and queued attack mutation actions.
 
 import { HarmEngine } from "../harm/harm-engine.js";
+import { TEMPLATE } from "../constants.js";
+import { getPersonalDamageTypeLabel } from "../mwd/personal-damage.js";
 import { resolveAttackExecution, summarizeAttackDamageResult } from "../roll/attack-resolution.js";
 import { interpretOutcome } from "../roll/outcome/interpret-outcome.js";
 import { renderChat } from "../roll/renderers/render-chat.js";
+import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import {
+  applyEvadeToExposure,
+  createExposureData,
+  normalizeExposureTier,
+  scaleDamageByExposure,
+} from "../area-effects/area-effect-engine.js";
+import {
+  normalizeHazardCard,
+  renderHazardCard,
+} from "../area-effects/hazard-chat.js";
 
 export function registerMWDChatActions() {
   Hooks.on("renderChatMessageHTML", (message, htmlElement) => {
@@ -17,6 +30,11 @@ export function registerMWDChatActions() {
       if (!action) return;
 
       if (action === "edgePostReroll") void onEdgePostReroll(ev, message);
+      if (action === "toggleEvade") void onToggleEvade(ev, message);
+      if (action === "toggleEvadeEdge") void onToggleEvadeEdge(ev, message);
+      if (action === "toggleHazardEvade") void onToggleHazardEvade(ev, message);
+      if (action === "toggleHazardEvadeEdge") void onToggleHazardEvadeEdge(ev, message);
+      if (action === "applyHazardTick") void onApplyHazardTick(ev, message);
       if (action === "applyAttackDamage") void onApplyAttackDamage(ev, message);
       if (action === "applyAllAttackDamage") void onApplyAllAttackDamage(ev, message);
     });
@@ -26,6 +44,146 @@ export function registerMWDChatActions() {
 function hasAppliedAttackMutation(resolved = {}) {
   const results = Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [];
   return results.some(result => Boolean(result?.queuedMutation?.applied));
+}
+
+function getTrackLabel(track) {
+  if (track === TEMPLATE.monitors.physical) return "Physical";
+  if (track === TEMPLATE.monitors.fatigue) return "Fatigue";
+  return String(track ?? "").trim() || "Track";
+}
+
+function getDamageTypeTheme(value) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (normalized === "penetrating") return "is-penetrating";
+  if (normalized === "energy") return "is-energy";
+  if (normalized === "thermal") return "is-thermal";
+  if (normalized === "electrical") return "is-electrical";
+  return "is-concussive";
+}
+
+function getDamageSeverity(finalDamage) {
+  const amount = Math.max(0, Number(finalDamage ?? 0) || 0);
+  if (amount <= 0) return { key: "is-none", label: "No Penetration" };
+  if (amount <= 2) return { key: "is-light", label: "Light Damage" };
+  if (amount <= 4) return { key: "is-medium", label: "Moderate Damage" };
+  if (amount <= 7) return { key: "is-heavy", label: "Heavy Damage" };
+  return { key: "is-critical", label: "Critical Damage" };
+}
+
+function getPortraitSource({ actor = null, token = null } = {}) {
+  const tokenDoc = token?.document ?? token ?? null;
+  const tokenTexture = String(tokenDoc?.texture?.src ?? "").trim();
+  const actorImage = String(actor?.img ?? "").trim();
+  return tokenTexture || actorImage || "icons/svg/mystery-man.svg";
+}
+
+function applyChatVisibility(chatData) {
+  const rollMode = game.settings?.get?.("core", "rollMode");
+  if (typeof ChatMessage.applyRollMode === "function") {
+    ChatMessage.applyRollMode(chatData, rollMode);
+  }
+  return chatData;
+}
+
+function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null } = {}) {
+  const damageType = String(summary?.damageType ?? "").trim();
+  const damageTypeLabel = getPersonalDamageTypeLabel(damageType || "concussive") || "Damage";
+  const trackLabel = getTrackLabel(summary?.track);
+  const finalDamage = Math.max(0, Number(summary?.finalDamage ?? summary?.appliedDelta ?? 0) || 0);
+  const severity = getDamageSeverity(finalDamage);
+  const appliedAmountLabel = finalDamage === 1 ? "1 point" : `${finalDamage} points`;
+  const targetName = String(summary?.actorName ?? actor?.name ?? "Target").trim() || "Target";
+  const rows = [];
+
+  if (summary?.beforeLabel && summary?.afterLabel) {
+    rows.push({
+      label: "Monitor",
+      value: `${summary.beforeLabel} -> ${summary.afterLabel}`
+    });
+  }
+
+  rows.push({
+    label: "Final Damage",
+    value: appliedAmountLabel
+  });
+
+  if (Number.isFinite(Number(summary?.damageIncoming))) {
+    rows.push({
+      label: "Incoming",
+      value: String(Number(summary.damageIncoming ?? 0))
+    });
+  }
+
+  if (summary?.usedArmor && summary?.mitigation) {
+    rows.push({
+      label: "Resistance",
+      value: String(Number(summary.mitigation.netResistance ?? 0))
+    });
+
+    rows.push({
+      label: "AP",
+      value: String(Number(summary.effectiveAp ?? 0))
+    });
+
+    rows.push({
+      label: "Armor",
+      value: `${Number(summary.mitigation.armorBefore ?? 0)} -> ${Number(summary.mitigation.armorAfter ?? 0)}`
+    });
+
+    if (Number(summary.mitigation.reinforcedMax ?? 0) > 0) {
+      rows.push({
+        label: "Reinforced",
+        value: `${Number(summary.mitigation.reinforcedBefore ?? 0)} -> ${Number(summary.mitigation.reinforcedAfter ?? 0)}`
+      });
+    }
+  }
+
+  if (summary?.source) {
+    rows.push({
+      label: "Source",
+      value: String(summary.source).trim()
+    });
+  }
+
+  if (summary?.notes) {
+    rows.push({
+      label: "Notes",
+      value: String(summary.notes).trim()
+    });
+  }
+
+  return {
+    classes: ["mwd-damage-card", getDamageTypeTheme(damageType), severity.key].join(" "),
+    header: {
+      left: "Damage Applied",
+      right: trackLabel
+    },
+    target: {
+      name: targetName,
+      image: getPortraitSource({ actor, token })
+    },
+    damageTypeLabel,
+    severityLabel: severity.label,
+    impactValue: finalDamage,
+    impactText: finalDamage > 0
+      ? `${damageTypeLabel} damage applied to ${trackLabel}.`
+      : `${damageTypeLabel} damage did not penetrate.`,
+    rows
+  };
+}
+
+async function createDamageApplicationMessage({ summary = {}, actor = null, token = null } = {}) {
+  const content = await foundry.applications.handlebars.renderTemplate(
+    "mwd.v2.roll.mwd-damage-application-card",
+    buildDamageApplicationCardVM({ summary, actor, token })
+  );
+
+  const chatData = applyChatVisibility({
+    speaker: ChatMessage.getSpeaker({ actor, token }),
+    content
+  });
+
+  return ChatMessage.create(chatData);
 }
 
 function buildOutcomeContext(resolved = {}) {
@@ -59,7 +217,9 @@ async function recomputeResolvedOutcomeAndAttack(resolved = {}, actor = null) {
     resolved.attackResult = await resolveAttackExecution({
       attacker: actor,
       ctx,
-      outcomeModel: resolved.outcomeModel
+      outcomeModel: resolved.outcomeModel,
+      previewState: resolved.areaEffectPreviewState ?? {},
+      existingAttackResult: resolved.attackResult ?? null,
     });
   }
 
@@ -91,6 +251,177 @@ async function onApplyAttackDamage(ev, message) {
     content: htmlContent,
     "flags.mwd.resolved": resolved
   });
+
+  await createDamageApplicationMessage({
+    summary: result.summary,
+    actor: result.targetActor,
+    token: result.targetToken
+  });
+}
+
+async function buildEvadeReactionPreview(result = {}) {
+  const targetActor = result?.target?.actorUuid ? await fromUuid(result.target.actorUuid) : null;
+  const targetToken = result?.target?.tokenUuid ? await fromUuid(result.target.tokenUuid) : null;
+  return buildReactionPreviewForTarget({
+    actor: targetActor,
+    token: targetToken,
+    edgePoolKey: result?.evadeEdgePoolKey ?? ""
+  });
+}
+
+function getMessageById(messageId = "") {
+  return game.messages?.get?.(String(messageId ?? "").trim()) ?? null;
+}
+
+async function buildReactionPreviewForTarget({ actor = null, token = null, actorUuid = "", tokenUuid = "", edgePoolKey = "" } = {}) {
+  const targetActor = actor ?? (actorUuid ? await fromUuid(actorUuid) : null);
+  const targetToken = token ?? (tokenUuid ? await fromUuid(tokenUuid) : null);
+  if (!targetActor) return null;
+  return {
+    ...(PersonalCombatTracker.getReactionSpendPreview(targetActor, { token: targetToken, edgePoolKey }) ?? {}),
+    actor: targetActor,
+    token: targetToken,
+  };
+}
+
+async function updateAreaEffectPreview(message, mutateResolved) {
+  const resolved = foundry.utils.deepClone(message?.flags?.mwd?.resolved);
+  if (!resolved) return;
+
+  await mutateResolved(resolved);
+
+  const actor = await fromUuid(resolved.actorUuid);
+  if (!actor) return;
+  await recomputeResolvedOutcomeAndAttack(resolved, actor);
+
+  const htmlContent = await renderChat({ resolved });
+  await message.update({
+    content: htmlContent,
+    "flags.mwd.resolved": resolved
+  });
+
+  return resolved;
+}
+
+async function setAttackPendingReaction(message, result, { active = false, edgePoolKey = "" } = {}) {
+  const targetActor = result?.target?.actorUuid ? await fromUuid(result.target.actorUuid) : null;
+  const targetToken = result?.target?.tokenUuid ? await fromUuid(result.target.tokenUuid) : null;
+  if (!targetActor) return;
+
+  if (!active) {
+    const snapshot = PersonalCombatTracker.getSnapshot(targetActor, { token: targetToken });
+    const pending = snapshot?.pendingReaction ?? null;
+    if (pending?.sourceKind === "attack" && pending?.messageId === message.id && pending?.sourceId === result?.previewKey) {
+      await PersonalCombatTracker.clearPendingReaction(targetActor, { token: targetToken });
+    }
+    return;
+  }
+
+  await PersonalCombatTracker.setPendingReaction(targetActor, {
+    token: targetToken,
+    pendingReaction: {
+      type: "evade",
+      sourceKind: "attack",
+      sourceId: result?.previewKey ?? null,
+      messageId: message.id,
+      resultIndex: result?.resultIndex ?? null,
+      exposureBefore: result?.damage?.exposure?.initialTier ?? result?.exposure?.initialTier ?? "none",
+      exposureAfterPreview: result?.damage?.exposure?.finalTier ?? result?.exposure?.initialTier ?? "none",
+      edgePoolKey,
+      allowCurrentTurn: false,
+    }
+  });
+}
+
+async function onToggleEvade(ev, message) {
+  ev.preventDefault();
+
+  const btn = ev.target.closest("[data-mwd-action='toggleEvade']");
+  const previewKey = String(btn?.dataset?.previewKey ?? "").trim();
+  if (!previewKey) return;
+
+  const resolved = await updateAreaEffectPreview(message, async (resolved) => {
+    resolved.areaEffectPreviewState ??= {};
+    const current = resolved.areaEffectPreviewState[previewKey] ?? {};
+    const nextActive = !Boolean(current.evadeActive);
+    if (!nextActive) {
+      delete resolved.areaEffectPreviewState[previewKey];
+      return;
+    }
+
+    resolved.areaEffectPreviewState[previewKey] = {
+      evadeActive: true,
+      edgePoolKey: null,
+    };
+
+    const result = (Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [])
+      .find(entry => entry?.previewKey === previewKey) ?? null;
+    const reactionPreview = result ? await buildEvadeReactionPreview({ ...result, evadeEdgePoolKey: null }) : null;
+    if (reactionPreview) {
+      resolved.areaEffectPreviewState[previewKey].reactionPreview = {
+        burnDelta: Number(reactionPreview.burnDelta ?? 0),
+        canSpendEdge: Boolean(reactionPreview.canSpendEdge),
+        edgePools: (reactionPreview.edgePools ?? []).map(pool => ({
+          key: pool.key,
+          label: pool.label,
+          value: pool.value,
+        })),
+      };
+    }
+  });
+
+  const updatedResult = (Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [])
+    .find(entry => entry?.previewKey === previewKey) ?? null;
+  if (resolved && updatedResult) {
+    await setAttackPendingReaction(message, updatedResult, {
+      active: Boolean(updatedResult?.evadeActive),
+      edgePoolKey: String(updatedResult?.evadeEdgePoolKey ?? "").trim(),
+    });
+  }
+}
+
+async function onToggleEvadeEdge(ev, message) {
+  ev.preventDefault();
+
+  const btn = ev.target.closest("[data-mwd-action='toggleEvadeEdge']");
+  const previewKey = String(btn?.dataset?.previewKey ?? "").trim();
+  const edgePoolKey = String(btn?.dataset?.poolKey ?? "").trim();
+  if (!previewKey) return;
+
+  const resolved = await updateAreaEffectPreview(message, async (resolved) => {
+    resolved.areaEffectPreviewState ??= {};
+    const current = resolved.areaEffectPreviewState[previewKey] ?? {};
+    const nextEdgePoolKey = current.edgePoolKey === edgePoolKey ? null : edgePoolKey;
+    resolved.areaEffectPreviewState[previewKey] = {
+      ...current,
+      evadeActive: true,
+      edgePoolKey: nextEdgePoolKey,
+    };
+
+    const result = (Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [])
+      .find(entry => entry?.previewKey === previewKey) ?? null;
+    const reactionPreview = result ? await buildEvadeReactionPreview({ ...result, evadeEdgePoolKey: nextEdgePoolKey }) : null;
+    if (reactionPreview) {
+      resolved.areaEffectPreviewState[previewKey].reactionPreview = {
+        burnDelta: Number(reactionPreview.burnDelta ?? 0),
+        canSpendEdge: Boolean(reactionPreview.canSpendEdge),
+        edgePools: (reactionPreview.edgePools ?? []).map(pool => ({
+          key: pool.key,
+          label: pool.label,
+          value: pool.value,
+        })),
+      };
+    }
+  });
+
+  const updatedResult = (Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [])
+    .find(entry => entry?.previewKey === previewKey) ?? null;
+  if (resolved && updatedResult) {
+    await setAttackPendingReaction(message, updatedResult, {
+      active: Boolean(updatedResult?.evadeActive),
+      edgePoolKey: String(updatedResult?.evadeEdgePoolKey ?? "").trim(),
+    });
+  }
 }
 
 async function onApplyAllAttackDamage(ev, message) {
@@ -112,10 +443,12 @@ async function onApplyAllAttackDamage(ev, message) {
 
   let applied = 0;
   const failures = [];
+  const appliedResults = [];
   for (const resultIndex of pendingIndexes) {
     const result = await applyQueuedAttackDamageAtIndex(resolved, resultIndex);
     if (result.ok && result.applied) {
       applied += 1;
+      appliedResults.push(result);
     } else if (!result.ok) {
       failures.push(result.reason ?? `Target ${resultIndex + 1} failed.`);
     }
@@ -131,6 +464,14 @@ async function onApplyAllAttackDamage(ev, message) {
     content: htmlContent,
     "flags.mwd.resolved": resolved
   });
+
+  for (const result of appliedResults) {
+    await createDamageApplicationMessage({
+      summary: result.summary,
+      actor: result.targetActor,
+      token: result.targetToken
+    });
+  }
 
   if (failures.length) {
     ui.notifications?.warn?.(`Applied ${applied} queued damage result${applied === 1 ? "" : "s"}; ${failures.length} failed.`);
@@ -148,9 +489,25 @@ async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
   }
 
   let applyResult = null;
+  let targetActor = null;
+  let targetToken = null;
   try {
-    const targetActor = mutation.target?.actorUuid ? await fromUuid(mutation.target.actorUuid) : null;
-    const targetToken = mutation.target?.tokenUuid ? await fromUuid(mutation.target.tokenUuid) : null;
+    targetActor = mutation.target?.actorUuid ? await fromUuid(mutation.target.actorUuid) : null;
+    targetToken = mutation.target?.tokenUuid ? await fromUuid(mutation.target.tokenUuid) : null;
+    if (result?.evadeActive && targetActor) {
+      const spend = await PersonalCombatTracker.commitReactionSpend(targetActor, {
+        token: targetToken,
+        actionId: "evade",
+        actionLabel: "Evade",
+        actionCategory: "reaction",
+        logLabel: `Evade: ${mutation.target?.name ?? result?.target?.name ?? "Target"}`,
+        edgePoolKey: String(result?.evadeEdgePoolKey ?? "").trim(),
+      });
+      if (!spend?.ok) {
+        return { ok: false, reason: spend?.reason ?? "Unable to spend the Evade reaction." };
+      }
+      await PersonalCombatTracker.clearPendingReaction(targetActor, { token: targetToken });
+    }
     applyResult = await HarmEngine.apply({
       actor: targetActor,
       token: targetToken,
@@ -180,6 +537,7 @@ async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
   mutation.appliedResult = summary;
   result.queuedMutation = mutation;
   result.damageResult = summary;
+  result.evadeApplied = Boolean(result.evadeActive);
 
   resolved.edge ??= {};
   resolved.edge.availableActions = {
@@ -188,7 +546,341 @@ async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
     canPostRerollFailures: false
   };
 
-  return { ok: true, applied: true };
+  return {
+    ok: true,
+    applied: true,
+    summary,
+    targetActor,
+    targetToken
+  };
+}
+
+async function renderAndPersistHazardMessage(message, card) {
+  const targetActor = card?.actorUuid ? await fromUuid(card.actorUuid) : null;
+  const targetToken = card?.tokenUuid ? await fromUuid(card.tokenUuid) : null;
+  const content = await renderHazardCard(card, { actor: targetActor, token: targetToken });
+  await message.update({
+    content,
+    "flags.mwd.hazardCard": card
+  });
+  return card;
+}
+
+async function updateHazardCard(message, mutateCard) {
+  const current = normalizeHazardCard(foundry.utils.deepClone(message?.flags?.mwd?.hazardCard ?? {}));
+  if (!current?.actorUuid) return null;
+  await mutateCard(current);
+  await renderAndPersistHazardMessage(message, current);
+  return current;
+}
+
+async function setHazardPendingReaction(message, card, { active = false, edgePoolKey = "" } = {}) {
+  const targetActor = card?.actorUuid ? await fromUuid(card.actorUuid) : null;
+  const targetToken = card?.tokenUuid ? await fromUuid(card.tokenUuid) : null;
+  if (!targetActor) return;
+
+  if (!active) {
+    const snapshot = PersonalCombatTracker.getSnapshot(targetActor, { token: targetToken });
+    const pending = snapshot?.pendingReaction ?? null;
+    if (pending?.sourceKind === "hazard" && pending?.messageId === message.id && pending?.sourceId === card?.regionId) {
+      await PersonalCombatTracker.clearPendingReaction(targetActor, { token: targetToken });
+    }
+    return;
+  }
+
+  await PersonalCombatTracker.setPendingReaction(targetActor, {
+    token: targetToken,
+    pendingReaction: {
+      type: "evade",
+      sourceKind: "hazard",
+      sourceId: card?.regionId ?? null,
+      messageId: message.id,
+      exposureBefore: card?.exposure?.initialTier ?? "none",
+      exposureAfterPreview: card?.preview?.finalTier ?? card?.exposure?.initialTier ?? "none",
+      edgePoolKey,
+      allowCurrentTurn: true,
+    }
+  });
+}
+
+async function onToggleHazardEvade(ev, message) {
+  ev.preventDefault();
+
+  const card = await updateHazardCard(message, async (current) => {
+    const nextActive = !Boolean(current?.preview?.evadeActive);
+    const exposure = applyEvadeToExposure(createExposureData({
+      tier: current?.exposure?.initialTier ?? "none",
+    }), {
+      active: nextActive,
+      locked: Boolean(current?.exposure?.evadeLocked),
+    });
+
+    current.preview ??= {};
+    current.preview.evadeActive = nextActive;
+    current.preview.edgePoolKey = null;
+    current.preview.finalTier = exposure.finalTier;
+    current.damageAfter = scaleDamageByExposure(current.baseDamage ?? 0, exposure.finalTier);
+    if (nextActive) {
+      const reactionPreview = await buildReactionPreviewForTarget({
+        actorUuid: current.actorUuid,
+        tokenUuid: current.tokenUuid,
+        edgePoolKey: ""
+      });
+      current.preview.reactionPreview = reactionPreview ? {
+        burnDelta: Number(reactionPreview.burnDelta ?? 0),
+        canSpendEdge: Boolean(reactionPreview.canSpendEdge),
+        edgePools: (reactionPreview.edgePools ?? []).map(pool => ({
+          key: pool.key,
+          label: pool.label,
+          value: pool.value,
+        })),
+      } : {};
+    } else {
+      current.preview.reactionPreview = {};
+    }
+  });
+
+  if (card) {
+    await setHazardPendingReaction(message, card, {
+      active: Boolean(card?.preview?.evadeActive),
+      edgePoolKey: String(card?.preview?.edgePoolKey ?? "").trim(),
+    });
+  }
+}
+
+async function onToggleHazardEvadeEdge(ev, message) {
+  ev.preventDefault();
+
+  const btn = ev.target.closest("[data-mwd-action='toggleHazardEvadeEdge']");
+  const edgePoolKey = String(btn?.dataset?.poolKey ?? "").trim();
+
+  const card = await updateHazardCard(message, async (current) => {
+    current.preview ??= {};
+    current.preview.evadeActive = true;
+    current.preview.edgePoolKey = current.preview.edgePoolKey === edgePoolKey ? null : edgePoolKey;
+    const reactionPreview = await buildReactionPreviewForTarget({
+      actorUuid: current.actorUuid,
+      tokenUuid: current.tokenUuid,
+      edgePoolKey: current.preview.edgePoolKey ?? ""
+    });
+    current.preview.reactionPreview = reactionPreview ? {
+      burnDelta: Number(reactionPreview.burnDelta ?? 0),
+      canSpendEdge: Boolean(reactionPreview.canSpendEdge),
+      edgePools: (reactionPreview.edgePools ?? []).map(pool => ({
+        key: pool.key,
+        label: pool.label,
+        value: pool.value,
+      })),
+    } : {};
+  });
+
+  if (card) {
+    await setHazardPendingReaction(message, card, {
+      active: Boolean(card?.preview?.evadeActive),
+      edgePoolKey: String(card?.preview?.edgePoolKey ?? "").trim(),
+    });
+  }
+}
+
+async function onApplyHazardTick(ev, message) {
+  ev.preventDefault();
+
+  const card = normalizeHazardCard(foundry.utils.deepClone(message?.flags?.mwd?.hazardCard ?? {}));
+  if (!card?.actorUuid) return;
+  if (card.applied) {
+    ui.notifications?.info?.("That hazard has already been applied.");
+    return;
+  }
+
+  const targetActor = await fromUuid(card.actorUuid);
+  const targetToken = card.tokenUuid ? await fromUuid(card.tokenUuid) : null;
+  if (!targetActor) {
+    ui.notifications?.warn?.("Unable to resolve the hazard target.");
+    return;
+  }
+
+  if (card.preview?.evadeActive) {
+    const spend = await PersonalCombatTracker.commitReactionSpend(targetActor, {
+      token: targetToken,
+      actionId: "evade",
+      actionLabel: "Evade",
+      actionCategory: "reaction",
+      logLabel: `Evade: ${card.regionName}`,
+      edgePoolKey: String(card.preview?.edgePoolKey ?? "").trim(),
+      allowCurrentTurn: true,
+    });
+    if (!spend?.ok) {
+      ui.notifications?.warn?.(spend?.reason ?? "Unable to spend the Evade reaction.");
+      return;
+    }
+  }
+
+  const payload = {
+    mode: "attackDamage",
+    track: TEMPLATE.monitors.physical,
+    damage: Number(card.damageAfter ?? card.damageBefore ?? 0) || 0,
+    netHits: 0,
+    damageType: card.damageType,
+    ap: Number(card.ap ?? 0) || 0,
+    source: card.source,
+    notes: `Hazard exposure ${card.exposure.initialLabel}${card.preview?.evadeActive ? ` -> ${String(card.preview.finalTier ?? card.exposure.initialTier).toUpperCase()}` : ""}`.trim(),
+  };
+
+  const applyResult = await HarmEngine.apply({
+    actor: targetActor,
+    token: targetToken,
+    payload,
+    options: {
+      actorId: targetActor.id,
+      logToChat: false
+    }
+  });
+
+  if (!applyResult?.ok) {
+    ui.notifications?.warn?.(applyResult?.reason ?? "Unable to apply hazard damage.");
+    return;
+  }
+
+  const snapshot = PersonalCombatTracker.getSnapshot(targetActor, { token: targetToken });
+  const currentState = snapshot?.hazards?.[card.regionId] ?? {};
+  const nextTier = normalizeExposureTier(card.nextTier, card.exposure.finalTier);
+  await PersonalCombatTracker.setHazardState(targetActor, {
+    token: targetToken,
+    regionId: card.regionId,
+    hazardState: {
+      ...currentState,
+      tier: nextTier,
+      turnsExposed: Math.max(Number(currentState?.turnsExposed ?? 0), Number(card.turnsExposed ?? 0)) + 1,
+      lastProcessedRound: Number(snapshot?.combat?.round ?? 0) || 0,
+      evadeLocked: Boolean(currentState?.evadeLocked)
+        || Boolean(card.exposure?.initialTier === "full" && card.preview?.finalTier === "major" && card.preview?.evadeActive),
+    }
+  });
+
+  if (nextTier === "full" && Number(card?.onFullBurnDelta ?? 0) > 0) {
+    await targetActor.update({
+      "system.burn.value": Math.max(0, Number(targetActor.system?.burn?.value ?? 0) + Number(card.onFullBurnDelta ?? 0))
+    });
+  }
+
+  await PersonalCombatTracker.clearPendingReaction(targetActor, { token: targetToken });
+
+  card.applied = true;
+  card.applyReason = "Applied";
+  await renderAndPersistHazardMessage(message, card);
+
+  await createDamageApplicationMessage({
+    summary: {
+      ok: true,
+      actorName: targetActor.name,
+      track: applyResult.track,
+      finalDamage: Number(applyResult.finalDamage ?? applyResult.appliedDelta ?? 0),
+      damageIncoming: Number(applyResult.damageIncoming ?? card.damageAfter ?? 0),
+      damageType: applyResult.damageType ?? card.damageType,
+      usedArmor: Boolean(applyResult.usedArmor),
+      effectiveAp: Number(applyResult.effectiveAp ?? card.ap ?? 0),
+      mitigation: applyResult.mitigation ?? null,
+      beforeLabel: String(applyResult.beforeLabel ?? "").trim(),
+      afterLabel: String(applyResult.afterLabel ?? "").trim(),
+      source: card.source,
+      notes: `Hazard exposure ${card.exposure.initialLabel}${card.preview?.evadeActive ? ` -> ${String(card.preview.finalTier ?? "").toUpperCase()}` : ""}`
+    },
+    actor: targetActor,
+    token: targetToken
+  });
+}
+
+export async function activatePendingEvadeFromCombatMenu(actor, { token = null } = {}) {
+  const snapshot = PersonalCombatTracker.getSnapshot(actor, { token });
+  const pending = snapshot?.pendingReaction ?? null;
+  if (!pending?.messageId) {
+    return { ok: false, reason: "Use an area effect or hazard card to trigger Evade." };
+  }
+
+  const message = getMessageById(pending.messageId);
+  if (!message) {
+    await PersonalCombatTracker.clearPendingReaction(actor, { token });
+    return { ok: false, reason: "The pending Evade card is no longer available." };
+  }
+
+  if (pending.sourceKind === "attack") {
+    const previewKey = String(pending.sourceId ?? "").trim();
+    if (!previewKey) return { ok: false, reason: "Pending Evade target is missing." };
+    const resolved = await updateAreaEffectPreview(message, async (nextResolved) => {
+      nextResolved.areaEffectPreviewState ??= {};
+      nextResolved.areaEffectPreviewState[previewKey] = {
+        ...(nextResolved.areaEffectPreviewState[previewKey] ?? {}),
+        evadeActive: true,
+        edgePoolKey: pending.edgePoolKey ?? null,
+      };
+
+      const result = (Array.isArray(nextResolved?.attackResult?.results) ? nextResolved.attackResult.results : [])
+        .find(entry => entry?.previewKey === previewKey) ?? null;
+      const reactionPreview = result ? await buildEvadeReactionPreview({ ...result, evadeEdgePoolKey: pending.edgePoolKey ?? "" }) : null;
+      if (reactionPreview) {
+        nextResolved.areaEffectPreviewState[previewKey].reactionPreview = {
+          burnDelta: Number(reactionPreview.burnDelta ?? 0),
+          canSpendEdge: Boolean(reactionPreview.canSpendEdge),
+          edgePools: (reactionPreview.edgePools ?? []).map(pool => ({
+            key: pool.key,
+            label: pool.label,
+            value: pool.value,
+          })),
+        };
+      }
+    });
+
+    const updatedResult = (Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [])
+      .find(entry => entry?.previewKey === previewKey) ?? null;
+    if (updatedResult) {
+      await setAttackPendingReaction(message, updatedResult, {
+        active: true,
+        edgePoolKey: String(updatedResult?.evadeEdgePoolKey ?? pending.edgePoolKey ?? "").trim(),
+      });
+    }
+
+    return { ok: true };
+  }
+
+  if (pending.sourceKind === "hazard") {
+    const card = await updateHazardCard(message, async (current) => {
+      const exposure = applyEvadeToExposure(createExposureData({
+        tier: current?.exposure?.initialTier ?? "none",
+      }), {
+        active: true,
+        locked: Boolean(current?.exposure?.evadeLocked),
+      });
+      current.preview ??= {};
+      current.preview.evadeActive = true;
+      current.preview.edgePoolKey = current.preview.edgePoolKey ?? pending.edgePoolKey ?? null;
+      current.preview.finalTier = exposure.finalTier;
+      current.damageAfter = scaleDamageByExposure(current.baseDamage ?? 0, exposure.finalTier);
+      const reactionPreview = await buildReactionPreviewForTarget({
+        actorUuid: current.actorUuid,
+        tokenUuid: current.tokenUuid,
+        edgePoolKey: current.preview.edgePoolKey ?? ""
+      });
+      current.preview.reactionPreview = reactionPreview ? {
+        burnDelta: Number(reactionPreview.burnDelta ?? 0),
+        canSpendEdge: Boolean(reactionPreview.canSpendEdge),
+        edgePools: (reactionPreview.edgePools ?? []).map(pool => ({
+          key: pool.key,
+          label: pool.label,
+          value: pool.value,
+        })),
+      } : {};
+    });
+
+    if (card) {
+      await setHazardPendingReaction(message, card, {
+        active: true,
+        edgePoolKey: String(card?.preview?.edgePoolKey ?? pending.edgePoolKey ?? "").trim(),
+      });
+    }
+    return { ok: true };
+  }
+
+  return { ok: false, reason: "That Evade source is not supported." };
 }
 
 async function onEdgePostReroll(ev, message) {
