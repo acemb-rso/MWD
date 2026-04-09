@@ -6,7 +6,9 @@
 import { HARM_DAMAGE_TYPE_OPTIONS, HarmEngine } from "../harm/harm-engine.js";
 import {
   EXPOSURE_TIERS,
-  createRegionShapesFromTemplatePlacement,
+  cloneTemplateGeometry,
+  createTemplateGeometryFromRegion,
+  createRegionShapesFromTemplateGeometry,
   getExposureLabel,
   normalizeHazardDefinition,
 } from "../area-effects/area-effect-engine.js";
@@ -154,64 +156,66 @@ function cloneHazardState(state = {}) {
   );
 }
 
-function getSelectedMeasuredTemplate() {
-  const controlled = Array.from(canvas?.templates?.controlled ?? []);
-  if (controlled.length > 0) return controlled[0]?.document ?? controlled[0] ?? null;
-  const hovered = canvas?.activeLayer?.controlled?.[0];
-  return hovered?.document ?? hovered ?? null;
+function getRegionShapeType(region = null) {
+  const doc = region?.document ?? region ?? null;
+  const shapes = Array.from(doc?.shapes ?? []);
+  if (shapes.length !== 1) return shapes.length > 1 ? "multiple" : "";
+
+  const shape = shapes[0];
+  const source = typeof shape?.toObject === "function"
+    ? shape.toObject()
+    : shape && typeof shape === "object"
+      ? shape
+      : null;
+  return String(source?.type ?? "").trim().toLowerCase();
 }
 
-function describeSelectedHazardTemplate(templateDoc = null) {
-  const doc = templateDoc?.document ?? templateDoc ?? null;
+function isTemplateRegionDocument(candidate = null) {
+  return Boolean(getRegionShapeType(candidate));
+}
+
+function getSelectedTemplateRegion() {
+  const controlled = Array.from(canvas?.regions?.controlled ?? [])
+    .map(entry => entry?.document ?? entry ?? null)
+    .find(isTemplateRegionDocument);
+  if (controlled) return controlled;
+
+  const hovered = canvas?.regions?.hover ?? null;
+  const hoveredDoc = hovered?.document ?? hovered ?? null;
+  return isTemplateRegionDocument(hoveredDoc) ? hoveredDoc : null;
+}
+
+function describeSelectedHazardTemplate(regionDoc = null) {
+  const doc = regionDoc?.document ?? regionDoc ?? null;
   if (!doc) {
     return {
-      label: "No template selected",
-      reason: "Select a measured template on the current scene to turn it into a hazard region.",
+      label: "No region selected",
+      reason: "Select a Region created in Measured Template Mode on the current scene to turn it into a hazard.",
       supported: false
     };
   }
 
-  const rawType = String(doc.t ?? doc.type ?? "").trim().toLowerCase();
-  const shape = rawType === "circle" ? "blast" : rawType === "cone" ? "cone" : rawType === "ray" ? "line" : "";
-  if (!shape) {
+  const rawType = getRegionShapeType(doc);
+  const templateGeometry = createTemplateGeometryFromRegion(doc);
+  if (!templateGeometry) {
     return {
-      label: "Unsupported template",
-      reason: `The selected template type "${rawType || "unknown"}" is not supported for hazard conversion yet.`,
+      label: "Unsupported region",
+      reason: rawType === "multiple"
+        ? "The selected Region has multiple shapes and cannot be converted into a hazard template."
+        : `The selected Region shape "${rawType || "unknown"}" is not supported for hazard conversion yet.`,
       supported: false
     };
   }
 
+  const shape = String(templateGeometry.shape ?? "").trim().toLowerCase();
+  const units = canvas?.scene?.grid?.units ? ` ${canvas.scene.grid.units}` : "";
+  const label = shape === "rect"
+    ? `RECT ${Number(templateGeometry.width ?? 0) || 0} x ${Number(templateGeometry.height ?? 0) || 0}${units}`.trim()
+    : `${shape.toUpperCase()} ${Number(templateGeometry.distance ?? 0) || 0}${units}`.trim();
   return {
-    label: `${shape.toUpperCase()} ${Number(doc.distance ?? 0) || 0}${canvas?.scene?.grid?.units ? ` ${canvas.scene.grid.units}` : ""}`.trim(),
+    label,
     reason: "",
     supported: true
-  };
-}
-
-function buildTemplatePlacementFromMeasuredTemplate(templateDoc = null) {
-  const doc = templateDoc?.document ?? templateDoc ?? null;
-  if (!doc) return null;
-
-  const rawType = String(doc.t ?? doc.type ?? "").trim().toLowerCase();
-  const shape = rawType === "circle" ? "blast" : rawType === "cone" ? "cone" : rawType === "ray" ? "line" : "";
-  if (!shape) return null;
-
-  return {
-    template: {
-      shape,
-      distance: Number(doc.distance ?? 0) || 0,
-      size: Number(doc.distance ?? 0) || 0,
-    },
-    placement: {
-      shape,
-      anchor: {
-        x: Number(doc.x ?? 0) || 0,
-        y: Number(doc.y ?? 0) || 0,
-      },
-      distance: Number(doc.distance ?? 0) || 0,
-      direction: Number(doc.direction ?? 0) || 0,
-      angle: Number(doc.angle ?? 90) || 90,
-    }
   };
 }
 
@@ -355,7 +359,7 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
     const activeSceneModifiers = normalizeActiveSceneModifiers(
       canvas?.scene?.getFlag("mwd", SCENE_MODIFIERS_FLAG)
     );
-    const selectedHazardTemplate = getSelectedMeasuredTemplate();
+    const selectedHazardTemplate = getSelectedTemplateRegion();
     const hazardTemplateSummary = describeSelectedHazardTemplate(selectedHazardTemplate);
     const hazardState = cloneHazardState(this.hazardState);
 
@@ -592,10 +596,10 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!game.user?.isGM) return;
 
     const state = this._captureHazardStateFromDom(target);
-    const templateDoc = getSelectedMeasuredTemplate();
-    const templatePlacement = buildTemplatePlacementFromMeasuredTemplate(templateDoc);
-    if (!canvas?.scene || !templatePlacement) {
-      ui.notifications?.warn("Select a supported measured template before creating a hazard.");
+    const templateDoc = getSelectedTemplateRegion();
+    const templateGeometry = createTemplateGeometryFromRegion(templateDoc);
+    if (!canvas?.scene || !templateGeometry) {
+      ui.notifications?.warn("Select a supported Region in Measured Template Mode before creating a hazard.");
       return;
     }
 
@@ -611,13 +615,13 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
       },
       clearOnExit: Boolean(state.clearOnExit),
     });
-    const shapes = createRegionShapesFromTemplatePlacement(templatePlacement);
+    const shapes = createRegionShapesFromTemplateGeometry(templateGeometry);
     if (!shapes.length) {
-      ui.notifications?.warn("Unable to convert the selected template into a Region shape.");
+      ui.notifications?.warn("Unable to convert the selected region into a hazard shape.");
       return;
     }
 
-    await canvas.scene.createEmbeddedDocuments("Region", [{
+    const [region] = await canvas.scene.createEmbeddedDocuments("Region", [{
       name: String(state.label ?? "Hazard Zone").trim() || "Hazard Zone",
       color: String(state.color ?? "#d86a2c").trim() || "#d86a2c",
       shapes,
@@ -627,8 +631,7 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
             sourceActorUuid: null,
             sourceItemUuid: null,
             payloadId: "gm-hazard",
-            templatePlacement: foundry.utils.deepClone(templatePlacement.placement),
-            template: foundry.utils.deepClone(templatePlacement.template),
+            templateGeometry: cloneTemplateGeometry(templateGeometry),
             damage: Math.max(0, Number(state.damage ?? 0) || 0),
             ap: Math.max(0, Number(state.ap ?? 0) || 0),
             damageType: String(state.damageType ?? "thermal").trim() || "thermal",
@@ -643,7 +646,9 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
       }
     }]);
 
-    ui.notifications?.info("Hazard region created from the selected template.");
+    region?.sheet?.render?.(true);
+
+    ui.notifications?.info("Hazard region created from the selected region.");
     return this.render({ parts: ["body"] });
   }
 

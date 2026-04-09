@@ -9,10 +9,12 @@ import { getPersonalRangeBandName } from "../mwd/personal-range-bands.js";
 import {
   AREA_EFFECT_KINDS,
   applyEvadeToExposure,
+  cloneTemplateGeometry,
   createExposureData,
   getExposureLabel,
   normalizeAreaEffect,
   normalizeExposureTier,
+  normalizeTemplateGeometry,
   scaleDamageByExposure,
 } from "../area-effects/area-effect-engine.js";
 import { createHazardRegionFromAttack } from "../area-effects/hazard-regions.js";
@@ -409,6 +411,13 @@ export async function resolveAttackExecution({ attacker, ctx, outcomeModel, prev
     results,
     summary: summarizeTargetResults(results),
     areaEffect,
+    templateGeometry: cloneTemplateGeometry(normalizeTemplateGeometry(
+      ctx?.attack?.templateGeometry,
+      {
+        template: ctx?.attack?.template,
+        placement: ctx?.attack?.templatePlacement,
+      }
+    )),
     persistentRegionUuid,
   };
 }

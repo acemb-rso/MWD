@@ -13,9 +13,7 @@ NOTE: Marked LEGACY — no direct references found across repository.
     <label for="system.skill">{{ANARCHY.item.weapon.skill}}</label>
     <select id="system.skill" name="system.skill" data-dtype="String"
             {{#if @root.options.viewMode}}disabled{{/if}}>
-      {{#select system.skill}}
-        {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.skills}}
-      {{/select}}
+      {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.skills selected=system.skill}}
     </select>
   </div>
 
@@ -30,9 +28,7 @@ NOTE: Marked LEGACY — no direct references found across repository.
     <label for="system.damageType">Damage Type</label>
     <select id="system.damageType" name="system.damageType" data-dtype="String"
             {{#if @root.options.viewMode}}disabled{{/if}}>
-      {{#select system.damageType}}
-        {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.damageTypes}}
-      {{/select}}
+      {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.damageTypes selected=system.damageType}}
     </select>
   </div>
 
@@ -40,9 +36,7 @@ NOTE: Marked LEGACY — no direct references found across repository.
     <label for="system.area">{{ANARCHY.item.weapon.area}}</label>
     <select id="system.area" name="system.area" data-dtype="String"
             {{#if @root.options.viewMode}}disabled{{/if}}>
-      {{#select system.area}}
-        {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.areas}}
-      {{/select}}
+      {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.areas selected=system.area}}
     </select>
   </div>
 
@@ -50,9 +44,7 @@ NOTE: Marked LEGACY — no direct references found across repository.
     <label for="system.defense">{{ANARCHY.item.weapon.defense}}</label>
     <select id="system.defense" name="system.defense" data-dtype="String"
             {{#if @root.options.viewMode}}disabled{{/if}}>
-      {{#select system.defense}}
-        {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.defenses}}
-      {{/select}}
+      {{> "systems/mwd/templates/common/enum-value-label.hbs" entries=ENUMS.defenses selected=system.defense}}
     </select>
   </div>
 
@@ -71,12 +63,10 @@ NOTE: Marked LEGACY — no direct references found across repository.
     <label for="system.range.max">Max Band</label>
     <select id="system.range.max" name="system.range.max" data-dtype="String"
             {{#if @root.options.viewMode}}disabled{{/if}}>
-      {{#select system.range.max}}
-        <option value="close">Close</option>
-        <option value="near">Near</option>
-        <option value="far">Far</option>
-        <option value="extreme">Extreme</option>
-      {{/select}}
+      <option value="close" {{#if (eq system.range.max "close")}}selected{{/if}}>Close</option>
+      <option value="near" {{#if (eq system.range.max "near")}}selected{{/if}}>Near</option>
+      <option value="far" {{#if (eq system.range.max "far")}}selected{{/if}}>Far</option>
+      <option value="extreme" {{#if (eq system.range.max "extreme")}}selected{{/if}}>Extreme</option>
     </select>
   </div>
 

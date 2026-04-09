@@ -21,10 +21,13 @@ How it fits: Shared by the character inventory section partials.
       <button type="button"
               class="mwd-record__media mwd-record__media--roll{{#unless record.equipped}} is-disabled{{/unless}}"
               data-action="attackWeapon"
+              data-weapon-attack-uuid="{{record.attackUuid}}"
               data-roll='{{record.attackRoll}}'
-              title="{{#if record.equipped}}Attack with {{record.name}}{{else}}Equip to attack{{/if}}"
+              title="{{#if record.equipped}}Attack with {{record.name}} or drag to the hotbar{{else}}Equip to attack. Drag to the hotbar to make a shortcut.{{/if}}"
+              aria-label="{{#if record.equipped}}Attack with {{record.name}}{{else}}Drag {{record.name}} to the hotbar{{/if}}"
+              draggable="true"
               {{#unless record.equipped}}data-action-disabled="true" data-action-reason="Equip to attack" aria-disabled="true"{{/unless}}>
-        <img class="mwd-record__thumb" src="{{record.img}}" alt="">
+        <img class="mwd-record__thumb" src="{{record.img}}" alt="" draggable="false">
       </button>
     {{else}}
       <button type="button"

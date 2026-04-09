@@ -5,8 +5,8 @@
   "title": "MechWarrior: Destiny",
   "description": "MechWarrior: Destiny RPG for FoundryVTT",
   "compatibility": {
-    "minimum": "12",
-    "verified": "13"
+    "minimum": "14",
+    "verified": "14"
   },
   "authors": [
     {
@@ -81,13 +81,53 @@
   "relationships": {},
   "socket": true,
   "protected": false,
-  "template": "template.json",
-  "types": {
-    "Actor": ["character", "npc", "vehicle", "battlemech"],
-    "Item": ["contact", "gear", "quality", "assetModule", "skill", "lifeModule", "mechWeapon", "personalWeapon", "armor"]
+  "documentTypes": {
+    "Actor": {
+      "character": {
+        "htmlFields": ["description", "biography.history"]
+      },
+      "npc": {
+        "htmlFields": ["description"]
+      },
+      "vehicle": {
+        "htmlFields": ["description"]
+      },
+      "battlemech": {
+        "htmlFields": ["description"]
+      }
+    },
+    "Item": {
+      "contact": {
+        "htmlFields": ["description"]
+      },
+      "gear": {
+        "htmlFields": ["description"]
+      },
+      "quality": {
+        "htmlFields": ["description"]
+      },
+      "assetModule": {
+        "htmlFields": ["description"]
+      },
+      "skill": {
+        "htmlFields": ["description"]
+      },
+      "lifeModule": {
+        "htmlFields": ["description"]
+      },
+      "mechWeapon": {
+        "htmlFields": ["description"]
+      },
+      "personalWeapon": {
+        "htmlFields": ["description", "notes"]
+      },
+      "armor": {
+        "htmlFields": ["description", "notes"]
+      }
+    }
   },
   "grid": {
-    "distance": 2,
+    "distance": 3,
     "units": "m"
   },
   "primaryTokenAttribute": "state.physical",

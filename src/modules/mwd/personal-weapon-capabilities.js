@@ -77,9 +77,9 @@ export const PERSONAL_WEAPON_TEMPLATE_SHAPES = Object.freeze([
 ]);
 
 export const PERSONAL_WEAPON_TEMPLATE_PLACEMENTS = Object.freeze([
-  { value: "targeted", label: "Targeted" },
-  { value: "origin", label: "Origin" },
-  { value: "placed", label: "Placed" },
+  { value: "targeted", label: "Targeted (start on target)" },
+  { value: "origin", label: "Origin (start on attacker)" },
+  { value: "placed", label: "Placed (start free)" },
 ]);
 
 export const PERSONAL_WEAPON_EXECUTABLE_TEMPLATE_SHAPES = Object.freeze(["blast", "cone", "line"]);

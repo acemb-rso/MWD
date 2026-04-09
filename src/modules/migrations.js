@@ -31,6 +31,10 @@ import {
   validateTemplatedCapability,
 } from "./mwd/personal-weapon-capabilities.js";
 
+function forcedDeletion() {
+  return foundry.data.operators.ForcedDeletion;
+}
+
 export const DECLARE_MIGRATIONS = 'anarchy-declareMigration';
 const SYSTEM_MIGRATION_CURRENT_VERSION = "systemMigrationVersion";
 
@@ -501,13 +505,13 @@ class _13_3_3_SimplifyPersonalVehicles extends Migration {
       const updates = {};
 
       if (actor.system.monitors?.heat !== undefined) {
-        updates['system.monitors.-=heat'] = null;
+        updates["system.monitors.heat"] = forcedDeletion();
       }
       if (actor.system.hybrid !== undefined) {
-        updates['system.-=hybrid'] = null;
+        updates["system.hybrid"] = forcedDeletion();
       }
       if (actor.system.mwd !== undefined) {
-        updates['system.-=mwd'] = null;
+        updates["system.mwd"] = forcedDeletion();
       }
 
       if (Object.keys(updates).length > 0) {
@@ -538,9 +542,9 @@ class _13_4_0_MigrateEdgePools extends Migration {
       updates['system.counters.edgePools.rumor.value'] = pools?.rumor?.value ?? oldSocial?.rumor?.value ?? 0;
       updates['system.counters.edgePools.chaos.value'] = pools?.chaos?.value ?? actor.system?.counters?.sceneAnarchy?.value ?? 0;
 
-      updates['system.counters.-=edge'] = null;
-      updates['system.counters.-=social'] = null;
-      updates['system.counters.-=sceneAnarchy'] = null;
+      updates["system.counters.edge"] = forcedDeletion();
+      updates["system.counters.social"] = forcedDeletion();
+      updates["system.counters.sceneAnarchy"] = forcedDeletion();
 
       await actor.update(updates);
     }
@@ -767,7 +771,7 @@ class _13_7_0_PersonalDamageModelV2 extends Migration {
       "system.tags": tags,
       "system.durability.max": durabilityMax,
       "system.durability.current": durabilityCurrent,
-      "system.-=mitigation": null,
+      "system.mitigation": forcedDeletion(),
     };
   }
 }
@@ -843,7 +847,7 @@ class _13_9_0_PayloadArchitecture extends Migration {
       "system.payloads": payloads,
       "system.consumptionSources": consumptionSources,
       "system.selectedPayloadId": selectedPayloadId || migrated?.selectedPayloadId || "standard",
-      "system.-=ammo": null,
+      "system.ammo": forcedDeletion(),
     };
   }
 }
@@ -953,7 +957,7 @@ class _13_10_0_PersonalWeaponCapabilityModelV1 extends Migration {
         "system.payloads": payloads,
         "system.consumptionSources": normalizeWeaponConsumptionSources(item.system?.consumptionSources, { legacyAmmo }),
         "system.selectedPayloadId": selectedPayloadId,
-        "system.-=ammo": null,
+        "system.ammo": forcedDeletion(),
       },
       reports,
     };

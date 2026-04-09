@@ -134,7 +134,7 @@ How it fits: Used by the CSB-driven personal weapon details layout.
                 </div>
 
                 <div class="form-group mwd-weapon-compact__field">
-                  <label>Template Size</label>
+                  <label>Template Size (m)</label>
                   <input class="type-numeric mwd-payload-field" type="number" value="{{payload.template.size}}" data-payload-id="{{payload.id}}" data-field="template.size" />
                 </div>
 
@@ -160,7 +160,10 @@ How it fits: Used by the CSB-driven personal weapon details layout.
                     {{selectOptions ../weaponEditor.areaEffectKinds selected=payload.areaEffect.kind valueAttr="value" labelAttr="label" localize=false}}
                   </select>
                 </div>
+              </div>
 
+              {{#if (eq payload.areaEffect.kind "persistent")}}
+                <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
                 <div class="form-group mwd-weapon-compact__field">
                   <label>Start Exposure</label>
                   <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="areaEffect.hazard.startExposure">
@@ -177,7 +180,7 @@ How it fits: Used by the CSB-driven personal weapon details layout.
                   <label>Interval (Turns)</label>
                   <input class="type-numeric mwd-payload-field" type="number" value="{{payload.areaEffect.hazard.escalation.intervalTurns}}" data-payload-id="{{payload.id}}" data-field="areaEffect.hazard.escalation.intervalTurns" />
                 </div>
-              </div>
+                </div>
 
               <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
                 <div class="form-group mwd-weapon-compact__field">
@@ -200,6 +203,13 @@ How it fits: Used by the CSB-driven personal weapon details layout.
                   </select>
                 </div>
               </div>
+              {{else}}
+                <div class="mwd-weapon-compact__row">
+                  <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+                    <div class="mwd-item-note">Discrete template attacks like grenades use the template for targeting only. Exposure and hazard escalation settings apply only to persistent hazards.</div>
+                  </div>
+                </div>
+              {{/if}}
             {{/if}}
           {{/if}}
         </div>

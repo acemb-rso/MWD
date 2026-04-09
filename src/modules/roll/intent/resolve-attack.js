@@ -236,6 +236,7 @@ export async function resolveAttack({ actor, payload } = {}) {
       sourceState: weapon?.sourceState ?? null,
       template: weapon?.template ?? null,
       areaEffect: weapon?.areaEffect ?? null,
+      templateGeometry: payload?.templateGeometry ?? null,
       templatePlacement: payload?.templatePlacement ?? null,
       resolution: weapon?.resolution ?? null,
       resolverKey: weapon?.resolverKey ?? "standard",

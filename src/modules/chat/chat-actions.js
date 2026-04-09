@@ -10,6 +10,10 @@ import { interpretOutcome } from "../roll/outcome/interpret-outcome.js";
 import { renderChat } from "../roll/renderers/render-chat.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import {
+  cancelTemplatePlacementRequestForMessage,
+  resolveTemplatePlacementChatRequest,
+} from "../roll/template-placement.js";
+import {
   applyEvadeToExposure,
   createExposureData,
   normalizeExposureTier,
@@ -37,8 +41,24 @@ export function registerMWDChatActions() {
       if (action === "applyHazardTick") void onApplyHazardTick(ev, message);
       if (action === "applyAttackDamage") void onApplyAttackDamage(ev, message);
       if (action === "applyAllAttackDamage") void onApplyAllAttackDamage(ev, message);
+      if (action === "templatePlacementConfirm") onTemplatePlacementChoice(ev, true);
+      if (action === "templatePlacementCancel") onTemplatePlacementChoice(ev, false);
     });
   });
+
+  Hooks.on("deleteChatMessage", (message) => {
+    cancelTemplatePlacementRequestForMessage(message?.id ?? "");
+  });
+}
+
+function onTemplatePlacementChoice(ev, confirmed = false) {
+  ev.preventDefault();
+
+  const btn = ev.target.closest("[data-request-id]");
+  const requestId = String(btn?.dataset?.requestId ?? "").trim();
+  if (!requestId) return;
+
+  resolveTemplatePlacementChatRequest(requestId, confirmed);
 }
 
 function hasAppliedAttackMutation(resolved = {}) {

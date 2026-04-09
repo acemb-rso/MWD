@@ -173,8 +173,8 @@ export class WeaponItemSheet extends BaseItemSheet {
   static async _onWeaponSkillChange(event, target) {
     const skillCode = target.value;
     const skill = game.system.mwd.skills?.get?.(skillCode);
-    
-    if (!skill?.defense) return;
-    await this.item.update({ 'system.defense': skill.defense }, { render: false });
+    await this._syncNamedField(target, {
+      ...(skill?.defense ? { "system.defense": skill.defense } : {})
+    });
   }
 }

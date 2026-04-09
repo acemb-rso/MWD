@@ -56,6 +56,7 @@ import {
   createCapabilityMigrationReport,
   normalizeWeaponCapabilityState,
 } from "../mwd/personal-weapon-capabilities.js";
+import { getDocumentTypeCreateDefaults } from "../document-type-defaults.js";
 
 const LEGACY_ITEM_TYPE_MAP = Object.freeze({
   weapon: TEMPLATE.itemType.personalWeapon,
@@ -84,6 +85,47 @@ const AREA_TARGETS = Object.freeze({
   rect: { targets: undefined },
   ray: { targets: undefined },
 });
+
+function forcedDeletion() {
+  return foundry.data.operators.ForcedDeletion;
+}
+
+function ensureObjectPath(target, path) {
+  const segments = String(path ?? "").split(".").map(segment => segment.trim()).filter(Boolean);
+  if (!target || typeof target !== "object" || segments.length < 2) return target;
+
+  let current = target;
+  for (let index = 0; index < (segments.length - 1); index += 1) {
+    const key = segments[index];
+    const next = current?.[key];
+    if (!next || typeof next !== "object" || Array.isArray(next)) {
+      current[key] = {};
+    }
+    current = current[key];
+  }
+
+  return target;
+}
+
+function preparePayloadForFieldUpdate(payload, field) {
+  const path = String(field ?? "").trim();
+  if (!payload || typeof payload !== "object" || !path) return false;
+
+  // Hazard edits imply a persistent area effect, so ensure that container exists first.
+  if (path.startsWith("areaEffect.hazard.")) {
+    if (!payload.areaEffect || typeof payload.areaEffect !== "object" || Array.isArray(payload.areaEffect)) {
+      payload.areaEffect = {};
+    }
+    const areaEffectKind = String(payload.areaEffect.kind ?? "").trim().toLowerCase();
+    if (areaEffectKind && areaEffectKind !== "persistent") {
+      return false;
+    }
+    payload.areaEffect.kind = "persistent";
+  }
+
+  ensureObjectPath(payload, path);
+  return true;
+}
 
 function normalizeTraits(value) {
   return normalizeWeaponTraits(value);
@@ -380,6 +422,15 @@ export class MWDItem extends Item {
     const sourceType = data?.type ?? this.type;
     const canonicalType = this.constructor.canonicalType(sourceType);
     const updates = {};
+    const defaults = await getDocumentTypeCreateDefaults("Item", canonicalType);
+
+    if (defaults.system && Object.keys(defaults.system).length) {
+      updates.system = foundry.utils.mergeObject(
+        foundry.utils.deepClone(defaults.system),
+        foundry.utils.deepClone(data?.system ?? this.system ?? {}),
+        { inplace: false, recursive: true, overwrite: true }
+      );
+    }
 
     if (sourceType !== canonicalType && LEGACY_ITEM_TYPE_MAP[sourceType]) {
       updates.type = canonicalType;
@@ -395,10 +446,10 @@ export class MWDItem extends Item {
     }
 
     if (canonicalType === TEMPLATE.itemType.lifeModule) {
-      const defaults = prepareLifeModuleDefaults(data?.system ?? this.system ?? {});
-      updates.system = defaults.system;
-      if (defaults.name && (!data?.name || data.name === "DOCUMENT.Item")) {
-        updates.name = defaults.name;
+      const lifeModuleDefaults = prepareLifeModuleDefaults(updates.system ?? data?.system ?? this.system ?? {});
+      updates.system = lifeModuleDefaults.system;
+      if (lifeModuleDefaults.name && (!data?.name || data.name === "DOCUMENT.Item")) {
+        updates.name = lifeModuleDefaults.name;
       }
     }
 
@@ -435,8 +486,7 @@ export class MWDItem extends Item {
       changed.system.attackRatingBand = normalizeAttackRatingBand(nextSystem.attackRatingBand);
       changed.system.range = normalizeRangeData(nextSystem.range);
       changed.system.damageType = normalizePersonalDamageType(nextSystem.damageType);
-      changed.system["-=ammo"] = null;
-      delete changed.system.ammo;
+      changed.system.ammo = forcedDeletion();
     }
 
     if (nextSystem && this.isArmor()) {
@@ -1024,7 +1074,7 @@ export class MWDItem extends Item {
     await this.update({
       "system.payloads": next,
       "system.selectedPayloadId": selectedPayloadId,
-      "system.-=ammo": null,
+      "system.ammo": forcedDeletion(),
     });
   }
 
@@ -1034,7 +1084,7 @@ export class MWDItem extends Item {
     )).map(normalizeConsumptionSource);
     await this.update({
       "system.consumptionSources": next,
-      "system.-=ammo": null,
+      "system.ammo": forcedDeletion(),
     });
   }
 
@@ -1042,6 +1092,8 @@ export class MWDItem extends Item {
     if (String(payloadId ?? "").trim() === "unloaded") return;
     await this._mutatePayloads(payloads => payloads.map(payload => {
       if (payload.id !== payloadId) return payload;
+      const canApply = preparePayloadForFieldUpdate(payload, field);
+      if (!canApply) return normalizePayloadProfile(payload);
       foundry.utils.setProperty(payload, field, value);
       return normalizePayloadProfile(payload);
     }));
@@ -1078,7 +1130,7 @@ export class MWDItem extends Item {
       "system.selectedPayloadId": nextPayloads.some(payload => payload.id === this.system?.selectedPayloadId)
         ? this.system.selectedPayloadId
         : (nextPayloads.length ? fallback : ""),
-      "system.-=ammo": null,
+      "system.ammo": forcedDeletion(),
     });
   }
 
@@ -1344,7 +1396,7 @@ export class MWDItem extends Item {
     );
     await this.update({
       "system.selectedPayloadId": normalizedId,
-      "system.-=ammo": null,
+      "system.ammo": forcedDeletion(),
     });
   }
 

@@ -31,6 +31,10 @@ import {
   getQualityTierLabel,
   normalizeQualityTraitSystem,
 } from "../mwd/traits.js";
+import {
+  getOwnedWeaponAttackDragData,
+  launchOwnedWeaponAttack,
+} from "../roll/weapon-attack-actions.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -169,6 +173,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
   #combatMenuOutsideHandler = null;
   #pendingScrollRestore = null;
   #expandedInventoryRows = new Set();
+  #inventoryAttackDragController = null;
 
   static PARTS = {
     sheet: {
@@ -439,12 +444,13 @@ ctx.edgeConsole.poolsOrdered = order
             ...compactList(weapon.traits ?? [])
           ]),
           detailRows,
-          detailText: toSnippet(weapon.notes),
-          equipped: !!weapon.equipped,
-          isPrimary: !!weapon.isPrimary,
-          attackRoll: JSON.stringify({
-            intent: "attack",
-            weaponId: weapon.id,
+            detailText: toSnippet(weapon.notes),
+            equipped: !!weapon.equipped,
+            isPrimary: !!weapon.isPrimary,
+            attackUuid: weapon.uuid ?? "",
+            attackRoll: JSON.stringify({
+              intent: "attack",
+              weaponId: weapon.id,
             payloadId: weapon?.payloadState?.activePayloadId ?? "",
             edge: { pool: "physical.grit", allowed: ["pre", "post"] },
             tags: ["combat", "attack"]
@@ -629,16 +635,18 @@ ctx.edgeConsole.poolsOrdered = order
     return ctx;
   }
 
- _onRender(context, options) {
-  super._onRender(context, options);
-  this.#syncCombatMenuOutsideHandler();
-  this.#restoreScrollPosition();
- }
+  _onRender(context, options) {
+   super._onRender(context, options);
+    this.#syncCombatMenuOutsideHandler();
+    this.#restoreScrollPosition();
+    this.#bindInventoryAttackDrag();
+  }
 
- async close(options = {}) {
-  this.#removeCombatMenuOutsideHandler();
-  return super.close(options);
- }
+  async close(options = {}) {
+    this.#removeCombatMenuOutsideHandler();
+    this.#teardownInventoryAttackDrag();
+    return super.close(options);
+   }
 
  requestCombatDashboardRefresh() {
   this.#renderPreservingScroll({ force: true });
@@ -1426,37 +1434,17 @@ ctx.edgeConsole.poolsOrdered = order
 
   if (this.#notifyUnavailableAction(target, event, "Equip that weapon before attacking.")) return;
 
-  const raw = target?.dataset?.roll ?? event?.target?.closest?.("[data-roll]")?.dataset?.roll;
-  if (!raw) return;
+  const item = this.#getOwnedItemFromTarget(target, event);
+  if (!item?.isPersonalWeapon?.()) return;
 
-  let payload;
-  try {
-    payload = JSON.parse(raw);
-  } catch (error) {
-    console.warn("MWD | Invalid attack payload", raw, error);
-    return;
-  }
+  const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+  const token = this.getSheetTokenDocument?.()
+    ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+    ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
+  const result = await launchOwnedWeaponAttack({ weapon: item, event, token });
+  if (!result) return;
 
-  try {
-    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const token = this.getSheetTokenDocument?.()
-      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
-      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
-    const snapshot = PersonalCombatTracker.getSnapshot(actorWriteTarget, { token });
-    const hasAim = Boolean(snapshot.state?.actionState?.aim);
-    if (hasAim) payload.aim = { active: true };
-    payload.sourceTokenId = token?.id ?? null;
-
-    const result = await game.mwd?.roll?.execute?.({ actor: actorWriteTarget, payload, event });
-    if (!result) return;
-    if (hasAim) {
-      await PersonalCombatTracker.clearAim(actorWriteTarget, { token });
-    }
-    this.#renderPreservingScroll({ force: true });
-  } catch (error) {
-    console.error("MWD | Failed to launch weapon attack", error);
-    notifyRollError(error, "Unable to attack with that weapon.");
-  }
+  this.#renderPreservingScroll({ force: true });
 }
 
  #getOwnedItemFromTarget(target, event) {
@@ -1467,8 +1455,39 @@ ctx.edgeConsole.poolsOrdered = order
     ?? ""
   ).trim();
 
-  if (!itemId) return null;
+ if (!itemId) return null;
   return this.actor.items.get(itemId) ?? null;
+ }
+
+ #bindInventoryAttackDrag() {
+  const root = this._getRootElement?.();
+  if (!root) return;
+
+  this.#teardownInventoryAttackDrag();
+
+  const controller = new AbortController();
+  this.#inventoryAttackDragController = controller;
+
+  root.addEventListener("dragstart", event => {
+    const control = event.target?.closest?.("[data-weapon-attack-uuid]");
+    if (!control || !root.contains(control)) return;
+
+    const item = this.#getOwnedItemFromTarget(control, event);
+    const dragData = item ? getOwnedWeaponAttackDragData(item) : null;
+    if (!dragData) {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    event.dataTransfer?.setData("text/plain", JSON.stringify(dragData));
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = "copy";
+  }, { signal: controller.signal });
+ }
+
+ #teardownInventoryAttackDrag() {
+  this.#inventoryAttackDragController?.abort();
+  this.#inventoryAttackDragController = null;
  }
 
  async #getCombatActionMetadata(actionId) {

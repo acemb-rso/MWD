@@ -497,6 +497,9 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1.02;
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: left;
 }
 
 .mwd-sheet.item-sheet .sheet-body {

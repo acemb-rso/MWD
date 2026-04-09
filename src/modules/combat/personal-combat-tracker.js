@@ -32,6 +32,7 @@ import {
 import {
   getHazardRegionFlag,
   getHazardRegionsForToken,
+  migrateHazardRegionFlag,
 } from "../area-effects/hazard-regions.js";
 import { renderHazardCard } from "../area-effects/hazard-chat.js";
 
@@ -325,6 +326,12 @@ export class PersonalCombatTracker {
     Hooks.on("updateRegion", region => this._onUpdateRegion(region));
     Hooks.on("deleteRegion", region => this._onDeleteRegion(region));
     Hooks.on("targetToken", (user, token, targeted) => this._onTargetToken(user, token, targeted));
+
+    for (const key of ["TOKEN_ENTER", "TOKEN_EXIT", "TOKEN_MOVE_IN", "TOKEN_MOVE_OUT"]) {
+      const hookName = CONST?.REGION_EVENTS?.[key];
+      if (!hookName) continue;
+      Hooks.on(hookName, (...args) => this._onRegionTokenEvent(...args));
+    }
   }
 
   static async onReady() {
@@ -1444,26 +1451,18 @@ export class PersonalCombatTracker {
 
     const sceneId = this._getCombatantSceneId(combatant) || canvas?.scene?.id;
     const tokenDoc = this._getCombatantTokenDocument(combatant, sceneId);
-    if (!tokenDoc) return;
+    const actor = tokenDoc?.actor ?? combatant?.actor ?? null;
+    if (!tokenDoc || !actor) return;
 
     const stored = combatant.getFlag(FLAG_SCOPE, FLAG_KEY);
     const shouldHaveIndicator = Boolean(getPreparedInterrupt(stored));
     const statusConfig = getPreparedInterruptStatusConfig();
-    const currentEffects = Array.from(tokenDoc.effects ?? tokenDoc._source?.effects ?? []);
-    const hasIndicator = currentEffects.includes(PREPARED_INTERRUPT_ICON);
+    const statusId = String(statusConfig?.id ?? PREPARED_INTERRUPT_STATUS_ID).trim() || PREPARED_INTERRUPT_STATUS_ID;
+    const hasIndicator = actor?.statuses?.has?.(statusId) ?? false;
 
     if (hasIndicator === shouldHaveIndicator) return;
 
-    if (typeof tokenDoc.toggleActiveEffect === "function") {
-      await tokenDoc.toggleActiveEffect(statusConfig, { active: shouldHaveIndicator, overlay: false });
-      return;
-    }
-
-    const nextEffects = shouldHaveIndicator
-      ? Array.from(new Set([...currentEffects, PREPARED_INTERRUPT_ICON]))
-      : currentEffects.filter(effect => effect !== PREPARED_INTERRUPT_ICON);
-
-    await tokenDoc.update({ effects: nextEffects });
+    await actor.toggleStatusEffect(statusId, { active: shouldHaveIndicator, overlay: false });
   }
 
   static async syncPreparedIndicators(combat = game.combat) {
@@ -1479,20 +1478,12 @@ export class PersonalCombatTracker {
 
     const sceneId = this._getCombatantSceneId(combatant) || canvas?.scene?.id;
     const tokenDoc = this._getCombatantTokenDocument(combatant, sceneId);
-    if (!tokenDoc) return;
+    const actor = tokenDoc?.actor ?? combatant?.actor ?? null;
+    if (!tokenDoc || !actor) return;
     const statusConfig = getPreparedInterruptStatusConfig();
-
-    if (typeof tokenDoc.toggleActiveEffect === "function") {
-      await tokenDoc.toggleActiveEffect(statusConfig, { active: false, overlay: false });
-      return;
-    }
-
-    const currentEffects = Array.from(tokenDoc.effects ?? tokenDoc._source?.effects ?? []);
-    if (!currentEffects.includes(PREPARED_INTERRUPT_ICON)) return;
-
-    await tokenDoc.update({
-      effects: currentEffects.filter(effect => effect !== PREPARED_INTERRUPT_ICON)
-    });
+    const statusId = String(statusConfig?.id ?? PREPARED_INTERRUPT_STATUS_ID).trim() || PREPARED_INTERRUPT_STATUS_ID;
+    if (!(actor?.statuses?.has?.(statusId) ?? false)) return;
+    await actor.toggleStatusEffect(statusId, { active: false, overlay: false });
   }
 
   static _buildSpendAction(snapshot, action, sharedReason = "") {
@@ -1912,13 +1903,47 @@ export class PersonalCombatTracker {
     this._refreshHazardOverlay(token);
   }
 
+  static _getTokenDocumentFromRegionEvent(args = []) {
+    for (const current of args) {
+      if (!current) continue;
+
+      const candidates = [
+        current?.document,
+        current?.token,
+        current?.tokenDocument,
+        current?.object?.document,
+        current?.data?.token,
+        current?.data?.tokenDocument,
+        current?.eventData?.token,
+        current?.eventData?.tokenDocument,
+      ];
+
+      for (const candidate of candidates) {
+        const tokenDoc = candidate?.document ?? candidate ?? null;
+        if (tokenDoc?.documentName === "Token" || tokenDoc?.constructor?.documentName === "Token") {
+          return tokenDoc;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  static _onRegionTokenEvent(...args) {
+    const tokenDoc = this._getTokenDocumentFromRegionEvent(args);
+    if (!tokenDoc) return;
+    void this._syncHazardPresenceForToken(tokenDoc);
+  }
+
   static async _onCreateRegion(region) {
     if (!isHazardRegionDocument(region)) return;
+    await migrateHazardRegionFlag(region);
     await this._syncAllSceneHazards(region?.parent ?? canvas?.scene ?? null);
   }
 
   static async _onUpdateRegion(region) {
     if (!isHazardRegionDocument(region)) return;
+    await migrateHazardRegionFlag(region);
     await this._syncAllSceneHazards(region?.parent ?? canvas?.scene ?? null);
   }
 
@@ -1944,6 +1969,11 @@ export class PersonalCombatTracker {
 
   static async _syncAllSceneHazards(scene = canvas?.scene ?? null) {
     if (!scene) return;
+
+    for (const region of Array.from(scene.regions ?? [])) {
+      if (!isHazardRegionDocument(region)) continue;
+      await migrateHazardRegionFlag(region);
+    }
 
     for (const tokenDoc of Array.from(scene.tokens ?? [])) {
       await this._syncHazardPresenceForToken(tokenDoc);

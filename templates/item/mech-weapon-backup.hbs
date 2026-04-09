@@ -25,9 +25,7 @@ NOTE: Marked LEGACY — no direct references found across repository.
   <div class="form-group">
     <label for="system.skill">{{ANARCHY.item.weapon.skill}} </label>
     <select class="select-weapon-skill" name="system.skill" data-dtype="String" data-action="weaponSkillChange">
-        {{#select system.skill}}
-        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
-        {{/select}}
+        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills selected=system.skill}}
     </select>
   </div>
   <div class="form-group">
@@ -40,9 +38,7 @@ NOTE: Marked LEGACY — no direct references found across repository.
       />
       <span>+
       <select name="system.damageAttribute" data-dtype="String">
-          {{#select system.damageAttribute}}
-          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
-          {{/select}}
+          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes selected=system.damageAttribute}}
       </select>
       /2</span>
     </div>

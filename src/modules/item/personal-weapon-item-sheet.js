@@ -6,7 +6,7 @@
 import { WeaponItemSheet } from "./weapon-item-sheet.js";
 import { TEMPLATES_PATH } from "../constants.js";
 import { getPersonalDamageTypeLabel } from "../mwd/personal-damage.js";
-import { notifyRollError } from "../roll/roll-errors.js";
+import { launchOwnedWeaponAttack } from "../roll/weapon-attack-actions.js";
 
 /**
  * Personal-scale weapon item sheet (AppV2).
@@ -114,22 +114,7 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
     const actor = this.item.actor ?? null;
     if (!actor || !this.item.isPersonalWeapon?.()) return;
 
-    try {
-      await game.mwd.roll.execute({
-        actor,
-        payload: {
-          intent: "attack",
-          weaponId: this.item.id,
-          payloadId: this.item.system?.selectedPayloadId ?? "",
-          edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-          tags: ["combat", "attack"]
-        },
-        event
-      });
-    } catch (error) {
-      console.error("MWD | Failed to launch weapon sheet attack", error);
-      notifyRollError(error, "Unable to attack with that weapon.");
-    }
+    await launchOwnedWeaponAttack({ weapon: this.item, event });
   }
 
   static async _onReloadWeaponPayload(event) {

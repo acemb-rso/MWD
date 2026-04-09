@@ -25,9 +25,7 @@ How it fits: Used by rendering code to produce UI fragments.
     <div class="form-group">
       <label for="system.skill">Skill</label>
       <select class="select-weapon-skill" name="system.skill" data-dtype="String" data-action="weaponSkillChange">
-          {{#select system.skill}}
-          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
-          {{/select}}
+          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills selected=system.skill}}
       </select>
     </div>
     
@@ -39,9 +37,7 @@ How it fits: Used by rendering code to produce UI fragments.
         />
         <span>+
         <select name="system.damageAttribute" data-dtype="String">
-            {{#select system.damageAttribute}}
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
-            {{/select}}
+            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes selected=system.damageAttribute}}
         </select>
         /2</span>
       </div>
@@ -51,9 +47,7 @@ How it fits: Used by rendering code to produce UI fragments.
       <label>Damage Code</label>
       <div>
         <select name="system.monitor" data-dtype="String">
-          {{#select system.monitor}}
-          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.monitors}}
-          {{/select}}
+          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.monitors selected=system.monitor}}
         </select>
 
         <input class="item-field-value" name="system.noArmor" type="checkbox" {{checked system.noArmor}}>
@@ -65,9 +59,7 @@ How it fits: Used by rendering code to produce UI fragments.
     <div class="form-group">
       <label for="system.area">Area of Effect</label>
       <select name="system.area" data-dtype="String">
-        {{#select system.area}}
-        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.areas}}
-        {{/select}}
+        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.areas selected=system.area}}
       </select>
     </div>
     
@@ -82,9 +74,7 @@ How it fits: Used by rendering code to produce UI fragments.
     <div class="form-group">
       <label for="system.range.max">Maximum Range</label>
       <select name="system.range.max">
-        {{#select system.range.max}}
-        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.ranges}}
-        {{/select}}
+        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.ranges selected=system.range.max}}
       </select>
     </div>
     

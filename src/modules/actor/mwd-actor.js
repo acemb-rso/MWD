@@ -20,6 +20,7 @@ import {
   buildEdgeTraitFacts,
   evaluateTraitPhase,
 } from "../mwd/traits.js";
+import { getDocumentTypeCreateDefaults } from "../document-type-defaults.js";
 
 function mitigationLabel(mitigation = {}) {
   return Object.entries(normalizeArmorMitigationByType(mitigation))
@@ -29,6 +30,36 @@ function mitigationLabel(mitigation = {}) {
 }
 
 export class MWDActor extends Actor {
+  /** @override */
+  async _preCreate(data, options, user) {
+    if (super._preCreate) {
+      await super._preCreate(data, options, user);
+    }
+
+    const defaults = await getDocumentTypeCreateDefaults("Actor", data?.type ?? this.type);
+    const updates = {};
+
+    if (defaults.system && Object.keys(defaults.system).length) {
+      updates.system = foundry.utils.mergeObject(
+        foundry.utils.deepClone(defaults.system),
+        foundry.utils.deepClone(data?.system ?? this.system ?? {}),
+        { inplace: false, recursive: true, overwrite: true }
+      );
+    }
+
+    if (defaults.prototypeToken) {
+      updates.prototypeToken = foundry.utils.mergeObject(
+        foundry.utils.deepClone(defaults.prototypeToken),
+        foundry.utils.deepClone(data?.prototypeToken ?? this.prototypeToken ?? {}),
+        { inplace: false, recursive: true, overwrite: true }
+      );
+    }
+
+    if (Object.keys(updates).length) {
+      this.updateSource(updates);
+    }
+  }
+
   /* -------------------------------------------- */
   /* Base & Derived Data                           */
   /* -------------------------------------------- */

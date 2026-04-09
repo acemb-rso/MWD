@@ -41,20 +41,16 @@ How it fits: Used by rendering code to produce UI fragments.
     <div class="form-group">
       <label for="system.skill">{{ANARCHY.item.personalWeapon.skill}}</label>
       <select class="select-weapon-skill" name="system.skill" data-dtype="String" data-action="weaponSkillChange">
-        {{#select system.skill}}
-        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
-        {{/select}}
+        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills selected=system.skill}}
       </select>
     </div>
 
     <div class="form-group">
       <label for="system.category">{{ANARCHY.item.personalWeapon.category}}</label>
       <select name="system.category" data-dtype="String">
-        {{#select system.category}}
-          {{#each weaponEditor.categories as |entry|}}
-            <option value="{{entry.value}}">{{entry.label}}</option>
-          {{/each}}
-        {{/select}}
+        {{#each weaponEditor.categories as |entry|}}
+          <option value="{{entry.value}}" {{#if (eq ../system.category entry.value)}}selected{{/if}}>{{entry.label}}</option>
+        {{/each}}
       </select>
     </div>
 
@@ -71,11 +67,9 @@ How it fits: Used by rendering code to produce UI fragments.
     <div class="form-group">
       <label for="system.damageType">{{ANARCHY.item.personalWeapon.damageType}}</label>
       <select name="system.damageType" data-dtype="String">
-        {{#select system.damageType}}
-          {{#each weaponEditor.damageTypes as |entry|}}
-            <option value="{{entry.value}}">{{entry.label}}</option>
-          {{/each}}
-        {{/select}}
+        {{#each weaponEditor.damageTypes as |entry|}}
+          <option value="{{entry.value}}" {{#if (eq ../system.damageType entry.value)}}selected{{/if}}>{{entry.label}}</option>
+        {{/each}}
       </select>
     </div>
 
@@ -106,11 +100,9 @@ How it fits: Used by rendering code to produce UI fragments.
     <div class="form-group">
       <label for="system.range.max">{{ANARCHY.item.personalWeapon.range.max}}</label>
       <select name="system.range.max" data-dtype="String">
-        {{#select weaponProfile.range.max}}
-          {{#each weaponEditor.ranges as |entry|}}
-            <option value="{{entry.value}}">{{entry.label}}</option>
-          {{/each}}
-        {{/select}}
+        {{#each weaponEditor.ranges as |entry|}}
+          <option value="{{entry.value}}" {{#if (eq ../weaponProfile.range.max entry.value)}}selected{{/if}}>{{entry.label}}</option>
+        {{/each}}
       </select>
     </div>
 

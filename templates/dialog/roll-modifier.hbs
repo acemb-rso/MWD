@@ -28,9 +28,7 @@ How it fits: Used by rendering code to produce UI fragments.
         {{#if options}}
           <select name="select.range" class="select-option-modifier" data-dtype="String"
             data-modifier="{{type}}">
-          {{#select value}}
-          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=options noEmpty=true}}
-          {{/select}}
+          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=options noEmpty=true selected=value}}
           </select>
           <label class="selected-option-modifier-value">{{numberFormat value decimals=0 sign=false}}</label>
         {{else}}

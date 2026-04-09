@@ -7,6 +7,7 @@ import { LOG_HEAD, SYSTEM_NAME } from "../constants.js";
 import { Misc } from "../misc.js";
 import { buildSkillDisplay } from "../mwd/skills.js";
 import { notifyRollError } from "../roll/roll-errors.js";
+import { collectDocumentFormUpdates } from "./document-sheet-form.js";
 
 
 /**
@@ -419,45 +420,13 @@ _initializeApplicationOptions(options) {
     const root = this.element;
     if (!root) return;
 
-    // Gather all named inputs/selects/textareas inside the sheet.
-    const fields = root.querySelectorAll('input[name][data-edit-field="staged"], select[name][data-edit-field="staged"], textarea[name][data-edit-field="staged"]');
-    if (!fields.length) return;
-
-    const updates = {};
-
-    for (const el of fields) {
-      const name = el.getAttribute("name");
-      if (!name) continue;
-
-      // Skip disabled fields; they shouldn't commit.
-      if (el.disabled) continue;
-
-      let value;
-
-      if (el instanceof HTMLInputElement) {
-        if (el.type === "checkbox") value = el.checked;
-        else if (el.type === "radio") {
-          if (!el.checked) continue; // only commit the selected radio
-          value = el.value;
-        }
-        else if (el.type === "number") value = Number(el.value);
-        else value = el.value;
-      } else {
-        value = el.value;
-      }
-
-      // Coerce number NaN -> 0 for numeric fields
-      if (typeof value === "number" && Number.isNaN(value)) value = 0;
-
-      // Clamp rules (your requirements)
-      value = this._clampByPath(name, value);
-
-      // Only include changes (prevents noisy updates)
-      const current = foundry.utils.getProperty(this.actor, name);
-      if (current === value) continue;
-
-      updates[name] = value;
-    }
+    const updates = collectDocumentFormUpdates({
+      root,
+      document: this.actor,
+      selector: 'input[name][data-edit-field="staged"], select[name][data-edit-field="staged"], textarea[name][data-edit-field="staged"]',
+      clampByPath: this._clampByPath.bind(this),
+      skipNames: ["system.biography.history"],
+    });
 
     if (!Object.keys(updates).length) return;
 

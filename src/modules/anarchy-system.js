@@ -20,6 +20,7 @@ import { registerItemSheetsV2 } from "./sheets/register-item-sheets-v2.js";
 import { preloadTemplatesV2 } from "./sheets/preload-templates.js";
 import { MWDActor } from "./actor/mwd-actor.js";
 import { MWDRoll } from "./roll/mwd-roll.js";
+import { WeaponAttackActions, registerWeaponAttackHotbarHook } from "./roll/weapon-attack-actions.js";
 import { modifierProviders } from "../modules/modifiers/index.js";
 import { ItemModifiersProvider } from "../modules/modifiers/providers/item-modifiers.js";
 import { StatusEffectsProvider } from "../modules/modifiers/providers/status-effects.js";
@@ -199,13 +200,15 @@ export class AnarchySystem {
     
     // Roll API (new AppV2 path)
     game.mwd.roll = MWDRoll;
+    game.mwd.attacks = WeaponAttackActions;
     game.mwd.personalCombat = PersonalCombatTracker;
     game.mwd.harm = HarmEngine;
 
     // Optional alias if you want it under the system object too:
-    this.roll = MWDRoll;
-    this.personalCombat = PersonalCombatTracker;
-    this.harm = HarmEngine;
+      this.roll = MWDRoll;
+      this.attacks = WeaponAttackActions;
+      this.personalCombat = PersonalCombatTracker;
+      this.harm = HarmEngine;
     this.skills = createMWDSkillsService();
     this.lifeModules = createMWDLifeModulesService();
     this.traits = createMWDTraitsService();
@@ -273,6 +276,7 @@ export class AnarchySystem {
     CONFIG.Actor.documentClass = MWDActor;
     CONFIG.Item.documentClass = MWDItem;
     MWDItem.init();
+    registerWeaponAttackHotbarHook();
 
     // Register sheets (AppV2-only, no appv1 unregisters)
     registerActorSheetsV2();

@@ -6,8 +6,6 @@ How it fits: Used by rendering code to produce UI fragments.
 
 
 <select class="info-value" name="system.skill" data-dtype="String">
-    {{#select system.skill}}
-    {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills  noEmpty=true}}
-    {{/select}}
+    {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills noEmpty=true selected=system.skill}}
 </select>
 

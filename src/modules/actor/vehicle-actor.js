@@ -6,6 +6,10 @@
 import { ACTOR_ATTRIBUTE_SETS, ICONS_PATH, TEMPLATE } from "../constants.js";
 import { AnarchyBaseActor } from "./base-actor.js";
 
+function forcedDeletion() {
+  return foundry.data.operators.ForcedDeletion;
+}
+
 export class VehicleActor extends AnarchyBaseActor {
 
   prepareDerivedData() {
@@ -52,8 +56,8 @@ export class VehicleActor extends AnarchyBaseActor {
     const fromOldField = this.system.handling
     if (fromOldField && fromAttribute < fromOldField) {
       await this.update({
-        'system.-=handling': null,
-        'system.attributes.handling.value': fromOldField
+        "system.handling": forcedDeletion(),
+        "system.attributes.handling.value": fromOldField
       })
     }
   }

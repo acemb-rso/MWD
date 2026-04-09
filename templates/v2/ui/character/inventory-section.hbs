@@ -28,9 +28,9 @@ How it fits: Used by character inventory placeholder partials.
         {{#each records as |record|}}
           {{> "mwd.v2.ui.character.inventory-record"
               record=record
-              supportsAttack=../supportsAttack
-              supportsEquip=../supportsEquip
-              supportsPrimary=../supportsPrimary}}
+              supportsAttack=../../supportsAttack
+              supportsEquip=../../supportsEquip
+              supportsPrimary=../../supportsPrimary}}
         {{/each}}
       </div>
     {{else}}

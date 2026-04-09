@@ -68,13 +68,13 @@ How it fits: Used by rendering code to produce UI fragments.
       <div class="form-group">
         <label for="system.range.max">{{MWD.item.personalWeapon.range.max}}</label>
         <select name="system.range.max" data-dtype="String">
-          {{selectOptions weaponEditor.ranges selected=weaponProfile.range.max valueAttr="value" labelAttr="label" localize=false}}
+          {{selectOptions weaponEditor.ranges selected=system.range.max valueAttr="value" labelAttr="label" localize=false}}
         </select>
       </div>
 
       <div class="form-group mwd-item-field--wide">
         <label for="system.traits">{{MWD.item.personalWeapon.traits}}</label>
-        <input type="text" name="system.traits" value="{{join weaponProfile.traits ', '}}" />
+        <input type="text" name="system.traits" value="{{join system.traits ', '}}" />
       </div>
     </div>
   </section>

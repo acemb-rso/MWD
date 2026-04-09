@@ -211,6 +211,7 @@ async function execute({ actor, payload, event } = {}) {
   if (payload.intent === "attack" && !ctx?.attack?.capabilityReport?.isTemplated) {
     delete payload.targetSnapshots;
     delete payload.templatePlacement;
+    delete payload.templateGeometry;
   }
 
   if (payload.intent === "attack" && payload.weaponId) {
@@ -247,6 +248,7 @@ async function execute({ actor, payload, event } = {}) {
     }
 
     payload.targetSnapshots = Array.isArray(placementResult.targetSnapshots) ? placementResult.targetSnapshots : [];
+    payload.templateGeometry = placementResult.templateGeometry ?? null;
     payload.templatePlacement = placementResult.placement;
     ctx = await resolveIntent({ actor, payload, event });
   }

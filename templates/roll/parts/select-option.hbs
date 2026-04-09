@@ -13,9 +13,7 @@ How it fits: Used by rendering code to produce UI fragments.
 {{#if flags.editable}}
 <span class="parameter-selection info-value">
   <select name="select-{{code}}" class="select-option-parameter info-value" data-dtype="String">
-    {{#select selected}}
-    {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=choices noEmpty=true}}
-    {{/select}}
+    {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=choices noEmpty=true selected=selected}}
   </select>
 </span>
 {{/if}}

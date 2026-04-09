@@ -18,9 +18,7 @@ How it fits: Used by rendering code to produce UI fragments.
     <div class="form-group">
       <label>{{ANARCHY.item.skill.code}}</label>
       <select class="select-skill-code" name="system.code" data-dtype="String">
-        {{#select system.code}}
-          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills}}
-        {{/select}}
+        {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.skills selected=system.code}}
       </select>
     </div>
 
@@ -33,9 +31,7 @@ How it fits: Used by rendering code to produce UI fragments.
       <div class="form-group">
         <label for="system.attribute">{{ANARCHY.item.skill.attribute}}</label>
         <select class="item-field-value" name="system.attribute" data-dtype="String">
-          {{#select system.attribute}}
-            {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes}}
-          {{/select}}
+          {{> 'systems/mwd/templates/common/enum-value-label.hbs' entries=ENUMS.attributes selected=system.attribute}}
         </select>
       </div>
 

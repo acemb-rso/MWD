@@ -40,6 +40,7 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
   #activeTabsByGroup = new Map();
   #activeAccordionSectionsByGroup = new Map();
   #pendingScrollRestore = null;
+  #pendingFieldSync = new Map();
 
   static LAYOUT_ID = null;
 
@@ -79,9 +80,9 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
         effectToggleDisabled: BaseItemSheet._onEffectToggleDisabled
       },
       form: {
-        submitOnChange: true,
-        closeOnSubmit: false
-        // NOTE: No custom handler - AppV2 handles form submission automatically
+        submitOnChange: false,
+        closeOnSubmit: false,
+        handler: BaseItemSheet.prototype._onSubmitForm
       }
     }, { inplace: false });
   }
@@ -466,6 +467,34 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       });
     }
 
+    if (this.isEditable) {
+      for (const field of root.querySelectorAll("input[name], select[name], textarea[name]")) {
+        if (field.closest("prose-mirror")) continue;
+        if (field.hasAttribute("data-action")) continue;
+        if (!(field instanceof HTMLElement)) continue;
+
+        if (
+          field instanceof HTMLInputElement
+          && !["checkbox", "radio"].includes(field.type)
+        ) {
+          field.addEventListener("input", event => {
+            event.preventDefault();
+            this._queueNamedFieldSync(event.currentTarget ?? field);
+          });
+        } else if (field instanceof HTMLTextAreaElement) {
+          field.addEventListener("input", event => {
+            event.preventDefault();
+            this._queueNamedFieldSync(event.currentTarget ?? field);
+          });
+        }
+
+        field.addEventListener("change", event => {
+          event.preventDefault();
+          void this._syncNamedField(event.currentTarget ?? field);
+        });
+      }
+    }
+
     this._restoreScrollPositions();
   }
 
@@ -482,6 +511,78 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     } catch (err) {
       console.warn("MWD | Rich text item update failed:", err);
     }
+  }
+
+  _queueNamedFieldSync(field, updateData = {}) {
+    if (!this.isEditable) return;
+
+    const name = String(field?.getAttribute?.("name") ?? "").trim() || foundry.utils.randomID();
+    const pending = this.#pendingFieldSync.get(name);
+    if (pending) clearTimeout(pending);
+
+    const timeoutId = setTimeout(() => {
+      this.#pendingFieldSync.delete(name);
+      void this._syncNamedField(field, updateData);
+    }, 180);
+
+    this.#pendingFieldSync.set(name, timeoutId);
+  }
+
+  _getNamedFieldUpdate(field) {
+    if (!(field instanceof HTMLElement)) return null;
+    const name = String(field.getAttribute?.("name") ?? "").trim();
+    if (!name || RICH_TEXT_ITEM_FIELDS.has(name)) return null;
+
+    if (field instanceof HTMLInputElement) {
+      if (field.type === "radio" && !field.checked) return null;
+      if (field.type === "checkbox") return { [name]: field.checked };
+
+      if (field.type === "number") {
+        const numeric = Number(field.value);
+        if (!Number.isFinite(numeric)) return null;
+        return { [name]: numeric };
+      }
+    }
+
+    const dtype = String(field.dataset?.dtype ?? "").trim().toLowerCase();
+    if (dtype === "number") {
+      const numeric = Number(field.value);
+      if (!Number.isFinite(numeric)) return null;
+      return { [name]: numeric };
+    }
+
+    if (dtype === "boolean") {
+      return { [name]: field.value === "true" };
+    }
+
+    return { [name]: field.value };
+  }
+
+  async _syncNamedField(field, updateData = {}) {
+    if (!this.isEditable) return;
+
+    const fieldUpdate = this._getNamedFieldUpdate(field);
+    const updates = {
+      ...(fieldUpdate ?? {}),
+      ...(updateData && typeof updateData === "object" ? updateData : {}),
+    };
+
+    if (!Object.keys(updates).length) return;
+
+    this._captureScrollPositions();
+
+    try {
+      await this.item.update(updates);
+    } catch (err) {
+      console.warn("MWD | Item field sync failed:", { updates, err });
+    }
+  }
+
+  async _onSubmitForm(_event, form, _formData, { updateData = null } = {}) {
+    if (!this.isEditable || !(form instanceof HTMLFormElement)) return;
+    this._captureScrollPositions();
+    const submitData = this._prepareSubmitData(_event, form, _formData, updateData ?? {});
+    await this._processSubmitData(_event, form, submitData);
   }
 
   _getScrollRestoreSelectors() {
