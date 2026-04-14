@@ -1,6 +1,7 @@
 // src/modules/item/base-item-sheet.js
-// Purpose: Provides a Sheet / UI class for entities (actor/item) or an application. Preloads or manages Handlebars templates.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+// Purpose: Shared AppV2 item-sheet foundation.
+// How it fits: Keeps every item sheet on one submit/render contract even when
+// the actual content is driven by either a direct template or a layout JSON.
 
 
 import { MWD } from "../config.js";
@@ -12,6 +13,12 @@ import { Misc } from "../misc.js";
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { HTMLField, StringField } = foundry.data.fields;
 const RICH_TEXT_ITEM_FIELDS = new Set(["system.notes", "system.description"]);
+const DEFERRED_TEXT_SYNC_FIELDS = new Set(["name"]);
+const ITEM_ROOT_TEMPLATES = Object.freeze({
+  [TEMPLATE.itemType.personalWeapon]: `${TEMPLATES_PATH}/v2/item/personal-weapon-root.hbs`,
+  [TEMPLATE.itemType.mechWeapon]: `${TEMPLATES_PATH}/v2/item/mech-weapon-root.hbs`,
+  [TEMPLATE.itemType.armor]: `${TEMPLATES_PATH}/v2/item/armor-root.hbs`,
+});
 
 function createFormField(FieldType, name) {
   const field = new FieldType({ required: false, blank: true, initial: "" });
@@ -20,12 +27,21 @@ function createFormField(FieldType, name) {
 }
 
 function getItemSystemFormFields(systemFields = {}) {
+  // Item templates are mid-migration between raw schema fields and the richer
+  // AppV2 editor surface. We guarantee the shared reference fields exist here
+  // so simple sheets and layout-driven sheets can rely on one contract.
   return {
     ...systemFields,
     sourceReference: systemFields.sourceReference ?? createFormField(StringField, "system.sourceReference"),
     notes: systemFields.notes ?? createFormField(HTMLField, "system.notes"),
     description: systemFields.description ?? createFormField(HTMLField, "system.description"),
   };
+}
+
+function sanitizeFieldUpdates(updates = {}) {
+  return Object.fromEntries(
+    Object.entries(updates ?? {}).filter(([, value]) => value !== undefined)
+  );
 }
 
 /**
@@ -146,12 +162,10 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
   _getPartTemplate(partId) {
     if (partId === "sheet") {
       const itemType = this._getCanonicalItemType();
-      const weaponTemplates = {
-        [TEMPLATE.itemType.mechWeapon]: `${TEMPLATES_PATH}/v2/item/mech-weapon-root.hbs`,
-        [TEMPLATE.itemType.armor]: `${TEMPLATES_PATH}/v2/item/armor.hbs`,
-      };
-      
-      return weaponTemplates[itemType] ?? `${TEMPLATES_PATH}/v2/item/${itemType}.hbs`;
+      // Every supported item type now has exactly one authoritative root
+      // template. Some roots are layout shells and others are direct templates,
+      // but they all resolve through this single selector.
+      return ITEM_ROOT_TEMPLATES[itemType] ?? `${TEMPLATES_PATH}/v2/item/${itemType}.hbs`;
     }
     return super._getPartTemplate?.(partId) ?? "";
   }
@@ -173,13 +187,13 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
    * @override
    */
   async _prepareContext(options) {
-    // Get base context from parent
+    // Start from Foundry's base sheet context, then layer in the normalized MWD
+    // contract that all item templates depend on.
     const context = await super._prepareContext(options);
     const modifierEnums = game.system.mwd.modifiers?.getEnums?.() ?? {};
     const templateOptions = foundry.utils.deepClone(context?.options ?? {});
     const systemFields = getItemSystemFormFields(context?.fields ?? this.item.system?.schema?.fields ?? {});
     
-    // Get actor attributes if this item is owned
     const actorAttributes = this.item.actor?.getAttributes?.(this.item) ?? [];
     const canonicalType = this._getCanonicalItemType();
     const isStandalone = !this.item.actor;
@@ -189,15 +203,14 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     const syncedEffectCount = effectEntries.filter(effect => effect.syncedCount > 0).length;
     const layoutId = this.constructor.LAYOUT_ID;
     
-    // Determine which attributes are usable based on item ownership
+    // Standalone items still need complete enum lists so they remain editable in
+    // the world sidebar and compendiums.
     const usableAttribute = this.item.actor
       ? attribute => actorAttributes.includes(attribute)
       : attribute => true;
     
-    // Skills need knowledge attributes
     const withKnowledge = canonicalType === TEMPLATE.itemType.skill;
 
-    // Build CSS classes
     const editableClass = this.isEditable ? "editable" : "locked";
     const baseClasses = ["mwd", "item-sheet", editableClass];
     const cssClass = baseClasses.join(" ");
@@ -216,20 +229,18 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       "system.description": await enrichField(this.item.system.description ?? "")
     });
 
-    // Build complete context
     const merged = {
       ...context,
-      // Item data
       item: this.item,
       data: this.item,
       system: this.item.system,
       
-      // Form field metadata and enriched content for App V2 rich text helpers
+      // AppV2 prose editors need both raw field definitions and pre-enriched
+      // HTML. Keeping both here avoids template-specific enrichment branches.
       fields: systemFields,
       enriched,
       enrichedDescription: enriched?.system?.description ?? "",
       
-      // Options for templates
       options: {
         ...templateOptions,
         isGM: game.user.isGM,
@@ -241,7 +252,6 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
         viewMode: false  // Items don't have view mode like actors do
       },
       
-      // Configuration data
       ENUMS: {
         ...Enums.getEnums(usableAttribute, withKnowledge),
         ...modifierEnums
@@ -261,14 +271,14 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
         stateChips: this._getStateChips(effectEntries)
       },
       
-      // CSS class for form element
       cssClass,
       
-      // Tab configuration
       tabs: this._getTabs()
     };
 
     if (layoutId) {
+      // Layout-backed sheets fetch a declarative tree here; direct-template
+      // sheets simply skip this block and render against the same context.
       merged.layout = await LayoutRegistry.get(layoutId);
     }
 
@@ -332,6 +342,8 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       syncedBySource.set(sourceEffectId, bucket);
     }
 
+    // The sheet renders item-owned ActiveEffects alongside their actor-side
+    // synced copies so equipment debugging has one surface instead of two.
     return Array.from(this.item.effects?.contents ?? []).map(effect => {
       const synced = syncedBySource.get(effect.id) ?? [];
       return {
@@ -412,6 +424,19 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     const root = this._getRootElement();
     if (!root) return;
 
+    // Some Foundry/browser/theme combinations still infer RTL behavior for the
+    // item name field even when the stylesheet says otherwise. Reassert the
+    // canonical document-name direction on every render so item naming stays
+    // stable across sheets and rebuilds.
+    const itemNameInput = root.querySelector('.item-name input[name="name"]');
+    if (itemNameInput instanceof HTMLInputElement) {
+      itemNameInput.setAttribute("dir", "ltr");
+      itemNameInput.style.direction = "ltr";
+      itemNameInput.style.unicodeBidi = "isolate";
+      itemNameInput.style.textAlign = "left";
+      itemNameInput.style.writingMode = "horizontal-tb";
+    }
+
     for (const tabsRoot of root.querySelectorAll(".sheet-tabs")) {
       const group = tabsRoot.dataset.group || "default";
       const tabEls = Array.from(tabsRoot.querySelectorAll("[data-tab]"));
@@ -472,9 +497,11 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
         if (field.closest("prose-mirror")) continue;
         if (field.hasAttribute("data-action")) continue;
         if (!(field instanceof HTMLElement)) continue;
+        const fieldName = String(field.getAttribute("name") ?? "").trim();
 
         if (
           field instanceof HTMLInputElement
+          && !DEFERRED_TEXT_SYNC_FIELDS.has(fieldName)
           && !["checkbox", "radio"].includes(field.type)
         ) {
           field.addEventListener("input", event => {
@@ -488,6 +515,9 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
           });
         }
 
+        // Document names are especially sensitive to rerender churn because the
+        // sheet title and header both react to them. Let them save on change
+        // instead of on every keystroke so the caret position stays stable.
         field.addEventListener("change", event => {
           event.preventDefault();
           void this._syncNamedField(event.currentTarget ?? field);
@@ -520,6 +550,9 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     const pending = this.#pendingFieldSync.get(name);
     if (pending) clearTimeout(pending);
 
+    // Debounced field writes keep AppV2 text inputs responsive without waiting
+    // for full form submission, but we still collapse rapid edits into one item
+    // update to avoid render churn.
     const timeoutId = setTimeout(() => {
       this.#pendingFieldSync.delete(name);
       void this._syncNamedField(field, updateData);
@@ -555,17 +588,19 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
       return { [name]: field.value === "true" };
     }
 
-    return { [name]: field.value };
+    // Text-like controls should never emit `undefined`. Foundry treats that as
+    // a schema violation for document names and other required string fields.
+    return { [name]: String(field.value ?? "") };
   }
 
   async _syncNamedField(field, updateData = {}) {
     if (!this.isEditable) return;
 
     const fieldUpdate = this._getNamedFieldUpdate(field);
-    const updates = {
+    const updates = sanitizeFieldUpdates({
       ...(fieldUpdate ?? {}),
       ...(updateData && typeof updateData === "object" ? updateData : {}),
-    };
+    });
 
     if (!Object.keys(updates).length) return;
 
@@ -581,6 +616,8 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
   async _onSubmitForm(_event, form, _formData, { updateData = null } = {}) {
     if (!this.isEditable || !(form instanceof HTMLFormElement)) return;
     this._captureScrollPositions();
+    // Full-sheet submit is still the authoritative save path for controls that
+    // do not participate in incremental field syncing.
     const submitData = this._prepareSubmitData(_event, form, _formData, updateData ?? {});
     await this._processSubmitData(_event, form, submitData);
   }

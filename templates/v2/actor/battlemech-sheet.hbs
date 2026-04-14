@@ -1,7 +1,9 @@
 {{!--
 templates/v2/actor/battlemech-sheet.hbs
-Purpose: Handlebars template for rendering a system UI fragment.
-How it fits: Used by rendering code to produce UI fragments.
+Purpose: Layout-backed AppV2 entry point for the battlemech actor sheet.
+How it fits: Keeps the mech sheet on the same shell, preload, and layout pipeline as every other actor sheet.
 --}}
 
-
+{{#> "mwd.v2.actor.sheet-root"}}
+  {{> "mwd.v2.ui.layout-root" node=layout.root}}
+{{/ "mwd.v2.actor.sheet-root"}}

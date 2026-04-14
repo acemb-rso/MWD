@@ -1,0 +1,64 @@
+{{!--
+templates/v2/ui/actor/field-grid.hbs
+Purpose: Render a compact grid of staged actor fields.
+How it fits: Shared by the new NPC, vehicle, and battlemech AppV2 sheet layouts.
+--}}
+
+<div
+  class="mwd-actor-field-grid"
+  style="display:grid; gap:0.75rem; grid-template-columns:repeat({{context.columns}}, minmax(0, 1fr));">
+  {{#each (lookup @root.actorSheet context.fieldsKey) as |field|}}
+    <div class="mwd-field-cluster">
+      <label class="mwd-field-cluster__label" for="{{field.path}}">{{field.label}}</label>
+
+      {{#if field.isTextarea}}
+        {{#if @root.editing}}
+          <textarea
+            id="{{field.path}}"
+            name="{{field.path}}"
+            rows="{{field.rows}}"
+            data-edit-field="staged"
+            {{#if field.readOnly}}disabled{{/if}}
+          >{{field.value}}</textarea>
+        {{else}}
+          <div class="mwd-field-cluster__value mwd-field-cluster__value--textarea">{{field.displayValue}}</div>
+        {{/if}}
+      {{else}}
+        {{#if field.isSelect}}
+          {{#if @root.editing}}
+            <select
+              id="{{field.path}}"
+              name="{{field.path}}"
+              data-edit-field="staged"
+              {{#if field.readOnly}}disabled{{/if}}>
+              {{#each field.options as |option|}}
+                <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+              {{/each}}
+            </select>
+          {{else}}
+            <div class="mwd-field-cluster__value">{{field.displayValue}}</div>
+          {{/if}}
+        {{else}}
+          {{#if @root.editing}}
+            <input
+              id="{{field.path}}"
+              name="{{field.path}}"
+              type="{{#if field.isNumber}}number{{else}}text{{/if}}"
+              value="{{field.value}}"
+              data-edit-field="staged"
+              {{#if field.isNumber}}data-dtype="Number"{{/if}}
+              {{#if field.placeholder}}placeholder="{{field.placeholder}}"{{/if}}
+              {{#if field.readOnly}}disabled{{/if}}
+            />
+          {{else}}
+            <div class="mwd-field-cluster__value">{{field.displayValue}}</div>
+          {{/if}}
+        {{/if}}
+      {{/if}}
+
+      {{#if field.help}}
+        <div class="mwd-field-cluster__help">{{field.help}}</div>
+      {{/if}}
+    </div>
+  {{/each}}
+</div>

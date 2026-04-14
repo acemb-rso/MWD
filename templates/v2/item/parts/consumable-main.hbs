@@ -1,0 +1,30 @@
+{{!--
+templates/v2/item/parts/consumable-main.hbs
+Purpose: Renders the editable inventory profile fields for Consumable items.
+How it fits: Keeps consumables on the same quantity/rating contract as gear while using clearer labels for expendable stock.
+--}}
+
+<div class="section-group">
+  <div class="form-group">
+    <label for="system.quantity">{{MWD.item.consumable.quantity}}</label>
+    <input class="type-numeric" type="number" name="system.quantity" value="{{system.quantity}}" min="0" step="1" data-dtype="Number" />
+  </div>
+
+  <div class="form-group">
+    <label for="system.rating">{{MWD.item.consumable.rating}}</label>
+    <input class="type-numeric" type="number" name="system.rating" value="{{system.rating}}" min="0" step="1" data-dtype="Number" />
+  </div>
+
+  <div class="form-group">
+    <label for="system.category">{{MWD.item.consumable.category}}</label>
+    <select name="system.category" data-dtype="String">
+      <option value="">Select consumable type</option>
+      {{selectOptions gearEditor.categories selected=system.category valueAttr="value" labelAttr="label" localize=false}}
+    </select>
+  </div>
+
+  <div class="form-group mwd-item-field--wide">
+    <label for="system.tags">{{MWD.item.consumable.tags}}</label>
+    <input type="text" name="system.tags" value="{{tagsText}}" placeholder="grenade, smoke, breaching" />
+  </div>
+</div>

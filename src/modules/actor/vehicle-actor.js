@@ -146,7 +146,10 @@ export class VehicleActor extends AnarchyBaseActor {
       lifeModules: ['lifeModule'],
       cues: ['cue'],
       dispositions: ['disposition'],
-      gear: ['gear'],
+      // Consumables ride the same inventory rail as general gear for the
+      // legacy actor-side item catalog until those callers move to explicit
+      // canonical buckets.
+      gear: ['gear', 'consumable'],
       assetModules: ['assetModule'],
       vehicleUpgrades: ['vehicleUpgrade'],
       mechEquipment: ['mechEquipment'],

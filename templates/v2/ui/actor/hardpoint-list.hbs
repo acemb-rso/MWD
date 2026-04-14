@@ -1,0 +1,62 @@
+{{!--
+templates/v2/ui/actor/hardpoint-list.hbs
+Purpose: Render staged hardpoint rows plus add/remove controls.
+How it fits: Keeps battlemech mount editing inside the V2 sheet stack instead of the legacy sheet listeners.
+--}}
+
+<div class="mwd-actor-items">
+  {{#if @root.editing}}
+    <div class="mwd-actor-items__toolbar">
+      <button type="button" data-action="addHardpoint">Add Hardpoint</button>
+    </div>
+  {{/if}}
+
+  {{#if @root.battlemechSheet.hardpoints.length}}
+    <div class="mwd-actor-items__list">
+      {{#each @root.battlemechSheet.hardpoints as |hardpoint|}}
+        <article class="mwd-actor-item">
+          <div class="mwd-actor-item__main">
+            <div class="mwd-actor-field-grid" style="display:grid; gap:0.75rem; grid-template-columns:repeat(4, minmax(0, 1fr));">
+              <div class="mwd-field-cluster">
+                <label>Type</label>
+                {{#if @root.editing}}
+                  <input type="text" name="system.mwd.hardpoints.{{hardpoint.index}}.type" value="{{hardpoint.type}}" data-edit-field="staged" />
+                {{else}}
+                  <div class="mwd-field-cluster__value">{{hardpoint.type}}</div>
+                {{/if}}
+              </div>
+              <div class="mwd-field-cluster">
+                <label>Size</label>
+                {{#if @root.editing}}
+                  <input type="text" name="system.mwd.hardpoints.{{hardpoint.index}}.size" value="{{hardpoint.size}}" data-edit-field="staged" />
+                {{else}}
+                  <div class="mwd-field-cluster__value">{{hardpoint.size}}</div>
+                {{/if}}
+              </div>
+              <div class="mwd-field-cluster">
+                <label>Location</label>
+                {{#if @root.editing}}
+                  <input type="text" name="system.mwd.hardpoints.{{hardpoint.index}}.location" value="{{hardpoint.location}}" data-edit-field="staged" />
+                {{else}}
+                  <div class="mwd-field-cluster__value">{{hardpoint.location}}</div>
+                {{/if}}
+              </div>
+              <div class="mwd-field-cluster">
+                <label>Occupancy</label>
+                <div class="mwd-field-cluster__value">{{hardpoint.occupiedByName}}</div>
+              </div>
+            </div>
+          </div>
+
+          {{#if @root.editing}}
+            <div class="mwd-actor-item__actions">
+              <button type="button" data-action="deleteHardpoint" data-hardpoint-index="{{hardpoint.index}}">Delete</button>
+            </div>
+          {{/if}}
+        </article>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-actor-items__empty">No hardpoints configured.</div>
+  {{/if}}
+</div>

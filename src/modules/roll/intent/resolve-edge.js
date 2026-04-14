@@ -37,7 +37,7 @@ export async function resolveEdge({ actor, payload } = {}) {
     subtitle: actor.name ?? "Actor",
     domains: [EDGE_DOMAIN[poolKey] ?? "unknown"], // drop "edge" tag unless you truly want it
 
-    // ✅ Make it directly rollable by the core roll pipeline
+    // Make it directly rollable by the core roll pipeline
     target: 5,
     poolTotal: usable,
 

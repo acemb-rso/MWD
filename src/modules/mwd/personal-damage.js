@@ -781,6 +781,13 @@ function resolveSourceState({ source = null, actor = null } = {}) {
   };
 }
 
+// Sheets and tests need the same "what does this source currently resolve to?"
+// answer that the attack pipeline uses. Exporting the pure resolver keeps the
+// authoring UI aligned with the live consumption behavior.
+export function resolveConsumptionSourceState({ source = null, actor = null } = {}) {
+  return resolveSourceState({ source, actor });
+}
+
 export function resolveWeaponPayloadState({
   payloads = [],
   selectedPayloadId = "",

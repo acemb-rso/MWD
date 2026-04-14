@@ -15,9 +15,9 @@ How it fits: Used by the CSB-driven personal weapon details layout.
 
   {{#if (eq system.category "melee")}}
     <div class="mwd-item-note">Melee weapons do not use payload sources.</div>
-  {{else if system.consumptionSources.length}}
+  {{else if weaponEditor.consumptionSources.length}}
     <div class="mwd-ammo-profiles">
-      {{#each system.consumptionSources as |source|}}
+      {{#each weaponEditor.consumptionSources as |source|}}
         <div class="mwd-ammo-profile define-source" data-source-id="{{source.id}}">
           <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
             <div class="form-group mwd-weapon-compact__field">
@@ -32,12 +32,12 @@ How it fits: Used by the CSB-driven personal weapon details layout.
               </select>
             </div>
 
-            {{#unless (eq source.kind "untracked")}}
+            {{#if (eq source.kind "internal")}}
               <div class="form-group mwd-weapon-compact__field">
                 <label>Current</label>
                 <input class="type-numeric mwd-source-field" type="number" value="{{source.tracking.current}}" data-source-id="{{source.id}}" data-field="tracking.current" />
               </div>
-            {{/unless}}
+            {{/if}}
 
             <button type="button" class="mwd-record__icon-btn is-danger mwd-source-delete" data-source-id="{{source.id}}" title="Remove">
               <i class="fas fa-times"></i>
@@ -46,14 +46,12 @@ How it fits: Used by the CSB-driven personal weapon details layout.
 
           {{#unless (eq source.kind "untracked")}}
             <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
-              {{#unless (eq source.kind "actorResource")}}
-                {{#unless (eq source.kind "itemRef")}}
-                  <div class="form-group mwd-weapon-compact__field">
-                    <label>Max</label>
-                    <input class="type-numeric mwd-source-field" type="number" value="{{source.tracking.max}}" data-source-id="{{source.id}}" data-field="tracking.max" />
-                  </div>
-                {{/unless}}
-              {{/unless}}
+              {{#if (eq source.kind "internal")}}
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Max</label>
+                  <input class="type-numeric mwd-source-field" type="number" value="{{source.tracking.max}}" data-source-id="{{source.id}}" data-field="tracking.max" />
+                </div>
+              {{/if}}
 
               {{#if (eq source.kind "actorResource")}}
                 <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
@@ -64,18 +62,38 @@ How it fits: Used by the CSB-driven personal weapon details layout.
 
               {{#if (eq source.kind "itemRef")}}
                 <div class="form-group mwd-weapon-compact__field">
-                  <label>Item Id</label>
-                  <input type="text" value="{{source.link.itemId}}" class="mwd-source-field" data-source-id="{{source.id}}" data-field="link.itemId" />
+                  <label>Owned Consumable</label>
+                  <select class="mwd-source-field" data-source-id="{{source.id}}" data-field="link.itemId" {{#unless source.ui.hasOwnedActor}}disabled{{/unless}}>
+                    <option value="">Select consumable</option>
+                    {{selectOptions source.ui.ownedItemOptions selected=source.link.itemId valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
                 </div>
               {{/if}}
 
               {{#if (eq source.kind "itemRef")}}
-                <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
-                  <label>Item Path</label>
-                  <input type="text" value="{{source.link.itemPath}}" class="mwd-source-field" data-source-id="{{source.id}}" data-field="link.itemPath" />
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Track</label>
+                  <select class="mwd-source-field" data-source-id="{{source.id}}" data-field="link.itemPath" {{#unless source.ui.hasOwnedActor}}disabled{{/unless}}>
+                    {{selectOptions source.ui.itemPathOptions selected=source.link.itemPath valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
                 </div>
               {{/if}}
             </div>
+
+            {{#if (eq source.kind "itemRef")}}
+              {{#if source.ui.showCustomItemPath}}
+                <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+                  <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+                    <label>Custom Item Path</label>
+                    <input type="text" value="{{source.link.itemPath}}" class="mwd-source-field" data-source-id="{{source.id}}" data-field="link.itemPath" />
+                  </div>
+                </div>
+              {{/if}}
+
+              {{#if source.ui.preview}}
+                <div class="mwd-item-note">{{source.ui.preview}}</div>
+              {{/if}}
+            {{/if}}
           {{/unless}}
         </div>
       {{/each}}

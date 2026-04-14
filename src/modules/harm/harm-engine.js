@@ -1,6 +1,7 @@
 // src/modules/harm/harm-engine.js
-// Purpose: Defines function `asTokenDocument`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+// Purpose: Central GM harm application service.
+// How it fits: Routes the GM harm tool through one actor-first workflow so
+// damage, burn, and status changes share the same targeting and chat contract.
 
 
 import { Checkbars } from "../common/checkbars.js";
@@ -23,12 +24,21 @@ import {
   buildDamageTraitFacts,
   evaluateTraitPhase,
 } from "../mwd/traits.js";
+import {
+  getHarmTrackLabel,
+  normalizeHarmDelta,
+  resolveArmorWearStep,
+} from "./harm-engine-utils.js";
 
+// The harm tool can target either a live Token object or its TokenDocument.
+// Normalizing that boundary early keeps the rest of the engine actor-first.
 function asTokenDocument(token) {
   if (!token) return null;
   return token?.document ?? token;
 }
 
+// Linked tokens should mutate the base actor so GM adjustments survive scene
+// transitions. Unlinked tokens keep their token actor state instead.
 function getPersistentActorForToken(actor, token) {
   if (!actor) return null;
 
@@ -45,12 +55,6 @@ function getPersistentActorForToken(actor, token) {
   return tokenDoc.actor ?? actor;
 }
 
-function normalizeDelta(value) {
-  const numeric = Number(value ?? 0);
-  if (!Number.isFinite(numeric)) return 0;
-  return Math.trunc(numeric);
-}
-
 function getMonitorValue(actor, track) {
   return Math.max(0, Number(actor?.system?.monitors?.[track]?.value ?? 0) || 0);
 }
@@ -59,16 +63,12 @@ function getBurnValue(actor) {
   return Math.max(0, Number(actor?.system?.burn?.value ?? 0) || 0);
 }
 
-function getTrackLabel(track) {
-  if (track === TEMPLATE.monitors.physical) return "Physical";
-  if (track === TEMPLATE.monitors.fatigue) return "Fatigue";
-  return String(track ?? "").trim() || "Track";
-}
-
 function getStatusLabelFromId(statusId, actor) {
   return getToggleableStatusEffects(actor).find(effect => effect.id === statusId)?.label ?? statusId;
 }
 
+// GM chat logging is a post-apply audit trail. Keep the copy generation here
+// so every harm mode reports through the same summary format.
 function buildChatContent(result) {
   const escapeHtml = foundry.utils.escapeHTML;
   const lines = [];
@@ -80,7 +80,7 @@ function buildChatContent(result) {
     const armorSuffix = result.usedArmor
       ? ` via armor-aware ${escapeHtml(getPersonalDamageTypeLabel(result.damageType))}`
       : "";
-    lines.push(`<div><b>${verb}:</b> ${amount} ${amountLabel} to ${escapeHtml(getTrackLabel(result.track))}${armorSuffix}</div>`);
+    lines.push(`<div><b>${verb}:</b> ${amount} ${amountLabel} to ${escapeHtml(getHarmTrackLabel(result.track))}${armorSuffix}</div>`);
 
     if (result.usedArmor && result.mitigation) {
       lines.push(
@@ -293,10 +293,12 @@ export class HarmEngine {
   }
 
   static async _applyTrackDelta(actor, payload, options = {}) {
+    // Track deltas are the lowest-level GM harm entry point. We only route
+    // through armor logic when the caller explicitly asks for it.
     const track = payload?.track === TEMPLATE.monitors.fatigue
       ? TEMPLATE.monitors.fatigue
       : TEMPLATE.monitors.physical;
-    const delta = normalizeDelta(payload?.delta ?? payload?.amount ?? 0);
+    const delta = normalizeHarmDelta(payload?.delta ?? payload?.amount ?? 0);
     const useArmor = Boolean(payload?.useArmor) && delta > 0;
 
     if (useArmor) {
@@ -324,15 +326,15 @@ export class HarmEngine {
       requestedDelta: delta,
       appliedDelta: after - before,
       usedArmor: false,
-      beforeLabel: `${getTrackLabel(track)} ${before}`,
-      afterLabel: `${getTrackLabel(track)} ${after}`,
+      beforeLabel: `${getHarmTrackLabel(track)} ${before}`,
+      afterLabel: `${getHarmTrackLabel(track)} ${after}`,
       source: String(payload?.source ?? "").trim(),
       notes: String(payload?.notes ?? "").trim(),
     };
   }
 
   static async _applyBurnDelta(actor, payload) {
-    const delta = normalizeDelta(payload?.delta ?? payload?.amount ?? 0);
+    const delta = normalizeHarmDelta(payload?.delta ?? payload?.amount ?? 0);
     const before = getBurnValue(actor);
     const next = Math.max(0, before + delta);
     const update = { "system.burn.value": next };
@@ -393,6 +395,8 @@ export class HarmEngine {
 
   static async _applyPersonalArmorAwareDamage(actor, payload, options = {}) {
     const dryRun = Boolean(options.dryRun);
+    // Damage application always normalizes to one monitor track and one damage
+    // type before trait hooks or armor mitigation run.
     const track = payload?.track === TEMPLATE.monitors.fatigue
       ? TEMPLATE.monitors.fatigue
       : TEMPLATE.monitors.physical;
@@ -460,28 +464,16 @@ export class HarmEngine {
       await Checkbars.addCounter(actor, track, finalDamage);
     }
 
-    const armorBefore = Math.max(0, Number(activeArmor?.durability?.current ?? 0) || 0);
-    let armorAfter = armorBefore;
-    const reinforcedBefore = Math.max(0, Number(activeArmor?.traitState?.reinforced?.current ?? 0) || 0);
-    const reinforcedMax = Math.max(0, Number(activeArmor?.traitState?.reinforced?.max ?? 0) || 0);
-    let reinforcedAfter = reinforcedBefore;
-    if (baseDamage + netHits > 0 && activeArmor?.item?.id) {
-      const armorUpdate = {};
-      if (reinforcedBefore > 0) {
-        reinforcedAfter = Math.max(0, reinforcedBefore - 1);
-        if (reinforcedAfter !== reinforcedBefore) {
-          armorUpdate["system.traitState.reinforced.current"] = reinforcedAfter;
-        }
-      } else {
-        armorAfter = Math.max(0, armorBefore - 1);
-        if (armorAfter !== armorBefore) {
-          armorUpdate["system.durability.current"] = armorAfter;
-        }
-      }
+    const armorWear = resolveArmorWearStep({
+      incomingDamage: baseDamage + netHits,
+      armorBefore: activeArmor?.durability?.current ?? 0,
+      reinforcedBefore: activeArmor?.traitState?.reinforced?.current ?? 0,
+      reinforcedMax: activeArmor?.traitState?.reinforced?.max ?? 0,
+      hasArmorItem: Boolean(activeArmor?.item?.id),
+    });
 
-      if (!dryRun && Object.keys(armorUpdate).length > 0) {
-        await activeArmor.item.update(armorUpdate);
-      }
+    if (!dryRun && Object.keys(armorWear.update).length > 0) {
+      await activeArmor.item.update(armorWear.update);
     }
 
     const afterTrack = dryRun ? Math.max(0, beforeTrack + finalDamage) : getMonitorValue(actor, track);
@@ -497,18 +489,18 @@ export class HarmEngine {
       mitigation: {
         ...armorMitigation,
         netResistance,
-        armorBefore,
-        armorAfter,
-        reinforcedBefore,
-        reinforcedAfter,
-        reinforcedMax,
+        armorBefore: armorWear.armorBefore,
+        armorAfter: armorWear.armorAfter,
+        reinforcedBefore: armorWear.reinforcedBefore,
+        reinforcedAfter: armorWear.reinforcedAfter,
+        reinforcedMax: armorWear.reinforcedMax,
       },
       damageIncoming,
       adjustedIncoming: damageIncoming,
       finalDamage,
       tagEffectResult,
-      beforeLabel: `${getTrackLabel(track)} ${beforeTrack}`,
-      afterLabel: `${getTrackLabel(track)} ${afterTrack}`,
+      beforeLabel: `${getHarmTrackLabel(track)} ${beforeTrack}`,
+      afterLabel: `${getHarmTrackLabel(track)} ${afterTrack}`,
       source: String(payload?.source ?? "").trim(),
       notes: String(payload?.notes ?? "").trim(),
     };

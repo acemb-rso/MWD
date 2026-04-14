@@ -1,0 +1,86 @@
+{
+  "id": "npc",
+  "version": 1,
+  "root": {
+    "type": "stack",
+    "classes": ["csb-layout"],
+    "children": [
+      {
+        "type": "tabs",
+        "group": "primary",
+        "default": "overview",
+        "classes": ["csb-body", "mwd-body"],
+        "tabs": [
+          {
+            "id": "overview",
+            "label": "NPC",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Profile",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 1, "fieldsKey": "profileFields" } }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Attributes",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "attributeFields" } }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Condition",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "monitorFields" } }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Traits",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "traits", "itemType": "quality", "addLabel": "Trait", "emptyLabel": "No traits assigned." } }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Weapons",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "weapons", "itemType": "personalWeapon", "addLabel": "Weapon", "emptyLabel": "No weapons assigned." } }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Asset Modules",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "assetModules", "itemType": "assetModule", "addLabel": "Module", "emptyLabel": "No asset modules assigned." } }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Inventory",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "inventory", "itemType": "gear", "addLabel": "Gear", "emptyLabel": "No gear assigned." } }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "notes",
+            "label": "Notes",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Notes",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.notes-editor" }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{{!--
+templates/v2/ui/actor/owned-item-list.hbs
+Purpose: Render a lightweight owned-item list with shared CRUD/loadout actions.
+How it fits: Gives non-character actor sheets one common item-list surface instead of one-off markup.
+--}}
+
+<div class="mwd-actor-items">
+  {{#if @root.editing}}
+    <div class="mwd-actor-items__toolbar">
+      <button type="button" data-action="createOwnedItem" data-item-type="{{context.itemType}}">
+        Add {{context.addLabel}}
+      </button>
+    </div>
+  {{/if}}
+
+  {{#with (lookup @root.actorSheet.itemCollections context.collectionKey) as |records|}}
+    {{#if records.length}}
+      <div class="mwd-actor-items__list">
+        {{#each records as |record|}}
+          <article class="mwd-actor-item" data-item-id="{{record.id}}">
+            <div class="mwd-actor-item__main">
+              <div class="mwd-actor-item__name">{{record.name}}</div>
+              {{#if record.subtitle}}
+                <div class="mwd-actor-item__subtitle">{{record.subtitle}}</div>
+              {{/if}}
+            </div>
+
+            <div class="mwd-actor-item__actions">
+              {{#if record.supportsEquip}}
+                <button type="button" data-action="toggleOwnedItemEquipped" data-item-id="{{record.id}}">
+                  {{#if record.equipped}}Unequip{{else}}Equip{{/if}}
+                </button>
+              {{/if}}
+
+              {{#if record.supportsPrimary}}
+                <button type="button" data-action="setOwnedItemPrimary" data-item-id="{{record.id}}">
+                  {{#if record.isPrimary}}Primary{{else}}Set Primary{{/if}}
+                </button>
+              {{/if}}
+
+              {{#if record.supportsAttack}}
+                <button type="button" data-action="attackWeapon" data-item-id="{{record.id}}">
+                  Attack
+                </button>
+              {{/if}}
+
+              <button type="button" data-action="editOwnedItem" data-item-id="{{record.id}}">Open</button>
+
+              {{#if @root.editing}}
+                <button type="button" data-action="deleteOwnedItem" data-item-id="{{record.id}}">Delete</button>
+              {{/if}}
+            </div>
+          </article>
+        {{/each}}
+      </div>
+    {{else}}
+      <div class="mwd-actor-items__empty">{{context.emptyLabel}}</div>
+    {{/if}}
+  {{/with}}
+</div>

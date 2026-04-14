@@ -48,20 +48,31 @@ const PARTIALS = [
 
   // Sheet wrapper
   `systems/${SYSTEM_NAME}/templates/v2/actor/_sheet-root.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/actor/npc-sheet.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/actor/vehicle-sheet.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/actor/battlemech-sheet.hbs`,
 
   // Placeholders
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/assigned-systems.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-gear.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-consumables.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-armor.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-weapons.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-description.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-traits.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-life-modules.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/actor/field-grid.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/actor/owned-item-list.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/actor/action-buttons.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/actor/notes-editor.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/actor/hardpoint-list.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/actor/weapon-group-list.hbs`,
 
   // V2 item partials
   `systems/${SYSTEM_NAME}/templates/v2/item/_item-sheet-root.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/contact.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/gear.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/consumable.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/assetModule.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/skill.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/lifeModule.hbs`,
@@ -73,6 +84,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/inactive.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/references.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/gear-main.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/consumable-main.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/skill-main.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/life-module-main.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/quality-main.hbs`,

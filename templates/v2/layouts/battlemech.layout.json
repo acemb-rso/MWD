@@ -1,0 +1,106 @@
+{
+  "id": "battlemech",
+  "version": 1,
+  "root": {
+    "type": "stack",
+    "classes": ["csb-layout"],
+    "children": [
+      {
+        "type": "tabs",
+        "group": "primary",
+        "default": "overview",
+        "classes": ["csb-body", "mwd-body"],
+        "tabs": [
+          {
+            "id": "overview",
+            "label": "BattleMech",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Chassis",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "profileFields" } }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Attributes",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 4, "fieldsKey": "attributeFields" } }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Structure and Heat",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "monitorFields" } }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Mount Summary",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "mountFields" } }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Operator Snapshot",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "snapshotFields" } }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Quick Actions",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.action-buttons", "context": { "actionsKey": "quickActions" } }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "weapons",
+            "label": "Weapons and Mounts",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Weapons",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "weapons", "itemType": "mechWeapon", "addLabel": "Weapon", "emptyLabel": "No mech weapons assigned." } }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Weapon Groups",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.weapon-group-list" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Hardpoints",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.hardpoint-list" }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "notes",
+            "label": "Notes",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Description",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.notes-editor" }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

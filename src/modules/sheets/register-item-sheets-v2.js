@@ -27,7 +27,9 @@ export function registerItemSheetsV2() {
 
   const { Items } = foundry.documents.collections;
   Items.registerSheet(SYSTEM_NAME, ContactItemSheet, { types: ["contact"], makeDefault: true, label: "Contact (V2)" });
-  Items.registerSheet(SYSTEM_NAME, GearItemSheet, { types: ["gear"], makeDefault: true, label: "Gear (V2)" });
+  // Consumables intentionally reuse the gear sheet contract so quantity-based
+  // inventory stays uniform while the source picker can target one clear type.
+  Items.registerSheet(SYSTEM_NAME, GearItemSheet, { types: ["gear", "consumable"], makeDefault: true, label: "Gear / Consumable (V2)" });
   Items.registerSheet(SYSTEM_NAME, QualityItemSheet, { types: ["quality"], makeDefault: true, label: "Quality (V2)" });
   Items.registerSheet(SYSTEM_NAME, AssetModuleItemSheet, { types: ["assetModule"], makeDefault: true, label: "Asset Module (V2)" });
   Items.registerSheet(SYSTEM_NAME, LifeModuleItemSheet, { types: ["lifeModule"], makeDefault: true, label: "Life Module (V2)" });

@@ -412,6 +412,7 @@
     "types": [
       "contact",
       "gear",
+      "consumable",
       "quality",
       "assetModule",
         "skill",
@@ -567,6 +568,16 @@
       "quantity": 1,
       "rating": 0,
       "category": "",
+      "tags": []
+    },
+    "consumable": {
+      "templates": [
+        "inactive",
+        "references"
+      ],
+      "quantity": 1,
+      "rating": 0,
+      "category": "ammo",
       "tags": []
     },
     "contact": {

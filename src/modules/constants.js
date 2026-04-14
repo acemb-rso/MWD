@@ -101,6 +101,7 @@ export const TEMPLATE = {
     personalWeapon: 'personalWeapon',
     armor: 'armor',
     gear: 'gear',
+    consumable: 'consumable',
     contact: 'contact',
     lifeModule: 'lifeModule',
   },

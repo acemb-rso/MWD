@@ -1,25 +1,9 @@
 {{!--
 templates/v2/actor/vehicle-sheet.hbs
-Purpose: Contains conditional display logic. Contains styled HTML nodes for UI layout. Includes form controls or labeled fields.
-How it fits: Used by rendering code to produce UI fragments.
+Purpose: Layout-backed AppV2 entry point for the vehicle actor sheet.
+How it fits: Replaces the legacy vehicle template with the shared V2 shell.
 --}}
 
-
-<section class="{{cssClass}}">
-  <header class="sheet-header">
-    <img class="profile" src="{{actor.img}}" data-edit="img" />
-    <h1 class="name">
-      {{#if editable}}<input name="name" type="text" value="{{actor.name}}" />{{else}}{{actor.name}}{{/if}}
-    </h1>
-
-    {{#if editable}}
-      <button type="button" data-action="toggleEditing">
-        {{#if editing}}View{{else}}Edit{{/if}}
-      </button>
-    {{/if}}
-  </header>
-
-  <section class="sheet-body">
-    {{> "systems/mwd/templates/v2/actor/vehicle-main.hbs"}}
-  </section>
-</section>
+{{#> "mwd.v2.actor.sheet-root"}}
+  {{> "mwd.v2.ui.layout-root" node=layout.root}}
+{{/ "mwd.v2.actor.sheet-root"}}

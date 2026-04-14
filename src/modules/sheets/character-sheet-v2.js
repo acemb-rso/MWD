@@ -106,9 +106,67 @@ const GEAR_CATEGORY_LABELS = {
   surveillance: "Surveillance Gear",
 };
 
+const CONSUMABLE_CATEGORY_LABELS = {
+  ammo: "Ammunition",
+  explosive: "Explosive",
+  medical: "Medical",
+  repair: "Repair",
+  fuel: "Fuel / Power Cell",
+  utility: "Utility",
+};
+
 function formatSignedValue(value) {
   const numeric = Number(value ?? 0) || 0;
   return numeric > 0 ? `+${numeric}` : `${numeric}`;
+}
+
+function buildQuantityTrackedInventoryRecord({
+  item,
+  accordionId,
+  itemType,
+  defaultSubtitle,
+  categoryLabels = {},
+  ratingLabel = "Rating",
+  typeLabel = "",
+  isEditable = false,
+  isExpanded = false,
+} = {}) {
+  const quantity = Math.max(0, Math.trunc(toNumber(item?.system?.quantity ?? 1, 1)));
+  const rating = Math.max(0, Math.trunc(toNumber(item?.system?.rating ?? 0, 0)));
+  const tags = compactList(item?.system?.tags ?? []);
+  const category = String(item?.system?.category ?? "").trim();
+  const categoryLabel = categoryLabels[category] ?? category;
+
+  return {
+    id: item.id,
+    itemType,
+    isGear: itemType === "gear",
+    isConsumable: itemType === "consumable",
+    accordionId,
+    isExpanded,
+    name: item.name,
+    img: item.img,
+    subtitle: categoryLabel || defaultSubtitle,
+    summaryStats: buildSummaryStats([
+      { label: "Qty", value: quantity, emphasis: "strong" },
+      { label: ratingLabel, value: rating }
+    ]),
+    detailTags: buildDetailTags([
+      typeLabel,
+      ...tags,
+      item?.system?.inactive ? "Inactive" : ""
+    ]),
+    detailRows: buildDetailRows([
+      { label: "Quantity", value: quantity },
+      { label: ratingLabel, value: rating },
+      { label: "Source", value: item?.system?.sourceReference ?? "" },
+      { label: "Category", value: categoryLabel },
+      { label: "Tags", value: tags.join(", ") }
+    ]),
+    detailText: toSnippet(item?.system?.description),
+    quantity,
+    canAdjustQuantity: isEditable
+  };
 }
 
 function buildArmorModifierSummary({ defenseBonus = 0, mitigationByType = {} } = {}) {
@@ -500,39 +558,32 @@ ctx.edgeConsole.poolsOrdered = order
       }),
       gear: (ctx.items?.gear ?? []).map(item => {
         const accordionId = this.#inventoryAccordionId("gear", item.id);
-        const quantity = Math.max(0, Math.trunc(toNumber(item.system?.quantity ?? 1, 1)));
-        const rating = Math.max(0, Math.trunc(toNumber(item.system?.rating ?? 0, 0)));
-        const tags = compactList(item.system?.tags ?? []);
-        const category = String(item.system?.category ?? "").trim();
-        const categoryLabel = GEAR_CATEGORY_LABELS[category] ?? category;
-        return {
-          id: item.id,
-          itemType: "gear",
-          isGear: true,
+        return buildQuantityTrackedInventoryRecord({
+          item,
           accordionId,
+          itemType: "gear",
+          defaultSubtitle: "Gear",
+          categoryLabels: GEAR_CATEGORY_LABELS,
+          ratingLabel: "Rating",
+          isEditable: this.isEditable,
           isExpanded: this.#expandedInventoryRows.has(accordionId),
-          name: item.name,
-          img: item.img,
-          subtitle: categoryLabel || "Gear",
-          summaryStats: buildSummaryStats([
-            { label: "Qty", value: quantity, emphasis: "strong" },
-            { label: "Rating", value: rating }
-          ]),
-          detailTags: buildDetailTags([
-            ...tags,
-            item.system?.inactive ? "Inactive" : ""
-          ]),
-          detailRows: buildDetailRows([
-            { label: "Quantity", value: quantity },
-            { label: "Rating", value: rating },
-            { label: "Source", value: item.system?.sourceReference ?? "" },
-            { label: "Category", value: categoryLabel },
-            { label: "Tags", value: tags.join(", ") }
-          ]),
-          detailText: toSnippet(item.system?.description),
-          quantity,
-          canAdjustQuantity: this.isEditable
-        };
+        });
+      }),
+      // Consumables deliberately share the same quantity-tracked record model as
+      // gear so stock editing and linked-source authoring stay transferable.
+      consumables: (ctx.items?.consumable ?? []).map(item => {
+        const accordionId = this.#inventoryAccordionId("consumables", item.id);
+        return buildQuantityTrackedInventoryRecord({
+          item,
+          accordionId,
+          itemType: "consumable",
+          defaultSubtitle: "Consumable",
+          categoryLabels: CONSUMABLE_CATEGORY_LABELS,
+          ratingLabel: "Potency",
+          typeLabel: "Consumable",
+          isEditable: this.isEditable,
+          isExpanded: this.#expandedInventoryRows.has(accordionId),
+        });
       })
     };
 
@@ -1321,6 +1372,8 @@ ctx.edgeConsole.poolsOrdered = order
     ? "Personal Weapon"
     : itemType === "armor"
       ? "Armor"
+      : itemType === "consumable"
+        ? "Consumable"
       : itemType.charAt(0).toUpperCase() + itemType.slice(1);
 
   await actorWriteTarget.createEmbeddedDocuments("Item", [{
@@ -1410,7 +1463,9 @@ ctx.edgeConsole.poolsOrdered = order
   if (!this.isEditable) return;
 
   const item = this.#getOwnedItemFromTarget(target, event);
-  if (!item || item.canonicalType !== "gear") return;
+  // Both gear and consumables use the same quantity stepper so authors can
+  // adjust expendable stock directly from the character inventory.
+  if (!item || !["gear", "consumable"].includes(String(item.canonicalType ?? item.type ?? "").trim())) return;
 
   const delta = Math.trunc(Number(
     target?.dataset?.delta

@@ -21,6 +21,7 @@ export const MWD = {
     "Item": {
       "contact": "Contact",
       "gear": "Gear",
+      "consumable": "Consumable",
       "quality": "Trait",
       "assetModule": "Asset Module",
       "skill": "Skill",
@@ -492,6 +493,14 @@ export const MWD = {
       "tags": "Tags"
     },
 
+    "consumable": {
+      "quantity": "Quantity",
+      "quantityShort": "Qty",
+      "rating": "Potency",
+      "category": "Consumable Type",
+      "tags": "Tags"
+    },
+
     "lifeModule": {
       "moduleType": "Module Type",
       "type": {
@@ -560,6 +569,7 @@ export const MWD = {
       "quality": "Trait",
       "assetModule": "Asset Module",
       "gear": "Gear",
+      "consumable": "Consumable",
       "contact": "Contact",
       "lifeModule": "Life Module",
       "mechWeapon": "Mech-Scale Weapon",
@@ -571,6 +581,7 @@ export const MWD = {
       "quality": "Qualities",
       "assetModule": "Asset Modules",
       "gear": "Gears",
+      "consumable": "Consumables",
       "contact": "Contacts",
       "lifeModule": "Life Modules",
       "action": "Actions",

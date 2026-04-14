@@ -103,6 +103,9 @@
       "gear": {
         "htmlFields": ["description"]
       },
+      "consumable": {
+        "htmlFields": ["description"]
+      },
       "quality": {
         "htmlFields": ["description"]
       },

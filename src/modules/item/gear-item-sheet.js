@@ -4,6 +4,7 @@
 
 
 import { BaseItemSheet } from "./base-item-sheet.js";
+import { LayoutRegistry } from "../layout/layout-registry.js";
 import { TEMPLATES_PATH } from "../constants.js";
 
 const GEAR_CATEGORY_OPTIONS = Object.freeze([
@@ -20,8 +21,25 @@ const GEAR_CATEGORY_OPTIONS = Object.freeze([
   { value: "surveillance", label: "Surveillance Gear" }
 ]);
 
+const CONSUMABLE_CATEGORY_OPTIONS = Object.freeze([
+  { value: "ammo", label: "Ammunition" },
+  { value: "explosive", label: "Explosive" },
+  { value: "medical", label: "Medical" },
+  { value: "repair", label: "Repair" },
+  { value: "fuel", label: "Fuel / Power Cell" },
+  { value: "utility", label: "Utility" },
+]);
+
+function getInventoryCategoryOptions(canonicalType) {
+  return canonicalType === "consumable"
+    ? CONSUMABLE_CATEGORY_OPTIONS
+    : GEAR_CATEGORY_OPTIONS;
+}
+
 export class GearItemSheet extends BaseItemSheet {
-  static LAYOUT_ID = "gear";
+  // One sheet class intentionally backs both gear and consumables so quantity,
+  // rating, and reference editing never drift into parallel implementations.
+  static LAYOUT_ID = null;
 
   static PARTS = {
     sheet: {
@@ -32,7 +50,9 @@ export class GearItemSheet extends BaseItemSheet {
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
+    const canonicalType = this._getCanonicalItemType();
     const system = this.item.system ?? {};
+    const categoryOptions = getInventoryCategoryOptions(canonicalType);
 
     context.system = {
       ...system,
@@ -44,7 +64,7 @@ export class GearItemSheet extends BaseItemSheet {
         : []
     };
     context.gearEditor = {
-      categories: GEAR_CATEGORY_OPTIONS.map(option => ({ ...option }))
+      categories: categoryOptions.map(option => ({ ...option }))
     };
     context.tagsText = context.system.tags.join(", ");
     context.itemSheet = {
@@ -54,10 +74,11 @@ export class GearItemSheet extends BaseItemSheet {
         { label: "Rating", value: String(context.system.rating) },
         {
           label: "Category",
-          value: GEAR_CATEGORY_OPTIONS.find(option => option.value === context.system.category)?.label ?? "Uncategorized"
+          value: categoryOptions.find(option => option.value === context.system.category)?.label ?? "Uncategorized"
         }
       ]
     };
+    context.layout = await LayoutRegistry.get(canonicalType === "consumable" ? "consumable" : "gear");
 
     return context;
   }

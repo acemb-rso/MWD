@@ -57,23 +57,11 @@ import {
   normalizeWeaponCapabilityState,
 } from "../mwd/personal-weapon-capabilities.js";
 import { getDocumentTypeCreateDefaults } from "../document-type-defaults.js";
-
-const LEGACY_ITEM_TYPE_MAP = Object.freeze({
-  weapon: TEMPLATE.itemType.personalWeapon,
-  shadowamp: TEMPLATE.itemType.assetModule,
-});
-
-const DEFAULT_ITEM_ICONS = Object.freeze({
-  contact: "systems/mwd/img/default/mystery-man.svg",
-  gear: "systems/mwd/img/default/Default_Gear.svg",
-  quality: "systems/mwd/img/default/card-joker.svg",
-  assetModule: "systems/mwd/img/default/upgrade.svg",
-  skill: "systems/mwd/img/default/Default_Skill.svg",
-  lifeModule: "systems/mwd/img/default/book.svg",
-  mechWeapon: "systems/mwd/img/default/Default_Weapon.svg",
-  personalWeapon: "systems/mwd/img/colt-m1911.svg",
-  armor: "systems/mwd/img/default/Default_Armor.svg",
-});
+import {
+  canonicalizeItemType,
+  getDefaultItemIcon,
+  isLegacyItemType,
+} from "./item-type-utils.js";
 
 const RANGE_ORDER = Object.freeze(["close", "near", "far", "extreme"]);
 
@@ -372,11 +360,11 @@ export class MWDItem extends Item {
   }
 
   static canonicalType(type) {
-    return LEGACY_ITEM_TYPE_MAP[type] ?? type;
+    return canonicalizeItemType(type);
   }
 
   static defaultIconForType(type) {
-    return DEFAULT_ITEM_ICONS[this.canonicalType(type)];
+    return getDefaultItemIcon(type);
   }
 
   get canonicalType() {
@@ -432,7 +420,7 @@ export class MWDItem extends Item {
       );
     }
 
-    if (sourceType !== canonicalType && LEGACY_ITEM_TYPE_MAP[sourceType]) {
+    if (sourceType !== canonicalType && isLegacyItemType(sourceType)) {
       updates.type = canonicalType;
     }
 
@@ -517,7 +505,7 @@ export class MWDItem extends Item {
       return;
     }
 
-    if (nextSystem && this.isGear()) {
+    if (nextSystem && this.isQuantityTrackedInventoryItem()) {
       changed.system ??= {};
       changed.system.quantity = normalizeGearQuantity(nextSystem.quantity, 1);
       changed.system.rating = normalizeGearRating(nextSystem.rating, 0);
@@ -553,7 +541,7 @@ export class MWDItem extends Item {
       this._prepareLifeModuleBaseData();
     } else if (canonicalType === TEMPLATE.itemType.quality) {
       this._prepareQualityBaseData();
-    } else if (canonicalType === TEMPLATE.itemType.gear) {
+    } else if ([TEMPLATE.itemType.gear, TEMPLATE.itemType.consumable].includes(canonicalType)) {
       this._prepareGearBaseData();
     }
   }
@@ -672,6 +660,14 @@ export class MWDItem extends Item {
 
   isGear() {
     return this.canonicalType === TEMPLATE.itemType.gear;
+  }
+
+  isConsumable() {
+    return this.canonicalType === TEMPLATE.itemType.consumable;
+  }
+
+  isQuantityTrackedInventoryItem() {
+    return this.isGear() || this.isConsumable();
   }
 
   supportsEquippedEffectSync() {
@@ -1198,6 +1194,31 @@ export class MWDItem extends Item {
     await this._mutateConsumptionSources(sources => sources.map(source => {
       if (source.id !== sourceId) return source;
       foundry.utils.setProperty(source, field, value);
+
+      // Item-linked sources are most often used to consume an owned stack such
+      // as grenades. Defaulting the tracked field to quantity keeps that common
+      // case one selection away instead of requiring manual path knowledge.
+      if (field === "kind" && source.kind === "itemRef") {
+        source.link ??= {};
+        if (!String(source.link.itemPath ?? "").trim()) source.link.itemPath = "quantity";
+        if (!String(source.label ?? "").trim() || String(source.label ?? "").trim() === "Source") {
+          source.label = "Linked Item";
+        }
+      }
+
+      if (field === "link.itemId" && source.kind === "itemRef") {
+        source.link ??= {};
+        if (!String(source.link.itemPath ?? "").trim()) source.link.itemPath = "quantity";
+
+        const linkedItem = this.actor?.items?.get?.(String(source.link.itemId ?? "").trim()) ?? null;
+        if (
+          linkedItem
+          && (!String(source.label ?? "").trim() || ["Source", "Linked Item"].includes(String(source.label ?? "").trim()))
+        ) {
+          source.label = linkedItem.name ?? source.label;
+        }
+      }
+
       return normalizeConsumptionSource(source);
     }));
   }

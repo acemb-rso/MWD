@@ -1,6 +1,7 @@
 // src/modules/sheets/base-actor-sheet-v2.js
-// Purpose: Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+// Purpose: Shared AppV2 actor-sheet foundation.
+// How it fits: Defines the stable edit/render/submit contract that every V2
+// actor sheet now builds on, so actor-specific sheets stay thin.
 
 
 import { LOG_HEAD, SYSTEM_NAME } from "../constants.js";
@@ -30,7 +31,8 @@ function createActorHTMLField(name) {
 export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2) {
   #editing = false;
 
-  // ---- Hard minimum size (resize clamp) ----
+  // Shared size bounds keep the V2 actor sheets visually consistent while still
+  // allowing each subclass to request a slightly different preferred size.
   static MIN_WIDTH  = 800;
   static MAX_WIDTH  = 950;
   static MIN_HEIGHT = 600;
@@ -51,7 +53,12 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
       accordion: BaseActorSheetV2.prototype._onClickAccordion,
       roll: BaseActorSheetV2.prototype._onRollAction,
       monitorSet: BaseActorSheetV2.prototype._onMonitorSet,
-      editImage: BaseActorSheetV2.prototype._onEditImage
+      editImage: BaseActorSheetV2.prototype._onEditImage,
+      createOwnedItem: BaseActorSheetV2.prototype._onCreateOwnedItem,
+      editOwnedItem: BaseActorSheetV2.prototype._onEditOwnedItem,
+      deleteOwnedItem: BaseActorSheetV2.prototype._onDeleteOwnedItem,
+      toggleOwnedItemEquipped: BaseActorSheetV2.prototype._onToggleOwnedItemEquipped,
+      setOwnedItemPrimary: BaseActorSheetV2.prototype._onSetOwnedItemPrimary
     }
   }, { inplace: false });
 
@@ -83,7 +90,8 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
     return resolved;
   }
   
-  // Optional legacy shim if anything still reads defaultOptions
+  // Legacy callers still probe defaultOptions directly, so keep the alias until
+  // the remaining compatibility surfaces are gone.
   static get defaultOptions() { return this.DEFAULT_OPTIONS; }
 
   /** Editing mode flag for templates */
@@ -151,10 +159,10 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
 _initializeApplicationOptions(options) {
   options = super._initializeApplicationOptions(options);
 
-  // Defensive: ensure instance-owned array (prevents shared-ref weirdness)
+  // Foundry may pass option arrays by reference. Clone here so per-instance
+  // class mutation never bleeds across other open sheets.
   options.classes = Array.from(options.classes ?? []);
 
-   // (your existing code follows)
   const doc = options?.document ?? this.document;
   const type = doc?.type ?? this.actor?.type;
 
@@ -227,8 +235,9 @@ _initializeApplicationOptions(options) {
       return true;
     });
 
-    // Dedupe: action first, then icon|label
-    const seen = new Set();
+  // Header controls can be contributed by core and modules. Deduping here keeps
+  // repeated token/config buttons from stacking up across versions.
+  const seen = new Set();
     controls = controls.filter(c => {
       const action = c?.action;
       const key = action ? `a:${action}` : `il:${c?.icon ?? ""}|${c?.label ?? ""}`;
@@ -348,6 +357,108 @@ _initializeApplicationOptions(options) {
 
     // render() is sync in Foundry; awaiting is fine but not required
     picker.render(true);
+  }
+
+  /* -------------------------------------------- */
+  /* Shared Owned Item Actions                     */
+  /* -------------------------------------------- */
+
+  // The character sheet already has richer item affordances, but NPC, vehicle,
+  // and battlemech sheets only need a stable baseline: create, open, delete,
+  // and the two common loadout toggles.
+  _getOwnedItemFromTarget(target, event) {
+    const itemId = String(
+      target?.dataset?.itemId
+      ?? target?.closest?.("[data-item-id]")?.dataset?.itemId
+      ?? event?.target?.closest?.("[data-item-id]")?.dataset?.itemId
+      ?? ""
+    ).trim();
+
+    if (!itemId) return null;
+    return this.actor?.items?.get?.(itemId) ?? null;
+  }
+
+  _getItemTypeLabel(itemType = "") {
+    const normalized = String(itemType ?? "").trim();
+    const labels = {
+      personalWeapon: "Personal Weapon",
+      mechWeapon: "Mech Weapon",
+      assetModule: "Asset Module",
+      lifeModule: "Life Module",
+      consumable: "Consumable",
+    };
+
+    return labels[normalized] ?? normalized.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, char => char.toUpperCase());
+  }
+
+  async _onCreateOwnedItem(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (!this.isEditable) return;
+
+    const itemType = String(target?.dataset?.itemType ?? "").trim();
+    if (!itemType) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const existingCount = actorWriteTarget.items.filter(item => (item.canonicalType ?? item.type) === itemType).length;
+
+    await actorWriteTarget.createEmbeddedDocuments("Item", [{
+      name: `${this._getItemTypeLabel(itemType)} ${existingCount + 1}`,
+      type: itemType
+    }]);
+
+    this.render({ force: true });
+  }
+
+  async _onEditOwnedItem(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const item = this._getOwnedItemFromTarget(target, event);
+    item?.sheet?.render(true);
+  }
+
+  async _onDeleteOwnedItem(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (!this.isEditable) return;
+
+    const item = this._getOwnedItemFromTarget(target, event);
+    if (!item) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    await actorWriteTarget.deleteEmbeddedDocuments("Item", [item.id]);
+    this.render({ force: true });
+  }
+
+  async _onToggleOwnedItemEquipped(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (!this.isEditable) return;
+
+    const item = this._getOwnedItemFromTarget(target, event);
+    if (!item) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    await actorWriteTarget.setOwnedItemEquipped?.(item.id, !item.system?.equipped);
+    this.render({ force: true });
+  }
+
+  async _onSetOwnedItemPrimary(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (!this.isEditable) return;
+
+    const item = this._getOwnedItemFromTarget(target, event);
+    if (!item) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    await actorWriteTarget.setOwnedItemPrimary?.(item.id, !item.system?.isPrimary);
+    this.render({ force: true });
   }
 
   /**
@@ -483,14 +594,16 @@ async _prepareContext(options) {
 
   const base = await super._prepareContext(options);
 
-  // ---- IMPORTANT: Never mutate base.options or hbsData.options in-place ----
-  // Some AppV2 paths hand through references that can alias this.options.
-  // We create a template-only options object that is safe to mutate.
+  // Some AppV2 paths hand through references that alias this.options. Build a
+  // template-only copy so downstream context shaping never mutates live app
+  // configuration by accident.
   const templateOptions = foundry.utils.deepClone(base?.options ?? {});
   templateOptions.classes = Array.from(this.options?.classes ?? []);
   templateOptions.cssClass = templateOptions.classes.join(" ");
 
-  // Build final context without mutating Application options
+  // Keep legacy aliases in the context while migrating templates onto the V2
+  // contract. That lets us delete old template branches without forcing one
+  // giant sheet rewrite in a single patch.
   const hbsData = foundry.utils.mergeObject(
     base,
     {
@@ -501,22 +614,22 @@ async _prepareContext(options) {
       limited: !(this.document?.isOwner ?? false),
       editing: this.#editing,
 
-      // Template contract
-      data: this.actor,                // legacy alias
-      options: templateOptions,         // safe, template-only
+      data: this.actor,
+      options: templateOptions,
       cssClass: templateOptions.cssClass
     },
     { inplace: false }
   );
 
-  // Mirror common flags in options for templates that reference options.*
+  // Mirror common flags in options for templates that still read options.*
   hbsData.options.owner = hbsData.owner;
   hbsData.options.limited = hbsData.limited;
   hbsData.options.editable = hbsData.editable;
   hbsData.options.editing = hbsData.editing;
   hbsData.options.viewMode = !hbsData.editing;
 
-  // ---- Skills display model (CSB Skills tab expects this) ----
+  // Shared skill display keeps all actor sheets aligned on one prepared shape
+  // even if a given template only renders part of it today.
   hbsData.skillsDisplay = buildSkillDisplay(this.actor?.system ?? {});
   hbsData.bio = {
     ...(hbsData.bio ?? {}),
@@ -525,7 +638,8 @@ async _prepareContext(options) {
     }
   };
 
-  // ---- Items: classify into buckets if helper exists ----
+  // Preserve the historical item buckets while the new sheets move toward the
+  // explicit actorSheet.itemCollections contract.
   hbsData.items ??= {};
   if (this.actor?.items && typeof Misc?.classifyInto === "function") {
     Misc.classifyInto(hbsData.items, this.actor.items);
@@ -535,12 +649,18 @@ async _prepareContext(options) {
     ];
   }
 
-  // ---- NPC compatibility alias (your npc.hbs expects npcItems.*) ----
+  // Keep the old npcItems alias until every surviving template has moved to the
+  // new actorSheet context shape.
   hbsData.npcItems = {
     traits: (hbsData.items.quality ?? []),
     weapons: (hbsData.items.weapon ?? []),
     assetModules: (hbsData.items.assetModule ?? []),
-    inventory: (hbsData.items.gear ?? [])
+    // Legacy partials still read npcItems.inventory, so fold consumables into
+    // that alias until every remaining actor surface reads explicit buckets.
+    inventory: [
+      ...(hbsData.items.gear ?? []),
+      ...(hbsData.items.consumable ?? [])
+    ]
   };
 
   console.log(`${LOG_HEAD}BaseActorSheetV2._prepareContext:done`, {

@@ -10,33 +10,59 @@ function isNamedField(field) {
     || field instanceof HTMLTextAreaElement;
 }
 
-export function coerceDocumentFieldValue(field) {
-  if (!isNamedField(field)) return SKIP_FIELD;
+// This descriptor form is the test seam for field coercion. The live sheet
+// path still passes DOM nodes, but tests can exercise the rules without a DOM.
+export function coerceDocumentFieldDescriptor({
+  elementKind = "input",
+  inputType = "",
+  dtype = "",
+  value = "",
+  checked = false,
+} = {}) {
+  const normalizedKind = String(elementKind ?? "").trim().toLowerCase();
+  const normalizedInputType = String(inputType ?? "").trim().toLowerCase();
+  const normalizedDtype = String(dtype ?? "").trim().toLowerCase();
 
-  if (field instanceof HTMLInputElement) {
-    if (field.type === "radio") {
-      if (!field.checked) return SKIP_FIELD;
-      return field.value;
+  if (!["input", "select", "textarea"].includes(normalizedKind)) {
+    return SKIP_FIELD;
+  }
+
+  if (normalizedKind === "input") {
+    if (normalizedInputType === "radio") {
+      if (!checked) return SKIP_FIELD;
+      return value;
     }
 
-    if (field.type === "checkbox") {
-      return field.checked;
+    if (normalizedInputType === "checkbox") {
+      return Boolean(checked);
     }
   }
 
-  const dtype = String(field.dataset?.dtype ?? "").trim().toLowerCase();
-  const rawValue = field.value;
-
-  if (dtype === "number" || (field instanceof HTMLInputElement && field.type === "number")) {
-    const numeric = Number(rawValue);
+  if (normalizedDtype === "number" || (normalizedKind === "input" && normalizedInputType === "number")) {
+    const numeric = Number(value);
     return Number.isFinite(numeric) ? numeric : 0;
   }
 
-  if (dtype === "boolean") {
-    return rawValue === true || rawValue === "true";
+  if (normalizedDtype === "boolean") {
+    return value === true || value === "true";
   }
 
-  return rawValue;
+  return value;
+}
+
+export function coerceDocumentFieldValue(field) {
+  if (!isNamedField(field)) return SKIP_FIELD;
+  return coerceDocumentFieldDescriptor({
+    elementKind: field instanceof HTMLSelectElement
+      ? "select"
+      : field instanceof HTMLTextAreaElement
+        ? "textarea"
+        : "input",
+    inputType: field instanceof HTMLInputElement ? field.type : "",
+    dtype: String(field.dataset?.dtype ?? ""),
+    value: field.value,
+    checked: field instanceof HTMLInputElement ? field.checked : false,
+  });
 }
 
 export function collectDocumentFormUpdates({

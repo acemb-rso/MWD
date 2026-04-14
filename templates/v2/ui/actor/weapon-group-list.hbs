@@ -1,0 +1,62 @@
+{{!--
+templates/v2/ui/actor/weapon-group-list.hbs
+Purpose: Render staged weapon-group rows plus primary/add/remove controls.
+How it fits: Replaces the legacy battlemech sheet listeners with AppV2-compatible actions.
+--}}
+
+<div class="mwd-actor-items">
+  {{#if @root.editing}}
+    <div class="mwd-actor-items__toolbar">
+      <button type="button" data-action="addWeaponGroup">Add Weapon Group</button>
+    </div>
+  {{/if}}
+
+  {{#if @root.battlemechSheet.weaponGroups.length}}
+    <div class="mwd-actor-items__list">
+      {{#each @root.battlemechSheet.weaponGroups as |group|}}
+        <article class="mwd-actor-item">
+          <div class="mwd-actor-item__main">
+            <div class="mwd-actor-field-grid" style="display:grid; gap:0.75rem; grid-template-columns:repeat(3, minmax(0, 1fr));">
+              <div class="mwd-field-cluster">
+                <label>Name</label>
+                {{#if @root.editing}}
+                  <input type="text" name="system.mwd.weaponGroups.{{group.index}}.name" value="{{group.name}}" data-edit-field="staged" />
+                {{else}}
+                  <div class="mwd-field-cluster__value">{{group.name}}</div>
+                {{/if}}
+              </div>
+              <div class="mwd-field-cluster">
+                <label>Weapons</label>
+                {{#if @root.editing}}
+                  <input
+                    type="text"
+                    value="{{group.weaponIdsText}}"
+                    data-weapon-group-input="weaponIds"
+                    data-group-index="{{group.index}}"
+                  />
+                {{else}}
+                  <div class="mwd-field-cluster__value">{{group.weaponIdsText}}</div>
+                {{/if}}
+              </div>
+              <div class="mwd-field-cluster">
+                <label>Primary</label>
+                <div class="mwd-field-cluster__value">{{#if group.isPrimary}}Yes{{else}}No{{/if}}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mwd-actor-item__actions">
+            {{#if @root.editing}}
+              <button type="button" data-action="togglePrimaryWeaponGroup" data-group-index="{{group.index}}">
+                {{#if group.isPrimary}}Primary{{else}}Set Primary{{/if}}
+              </button>
+              <button type="button" data-action="deleteWeaponGroup" data-group-index="{{group.index}}">Delete</button>
+            {{/if}}
+          </div>
+        </article>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-actor-items__empty">No weapon groups configured.</div>
+  {{/if}}
+</div>

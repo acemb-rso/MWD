@@ -1,0 +1,13 @@
+{{!--
+templates/v2/ui/placeholders/inventory-consumables.hbs
+Purpose: Renders the character consumables collection with the shared record list.
+How it fits: Keeps quantity-tracked consumables authorable from the same inventory tab as gear.
+--}}
+
+
+{{> "mwd.v2.ui.character.inventory-section"
+    sectionKey="consumables"
+    itemType="consumable"
+    addLabel="Add"
+    addTitle="Add Consumable"
+    emptyLabel="No consumables."}}

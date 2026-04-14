@@ -11,16 +11,14 @@ import {
   cloneTemplateGeometry,
   createExposureData,
   createLegacyTemplatePlacementFromGeometry,
-  createTemplateGeometryFromMeasuredTemplate,
+  createRegionShapesFromTemplateGeometry,
   getExposureLabel,
-  getMeasuredTemplateDocumentData,
   normalizeTemplateGeometry,
   templateGeometryHitsToken,
   EXPOSURE_TIERS,
 } from "../area-effects/area-effect-engine.js";
 
 const DEFAULT_CONE_ANGLE = 90;
-const PREVIEW_POLL_MS = 75;
 const pendingTemplatePlacementRequests = new Map();
 
 function getGridSizePixels() {
@@ -121,6 +119,143 @@ function destroyPreviewContainer(container) {
   container?.destroy?.({ children: true });
 }
 
+function createPlacementPreview() {
+  const root = createPreviewContainer();
+  const templateLayer = new PIXI.Container();
+  templateLayer.eventMode = "none";
+  templateLayer.zIndex = 5;
+
+  const markerLayer = new PIXI.Container();
+  markerLayer.eventMode = "none";
+  markerLayer.zIndex = 10;
+
+  root.addChild(templateLayer);
+  root.addChild(markerLayer);
+  return { root, templateLayer, markerLayer };
+}
+
+function destroyPlacementPreview(preview) {
+  destroyPreviewContainer(preview?.root ?? preview);
+}
+
+function getTemplatePreviewColor() {
+  const raw = String(game.user?.color ?? "#ff6400").replace("#", "").trim();
+  const parsed = Number.parseInt(raw, 16);
+  return Number.isFinite(parsed) ? parsed : 0xff6400;
+}
+
+function clearContainerChildren(container) {
+  container?.removeChildren?.().forEach(child => child.destroy?.({ children: true }));
+}
+
+function getCanvasPointFromEvent(event) {
+  const view = canvas?.app?.view ?? null;
+  const stage = canvas?.stage ?? null;
+  if (!view || !stage) return null;
+
+  const rect = view.getBoundingClientRect();
+  const clientX = Number(event?.clientX ?? NaN);
+  const clientY = Number(event?.clientY ?? NaN);
+  if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return null;
+  if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return null;
+
+  const local = stage.toLocal(new PIXI.Point(
+    clientX - rect.left,
+    clientY - rect.top
+  ));
+
+  return {
+    x: Number(local?.x ?? 0) || 0,
+    y: Number(local?.y ?? 0) || 0,
+  };
+}
+
+function getDirectionDegrees(origin, target) {
+  const dx = Number(target?.x ?? 0) - Number(origin?.x ?? 0);
+  const dy = Number(target?.y ?? 0) - Number(origin?.y ?? 0);
+  if (dx === 0 && dy === 0) return 0;
+  return (Math.atan2(dy, dx) * 180) / Math.PI;
+}
+
+function sceneDistanceToPixels(distance = 0) {
+  const gridSize = Number(canvas.grid?.size ?? canvas.dimensions?.size ?? 100) || 100;
+  const unitDistance = Number(canvas.scene?.grid?.distance ?? canvas.dimensions?.distance ?? 1) || 1;
+  return Number(distance ?? 0) * (gridSize / unitDistance);
+}
+
+function buildInteractiveTemplateGeometry({ geometry = null, pointer = null, attack = {}, actor = null } = {}) {
+  const base = normalizeTemplateGeometry(geometry);
+  if (!base) return null;
+
+  const next = cloneTemplateGeometry(base) ?? null;
+  if (!next || !pointer) return next;
+
+  const placementMode = String(attack?.template?.placement ?? next.placementMode ?? "").trim().toLowerCase();
+  const anchorFollowsPointer = placementMode !== "origin";
+  if (anchorFollowsPointer) {
+    next.x = pointer.x;
+    next.y = pointer.y;
+  }
+
+  if (["line", "cone", "rect"].includes(String(next.shape ?? "").trim().toLowerCase())) {
+    const attackerToken = getActorToken(actor);
+    const attackerCenter = attackerToken ? getTokenCenter(attackerToken) : null;
+    const directionOrigin = anchorFollowsPointer
+      ? (attackerCenter ?? { x: Number(base.x ?? 0), y: Number(base.y ?? 0) })
+      : { x: Number(next.x ?? 0), y: Number(next.y ?? 0) };
+    next.direction = getDirectionDegrees(directionOrigin, pointer);
+  }
+
+  return normalizeTemplateGeometry(next);
+}
+
+function drawTemplatePreview(container, geometry = null) {
+  if (!container) return;
+  clearContainerChildren(container);
+
+  const resolved = normalizeTemplateGeometry(geometry);
+  if (!resolved) return;
+
+  const color = getTemplatePreviewColor();
+  const graphic = new PIXI.Graphics();
+  graphic.lineStyle(3, color, 0.95);
+  graphic.beginFill(color, 0.18);
+
+  switch (String(resolved.shape ?? "").trim().toLowerCase()) {
+    case "blast": {
+      graphic.drawCircle(
+        Number(resolved.x ?? 0),
+        Number(resolved.y ?? 0),
+        sceneDistanceToPixels(resolved.distance ?? 0)
+      );
+      break;
+    }
+    case "rect": {
+      const widthPx = sceneDistanceToPixels(resolved.width ?? 0);
+      const heightPx = sceneDistanceToPixels(resolved.height ?? 0);
+      graphic.position.set(Number(resolved.x ?? 0), Number(resolved.y ?? 0));
+      graphic.rotation = (Number(resolved.direction ?? 0) * Math.PI) / 180;
+      graphic.drawRect(
+        -(Number(resolved.anchorX ?? 0) || 0) * widthPx,
+        -(Number(resolved.anchorY ?? 0) || 0) * heightPx,
+        widthPx,
+        heightPx
+      );
+      break;
+    }
+    default: {
+      const [shape] = createRegionShapesFromTemplateGeometry(resolved);
+      if (shape?.type === "polygon" && Array.isArray(shape.points) && shape.points.length >= 3) {
+        graphic.drawPolygon(shape.points.flatMap(point => [Number(point?.x ?? 0), Number(point?.y ?? 0)]));
+      }
+      break;
+    }
+  }
+
+  graphic.endFill();
+  container.addChild(graphic);
+}
+
 function getExposureColor(tier = EXPOSURE_TIERS.none) {
   if (tier === EXPOSURE_TIERS.full) return 0xd64545;
   if (tier === EXPOSURE_TIERS.major) return 0xe78b2f;
@@ -130,7 +265,7 @@ function getExposureColor(tier = EXPOSURE_TIERS.none) {
 
 function drawTargetMarkers(container, markers = []) {
   if (!container) return;
-  container.removeChildren().forEach(child => child.destroy?.({ children: true }));
+  clearContainerChildren(container);
 
   for (const marker of markers) {
     const center = getTokenCenter(marker.token);
@@ -248,26 +383,13 @@ function buildMarkerState({ attack = {}, geometry = null, attacker = null } = {}
     }));
 }
 
-async function createTemporaryMeasuredTemplate(templateGeometry) {
-  const scene = canvas?.scene ?? null;
-  const data = getMeasuredTemplateDocumentData(templateGeometry);
-  if (!scene || !data) return null;
-
-  const [created] = await scene.createEmbeddedDocuments("MeasuredTemplate", [data]);
-  if (!created) return null;
-
-  await canvas?.templates?.activate?.();
-  created.object?.control?.({ releaseOthers: true });
-  return created;
-}
-
 function buildTemplatePlacementChatContent({ attack = {}, requestId = "" } = {}) {
   const shapeKey = String(attack?.template?.shape ?? "template").trim().toLowerCase();
   const label = shapeKey ? `${shapeKey.slice(0, 1).toUpperCase()}${shapeKey.slice(1)}` : "Template";
 
   return `
     <div class="mwd-template-placement-card">
-      <p style="margin: 0 0 0.65rem;">${foundry.utils.escapeHTML(label)} placement: Drag template and <strong>Confirm</strong> position or <strong>Cancel</strong> attack resolution.</p>
+      <p style="margin: 0 0 0.65rem;">${foundry.utils.escapeHTML(label)} placement: Move the cursor on the canvas, then <strong>Confirm</strong> or <strong>Cancel</strong> the attack.</p>
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
         <button type="button" data-mwd-action="templatePlacementConfirm" data-request-id="${foundry.utils.escapeHTML(requestId)}">Confirm</button>
         <button type="button" data-mwd-action="templatePlacementCancel" data-request-id="${foundry.utils.escapeHTML(requestId)}">Cancel</button>
@@ -311,7 +433,7 @@ async function createTemplatePlacementChatMessage({ actor = null, attack = {}, r
   });
 }
 
-async function promptToPlaceMeasuredTemplate({ templateDoc = null, attack = {} } = {}) {
+async function promptToPlaceTemplatePreview({ attack = {} } = {}) {
   const requestId = foundry.utils.randomID();
   const message = await createTemplatePlacementChatMessage({
     actor: attack?.actor ?? attack?.weapon?.actor ?? null,
@@ -333,7 +455,7 @@ async function promptToPlaceMeasuredTemplate({ templateDoc = null, attack = {} }
     // Ignore cleanup failures for temporary chat prompts.
   }
 
-  return Boolean(confirmed) && Boolean(templateDoc?.parent);
+  return Boolean(confirmed);
 }
 
 export function resolveTemplatePlacementChatRequest(requestId, confirmed = false) {
@@ -375,42 +497,34 @@ export async function placeTemplatedAttack({ actor, attack } = {}) {
 
   const initialGeometry = buildInitialTemplateGeometry({ attack, actor });
   if (!initialGeometry) {
-    throw createUserFacingRollError("Unable to initialize measured template placement for this attack.", { severity: "warn" });
+    throw createUserFacingRollError("Unable to initialize template placement for this attack.", { severity: "warn" });
   }
 
-  const templateDoc = await createTemporaryMeasuredTemplate(initialGeometry);
-  if (!templateDoc) {
-    throw createUserFacingRollError("Unable to create the temporary measured template.", { severity: "warn" });
-  }
-
-  const previewContainer = createPreviewContainer();
-  let intervalId = null;
-  let lastSignature = "";
-
-  const refreshMarkers = () => {
-    const currentGeometry = createTemplateGeometryFromMeasuredTemplate(templateDoc, {
-      placementMode: template?.placement ?? null,
-      shapeHint: template?.shape ?? "",
+  let currentGeometry = cloneTemplateGeometry(initialGeometry);
+  const preview = createPlacementPreview();
+  const handlePointerMove = event => {
+    const pointer = getCanvasPointFromEvent(event);
+    const nextGeometry = buildInteractiveTemplateGeometry({
+      geometry: currentGeometry,
+      pointer,
+      attack,
+      actor,
     });
-    if (!currentGeometry) return;
-
-    const signature = JSON.stringify(currentGeometry);
-    if (signature === lastSignature) return;
-    lastSignature = signature;
-    drawTargetMarkers(previewContainer, buildMarkerState({ attack, geometry: currentGeometry, attacker: actor }));
+    if (!nextGeometry) return;
+    currentGeometry = nextGeometry;
+    drawTemplatePreview(preview.templateLayer, currentGeometry);
+    drawTargetMarkers(preview.markerLayer, buildMarkerState({ attack, geometry: currentGeometry, attacker: actor }));
   };
 
   try {
-    refreshMarkers();
-    intervalId = window.setInterval(refreshMarkers, PREVIEW_POLL_MS);
+    drawTemplatePreview(preview.templateLayer, currentGeometry);
+    drawTargetMarkers(preview.markerLayer, buildMarkerState({ attack, geometry: currentGeometry, attacker: actor }));
+    window.addEventListener("pointermove", handlePointerMove);
 
-    const confirmed = await promptToPlaceMeasuredTemplate({ templateDoc, attack });
-    if (!confirmed || !templateDoc?.parent) return null;
+    const confirmed = await promptToPlaceTemplatePreview({ attack });
+    if (!confirmed) return null;
 
-    const templateGeometry = createTemplateGeometryFromMeasuredTemplate(templateDoc, {
-      placementMode: template?.placement ?? null,
-      shapeHint: template?.shape ?? "",
-    });
+    const templateGeometry = cloneTemplateGeometry(currentGeometry);
     if (!templateGeometry) return null;
 
     const legacyPlacement = createLegacyTemplatePlacementFromGeometry(templateGeometry, template);
@@ -426,14 +540,7 @@ export async function placeTemplatedAttack({ actor, attack } = {}) {
       targetSnapshots,
     };
   } finally {
-    if (intervalId) window.clearInterval(intervalId);
-    destroyPreviewContainer(previewContainer);
-    if (templateDoc?.parent) {
-      try {
-        await templateDoc.delete();
-      } catch (_error) {
-        // Ignore cleanup failures for temporary placement helpers.
-      }
-    }
+    window.removeEventListener("pointermove", handlePointerMove);
+    destroyPlacementPreview(preview);
   }
 }

@@ -1,103 +1,117 @@
 // src/modules/document-type-defaults.js
-// Purpose: Preserves legacy template.json defaults for newly created documents.
-// How it fits: Allows the manifest to migrate off template.json while keeping create-time defaults stable.
+// Purpose: Resolve create-time actor and item defaults without runtime fetches.
+// How it fits: Keeps document creation deterministic and makes the default graph testable outside Foundry.
 
-import { SYSTEM_PATH } from "./constants.js";
+import templateData from "../../template.json" with { type: "json" };
 
 const ROOT_CREATE_FIELDS = Object.freeze({
   Actor: new Set(["prototypeToken"]),
   Item: new Set(),
 });
 
-let legacyTemplateCache = null;
-let legacyTemplatePromise = null;
-
-function deepClone(value) {
-  return foundry.utils.deepClone(value);
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function mergeData(base = {}, extra = {}) {
-  return foundry.utils.mergeObject(
-    deepClone(base),
-    deepClone(extra),
-    { inplace: false, recursive: true, overwrite: true }
-  );
+function cloneValue(value) {
+  if (typeof structuredClone === "function") return structuredClone(value);
+  return JSON.parse(JSON.stringify(value));
 }
 
-async function loadLegacyTemplate() {
-  if (legacyTemplateCache) return legacyTemplateCache;
-  if (!legacyTemplatePromise) {
-    legacyTemplatePromise = fetch(`${SYSTEM_PATH}/template.json`)
-      .then(async response => {
-        if (!response.ok) {
-          throw new Error(`Failed to load template defaults (${response.status})`);
-        }
-        const data = await response.json();
-        legacyTemplateCache = data && typeof data === "object" ? data : {};
-        return legacyTemplateCache;
-      })
-      .catch(error => {
-        console.error("MWD | Failed to load legacy template defaults", error);
-        legacyTemplateCache = {};
-        return legacyTemplateCache;
-      });
+function mergePlainObjects(base = {}, extra = {}) {
+  const merged = cloneValue(base);
+
+  for (const [key, value] of Object.entries(extra ?? {})) {
+    if (isPlainObject(value) && isPlainObject(merged[key])) {
+      merged[key] = mergePlainObjects(merged[key], value);
+      continue;
+    }
+
+    merged[key] = cloneValue(value);
   }
-  return legacyTemplatePromise;
+
+  return merged;
 }
 
-function getDocumentConfig(templateData = {}, documentName = "") {
-  const config = templateData?.[documentName];
-  return config && typeof config === "object" ? config : {};
+export function getDocumentTemplateConfig(documentName = "", source = templateData) {
+  const config = source?.[documentName];
+  return isPlainObject(config) ? config : {};
 }
 
-function resolveTemplateBlock(templateData = {}, documentName = "", templateName = "", seen = new Set()) {
+export function resolveTemplateBlock(
+  source = templateData,
+  documentName = "",
+  templateName = "",
+  seen = new Set()
+) {
   const normalizedName = String(templateName ?? "").trim();
   if (!normalizedName || seen.has(normalizedName)) return {};
 
-  const documentConfig = getDocumentConfig(templateData, documentName);
+  const documentConfig = getDocumentTemplateConfig(documentName, source);
   const templateConfig = documentConfig?.templates?.[normalizedName];
-  if (!templateConfig || typeof templateConfig !== "object") return {};
+  if (!isPlainObject(templateConfig)) return {};
 
   seen.add(normalizedName);
   let resolved = {};
 
+  // Template composition is recursive, so we resolve dependencies first and
+  // then layer the local block on top.
   for (const nestedTemplateName of Array.from(templateConfig.templates ?? [])) {
-    resolved = mergeData(resolved, resolveTemplateBlock(templateData, documentName, nestedTemplateName, seen));
+    resolved = mergePlainObjects(
+      resolved,
+      resolveTemplateBlock(source, documentName, nestedTemplateName, seen)
+    );
   }
 
-  const localData = deepClone(templateConfig);
+  const localData = cloneValue(templateConfig);
   delete localData.templates;
-  return mergeData(resolved, localData);
+  return mergePlainObjects(resolved, localData);
 }
 
-function resolveTypeBlock(templateData = {}, documentName = "", documentType = "") {
-  const typeName = String(documentType ?? "").trim();
-  if (!typeName) return {};
+export function resolveDocumentTypeBlock(
+  source = templateData,
+  documentName = "",
+  documentType = ""
+) {
+  const normalizedType = String(documentType ?? "").trim();
+  if (!normalizedType) return {};
 
-  const documentConfig = getDocumentConfig(templateData, documentName);
-  const typeConfig = documentConfig?.[typeName];
-  if (!typeConfig || typeof typeConfig !== "object") return {};
+  const documentConfig = getDocumentTemplateConfig(documentName, source);
+  const typeConfig = documentConfig?.[normalizedType];
+  if (!isPlainObject(typeConfig)) return {};
 
   let resolved = {};
   for (const templateName of Array.from(typeConfig.templates ?? [])) {
-    resolved = mergeData(resolved, resolveTemplateBlock(templateData, documentName, templateName));
+    resolved = mergePlainObjects(
+      resolved,
+      resolveTemplateBlock(source, documentName, templateName)
+    );
   }
 
-  const localData = deepClone(typeConfig);
+  const localData = cloneValue(typeConfig);
   delete localData.templates;
-  return mergeData(resolved, localData);
+  return mergePlainObjects(resolved, localData);
 }
 
-export async function getDocumentTypeCreateDefaults(documentName = "", documentType = "") {
-  const templateData = await loadLegacyTemplate();
-  const resolved = resolveTypeBlock(templateData, documentName, documentType);
+export function resolveDocumentTypeCreateDefaults(
+  documentName = "",
+  documentType = "",
+  source = templateData
+) {
+  const resolved = resolveDocumentTypeBlock(source, documentName, documentType);
   const rootFields = ROOT_CREATE_FIELDS[documentName] ?? ROOT_CREATE_FIELDS.Item;
   const defaults = { system: {} };
 
   for (const [key, value] of Object.entries(resolved)) {
-    if (rootFields.has(key)) defaults[key] = deepClone(value);
-    else defaults.system[key] = deepClone(value);
+    if (rootFields.has(key)) defaults[key] = cloneValue(value);
+    else defaults.system[key] = cloneValue(value);
   }
 
   return defaults;
+}
+
+export async function getDocumentTypeCreateDefaults(documentName = "", documentType = "") {
+  // The API stays async so the actor/item preCreate hooks do not need a second
+  // migration. Internally this is now synchronous and bundle-backed.
+  return resolveDocumentTypeCreateDefaults(documentName, documentType);
 }

@@ -1,0 +1,18 @@
+{{!--
+templates/v2/ui/actor/action-buttons.hbs
+Purpose: Render actor-sheet action buttons with either sheet or roll actions.
+How it fits: Keeps quick-action panels declarative inside layout JSON.
+--}}
+
+<div class="button-row">
+  {{#each (lookup @root.actorSheet context.actionsKey) as |action|}}
+    <button
+      type="button"
+      {{#if action.dataAction}}data-action="{{action.dataAction}}"{{/if}}
+      {{#if action.roll}}data-roll='{{action.roll}}'{{/if}}
+      {{#if action.mode}}data-mode="{{action.mode}}"{{/if}}
+      {{#if action.disabled}}disabled{{/if}}>
+      {{action.label}}
+    </button>
+  {{/each}}
+</div>

@@ -1,0 +1,21 @@
+{{!--
+templates/v2/ui/actor/notes-editor.hbs
+Purpose: Render one staged notes field for actor sheets.
+How it fits: Lets each actor type pick its canonical notes path without duplicating textarea markup.
+--}}
+
+{{#with @root.actorSheet.notesField as |field|}}
+  <div class="mwd-field-cluster">
+    <label class="mwd-field-cluster__label" for="{{field.path}}">{{field.label}}</label>
+    {{#if @root.editing}}
+      <textarea
+        id="{{field.path}}"
+        name="{{field.path}}"
+        rows="{{field.rows}}"
+        data-edit-field="staged"
+      >{{field.value}}</textarea>
+    {{else}}
+      <div class="mwd-field-cluster__value mwd-field-cluster__value--textarea">{{field.displayValue}}</div>
+    {{/if}}
+  </div>
+{{/with}}
