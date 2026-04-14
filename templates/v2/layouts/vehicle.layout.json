@@ -3,104 +3,93 @@
   "version": 1,
   "root": {
     "type": "stack",
-    "classes": ["csb-layout"],
+    "classes": ["csb-layout", "vehicle-layout", "mwd-vehicle-layout"],
     "children": [
+      {
+        "type": "panel",
+        "title": "Overview",
+        "children": [
+          { "type": "include", "partial": "mwd.v2.ui.vehicle.summary-bar" }
+        ]
+      },
       {
         "type": "tabs",
         "group": "primary",
-        "default": "overview",
+        "default": "systems",
         "classes": ["csb-body", "mwd-body"],
         "tabs": [
           {
-            "id": "overview",
-            "label": "Vehicle",
+            "id": "systems",
+            "label": "Systems",
             "children": [
-              {
-                "type": "panel",
-                "title": "Profile",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 2, "fieldsKey": "profileFields" } }
-                ]
-              },
               {
                 "type": "panel",
                 "title": "Attributes",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 4, "fieldsKey": "attributeFields" } }
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.attributes-grid" }
                 ]
               },
               {
                 "type": "panel",
-                "title": "Durability and Systems",
+                "title": "Structure",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "monitorFields" } }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Quick Actions",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.action-buttons", "context": { "actionsKey": "quickActions" } }
+                  { "type": "include", "partial": "mwd.v2.ui.condition-monitors" }
                 ]
               }
             ]
           },
           {
-            "id": "crew",
-            "label": "Crew",
+            "id": "weapons",
+            "label": "Weapons",
             "children": [
               {
                 "type": "panel",
-                "title": "Crew State",
+                "title": "Vehicle Weapons",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 4, "fieldsKey": "crewFields" } }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Driver Snapshot",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "snapshotFields" } }
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "weapons" }
+                  }
                 ]
               }
             ]
           },
           {
-            "id": "loadout",
-            "label": "Loadout",
+            "id": "support",
+            "label": "Support",
             "children": [
               {
                 "type": "panel",
-                "title": "Skills",
+                "title": "Upgrades",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "skills", "itemType": "skill", "addLabel": "Skill", "emptyLabel": "No skills assigned." } }
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "upgrades" }
+                  }
                 ]
               },
               {
                 "type": "panel",
-                "title": "Weapons",
+                "title": "Modules",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "weapons", "itemType": "mechWeapon", "addLabel": "Weapon", "emptyLabel": "No weapons assigned." } }
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "modules" }
+                  }
                 ]
               },
               {
                 "type": "panel",
-                "title": "Cargo and Modules",
+                "title": "Gear",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "gear", "itemType": "gear", "addLabel": "Gear", "emptyLabel": "No cargo assigned." } }
-                ]
-              }
-            ]
-          },
-          {
-            "id": "notes",
-            "label": "Notes",
-            "children": [
-              {
-                "type": "panel",
-                "title": "Description",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.notes-editor" }
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "gear" }
+                  }
                 ]
               }
             ]

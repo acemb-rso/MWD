@@ -1,0 +1,19 @@
+{{!--
+templates/v2/ui/battlemech/quick-actions.hbs
+Purpose: Renders prepared BattleMech quick-action buttons.
+How it fits: Provides the first-pass mech roll/attack wiring on the V2 sheet.
+--}}
+
+<section class="mwd-item-hero">
+  {{#each battlemechSheet.quickActions as |action|}}
+    <button
+      type="button"
+      class="mwd-item-hero__stat mwd-item-hero__stat--button{{#if action.disabled}} is-disabled{{else}} is-action{{/if}}"
+      data-action="{{action.handler}}"
+      {{{mwd-dataset action.dataset}}}
+      {{#if action.disabled}}disabled{{/if}}>
+      <span class="mwd-item-hero__label">{{action.label}}</span>
+      <span class="mwd-item-hero__value">{{action.hint}}</span>
+    </button>
+  {{/each}}
+</section>

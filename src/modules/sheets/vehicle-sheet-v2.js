@@ -1,176 +1,353 @@
 // src/modules/sheets/vehicle-sheet-v2.js
-// Purpose: Layout-driven AppV2 vehicle sheet.
-// How it fits: Replaces the legacy vehicle template with the same staged-edit/layout pipeline used across the V2 sheets.
+// Purpose: Layout-driven AppV2 vehicle sheet that prepares semantic view models for dumb templates.
+// How it fits: Serves as the base vehicle-scale V2 sheet and the reuse target for BattleMech sheets.
 
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
-import { RollDialog } from "../roll/roll-dialog.js";
-import {
-  attributeFields,
-  collectActorItemRecords,
-  numberField,
-  textField,
-  textareaField,
-} from "./actor-sheet-support.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 
-function createSyntheticSkill({ name, attribute, value }) {
-  return {
-    name,
-    system: {
-      attribute,
-      value: Math.max(0, Number(value ?? 0) || 0),
-    }
-  };
+function toNumber(value, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
 }
 
+function compactList(values = []) {
+  return values
+    .map(value => String(value ?? "").trim())
+    .filter(Boolean);
+}
+
+function stripHtml(value) {
+  return String(value ?? "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function toSnippet(value, max = 180) {
+  const plain = stripHtml(value);
+  if (!plain) return "";
+  if (plain.length <= max) return plain;
+  return `${plain.slice(0, Math.max(0, max - 3)).trim()}...`;
+}
+
+function startCase(value = "") {
+  return String(value ?? "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function buildSummaryStats(stats = []) {
+  return stats
+    .filter(stat => stat && stat.value !== undefined && stat.value !== null && String(stat.value).trim() !== "")
+    .map(stat => ({
+      label: String(stat.label ?? "").trim(),
+      value: String(stat.value ?? "").trim(),
+      emphasis: stat.emphasis ?? ""
+    }));
+}
+
+function buildDetailTags(tags = []) {
+  return compactList(tags).map(label => ({ label }));
+}
+
+function buildDetailRows(rows = []) {
+  return rows
+    .filter(row => row && row.value !== undefined && row.value !== null && String(row.value).trim() !== "")
+    .map(row => ({
+      label: String(row.label ?? "").trim(),
+      value: String(row.value ?? "").trim()
+    }));
+}
+
+function formatRangeSummary(range = {}) {
+  const orderedKeys = ["close", "near", "far", "extreme", "max"];
+  const entries = orderedKeys
+    .filter(key => range?.[key] !== undefined && range?.[key] !== null && String(range[key]).trim() !== "")
+    .map(key => {
+      const value = range[key];
+      if (key === "max") return `Max ${startCase(value)}`;
+      return `${startCase(key)} ${toNumber(value, 0)}`;
+    });
+  return entries.join(" | ");
+}
+
+const VEHICLE_ATTRIBUTE_LABELS = Object.freeze({
+  handling: "Handling",
+  system: "System",
+  chassis: "Chassis",
+  condition: "Condition",
+});
+
+const ITEM_TYPE_LABELS = Object.freeze({
+  mechWeapon: "BattleMech Weapon",
+  vehicleWeapon: "Vehicle Weapon",
+  personalWeapon: "Personal Weapon",
+  assetModule: "Asset Module",
+  vehicleUpgrade: "Vehicle Upgrade",
+  mechEquipment: "Mech Equipment",
+  gear: "Gear",
+  quality: "Trait",
+  skill: "Skill",
+});
+
 export class VehicleSheetV2 extends BaseActorSheetV2 {
+  static LAYOUT_ID = "vehicle";
+
   static PARTS = {
     sheet: {
-      template: `${TEMPLATES_PATH}/v2/actor/vehicle-sheet.hbs`,
-      scrollable: [".sheet-body"]
+      get template() {
+        return `${TEMPLATES_PATH}/v2/actor/vehicle-sheet.hbs`;
+      },
     }
   };
 
-  static get DEFAULT_OPTIONS() {
-    return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-      classes: ["vehicle-sheet", SYSTEM_NAME, "actor-sheet-v2"],
-      position: { width: 940, height: 880 },
-      actions: {
-        ...super.DEFAULT_OPTIONS.actions,
-        rollVehicleQuickAction: VehicleSheetV2.prototype._onRollVehicleQuickAction,
-      }
-    });
-  }
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["vehicle-sheet", SYSTEM_NAME, "actor-sheet-v2", "mwd-vehicle-sheet", "mwd-sheet"],
+    window: { minWidth: 520, minHeight: 720, resizable: true },
+    position: { width: 940, height: 900 },
+    actions: {
+      ...super.DEFAULT_OPTIONS.actions,
+      createOwnedItem: VehicleSheetV2.prototype._onCreateOwnedItem,
+      editOwnedItem: VehicleSheetV2.prototype._onEditOwnedItem,
+      deleteOwnedItem: VehicleSheetV2.prototype._onDeleteOwnedItem,
+      toggleInventoryAccordion: VehicleSheetV2.prototype._onToggleInventoryAccordion,
+    }
+  });
+
+  #expandedInventoryRows = new Set();
 
   async _prepareContext(options) {
-    const context = await super._prepareContext(options);
-    const actor = this.actor;
-    const driverSnapshot = this.#getDriverSnapshot();
-
-    context.layout = await LayoutRegistry.get("vehicle");
-    context.actorSheet = {
-      profileFields: [
-        textField(actor, "system.category", "Category"),
-        numberField(actor, "system.moves", "Move"),
-      ],
-      attributeFields: attributeFields(actor, [
-        { key: "handling", label: "Handling" },
-        { key: "system", label: "System" },
-        { key: "condition", label: "Condition" },
-        { key: "chassis", label: "Chassis" },
-      ]),
-      monitorFields: [
-        numberField(actor, "system.monitors.structure.value", "Structure"),
-        numberField(actor, "system.monitors.structure.max", "Structure Max"),
-        numberField(actor, "system.monitors.armor.value", "Armor"),
-        numberField(actor, "system.monitors.armor.max", "Armor Max"),
-        textField(actor, "system.mwd.status.state", "Status"),
-        numberField(actor, "system.attacks", "Attacks"),
-      ],
-      crewFields: [
-        numberField(actor, "system.mwd.crew.count", "Crew"),
-        numberField(actor, "system.mwd.crew.effectiveCount", "Effective Crew"),
-        numberField(actor, "system.mwd.crew.injuryLevel", "Crew Injury"),
-        textField(actor, "system.crew", "Crew Notes"),
-      ],
-      snapshotFields: [
-        textField(actor, "system.mwd.driverSnapshot.name", "Primary Driver", { value: driverSnapshot.name }),
-        numberField(actor, "system.mwd.driverSnapshot.gunnery", "Gunnery", { value: driverSnapshot.gunnery }),
-        numberField(actor, "system.mwd.driverSnapshot.piloting", "Piloting", { value: driverSnapshot.piloting }),
-        numberField(actor, "system.mwd.driverSnapshot.perception", "Perception", { value: driverSnapshot.perception }),
-        numberField(actor, "system.mwd.driverSnapshot.stealth", "Stealth", { value: driverSnapshot.stealth }),
-        numberField(actor, "system.mwd.driverSnapshot.reflexes", "Reflexes", { value: driverSnapshot.reflexes }),
-        numberField(actor, "system.mwd.driverSnapshot.intelligence", "Intelligence", { value: driverSnapshot.intelligence }),
-      ],
-      quickActions: [
-        { label: "Defense", dataAction: "rollVehicleQuickAction", mode: "defense" },
-        { label: "Sensors", dataAction: "rollVehicleQuickAction", mode: "sensors" },
-        { label: "Stealth", dataAction: "rollVehicleQuickAction", mode: "stealth" },
-        { label: "Initiative", dataAction: "rollVehicleQuickAction", mode: "initiative" },
-      ],
-      itemCollections: {
-        skills: collectActorItemRecords(actor, {
-          types: ["skill"],
-          describe: item => `${item.system?.code ?? "skill"} | ${item.system?.attribute ?? ""} ${Number(item.system?.value ?? 0)}`,
-        }),
-        weapons: collectActorItemRecords(actor, {
-          types: ["mechWeapon", "personalWeapon"],
-          describe: item => `DV ${Number(item.system?.damage ?? 0)} | ${item.system?.damageType ?? ""}`,
-        }),
-        gear: collectActorItemRecords(actor, {
-          // Vehicles do not need a separate consumable panel yet, but their
-          // shared inventory list should still surface owned expendables.
-          types: ["gear", "consumable", "assetModule"],
-          describe: item => item.system?.category ?? item.type,
-        }),
-      },
-      notesField: textareaField(actor, "system.description", "Description", { rows: 12 }),
+    const ctx = await super._prepareContext(options);
+    ctx._mwdThemeClass = game.system?.mwd?.styles?.selectCssClass?.() ?? "";
+    ctx.layout = await LayoutRegistry.get(this.constructor.LAYOUT_ID ?? VehicleSheetV2.LAYOUT_ID);
+    ctx.vehicleSheet = {
+      summaryStats: this._buildSummaryStats(),
+      alerts: this._buildAlerts(),
+      attributes: this._buildAttributeCards(),
+      sections: this._buildVehicleSections(),
     };
-
-    return context;
+    ctx.conditionMonitors = this._buildConditionMonitors();
+    return ctx;
   }
 
-  async _onRollVehicleQuickAction(event, target) {
+  _buildSummaryStats() {
+    const attributes = this.actor.system?.attributes ?? {};
+    const structure = this.actor.system?.monitors?.structure ?? {};
+
+    return buildSummaryStats([
+      { label: "Handling", value: toNumber(attributes.handling?.value, 0), emphasis: "strong" },
+      { label: "System", value: toNumber(attributes.system?.value, 0) },
+      { label: "Chassis", value: toNumber(attributes.chassis?.value, 0) },
+      { label: "Condition", value: toNumber(attributes.condition?.value, 0) },
+      { label: "Structure", value: `${toNumber(structure.value, 0)} / ${toNumber(structure.max, 0)}` },
+    ]);
+  }
+
+  _buildAlerts() {
+    return [];
+  }
+
+  _buildAttributeCards() {
+    const attributes = this.actor.system?.attributes ?? {};
+    return Object.entries(VEHICLE_ATTRIBUTE_LABELS).map(([key, label]) => ({
+      key,
+      label,
+      value: toNumber(attributes?.[key]?.value, 0),
+      path: `system.attributes.${key}.value`,
+    }));
+  }
+
+  _buildConditionMonitors() {
+    const structure = this.actor.system?.monitors?.structure ?? this.actor.system?.mwd?.monitors?.structure ?? {};
+    return [{
+      id: "structure",
+      label: "Structure",
+      kind: "wound",
+      editable: Boolean(this.isEditable),
+      value: Math.max(0, toNumber(structure.value, 0)),
+      max: Math.max(0, toNumber(structure.max, 0)),
+      segments: Array.from({ length: Math.max(0, toNumber(structure.max, 0)) }, (_, index) => {
+        const segmentValue = index + 1;
+        return {
+          value: segmentValue,
+          filled: segmentValue <= Math.max(0, toNumber(structure.value, 0)),
+        };
+      }),
+      status: {
+        label: "Resist",
+        value: toNumber(structure.resistance, 0),
+      }
+    }];
+  }
+
+  _buildVehicleSections() {
+    const buckets = this.actor.system?.mwd?.items ?? {};
+    return {
+      weapons: this._buildRecordSection({
+        sectionId: "weapons",
+        itemType: "vehicleWeapon",
+        addLabel: "Add Weapon",
+        emptyLabel: "No vehicle weapons configured.",
+        items: buckets.vehicleWeapons ?? [],
+      }),
+      upgrades: this._buildRecordSection({
+        sectionId: "upgrades",
+        itemType: "vehicleUpgrade",
+        addLabel: "Add Upgrade",
+        emptyLabel: "No vehicle upgrades installed.",
+        items: buckets.vehicleUpgrades ?? [],
+      }),
+      modules: this._buildRecordSection({
+        sectionId: "modules",
+        itemType: "assetModule",
+        addLabel: "Add Module",
+        emptyLabel: "No asset modules assigned.",
+        items: buckets.assetModules ?? [],
+      }),
+      gear: this._buildRecordSection({
+        sectionId: "gear",
+        itemType: "gear",
+        addLabel: "Add Gear",
+        emptyLabel: "No stored gear.",
+        items: buckets.gear ?? [],
+      }),
+    };
+  }
+
+  _buildRecordSection({ sectionId = "", itemType = "", addLabel = "", emptyLabel = "", items = [] } = {}) {
+    return {
+      sectionId,
+      itemType,
+      addLabel: String(addLabel ?? "").trim(),
+      emptyLabel: String(emptyLabel ?? "Nothing here yet.").trim(),
+      records: Array.from(items ?? []).map(item => this._buildItemRecord(item, { sectionId })),
+    };
+  }
+
+  _buildItemRecord(item, { sectionId = "" } = {}) {
+    const system = item?.system ?? {};
+    const canonicalType = item?.canonicalType ?? item?.type ?? "";
+    const profile = typeof item?.getCombatProfile === "function" ? item.getCombatProfile() : null;
+    const accordionId = `${String(sectionId ?? "").trim()}:${String(item?.id ?? "").trim()}`;
+    const itemTypeLabel = ITEM_TYPE_LABELS[canonicalType] ?? startCase(canonicalType || "item");
+    const notes = system.notes ?? system.description ?? system.references?.description ?? "";
+    const quantity = system.quantity;
+    const summaryStats = profile
+      ? buildSummaryStats([
+        { label: "DV", value: toNumber(profile.damage, 0), emphasis: "strong" },
+        { label: "AP", value: toNumber(profile.ap, 0) },
+        { label: "Type", value: profile.damageTypeLabel ?? profile.damageType ?? "" },
+      ])
+      : buildSummaryStats([
+        { label: "Type", value: itemTypeLabel },
+        ...(quantity !== undefined ? [{ label: "Qty", value: toNumber(quantity, 0) }] : []),
+      ]);
+    const detailRows = profile
+      ? buildDetailRows([
+        { label: "Skill", value: profile.skillDef?.label ?? profile.skill ?? "" },
+        { label: "Category", value: profile.category ?? system.weaponCategory ?? system.category ?? "" },
+        { label: "Range", value: formatRangeSummary(profile.range) },
+      ])
+      : buildDetailRows([
+        { label: "Category", value: system.category ?? itemTypeLabel },
+        { label: "Quantity", value: quantity !== undefined ? toNumber(quantity, 0) : "" },
+      ]);
+
+    return {
+      id: item?.id ?? "",
+      accordionId,
+      isExpanded: this.#expandedInventoryRows.has(accordionId),
+      name: item?.name ?? itemTypeLabel,
+      img: item?.img ?? "icons/svg/item-bag.svg",
+      subtitle: profile?.skillDef?.label ?? system.category ?? itemTypeLabel,
+      summaryStats,
+      detailTags: buildDetailTags([
+        system.equipped ? "Equipped" : "",
+        system.isPrimary ? "Primary" : "",
+        system.weaponCategory ?? system.category ?? "",
+      ]),
+      detailRows,
+      detailText: toSnippet(notes),
+      equipped: Boolean(system.equipped),
+      isPrimary: Boolean(system.isPrimary),
+      canAdjustQuantity: false,
+    };
+  }
+
+  async _onCreateOwnedItem(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const itemType = String(target?.dataset?.itemType ?? "").trim();
+    if (!itemType) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const label = ITEM_TYPE_LABELS[itemType] ?? startCase(itemType);
+    const existingCount = actorWriteTarget.items.filter(item => item.type === itemType).length;
+    await actorWriteTarget.createEmbeddedDocuments("Item", [{
+      name: `${label} ${existingCount + 1}`,
+      type: itemType
+    }]);
+
+    this.render({ force: true });
+  }
+
+  async _onEditOwnedItem(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
 
-    const mode = String(target?.dataset?.mode ?? "").trim();
-    const snapshot = this.#getDriverSnapshot();
+    const item = this.#getOwnedItemFromTarget(target, event);
+    item?.sheet?.render(true);
+  }
 
-    switch (mode) {
-      case "defense":
-        return this.#rollDriverSnapshotSkill({
-          title: "Vehicle Defense",
-          attribute: "handling",
-          rating: snapshot.piloting,
-        });
-      case "sensors":
-        return this.#rollDriverSnapshotSkill({
-          title: "Vehicle Sensors",
-          attribute: "system",
-          rating: snapshot.perception,
-        });
-      case "stealth":
-        return this.#rollDriverSnapshotSkill({
-          title: "Vehicle Stealth",
-          attribute: "handling",
-          rating: snapshot.stealth,
-        });
-      case "initiative":
-        return this.#rollDriverSnapshotInitiative(snapshot);
-      default:
-        return null;
+  async _onDeleteOwnedItem(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const item = this.#getOwnedItemFromTarget(target, event);
+    if (!item) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    await actorWriteTarget.deleteEmbeddedDocuments("Item", [item.id]);
+    this.render({ force: true });
+  }
+
+  async _onToggleInventoryAccordion(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const accordionId = String(
+      target?.dataset?.accordionId
+      ?? target?.closest?.("[data-accordion-id]")?.dataset?.accordionId
+      ?? event?.target?.closest?.("[data-accordion-id]")?.dataset?.accordionId
+      ?? ""
+    ).trim();
+    if (!accordionId) return;
+
+    if (this.#expandedInventoryRows.has(accordionId)) {
+      this.#expandedInventoryRows.delete(accordionId);
+    } else {
+      this.#expandedInventoryRows.add(accordionId);
     }
+
+    this.render({ force: false });
   }
 
-  #getDriverSnapshot() {
-    const snapshot = this.actor.system?.mwd?.driverSnapshot ?? {};
-    return {
-      name: String(snapshot.name ?? "").trim(),
-      gunnery: Number(snapshot.gunnery ?? 0) || 0,
-      piloting: Number(snapshot.piloting ?? 0) || 0,
-      perception: Number(snapshot.perception ?? 0) || 0,
-      stealth: Number(snapshot.stealth ?? 0) || 0,
-      reflexes: Number(snapshot.reflexes ?? 0) || 0,
-      intelligence: Number(snapshot.intelligence ?? 0) || 0,
-    };
-  }
+  #getOwnedItemFromTarget(target, event) {
+    const itemId = String(
+      target?.dataset?.itemId
+      ?? target?.closest?.("[data-item-id]")?.dataset?.itemId
+      ?? event?.target?.closest?.("[data-item-id]")?.dataset?.itemId
+      ?? ""
+    ).trim();
 
-  async #rollDriverSnapshotSkill({ title, attribute, rating }) {
-    const skill = createSyntheticSkill({ name: title, attribute, value: rating });
-    await RollDialog.rollSkill(this.actor, skill);
-  }
-
-  async #rollDriverSnapshotInitiative(snapshot) {
-    const roll = await (new Roll("2d6 + @ref + @int", {
-      ref: snapshot.reflexes,
-      int: snapshot.intelligence,
-    })).evaluate({ async: true });
-
-    await roll.toMessage({
-      speaker: ChatMessage.getSpeaker({ actor: this.actor, token: this.getSheetTokenDocument()?.object ?? this.getSheetTokenDocument() }),
-      flavor: "Vehicle Initiative"
-    });
+    if (!itemId) return null;
+    return this.actor.items.get(itemId) ?? null;
   }
 }

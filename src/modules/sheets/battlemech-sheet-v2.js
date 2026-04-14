@@ -1,293 +1,373 @@
 // src/modules/sheets/battlemech-sheet-v2.js
-// Purpose: Layout-driven AppV2 battlemech sheet with V2-safe quick-action and loadout editing hooks.
-// How it fits: Replaces the legacy mech sheet listeners while keeping the existing loadout rules and quick-action affordances available.
+// Purpose: Layout-driven flagship BattleMech sheet built on the reusable vehicle V2 sheet patterns.
+// How it fits: Surfaces prepared BattleMech data through semantic context and V2-native action wiring.
 
+import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
-import { LayoutRegistry } from "../layout/layout-registry.js";
-import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
-import { getSkillDef } from "../mwd/skills.js";
-import { RollDialog } from "../roll/roll-dialog.js";
-import {
-  attributeFields,
-  collectActorItemRecords,
-  numberField,
-  selectField,
-  textField,
-  textareaField,
-} from "./actor-sheet-support.js";
-import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
+import { notifyRollError } from "../roll/roll-errors.js";
+import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
 
-const WEIGHT_CLASS_OPTIONS = [
-  { value: "light", label: "Light" },
-  { value: "medium", label: "Medium" },
-  { value: "heavy", label: "Heavy" },
-  { value: "assault", label: "Assault" },
-];
-
-function createFallbackSkill(code) {
-  const skillDef = getSkillDef(code);
-  return {
-    name: skillDef?.label ?? code,
-    system: {
-      code,
-      attribute: skillDef?.attribute ?? "handling",
-      value: 0,
-    }
-  };
+function toNumber(value, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
 }
 
-export class BattlemechSheetV2 extends BaseActorSheetV2 {
+function compactList(values = []) {
+  return values
+    .map(value => String(value ?? "").trim())
+    .filter(Boolean);
+}
+
+function startCase(value = "") {
+  return String(value ?? "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function buildSummaryStats(stats = []) {
+  return stats
+    .filter(stat => stat && stat.value !== undefined && stat.value !== null && String(stat.value).trim() !== "")
+    .map(stat => ({
+      label: String(stat.label ?? "").trim(),
+      value: String(stat.value ?? "").trim(),
+      emphasis: stat.emphasis ?? ""
+    }));
+}
+
+function buildDetailTags(tags = []) {
+  return compactList(tags).map(label => ({ label }));
+}
+
+function buildDetailRows(rows = []) {
+  return rows
+    .filter(row => row && row.value !== undefined && row.value !== null && String(row.value).trim() !== "")
+    .map(row => ({
+      label: String(row.label ?? "").trim(),
+      value: String(row.value ?? "").trim()
+    }));
+}
+
+function getQuickActionLabel(key = "") {
+  const labels = ANARCHY?.actor?.vehicle?.quickActions ?? {};
+  return String(labels?.[key] ?? startCase(key)).trim() || startCase(key);
+}
+
+export class BattlemechSheetV2 extends VehicleSheetV2 {
+  static LAYOUT_ID = "battlemech";
+
   static PARTS = {
     sheet: {
-      template: `${TEMPLATES_PATH}/v2/actor/battlemech-sheet.hbs`,
-      scrollable: [".sheet-body"]
+      get template() {
+        return `${TEMPLATES_PATH}/v2/actor/battlemech-sheet.hbs`;
+      },
     }
   };
 
-  static get DEFAULT_OPTIONS() {
-    return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-      classes: ["battlemech-sheet", SYSTEM_NAME, "actor-sheet-v2"],
-      position: { width: 980, height: 900 },
-      actions: {
-        ...super.DEFAULT_OPTIONS.actions,
-        rollBattlemechQuickAction: BattlemechSheetV2.prototype._onRollBattlemechQuickAction,
-        addHardpoint: BattlemechSheetV2.prototype._onAddHardpoint,
-        deleteHardpoint: BattlemechSheetV2.prototype._onDeleteHardpoint,
-        addWeaponGroup: BattlemechSheetV2.prototype._onAddWeaponGroup,
-        deleteWeaponGroup: BattlemechSheetV2.prototype._onDeleteWeaponGroup,
-        togglePrimaryWeaponGroup: BattlemechSheetV2.prototype._onTogglePrimaryWeaponGroup,
-      }
-    });
-  }
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["battlemech-sheet", SYSTEM_NAME, "actor-sheet-v2", "mwd-battlemech-sheet", "mwd-sheet"],
+    position: { width: 980, height: 940 },
+    actions: {
+      ...super.DEFAULT_OPTIONS.actions,
+      mechAttack: BattlemechSheetV2.prototype._onMechAttack,
+      mechRoll: BattlemechSheetV2.prototype._onMechRoll,
+    }
+  });
 
   async _prepareContext(options) {
-    const context = await super._prepareContext(options);
-    const actor = this.actor;
-    const loadout = new BattlemechLoadout(actor).compute();
-    const snapshot = this.#getPilotSnapshot();
+    const ctx = await super._prepareContext(options);
+    ctx.battlemechSheet = {
+      heat: this._buildHeatModel(),
+      quickActions: this._buildQuickActions(),
+      weaponGroups: this._buildWeaponGroups(),
+      hardpoints: this._buildHardpoints(),
+    };
+    return ctx;
+  }
 
-    context.layout = await LayoutRegistry.get("battlemech");
-    context.actorSheet = {
-      profileFields: [
-        selectField(actor, "system.mwd.weightClass", "Weight Class", WEIGHT_CLASS_OPTIONS),
-        numberField(actor, "system.mwd.tonnage", "Tonnage"),
-        textField(actor, "system.mwd.chassis", "Chassis"),
-      ],
-      attributeFields: attributeFields(actor, [
-        { key: "handling", label: "Handling" },
-        { key: "system", label: "System" },
-        { key: "condition", label: "Condition" },
-        { key: "chassis", label: "Chassis" },
-      ]),
-      monitorFields: [
-        numberField(actor, "system.monitors.structure.value", "Structure"),
-        numberField(actor, "system.monitors.structure.max", "Structure Max"),
-        numberField(actor, "system.monitors.heat.value", "Heat"),
-        numberField(actor, "system.monitors.heat.max", "Heat Max"),
-        numberField(actor, "system.mwd.heat.thresholds.runningHot", "Running Hot"),
-        numberField(actor, "system.mwd.heat.thresholds.shutdown", "Shutdown"),
-      ],
-      mountFields: [
-        textField(actor, "system.mwd.primarySlot.mode", "Primary Slot Mode"),
-        numberField(actor, "system.mwd.melee.maxWeapons", "Melee Limit"),
-        textField(actor, "system.mwd.primarySlot.typeRestriction", "Primary Type Restriction"),
-        numberField(actor, "system.mwd.loadout.mountPoints.total", "Mount Points", { value: loadout.mountPoints.total, readOnly: true, displayValue: loadout.mountPoints.total }),
-        numberField(actor, "system.mwd.loadout.mountPoints.used", "Used", { value: loadout.mountPoints.used, readOnly: true, displayValue: loadout.mountPoints.used }),
-        numberField(actor, "system.mwd.loadout.mountPoints.remaining", "Remaining", { value: loadout.mountPoints.remaining, readOnly: true, displayValue: loadout.mountPoints.remaining }),
-      ],
-      snapshotFields: [
-        textField(actor, "system.mwd.pilotSnapshot.name", "Operator Name", { value: snapshot.name }),
-        numberField(actor, "system.mwd.pilotSnapshot.gunnery", "Gunnery", { value: snapshot.gunnery }),
-        numberField(actor, "system.mwd.pilotSnapshot.piloting", "Piloting", { value: snapshot.piloting }),
-        numberField(actor, "system.mwd.pilotSnapshot.perception", "Perception", { value: snapshot.perception }),
-        numberField(actor, "system.mwd.pilotSnapshot.stealth", "Stealth", { value: snapshot.stealth }),
-        numberField(actor, "system.mwd.pilotSnapshot.reflexes", "Reflexes", { value: snapshot.reflexes }),
-        numberField(actor, "system.mwd.pilotSnapshot.intelligence", "Intelligence", { value: snapshot.intelligence }),
-      ],
-      quickActions: [
-        { label: "Ranged Attack", dataAction: "rollBattlemechQuickAction", mode: "ranged" },
-        { label: "Melee Attack", dataAction: "rollBattlemechQuickAction", mode: "melee" },
-        { label: "Dodge", dataAction: "rollBattlemechQuickAction", mode: "dodge" },
-        { label: "Piloting", dataAction: "rollBattlemechQuickAction", mode: "piloting" },
-        { label: "Sensors", dataAction: "rollBattlemechQuickAction", mode: "sensors" },
-        { label: "Repair", dataAction: "rollBattlemechQuickAction", mode: "repair" },
-      ],
-      itemCollections: {
-        weapons: collectActorItemRecords(actor, {
-          types: ["mechWeapon"],
-          describe: item => `${item.system?.hardpointType ?? "energy"} ${item.system?.hardpointSize ?? "small"} | DV ${Number(item.system?.damage ?? 0)}`,
-        }),
+  _buildSummaryStats() {
+    const loadout = this.actor.system?.mwd?.loadout ?? {};
+    const heat = this.actor.system?.mwd?.heat ?? {};
+    const heatStatus = this.actor.system?.mwd?.heatStatus ?? {};
+
+    return buildSummaryStats([
+      { label: "Weight", value: startCase(this.actor.system?.mwd?.weightClass ?? "medium"), emphasis: "strong" },
+      { label: "Tonnage", value: toNumber(this.actor.system?.mwd?.tonnage, 0) },
+      { label: "Mounts", value: `${toNumber(loadout?.mountPoints?.used, 0)} / ${toNumber(loadout?.mountPoints?.total, 0)}` },
+      { label: "Heat", value: `${toNumber(heat.current, 0)} / ${toNumber(heat.max, 0)}` },
+      { label: "Status", value: heatStatus.label ?? startCase(heatStatus.code ?? "safe") },
+    ]);
+  }
+
+  _buildAlerts() {
+    const loadout = this.actor.system?.mwd?.loadout ?? {};
+    return [
+      ...(Array.isArray(loadout.errors) ? loadout.errors.map(text => ({ tone: "danger", text })) : []),
+      ...(Array.isArray(loadout.warnings) ? loadout.warnings.map(text => ({ tone: "warning", text })) : []),
+    ];
+  }
+
+  _buildVehicleSections() {
+    const buckets = this.actor.system?.mwd?.items ?? {};
+    return {
+      weapons: this._buildRecordSection({
+        sectionId: "weapons",
+        itemType: "mechWeapon",
+        addLabel: "Add Weapon",
+        emptyLabel: "No BattleMech weapons configured.",
+        items: buckets.mechWeapons ?? [],
+      }),
+      equipment: this._buildRecordSection({
+        sectionId: "equipment",
+        itemType: "mechEquipment",
+        addLabel: "Add Equipment",
+        emptyLabel: "No BattleMech equipment installed.",
+        items: buckets.mechEquipment ?? [],
+      }),
+      modules: this._buildRecordSection({
+        sectionId: "modules",
+        itemType: "assetModule",
+        addLabel: "Add Module",
+        emptyLabel: "No asset modules installed.",
+        items: buckets.assetModules ?? [],
+      }),
+      gear: this._buildRecordSection({
+        sectionId: "gear",
+        itemType: "gear",
+        addLabel: "Add Gear",
+        emptyLabel: "No stored gear.",
+        items: buckets.gear ?? [],
+      }),
+    };
+  }
+
+  _buildHeatModel() {
+    const heat = this.actor.system?.mwd?.heat ?? {};
+    const heatStatus = this.actor.system?.mwd?.heatStatus ?? {};
+    const current = Math.max(0, toNumber(heat.current, 0));
+    const max = Math.max(0, toNumber(heat.max, 0));
+    const thresholds = heat.thresholds ?? {};
+
+    return {
+      label: "Heat",
+      current,
+      max,
+      editable: Boolean(this.isEditable),
+      status: heatStatus.label ?? startCase(heatStatus.code ?? "safe"),
+      thresholds: {
+        runningHot: toNumber(thresholds.runningHot, 0),
+        overheated: toNumber(thresholds.overheated, 0),
+        shutdown: toNumber(thresholds.shutdown, 0),
       },
-      notesField: textareaField(actor, "system.description", "Description", { rows: 12 }),
+      segments: Array.from({ length: max }, (_, index) => {
+        const value = index + 1;
+        return {
+          value,
+          filled: value <= current,
+          breakpoint: compactList([
+            value === toNumber(thresholds.runningHot, 0) ? "runningHot" : "",
+            value === toNumber(thresholds.overheated, 0) ? "overheated" : "",
+            value === toNumber(thresholds.shutdown, 0) ? "shutdown" : "",
+          ]).join(" "),
+        };
+      }),
     };
-
-    context.battlemechSheet = {
-      loadout,
-      hardpoints: (loadout.hardpoints ?? []).map((hardpoint, index) => ({
-        ...hardpoint,
-        index,
-        occupiedByName: hardpoint.occupiedByName ?? "Free",
-      })),
-      weaponGroups: (loadout.weaponGroups ?? []).map((group, index) => ({
-        ...group,
-        index,
-        weaponIdsText: Array.isArray(group.weaponIds) ? group.weaponIds.join(", ") : "",
-      })),
-    };
-
-    return context;
   }
 
-  _onRender(context, options) {
-    super._onRender?.(context, options);
+  _buildQuickActions() {
+    const quickActions = this.actor.system?.quickActions ?? {};
+    const primaryGroup = quickActions.primaryWeaponGroup ?? null;
+    const hasRangedGroups = Array.isArray(this.actor.system?.weaponGroups) && this.actor.system.weaponGroups.length > 0;
+    const hasMeleeProfiles = Array.isArray(this.actor.system?.meleeProfiles) && this.actor.system.meleeProfiles.length > 0;
 
-    const root = this._getRootElement?.();
-    if (!root || !this.editing) return;
-
-    // Array-backed weapon group ids need manual parsing because the staged form
-    // collector only understands scalar fields.
-    root.querySelectorAll("[data-weapon-group-input='weaponIds']").forEach(input => {
-      input.addEventListener("change", event => {
-        const field = event.currentTarget;
-        const index = Number(field?.dataset?.groupIndex ?? -1);
-        if (!Number.isInteger(index) || index < 0) return;
-        const values = String(field.value ?? "")
-          .split(",")
-          .map(value => value.trim())
-          .filter(Boolean);
-
-        void this.actor.update({
-          [`system.mwd.weaponGroups.${index}.weaponIds`]: values
-        });
-      });
-    });
+    return [
+      {
+        label: getQuickActionLabel("primaryWeapons"),
+        hint: primaryGroup?.name ?? "Primary weapon group",
+        handler: "mechAttack",
+        disabled: !primaryGroup,
+        dataset: { attackKind: "primary" }
+      },
+      {
+        label: getQuickActionLabel("rangedAttack"),
+        hint: "Prompt for a weapon group",
+        handler: "mechAttack",
+        disabled: !hasRangedGroups,
+        dataset: { attackKind: "ranged" }
+      },
+      {
+        label: getQuickActionLabel("meleeAttack"),
+        hint: "Prompt for a melee profile",
+        handler: "mechAttack",
+        disabled: !hasMeleeProfiles,
+        dataset: { attackKind: "melee" }
+      },
+      {
+        label: getQuickActionLabel("dodgeCheck"),
+        hint: "Piloting response",
+        handler: "mechRoll",
+        disabled: false,
+        dataset: { rollKind: "dodge" }
+      },
+      {
+        label: getQuickActionLabel("pilotingCheck"),
+        hint: "Vehicle handling test",
+        handler: "mechRoll",
+        disabled: false,
+        dataset: { rollKind: "piloting" }
+      },
+      {
+        label: getQuickActionLabel("sensorSweep"),
+        hint: "Perception or technician",
+        handler: "mechRoll",
+        disabled: !Boolean(quickActions.hasSensorSweep),
+        dataset: { rollKind: "sensor" }
+      },
+      {
+        label: getQuickActionLabel("emergencyRepair"),
+        hint: "Technician quick check",
+        handler: "mechRoll",
+        disabled: false,
+        dataset: { rollKind: "repair" }
+      },
+    ];
   }
 
-  async _onRollBattlemechQuickAction(event, target) {
+  _buildWeaponGroups() {
+    const groups = Array.isArray(this.actor.system?.mwd?.weaponGroupDetails)
+      ? this.actor.system.mwd.weaponGroupDetails
+      : [];
+
+    return groups.map(group => ({
+      id: group.id,
+      name: group.name,
+      subtitle: (group.weapons ?? []).map(weapon => weapon.name).join(", "),
+      summaryStats: buildSummaryStats([
+        { label: "Weapons", value: Array.isArray(group.weapons) ? group.weapons.length : 0, emphasis: "strong" },
+        { label: "Missing", value: Array.isArray(group.missingWeaponIds) ? group.missingWeaponIds.length : 0 },
+      ]),
+      detailTags: buildDetailTags([
+        group.isPrimary ? "Primary" : "",
+        ...(Array.isArray(group.weapons) ? group.weapons.map(weapon => weapon.system?.weaponCategory ?? "") : []),
+      ]),
+      detailRows: buildDetailRows([
+        { label: "Weapon Names", value: (group.weapons ?? []).map(weapon => weapon.name).join(", ") },
+        { label: "Missing IDs", value: (group.missingWeaponIds ?? []).join(", ") },
+      ]),
+      action: {
+        label: "Attack Group",
+        dataset: {
+          attackKind: "group",
+          groupId: group.id,
+        }
+      }
+    }));
+  }
+
+  _buildHardpoints() {
+    const loadout = this.actor.system?.mwd?.loadout ?? {};
+    const typeLabels = ANARCHY?.mwd?.hardpointType ?? {};
+    const sizeLabels = ANARCHY?.mwd?.hardpointSize ?? {};
+    const locationLabels = ANARCHY?.mwd?.hardpointLocation ?? {};
+
+    return Array.from(loadout.hardpoints ?? []).map(hardpoint => ({
+      id: hardpoint.id,
+      name: `${typeLabels[hardpoint.type] ?? startCase(hardpoint.type)} ${sizeLabels[hardpoint.size] ?? startCase(hardpoint.size)}`,
+      subtitle: locationLabels[hardpoint.location] ?? startCase(hardpoint.location),
+      summaryStats: buildSummaryStats([
+        { label: "Type", value: typeLabels[hardpoint.type] ?? startCase(hardpoint.type), emphasis: "strong" },
+        { label: "Size", value: sizeLabels[hardpoint.size] ?? startCase(hardpoint.size) },
+      ]),
+      detailTags: buildDetailTags([
+        hardpoint.occupiedByName ? `Occupied by ${hardpoint.occupiedByName}` : "Open",
+      ]),
+      detailRows: buildDetailRows([
+        { label: "Location", value: locationLabels[hardpoint.location] ?? startCase(hardpoint.location) },
+        { label: "Assigned Group", value: hardpoint.occupiedByName ?? "Unassigned" },
+      ]),
+    }));
+  }
+
+  async _onMechAttack(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
 
-    const mode = String(target?.dataset?.mode ?? "").trim();
-    switch (mode) {
-      case "ranged":
-        return this.#rollSkill("gunnery");
-      case "melee":
-        return this.#rollSkill("meleeCombat");
-      case "dodge":
-      case "piloting":
-        return this.#rollSkill("piloting");
-      case "sensors":
-        return this.#rollSkill("perception");
-      case "repair":
-        return this.#rollSkill("technician");
-      default:
-        return null;
+    const actor = this.getPersistentActor() ?? this.actor;
+    const attackKind = String(target?.dataset?.attackKind ?? "").trim();
+    const groupId = String(target?.dataset?.groupId ?? "").trim();
+
+    try {
+      if (attackKind === "group" && groupId) {
+        await this.#rollWeaponGroup(actor, groupId);
+      } else if (attackKind === "primary") {
+        const primaryGroup = (actor.system?.weaponGroups ?? []).find(group => group?.isPrimary) ?? null;
+        if (primaryGroup?.id) await this.#rollWeaponGroup(actor, primaryGroup.id);
+        else await actor.rollRangedAttack?.();
+      } else if (attackKind === "melee") {
+        await actor.rollMeleeAttack?.();
+      } else {
+        await actor.rollRangedAttack?.();
+      }
+    } catch (error) {
+      console.error("MWD | Failed to launch BattleMech attack", error);
+      notifyRollError(error, "Unable to launch that BattleMech attack.");
     }
   }
 
-  async _onAddHardpoint(event) {
+  async _onMechRoll(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
 
-    if (!this.isEditable || !this.editing) return;
+    const actor = this.getPersistentActor() ?? this.actor;
+    const rollKind = String(target?.dataset?.rollKind ?? "").trim();
 
-    const hardpoints = foundry.utils.deepClone(this.actor.system?.mwd?.hardpoints ?? []);
-    hardpoints.push({
-      id: foundry.utils.randomID(),
-      type: "energy",
-      size: "small",
-      location: "arm",
+    try {
+      if (rollKind === "dodge") await actor.rollDodge?.();
+      else if (rollKind === "piloting") await actor.rollPilotingCheck?.();
+      else if (rollKind === "sensor") await actor.rollSensorSweep?.();
+      else if (rollKind === "repair") await actor.rollEmergencyRepair?.();
+    } catch (error) {
+      console.error("MWD | Failed to launch BattleMech check", error);
+      notifyRollError(error, "Unable to launch that BattleMech check.");
+    }
+  }
+
+  async #rollWeaponGroup(actor, groupId) {
+    const group = Array.from(actor.system?.weaponGroups ?? []).find(entry => String(entry?.id ?? "").trim() === String(groupId ?? "").trim()) ?? null;
+    if (!group) {
+      ui.notifications?.warn("That weapon group is no longer available.");
+      return;
+    }
+
+    const weapons = Array.from(group.weaponIds ?? [])
+      .map(id => actor.items.get(id))
+      .filter(Boolean);
+    if (!weapons.length) {
+      ui.notifications?.warn("That weapon group has no attached weapons.");
+      return;
+    }
+
+    if (typeof actor._rollQuickSkill !== "function") {
+      await actor.rollRangedAttack?.();
+      return;
+    }
+
+    const serializedGroup = typeof actor._serializeWeaponGroup === "function"
+      ? actor._serializeWeaponGroup(group, weapons)
+      : {
+        id: group.id,
+        name: group.name,
+        isPrimary: Boolean(group.isPrimary),
+        weaponNames: weapons.map(weapon => weapon.name),
+      };
+
+    await actor._rollQuickSkill(actor.system?.skills?.gunnery, {
+      quickAction: {
+        title: getQuickActionLabel("rangedAttack"),
+        weaponGroup: serializedGroup,
+      }
     });
-
-    await this.actor.update({ "system.mwd.hardpoints": hardpoints });
-    this.render({ force: true });
-  }
-
-  async _onDeleteHardpoint(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (!this.isEditable || !this.editing) return;
-
-    const index = Number(target?.dataset?.hardpointIndex ?? -1);
-    if (!Number.isInteger(index) || index < 0) return;
-
-    const hardpoints = foundry.utils.deepClone(this.actor.system?.mwd?.hardpoints ?? []);
-    hardpoints.splice(index, 1);
-    await this.actor.update({ "system.mwd.hardpoints": hardpoints });
-    this.render({ force: true });
-  }
-
-  async _onAddWeaponGroup(event) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (!this.isEditable || !this.editing) return;
-
-    const weaponGroups = foundry.utils.deepClone(this.actor.system?.mwd?.weaponGroups ?? []);
-    weaponGroups.push({
-      id: foundry.utils.randomID(),
-      name: `Weapon Group ${weaponGroups.length + 1}`,
-      weaponIds: [],
-      isPrimary: weaponGroups.length === 0,
-    });
-
-    await this.actor.update({ "system.mwd.weaponGroups": weaponGroups });
-    this.render({ force: true });
-  }
-
-  async _onDeleteWeaponGroup(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (!this.isEditable || !this.editing) return;
-
-    const index = Number(target?.dataset?.groupIndex ?? -1);
-    if (!Number.isInteger(index) || index < 0) return;
-
-    const weaponGroups = foundry.utils.deepClone(this.actor.system?.mwd?.weaponGroups ?? []);
-    weaponGroups.splice(index, 1);
-    await this.actor.update({ "system.mwd.weaponGroups": weaponGroups });
-    this.render({ force: true });
-  }
-
-  async _onTogglePrimaryWeaponGroup(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (!this.isEditable || !this.editing) return;
-
-    const index = Number(target?.dataset?.groupIndex ?? -1);
-    if (!Number.isInteger(index) || index < 0) return;
-
-    const weaponGroups = foundry.utils.deepClone(this.actor.system?.mwd?.weaponGroups ?? []);
-    weaponGroups.forEach((group, groupIndex) => {
-      group.isPrimary = groupIndex === index;
-    });
-
-    await this.actor.update({ "system.mwd.weaponGroups": weaponGroups });
-    this.render({ force: true });
-  }
-
-  #getPilotSnapshot() {
-    const snapshot = this.actor.system?.mwd?.pilotSnapshot ?? {};
-    return {
-      name: String(snapshot.name ?? "").trim(),
-      gunnery: Number(snapshot.gunnery ?? 0) || 0,
-      piloting: Number(snapshot.piloting ?? 0) || 0,
-      perception: Number(snapshot.perception ?? 0) || 0,
-      stealth: Number(snapshot.stealth ?? 0) || 0,
-      reflexes: Number(snapshot.reflexes ?? 0) || 0,
-      intelligence: Number(snapshot.intelligence ?? 0) || 0,
-    };
-  }
-
-  #resolveSkill(code) {
-    return this.actor.items.find(item => (item.canonicalType ?? item.type) === "skill" && item.system?.code === code)
-      ?? createFallbackSkill(code);
-  }
-
-  async #rollSkill(code) {
-    await RollDialog.rollSkill(this.actor, this.#resolveSkill(code));
   }
 }

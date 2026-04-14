@@ -500,15 +500,20 @@ export async function placeTemplatedAttack({ actor, attack } = {}) {
     throw createUserFacingRollError("Unable to initialize template placement for this attack.", { severity: "warn" });
   }
 
-  let currentGeometry = cloneTemplateGeometry(initialGeometry);
-  const preview = createPlacementPreview();
-  const handlePointerMove = event => {
-    const pointer = getCanvasPointFromEvent(event);
-    const nextGeometry = buildInteractiveTemplateGeometry({
-      geometry: currentGeometry,
-      pointer,
-      attack,
-      actor,
+  const templateDoc = await createTemporaryMeasuredTemplate(initialGeometry);
+  if (!templateDoc) {
+    throw createUserFacingRollError("Unable to create the temporary measured template.", { severity: "warn" });
+  }
+
+  const previewContainer = createPreviewContainer();
+  let intervalId = null;
+  let lastSignature = "";
+  let placementConfirmed = false;
+
+  const refreshMarkers = () => {
+    const currentGeometry = createTemplateGeometryFromMeasuredTemplate(templateDoc, {
+      placementMode: template?.placement ?? null,
+      shapeHint: template?.shape ?? "",
     });
     if (!nextGeometry) return;
     currentGeometry = nextGeometry;
@@ -521,8 +526,9 @@ export async function placeTemplatedAttack({ actor, attack } = {}) {
     drawTargetMarkers(preview.markerLayer, buildMarkerState({ attack, geometry: currentGeometry, attacker: actor }));
     window.addEventListener("pointermove", handlePointerMove);
 
-    const confirmed = await promptToPlaceTemplatePreview({ attack });
-    if (!confirmed) return null;
+    const confirmed = await promptToPlaceMeasuredTemplate({ templateDoc, attack });
+    if (!confirmed || !templateDoc?.parent) return null;
+    placementConfirmed = true;
 
     const templateGeometry = cloneTemplateGeometry(currentGeometry);
     if (!templateGeometry) return null;
@@ -540,7 +546,14 @@ export async function placeTemplatedAttack({ actor, attack } = {}) {
       targetSnapshots,
     };
   } finally {
-    window.removeEventListener("pointermove", handlePointerMove);
-    destroyPlacementPreview(preview);
+    if (intervalId) window.clearInterval(intervalId);
+    destroyPreviewContainer(previewContainer);
+    if (!placementConfirmed && templateDoc?.parent) {
+      try {
+        await templateDoc.delete();
+      } catch (_error) {
+        // Ignore cleanup failures for temporary placement helpers.
+      }
+    }
   }
 }

@@ -1,0 +1,22 @@
+{{!--
+templates/v2/ui/vehicle/summary-bar.hbs
+Purpose: Renders the top-level vehicle or BattleMech hero stats plus any prepared alerts.
+How it fits: Shared by both vehicle-scale V2 sheets.
+--}}
+
+<section class="mwd-item-hero">
+  {{#each vehicleSheet.summaryStats as |stat|}}
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">{{stat.label}}</span>
+      <span class="mwd-item-hero__value">{{stat.value}}</span>
+    </div>
+  {{/each}}
+</section>
+
+{{#if vehicleSheet.alerts.length}}
+  <div class="mwd-inv__warnings">
+    {{#each vehicleSheet.alerts as |alert|}}
+      <div class="mwd-inv__warning{{#if alert.tone}} is-{{alert.tone}}{{/if}}">{{alert.text}}</div>
+    {{/each}}
+  </div>
+{{/if}}

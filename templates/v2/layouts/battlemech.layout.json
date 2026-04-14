@@ -3,98 +3,121 @@
   "version": 1,
   "root": {
     "type": "stack",
-    "classes": ["csb-layout"],
+    "classes": ["csb-layout", "battlemech-layout", "mwd-battlemech-layout"],
     "children": [
+      {
+        "type": "panel",
+        "title": "Overview",
+        "children": [
+          { "type": "include", "partial": "mwd.v2.ui.vehicle.summary-bar" }
+        ]
+      },
       {
         "type": "tabs",
         "group": "primary",
-        "default": "overview",
+        "default": "combat",
         "classes": ["csb-body", "mwd-body"],
         "tabs": [
           {
-            "id": "overview",
-            "label": "BattleMech",
+            "id": "combat",
+            "label": "Combat",
             "children": [
-              {
-                "type": "panel",
-                "title": "Chassis",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "profileFields" } }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Attributes",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 4, "fieldsKey": "attributeFields" } }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Structure and Heat",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "monitorFields" } }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Mount Summary",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "mountFields" } }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Operator Snapshot",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "snapshotFields" } }
-                ]
-              },
               {
                 "type": "panel",
                 "title": "Quick Actions",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.action-buttons", "context": { "actionsKey": "quickActions" } }
-                ]
-              }
-            ]
-          },
-          {
-            "id": "weapons",
-            "label": "Weapons and Mounts",
-            "children": [
-              {
-                "type": "panel",
-                "title": "Weapons",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "weapons", "itemType": "mechWeapon", "addLabel": "Weapon", "emptyLabel": "No mech weapons assigned." } }
+                  { "type": "include", "partial": "mwd.v2.ui.battlemech.quick-actions" }
                 ]
               },
               {
                 "type": "panel",
                 "title": "Weapon Groups",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.weapon-group-list" }
+                  { "type": "include", "partial": "mwd.v2.ui.battlemech.weapon-groups" }
                 ]
               },
               {
                 "type": "panel",
-                "title": "Hardpoints",
+                "title": "BattleMech Weapons",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.hardpoint-list" }
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "weapons" }
+                  }
                 ]
               }
             ]
           },
           {
-            "id": "notes",
-            "label": "Notes",
+            "id": "systems",
+            "label": "Systems",
             "children": [
               {
                 "type": "panel",
-                "title": "Description",
+                "title": "Attributes",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.notes-editor" }
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.attributes-grid" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Structure",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.condition-monitors" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Heat",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.battlemech.heat-track" }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "loadout",
+            "label": "Loadout",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Hardpoints",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.battlemech.hardpoints" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Equipment",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "equipment" }
+                  }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Modules",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "modules" }
+                  }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Gear",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "gear" }
+                  }
                 ]
               }
             ]

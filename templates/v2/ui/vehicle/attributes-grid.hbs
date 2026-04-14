@@ -1,0 +1,29 @@
+{{!--
+templates/v2/ui/vehicle/attributes-grid.hbs
+Purpose: Renders prepared vehicle attribute values in view mode and staged numeric inputs in edit mode.
+How it fits: Shared by vehicle-scale V2 sheets.
+--}}
+
+{{#if editing}}
+  <div class="mwd-gmgadget__grid">
+    {{#each vehicleSheet.attributes as |attribute|}}
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">{{attribute.label}}</span>
+        <input
+          type="number"
+          name="{{attribute.path}}"
+          value="{{attribute.value}}"
+          data-edit-field="staged" />
+      </label>
+    {{/each}}
+  </div>
+{{else}}
+  <section class="mwd-item-hero">
+    {{#each vehicleSheet.attributes as |attribute|}}
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">{{attribute.label}}</span>
+        <span class="mwd-item-hero__value">{{attribute.value}}</span>
+      </div>
+    {{/each}}
+  </section>
+{{/if}}
