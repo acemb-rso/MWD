@@ -1,0 +1,129 @@
+{
+  "id": "battlemech",
+  "version": 1,
+  "root": {
+    "type": "stack",
+    "classes": ["csb-layout", "battlemech-layout", "mwd-battlemech-layout"],
+    "children": [
+      {
+        "type": "panel",
+        "title": "Overview",
+        "children": [
+          { "type": "include", "partial": "mwd.v2.ui.vehicle.summary-bar" }
+        ]
+      },
+      {
+        "type": "tabs",
+        "group": "primary",
+        "default": "combat",
+        "classes": ["csb-body", "mwd-body"],
+        "tabs": [
+          {
+            "id": "combat",
+            "label": "Combat",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Quick Actions",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.battlemech.quick-actions" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Weapon Groups",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.battlemech.weapon-groups" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "BattleMech Weapons",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "weapons" }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "systems",
+            "label": "Systems",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Attributes",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.attributes-grid" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Structure",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.condition-monitors" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Heat",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.battlemech.heat-track" }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "loadout",
+            "label": "Loadout",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Hardpoints",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.battlemech.hardpoints" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Equipment",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "equipment" }
+                  }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Modules",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "modules" }
+                  }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Gear",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "gear" }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{{!--
+templates/v2/ui/vehicle/record-section.hbs
+Purpose: Renders one prepared vehicle-scale inventory section using the shared compact record partial.
+How it fits: Shared by vehicle and BattleMech V2 sheets.
+--}}
+
+{{#with (lookup vehicleSheet.sections context.sectionId) as |section|}}
+  {{#if section}}
+    <div class="mwd-inv">
+      {{#if editing}}
+        <div class="mwd-inv__toolbar">
+          <button
+            type="button"
+            class="mwd-inv__add-btn"
+            data-action="createOwnedItem"
+            data-item-type="{{section.itemType}}">
+            <i class="fas fa-plus"></i> {{section.addLabel}}
+          </button>
+        </div>
+      {{/if}}
+
+      {{#if section.records.length}}
+        <div class="mwd-records mwd-records--inventory">
+          {{#each section.records as |record|}}
+            {{> "mwd.v2.ui.character.inventory-record" record=record}}
+          {{/each}}
+        </div>
+      {{else}}
+        <div class="mwd-inv__empty">{{section.emptyLabel}}</div>
+      {{/if}}
+    </div>
+  {{else}}
+    <div class="mwd-inv__empty">Section unavailable.</div>
+  {{/if}}
+{{/with}}

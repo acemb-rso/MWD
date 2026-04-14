@@ -1,0 +1,56 @@
+{{!--
+templates/v2/ui/battlemech/hardpoints.hbs
+Purpose: Renders the prepared BattleMech hardpoint occupancy view.
+How it fits: Surfaces loadout state without reusing the legacy hardpoint editor.
+--}}
+
+{{#if battlemechSheet.hardpoints.length}}
+  <div class="mwd-records mwd-records--inventory">
+    {{#each battlemechSheet.hardpoints as |hardpoint|}}
+      <article class="mwd-record">
+        <div class="mwd-record__header">
+          <div class="mwd-record__main">
+            <div class="mwd-record__topline">
+              <div class="mwd-record__title-btn">{{hardpoint.name}}</div>
+              <div class="mwd-record__stats">
+                {{#each hardpoint.summaryStats as |stat|}}
+                  <span class="mwd-record__stat{{#if stat.emphasis}} is-{{stat.emphasis}}{{/if}}">
+                    <span class="mwd-record__stat-label">{{stat.label}}</span>
+                    <span class="mwd-record__stat-value">{{stat.value}}</span>
+                  </span>
+                {{/each}}
+              </div>
+            </div>
+
+            {{#if hardpoint.subtitle}}
+              <div class="mwd-record__subtitle">{{hardpoint.subtitle}}</div>
+            {{/if}}
+
+            {{#if hardpoint.detailTags.length}}
+              <div class="mwd-record__tags">
+                {{#each hardpoint.detailTags as |tag|}}
+                  <span class="mwd-record__tag">{{tag.label}}</span>
+                {{/each}}
+              </div>
+            {{/if}}
+          </div>
+        </div>
+
+        <div class="mwd-record__body">
+          {{#if hardpoint.detailRows.length}}
+            <div class="mwd-record__details">
+              {{#each hardpoint.detailRows as |row|}}
+                <div class="mwd-record__detail">
+                  <span class="mwd-record__detail-label">{{row.label}}</span>
+                  <span class="mwd-record__detail-value">{{row.value}}</span>
+                </div>
+              {{/each}}
+            </div>
+          {{/if}}
+        </div>
+      </article>
+    {{/each}}
+  </div>
+{{else}}
+  <div class="mwd-inv__empty">No hardpoints configured.</div>
+{{/if}}

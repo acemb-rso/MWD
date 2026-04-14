@@ -1,0 +1,64 @@
+{{!--
+templates/v2/ui/battlemech/weapon-groups.hbs
+Purpose: Renders prepared BattleMech weapon groups with direct attack buttons.
+How it fits: Provides combat-facing group context without pushing semantics into the template.
+--}}
+
+{{#if battlemechSheet.weaponGroups.length}}
+  <div class="mwd-records mwd-records--inventory">
+    {{#each battlemechSheet.weaponGroups as |group|}}
+      <article class="mwd-record">
+        <div class="mwd-record__header">
+          <div class="mwd-record__main">
+            <div class="mwd-record__topline">
+              <button type="button" class="mwd-record__title-btn" data-action="mechAttack" {{{mwd-dataset group.action.dataset}}}>
+                {{group.name}}
+              </button>
+              <div class="mwd-record__stats">
+                {{#each group.summaryStats as |stat|}}
+                  <span class="mwd-record__stat{{#if stat.emphasis}} is-{{stat.emphasis}}{{/if}}">
+                    <span class="mwd-record__stat-label">{{stat.label}}</span>
+                    <span class="mwd-record__stat-value">{{stat.value}}</span>
+                  </span>
+                {{/each}}
+              </div>
+            </div>
+
+            {{#if group.subtitle}}
+              <div class="mwd-record__subtitle">{{group.subtitle}}</div>
+            {{/if}}
+
+            {{#if group.detailTags.length}}
+              <div class="mwd-record__tags">
+                {{#each group.detailTags as |tag|}}
+                  <span class="mwd-record__tag">{{tag.label}}</span>
+                {{/each}}
+              </div>
+            {{/if}}
+          </div>
+
+          <div class="mwd-record__actions">
+            <button type="button" class="mwd-record__icon-btn" data-action="mechAttack" {{{mwd-dataset group.action.dataset}}} title="{{group.action.label}}">
+              <i class="fas fa-crosshairs"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="mwd-record__body">
+          {{#if group.detailRows.length}}
+            <div class="mwd-record__details">
+              {{#each group.detailRows as |row|}}
+                <div class="mwd-record__detail">
+                  <span class="mwd-record__detail-label">{{row.label}}</span>
+                  <span class="mwd-record__detail-value">{{row.value}}</span>
+                </div>
+              {{/each}}
+            </div>
+          {{/if}}
+        </div>
+      </article>
+    {{/each}}
+  </div>
+{{else}}
+  <div class="mwd-inv__empty">No weapon groups configured.</div>
+{{/if}}

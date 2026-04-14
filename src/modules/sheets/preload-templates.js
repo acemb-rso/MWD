@@ -45,6 +45,13 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/inventory-record.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/bio-identity.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/bio-history.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/summary-bar.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/attributes-grid.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/record-section.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/heat-track.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/quick-actions.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/weapon-groups.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/hardpoints.hbs`,
 
   // Sheet wrapper
   `systems/${SYSTEM_NAME}/templates/v2/actor/_sheet-root.hbs`,
@@ -100,7 +107,9 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/item-effects.hbs`,
 
   // Actors
-  `systems/${SYSTEM_NAME}/templates/v2/actor/character-sheet.hbs`
+  `systems/${SYSTEM_NAME}/templates/v2/actor/character-sheet.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/actor/vehicle-sheet.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/actor/battlemech-sheet.hbs`
 ];
 
 function toAlias(path) {

@@ -386,6 +386,7 @@ export async function placeTemplatedAttack({ actor, attack } = {}) {
   const previewContainer = createPreviewContainer();
   let intervalId = null;
   let lastSignature = "";
+  let placementConfirmed = false;
 
   const refreshMarkers = () => {
     const currentGeometry = createTemplateGeometryFromMeasuredTemplate(templateDoc, {
@@ -406,6 +407,7 @@ export async function placeTemplatedAttack({ actor, attack } = {}) {
 
     const confirmed = await promptToPlaceMeasuredTemplate({ templateDoc, attack });
     if (!confirmed || !templateDoc?.parent) return null;
+    placementConfirmed = true;
 
     const templateGeometry = createTemplateGeometryFromMeasuredTemplate(templateDoc, {
       placementMode: template?.placement ?? null,
@@ -428,7 +430,7 @@ export async function placeTemplatedAttack({ actor, attack } = {}) {
   } finally {
     if (intervalId) window.clearInterval(intervalId);
     destroyPreviewContainer(previewContainer);
-    if (templateDoc?.parent) {
+    if (!placementConfirmed && templateDoc?.parent) {
       try {
         await templateDoc.delete();
       } catch (_error) {

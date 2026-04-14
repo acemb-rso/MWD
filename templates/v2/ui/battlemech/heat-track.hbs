@@ -1,0 +1,48 @@
+{{!--
+templates/v2/ui/battlemech/heat-track.hbs
+Purpose: Renders the prepared BattleMech heat monitor and status thresholds.
+How it fits: Specific to the BattleMech V2 sheet systems tab.
+--}}
+
+<section class="mwd-monitor">
+  <header class="mwd-monitor__header">
+    <div class="mwd-monitor__label">{{battlemechSheet.heat.label}}</div>
+    <div class="mwd-monitor__status">
+      <span class="mwd-monitor__status-label">Status</span>
+      <span class="mwd-monitor__status-value">{{battlemechSheet.heat.status}}</span>
+    </div>
+  </header>
+
+  <div class="mwd-monitor__pips" role="group" aria-label="{{battlemechSheet.heat.label}}">
+    {{#each battlemechSheet.heat.segments as |segment|}}
+      <button
+        type="button"
+        class="pip pip--monitor pip--heat {{#if segment.filled}}pip--filled{{else}}pip--empty{{/if}} {{#if segment.breakpoint}}pip--breakpoint{{/if}}"
+        data-action="monitorSet"
+        data-monitor="heat"
+        data-value="{{segment.value}}"
+        aria-label="Set heat to {{segment.value}}"
+        {{#unless ../battlemechSheet.heat.editable}}aria-disabled="true"{{/unless}}>
+      </button>
+    {{/each}}
+  </div>
+
+  <section class="mwd-item-hero">
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Current</span>
+      <span class="mwd-item-hero__value">{{battlemechSheet.heat.current}} / {{battlemechSheet.heat.max}}</span>
+    </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Running Hot</span>
+      <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.runningHot}}</span>
+    </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Overheated</span>
+      <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.overheated}}</span>
+    </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Shutdown</span>
+      <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.shutdown}}</span>
+    </div>
+  </section>
+</section>

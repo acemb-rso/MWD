@@ -1,0 +1,101 @@
+{
+  "id": "vehicle",
+  "version": 1,
+  "root": {
+    "type": "stack",
+    "classes": ["csb-layout", "vehicle-layout", "mwd-vehicle-layout"],
+    "children": [
+      {
+        "type": "panel",
+        "title": "Overview",
+        "children": [
+          { "type": "include", "partial": "mwd.v2.ui.vehicle.summary-bar" }
+        ]
+      },
+      {
+        "type": "tabs",
+        "group": "primary",
+        "default": "systems",
+        "classes": ["csb-body", "mwd-body"],
+        "tabs": [
+          {
+            "id": "systems",
+            "label": "Systems",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Attributes",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.attributes-grid" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Structure",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.condition-monitors" }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "weapons",
+            "label": "Weapons",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Vehicle Weapons",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "weapons" }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "support",
+            "label": "Support",
+            "children": [
+              {
+                "type": "panel",
+                "title": "Upgrades",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "upgrades" }
+                  }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Modules",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "modules" }
+                  }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Gear",
+                "children": [
+                  {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.vehicle.record-section",
+                    "context": { "sectionId": "gear" }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
