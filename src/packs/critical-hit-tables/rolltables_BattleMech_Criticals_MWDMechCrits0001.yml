@@ -7,8 +7,8 @@
   "replacement": true,
   "displayRoll": true,
   "results": [
-    { "_id": "MechCritResult02", "_key": "!tables.results!MWDMechCrits0001.MechCritResult02", "type": 0, "text": "Cascade", "img": "icons/svg/d20-black.svg", "weight": 1, "range": [2, 2], "drawn": false, "flags": { "mwd": { "crit": { "key": "cascade", "remedyKey": "emergencyRepair", "gates": [], "mods": [], "resourceEffects": {}, "pilotDamage": {}, "escalationKey": "cascade" } } } },
-    { "_id": "MechCritResult03", "_key": "!tables.results!MWDMechCrits0001.MechCritResult03", "type": 0, "text": "BattleMech System Shock", "img": "icons/svg/d20-black.svg", "weight": 10, "range": [3, 12], "drawn": false, "flags": { "mwd": { "crit": { "key": "battlemechSystemShock", "remedyKey": "emergencyRepair", "gates": ["attack", "move"], "mods": ["attackCQPenalty", "pilotingPenalty"], "resourceEffects": { "heatImmediate": 1, "heatPerAttack": 0 }, "pilotDamage": {}, "escalationKey": "system" } } } }
+    { "_id": "MechCritResult02", "_key": "!tables.results!MWDMechCrits0001.MechCritResult02", "type": "text", "text": "Cascade", "img": "icons/svg/d20-black.svg", "weight": 1, "range": [2, 2], "drawn": false, "flags": { "mwd": { "crit": { "key": "cascade", "remedyKey": "emergencyRepair", "gates": [], "mods": [], "resourceEffects": {}, "pilotDamage": {}, "escalationKey": "cascade" } } } },
+    { "_id": "MechCritResult03", "_key": "!tables.results!MWDMechCrits0001.MechCritResult03", "type": "text", "text": "BattleMech System Shock", "img": "icons/svg/d20-black.svg", "weight": 10, "range": [3, 12], "drawn": false, "flags": { "mwd": { "crit": { "key": "battlemechSystemShock", "remedyKey": "emergencyRepair", "gates": ["attack", "move"], "mods": ["attackCQPenalty", "pilotingPenalty"], "resourceEffects": { "heatImmediate": 1, "heatPerAttack": 0 }, "pilotDamage": {}, "escalationKey": "system" } } } }
   ],
   "flags": {},
   "ownership": { "default": 2 },

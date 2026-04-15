@@ -7,8 +7,8 @@
   "replacement": true,
   "displayRoll": true,
   "results": [
-    { "_id": "VehCritResult02", "_key": "!tables.results!MWDVehicleCrit1.VehCritResult02", "type": 0, "text": "Cascade", "img": "icons/svg/d20-black.svg", "weight": 1, "range": [2, 2], "drawn": false, "flags": { "mwd": { "crit": { "key": "cascade", "remedyKey": "emergencyRepair", "gates": [], "mods": [], "resourceEffects": {}, "pilotDamage": {}, "escalationKey": "cascade" } } } },
-    { "_id": "VehCritResult03", "_key": "!tables.results!MWDVehicleCrit1.VehCritResult03", "type": 0, "text": "Vehicle System Shock", "img": "icons/svg/d20-black.svg", "weight": 10, "range": [3, 12], "drawn": false, "flags": { "mwd": { "crit": { "key": "vehicleSystemShock", "remedyKey": "systemReset", "gates": ["attack", "move"], "mods": ["attackCQPenalty", "pilotingPenalty"], "resourceEffects": {}, "pilotDamage": {}, "escalationKey": "system" } } } }
+    { "_id": "VehCritResult02", "_key": "!tables.results!MWDVehicleCrit1.VehCritResult02", "type": "text", "text": "Cascade", "img": "icons/svg/d20-black.svg", "weight": 1, "range": [2, 2], "drawn": false, "flags": { "mwd": { "crit": { "key": "cascade", "remedyKey": "emergencyRepair", "gates": [], "mods": [], "resourceEffects": {}, "pilotDamage": {}, "escalationKey": "cascade" } } } },
+    { "_id": "VehCritResult03", "_key": "!tables.results!MWDVehicleCrit1.VehCritResult03", "type": "text", "text": "Vehicle System Shock", "img": "icons/svg/d20-black.svg", "weight": 10, "range": [3, 12], "drawn": false, "flags": { "mwd": { "crit": { "key": "vehicleSystemShock", "remedyKey": "systemReset", "gates": ["attack", "move"], "mods": ["attackCQPenalty", "pilotingPenalty"], "resourceEffects": {}, "pilotDamage": {}, "escalationKey": "system" } } } }
   ],
   "flags": {},
   "ownership": { "default": 2 },
