@@ -23,18 +23,20 @@ How it fits: Keeps remediation buttons declarative while intent resolution stays
               <div class="mwd-record__subtitle">{{crit.detail}}</div>
             {{/if}}
           </div>
-          <div class="mwd-record__actions">
-            <button
-              type="button"
-              class="mwd-record__icon-btn"
-              data-action="machineCritRemedy"
-              data-machine-actor-uuid="{{crit.machineActorUuid}}"
-              data-crit-id="{{crit.id}}"
-              data-remedy-key="{{crit.remedyKey}}"
-              title="{{crit.remedyLabel}}">
-              <i class="fas fa-wrench"></i>
-            </button>
-          </div>
+          {{#if crit.remediable}}
+            <div class="mwd-record__actions">
+              <button
+                type="button"
+                class="mwd-record__icon-btn"
+                data-action="machineCritRemedy"
+                data-machine-actor-uuid="{{crit.machineActorUuid}}"
+                data-crit-id="{{crit.id}}"
+                data-remedy-key="{{crit.remedyKey}}"
+                title="{{crit.remedyLabel}}">
+                <i class="fas fa-wrench"></i>
+              </button>
+            </div>
+          {{/if}}
         </div>
       </article>
     {{/each}}

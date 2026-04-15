@@ -1,15 +1,15 @@
 {
-  "_id": "MWDGeneralCrit01",
-  "_key": "!tables!MWDGeneralCrit01",
-  "name": "Machine Criticals: General Problem",
+  "_id": "MWDMechLegsCrit01",
+  "_key": "!tables!MWDMechLegsCrit01",
+  "name": "BattleMech Criticals: Legs",
   "img": "icons/svg/d20-black.svg",
-  "description": "<p>Roll 2d6 to determine the type of machine critical problem, then apply the matching location table row.</p>",
+  "description": "<p>Location-specific interpretation of the general machine critical result.</p>",
   "results": [
     {
-      "_id": "GenCritResult02",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult02",
+      "_id": "MechLCrit02",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit02",
       "type": "text",
-      "text": "Catastrophic Cascade",
+      "text": "Mobility Cascade",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -20,22 +20,30 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "catastrophicCascade",
-            "remedyKey": "none",
-            "gates": [],
-            "mods": [],
+            "key": "mobilityCascadeLegs",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
+            "mods": [
+              "stabilityCheck"
+            ],
             "resourceEffects": {},
-            "pilotDamage": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2,
+              "condition": "resultingFallImpact"
+            },
             "escalationKey": "cascade"
           }
         }
       }
     },
     {
-      "_id": "GenCritResult03",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult03",
+      "_id": "MechLCrit03",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit03",
       "type": "text",
-      "text": "Hard Lock",
+      "text": "Leg Actuator Lock",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -46,9 +54,12 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "hardLock",
+            "key": "legActuatorLock",
             "remedyKey": "emergencyRepair",
-            "gates": [],
+            "gates": [
+              "move",
+              "jump"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -58,10 +69,10 @@
       }
     },
     {
-      "_id": "GenCritResult04",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult04",
+      "_id": "MechLCrit04",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit04",
       "type": "text",
-      "text": "Power Surge",
+      "text": "Myomer Surge",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -72,11 +83,15 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "powerSurge",
+            "key": "myomerSurge",
             "remedyKey": "coolantDump",
-            "gates": [],
+            "gates": [
+              "move"
+            ],
             "mods": [],
-            "resourceEffects": {},
+            "resourceEffects": {
+              "heatOrStrainOnMove": 1
+            },
             "pilotDamage": {},
             "escalationKey": "surge"
           }
@@ -84,10 +99,10 @@
       }
     },
     {
-      "_id": "GenCritResult05",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult05",
+      "_id": "MechLCrit05",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit05",
       "type": "text",
-      "text": "Feed / Flow Disruption",
+      "text": "Jump Jet / Mobility Feed Fault",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -98,9 +113,12 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "feedFlowDisruption",
-            "remedyKey": "feedReset",
-            "gates": [],
+            "key": "jumpJetMobilityFeedFault",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move",
+              "jump"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -110,10 +128,10 @@
       }
     },
     {
-      "_id": "GenCritResult06",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult06",
+      "_id": "MechLCrit06",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit06",
       "type": "text",
-      "text": "Control Fault",
+      "text": "Gait Fault",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -124,10 +142,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "controlFault",
-            "remedyKey": "systemReset",
-            "gates": [],
-            "mods": [],
+            "key": "gaitFault",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
+            "mods": [
+              "repositionPenalty"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "control"
@@ -136,10 +158,10 @@
       }
     },
     {
-      "_id": "GenCritResult07",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult07",
+      "_id": "MechLCrit07",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit07",
       "type": "text",
-      "text": "System Desync",
+      "text": "Balance Timing Fault",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -150,10 +172,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "systemDesync",
+            "key": "balanceTimingFault",
             "remedyKey": "systemReset",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "move"
+            ],
+            "mods": [
+              "noMobilityCqBonus"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "desync"
@@ -162,10 +188,10 @@
       }
     },
     {
-      "_id": "GenCritResult08",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult08",
+      "_id": "MechLCrit08",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit08",
       "type": "text",
-      "text": "Structural Shock",
+      "text": "Forced Stability Test",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -176,22 +202,31 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "structuralShock",
+            "key": "forcedStabilityTest",
             "remedyKey": "emergencyRepair",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "move",
+              "piloting"
+            ],
+            "mods": [
+              "stabilityCheck"
+            ],
             "resourceEffects": {},
-            "pilotDamage": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2,
+              "condition": "resultingFallImpact"
+            },
             "escalationKey": "shock"
           }
         }
       }
     },
     {
-      "_id": "GenCritResult09",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult09",
+      "_id": "MechLCrit09",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit09",
       "type": "text",
-      "text": "Overload",
+      "text": "Mobility Overstress",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -202,11 +237,15 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "overload",
-            "remedyKey": "coolantDump",
-            "gates": [],
+            "key": "mobilityOverstress",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
             "mods": [],
-            "resourceEffects": {},
+            "resourceEffects": {
+              "repeatedMoveCost": 1
+            },
             "pilotDamage": {},
             "escalationKey": "overload"
           }
@@ -214,10 +253,10 @@
       }
     },
     {
-      "_id": "GenCritResult10",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult10",
+      "_id": "MechLCrit10",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit10",
       "type": "text",
-      "text": "Degradation Spike",
+      "text": "Leg Stabilizer Damage",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -228,10 +267,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "degradationSpike",
+            "key": "legStabilizerDamage",
             "remedyKey": "emergencyRepair",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "move"
+            ],
+            "mods": [
+              "advancedManeuverBlocked"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "degradation"
@@ -240,10 +283,10 @@
       }
     },
     {
-      "_id": "GenCritResult11",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult11",
+      "_id": "MechLCrit11",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit11",
       "type": "text",
-      "text": "Partial Outage",
+      "text": "Partial Mobility Outage",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -254,9 +297,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "partialOutage",
+            "key": "partialMobilityOutageLegs",
             "remedyKey": "emergencyRepair",
-            "gates": [],
+            "gates": [
+              "move"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -266,10 +311,10 @@
       }
     },
     {
-      "_id": "GenCritResult12",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult12",
+      "_id": "MechLCrit12",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit12",
       "type": "text",
-      "text": "Critical Breach",
+      "text": "Legs condition +1",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -280,7 +325,7 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "criticalBreach",
+            "key": "legsCriticalBreach",
             "remedyKey": "none",
             "gates": [],
             "mods": [],

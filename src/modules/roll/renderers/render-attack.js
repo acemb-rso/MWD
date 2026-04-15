@@ -201,7 +201,7 @@ export function enhanceAttack(resolved, vm) {
               text: `${result?.target?.name ?? "Target"}: Critical - ${crit.label}${crit.locationLabel ? ` (${crit.locationLabel})` : ""}`,
               title: ""
             });
-            if (crit.active !== false) {
+            if (crit.active !== false && crit.remedyKey !== "none") {
               vm.actions.push({
                 action: "machineCritRemedy",
                 label: `Remedy: ${crit.label}`,

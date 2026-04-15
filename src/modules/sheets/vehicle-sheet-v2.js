@@ -454,6 +454,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         ]).join(" | "),
         remedyLabel: remedy.label,
         remedyKey: remedy.key,
+        remediable: remedy.remediable !== false,
         machineActorUuid: actor?.uuid ?? "",
       };
     });

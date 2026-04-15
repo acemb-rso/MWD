@@ -123,8 +123,9 @@ test("applying machine damage writes monitors, location stress, and crit records
     },
     options: {
       drawCritical: () => ({
-        label: "Weapon Feed Damage",
-        signal: { key: "weaponFeedDamage", remedyKey: "feedReset", gates: ["attack"], mods: [], resourceEffects: {}, pilotDamage: {}, escalationKey: "" },
+        label: "Hard Lock",
+        rollTotal: 3,
+        signal: { key: "hardLock", remedyKey: "emergencyRepair", gates: [], mods: [], resourceEffects: {}, pilotDamage: {}, escalationKey: "lockout" },
       }),
     },
   });
@@ -133,26 +134,29 @@ test("applying machine damage writes monitors, location stress, and crit records
   assert.equal(actor.system.monitors.structure.value, 3);
   assert.equal(actor.system.mwd.locations.leftArm.stress, 1);
   assert.equal(actor.system.mwd.crits.length, 1);
-  assert.equal(actor.system.mwd.crits[0].key, "weaponFeedDamage");
+  assert.equal(actor.system.mwd.crits[0].key, "actuatorLockArm");
+  assert.equal(actor.system.mwd.crits[0].generalKey, "hardLock");
   assert.equal(getActiveMachineCrits(actor).length, 1);
 });
 
-test("cascade result draws one additional crit and recursive cascades become reactor instability", async () => {
+test("cascade result draws one additional crit and recursive cascades become location breach", async () => {
   const actor = machineActor();
   const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 4, armorBefore: 6 });
   const draw = await drawMachineCriticalRecords({
     actor,
     hitLocation,
     drawFn: () => ({
-      label: "Cascade",
-      signal: { key: "cascade", remedyKey: "emergencyRepair", gates: [], mods: [], resourceEffects: {}, pilotDamage: {}, escalationKey: "cascade" },
+      label: "Catastrophic Cascade",
+      rollTotal: 2,
+      signal: { key: "catastrophicCascade", remedyKey: "none", gates: [], mods: [], resourceEffects: {}, pilotDamage: {}, escalationKey: "cascade" },
     }),
   });
 
   assert.equal(draw.ok, true);
   assert.equal(draw.crits.length, 2);
-  assert.equal(draw.crits[0].key, "cascade");
-  assert.equal(draw.crits[1].key, "reactorInstability");
+  assert.equal(draw.crits[0].key, "reactorGyroCascade");
+  assert.equal(draw.crits[1].key, "torsoCriticalBreach");
+  assert.equal(draw.crits[1].generalKey, "criticalBreach");
 });
 
 test("machine critical remedy intent spends operator SA and resolves the crit", async () => {
@@ -182,7 +186,7 @@ test("machine critical remedy intent spends operator SA and resolves the crit", 
 
   assert.equal(result.ok, true);
   assert.equal(spent.actor, operator);
-  assert.equal(spent.packet.cost, 2);
+  assert.equal(spent.packet.cost, 1);
   assert.equal(machine.system.mwd.crits[0].active, false);
 
   delete globalThis.fromUuid;

@@ -1,15 +1,15 @@
 {
-  "_id": "MWDGeneralCrit01",
-  "_key": "!tables!MWDGeneralCrit01",
-  "name": "Machine Criticals: General Problem",
+  "_id": "MWDVehicleMobility",
+  "_key": "!tables!MWDVehicleMobility",
+  "name": "Vehicle Criticals: Mobility",
   "img": "icons/svg/d20-black.svg",
-  "description": "<p>Roll 2d6 to determine the type of machine critical problem, then apply the matching location table row.</p>",
+  "description": "<p>Location-specific interpretation of the general machine critical result.</p>",
   "results": [
     {
-      "_id": "GenCritResult02",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult02",
+      "_id": "VehMCrit02",
+      "_key": "!tables.results!MWDVehicleMobility.VehMCrit02",
       "type": "text",
-      "text": "Catastrophic Cascade",
+      "text": "Mobility Cascade",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -20,10 +20,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "catastrophicCascade",
-            "remedyKey": "none",
-            "gates": [],
-            "mods": [],
+            "key": "mobilityCascadeVehicle",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
+            "mods": [
+              "skidStallCrashRisk"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "cascade"
@@ -32,10 +36,10 @@
       }
     },
     {
-      "_id": "GenCritResult03",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult03",
+      "_id": "VehMCrit03",
+      "_key": "!tables.results!MWDVehicleMobility.VehMCrit03",
       "type": "text",
-      "text": "Hard Lock",
+      "text": "Drive / Track / Wheel Lock",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -46,9 +50,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "hardLock",
+            "key": "driveLock",
             "remedyKey": "emergencyRepair",
-            "gates": [],
+            "gates": [
+              "move"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -58,10 +64,10 @@
       }
     },
     {
-      "_id": "GenCritResult04",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult04",
+      "_id": "VehMCrit04",
+      "_key": "!tables.results!MWDVehicleMobility.VehMCrit04",
       "type": "text",
-      "text": "Power Surge",
+      "text": "Powertrain Surge",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -72,11 +78,15 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "powerSurge",
+            "key": "powertrainSurge",
             "remedyKey": "coolantDump",
-            "gates": [],
+            "gates": [
+              "move"
+            ],
             "mods": [],
-            "resourceEffects": {},
+            "resourceEffects": {
+              "heatOrStrainOnMove": 1
+            },
             "pilotDamage": {},
             "escalationKey": "surge"
           }
@@ -84,10 +94,10 @@
       }
     },
     {
-      "_id": "GenCritResult05",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult05",
+      "_id": "VehMCrit05",
+      "_key": "!tables.results!MWDVehicleMobility.VehMCrit05",
       "type": "text",
-      "text": "Feed / Flow Disruption",
+      "text": "Transmission / Rotor Feed Fault",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -98,9 +108,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "feedFlowDisruption",
-            "remedyKey": "feedReset",
-            "gates": [],
+            "key": "transmissionRotorFeedFault",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -110,10 +122,10 @@
       }
     },
     {
-      "_id": "GenCritResult06",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult06",
+      "_id": "VehMCrit06",
+      "_key": "!tables.results!MWDVehicleMobility.VehMCrit06",
       "type": "text",
-      "text": "Control Fault",
+      "text": "Steering Fault",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -124,9 +136,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "controlFault",
-            "remedyKey": "systemReset",
-            "gates": [],
+            "key": "steeringFault",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -136,10 +150,10 @@
       }
     },
     {
-      "_id": "GenCritResult07",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult07",
+      "_id": "VehMCrit07",
+      "_key": "!tables.results!MWDVehicleMobility.VehMCrit07",
       "type": "text",
-      "text": "System Desync",
+      "text": "Handling Desync",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -150,10 +164,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "systemDesync",
+            "key": "handlingDesync",
             "remedyKey": "systemReset",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "move"
+            ],
+            "mods": [
+              "noMobilityCqBonus"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "desync"
@@ -162,10 +180,10 @@
       }
     },
     {
-      "_id": "GenCritResult08",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult08",
+      "_id": "VehMCrit08",
+      "_key": "!tables.results!MWDVehicleMobility.VehMCrit08",
       "type": "text",
-      "text": "Structural Shock",
+      "text": "Chassis Shock",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -176,10 +194,15 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "structuralShock",
+            "key": "chassisShock",
             "remedyKey": "emergencyRepair",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "move",
+              "piloting"
+            ],
+            "mods": [
+              "controlTest"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "shock"
@@ -188,8 +211,8 @@
       }
     },
     {
-      "_id": "GenCritResult09",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult09",
+      "_id": "VehMCrit09",
+      "_key": "!tables.results!MWDVehicleMobility.VehMCrit09",
       "type": "text",
       "text": "Overload",
       "img": "icons/svg/d20-black.svg",
@@ -202,11 +225,15 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "overload",
-            "remedyKey": "coolantDump",
-            "gates": [],
+            "key": "overloadMobility",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
             "mods": [],
-            "resourceEffects": {},
+            "resourceEffects": {
+              "repeatedMoveCost": 1
+            },
             "pilotDamage": {},
             "escalationKey": "overload"
           }
@@ -214,10 +241,10 @@
       }
     },
     {
-      "_id": "GenCritResult10",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult10",
+      "_id": "VehMCrit10",
+      "_key": "!tables.results!MWDVehicleMobility.VehMCrit10",
       "type": "text",
-      "text": "Degradation Spike",
+      "text": "Suspension / Lift Damage",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -228,10 +255,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "degradationSpike",
+            "key": "suspensionLiftDamage",
             "remedyKey": "emergencyRepair",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "move"
+            ],
+            "mods": [
+              "majorHandlingImpairment"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "degradation"
@@ -240,10 +271,10 @@
       }
     },
     {
-      "_id": "GenCritResult11",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult11",
+      "_id": "VehMCrit11",
+      "_key": "!tables.results!MWDVehicleMobility.VehMCrit11",
       "type": "text",
-      "text": "Partial Outage",
+      "text": "Partial Mobility Outage",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -254,9 +285,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "partialOutage",
+            "key": "partialMobilityOutageVehicle",
             "remedyKey": "emergencyRepair",
-            "gates": [],
+            "gates": [
+              "move"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -266,10 +299,10 @@
       }
     },
     {
-      "_id": "GenCritResult12",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult12",
+      "_id": "VehMCrit12",
+      "_key": "!tables.results!MWDVehicleMobility.VehMCrit12",
       "type": "text",
-      "text": "Critical Breach",
+      "text": "Mobility condition +1",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -280,7 +313,7 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "criticalBreach",
+            "key": "mobilityCriticalBreach",
             "remedyKey": "none",
             "gates": [],
             "mods": [],

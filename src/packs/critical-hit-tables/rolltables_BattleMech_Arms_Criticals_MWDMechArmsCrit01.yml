@@ -1,15 +1,15 @@
 {
-  "_id": "MWDGeneralCrit01",
-  "_key": "!tables!MWDGeneralCrit01",
-  "name": "Machine Criticals: General Problem",
+  "_id": "MWDMechArmsCrit01",
+  "_key": "!tables!MWDMechArmsCrit01",
+  "name": "BattleMech Criticals: Arms",
   "img": "icons/svg/d20-black.svg",
-  "description": "<p>Roll 2d6 to determine the type of machine critical problem, then apply the matching location table row.</p>",
+  "description": "<p>Location-specific interpretation of the general machine critical result.</p>",
   "results": [
     {
-      "_id": "GenCritResult02",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult02",
+      "_id": "MechACrit02",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit02",
       "type": "text",
-      "text": "Catastrophic Cascade",
+      "text": "Weapon Mount Cascade",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -20,9 +20,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "catastrophicCascade",
-            "remedyKey": "none",
-            "gates": [],
+            "key": "weaponMountCascade",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -32,10 +34,10 @@
       }
     },
     {
-      "_id": "GenCritResult03",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult03",
+      "_id": "MechACrit03",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit03",
       "type": "text",
-      "text": "Hard Lock",
+      "text": "Actuator Lock",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -46,9 +48,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "hardLock",
+            "key": "actuatorLockArm",
             "remedyKey": "emergencyRepair",
-            "gates": [],
+            "gates": [
+              "attack"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -58,10 +62,10 @@
       }
     },
     {
-      "_id": "GenCritResult04",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult04",
+      "_id": "MechACrit04",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit04",
       "type": "text",
-      "text": "Power Surge",
+      "text": "Weapon Feedback",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -72,11 +76,15 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "powerSurge",
-            "remedyKey": "coolantDump",
-            "gates": [],
+            "key": "weaponFeedback",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
             "mods": [],
-            "resourceEffects": {},
+            "resourceEffects": {
+              "nextArmAttackHeat": 1
+            },
             "pilotDamage": {},
             "escalationKey": "surge"
           }
@@ -84,10 +92,10 @@
       }
     },
     {
-      "_id": "GenCritResult05",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult05",
+      "_id": "MechACrit05",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit05",
       "type": "text",
-      "text": "Feed / Flow Disruption",
+      "text": "Ammo / Feed Fault",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -98,9 +106,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "feedFlowDisruption",
+            "key": "ammoFeedFaultArm",
             "remedyKey": "feedReset",
-            "gates": [],
+            "gates": [
+              "attack"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -110,10 +120,10 @@
       }
     },
     {
-      "_id": "GenCritResult06",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult06",
+      "_id": "MechACrit06",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit06",
       "type": "text",
-      "text": "Control Fault",
+      "text": "Fine Actuation Error",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -124,10 +134,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "controlFault",
-            "remedyKey": "systemReset",
-            "gates": [],
-            "mods": [],
+            "key": "fineActuationError",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "aimBlocked"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "control"
@@ -136,10 +150,10 @@
       }
     },
     {
-      "_id": "GenCritResult07",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult07",
+      "_id": "MechACrit07",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit07",
       "type": "text",
-      "text": "System Desync",
+      "text": "Targeting Misalignment",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -150,10 +164,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "systemDesync",
+            "key": "targetingMisalignmentArm",
             "remedyKey": "systemReset",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "noCqBonus"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "desync"
@@ -162,10 +180,10 @@
       }
     },
     {
-      "_id": "GenCritResult08",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult08",
+      "_id": "MechACrit08",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit08",
       "type": "text",
-      "text": "Structural Shock",
+      "text": "Recoil Shock",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -176,10 +194,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "structuralShock",
+            "key": "recoilShock",
             "remedyKey": "emergencyRepair",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "nextArmAttackBlocked"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "shock"
@@ -188,10 +210,10 @@
       }
     },
     {
-      "_id": "GenCritResult09",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult09",
+      "_id": "MechACrit09",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit09",
       "type": "text",
-      "text": "Overload",
+      "text": "Servo Strain",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -202,11 +224,15 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "overload",
-            "remedyKey": "coolantDump",
-            "gates": [],
+            "key": "servoStrainArm",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
             "mods": [],
-            "resourceEffects": {},
+            "resourceEffects": {
+              "heatOrStrainOnUse": 1
+            },
             "pilotDamage": {},
             "escalationKey": "overload"
           }
@@ -214,10 +240,10 @@
       }
     },
     {
-      "_id": "GenCritResult10",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult10",
+      "_id": "MechACrit10",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit10",
       "type": "text",
-      "text": "Degradation Spike",
+      "text": "Stabilizer Damage",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -228,10 +254,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "degradationSpike",
+            "key": "stabilizerDamageArm",
             "remedyKey": "emergencyRepair",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "armAttackSeverelyLimited"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "degradation"
@@ -240,10 +270,10 @@
       }
     },
     {
-      "_id": "GenCritResult11",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult11",
+      "_id": "MechACrit11",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit11",
       "type": "text",
-      "text": "Partial Outage",
+      "text": "Local Power Loss",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -254,9 +284,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "partialOutage",
+            "key": "localPowerLossArm",
             "remedyKey": "emergencyRepair",
-            "gates": [],
+            "gates": [
+              "subsystem"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -266,10 +298,10 @@
       }
     },
     {
-      "_id": "GenCritResult12",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult12",
+      "_id": "MechACrit12",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit12",
       "type": "text",
-      "text": "Critical Breach",
+      "text": "Arms condition +1",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -280,7 +312,7 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "criticalBreach",
+            "key": "armsCriticalBreach",
             "remedyKey": "none",
             "gates": [],
             "mods": [],

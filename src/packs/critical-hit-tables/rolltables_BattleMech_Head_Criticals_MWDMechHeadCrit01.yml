@@ -1,15 +1,15 @@
 {
-  "_id": "MWDGeneralCrit01",
-  "_key": "!tables!MWDGeneralCrit01",
-  "name": "Machine Criticals: General Problem",
+  "_id": "MWDMechHeadCrit01",
+  "_key": "!tables!MWDMechHeadCrit01",
+  "name": "BattleMech Criticals: Head",
   "img": "icons/svg/d20-black.svg",
-  "description": "<p>Roll 2d6 to determine the type of machine critical problem, then apply the matching location table row.</p>",
+  "description": "<p>Location-specific interpretation of the general machine critical result.</p>",
   "results": [
     {
-      "_id": "GenCritResult02",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult02",
+      "_id": "MechHCrit02",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit02",
       "type": "text",
-      "text": "Catastrophic Cascade",
+      "text": "Cockpit Shock",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -20,22 +20,29 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "catastrophicCascade",
+            "key": "cockpitShock",
             "remedyKey": "none",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "sensor"
+            ],
+            "mods": [
+              "sensorBlind"
+            ],
             "resourceEffects": {},
-            "pilotDamage": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 3
+            },
             "escalationKey": "cascade"
           }
         }
       }
     },
     {
-      "_id": "GenCritResult03",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult03",
+      "_id": "MechHCrit03",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit03",
       "type": "text",
-      "text": "Hard Lock",
+      "text": "Targeting Processor Lock",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -46,22 +53,27 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "hardLock",
-            "remedyKey": "emergencyRepair",
-            "gates": [],
+            "key": "targetingProcessorLock",
+            "remedyKey": "systemReset",
+            "gates": [
+              "attack"
+            ],
             "mods": [],
             "resourceEffects": {},
-            "pilotDamage": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2
+            },
             "escalationKey": "lockout"
           }
         }
       }
     },
     {
-      "_id": "GenCritResult04",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult04",
+      "_id": "MechHCrit04",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit04",
       "type": "text",
-      "text": "Power Surge",
+      "text": "Neural Feedback",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -72,22 +84,25 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "powerSurge",
-            "remedyKey": "coolantDump",
+            "key": "neuralFeedback",
+            "remedyKey": "systemReset",
             "gates": [],
             "mods": [],
             "resourceEffects": {},
-            "pilotDamage": {},
+            "pilotDamage": {
+              "track": "fatigue",
+              "amount": 2
+            },
             "escalationKey": "surge"
           }
         }
       }
     },
     {
-      "_id": "GenCritResult05",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult05",
+      "_id": "MechHCrit05",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit05",
       "type": "text",
-      "text": "Feed / Flow Disruption",
+      "text": "Optics Coolant Fog / View Obstruction",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -98,10 +113,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "feedFlowDisruption",
-            "remedyKey": "feedReset",
-            "gates": [],
-            "mods": [],
+            "key": "opticsCoolantFog",
+            "remedyKey": "systemReset",
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "rangeLimitClose"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "feed"
@@ -110,10 +129,10 @@
       }
     },
     {
-      "_id": "GenCritResult06",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult06",
+      "_id": "MechHCrit06",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit06",
       "type": "text",
-      "text": "Control Fault",
+      "text": "Command Input Delay",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -124,22 +143,27 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "controlFault",
+            "key": "commandInputDelay",
             "remedyKey": "systemReset",
             "gates": [],
             "mods": [],
-            "resourceEffects": {},
-            "pilotDamage": {},
+            "resourceEffects": {
+              "nextActivationSaPenalty": 1
+            },
+            "pilotDamage": {
+              "track": "fatigue",
+              "amount": 2
+            },
             "escalationKey": "control"
           }
         }
       }
     },
     {
-      "_id": "GenCritResult07",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult07",
+      "_id": "MechHCrit07",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit07",
       "type": "text",
-      "text": "System Desync",
+      "text": "Fire-Control Desync",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -150,10 +174,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "systemDesync",
+            "key": "fireControlDesyncHead",
             "remedyKey": "systemReset",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "noCqBonus"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "desync"
@@ -162,10 +190,10 @@
       }
     },
     {
-      "_id": "GenCritResult08",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult08",
+      "_id": "MechHCrit08",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit08",
       "type": "text",
-      "text": "Structural Shock",
+      "text": "Cockpit Impact",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -176,22 +204,29 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "structuralShock",
-            "remedyKey": "emergencyRepair",
-            "gates": [],
-            "mods": [],
+            "key": "cockpitImpact",
+            "remedyKey": "pilotRecovery",
+            "gates": [
+              "piloting"
+            ],
+            "mods": [
+              "stabilityCheck"
+            ],
             "resourceEffects": {},
-            "pilotDamage": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2
+            },
             "escalationKey": "shock"
           }
         }
       }
     },
     {
-      "_id": "GenCritResult09",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult09",
+      "_id": "MechHCrit09",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit09",
       "type": "text",
-      "text": "Overload",
+      "text": "Sensor Overload",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -202,22 +237,29 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "overload",
-            "remedyKey": "coolantDump",
-            "gates": [],
-            "mods": [],
+            "key": "sensorOverload",
+            "remedyKey": "systemReset",
+            "gates": [
+              "sensor"
+            ],
+            "mods": [
+              "sensorLockPenalty"
+            ],
             "resourceEffects": {},
-            "pilotDamage": {},
+            "pilotDamage": {
+              "track": "fatigue",
+              "amount": 2
+            },
             "escalationKey": "overload"
           }
         }
       }
     },
     {
-      "_id": "GenCritResult10",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult10",
+      "_id": "MechHCrit10",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit10",
       "type": "text",
-      "text": "Degradation Spike",
+      "text": "Optics Fracture",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -228,10 +270,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "degradationSpike",
+            "key": "opticsFracture",
             "remedyKey": "emergencyRepair",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "visibilitySevere"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "degradation"
@@ -240,10 +286,10 @@
       }
     },
     {
-      "_id": "GenCritResult11",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult11",
+      "_id": "MechHCrit11",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit11",
       "type": "text",
-      "text": "Partial Outage",
+      "text": "Communications / Sensor Suite Out",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -254,9 +300,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "partialOutage",
-            "remedyKey": "emergencyRepair",
-            "gates": [],
+            "key": "commsSensorSuiteOut",
+            "remedyKey": "systemReset",
+            "gates": [
+              "sensor"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -266,10 +314,10 @@
       }
     },
     {
-      "_id": "GenCritResult12",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult12",
+      "_id": "MechHCrit12",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit12",
       "type": "text",
-      "text": "Critical Breach",
+      "text": "Head condition +1",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -280,12 +328,15 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "criticalBreach",
+            "key": "headCriticalBreach",
             "remedyKey": "none",
             "gates": [],
             "mods": [],
             "resourceEffects": {},
-            "pilotDamage": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2
+            },
             "escalationKey": "conditionAdvance"
           }
         }

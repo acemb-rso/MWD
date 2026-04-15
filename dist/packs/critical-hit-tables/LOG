@@ -1,5 +1,5 @@
-2026/04/15-16:51:42.788 deac Delete type=3 #1
-2026/04/15-16:51:42.791 ace4 Level-0 table #5: started
-2026/04/15-16:51:42.792 ace4 Level-0 table #5: 2374 bytes OK
-2026/04/15-16:51:42.793 ace4 Delete type=0 #3
-2026/04/15-16:51:42.793 ace4 Manual compaction at level-0 from '!tables!MWDGeneralCrit01' @ 72057594037927935 : 1 .. '!tables.results!MWDVehicleCrit1.VehCritResult03' @ 0 : 0; will stop at (end)
+2026/04/15-18:20:16.481 dd68 Delete type=3 #1
+2026/04/15-18:20:16.484 d580 Level-0 table #5: started
+2026/04/15-18:20:16.485 d580 Level-0 table #5: 11039 bytes OK
+2026/04/15-18:20:16.486 d580 Delete type=0 #3
+2026/04/15-18:20:16.486 d580 Manual compaction at level-0 from '!tables!MWDGeneralCrit01' @ 72057594037927935 : 1 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at (end)

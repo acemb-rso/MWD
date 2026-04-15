@@ -1,15 +1,15 @@
 {
-  "_id": "MWDGeneralCrit01",
-  "_key": "!tables!MWDGeneralCrit01",
-  "name": "Machine Criticals: General Problem",
+  "_id": "MWDVehicleTurretCrit",
+  "_key": "!tables!MWDVehicleTurretCrit",
+  "name": "Vehicle Criticals: Turret",
   "img": "icons/svg/d20-black.svg",
-  "description": "<p>Roll 2d6 to determine the type of machine critical problem, then apply the matching location table row.</p>",
+  "description": "<p>Location-specific interpretation of the general machine critical result.</p>",
   "results": [
     {
-      "_id": "GenCritResult02",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult02",
+      "_id": "VehTCrit02",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit02",
       "type": "text",
-      "text": "Catastrophic Cascade",
+      "text": "Turret Weapon Cascade",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -20,9 +20,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "catastrophicCascade",
-            "remedyKey": "none",
-            "gates": [],
+            "key": "turretWeaponCascade",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -32,10 +34,10 @@
       }
     },
     {
-      "_id": "GenCritResult03",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult03",
+      "_id": "VehTCrit03",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit03",
       "type": "text",
-      "text": "Hard Lock",
+      "text": "Traverse Lock",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -46,9 +48,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "hardLock",
+            "key": "traverseLock",
             "remedyKey": "emergencyRepair",
-            "gates": [],
+            "gates": [
+              "attack"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -58,10 +62,10 @@
       }
     },
     {
-      "_id": "GenCritResult04",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult04",
+      "_id": "VehTCrit04",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit04",
       "type": "text",
-      "text": "Power Surge",
+      "text": "Fire-Control Surge",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -72,11 +76,15 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "powerSurge",
-            "remedyKey": "coolantDump",
-            "gates": [],
+            "key": "fireControlSurgeTurret",
+            "remedyKey": "systemReset",
+            "gates": [
+              "attack"
+            ],
             "mods": [],
-            "resourceEffects": {},
+            "resourceEffects": {
+              "heatOrStrainOnTurretAttack": 1
+            },
             "pilotDamage": {},
             "escalationKey": "surge"
           }
@@ -84,10 +92,10 @@
       }
     },
     {
-      "_id": "GenCritResult05",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult05",
+      "_id": "VehTCrit05",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit05",
       "type": "text",
-      "text": "Feed / Flow Disruption",
+      "text": "Ammo / Feed Fault",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -98,9 +106,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "feedFlowDisruption",
+            "key": "ammoFeedFaultTurret",
             "remedyKey": "feedReset",
-            "gates": [],
+            "gates": [
+              "attack"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -110,8 +120,8 @@
       }
     },
     {
-      "_id": "GenCritResult06",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult06",
+      "_id": "VehTCrit06",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit06",
       "type": "text",
       "text": "Control Fault",
       "img": "icons/svg/d20-black.svg",
@@ -124,11 +134,15 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "controlFault",
+            "key": "controlFaultTurret",
             "remedyKey": "systemReset",
-            "gates": [],
+            "gates": [
+              "attack"
+            ],
             "mods": [],
-            "resourceEffects": {},
+            "resourceEffects": {
+              "extraAttackCost": 1
+            },
             "pilotDamage": {},
             "escalationKey": "control"
           }
@@ -136,10 +150,10 @@
       }
     },
     {
-      "_id": "GenCritResult07",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult07",
+      "_id": "VehTCrit07",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit07",
       "type": "text",
-      "text": "System Desync",
+      "text": "Tracking Desync",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -150,10 +164,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "systemDesync",
+            "key": "trackingDesyncTurret",
             "remedyKey": "systemReset",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "noCqBonus"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "desync"
@@ -162,10 +180,10 @@
       }
     },
     {
-      "_id": "GenCritResult08",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult08",
+      "_id": "VehTCrit08",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit08",
       "type": "text",
-      "text": "Structural Shock",
+      "text": "Mount Shock",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -176,10 +194,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "structuralShock",
+            "key": "mountShockTurret",
             "remedyKey": "emergencyRepair",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "nextTurretAttackBlocked"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "shock"
@@ -188,8 +210,8 @@
       }
     },
     {
-      "_id": "GenCritResult09",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult09",
+      "_id": "VehTCrit09",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit09",
       "type": "text",
       "text": "Overload",
       "img": "icons/svg/d20-black.svg",
@@ -202,11 +224,15 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "overload",
-            "remedyKey": "coolantDump",
-            "gates": [],
+            "key": "overloadTurret",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
             "mods": [],
-            "resourceEffects": {},
+            "resourceEffects": {
+              "turretAttackStress": 1
+            },
             "pilotDamage": {},
             "escalationKey": "overload"
           }
@@ -214,10 +240,10 @@
       }
     },
     {
-      "_id": "GenCritResult10",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult10",
+      "_id": "VehTCrit10",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit10",
       "type": "text",
-      "text": "Degradation Spike",
+      "text": "Stabilizer Damage",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -228,10 +254,14 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "degradationSpike",
+            "key": "stabilizerDamageTurret",
             "remedyKey": "emergencyRepair",
-            "gates": [],
-            "mods": [],
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "limitedArcFire"
+            ],
             "resourceEffects": {},
             "pilotDamage": {},
             "escalationKey": "degradation"
@@ -240,10 +270,10 @@
       }
     },
     {
-      "_id": "GenCritResult11",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult11",
+      "_id": "VehTCrit11",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit11",
       "type": "text",
-      "text": "Partial Outage",
+      "text": "Turret Subsystem Outage",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -254,9 +284,11 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "partialOutage",
+            "key": "turretSubsystemOutage",
             "remedyKey": "emergencyRepair",
-            "gates": [],
+            "gates": [
+              "subsystem"
+            ],
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
@@ -266,10 +298,10 @@
       }
     },
     {
-      "_id": "GenCritResult12",
-      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult12",
+      "_id": "VehTCrit12",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit12",
       "type": "text",
-      "text": "Critical Breach",
+      "text": "Turret condition +1",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -280,7 +312,7 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "criticalBreach",
+            "key": "turretCriticalBreach",
             "remedyKey": "none",
             "gates": [],
             "mods": [],

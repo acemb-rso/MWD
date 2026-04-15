@@ -3,6 +3,7 @@
 // How it fits: Roll Tables choose remedy keys, while action cost and meaning stay stable.
 
 export const MACHINE_CRIT_REMEDY_KEYS = Object.freeze([
+  "none",
   "emergencyRepair",
   "systemReset",
   "coolantDump",
@@ -11,6 +12,16 @@ export const MACHINE_CRIT_REMEDY_KEYS = Object.freeze([
 ]);
 
 export const MACHINE_CRIT_REMEDIES = Object.freeze({
+  none: Object.freeze({
+    key: "none",
+    label: "No Field Remedy",
+    actionId: "machineCritNoFieldRemedy",
+    actionLabel: "No Field Remedy",
+    resource: "sa",
+    cost: 0,
+    category: "none",
+    remediable: false,
+  }),
   emergencyRepair: Object.freeze({
     key: "emergencyRepair",
     label: "Emergency Repair",
@@ -19,6 +30,7 @@ export const MACHINE_CRIT_REMEDIES = Object.freeze({
     resource: "sa",
     cost: 2,
     category: "complex",
+    remediable: true,
   }),
   systemReset: Object.freeze({
     key: "systemReset",
@@ -26,8 +38,9 @@ export const MACHINE_CRIT_REMEDIES = Object.freeze({
     actionId: "machineCritSystemReset",
     actionLabel: "System Reset",
     resource: "sa",
-    cost: 2,
-    category: "complex",
+    cost: 1,
+    category: "simple",
+    remediable: true,
   }),
   coolantDump: Object.freeze({
     key: "coolantDump",
@@ -35,17 +48,19 @@ export const MACHINE_CRIT_REMEDIES = Object.freeze({
     actionId: "machineCritCoolantDump",
     actionLabel: "Coolant Dump",
     resource: "sa",
-    cost: 2,
-    category: "complex",
+    cost: 1,
+    category: "simple",
+    remediable: true,
   }),
   feedReset: Object.freeze({
     key: "feedReset",
-    label: "Feed Reset",
+    label: "Reload / Feed Reset",
     actionId: "machineCritFeedReset",
-    actionLabel: "Feed Reset",
+    actionLabel: "Reload / Feed Reset",
     resource: "sa",
-    cost: 2,
-    category: "complex",
+    cost: 1,
+    category: "simple",
+    remediable: true,
   }),
   pilotRecovery: Object.freeze({
     key: "pilotRecovery",
@@ -55,6 +70,7 @@ export const MACHINE_CRIT_REMEDIES = Object.freeze({
     resource: "sa",
     cost: 2,
     category: "complex",
+    remediable: true,
   }),
 });
 
