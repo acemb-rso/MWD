@@ -1,0 +1,38 @@
+{{!--
+templates/v2/ui/battlemech/chassis-fields.hbs
+Purpose: Renders chassis config fields (tonnage, weight class) in edit mode; static summary in view mode.
+How it fits: Included in the Systems tab of the BattleMech V2 sheet.
+--}}
+
+{{#if editing}}
+  <div class="mwd-gmgadget__grid">
+    {{#each battlemechSheet.chassisFields as |field|}}
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">{{field.label}}</span>
+        {{#if field.isSelect}}
+          <select name="{{field.path}}" data-edit-field="staged">
+            {{#each field.options as |opt|}}
+              <option value="{{opt.value}}" {{#if opt.selected}}selected{{/if}}>{{opt.label}}</option>
+            {{/each}}
+          </select>
+        {{else}}
+          <input
+            type="{{#if field.isNumber}}number{{else}}text{{/if}}"
+            name="{{field.path}}"
+            value="{{field.value}}"
+            data-edit-field="staged"
+          />
+        {{/if}}
+      </label>
+    {{/each}}
+  </div>
+{{else}}
+  <section class="mwd-item-hero">
+    {{#each battlemechSheet.chassisFields as |field|}}
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">{{field.label}}</span>
+        <span class="mwd-item-hero__value">{{field.displayValue}}</span>
+      </div>
+    {{/each}}
+  </section>
+{{/if}}

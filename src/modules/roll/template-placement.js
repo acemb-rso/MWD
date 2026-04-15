@@ -13,13 +13,14 @@ import {
   createLegacyTemplatePlacementFromGeometry,
   createRegionShapesFromTemplateGeometry,
   getExposureLabel,
+  isPersistentAreaEffect,
   normalizeTemplateGeometry,
   templateGeometryHitsToken,
   EXPOSURE_TIERS,
 } from "../area-effects/area-effect-engine.js";
 
 const DEFAULT_CONE_ANGLE = 90;
-const pendingTemplatePlacementRequests = new Map();
+const TEMPLATE_INDICATOR_REGION_VISIBILITY = Number(CONST?.REGION_VISIBILITY?.ALWAYS ?? 2) || 2;
 
 function getGridSizePixels() {
   return Number(canvas.grid?.size ?? canvas.dimensions?.size ?? 100) || 100;
@@ -32,6 +33,15 @@ function authoredTemplateDistance(template = {}) {
 function getActorToken(actor) {
   const controlled = canvas.tokens?.controlled?.find(token => token.actor?.id === actor?.id) ?? null;
   return controlled ?? actor?.getActiveTokens?.(true, true)?.[0] ?? null;
+}
+
+function getTokenDisposition(token) {
+  return Number(
+    token?.document?.disposition
+    ?? token?.disposition
+    ?? CONST?.TOKEN_DISPOSITIONS?.NEUTRAL
+    ?? 0
+  );
 }
 
 function getTokenCenter(token) {
@@ -150,19 +160,26 @@ function clearContainerChildren(container) {
 
 function getCanvasPointFromEvent(event) {
   const view = canvas?.app?.view ?? null;
+  const renderer = canvas?.app?.renderer ?? null;
   const stage = canvas?.stage ?? null;
   if (!view || !stage) return null;
 
-  const rect = view.getBoundingClientRect();
   const clientX = Number(event?.clientX ?? NaN);
   const clientY = Number(event?.clientY ?? NaN);
   if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return null;
+  const rect = view.getBoundingClientRect();
   if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return null;
 
-  const local = stage.toLocal(new PIXI.Point(
-    clientX - rect.left,
-    clientY - rect.top
-  ));
+  const globalPoint = new PIXI.Point();
+  if (typeof renderer?.events?.mapPositionToPoint === "function") {
+    renderer.events.mapPositionToPoint(globalPoint, clientX, clientY);
+  } else {
+    const resolution = Number(renderer?.resolution ?? window.devicePixelRatio ?? 1) || 1;
+    globalPoint.x = ((clientX - rect.left) * resolution);
+    globalPoint.y = ((clientY - rect.top) * resolution);
+  }
+
+  const local = stage.toLocal(globalPoint);
 
   return {
     x: Number(local?.x ?? 0) || 0,
@@ -383,97 +400,155 @@ function buildMarkerState({ attack = {}, geometry = null, attacker = null } = {}
     }));
 }
 
-function buildTemplatePlacementChatContent({ attack = {}, requestId = "" } = {}) {
+function getAutoTargetTokenIds({ geometry = null, attack = {}, attacker = null } = {}) {
+  const template = attack?.template ?? null;
+  const normalizedGeometry = normalizeTemplateGeometry(geometry);
+  if (!template || !normalizedGeometry) return [];
+
+  const attackerToken = getActorToken(attacker);
+  const attackerTokenId = attackerToken?.id ?? null;
+  const hostile = Number(CONST?.TOKEN_DISPOSITIONS?.HOSTILE ?? -1);
+  const friendly = Number(CONST?.TOKEN_DISPOSITIONS?.FRIENDLY ?? 1);
+  const neutral = Number(CONST?.TOKEN_DISPOSITIONS?.NEUTRAL ?? 0);
+  const attackerDisposition = getTokenDisposition(attackerToken);
+
+  const isEnemyToken = (token) => {
+    const disposition = getTokenDisposition(token);
+    if (!attackerToken) return true;
+    if (attackerDisposition === friendly) return disposition === hostile;
+    if (attackerDisposition === hostile) return disposition === friendly;
+    if (attackerDisposition === neutral) return disposition === hostile;
+    return disposition !== attackerDisposition;
+  };
+
+  return (canvas.tokens?.placeables ?? [])
+    .filter(token => token?.actor)
+    .filter(token => token.id !== attackerTokenId || template?.placement === "origin")
+    .filter(token => templateGeometryHitsToken(normalizedGeometry, token))
+    .filter(isEnemyToken)
+    .map(token => String(token.id ?? "").trim())
+    .filter(Boolean);
+}
+
+function buildTemplatePlacementHint(attack = {}) {
   const shapeKey = String(attack?.template?.shape ?? "template").trim().toLowerCase();
   const label = shapeKey ? `${shapeKey.slice(0, 1).toUpperCase()}${shapeKey.slice(1)}` : "Template";
-
-  return `
-    <div class="mwd-template-placement-card">
-      <p style="margin: 0 0 0.65rem;">${foundry.utils.escapeHTML(label)} placement: Move the cursor on the canvas, then <strong>Confirm</strong> or <strong>Cancel</strong> the attack.</p>
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <button type="button" data-mwd-action="templatePlacementConfirm" data-request-id="${foundry.utils.escapeHTML(requestId)}">Confirm</button>
-        <button type="button" data-mwd-action="templatePlacementCancel" data-request-id="${foundry.utils.escapeHTML(requestId)}">Cancel</button>
-      </div>
-    </div>
-  `;
-}
-
-function registerTemplatePlacementRequest({ requestId = "", resolve = null, messageId = "" } = {}) {
-  if (!requestId || typeof resolve !== "function") return;
-  pendingTemplatePlacementRequests.set(requestId, {
-    resolve,
-    messageId: String(messageId ?? "").trim(),
-  });
-}
-
-function settleTemplatePlacementRequest(requestId, confirmed = false) {
-  const key = String(requestId ?? "").trim();
-  if (!key) return false;
-
-  const pending = pendingTemplatePlacementRequests.get(key);
-  if (!pending) return false;
-
-  pendingTemplatePlacementRequests.delete(key);
-  pending.resolve(Boolean(confirmed));
-  return true;
-}
-
-async function createTemplatePlacementChatMessage({ actor = null, attack = {}, requestId = "" } = {}) {
-  return ChatMessage.create({
-    speaker: ChatMessage.getSpeaker({ actor }),
-    whisper: [game.user.id],
-    content: buildTemplatePlacementChatContent({ attack, requestId }),
-    flags: {
-      mwd: {
-        templatePlacementRequest: {
-          requestId,
-        },
-      },
-    },
-  });
+  return `${label} placement: left-click to place, right-click or Esc to cancel, Enter or Space to confirm.`;
 }
 
 async function promptToPlaceTemplatePreview({ attack = {} } = {}) {
-  const requestId = foundry.utils.randomID();
-  const message = await createTemplatePlacementChatMessage({
-    actor: attack?.actor ?? attack?.weapon?.actor ?? null,
-    attack,
-    requestId,
+  const hint = buildTemplatePlacementHint(attack);
+  if (hint) ui.notifications?.info?.(hint);
+
+  return new Promise(resolve => {
+    let settled = false;
+
+    const cleanup = () => {
+      window.removeEventListener("pointerdown", handlePointerDown, true);
+      window.removeEventListener("keydown", handleKeyDown, true);
+      window.removeEventListener("contextmenu", handleContextMenu, true);
+    };
+
+    const settle = (confirmed = false) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(Boolean(confirmed));
+    };
+
+    const consumeEvent = (event) => {
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
+      event?.stopImmediatePropagation?.();
+    };
+
+    const isEditableTarget = (target) => {
+      if (!(target instanceof HTMLElement)) return false;
+      const tag = String(target.tagName ?? "").trim().toUpperCase();
+      return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(tag);
+    };
+
+    const handlePointerDown = (event) => {
+      const button = Number(event?.button ?? 0);
+      const pointer = getCanvasPointFromEvent(event);
+
+      if (button === 2 && pointer) {
+        consumeEvent(event);
+        settle(false);
+        return;
+      }
+
+      if (button !== 0 || !pointer) return;
+      consumeEvent(event);
+      settle(true);
+    };
+
+    const handleKeyDown = (event) => {
+      const key = String(event?.key ?? "");
+      const code = String(event?.code ?? "");
+
+      if (key === "Escape") {
+        consumeEvent(event);
+        settle(false);
+        return;
+      }
+
+      if (isEditableTarget(event?.target ?? document.activeElement)) return;
+
+      if (key === "Enter" || key === "NumpadEnter" || key === " " || key === "Spacebar" || code === "Space") {
+        consumeEvent(event);
+        settle(true);
+      }
+    };
+
+    const handleContextMenu = (event) => {
+      if (!getCanvasPointFromEvent(event)) return;
+      consumeEvent(event);
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown, true);
+    window.addEventListener("keydown", handleKeyDown, true);
+    window.addEventListener("contextmenu", handleContextMenu, true);
   });
-
-  const confirmed = await new Promise(resolve => {
-    registerTemplatePlacementRequest({
-      requestId,
-      resolve,
-      messageId: message?.id ?? "",
-    });
-  });
-
-  try {
-    if (message?.id) await message.delete();
-  } catch (_error) {
-    // Ignore cleanup failures for temporary chat prompts.
-  }
-
-  return Boolean(confirmed);
 }
 
-export function resolveTemplatePlacementChatRequest(requestId, confirmed = false) {
-  return settleTemplatePlacementRequest(requestId, confirmed);
-}
+export async function createAttackTemplateIndicator({ actor = null, attack = {}, templateGeometry = null } = {}) {
+  if (!canvas?.scene) return null;
+  if (isPersistentAreaEffect(attack?.areaEffect ?? attack?.payload?.areaEffect ?? {})) return null;
 
-export function cancelTemplatePlacementRequestForMessage(messageId = "") {
-  const resolvedMessageId = String(messageId ?? "").trim();
-  if (!resolvedMessageId) return false;
+  const geometry = normalizeTemplateGeometry(templateGeometry, {
+    template: attack?.template,
+    placement: attack?.templatePlacement,
+  });
+  if (!geometry) return null;
 
-  for (const [requestId, pending] of pendingTemplatePlacementRequests.entries()) {
-    if (pending?.messageId !== resolvedMessageId) continue;
-    pendingTemplatePlacementRequests.delete(requestId);
-    pending.resolve(false);
-    return true;
-  }
+  const shapes = createRegionShapesFromTemplateGeometry(geometry);
+  if (!shapes.length) return null;
 
-  return false;
+  const label = `${String(attack?.weapon?.name ?? attack?.name ?? "Template").trim() || "Template"} Template`;
+
+  const [created] = await canvas.scene.createEmbeddedDocuments("Region", [{
+    name: label,
+    color: String(game.user?.color ?? "#ff6400").trim() || "#ff6400",
+    visibility: TEMPLATE_INDICATOR_REGION_VISIBILITY,
+    locked: false,
+    shapes,
+    flags: {
+      mwd: {
+        templateIndicator: {
+          sourceActorUuid: actor?.uuid ?? null,
+          sourceItemUuid: attack?.weapon?.uuid ?? null,
+          payloadId: attack?.payloadState?.activePayloadId ?? attack?.payload?.id ?? "",
+          label,
+          templateGeometry: cloneTemplateGeometry(geometry),
+          templatePlacement: foundry.utils.deepClone(attack?.templatePlacement ?? null),
+          template: foundry.utils.deepClone(attack?.template ?? null),
+        },
+      },
+    },
+  }]);
+
+  return created ?? null;
 }
 
 export async function placeTemplatedAttack({ actor, attack } = {}) {
@@ -500,36 +575,61 @@ export async function placeTemplatedAttack({ actor, attack } = {}) {
     throw createUserFacingRollError("Unable to initialize template placement for this attack.", { severity: "warn" });
   }
 
-  const templateDoc = await createTemporaryMeasuredTemplate(initialGeometry);
-  if (!templateDoc) {
-    throw createUserFacingRollError("Unable to create the temporary measured template.", { severity: "warn" });
-  }
-
-  const previewContainer = createPreviewContainer();
-  let intervalId = null;
+  const preview = createPlacementPreview();
+  let currentGeometry = cloneTemplateGeometry(initialGeometry);
   let lastSignature = "";
-  let placementConfirmed = false;
 
-  const refreshMarkers = () => {
-    const currentGeometry = createTemplateGeometryFromMeasuredTemplate(templateDoc, {
-      placementMode: template?.placement ?? null,
-      shapeHint: template?.shape ?? "",
-    });
-    if (!nextGeometry) return;
-    currentGeometry = nextGeometry;
+  const getGeometrySignature = (geometry = null) => JSON.stringify({
+    shape: geometry?.shape ?? "",
+    x: Number(geometry?.x ?? 0),
+    y: Number(geometry?.y ?? 0),
+    direction: Number(geometry?.direction ?? 0),
+    distance: Number(geometry?.distance ?? 0),
+    angle: Number(geometry?.angle ?? 0),
+    width: Number(geometry?.width ?? 0),
+    height: Number(geometry?.height ?? 0),
+    anchorX: Number(geometry?.anchorX ?? 0),
+    anchorY: Number(geometry?.anchorY ?? 0),
+    placementMode: geometry?.placementMode ?? "",
+  });
+
+  const refreshPreview = () => {
     drawTemplatePreview(preview.templateLayer, currentGeometry);
     drawTargetMarkers(preview.markerLayer, buildMarkerState({ attack, geometry: currentGeometry, attacker: actor }));
   };
 
+  const handlePointerMove = (event) => {
+    const pointer = getCanvasPointFromEvent(event);
+    if (!pointer) return;
+
+    const nextGeometry = buildInteractiveTemplateGeometry({
+      geometry: currentGeometry,
+      pointer,
+      attack,
+      actor,
+    });
+    if (!nextGeometry) return;
+
+    const nextSignature = getGeometrySignature(nextGeometry);
+    if (nextSignature === lastSignature) return;
+
+    currentGeometry = nextGeometry;
+    lastSignature = nextSignature;
+    refreshPreview();
+  };
+
   try {
-    drawTemplatePreview(preview.templateLayer, currentGeometry);
-    drawTargetMarkers(preview.markerLayer, buildMarkerState({ attack, geometry: currentGeometry, attacker: actor }));
+    lastSignature = getGeometrySignature(currentGeometry);
+    refreshPreview();
     window.addEventListener("pointermove", handlePointerMove);
 
-    const confirmed = await promptToPlaceMeasuredTemplate({ templateDoc, attack });
-    if (!confirmed || !templateDoc?.parent) return null;
-    placementConfirmed = true;
-
+    const confirmed = await promptToPlaceTemplatePreview({
+      attack: {
+        ...attack,
+        actor,
+      },
+    });
+    if (!confirmed) return null;
     const templateGeometry = cloneTemplateGeometry(currentGeometry);
     if (!templateGeometry) return null;
 
@@ -543,17 +643,15 @@ export async function placeTemplatedAttack({ actor, attack } = {}) {
     return {
       templateGeometry: cloneTemplateGeometry(templateGeometry),
       placement: legacyPlacement?.placement ?? null,
+      autoTargetTokenIds: getAutoTargetTokenIds({
+        geometry: templateGeometry,
+        attack,
+        attacker: actor,
+      }),
       targetSnapshots,
     };
   } finally {
-    if (intervalId) window.clearInterval(intervalId);
-    destroyPreviewContainer(previewContainer);
-    if (!placementConfirmed && templateDoc?.parent) {
-      try {
-        await templateDoc.delete();
-      } catch (_error) {
-        // Ignore cleanup failures for temporary placement helpers.
-      }
-    }
+    window.removeEventListener("pointermove", handlePointerMove);
+    destroyPlacementPreview(preview);
   }
 }

@@ -50,6 +50,20 @@ How it fits: Used by rendering code to produce UI fragments.
           ></button>
         {{/each}}
       </div>
+
+      {{#if @root.editing}}
+        <div class="mwd-gmgadget__grid" style="margin-top:0.5rem;">
+          <label class="mwd-gmgadget__field">
+            <span class="mwd-gmgadget__field-label">Max</span>
+            <input
+              type="number"
+              name="system.monitors.{{track.id}}.max"
+              value="{{track.max}}"
+              data-edit-field="staged"
+            />
+          </label>
+        </div>
+      {{/if}}
     </section>
   {{/each}}
 </div>

@@ -1,7 +1,7 @@
-2026/04/09-14:03:38.011 32e4 Recovering log #396
-2026/04/09-14:03:38.014 32e4 Delete type=0 #396
-2026/04/09-14:03:38.015 32e4 Delete type=3 #395
-2026/04/09-14:15:54.169 cd80 Level-0 table #400: started
-2026/04/09-14:15:54.169 cd80 Level-0 table #400: 0 bytes OK
-2026/04/09-14:15:54.170 cd80 Delete type=0 #398
-2026/04/09-14:15:54.173 cd80 Manual compaction at level-0 from 'undefined' @ 72057594037927935 : 1 .. 'undefined' @ 0 : 0; will stop at (end)
+2026/04/14-17:09:20.898 eb24 Recovering log #402
+2026/04/14-17:09:20.900 eb24 Delete type=0 #402
+2026/04/14-17:09:20.900 eb24 Delete type=3 #401
+2026/04/14-21:08:37.148 acb8 Level-0 table #406: started
+2026/04/14-21:08:37.148 acb8 Level-0 table #406: 0 bytes OK
+2026/04/14-21:08:37.149 acb8 Delete type=0 #404
+2026/04/14-21:08:37.150 acb8 Manual compaction at level-0 from 'undefined' @ 72057594037927935 : 1 .. 'undefined' @ 0 : 0; will stop at (end)

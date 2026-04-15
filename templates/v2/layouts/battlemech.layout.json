@@ -55,6 +55,13 @@
             "children": [
               {
                 "type": "panel",
+                "title": "Chassis",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.battlemech.chassis-fields" }
+                ]
+              },
+              {
+                "type": "panel",
                 "title": "Attributes",
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.vehicle.attributes-grid" }

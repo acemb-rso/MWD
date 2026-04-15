@@ -65,8 +65,27 @@ export async function launchOwnedWeaponAttack({ weapon, event = null, token = nu
     }
 
     const result = await rollApi.execute({ actor, payload, event });
-    if (result && hasAim) {
-      await PersonalCombatTracker.clearAim(actor, { token: attackToken });
+    if (result) {
+      if (hasAim) {
+        await PersonalCombatTracker.clearAim(actor, { token: attackToken });
+      }
+
+      const snapshot = PersonalCombatTracker.getSnapshot(actor, { token: attackToken });
+      if (snapshot?.hasCombatant) {
+        const spend = await PersonalCombatTracker.spendResource(actor, {
+          token: attackToken,
+          resource: "sa",
+          cost: 2,
+          actionId: "attack",
+          actionLabel: "Attack",
+          actionCostLabel: "2 SA",
+          actionCategory: "complex"
+        });
+
+        if (!spend?.ok) {
+          ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
+        }
+      }
     }
     return result;
   } catch (error) {

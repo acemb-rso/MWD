@@ -48,6 +48,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/summary-bar.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/attributes-grid.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/record-section.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/chassis-fields.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/heat-track.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/quick-actions.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/weapon-groups.hbs`,

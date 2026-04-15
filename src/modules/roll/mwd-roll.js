@@ -12,7 +12,7 @@ import { WeaponItem } from "../item/weapon-item.js";
 import { SelectItem } from "../dialog/select-item.js";
 import { TEMPLATE } from "../constants.js";
 import { resolveAttackExecution } from "./attack-resolution.js";
-import { placeTemplatedAttack } from "./template-placement.js";
+import { createAttackTemplateIndicator, placeTemplatedAttack } from "./template-placement.js";
 import {
   applyTraitMutations,
   buildInitiativeTraitFacts,
@@ -151,6 +151,30 @@ function normalizeManualModifierRows(rows) {
   }));
 }
 
+async function updateUserTargets(tokenIds = []) {
+  const ids = Array.from(new Set(
+    (Array.isArray(tokenIds) ? tokenIds : [])
+      .map(id => String(id ?? "").trim())
+      .filter(Boolean)
+  ));
+
+  if (typeof game.user?.updateTokenTargets === "function") {
+    await game.user.updateTokenTargets(ids);
+    return;
+  }
+
+  for (const token of Array.from(game.user?.targets ?? [])) {
+    token?.setTarget?.(false, { releaseOthers: false, user: game.user });
+  }
+
+  for (const id of ids) {
+    const token = canvas?.tokens?.get?.(id)
+      ?? canvas?.tokens?.placeables?.find?.(entry => entry?.id === id)
+      ?? null;
+    token?.setTarget?.(true, { releaseOthers: false, user: game.user });
+  }
+}
+
 async function execute({ actor, payload, event } = {}) {
   // Allow token docs/objects to be passed accidentally
   if (actor?.actor) actor = actor.actor;
@@ -167,6 +191,44 @@ async function execute({ actor, payload, event } = {}) {
   /* -------------------------------- */
 
   let ctx = await resolveIntent({ actor, payload, event });
+
+  if (payload.intent === "attack" && ctx?.attack?.capabilityReport?.isTemplated) {
+    const placementResult = await placeTemplatedAttack({
+      actor,
+      attack: ctx.attack,
+    });
+
+    if (!placementResult) return null;
+
+    try {
+      await createAttackTemplateIndicator({
+        actor,
+        attack: ctx.attack,
+        templateGeometry: placementResult.templateGeometry ?? null,
+      });
+    } catch (error) {
+      console.warn("MWD | Unable to create visual template indicator", error);
+    }
+
+    await updateUserTargets(placementResult.autoTargetTokenIds ?? []);
+
+    if (
+      !isPersistentAreaEffect(ctx?.attack?.areaEffect ?? ctx?.attack?.payload?.areaEffect ?? {})
+      && (!Array.isArray(placementResult.targetSnapshots) || placementResult.targetSnapshots.length === 0)
+    ) {
+      ui.notifications?.warn("Template placement did not affect any targets.");
+      return null;
+    }
+
+    payload.targetSnapshots = Array.isArray(placementResult.targetSnapshots) ? placementResult.targetSnapshots : [];
+    payload.templateGeometry = placementResult.templateGeometry ?? null;
+    payload.templatePlacement = placementResult.placement;
+    ctx = await resolveIntent({ actor, payload, event });
+  } else if (payload.intent === "attack") {
+    delete payload.targetSnapshots;
+    delete payload.templatePlacement;
+    delete payload.templateGeometry;
+  }
 
   /* --------------------------------------------------- */
   /* 2) Collect modifiers (items, status, etc — no UI)  */
@@ -230,27 +292,6 @@ async function execute({ actor, payload, event } = {}) {
         return null;
       }
     }
-  }
-
-  if (payload.intent === "attack" && ctx?.attack?.capabilityReport?.isTemplated) {
-    const placementResult = await placeTemplatedAttack({
-      actor,
-      attack: ctx.attack,
-    });
-
-    if (!placementResult) return null;
-    if (
-      !isPersistentAreaEffect(ctx?.attack?.areaEffect ?? ctx?.attack?.payload?.areaEffect ?? {})
-      && (!Array.isArray(placementResult.targetSnapshots) || placementResult.targetSnapshots.length === 0)
-    ) {
-      ui.notifications?.warn("Template placement did not affect any targets.");
-      return null;
-    }
-
-    payload.targetSnapshots = Array.isArray(placementResult.targetSnapshots) ? placementResult.targetSnapshots : [];
-    payload.templateGeometry = placementResult.templateGeometry ?? null;
-    payload.templatePlacement = placementResult.placement;
-    ctx = await resolveIntent({ actor, payload, event });
   }
 
   /* -------------------------------------- */

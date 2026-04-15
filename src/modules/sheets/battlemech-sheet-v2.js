@@ -83,8 +83,68 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       quickActions: this._buildQuickActions(),
       weaponGroups: this._buildWeaponGroups(),
       hardpoints: this._buildHardpoints(),
+      chassisFields: this._buildChassisFields(),
     };
     return ctx;
+  }
+
+  _buildChassisFields() {
+    const tonnage = toNumber(this.actor.system?.mwd?.tonnage, 0);
+    const weightClass = this.actor.system?.mwd?.weightClass ?? "medium";
+    const WEIGHT_CLASS_LABELS = { light: "Light", medium: "Medium", heavy: "Heavy", assault: "Assault" };
+
+    return [
+      {
+        label: "Tonnage",
+        path: "system.mwd.tonnage",
+        isNumber: true,
+        value: tonnage,
+        displayValue: String(tonnage),
+      },
+      {
+        label: "Weight Class",
+        path: "system.mwd.weightClass",
+        isSelect: true,
+        value: weightClass,
+        displayValue: WEIGHT_CLASS_LABELS[weightClass] ?? startCase(weightClass),
+        options: [
+          { value: "light",   label: "Light",   selected: weightClass === "light" },
+          { value: "medium",  label: "Medium",  selected: weightClass === "medium" },
+          { value: "heavy",   label: "Heavy",   selected: weightClass === "heavy" },
+          { value: "assault", label: "Assault", selected: weightClass === "assault" },
+        ],
+      },
+    ];
+  }
+
+  _buildConditionMonitors() {
+    const structure = this.actor.system?.monitors?.structure ?? {};
+    const armor = this.actor.system?.monitors?.armor ?? {};
+
+    const buildTrack = (id, label, kind, data) => ({
+      id,
+      label,
+      kind,
+      editable: Boolean(this.isEditable),
+      value: Math.max(0, toNumber(data.value, 0)),
+      max: Math.max(0, toNumber(data.max, 0)),
+      segments: Array.from({ length: Math.max(0, toNumber(data.max, 0)) }, (_, index) => {
+        const segmentValue = index + 1;
+        return {
+          value: segmentValue,
+          filled: segmentValue <= Math.max(0, toNumber(data.value, 0)),
+        };
+      }),
+      status: {
+        label: "Resist",
+        value: toNumber(data.resistance?.default, 0),
+      },
+    });
+
+    return [
+      buildTrack("structure", "Structure", "wound", structure),
+      buildTrack("armor", "Armor", "armor", armor),
+    ];
   }
 
   _buildSummaryStats() {

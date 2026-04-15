@@ -27,22 +27,63 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
     {{/each}}
   </div>
 
-  <section class="mwd-item-hero">
-    <div class="mwd-item-hero__stat">
-      <span class="mwd-item-hero__label">Current</span>
-      <span class="mwd-item-hero__value">{{battlemechSheet.heat.current}} / {{battlemechSheet.heat.max}}</span>
+  {{#if editing}}
+    <div class="mwd-gmgadget__grid" style="margin-top:0.5rem;">
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Max Heat</span>
+        <input
+          type="number"
+          name="system.monitors.heat.max"
+          value="{{battlemechSheet.heat.max}}"
+          data-edit-field="staged"
+        />
+      </label>
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Running Hot</span>
+        <input
+          type="number"
+          name="system.mwd.heat.thresholds.runningHot"
+          value="{{battlemechSheet.heat.thresholds.runningHot}}"
+          data-edit-field="staged"
+        />
+      </label>
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Overheated</span>
+        <input
+          type="number"
+          name="system.mwd.heat.thresholds.overheated"
+          value="{{battlemechSheet.heat.thresholds.overheated}}"
+          data-edit-field="staged"
+        />
+      </label>
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Shutdown</span>
+        <input
+          type="number"
+          name="system.mwd.heat.thresholds.shutdown"
+          value="{{battlemechSheet.heat.thresholds.shutdown}}"
+          data-edit-field="staged"
+        />
+      </label>
     </div>
-    <div class="mwd-item-hero__stat">
-      <span class="mwd-item-hero__label">Running Hot</span>
-      <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.runningHot}}</span>
-    </div>
-    <div class="mwd-item-hero__stat">
-      <span class="mwd-item-hero__label">Overheated</span>
-      <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.overheated}}</span>
-    </div>
-    <div class="mwd-item-hero__stat">
-      <span class="mwd-item-hero__label">Shutdown</span>
-      <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.shutdown}}</span>
-    </div>
-  </section>
+  {{else}}
+    <section class="mwd-item-hero">
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Current</span>
+        <span class="mwd-item-hero__value">{{battlemechSheet.heat.current}} / {{battlemechSheet.heat.max}}</span>
+      </div>
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Running Hot</span>
+        <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.runningHot}}</span>
+      </div>
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Overheated</span>
+        <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.overheated}}</span>
+      </div>
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Shutdown</span>
+        <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.shutdown}}</span>
+      </div>
+    </section>
+  {{/if}}
 </section>
