@@ -11,6 +11,12 @@ import { registerPersonalActionCatalogSettingsEditor } from "./settings/personal
 import { registerSkillSpecializationSettingsEditor } from "./settings/skill-specialization-settings.js";
 import { registerSceneModifierTemplateSettingsEditor } from "./settings/scene-modifier-template-settings.js";
 import { registerStatusConditionCatalogSettingsEditor } from "./settings/status-condition-catalog-settings.js";
+import {
+  DEFAULT_MACHINE_CRIT_TABLE_UUIDS,
+  SETTING_MACHINE_CRIT_TABLE_BATTLEMECH,
+  SETTING_MACHINE_CRIT_TABLE_GENERAL,
+  SETTING_MACHINE_CRIT_TABLE_VEHICLE,
+} from "./mwd/critical-hits.js";
 
 
 export class SystemSettings {
@@ -39,6 +45,33 @@ export class SystemSettings {
       config: true,
       type: Boolean,
       default: true
+    });
+
+    game.settings.register(SYSTEM_NAME, SETTING_MACHINE_CRIT_TABLE_GENERAL, {
+      name: "Machine Critical Table: General",
+      hint: "RollTable UUID used when no actor-specific machine critical table is configured.",
+      scope: "world",
+      config: true,
+      type: String,
+      default: DEFAULT_MACHINE_CRIT_TABLE_UUIDS.general,
+    });
+
+    game.settings.register(SYSTEM_NAME, SETTING_MACHINE_CRIT_TABLE_BATTLEMECH, {
+      name: "Machine Critical Table: BattleMech",
+      hint: "RollTable UUID used for BattleMech critical hits.",
+      scope: "world",
+      config: true,
+      type: String,
+      default: DEFAULT_MACHINE_CRIT_TABLE_UUIDS.battlemech,
+    });
+
+    game.settings.register(SYSTEM_NAME, SETTING_MACHINE_CRIT_TABLE_VEHICLE, {
+      name: "Machine Critical Table: Vehicle",
+      hint: "RollTable UUID used for vehicle critical hits.",
+      scope: "world",
+      config: true,
+      type: String,
+      default: DEFAULT_MACHINE_CRIT_TABLE_UUIDS.vehicle,
     });
   }
 

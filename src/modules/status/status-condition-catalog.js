@@ -63,6 +63,7 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("radiation", "Radiation", "person", "hazard", ["radiation"], "radiation_low.svg", { order: 120 }),
   status("overloaded", "Overloaded", "all", "reactor", ["heat", "actionRestriction"], "surge.svg", { managed: true, modifierKey: "overloaded", order: 130 }),
   status("preparedInterrupt", "Prepared", "person", "tactical", ["reaction", "prepared"], "readied_action.svg", { manual: false, managed: true, order: 140 }),
+  status("machineCritical", "Machine Critical", "machine", "damage", ["critical", "system"], "surge.svg", { manual: false, managed: true, order: 150 }),
 
   // Machine stability and movement.
   status("unstable", "Unstable", "machine", "stability", ["movement", "piloting", "knockdown"], "falling.svg", { order: 1000 }),

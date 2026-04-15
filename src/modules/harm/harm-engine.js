@@ -24,6 +24,7 @@ import {
   buildDamageTraitFacts,
   evaluateTraitPhase,
 } from "../mwd/traits.js";
+import { applyMachineAttackDamage } from "../mwd/critical-hits.js";
 import {
   getHarmTrackLabel,
   normalizeHarmDelta,
@@ -67,6 +68,10 @@ function isPersonActor(actor) {
   return actor?.type === TEMPLATE.actorTypes.character || actor?.type === TEMPLATE.actorTypes.npc;
 }
 
+function isMachineActor(actor) {
+  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
+}
+
 function isKnownActor(actor) {
   return [
     TEMPLATE.actorTypes.character,
@@ -77,9 +82,10 @@ function isKnownActor(actor) {
 }
 
 function modeAllowsActor(mode, actor) {
-  return String(mode ?? "").trim() === "status"
-    ? isKnownActor(actor)
-    : isPersonActor(actor);
+  const normalizedMode = String(mode ?? "").trim();
+  if (normalizedMode === "status") return isKnownActor(actor);
+  if (normalizedMode === "machineAttackDamage") return isMachineActor(actor);
+  return isPersonActor(actor);
 }
 
 function getStatusLabelFromId(statusId, actor) {
@@ -91,6 +97,23 @@ function getStatusLabelFromId(statusId, actor) {
 function buildChatContent(result) {
   const escapeHtml = foundry.utils.escapeHTML;
   const lines = [];
+
+  if (result.mode === "machineAttackDamage") {
+    const verb = result.appliedDelta >= 0 ? "Applied" : "Recovered";
+    lines.push(`<div><b>${verb}:</b> ${Number(result.damageIncoming ?? result.requestedDelta ?? 0)} machine damage</div>`);
+    if (result.hitLocation?.locationLabel) {
+      lines.push(`<div><b>Location:</b> ${escapeHtml(result.hitLocation.locationLabel)} (${Number(result.hitLocation.rollTotal ?? 0)})</div>`);
+    }
+    if (result.machine) {
+      lines.push(`<div><b>Armor:</b> ${Number(result.machine.armorBefore ?? 0)} -> ${Number(result.machine.armorAfter ?? 0)}</div>`);
+      lines.push(`<div><b>Structure:</b> ${Number(result.machine.structureBefore ?? 0)} -> ${Number(result.machine.structureAfter ?? 0)}</div>`);
+    }
+    if (result.critical?.records?.length) {
+      lines.push(`<div><b>Critical:</b> ${escapeHtml(result.critical.records.map(crit => crit.label).join(", "))}</div>`);
+    } else if (result.critical?.reason) {
+      lines.push(`<div><b>Critical:</b> ${escapeHtml(result.critical.reason)}</div>`);
+    }
+  }
 
   if (result.mode === "attackDamage" || result.mode === "trackDelta") {
     const verb = result.appliedDelta >= 0 ? "Applied" : "Recovered";
@@ -275,6 +298,9 @@ export class HarmEngine {
       case "attackDamage":
         result = await this._applyAttackDamage(target.actor, payload, options);
         break;
+      case "machineAttackDamage":
+        result = await this._applyMachineAttackDamage(target.actor, target.token, payload, options);
+        break;
       case "trackDelta":
         result = await this._applyTrackDelta(target.actor, payload, options);
         break;
@@ -424,6 +450,10 @@ export class HarmEngine {
       source: payload?.source,
       notes: payload?.notes,
     }, options);
+  }
+
+  static async _applyMachineAttackDamage(actor, token, payload, options = {}) {
+    return applyMachineAttackDamage({ actor, token, payload, options });
   }
 
   static async _applyPersonalArmorAwareDamage(actor, payload, options = {}) {

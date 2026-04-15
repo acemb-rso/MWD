@@ -14,6 +14,7 @@ import {
   getPersonalRangeBandName,
   selectPersonalRangeBand,
 } from "../../mwd/personal-range-bands.js";
+import { TEMPLATE } from "../../constants.js";
 import { WeaponItem } from "../../item/weapon-item.js";
 import { createUserFacingRollError } from "../roll-errors.js";
 import { buildTargetSnapshot } from "../template-placement.js";
@@ -106,6 +107,71 @@ function resolveRangeBand({ actor, payload, weapon, targets = [] } = {}) {
   return measuredBand;
 }
 
+function isMachineActor(actor) {
+  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
+}
+
+function isMachineWeapon(item) {
+  return ["mechWeapon", "vehicleWeapon"].includes(item?.canonicalType ?? item?.type);
+}
+
+function addBands(left = {}, right = {}) {
+  return {
+    close: Number(left.close ?? 0) + Number(right.close ?? 0),
+    near: Number(left.near ?? 0) + Number(right.near ?? 0),
+    far: Number(left.far ?? 0) + Number(right.far ?? 0),
+    extreme: Number(left.extreme ?? 0) + Number(right.extreme ?? 0),
+  };
+}
+
+function getMachineWeaponGroupProfile(actor, payload) {
+  const groupId = String(payload?.weaponGroupId ?? payload?.machineWeaponGroup?.id ?? "").trim();
+  if (!groupId) return null;
+
+  const group = Array.from(actor.system?.weaponGroups ?? actor.system?.mwd?.weaponGroupDetails ?? [])
+    .find(entry => String(entry?.id ?? "").trim() === groupId) ?? null;
+  const weaponIds = Array.isArray(group?.weaponIds)
+    ? group.weaponIds
+    : Array.isArray(group?.weapons)
+      ? group.weapons.map(weapon => weapon?.id).filter(Boolean)
+      : [];
+  const weapons = weaponIds
+    .map(id => actor.items?.get?.(id))
+    .filter(item => item && isMachineWeapon(item));
+  if (!group || !weapons.length) return null;
+
+  const profiles = weapons.map(weapon => weapon.getCombatProfile?.() ?? null).filter(Boolean);
+  const first = profiles[0] ?? {};
+  const attackRatingBand = profiles.reduce((bands, profile) => addBands(bands, profile.attackRatingBand), {});
+  const damage = profiles.reduce((sum, profile) => sum + (Number(profile.damage ?? 0) || 0), 0);
+  const ap = Math.max(0, ...profiles.map(profile => Number(profile.ap ?? 0) || 0));
+  const skill = String(first.skill ?? "gunnery").trim() || "gunnery";
+
+  return {
+    id: group.id,
+    uuid: actor.uuid ?? null,
+    name: group.name || "Weapon Group",
+    img: first.img,
+    type: "mechWeaponGroup",
+    machineWeaponGroup: {
+      id: group.id,
+      weaponIds,
+      weaponNames: weapons.map(weapon => weapon.name),
+    },
+    category: first.category ?? "ranged",
+    skill,
+    skillDef: getSkillDef(skill),
+    damage,
+    ap,
+    damageType: first.damageType ?? "kinetic",
+    attackRatingBand,
+    range: first.range ?? {},
+    defaultRangeBand: first.defaultRangeBand ?? "near",
+    effects: {},
+    notes: profiles.map(profile => profile.notes).filter(Boolean).join("\n"),
+  };
+}
+
 function getWeaponProfile(actor, payload) {
   if (payload?.syntheticWeapon?.id === "unarmed") {
     const unarmed = WeaponItem.buildDefaultUnarmedProfile(actor);
@@ -120,6 +186,17 @@ function getWeaponProfile(actor, payload) {
       isSynthetic: true,
       defaultRangeBand: "close"
     };
+  }
+
+  if (isMachineActor(actor)) {
+    const groupProfile = getMachineWeaponGroupProfile(actor, payload);
+    if (groupProfile) return groupProfile;
+
+    const item = actor.items?.get?.(payload?.weaponId ?? "") ?? null;
+    if (!item || !isMachineWeapon(item)) {
+      throw new Error("Machine attack requires an owned vehicle or BattleMech weapon.");
+    }
+    return item.getCombatProfile?.() ?? null;
   }
 
   const item = actor.items?.get?.(payload?.weaponId ?? "") ?? null;

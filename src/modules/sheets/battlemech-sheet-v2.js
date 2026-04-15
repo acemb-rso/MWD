@@ -5,6 +5,7 @@
 import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
 import { notifyRollError } from "../roll/roll-errors.js";
+import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
 
 function toNumber(value, fallback = 0) {
@@ -74,7 +75,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       mechAttack: BattlemechSheetV2.prototype._onMechAttack,
       mechRoll: BattlemechSheetV2.prototype._onMechRoll,
     }
-  });
+  }, { inplace: false });
 
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
@@ -409,25 +410,38 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       return;
     }
 
-    if (typeof actor._rollQuickSkill !== "function") {
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) {
       await actor.rollRangedAttack?.();
       return;
     }
 
-    const serializedGroup = typeof actor._serializeWeaponGroup === "function"
-      ? actor._serializeWeaponGroup(group, weapons)
-      : {
-        id: group.id,
-        name: group.name,
-        isPrimary: Boolean(group.isPrimary),
-        weaponNames: weapons.map(weapon => weapon.name),
-      };
-
-    await actor._rollQuickSkill(actor.system?.skills?.gunnery, {
-      quickAction: {
-        title: getQuickActionLabel("rangedAttack"),
-        weaponGroup: serializedGroup,
+    const token = this._resolveStatusToken(actor);
+    const result = await rollApi.execute({
+      actor,
+      payload: {
+        intent: "attack",
+        weaponGroupId: group.id,
+        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
+        tags: ["combat", "attack", "machine", "groupFire"],
+        sourceTokenId: token?.id ?? null,
       }
     });
+
+    if (result) {
+      const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+      if (snapshot?.hasCombatant) {
+        const spend = await PersonalCombatTracker.spendResource(actor, {
+          token,
+          resource: "sa",
+          cost: 2,
+          actionId: "attack",
+          actionLabel: "Attack",
+          actionCostLabel: "2 SA",
+          actionCategory: "complex"
+        });
+        if (!spend?.ok) ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
+      }
+    }
   }
 }

@@ -104,6 +104,16 @@ How it fits: Shared by the character inventory section partials.
         </button>
       {{/if}}
 
+      {{#if record.machineAttack}}
+        <button type="button"
+                class="mwd-record__icon-btn"
+                data-action="machineWeaponAttack"
+                data-item-id="{{record.machineAttack.itemId}}"
+                title="{{record.machineAttack.label}}">
+          <i class="fas fa-crosshairs"></i>
+        </button>
+      {{/if}}
+
       <button type="button"
               class="mwd-record__icon-btn"
               data-action="editOwnedItem"

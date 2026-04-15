@@ -30,6 +30,7 @@ import { burnModifier } from "../modules/modifiers/providers/burn-modifier.js";
 import { LifeModuleModifiersProvider } from "../modules/modifiers/providers/life-modules.js";
 import { SceneModifiersProvider } from "../modules/modifiers/providers/scene-modifiers.js";
 import { TraitModifiersProvider } from "../modules/modifiers/providers/traits.js";
+import { MachineCriticalsProvider } from "../modules/modifiers/providers/machine-criticals.js";
 import { Modifiers } from "./modifiers/anarchy-modifiers.js";
 import { PersonalCombatTracker } from "./combat/personal-combat-tracker.js";
 import { registerMWDChatActions } from "./chat/chat-actions.js";
@@ -233,6 +234,7 @@ export class AnarchySystem {
     modifierProviders.register(burnModifier);
     modifierProviders.register(new LifeModuleModifiersProvider());
     modifierProviders.register(new TraitModifiersProvider());
+    modifierProviders.register(new MachineCriticalsProvider());
     modifierProviders.register(new SceneModifiersProvider());
 
     //register handlebars helpers early

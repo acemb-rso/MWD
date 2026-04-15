@@ -173,6 +173,57 @@ export function enhanceAttack(resolved, vm) {
       if (damageResult?.ok && !damageResult?.skipped) {
         const queuedMutation = result?.queuedMutation ?? damageResult?.queuedMutation ?? null;
         const isApplied = Boolean(queuedMutation?.applied || damageResult?.applied);
+        if (damageResult.mode === "machineAttackDamage") {
+          const machine = damageResult.machine ?? {};
+          const hitLocation = damageResult.hitLocation ?? {};
+          vm.footerRows.push({
+            text: `${result?.target?.name ?? "Target"}: Location ${hitLocation.locationLabel ?? "Location"}${hitLocation.rollTotal ? ` (${hitLocation.rollTotal})` : ""} | Armor ${Number(machine.armorBefore ?? 0)} -> ${Number(machine.armorAfter ?? 0)} | Structure ${Number(machine.structureBefore ?? 0)} -> ${Number(machine.structureAfter ?? 0)}`,
+            title: ""
+          });
+          if (damageResult.critical?.automatic) {
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Automatic critical pending`,
+              title: ""
+            });
+          } else if (damageResult.critical?.optional) {
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Chaos Edge can convert this location hit to a critical`,
+              title: ""
+            });
+          } else {
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Location hit is descriptive only`,
+              title: ""
+            });
+          }
+          for (const crit of damageResult.critical?.records ?? []) {
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Critical - ${crit.label}${crit.locationLabel ? ` (${crit.locationLabel})` : ""}`,
+              title: ""
+            });
+            if (crit.active !== false) {
+              vm.actions.push({
+                action: "machineCritRemedy",
+                label: `Remedy: ${crit.label}`,
+                dataset: {
+                  "machine-actor-uuid": result?.target?.actorUuid ?? "",
+                  "crit-id": crit.id,
+                  "remedy-key": crit.remedyKey,
+                  "gm-override": "true"
+                },
+                cssClass: "mwd-machine-crit-remedy"
+              });
+            }
+          }
+        }
+        if (queuedMutation && !isApplied && damageResult?.critical?.optional) {
+          vm.actions.push({
+            action: "toggleMachineChaosCrit",
+            label: queuedMutation.payload?.chaosCriticalSelected ? `Clear Chaos Critical: ${damageResult.actorName ?? result?.target?.name ?? "Target"}` : `Spend Chaos Edge: ${damageResult.actorName ?? result?.target?.name ?? "Target"}`,
+            dataset: { "result-index": String(index) },
+            cssClass: `mwd-toggle-machine-chaos ${queuedMutation.payload?.chaosCriticalSelected ? "is-active" : ""}`
+          });
+        }
         if (queuedMutation && !isApplied) {
           vm.actions.push({
             action: "applyAttackDamage",

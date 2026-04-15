@@ -271,7 +271,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       adjustGearQuantity: CharacterSheetV2.prototype._onAdjustGearQuantity,
       attackWeapon: CharacterSheetV2.prototype._onAttackWeapon
     }
-  });
+  }, { inplace: false });
 
     /** @override */
   async _prepareContext(options) {

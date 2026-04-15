@@ -55,12 +55,15 @@ function actor(type, statuses = []) {
 test("default machine catalog includes mechanic-ready BattleMech statuses", () => {
   const catalog = getDefaultStatusConditionCatalog();
   const unstable = getStatusConditionDefinition("unstable", catalog);
+  const machineCritical = getStatusConditionDefinition("machineCritical", catalog);
   const armDestroyed = getStatusConditionDefinition("armDestroyed", catalog);
   const sensorLocked = getStatusConditionDefinition("sensorLocked", catalog);
 
   assert.equal(unstable.actorGroup, "machine");
   assert.equal(unstable.category, "stability");
   assert.deepEqual(unstable.tags, ["movement", "piloting", "knockdown"]);
+  assert.equal(machineCritical.actorGroup, "machine");
+  assert.equal(machineCritical.managed, true);
   assert.equal(armDestroyed.actorGroup, "battlemech");
   assert.equal(sensorLocked.category, "sensor");
   assert.ok(sensorLocked.tags.includes("targeted"));
@@ -124,9 +127,11 @@ test("visual-only statuses emit no modifiers while existing mechanical statuses 
   const provider = new StatusEffectsProvider();
 
   const visualMods = provider.collect({ actor: actor("battlemech", ["unstable"]) });
+  const criticalMods = provider.collect({ actor: actor("battlemech", ["machineCritical"]) });
   const proneMods = provider.collect({ actor: actor("character", ["prone"]) });
 
   assert.deepEqual(visualMods, []);
+  assert.deepEqual(criticalMods, []);
   assert.ok(proneMods.some(mod => mod.label === "Prone" && mod.value === -2));
 });
 

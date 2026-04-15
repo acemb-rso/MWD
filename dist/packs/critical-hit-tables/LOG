@@ -1,0 +1,5 @@
+2026/04/15-14:25:05.659 af30 Delete type=3 #1
+2026/04/15-14:25:05.662 4128 Level-0 table #5: started
+2026/04/15-14:25:05.662 4128 Level-0 table #5: 2374 bytes OK
+2026/04/15-14:25:05.663 4128 Delete type=0 #3
+2026/04/15-14:25:05.663 4128 Manual compaction at level-0 from '!tables!MWDGeneralCrit01' @ 72057594037927935 : 1 .. '!tables.results!MWDVehicleCrit1.VehCritResult03' @ 0 : 0; will stop at (end)

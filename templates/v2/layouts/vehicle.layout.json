@@ -35,6 +35,13 @@
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.condition-monitors" }
                 ]
+              },
+              {
+                "type": "panel",
+                "title": "Criticals",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.active-crits" }
+                ]
               }
             ]
           },

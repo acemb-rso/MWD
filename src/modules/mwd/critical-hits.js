@@ -1,0 +1,501 @@
+// src/modules/mwd/critical-hits.js
+// Purpose: Machine critical-hit engine and active-crit data normalization.
+// How it fits: Keeps vehicle/BattleMech critical effects in actor data while
+// token statuses remain visual indicators only.
+
+import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
+import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
+import {
+  getMachineLocationLabel,
+  resolveMachineHitLocation,
+} from "./machine-hit-locations.js";
+import {
+  getMachineCritRemedy,
+  isValidMachineCritRemedy,
+} from "./machine-crit-remedies.js";
+
+export const MACHINE_CRITICAL_STATUS_ID = "machineCritical";
+export const SETTING_MACHINE_CRIT_TABLE_GENERAL = "machineCriticalTableGeneralUuid";
+export const SETTING_MACHINE_CRIT_TABLE_BATTLEMECH = "machineCriticalTableBattlemechUuid";
+export const SETTING_MACHINE_CRIT_TABLE_VEHICLE = "machineCriticalTableVehicleUuid";
+
+export const DEFAULT_MACHINE_CRIT_TABLE_UUIDS = Object.freeze({
+  general: "Compendium.mwd.critical-hit-tables.RollTable.MWDGeneralCrit01",
+  battlemech: "Compendium.mwd.critical-hit-tables.RollTable.MWDMechCrits0001",
+  vehicle: "Compendium.mwd.critical-hit-tables.RollTable.MWDVehicleCrit1",
+});
+
+const VALID_PILOT_TRACKS = new Set(["physical", "fatigue", ""]);
+
+const DEFAULT_CRITICAL_SIGNALS = Object.freeze({
+  2: Object.freeze({ key: "cascade", remedyKey: "emergencyRepair", gates: [], mods: [], resourceEffects: {}, pilotDamage: {}, escalationKey: "cascade" }),
+  3: Object.freeze({ key: "weaponFeedDamage", remedyKey: "feedReset", gates: ["attack", "groupFire"], mods: ["attackCQPenalty"], resourceEffects: {}, pilotDamage: {}, escalationKey: "" }),
+  4: Object.freeze({ key: "sensorDisruption", remedyKey: "systemReset", gates: ["sensor"], mods: ["sensorPenalty"], resourceEffects: {}, pilotDamage: {}, escalationKey: "" }),
+  5: Object.freeze({ key: "motiveDamage", remedyKey: "emergencyRepair", gates: ["move"], mods: ["pilotingPenalty"], resourceEffects: {}, pilotDamage: {}, escalationKey: "" }),
+  6: Object.freeze({ key: "heatSpike", remedyKey: "coolantDump", gates: [], mods: [], resourceEffects: { heatImmediate: 1, heatPerAttack: 0 }, pilotDamage: {}, escalationKey: "heat" }),
+  7: Object.freeze({ key: "weaponMountDamage", remedyKey: "emergencyRepair", gates: ["attack"], mods: ["attackCQPenalty"], resourceEffects: {}, pilotDamage: {}, escalationKey: "" }),
+  8: Object.freeze({ key: "controlsJolt", remedyKey: "pilotRecovery", gates: [], mods: ["pilotingPenalty"], resourceEffects: {}, pilotDamage: { track: "fatigue", amount: 1 }, escalationKey: "" }),
+  9: Object.freeze({ key: "actuatorDamage", remedyKey: "emergencyRepair", gates: ["move"], mods: ["pilotingPenalty"], resourceEffects: {}, pilotDamage: {}, escalationKey: "" }),
+  10: Object.freeze({ key: "targetingFault", remedyKey: "systemReset", gates: ["attack", "sensor"], mods: ["attackCQPenalty", "sensorPenalty"], resourceEffects: {}, pilotDamage: {}, escalationKey: "" }),
+  11: Object.freeze({ key: "coolingLeak", remedyKey: "coolantDump", gates: [], mods: [], resourceEffects: { heatPerAttack: 1, heatImmediate: 0 }, pilotDamage: {}, escalationKey: "heat" }),
+  12: Object.freeze({ key: "reactorInstability", remedyKey: "coolantDump", gates: ["move"], mods: ["pilotingPenalty"], resourceEffects: { heatImmediate: 1, heatPerAttack: 1 }, pilotDamage: {}, escalationKey: "reactor" }),
+});
+
+function hasFoundry() {
+  return typeof foundry !== "undefined" && foundry?.utils;
+}
+
+function clone(value) {
+  if (hasFoundry() && typeof foundry.utils.deepClone === "function") return foundry.utils.deepClone(value);
+  return JSON.parse(JSON.stringify(value ?? null));
+}
+
+function randomId() {
+  return hasFoundry() && typeof foundry.utils.randomID === "function"
+    ? foundry.utils.randomID()
+    : Math.random().toString(36).slice(2, 18).padEnd(16, "0").slice(0, 16);
+}
+
+function nowIso() {
+  try {
+    return new Date().toISOString();
+  } catch (_error) {
+    return "";
+  }
+}
+
+function asArray(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    return value.split(",").map(entry => entry.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function toPlainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function getCritFlagData(value = {}) {
+  return value?.flags?.mwd?.crit
+    ?? value?.document?.flags?.mwd?.crit
+    ?? value?.data?.flags?.mwd?.crit
+    ?? value;
+}
+
+function strictError(message, errors, strict) {
+  if (!strict) return null;
+  const error = new Error(message);
+  error.validationErrors = errors.length ? errors : [message];
+  throw error;
+}
+
+export function getDefaultCriticalSignalForRoll(rollTotal = 7) {
+  const total = Math.min(12, Math.max(2, Math.trunc(Number(rollTotal ?? 7)) || 7));
+  return clone(DEFAULT_CRITICAL_SIGNALS[total] ?? DEFAULT_CRITICAL_SIGNALS[7]);
+}
+
+export function normalizeCriticalSignal(resultOrData = {}, { strict = false } = {}) {
+  const data = getCritFlagData(resultOrData);
+  const errors = [];
+  const key = String(data?.key ?? "").trim();
+  const remedyKey = String(data?.remedyKey ?? "emergencyRepair").trim() || "emergencyRepair";
+  const gates = asArray(data?.gates).map(entry => String(entry ?? "").trim()).filter(Boolean);
+  const mods = asArray(data?.mods).map(entry => String(entry ?? "").trim()).filter(Boolean);
+  const resourceEffects = toPlainObject(data?.resourceEffects);
+  const pilotDamage = toPlainObject(data?.pilotDamage);
+  const escalationKey = String(data?.escalationKey ?? "").trim();
+
+  if (!key) errors.push("Critical signal key cannot be blank.");
+  if (!isValidMachineCritRemedy(remedyKey)) errors.push(`Unknown machine critical remedy "${remedyKey}".`);
+  for (const [name, value] of Object.entries(resourceEffects)) {
+    if (!Number.isFinite(Number(value))) errors.push(`Resource effect "${name}" must be numeric.`);
+  }
+  const pilotTrack = String(pilotDamage?.track ?? "").trim();
+  const pilotAmount = Number(pilotDamage?.amount ?? 0);
+  if (!VALID_PILOT_TRACKS.has(pilotTrack)) errors.push(`Pilot damage track "${pilotTrack}" is invalid.`);
+  if (!Number.isFinite(pilotAmount) || pilotAmount < 0) errors.push("Pilot damage amount must be non-negative.");
+
+  if (errors.length) {
+    strictError(errors[0], errors, strict);
+    return null;
+  }
+
+  return {
+    key,
+    remedyKey,
+    gates,
+    mods,
+    resourceEffects: Object.fromEntries(
+      Object.entries(resourceEffects).map(([name, value]) => [String(name), Number(value)])
+    ),
+    pilotDamage: pilotTrack || pilotAmount
+      ? { track: pilotTrack || "fatigue", amount: Math.trunc(pilotAmount) }
+      : {},
+    escalationKey,
+  };
+}
+
+export function getActiveMachineCrits(actor, filters = {}) {
+  const crits = Array.isArray(actor?.system?.mwd?.crits) ? actor.system.mwd.crits : [];
+  return crits
+    .filter(crit => crit && crit.active !== false)
+    .filter(crit => !filters.key || crit.key === filters.key)
+    .filter(crit => !filters.locationKey || crit.locationKey === filters.locationKey)
+    .filter(crit => !filters.locationFamily || crit.locationFamily === filters.locationFamily)
+    .filter(crit => !filters.gate || (Array.isArray(crit.gates) && crit.gates.includes(filters.gate)))
+    .filter(crit => !filters.mod || (Array.isArray(crit.mods) && crit.mods.includes(filters.mod)));
+}
+
+function getMonitorDamageState(actor, monitorKey) {
+  const monitor = actor?.system?.monitors?.[monitorKey] ?? {};
+  const max = Math.max(0, Number(monitor.max ?? 0) || 0);
+  const value = Math.min(max, Math.max(0, Number(monitor.value ?? 0) || 0));
+  return {
+    max,
+    value,
+    remaining: Math.max(0, max - value),
+  };
+}
+
+function isMachineActor(actor) {
+  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
+}
+
+function normalizeHitLocationForDamage(actor, payload, armorRemainingBefore, structureRemainingBefore) {
+  const hitLocation = payload?.hitLocation && typeof payload.hitLocation === "object"
+    ? payload.hitLocation
+    : resolveMachineHitLocation({
+      actor,
+      rollTotal: payload?.hitLocationRollTotal,
+      armorBefore: armorRemainingBefore,
+      structureBefore: structureRemainingBefore,
+    });
+
+  return {
+    ...hitLocation,
+    armorBefore: armorRemainingBefore,
+    structureBefore: structureRemainingBefore,
+    pureStructureHit: armorRemainingBefore <= 0,
+  };
+}
+
+function getCriticalLocation(hitLocation = {}, chaosCriticalSelected = false) {
+  if (chaosCriticalSelected && hitLocation.chaosTargetLocationKey) {
+    return {
+      locationKey: hitLocation.chaosTargetLocationKey,
+      locationFamily: hitLocation.locationFamily === "head" ? "torso" : hitLocation.locationFamily,
+      locationLabel: hitLocation.chaosTargetLocationLabel ?? getMachineLocationLabel(hitLocation.chaosTargetLocationKey),
+    };
+  }
+  return {
+    locationKey: hitLocation.locationKey,
+    locationFamily: hitLocation.locationFamily,
+    locationLabel: hitLocation.locationLabel ?? getMachineLocationLabel(hitLocation.locationKey),
+  };
+}
+
+function shouldCreateCritical(hitLocation = {}, chaosCriticalSelected = false) {
+  return Boolean(hitLocation.isAutomaticCritical || (hitLocation.chaosCriticalOption && chaosCriticalSelected));
+}
+
+export function previewMachineAttackDamage({
+  actor = null,
+  payload = {},
+  hitLocation = null,
+  chaosCriticalSelected = false,
+} = {}) {
+  if (!isMachineActor(actor)) return { ok: false, reason: "Machine damage requires a vehicle or BattleMech actor." };
+
+  const incoming = Math.max(0, Math.ceil(Number(payload?.damage ?? payload?.amount ?? 0) || 0));
+  const armor = getMonitorDamageState(actor, TEMPLATE.monitors.armor);
+  const structure = getMonitorDamageState(actor, TEMPLATE.monitors.structure);
+  const resolvedHitLocation = hitLocation
+    ? { ...hitLocation, armorBefore: armor.remaining, structureBefore: structure.remaining, pureStructureHit: armor.remaining <= 0 }
+    : normalizeHitLocationForDamage(actor, payload, armor.remaining, structure.remaining);
+
+  // Monitor values are damage-taken counters; armor remaining must be computed
+  // before this hit mutates armor or the pure-structure trigger becomes wrong.
+  const armorAbsorbed = Math.min(incoming, actor.type === TEMPLATE.actorTypes.vehicle && armor.max <= 0 ? 0 : armor.remaining);
+  const structureDamage = Math.min(structure.remaining, Math.max(0, incoming - armorAbsorbed));
+  const armorAfterValue = Math.min(armor.max, armor.value + armorAbsorbed);
+  const structureAfterValue = Math.min(structure.max, structure.value + structureDamage);
+  const criticalSelected = shouldCreateCritical(resolvedHitLocation, chaosCriticalSelected);
+  const criticalLocation = getCriticalLocation(resolvedHitLocation, chaosCriticalSelected);
+  const locationTakesStress = structureDamage > 0 || criticalSelected;
+
+  return {
+    ok: true,
+    mode: "machineAttackDamage",
+    actorName: actor.name ?? "Machine",
+    damageIncoming: incoming,
+    adjustedIncoming: incoming,
+    finalDamage: structureDamage,
+    requestedDelta: incoming,
+    appliedDelta: structureDamage,
+    usedArmor: armorAbsorbed > 0,
+    damageType: String(payload?.damageType ?? "kinetic").trim() || "kinetic",
+    effectiveAp: Math.max(0, Number(payload?.ap ?? 0) || 0),
+    hitLocation: resolvedHitLocation,
+    critical: {
+      automatic: Boolean(resolvedHitLocation.isAutomaticCritical),
+      optional: Boolean(resolvedHitLocation.chaosCriticalOption),
+      selected: criticalSelected,
+      chaosCriticalSelected: Boolean(chaosCriticalSelected),
+      locationKey: criticalLocation.locationKey,
+      locationFamily: criticalLocation.locationFamily,
+      locationLabel: criticalLocation.locationLabel,
+    },
+    machine: {
+      armorBefore: armor.remaining,
+      armorAfter: Math.max(0, armor.max - armorAfterValue),
+      armorDamageBefore: armor.value,
+      armorDamageAfter: armorAfterValue,
+      armorMax: armor.max,
+      armorAbsorbed,
+      structureBefore: structure.remaining,
+      structureAfter: Math.max(0, structure.max - structureAfterValue),
+      structureDamageBefore: structure.value,
+      structureDamageAfter: structureAfterValue,
+      structureMax: structure.max,
+      structureDamage,
+      pureStructureHit: armor.remaining <= 0,
+      locationTakesStress,
+    },
+    beforeLabel: `Armor ${armor.remaining}/${armor.max}, Structure ${structure.remaining}/${structure.max}`,
+    afterLabel: `Armor ${Math.max(0, armor.max - armorAfterValue)}/${armor.max}, Structure ${Math.max(0, structure.max - structureAfterValue)}/${structure.max}`,
+    source: String(payload?.source ?? "").trim(),
+    notes: String(payload?.notes ?? "").trim(),
+  };
+}
+
+function getSetting(name, fallback = "") {
+  try {
+    return game?.settings?.get?.(SYSTEM_NAME, name) || fallback;
+  } catch (_error) {
+    return fallback;
+  }
+}
+
+export function getMachineCriticalTableUuid(actor = null) {
+  if (actor?.type === TEMPLATE.actorTypes.battlemech) {
+    return getSetting(SETTING_MACHINE_CRIT_TABLE_BATTLEMECH, DEFAULT_MACHINE_CRIT_TABLE_UUIDS.battlemech)
+      || getSetting(SETTING_MACHINE_CRIT_TABLE_GENERAL, DEFAULT_MACHINE_CRIT_TABLE_UUIDS.general);
+  }
+  if (actor?.type === TEMPLATE.actorTypes.vehicle) {
+    return getSetting(SETTING_MACHINE_CRIT_TABLE_VEHICLE, DEFAULT_MACHINE_CRIT_TABLE_UUIDS.vehicle)
+      || getSetting(SETTING_MACHINE_CRIT_TABLE_GENERAL, DEFAULT_MACHINE_CRIT_TABLE_UUIDS.general);
+  }
+  return getSetting(SETTING_MACHINE_CRIT_TABLE_GENERAL, DEFAULT_MACHINE_CRIT_TABLE_UUIDS.general);
+}
+
+async function resolveCriticalTable(actor = null, tableUuid = "") {
+  const uuid = String(tableUuid || getMachineCriticalTableUuid(actor)).trim();
+  if (!uuid || typeof fromUuid !== "function") return null;
+  try {
+    return await fromUuid(uuid);
+  } catch (error) {
+    console.warn("MWD | Unable to resolve machine critical table", uuid, error);
+    return null;
+  }
+}
+
+async function drawCriticalSignal({ actor = null, drawFn = null, tableUuid = "", recursiveCascade = false } = {}) {
+  if (typeof drawFn === "function") {
+    const drawn = await drawFn({ actor, recursiveCascade });
+    const signal = normalizeCriticalSignal(drawn?.signal ?? drawn, { strict: true });
+    return {
+      signal,
+      label: String(drawn?.label ?? signal.key).trim() || signal.key,
+      tableUuid: String(drawn?.tableUuid ?? tableUuid ?? "").trim(),
+      resultId: String(drawn?.resultId ?? "").trim(),
+      rollTotal: Number(drawn?.rollTotal ?? 0) || null,
+    };
+  }
+
+  const table = await resolveCriticalTable(actor, tableUuid);
+  if (!table?.draw) return { error: "Machine critical table is not configured." };
+
+  const draw = await table.draw({ displayChat: false });
+  const result = Array.from(draw?.results ?? [])[0] ?? null;
+  if (!result) return { error: "Machine critical table returned no result." };
+
+  const signal = normalizeCriticalSignal(result, { strict: true });
+  return {
+    signal,
+    label: String(result?.text ?? result?.name ?? signal.key).trim() || signal.key,
+    tableUuid: table.uuid ?? tableUuid,
+    resultId: result.id ?? result._id ?? "",
+    rollTotal: Number(draw?.roll?.total ?? 0) || null,
+  };
+}
+
+function buildCritRecord({ actor, drawn, hitLocation, source = {}, cascade = false } = {}) {
+  const signal = normalizeCriticalSignal(drawn?.signal ?? drawn, { strict: true });
+  const remedy = getMachineCritRemedy(signal.remedyKey);
+  const location = getCriticalLocation(hitLocation, false);
+  return {
+    id: randomId(),
+    key: signal.key,
+    label: String(drawn?.label ?? signal.key).trim() || signal.key,
+    tableUuid: String(drawn?.tableUuid ?? "").trim(),
+    resultId: String(drawn?.resultId ?? "").trim(),
+    locationKey: location.locationKey,
+    locationFamily: location.locationFamily,
+    locationLabel: location.locationLabel,
+    gates: signal.gates,
+    mods: signal.mods,
+    resourceEffects: signal.resourceEffects,
+    pilotDamage: signal.pilotDamage,
+    remedyKey: signal.remedyKey,
+    remedyLabel: remedy.label,
+    escalationKey: signal.escalationKey,
+    active: true,
+    cascade: Boolean(cascade),
+    createdRound: Number(globalThis.game?.combat?.round ?? 0) || 0,
+    createdAt: nowIso(),
+    source: clone(source ?? {}),
+    actorType: actor?.type ?? "",
+  };
+}
+
+export async function drawMachineCriticalRecords({
+  actor = null,
+  hitLocation = {},
+  source = {},
+  drawFn = null,
+  tableUuid = "",
+} = {}) {
+  try {
+    const first = await drawCriticalSignal({ actor, drawFn, tableUuid, recursiveCascade: false });
+    if (first?.error) return { ok: false, reason: first.error, crits: [] };
+
+    const firstSignal = normalizeCriticalSignal(first.signal, { strict: true });
+    if (firstSignal.key !== "cascade") {
+      return { ok: true, crits: [buildCritRecord({ actor, drawn: first, hitLocation, source })], cascade: false };
+    }
+
+    // Cascade is deliberately protected in code: a second cascade result becomes
+    // the table's 12-style reactor instability instead of recursing forever.
+    const second = await drawCriticalSignal({ actor, drawFn, tableUuid, recursiveCascade: true });
+    const secondSignal = second?.error
+      ? getDefaultCriticalSignalForRoll(12)
+      : normalizeCriticalSignal(second.signal, { strict: true });
+    const safeSecond = secondSignal.key === "cascade"
+      ? { signal: getDefaultCriticalSignalForRoll(12), label: "Reactor Instability", tableUuid: second?.tableUuid ?? "", resultId: second?.resultId ?? "" }
+      : { ...second, signal: secondSignal };
+
+    return {
+      ok: true,
+      cascade: true,
+      crits: [
+        buildCritRecord({ actor, drawn: { ...first, signal: firstSignal }, hitLocation, source, cascade: true }),
+        buildCritRecord({ actor, drawn: safeSecond, hitLocation, source }),
+      ],
+    };
+  } catch (error) {
+    return { ok: false, reason: error?.message ?? "Unable to draw machine critical.", crits: [] };
+  }
+}
+
+function buildLocationUpdates(actor, preview) {
+  if (!preview?.machine?.locationTakesStress) return {};
+
+  const locationKey = String(preview?.critical?.locationKey || preview?.hitLocation?.locationKey || "").trim();
+  if (!locationKey) return {};
+
+  const basePath = `system.mwd.locations.${locationKey}`;
+  const current = actor?.system?.mwd?.locations?.[locationKey] ?? {};
+  const maxStress = Math.max(1, Number(actor?.system?.mwd?.config?.maxLocationStress ?? 3) || 3);
+  const stress = Math.min(maxStress, Math.max(0, Number(current.stress ?? 0) || 0) + 1);
+
+  return {
+    [`${basePath}.enabled`]: current.enabled ?? true,
+    [`${basePath}.stress`]: stress,
+    [`${basePath}.tags`]: Array.isArray(current.tags) ? current.tags : [],
+    [`${basePath}.destroyed`]: Boolean(current.destroyed) || stress >= maxStress,
+  };
+}
+
+async function syncMachineCriticalStatus(actor, hasCrits) {
+  if (!actor?.toggleStatusEffect || !hasCrits) return;
+  try {
+    await applyManagedStatusUpdate({
+      actor,
+      statusId: MACHINE_CRITICAL_STATUS_ID,
+      active: true,
+      metadata: {
+        scope: "Machine critical effects",
+        notes: "Visual marker for active system.mwd.crits entries.",
+      },
+    });
+  } catch (error) {
+    console.warn("MWD | Unable to sync machine critical status", error);
+  }
+}
+
+export async function applyMachineAttackDamage({
+  actor = null,
+  token = null,
+  payload = {},
+  options = {},
+} = {}) {
+  const preview = previewMachineAttackDamage({
+    actor,
+    payload,
+    chaosCriticalSelected: Boolean(payload?.chaosCriticalSelected),
+  });
+  if (!preview.ok) return preview;
+
+  const dryRun = Boolean(options.dryRun);
+  let critDraw = { ok: true, crits: [] };
+  if (!dryRun && preview.critical.selected) {
+    critDraw = await drawMachineCriticalRecords({
+      actor,
+      hitLocation: {
+        ...preview.hitLocation,
+        locationKey: preview.critical.locationKey,
+        locationFamily: preview.critical.locationFamily,
+        locationLabel: preview.critical.locationLabel,
+      },
+      source: {
+        ...(payload?.sourceData ?? {}),
+        source: payload?.source ?? "",
+        tokenUuid: token?.uuid ?? payload?.targetTokenUuid ?? "",
+      },
+      drawFn: options.drawCritical,
+      tableUuid: payload?.criticalTableUuid ?? "",
+    });
+  }
+
+  const existingCrits = Array.isArray(actor?.system?.mwd?.crits) ? clone(actor.system.mwd.crits) : [];
+  const nextCrits = critDraw.ok && critDraw.crits.length
+    ? existingCrits.concat(critDraw.crits)
+    : existingCrits;
+
+  if (!dryRun) {
+    const update = {
+      "system.monitors.armor.value": preview.machine.armorDamageAfter,
+      "system.monitors.structure.value": preview.machine.structureDamageAfter,
+      ...buildLocationUpdates(actor, preview),
+    };
+    if (critDraw.ok && critDraw.crits.length) {
+      update["system.mwd.crits"] = nextCrits;
+    }
+    await actor.update(update);
+    await syncMachineCriticalStatus(actor, nextCrits.some(crit => crit?.active !== false));
+  }
+
+  return {
+    ...preview,
+    dryRun,
+    appliedDelta: preview.machine.structureDamage,
+    critical: {
+      ...preview.critical,
+      drawOk: Boolean(critDraw.ok),
+      reason: critDraw.ok ? "" : critDraw.reason,
+      records: critDraw.ok ? critDraw.crits : [],
+      cascade: Boolean(critDraw.cascade),
+    },
+  };
+}

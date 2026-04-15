@@ -19,6 +19,8 @@ import {
   normalizeHazardCard,
   renderHazardCard,
 } from "../area-effects/hazard-chat.js";
+import { resolveMachineOperator } from "../mwd/machine-operator.js";
+import { resolveMachineCritRemedyIntent } from "../mwd/machine-intents.js";
 
 export function registerMWDChatActions() {
   Hooks.on("renderChatMessageHTML", (message, htmlElement) => {
@@ -35,6 +37,8 @@ export function registerMWDChatActions() {
       if (action === "toggleHazardEvade") void onToggleHazardEvade(ev, message);
       if (action === "toggleHazardEvadeEdge") void onToggleHazardEvadeEdge(ev, message);
       if (action === "applyHazardTick") void onApplyHazardTick(ev, message);
+      if (action === "toggleMachineChaosCrit") void onToggleMachineChaosCrit(ev, message);
+      if (action === "machineCritRemedy") void onMachineCritRemedy(ev, message);
       if (action === "applyAttackDamage") void onApplyAttackDamage(ev, message);
       if (action === "applyAllAttackDamage") void onApplyAllAttackDamage(ev, message);
     });
@@ -508,6 +512,13 @@ async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
       }
       await PersonalCombatTracker.clearPendingReaction(targetActor, { token: targetToken });
     }
+    if (mutation.payload?.mode === "machineAttackDamage" && mutation.payload?.chaosCriticalSelected) {
+      const spend = await spendMachineChaosCriticalEdge({
+        machineActor: targetActor,
+        operatorActorUuid: mutation.payload?.operatorActorUuid,
+      });
+      if (!spend.ok) return spend;
+    }
     applyResult = await HarmEngine.apply({
       actor: targetActor,
       token: targetToken,
@@ -553,6 +564,87 @@ async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
     targetActor,
     targetToken
   };
+}
+
+async function spendMachineChaosCriticalEdge({ machineActor = null, operatorActorUuid = "" } = {}) {
+  const operator = await resolveMachineOperator({ machineActor, operatorActorUuid });
+  if (!operator.actor) {
+    if (game.user?.isGM) return { ok: true, gmOverride: true };
+    return { ok: false, reason: operator.reason || "No linked operator or pilot actor for Chaos Edge." };
+  }
+
+  const pool = TEMPLATE.counters.edgePools.chaos;
+  const remaining = Number(operator.actor.getRemainingEdge?.(pool) ?? operator.actor.getEdgePoolValue?.(pool) ?? 0);
+  if (remaining <= 0 && !game.user?.isGM) {
+    return { ok: false, reason: `${operator.actor.name ?? "Operator"} has no Chaos Edge remaining.` };
+  }
+
+  if (remaining > 0) {
+    await operator.actor.spendEdge?.(pool, 1, { source: "machineChaosCritical" });
+  }
+  return { ok: true, operatorActor: operator.actor };
+}
+
+async function onToggleMachineChaosCrit(ev, message) {
+  ev.preventDefault();
+  const btn = ev.target.closest("[data-mwd-action='toggleMachineChaosCrit']");
+  const resultIndex = Number(btn?.dataset?.resultIndex ?? -1);
+  const resolved = foundry.utils.deepClone(message.getFlag("mwd", "resolved"));
+  const result = resolved?.attackResult?.results?.[resultIndex] ?? null;
+  const mutation = result?.queuedMutation ?? null;
+  if (!mutation || mutation.applied || mutation.payload?.mode !== "machineAttackDamage") return;
+
+  mutation.payload.chaosCriticalSelected = !Boolean(mutation.payload.chaosCriticalSelected);
+
+  const targetActor = mutation.target?.actorUuid ? await fromUuid(mutation.target.actorUuid) : null;
+  const targetToken = mutation.target?.tokenUuid ? await fromUuid(mutation.target.tokenUuid) : null;
+  const previewResult = await HarmEngine.apply({
+    actor: targetActor,
+    token: targetToken,
+    payload: mutation.payload,
+    options: {
+      actorId: targetActor?.id ?? "",
+      dryRun: true,
+      logToChat: false
+    }
+  });
+
+  const summary = summarizeAttackDamageResult(
+    previewResult,
+    result?.target ?? mutation.target ?? {},
+    result?.damage ?? {},
+    { queued: true, applied: false }
+  );
+
+  mutation.preview = summary;
+  result.queuedMutation = mutation;
+  result.damageResult = summary;
+
+  const htmlContent = await renderChat({ resolved });
+  await message.update({
+    content: htmlContent,
+    "flags.mwd.resolved": resolved
+  });
+}
+
+async function onMachineCritRemedy(ev, message) {
+  ev.preventDefault();
+  const btn = ev.target.closest("[data-mwd-action='machineCritRemedy']");
+  const intent = {
+    intent: "machine_crit_remedy",
+    machineActorUuid: btn?.dataset?.machineActorUuid ?? "",
+    critId: btn?.dataset?.critId ?? "",
+    remedyKey: btn?.dataset?.remedyKey ?? "",
+    operatorActorUuid: btn?.dataset?.operatorActorUuid ?? "",
+  };
+  const result = await resolveMachineCritRemedyIntent(intent, {
+    gmOverride: Boolean(game.user?.isGM && btn?.dataset?.gmOverride === "true"),
+  });
+  if (!result.ok) {
+    ui.notifications?.warn?.(result.reason ?? "Unable to resolve machine critical remedy.");
+    return;
+  }
+  ui.notifications?.info?.(`Resolved ${result.crit?.label ?? "machine critical"}.`);
 }
 
 async function renderAndPersistHazardMessage(message, card) {

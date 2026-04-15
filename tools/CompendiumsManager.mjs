@@ -11,9 +11,12 @@ export class CompendiumsManager {
     const packs = await fs.readdir('./' + srcDir);
     for (const pack of packs) {
       if (pack === '.gitattributes') continue;
+      const sourcePath = `${srcDir}/${pack}`;
+      const sourceStat = await fs.stat(sourcePath);
+      if (!sourceStat.isDirectory()) continue;
       console.log('Packing ' + pack);
       await compilePack(
-        `${MODULE_ID}/${srcDir}/${pack}`,
+        `${MODULE_ID}/${sourcePath}`,
         `${MODULE_ID}/${distDir}/${pack}`,
         { yaml }
       );

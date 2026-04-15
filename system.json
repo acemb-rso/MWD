@@ -69,6 +69,16 @@
         "PLAYER": "OBSERVER",
         "ASSISTANT": "OWNER"
       }
+    },
+    {
+      "name": "critical-hit-tables",
+      "label": "Machine Critical Hit Tables",
+      "type": "RollTable",
+      "system": "mwd",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
     }
   ],
   "media": [

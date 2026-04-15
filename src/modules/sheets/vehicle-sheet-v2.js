@@ -3,8 +3,12 @@
 // How it fits: Serves as the base vehicle-scale V2 sheet and the reuse target for BattleMech sheets.
 
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
+import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
+import { getActiveMachineCrits } from "../mwd/critical-hits.js";
+import { getMachineCritRemedy } from "../mwd/machine-crit-remedies.js";
+import { resolveMachineCritRemedyIntent } from "../mwd/machine-intents.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 
 function toNumber(value, fallback = 0) {
@@ -116,9 +120,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       editOwnedItem: VehicleSheetV2.prototype._onEditOwnedItem,
       deleteOwnedItem: VehicleSheetV2.prototype._onDeleteOwnedItem,
       toggleInventoryAccordion: VehicleSheetV2.prototype._onToggleInventoryAccordion,
+      machineWeaponAttack: VehicleSheetV2.prototype._onMachineWeaponAttack,
       toggleStatuses: VehicleSheetV2.prototype._onToggleStatuses,
+      machineCritRemedy: VehicleSheetV2.prototype._onMachineCritRemedy,
     }
-  });
+  }, { inplace: false });
 
   #expandedInventoryRows = new Set();
 
@@ -134,6 +140,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         disabled: !this._resolveStatusToken(this.getPersistentActor() ?? this.actor),
         reason: "Statuses require a token for this actor on the current scene.",
       },
+      activeCrits: this._buildActiveCrits(),
       attributes: this._buildAttributeCards(),
       sections: this._buildVehicleSections(),
     };
@@ -282,6 +289,12 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       equipped: Boolean(system.equipped),
       isPrimary: Boolean(system.isPrimary),
       canAdjustQuantity: false,
+      machineAttack: ["mechWeapon", "vehicleWeapon"].includes(canonicalType)
+        ? {
+          label: "Attack",
+          itemId: item?.id ?? "",
+        }
+        : null,
     };
   }
 
@@ -346,6 +359,26 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     this.render({ force: false });
   }
 
+  _buildActiveCrits() {
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    return getActiveMachineCrits(actor).map(crit => {
+      const remedy = getMachineCritRemedy(crit.remedyKey);
+      return {
+        id: crit.id,
+        label: crit.label ?? startCase(crit.key),
+        locationLabel: crit.locationLabel ?? startCase(crit.locationKey),
+        detail: compactList([
+          Array.isArray(crit.gates) && crit.gates.length ? `Gates: ${crit.gates.join(", ")}` : "",
+          Array.isArray(crit.mods) && crit.mods.length ? `Mods: ${crit.mods.join(", ")}` : "",
+          crit.escalationKey ? `Escalates: ${crit.escalationKey}` : "",
+        ]).join(" | "),
+        remedyLabel: remedy.label,
+        remedyKey: remedy.key,
+        machineActorUuid: actor?.uuid ?? "",
+      };
+    });
+  }
+
   async _onToggleStatuses(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
@@ -366,6 +399,79 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       actor: actorWriteTarget,
       token,
     });
+  }
+
+  async _onMachineWeaponAttack(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const itemId = String(target?.dataset?.itemId ?? "").trim();
+    const item = itemId ? actor.items?.get?.(itemId) : null;
+    if (!item) {
+      ui.notifications?.warn("That weapon is no longer available.");
+      return false;
+    }
+
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) {
+      ui.notifications?.error("MWD roll system not initialized.");
+      return false;
+    }
+
+    const token = this._resolveStatusToken(actor);
+    const result = await rollApi.execute({
+      actor,
+      payload: {
+        intent: "attack",
+        weaponId: item.id,
+        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
+        tags: ["combat", "attack", "machine"],
+        sourceTokenId: token?.id ?? null,
+      },
+      event,
+    });
+
+    if (result) {
+      const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+      if (snapshot?.hasCombatant) {
+        const spend = await PersonalCombatTracker.spendResource(actor, {
+          token,
+          resource: "sa",
+          cost: 2,
+          actionId: "attack",
+          actionLabel: "Attack",
+          actionCostLabel: "2 SA",
+          actionCategory: "complex"
+        });
+        if (!spend?.ok) ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
+      }
+    }
+
+    return Boolean(result);
+  }
+
+  async _onMachineCritRemedy(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const result = await resolveMachineCritRemedyIntent({
+      intent: "machine_crit_remedy",
+      machineActorUuid: target?.dataset?.machineActorUuid ?? actor.uuid,
+      critId: target?.dataset?.critId ?? "",
+      remedyKey: target?.dataset?.remedyKey ?? "",
+    }, {
+      gmOverride: Boolean(game.user?.isGM),
+    });
+
+    if (!result.ok) {
+      ui.notifications?.warn(result.reason ?? "Unable to resolve machine critical remedy.");
+      return false;
+    }
+
+    this.render({ force: true });
+    return true;
   }
 
   _resolveStatusToken(actor = this.actor) {

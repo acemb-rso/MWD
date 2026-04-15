@@ -1,0 +1,16 @@
+{
+  "_id": "MWDVehicleCrit1",
+  "name": "Vehicle Criticals",
+  "img": "icons/svg/d20-grey.svg",
+  "description": "Default MWD vehicle critical hit table.",
+  "formula": "1d12",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    { "_id": "VehCritResult02", "_key": "!tables.results!MWDVehicleCrit1.VehCritResult02", "type": 0, "text": "Cascade", "img": "icons/svg/d20-black.svg", "weight": 1, "range": [2, 2], "drawn": false, "flags": { "mwd": { "crit": { "key": "cascade", "remedyKey": "emergencyRepair", "gates": [], "mods": [], "resourceEffects": {}, "pilotDamage": {}, "escalationKey": "cascade" } } } },
+    { "_id": "VehCritResult03", "_key": "!tables.results!MWDVehicleCrit1.VehCritResult03", "type": 0, "text": "Vehicle System Shock", "img": "icons/svg/d20-black.svg", "weight": 10, "range": [3, 12], "drawn": false, "flags": { "mwd": { "crit": { "key": "vehicleSystemShock", "remedyKey": "systemReset", "gates": ["attack", "move"], "mods": ["attackCQPenalty", "pilotingPenalty"], "resourceEffects": {}, "pilotDamage": {}, "escalationKey": "system" } } } }
+  ],
+  "flags": {},
+  "ownership": { "default": 2 },
+  "_key": "!tables!MWDVehicleCrit1"
+}
