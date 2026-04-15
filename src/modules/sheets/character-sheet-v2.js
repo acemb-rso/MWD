@@ -25,6 +25,7 @@ import {
   normalizeStoredSkillSpecializationKeys,
 } from "../mwd/skills.js";
 import { notifyRollError } from "../roll/roll-errors.js";
+import { buildIntegritySummary, buildCriticalStatusSummary } from "../mwd/machine-summary.js";
 import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
 import {
   getQualityCategoryLabel,
@@ -269,7 +270,10 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       toggleOwnedItemEquipped: CharacterSheetV2.prototype._onToggleOwnedItemEquipped,
       setOwnedItemPrimary: CharacterSheetV2.prototype._onSetOwnedItemPrimary,
       adjustGearQuantity: CharacterSheetV2.prototype._onAdjustGearQuantity,
-      attackWeapon: CharacterSheetV2.prototype._onAttackWeapon
+      attackWeapon: CharacterSheetV2.prototype._onAttackWeapon,
+      openAssignedMech: CharacterSheetV2.prototype._onOpenAssignedMech,
+      mechAttack: CharacterSheetV2.prototype._onMechAttack,
+      mechRoll: CharacterSheetV2.prototype._onMechRoll,
     }
   }, { inplace: false });
 
@@ -683,7 +687,142 @@ ctx.edgeConsole.poolsOrdered = order
         }),
     }));
 
+    ctx.assignedMech = this._buildAssignedMech();
+
     return ctx;
+  }
+
+  _buildAssignedMech() {
+    const actorUuid = this.actor.uuid;
+    const WEIGHT_LABELS = { light: "Light", medium: "Medium", heavy: "Heavy", assault: "Assault" };
+
+    const mechs = (game.actors?.contents ?? [])
+      .filter(a =>
+        (a.type === "battlemech" || a.type === "vehicle") &&
+        String(a.system?.pilot?.uuid ?? "").trim() === actorUuid
+      )
+      .map(a => {
+        const isMech = a.type === "battlemech";
+        const structure = a.system?.monitors?.structure ?? {};
+        const armor = a.system?.monitors?.armor ?? {};
+        const heat = a.system?.mwd?.heat ?? {};
+        const heatStatus = a.system?.mwd?.heatStatus ?? {};
+        const crits = a.system?.mwd?.crits ?? [];
+        const quickActions = a.system?.quickActions ?? {};
+
+        const buildReadOnlyTrack = (id, label, kind, data) => {
+          const value = Math.max(0, toNumber(data.value, 0));
+          const max = Math.max(0, toNumber(data.max, 0));
+          return {
+            id, label, kind, value, max,
+            resistance: toNumber(data.resistance?.default, 0),
+            segments: Array.from({ length: max }, (_, i) => {
+              const v = i + 1;
+              return { value: v, filled: v <= value };
+            }),
+          };
+        };
+
+        const heatCurrent = Math.max(0, toNumber(heat.current, 0));
+        const heatMax = Math.max(0, toNumber(heat.max, 0));
+        const heatThresholds = heat.thresholds ?? {};
+        const heatModel = isMech ? {
+          current: heatCurrent,
+          max: heatMax,
+          status: heatStatus.label ?? heatStatus.code ?? "safe",
+          segments: Array.from({ length: heatMax }, (_, i) => {
+            const v = i + 1;
+            return {
+              value: v,
+              filled: v <= heatCurrent,
+              breakpoint: compactList([
+                v === toNumber(heatThresholds.runningHot, 0) ? "runningHot" : "",
+                v === toNumber(heatThresholds.overheated, 0) ? "overheated" : "",
+                v === toNumber(heatThresholds.shutdown, 0) ? "shutdown" : "",
+              ]).join(" "),
+            };
+          }),
+        } : null;
+
+        const integrity = buildIntegritySummary({ armor, structure });
+        const critStatus = buildCriticalStatusSummary(crits);
+
+        const conditionMonitors = isMech
+          ? [buildReadOnlyTrack("structure", "Structure", "wound", structure), buildReadOnlyTrack("armor", "Armor", "armor", armor)]
+          : [buildReadOnlyTrack("structure", "Structure", "wound", structure)];
+
+        const hasRangedGroups = Array.isArray(a.system?.weaponGroups) && a.system.weaponGroups.length > 0;
+        const hasMeleeProfiles = Array.isArray(a.system?.meleeProfiles) && a.system.meleeProfiles.length > 0;
+        const primaryGroup = quickActions.primaryWeaponGroup ?? null;
+
+        const mechQuickActions = isMech ? [
+          { label: "Primary", hint: primaryGroup?.name ?? "Primary weapon group", handler: "mechAttack", disabled: !primaryGroup, dataset: { attackKind: "primary", mechId: a.id } },
+          { label: "Ranged", hint: "Prompt for a weapon group", handler: "mechAttack", disabled: !hasRangedGroups, dataset: { attackKind: "ranged", mechId: a.id } },
+          { label: "Melee", hint: "Prompt for a melee profile", handler: "mechAttack", disabled: !hasMeleeProfiles, dataset: { attackKind: "melee", mechId: a.id } },
+          { label: "Dodge", hint: "Piloting response", handler: "mechRoll", disabled: false, dataset: { rollKind: "dodge", mechId: a.id } },
+          { label: "Piloting", hint: "Vehicle handling test", handler: "mechRoll", disabled: false, dataset: { rollKind: "piloting", mechId: a.id } },
+          { label: "Sensors", hint: "Perception or technician", handler: "mechRoll", disabled: !Boolean(quickActions.hasSensorSweep), dataset: { rollKind: "sensor", mechId: a.id } },
+          { label: "Repair", hint: "Technician quick check", handler: "mechRoll", disabled: false, dataset: { rollKind: "repair", mechId: a.id } },
+        ] : [];
+
+        return {
+          id: a.id,
+          uuid: a.uuid,
+          name: a.name,
+          typeLabel: isMech ? "BattleMech" : "Vehicle",
+          isMech,
+          weightLabel: WEIGHT_LABELS[a.system?.mwd?.weightClass] ?? "",
+          summaryStats: buildSummaryStats([
+            { label: "Integrity", value: integrity.parts?.map(p => p.value).join(" / ") ?? "" },
+            { label: "Heat", value: isMech ? `${heatCurrent} / ${heatMax}` : null },
+            { label: "Status", value: critStatus.count > 0 ? critStatus.value : "OK" },
+          ]),
+          conditionMonitors,
+          heat: heatModel,
+          critCount: crits.length,
+          quickActions: mechQuickActions,
+        };
+      });
+
+    return { mechs, hasMech: mechs.length > 0 };
+  }
+
+  async _onOpenAssignedMech(event, target) {
+    const mechId = target?.dataset?.mechId;
+    const mech = mechId ? game.actors.get(mechId) : null;
+    if (mech) mech.sheet.render(true, { focus: true });
+  }
+
+  async _onMechAttack(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const mechId = target?.dataset?.mechId;
+    const mech = mechId ? game.actors.get(mechId) : null;
+    if (!mech) return;
+    const attackKind = String(target?.dataset?.attackKind ?? "").trim();
+    try {
+      if (attackKind === "melee") await mech.rollMeleeAttack?.();
+      else await mech.rollRangedAttack?.();
+    } catch (error) {
+      notifyRollError(error, "Unable to launch BattleMech attack.");
+    }
+  }
+
+  async _onMechRoll(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const mechId = target?.dataset?.mechId;
+    const mech = mechId ? game.actors.get(mechId) : null;
+    if (!mech) return;
+    const rollKind = String(target?.dataset?.rollKind ?? "").trim();
+    try {
+      if (rollKind === "dodge") await mech.rollDodge?.();
+      else if (rollKind === "piloting") await mech.rollPilotingCheck?.();
+      else if (rollKind === "sensor") await mech.rollSensorSweep?.();
+      else if (rollKind === "repair") await mech.rollEmergencyRepair?.();
+    } catch (error) {
+      notifyRollError(error, "Unable to launch BattleMech check.");
+    }
   }
 
   _onRender(context, options) {

@@ -2170,9 +2170,10 @@
 
 .mwd-item-hero {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 10px;
-  padding: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(104px, max-content));
+  justify-content: start;
+  gap: 8px;
+  padding: 8px;
   border: 1px solid rgba(94, 76, 46, 0.18);
   border-radius: 14px;
   background: linear-gradient(180deg, rgba(255, 250, 238, 0.82), rgba(245, 235, 214, 0.58)), rgba(255, 255, 255, 0.18);
@@ -2182,10 +2183,13 @@
 .mwd-item-hero__stat {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
-  padding: 8px 10px;
-  border-radius: 10px;
+  width: max-content;
+  min-inline-size: 104px;
+  max-inline-size: 170px;
+  padding: 7px 9px;
+  border-radius: 8px;
   background: rgba(70, 56, 35, 0.08);
 }
 
@@ -2237,6 +2241,93 @@
   color: rgba(39, 32, 21, 0.98);
   text-shadow: 0 1px 0 rgba(255, 248, 228, 0.9);
   overflow-wrap: anywhere;
+}
+
+.mwd-item-hero__parts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mwd-item-hero__part {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  min-width: 0;
+  padding: 1px 5px;
+  border: 1px solid rgba(70, 56, 35, 0.14);
+  border-radius: 5px;
+  background: rgba(255, 250, 238, 0.56);
+  color: rgba(39, 32, 21, 0.96);
+  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.78);
+}
+
+.mwd-item-hero__part-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  color: currentColor;
+  opacity: 0.82;
+}
+
+.mwd-item-hero__part-value {
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: currentColor;
+  overflow-wrap: anywhere;
+}
+
+.mwd-item-hero__stat.is-green .mwd-item-hero__value,
+.mwd-item-hero__part.is-green {
+  color: #245f31;
+}
+
+.mwd-item-hero__part.is-green {
+  border-color: rgba(36, 95, 49, 0.32);
+  background: rgba(63, 126, 72, 0.14);
+}
+
+.mwd-item-hero__stat.is-yellow .mwd-item-hero__value,
+.mwd-item-hero__part.is-yellow {
+  color: #725706;
+}
+
+.mwd-item-hero__part.is-yellow {
+  border-color: rgba(132, 101, 11, 0.32);
+  background: rgba(205, 169, 49, 0.16);
+}
+
+.mwd-item-hero__stat.is-orange .mwd-item-hero__value,
+.mwd-item-hero__part.is-orange {
+  color: #8a450f;
+}
+
+.mwd-item-hero__part.is-orange {
+  border-color: rgba(151, 76, 18, 0.34);
+  background: rgba(207, 111, 35, 0.16);
+}
+
+.mwd-item-hero__stat.is-red .mwd-item-hero__value,
+.mwd-item-hero__part.is-red {
+  color: #8d1f18;
+}
+
+.mwd-item-hero__part.is-red {
+  border-color: rgba(141, 31, 24, 0.34);
+  background: rgba(174, 48, 37, 0.15);
+}
+
+.mwd-item-hero__stat.is-dark-red .mwd-item-hero__value,
+.mwd-item-hero__part.is-dark-red {
+  color: #5d1516;
+}
+
+.mwd-item-hero__part.is-dark-red {
+  border-color: rgba(93, 21, 22, 0.38);
+  background: rgba(93, 21, 22, 0.17);
 }
 
 .mwd-item-hero__hint {
@@ -5659,6 +5750,56 @@
 
 .mwd-roll-card__incoming .k {
   opacity: 0.75;
+}
+
+/* Native Foundry Token HUD: MWD status icons are bright single-color assets, so the picker needs a dark tray. */
+#token-hud .status-effects {
+  padding: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  border-radius: 6px !important;
+  background: rgba(25, 28, 31, 0.96) !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+#token-hud .status-effects .effect-control,
+#token-hud .status-effects .status-effect {
+  box-sizing: border-box !important;
+  display: inline-block;
+  width: 28px !important;
+  height: 28px !important;
+  margin: 2px !important;
+  padding: 3px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 5px !important;
+  background: rgba(7, 10, 12, 0.78) !important;
+  opacity: 1 !important;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9)) contrast(1.24) saturate(0.95);
+}
+
+#token-hud .status-effects .effect-control:hover,
+#token-hud .status-effects .status-effect:hover {
+  border-color: rgba(255, 255, 255, 0.52) !important;
+  background: rgba(45, 50, 55, 0.92) !important;
+}
+
+#token-hud .status-effects .effect-control.active,
+#token-hud .status-effects .effect-control.is-active,
+#token-hud .status-effects .status-effect.active,
+#token-hud .status-effects .status-effect.is-active {
+  border-color: #d64232 !important;
+  background: rgba(68, 20, 18, 0.9) !important;
+  box-shadow: 0 0 0 1px rgba(255, 238, 218, 0.7), 0 0 10px rgba(214, 66, 50, 0.42) !important;
+}
+
+#token-hud .status-effects .effect-control > img,
+#token-hud .status-effects .status-effect > img {
+  width: 100%;
+  height: 100%;
+  border: 0 !important;
+  object-fit: contain;
+  opacity: 1 !important;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9)) contrast(1.24) saturate(0.95);
 }
 
 /*# sourceMappingURL=mwd.css.map */

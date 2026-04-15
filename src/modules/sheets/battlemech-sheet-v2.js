@@ -6,6 +6,7 @@ import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { buildCriticalStatusSummary, buildIntegritySummary } from "../mwd/machine-summary.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
 
 function toNumber(value, fallback = 0) {
@@ -30,11 +31,31 @@ function startCase(value = "") {
 
 function buildSummaryStats(stats = []) {
   return stats
-    .filter(stat => stat && stat.value !== undefined && stat.value !== null && String(stat.value).trim() !== "")
+    .map(stat => {
+      const data = stat ?? {};
+      return {
+        ...data,
+        label: String(data.label ?? "").trim(),
+        value: String(data.value ?? "").trim(),
+        emphasis: data.emphasis ?? "",
+        title: String(data.title ?? "").trim(),
+        tone: String(data.tone ?? "").trim(),
+        parts: Array.isArray(data.parts)
+          ? data.parts
+          .filter(part => part && part.value !== undefined && part.value !== null && String(part.value).trim() !== "")
+          .map(part => ({
+            label: String(part.label ?? "").trim(),
+            value: String(part.value ?? "").trim(),
+            tone: String(part.tone ?? "").trim(),
+            title: String(part.title ?? "").trim(),
+          }))
+          : [],
+      };
+    })
+    .filter(stat => stat.value !== "" || stat.parts.length)
     .map(stat => ({
-      label: String(stat.label ?? "").trim(),
-      value: String(stat.value ?? "").trim(),
-      emphasis: stat.emphasis ?? ""
+      ...stat,
+      hasParts: stat.parts.length > 0,
     }));
 }
 
@@ -149,16 +170,21 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   }
 
   _buildSummaryStats() {
-    const loadout = this.actor.system?.mwd?.loadout ?? {};
+    const armor = this.actor.system?.monitors?.armor ?? {};
+    const structure = this.actor.system?.monitors?.structure ?? {};
     const heat = this.actor.system?.mwd?.heat ?? {};
     const heatStatus = this.actor.system?.mwd?.heatStatus ?? {};
+    const heatLabel = heatStatus.label ?? startCase(heatStatus.code ?? "safe");
+    const heatSummaryLabel = heatLabel.toUpperCase();
+    const integrity = buildIntegritySummary({ armor, structure });
+    const critStatus = buildCriticalStatusSummary(this.actor.system?.mwd?.crits ?? []);
 
     return buildSummaryStats([
       { label: "Weight", value: startCase(this.actor.system?.mwd?.weightClass ?? "medium"), emphasis: "strong" },
       { label: "Tonnage", value: toNumber(this.actor.system?.mwd?.tonnage, 0) },
-      { label: "Mounts", value: `${toNumber(loadout?.mountPoints?.used, 0)} / ${toNumber(loadout?.mountPoints?.total, 0)}` },
-      { label: "Heat", value: `${toNumber(heat.current, 0)} / ${toNumber(heat.max, 0)}` },
-      { label: "Status", value: heatStatus.label ?? startCase(heatStatus.code ?? "safe") },
+      { label: "Integrity", parts: integrity.parts, title: integrity.title },
+      { label: "Heat", value: `${toNumber(heat.current, 0)} / ${toNumber(heat.max, 0)} ${heatSummaryLabel}`, title: heatLabel },
+      { label: "Status", value: critStatus.value, title: critStatus.title, tone: critStatus.count > 0 ? "red" : "" },
     ]);
   }
 

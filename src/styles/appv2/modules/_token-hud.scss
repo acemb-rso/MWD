@@ -1,0 +1,53 @@
+/* Native Foundry Token HUD: MWD status icons are bright single-color assets, so the picker needs a dark tray. */
+#token-hud .status-effects {
+  padding: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  border-radius: 6px !important;
+  background: rgba(25, 28, 31, 0.96) !important;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+#token-hud .status-effects .effect-control,
+#token-hud .status-effects .status-effect {
+  box-sizing: border-box !important;
+  display: inline-block;
+  width: 28px !important;
+  height: 28px !important;
+  margin: 2px !important;
+  padding: 3px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 5px !important;
+  background: rgba(7, 10, 12, 0.78) !important;
+  opacity: 1 !important;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9)) contrast(1.24) saturate(0.95);
+}
+
+#token-hud .status-effects .effect-control:hover,
+#token-hud .status-effects .status-effect:hover {
+  border-color: rgba(255, 255, 255, 0.52) !important;
+  background: rgba(45, 50, 55, 0.92) !important;
+}
+
+#token-hud .status-effects .effect-control.active,
+#token-hud .status-effects .effect-control.is-active,
+#token-hud .status-effects .status-effect.active,
+#token-hud .status-effects .status-effect.is-active {
+  border-color: #d64232 !important;
+  background: rgba(68, 20, 18, 0.9) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 238, 218, 0.7),
+    0 0 10px rgba(214, 66, 50, 0.42) !important;
+}
+
+#token-hud .status-effects .effect-control > img,
+#token-hud .status-effects .status-effect > img {
+  width: 100%;
+  height: 100%;
+  border: 0 !important;
+  object-fit: contain;
+  opacity: 1 !important;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9)) contrast(1.24) saturate(0.95);
+}

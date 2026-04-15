@@ -156,7 +156,7 @@
                     "type": "panel",
                     "title": "Assigned Systems",
                     "children": [
-                      { "type": "include", "partial": "mwd.v2.ui.placeholders.assigned-systems" }
+                      { "type": "include", "partial": "mwd.v2.ui.character.assigned-mech" }
                     ]
                   }
                 ]

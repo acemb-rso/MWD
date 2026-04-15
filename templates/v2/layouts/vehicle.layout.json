@@ -42,6 +42,13 @@
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.vehicle.active-crits" }
                 ]
+              },
+              {
+                "type": "panel",
+                "title": "Pilot / Driver",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.pilot-panel" }
+                ]
               }
             ]
           },

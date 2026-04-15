@@ -10,6 +10,7 @@ import { getActiveMachineCrits } from "../mwd/critical-hits.js";
 import { getMachineCritRemedy } from "../mwd/machine-crit-remedies.js";
 import { resolveMachineCritRemedyIntent } from "../mwd/machine-intents.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
+import { SelectActor } from "../dialog/select-actor.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -47,11 +48,31 @@ function startCase(value = "") {
 
 function buildSummaryStats(stats = []) {
   return stats
-    .filter(stat => stat && stat.value !== undefined && stat.value !== null && String(stat.value).trim() !== "")
+    .map(stat => {
+      const data = stat ?? {};
+      return {
+        ...data,
+        label: String(data.label ?? "").trim(),
+        value: String(data.value ?? "").trim(),
+        emphasis: data.emphasis ?? "",
+        title: String(data.title ?? "").trim(),
+        tone: String(data.tone ?? "").trim(),
+        parts: Array.isArray(data.parts)
+          ? data.parts
+            .filter(part => part && part.value !== undefined && part.value !== null && String(part.value).trim() !== "")
+            .map(part => ({
+              label: String(part.label ?? "").trim(),
+              value: String(part.value ?? "").trim(),
+              tone: String(part.tone ?? "").trim(),
+              title: String(part.title ?? "").trim(),
+            }))
+          : [],
+      };
+    })
+    .filter(stat => stat.value !== "" || stat.parts.length)
     .map(stat => ({
-      label: String(stat.label ?? "").trim(),
-      value: String(stat.value ?? "").trim(),
-      emphasis: stat.emphasis ?? ""
+      ...stat,
+      hasParts: stat.parts.length > 0,
     }));
 }
 
@@ -123,6 +144,9 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       machineWeaponAttack: VehicleSheetV2.prototype._onMachineWeaponAttack,
       toggleStatuses: VehicleSheetV2.prototype._onToggleStatuses,
       machineCritRemedy: VehicleSheetV2.prototype._onMachineCritRemedy,
+      assignPilot: VehicleSheetV2.prototype._onAssignPilot,
+      removePilot: VehicleSheetV2.prototype._onRemovePilot,
+      openPilot: VehicleSheetV2.prototype._onOpenPilot,
     }
   }, { inplace: false });
 
@@ -143,9 +167,65 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       activeCrits: this._buildActiveCrits(),
       attributes: this._buildAttributeCards(),
       sections: this._buildVehicleSections(),
+      pilotPanel: await this._buildPilotPanel(),
     };
     ctx.conditionMonitors = this._buildConditionMonitors();
     return ctx;
+  }
+
+  async _buildPilotPanel() {
+    const pilotUuid = String(this.actor.system?.pilot?.uuid ?? "").trim();
+    let pilotActor = null;
+    if (pilotUuid) {
+      try { pilotActor = await fromUuid(pilotUuid); } catch (_) {}
+    }
+    return {
+      uuid: pilotUuid,
+      linked: !!pilotActor,
+      name: pilotActor?.name ?? null,
+      id: pilotActor?.id ?? null,
+      canEdit: !!this.isEditable,
+    };
+  }
+
+  async _onAssignPilot(event, target) {
+    if (!this.isEditable) return;
+    const characters = (game.actors?.contents ?? []).filter(a => a.type === "character");
+    if (!characters.length) {
+      ui.notifications?.warn("No character actors found in this world.");
+      return;
+    }
+    await SelectActor.selectActor(
+      "Assign Pilot",
+      characters,
+      async (actor) => this.actor.update({ "system.pilot.uuid": actor.uuid }),
+    );
+  }
+
+  async _onRemovePilot(event, target) {
+    if (!this.isEditable) return;
+    await this.actor.update({ "system.pilot.uuid": "" });
+  }
+
+  async _onOpenPilot(event, target) {
+    const uuid = String(this.actor.system?.pilot?.uuid ?? "").trim();
+    if (!uuid) return;
+    const pilot = await fromUuid(uuid).catch(() => null);
+    if (pilot) pilot.sheet.render(true, { focus: true });
+  }
+
+  async _onDrop(event) {
+    if (!this.isEditable) return super._onDrop?.(event);
+    let data;
+    try { data = TextEditor.getDragEventData(event); } catch (_) {}
+    if (data?.type === "Actor") {
+      const dropped = await fromUuid(data.uuid).catch(() => null);
+      if (dropped?.type === "character") {
+        await this.actor.update({ "system.pilot.uuid": dropped.uuid });
+        return;
+      }
+    }
+    return super._onDrop?.(event);
   }
 
   _buildSummaryStats() {

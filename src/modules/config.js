@@ -36,11 +36,7 @@ export const MWD = {
       "name": "Style of Destiny UI",
       "hint": "Select the style used for actors, items and GM Manager"
     },
-    "anarchyHack": {
-      "name": "Destiny hack",
-      "hint": "Use an Anarchy Hack provided by a module"
-    },
-    "skillSet": {
+"skillSet": {
       "name": "Skill set",
       "hint": "Select the set of skills to use"
     },

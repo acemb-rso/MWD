@@ -87,6 +87,13 @@
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.battlemech.heat-track" }
                 ]
+              },
+              {
+                "type": "panel",
+                "title": "Pilot",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.pilot-panel" }
+                ]
               }
             ]
           },

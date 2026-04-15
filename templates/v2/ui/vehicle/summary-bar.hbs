@@ -6,9 +6,20 @@ How it fits: Shared by both vehicle-scale V2 sheets.
 
 <section class="mwd-item-hero">
   {{#each vehicleSheet.summaryStats as |stat|}}
-    <div class="mwd-item-hero__stat">
+    <div class="mwd-item-hero__stat{{#if stat.tone}} is-{{stat.tone}}{{/if}}"{{#if stat.title}} title="{{stat.title}}"{{/if}}>
       <span class="mwd-item-hero__label">{{stat.label}}</span>
-      <span class="mwd-item-hero__value">{{stat.value}}</span>
+      {{#if stat.hasParts}}
+        <span class="mwd-item-hero__parts">
+          {{#each stat.parts as |part|}}
+            <span class="mwd-item-hero__part{{#if part.tone}} is-{{part.tone}}{{/if}}"{{#if part.title}} title="{{part.title}}"{{/if}}>
+              <span class="mwd-item-hero__part-label">{{part.label}}</span>
+              <span class="mwd-item-hero__part-value">{{part.value}}</span>
+            </span>
+          {{/each}}
+        </span>
+      {{else}}
+        <span class="mwd-item-hero__value">{{stat.value}}</span>
+      {{/if}}
     </div>
   {{/each}}
 </section>
