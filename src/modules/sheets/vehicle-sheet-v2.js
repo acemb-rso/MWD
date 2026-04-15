@@ -3,6 +3,7 @@
 // How it fits: Serves as the base vehicle-scale V2 sheet and the reuse target for BattleMech sheets.
 
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
+import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 
@@ -115,6 +116,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       editOwnedItem: VehicleSheetV2.prototype._onEditOwnedItem,
       deleteOwnedItem: VehicleSheetV2.prototype._onDeleteOwnedItem,
       toggleInventoryAccordion: VehicleSheetV2.prototype._onToggleInventoryAccordion,
+      toggleStatuses: VehicleSheetV2.prototype._onToggleStatuses,
     }
   });
 
@@ -127,6 +129,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     ctx.vehicleSheet = {
       summaryStats: this._buildSummaryStats(),
       alerts: this._buildAlerts(),
+      statusAction: {
+        label: "Statuses",
+        disabled: !this._resolveStatusToken(this.getPersistentActor() ?? this.actor),
+        reason: "Statuses require a token for this actor on the current scene.",
+      },
       attributes: this._buildAttributeCards(),
       sections: this._buildVehicleSections(),
     };
@@ -337,6 +344,39 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     }
 
     this.render({ force: false });
+  }
+
+  async _onToggleStatuses(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (target?.dataset?.actionDisabled === "true") {
+      ui.notifications?.warn(target?.dataset?.actionReason || "Statuses are not available right now.");
+      return false;
+    }
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const token = this._resolveStatusToken(actorWriteTarget);
+    if (!token) {
+      ui.notifications?.warn("Statuses require a token for this actor on the current scene.");
+      return false;
+    }
+
+    return openTokenStatusDialog({
+      actor: actorWriteTarget,
+      token,
+    });
+  }
+
+  _resolveStatusToken(actor = this.actor) {
+    return this.getSheetTokenDocument?.()
+      ?? actor?.token?.document
+      ?? actor?.token
+      ?? actor?.getActiveTokens?.(true, true)?.[0]?.document
+      ?? actor?.getActiveTokens?.(true, true)?.[0]
+      ?? Array.from(canvas?.tokens?.placeables ?? [])
+        .find(token => token?.actor?.id && token.actor.id === actor?.id)?.document
+      ?? null;
   }
 
   #getOwnedItemFromTarget(target, event) {

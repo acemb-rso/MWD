@@ -63,6 +63,25 @@ function getBurnValue(actor) {
   return Math.max(0, Number(actor?.system?.burn?.value ?? 0) || 0);
 }
 
+function isPersonActor(actor) {
+  return actor?.type === TEMPLATE.actorTypes.character || actor?.type === TEMPLATE.actorTypes.npc;
+}
+
+function isKnownActor(actor) {
+  return [
+    TEMPLATE.actorTypes.character,
+    TEMPLATE.actorTypes.npc,
+    TEMPLATE.actorTypes.vehicle,
+    TEMPLATE.actorTypes.battlemech,
+  ].includes(actor?.type);
+}
+
+function modeAllowsActor(mode, actor) {
+  return String(mode ?? "").trim() === "status"
+    ? isKnownActor(actor)
+    : isPersonActor(actor);
+}
+
 function getStatusLabelFromId(statusId, actor) {
   return getToggleableStatusEffects(actor).find(effect => effect.id === statusId)?.label ?? statusId;
 }
@@ -138,13 +157,13 @@ export class HarmEngine {
     { value: "status", label: "Status" },
   ]);
 
-  static supportsActor(actor) {
-    return actor?.type === TEMPLATE.actorTypes.character || actor?.type === TEMPLATE.actorTypes.npc;
+  static supportsActor(actor, { mode = "" } = {}) {
+    return modeAllowsActor(mode, actor);
   }
 
-  static getActorOptions() {
+  static getActorOptions({ mode = "" } = {}) {
     return Array.from(game.actors ?? [])
-      .filter(actor => this.supportsActor(actor))
+      .filter(actor => this.supportsActor(actor, { mode }))
       .sort((left, right) => String(left.name ?? "").localeCompare(String(right.name ?? "")))
       .map(actor => ({
         id: actor.id,
@@ -161,7 +180,7 @@ export class HarmEngine {
       }));
   }
 
-  static getSceneTarget() {
+  static getSceneTarget({ mode = "" } = {}) {
     const controlled = Array.from(canvas?.tokens?.controlled ?? []);
     if (controlled.length > 1) {
       return { actor: null, token: null, reason: "Select only one controlled token." };
@@ -169,7 +188,7 @@ export class HarmEngine {
     if (controlled.length === 1) {
       const tokenDoc = asTokenDocument(controlled[0]);
       const actor = getPersistentActorForToken(tokenDoc?.actor ?? null, tokenDoc);
-      return this._resolveSceneTargetResult(actor, tokenDoc);
+      return this._resolveSceneTargetResult(actor, tokenDoc, { mode });
     }
 
     const targets = Array.from(game.user?.targets ?? []);
@@ -179,18 +198,18 @@ export class HarmEngine {
     if (targets.length === 1) {
       const tokenDoc = asTokenDocument(targets[0]);
       const actor = getPersistentActorForToken(tokenDoc?.actor ?? null, tokenDoc);
-      return this._resolveSceneTargetResult(actor, tokenDoc);
+      return this._resolveSceneTargetResult(actor, tokenDoc, { mode });
     }
 
     return { actor: null, token: null, reason: "No controlled or targeted token." };
   }
 
-  static _resolveSceneTargetResult(actor, tokenDoc) {
+  static _resolveSceneTargetResult(actor, tokenDoc, { mode = "" } = {}) {
     if (!tokenDoc || !actor) {
       return { actor: null, token: null, reason: "No controlled or targeted token." };
     }
 
-    if (!this.supportsActor(actor)) {
+    if (!this.supportsActor(actor, { mode })) {
       return {
         actor: null,
         token: tokenDoc,
@@ -205,25 +224,25 @@ export class HarmEngine {
     };
   }
 
-  static resolveTarget({ actor = null, token = null, actorId = "", preferSceneTarget = false } = {}) {
+  static resolveTarget({ actor = null, token = null, actorId = "", preferSceneTarget = false, mode = "" } = {}) {
     const explicitToken = asTokenDocument(token);
     if (explicitToken) {
       const explicitActor = getPersistentActorForToken(explicitToken?.actor ?? actor, explicitToken);
-      const resolved = this._resolveSceneTargetResult(explicitActor, explicitToken);
+      const resolved = this._resolveSceneTargetResult(explicitActor, explicitToken, { mode });
       if (resolved.actor) return { ...resolved, source: "token" };
     }
 
     if (preferSceneTarget) {
-      const sceneTarget = this.getSceneTarget();
+      const sceneTarget = this.getSceneTarget({ mode });
       if (sceneTarget.actor) return { ...sceneTarget, source: "scene" };
     }
 
-    if (actor && this.supportsActor(actor)) {
+    if (actor && this.supportsActor(actor, { mode })) {
       return { actor, token: explicitToken, reason: "", source: "actor" };
     }
 
     const fallbackActor = actorId ? game.actors?.get?.(actorId) ?? null : null;
-    if (fallbackActor && this.supportsActor(fallbackActor)) {
+    if (fallbackActor && this.supportsActor(fallbackActor, { mode })) {
       return { actor: fallbackActor, token: null, reason: "", source: "fallback" };
     }
 
@@ -232,21 +251,23 @@ export class HarmEngine {
       token: explicitToken,
       source: null,
       reason: preferSceneTarget
-        ? this.getSceneTarget().reason || "Choose a supported character target."
-        : "Choose a supported character target.",
+        ? this.getSceneTarget({ mode }).reason || "Choose a supported target."
+        : "Choose a supported target.",
     };
   }
 
   static async apply({ actor = null, token = null, payload = {}, options = {} } = {}) {
+    const mode = String(payload?.mode ?? "").trim();
     const target = this.resolveTarget({
       actor,
       token,
       actorId: options.actorId ?? "",
       preferSceneTarget: Boolean(options.preferSceneTarget),
+      mode,
     });
 
     if (!target.actor) {
-      return { ok: false, reason: target.reason || "Choose a supported character target." };
+      return { ok: false, reason: target.reason || "Choose a supported target." };
     }
 
     let result;
@@ -364,7 +385,19 @@ export class HarmEngine {
 
     const before = getCurrentStatusState(actor, statusId);
     const active = Boolean(payload?.active);
-    await applyManagedStatusUpdate({ actor, statusId, active });
+    await applyManagedStatusUpdate({
+      actor,
+      statusId,
+      active,
+      metadata: {
+        scope: payload?.scope,
+        notes: payload?.notes,
+        location: payload?.location,
+        itemUuid: payload?.itemUuid,
+        targetUuid: payload?.targetUuid,
+        severity: payload?.severity,
+      },
+    });
     const after = getCurrentStatusState(actor, statusId);
 
     return {

@@ -10,6 +10,7 @@ import { registerLifeModuleSettingsEditor } from "./settings/life-module-setting
 import { registerPersonalActionCatalogSettingsEditor } from "./settings/personal-action-catalog-settings.js";
 import { registerSkillSpecializationSettingsEditor } from "./settings/skill-specialization-settings.js";
 import { registerSceneModifierTemplateSettingsEditor } from "./settings/scene-modifier-template-settings.js";
+import { registerStatusConditionCatalogSettingsEditor } from "./settings/status-condition-catalog-settings.js";
 
 
 export class SystemSettings {
@@ -20,6 +21,7 @@ export class SystemSettings {
     registerPersonalActionCatalogSettingsEditor();
     registerSkillSpecializationSettingsEditor();
     registerSceneModifierTemplateSettingsEditor();
+    registerStatusConditionCatalogSettingsEditor();
 
     game.settings.register(SYSTEM_NAME, "useDestinyMechanics", {
       name: ANARCHY.settings.useDestinyMechanics.name,

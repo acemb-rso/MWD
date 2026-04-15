@@ -45,6 +45,8 @@ import {
 } from "./mwd/life-modules.js";
 import { getSkillDef, listSkillDefs } from "./mwd/skills.js";
 import { HarmEngine } from "./harm/harm-engine.js";
+import { registerTokenStatusHudFilter } from "./dialog/token-status-dialog.js";
+import { configureMWDStatusEffects } from "./status/status-condition-catalog.js";
 import {
   applyTraitMutations,
   buildActionCostTraitFacts,
@@ -253,30 +255,21 @@ export class AnarchySystem {
     this.handlebarsManager = new HandlebarsManager();
     PersonalCombatTracker.init();
     SystemSettings.register();
+    Hooks.on("updateSetting", setting => {
+      if (setting?.key === `${SYSTEM_NAME}.statusConditionCatalog`) configureMWDStatusEffects();
+    });
 
     console.log(LOG_HEAD + 'AnarchySystem.onInit | loading system');
     CONFIG.ANARCHY = MWD;
     //CONFIG.Combat.documentClass = AnarchyCombat;
     CONFIG.Combat.initiative = { formula: "2d6" }
 
-    if (!(CONFIG.statusEffects ?? []).some(effect => effect?.id === "overloaded")) {
-      CONFIG.statusEffects.push({
-        id: "overloaded",
-        name: "Overloaded",
-        icon: "systems/mwd/img/icons/status/surge.svg"
-      });
-    }
-    if (!(CONFIG.statusEffects ?? []).some(effect => effect?.id === "preparedInterrupt")) {
-      CONFIG.statusEffects.push({
-        id: "preparedInterrupt",
-        name: "Prepared",
-        icon: "systems/mwd/img/icons/status/readied_action.svg"
-      });
-    }
+    configureMWDStatusEffects();
     CONFIG.Actor.documentClass = MWDActor;
     CONFIG.Item.documentClass = MWDItem;
     MWDItem.init();
     registerWeaponAttackHotbarHook();
+    registerTokenStatusHudFilter();
 
     // Register sheets (AppV2-only, no appv1 unregisters)
     registerActorSheetsV2();

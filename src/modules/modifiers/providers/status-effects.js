@@ -5,6 +5,10 @@
 
 // modules/modifiers/providers/status-effects.js
 import { STATUS_MAP } from "../../roll/config/status-modifiers.js"; 
+import {
+  getStatusConditionDefinition,
+  isStatusConditionApplicableToActor,
+} from "../../status/status-condition-catalog.js";
 
 export class StatusEffectsProvider {
   id = "mwd.statusEffects";
@@ -17,7 +21,11 @@ export class StatusEffectsProvider {
     const mods = [];
 
     for (const statusId of statuses) {
-      const def = STATUS_MAP?.[statusId];
+      const statusEntry = getStatusConditionDefinition(statusId);
+      const modifierKey = statusEntry
+        ? (isStatusConditionApplicableToActor(statusEntry, actor) ? statusEntry.modifierKey : "")
+        : statusId;
+      const def = STATUS_MAP?.[modifierKey];
       if (!def?.mods?.length) continue;
 
       for (const entry of def.mods) {

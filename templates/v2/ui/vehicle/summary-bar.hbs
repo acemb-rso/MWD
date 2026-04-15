@@ -13,6 +13,21 @@ How it fits: Shared by both vehicle-scale V2 sheets.
   {{/each}}
 </section>
 
+{{#if vehicleSheet.statusAction}}
+  <div class="mwd-item-toolbar" style="margin-top: 0.5rem;">
+    <button
+      type="button"
+      data-action="toggleStatuses"
+      data-action-disabled="{{#if vehicleSheet.statusAction.disabled}}true{{else}}false{{/if}}"
+      data-action-reason="{{vehicleSheet.statusAction.reason}}"
+      {{#if vehicleSheet.statusAction.disabled}}disabled{{/if}}
+    >
+      <i class="fa-solid fa-heart-pulse"></i>
+      {{vehicleSheet.statusAction.label}}
+    </button>
+  </div>
+{{/if}}
+
 {{#if vehicleSheet.alerts.length}}
   <div class="mwd-inv__warnings">
     {{#each vehicleSheet.alerts as |alert|}}

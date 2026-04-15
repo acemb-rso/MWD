@@ -336,19 +336,20 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
     const currentDn = Number(game.settings.get(this.systemId, SETTING_NEXT_DN) ?? 1);
     const announce = Boolean(game.settings.get(this.systemId, SETTING_ANNOUNCE));
 
-    const actorOptions = HarmEngine.getActorOptions();
-    const sceneTarget = HarmEngine.getSceneTarget();
+    const harmState = cloneHarmState(this.harmState);
+    const actorOptions = HarmEngine.getActorOptions({ mode: harmState.mode });
+    const sceneTarget = HarmEngine.getSceneTarget({ mode: harmState.mode });
     const fallbackActor = this.harmState.actorId
       ? game.actors?.get?.(this.harmState.actorId) ?? null
       : null;
     const effectiveTarget = HarmEngine.resolveTarget({
       actor: fallbackActor,
       actorId: this.harmState.actorId,
-      preferSceneTarget: true
+      preferSceneTarget: true,
+      mode: harmState.mode
     });
     const statusOptions = normalizeStatusOptions(effectiveTarget.actor ?? fallbackActor ?? null);
-    const harmState = cloneHarmState(this.harmState);
-    if (!harmState.statusId && statusOptions.length) {
+    if (statusOptions.length && !statusOptions.some(option => option.value === harmState.statusId)) {
       harmState.statusId = statusOptions[0].value;
       this.harmState.statusId = harmState.statusId;
     }

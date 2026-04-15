@@ -437,7 +437,13 @@ export class PersonalCombatTracker {
     if (resolvedTokenDoc?.combatant?.combat?.id === combat.id) return resolvedTokenDoc.combatant;
 
     let direct = null;
-    if (typeof combat.getCombatantByToken === "function") {
+    if (typeof combat.getCombatantsByToken === "function") {
+      try {
+        direct = combat.getCombatantsByToken(tokenId)?.[0] ?? null;
+      } catch (_error) {
+        direct = null;
+      }
+    } else if (typeof combat.getCombatantByToken === "function") {
       try {
         direct = combat.getCombatantByToken(tokenId) ?? null;
       } catch (_error) {
