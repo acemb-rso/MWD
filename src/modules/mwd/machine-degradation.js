@@ -1,0 +1,497 @@
+// src/modules/mwd/machine-degradation.js
+// Purpose: Central machine degradation state and resolution helpers.
+// How it fits: Keeps machine stress/shock/reliability logic deterministic and
+// testable outside Foundry sheet or chat workflows.
+
+import { TEMPLATE } from "../constants.js";
+
+export const MACHINE_CONDITION_STAGES = Object.freeze({
+  intact: 0,
+  impaired: 1,
+  damaged: 2,
+  crippled: 3,
+  disabled: 4,
+});
+
+export const MACHINE_CONDITION_LABELS = Object.freeze({
+  [MACHINE_CONDITION_STAGES.intact]: "Intact",
+  [MACHINE_CONDITION_STAGES.impaired]: "Impaired",
+  [MACHINE_CONDITION_STAGES.damaged]: "Damaged",
+  [MACHINE_CONDITION_STAGES.crippled]: "Crippled",
+  [MACHINE_CONDITION_STAGES.disabled]: "Disabled",
+});
+
+export const MACHINE_CONDITION_MODIFIERS = Object.freeze({
+  [MACHINE_CONDITION_STAGES.intact]: 0,
+  [MACHINE_CONDITION_STAGES.impaired]: 1,
+  [MACHINE_CONDITION_STAGES.damaged]: 2,
+  [MACHINE_CONDITION_STAGES.crippled]: 3,
+  [MACHINE_CONDITION_STAGES.disabled]: 4,
+});
+
+export const MACHINE_RELIABILITY_THRESHOLDS = Object.freeze({
+  0: 1,
+  1: 2,
+  2: 3,
+  3: 4,
+  4: 6,
+  5: 8,
+});
+
+const MECH_LOCATION_PRIORITY = Object.freeze([
+  "head",
+  "torsoFront",
+  "torsoRear",
+  "core",
+  "leftArm",
+  "rightArm",
+  "leftLeg",
+  "rightLeg",
+]);
+
+const VEHICLE_LOCATION_PRIORITY = Object.freeze([
+  "front",
+  "side",
+  "rear",
+  "core",
+  "turret",
+  "rotor",
+]);
+
+const DEFAULT_MECH_LOCATIONS = Object.freeze({
+  head: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["cockpit", "sensor"], destroyed: false }),
+  torsoFront: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup", "engine"], destroyed: false }),
+  torsoRear: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup", "ammoStore"], destroyed: false }),
+  leftArm: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup"], destroyed: false }),
+  rightArm: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup"], destroyed: false }),
+  leftLeg: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["motiveSystem"], destroyed: false }),
+  rightLeg: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["motiveSystem"], destroyed: false }),
+  core: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["engine", "gyro", "ammoStore"], destroyed: false }),
+});
+
+const DEFAULT_VEHICLE_LOCATIONS = Object.freeze({
+  front: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup", "motiveSystem"], destroyed: false }),
+  side: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup", "motiveSystem"], destroyed: false }),
+  rear: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup", "motiveSystem", "ammoStore"], destroyed: false }),
+  turret: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["turret", "weaponGroup"], destroyed: false }),
+  rotor: Object.freeze({ enabled: false, stress: 0, condition: 0, tags: ["rotor"], destroyed: false }),
+  core: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["crewCompartment", "engine", "ammoStore"], destroyed: false }),
+});
+
+const CATASTROPHIC_FALLBACKS = Object.freeze({
+  [TEMPLATE.actorTypes.battlemech]: Object.freeze({
+    head: Object.freeze({ type: "cockpitCatastrophe", destroyed: true, statusState: "destroyed" }),
+    torsoFront: Object.freeze({ type: "torsoCollapse", destroyed: true, statusState: "destroyed" }),
+    torsoRear: Object.freeze({ type: "torsoCollapse", destroyed: true, statusState: "destroyed" }),
+    core: Object.freeze({ type: "coreFailure", destroyed: true, statusState: "destroyed" }),
+    leftArm: Object.freeze({ type: "armSystemCollapse", destroyed: true, statusState: "" }),
+    rightArm: Object.freeze({ type: "armSystemCollapse", destroyed: true, statusState: "" }),
+    leftLeg: Object.freeze({ type: "legCollapse", destroyed: true, statusState: "immobilized" }),
+    rightLeg: Object.freeze({ type: "legCollapse", destroyed: true, statusState: "immobilized" }),
+  }),
+  [TEMPLATE.actorTypes.vehicle]: Object.freeze({
+    front: Object.freeze({ type: "hullCollapse", destroyed: true, statusState: "destroyed" }),
+    side: Object.freeze({ type: "hullCollapse", destroyed: true, statusState: "destroyed" }),
+    rear: Object.freeze({ type: "hullCollapse", destroyed: true, statusState: "destroyed" }),
+    core: Object.freeze({ type: "coreFailure", destroyed: true, statusState: "destroyed" }),
+    turret: Object.freeze({ type: "turretDestroyed", destroyed: true, statusState: "" }),
+    rotor: Object.freeze({ type: "rotorFailure", destroyed: true, statusState: "destroyed" }),
+  }),
+});
+
+function deepClone(value) {
+  if (typeof foundry !== "undefined" && typeof foundry?.utils?.deepClone === "function") {
+    return foundry.utils.deepClone(value);
+  }
+  return JSON.parse(JSON.stringify(value ?? null));
+}
+
+function toNumber(value, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getActorType(actorOrType = null) {
+  const type = String(actorOrType?.type ?? actorOrType ?? "").trim();
+  if (type === TEMPLATE.actorTypes.battlemech || type === "mech") return TEMPLATE.actorTypes.battlemech;
+  return TEMPLATE.actorTypes.vehicle;
+}
+
+function getDefaultLocationConfig(actorType = TEMPLATE.actorTypes.vehicle) {
+  return actorType === TEMPLATE.actorTypes.battlemech ? DEFAULT_MECH_LOCATIONS : DEFAULT_VEHICLE_LOCATIONS;
+}
+
+function getLocationOrder(actorType = TEMPLATE.actorTypes.vehicle) {
+  return actorType === TEMPLATE.actorTypes.battlemech ? MECH_LOCATION_PRIORITY : VEHICLE_LOCATION_PRIORITY;
+}
+
+function getConditionStage(value = 0) {
+  return clamp(Math.trunc(toNumber(value, 0)), 0, MACHINE_CONDITION_STAGES.disabled);
+}
+
+function ensureLocationState(source = {}, defaults = {}) {
+  return {
+    enabled: source?.enabled !== undefined ? Boolean(source.enabled) : Boolean(defaults.enabled),
+    stress: Math.max(0, toNumber(source?.stress ?? defaults?.stress, 0)),
+    condition: getConditionStage(source?.condition ?? defaults?.condition ?? 0),
+    tags: Array.isArray(source?.tags) ? source.tags.slice() : (Array.isArray(defaults?.tags) ? defaults.tags.slice() : []),
+    destroyed: Boolean(source?.destroyed ?? defaults?.destroyed),
+  };
+}
+
+function normalizeLocations(locations = {}, actorType = TEMPLATE.actorTypes.vehicle) {
+  const defaults = getDefaultLocationConfig(actorType);
+  const normalized = {};
+
+  for (const [key, data] of Object.entries(defaults)) {
+    normalized[key] = ensureLocationState(locations?.[key] ?? {}, data);
+  }
+
+  for (const [key, data] of Object.entries(locations ?? {})) {
+    if (normalized[key]) continue;
+    normalized[key] = ensureLocationState(data, {});
+  }
+
+  return normalized;
+}
+
+function initializeMwdBlock(systemData = {}, actorType = TEMPLATE.actorTypes.vehicle) {
+  const mwd = systemData.mwd = systemData.mwd ?? {};
+  mwd.unitType = String(mwd.unitType ?? (actorType === TEMPLATE.actorTypes.battlemech ? "mech" : "vehicle")).trim()
+    || (actorType === TEMPLATE.actorTypes.battlemech ? "mech" : "vehicle");
+  mwd.status = mwd.status ?? { state: "operational", reasons: [] };
+  mwd.crits = Array.isArray(mwd.crits) ? mwd.crits : [];
+  return mwd;
+}
+
+function resolveReliabilityValue(systemData = {}) {
+  const attributes = systemData.attributes = systemData.attributes ?? {};
+  const reliability = attributes.reliability?.value;
+  const condition = attributes.condition?.value;
+  return Math.max(0, toNumber(reliability ?? condition, 0));
+}
+
+function shouldSpendForOpportunity(selections = [], opportunityIndex = -1) {
+  if (!Array.isArray(selections) || opportunityIndex < 0) return false;
+  return selections.some(value => Math.trunc(toNumber(value, -1)) === opportunityIndex);
+}
+
+function addStressDelta(result, locationKey, delta) {
+  if (!locationKey || !Number.isFinite(delta) || delta === 0) return;
+  result.stressDelta[locationKey] = Number(result.stressDelta[locationKey] ?? 0) + delta;
+}
+
+function computeShockGain(attackQuality = "") {
+  const quality = String(attackQuality ?? "").trim();
+  if (quality === "highMargin") return 3;
+  if (quality === "hit") return 2;
+  if (quality === "graze") return 1;
+  return 0;
+}
+
+function compareLocationCandidates(left, right, actorType) {
+  if (right.stress !== left.stress) return right.stress - left.stress;
+  if (right.condition !== left.condition) return right.condition - left.condition;
+  if (left.condition >= MACHINE_CONDITION_STAGES.disabled && right.condition < MACHINE_CONDITION_STAGES.disabled) return 1;
+  if (right.condition >= MACHINE_CONDITION_STAGES.disabled && left.condition < MACHINE_CONDITION_STAGES.disabled) return -1;
+
+  const priority = getLocationOrder(actorType);
+  const leftIndex = priority.indexOf(left.key);
+  const rightIndex = priority.indexOf(right.key);
+  if (leftIndex !== rightIndex) {
+    const safeLeft = leftIndex >= 0 ? leftIndex : Number.MAX_SAFE_INTEGER;
+    const safeRight = rightIndex >= 0 ? rightIndex : Number.MAX_SAFE_INTEGER;
+    return safeLeft - safeRight;
+  }
+
+  return String(left.key).localeCompare(String(right.key));
+}
+
+function collectLocationCandidates(locations = {}, actorType = TEMPLATE.actorTypes.vehicle) {
+  return Object.entries(locations)
+    .filter(([, location]) => location && location.enabled === true && location.destroyed !== true)
+    .map(([key, location]) => ({
+      key,
+      stress: Math.max(0, toNumber(location?.stress, 0)),
+      condition: getConditionStage(location?.condition),
+    }))
+    .sort((left, right) => compareLocationCandidates(left, right, actorType));
+}
+
+function resolveLocationSelection(locations = {}, actorType = TEMPLATE.actorTypes.vehicle, preferredLocationKey = "") {
+  const preferred = String(preferredLocationKey ?? "").trim();
+  if (preferred) {
+    const location = locations?.[preferred];
+    if (location && location.enabled === true && location.destroyed !== true) return preferred;
+  }
+  return collectLocationCandidates(locations, actorType)[0]?.key ?? "";
+}
+
+function registerFallbackMutations(result, event, locationKey, locations) {
+  if (!locationKey || !event) return;
+  result.fallbackEvents.push({
+    location: locationKey,
+    type: event.type,
+    destroyed: Boolean(event.destroyed),
+    statusState: String(event.statusState ?? "").trim(),
+  });
+  if (event.destroyed) {
+    locations[locationKey].destroyed = true;
+  }
+  if (event.statusState) {
+    result.statusState = event.statusState;
+  }
+}
+
+function applyAdvancementReductions({ result, locations, locationKey, reliability, threshold, currentShock }) {
+  const reduction = Math.max(0, reliability);
+  const beforeStress = Math.max(0, toNumber(locations?.[locationKey]?.stress, 0));
+  const afterStress = Math.max(0, beforeStress - reduction);
+  locations[locationKey].stress = afterStress;
+  addStressDelta(result, locationKey, afterStress - beforeStress);
+  return Math.max(0, currentShock - Math.max(1, threshold));
+}
+
+function createResultSkeleton({ locations = {}, shockBefore = 0, shockGain = 0, threshold = 1, reliability = 0, spendableBefore = 0 } = {}) {
+  return {
+    stressDelta: {},
+    shockDelta: 0,
+    conditionAdvancements: [],
+    reliabilitySpends: [],
+    fallbackEvents: [],
+    spendOpportunities: [],
+    statusState: "",
+    summary: {
+      shockBefore,
+      shockGain,
+      shockAfter: shockBefore + shockGain,
+      threshold,
+      reliability,
+      reliabilitySpendableBefore: spendableBefore,
+      reliabilitySpendableAfter: spendableBefore,
+      selectedLocations: [],
+      locationsBefore: deepClone(locations),
+      locationsAfter: null,
+    },
+  };
+}
+
+export function getMachineReliabilityThreshold(value = 0) {
+  const rating = clamp(Math.trunc(toNumber(value, 0)), 0, 5);
+  return Math.max(1, Number(MACHINE_RELIABILITY_THRESHOLDS[rating] ?? 1));
+}
+
+export function getMachineConditionLabel(value = 0) {
+  return MACHINE_CONDITION_LABELS[getConditionStage(value)] ?? MACHINE_CONDITION_LABELS[0];
+}
+
+export function getMachineConditionModifier(value = 0) {
+  return MACHINE_CONDITION_MODIFIERS[getConditionStage(value)] ?? 0;
+}
+
+export function getMachineDegradationLocationPriority(actorType = TEMPLATE.actorTypes.vehicle) {
+  return getLocationOrder(getActorType(actorType)).slice();
+}
+
+export function getMachineDefaultLocations(actorType = TEMPLATE.actorTypes.vehicle) {
+  return deepClone(getDefaultLocationConfig(getActorType(actorType)));
+}
+
+export function normalizeMachineDegradationState(systemData = {}, actorType = TEMPLATE.actorTypes.vehicle) {
+  const resolvedActorType = getActorType(actorType);
+  const attributes = systemData.attributes = systemData.attributes ?? {};
+  const reliabilityValue = resolveReliabilityValue(systemData);
+
+  attributes.reliability = attributes.reliability ?? {};
+  attributes.reliability.value = reliabilityValue;
+
+  // Temporary compatibility alias during migration stabilization.
+  attributes.condition = attributes.condition ?? {};
+  attributes.condition.value = Math.max(0, toNumber(attributes.condition?.value ?? reliabilityValue, reliabilityValue));
+
+  const mwd = initializeMwdBlock(systemData, resolvedActorType);
+  mwd.shock = mwd.shock ?? {};
+  mwd.shock.value = Math.max(0, toNumber(mwd.shock?.value, 0));
+
+  mwd.reliabilitySpendable = mwd.reliabilitySpendable ?? {};
+  const spendableSource = mwd.reliabilitySpendable?.value;
+  mwd.reliabilitySpendable.value = Math.max(0, toNumber(spendableSource ?? reliabilityValue, reliabilityValue));
+
+  mwd.locations = normalizeLocations(mwd.locations ?? {}, resolvedActorType);
+  return systemData;
+}
+
+export function resolveCatastrophicFallback({ actorSnapshot = null, unitType = "", locationKey = "" } = {}) {
+  const actorType = getActorType(unitType || actorSnapshot?.type || actorSnapshot?.actorType);
+  const key = String(locationKey ?? "").trim();
+  const fallback = CATASTROPHIC_FALLBACKS[actorType]?.[key] ?? {
+    type: "catastrophicFailure",
+    destroyed: true,
+    statusState: "",
+  };
+  return {
+    location: key,
+    type: fallback.type,
+    destroyed: Boolean(fallback.destroyed),
+    statusState: String(fallback.statusState ?? "").trim(),
+  };
+}
+
+export function resolveMachineDegradation({
+  actorSnapshot = null,
+  locationKey = "",
+  machineDamageDealt = 0,
+  attackQuality = "",
+  allowReliabilitySpend = false,
+  reliabilitySpendSelections = [],
+  directConditionLocations = [],
+  maxIterations = 10,
+} = {}) {
+  const snapshot = deepClone(actorSnapshot ?? {});
+  const actorType = getActorType(snapshot?.type ?? snapshot?.actorType);
+  const systemData = normalizeMachineDegradationState(snapshot.system ?? {}, actorType);
+  const locations = deepClone(systemData.mwd?.locations ?? {});
+  const reliability = Math.max(0, toNumber(systemData.attributes?.reliability?.value, 0));
+  let spendable = Math.max(0, toNumber(systemData.mwd?.reliabilitySpendable?.value, reliability));
+  const threshold = getMachineReliabilityThreshold(reliability);
+  const stressGain = Math.max(0, toNumber(machineDamageDealt, 0));
+  const initialShock = Math.max(0, toNumber(systemData.mwd?.shock?.value, 0));
+  const shockGain = computeShockGain(attackQuality);
+  let workingShock = Math.max(0, initialShock + shockGain);
+  const result = createResultSkeleton({
+    locations,
+    shockBefore: initialShock,
+    shockGain,
+    threshold,
+    reliability,
+    spendableBefore: spendable,
+  });
+
+  const selectedLocationKey = String(locationKey ?? "").trim();
+  if (selectedLocationKey && locations[selectedLocationKey] && stressGain > 0) {
+    const beforeStress = Math.max(0, toNumber(locations[selectedLocationKey]?.stress, 0));
+    const afterStress = beforeStress + stressGain;
+    locations[selectedLocationKey].stress = afterStress;
+    addStressDelta(result, selectedLocationKey, stressGain);
+  }
+
+  let opportunityIndex = 0;
+  let iterations = 0;
+  const processAdvancement = (forcedLocationKey = "", source = "shock") => {
+    const chosenLocation = resolveLocationSelection(locations, actorType, forcedLocationKey);
+    if (!chosenLocation) return false;
+
+    const location = locations[chosenLocation];
+    result.summary.selectedLocations.push({ source, location: chosenLocation });
+
+    const canSpend = Boolean(allowReliabilitySpend) && spendable > 0;
+    const shouldSpend = canSpend && shouldSpendForOpportunity(reliabilitySpendSelections, opportunityIndex);
+    result.spendOpportunities.push({
+      index: opportunityIndex,
+      location: chosenLocation,
+      source,
+      canSpend,
+      selected: shouldSpend,
+    });
+    opportunityIndex += 1;
+
+    if (shouldSpend) {
+      spendable = Math.max(0, spendable - 1);
+      result.reliabilitySpends.push({ location: chosenLocation, prevented: true, source });
+    } else {
+      const from = getConditionStage(location.condition);
+      if (from >= MACHINE_CONDITION_STAGES.disabled) {
+        registerFallbackMutations(
+          result,
+          resolveCatastrophicFallback({ actorSnapshot: snapshot, unitType: actorType, locationKey: chosenLocation }),
+          chosenLocation,
+          locations,
+        );
+      } else {
+        const to = getConditionStage(from + 1);
+        locations[chosenLocation].condition = to;
+        result.conditionAdvancements.push({ location: chosenLocation, from, to, source });
+      }
+    }
+
+    workingShock = applyAdvancementReductions({
+      result,
+      locations,
+      locationKey: chosenLocation,
+      reliability,
+      threshold,
+      currentShock: workingShock,
+    });
+    workingShock = Math.max(0, workingShock);
+    return true;
+  };
+
+  while (workingShock >= threshold && iterations < Math.max(1, Math.trunc(toNumber(maxIterations, 10)))) {
+    const processed = processAdvancement("", "shock");
+    iterations += 1;
+    if (!processed) break;
+  }
+
+  if (iterations >= Math.max(1, Math.trunc(toNumber(maxIterations, 10))) && workingShock >= threshold) {
+    result.loopGuardTriggered = true;
+  }
+
+  for (const forcedLocationKey of Array.isArray(directConditionLocations) ? directConditionLocations : []) {
+    processAdvancement(String(forcedLocationKey ?? "").trim(), "critical");
+  }
+
+  result.shockDelta = Math.max(0, workingShock) - initialShock;
+  result.summary.shockAfter = Math.max(0, workingShock);
+  result.summary.reliabilitySpendableAfter = spendable;
+  result.summary.locationsAfter = deepClone(locations);
+  return result;
+}
+
+export function buildMachineDegradationUpdates(actor = null, degradation = null) {
+  if (!actor || !degradation) return {};
+
+  const actorType = getActorType(actor);
+  const systemData = normalizeMachineDegradationState(deepClone(actor.system ?? {}), actorType);
+  const locations = deepClone(systemData.mwd?.locations ?? {});
+  const updates = {};
+
+  for (const [locationKey, delta] of Object.entries(degradation.stressDelta ?? {})) {
+    const location = locations[locationKey];
+    if (!location) continue;
+    location.stress = Math.max(0, Math.max(0, toNumber(location.stress, 0)) + toNumber(delta, 0));
+    updates[`system.mwd.locations.${locationKey}.stress`] = location.stress;
+  }
+
+  for (const advancement of Array.from(degradation.conditionAdvancements ?? [])) {
+    const locationKey = String(advancement?.location ?? "").trim();
+    const location = locations[locationKey];
+    if (!location) continue;
+    location.condition = getConditionStage(advancement?.to ?? location.condition);
+    updates[`system.mwd.locations.${locationKey}.condition`] = location.condition;
+  }
+
+  for (const event of Array.from(degradation.fallbackEvents ?? [])) {
+    const locationKey = String(event?.location ?? "").trim();
+    const location = locations[locationKey];
+    if (!location) continue;
+    if (event.destroyed) {
+      location.destroyed = true;
+      updates[`system.mwd.locations.${locationKey}.destroyed`] = true;
+    }
+  }
+
+  const reliabilitySpendCount = Array.isArray(degradation.reliabilitySpends) ? degradation.reliabilitySpends.length : 0;
+  const currentSpendable = Math.max(0, toNumber(systemData.mwd?.reliabilitySpendable?.value, 0));
+  updates["system.mwd.reliabilitySpendable.value"] = Math.max(0, currentSpendable - reliabilitySpendCount);
+  updates["system.mwd.shock.value"] = Math.max(0, toNumber(systemData.mwd?.shock?.value, 0) + toNumber(degradation.shockDelta, 0));
+
+  if (degradation.statusState) {
+    updates["system.mwd.status.state"] = degradation.statusState;
+  }
+
+  return updates;
+}

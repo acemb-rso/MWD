@@ -6,6 +6,8 @@
 import { ACTOR_ATTRIBUTE_SETS, ICONS_PATH, TEMPLATE } from "../constants.js";
 import { AnarchyBaseActor } from "./base-actor.js";
 import { normalizeMachineMonitorResistance } from "../mwd/machine-monitors.js";
+import { normalizeMachineDegradationState } from "../mwd/machine-degradation.js";
+import { normalizeMachineMovement } from "../mwd/machine-movement.js";
 
 function forcedDeletion() {
   return foundry.data.operators.ForcedDeletion;
@@ -15,6 +17,8 @@ export class VehicleActor extends AnarchyBaseActor {
 
   prepareDerivedData() {
     this._prepareMwdAttributes();
+    this._prepareMwdDegradation();
+    this._prepareMwdMovement();
     this._prepareMwdMonitors();
     this._prepareMwdItems();
     super.prepareDerivedData();
@@ -25,7 +29,7 @@ export class VehicleActor extends AnarchyBaseActor {
   }
 
   static get initiative() {
-    return AnarchyBaseActor.initiative + " + max(@attributes.system.value, @attributes.handling.value)"
+    return AnarchyBaseActor.initiative
   }
 
   computePhysicalState() {
@@ -69,6 +73,7 @@ export class VehicleActor extends AnarchyBaseActor {
     const defaults = {
       [TEMPLATE.actorAttributes.handling]: { value: 0 },
       [TEMPLATE.actorAttributes.system]: { value: 0 },
+      [TEMPLATE.actorAttributes.reliability]: { value: 0 },
       [TEMPLATE.actorAttributes.condition]: { value: 0 },
       [TEMPLATE.actorAttributes.chassis]: { value: 0 },
     };
@@ -92,6 +97,20 @@ export class VehicleActor extends AnarchyBaseActor {
         mergedAttributes[key].value = data?.value ?? 0;
       }
     });
+  }
+
+  _prepareMwdDegradation() {
+    normalizeMachineDegradationState(this.system, this.type);
+  }
+
+  _prepareMwdMovement() {
+    const movement = normalizeMachineMovement(this.system.movement, {
+      actorType: this.type,
+      legacyMoves: this.system.moves,
+    });
+
+    this.system.movement = movement;
+    this.system.moves = movement.ground ?? Math.max(0, Number(this.system.moves ?? 0) || 0);
   }
 
   _prepareMwdMonitors() {

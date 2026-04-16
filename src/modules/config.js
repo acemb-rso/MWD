@@ -330,7 +330,6 @@ export const MWD = {
         "title": "Quick Actions",
         "rangedAttack": "Ranged Attack",
         "meleeAttack": "Melee Attack",
-        "dodgeCheck": "Dodge Check",
         "pilotingCheck": "Piloting Check",
         "sensorSweep": "Sensor Sweep",
         "emergencyRepair": "Emergency Repair",
@@ -355,7 +354,6 @@ export const MWD = {
         "tooltips": {
           "ranged": "Roll an attack using any Weapon Group or Primary Weapon",
           "melee": "Roll a melee attack using fists, kicks, or installed melee weapons",
-          "dodge": "Piloting roll to evade incoming fire or avoid danger",
           "piloting": "Piloting roll for movement, jumping, stability, or hazard checks",
           "sensorSweep": "Perception/Tech roll using sensors or Active Probe",
           "emergencyRepair": "Technician roll to stabilize or fix a system during battle"
@@ -633,6 +631,7 @@ export const MWD = {
 
     // MWD vehicle attributes:
     "chassis": "Chassis",
+    "reliability": "Reliability",
     "condition": "Condition"
   },
 

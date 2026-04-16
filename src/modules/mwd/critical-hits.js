@@ -11,8 +11,15 @@ import {
 } from "./machine-hit-locations.js";
 import {
   getMachineCritRemedy,
+  getMachineRemedyBaseDn,
+  getMachineRemedyEffect,
+  getMachineRemedySkillKey,
   isValidMachineCritRemedy,
 } from "./machine-crit-remedies.js";
+import {
+  buildMachineDegradationUpdates,
+  resolveMachineDegradation,
+} from "./machine-degradation.js";
 
 export const MACHINE_CRITICAL_STATUS_ID = "machineCritical";
 export const SETTING_MACHINE_CRIT_TABLE_GENERAL = "machineCriticalTableGeneralUuid";
@@ -331,6 +338,18 @@ function shouldCreateCritical(hitLocation = {}, chaosCriticalSelected = false) {
   return Boolean(hitLocation.isAutomaticCritical || (hitLocation.chaosCriticalOption && chaosCriticalSelected));
 }
 
+function resolveAttackQuality(payload = {}) {
+  const explicit = String(payload?.attackQuality ?? "").trim();
+  if (["graze", "hit", "highMargin"].includes(explicit)) return explicit;
+
+  const outcome = String(payload?.outcome ?? "").trim();
+  const netHits = Math.max(0, Number(payload?.netHits ?? 0) || 0);
+  if (outcome === "graze") return "graze";
+  if (outcome === "hit" && netHits >= 4) return "highMargin";
+  if (outcome === "hit") return "hit";
+  return "";
+}
+
 export function previewMachineAttackDamage({
   actor = null,
   payload = {},
@@ -354,7 +373,8 @@ export function previewMachineAttackDamage({
   const structureAfterValue = Math.min(structure.max, structure.value + structureDamage);
   const criticalSelected = shouldCreateCritical(resolvedHitLocation, chaosCriticalSelected);
   const criticalLocation = getCriticalLocation(resolvedHitLocation, chaosCriticalSelected);
-  const locationTakesStress = structureDamage > 0 || criticalSelected;
+  const attackQuality = resolveAttackQuality(payload);
+  const locationStressGain = structureDamage;
 
   return {
     ok: true,
@@ -392,7 +412,12 @@ export function previewMachineAttackDamage({
       structureMax: structure.max,
       structureDamage,
       pureStructureHit: armor.remaining <= 0,
-      locationTakesStress,
+      locationStressGain,
+      locationTakesStress: locationStressGain > 0,
+    },
+    degradation: {
+      attackQuality,
+      locationStressGain,
     },
     beforeLabel: `Armor ${armor.remaining}/${armor.max}, Structure ${structure.remaining}/${structure.max}`,
     afterLabel: `Armor ${Math.max(0, armor.max - armorAfterValue)}/${armor.max}, Structure ${Math.max(0, structure.max - structureAfterValue)}/${structure.max}`,
@@ -553,10 +578,19 @@ function buildCritRecord({ actor, drawn, hitLocation, source = {}, cascade = fal
   const signal = normalizeCriticalSignal(drawn?.signal ?? drawn, { strict: true });
   const remedy = getMachineCritRemedy(signal.remedyKey);
   const location = getCriticalLocation(hitLocation, false);
+  const label = String(drawn?.label ?? signal.key).trim() || signal.key;
+  const remedySkillKey = getMachineRemedySkillKey({
+    key: signal.key,
+    label,
+    locationLabel: location.locationLabel,
+    gates: signal.gates,
+    mods: signal.mods,
+    remedyKey: signal.remedyKey,
+  }, remedy);
   return {
     id: randomId(),
     key: signal.key,
-    label: String(drawn?.label ?? signal.key).trim() || signal.key,
+    label,
     tableUuid: String(drawn?.tableUuid ?? "").trim(),
     resultId: String(drawn?.resultId ?? "").trim(),
     generalKey: String(drawn?.general?.key ?? "").trim(),
@@ -573,6 +607,9 @@ function buildCritRecord({ actor, drawn, hitLocation, source = {}, cascade = fal
     pilotDamage: signal.pilotDamage,
     remedyKey: signal.remedyKey,
     remedyLabel: remedy.label,
+    remedySkillKey,
+    remedyBaseDn: getMachineRemedyBaseDn({ remedyKey: signal.remedyKey }, remedy),
+    remedyEffect: getMachineRemedyEffect({}),
     escalationKey: signal.escalationKey,
     active: true,
     cascade: Boolean(cascade),
@@ -652,23 +689,17 @@ export async function drawMachineCriticalRecords({
   }
 }
 
-function buildLocationUpdates(actor, preview) {
-  if (!preview?.machine?.locationTakesStress) return {};
+function getPreparedCriticalRecords(payload = {}) {
+  return Array.isArray(payload?.preparedCriticalRecords)
+    ? payload.preparedCriticalRecords.map(record => clone(record))
+    : [];
+}
 
-  const locationKey = String(preview?.critical?.locationKey || preview?.hitLocation?.locationKey || "").trim();
-  if (!locationKey) return {};
-
-  const basePath = `system.mwd.locations.${locationKey}`;
-  const current = actor?.system?.mwd?.locations?.[locationKey] ?? {};
-  const maxStress = Math.max(1, Number(actor?.system?.mwd?.config?.maxLocationStress ?? 3) || 3);
-  const stress = Math.min(maxStress, Math.max(0, Number(current.stress ?? 0) || 0) + 1);
-
-  return {
-    [`${basePath}.enabled`]: current.enabled ?? true,
-    [`${basePath}.stress`]: stress,
-    [`${basePath}.tags`]: Array.isArray(current.tags) ? current.tags : [],
-    [`${basePath}.destroyed`]: Boolean(current.destroyed) || stress >= maxStress,
-  };
+function getDirectConditionLocations(crits = []) {
+  return Array.from(crits ?? [])
+    .filter(crit => String(crit?.escalationKey ?? "").trim() === "conditionAdvance")
+    .map(crit => String(crit?.locationKey ?? "").trim())
+    .filter(Boolean);
 }
 
 async function syncMachineCriticalStatus(actor, hasCrits) {
@@ -702,8 +733,11 @@ export async function applyMachineAttackDamage({
   if (!preview.ok) return preview;
 
   const dryRun = Boolean(options.dryRun);
-  let critDraw = { ok: true, crits: [] };
-  if (!dryRun && preview.critical.selected) {
+  const preparedCrits = getPreparedCriticalRecords(payload);
+  let critDraw = preparedCrits.length
+    ? { ok: true, crits: preparedCrits, cascade: preparedCrits.length > 1 }
+    : { ok: true, crits: [] };
+  if (!preparedCrits.length && preview.critical.selected) {
     critDraw = await drawMachineCriticalRecords({
       actor,
       hitLocation: {
@@ -722,6 +756,23 @@ export async function applyMachineAttackDamage({
     });
   }
 
+  const degradation = resolveMachineDegradation({
+    actorSnapshot: actor,
+    locationKey: preview.critical.locationKey || preview.hitLocation.locationKey,
+    machineDamageDealt: preview.machine.structureDamage,
+    attackQuality: preview.degradation?.attackQuality ?? resolveAttackQuality(payload),
+    allowReliabilitySpend: true,
+    reliabilitySpendSelections: Array.isArray(payload?.reliabilitySpendSelections) ? payload.reliabilitySpendSelections : [],
+    directConditionLocations: critDraw.ok ? getDirectConditionLocations(critDraw.crits) : [],
+  });
+  if (degradation.loopGuardTriggered) {
+    console.warn("MWD | Machine degradation loop guard triggered", {
+      actor: actor?.name ?? actor?.id ?? "Machine",
+      payload,
+      degradation,
+    });
+  }
+
   const existingCrits = Array.isArray(actor?.system?.mwd?.crits) ? clone(actor.system.mwd.crits) : [];
   const nextCrits = critDraw.ok && critDraw.crits.length
     ? existingCrits.concat(critDraw.crits)
@@ -731,7 +782,7 @@ export async function applyMachineAttackDamage({
     const update = {
       "system.monitors.armor.value": preview.machine.armorDamageAfter,
       "system.monitors.structure.value": preview.machine.structureDamageAfter,
-      ...buildLocationUpdates(actor, preview),
+      ...buildMachineDegradationUpdates(actor, degradation),
     };
     if (critDraw.ok && critDraw.crits.length) {
       update["system.mwd.crits"] = nextCrits;
@@ -751,5 +802,6 @@ export async function applyMachineAttackDamage({
       records: critDraw.ok ? critDraw.crits : [],
       cascade: Boolean(critDraw.cascade),
     },
+    degradation,
   };
 }

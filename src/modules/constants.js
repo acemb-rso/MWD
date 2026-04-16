@@ -37,6 +37,7 @@ export const ACTOR_ATTRIBUTES = {
   handling: 'handling',
   system: 'system',
   chassis: 'chassis',
+  reliability: 'reliability',
   condition: 'condition',
 };
 
@@ -188,13 +189,13 @@ export const ACTOR_ATTRIBUTE_SETS = {
     TEMPLATE.actorAttributes.handling,
     TEMPLATE.actorAttributes.system,
     TEMPLATE.actorAttributes.chassis,
-    TEMPLATE.actorAttributes.condition,
+    TEMPLATE.actorAttributes.reliability,
   ],
   [TEMPLATE.actorTypes.battlemech]: [
     TEMPLATE.actorAttributes.handling,
     TEMPLATE.actorAttributes.system,
     TEMPLATE.actorAttributes.chassis,
-    TEMPLATE.actorAttributes.condition,
+    TEMPLATE.actorAttributes.reliability,
   ],
 }
 

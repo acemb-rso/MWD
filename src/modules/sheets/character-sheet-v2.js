@@ -759,7 +759,6 @@ ctx.edgeConsole.poolsOrdered = order
           { label: "Primary", hint: primaryGroup?.name ?? "Primary weapon group", handler: "mechAttack", disabled: !primaryGroup, dataset: { attackKind: "primary", mechId: a.id } },
           { label: "Ranged", hint: "Prompt for a weapon group", handler: "mechAttack", disabled: !hasRangedGroups, dataset: { attackKind: "ranged", mechId: a.id } },
           { label: "Melee", hint: "Prompt for a melee profile", handler: "mechAttack", disabled: !hasMeleeProfiles, dataset: { attackKind: "melee", mechId: a.id } },
-          { label: "Dodge", hint: "Piloting response", handler: "mechRoll", disabled: false, dataset: { rollKind: "dodge", mechId: a.id } },
           { label: "Piloting", hint: "Vehicle handling test", handler: "mechRoll", disabled: false, dataset: { rollKind: "piloting", mechId: a.id } },
           { label: "Sensors", hint: "Perception or technician", handler: "mechRoll", disabled: !Boolean(quickActions.hasSensorSweep), dataset: { rollKind: "sensor", mechId: a.id } },
           { label: "Repair", hint: "Technician quick check", handler: "mechRoll", disabled: false, dataset: { rollKind: "repair", mechId: a.id } },
@@ -822,8 +821,7 @@ ctx.edgeConsole.poolsOrdered = order
     if (!mech) return;
     const rollKind = String(target?.dataset?.rollKind ?? "").trim();
     try {
-      if (rollKind === "dodge") await mech.rollDodge?.();
-      else if (rollKind === "piloting") await mech.rollPilotingCheck?.();
+      if (rollKind === "piloting") await mech.rollPilotingCheck?.();
       else if (rollKind === "sensor") await mech.rollSensorSweep?.();
       else if (rollKind === "repair") await mech.rollEmergencyRepair?.();
     } catch (error) {

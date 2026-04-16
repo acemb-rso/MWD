@@ -580,6 +580,13 @@ _initializeApplicationOptions(options) {
       skipNames: ["system.biography.history"],
     });
 
+    if (
+      ["vehicle", "battlemech"].includes(this.actor?.type)
+      && updates["system.movement.ground"] !== undefined
+    ) {
+      updates["system.moves"] = updates["system.movement.ground"];
+    }
+
     if (!Object.keys(updates).length) return;
 
     // Permissions: let Foundry enforce. If it fails, it fails (expected).
@@ -738,6 +745,10 @@ async _prepareContext(options) {
     }
 
     if (path === "system.speed") {
+      return Math.max(0, Math.trunc(value));
+    }
+
+    if (/^system\.movement\.(ground|flight|jump)$/.test(path)) {
       return Math.max(0, Math.trunc(value));
     }
 

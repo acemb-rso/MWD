@@ -437,7 +437,7 @@ Example pattern (already correct):
 ```js
 rollRangedAttack()
 rollMeleeAttack()
-rollDodge()
+rollPilotingCheck()
 ```
 
 

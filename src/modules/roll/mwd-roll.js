@@ -20,6 +20,11 @@ import {
   evaluateTraitPhase,
 } from "../mwd/traits.js";
 import { isPersistentAreaEffect } from "../area-effects/area-effect-engine.js";
+import {
+  applyMachineRemedyOutcome,
+  commitMachineRemedyCost,
+  resolveMachineCritIntentContext,
+} from "../mwd/machine-intents.js";
 
 /**
  * Public roll API.
@@ -345,6 +350,25 @@ async function execute({ actor, payload, event } = {}) {
   const runtime = {
     snapshot: game.mwd?.personalCombat?.getSnapshot?.(actor) ?? null,
   };
+
+  let machineRemedySpend = null;
+  let machineRemedyContext = null;
+  if (ctx.intent === "machineRemedy") {
+    machineRemedyContext = await resolveMachineCritIntentContext(payload, {
+      gmOverride: Boolean(payload?.gmOverride),
+    });
+    if (!machineRemedyContext.ok) {
+      ui.notifications?.warn(machineRemedyContext.reason ?? "Unable to resolve the machine remedy.");
+      return null;
+    }
+
+    machineRemedySpend = await commitMachineRemedyCost(machineRemedyContext);
+    if (!machineRemedySpend?.ok) {
+      ui.notifications?.warn(machineRemedySpend?.reason ?? "Unable to spend the remedy action.");
+      return null;
+    }
+  }
+
   const traitBuildResult = evaluateTraitPhase({
     actor,
     phase: "onBuildRoll",
@@ -449,11 +473,17 @@ async function execute({ actor, payload, event } = {}) {
   }
 
   let attackExecution = null;
+  let machineRemedyResult = null;
   if (ctx.intent === "attack") {
     attackExecution = await resolveAttackExecution({
       attacker: actor,
       ctx,
       outcomeModel
+    });
+  } else if (ctx.intent === "machineRemedy") {
+    machineRemedyResult = await applyMachineRemedyOutcome(payload, {
+      gmOverride: Boolean(payload?.gmOverride),
+      passed: Boolean(outcomeModel?.passed),
     });
   }
 
@@ -478,6 +508,14 @@ async function execute({ actor, payload, event } = {}) {
 
   if (attackExecution) {
     resolved.attackResult = attackExecution;
+  }
+  if (ctx.intent === "machineRemedy") {
+    resolved.machineRemedy = ctx.machineRemedy ?? null;
+    resolved.machineRemedyResult = {
+      ...(machineRemedyResult ?? { ok: false, reason: "Machine remedy result missing." }),
+      spend: machineRemedySpend,
+      context: machineRemedyContext,
+    };
   }
 
   /* --------------------------- */

@@ -185,6 +185,9 @@ function buildDamageSnapshot(ctx = {}, outcome = {}) {
     baseDamage,
     effectiveWeaponDamage,
     netHits: Number(outcome.netHits ?? 0),
+    attackQuality: outcome.outcome === "graze"
+      ? "graze"
+      : (outcome.outcome === "hit" && Number(outcome.netHits ?? 0) >= 4 ? "highMargin" : outcome.outcome === "hit" ? "hit" : ""),
     incoming,
     scaledIncoming,
     ap,
@@ -211,10 +214,14 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
     return {
       mode: "machineAttackDamage",
       damage: damage?.scaledIncoming ?? 0,
+      attackQuality: damage?.attackQuality ?? "",
+      outcome: damage?.attackQuality === "highMargin" ? "hit" : (damage?.attackQuality ?? ""),
+      netHits: damage?.netHits ?? 0,
       damageType: damage?.damageType,
       ap: damage?.ap ?? 0,
       hitLocation,
       chaosCriticalSelected: false,
+      reliabilitySpendSelections: [],
       source: `${attacker?.name ?? "Attacker"}: ${ctx?.attack?.weapon?.name ?? "Attack"}`,
       sourceData: {
         attackerUuid: attacker?.uuid ?? "",
@@ -269,6 +276,7 @@ export function summarizeAttackDamageResult(result, target = {}, damage = {}, { 
       hitLocation: result.hitLocation ?? null,
       critical: result.critical ?? null,
       machine: result.machine ?? null,
+      degradation: result.degradation ?? null,
       mitigation: result.mitigation ? {
         baseMitigation: Number(result.mitigation.baseMitigation ?? 0),
         typeMitigationMod: Number(result.mitigation.typeMitigationMod ?? 0),
@@ -348,6 +356,10 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
 
   if (result?.ok) {
     const preview = summarizeAttackDamageResult(result, target, damage, { queued: true, applied: false });
+    const queuedPayload = buildQueuedDamagePayload({ attacker, ctx, damage, targetActor: actor, hitLocation });
+    if (queuedPayload.mode === "machineAttackDamage" && Array.isArray(preview?.critical?.records) && preview.critical.records.length) {
+      queuedPayload.preparedCriticalRecords = foundry.utils.deepClone(preview.critical.records);
+    }
     return {
       ...preview,
       queuedMutation: {
@@ -359,7 +371,7 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
           actorUuid: target?.actorUuid ?? null,
           tokenUuid: target?.tokenUuid ?? null
         },
-        payload,
+        payload: queuedPayload,
         hitLocation,
         preview
       }

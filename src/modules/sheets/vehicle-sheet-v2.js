@@ -8,8 +8,16 @@ import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import { getActiveMachineCrits } from "../mwd/critical-hits.js";
 import { getMachineCritRemedy } from "../mwd/machine-crit-remedies.js";
-import { resolveMachineCritRemedyIntent } from "../mwd/machine-intents.js";
+import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
+import {
+  getMachineConditionLabel,
+  getMachineConditionModifier,
+  getMachineReliabilityThreshold,
+} from "../mwd/machine-degradation.js";
+import { getMachineLocationLabel } from "../mwd/machine-hit-locations.js";
 import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
+import { buildMachineMovementFields, buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
+import { getSkillDef } from "../mwd/skills.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { SelectActor } from "../dialog/select-actor.js";
 
@@ -106,7 +114,7 @@ const VEHICLE_ATTRIBUTE_LABELS = Object.freeze({
   handling: "Handling",
   system: "System",
   chassis: "Chassis",
-  condition: "Condition",
+  reliability: "Reliability",
 });
 
 const ITEM_TYPE_LABELS = Object.freeze({
@@ -167,6 +175,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       },
       activeCrits: this._buildActiveCrits(),
       attributes: this._buildAttributeCards(),
+      movement: this._buildMovementCards(),
+      degradation: this._buildDegradationPanel(),
       sections: this._buildVehicleSections(),
       pilotPanel: await this._buildPilotPanel(),
     };
@@ -237,12 +247,18 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   _buildSummaryStats() {
     const attributes = this.actor.system?.attributes ?? {};
     const structure = this.actor.system?.monitors?.structure ?? {};
+    const movementParts = buildMachineMovementSummaryParts({
+      actorType: this.actor.type,
+      movement: this.actor.system?.movement,
+      legacyMoves: this.actor.system?.moves,
+    });
 
     return buildSummaryStats([
       { label: "Handling", value: toNumber(attributes.handling?.value, 0), emphasis: "strong" },
+      { label: "Move", parts: movementParts },
       { label: "System", value: toNumber(attributes.system?.value, 0) },
       { label: "Chassis", value: toNumber(attributes.chassis?.value, 0) },
-      { label: "Condition", value: toNumber(attributes.condition?.value, 0) },
+      { label: "Reliability", value: toNumber(attributes.reliability?.value ?? attributes.condition?.value, 0) },
       { label: "Structure", value: `${toNumber(structure.value, 0)} / ${toNumber(structure.max, 0)}` },
     ]);
   }
@@ -259,6 +275,41 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       value: toNumber(attributes?.[key]?.value, 0),
       path: `system.attributes.${key}.value`,
     }));
+  }
+
+  _buildMovementCards() {
+    return buildMachineMovementFields({
+      actorType: this.actor.type,
+      movement: this.actor.system?.movement,
+      legacyMoves: this.actor.system?.moves,
+      editing: this.editing,
+    });
+  }
+
+  _buildDegradationPanel() {
+    const attributes = this.actor.system?.attributes ?? {};
+    const mwd = this.actor.system?.mwd ?? {};
+    const reliability = toNumber(attributes.reliability?.value ?? attributes.condition?.value, 0);
+    const threshold = getMachineReliabilityThreshold(reliability);
+    const shock = toNumber(mwd.shock?.value, 0);
+    const spendable = toNumber(mwd.reliabilitySpendable?.value, reliability);
+    const locations = Object.entries(mwd.locations ?? {}).map(([key, location]) => ({
+      key,
+      label: getMachineLocationLabel(key),
+      stress: toNumber(location?.stress, 0),
+      conditionLabel: getMachineConditionLabel(location?.condition ?? 0),
+      conditionModifier: getMachineConditionModifier(location?.condition ?? 0),
+      destroyed: Boolean(location?.destroyed),
+      enabled: location?.enabled !== false,
+    }));
+
+    return {
+      reliability,
+      spendable,
+      shock,
+      threshold,
+      locations,
+    };
   }
 
   _buildConditionMonitors() {
@@ -431,8 +482,14 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
   _buildActiveCrits() {
     const actor = this.getPersistentActor?.() ?? this.actor;
+    const degradation = this._buildDegradationPanel();
+    const locationIndex = new Map((degradation.locations ?? []).map(location => [location.key, location]));
     return getActiveMachineCrits(actor).map(crit => {
       const remedy = getMachineCritRemedy(crit.remedyKey);
+      const location = locationIndex.get(String(crit.locationKey ?? "").trim()) ?? null;
+      const remedySkillKey = String(crit.remedySkillKey ?? remedy.skillKey ?? "").trim();
+      const remedySkillLabel = getSkillDef(remedySkillKey)?.label ?? startCase(remedySkillKey);
+      const remedyDn = toNumber(crit.remedyBaseDn ?? remedy.baseDn, 0) + toNumber(location?.conditionModifier ?? 0, 0);
       return {
         id: crit.id,
         label: crit.label ?? startCase(crit.key),
@@ -443,6 +500,9 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
           crit.escalationKey ? `Escalates: ${crit.escalationKey}` : "",
         ]).join(" | "),
         remedyLabel: remedy.label,
+        remedySummary: remedySkillLabel
+          ? `Reliability + ${remedySkillLabel} vs DN ${remedyDn}${location ? ` (${location.conditionLabel})` : ""}`
+          : "",
         remedyKey: remedy.key,
         remediable: remedy.remediable !== false,
         machineActorUuid: actor?.uuid ?? "",
@@ -526,22 +586,31 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     event?.preventDefault?.();
     event?.stopPropagation?.();
 
-    const actor = this.getPersistentActor() ?? this.actor;
-    const result = await resolveMachineCritRemedyIntent({
-      intent: "machine_crit_remedy",
-      machineActorUuid: target?.dataset?.machineActorUuid ?? actor.uuid,
+    const machineActor = this.getPersistentActor() ?? this.actor;
+    const request = await prepareMachineRemedyRoll({
+      machineActorUuid: target?.dataset?.machineActorUuid ?? machineActor.uuid,
       critId: target?.dataset?.critId ?? "",
       remedyKey: target?.dataset?.remedyKey ?? "",
     }, {
       gmOverride: Boolean(game.user?.isGM),
     });
 
-    if (!result.ok) {
-      ui.notifications?.warn(result.reason ?? "Unable to resolve machine critical remedy.");
+    if (!request.ok) {
+      ui.notifications?.warn(request.reason ?? "Unable to launch that machine remedy.");
       return false;
     }
 
-    this.render({ force: true });
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) {
+      ui.notifications?.error("MWD roll system not initialized.");
+      return false;
+    }
+
+    await rollApi.execute({
+      actor: request.actor,
+      payload: request.payload,
+      event,
+    });
     return true;
   }
 

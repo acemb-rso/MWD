@@ -18,6 +18,7 @@ import {
 import { normalizeMachineMonitorResistance } from "../src/modules/mwd/machine-monitors.js";
 import { buildRemainingMonitorTrack } from "../src/modules/mwd/machine-summary.js";
 import { resolveMachineCritRemedyIntent } from "../src/modules/mwd/machine-intents.js";
+import { prepareMachineRemedyRoll } from "../src/modules/mwd/machine-intents.js";
 import { MachineCriticalsProvider } from "../src/modules/modifiers/providers/machine-criticals.js";
 
 function setPath(object, path, value) {
@@ -39,20 +40,24 @@ function machineActor(overrides = {}) {
     system: {
       monitors: {
         armor: { value: 0, max: 6 },
-        structure: { value: 0, max: 10 },
+      structure: { value: 0, max: 10 },
+      },
+      attributes: {
+        reliability: { value: 3 },
       },
       mwd: {
+        shock: { value: 0 },
+        reliabilitySpendable: { value: 3 },
         locations: {
-          head: { enabled: true, stress: 0, tags: ["cockpit"], destroyed: false },
-          torsoFront: { enabled: true, stress: 0, tags: ["engine"], destroyed: false },
-          leftArm: { enabled: true, stress: 0, tags: ["weaponGroup"], destroyed: false },
-          rightArm: { enabled: true, stress: 0, tags: ["weaponGroup"], destroyed: false },
-          leftLeg: { enabled: true, stress: 0, tags: ["motiveSystem"], destroyed: false },
-          rightLeg: { enabled: true, stress: 0, tags: ["motiveSystem"], destroyed: false },
-          core: { enabled: true, stress: 0, tags: ["engine"], destroyed: false },
+          head: { enabled: true, stress: 0, condition: 0, tags: ["cockpit"], destroyed: false },
+          torsoFront: { enabled: true, stress: 0, condition: 0, tags: ["engine"], destroyed: false },
+          leftArm: { enabled: true, stress: 0, condition: 0, tags: ["weaponGroup"], destroyed: false },
+          rightArm: { enabled: true, stress: 0, condition: 0, tags: ["weaponGroup"], destroyed: false },
+          leftLeg: { enabled: true, stress: 0, condition: 0, tags: ["motiveSystem"], destroyed: false },
+          rightLeg: { enabled: true, stress: 0, condition: 0, tags: ["motiveSystem"], destroyed: false },
+          core: { enabled: true, stress: 0, condition: 0, tags: ["engine"], destroyed: false },
         },
         crits: [],
-        config: { maxLocationStress: 3 },
       },
     },
     async update(update) {
@@ -200,10 +205,12 @@ test("applying machine damage writes monitors, location stress, and crit records
 
   assert.equal(result.ok, true);
   assert.equal(actor.system.monitors.structure.value, 3);
-  assert.equal(actor.system.mwd.locations.leftArm.stress, 1);
+  assert.equal(actor.system.mwd.locations.leftArm.stress, 3);
+  assert.equal(actor.system.mwd.shock.value, 0);
   assert.equal(actor.system.mwd.crits.length, 1);
   assert.equal(actor.system.mwd.crits[0].key, "actuatorLockArm");
   assert.equal(actor.system.mwd.crits[0].generalKey, "hardLock");
+  assert.equal(actor.system.mwd.crits[0].remedySkillKey, "technician");
   assert.equal(getActiveMachineCrits(actor).length, 1);
 });
 
@@ -256,6 +263,50 @@ test("machine critical remedy intent spends operator SA and resolves the crit", 
   assert.equal(spent.actor, operator);
   assert.equal(spent.packet.cost, 1);
   assert.equal(machine.system.mwd.crits[0].active, false);
+
+  delete globalThis.fromUuid;
+});
+
+test("machine remedy roll preparation resolves operator, pool source, and DN from condition", async () => {
+  const machine = machineActor({
+    paths: {
+      "system.mwd.locations.head.condition": 2,
+      "system.mwd.crits": [{
+        id: "crit-2",
+        key: "sensorFault",
+        label: "Sensor Fault",
+        locationKey: "head",
+        locationLabel: "Head",
+        remedyKey: "systemReset",
+        remedySkillKey: "computers",
+        remedyBaseDn: 1,
+        remedyEffect: { onSuccess: "clear", onFailure: "noChange" },
+        active: true,
+      }],
+    },
+  });
+  const operator = {
+    uuid: "Actor.operator",
+    system: {
+      skills: {
+        computers: { rating: 3, bonus: 1 },
+      },
+    },
+  };
+  const byUuid = new Map([[machine.uuid, machine], [operator.uuid, operator]]);
+  globalThis.fromUuid = async uuid => byUuid.get(uuid) ?? null;
+
+  const prepared = await prepareMachineRemedyRoll({
+    machineActorUuid: machine.uuid,
+    critId: "crit-2",
+    operatorActorUuid: operator.uuid,
+  });
+
+  assert.equal(prepared.ok, true);
+  assert.equal(prepared.actor, operator);
+  assert.equal(prepared.payload.intent, "machineRemedy");
+  assert.equal(prepared.context.totalDn, 3);
+  assert.equal(prepared.context.skillKey, "computers");
 
   delete globalThis.fromUuid;
 });

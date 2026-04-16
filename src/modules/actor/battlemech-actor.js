@@ -86,12 +86,6 @@ export class BattlemechActor extends VehicleActor {
     });
   }
 
-  async rollDodge() {
-    await this._rollQuickSkill(this.system.skills.piloting, {
-      quickAction: { title: ANARCHY.actor.vehicle.quickActions.dodgeCheck }
-    });
-  }
-
   async rollPilotingCheck() {
     await this._rollQuickSkill(this.system.skills.piloting, {
       quickAction: { title: ANARCHY.actor.vehicle.quickActions.pilotingCheck }

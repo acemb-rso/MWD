@@ -1,0 +1,29 @@
+// src/modules/mwd/machine-chassis.js
+// Purpose: Shared chassis-centered physical helper formulas.
+// How it fits: Keeps knockdown, forced movement, and crash math separate from
+// the machine degradation loop.
+
+function toNumber(value, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+export function resolveMachineKnockdownDn({ chassis = 0, forceModifier = 0 } = {}) {
+  return Math.max(0, toNumber(chassis, 0) + toNumber(forceModifier, 0));
+}
+
+export function resolveMachineKnockdownPool({ handling = 0, piloting = 0 } = {}) {
+  return Math.max(0, toNumber(handling, 0) + toNumber(piloting, 0));
+}
+
+export function resolveMachineForcedMovementResistance({ chassis = 0 } = {}) {
+  return Math.max(0, toNumber(chassis, 0));
+}
+
+export function resolveMachineCrashMitigation({ chassis = 0, handling = 0 } = {}) {
+  return Math.max(0, toNumber(chassis, 0) + toNumber(handling, 0));
+}
+
+export function resolveMachineCollisionValue({ chassis = 0, bonus = 0 } = {}) {
+  return Math.max(0, toNumber(chassis, 0) + toNumber(bonus, 0));
+}

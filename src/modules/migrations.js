@@ -30,6 +30,10 @@ import {
   normalizeWeaponCapabilityState,
   validateTemplatedCapability,
 } from "./mwd/personal-weapon-capabilities.js";
+import {
+  getMachineDefaultLocations,
+  normalizeMachineDegradationState,
+} from "./mwd/machine-degradation.js";
 
 function forcedDeletion() {
   return foundry.data.operators.ForcedDeletion;
@@ -335,9 +339,9 @@ class _13_2_2_AddMwdVehicleModel extends Migration {
       updates['system.attributes.chassis.value'] = 3;
     }
 
-    const condition = actor.system.attributes?.condition?.value;
-    if (condition === undefined) {
-      updates['system.attributes.condition.value'] = 3;
+    const reliability = actor.system.attributes?.reliability?.value;
+    if (reliability === undefined) {
+      updates['system.attributes.reliability.value'] = actor.system.attributes?.condition?.value ?? 3;
     }
 
     if (!actor.system.mwd) {
@@ -358,6 +362,12 @@ class _13_2_2_AddMwdVehicleModel extends Migration {
         hardMax: 4,
         ventPerTurn: 1,
         coolingImpaired: false,
+      },
+      shock: {
+        value: 0,
+      },
+      reliabilitySpendable: {
+        value: 0,
       },
       locations: {},
       hardpoints: [],
@@ -405,27 +415,11 @@ class _13_2_2_AddMwdVehicleModel extends Migration {
   }
 
   _defaultVehicleLocations() {
-    return {
-      front: { enabled: true, stress: 0, tags: ['weaponGroup', 'motiveSystem'], destroyed: false },
-      side: { enabled: true, stress: 0, tags: ['weaponGroup', 'motiveSystem'], destroyed: false },
-      rear: { enabled: true, stress: 0, tags: ['weaponGroup', 'motiveSystem', 'ammoStore'], destroyed: false },
-      turret: { enabled: true, stress: 0, tags: ['turret', 'weaponGroup'], destroyed: false },
-      rotor: { enabled: false, stress: 0, tags: ['rotor'], destroyed: false },
-      core: { enabled: true, stress: 0, tags: ['crewCompartment', 'engine', 'ammoStore'], destroyed: false },
-    };
+    return getMachineDefaultLocations(TEMPLATE.actorTypes.vehicle);
   }
 
   _defaultMechLocations() {
-    return {
-      head: { enabled: true, stress: 0, tags: ['cockpit', 'sensor'], destroyed: false },
-      torsoFront: { enabled: true, stress: 0, tags: ['weaponGroup', 'engine'], destroyed: false },
-      torsoRear: { enabled: true, stress: 0, tags: ['weaponGroup', 'ammoStore'], destroyed: false },
-      leftArm: { enabled: true, stress: 0, tags: ['weaponGroup'], destroyed: false },
-      rightArm: { enabled: true, stress: 0, tags: ['weaponGroup'], destroyed: false },
-      leftLeg: { enabled: true, stress: 0, tags: ['motiveSystem'], destroyed: false },
-      rightLeg: { enabled: true, stress: 0, tags: ['motiveSystem'], destroyed: false },
-      core: { enabled: true, stress: 0, tags: ['engine', 'gyro', 'ammoStore'], destroyed: false },
-    };
+    return getMachineDefaultLocations(TEMPLATE.actorTypes.battlemech);
   }
 }
 
@@ -660,7 +654,7 @@ class _13_6_2_AddMwdVehicleScaffold extends Migration {
     }
 
     [TEMPLATE.actorAttributes.handling, TEMPLATE.actorAttributes.system,
-      TEMPLATE.actorAttributes.condition, TEMPLATE.actorAttributes.chassis]
+      TEMPLATE.actorAttributes.reliability, TEMPLATE.actorAttributes.chassis]
       .forEach(attribute => {
         const current = actor.system.attributes?.[attribute]?.value;
         const existing = actor.system.mwd?.attributes?.[attribute]?.value ?? current;
@@ -773,6 +767,35 @@ class _13_7_0_PersonalDamageModelV2 extends Migration {
       "system.durability.current": durabilityCurrent,
       "system.mitigation": forcedDeletion(),
     };
+  }
+}
+
+class _13_11_0_MachineReliabilityAndShock extends Migration {
+  get version() { return "13.11.0"; }
+  get code() { return "machine-reliability-and-shock"; }
+
+  async migrate() {
+    const machines = game.actors.filter(actor => [TEMPLATE.actorTypes.vehicle, TEMPLATE.actorTypes.battlemech].includes(actor.type));
+    for (const actor of machines) {
+      const nextSystem = foundry.utils.deepClone(actor.system ?? {});
+      normalizeMachineDegradationState(nextSystem, actor.type);
+
+      const updates = {
+        "system.attributes.reliability.value": nextSystem.attributes?.reliability?.value ?? 0,
+        "system.mwd.shock.value": nextSystem.mwd?.shock?.value ?? 0,
+        "system.mwd.reliabilitySpendable.value": nextSystem.mwd?.reliabilitySpendable?.value ?? 0,
+      };
+
+      for (const [locationKey, location] of Object.entries(nextSystem.mwd?.locations ?? {})) {
+        updates[`system.mwd.locations.${locationKey}.enabled`] = location.enabled !== false;
+        updates[`system.mwd.locations.${locationKey}.stress`] = location.stress ?? 0;
+        updates[`system.mwd.locations.${locationKey}.condition`] = location.condition ?? 0;
+        updates[`system.mwd.locations.${locationKey}.tags`] = Array.isArray(location.tags) ? location.tags : [];
+        updates[`system.mwd.locations.${locationKey}.destroyed`] = Boolean(location.destroyed);
+      }
+
+      await actor.update(updates);
+    }
   }
 }
 
@@ -1007,6 +1030,7 @@ export class Migrations {
       new _13_8_0_StandardGearTraitsAndAmmo(),
       new _13_9_0_PayloadArchitecture(),
       new _13_10_0_PersonalWeaponCapabilityModelV1(),
+      new _13_11_0_MachineReliabilityAndShock(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

@@ -30,9 +30,6 @@ export class BattlemechSheet extends VehicleSheet {
         case 'melee':
           await this.actor.rollMeleeAttack();
           break;
-        case 'dodge':
-          await this.actor.rollDodge();
-          break;
         case 'piloting':
           await this.actor.rollPilotingCheck();
           break;

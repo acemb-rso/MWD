@@ -69,6 +69,13 @@
               },
               {
                 "type": "panel",
+                "title": "Movement",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.movement-grid" }
+                ]
+              },
+              {
+                "type": "panel",
                 "title": "Structure",
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.condition-monitors" }
@@ -79,6 +86,13 @@
                 "title": "Criticals",
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.vehicle.active-crits" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Degradation",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.degradation-grid" }
                 ]
               },
               {

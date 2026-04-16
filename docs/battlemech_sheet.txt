@@ -103,45 +103,34 @@ sheet:
           type: actorList
           actorsKey: "crew"
 
-        # --- Cached operator stats for rolls (manually entered; not dynamically linked) ---
-        - id: pilot-snapshot
-          label: "Operator Profile (Cached)"
-          help: "Manually cached stats used for attack, defense, and initiative rolls."
+        # --- Linked operator used for rolls ---
+        - id: pilot-link
+          label: "Operator"
+          help: "Linked pilot actor used for attack, movement, sensors, and initiative rolls."
           type: grid
-          columns: 3
+          columns: 1
           fields:
-            - { key: "pilotSnapshot.name",         label: "Operator Name",   type: text,   readOnly: false }
-            - { key: "pilotSnapshot.gunnery",      label: "Gunnery",         type: number }
-            - { key: "pilotSnapshot.piloting",     label: "Piloting",        type: number }
-            - { key: "pilotSnapshot.perception",   label: "Perception",      type: number }
-            - { key: "pilotSnapshot.stealth",      label: "Stealth",         type: number }
-            - { key: "pilotSnapshot.reflexes",     label: "Reflexes",        type: number }
-            - { key: "pilotSnapshot.intelligence", label: "Intelligence",    type: number }
+            - { key: "pilot.uuid", label: "Operator", type: actorReference }
 
         # --- Mech actions (parallel to vehicle actions) ---
         - id: actions
           label: "Actions"
           type: action-buttons
           actions:
-            - id: defense
-              label: "Defense"
-              tooltip: "Handling + Piloting (operator snapshot)"
-              formula: "attributes.handling + pilotSnapshot.piloting"
-
             - id: sensors
               label: "Sensors"
-              tooltip: "System + Perception (operator snapshot)"
-              formula: "attributes.system + pilotSnapshot.perception"
+              tooltip: "System + Perception (pilot)"
+              formula: "attributes.system + pilot.perception"
 
             - id: stealth
               label: "Stealth"
-              tooltip: "Handling + Stealth (operator snapshot)"
-              formula: "attributes.handling + pilotSnapshot.stealth"
+              tooltip: "Handling + Stealth (pilot)"
+              formula: "attributes.handling + pilot.stealth"
 
             - id: initiative
               label: "Initiative"
-              tooltip: "Reflexes + Intelligence (operator snapshot)"
-              formula: "pilotSnapshot.reflexes + pilotSnapshot.intelligence"
+              tooltip: "Best of Handling/System + pilot Reflexes"
+              formula: "max(attributes.handling, attributes.system) + pilot.reflexes"
 
 
     # ======================================

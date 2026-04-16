@@ -176,10 +176,17 @@ export function enhanceAttack(resolved, vm) {
         if (damageResult.mode === "machineAttackDamage") {
           const machine = damageResult.machine ?? {};
           const hitLocation = damageResult.hitLocation ?? {};
+          const degradation = damageResult.degradation ?? null;
           vm.footerRows.push({
             text: `${result?.target?.name ?? "Target"}: Location ${hitLocation.locationLabel ?? "Location"}${hitLocation.rollTotal ? ` (${hitLocation.rollTotal})` : ""} | Armor ${Number(machine.armorBefore ?? 0)} -> ${Number(machine.armorAfter ?? 0)} | Structure ${Number(machine.structureBefore ?? 0)} -> ${Number(machine.structureAfter ?? 0)}`,
             title: ""
           });
+          if (degradation?.summary) {
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Shock ${Number(degradation.summary.shockBefore ?? 0)} -> ${Number(degradation.summary.shockAfter ?? 0)} | Threshold ${Number(degradation.summary.threshold ?? 0)} | Reliability ${Number(degradation.summary.reliability ?? 0)} | Reserve ${Number(degradation.summary.reliabilitySpendableBefore ?? 0)} -> ${Number(degradation.summary.reliabilitySpendableAfter ?? 0)}`,
+              title: ""
+            });
+          }
           if (damageResult.critical?.automatic) {
             vm.footerRows.push({
               text: `${result?.target?.name ?? "Target"}: Automatic critical pending`,
@@ -201,7 +208,7 @@ export function enhanceAttack(resolved, vm) {
               text: `${result?.target?.name ?? "Target"}: Critical - ${crit.label}${crit.locationLabel ? ` (${crit.locationLabel})` : ""}`,
               title: ""
             });
-            if (crit.active !== false && crit.remedyKey !== "none") {
+            if (isApplied && crit.active !== false && crit.remedyKey !== "none") {
               vm.actions.push({
                 action: "machineCritRemedy",
                 label: `Remedy: ${crit.label}`,
@@ -212,6 +219,22 @@ export function enhanceAttack(resolved, vm) {
                   "gm-override": "true"
                 },
                 cssClass: "mwd-machine-crit-remedy"
+              });
+            }
+          }
+          if (queuedMutation && !isApplied && Array.isArray(degradation?.spendOpportunities)) {
+            for (const opportunity of degradation.spendOpportunities) {
+              if (!opportunity?.canSpend) continue;
+              vm.actions.push({
+                action: "toggleMachineReliabilitySpend",
+                label: opportunity.selected
+                  ? `Clear Reliability Spend: ${opportunity.location}`
+                  : `Spend Reliability: ${opportunity.location}`,
+                dataset: {
+                  "result-index": String(index),
+                  "spend-index": String(opportunity.index),
+                },
+                cssClass: `mwd-toggle-machine-reliability ${opportunity.selected ? "is-active" : ""}`
               });
             }
           }

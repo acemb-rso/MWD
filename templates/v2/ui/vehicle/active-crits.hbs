@@ -22,6 +22,9 @@ How it fits: Keeps remediation buttons declarative while intent resolution stays
             {{#if crit.detail}}
               <div class="mwd-record__subtitle">{{crit.detail}}</div>
             {{/if}}
+            {{#if crit.remedySummary}}
+              <div class="mwd-record__subtitle">{{crit.remedySummary}}</div>
+            {{/if}}
           </div>
           {{#if crit.remediable}}
             <div class="mwd-record__actions">

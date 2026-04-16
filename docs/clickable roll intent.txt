@@ -1,0 +1,278 @@
+### What “clickable roll intent payloads” are
+
+They’re a **standardized little bundle of data** you attach to any clickable UI element (button, link, chip, icon) that says:
+
+* **what workflow** to run (the “intent”)
+* **what inputs** that workflow needs (attributes/skill/weapon/etc.)
+* **what context** it should use (edge pool choice, scope, source UUID, tags)
+
+So the sheet doesn’t “do rolls.”
+The sheet just emits: **“Run intent X with payload Y.”**
+
+That payload is what lets you click:
+
+* an Attribute → attribute roll
+* a Skill name → skill test roll
+* “Attack (P)” → attack workflow using primary weapon, fallback unarmed
+* “Initiative” → common roll workflow for REF+INT
+* an Edge pool name → “edge roll/spend” workflow
+
+…and all of those use the same plumbing.
+
+---
+
+## Why you want them (the “why”)
+
+### 1) Keeps the sheet dumb and stable
+
+You’ve said “sheet does not do math.” Payloads enforce that:
+
+* UI builds a payload (static or lightly parameterized)
+* roll engine resolves it (applies rules, modifiers, edge guards)
+
+When you later change mechanics, you change the **resolver**, not 200 click handlers.
+
+### 2) Makes extensibility real
+
+Your planned “Catch Object (REF+REF)” and “Recall Memory (INT+INT)” are perfect tests:
+
+* add one payload definition (or one line of config)
+* no sheet changes
+* roll engine just works
+
+### 3) Enables macros + hotbar drag/drop cleanly
+
+Foundry users expect “drag an attack onto the hotbar.”
+If your roll action is encoded as a payload, you can:
+
+* serialize it into a macro command
+* reconstruct and run it anywhere (sheet, chat card, token HUD, hotbar)
+
+### 4) Unifies all entry points
+
+Same payload format works for:
+
+* sheet buttons
+* chat messages (“click to reroll with Grit”)
+* token HUD actions
+* compendium item summaries
+* right-click context menus later
+
+---
+
+## How to implement (AppV2 / CSB-friendly)
+
+### A) Decide the payload format (you chose “Option 2: human readable”)
+
+So something like:
+
+```json
+{
+  "intent": "attack",
+  "mode": "primary",
+  "fallback": "unarmed",
+  "edge": { "pool": "physical.grit", "allowed": ["pre","post"] },
+  "source": { "actorUuid": "Actor.abc123" },
+  "tags": ["combat","action"]
+}
+```
+
+Or for a common roll:
+
+```json
+{
+  "intent": "common",
+  "id": "initiative",
+  "formula": ["REF","INT"],
+  "edge": { "pool": "physical.grit" }
+}
+```
+
+Key: this is **descriptive**, not executable.
+
+### B) Encode it into the HTML dataset (as a string)
+
+In templates:
+
+```hbs
+<button type="button"
+  data-action="roll"
+  data-roll='{"intent":"common","id":"initiative","formula":["REF","INT"]}'>
+  Initiative
+</button>
+```
+
+Notes:
+
+* Use **single quotes** around the JSON string in HBS so the JSON can use double quotes.
+* Keep payloads small. Don’t embed giant actor data—use UUIDs/keys.
+
+### C) One universal AppV2 action handler: `roll`
+
+In your `BaseActorSheetV2.DEFAULT_OPTIONS.actions`, you already have an AppV2-safe pattern. Add:
+
+```js
+actions: {
+  roll: BaseActorSheetV2.prototype._onRollAction
+}
+```
+
+Then implement the handler once:
+
+```js
+async _onRollAction(event, target) {
+  event.preventDefault();
+
+  const raw = target?.dataset?.roll;
+  if (!raw) return ui.notifications.warn("No roll payload found.");
+
+  let payload;
+  try {
+    payload = JSON.parse(raw);
+  } catch (e) {
+    console.error("Invalid roll payload", raw, e);
+    return ui.notifications.error("Invalid roll payload JSON.");
+  }
+
+  // Route to roll engine (no sheet math)
+  return game.mwd.roll.execute({
+    actor: this.actor,
+    payload,
+    event
+  });
+}
+```
+
+That’s the whole “sheet side.”
+
+### D) The roll engine resolves the payload (the “real boy” logic lives here)
+
+You have a single executor:
+
+```js
+game.mwd.roll.execute({ actor, payload, event })
+```
+
+Inside that, you do:
+
+1. validate payload (intent exists, allowed fields)
+2. resolve references:
+
+   * skill id → actor.system.skills[...]
+   * weapon mode primary → find equipped/primary weapon else unarmed
+   * attribute keys → actor.system.attributes[...]
+3. assemble a **RollContext** for your existing roll UI/dialog
+4. enforce guardrails:
+
+   * edge pool exists, has points
+   * disable pre/post spend choices if invalid
+5. show the roll dialog, apply modifiers, roll dice, produce chat output
+
+### E) Drag/drop to hotbar later (this becomes easy)
+
+When the user drags an element:
+
+* read `dataset.roll`
+* store it in a Macro command like:
+
+```js
+game.mwd.roll.executeFromMacro("<actorUuid>", <payloadJson>);
+```
+
+Or store the payload in the macro’s `command` string directly.
+
+Because the payload is self-contained, it works even when the sheet isn’t open.
+
+---
+
+## Where the payloads should be defined (to avoid hand-writing JSON everywhere)
+
+You have two good approaches; both are compatible with the “paper puppet” phase.
+
+### Approach 1 (fastest now): write payload JSON inline in HBS
+
+Good for:
+
+* prototyping the UI
+* a few buttons
+
+Bad for:
+
+* lots of skills (it gets repetitive)
+
+### Approach 2 (better soon): generate payloads in `_prepareContext`
+
+For skills, you’ll want:
+
+* `ctx.skills` includes each skill with a `roll` string already computed:
+
+```js
+ctx.skills = Object.entries(actor.system.skills).map(([key, s]) => ({
+  key,
+  label: s.label,
+  roll: JSON.stringify({ intent:"skill", key })
+}));
+```
+
+Then HBS is clean:
+
+```hbs
+<a data-action="roll" data-roll='{{skill.roll}}'>{{skill.label}}</a>
+```
+
+This keeps templates readable and avoids quoting hell.
+
+---
+
+## How this fits your CSB layout JSON approach
+
+The layout JSON decides **where buttons exist**.
+
+The node templates decide **what HTML to render**.
+
+Those HTML elements include:
+
+* `data-action="roll"`
+* `data-roll="…payload…"`
+
+The renderer remains generic; only specific included partials (combat-actions, skill rows, edge console, status chips) attach payloads.
+
+---
+
+## Practical examples you’ll implement early
+
+### Combat Actions (paper puppet)
+
+* Attack (Primary)
+* Attack…
+* Initiative
+* Defend
+* Resist
+
+Each is just a payload.
+
+### Skills list
+
+Click name → `intent:"skill", key:"gunnery"`
+Click attribute pills → `intent:"attribute", key:"REF"`
+
+### Status chips
+
+Click chip → `intent:"openEffect", uuid:"ActiveEffect…"` (not a roll, but same “payload action” pattern)
+
+---
+
+## The key discipline
+
+Payloads must stay:
+
+* **declarative**
+* **versionable**
+* **small**
+* **stable**
+
+And the resolver is where all rules/maths live.
+
+---
+
+If you want, I can give you a **canonical payload schema** (fields per intent: `skill`, `attribute`, `common`, `attack`, `edge`) plus a small `execute()` router skeleton that plugs into your existing roll UI from `mwd.zip` without refactoring it yet.

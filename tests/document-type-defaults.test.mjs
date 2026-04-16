@@ -19,7 +19,21 @@ test("battlemech defaults resolve nested templates before local fields", () => {
 
   assert.equal(block.mwd.unitType, "mech");
   assert.equal(block.mwd.heat.thresholds.shutdown, 4);
+  assert.equal(block.attributes.reliability.value, 3);
+  assert.equal(block.mwd.shock.value, 0);
+  assert.equal(block.mwd.locations.head.condition, 0);
   assert.deepEqual(block.mwd.weaponGroups, []);
+  assert.deepEqual(block.movement, { ground: 0, flight: 0, jump: 0 });
+});
+
+test("vehicle defaults include ground and flight movement only", () => {
+  const block = resolveDocumentTypeBlock(undefined, "Actor", "vehicle");
+
+  assert.equal(block.attributes.reliability.value, 3);
+  assert.equal(block.mwd.shock.value, 0);
+  assert.equal(block.mwd.locations.front.condition, 0);
+  assert.deepEqual(block.movement, { ground: 0, flight: 0 });
+  assert.equal(block.movement.jump, undefined);
 });
 
 test("item defaults compose shared reference templates into system data", () => {

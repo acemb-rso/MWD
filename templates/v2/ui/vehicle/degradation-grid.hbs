@@ -1,0 +1,52 @@
+{{!--
+templates/v2/ui/vehicle/degradation-grid.hbs
+Purpose: Read-only machine degradation snapshot for vehicle-scale sheets.
+How it fits: Gives the machine reliability loop a visible surface without adding
+manual editing paths to the MVP.
+--}}
+
+<section class="mwd-item-hero">
+  <div class="mwd-item-hero__stat">
+    <span class="mwd-item-hero__label">Shock</span>
+    <span class="mwd-item-hero__value">{{vehicleSheet.degradation.shock}} / {{vehicleSheet.degradation.threshold}}</span>
+  </div>
+  <div class="mwd-item-hero__stat">
+    <span class="mwd-item-hero__label">Reliability</span>
+    <span class="mwd-item-hero__value">{{vehicleSheet.degradation.reliability}}</span>
+  </div>
+  <div class="mwd-item-hero__stat">
+    <span class="mwd-item-hero__label">Spendable</span>
+    <span class="mwd-item-hero__value">{{vehicleSheet.degradation.spendable}}</span>
+  </div>
+</section>
+
+{{#if vehicleSheet.degradation.locations.length}}
+  <div class="mwd-records mwd-records--inventory">
+    {{#each vehicleSheet.degradation.locations as |location|}}
+      <article class="mwd-record{{#if location.destroyed}} mwd-record--crit{{/if}}">
+        <div class="mwd-record__header">
+          <div class="mwd-record__main">
+            <div class="mwd-record__topline">
+              <div class="mwd-record__title">{{location.label}}</div>
+              <div class="mwd-record__stats">
+                <span class="mwd-record__stat is-strong">
+                  <span class="mwd-record__stat-label">Stress</span>
+                  <span class="mwd-record__stat-value">{{location.stress}}</span>
+                </span>
+                <span class="mwd-record__stat">
+                  <span class="mwd-record__stat-label">Condition</span>
+                  <span class="mwd-record__stat-value">{{location.conditionLabel}}</span>
+                </span>
+              </div>
+            </div>
+            {{#unless location.enabled}}
+              <div class="mwd-record__subtitle">Disabled in location map.</div>
+            {{else if location.destroyed}}
+              <div class="mwd-record__subtitle">Destroyed.</div>
+            {{/unless}}
+          </div>
+        </div>
+      </article>
+    {{/each}}
+  </div>
+{{/if}}

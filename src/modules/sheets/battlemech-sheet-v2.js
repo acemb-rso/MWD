@@ -11,6 +11,7 @@ import {
   normalizeMachineHeatThresholds,
   resolveMachineHeatStatus,
 } from "../mwd/heat-state.js";
+import { buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
 import { buildCriticalStatusSummary, buildIntegritySummary, buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
 
@@ -166,9 +167,15 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const heatSummaryLabel = heatLabel.toUpperCase();
     const integrity = buildIntegritySummary({ armor, structure });
     const critStatus = buildCriticalStatusSummary(this.actor.system?.mwd?.crits ?? []);
+    const movementParts = buildMachineMovementSummaryParts({
+      actorType: this.actor.type,
+      movement: this.actor.system?.movement,
+      legacyMoves: this.actor.system?.moves,
+    });
 
     return buildSummaryStats([
       { label: "Weight", value: startCase(this.actor.system?.mwd?.weightClass ?? "medium"), emphasis: "strong" },
+      { label: "Move", parts: movementParts },
       { label: "Tonnage", value: toNumber(this.actor.system?.mwd?.tonnage, 0) },
       { label: "Integrity", parts: integrity.parts, title: integrity.title },
       { label: "Heat", value: `${heatCurrent} / ${heatMax} ${heatSummaryLabel}`, title: heatLabel },
@@ -284,13 +291,6 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         dataset: { attackKind: "melee" }
       },
       {
-        label: getQuickActionLabel("dodgeCheck"),
-        hint: "Piloting response",
-        handler: "mechRoll",
-        disabled: false,
-        dataset: { rollKind: "dodge" }
-      },
-      {
         label: getQuickActionLabel("pilotingCheck"),
         hint: "Vehicle handling test",
         handler: "mechRoll",
@@ -403,8 +403,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const rollKind = String(target?.dataset?.rollKind ?? "").trim();
 
     try {
-      if (rollKind === "dodge") await actor.rollDodge?.();
-      else if (rollKind === "piloting") await actor.rollPilotingCheck?.();
+      if (rollKind === "piloting") await actor.rollPilotingCheck?.();
       else if (rollKind === "sensor") await actor.rollSensorSweep?.();
       else if (rollKind === "repair") await actor.rollEmergencyRepair?.();
     } catch (error) {

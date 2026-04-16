@@ -150,6 +150,7 @@ export function buildResolved({
     intent: ctx?.intent ?? payload.intent,
     domains: Array.isArray(ctx?.domains) ? ctx.domains : [],
     attack: ctx?.attack ?? null,
+    machineRemedy: ctx?.machineRemedy ?? null,
     specialization: ctx?.specialization ?? null,
     dn: ctx?.dn ?? (
       ctx?.difficulty?.dn !== undefined

@@ -1,13 +1,23 @@
 // src/modules/mwd/machine-intents.js
-// Purpose: Resolves chat-emitted machine critical intents.
-// How it fits: UI buttons emit intent payloads; this module performs authority,
-// action-cost, and actor mutation checks in one place.
+// Purpose: Resolves machine remedy intent context, spending, and outcome mutation.
+// How it fits: Sheets/chat emit tiny remedy payloads while the roll engine keeps
+// the machine-side authority and state changes centralized.
 
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 import { MACHINE_CRITICAL_STATUS_ID } from "./critical-hits.js";
-import { getMachineCritRemedy } from "./machine-crit-remedies.js";
+import {
+  getMachineCritRemedy,
+  getMachineRemedyBaseDn,
+  getMachineRemedyEffect,
+  getMachineRemedySkillKey,
+} from "./machine-crit-remedies.js";
 import { resolveMachineOperator } from "./machine-operator.js";
+import {
+  getMachineConditionLabel,
+  getMachineConditionModifier,
+  normalizeMachineDegradationState,
+} from "./machine-degradation.js";
 
 async function resolveUuid(uuid = "") {
   const value = String(uuid ?? "").trim();
@@ -38,15 +48,37 @@ async function clearCriticalStatusIfEmpty(actor) {
   }
 }
 
-export async function resolveMachineCritRemedyIntent(intent = {}, options = {}) {
-  if (String(intent?.intent ?? "") !== "machine_crit_remedy") {
-    return { ok: false, reason: "Unsupported machine intent." };
+function buildRemedyUpdate(crit, { passed = false, actorUuid = "", gmOverride = false } = {}) {
+  if (!passed) {
+    return {
+      ...crit,
+      lastRemedyAttemptAt: new Date().toISOString(),
+      lastRemedyPassed: false,
+      lastRemedyActorUuid: actorUuid,
+      lastRemedyOverride: gmOverride && !actorUuid,
+    };
   }
+
+  return {
+    ...crit,
+    active: false,
+    resolvedAt: new Date().toISOString(),
+    resolvedBy: actorUuid,
+    resolvedByOverride: gmOverride && !actorUuid,
+    lastRemedyAttemptAt: new Date().toISOString(),
+    lastRemedyPassed: true,
+    lastRemedyActorUuid: actorUuid,
+    lastRemedyOverride: gmOverride && !actorUuid,
+  };
+}
+
+export async function resolveMachineCritIntentContext(intent = {}, options = {}) {
+  const critId = String(intent.critId ?? "").trim();
+  const gmOverride = Boolean(options.gmOverride ?? globalThis.game?.user?.isGM);
 
   const machineActor = await resolveUuid(intent.machineActorUuid);
   if (!machineActor) return { ok: false, reason: "Machine actor could not be resolved." };
 
-  const critId = String(intent.critId ?? "").trim();
   const crits = Array.isArray(machineActor.system?.mwd?.crits)
     ? machineActor.system.mwd.crits.slice()
     : [];
@@ -55,49 +87,144 @@ export async function resolveMachineCritRemedyIntent(intent = {}, options = {}) 
 
   const crit = crits[index];
   const remedy = getMachineCritRemedy(intent.remedyKey || crit.remedyKey);
-  const gmOverride = Boolean(options.gmOverride ?? globalThis.game?.user?.isGM);
   const operator = await resolveMachineOperator({
     machineActor,
     operatorActorUuid: intent.operatorActorUuid,
   });
 
-  // Players need a concrete operator actor so the complex action cost has an owner.
-  // GMs can override for crew abstractions and out-of-combat cleanup.
+  if (remedy.remediable === false) {
+    return { ok: false, reason: "That critical effect has no field remedy." };
+  }
+
   if (!operator.actor && !gmOverride) {
     return { ok: false, reason: operator.reason || "No linked operator or pilot actor." };
   }
 
-  let spend = { ok: true, skipped: true };
-  if (operator.actor && !gmOverride) {
-    const spender = options.spendResource ?? PersonalCombatTracker.spendResource.bind(PersonalCombatTracker);
-    spend = await spender(operator.actor, {
-      resource: remedy.resource,
-      cost: remedy.cost,
-      actionId: remedy.actionId,
-      actionLabel: remedy.actionLabel,
-      actionCostLabel: `${remedy.cost} SA`,
-      actionCategory: remedy.category,
-    });
-    if (!spend?.ok) return { ok: false, reason: spend?.reason ?? "Unable to spend the remedy action." };
-  }
-
-  crits[index] = {
-    ...crit,
-    active: false,
-    resolvedAt: new Date().toISOString(),
-    resolvedBy: operator.actor?.uuid ?? "",
-    resolvedByOverride: gmOverride && !operator.actor,
-    remedyKey: remedy.key,
-  };
-  await machineActor.update({ "system.mwd.crits": crits });
-  await clearCriticalStatusIfEmpty(machineActor);
+  const normalized = normalizeMachineDegradationState(
+    globalThis.foundry?.utils?.deepClone?.(machineActor.system ?? {}) ?? structuredClone(machineActor.system ?? {}),
+    machineActor.type,
+  );
+  const locationKey = String(crit.locationKey ?? "").trim();
+  const location = normalized.mwd?.locations?.[locationKey] ?? {};
+  const condition = Number(location?.condition ?? 0) || 0;
+  const conditionModifier = getMachineConditionModifier(condition);
+  const skillKey = getMachineRemedySkillKey(crit, remedy);
+  const baseDn = getMachineRemedyBaseDn(crit, remedy);
+  const effect = getMachineRemedyEffect(crit);
 
   return {
     ok: true,
     machineActor,
-    operatorActor: operator.actor,
-    crit: crits[index],
+    crit,
+    critIndex: index,
     remedy,
+    operatorActor: operator.actor ?? null,
+    operator,
+    gmOverride,
+    rollingActor: operator.actor ?? machineActor,
+    locationKey,
+    locationCondition: condition,
+    locationConditionLabel: getMachineConditionLabel(condition),
+    locationConditionModifier: conditionModifier,
+    skillKey,
+    baseDn,
+    totalDn: baseDn + conditionModifier,
+    remedyEffect: effect,
+  };
+}
+
+export async function prepareMachineRemedyRoll(intent = {}, options = {}) {
+  const context = await resolveMachineCritIntentContext(intent, options);
+  if (!context.ok) return context;
+
+  return {
+    ok: true,
+    actor: context.rollingActor,
+    payload: {
+      intent: "machineRemedy",
+      machineActorUuid: context.machineActor.uuid ?? intent.machineActorUuid ?? "",
+      critId: context.crit.id,
+      remedyKey: context.remedy.key,
+      operatorActorUuid: context.operatorActor?.uuid ?? "",
+      gmOverride: context.gmOverride,
+      tags: ["machine", "remedy"],
+      edge: { allowed: ["pre", "post"] },
+    },
+    context,
+  };
+}
+
+export async function commitMachineRemedyCost(context = {}, options = {}) {
+  if (!context?.ok && !context?.machineActor) {
+    return { ok: false, reason: "Machine remedy context is not available." };
+  }
+
+  if (!context.operatorActor || context.gmOverride) {
+    return { ok: true, skipped: true };
+  }
+
+  const spender = options.spendResource ?? PersonalCombatTracker.spendResource.bind(PersonalCombatTracker);
+  return await spender(context.operatorActor, {
+    resource: context.remedy.resource,
+    cost: context.remedy.cost,
+    actionId: context.remedy.actionId,
+    actionLabel: context.remedy.actionLabel,
+    actionCostLabel: `${context.remedy.cost} SA`,
+    actionCategory: context.remedy.category,
+  });
+}
+
+export async function applyMachineRemedyOutcome(intent = {}, options = {}) {
+  const context = await resolveMachineCritIntentContext(intent, options);
+  if (!context.ok) return context;
+
+  const passed = Boolean(options.passed);
+  const effect = context.remedyEffect ?? getMachineRemedyEffect(context.crit);
+  const crits = Array.isArray(context.machineActor.system?.mwd?.crits)
+    ? context.machineActor.system.mwd.crits.slice()
+    : [];
+
+  const current = crits[context.critIndex];
+  if (!current || current.active === false) {
+    return { ok: false, reason: "That critical effect is no longer active." };
+  }
+
+  const nextCrit = buildRemedyUpdate(current, {
+    passed: passed && effect.onSuccess === "clear",
+    actorUuid: context.operatorActor?.uuid ?? "",
+    gmOverride: context.gmOverride,
+  });
+  crits[context.critIndex] = nextCrit;
+
+  await context.machineActor.update({ "system.mwd.crits": crits });
+  await clearCriticalStatusIfEmpty(context.machineActor);
+
+  return {
+    ok: true,
+    passed,
+    applied: passed && effect.onSuccess === "clear",
+    machineActor: context.machineActor,
+    operatorActor: context.operatorActor,
+    crit: nextCrit,
+    remedy: context.remedy,
+    context,
+  };
+}
+
+export async function resolveMachineCritRemedyIntent(intent = {}, options = {}) {
+  if (String(intent?.intent ?? "") !== "machine_crit_remedy") {
+    return { ok: false, reason: "Unsupported machine intent." };
+  }
+
+  const context = await resolveMachineCritIntentContext(intent, options);
+  if (!context.ok) return context;
+
+  const spend = await commitMachineRemedyCost(context, options);
+  if (!spend?.ok) return { ok: false, reason: spend?.reason ?? "Unable to spend the remedy action." };
+
+  const result = await applyMachineRemedyOutcome(intent, { ...options, passed: true });
+  return {
+    ...result,
     spend,
   };
 }
