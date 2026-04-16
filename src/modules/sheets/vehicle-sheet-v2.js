@@ -9,6 +9,7 @@ import { LayoutRegistry } from "../layout/layout-registry.js";
 import { getActiveMachineCrits } from "../mwd/critical-hits.js";
 import { getMachineCritRemedy } from "../mwd/machine-crit-remedies.js";
 import { resolveMachineCritRemedyIntent } from "../mwd/machine-intents.js";
+import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { SelectActor } from "../dialog/select-actor.js";
 
@@ -174,7 +175,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   }
 
   async _buildPilotPanel() {
-    const pilotUuid = String(this.actor.system?.pilot?.uuid ?? "").trim();
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const pilotUuid = String(actor.system?.pilot?.uuid ?? "").trim();
     let pilotActor = null;
     if (pilotUuid) {
       try { pilotActor = await fromUuid(pilotUuid); } catch (_) {}
@@ -195,20 +197,23 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       ui.notifications?.warn("No character actors found in this world.");
       return;
     }
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
     await SelectActor.selectActor(
       "Assign Pilot",
       characters,
-      async (actor) => this.actor.update({ "system.pilot.uuid": actor.uuid }),
+      async (actor) => actorWriteTarget.update({ "system.pilot.uuid": actor.uuid }),
     );
   }
 
   async _onRemovePilot(event, target) {
     if (!this.isEditable) return;
-    await this.actor.update({ "system.pilot.uuid": "" });
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    await actorWriteTarget.update({ "system.pilot.uuid": "" });
   }
 
   async _onOpenPilot(event, target) {
-    const uuid = String(this.actor.system?.pilot?.uuid ?? "").trim();
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const uuid = String(actor.system?.pilot?.uuid ?? "").trim();
     if (!uuid) return;
     const pilot = await fromUuid(uuid).catch(() => null);
     if (pilot) pilot.sheet.render(true, { focus: true });
@@ -221,7 +226,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     if (data?.type === "Actor") {
       const dropped = await fromUuid(data.uuid).catch(() => null);
       if (dropped?.type === "character") {
-        await this.actor.update({ "system.pilot.uuid": dropped.uuid });
+        const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+        await actorWriteTarget.update({ "system.pilot.uuid": dropped.uuid });
         return;
       }
     }
@@ -257,25 +263,9 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
   _buildConditionMonitors() {
     const structure = this.actor.system?.monitors?.structure ?? this.actor.system?.mwd?.monitors?.structure ?? {};
-    return [{
-      id: "structure",
-      label: "Structure",
-      kind: "wound",
-      editable: Boolean(this.isEditable),
-      value: Math.max(0, toNumber(structure.value, 0)),
-      max: Math.max(0, toNumber(structure.max, 0)),
-      segments: Array.from({ length: Math.max(0, toNumber(structure.max, 0)) }, (_, index) => {
-        const segmentValue = index + 1;
-        return {
-          value: segmentValue,
-          filled: segmentValue <= Math.max(0, toNumber(structure.value, 0)),
-        };
-      }),
-      status: {
-        label: "Resist",
-        value: toNumber(structure.resistance, 0),
-      }
-    }];
+    return [
+      buildRemainingMonitorTrack({ id: "structure", label: "Structure", kind: "structure", monitor: structure, editable: this.isEditable }),
+    ];
   }
 
   _buildVehicleSections() {

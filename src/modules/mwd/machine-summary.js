@@ -59,6 +59,34 @@ export function buildIntegritySummary({ armor = {}, structure = {} } = {}) {
   };
 }
 
+export function buildRemainingMonitorTrack({
+  id = "",
+  label = "",
+  kind = "wound",
+  monitor = {},
+  editable = false,
+} = {}) {
+  const max = Math.max(0, toNumber(monitor?.max, 0));
+  const damageTaken = clamp(toNumber(monitor?.value, 0), 0, max);
+  const remaining = Math.max(0, max - damageTaken);
+
+  return {
+    id,
+    label,
+    kind,
+    editable: Boolean(editable),
+    value: remaining,
+    max,
+    segments: Array.from({ length: max }, (_entry, index) => {
+      const segmentValue = index + 1;
+      return {
+        value: Math.max(0, max - segmentValue),
+        filled: segmentValue <= remaining,
+      };
+    }),
+  };
+}
+
 function formatCriticalTitle(crit = {}) {
   const label = String(crit?.label ?? startCase(crit?.key ?? "Critical")).trim() || "Critical";
   const location = String(crit?.locationLabel ?? startCase(crit?.locationKey ?? "")).trim();

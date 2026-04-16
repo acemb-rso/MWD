@@ -11,6 +11,12 @@ import {
   normalizeCriticalSignal,
   previewMachineAttackDamage,
 } from "../src/modules/mwd/critical-hits.js";
+import {
+  getMachineHeatStatusLabel,
+  resolveMachineHeatStatus,
+} from "../src/modules/mwd/heat-state.js";
+import { normalizeMachineMonitorResistance } from "../src/modules/mwd/machine-monitors.js";
+import { buildRemainingMonitorTrack } from "../src/modules/mwd/machine-summary.js";
 import { resolveMachineCritRemedyIntent } from "../src/modules/mwd/machine-intents.js";
 import { MachineCriticalsProvider } from "../src/modules/modifiers/providers/machine-criticals.js";
 
@@ -90,6 +96,68 @@ test("machine damage preview splits armor before structure and preserves pure-st
   assert.equal(preview.machine.structureAfter, 8);
   assert.equal(preview.machine.pureStructureHit, false);
   assert.equal(preview.finalDamage, 2);
+});
+
+test("machine system monitor pips display remaining armor and structure", () => {
+  const structure = buildRemainingMonitorTrack({
+    id: "structure",
+    label: "Structure",
+    kind: "structure",
+    monitor: { value: 3, max: 6 },
+    editable: true,
+  });
+  const armor = buildRemainingMonitorTrack({
+    id: "armor",
+    label: "Armor",
+    kind: "armor",
+    monitor: { value: 2, max: 5 },
+    editable: true,
+  });
+
+  assert.equal(structure.value, 3);
+  assert.equal(structure.kind, "structure");
+  assert.equal(structure.segments.filter(segment => segment.filled).length, 3);
+  assert.deepEqual(structure.segments.map(segment => segment.value), [5, 4, 3, 2, 1, 0]);
+  assert.equal(armor.value, 3);
+  assert.equal(armor.segments.filter(segment => segment.filled).length, 3);
+  assert.deepEqual(armor.segments.map(segment => segment.value), [4, 3, 2, 1, 0]);
+});
+
+test("vehicle structure pips display remaining structure", () => {
+  const structure = buildRemainingMonitorTrack({
+    id: "structure",
+    label: "Structure",
+    kind: "structure",
+    monitor: { value: 4, max: 7 },
+    editable: false,
+  });
+
+  assert.equal(structure.value, 3);
+  assert.equal(structure.kind, "structure");
+  assert.equal(structure.segments.filter(segment => segment.filled).length, 3);
+  assert.deepEqual(structure.segments.map(segment => segment.value), [6, 5, 4, 3, 2, 1, 0]);
+});
+
+test("machine heat status resolves safe, hot, overheat, and danger bands", () => {
+  const thresholds = { runningHot: 2, overheated: 3, shutdown: 4 };
+
+  assert.equal(resolveMachineHeatStatus(0, thresholds, 4), "safe");
+  assert.equal(resolveMachineHeatStatus(2, thresholds, 4), "hot");
+  assert.equal(resolveMachineHeatStatus(3, thresholds, 4), "overheat");
+  assert.equal(resolveMachineHeatStatus(4, thresholds, 4), "danger");
+  assert.equal(getMachineHeatStatusLabel("hot"), "Hot");
+  assert.equal(getMachineHeatStatusLabel("overheated"), "Overheat");
+});
+
+test("machine monitor resistance removes innate default while preserving explicit typed resistance", () => {
+  assert.deepEqual(normalizeMachineMonitorResistance(3), { default: 0, byType: {} });
+  assert.deepEqual(normalizeMachineMonitorResistance({
+    default: 3,
+    byType: { energy: 2, ballistic: 0, thermal: "1" },
+  }), {
+    default: 0,
+    byType: { energy: 2, thermal: 1 },
+  });
 });
 
 test("critical signal validation accepts valid data and rejects malformed rows", () => {

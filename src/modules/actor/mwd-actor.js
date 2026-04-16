@@ -672,6 +672,28 @@ export class MWDActor extends Actor {
       return this.update({ "system.burn.value": nextValue });
     }
 
+    if (monitorId === "heat" && this.type === "battlemech") {
+      const monitorMax = Number(foundry.utils.getProperty(this, "system.monitors.heat.max"));
+      const mwdMax = Number(foundry.utils.getProperty(this, "system.mwd.heat.max"));
+      const mwdHardMax = Number(foundry.utils.getProperty(this, "system.mwd.heat.hardMax"));
+      const clampedMax = Math.max(
+        0,
+        Number.isFinite(monitorMax) && monitorMax > 0
+          ? monitorMax
+          : Number.isFinite(mwdMax) && mwdMax > 0
+            ? mwdMax
+            : Number.isFinite(mwdHardMax) ? mwdHardMax : 0
+      );
+      const nextValue = Math.min(Math.max(0, Number(rawValue) || 0), clampedMax);
+
+      return this.update({
+        "system.monitors.heat.value": nextValue,
+        "system.monitors.heat.max": clampedMax,
+        "system.mwd.heat.current": nextValue,
+        "system.mwd.heat.max": clampedMax,
+      });
+    }
+
     if (monitorId === "armor" && this.isCharacterLike()) {
       const loadout = this.getPersonalCombatLoadout({ refresh: true });
       const activeArmorId = loadout?.activeArmor?.armorId ?? loadout?.activeArmor?.id ?? null;

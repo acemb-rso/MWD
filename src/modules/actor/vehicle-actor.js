@@ -5,7 +5,7 @@
 
 import { ACTOR_ATTRIBUTE_SETS, ICONS_PATH, TEMPLATE } from "../constants.js";
 import { AnarchyBaseActor } from "./base-actor.js";
-import { resistanceFromArmor } from "../mwd/derive-monitors.js";
+import { normalizeMachineMonitorResistance } from "../mwd/machine-monitors.js";
 
 function forcedDeletion() {
   return foundry.data.operators.ForcedDeletion;
@@ -99,8 +99,9 @@ export class VehicleActor extends AnarchyBaseActor {
     const monitors = this.system.monitors = this.system.monitors ?? {};
 
     // --- Armor ---
-    // Normalize armor first; its max value drives structure resistance (like personal
-    // armor item baseMitigation drives armor monitor resistance for characters).
+    // Machine armor is a damage buffer, not innate resistance. Keep any legacy
+    // stored resistance from affecting generic monitor helpers by normalizing it
+    // to zero during actor preparation.
     const defaultArmorMax = this.type === TEMPLATE.actorTypes.battlemech ? 15 : 12;
     const armorMax = Math.max(0, Number(monitors.armor?.max ?? defaultArmorMax));
 
@@ -109,17 +110,9 @@ export class VehicleActor extends AnarchyBaseActor {
       monitors.armor ?? {},
       { inplace: false, recursive: true }
     );
-    // Always override: resistance is derived from armor rating, not stored.
-    monitors.armor.resistance = {
-      default: resistanceFromArmor(armorMax),
-      byType: monitors.armor.resistance?.byType ?? {}
-    };
+    monitors.armor.resistance = normalizeMachineMonitorResistance(monitors.armor.resistance);
 
     // --- Structure ---
-    // Structure resistance is derived from armor max (same formula as personal armor),
-    // so that armor automatically provides resistance to structural damage.
-    const derivedStructureResistance = resistanceFromArmor(armorMax);
-
     const structureDefaults = {
       value: monitors.structure?.value ?? 0,
       max: monitors.structure?.max ?? (this.type === TEMPLATE.actorTypes.battlemech ? 18 : 15),
@@ -131,11 +124,7 @@ export class VehicleActor extends AnarchyBaseActor {
       monitors.structure ?? {},
       { inplace: false, recursive: true }
     );
-    // Always override: derived from armor, not stored value.
-    monitors.structure.resistance = {
-      default: derivedStructureResistance,
-      byType: monitors.structure.resistance?.byType ?? {}
-    };
+    monitors.structure.resistance = normalizeMachineMonitorResistance(monitors.structure.resistance);
 
     mwd.monitors = mwd.monitors ?? {};
     mwd.monitors.structure = foundry.utils.mergeObject(

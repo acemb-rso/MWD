@@ -285,6 +285,9 @@
   --mwd-monitor-fatigue-empty: rgba(140, 110, 30, 0.5);
   --mwd-monitor-armor-filled: #55aadd;
   --mwd-monitor-armor-empty: rgba(50, 100, 145, 0.5);
+  --mwd-monitor-heat-filled: #ff7a2f;
+  --mwd-monitor-heat-empty: rgba(255, 220, 190, 0.16);
+  --mwd-monitor-heat-breakpoint: rgba(255, 235, 170, 0.95);
   /* Ink on light/noisy surfaces */
   --mwd-ink-strong: rgba(20, 24, 28, 0.95);
   --mwd-ink-shadow-light: rgba(255, 255, 255, 0.85);
@@ -3194,6 +3197,25 @@
 .mwd-condition-monitors .mwd-monitor[data-monitor=armor] .pip--monitor.pip--empty {
   color: var(--mwd-monitor-armor-empty);
 }
+.mwd-condition-monitors .mwd-monitor[data-monitor=heat] .pip--monitor.pip--filled {
+  color: var(--mwd-monitor-heat-filled);
+}
+.mwd-condition-monitors .mwd-monitor[data-monitor=heat] .pip--monitor.pip--empty {
+  color: var(--mwd-monitor-heat-empty);
+}
+.mwd-condition-monitors .mwd-monitor[data-monitor=heat] .pip--monitor.pip--breakpoint {
+  filter: drop-shadow(0 0 3px var(--mwd-monitor-heat-breakpoint));
+}
+
+.mwd-monitor[data-monitor=heat] .pip--monitor.pip--filled {
+  color: var(--mwd-monitor-heat-filled);
+}
+.mwd-monitor[data-monitor=heat] .pip--monitor.pip--empty {
+  color: var(--mwd-monitor-heat-empty);
+}
+.mwd-monitor[data-monitor=heat] .pip--monitor.pip--filled.pip--breakpoint {
+  filter: drop-shadow(0 0 3px var(--mwd-monitor-heat-breakpoint));
+}
 
 /* ================================================ */
 /* Monitors row: 3 standard monitors + burn side-by-side */
@@ -3397,7 +3419,24 @@
   min-height: 18px;
 }
 
-.mwd-sheet .sheet-body .mwd-condition-monitors .pip--monitor {
+.mwd-monitor__pips .pip--monitor {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin: 0 2px 0 0;
+  border: none;
+  background: currentColor !important;
+  cursor: pointer;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.mwd-sheet .sheet-body .mwd-monitor__pips .pip--monitor {
   /* Override .mwd-sheet .sheet-body button background */
   background: currentColor !important;
 }

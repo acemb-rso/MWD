@@ -375,15 +375,18 @@ export const MWD = {
 
       "heat": {
         "thresholds": "Heat thresholds",
-        "runningHot": "Running hot",
-        "overheated": "Overheated",
-        "shutdown": "Shutdown",
+        "runningHot": "Hot",
+        "overheated": "Overheat",
+        "shutdown": "Danger",
         "statusLabel": "Current heat state",
         "status": {
           "safe": "Safe",
-          "runningHot": "Running hot",
-          "overheated": "Overheated",
-          "shutdown": "Shutdown"
+          "hot": "Hot",
+          "overheat": "Overheat",
+          "danger": "Danger",
+          "runningHot": "Hot",
+          "overheated": "Overheat",
+          "shutdown": "Danger"
         }
       },
 

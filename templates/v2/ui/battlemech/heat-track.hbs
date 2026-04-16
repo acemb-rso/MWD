@@ -4,7 +4,7 @@ Purpose: Renders the prepared BattleMech heat monitor and status thresholds.
 How it fits: Specific to the BattleMech V2 sheet systems tab.
 --}}
 
-<section class="mwd-monitor">
+<section class="mwd-monitor" data-monitor="heat">
   <header class="mwd-monitor__header">
     <div class="mwd-monitor__label">{{battlemechSheet.heat.label}}</div>
     <div class="mwd-monitor__status">
@@ -22,7 +22,7 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
         data-monitor="heat"
         data-value="{{segment.value}}"
         aria-label="Set heat to {{segment.value}}"
-        {{#unless ../battlemechSheet.heat.editable}}aria-disabled="true"{{/unless}}>
+        {{#unless @root.battlemechSheet.heat.editable}}disabled{{/unless}}>
       </button>
     {{/each}}
   </div>
@@ -39,7 +39,7 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
         />
       </label>
       <label class="mwd-gmgadget__field">
-        <span class="mwd-gmgadget__field-label">Running Hot</span>
+        <span class="mwd-gmgadget__field-label">Hot</span>
         <input
           type="number"
           name="system.mwd.heat.thresholds.runningHot"
@@ -48,7 +48,7 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
         />
       </label>
       <label class="mwd-gmgadget__field">
-        <span class="mwd-gmgadget__field-label">Overheated</span>
+        <span class="mwd-gmgadget__field-label">Overheat</span>
         <input
           type="number"
           name="system.mwd.heat.thresholds.overheated"
@@ -57,7 +57,7 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
         />
       </label>
       <label class="mwd-gmgadget__field">
-        <span class="mwd-gmgadget__field-label">Shutdown</span>
+        <span class="mwd-gmgadget__field-label">Danger</span>
         <input
           type="number"
           name="system.mwd.heat.thresholds.shutdown"
@@ -73,15 +73,15 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
         <span class="mwd-item-hero__value">{{battlemechSheet.heat.current}} / {{battlemechSheet.heat.max}}</span>
       </div>
       <div class="mwd-item-hero__stat">
-        <span class="mwd-item-hero__label">Running Hot</span>
+        <span class="mwd-item-hero__label">Hot</span>
         <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.runningHot}}</span>
       </div>
       <div class="mwd-item-hero__stat">
-        <span class="mwd-item-hero__label">Overheated</span>
+        <span class="mwd-item-hero__label">Overheat</span>
         <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.overheated}}</span>
       </div>
       <div class="mwd-item-hero__stat">
-        <span class="mwd-item-hero__label">Shutdown</span>
+        <span class="mwd-item-hero__label">Danger</span>
         <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.shutdown}}</span>
       </div>
     </section>

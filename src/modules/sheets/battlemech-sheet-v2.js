@@ -6,7 +6,12 @@ import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
-import { buildCriticalStatusSummary, buildIntegritySummary } from "../mwd/machine-summary.js";
+import {
+  getMachineHeatStatusLabel,
+  normalizeMachineHeatThresholds,
+  resolveMachineHeatStatus,
+} from "../mwd/heat-state.js";
+import { buildCriticalStatusSummary, buildIntegritySummary, buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
 
 function toNumber(value, fallback = 0) {
@@ -143,38 +148,21 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const structure = this.actor.system?.monitors?.structure ?? {};
     const armor = this.actor.system?.monitors?.armor ?? {};
 
-    const buildTrack = (id, label, kind, data) => ({
-      id,
-      label,
-      kind,
-      editable: Boolean(this.isEditable),
-      value: Math.max(0, toNumber(data.value, 0)),
-      max: Math.max(0, toNumber(data.max, 0)),
-      segments: Array.from({ length: Math.max(0, toNumber(data.max, 0)) }, (_, index) => {
-        const segmentValue = index + 1;
-        return {
-          value: segmentValue,
-          filled: segmentValue <= Math.max(0, toNumber(data.value, 0)),
-        };
-      }),
-      status: {
-        label: "Resist",
-        value: toNumber(data.resistance?.default, 0),
-      },
-    });
-
     return [
-      buildTrack("structure", "Structure", "wound", structure),
-      buildTrack("armor", "Armor", "armor", armor),
+      buildRemainingMonitorTrack({ id: "structure", label: "Structure", kind: "structure", monitor: structure, editable: this.isEditable }),
+      buildRemainingMonitorTrack({ id: "armor", label: "Armor", kind: "armor", monitor: armor, editable: this.isEditable }),
     ];
   }
 
   _buildSummaryStats() {
     const armor = this.actor.system?.monitors?.armor ?? {};
     const structure = this.actor.system?.monitors?.structure ?? {};
-    const heat = this.actor.system?.mwd?.heat ?? {};
-    const heatStatus = this.actor.system?.mwd?.heatStatus ?? {};
-    const heatLabel = heatStatus.label ?? startCase(heatStatus.code ?? "safe");
+    const heatMonitor = this.actor.system?.monitors?.heat ?? {};
+    const heatConfig = this.actor.system?.mwd?.heat ?? {};
+    const heatCurrent = Math.max(0, toNumber(heatMonitor.value ?? heatConfig.current, 0));
+    const heatMax = Math.max(0, toNumber(heatMonitor.max ?? heatConfig.max ?? heatConfig.hardMax, 0));
+    const heatThresholds = normalizeMachineHeatThresholds(heatConfig.thresholds ?? {}, heatMax);
+    const heatLabel = getMachineHeatStatusLabel(resolveMachineHeatStatus(heatCurrent, heatThresholds, heatMax));
     const heatSummaryLabel = heatLabel.toUpperCase();
     const integrity = buildIntegritySummary({ armor, structure });
     const critStatus = buildCriticalStatusSummary(this.actor.system?.mwd?.crits ?? []);
@@ -183,7 +171,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       { label: "Weight", value: startCase(this.actor.system?.mwd?.weightClass ?? "medium"), emphasis: "strong" },
       { label: "Tonnage", value: toNumber(this.actor.system?.mwd?.tonnage, 0) },
       { label: "Integrity", parts: integrity.parts, title: integrity.title },
-      { label: "Heat", value: `${toNumber(heat.current, 0)} / ${toNumber(heat.max, 0)} ${heatSummaryLabel}`, title: heatLabel },
+      { label: "Heat", value: `${heatCurrent} / ${heatMax} ${heatSummaryLabel}`, title: heatLabel },
       { label: "Status", value: critStatus.value, title: critStatus.title, tone: critStatus.count > 0 ? "red" : "" },
     ]);
   }
@@ -231,22 +219,26 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   }
 
   _buildHeatModel() {
-    const heat = this.actor.system?.mwd?.heat ?? {};
-    const heatStatus = this.actor.system?.mwd?.heatStatus ?? {};
-    const current = Math.max(0, toNumber(heat.current, 0));
-    const max = Math.max(0, toNumber(heat.max, 0));
-    const thresholds = heat.thresholds ?? {};
+    const heatMonitor = this.actor.system?.monitors?.heat ?? {};
+    const heatConfig = this.actor.system?.mwd?.heat ?? {};
+    const current = Math.max(0, toNumber(heatMonitor.value ?? heatConfig.current, 0));
+    const max = Math.max(0, toNumber(heatMonitor.max ?? heatConfig.max ?? heatConfig.hardMax, 0));
+    const thresholds = normalizeMachineHeatThresholds(heatConfig.thresholds ?? {}, max);
+    const statusCode = resolveMachineHeatStatus(current, thresholds, max);
 
     return {
       label: "Heat",
       current,
       max,
       editable: Boolean(this.isEditable),
-      status: heatStatus.label ?? startCase(heatStatus.code ?? "safe"),
+      status: getMachineHeatStatusLabel(statusCode),
       thresholds: {
         runningHot: toNumber(thresholds.runningHot, 0),
         overheated: toNumber(thresholds.overheated, 0),
         shutdown: toNumber(thresholds.shutdown, 0),
+        hot: toNumber(thresholds.hot, 0),
+        overheat: toNumber(thresholds.overheat, 0),
+        danger: toNumber(thresholds.danger, 0),
       },
       segments: Array.from({ length: max }, (_, index) => {
         const value = index + 1;

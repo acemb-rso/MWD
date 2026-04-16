@@ -41,6 +41,7 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
   /** Track active CSB tab per group across rerenders */
   #activeTabsByGroup = new Map(); // group -> tabId
   #activeAccordionSectionsByGroup = new Map(); // group -> sectionId|null
+  #pendingScrollRestore = null;
 
   /** @override */
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
@@ -122,6 +123,44 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
   _getRootElement() {
   return (this.element instanceof HTMLElement) ? this.element : this.element?.[0];
 }
+
+  _getPrimaryScroller() {
+    const root = this._getRootElement();
+    if (!root) return null;
+
+    return root.querySelector(".mwd-scroll-area")
+      ?? root.querySelector(".csb-tab-panels")
+      ?? root.querySelector(".window-content");
+  }
+
+  _captureScrollPosition() {
+    const scroller = this._getPrimaryScroller();
+    if (!(scroller instanceof HTMLElement)) {
+      this.#pendingScrollRestore = null;
+      return;
+    }
+
+    this.#pendingScrollRestore = {
+      top: scroller.scrollTop,
+      left: scroller.scrollLeft,
+    };
+  }
+
+  _restoreScrollPosition() {
+    const pending = this.#pendingScrollRestore;
+    if (!pending) return;
+
+    const apply = () => {
+      const scroller = this._getPrimaryScroller();
+      if (!(scroller instanceof HTMLElement)) return;
+      scroller.scrollTop = pending.top;
+      scroller.scrollLeft = pending.left;
+    };
+
+    apply();
+    requestAnimationFrame(apply);
+    this.#pendingScrollRestore = null;
+  }
 
   /**
    * Resolve the TokenDocument that launched this sheet when one exists.
@@ -509,6 +548,8 @@ _initializeApplicationOptions(options) {
         void this._updateRichTextHistory(editor);
       });
     }
+
+    this._restoreScrollPosition();
   }
 
   async _updateRichTextHistory(editor) {
@@ -706,12 +747,21 @@ async _prepareContext(options) {
   /** Action handler: Condition Monitor set */
   async _onMonitorSet(event, target) {
     event.preventDefault();
+    event.stopPropagation?.();
     if (!this.isEditable) return;
 
-    const monitorId = String(target?.dataset?.monitor ?? "").trim();
-    const raw = Number(target?.dataset?.value);
+    const control =
+      target?.closest?.("[data-action='monitorSet']") ??
+      event?.target?.closest?.("[data-action='monitorSet']") ??
+      target;
+    const monitorId = String(control?.dataset?.monitor ?? "").trim();
+    const raw = Number(control?.dataset?.value);
 
     if (!monitorId || !Number.isFinite(raw)) return;
+
+    // Monitor clicks usually trigger an actor update and sheet redraw; preserve
+    // the current tab scroll so deep systems panels do not snap back to top.
+    this._captureScrollPosition();
 
     // Toggle: clicking the already-active pip clears the monitor to 0
     const currentPath = monitorId === "burn"

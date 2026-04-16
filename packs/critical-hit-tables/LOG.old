@@ -1,15 +1,3 @@
-2026/04/15-18:20:31.474 4a5c Recovering log #16
-2026/04/15-18:20:31.476 4a5c Delete type=0 #16
-2026/04/15-18:20:31.476 4a5c Delete type=3 #13
-2026/04/15-18:20:31.479 de98 Level-0 table #23: started
-2026/04/15-18:20:31.480 de98 Level-0 table #23: 11148 bytes OK
-2026/04/15-18:20:31.481 de98 Delete type=0 #21
-2026/04/15-18:20:31.481 de98 Manual compaction at level-0 from '!tables!MWDGeneralCrit01' @ 72057594037927935 : 1 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at (end)
-2026/04/15-18:20:31.481 de98 Manual compaction at level-1 from '!tables!MWDGeneralCrit01' @ 72057594037927935 : 1 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 164 : 1
-2026/04/15-18:20:31.481 de98 Compacting 1@1 + 1@2 files
-2026/04/15-18:20:31.482 de98 Generated table #24@1: 96 keys, 11035 bytes
-2026/04/15-18:20:31.482 de98 Compacted 1@1 + 1@2 files => 11035 bytes
-2026/04/15-18:20:31.482 de98 compacted to: files[ 0 0 1 0 0 0 0 ]
-2026/04/15-18:20:31.483 de98 Delete type=2 #19
-2026/04/15-18:20:31.483 de98 Delete type=2 #23
-2026/04/15-18:20:31.483 de98 Manual compaction at level-1 from '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 164 : 1 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at (end)
+2026/04/15-20:10:24.528 aad4 Recovering log #26
+2026/04/15-20:10:24.530 aad4 Delete type=0 #26
+2026/04/15-20:10:24.530 aad4 Delete type=3 #25

@@ -25,7 +25,7 @@ import {
   normalizeStoredSkillSpecializationKeys,
 } from "../mwd/skills.js";
 import { notifyRollError } from "../roll/roll-errors.js";
-import { buildIntegritySummary, buildCriticalStatusSummary } from "../mwd/machine-summary.js";
+import { buildCriticalStatusSummary } from "../mwd/machine-summary.js";
 import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
 import {
   getQualityCategoryLabel,
@@ -233,6 +233,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
   #pendingScrollRestore = null;
   #expandedInventoryRows = new Set();
   #inventoryAttackDragController = null;
+  #linkedMechHookId = null;
 
   static PARTS = {
     sheet: {
@@ -744,7 +745,6 @@ ctx.edgeConsole.poolsOrdered = order
           }),
         } : null;
 
-        const integrity = buildIntegritySummary({ armor, structure });
         const critStatus = buildCriticalStatusSummary(crits);
 
         const conditionMonitors = isMech
@@ -765,6 +765,11 @@ ctx.edgeConsole.poolsOrdered = order
           { label: "Repair", hint: "Technician quick check", handler: "mechRoll", disabled: false, dataset: { rollKind: "repair", mechId: a.id } },
         ] : [];
 
+        const armorMax = Math.max(0, toNumber(armor.max, 0));
+        const armorRemaining = Math.max(0, armorMax - toNumber(armor.value, 0));
+        const structureMax = Math.max(0, toNumber(structure.max, 0));
+        const structureRemaining = Math.max(0, structureMax - toNumber(structure.value, 0));
+
         return {
           id: a.id,
           uuid: a.uuid,
@@ -773,7 +778,8 @@ ctx.edgeConsole.poolsOrdered = order
           isMech,
           weightLabel: WEIGHT_LABELS[a.system?.mwd?.weightClass] ?? "",
           summaryStats: buildSummaryStats([
-            { label: "Integrity", value: integrity.parts?.map(p => p.value).join(" / ") ?? "" },
+            ...(isMech ? [{ label: "Armor", value: `${armorRemaining} / ${armorMax}` }] : []),
+            { label: "Structure", value: `${structureRemaining} / ${structureMax}` },
             { label: "Heat", value: isMech ? `${heatCurrent} / ${heatMax}` : null },
             { label: "Status", value: critStatus.count > 0 ? critStatus.value : "OK" },
           ]),
@@ -830,11 +836,16 @@ ctx.edgeConsole.poolsOrdered = order
     this.#syncCombatMenuOutsideHandler();
     this.#restoreScrollPosition();
     this.#bindInventoryAttackDrag();
+    this.#bindLinkedMechHook();
   }
 
   async close(options = {}) {
     this.#removeCombatMenuOutsideHandler();
     this.#teardownInventoryAttackDrag();
+    if (this.#linkedMechHookId !== null) {
+      Hooks.off("updateActor", this.#linkedMechHookId);
+      this.#linkedMechHookId = null;
+    }
     return super.close(options);
    }
 
@@ -892,6 +903,16 @@ ctx.edgeConsole.poolsOrdered = order
   this.#openCombatMenuId = this.#openCombatMenuId === menuId ? null : menuId;
   this.#renderPreservingScroll(false);
  }
+
+ #bindLinkedMechHook() {
+    if (this.#linkedMechHookId !== null) return;
+    const actorUuid = this.actor.uuid;
+    this.#linkedMechHookId = Hooks.on("updateActor", (actor) => {
+      if (actor.type !== "battlemech" && actor.type !== "vehicle") return;
+      if (String(actor.system?.pilot?.uuid ?? "").trim() !== actorUuid) return;
+      this.render();
+    });
+  }
 
  #syncCombatMenuOutsideHandler() {
   this.#removeCombatMenuOutsideHandler();

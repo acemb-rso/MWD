@@ -2435,6 +2435,22 @@
     &.pip--empty { color: var(--mwd-monitor-armor-empty); }
   }
 
+  .mwd-monitor[data-monitor="heat"] .pip--monitor {
+    &.pip--filled { color: var(--mwd-monitor-heat-filled); }
+    &.pip--empty { color: var(--mwd-monitor-heat-empty); }
+    &.pip--breakpoint {
+      filter: drop-shadow(0 0 3px var(--mwd-monitor-heat-breakpoint));
+    }
+  }
+
+}
+
+.mwd-monitor[data-monitor="heat"] .pip--monitor {
+  &.pip--filled { color: var(--mwd-monitor-heat-filled); }
+  &.pip--empty { color: var(--mwd-monitor-heat-empty); }
+  &.pip--filled.pip--breakpoint {
+    filter: drop-shadow(0 0 3px var(--mwd-monitor-heat-breakpoint));
+  }
 }
 
 /* ================================================ */
@@ -2623,7 +2639,25 @@
   min-height: 18px;
 }
 
-.mwd-sheet .sheet-body .mwd-condition-monitors .pip--monitor {
+.mwd-monitor__pips .pip--monitor {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin: 0 2px 0 0;
+  border: none;
+  background: currentColor !important;
+  cursor: pointer;
+
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.mwd-sheet .sheet-body .mwd-monitor__pips .pip--monitor {
   /* Override .mwd-sheet .sheet-body button background */
   background: currentColor !important;
 }

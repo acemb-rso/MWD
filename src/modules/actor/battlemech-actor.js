@@ -10,6 +10,11 @@ import { VehicleActor } from "./vehicle-actor.js";
 import { formatString } from "../strings.js";
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 import { getSkillDef } from "../mwd/skills.js";
+import {
+  getMachineHeatStatusLabel,
+  normalizeMachineHeatThresholds,
+  resolveMachineHeatStatus,
+} from "../mwd/heat-state.js";
 
 export class BattlemechActor extends VehicleActor {
 
@@ -145,30 +150,24 @@ export class BattlemechActor extends VehicleActor {
     };
 
     const heat = foundry.utils.mergeObject(defaults, mwdHeat, { inplace: false });
-    heat.thresholds = foundry.utils.mergeObject(defaults.thresholds, mwdHeat.thresholds ?? {}, { inplace: false });
     heat.current = heatMonitor.value ?? heat.current;
     heat.max = heatMonitor.max ?? heat.max;
+    heat.thresholds = normalizeMachineHeatThresholds(
+      foundry.utils.mergeObject(defaults.thresholds, mwdHeat.thresholds ?? {}, { inplace: false }),
+      heat.max
+    );
 
     const status = this._resolveHeatStatus(heat.current, heat.thresholds, heat.max);
     this.system.mwd.heatStatus = {
       code: status,
-      label: ANARCHY.actor.battlemech.heat.status[status] ?? status
+      label: ANARCHY.actor.battlemech.heat.status[status] ?? getMachineHeatStatusLabel(status)
     };
 
     return heat;
   }
 
   _resolveHeatStatus(value, thresholds, max) {
-    if (value >= (thresholds?.shutdown ?? max)) {
-      return 'shutdown';
-    }
-    if (value >= (thresholds?.overheated ?? max)) {
-      return 'overheated';
-    }
-    if (value >= (thresholds?.runningHot ?? 0)) {
-      return 'runningHot';
-    }
-    return 'safe';
+    return resolveMachineHeatStatus(value, thresholds, max);
   }
 
   _prepareConfiguredWeaponGroups() {
