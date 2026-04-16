@@ -1,6 +1,8 @@
 # MWD Vehicle Handling – System Gap Analysis & Attribute Redesign
 
 > **Status note:** Gap 6 (Attribute Mismatch) is **resolved** — vehicle and BattleMech actors now use Handling/System/Chassis/Condition. The dynamic pilot-actor linking system has been removed; pilot/driver stats are cached manually as snapshots on the sheet. Gaps 1–5 remain open.
+>
+> **Location note:** Older draft examples in this document may still show split BattleMech keys such as `torsoFront`, `torsoRear`, `core`, `leftArm`, or `rightLeg`. The current crit/degradation model groups BattleMech locations into **`head` / `torso` / `arms` / `legs`** and normalizes legacy split keys into those buckets.
 
 This document tracks the mechanical gaps between **MechWarrior: Destiny (MWD)** and the current vehicle implementation, and defines the BattleTech-appropriate attribute set for all ‘Mechs and vehicles.
 
@@ -344,18 +346,12 @@ type MwdUnitType = "mech" | "vehicle" | "vtol" | "naval" | "aero";
 
 type MwdLocationKey =
   | "head"
-  | "torsoFront"
-  | "torsoRear"
-  | "leftArm"
-  | "rightArm"
-  | "leftLeg"
-  | "rightLeg"
-  | "front"
-  | "side"
-  | "rear"
+  | "torso"
+  | "arms"
+  | "legs"
+  | "body"
   | "turret"
-  | "rotor"
-  | "core";
+  | "mobility";
 
 type MwdLocationTag =
   | "crewCompartment"
@@ -528,65 +524,39 @@ interface MwdSystemData {
           "destroyed": false,
           "note": "Cracked canopy; pilot rattled."
         },
-        "torsoFront": {
+        "torso": {
           "enabled": true,
           "stress": 0,
-          "tags": ["weaponGroup", "engine", "ammoStore"],
+          "tags": ["weaponGroup", "engine", "ammoStore", "gyro"],
           "destroyed": false
         },
-        "torsoRear": {
-          "enabled": true,
-          "stress": 0,
-          "tags": ["engine"],
-          "destroyed": false
-        },
-        "leftArm": {
+        "arms": {
           "enabled": true,
           "stress": 0,
           "tags": ["weaponGroup"],
           "destroyed": false
         },
-        "rightArm": {
-          "enabled": true,
-          "stress": 0,
-          "tags": ["weaponGroup"],
-          "destroyed": false
-        },
-        "leftLeg": {
-          "enabled": true,
-          "stress": 0,
-          "tags": ["motiveSystem"],
-          "destroyed": false
-        },
-        "rightLeg": {
+        "legs": {
           "enabled": true,
           "stress": 1,
           "tags": ["motiveSystem"],
           "destroyed": false,
-          "note": "Knee actuator hit (–2 max Movement)."
+          "note": "Leg actuators strained (–2 max Movement)."
         },
-        "front":  { "enabled": false, "stress": 0, "tags": [], "destroyed": false },
-        "side":   { "enabled": false, "stress": 0, "tags": [], "destroyed": false },
-        "rear":   { "enabled": false, "stress": 0, "tags": [], "destroyed": false },
+        "body":   { "enabled": false, "stress": 0, "tags": [], "destroyed": false },
         "turret": { "enabled": false, "stress": 0, "tags": [], "destroyed": false },
-        "rotor":  { "enabled": false, "stress": 0, "tags": [], "destroyed": false },
-        "core": {
-          "enabled": true,
-          "stress": 0,
-          "tags": ["engine", "gyro"],
-          "destroyed": false
-        }
+        "mobility": { "enabled": false, "stress": 0, "tags": [], "destroyed": false }
       },
       "crits": [
         {
           "id": "crit-001",
-          "location": "rightLeg",
+          "location": "legs",
           "type": "motiveHit",
           "effects": {
             "movementDelta": -2
           },
           "catastrophic": false,
-          "label": "Right leg motive hit (–2 max Movement)",
+          "label": "Leg motive hit (–2 max Movement)",
           "source": {
             "attackId": "atk-2025-11-30-001",
             "timestamp": 1764470400000,
@@ -634,7 +604,7 @@ Implementation order is important. Below is a suggested sequence.
   * Default sensible values for `unitType`, `heat`, `locations`, `config`
 * [ ] **Write a migration script**
   * For existing vehicle actors:
-    * Enable only relevant locations (e.g., front/side/rear/turret for tanks; head/torso/arms/legs/core for ‘Mechs)
+    * Enable only relevant locations (e.g., body/turret/mobility for vehicles; head/torso/arms/legs for ‘Mechs)
     * Set default `heat.safeMax/hardMax/ventPerTurn`
     * Set `config` to default crit TNs and heat bands
 

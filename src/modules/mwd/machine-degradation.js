@@ -40,13 +40,9 @@ export const MACHINE_RELIABILITY_THRESHOLDS = Object.freeze({
 
 const MECH_LOCATION_PRIORITY = Object.freeze([
   "head",
-  "torsoFront",
-  "torsoRear",
-  "core",
-  "leftArm",
-  "rightArm",
-  "leftLeg",
-  "rightLeg",
+  "torso",
+  "arms",
+  "legs",
 ]);
 
 const VEHICLE_LOCATION_PRIORITY = Object.freeze([
@@ -60,13 +56,9 @@ const VEHICLE_LOCATION_PRIORITY = Object.freeze([
 
 const DEFAULT_MECH_LOCATIONS = Object.freeze({
   head: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["cockpit", "sensor"], destroyed: false }),
-  torsoFront: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup", "engine"], destroyed: false }),
-  torsoRear: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup", "ammoStore"], destroyed: false }),
-  leftArm: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup"], destroyed: false }),
-  rightArm: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup"], destroyed: false }),
-  leftLeg: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["motiveSystem"], destroyed: false }),
-  rightLeg: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["motiveSystem"], destroyed: false }),
-  core: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["engine", "gyro", "ammoStore"], destroyed: false }),
+  torso: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup", "engine", "gyro", "ammoStore"], destroyed: false }),
+  arms: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup"], destroyed: false }),
+  legs: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["motiveSystem"], destroyed: false }),
 });
 
 const DEFAULT_VEHICLE_LOCATIONS = Object.freeze({
@@ -81,13 +73,9 @@ const DEFAULT_VEHICLE_LOCATIONS = Object.freeze({
 const CATASTROPHIC_FALLBACKS = Object.freeze({
   [TEMPLATE.actorTypes.battlemech]: Object.freeze({
     head: Object.freeze({ type: "cockpitCatastrophe", destroyed: true, statusState: "destroyed" }),
-    torsoFront: Object.freeze({ type: "torsoCollapse", destroyed: true, statusState: "destroyed" }),
-    torsoRear: Object.freeze({ type: "torsoCollapse", destroyed: true, statusState: "destroyed" }),
-    core: Object.freeze({ type: "coreFailure", destroyed: true, statusState: "destroyed" }),
-    leftArm: Object.freeze({ type: "armSystemCollapse", destroyed: true, statusState: "" }),
-    rightArm: Object.freeze({ type: "armSystemCollapse", destroyed: true, statusState: "" }),
-    leftLeg: Object.freeze({ type: "legCollapse", destroyed: true, statusState: "immobilized" }),
-    rightLeg: Object.freeze({ type: "legCollapse", destroyed: true, statusState: "immobilized" }),
+    torso: Object.freeze({ type: "torsoCollapse", destroyed: true, statusState: "destroyed" }),
+    arms: Object.freeze({ type: "armSystemCollapse", destroyed: true, statusState: "" }),
+    legs: Object.freeze({ type: "legCollapse", destroyed: true, statusState: "immobilized" }),
   }),
   [TEMPLATE.actorTypes.vehicle]: Object.freeze({
     front: Object.freeze({ type: "hullCollapse", destroyed: true, statusState: "destroyed" }),
@@ -143,15 +131,57 @@ function ensureLocationState(source = {}, defaults = {}) {
   };
 }
 
+function mergeLegacyMechLocations(locations = {}) {
+  const groups = {
+    head: ["head"],
+    torso: ["torso", "torsoFront", "torsoRear", "core"],
+    arms: ["arms", "leftArm", "rightArm"],
+    legs: ["legs", "leftLeg", "rightLeg"],
+  };
+
+  const merged = {};
+  for (const [targetKey, sourceKeys] of Object.entries(groups)) {
+    const sourceEntries = sourceKeys
+      .map(key => [key, locations?.[key]])
+      .filter(([, value]) => value && typeof value === "object");
+    if (!sourceEntries.length) continue;
+
+    const stress = sourceEntries.reduce((total, [, value]) => total + Math.max(0, toNumber(value?.stress, 0)), 0);
+    const condition = sourceEntries.reduce((max, [, value]) => Math.max(max, getConditionStage(value?.condition)), 0);
+    const enabled = sourceEntries.some(([, value]) => value?.enabled !== false);
+    const destroyed = sourceEntries.some(([, value]) => value?.destroyed === true);
+    const tags = Array.from(new Set(sourceEntries.flatMap(([, value]) => Array.isArray(value?.tags) ? value.tags : [])));
+
+    merged[targetKey] = {
+      enabled,
+      stress,
+      condition,
+      destroyed,
+      tags,
+    };
+  }
+
+  for (const [key, value] of Object.entries(locations ?? {})) {
+    if (Object.hasOwn(merged, key)) continue;
+    if (["torsoFront", "torsoRear", "core", "leftArm", "rightArm", "leftLeg", "rightLeg"].includes(key)) continue;
+    merged[key] = value;
+  }
+
+  return merged;
+}
+
 function normalizeLocations(locations = {}, actorType = TEMPLATE.actorTypes.vehicle) {
   const defaults = getDefaultLocationConfig(actorType);
+  const sourceLocations = actorType === TEMPLATE.actorTypes.battlemech
+    ? mergeLegacyMechLocations(locations ?? {})
+    : (locations ?? {});
   const normalized = {};
 
   for (const [key, data] of Object.entries(defaults)) {
-    normalized[key] = ensureLocationState(locations?.[key] ?? {}, data);
+    normalized[key] = ensureLocationState(sourceLocations?.[key] ?? {}, data);
   }
 
-  for (const [key, data] of Object.entries(locations ?? {})) {
+  for (const [key, data] of Object.entries(sourceLocations ?? {})) {
     if (normalized[key]) continue;
     normalized[key] = ensureLocationState(data, {});
   }
@@ -280,6 +310,25 @@ function createResultSkeleton({ locations = {}, shockBefore = 0, shockGain = 0, 
   };
 }
 
+function normalizeDirectConditionEvent(entry, fallbackSource = "critical") {
+  if (typeof entry === "string") {
+    const locationKey = String(entry ?? "").trim();
+    return locationKey
+      ? { locationKey, source: fallbackSource, applyReductions: true, allowSpend: true }
+      : null;
+  }
+
+  if (!entry || typeof entry !== "object") return null;
+  const locationKey = String(entry.locationKey ?? entry.location ?? "").trim();
+  if (!locationKey) return null;
+  return {
+    locationKey,
+    source: String(entry.source ?? fallbackSource).trim() || fallbackSource,
+    applyReductions: entry.applyReductions !== false,
+    allowSpend: entry.allowSpend !== false,
+  };
+}
+
 export function getMachineReliabilityThreshold(value = 0) {
   const rating = clamp(Math.trunc(toNumber(value, 0)), 0, 5);
   return Math.max(1, Number(MACHINE_RELIABILITY_THRESHOLDS[rating] ?? 1));
@@ -381,14 +430,19 @@ export function resolveMachineDegradation({
 
   let opportunityIndex = 0;
   let iterations = 0;
-  const processAdvancement = (forcedLocationKey = "", source = "shock") => {
+  const processAdvancement = ({
+    forcedLocationKey = "",
+    source = "shock",
+    applyReductions = true,
+    allowSpendForThisAdvancement = true,
+  } = {}) => {
     const chosenLocation = resolveLocationSelection(locations, actorType, forcedLocationKey);
     if (!chosenLocation) return false;
 
     const location = locations[chosenLocation];
     result.summary.selectedLocations.push({ source, location: chosenLocation });
 
-    const canSpend = Boolean(allowReliabilitySpend) && spendable > 0;
+    const canSpend = Boolean(allowReliabilitySpend) && Boolean(allowSpendForThisAdvancement) && spendable > 0;
     const shouldSpend = canSpend && shouldSpendForOpportunity(reliabilitySpendSelections, opportunityIndex);
     result.spendOpportunities.push({
       index: opportunityIndex,
@@ -418,20 +472,22 @@ export function resolveMachineDegradation({
       }
     }
 
-    workingShock = applyAdvancementReductions({
-      result,
-      locations,
-      locationKey: chosenLocation,
-      reliability,
-      threshold,
-      currentShock: workingShock,
-    });
-    workingShock = Math.max(0, workingShock);
+    if (applyReductions) {
+      workingShock = applyAdvancementReductions({
+        result,
+        locations,
+        locationKey: chosenLocation,
+        reliability,
+        threshold,
+        currentShock: workingShock,
+      });
+      workingShock = Math.max(0, workingShock);
+    }
     return true;
   };
 
   while (workingShock >= threshold && iterations < Math.max(1, Math.trunc(toNumber(maxIterations, 10)))) {
-    const processed = processAdvancement("", "shock");
+    const processed = processAdvancement({ source: "shock" });
     iterations += 1;
     if (!processed) break;
   }
@@ -440,8 +496,15 @@ export function resolveMachineDegradation({
     result.loopGuardTriggered = true;
   }
 
-  for (const forcedLocationKey of Array.isArray(directConditionLocations) ? directConditionLocations : []) {
-    processAdvancement(String(forcedLocationKey ?? "").trim(), "critical");
+  for (const entry of Array.isArray(directConditionLocations) ? directConditionLocations : []) {
+    const event = normalizeDirectConditionEvent(entry, "critical");
+    if (!event) continue;
+    processAdvancement({
+      forcedLocationKey: event.locationKey,
+      source: event.source,
+      applyReductions: event.applyReductions,
+      allowSpendForThisAdvancement: event.allowSpend,
+    });
   }
 
   result.shockDelta = Math.max(0, workingShock) - initialShock;

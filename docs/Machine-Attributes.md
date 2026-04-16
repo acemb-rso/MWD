@@ -144,6 +144,10 @@ Reliability has **four core functions**.
 
 Reliability determines how often condition advancement occurs via the **global pressure system**.
 
+For BattleMechs, persistent degradation is tracked against four grouped location buckets only:
+**Head, Torso, Arms, Legs**.
+Legacy split labels such as rear torso, core, left/right arm, and left/right leg are normalized into those grouped buckets for crit and degradation purposes.
+
 ### Rule
 
 ```text

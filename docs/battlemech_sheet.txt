@@ -164,7 +164,7 @@ sheet:
             - { key: "system.damage", label: "Damage" }
             - { key: "system.heat",   label: "Heat" }
             - { key: "system.range",  label: "Range Profile" }  # Close/Short/Med/Long/Extrm text
-            - { key: "system.location", label: "Location" }     # H/A/T/L, etc.
+            - { key: "system.location", label: "Location" }     # BattleMech buckets are Head/Torso/Arms/Legs only
             - { key: "system.group",  label: "Weapon Group" }   # A/B/C, etc.
 
         # --- Weapon groups for firing (group A/B/C etc.) ---
@@ -181,6 +181,7 @@ sheet:
         - id: mounts-by-location
           label: "Mounts by Location"
           type: hardpoint-grid
+          help: "BattleMech crit/degradation locations are grouped to Head, Torso, Arms, and Legs. Older split labels like Core or Rear Torso are not separate location buckets."
           locations:
             - id: head
               label: "Head"

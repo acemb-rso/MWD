@@ -20,6 +20,11 @@ Head
 Torso
 Arms
 Legs
+
+BattleMech crit and degradation locations are grouped into these four buckets only.
+Older split labels such as Rear Torso, Front Torso, Core, Left Arm, Right Arm, Left Leg, and Right Leg are not separate crit locations.
+When those terms appear in effect names or flavor text, treat them as subsystem language inside the grouped bucket, not as additional hit locations.
+
 Vehicle
 Body
 Turret

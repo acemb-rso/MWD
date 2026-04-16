@@ -11,6 +11,12 @@ import {
   normalizeMachineHeatThresholds,
   resolveMachineHeatStatus,
 } from "../mwd/heat-state.js";
+import {
+  computeDangerCheckParams,
+  computeHeatPenalties,
+  hasVolatileComponents,
+  resolveEndOfActivationHeat,
+} from "../mwd/heat-effects.js";
 import { buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
 import { buildCriticalStatusSummary, buildIntegritySummary, buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
@@ -101,6 +107,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       ...super.DEFAULT_OPTIONS.actions,
       mechAttack: BattlemechSheetV2.prototype._onMechAttack,
       mechRoll: BattlemechSheetV2.prototype._onMechRoll,
+      applyHeat: BattlemechSheetV2.prototype._onApplyHeat,
     }
   }, { inplace: false });
 
@@ -228,15 +235,31 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   _buildHeatModel() {
     const heatMonitor = this.actor.system?.monitors?.heat ?? {};
     const heatConfig = this.actor.system?.mwd?.heat ?? {};
+    const hybridHeat = this.actor.system?.hybrid?.heat ?? {};
     const current = Math.max(0, toNumber(heatMonitor.value ?? heatConfig.current, 0));
     const max = Math.max(0, toNumber(heatMonitor.max ?? heatConfig.max ?? heatConfig.hardMax, 0));
     const thresholds = normalizeMachineHeatThresholds(heatConfig.thresholds ?? {}, max);
     const statusCode = resolveMachineHeatStatus(current, thresholds, max);
+    const dissipation = Math.max(0, toNumber(hybridHeat.dissipation ?? heatConfig.ventPerTurn, 1));
+    const coolingImpaired = Boolean(heatConfig.coolingImpaired);
+    const effectiveDissipation = coolingImpaired ? Math.max(1, Math.floor(dissipation / 2)) : dissipation;
+
+    const penalties = computeHeatPenalties(current, thresholds);
+    const inDanger = penalties.dangerLevel > 0;
+    const chassis = toNumber(this.actor.system?.attributes?.chassis?.value, 0);
+    const reliability = toNumber(this.actor.system?.attributes?.reliability?.value, 0);
+    const dangerChecks = inDanger
+      ? computeDangerCheckParams(penalties.dangerLevel, chassis, reliability)
+      : null;
+    const volatile = hasVolatileComponents(this.actor.system?.mwd?.locations ?? {});
 
     return {
       label: "Heat",
       current,
       max,
+      dissipation,
+      effectiveDissipation,
+      coolingImpaired,
       editable: Boolean(this.isEditable),
       status: getMachineHeatStatusLabel(statusCode),
       thresholds: {
@@ -247,6 +270,14 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         overheat: toNumber(thresholds.overheat, 0),
         danger: toNumber(thresholds.danger, 0),
       },
+      penalties: {
+        movementPenalty: penalties.movementPenalty,
+        rangedDicePenalty: penalties.rangedDicePenalty,
+        dangerLevel: penalties.dangerLevel,
+      },
+      dangerChecks,
+      volatile,
+      inDanger,
       segments: Array.from({ length: max }, (_, index) => {
         const value = index + 1;
         return {
@@ -260,6 +291,76 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         };
       }),
     };
+  }
+
+  async _onApplyHeat(event, target) {
+    event?.preventDefault?.();
+    if (!this.isEditable) return;
+
+    const heatMonitor = this.actor.system?.monitors?.heat ?? {};
+    const heatConfig = this.actor.system?.mwd?.heat ?? {};
+    const hybridHeat = this.actor.system?.hybrid?.heat ?? {};
+    const current = Math.max(0, toNumber(heatMonitor.value ?? 0, 0));
+    const max = Math.max(0, toNumber(heatMonitor.max ?? 0, 0));
+    const thresholds = normalizeMachineHeatThresholds(heatConfig.thresholds ?? {}, max);
+    const dissipation = Math.max(0, toNumber(hybridHeat.dissipation ?? heatConfig.ventPerTurn, 1));
+    const coolingImpaired = Boolean(heatConfig.coolingImpaired);
+    const effectiveDissipation = coolingImpaired ? Math.max(1, Math.floor(dissipation / 2)) : dissipation;
+
+    const generated = await Dialog.prompt({
+      title: "End of Activation — Heat Resolution",
+      content: `
+        <form class="mwd-dialog-form">
+          <p>Enter total heat generated this activation. Dissipation (${effectiveDissipation}${coolingImpaired ? ", impaired" : ""}) will be applied to the full heat stack.</p>
+          <div class="form-group">
+            <label>Heat Generated</label>
+            <input type="number" name="generated" value="0" min="0" autofocus style="width:5rem;"/>
+          </div>
+        </form>`,
+      label: "Apply Heat",
+      callback: html => {
+        const val = parseInt(html.find('[name="generated"]').val(), 10);
+        return Number.isFinite(val) ? Math.max(0, val) : 0;
+      },
+      rejectClose: false,
+    });
+
+    if (generated === null || generated === undefined) return;
+
+    const newHeat = resolveEndOfActivationHeat(current, generated, effectiveDissipation, max);
+    await this.actor.update({ "system.monitors.heat.value": newHeat });
+
+    const newPenalties = computeHeatPenalties(newHeat, thresholds);
+    if (newPenalties.dangerLevel > 0) {
+      const chassis = toNumber(this.actor.system?.attributes?.chassis?.value, 0);
+      const reliability = toNumber(this.actor.system?.attributes?.reliability?.value, 0);
+      const checks = computeDangerCheckParams(newPenalties.dangerLevel, chassis, reliability);
+      const volatile = hasVolatileComponents(this.actor.system?.mwd?.locations ?? {});
+      await this._postDangerChecksToChat(newPenalties.dangerLevel, checks, volatile);
+    }
+  }
+
+  async _postDangerChecksToChat(dangerLevel, checks, volatile) {
+    const mechName = this.actor.name;
+    const lines = [
+      `<h3>${mechName} — Danger Zone (${dangerLevel} level${dangerLevel > 1 ? "s" : ""})</h3>`,
+      `<p><strong>Shutdown Check:</strong> Roll <strong>${checks.shutdownPool}d6</strong> vs DN <strong>${checks.shutdownDN}</strong> (Chassis + Reliability). ` +
+        `On failure, compare margin to pilot's System Operations: if margin &lt; System Operations the pilot may override; otherwise the mech shuts down.</p>`,
+    ];
+
+    if (volatile) {
+      lines.push(
+        `<p><strong>Explosion Check:</strong> Roll <strong>${checks.explosionPool}d6</strong> vs DN <strong>${checks.explosionDN}</strong> (Chassis + Reliability − ${dangerLevel}). ` +
+          `Failure detonates volatile components.</p>`
+      );
+    } else {
+      lines.push(`<p><em>No volatile components detected — Explosion check skipped.</em></p>`);
+    }
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: lines.join(""),
+    });
   }
 
   _buildQuickActions() {

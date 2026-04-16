@@ -360,7 +360,6 @@ class _13_2_2_AddMwdVehicleModel extends Migration {
         current: 0,
         safeMax: 1,
         hardMax: 4,
-        ventPerTurn: 1,
         coolingImpaired: false,
       },
       shock: {

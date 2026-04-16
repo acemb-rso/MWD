@@ -22,6 +22,9 @@ test("battlemech defaults resolve nested templates before local fields", () => {
   assert.equal(block.attributes.reliability.value, 3);
   assert.equal(block.mwd.shock.value, 0);
   assert.equal(block.mwd.locations.head.condition, 0);
+  assert.equal(block.mwd.locations.torso.condition, 0);
+  assert.equal(block.mwd.locations.arms.condition, 0);
+  assert.equal(block.mwd.locations.legs.condition, 0);
   assert.deepEqual(block.mwd.weaponGroups, []);
   assert.deepEqual(block.movement, { ground: 0, flight: 0, jump: 0 });
 });

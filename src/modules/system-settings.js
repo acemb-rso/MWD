@@ -72,7 +72,7 @@ export class SystemSettings {
 
     game.settings.register(SYSTEM_NAME, SETTING_MACHINE_CRIT_TABLE_MECH_TORSO, {
       name: "Machine Critical Table: BattleMech Torso",
-      hint: "Location interpretation table for BattleMech torso, core, and forced critical hits.",
+      hint: "Location interpretation table for BattleMech torso and forced critical hits.",
       scope: "world",
       config: true,
       type: String,

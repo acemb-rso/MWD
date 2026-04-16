@@ -39,6 +39,15 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
         />
       </label>
       <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Dissipation</span>
+        <input
+          type="number"
+          name="system.hybrid.heat.dissipation"
+          value="{{battlemechSheet.heat.dissipation}}"
+          data-edit-field="staged"
+        />
+      </label>
+      <label class="mwd-gmgadget__field">
         <span class="mwd-gmgadget__field-label">Hot</span>
         <input
           type="number"
@@ -72,6 +81,15 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
         <span class="mwd-item-hero__label">Current</span>
         <span class="mwd-item-hero__value">{{battlemechSheet.heat.current}} / {{battlemechSheet.heat.max}}</span>
       </div>
+      <div class="mwd-item-hero__stat {{#if battlemechSheet.heat.coolingImpaired}}mwd-item-hero__stat--impaired{{/if}}">
+        <span class="mwd-item-hero__label">Dissipation</span>
+        <span class="mwd-item-hero__value">
+          {{battlemechSheet.heat.effectiveDissipation}}
+          {{#if battlemechSheet.heat.coolingImpaired}}
+            <span class="mwd-item-hero__note">(impaired)</span>
+          {{/if}}
+        </span>
+      </div>
       <div class="mwd-item-hero__stat">
         <span class="mwd-item-hero__label">Hot</span>
         <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.runningHot}}</span>
@@ -85,5 +103,37 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
         <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.shutdown}}</span>
       </div>
     </section>
+
+    {{!-- Active heat penalties --}}
+    {{#if battlemechSheet.heat.inDanger}}
+      <div class="mwd-heat-alert mwd-heat-alert--danger">
+        <span class="mwd-heat-alert__label">DANGER</span>
+        <span class="mwd-heat-alert__detail">Shutdown &amp; Explosion checks required</span>
+      </div>
+    {{/if}}
+
+    {{#if battlemechSheet.heat.penalties.movementPenalty}}
+      <div class="mwd-heat-penalty">
+        <span class="mwd-heat-penalty__label">Movement</span>
+        <span class="mwd-heat-penalty__value">−{{battlemechSheet.heat.penalties.movementPenalty}}</span>
+        <span class="mwd-heat-penalty__note">ground speed (Hot)</span>
+      </div>
+    {{/if}}
+
+    {{#if battlemechSheet.heat.penalties.rangedDicePenalty}}
+      <div class="mwd-heat-penalty">
+        <span class="mwd-heat-penalty__label">Ranged Dice</span>
+        <span class="mwd-heat-penalty__value">−{{battlemechSheet.heat.penalties.rangedDicePenalty}}</span>
+        <span class="mwd-heat-penalty__note">dice pool (Overheat)</span>
+      </div>
+    {{/if}}
+
+    {{#if @root.battlemechSheet.heat.editable}}
+      <div class="mwd-heat-actions">
+        <button type="button" class="mwd-btn mwd-btn--heat" data-action="applyHeat">
+          End Activation
+        </button>
+      </div>
+    {{/if}}
   {{/if}}
 </section>

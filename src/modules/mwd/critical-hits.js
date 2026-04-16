@@ -702,6 +702,15 @@ function getDirectConditionLocations(crits = []) {
     .filter(Boolean);
 }
 
+function getAutomaticDegradationLocations(preview = {}) {
+  if (!preview?.machine?.pureStructureHit) return [];
+  if (Math.max(0, Number(preview?.machine?.structureDamage ?? 0) || 0) <= 0) return [];
+  const locationKey = String(preview?.hitLocation?.locationKey ?? "").trim();
+  return locationKey
+    ? [{ locationKey, source: "pureStructure", applyReductions: false, allowSpend: false }]
+    : [];
+}
+
 async function syncMachineCriticalStatus(actor, hasCrits) {
   if (!actor?.toggleStatusEffect || !hasCrits) return;
   try {
@@ -763,7 +772,10 @@ export async function applyMachineAttackDamage({
     attackQuality: preview.degradation?.attackQuality ?? resolveAttackQuality(payload),
     allowReliabilitySpend: true,
     reliabilitySpendSelections: Array.isArray(payload?.reliabilitySpendSelections) ? payload.reliabilitySpendSelections : [],
-    directConditionLocations: critDraw.ok ? getDirectConditionLocations(critDraw.crits) : [],
+    directConditionLocations: [
+      ...getAutomaticDegradationLocations(preview),
+      ...(critDraw.ok ? getDirectConditionLocations(critDraw.crits) : []),
+    ],
   });
   if (degradation.loopGuardTriggered) {
     console.warn("MWD | Machine degradation loop guard triggered", {

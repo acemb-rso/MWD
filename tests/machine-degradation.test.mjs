@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   getMachineReliabilityThreshold,
+  normalizeMachineDegradationState,
   resolveMachineDegradation,
 } from "../src/modules/mwd/machine-degradation.js";
 
@@ -106,4 +107,33 @@ test("disabled locations remain eligible and route to fallback", () => {
 
   assert.equal(result.fallbackEvents[0].location, "front");
   assert.equal(result.summary.shockAfter, 0);
+});
+
+test("legacy battlemech location keys normalize into grouped degradation buckets", () => {
+  const system = normalizeMachineDegradationState({
+    attributes: {
+      condition: { value: 3 },
+    },
+    mwd: {
+      locations: {
+        head: { enabled: true, stress: 1, condition: 1, destroyed: false, tags: ["cockpit"] },
+        torsoFront: { enabled: true, stress: 2, condition: 1, destroyed: false, tags: ["engine"] },
+        torsoRear: { enabled: true, stress: 1, condition: 2, destroyed: false, tags: ["ammoStore"] },
+        core: { enabled: true, stress: 1, condition: 0, destroyed: false, tags: ["gyro"] },
+        leftArm: { enabled: true, stress: 2, condition: 1, destroyed: false, tags: ["weaponGroup"] },
+        rightArm: { enabled: true, stress: 1, condition: 0, destroyed: false, tags: ["weaponGroup"] },
+        leftLeg: { enabled: true, stress: 3, condition: 2, destroyed: false, tags: ["motiveSystem"] },
+        rightLeg: { enabled: true, stress: 1, condition: 1, destroyed: false, tags: ["motiveSystem"] },
+      },
+    },
+  }, "battlemech");
+
+  assert.equal(system.attributes.reliability.value, 3);
+  assert.deepEqual(Object.keys(system.mwd.locations), ["head", "torso", "arms", "legs"]);
+  assert.equal(system.mwd.locations.torso.stress, 4);
+  assert.equal(system.mwd.locations.torso.condition, 2);
+  assert.deepEqual(system.mwd.locations.torso.tags.sort(), ["ammoStore", "engine", "gyro"]);
+  assert.equal(system.mwd.locations.arms.stress, 3);
+  assert.equal(system.mwd.locations.legs.stress, 4);
+  assert.equal(system.mwd.locations.legs.condition, 2);
 });

@@ -151,6 +151,15 @@ export class BattlemechActor extends VehicleActor {
       heat.max
     );
 
+    // Derive coolingImpaired from active crits with escalationKey "heat"
+    // (torso reactorUnstable and heatSinkSaturation both use this key).
+    // The stored flag is also respected as a manual GM override.
+    const activeCrits = Array.isArray(this.system.mwd?.crits) ? this.system.mwd.crits : [];
+    const hasHeatCrit = activeCrits.some(c => c?.active !== false && c?.escalationKey === "heat");
+    if (hasHeatCrit) {
+      heat.coolingImpaired = true;
+    }
+
     const status = this._resolveHeatStatus(heat.current, heat.thresholds, heat.max);
     this.system.mwd.heatStatus = {
       code: status,

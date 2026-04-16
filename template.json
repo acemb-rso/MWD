@@ -105,7 +105,6 @@
             "current": 0,
             "safeMax": 1,
             "hardMax": 4,
-            "ventPerTurn": 1,
             "coolingImpaired": false
           },
           "shock": {
@@ -178,13 +177,9 @@
           "unitType": "mech",
           "locations": {
             "head": { "enabled": true, "stress": 0, "condition": 0, "tags": ["cockpit", "sensor"], "destroyed": false },
-            "torsoFront": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "engine"], "destroyed": false },
-            "torsoRear": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "ammoStore"], "destroyed": false },
-            "leftArm": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup"], "destroyed": false },
-            "rightArm": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup"], "destroyed": false },
-            "leftLeg": { "enabled": true, "stress": 0, "condition": 0, "tags": ["motiveSystem"], "destroyed": false },
-            "rightLeg": { "enabled": true, "stress": 0, "condition": 0, "tags": ["motiveSystem"], "destroyed": false },
-            "core": { "enabled": true, "stress": 0, "condition": 0, "tags": ["engine", "gyro", "ammoStore"], "destroyed": false }
+            "torso": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "engine", "gyro", "ammoStore"], "destroyed": false },
+            "arms": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup"], "destroyed": false },
+            "legs": { "enabled": true, "stress": 0, "condition": 0, "tags": ["motiveSystem"], "destroyed": false }
           },
           "crew": {
             "count": 1,

@@ -12,7 +12,9 @@ import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
 import {
   getMachineConditionLabel,
   getMachineConditionModifier,
+  getMachineDegradationLocationPriority,
   getMachineReliabilityThreshold,
+  normalizeMachineDegradationState,
 } from "../mwd/machine-degradation.js";
 import { getMachineLocationLabel } from "../mwd/machine-hit-locations.js";
 import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
@@ -128,6 +130,40 @@ const ITEM_TYPE_LABELS = Object.freeze({
   quality: "Trait",
   skill: "Skill",
 });
+
+const DEGRADATION_LAYOUTS = Object.freeze({
+  battlemech: Object.freeze({
+    artPath: "systems/mwd/img/mek/misc/repair/location_mek.png",
+    mode: "silhouette",
+    positions: Object.freeze({
+      head: Object.freeze({ top: "9%", left: "50%" }),
+      torso: Object.freeze({ top: "40%", left: "50%" }),
+      arms: Object.freeze({ top: "34%", left: "18%" }),
+      legs: Object.freeze({ top: "75%", left: "50%" }),
+    }),
+  }),
+  vehicle: Object.freeze({
+    artPath: "",
+    mode: "schematic",
+    positions: Object.freeze({
+      front: Object.freeze({ top: "13%", left: "50%" }),
+      side: Object.freeze({ top: "40%", left: "18%" }),
+      turret: Object.freeze({ top: "33%", left: "50%" }),
+      core: Object.freeze({ top: "57%", left: "50%" }),
+      rear: Object.freeze({ top: "83%", left: "50%" }),
+      rotor: Object.freeze({ top: "17%", left: "79%" }),
+    }),
+  }),
+});
+
+function getDegradationTone({ condition = 0, destroyed = false, stress = 0 } = {}) {
+  if (destroyed) return "dark-red";
+  if (Number(condition ?? 0) >= 4) return "red";
+  if (Number(condition ?? 0) >= 3) return "orange";
+  if (Number(condition ?? 0) >= 2) return "yellow";
+  if (Number(stress ?? 0) > 0) return "green";
+  return "";
+}
 
 export class VehicleSheetV2 extends BaseActorSheetV2 {
   static LAYOUT_ID = "vehicle";
@@ -287,23 +323,50 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   }
 
   _buildDegradationPanel() {
-    const attributes = this.actor.system?.attributes ?? {};
-    const mwd = this.actor.system?.mwd ?? {};
+    const normalizedSystem = normalizeMachineDegradationState(
+      foundry.utils.deepClone(this.actor.system ?? {}),
+      this.actor.type,
+    );
+    const attributes = normalizedSystem.attributes ?? {};
+    const mwd = normalizedSystem.mwd ?? {};
     const reliability = toNumber(attributes.reliability?.value ?? attributes.condition?.value, 0);
     const threshold = getMachineReliabilityThreshold(reliability);
     const shock = toNumber(mwd.shock?.value, 0);
     const spendable = toNumber(mwd.reliabilitySpendable?.value, reliability);
-    const locations = Object.entries(mwd.locations ?? {}).map(([key, location]) => ({
-      key,
-      label: getMachineLocationLabel(key),
-      stress: toNumber(location?.stress, 0),
-      conditionLabel: getMachineConditionLabel(location?.condition ?? 0),
-      conditionModifier: getMachineConditionModifier(location?.condition ?? 0),
-      destroyed: Boolean(location?.destroyed),
-      enabled: location?.enabled !== false,
-    }));
+    const layout = DEGRADATION_LAYOUTS[this.actor.type] ?? DEGRADATION_LAYOUTS.vehicle;
+    const priority = getMachineDegradationLocationPriority(this.actor.type);
+    const entries = Object.entries(mwd.locations ?? {}).sort(([leftKey], [rightKey]) => {
+      const leftIndex = priority.indexOf(leftKey);
+      const rightIndex = priority.indexOf(rightKey);
+      const safeLeft = leftIndex >= 0 ? leftIndex : Number.MAX_SAFE_INTEGER;
+      const safeRight = rightIndex >= 0 ? rightIndex : Number.MAX_SAFE_INTEGER;
+      if (safeLeft !== safeRight) return safeLeft - safeRight;
+      return String(leftKey).localeCompare(String(rightKey));
+    });
+    const locations = entries.map(([key, location]) => {
+      const conditionValue = toNumber(location?.condition, 0);
+      const stress = toNumber(location?.stress, 0);
+      const destroyed = Boolean(location?.destroyed);
+      const tone = getDegradationTone({ condition: conditionValue, destroyed, stress });
+      const position = layout.positions[key] ?? { top: "50%", left: "50%" };
+      return {
+        key,
+        label: getMachineLocationLabel(key),
+        stress,
+        conditionValue,
+        conditionLabel: getMachineConditionLabel(conditionValue),
+        conditionModifier: getMachineConditionModifier(conditionValue),
+        destroyed,
+        enabled: location?.enabled !== false,
+        tone,
+        style: `--pin-top:${position.top}; --pin-left:${position.left};`,
+        stressLabel: stress > 0 ? `Stress ${stress}` : "Stress 0",
+      };
+    });
 
     return {
+      mode: layout.mode,
+      artPath: layout.artPath,
       reliability,
       spendable,
       shock,

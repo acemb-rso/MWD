@@ -1,52 +1,70 @@
 {{!--
 templates/v2/ui/vehicle/degradation-grid.hbs
-Purpose: Read-only machine degradation snapshot for vehicle-scale sheets.
-How it fits: Gives the machine reliability loop a visible surface without adding
-manual editing paths to the MVP.
+Purpose: Visual machine degradation readout centered on a silhouette or simple schematic.
+How it fits: Keeps the degradation loop readable at a glance without making the
+GM edit raw state directly on the sheet.
 --}}
 
-<section class="mwd-item-hero">
-  <div class="mwd-item-hero__stat">
-    <span class="mwd-item-hero__label">Shock</span>
-    <span class="mwd-item-hero__value">{{vehicleSheet.degradation.shock}} / {{vehicleSheet.degradation.threshold}}</span>
+<section class="mwd-degradation mwd-degradation--{{vehicleSheet.degradation.mode}}">
+  <div class="mwd-degradation__summary mwd-item-hero">
+    <div class="mwd-item-hero__stat{{#if vehicleSheet.degradation.shock}} is-orange{{/if}}">
+      <span class="mwd-item-hero__label">Shock</span>
+      <span class="mwd-item-hero__value">{{vehicleSheet.degradation.shock}} / {{vehicleSheet.degradation.threshold}}</span>
+    </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Reliability</span>
+      <span class="mwd-item-hero__value">{{vehicleSheet.degradation.reliability}}</span>
+    </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Spendable</span>
+      <span class="mwd-item-hero__value">{{vehicleSheet.degradation.spendable}}</span>
+    </div>
   </div>
-  <div class="mwd-item-hero__stat">
-    <span class="mwd-item-hero__label">Reliability</span>
-    <span class="mwd-item-hero__value">{{vehicleSheet.degradation.reliability}}</span>
-  </div>
-  <div class="mwd-item-hero__stat">
-    <span class="mwd-item-hero__label">Spendable</span>
-    <span class="mwd-item-hero__value">{{vehicleSheet.degradation.spendable}}</span>
+
+  <div class="mwd-degradation__body">
+    <div class="mwd-degradation__figure">
+      <div class="mwd-degradation__stage">
+        {{#if vehicleSheet.degradation.artPath}}
+          <img class="mwd-degradation__art" src="{{vehicleSheet.degradation.artPath}}" alt="Machine degradation silhouette" />
+        {{else}}
+          <div class="mwd-degradation__schematic" aria-hidden="true">
+            <span class="mwd-degradation__zone mwd-degradation__zone--front"></span>
+            <span class="mwd-degradation__zone mwd-degradation__zone--left"></span>
+            <span class="mwd-degradation__zone mwd-degradation__zone--center"></span>
+            <span class="mwd-degradation__zone mwd-degradation__zone--right"></span>
+            <span class="mwd-degradation__zone mwd-degradation__zone--rear"></span>
+          </div>
+        {{/if}}
+
+        {{#each vehicleSheet.degradation.locations as |location|}}
+          {{#if location.enabled}}
+            <div class="mwd-degradation__pin{{#if location.tone}} is-{{location.tone}}{{/if}}{{#if location.destroyed}} is-destroyed{{/if}}" style="{{location.style}}" title="{{location.label}} | {{location.conditionLabel}} | {{location.stressLabel}}">
+              <span class="mwd-degradation__pin-name">{{location.label}}</span>
+              <span class="mwd-degradation__pin-values">{{location.conditionLabel}}</span>
+              <span class="mwd-degradation__pin-values">{{location.stressLabel}}</span>
+            </div>
+          {{/if}}
+        {{/each}}
+      </div>
+    </div>
+
+    <div class="mwd-degradation__legend">
+      {{#each vehicleSheet.degradation.locations as |location|}}
+        <article class="mwd-degradation__legend-row{{#if location.tone}} is-{{location.tone}}{{/if}}{{#if location.destroyed}} is-destroyed{{/if}}">
+          <div class="mwd-degradation__legend-main">
+            <div class="mwd-degradation__legend-name">{{location.label}}</div>
+            <div class="mwd-degradation__legend-meta">
+              <span>{{location.conditionLabel}}</span>
+              <span>Stress {{location.stress}}</span>
+            </div>
+          </div>
+          {{#unless location.enabled}}
+            <div class="mwd-degradation__legend-state">Offline</div>
+          {{else if location.destroyed}}
+            <div class="mwd-degradation__legend-state">Destroyed</div>
+          {{/unless}}
+        </article>
+      {{/each}}
+    </div>
   </div>
 </section>
-
-{{#if vehicleSheet.degradation.locations.length}}
-  <div class="mwd-records mwd-records--inventory">
-    {{#each vehicleSheet.degradation.locations as |location|}}
-      <article class="mwd-record{{#if location.destroyed}} mwd-record--crit{{/if}}">
-        <div class="mwd-record__header">
-          <div class="mwd-record__main">
-            <div class="mwd-record__topline">
-              <div class="mwd-record__title">{{location.label}}</div>
-              <div class="mwd-record__stats">
-                <span class="mwd-record__stat is-strong">
-                  <span class="mwd-record__stat-label">Stress</span>
-                  <span class="mwd-record__stat-value">{{location.stress}}</span>
-                </span>
-                <span class="mwd-record__stat">
-                  <span class="mwd-record__stat-label">Condition</span>
-                  <span class="mwd-record__stat-value">{{location.conditionLabel}}</span>
-                </span>
-              </div>
-            </div>
-            {{#unless location.enabled}}
-              <div class="mwd-record__subtitle">Disabled in location map.</div>
-            {{else if location.destroyed}}
-              <div class="mwd-record__subtitle">Destroyed.</div>
-            {{/unless}}
-          </div>
-        </div>
-      </article>
-    {{/each}}
-  </div>
-{{/if}}

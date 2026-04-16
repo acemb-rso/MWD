@@ -50,12 +50,9 @@ function machineActor(overrides = {}) {
         reliabilitySpendable: { value: 3 },
         locations: {
           head: { enabled: true, stress: 0, condition: 0, tags: ["cockpit"], destroyed: false },
-          torsoFront: { enabled: true, stress: 0, condition: 0, tags: ["engine"], destroyed: false },
-          leftArm: { enabled: true, stress: 0, condition: 0, tags: ["weaponGroup"], destroyed: false },
-          rightArm: { enabled: true, stress: 0, condition: 0, tags: ["weaponGroup"], destroyed: false },
-          leftLeg: { enabled: true, stress: 0, condition: 0, tags: ["motiveSystem"], destroyed: false },
-          rightLeg: { enabled: true, stress: 0, condition: 0, tags: ["motiveSystem"], destroyed: false },
-          core: { enabled: true, stress: 0, condition: 0, tags: ["engine"], destroyed: false },
+          torso: { enabled: true, stress: 0, condition: 0, tags: ["engine"], destroyed: false },
+          arms: { enabled: true, stress: 0, condition: 0, tags: ["weaponGroup"], destroyed: false },
+          legs: { enabled: true, stress: 0, condition: 0, tags: ["motiveSystem"], destroyed: false },
         },
         crits: [],
       },
@@ -81,7 +78,7 @@ test("machine hit locations distinguish armor hits, pure structure crits, and Ch
   assert.equal(armStructure.isAutomaticCritical, true);
   assert.equal(armStructure.isStructureCritical, true);
   assert.equal(headArmor.locationKey, "head");
-  assert.equal(headArmor.chaosTargetLocationKey, "torsoFront");
+  assert.equal(headArmor.chaosTargetLocationKey, "torso");
   assert.equal(forced.isForcedCritical, true);
   assert.equal(forced.isAutomaticCritical, true);
 });
@@ -205,13 +202,56 @@ test("applying machine damage writes monitors, location stress, and crit records
 
   assert.equal(result.ok, true);
   assert.equal(actor.system.monitors.structure.value, 3);
-  assert.equal(actor.system.mwd.locations.leftArm.stress, 3);
+  assert.equal(actor.system.mwd.locations.arms.stress, 3);
+  assert.equal(actor.system.mwd.locations.arms.condition, 1);
   assert.equal(actor.system.mwd.shock.value, 0);
   assert.equal(actor.system.mwd.crits.length, 1);
   assert.equal(actor.system.mwd.crits[0].key, "actuatorLockArm");
   assert.equal(actor.system.mwd.crits[0].generalKey, "hardLock");
   assert.equal(actor.system.mwd.crits[0].remedySkillKey, "technician");
   assert.equal(getActiveMachineCrits(actor).length, 1);
+});
+
+test("pure structure hit auto-degrades the struck location in addition to crit-driven degradation", async () => {
+  const actor = machineActor({
+    paths: {
+      "system.monitors.armor.value": 6,
+    },
+  });
+  const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 16, armorBefore: 0 });
+  const result = await applyMachineAttackDamage({
+    actor,
+    payload: {
+      damage: 2,
+      hitLocation,
+      preparedCriticalRecords: [{
+        id: "crit-test",
+        key: "armsCriticalBreach",
+        label: "Arms condition +1",
+        generalKey: "criticalBreach",
+        remedyKey: "none",
+        remedySkillKey: "",
+        remedyBaseDn: 0,
+        locationKey: "arms",
+        locationLabel: "Arms",
+        locationFamily: "arms",
+        gates: [],
+        mods: [],
+        resourceEffects: {},
+        pilotDamage: {},
+        escalationKey: "conditionAdvance",
+        remedyEffect: { onSuccess: "clear", onFailure: "noChange" },
+        active: true,
+      }],
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(actor.system.mwd.locations.arms.stress, 0);
+  assert.equal(actor.system.mwd.locations.arms.condition, 2);
+  assert.equal(result.degradation.conditionAdvancements.length, 2);
+  assert.deepEqual(result.degradation.conditionAdvancements.map(entry => entry.location), ["arms", "arms"]);
+  assert.equal(result.degradation.shockDelta, 0);
 });
 
 test("cascade result draws one additional crit and recursive cascades become location breach", async () => {

@@ -9,12 +9,9 @@ const MACHINE_TYPES = new Set([TEMPLATE.actorTypes.vehicle, TEMPLATE.actorTypes.
 
 const LOCATION_LABELS = Object.freeze({
   head: "Head",
-  torsoFront: "Front Torso",
-  torsoRear: "Rear Torso",
-  leftArm: "Left Arm",
-  rightArm: "Right Arm",
-  leftLeg: "Left Leg",
-  rightLeg: "Right Leg",
+  torso: "Torso",
+  arms: "Arms",
+  legs: "Legs",
   core: "Core",
   front: "Front",
   side: "Side",
@@ -47,28 +44,26 @@ function chooseEnabled(actor, candidates = [], fallback = "core") {
 
 function familyForLocation(locationKey = "") {
   if (locationKey === "head") return "head";
-  if (locationKey.includes("Arm")) return "arms";
-  if (locationKey.includes("Leg")) return "legs";
+  if (locationKey === "arms") return "arms";
+  if (locationKey === "legs") return "legs";
   if (["front", "side", "rear", "rotor"].includes(locationKey)) return "motive";
   if (locationKey === "turret") return "weapon";
-  if (locationKey.includes("torso")) return "torso";
+  if (locationKey === "torso") return "torso";
   return "core";
 }
 
 function baseMechLocation(actor, rollTotal) {
-  if (rollTotal <= 4) return { locationKey: chooseEnabled(actor, ["core", "torsoFront"]), family: "critical" };
-  if (rollTotal === 5) return { locationKey: chooseEnabled(actor, ["leftLeg", "rightLeg"]), family: "legs" };
-  if (rollTotal === 6) return { locationKey: chooseEnabled(actor, ["rightLeg", "leftLeg"]), family: "legs" };
-  if (rollTotal === 7) return { locationKey: chooseEnabled(actor, ["leftArm", "rightArm"]), family: "arms" };
-  if (rollTotal === 8) return { locationKey: chooseEnabled(actor, ["rightArm", "leftArm"]), family: "arms" };
-  if (rollTotal <= 10) return { locationKey: chooseEnabled(actor, ["torsoFront", "core"]), family: "torso" };
-  if (rollTotal === 11) return { locationKey: chooseEnabled(actor, ["core", "torsoFront"]), family: "core" };
-  if (rollTotal <= 13) return { locationKey: chooseEnabled(actor, ["torsoRear", "core"]), family: "torso" };
-  if (rollTotal === 14) return { locationKey: chooseEnabled(actor, ["leftArm", "rightArm"]), family: "arms" };
-  if (rollTotal === 15) return { locationKey: chooseEnabled(actor, ["rightArm", "leftArm"]), family: "arms" };
-  if (rollTotal === 16) return { locationKey: chooseEnabled(actor, ["leftArm", "rightArm"]), family: "arms" };
-  if (rollTotal === 17) return { locationKey: chooseEnabled(actor, ["leftLeg", "rightLeg"]), family: "legs" };
-  return { locationKey: chooseEnabled(actor, ["head", "torsoFront", "core"]), family: "head" };
+  if (rollTotal <= 4) return { locationKey: chooseEnabled(actor, ["torso", "head"]), family: "critical" };
+  if (rollTotal === 5) return { locationKey: chooseEnabled(actor, ["legs", "torso"]), family: "legs" };
+  if (rollTotal === 6) return { locationKey: chooseEnabled(actor, ["legs", "torso"]), family: "legs" };
+  if (rollTotal === 7) return { locationKey: chooseEnabled(actor, ["arms", "torso"]), family: "arms" };
+  if (rollTotal === 8) return { locationKey: chooseEnabled(actor, ["arms", "torso"]), family: "arms" };
+  if (rollTotal <= 13) return { locationKey: chooseEnabled(actor, ["torso", "head"]), family: "torso" };
+  if (rollTotal === 14) return { locationKey: chooseEnabled(actor, ["arms", "torso"]), family: "arms" };
+  if (rollTotal === 15) return { locationKey: chooseEnabled(actor, ["arms", "torso"]), family: "arms" };
+  if (rollTotal === 16) return { locationKey: chooseEnabled(actor, ["arms", "torso"]), family: "arms" };
+  if (rollTotal === 17) return { locationKey: chooseEnabled(actor, ["legs", "torso"]), family: "legs" };
+  return { locationKey: chooseEnabled(actor, ["head", "torso"]), family: "head" };
 }
 
 function baseVehicleLocation(actor, rollTotal) {
@@ -129,7 +124,7 @@ export function resolveMachineHitLocation({
   const automaticCritical = forcedCritical || structureCritical;
   const chaosCriticalOption = !automaticCritical && total >= 16;
   const chaosTargetLocationKey = total === 18 && type === TEMPLATE.actorTypes.battlemech
-    ? chooseEnabled(actor, ["torsoFront", "core"])
+    ? chooseEnabled(actor, ["torso", "head"])
     : base.locationKey;
   const locationFamily = base.family || familyForLocation(base.locationKey);
 
