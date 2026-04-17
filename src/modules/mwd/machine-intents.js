@@ -19,6 +19,28 @@ import {
   normalizeMachineDegradationState,
 } from "./machine-degradation.js";
 
+async function syncStatusOnRemedyOutcome(machineActor, clearedCrit, updatedCrits) {
+  const remainingActive = updatedCrits.filter(c => c?.active !== false);
+
+  if (!remainingActive.length) {
+    try {
+      await applyManagedStatusUpdate({ actor: machineActor, statusId: MACHINE_CRITICAL_STATUS_ID, active: false });
+    } catch (error) {
+      console.warn("MWD | Unable to clear machine critical status", error);
+    }
+  }
+
+  const clearedStatusId = String(clearedCrit?.statusId ?? "").trim();
+  if (!clearedStatusId) return;
+  const stillNeeded = remainingActive.some(c => String(c?.statusId ?? "").trim() === clearedStatusId);
+  if (stillNeeded) return;
+  try {
+    await applyManagedStatusUpdate({ actor: machineActor, statusId: clearedStatusId, active: false });
+  } catch (error) {
+    console.warn(`MWD | Unable to remove crit status "${clearedStatusId}"`, error);
+  }
+}
+
 async function resolveUuid(uuid = "") {
   const value = String(uuid ?? "").trim();
   if (!value || typeof fromUuid !== "function") return null;
@@ -29,24 +51,7 @@ async function resolveUuid(uuid = "") {
   }
 }
 
-function activeCrits(actor) {
-  return Array.isArray(actor?.system?.mwd?.crits)
-    ? actor.system.mwd.crits.filter(crit => crit?.active !== false)
-    : [];
-}
 
-async function clearCriticalStatusIfEmpty(actor) {
-  if (activeCrits(actor).length || !actor?.toggleStatusEffect) return;
-  try {
-    await applyManagedStatusUpdate({
-      actor,
-      statusId: MACHINE_CRITICAL_STATUS_ID,
-      active: false,
-    });
-  } catch (error) {
-    console.warn("MWD | Unable to clear machine critical status", error);
-  }
-}
 
 function buildRemedyUpdate(crit, { passed = false, actorUuid = "", gmOverride = false } = {}) {
   if (!passed) {
@@ -197,7 +202,7 @@ export async function applyMachineRemedyOutcome(intent = {}, options = {}) {
   crits[context.critIndex] = nextCrit;
 
   await context.machineActor.update({ "system.mwd.crits": crits });
-  await clearCriticalStatusIfEmpty(context.machineActor);
+  await syncStatusOnRemedyOutcome(context.machineActor, nextCrit, crits);
 
   return {
     ok: true,

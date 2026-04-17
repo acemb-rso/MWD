@@ -9,13 +9,30 @@ How it fits: Used by rendering code to produce UI fragments.
   <header class="sheet-header">
     <div class="header-left">
       <img class="profile" src="{{actor.img}}" alt="{{actor.name}}" data-action="editImage" />
-      <h1 class="name">
-        {{#if editable}}
-          <input name="name" type="text" value="{{actor.name}}" data-edit-field="staged"/>
-        {{else}}
-          {{actor.name}}
+      <div class="mwd-sheet__title-block">
+        <h1 class="name">
+          {{#if editable}}
+            <input name="name" type="text" value="{{actor.name}}" data-edit-field="staged"/>
+          {{else}}
+            {{actor.name}}
+          {{/if}}
+        </h1>
+        {{#if machineHeader.enabled}}
+          <div class="mwd-sheet__subtitle">
+            {{#if editable}}
+              <input
+                name="{{machineHeader.path}}"
+                type="text"
+                value="{{machineHeader.model}}"
+                placeholder="{{machineHeader.placeholder}}"
+                data-edit-field="staged"
+              />
+            {{else if machineHeader.model}}
+              {{machineHeader.model}}
+            {{/if}}
+          </div>
         {{/if}}
-      </h1>
+      </div>
     </div>
 
     <div class="header-right">

@@ -288,6 +288,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       actorType: this.actor.type,
       movement: this.actor.system?.movement,
       legacyMoves: this.actor.system?.moves,
+      jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
     });
 
     return buildSummaryStats([
@@ -324,6 +325,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       movement: this.actor.system?.movement,
       legacyMoves: this.actor.system?.moves,
       editing: this.editing,
+      jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
     });
   }
 
@@ -445,6 +447,12 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         { label: "AP", value: toNumber(profile.ap, 0) },
         { label: "Type", value: profile.damageTypeLabel ?? profile.damageType ?? "" },
       ])
+      : canonicalType === "assetModule" && system?.mobility?.jumping?.enabled
+        ? buildSummaryStats([
+          { label: "Type", value: itemTypeLabel },
+          { label: "Jump", value: toNumber(system.mobility.jumping.movement, 0), emphasis: "strong" },
+          { label: "Heat", value: toNumber(system.mobility.jumping.heat, 0) },
+        ])
       : buildSummaryStats([
         { label: "Type", value: itemTypeLabel },
         ...(quantity !== undefined ? [{ label: "Qty", value: toNumber(quantity, 0) }] : []),
@@ -455,6 +463,14 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         { label: "Category", value: profile.category ?? system.weaponCategory ?? system.category ?? "" },
         { label: "Range", value: formatRangeSummary(profile.range) },
       ])
+      : canonicalType === "assetModule" && system?.mobility?.jumping?.enabled
+        ? buildDetailRows([
+          { label: "Category", value: system.category ?? itemTypeLabel },
+          { label: "Heat", value: toNumber(system.mobility.jumping.heat, 0) },
+          { label: "AR Bonus", value: toNumber(system.mobility.jumping.attackRatingBonus, 0) },
+          { label: "DR Bonus", value: toNumber(system.mobility.jumping.defenseRatingBonus, 0) },
+          { label: "DFA", value: system.mobility.jumping.dfaEnabled ? "Enabled" : "Disabled" },
+        ])
       : buildDetailRows([
         { label: "Category", value: system.category ?? itemTypeLabel },
         { label: "Quantity", value: quantity !== undefined ? toNumber(quantity, 0) : "" },
@@ -471,6 +487,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       detailTags: buildDetailTags([
         system.equipped ? "Equipped" : "",
         system.isPrimary ? "Primary" : "",
+        system.mobility?.jumping?.enabled ? "Jumping" : "",
         system.weaponCategory ?? system.category ?? "",
       ]),
       detailRows,

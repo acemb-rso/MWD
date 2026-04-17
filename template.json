@@ -98,9 +98,10 @@
           }
         }
       },
-      "mwd-base": {
-        "mwd": {
-          "unitType": "vehicle",
+        "mwd-base": {
+          "mwd": {
+            "unitType": "vehicle",
+            "model": "",
             "heat": {
               "current": 0,
               "safeMax": 1,
@@ -220,8 +221,7 @@
       "machine-movement-battlemech": {
         "movement": {
           "ground": 0,
-          "flight": 0,
-          "jump": 0
+          "flight": 0
         }
       }
     },
@@ -373,8 +373,7 @@
     "battlemech": {
       "templates": [
         "description",
-        "mwd-battlemech",
-        "machine-movement-battlemech"
+        "mwd-battlemech"
       ],
       "attributes": {},
       "monitors": {
@@ -498,7 +497,17 @@
         "references"
       ],
       "category": "special",
-      "level": 1
+      "level": 1,
+      "mobility": {
+        "jumping": {
+          "enabled": false,
+          "movement": 0,
+          "heat": 0,
+          "attackRatingBonus": 0,
+          "defenseRatingBonus": 0,
+          "dfaEnabled": false
+        }
+      }
     },
     "lifeModule": {
       "templates": [

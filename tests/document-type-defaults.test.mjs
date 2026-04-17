@@ -29,7 +29,7 @@ test("battlemech defaults resolve nested templates before local fields", () => {
   assert.equal(block.mwd.locations.arms.condition, 0);
   assert.equal(block.mwd.locations.legs.condition, 0);
   assert.deepEqual(block.mwd.weaponGroups, []);
-  assert.deepEqual(block.movement, { ground: 0, flight: 0, jump: 0 });
+  assert.deepEqual(block.movement, undefined);
 });
 
 test("vehicle defaults include ground and flight movement only", () => {
@@ -57,4 +57,16 @@ test("consumable defaults resolve through the same create-time graph as gear", (
   assert.equal(defaults.system.rating, 0);
   assert.equal(defaults.system.category, "ammo");
   assert.equal(defaults.system.description, "");
+});
+
+test("asset module defaults include structured jumping payload fields", () => {
+  const defaults = resolveDocumentTypeCreateDefaults("Item", "assetModule");
+
+  assert.equal(defaults.system.category, "special");
+  assert.equal(defaults.system.mobility.jumping.enabled, false);
+  assert.equal(defaults.system.mobility.jumping.movement, 0);
+  assert.equal(defaults.system.mobility.jumping.heat, 0);
+  assert.equal(defaults.system.mobility.jumping.attackRatingBonus, 0);
+  assert.equal(defaults.system.mobility.jumping.defenseRatingBonus, 0);
+  assert.equal(defaults.system.mobility.jumping.dfaEnabled, false);
 });

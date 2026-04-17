@@ -14,6 +14,7 @@ import {
   getMachineHeatStatusLabel,
 } from "../mwd/heat-state.js";
 import { buildBattlemechHeatModel } from "../mwd/machine-heat.js";
+import { buildBattlemechMobilityModel } from "../mwd/battlemech-mobility.js";
 
 export class BattlemechActor extends VehicleActor {
 
@@ -25,8 +26,10 @@ export class BattlemechActor extends VehicleActor {
     super.prepareDerivedData();
 
     this.system.mwd = this.system.mwd ?? {};
+    this.system.mwd.model = this.system.mwd.model ?? "";
     this.system.mwd.chassis = this.system.mwd.chassis ?? '';
     this.system.mwd.tonnage = this.system.mwd.tonnage ?? 0;
+    this.system.mwd.mobility = buildBattlemechMobilityModel(this);
     this.system.mwd.loadout = new BattlemechLoadout(this).compute();
     this.system.mwd.weaponGroupDetails = this._prepareConfiguredWeaponGroups();
     this.system.mwd.heat = this._prepareHeatTrack();
@@ -37,7 +40,8 @@ export class BattlemechActor extends VehicleActor {
     this.system.meleeProfiles = this._prepareMeleeProfiles();
     this.system.quickActions = {
       primaryWeaponGroup: this.system.weaponGroups.find(group => group.isPrimary),
-      hasSensorSweep: Boolean(this.system.skills.perception || this.system.skills.technician)
+      hasSensorSweep: Boolean(this.system.skills.perception || this.system.skills.technician),
+      jumping: this.system.mwd.mobility?.jumping ?? null,
     }
   }
 

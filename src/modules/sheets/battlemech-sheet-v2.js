@@ -167,6 +167,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       actorType: this.actor.type,
       movement: this.actor.system?.movement,
       legacyMoves: this.actor.system?.moves,
+      jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
     });
 
     return buildSummaryStats([

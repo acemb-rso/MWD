@@ -65,97 +65,97 @@ export const DEFAULT_GENERAL_CRITICAL_SIGNALS = Object.freeze({
 export const LOCATION_CRITICAL_RESULTS = Object.freeze({
   battlemech: Object.freeze({
     head: Object.freeze({
-      2: critRow("cockpitShock", "Cockpit Shock", "none", ["sensor"], ["sensorBlind"], {}, { track: "physical", amount: 3 }, "cascade"),
-      3: critRow("targetingProcessorLock", "Targeting Processor Lock", "systemReset", ["attack"], [], {}, { track: "physical", amount: 2 }, "lockout"),
-      4: critRow("neuralFeedback", "Neural Feedback", "systemReset", [], [], {}, { track: "fatigue", amount: 2 }, "surge"),
-      5: critRow("opticsCoolantFog", "Optics Coolant Fog / View Obstruction", "systemReset", ["attack"], ["rangeLimitClose"], {}, {}, "feed"),
-      6: critRow("commandInputDelay", "Command Input Delay", "systemReset", [], [], { nextActivationSaPenalty: 1 }, { track: "fatigue", amount: 2 }, "control"),
-      7: critRow("fireControlDesyncHead", "Fire-Control Desync", "systemReset", ["attack"], ["noCqBonus"], {}, {}, "desync"),
-      8: critRow("cockpitImpact", "Cockpit Impact", "pilotRecovery", ["piloting"], ["stabilityCheck"], {}, { track: "physical", amount: 2 }, "shock"),
-      9: critRow("sensorOverload", "Sensor Overload", "systemReset", ["sensor"], ["sensorLockPenalty"], {}, { track: "fatigue", amount: 2 }, "overload"),
-      10: critRow("opticsFracture", "Optics Fracture", "emergencyRepair", ["attack"], ["visibilitySevere"], {}, {}, "degradation"),
-      11: critRow("commsSensorSuiteOut", "Communications / Sensor Suite Out", "systemReset", ["sensor"], [], {}, {}, "outage"),
-      12: critRow("headCriticalBreach", "Head condition +1", "none", [], [], {}, { track: "physical", amount: 2 }, "conditionAdvance"),
+      2: critRow("cockpitShock", "Cockpit Shock", "none", ["sensor"], ["sensorBlind"], {}, { track: "physical", amount: 3 }, "cascade", "sensorBlind"),
+      3: critRow("targetingProcessorLock", "Targeting Processor Lock", "systemReset", ["attack"], [], {}, { track: "physical", amount: 2 }, "lockout", "sensorDegraded"),
+      4: critRow("neuralFeedback", "Neural Feedback", "systemReset", [], [], {}, { track: "fatigue", amount: 2 }, "surge", ""),
+      5: critRow("opticsCoolantFog", "Optics Coolant Fog / View Obstruction", "systemReset", ["attack"], ["rangeLimitClose"], {}, {}, "feed", "sensorDegraded"),
+      6: critRow("commandInputDelay", "Command Input Delay", "systemReset", [], [], { nextActivationSaPenalty: 1 }, { track: "fatigue", amount: 2 }, "control", ""),
+      7: critRow("fireControlDesyncHead", "Fire-Control Desync", "systemReset", ["attack"], ["noCqBonus"], {}, {}, "desync", "sensorDegraded"),
+      8: critRow("cockpitImpact", "Cockpit Impact", "pilotRecovery", ["piloting"], ["stabilityCheck"], {}, { track: "physical", amount: 2 }, "shock", "unstable"),
+      9: critRow("sensorOverload", "Sensor Overload", "systemReset", ["sensor"], ["sensorLockPenalty"], {}, { track: "fatigue", amount: 2 }, "overload", "sensorDegraded"),
+      10: critRow("opticsFracture", "Optics Fracture", "emergencyRepair", ["attack"], ["visibilitySevere"], {}, {}, "degradation", "sensorDegraded"),
+      11: critRow("commsSensorSuiteOut", "Communications / Sensor Suite Out", "systemReset", ["sensor"], [], {}, {}, "outage", "sensorDegraded"),
+      12: critRow("headCriticalBreach", "Head condition +1", "none", [], [], {}, { track: "physical", amount: 2 }, "conditionAdvance", ""),
     }),
     torso: Object.freeze({
-      2: critRow("reactorGyroCascade", "Reactor / Gyro Cascade", "none", ["piloting"], ["stabilityCheck"], {}, { track: "fatigue", amount: 3 }, "cascade"),
-      3: critRow("gyroLock", "Gyro Lock", "emergencyRepair", ["move", "jump"], ["pilotingPenalty"], {}, {}, "lockout"),
-      4: critRow("reactorUnstable", "Reactor Unstable", "coolantDump", ["energyWeapon"], [], { heatPerEnergyAttack: 1 }, { track: "fatigue", amount: 2 }, "heat"),
-      5: critRow("coolantPowerRoutingFault", "Coolant / Power Routing Fault", "emergencyRepair", ["weaponGroup"], [], {}, {}, "feed"),
-      6: critRow("coreResponseDelay", "Core Response Delay", "systemReset", [], [], { nextActivationSaPenalty: 1 }, { track: "fatigue", amount: 2 }, "control"),
-      7: critRow("targetingMovementSyncFault", "Targeting / Movement Sync Fault", "systemReset", ["attack", "move"], ["noMovementFireAdvantage"], {}, {}, "desync"),
-      8: critRow("internalShock", "Internal Shock", "emergencyRepair", ["piloting"], ["stabilityCheck"], {}, { track: "physical", amount: 2, condition: "failedFallImpact" }, "shock"),
-      9: critRow("heatSinkSaturation", "Heat Sink Saturation", "coolantDump", ["attack"], [], { heatPerAttack: 1 }, {}, "heat"),
-      10: critRow("gyroDrift", "Gyro Drift", "emergencyRepair", ["move"], ["highMobilityBlocked"], {}, {}, "degradation"),
-      11: critRow("powerBusOutage", "Power Bus Outage", "emergencyRepair", ["subsystem"], [], {}, {}, "outage"),
-      12: critRow("torsoCriticalBreach", "Torso condition +1", "none", [], [], {}, {}, "conditionAdvance"),
+      2: critRow("reactorGyroCascade", "Reactor / Gyro Cascade", "none", ["piloting"], ["stabilityCheck"], {}, { track: "fatigue", amount: 3 }, "cascade", "unstable"),
+      3: critRow("gyroLock", "Gyro Lock", "emergencyRepair", ["move", "jump"], ["pilotingPenalty"], {}, {}, "lockout", "stalled"),
+      4: critRow("reactorUnstable", "Reactor Unstable", "coolantDump", ["energyWeapon"], [], { heatPerEnergyAttack: 1 }, { track: "fatigue", amount: 2 }, "heat", "reactorInstability"),
+      5: critRow("coolantPowerRoutingFault", "Coolant / Power Routing Fault", "emergencyRepair", ["weaponGroup"], [], {}, {}, "feed", "weaponFailure"),
+      6: critRow("coreResponseDelay", "Core Response Delay", "systemReset", [], [], { nextActivationSaPenalty: 1 }, { track: "fatigue", amount: 2 }, "control", ""),
+      7: critRow("targetingMovementSyncFault", "Targeting / Movement Sync Fault", "systemReset", ["attack", "move"], ["noMovementFireAdvantage"], {}, {}, "desync", ""),
+      8: critRow("internalShock", "Internal Shock", "emergencyRepair", ["piloting"], ["stabilityCheck"], {}, { track: "physical", amount: 2, condition: "failedFallImpact" }, "shock", "unstable"),
+      9: critRow("heatSinkSaturation", "Heat Sink Saturation", "coolantDump", ["attack"], [], { heatPerAttack: 1 }, {}, "heat", "reactorInstability"),
+      10: critRow("gyroDrift", "Gyro Drift", "emergencyRepair", ["move"], ["highMobilityBlocked"], {}, {}, "degradation", "limping"),
+      11: critRow("powerBusOutage", "Power Bus Outage", "emergencyRepair", ["subsystem"], [], {}, {}, "outage", ""),
+      12: critRow("torsoCriticalBreach", "Torso condition +1", "none", [], [], {}, {}, "conditionAdvance", ""),
     }),
     arms: Object.freeze({
-      2: critRow("weaponMountCascade", "Weapon Mount Cascade", "emergencyRepair", ["attack"], [], {}, {}, "cascade"),
-      3: critRow("actuatorLockArm", "Actuator Lock", "emergencyRepair", ["attack"], [], {}, {}, "lockout"),
-      4: critRow("weaponFeedback", "Weapon Feedback", "emergencyRepair", ["attack"], [], { nextArmAttackHeat: 1 }, {}, "surge"),
-      5: critRow("ammoFeedFaultArm", "Ammo / Feed Fault", "feedReset", ["attack"], [], {}, {}, "feed"),
-      6: critRow("fineActuationError", "Fine Actuation Error", "emergencyRepair", ["attack"], ["aimBlocked"], {}, {}, "control"),
-      7: critRow("targetingMisalignmentArm", "Targeting Misalignment", "systemReset", ["attack"], ["noCqBonus"], {}, {}, "desync"),
-      8: critRow("recoilShock", "Recoil Shock", "emergencyRepair", ["attack"], ["nextArmAttackBlocked"], {}, {}, "shock"),
-      9: critRow("servoStrainArm", "Servo Strain", "emergencyRepair", ["attack"], [], { heatOrStrainOnUse: 1 }, {}, "overload"),
-      10: critRow("stabilizerDamageArm", "Stabilizer Damage", "emergencyRepair", ["attack"], ["armAttackSeverelyLimited"], {}, {}, "degradation"),
-      11: critRow("localPowerLossArm", "Local Power Loss", "emergencyRepair", ["subsystem"], [], {}, {}, "outage"),
-      12: critRow("armsCriticalBreach", "Arms condition +1", "none", [], [], {}, {}, "conditionAdvance"),
+      2: critRow("weaponMountCascade", "Weapon Mount Cascade", "emergencyRepair", ["attack"], [], {}, {}, "cascade", "weaponFailure"),
+      3: critRow("actuatorLockArm", "Actuator Lock", "emergencyRepair", ["attack"], [], {}, {}, "lockout", "weaponFailure"),
+      4: critRow("weaponFeedback", "Weapon Feedback", "emergencyRepair", ["attack"], [], { nextArmAttackHeat: 1 }, {}, "surge", "weaponFailure"),
+      5: critRow("ammoFeedFaultArm", "Ammo / Feed Fault", "feedReset", ["attack"], [], {}, {}, "feed", "jammedBallistic"),
+      6: critRow("fineActuationError", "Fine Actuation Error", "emergencyRepair", ["attack"], ["aimBlocked"], {}, {}, "control", "weaponFailure"),
+      7: critRow("targetingMisalignmentArm", "Targeting Misalignment", "systemReset", ["attack"], ["noCqBonus"], {}, {}, "desync", "weaponFailure"),
+      8: critRow("recoilShock", "Recoil Shock", "emergencyRepair", ["attack"], ["nextArmAttackBlocked"], {}, {}, "shock", "weaponFailure"),
+      9: critRow("servoStrainArm", "Servo Strain", "emergencyRepair", ["attack"], [], { heatOrStrainOnUse: 1 }, {}, "overload", "weaponFailure"),
+      10: critRow("stabilizerDamageArm", "Stabilizer Damage", "emergencyRepair", ["attack"], ["armAttackSeverelyLimited"], {}, {}, "degradation", "weaponFailure"),
+      11: critRow("localPowerLossArm", "Local Power Loss", "emergencyRepair", ["subsystem"], [], {}, {}, "outage", "weaponFailure"),
+      12: critRow("armsCriticalBreach", "Arms condition +1", "none", [], [], {}, {}, "conditionAdvance", ""),
     }),
     legs: Object.freeze({
-      2: critRow("mobilityCascadeLegs", "Mobility Cascade", "emergencyRepair", ["move"], ["stabilityCheck"], {}, { track: "physical", amount: 2, condition: "resultingFallImpact" }, "cascade"),
-      3: critRow("legActuatorLock", "Leg Actuator Lock", "emergencyRepair", ["move", "jump"], [], {}, {}, "lockout"),
-      4: critRow("myomerSurge", "Myomer Surge", "coolantDump", ["move"], [], { heatOrStrainOnMove: 1 }, {}, "surge"),
-      5: critRow("jumpJetMobilityFeedFault", "Jump Jet / Mobility Feed Fault", "emergencyRepair", ["move", "jump"], [], {}, {}, "feed"),
-      6: critRow("gaitFault", "Gait Fault", "emergencyRepair", ["move"], ["repositionPenalty"], {}, {}, "control"),
-      7: critRow("balanceTimingFault", "Balance Timing Fault", "systemReset", ["move"], ["noMobilityCqBonus"], {}, {}, "desync"),
-      8: critRow("forcedStabilityTest", "Forced Stability Test", "emergencyRepair", ["move", "piloting"], ["stabilityCheck"], {}, { track: "physical", amount: 2, condition: "resultingFallImpact" }, "shock"),
-      9: critRow("mobilityOverstress", "Mobility Overstress", "emergencyRepair", ["move"], [], { repeatedMoveCost: 1 }, {}, "overload"),
-      10: critRow("legStabilizerDamage", "Leg Stabilizer Damage", "emergencyRepair", ["move"], ["advancedManeuverBlocked"], {}, {}, "degradation"),
-      11: critRow("partialMobilityOutageLegs", "Partial Mobility Outage", "emergencyRepair", ["move"], [], {}, {}, "outage"),
-      12: critRow("legsCriticalBreach", "Legs condition +1", "none", [], [], {}, {}, "conditionAdvance"),
+      2: critRow("mobilityCascadeLegs", "Mobility Cascade", "emergencyRepair", ["move"], ["stabilityCheck"], {}, { track: "physical", amount: 2, condition: "resultingFallImpact" }, "cascade", "unstable"),
+      3: critRow("legActuatorLock", "Leg Actuator Lock", "emergencyRepair", ["move", "jump"], [], {}, {}, "lockout", "stalled"),
+      4: critRow("myomerSurge", "Myomer Surge", "coolantDump", ["move"], [], { heatOrStrainOnMove: 1 }, {}, "surge", ""),
+      5: critRow("jumpJetMobilityFeedFault", "Jump Jet / Mobility Feed Fault", "emergencyRepair", ["move", "jump"], [], {}, {}, "feed", "jumpJetFailure"),
+      6: critRow("gaitFault", "Gait Fault", "emergencyRepair", ["move"], ["repositionPenalty"], {}, {}, "control", "limping"),
+      7: critRow("balanceTimingFault", "Balance Timing Fault", "systemReset", ["move"], ["noMobilityCqBonus"], {}, {}, "desync", "unstable"),
+      8: critRow("forcedStabilityTest", "Forced Stability Test", "emergencyRepair", ["move", "piloting"], ["stabilityCheck"], {}, { track: "physical", amount: 2, condition: "resultingFallImpact" }, "shock", "unstable"),
+      9: critRow("mobilityOverstress", "Mobility Overstress", "emergencyRepair", ["move"], [], { repeatedMoveCost: 1 }, {}, "overload", "limping"),
+      10: critRow("legStabilizerDamage", "Leg Stabilizer Damage", "emergencyRepair", ["move"], ["advancedManeuverBlocked"], {}, {}, "degradation", "limping"),
+      11: critRow("partialMobilityOutageLegs", "Partial Mobility Outage", "emergencyRepair", ["move"], [], {}, {}, "outage", "limping"),
+      12: critRow("legsCriticalBreach", "Legs condition +1", "none", [], [], {}, {}, "conditionAdvance", ""),
     }),
   }),
   vehicle: Object.freeze({
     body: Object.freeze({
-      2: critRow("internalSystemsCascade", "Internal Systems Cascade", "none", [], [], {}, { track: "physical", amount: 2, condition: "openToppedOrCatastrophic" }, "cascade"),
-      3: critRow("coreSystemsLock", "Core Systems Lock", "systemReset", ["subsystem"], [], {}, {}, "lockout"),
-      4: critRow("enginePowerSurge", "Engine / Power Surge", "coolantDump", [], [], {}, { track: "fatigue", amount: 2, condition: "crewApplicable" }, "surge"),
-      5: critRow("fuelFeedDisruption", "Fuel / Feed Disruption", "emergencyRepair", ["subsystem"], [], {}, {}, "feed"),
-      6: critRow("controlFaultBody", "Control Fault", "systemReset", ["move"], [], {}, {}, "control"),
-      7: critRow("systemsDesyncBody", "Systems Desync", "systemReset", ["attack", "move"], [], {}, {}, "desync"),
-      8: critRow("structuralShockBody", "Structural Shock", "emergencyRepair", ["piloting"], ["controlTest"], {}, { track: "physical", amount: 2, condition: "crashImpact" }, "shock"),
-      9: critRow("overloadBody", "Overload", "coolantDump", [], [], {}, {}, "overload"),
-      10: critRow("hullStressSpike", "Hull Stress Spike", "emergencyRepair", [], [], {}, {}, "degradation"),
-      11: critRow("partialOutageBody", "Partial Outage", "emergencyRepair", ["subsystem"], [], {}, {}, "outage"),
-      12: critRow("bodyCriticalBreach", "Body condition +1", "none", [], [], {}, {}, "conditionAdvance"),
+      2: critRow("internalSystemsCascade", "Internal Systems Cascade", "none", [], [], {}, { track: "physical", amount: 2, condition: "openToppedOrCatastrophic" }, "cascade", ""),
+      3: critRow("coreSystemsLock", "Core Systems Lock", "systemReset", ["subsystem"], [], {}, {}, "lockout", ""),
+      4: critRow("enginePowerSurge", "Engine / Power Surge", "coolantDump", [], [], {}, { track: "fatigue", amount: 2, condition: "crewApplicable" }, "surge", ""),
+      5: critRow("fuelFeedDisruption", "Fuel / Feed Disruption", "emergencyRepair", ["subsystem"], [], {}, {}, "feed", ""),
+      6: critRow("controlFaultBody", "Control Fault", "systemReset", ["move"], [], {}, {}, "control", "stalled"),
+      7: critRow("systemsDesyncBody", "Systems Desync", "systemReset", ["attack", "move"], [], {}, {}, "desync", "stalled"),
+      8: critRow("structuralShockBody", "Structural Shock", "emergencyRepair", ["piloting"], ["controlTest"], {}, { track: "physical", amount: 2, condition: "crashImpact" }, "shock", "unstable"),
+      9: critRow("overloadBody", "Overload", "coolantDump", [], [], {}, {}, "overload", ""),
+      10: critRow("hullStressSpike", "Hull Stress Spike", "emergencyRepair", [], [], {}, {}, "degradation", ""),
+      11: critRow("partialOutageBody", "Partial Outage", "emergencyRepair", ["subsystem"], [], {}, {}, "outage", ""),
+      12: critRow("bodyCriticalBreach", "Body condition +1", "none", [], [], {}, {}, "conditionAdvance", ""),
     }),
     turret: Object.freeze({
-      2: critRow("turretWeaponCascade", "Turret Weapon Cascade", "emergencyRepair", ["attack"], [], {}, {}, "cascade"),
-      3: critRow("traverseLock", "Traverse Lock", "emergencyRepair", ["attack"], [], {}, {}, "lockout"),
-      4: critRow("fireControlSurgeTurret", "Fire-Control Surge", "systemReset", ["attack"], [], { heatOrStrainOnTurretAttack: 1 }, {}, "surge"),
-      5: critRow("ammoFeedFaultTurret", "Ammo / Feed Fault", "feedReset", ["attack"], [], {}, {}, "feed"),
-      6: critRow("controlFaultTurret", "Control Fault", "systemReset", ["attack"], [], { extraAttackCost: 1 }, {}, "control"),
-      7: critRow("trackingDesyncTurret", "Tracking Desync", "systemReset", ["attack"], ["noCqBonus"], {}, {}, "desync"),
-      8: critRow("mountShockTurret", "Mount Shock", "emergencyRepair", ["attack"], ["nextTurretAttackBlocked"], {}, {}, "shock"),
-      9: critRow("overloadTurret", "Overload", "emergencyRepair", ["attack"], [], { turretAttackStress: 1 }, {}, "overload"),
-      10: critRow("stabilizerDamageTurret", "Stabilizer Damage", "emergencyRepair", ["attack"], ["limitedArcFire"], {}, {}, "degradation"),
-      11: critRow("turretSubsystemOutage", "Turret Subsystem Outage", "emergencyRepair", ["subsystem"], [], {}, {}, "outage"),
-      12: critRow("turretCriticalBreach", "Turret condition +1", "none", [], [], {}, {}, "conditionAdvance"),
+      2: critRow("turretWeaponCascade", "Turret Weapon Cascade", "emergencyRepair", ["attack"], [], {}, {}, "cascade", "weaponFailure"),
+      3: critRow("traverseLock", "Traverse Lock", "emergencyRepair", ["attack"], [], {}, {}, "lockout", "weaponFailure"),
+      4: critRow("fireControlSurgeTurret", "Fire-Control Surge", "systemReset", ["attack"], [], { heatOrStrainOnTurretAttack: 1 }, {}, "surge", "weaponFailure"),
+      5: critRow("ammoFeedFaultTurret", "Ammo / Feed Fault", "feedReset", ["attack"], [], {}, {}, "feed", "jammedBallistic"),
+      6: critRow("controlFaultTurret", "Control Fault", "systemReset", ["attack"], [], { extraAttackCost: 1 }, {}, "control", "weaponFailure"),
+      7: critRow("trackingDesyncTurret", "Tracking Desync", "systemReset", ["attack"], ["noCqBonus"], {}, {}, "desync", "sensorDegraded"),
+      8: critRow("mountShockTurret", "Mount Shock", "emergencyRepair", ["attack"], ["nextTurretAttackBlocked"], {}, {}, "shock", "weaponFailure"),
+      9: critRow("overloadTurret", "Overload", "emergencyRepair", ["attack"], [], { turretAttackStress: 1 }, {}, "overload", "weaponFailure"),
+      10: critRow("stabilizerDamageTurret", "Stabilizer Damage", "emergencyRepair", ["attack"], ["limitedArcFire"], {}, {}, "degradation", "weaponFailure"),
+      11: critRow("turretSubsystemOutage", "Turret Subsystem Outage", "emergencyRepair", ["subsystem"], [], {}, {}, "outage", ""),
+      12: critRow("turretCriticalBreach", "Turret condition +1", "none", [], [], {}, {}, "conditionAdvance", ""),
     }),
     mobility: Object.freeze({
-      2: critRow("mobilityCascadeVehicle", "Mobility Cascade", "emergencyRepair", ["move"], ["skidStallCrashRisk"], {}, {}, "cascade"),
-      3: critRow("driveLock", "Drive / Track / Wheel Lock", "emergencyRepair", ["move"], [], {}, {}, "lockout"),
-      4: critRow("powertrainSurge", "Powertrain Surge", "coolantDump", ["move"], [], { heatOrStrainOnMove: 1 }, {}, "surge"),
-      5: critRow("transmissionRotorFeedFault", "Transmission / Rotor Feed Fault", "emergencyRepair", ["move"], [], {}, {}, "feed"),
-      6: critRow("steeringFault", "Steering Fault", "emergencyRepair", ["move"], [], {}, {}, "control"),
-      7: critRow("handlingDesync", "Handling Desync", "systemReset", ["move"], ["noMobilityCqBonus"], {}, {}, "desync"),
-      8: critRow("chassisShock", "Chassis Shock", "emergencyRepair", ["move", "piloting"], ["controlTest"], {}, {}, "shock"),
-      9: critRow("overloadMobility", "Overload", "emergencyRepair", ["move"], [], { repeatedMoveCost: 1 }, {}, "overload"),
-      10: critRow("suspensionLiftDamage", "Suspension / Lift Damage", "emergencyRepair", ["move"], ["majorHandlingImpairment"], {}, {}, "degradation"),
-      11: critRow("partialMobilityOutageVehicle", "Partial Mobility Outage", "emergencyRepair", ["move"], [], {}, {}, "outage"),
-      12: critRow("mobilityCriticalBreach", "Mobility condition +1", "none", [], [], {}, {}, "conditionAdvance"),
+      2: critRow("mobilityCascadeVehicle", "Mobility Cascade", "emergencyRepair", ["move"], ["skidStallCrashRisk"], {}, {}, "cascade", "stalled"),
+      3: critRow("driveLock", "Drive / Track / Wheel Lock", "emergencyRepair", ["move"], [], {}, {}, "lockout", "stalled"),
+      4: critRow("powertrainSurge", "Powertrain Surge", "coolantDump", ["move"], [], { heatOrStrainOnMove: 1 }, {}, "surge", ""),
+      5: critRow("transmissionRotorFeedFault", "Transmission / Rotor Feed Fault", "emergencyRepair", ["move"], [], {}, {}, "feed", "stalled"),
+      6: critRow("steeringFault", "Steering Fault", "emergencyRepair", ["move"], [], {}, {}, "control", "stalled"),
+      7: critRow("handlingDesync", "Handling Desync", "systemReset", ["move"], ["noMobilityCqBonus"], {}, {}, "desync", "unstable"),
+      8: critRow("chassisShock", "Chassis Shock", "emergencyRepair", ["move", "piloting"], ["controlTest"], {}, {}, "shock", "unstable"),
+      9: critRow("overloadMobility", "Overload", "emergencyRepair", ["move"], [], { repeatedMoveCost: 1 }, {}, "overload", "limping"),
+      10: critRow("suspensionLiftDamage", "Suspension / Lift Damage", "emergencyRepair", ["move"], ["majorHandlingImpairment"], {}, {}, "degradation", "stalled"),
+      11: critRow("partialMobilityOutageVehicle", "Partial Mobility Outage", "emergencyRepair", ["move"], [], {}, {}, "outage", "stalled"),
+      12: critRow("mobilityCriticalBreach", "Mobility condition +1", "none", [], [], {}, {}, "conditionAdvance", ""),
     }),
   }),
 });
@@ -169,7 +169,7 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value ?? null));
 }
 
-function critRow(key, label, remedyKey, gates = [], mods = [], resourceEffects = {}, pilotDamage = {}, escalationKey = "") {
+function critRow(key, label, remedyKey, gates = [], mods = [], resourceEffects = {}, pilotDamage = {}, escalationKey = "", statusId = "") {
   return Object.freeze({
     label,
     signal: Object.freeze({
@@ -180,6 +180,7 @@ function critRow(key, label, remedyKey, gates = [], mods = [], resourceEffects =
       resourceEffects,
       pilotDamage,
       escalationKey,
+      statusId,
     }),
   });
 }
@@ -239,6 +240,7 @@ export function normalizeCriticalSignal(resultOrData = {}, { strict = false } = 
   const resourceEffects = toPlainObject(data?.resourceEffects);
   const pilotDamage = toPlainObject(data?.pilotDamage);
   const escalationKey = String(data?.escalationKey ?? "").trim();
+  const statusId = String(data?.statusId ?? "").trim();
 
   if (!key) errors.push("Critical signal key cannot be blank.");
   if (!isValidMachineCritRemedy(remedyKey)) errors.push(`Unknown machine critical remedy "${remedyKey}".`);
@@ -272,6 +274,7 @@ export function normalizeCriticalSignal(resultOrData = {}, { strict = false } = 
       }
       : {},
     escalationKey,
+    statusId,
   };
 }
 
@@ -611,6 +614,7 @@ function buildCritRecord({ actor, drawn, hitLocation, source = {}, cascade = fal
     remedyBaseDn: getMachineRemedyBaseDn({ remedyKey: signal.remedyKey }, remedy),
     remedyEffect: getMachineRemedyEffect({}),
     escalationKey: signal.escalationKey,
+    statusId: signal.statusId,
     active: true,
     cascade: Boolean(cascade),
     createdRound: Number(globalThis.game?.combat?.round ?? 0) || 0,
@@ -711,6 +715,7 @@ function getAutomaticDegradationLocations(preview = {}) {
     : [];
 }
 
+
 async function syncMachineCriticalStatus(actor, hasCrits) {
   if (!actor?.toggleStatusEffect || !hasCrits) return;
   try {
@@ -725,6 +730,34 @@ async function syncMachineCriticalStatus(actor, hasCrits) {
     });
   } catch (error) {
     console.warn("MWD | Unable to sync machine critical status", error);
+  }
+}
+
+async function applyMachineCritStatusConditions(actor, newCritRecords) {
+  for (const crit of newCritRecords) {
+    const statusId = String(crit?.statusId ?? "").trim();
+    if (!statusId || (actor.statuses?.has?.(statusId) ?? false)) continue;
+    try {
+      await applyManagedStatusUpdate({ actor, statusId, active: true });
+    } catch (error) {
+      console.warn(`MWD | Unable to apply crit status "${statusId}"`, error);
+    }
+  }
+}
+
+async function applyDegradationStatusConditions(actor, degradation) {
+  for (const event of Array.from(degradation?.fallbackEvents ?? [])) {
+    if (!event?.destroyed) continue;
+    const location = String(event.location ?? "").trim();
+    const statusId = location === "legs" ? "legDestroyed"
+      : location === "arms" ? "armDestroyed"
+      : "";
+    if (!statusId || (actor.statuses?.has?.(statusId) ?? false)) continue;
+    try {
+      await applyManagedStatusUpdate({ actor, statusId, active: true });
+    } catch (error) {
+      console.warn(`MWD | Unable to apply degradation status "${statusId}"`, error);
+    }
   }
 }
 
@@ -800,7 +833,12 @@ export async function applyMachineAttackDamage({
       update["system.mwd.crits"] = nextCrits;
     }
     await actor.update(update);
-    await syncMachineCriticalStatus(actor, nextCrits.some(crit => crit?.active !== false));
+    const allCrits = nextCrits.some(crit => crit?.active !== false);
+    await syncMachineCriticalStatus(actor, allCrits);
+    if (critDraw.ok && critDraw.crits.length) {
+      await applyMachineCritStatusConditions(actor, critDraw.crits);
+    }
+    await applyDegradationStatusConditions(actor, degradation);
   }
 
   return {

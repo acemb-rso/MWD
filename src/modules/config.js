@@ -479,7 +479,15 @@ export const MWD = {
     "assetModule": {
       "category": "Category",
       "level": "Level",
-      "levelShort": "Lvl"
+      "levelShort": "Lvl",
+      "jumping": {
+        "enabled": "Grants Jumping",
+        "movement": "Jump Move",
+        "heat": "Jump Heat",
+        "attackRatingBonus": "Jump AR Bonus",
+        "defenseRatingBonus": "Jump DR Bonus",
+        "dfaEnabled": "Enable Death From Above"
+      }
     },
 
     "gear": {
@@ -602,10 +610,12 @@ export const MWD = {
   "assetModuleCategory": {
     "faction": "Faction",
     "logistics": "Logistics",
+    "mobility": "Mobility",
     "training": "Training",
     "influence": "Influence",
     "personal": "Personal",
-    "operations": "Operations"
+    "operations": "Operations",
+    "special": "Special"
   },
 
   "attributes": {

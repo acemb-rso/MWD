@@ -7,24 +7,37 @@ How it fits: Shared by vehicle-scale V2 sheets; vehicles expose Ground/Flight, B
 {{#if editing}}
   <div class="mwd-gmgadget__grid">
     {{#each vehicleSheet.movement as |movement|}}
-      <label class="mwd-gmgadget__field">
-        <span class="mwd-gmgadget__field-label">{{movement.label}}</span>
-        <input
-          type="number"
-          min="0"
-          step="1"
-          name="{{movement.path}}"
-          value="{{movement.value}}"
-          data-edit-field="staged" />
-      </label>
+      {{#if movement.editable}}
+        <label class="mwd-gmgadget__field">
+          <span class="mwd-gmgadget__field-label">{{movement.label}}</span>
+          <input
+            type="number"
+            min="0"
+            step="1"
+            name="{{movement.path}}"
+            value="{{movement.value}}"
+            data-edit-field="staged" />
+        </label>
+      {{else}}
+        <div class="mwd-gmgadget__field"{{#if movement.title}} title="{{movement.title}}"{{/if}}>
+          <span class="mwd-gmgadget__field-label">{{movement.label}}</span>
+          <span class="mwd-item-hero__value">{{movement.displayValue}}</span>
+          {{#if movement.detail}}
+            <span class="mwd-item-hero__label">{{movement.detail}}</span>
+          {{/if}}
+        </div>
+      {{/if}}
     {{/each}}
   </div>
 {{else}}
   <section class="mwd-item-hero">
     {{#each vehicleSheet.movement as |movement|}}
-      <div class="mwd-item-hero__stat">
+      <div class="mwd-item-hero__stat{{#if movement.blocked}} is-red{{/if}}"{{#if movement.title}} title="{{movement.title}}"{{else if movement.blockedReason}} title="{{movement.blockedReason}}"{{/if}}>
         <span class="mwd-item-hero__label">{{movement.label}}</span>
         <span class="mwd-item-hero__value">{{movement.displayValue}}</span>
+        {{#if movement.detail}}
+          <span class="mwd-item-hero__label">{{movement.detail}}</span>
+        {{/if}}
       </div>
     {{/each}}
   </section>

@@ -52,6 +52,7 @@ import {
   resolveEffectiveWeaponProfile,
   resolveWeaponPayloadState,
 } from "../mwd/personal-damage.js";
+import { normalizeAssetModuleSystem } from "../mwd/asset-module-rules.js";
 import {
   createCapabilityMigrationReport,
   normalizeWeaponCapabilityState,
@@ -505,6 +506,13 @@ export class MWDItem extends Item {
       return;
     }
 
+    if (nextSystem && this.canonicalType === TEMPLATE.itemType.assetModule) {
+      changed.system ??= {};
+      const normalized = normalizeAssetModuleSystem(nextSystem);
+      foundry.utils.mergeObject(changed.system, normalized, { inplace: true, overwrite: true });
+      return;
+    }
+
     if (nextSystem && this.isQuantityTrackedInventoryItem()) {
       changed.system ??= {};
       changed.system.quantity = normalizeGearQuantity(nextSystem.quantity, 1);
@@ -541,9 +549,17 @@ export class MWDItem extends Item {
       this._prepareLifeModuleBaseData();
     } else if (canonicalType === TEMPLATE.itemType.quality) {
       this._prepareQualityBaseData();
+    } else if (canonicalType === TEMPLATE.itemType.assetModule) {
+      this._prepareAssetModuleBaseData();
     } else if ([TEMPLATE.itemType.gear, TEMPLATE.itemType.consumable].includes(canonicalType)) {
       this._prepareGearBaseData();
     }
+  }
+
+  _prepareAssetModuleBaseData() {
+    const system = this.system ?? {};
+    const normalized = normalizeAssetModuleSystem(system);
+    Object.assign(system, normalized);
   }
 
   _preparePersonalWeaponBaseData() {

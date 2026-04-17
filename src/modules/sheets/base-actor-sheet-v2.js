@@ -686,6 +686,14 @@ async _prepareContext(options) {
     }
   };
 
+  const isMachineHeader = ["battlemech", "vehicle"].includes(this.actor?.type ?? "");
+  hbsData.machineHeader = {
+    enabled: isMachineHeader,
+    model: String(this.actor?.system?.mwd?.model ?? "").trim(),
+    path: "system.mwd.model",
+    placeholder: this.actor?.type === "battlemech" ? "WHM-6R Warhammer" : "Vehicle model",
+  };
+
   // Preserve the historical item buckets while the new sheets move toward the
   // explicit actorSheet.itemCollections contract.
   hbsData.items ??= {};
