@@ -12,9 +12,8 @@ import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 import { getSkillDef } from "../mwd/skills.js";
 import {
   getMachineHeatStatusLabel,
-  normalizeMachineHeatThresholds,
-  resolveMachineHeatStatus,
 } from "../mwd/heat-state.js";
+import { buildBattlemechHeatModel } from "../mwd/machine-heat.js";
 
 export class BattlemechActor extends VehicleActor {
 
@@ -130,47 +129,37 @@ export class BattlemechActor extends VehicleActor {
 
   _prepareHeatTrack() {
     const systemData = this.system ?? {};
-    const heatMonitor = systemData.monitors?.heat ?? { value: 0, max: 0 };
-    const mwdHeat = systemData.mwd?.heat ?? {};
-
-    const defaults = {
-      current: heatMonitor.value ?? 0,
-      max: heatMonitor.max ?? 0,
+    const prepared = buildBattlemechHeatModel(systemData);
+    const heat = foundry.utils.mergeObject(systemData.mwd?.heat ?? {}, {
+      current: prepared.current,
+      max: prepared.max,
+      dissipation: prepared.dissipation,
+      effectiveDissipation: prepared.effectiveDissipation,
+      coolingImpaired: prepared.coolingImpaired,
+      pendingGenerated: prepared.pendingGenerated,
       thresholds: {
-        runningHot: 2,
-        overheated: 3,
-        shutdown: 4,
-      }
-    };
+        runningHot: prepared.thresholds.runningHot,
+        overheated: prepared.thresholds.overheated,
+        shutdown: prepared.thresholds.shutdown,
+      },
+      penalties: {
+        movementPenalty: prepared.penalties.movementPenalty,
+        rangedDicePenalty: prepared.penalties.rangedDicePenalty,
+        dangerLevel: prepared.penalties.dangerLevel,
+      },
+      statusCode: prepared.statusCode,
+      status: prepared.status,
+      inDanger: prepared.inDanger,
+      volatile: prepared.volatile,
+    }, { inplace: false });
 
-    const heat = foundry.utils.mergeObject(defaults, mwdHeat, { inplace: false });
-    heat.current = heatMonitor.value ?? heat.current;
-    heat.max = heatMonitor.max ?? heat.max;
-    heat.thresholds = normalizeMachineHeatThresholds(
-      foundry.utils.mergeObject(defaults.thresholds, mwdHeat.thresholds ?? {}, { inplace: false }),
-      heat.max
-    );
-
-    // Derive coolingImpaired from active crits with escalationKey "heat"
-    // (torso reactorUnstable and heatSinkSaturation both use this key).
-    // The stored flag is also respected as a manual GM override.
-    const activeCrits = Array.isArray(this.system.mwd?.crits) ? this.system.mwd.crits : [];
-    const hasHeatCrit = activeCrits.some(c => c?.active !== false && c?.escalationKey === "heat");
-    if (hasHeatCrit) {
-      heat.coolingImpaired = true;
-    }
-
-    const status = this._resolveHeatStatus(heat.current, heat.thresholds, heat.max);
+    const status = prepared.statusCode;
     this.system.mwd.heatStatus = {
       code: status,
       label: ANARCHY.actor.battlemech.heat.status[status] ?? getMachineHeatStatusLabel(status)
     };
 
     return heat;
-  }
-
-  _resolveHeatStatus(value, thresholds, max) {
-    return resolveMachineHeatStatus(value, thresholds, max);
   }
 
   _prepareConfiguredWeaponGroups() {

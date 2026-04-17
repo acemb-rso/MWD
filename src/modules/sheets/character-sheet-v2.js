@@ -725,16 +725,22 @@ ctx.edgeConsole.poolsOrdered = order
         };
 
         const heatCurrent = Math.max(0, toNumber(heat.current, 0));
-        const heatMax = Math.max(0, toNumber(heat.max, 0));
+        const heatTrackLength = Math.max(0, toNumber(heat.trackLength ?? heat.max, 0));
         const heatThresholds = heat.thresholds ?? {};
+        const heatDisplayMax = Math.max(
+          heatTrackLength,
+          heatCurrent,
+          toNumber(heatThresholds.shutdown ?? heatThresholds.danger, 0)
+        );
         const heatModel = isMech ? {
           current: heatCurrent,
-          max: heatMax,
+          trackLength: heatTrackLength,
+          displayMax: heatDisplayMax,
           status: heatStatus.label ?? heatStatus.code ?? "safe",
-          segments: Array.from({ length: heatMax }, (_, i) => {
-            const v = i + 1;
-            return {
-              value: v,
+          segments: Array.from({ length: heatDisplayMax }, (_, i) => {
+              const v = i + 1;
+              return {
+                value: v,
               filled: v <= heatCurrent,
               breakpoint: compactList([
                 v === toNumber(heatThresholds.runningHot, 0) ? "runningHot" : "",
@@ -776,12 +782,12 @@ ctx.edgeConsole.poolsOrdered = order
           typeLabel: isMech ? "BattleMech" : "Vehicle",
           isMech,
           weightLabel: WEIGHT_LABELS[a.system?.mwd?.weightClass] ?? "",
-          summaryStats: buildSummaryStats([
-            ...(isMech ? [{ label: "Armor", value: `${armorRemaining} / ${armorMax}` }] : []),
-            { label: "Structure", value: `${structureRemaining} / ${structureMax}` },
-            { label: "Heat", value: isMech ? `${heatCurrent} / ${heatMax}` : null },
-            { label: "Status", value: critStatus.count > 0 ? critStatus.value : "OK" },
-          ]),
+            summaryStats: buildSummaryStats([
+              ...(isMech ? [{ label: "Armor", value: `${armorRemaining} / ${armorMax}` }] : []),
+              { label: "Structure", value: `${structureRemaining} / ${structureMax}` },
+              { label: "Heat", value: isMech ? String(heatCurrent) : null },
+              { label: "Status", value: critStatus.count > 0 ? critStatus.value : "OK" },
+            ]),
           conditionMonitors,
           heat: heatModel,
           critCount: crits.length,

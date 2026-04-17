@@ -684,7 +684,7 @@ export class MWDActor extends Actor {
             ? mwdMax
             : Number.isFinite(mwdHardMax) ? mwdHardMax : 0
       );
-      const nextValue = Math.min(Math.max(0, Number(rawValue) || 0), clampedMax);
+      const nextValue = Math.max(0, Number(rawValue) || 0);
 
       return this.update({
         "system.monitors.heat.value": nextValue,

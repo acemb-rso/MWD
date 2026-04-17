@@ -61,6 +61,13 @@ import {
   getTraitEditorConfig,
   normalizeQualityTraitSystem,
 } from "./mwd/traits.js";
+import {
+  adjustBattlemechPendingHeat,
+  buildBattlemechHeatModel,
+  recordBattlemechAttackHeat,
+  resolveBattlemechPendingHeat,
+  setBattlemechPendingHeat,
+} from "./mwd/machine-heat.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -206,12 +213,20 @@ export class AnarchySystem {
     game.mwd.attacks = WeaponAttackActions;
     game.mwd.personalCombat = PersonalCombatTracker;
     game.mwd.harm = HarmEngine;
+    game.mwd.machineHeat = {
+      adjustPendingHeat: adjustBattlemechPendingHeat,
+      buildModel: buildBattlemechHeatModel,
+      recordAttackHeat: recordBattlemechAttackHeat,
+      resolvePendingHeat: resolveBattlemechPendingHeat,
+      setPendingHeat: setBattlemechPendingHeat,
+    };
 
     // Optional alias if you want it under the system object too:
       this.roll = MWDRoll;
       this.attacks = WeaponAttackActions;
       this.personalCombat = PersonalCombatTracker;
       this.harm = HarmEngine;
+      this.machineHeat = game.mwd.machineHeat;
     this.skills = createMWDSkillsService();
     this.lifeModules = createMWDLifeModulesService();
     this.traits = createMWDTraitsService();

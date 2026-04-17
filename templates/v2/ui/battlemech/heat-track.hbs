@@ -30,11 +30,11 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
   {{#if editing}}
     <div class="mwd-gmgadget__grid" style="margin-top:0.5rem;">
       <label class="mwd-gmgadget__field">
-        <span class="mwd-gmgadget__field-label">Max Heat</span>
+        <span class="mwd-gmgadget__field-label">Track Length</span>
         <input
           type="number"
           name="system.monitors.heat.max"
-          value="{{battlemechSheet.heat.max}}"
+          value="{{battlemechSheet.heat.trackLength}}"
           data-edit-field="staged"
         />
       </label>
@@ -79,7 +79,11 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
     <section class="mwd-item-hero">
       <div class="mwd-item-hero__stat">
         <span class="mwd-item-hero__label">Current</span>
-        <span class="mwd-item-hero__value">{{battlemechSheet.heat.current}} / {{battlemechSheet.heat.max}}</span>
+        <span class="mwd-item-hero__value">{{battlemechSheet.heat.current}}</span>
+      </div>
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Pending</span>
+        <span class="mwd-item-hero__value">{{battlemechSheet.heat.pendingGenerated}}</span>
       </div>
       <div class="mwd-item-hero__stat {{#if battlemechSheet.heat.coolingImpaired}}mwd-item-hero__stat--impaired{{/if}}">
         <span class="mwd-item-hero__label">Dissipation</span>
@@ -104,7 +108,6 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
       </div>
     </section>
 
-    {{!-- Active heat penalties --}}
     {{#if battlemechSheet.heat.inDanger}}
       <div class="mwd-heat-alert mwd-heat-alert--danger">
         <span class="mwd-heat-alert__label">DANGER</span>
@@ -115,7 +118,7 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
     {{#if battlemechSheet.heat.penalties.movementPenalty}}
       <div class="mwd-heat-penalty">
         <span class="mwd-heat-penalty__label">Movement</span>
-        <span class="mwd-heat-penalty__value">−{{battlemechSheet.heat.penalties.movementPenalty}}</span>
+        <span class="mwd-heat-penalty__value">-{{battlemechSheet.heat.penalties.movementPenalty}}</span>
         <span class="mwd-heat-penalty__note">ground speed (Hot)</span>
       </div>
     {{/if}}
@@ -123,15 +126,33 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
     {{#if battlemechSheet.heat.penalties.rangedDicePenalty}}
       <div class="mwd-heat-penalty">
         <span class="mwd-heat-penalty__label">Ranged Dice</span>
-        <span class="mwd-heat-penalty__value">−{{battlemechSheet.heat.penalties.rangedDicePenalty}}</span>
+        <span class="mwd-heat-penalty__value">-{{battlemechSheet.heat.penalties.rangedDicePenalty}}</span>
         <span class="mwd-heat-penalty__note">dice pool (Overheat)</span>
       </div>
     {{/if}}
 
+    <p class="mwd-helptext" style="margin-top:0.5rem;">
+      Weapon attacks add heat automatically. Use the pending controls for movement surcharges or GM adjustments.
+      Pending heat resolves automatically when combat advances, or you can resolve it manually. The track is open-ended and expands past the configured track length as needed.
+    </p>
+
     {{#if @root.battlemechSheet.heat.editable}}
-      <div class="mwd-heat-actions">
-        <button type="button" class="mwd-btn mwd-btn--heat" data-action="applyHeat">
-          End Activation
+      <div class="mwd-item-toolbar" style="margin-top:0.5rem;">
+        <button type="button" data-action="adjustPendingHeat" data-delta="-1" {{#if (eq battlemechSheet.heat.pendingGenerated 0)}}disabled{{/if}}>
+          Heat -1
+        </button>
+        <button type="button" data-action="adjustPendingHeat" data-delta="1">
+          Heat +1
+        </button>
+        <button type="button" data-action="clearPendingHeat" {{#if (eq battlemechSheet.heat.pendingGenerated 0)}}disabled{{/if}}>
+          Clear Pending
+        </button>
+        <button type="button" class="mwd-btn mwd-btn--heat" data-action="resolvePendingHeat" data-source="heat panel">
+          {{#if battlemechSheet.heat.pendingGenerated}}
+            Resolve Heat ({{battlemechSheet.heat.pendingGenerated}})
+          {{else}}
+            Resolve Heat
+          {{/if}}
         </button>
       </div>
     {{/if}}

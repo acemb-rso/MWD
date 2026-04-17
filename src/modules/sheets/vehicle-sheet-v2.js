@@ -203,6 +203,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     ctx.layout = await LayoutRegistry.get(this.constructor.LAYOUT_ID ?? VehicleSheetV2.LAYOUT_ID);
     ctx.vehicleSheet = {
       summaryStats: this._buildSummaryStats(),
+      summaryActions: this._buildSummaryActions(),
       alerts: this._buildAlerts(),
       statusAction: {
         label: "Statuses",
@@ -300,6 +301,10 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   }
 
   _buildAlerts() {
+    return [];
+  }
+
+  _buildSummaryActions() {
     return [];
   }
 

@@ -6,19 +6,14 @@ import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
-import {
-  getMachineHeatStatusLabel,
-  normalizeMachineHeatThresholds,
-  resolveMachineHeatStatus,
-} from "../mwd/heat-state.js";
-import {
-  computeDangerCheckParams,
-  computeHeatPenalties,
-  hasVolatileComponents,
-  resolveEndOfActivationHeat,
-} from "../mwd/heat-effects.js";
 import { buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
 import { buildCriticalStatusSummary, buildIntegritySummary, buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
+import {
+  adjustBattlemechPendingHeat,
+  buildBattlemechHeatModel,
+  resolveBattlemechPendingHeat,
+  setBattlemechPendingHeat,
+} from "../mwd/machine-heat.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
 
 function toNumber(value, fallback = 0) {
@@ -54,13 +49,13 @@ function buildSummaryStats(stats = []) {
         tone: String(data.tone ?? "").trim(),
         parts: Array.isArray(data.parts)
           ? data.parts
-          .filter(part => part && part.value !== undefined && part.value !== null && String(part.value).trim() !== "")
-          .map(part => ({
-            label: String(part.label ?? "").trim(),
-            value: String(part.value ?? "").trim(),
-            tone: String(part.tone ?? "").trim(),
-            title: String(part.title ?? "").trim(),
-          }))
+            .filter(part => part && part.value !== undefined && part.value !== null && String(part.value).trim() !== "")
+            .map(part => ({
+              label: String(part.label ?? "").trim(),
+              value: String(part.value ?? "").trim(),
+              tone: String(part.tone ?? "").trim(),
+              title: String(part.title ?? "").trim(),
+            }))
           : [],
       };
     })
@@ -107,7 +102,9 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       ...super.DEFAULT_OPTIONS.actions,
       mechAttack: BattlemechSheetV2.prototype._onMechAttack,
       mechRoll: BattlemechSheetV2.prototype._onMechRoll,
-      applyHeat: BattlemechSheetV2.prototype._onApplyHeat,
+      adjustPendingHeat: BattlemechSheetV2.prototype._onAdjustPendingHeat,
+      clearPendingHeat: BattlemechSheetV2.prototype._onClearPendingHeat,
+      resolvePendingHeat: BattlemechSheetV2.prototype._onResolvePendingHeat,
     }
   }, { inplace: false });
 
@@ -165,13 +162,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   _buildSummaryStats() {
     const armor = this.actor.system?.monitors?.armor ?? {};
     const structure = this.actor.system?.monitors?.structure ?? {};
-    const heatMonitor = this.actor.system?.monitors?.heat ?? {};
-    const heatConfig = this.actor.system?.mwd?.heat ?? {};
-    const heatCurrent = Math.max(0, toNumber(heatMonitor.value ?? heatConfig.current, 0));
-    const heatMax = Math.max(0, toNumber(heatMonitor.max ?? heatConfig.max ?? heatConfig.hardMax, 0));
-    const heatThresholds = normalizeMachineHeatThresholds(heatConfig.thresholds ?? {}, heatMax);
-    const heatLabel = getMachineHeatStatusLabel(resolveMachineHeatStatus(heatCurrent, heatThresholds, heatMax));
-    const heatSummaryLabel = heatLabel.toUpperCase();
+    const heat = buildBattlemechHeatModel(this.actor);
+    const heatSummaryLabel = heat.status.toUpperCase();
     const integrity = buildIntegritySummary({ armor, structure });
     const critStatus = buildCriticalStatusSummary(this.actor.system?.mwd?.crits ?? []);
     const movementParts = buildMachineMovementSummaryParts({
@@ -185,9 +177,46 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       { label: "Move", parts: movementParts },
       { label: "Tonnage", value: toNumber(this.actor.system?.mwd?.tonnage, 0) },
       { label: "Integrity", parts: integrity.parts, title: integrity.title },
-      { label: "Heat", value: `${heatCurrent} / ${heatMax} ${heatSummaryLabel}`, title: heatLabel },
+      { label: "Heat", value: `${heat.current} ${heatSummaryLabel}`, title: heat.status },
+      { label: "Pending Heat", value: String(heat.pendingGenerated), tone: heat.pendingGenerated > 0 ? "orange" : "" },
       { label: "Status", value: critStatus.value, title: critStatus.title, tone: critStatus.count > 0 ? "red" : "" },
     ]);
+  }
+
+  _buildSummaryActions() {
+    const heat = buildBattlemechHeatModel(this.actor);
+    if (!this.isEditable) return [];
+
+    return [
+      {
+        label: "Heat -1",
+        handler: "adjustPendingHeat",
+        dataset: { delta: -1 },
+        disabled: heat.pendingGenerated <= 0,
+        reason: heat.pendingGenerated <= 0 ? "Pending heat is already at 0." : "",
+      },
+      {
+        label: "Heat +1",
+        handler: "adjustPendingHeat",
+        dataset: { delta: 1 },
+        disabled: false,
+        reason: "",
+      },
+      {
+        label: "Clear Pending",
+        handler: "clearPendingHeat",
+        dataset: {},
+        disabled: heat.pendingGenerated <= 0,
+        reason: heat.pendingGenerated <= 0 ? "No pending heat is being tracked." : "",
+      },
+      {
+        label: heat.pendingGenerated > 0 ? `Resolve Heat (${heat.pendingGenerated})` : "Resolve Heat",
+        handler: "resolvePendingHeat",
+        dataset: { source: "sheet toolbar" },
+        disabled: false,
+        reason: "",
+      },
+    ];
   }
 
   _buildAlerts() {
@@ -233,35 +262,20 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   }
 
   _buildHeatModel() {
-    const heatMonitor = this.actor.system?.monitors?.heat ?? {};
-    const heatConfig = this.actor.system?.mwd?.heat ?? {};
-    const hybridHeat = this.actor.system?.hybrid?.heat ?? {};
-    const current = Math.max(0, toNumber(heatMonitor.value ?? heatConfig.current, 0));
-    const max = Math.max(0, toNumber(heatMonitor.max ?? heatConfig.max ?? heatConfig.hardMax, 0));
-    const thresholds = normalizeMachineHeatThresholds(heatConfig.thresholds ?? {}, max);
-    const statusCode = resolveMachineHeatStatus(current, thresholds, max);
-    const dissipation = Math.max(0, toNumber(hybridHeat.dissipation ?? heatConfig.ventPerTurn, 1));
-    const coolingImpaired = Boolean(heatConfig.coolingImpaired);
-    const effectiveDissipation = coolingImpaired ? Math.max(1, Math.floor(dissipation / 2)) : dissipation;
-
-    const penalties = computeHeatPenalties(current, thresholds);
-    const inDanger = penalties.dangerLevel > 0;
-    const chassis = toNumber(this.actor.system?.attributes?.chassis?.value, 0);
-    const reliability = toNumber(this.actor.system?.attributes?.reliability?.value, 0);
-    const dangerChecks = inDanger
-      ? computeDangerCheckParams(penalties.dangerLevel, chassis, reliability)
-      : null;
-    const volatile = hasVolatileComponents(this.actor.system?.mwd?.locations ?? {});
+    const heat = buildBattlemechHeatModel(this.actor);
+    const thresholds = heat.thresholds ?? {};
 
     return {
       label: "Heat",
-      current,
-      max,
-      dissipation,
-      effectiveDissipation,
-      coolingImpaired,
+      current: heat.current,
+      trackLength: heat.trackLength,
+      displayMax: heat.displayMax,
+      dissipation: heat.dissipation,
+      effectiveDissipation: heat.effectiveDissipation,
+      coolingImpaired: heat.coolingImpaired,
+      pendingGenerated: heat.pendingGenerated,
       editable: Boolean(this.isEditable),
-      status: getMachineHeatStatusLabel(statusCode),
+      status: heat.status,
       thresholds: {
         runningHot: toNumber(thresholds.runningHot, 0),
         overheated: toNumber(thresholds.overheated, 0),
@@ -271,18 +285,18 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         danger: toNumber(thresholds.danger, 0),
       },
       penalties: {
-        movementPenalty: penalties.movementPenalty,
-        rangedDicePenalty: penalties.rangedDicePenalty,
-        dangerLevel: penalties.dangerLevel,
+        movementPenalty: heat.penalties.movementPenalty,
+        rangedDicePenalty: heat.penalties.rangedDicePenalty,
+        dangerLevel: heat.penalties.dangerLevel,
       },
-      dangerChecks,
-      volatile,
-      inDanger,
-      segments: Array.from({ length: max }, (_, index) => {
+      dangerChecks: heat.dangerChecks,
+      volatile: heat.volatile,
+      inDanger: heat.inDanger,
+      segments: Array.from({ length: heat.displayMax }, (_, index) => {
         const value = index + 1;
         return {
           value,
-          filled: value <= current,
+          filled: value <= heat.current,
           breakpoint: compactList([
             value === toNumber(thresholds.runningHot, 0) ? "runningHot" : "",
             value === toNumber(thresholds.overheated, 0) ? "overheated" : "",
@@ -293,73 +307,36 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     };
   }
 
-  async _onApplyHeat(event, target) {
+  async _onAdjustPendingHeat(event, target) {
     event?.preventDefault?.();
     if (!this.isEditable) return;
 
-    const heatMonitor = this.actor.system?.monitors?.heat ?? {};
-    const heatConfig = this.actor.system?.mwd?.heat ?? {};
-    const hybridHeat = this.actor.system?.hybrid?.heat ?? {};
-    const current = Math.max(0, toNumber(heatMonitor.value ?? 0, 0));
-    const max = Math.max(0, toNumber(heatMonitor.max ?? 0, 0));
-    const thresholds = normalizeMachineHeatThresholds(heatConfig.thresholds ?? {}, max);
-    const dissipation = Math.max(0, toNumber(hybridHeat.dissipation ?? heatConfig.ventPerTurn, 1));
-    const coolingImpaired = Boolean(heatConfig.coolingImpaired);
-    const effectiveDissipation = coolingImpaired ? Math.max(1, Math.floor(dissipation / 2)) : dissipation;
-
-    const generated = await Dialog.prompt({
-      title: "End of Activation — Heat Resolution",
-      content: `
-        <form class="mwd-dialog-form">
-          <p>Enter total heat generated this activation. Dissipation (${effectiveDissipation}${coolingImpaired ? ", impaired" : ""}) will be applied to the full heat stack.</p>
-          <div class="form-group">
-            <label>Heat Generated</label>
-            <input type="number" name="generated" value="0" min="0" autofocus style="width:5rem;"/>
-          </div>
-        </form>`,
-      label: "Apply Heat",
-      callback: html => {
-        const val = parseInt(html.find('[name="generated"]').val(), 10);
-        return Number.isFinite(val) ? Math.max(0, val) : 0;
-      },
-      rejectClose: false,
-    });
-
-    if (generated === null || generated === undefined) return;
-
-    const newHeat = resolveEndOfActivationHeat(current, generated, effectiveDissipation, max);
-    await this.actor.update({ "system.monitors.heat.value": newHeat });
-
-    const newPenalties = computeHeatPenalties(newHeat, thresholds);
-    if (newPenalties.dangerLevel > 0) {
-      const chassis = toNumber(this.actor.system?.attributes?.chassis?.value, 0);
-      const reliability = toNumber(this.actor.system?.attributes?.reliability?.value, 0);
-      const checks = computeDangerCheckParams(newPenalties.dangerLevel, chassis, reliability);
-      const volatile = hasVolatileComponents(this.actor.system?.mwd?.locations ?? {});
-      await this._postDangerChecksToChat(newPenalties.dangerLevel, checks, volatile);
-    }
+    const actor = this.getPersistentActor() ?? this.actor;
+    const delta = Number(target?.dataset?.delta ?? 0) || 0;
+    await adjustBattlemechPendingHeat(actor, delta, { reason: "sheet control" });
   }
 
-  async _postDangerChecksToChat(dangerLevel, checks, volatile) {
-    const mechName = this.actor.name;
-    const lines = [
-      `<h3>${mechName} — Danger Zone (${dangerLevel} level${dangerLevel > 1 ? "s" : ""})</h3>`,
-      `<p><strong>Shutdown Check:</strong> Roll <strong>${checks.shutdownPool}d6</strong> vs DN <strong>${checks.shutdownDN}</strong> (Chassis + Reliability). ` +
-        `On failure, compare margin to pilot's System Operations: if margin &lt; System Operations the pilot may override; otherwise the mech shuts down.</p>`,
-    ];
+  async _onClearPendingHeat(event, _target) {
+    event?.preventDefault?.();
+    if (!this.isEditable) return;
 
-    if (volatile) {
-      lines.push(
-        `<p><strong>Explosion Check:</strong> Roll <strong>${checks.explosionPool}d6</strong> vs DN <strong>${checks.explosionDN}</strong> (Chassis + Reliability − ${dangerLevel}). ` +
-          `Failure detonates volatile components.</p>`
-      );
-    } else {
-      lines.push(`<p><em>No volatile components detected — Explosion check skipped.</em></p>`);
-    }
+    const actor = this.getPersistentActor() ?? this.actor;
+    await setBattlemechPendingHeat(actor, 0, { reason: "sheet control" });
+  }
 
-    await ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-      content: lines.join(""),
+  async _onResolvePendingHeat(event, target) {
+    event?.preventDefault?.();
+    if (!this.isEditable) return;
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+    const activation = snapshot?.hasCombatant && snapshot?.isCurrentTurn ? snapshot.activation : null;
+    const source = String(target?.dataset?.source ?? "sheet control").trim() || "sheet control";
+    await resolveBattlemechPendingHeat(actor, {
+      source,
+      activation,
+      postDangerCard: true,
     });
   }
 
@@ -485,8 +462,13 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         const primaryGroup = (actor.system?.weaponGroups ?? []).find(group => group?.isPrimary) ?? null;
         if (primaryGroup?.id) await this.#rollWeaponGroup(actor, primaryGroup.id);
         else await actor.rollRangedAttack?.();
+      } else if (attackKind === "ranged") {
+        const selectedGroup = await this.#promptWeaponGroup(actor);
+        if (selectedGroup?.id) await this.#rollWeaponGroup(actor, selectedGroup.id);
       } else if (attackKind === "melee") {
-        await actor.rollMeleeAttack?.();
+        const selectedProfile = await this.#promptMeleeProfile(actor);
+        if (selectedProfile?.weaponId) await this.#rollWeapon(actor, selectedProfile.weaponId);
+        else await actor.rollMeleeAttack?.();
       } else {
         await actor.rollRangedAttack?.();
       }
@@ -561,5 +543,91 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         if (!spend?.ok) ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
       }
     }
+  }
+
+  async #rollWeapon(actor, weaponId) {
+    const item = weaponId ? actor.items?.get?.(weaponId) : null;
+    if (!item) {
+      ui.notifications?.warn("That weapon is no longer available.");
+      return;
+    }
+
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) {
+      await actor.rollRangedAttack?.();
+      return;
+    }
+
+    const token = this._resolveStatusToken(actor);
+    const result = await rollApi.execute({
+      actor,
+      payload: {
+        intent: "attack",
+        weaponId: item.id,
+        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
+        tags: ["combat", "attack", "machine"],
+        sourceTokenId: token?.id ?? null,
+      }
+    });
+
+    if (result) {
+      const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+      if (snapshot?.hasCombatant) {
+        const spend = await PersonalCombatTracker.spendResource(actor, {
+          token,
+          resource: "sa",
+          cost: 2,
+          actionId: "attack",
+          actionLabel: "Attack",
+          actionCostLabel: "2 SA",
+          actionCategory: "complex"
+        });
+        if (!spend?.ok) ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
+      }
+    }
+  }
+
+  async #promptWeaponGroup(actor) {
+    const groups = Array.from(actor.system?.weaponGroups ?? []).filter(group => Array.isArray(group?.weaponIds) && group.weaponIds.length > 0);
+    if (!groups.length) return null;
+    if (groups.length === 1) return groups[0];
+
+    const defaultGroup = groups.find(group => group?.isPrimary) ?? groups[0];
+    const content = `<form class="mwd-quick-select">${groups.map(group => `
+      <label class="quick-select-option">
+        <input type="radio" name="weapon-group" value="${group.id}" ${group.id === defaultGroup.id ? "checked" : ""}>
+        <span>${group.name}${group.isPrimary ? ` (${ANARCHY.actor.vehicle.quickActions.primaryLabel})` : ""}</span>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await Dialog.prompt({
+      title: ANARCHY.actor.vehicle.quickActions.selectWeaponGroup,
+      content,
+      label: ANARCHY.common.roll.button,
+      callback: html => html.find('input[name="weapon-group"]:checked').val() ?? defaultGroup.id,
+    });
+
+    return groups.find(group => group.id === selectedId) ?? defaultGroup;
+  }
+
+  async #promptMeleeProfile(actor) {
+    const profiles = Array.from(actor.system?.meleeProfiles ?? []);
+    if (!profiles.length) return null;
+    if (profiles.length === 1) return profiles[0];
+
+    const defaultProfile = profiles[0];
+    const content = `<form class="mwd-quick-select">${profiles.map(profile => `
+      <label class="quick-select-option">
+        <input type="radio" name="melee-profile" value="${profile.id}" ${profile.id === defaultProfile.id ? "checked" : ""}>
+        <span>${profile.name}</span>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await Dialog.prompt({
+      title: ANARCHY.actor.vehicle.quickActions.selectMeleeProfile,
+      content,
+      label: ANARCHY.common.roll.button,
+      callback: html => html.find('input[name="melee-profile"]:checked').val() ?? defaultProfile.id,
+    });
+
+    return profiles.find(profile => profile.id === selectedId) ?? defaultProfile;
   }
 }

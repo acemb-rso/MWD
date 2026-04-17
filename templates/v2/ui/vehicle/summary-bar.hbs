@@ -24,6 +24,23 @@ How it fits: Shared by both vehicle-scale V2 sheets.
   {{/each}}
 </section>
 
+{{#if vehicleSheet.summaryActions.length}}
+  <div class="mwd-item-toolbar" style="margin-top: 0.5rem;">
+    {{#each vehicleSheet.summaryActions as |action|}}
+      <button
+        type="button"
+        data-action="{{action.handler}}"
+        {{{mwd-dataset action.dataset}}}
+        data-action-disabled="{{#if action.disabled}}true{{else}}false{{/if}}"
+        data-action-reason="{{action.reason}}"
+        {{#if action.disabled}}disabled{{/if}}
+      >
+        {{action.label}}
+      </button>
+    {{/each}}
+  </div>
+{{/if}}
+
 {{#if vehicleSheet.statusAction}}
   <div class="mwd-item-toolbar" style="margin-top: 0.5rem;">
     <button

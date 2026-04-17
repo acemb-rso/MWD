@@ -57,10 +57,10 @@ export function computeHeatPenalties(current, thresholds) {
  * Heat is a stack: newly generated heat is consumed first by dissipation.
  * Any remaining dissipation capacity bleeds into and reduces the accumulated total.
  *
- *   new_heat = clamp(current + generated - dissipation, 0, max)
+ *   new_heat = max(0, current + generated - dissipation)
  */
-export function resolveEndOfActivationHeat(current, generated, dissipation, max) {
-  return Math.max(0, Math.min(max, current + generated - dissipation));
+export function resolveEndOfActivationHeat(current, generated, dissipation, _max = Infinity) {
+  return Math.max(0, current + generated - dissipation);
 }
 
 /**

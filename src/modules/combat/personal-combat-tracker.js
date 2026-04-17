@@ -35,6 +35,7 @@ import {
   migrateHazardRegionFlag,
 } from "../area-effects/hazard-regions.js";
 import { renderHazardCard } from "../area-effects/hazard-chat.js";
+import { resolveBattlemechPendingHeat } from "../mwd/machine-heat.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -1808,6 +1809,14 @@ export class PersonalCombatTracker {
       } else {
         await actor.spendEdge(adjustment.poolKey, Math.abs(amount), { skipTraitHooks: true, source: "endOfActivationTrait" });
       }
+    }
+
+    if (actor.type === "battlemech") {
+      await resolveBattlemechPendingHeat(actor, {
+        source: "combat turn advance",
+        postDangerCard: true,
+        activation: this.getActivationIdentity(combat, combatant),
+      });
     }
   }
 

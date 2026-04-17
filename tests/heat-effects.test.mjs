@@ -110,8 +110,8 @@ test("FILO: dissipation exceeding total stack floors at 0", () => {
   assert.equal(resolveEndOfActivationHeat(2, 1, 5, 10), 0);
 });
 
-test("FILO: heat result is clamped to max", () => {
-  assert.equal(resolveEndOfActivationHeat(8, 5, 1, 10), 10);
+test("FILO: heat result is open-ended above the display track", () => {
+  assert.equal(resolveEndOfActivationHeat(8, 5, 1, 10), 12);
 });
 
 test("FILO: net zero generation with matching dissipation", () => {

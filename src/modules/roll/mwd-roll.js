@@ -25,6 +25,7 @@ import {
   commitMachineRemedyCost,
   resolveMachineCritIntentContext,
 } from "../mwd/machine-intents.js";
+import { recordBattlemechAttackHeat } from "../mwd/machine-heat.js";
 
 /**
  * Public roll API.
@@ -530,6 +531,23 @@ async function execute({ actor, payload, event } = {}) {
       const consumed = await weaponItem.consumePayload?.({ payloadId: payload.payloadId });
       if (!consumed) {
         ui.notifications?.warn(`Payload could not be consumed for ${weaponItem.name}.`);
+      }
+    }
+  }
+
+  if (ctx.intent === "attack" && actor.type === "battlemech") {
+    const weaponIds = Array.from(new Set([
+      ...((ctx?.attack?.weapon?.machineWeaponGroup?.weaponIds ?? []).map(id => String(id ?? "").trim()).filter(Boolean)),
+      ...(payload?.weaponId ? [String(payload.weaponId).trim()] : []),
+    ]));
+    if (weaponIds.length) {
+      try {
+        await recordBattlemechAttackHeat(actor, {
+          weaponIds,
+          reason: "attack resolution",
+        });
+      } catch (error) {
+        console.warn("MWD | Unable to record BattleMech attack heat", error);
       }
     }
   }
