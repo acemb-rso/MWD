@@ -19,6 +19,7 @@ export const TEMPLATES_PATH = `systems/${SYSTEM_NAME}/templates`;
 export const ICONS_PATH = `${SYSTEM_PATH}/img/icons`;
 export const ICONS_SKILLS_PATH = `${ICONS_PATH}/skills`;
 export const LOG_HEAD = 'MWD | ';
+export const SETTING_BATTLEMECH_TOKEN_HEAT_FX = "enableBattlemechTokenHeatFx";
 
 export const SPECIALIZATION_BONUS = 2;
 

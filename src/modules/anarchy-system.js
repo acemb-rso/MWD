@@ -47,6 +47,7 @@ import {
 import { getSkillDef, listSkillDefs } from "./mwd/skills.js";
 import { HarmEngine } from "./harm/harm-engine.js";
 import { registerTokenStatusHudFilter } from "./dialog/token-status-dialog.js";
+import { HeatFxController } from "./token/heat-fx-controller.js";
 import { configureMWDStatusEffects } from "./status/status-condition-catalog.js";
 import {
   applyTraitMutations,
@@ -220,6 +221,8 @@ export class AnarchySystem {
       resolvePendingHeat: resolveBattlemechPendingHeat,
       setPendingHeat: setBattlemechPendingHeat,
     };
+    game.mwd.tokenHeatFx = new HeatFxController();
+    game.mwd.tokenHeatFx.init();
 
     // Optional alias if you want it under the system object too:
       this.roll = MWDRoll;
@@ -227,6 +230,7 @@ export class AnarchySystem {
       this.personalCombat = PersonalCombatTracker;
       this.harm = HarmEngine;
       this.machineHeat = game.mwd.machineHeat;
+      this.tokenHeatFx = game.mwd.tokenHeatFx;
     this.skills = createMWDSkillsService();
     this.lifeModules = createMWDLifeModulesService();
     this.traits = createMWDTraitsService();
@@ -302,6 +306,7 @@ export class AnarchySystem {
     console.log(LOG_HEAD + 'AnarchySystem.onReady');
 
     await PersonalCombatTracker.onReady();
+    game.mwd?.tokenHeatFx?.refreshAll?.();
 
     if (!game.user.isGM) return;
 

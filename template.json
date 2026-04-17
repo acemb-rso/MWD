@@ -101,12 +101,12 @@
       "mwd-base": {
         "mwd": {
           "unitType": "vehicle",
-          "heat": {
-            "current": 0,
-            "safeMax": 1,
-            "hardMax": 4,
-            "coolingImpaired": false
-          },
+            "heat": {
+              "current": 0,
+              "safeMax": 1,
+              "hardMax": 10,
+              "coolingImpaired": false
+            },
           "shock": {
             "value": 0
           },
@@ -189,7 +189,7 @@
           },
           "heat": {
             "current": 0,
-            "max": 4,
+            "max": 10,
             "thresholds": {
               "runningHot": 2,
               "overheated": 3,
@@ -396,7 +396,7 @@
         },
         "heat": {
           "value": 0,
-          "max": 4,
+          "max": 10,
           "resistance": {
             "default": 0,
             "byType": {}

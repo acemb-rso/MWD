@@ -356,12 +356,12 @@ class _13_2_2_AddMwdVehicleModel extends Migration {
     const base = {
       unitType: isMech ? 'mech' : 'vehicle',
       weightClass: isMech ? 'medium' : 'vehicle',
-      heat: {
-        current: 0,
-        safeMax: 1,
-        hardMax: 4,
-        coolingImpaired: false,
-      },
+        heat: {
+          current: 0,
+          safeMax: 1,
+          hardMax: 10,
+          coolingImpaired: false,
+        },
       shock: {
         value: 0,
       },
@@ -693,7 +693,7 @@ class _13_6_2_AddMwdVehicleScaffold extends Migration {
         updates['system.monitors.heat.value'] = mwdHeat.current ?? 0;
       }
       if (heat.max === undefined) {
-        updates['system.monitors.heat.max'] = mwdHeat.hardMax ?? 4;
+        updates['system.monitors.heat.max'] = mwdHeat.hardMax ?? 10;
       }
       if (heat.resistance === undefined) {
         updates['system.monitors.heat.resistance'] = { default: 0, byType: {} };
@@ -702,7 +702,7 @@ class _13_6_2_AddMwdVehicleScaffold extends Migration {
       if (actor.system.mwd?.monitors?.heat === undefined) {
         updates[`${mwdMonitorPath}.heat`] = {
           value: heat.value ?? mwdHeat.current ?? 0,
-          max: heat.max ?? mwdHeat.hardMax ?? 4,
+          max: heat.max ?? mwdHeat.hardMax ?? 10,
           resistance: heat.resistance ?? { default: 0, byType: {} },
         };
       }

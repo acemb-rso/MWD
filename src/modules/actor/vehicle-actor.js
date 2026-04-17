@@ -155,7 +155,7 @@ export class VehicleActor extends AnarchyBaseActor {
     if (this.type === TEMPLATE.actorTypes.battlemech) {
       const heatDefaults = {
         value: monitors.heat?.value ?? mwd.heat?.current ?? 0,
-        max: monitors.heat?.max ?? mwd.heat?.hardMax ?? 4,
+        max: monitors.heat?.max ?? mwd.heat?.hardMax ?? 10,
         resistance: AnarchyBaseActor.normalizeResistance(monitors.heat?.resistance),
       };
 

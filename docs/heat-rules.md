@@ -2,7 +2,7 @@
 
 ## The Heat Track
 
-Each mech has an open-ended heat track. The configured track length is only a sheet-display baseline; it is not a cap on actual heat. The track is divided into four named bands with configurable thresholds:
+Each mech has an open-ended heat track. The configured track length is only a sheet-display baseline; it is not a cap on actual heat. The default track length is 10 pips. The track is divided into four named bands with configurable thresholds:
 
 | Band | Default range | Effect |
 |---|---|---|

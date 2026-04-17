@@ -4,7 +4,7 @@
 
 
 import { ANARCHY } from "./config.js";
-import { SYSTEM_NAME } from "./constants.js";
+import { SETTING_BATTLEMECH_TOKEN_HEAT_FX, SYSTEM_NAME } from "./constants.js";
 import { registerGMDnPresetSettingsEditor } from "./settings/gm-dn-preset-settings.js";
 import { registerLifeModuleSettingsEditor } from "./settings/life-module-settings.js";
 import { registerPersonalActionCatalogSettingsEditor } from "./settings/personal-action-catalog-settings.js";
@@ -50,6 +50,15 @@ export class SystemSettings {
       config: true,
       type: Boolean,
       default: true
+    });
+
+    game.settings.register(SYSTEM_NAME, SETTING_BATTLEMECH_TOKEN_HEAT_FX, {
+      name: "Enable BattleMech Token Heat FX",
+      hint: "Show BattleMech token glow, shimmer, and subtle blur based on resolved heat.",
+      scope: "client",
+      config: true,
+      type: Boolean,
+      default: true,
     });
 
     game.settings.register(SYSTEM_NAME, SETTING_MACHINE_CRIT_TABLE_GENERAL, {
