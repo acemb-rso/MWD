@@ -9,7 +9,6 @@ import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
 import { buildCriticalStatusSummary, buildIntegritySummary, buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import {
-  adjustBattlemechPendingHeat,
   buildBattlemechHeatModel,
   resolveBattlemechPendingHeat,
   setBattlemechPendingHeat,
@@ -102,9 +101,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       ...super.DEFAULT_OPTIONS.actions,
       mechAttack: BattlemechSheetV2.prototype._onMechAttack,
       mechRoll: BattlemechSheetV2.prototype._onMechRoll,
-      adjustPendingHeat: BattlemechSheetV2.prototype._onAdjustPendingHeat,
-      clearPendingHeat: BattlemechSheetV2.prototype._onClearPendingHeat,
-      resolvePendingHeat: BattlemechSheetV2.prototype._onResolvePendingHeat,
+      openHeatDialog: BattlemechSheetV2.prototype._onOpenHeatDialog,
     }
   }, { inplace: false });
 
@@ -184,39 +181,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   }
 
   _buildSummaryActions() {
-    const heat = buildBattlemechHeatModel(this.actor);
-    if (!this.isEditable) return [];
-
-    return [
-      {
-        label: "Heat -1",
-        handler: "adjustPendingHeat",
-        dataset: { delta: -1 },
-        disabled: heat.pendingGenerated <= 0,
-        reason: heat.pendingGenerated <= 0 ? "Pending heat is already at 0." : "",
-      },
-      {
-        label: "Heat +1",
-        handler: "adjustPendingHeat",
-        dataset: { delta: 1 },
-        disabled: false,
-        reason: "",
-      },
-      {
-        label: "Clear Pending",
-        handler: "clearPendingHeat",
-        dataset: {},
-        disabled: heat.pendingGenerated <= 0,
-        reason: heat.pendingGenerated <= 0 ? "No pending heat is being tracked." : "",
-      },
-      {
-        label: heat.pendingGenerated > 0 ? `Resolve Heat (${heat.pendingGenerated})` : "Resolve Heat",
-        handler: "resolvePendingHeat",
-        dataset: { source: "sheet toolbar" },
-        disabled: false,
-        reason: "",
-      },
-    ];
+    return [];
   }
 
   _buildAlerts() {
@@ -294,50 +259,34 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       inDanger: heat.inDanger,
       segments: Array.from({ length: heat.displayMax }, (_, index) => {
         const value = index + 1;
+        const hotStart = toNumber(thresholds.runningHot, 0);
+        const overheatStart = toNumber(thresholds.overheated, 0);
+        const dangerStart = toNumber(thresholds.shutdown, 0);
+        const band = value >= dangerStart
+          ? "danger"
+          : value >= overheatStart
+            ? "overheat"
+            : value >= hotStart
+              ? "hot"
+              : "safe";
+
         return {
           value,
           filled: value <= heat.current,
-          breakpoint: compactList([
-            value === toNumber(thresholds.runningHot, 0) ? "runningHot" : "",
-            value === toNumber(thresholds.overheated, 0) ? "overheated" : "",
-            value === toNumber(thresholds.shutdown, 0) ? "shutdown" : "",
-          ]).join(" "),
+          current: value === heat.current,
+          band,
+          bandLabel: startCase(band),
         };
       }),
     };
   }
 
-  async _onAdjustPendingHeat(event, target) {
+  async _onOpenHeatDialog(event, _target) {
     event?.preventDefault?.();
     if (!this.isEditable) return;
 
     const actor = this.getPersistentActor() ?? this.actor;
-    const delta = Number(target?.dataset?.delta ?? 0) || 0;
-    await adjustBattlemechPendingHeat(actor, delta, { reason: "sheet control" });
-  }
-
-  async _onClearPendingHeat(event, _target) {
-    event?.preventDefault?.();
-    if (!this.isEditable) return;
-
-    const actor = this.getPersistentActor() ?? this.actor;
-    await setBattlemechPendingHeat(actor, 0, { reason: "sheet control" });
-  }
-
-  async _onResolvePendingHeat(event, target) {
-    event?.preventDefault?.();
-    if (!this.isEditable) return;
-
-    const actor = this.getPersistentActor() ?? this.actor;
-    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
-    const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
-    const activation = snapshot?.hasCombatant && snapshot?.isCurrentTurn ? snapshot.activation : null;
-    const source = String(target?.dataset?.source ?? "sheet control").trim() || "sheet control";
-    await resolveBattlemechPendingHeat(actor, {
-      source,
-      activation,
-      postDangerCard: true,
-    });
+    await this.#openHeatDialog(actor);
   }
 
   _buildQuickActions() {
@@ -629,5 +578,95 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     });
 
     return profiles.find(profile => profile.id === selectedId) ?? defaultProfile;
+  }
+
+  async #openHeatDialog(actor) {
+    const heat = buildBattlemechHeatModel(actor);
+    const content = `
+      <form class="mwd-heat-dialog" style="display:grid; gap:0.75rem;">
+        <label style="display:grid; gap:0.25rem;">
+          <span style="font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Current Heat</span>
+          <input type="number" name="currentHeat" value="${heat.current}" min="0" step="1" />
+        </label>
+        <label style="display:grid; gap:0.25rem;">
+          <span style="font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Pending Heat</span>
+          <input type="number" name="pendingHeat" value="${heat.pendingGenerated}" min="0" step="1" />
+        </label>
+        <p style="margin:0; opacity:0.8;">Use pending heat for movement surcharges or GM adjustments. Resolve it here when you need an out-of-band heat cycle.</p>
+      </form>
+    `;
+
+    await foundry.applications.api.DialogV2.wait({
+      window: {
+        title: `${actor.name ?? "BattleMech"} Heat`,
+      },
+      position: {
+        width: 420,
+      },
+      content,
+      buttons: [
+        {
+          action: "apply",
+          label: "Apply",
+          icon: "fa-solid fa-check",
+          default: true,
+          callback: async (_event, button) => {
+            try {
+              await this.#applyHeatDialogValues(actor, button?.form);
+              return true;
+            } catch (error) {
+              console.error("MWD | Failed to apply heat dialog changes", error);
+              ui.notifications?.error("Unable to apply heat changes.");
+              return false;
+            }
+          },
+        },
+        {
+          action: "resolve",
+          label: "Resolve Pending Heat",
+          icon: "fa-solid fa-fire",
+          callback: async (_event, button) => {
+            try {
+              await this.#applyHeatDialogValues(actor, button?.form);
+              await this.#resolvePendingHeat(actor, "heat dialog");
+              return true;
+            } catch (error) {
+              console.error("MWD | Failed to resolve heat from dialog", error);
+              ui.notifications?.error("Unable to resolve pending heat.");
+              return false;
+            }
+          },
+        },
+        {
+          action: "cancel",
+          label: "Cancel",
+          icon: "fa-solid fa-xmark",
+          callback: () => false,
+        },
+      ],
+      close: () => false,
+    });
+  }
+
+  async #applyHeatDialogValues(actor, form) {
+    const currentInput = form?.elements?.namedItem?.("currentHeat");
+    const pendingInput = form?.elements?.namedItem?.("pendingHeat");
+    const currentHeat = Math.max(0, Number(currentInput?.value ?? actor.system?.monitors?.heat?.value ?? 0) || 0);
+    const pendingHeat = Math.max(0, Number(pendingInput?.value ?? actor.system?.mwd?.heat?.pendingGenerated ?? 0) || 0);
+
+    await actor.setMonitorValue?.("heat", currentHeat);
+    await setBattlemechPendingHeat(actor, pendingHeat, { reason: "heat dialog" });
+  }
+
+  async #resolvePendingHeat(actor, source = "sheet control") {
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+    const activation = snapshot?.hasCombatant && snapshot?.isCurrentTurn ? snapshot.activation : null;
+
+    await resolveBattlemechPendingHeat(actor, {
+      source,
+      activation,
+      postDangerCard: true,
+    });
   }
 }

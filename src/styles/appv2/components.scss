@@ -2664,9 +2664,6 @@
   .mwd-monitor[data-monitor="heat"] .pip--monitor {
     &.pip--filled { color: var(--mwd-monitor-heat-filled); }
     &.pip--empty { color: var(--mwd-monitor-heat-empty); }
-    &.pip--breakpoint {
-      filter: drop-shadow(0 0 3px var(--mwd-monitor-heat-breakpoint));
-    }
   }
 
 }
@@ -2674,9 +2671,6 @@
 .mwd-monitor[data-monitor="heat"] .pip--monitor {
   &.pip--filled { color: var(--mwd-monitor-heat-filled); }
   &.pip--empty { color: var(--mwd-monitor-heat-empty); }
-  &.pip--filled.pip--breakpoint {
-    filter: drop-shadow(0 0 3px var(--mwd-monitor-heat-breakpoint));
-  }
 }
 
 /* ================================================ */
@@ -2881,6 +2875,56 @@
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: contain;
+}
+
+.mwd-monitor[data-monitor="heat"] .mwd-monitor__pips {
+  gap: 6px;
+  min-height: 24px;
+}
+
+.mwd-monitor[data-monitor="heat"] .mwd-monitor__pips .pip--monitor {
+  width: 24px;
+  height: 24px;
+  margin: 0 4px 0 0;
+  cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.mwd-monitor[data-monitor="heat"] .mwd-monitor__pips .pip--monitor.pip--band-safe.pip--filled {
+  color: rgba(255, 225, 177, 0.94);
+}
+
+.mwd-monitor[data-monitor="heat"] .mwd-monitor__pips .pip--monitor.pip--band-safe.pip--empty {
+  color: rgba(126, 112, 84, 0.48);
+}
+
+.mwd-monitor[data-monitor="heat"] .mwd-monitor__pips .pip--monitor.pip--band-hot.pip--filled {
+  color: rgba(255, 206, 106, 0.98);
+}
+
+.mwd-monitor[data-monitor="heat"] .mwd-monitor__pips .pip--monitor.pip--band-hot.pip--empty {
+  color: rgba(178, 137, 61, 0.54);
+}
+
+.mwd-monitor[data-monitor="heat"] .mwd-monitor__pips .pip--monitor.pip--band-overheat.pip--filled {
+  color: rgba(255, 148, 74, 0.98);
+}
+
+.mwd-monitor[data-monitor="heat"] .mwd-monitor__pips .pip--monitor.pip--band-overheat.pip--empty {
+  color: rgba(171, 97, 45, 0.58);
+}
+
+.mwd-monitor[data-monitor="heat"] .mwd-monitor__pips .pip--monitor.pip--band-danger.pip--filled {
+  color: rgba(255, 93, 84, 1);
+}
+
+.mwd-monitor[data-monitor="heat"] .mwd-monitor__pips .pip--monitor.pip--band-danger.pip--empty {
+  color: rgba(153, 54, 48, 0.66);
+}
+
+.mwd-monitor[data-monitor="heat"] .mwd-monitor__pips .pip--monitor.pip--current {
+  filter: drop-shadow(0 0 4px rgba(255, 214, 145, 0.55));
+  transform: translateY(-1px) scale(1.05);
 }
 
 .mwd-sheet .sheet-body .mwd-monitor__pips .pip--monitor {

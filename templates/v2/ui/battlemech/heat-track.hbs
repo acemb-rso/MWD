@@ -7,7 +7,7 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
 <section class="mwd-monitor" data-monitor="heat">
   <header class="mwd-monitor__header">
     <div class="mwd-monitor__label">{{battlemechSheet.heat.label}}</div>
-    <div class="mwd-monitor__status">
+    <div class="mwd-monitor__status" title="Current heat band status">
       <span class="mwd-monitor__status-label">Status</span>
       <span class="mwd-monitor__status-value">{{battlemechSheet.heat.status}}</span>
     </div>
@@ -17,11 +17,12 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
     {{#each battlemechSheet.heat.segments as |segment|}}
       <button
         type="button"
-        class="pip pip--monitor pip--heat {{#if segment.filled}}pip--filled{{else}}pip--empty{{/if}} {{#if segment.breakpoint}}pip--breakpoint{{/if}}"
+        class="pip pip--monitor pip--heat pip--band-{{segment.band}} {{#if segment.filled}}pip--filled{{else}}pip--empty{{/if}} {{#if segment.current}}pip--current{{/if}}"
         data-action="monitorSet"
         data-monitor="heat"
         data-value="{{segment.value}}"
-        aria-label="Set heat to {{segment.value}}"
+        aria-label="Set heat to {{segment.value}} ({{segment.bandLabel}})"
+        title="Set heat to {{segment.value}} ({{segment.bandLabel}})"
         {{#unless @root.battlemechSheet.heat.editable}}disabled{{/unless}}>
       </button>
     {{/each}}
@@ -77,10 +78,22 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
     </div>
   {{else}}
     <section class="mwd-item-hero">
-      <div class="mwd-item-hero__stat">
-        <span class="mwd-item-hero__label">Current</span>
-        <span class="mwd-item-hero__value">{{battlemechSheet.heat.current}}</span>
-      </div>
+      {{#if @root.battlemechSheet.heat.editable}}
+        <button
+          type="button"
+          class="mwd-item-hero__stat mwd-item-hero__stat--button is-action"
+          data-action="openHeatDialog"
+          title="Click to edit current and pending heat">
+          <span class="mwd-item-hero__label">Current</span>
+          <span class="mwd-item-hero__value">{{battlemechSheet.heat.current}}</span>
+          <span class="mwd-item-hero__hint">Click to edit</span>
+        </button>
+      {{else}}
+        <div class="mwd-item-hero__stat">
+          <span class="mwd-item-hero__label">Current</span>
+          <span class="mwd-item-hero__value">{{battlemechSheet.heat.current}}</span>
+        </div>
+      {{/if}}
       <div class="mwd-item-hero__stat">
         <span class="mwd-item-hero__label">Pending</span>
         <span class="mwd-item-hero__value">{{battlemechSheet.heat.pendingGenerated}}</span>
@@ -93,18 +106,6 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
             <span class="mwd-item-hero__note">(impaired)</span>
           {{/if}}
         </span>
-      </div>
-      <div class="mwd-item-hero__stat">
-        <span class="mwd-item-hero__label">Hot</span>
-        <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.runningHot}}</span>
-      </div>
-      <div class="mwd-item-hero__stat">
-        <span class="mwd-item-hero__label">Overheat</span>
-        <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.overheated}}</span>
-      </div>
-      <div class="mwd-item-hero__stat">
-        <span class="mwd-item-hero__label">Danger</span>
-        <span class="mwd-item-hero__value">{{battlemechSheet.heat.thresholds.shutdown}}</span>
       </div>
     </section>
 
@@ -131,30 +132,5 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
       </div>
     {{/if}}
 
-    <p class="mwd-helptext" style="margin-top:0.5rem;">
-      Weapon attacks add heat automatically. Use the pending controls for movement surcharges or GM adjustments.
-      Pending heat resolves automatically when combat advances, or you can resolve it manually. The track is open-ended and expands past the configured track length as needed.
-    </p>
-
-    {{#if @root.battlemechSheet.heat.editable}}
-      <div class="mwd-item-toolbar" style="margin-top:0.5rem;">
-        <button type="button" data-action="adjustPendingHeat" data-delta="-1" {{#if (eq battlemechSheet.heat.pendingGenerated 0)}}disabled{{/if}}>
-          Heat -1
-        </button>
-        <button type="button" data-action="adjustPendingHeat" data-delta="1">
-          Heat +1
-        </button>
-        <button type="button" data-action="clearPendingHeat" {{#if (eq battlemechSheet.heat.pendingGenerated 0)}}disabled{{/if}}>
-          Clear Pending
-        </button>
-        <button type="button" class="mwd-btn mwd-btn--heat" data-action="resolvePendingHeat" data-source="heat panel">
-          {{#if battlemechSheet.heat.pendingGenerated}}
-            Resolve Heat ({{battlemechSheet.heat.pendingGenerated}})
-          {{else}}
-            Resolve Heat
-          {{/if}}
-        </button>
-      </div>
-    {{/if}}
   {{/if}}
 </section>
