@@ -56,6 +56,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/quick-actions.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/weapon-groups.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/hardpoints.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/ew-status.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/pilot-panel.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/assigned-mech.hbs`,
 

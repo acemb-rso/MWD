@@ -28,6 +28,8 @@ import {
 import { recordBattlemechAttackHeat } from "../mwd/machine-heat.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
+import { resolveAcquireExecution, resolveTargetingExecution } from "./ew-execution.js";
+import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-state.js";
 
 /**
  * Public roll API.
@@ -528,6 +530,28 @@ async function execute({ actor, payload, event } = {}) {
     });
   }
 
+  let ewAcquireResult = null;
+  let ewTargetingResult = null;
+  if (ctx.intent === "acquire") {
+    ewAcquireResult = await resolveAcquireExecution({ attacker: actor, ctx, outcomeModel });
+  }
+  if (ctx.intent === "targeting") {
+    ewTargetingResult = await resolveTargetingExecution({ attacker: actor, ctx, outcomeModel });
+  }
+  if (ctx.intent === "attack" && ctx.attack?.ewContext?.activePacketId) {
+    const attackerToken = getMachineAttackToken(actor, payload);
+    const ewCombatant = getAttackerCombatant(attackerToken);
+    if (ewCombatant) {
+      Hooks.callAll("mwd.beforeTargetingPacketConsume", {
+        attacker: actor,
+        targetTokenUuid: ctx.attack.ewContext.targetTokenUuid,
+        packetId: ctx.attack.ewContext.activePacketId,
+        ctx,
+      });
+      await consumeTargetingPacket(ewCombatant, ctx.attack.ewContext.targetTokenUuid, ctx.attack.ewContext.activePacketId);
+    }
+  }
+
   /* --------------------------- */
   /* 7) Build resolved payload  */
   /* --------------------------- */
@@ -558,6 +582,10 @@ async function execute({ actor, payload, event } = {}) {
       context: machineRemedyContext,
     };
   }
+  if (ewAcquireResult)   resolved.ewAcquireResult  = ewAcquireResult;
+  if (ewTargetingResult) resolved.ewTargetingResult = ewTargetingResult;
+  if (ctx.acquire)   resolved.acquire   = ctx.acquire;
+  if (ctx.targeting) resolved.targeting = ctx.targeting;
 
   /* --------------------------- */
   /* 8) Render chat             */

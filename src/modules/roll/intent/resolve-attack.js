@@ -19,6 +19,12 @@ import { WeaponItem } from "../../item/weapon-item.js";
 import { createUserFacingRollError } from "../roll-errors.js";
 import { buildTargetSnapshot } from "../template-placement.js";
 import { getMachineAttackRestriction } from "../../mwd/machine-crit-effects.js";
+import { getContactStateLabel } from "../../mwd/machine-ew.js";
+import {
+  getAttackerCombatant,
+  getContactState,
+  getUsableTargetingPacket,
+} from "../../mwd/machine-ew-state.js";
 
 function getTargets(payload = {}) {
   if (Array.isArray(payload?.targetSnapshots)) {
@@ -279,6 +285,34 @@ export async function resolveAttack({ actor, payload } = {}) {
       ? getPersonalRangeBandBaseDn(rangeBand, 1)
       : 1);
 
+  let ewContext = null;
+  if (isMachineActor(actor) && targets.length > 0) {
+    const firstTarget = targets[0];
+    const targetTokenUuid = String(firstTarget?.tokenUuid ?? "").trim();
+    const attackerToken = getSourceToken(actor, payload);
+    const combatant = getAttackerCombatant(attackerToken);
+
+    const targetTokenObj = canvas?.tokens?.get?.(targetTokenUuid);
+    const isVisible = targetTokenObj?.visible ?? true;
+    const effectiveState = isVisible ? getContactState(combatant, targetTokenUuid) : "blind";
+
+    if (effectiveState === "blind") {
+      throw createUserFacingRollError("No targeting solution. Acquire contact first.", { severity: "warn" });
+    }
+
+    const systemAttr = Number(actor?.system?.attributes?.system?.value ?? 0) || 0;
+    const usablePacket = getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, effectiveState, game.combat?.round);
+
+    ewContext = {
+      contactState: effectiveState,
+      contactStateLabel: getContactStateLabel(effectiveState),
+      targetTokenUuid,
+      attackerCombatantId: combatant?.id ?? null,
+      activePacketId: usablePacket?.id ?? null,
+      targetingDataValue: usablePacket?.value ?? 0,
+    };
+  }
+
   return {
     intent: "attack",
     rollType: "simple",
@@ -345,7 +379,8 @@ export async function resolveAttack({ actor, payload } = {}) {
       },
       targets,
       aim,
-      totalAp
+      totalAp,
+      ewContext,
     },
     specialization: selectedSpecialization ? {
       key: selectedSpecialization.key,

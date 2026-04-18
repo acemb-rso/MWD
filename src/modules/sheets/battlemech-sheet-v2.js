@@ -14,6 +14,8 @@ import {
   setBattlemechPendingHeat,
 } from "../mwd/machine-heat.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
+import { getContactState, getAttackerCombatant, getUsableTargetingPacket } from "../mwd/machine-ew-state.js";
+import { getContactStateLabel } from "../mwd/machine-ew.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -102,6 +104,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       mechAttack: BattlemechSheetV2.prototype._onMechAttack,
       mechRoll: BattlemechSheetV2.prototype._onMechRoll,
       openHeatDialog: BattlemechSheetV2.prototype._onOpenHeatDialog,
+      ewAcquire: BattlemechSheetV2.prototype._onEwAcquire,
+      ewTarget: BattlemechSheetV2.prototype._onEwTarget,
     }
   }, { inplace: false });
 
@@ -113,8 +117,39 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       weaponGroups: this._buildWeaponGroups(),
       hardpoints: this._buildHardpoints(),
       chassisFields: this._buildChassisFields(),
+      ewStatus: this._buildEwStatus(),
     };
     return ctx;
+  }
+
+  _buildEwStatus() {
+    const hasTargets = (game.user?.targets?.size ?? 0) > 0;
+    const token = this._resolveStatusToken(this.actor);
+    const combatant = getAttackerCombatant(token);
+    const systemAttr = Number(this.actor?.system?.attributes?.system?.value ?? 0) || 0;
+    const currentRound = game.combat?.round ?? null;
+
+    const rows = Array.from(game.user?.targets ?? [])
+      .filter(t => t?.actor)
+      .map(targetToken => {
+        const uuid = targetToken.document?.uuid ?? targetToken.uuid ?? "";
+        const state = getContactState(combatant, uuid);
+        const packet = (state === "track" || state === "lock")
+          ? getUsableTargetingPacket(combatant, uuid, systemAttr, state, currentRound)
+          : null;
+        return {
+          tokenName: targetToken.name ?? "Target",
+          contactState: state,
+          contactStateLabel: getContactStateLabel(state),
+          packetValue: packet?.value ?? 0,
+          hasPacket: Boolean(packet),
+        };
+      });
+
+    return {
+      hasTargets,
+      rows,
+    };
   }
 
   _buildChassisFields() {
@@ -645,5 +680,45 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       activation,
       postDangerCard: true,
     });
+  }
+
+  async _onEwAcquire(event, _target) {
+    event?.preventDefault?.();
+    const actor = this.getPersistentActor() ?? this.actor;
+    const token = this._resolveStatusToken(actor);
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) return;
+    try {
+      await rollApi.execute({
+        actor,
+        payload: {
+          intent: "acquire",
+          sourceTokenId: token?.id ?? null,
+        },
+      });
+    } catch (error) {
+      console.error("MWD | Failed to launch EW acquire", error);
+      notifyRollError(error, "Unable to launch acquire roll.");
+    }
+  }
+
+  async _onEwTarget(event, _target) {
+    event?.preventDefault?.();
+    const actor = this.getPersistentActor() ?? this.actor;
+    const token = this._resolveStatusToken(actor);
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) return;
+    try {
+      await rollApi.execute({
+        actor,
+        payload: {
+          intent: "targeting",
+          sourceTokenId: token?.id ?? null,
+        },
+      });
+    } catch (error) {
+      console.error("MWD | Failed to launch EW targeting", error);
+      notifyRollError(error, "Unable to launch targeting roll.");
+    }
   }
 }

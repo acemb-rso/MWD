@@ -4,16 +4,18 @@
 
 
 // modules/roll/intent/resolve-intent.js
-import { resolveSkill } from "./resolve-skill.js";
-import { resolveEdge } from "./resolve-edge.js";
-import { resolveAttribute } from "./resolve-attribute.js";
-import { resolveCommon } from "./resolve-common.js";
-import { resolveAttack } from "./resolve-attack.js";
-import { resolveDefense } from "./resolve-defense.js";
-import { resolveResistance } from "./resolve-resistance.js";
-import { resolveInitiative} from "./resolve-initiative.js";
-import { resolveOverload } from "./resolve-overload.js";
-import { resolveMachineRemedy } from "./resolve-machine-remedy.js";
+import { resolveSkill } from “./resolve-skill.js”;
+import { resolveEdge } from “./resolve-edge.js”;
+import { resolveAttribute } from “./resolve-attribute.js”;
+import { resolveCommon } from “./resolve-common.js”;
+import { resolveAttack } from “./resolve-attack.js”;
+import { resolveDefense } from “./resolve-defense.js”;
+import { resolveResistance } from “./resolve-resistance.js”;
+import { resolveInitiative} from “./resolve-initiative.js”;
+import { resolveOverload } from “./resolve-overload.js”;
+import { resolveMachineRemedy } from “./resolve-machine-remedy.js”;
+import { resolveAcquire } from “./resolve-acquire.js”;
+import { resolveTargeting } from “./resolve-targeting.js”;
 
 // Registry: adding a roll is “data entry”
 const RESOLVERS = {
@@ -27,6 +29,8 @@ const RESOLVERS = {
   initiative: resolveInitiative,
   overload: resolveOverload,
   machineRemedy: resolveMachineRemedy,
+  acquire: resolveAcquire,
+  targeting: resolveTargeting,
 };
 
 export async function resolveIntent({ actor, payload, event } = {}) {

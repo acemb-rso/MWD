@@ -17,6 +17,13 @@ export function enhanceAttack(resolved, vm) {
   );
   const isAreaEffect = Boolean(r?.attack?.capabilityReport?.isTemplated);
 
+  const ewCtx = r?.attack?.ewContext ?? null;
+  if (ewCtx?.contactState && ewCtx.contactState !== "contact") {
+    const ewParts = [`EW: ${ewCtx.contactStateLabel ?? ewCtx.contactState}`];
+    if (ewCtx.targetingDataValue) ewParts.push(`+${ewCtx.targetingDataValue} targeting`);
+    vm.metaRows.push({ text: ewParts.join(" | "), title: "" });
+  }
+
   const modsApplied = Array.isArray(r?.modifiers?.applied) ? r.modifiers.applied : [];
   const modTotal = Number(r?.modifiers?.total ?? 0);
   if (modsApplied.length) {

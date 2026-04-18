@@ -10,6 +10,8 @@ import { enhanceNet } from "./render-net.js";
 import { enhanceOpposed } from "./render-opposed.js";
 import { enhanceExtended } from "./render-extended.js";
 import { enhanceMachineRemedy } from "./render-machine-remedy.js";
+import { enhanceAcquire } from "./render-acquire.js";
+import { enhanceTargeting } from "./render-targeting.js";
 import { getPersonalRangeBandName } from "../../mwd/personal-range-bands.js";
 // import { enhanceDefense } from "./render-defense.js";
 // import { enhanceEdge } from "./render-edge.js";
@@ -21,6 +23,8 @@ const ENHANCERS = {
   opposed: enhanceOpposed,
   extended: enhanceExtended,
   machineRemedy: enhanceMachineRemedy,
+  acquire: enhanceAcquire,
+  targeting: enhanceTargeting,
   // defense: enhanceDefense,
   // edge: enhanceEdge,
 };
