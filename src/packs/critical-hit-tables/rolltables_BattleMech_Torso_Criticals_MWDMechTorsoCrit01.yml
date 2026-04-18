@@ -97,7 +97,8 @@
               "track": "fatigue",
               "amount": 2
             },
-            "escalationKey": "heat"
+            "escalationKey": "heat",
+            "statusId": "reactorInstability"
           }
         }
       }
@@ -106,7 +107,7 @@
       "_id": "MechTCrit05",
       "_key": "!tables.results!MWDMechTorsoCrit01.MechTCrit05",
       "type": "text",
-      "text": "Coolant / Power Routing Fault",
+      "text": "Power Routing Fault",
       "img": "icons/svg/d20-black.svg",
       "weight": 1,
       "range": [
@@ -117,7 +118,7 @@
       "flags": {
         "mwd": {
           "crit": {
-            "key": "coolantPowerRoutingFault",
+            "key": "powerRoutingFault",
             "remedyKey": "emergencyRepair",
             "gates": [
               "weaponGroup"
@@ -125,7 +126,8 @@
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
-            "escalationKey": "feed"
+            "escalationKey": "feed",
+            "statusId": "weaponFailure"
           }
         }
       }
@@ -146,17 +148,16 @@
         "mwd": {
           "crit": {
             "key": "coreResponseDelay",
-            "remedyKey": "systemReset",
+            "remedyKey": "reboot",
             "gates": [],
             "mods": [],
-            "resourceEffects": {
-              "nextActivationSaPenalty": 1
-            },
+            "resourceEffects": {},
             "pilotDamage": {
               "track": "fatigue",
               "amount": 2
             },
-            "escalationKey": "control"
+            "escalationKey": "control",
+            "statusId": "staggeredMechanical"
           }
         }
       }
@@ -221,7 +222,8 @@
               "amount": 2,
               "condition": "failedFallImpact"
             },
-            "escalationKey": "shock"
+            "escalationKey": "shock",
+            "statusId": "unstable"
           }
         }
       }
@@ -247,11 +249,10 @@
               "attack"
             ],
             "mods": [],
-            "resourceEffects": {
-              "heatPerAttack": 1
-            },
+            "resourceEffects": {},
             "pilotDamage": {},
-            "escalationKey": "heat"
+            "escalationKey": "heat",
+            "statusId": "overheating"
           }
         }
       }

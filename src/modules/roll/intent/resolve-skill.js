@@ -10,6 +10,7 @@ import {
   getSkillSpecializationDef,
   SKILL_SPECIALIZATION_BONUS,
 } from "../../mwd/skills.js";
+import { getMachinePilotingDnModifier } from "../../mwd/machine-crit-effects.js";
 
 export async function resolveSkill({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveSkill requires actor");
@@ -43,9 +44,11 @@ export async function resolveSkill({ actor, payload } = {}) {
     ? Number(payload.diceTarget)
     : (Number.isFinite(Number(payload?.target)) ? Number(payload.target) : 5);
 
-  const dnHits = Number.isFinite(Number(payload?.dn))
+  const baseDnHits = Number.isFinite(Number(payload?.dn))
     ? Number(payload.dn)
     : 1;
+  const pilotingDnMod = code === "piloting" ? getMachinePilotingDnModifier(actor) : 0;
+  const dnHits = baseDnHits + pilotingDnMod;
 
   return {
     intent: "skill",
@@ -60,6 +63,13 @@ export async function resolveSkill({ actor, payload } = {}) {
 
     // DN = hits needed for success
     difficulty: { dn: dnHits },
+    dn: {
+      parts: [
+        { id: "difficulty.base", label: "Base DN", value: baseDnHits, tags: ["base"] },
+        ...(pilotingDnMod ? [{ id: "machineCrit.unstable", label: "Unstable", value: pilotingDnMod, tags: ["machineCrit"] }] : []),
+      ],
+      total: dnHits
+    },
     edge: {
         earn: { enabled: true, rate: 4, maxPerRoll: 1 }
       },

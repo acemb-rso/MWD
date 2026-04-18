@@ -54,17 +54,21 @@
         "mwd": {
           "crit": {
             "key": "targetingProcessorLock",
-            "remedyKey": "systemReset",
+            "remedyKey": "reboot",
             "gates": [
               "attack"
             ],
             "mods": [],
-            "resourceEffects": {},
+            "resourceEffects": {
+              "extraAttackCost": 1
+            },
             "pilotDamage": {
               "track": "physical",
               "amount": 2
             },
-            "escalationKey": "lockout"
+            "escalationKey": "lockout",
+            "effectText": "All fire modes require +1 SA to attack.",
+            "automationMode": "engine"
           }
         }
       }
@@ -91,9 +95,10 @@
             "resourceEffects": {},
             "pilotDamage": {
               "track": "fatigue",
-              "amount": 2
+              "amount": 1
             },
-            "escalationKey": "surge"
+            "escalationKey": "surge",
+            "statusId": "staggeredMechanical"
           }
         }
       }
@@ -144,17 +149,16 @@
         "mwd": {
           "crit": {
             "key": "commandInputDelay",
-            "remedyKey": "systemReset",
+            "remedyKey": "reboot",
             "gates": [],
             "mods": [],
-            "resourceEffects": {
-              "nextActivationSaPenalty": 1
-            },
+            "resourceEffects": {},
             "pilotDamage": {
               "track": "fatigue",
               "amount": 2
             },
-            "escalationKey": "control"
+            "escalationKey": "control",
+            "statusId": "stalled"
           }
         }
       }
@@ -217,7 +221,8 @@
               "track": "physical",
               "amount": 2
             },
-            "escalationKey": "shock"
+            "escalationKey": "shock",
+            "statusId": "unstable"
           }
         }
       }
@@ -242,15 +247,15 @@
             "gates": [
               "sensor"
             ],
-            "mods": [
-              "sensorLockPenalty"
-            ],
+            "mods": [],
             "resourceEffects": {},
             "pilotDamage": {
               "track": "fatigue",
               "amount": 2
             },
-            "escalationKey": "overload"
+            "escalationKey": "overload",
+            "effectText": "Contacts are capped at Track until repaired.",
+            "automationMode": "callout"
           }
         }
       }
@@ -275,12 +280,12 @@
             "gates": [
               "attack"
             ],
-            "mods": [
-              "visibilitySevere"
-            ],
+            "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
-            "escalationKey": "degradation"
+            "escalationKey": "degradation",
+            "effectText": "All targets are treated as Obscured until repaired.",
+            "automationMode": "callout"
           }
         }
       }
@@ -308,7 +313,9 @@
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
-            "escalationKey": "outage"
+            "escalationKey": "outage",
+            "effectText": "No sensor or ECM actions may be taken until repaired.",
+            "automationMode": "callout"
           }
         }
       }

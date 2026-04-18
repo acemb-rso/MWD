@@ -18,6 +18,7 @@ import { TEMPLATE } from "../../constants.js";
 import { WeaponItem } from "../../item/weapon-item.js";
 import { createUserFacingRollError } from "../roll-errors.js";
 import { buildTargetSnapshot } from "../template-placement.js";
+import { getMachineAttackRestriction } from "../../mwd/machine-crit-effects.js";
 
 function getTargets(payload = {}) {
   if (Array.isArray(payload?.targetSnapshots)) {
@@ -212,6 +213,18 @@ export async function resolveAttack({ actor, payload } = {}) {
 
   const weapon = getWeaponProfile(actor, payload);
   if (!weapon) throw new Error("Unable to resolve weapon profile.");
+  if (isMachineActor(actor)) {
+    const restriction = getMachineAttackRestriction(actor, {
+      weaponGroupId: payload?.weaponGroupId,
+      weaponId: payload?.weaponId,
+      weapon,
+    });
+    if (restriction.blocked) {
+      throw createUserFacingRollError(restriction.reason || "That weapon group cannot attack right now.", {
+        severity: "warn",
+      });
+    }
+  }
   if (Array.isArray(weapon?.capabilityReport?.errors) && weapon.capabilityReport.errors.length > 0) {
     throw createUserFacingRollError(
       weapon.capabilityReport.errors[0]?.message ?? "Weapon capability data is invalid for this attack.",

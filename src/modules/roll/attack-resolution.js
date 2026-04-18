@@ -23,6 +23,7 @@ import {
   scaleDamageByExposure,
 } from "../area-effects/area-effect-engine.js";
 import { createHazardRegionFromAttack } from "../area-effects/hazard-regions.js";
+import { getMachineAttackDamageModifier } from "../mwd/machine-crit-effects.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -161,7 +162,12 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
 function buildDamageSnapshot(ctx = {}, outcome = {}) {
   const attack = ctx?.attack ?? {};
   const payloadDamageType = String(attack?.payload?.modifies?.damageType ?? "").trim();
-  const baseDamage = Math.max(0, Number(attack?.weapon?.damage ?? 0) || 0);
+  const critDamageDelta = getMachineAttackDamageModifier(ctx?.attacker, {
+    weaponGroupId: attack?.weapon?.machineWeaponGroup?.id ?? attack?.payload?.weaponGroupId,
+    weaponId: attack?.payload?.weaponId,
+    weapon: attack?.weapon,
+  });
+  const baseDamage = Math.max(0, (Number(attack?.weapon?.damage ?? 0) || 0) + critDamageDelta);
   const targetIsMachine = Boolean(ctx?.targetIsMachine);
   const rawDamageType = payloadDamageType || attack?.weapon?.damageType;
   const damageType = targetIsMachine
@@ -402,6 +408,7 @@ async function resolveTargetAttack({ attacker, ctx, outcomeModel, target, previe
   const currentExposure = target?.exposure ?? createExposureData({ tier: "none" });
   const damage = buildDamageSnapshot({
     ...ctx,
+    attacker,
     targetIsMachine: isMachineActor(targetActor),
     attack: {
       ...attack,

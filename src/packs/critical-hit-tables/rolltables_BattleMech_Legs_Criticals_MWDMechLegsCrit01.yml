@@ -25,16 +25,15 @@
             "gates": [
               "move"
             ],
-            "mods": [
-              "stabilityCheck"
-            ],
+            "mods": [],
             "resourceEffects": {},
             "pilotDamage": {
               "track": "physical",
               "amount": 2,
               "condition": "resultingFallImpact"
             },
-            "escalationKey": "cascade"
+            "escalationKey": "cascade",
+            "statusId": "proneMechFall"
           }
         }
       }
@@ -63,7 +62,8 @@
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
-            "escalationKey": "lockout"
+            "escalationKey": "lockout",
+            "statusId": "limping"
           }
         }
       }
@@ -147,12 +147,11 @@
             "gates": [
               "move"
             ],
-            "mods": [
-              "repositionPenalty"
-            ],
+            "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
-            "escalationKey": "control"
+            "escalationKey": "control",
+            "statusId": "unstable"
           }
         }
       }

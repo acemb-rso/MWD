@@ -20,6 +20,12 @@ import { buildRemainingMonitorTrack } from "../src/modules/mwd/machine-summary.j
 import { resolveMachineCritRemedyIntent } from "../src/modules/mwd/machine-intents.js";
 import { prepareMachineRemedyRoll } from "../src/modules/mwd/machine-intents.js";
 import { MachineCriticalsProvider } from "../src/modules/modifiers/providers/machine-criticals.js";
+import {
+  buildMachineActivationStartReport,
+  getMachineAttackActionCost,
+  getMachineAttackRestriction,
+  getMachinePilotingDnModifier,
+} from "../src/modules/mwd/machine-crit-effects.js";
 
 function setPath(object, path, value) {
   const parts = path.split(".");
@@ -33,10 +39,12 @@ function setPath(object, path, value) {
 }
 
 function machineActor(overrides = {}) {
+  const items = overrides.items ?? new Map();
   const actor = {
     type: overrides.type ?? "battlemech",
     name: overrides.name ?? "Test Machine",
     uuid: overrides.uuid ?? "Actor.machine",
+    items,
     system: {
       monitors: {
         armor: { value: 0, max: 6 },
@@ -56,6 +64,7 @@ function machineActor(overrides = {}) {
         },
         crits: [],
       },
+      weaponGroups: overrides.weaponGroups ?? [],
     },
     async update(update) {
       for (const [path, value] of Object.entries(update)) setPath(this, path, value);
@@ -301,7 +310,7 @@ test("machine critical remedy intent spends operator SA and resolves the crit", 
 
   assert.equal(result.ok, true);
   assert.equal(spent.actor, operator);
-  assert.equal(spent.packet.cost, 1);
+  assert.equal(spent.packet.cost, 2);
   assert.equal(machine.system.mwd.crits[0].active, false);
 
   delete globalThis.fromUuid;
@@ -364,4 +373,98 @@ test("machine critical provider reads active crit records instead of token statu
   assert.equal(mods.length, 1);
   assert.equal(mods[0].value, -1);
   assert.match(mods[0].label, /Targeting Fault/);
+});
+
+test("location crit records normalize updated status and remedy mappings", async () => {
+  const actor = machineActor();
+  const headLocation = resolveMachineHitLocation({ actor, rollTotal: 18, armorBefore: 0 });
+  const headDraw = await drawMachineCriticalRecords({
+    actor,
+    hitLocation: headLocation,
+    drawFn: () => ({
+      label: "Hard Lock",
+      rollTotal: 3,
+      signal: { key: "hardLock", remedyKey: "emergencyRepair", gates: [], mods: [], resourceEffects: {}, pilotDamage: {}, escalationKey: "lockout" },
+    }),
+  });
+
+  assert.equal(headDraw.ok, true);
+  assert.equal(headDraw.crits[0].key, "targetingProcessorLock");
+  assert.equal(headDraw.crits[0].remedyKey, "reboot");
+  assert.equal(headDraw.crits[0].automationMode, "engine");
+  assert.match(headDraw.crits[0].effectText, /\+1 SA/i);
+
+  const torsoLocation = resolveMachineHitLocation({ actor, rollTotal: 10, armorBefore: 0 });
+  const torsoDraw = await drawMachineCriticalRecords({
+    actor,
+    hitLocation: torsoLocation,
+    drawFn: () => ({
+      label: "Overload",
+      rollTotal: 9,
+      signal: { key: "overload", remedyKey: "coolantDump", gates: [], mods: [], resourceEffects: {}, pilotDamage: {}, escalationKey: "overload" },
+    }),
+  });
+
+  assert.equal(torsoDraw.ok, true);
+  assert.equal(torsoDraw.crits[0].key, "heatSinkSaturation");
+  assert.equal(torsoDraw.crits[0].statusId, "overheating");
+  assert.notEqual(torsoDraw.crits[0].statusId, "reactorInstability");
+});
+
+test("weapon failure scopes to a matching weapon group and blocks only that group", () => {
+  const armLaser = { id: "w-arm", system: { mountLocation: "arm", damageType: "energy" } };
+  const torsoLaser = { id: "w-torso", system: { mountLocation: "torso", damageType: "energy" } };
+  const actor = machineActor({
+    items: new Map([
+      [armLaser.id, armLaser],
+      [torsoLaser.id, torsoLaser],
+    ]),
+    weaponGroups: [
+      { id: "alpha", name: "Alpha", weaponIds: ["w-arm"], isPrimary: false },
+      { id: "beta", name: "Beta", weaponIds: ["w-torso"], isPrimary: true },
+    ],
+    paths: {
+      "system.mwd.crits": [{
+        id: "crit-alpha",
+        key: "actuatorLockArm",
+        label: "Actuator Lock",
+        locationKey: "arms",
+        locationFamily: "arms",
+        locationLabel: "Arms",
+        statusId: "weaponFailure",
+        active: true,
+      }],
+    },
+  });
+
+  const crit = getActiveMachineCrits(actor)[0];
+  assert.equal(crit.weaponGroupId, "alpha");
+  assert.equal(crit.weaponGroupName, "Alpha");
+
+  const blocked = getMachineAttackRestriction(actor, { weaponGroupId: "alpha", weaponId: "w-arm" });
+  const allowed = getMachineAttackRestriction(actor, { weaponGroupId: "beta", weaponId: "w-torso" });
+  assert.equal(blocked.blocked, true);
+  assert.equal(allowed.blocked, false);
+});
+
+test("machine crit effect helper reports attack cost, piloting DN, and activation start effects", () => {
+  const actor = machineActor({
+    paths: {
+      "system.mwd.crits": [
+        { id: "crit-lock", key: "targetingProcessorLock", label: "Targeting Processor Lock", active: true },
+        { id: "crit-unstable", key: "internalShock", label: "Internal Shock", statusId: "unstable", active: true },
+        { id: "crit-staggered", key: "neuralFeedback", label: "Neural Feedback", statusId: "staggeredMechanical", active: true },
+        { id: "crit-overheating", key: "heatSinkSaturation", label: "Heat Sink Saturation", statusId: "overheating", active: true },
+      ],
+    },
+  });
+
+  const attackCost = getMachineAttackActionCost(actor);
+  const pilotingDn = getMachinePilotingDnModifier(actor);
+  const activation = buildMachineActivationStartReport(actor);
+
+  assert.equal(attackCost.totalCost, 3);
+  assert.equal(pilotingDn, 2);
+  assert.equal(activation.saCost, 1);
+  assert.equal(activation.heatDelta, 2);
 });

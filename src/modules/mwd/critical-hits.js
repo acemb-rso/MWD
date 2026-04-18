@@ -20,6 +20,10 @@ import {
   buildMachineDegradationUpdates,
   resolveMachineDegradation,
 } from "./machine-degradation.js";
+import {
+  buildMachineCriticalConsequenceData,
+  normalizeMachineCriticalRecord,
+} from "./machine-crit-consequences.js";
 
 export const MACHINE_CRITICAL_STATUS_ID = "machineCritical";
 export const SETTING_MACHINE_CRIT_TABLE_GENERAL = "machineCriticalTableGeneralUuid";
@@ -66,26 +70,26 @@ export const LOCATION_CRITICAL_RESULTS = Object.freeze({
   battlemech: Object.freeze({
     head: Object.freeze({
       2: critRow("cockpitShock", "Cockpit Shock", "none", ["sensor"], ["sensorBlind"], {}, { track: "physical", amount: 3 }, "cascade", "sensorBlind"),
-      3: critRow("targetingProcessorLock", "Targeting Processor Lock", "systemReset", ["attack"], [], {}, { track: "physical", amount: 2 }, "lockout", "sensorDegraded"),
-      4: critRow("neuralFeedback", "Neural Feedback", "systemReset", [], [], {}, { track: "fatigue", amount: 2 }, "surge", ""),
+      3: critRow("targetingProcessorLock", "Targeting Processor Lock", "reboot", ["attack"], [], { extraAttackCost: 1 }, { track: "physical", amount: 2 }, "lockout", "", "All fire modes require +1 SA to attack.", "engine"),
+      4: critRow("neuralFeedback", "Neural Feedback", "systemReset", [], [], {}, { track: "fatigue", amount: 1 }, "surge", "staggeredMechanical"),
       5: critRow("opticsCoolantFog", "Optics Coolant Fog / View Obstruction", "systemReset", ["attack"], ["rangeLimitClose"], {}, {}, "feed", "sensorDegraded"),
-      6: critRow("commandInputDelay", "Command Input Delay", "systemReset", [], [], { nextActivationSaPenalty: 1 }, { track: "fatigue", amount: 2 }, "control", ""),
+      6: critRow("commandInputDelay", "Command Input Delay", "reboot", [], [], {}, { track: "fatigue", amount: 2 }, "control", "stalled"),
       7: critRow("fireControlDesyncHead", "Fire-Control Desync", "systemReset", ["attack"], ["noCqBonus"], {}, {}, "desync", "sensorDegraded"),
       8: critRow("cockpitImpact", "Cockpit Impact", "pilotRecovery", ["piloting"], ["stabilityCheck"], {}, { track: "physical", amount: 2 }, "shock", "unstable"),
-      9: critRow("sensorOverload", "Sensor Overload", "systemReset", ["sensor"], ["sensorLockPenalty"], {}, { track: "fatigue", amount: 2 }, "overload", "sensorDegraded"),
-      10: critRow("opticsFracture", "Optics Fracture", "emergencyRepair", ["attack"], ["visibilitySevere"], {}, {}, "degradation", "sensorDegraded"),
-      11: critRow("commsSensorSuiteOut", "Communications / Sensor Suite Out", "systemReset", ["sensor"], [], {}, {}, "outage", "sensorDegraded"),
+      9: critRow("sensorOverload", "Sensor Overload", "systemReset", ["sensor"], [], {}, { track: "fatigue", amount: 2 }, "overload", "", "Contacts are capped at Track until repaired.", "callout"),
+      10: critRow("opticsFracture", "Optics Fracture", "emergencyRepair", ["attack"], [], {}, {}, "degradation", "", "All targets are treated as Obscured until repaired.", "callout"),
+      11: critRow("commsSensorSuiteOut", "Communications / Sensor Suite Out", "systemReset", ["sensor"], [], {}, {}, "outage", "", "No sensor or ECM actions may be taken until repaired.", "callout"),
       12: critRow("headCriticalBreach", "Head condition +1", "none", [], [], {}, { track: "physical", amount: 2 }, "conditionAdvance", ""),
     }),
     torso: Object.freeze({
       2: critRow("reactorGyroCascade", "Reactor / Gyro Cascade", "none", ["piloting"], ["stabilityCheck"], {}, { track: "fatigue", amount: 3 }, "cascade", "unstable"),
       3: critRow("gyroLock", "Gyro Lock", "emergencyRepair", ["move", "jump"], ["pilotingPenalty"], {}, {}, "lockout", "stalled"),
       4: critRow("reactorUnstable", "Reactor Unstable", "coolantDump", ["energyWeapon"], [], { heatPerEnergyAttack: 1 }, { track: "fatigue", amount: 2 }, "heat", "reactorInstability"),
-      5: critRow("coolantPowerRoutingFault", "Coolant / Power Routing Fault", "emergencyRepair", ["weaponGroup"], [], {}, {}, "feed", "weaponFailure"),
-      6: critRow("coreResponseDelay", "Core Response Delay", "systemReset", [], [], { nextActivationSaPenalty: 1 }, { track: "fatigue", amount: 2 }, "control", ""),
+      5: critRow("powerRoutingFault", "Power Routing Fault", "emergencyRepair", ["weaponGroup"], [], {}, {}, "feed", "weaponFailure"),
+      6: critRow("coreResponseDelay", "Core Response Delay", "reboot", [], [], {}, { track: "fatigue", amount: 2 }, "control", "staggeredMechanical"),
       7: critRow("targetingMovementSyncFault", "Targeting / Movement Sync Fault", "systemReset", ["attack", "move"], ["noMovementFireAdvantage"], {}, {}, "desync", ""),
       8: critRow("internalShock", "Internal Shock", "emergencyRepair", ["piloting"], ["stabilityCheck"], {}, { track: "physical", amount: 2, condition: "failedFallImpact" }, "shock", "unstable"),
-      9: critRow("heatSinkSaturation", "Heat Sink Saturation", "coolantDump", ["attack"], [], { heatPerAttack: 1 }, {}, "heat", "reactorInstability"),
+      9: critRow("heatSinkSaturation", "Heat Sink Saturation", "coolantDump", ["attack"], [], {}, {}, "heat", "overheating"),
       10: critRow("gyroDrift", "Gyro Drift", "emergencyRepair", ["move"], ["highMobilityBlocked"], {}, {}, "degradation", "limping"),
       11: critRow("powerBusOutage", "Power Bus Outage", "emergencyRepair", ["subsystem"], [], {}, {}, "outage", ""),
       12: critRow("torsoCriticalBreach", "Torso condition +1", "none", [], [], {}, {}, "conditionAdvance", ""),
@@ -93,26 +97,26 @@ export const LOCATION_CRITICAL_RESULTS = Object.freeze({
     arms: Object.freeze({
       2: critRow("weaponMountCascade", "Weapon Mount Cascade", "emergencyRepair", ["attack"], [], {}, {}, "cascade", "weaponFailure"),
       3: critRow("actuatorLockArm", "Actuator Lock", "emergencyRepair", ["attack"], [], {}, {}, "lockout", "weaponFailure"),
-      4: critRow("weaponFeedback", "Weapon Feedback", "emergencyRepair", ["attack"], [], { nextArmAttackHeat: 1 }, {}, "surge", "weaponFailure"),
+      4: critRow("weaponFeedback", "Weapon Feedback", "emergencyRepair", ["attack"], [], {}, {}, "surge", "", "Arm-specific recoil and feedback effects remain reminder-only.", "callout"),
       5: critRow("ammoFeedFaultArm", "Ammo / Feed Fault", "feedReset", ["attack"], [], {}, {}, "feed", "jammedBallistic"),
-      6: critRow("fineActuationError", "Fine Actuation Error", "emergencyRepair", ["attack"], ["aimBlocked"], {}, {}, "control", "weaponFailure"),
-      7: critRow("targetingMisalignmentArm", "Targeting Misalignment", "systemReset", ["attack"], ["noCqBonus"], {}, {}, "desync", "weaponFailure"),
-      8: critRow("recoilShock", "Recoil Shock", "emergencyRepair", ["attack"], ["nextArmAttackBlocked"], {}, {}, "shock", "weaponFailure"),
-      9: critRow("servoStrainArm", "Servo Strain", "emergencyRepair", ["attack"], [], { heatOrStrainOnUse: 1 }, {}, "overload", "weaponFailure"),
-      10: critRow("stabilizerDamageArm", "Stabilizer Damage", "emergencyRepair", ["attack"], ["armAttackSeverelyLimited"], {}, {}, "degradation", "weaponFailure"),
-      11: critRow("localPowerLossArm", "Local Power Loss", "emergencyRepair", ["subsystem"], [], {}, {}, "outage", "weaponFailure"),
+      6: critRow("fineActuationError", "Fine Actuation Error", "emergencyRepair", ["attack"], [], {}, {}, "control", "", "Fine-control arm effects remain reminder-only.", "callout"),
+      7: critRow("targetingMisalignmentArm", "Targeting Misalignment", "systemReset", ["attack"], [], {}, {}, "desync", "", "Arm-mounted targeting issues remain reminder-only.", "callout"),
+      8: critRow("recoilShock", "Recoil Shock", "emergencyRepair", ["attack"], [], {}, {}, "shock", "", "Recoil shock remains reminder-only for the affected arm.", "callout"),
+      9: critRow("servoStrainArm", "Servo Strain", "emergencyRepair", ["attack"], [], {}, {}, "overload", "", "Servo strain remains reminder-only for the affected arm.", "callout"),
+      10: critRow("stabilizerDamageArm", "Stabilizer Damage", "emergencyRepair", ["attack"], [], {}, {}, "degradation", "", "Stabilizer damage remains reminder-only for the affected arm.", "callout"),
+      11: critRow("localPowerLossArm", "Local Power Loss", "emergencyRepair", ["subsystem"], [], {}, {}, "outage", "", "Local arm power-loss effects remain reminder-only.", "callout"),
       12: critRow("armsCriticalBreach", "Arms condition +1", "none", [], [], {}, {}, "conditionAdvance", ""),
     }),
     legs: Object.freeze({
-      2: critRow("mobilityCascadeLegs", "Mobility Cascade", "emergencyRepair", ["move"], ["stabilityCheck"], {}, { track: "physical", amount: 2, condition: "resultingFallImpact" }, "cascade", "unstable"),
-      3: critRow("legActuatorLock", "Leg Actuator Lock", "emergencyRepair", ["move", "jump"], [], {}, {}, "lockout", "stalled"),
+      2: critRow("mobilityCascadeLegs", "Mobility Cascade", "emergencyRepair", ["move"], [], {}, { track: "physical", amount: 2, condition: "resultingFallImpact" }, "cascade", "proneMechFall"),
+      3: critRow("legActuatorLock", "Leg Actuator Lock", "emergencyRepair", ["move", "jump"], [], {}, {}, "lockout", "limping"),
       4: critRow("myomerSurge", "Myomer Surge", "coolantDump", ["move"], [], { heatOrStrainOnMove: 1 }, {}, "surge", ""),
       5: critRow("jumpJetMobilityFeedFault", "Jump Jet / Mobility Feed Fault", "emergencyRepair", ["move", "jump"], [], {}, {}, "feed", "jumpJetFailure"),
-      6: critRow("gaitFault", "Gait Fault", "emergencyRepair", ["move"], ["repositionPenalty"], {}, {}, "control", "limping"),
-      7: critRow("balanceTimingFault", "Balance Timing Fault", "systemReset", ["move"], ["noMobilityCqBonus"], {}, {}, "desync", "unstable"),
+      6: critRow("gaitFault", "Gait Fault", "emergencyRepair", ["move"], [], {}, {}, "control", "unstable"),
+      7: critRow("balanceTimingFault", "Balance Timing Fault", "systemReset", ["move"], [], {}, {}, "desync", "", "Movement actions require manual piloting-fall follow-up.", "callout"),
       8: critRow("forcedStabilityTest", "Forced Stability Test", "emergencyRepair", ["move", "piloting"], ["stabilityCheck"], {}, { track: "physical", amount: 2, condition: "resultingFallImpact" }, "shock", "unstable"),
-      9: critRow("mobilityOverstress", "Mobility Overstress", "emergencyRepair", ["move"], [], { repeatedMoveCost: 1 }, {}, "overload", "limping"),
-      10: critRow("legStabilizerDamage", "Leg Stabilizer Damage", "emergencyRepair", ["move"], ["advancedManeuverBlocked"], {}, {}, "degradation", "limping"),
+      9: critRow("mobilityOverstress", "Mobility Overstress", "emergencyRepair", ["move"], [], {}, {}, "overload", "", "Call out the mobility overstress rider after movement actions.", "callout"),
+      10: critRow("legStabilizerDamage", "Leg Stabilizer Damage", "emergencyRepair", ["move"], [], {}, {}, "degradation", "", "Advanced maneuver penalties remain reminder-only for now.", "callout"),
       11: critRow("partialMobilityOutageLegs", "Partial Mobility Outage", "emergencyRepair", ["move"], [], {}, {}, "outage", "limping"),
       12: critRow("legsCriticalBreach", "Legs condition +1", "none", [], [], {}, {}, "conditionAdvance", ""),
     }),
@@ -169,7 +173,20 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value ?? null));
 }
 
-function critRow(key, label, remedyKey, gates = [], mods = [], resourceEffects = {}, pilotDamage = {}, escalationKey = "", statusId = "") {
+function critRow(
+  key,
+  label,
+  remedyKey,
+  gates = [],
+  mods = [],
+  resourceEffects = {},
+  pilotDamage = {},
+  escalationKey = "",
+  statusId = "",
+  effectText = "",
+  automationMode = "",
+  statusLabel = ""
+) {
   return Object.freeze({
     label,
     signal: Object.freeze({
@@ -181,6 +198,9 @@ function critRow(key, label, remedyKey, gates = [], mods = [], resourceEffects =
       pilotDamage,
       escalationKey,
       statusId,
+      effectText,
+      automationMode,
+      statusLabel,
     }),
   });
 }
@@ -241,6 +261,9 @@ export function normalizeCriticalSignal(resultOrData = {}, { strict = false } = 
   const pilotDamage = toPlainObject(data?.pilotDamage);
   const escalationKey = String(data?.escalationKey ?? "").trim();
   const statusId = String(data?.statusId ?? "").trim();
+  const statusLabel = String(data?.statusLabel ?? "").trim();
+  const effectText = String(data?.effectText ?? "").trim();
+  const automationMode = String(data?.automationMode ?? "").trim();
 
   if (!key) errors.push("Critical signal key cannot be blank.");
   if (!isValidMachineCritRemedy(remedyKey)) errors.push(`Unknown machine critical remedy "${remedyKey}".`);
@@ -275,12 +298,16 @@ export function normalizeCriticalSignal(resultOrData = {}, { strict = false } = 
       : {},
     escalationKey,
     statusId,
+    statusLabel,
+    effectText,
+    automationMode,
   };
 }
 
 export function getActiveMachineCrits(actor, filters = {}) {
   const crits = Array.isArray(actor?.system?.mwd?.crits) ? actor.system.mwd.crits : [];
   return crits
+    .map(crit => normalizeMachineCriticalRecord(crit, actor))
     .filter(crit => crit && crit.active !== false)
     .filter(crit => !filters.key || crit.key === filters.key)
     .filter(crit => !filters.locationKey || crit.locationKey === filters.locationKey)
@@ -582,6 +609,7 @@ function buildCritRecord({ actor, drawn, hitLocation, source = {}, cascade = fal
   const remedy = getMachineCritRemedy(signal.remedyKey);
   const location = getCriticalLocation(hitLocation, false);
   const label = String(drawn?.label ?? signal.key).trim() || signal.key;
+  const consequence = buildMachineCriticalConsequenceData(actor, signal, location);
   const remedySkillKey = getMachineRemedySkillKey({
     key: signal.key,
     label,
@@ -615,6 +643,12 @@ function buildCritRecord({ actor, drawn, hitLocation, source = {}, cascade = fal
     remedyEffect: getMachineRemedyEffect({}),
     escalationKey: signal.escalationKey,
     statusId: signal.statusId,
+    statusLabel: consequence.statusLabel,
+    effectText: consequence.effectText,
+    automationMode: consequence.automationMode,
+    weaponGroupId: consequence.weaponGroupId,
+    weaponGroupName: consequence.weaponGroupName,
+    weaponIds: consequence.weaponIds,
     active: true,
     cascade: Boolean(cascade),
     createdRound: Number(globalThis.game?.combat?.round ?? 0) || 0,
@@ -693,9 +727,9 @@ export async function drawMachineCriticalRecords({
   }
 }
 
-function getPreparedCriticalRecords(payload = {}) {
+function getPreparedCriticalRecords(payload = {}, actor = null) {
   return Array.isArray(payload?.preparedCriticalRecords)
-    ? payload.preparedCriticalRecords.map(record => clone(record))
+    ? payload.preparedCriticalRecords.map(record => normalizeMachineCriticalRecord(clone(record), actor))
     : [];
 }
 
@@ -775,7 +809,7 @@ export async function applyMachineAttackDamage({
   if (!preview.ok) return preview;
 
   const dryRun = Boolean(options.dryRun);
-  const preparedCrits = getPreparedCriticalRecords(payload);
+  const preparedCrits = getPreparedCriticalRecords(payload, actor);
   let critDraw = preparedCrits.length
     ? { ok: true, crits: preparedCrits, cascade: preparedCrits.length > 1 }
     : { ok: true, crits: [] };

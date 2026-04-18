@@ -397,3 +397,12 @@ Track the result as a named crit condition
 Clear it only with its listed remedy
 Only 12 advances condition directly
 Only Head/Torso/catastrophic fall can hurt the pilot
+
+
+* Staggered = Pilot immediately uses 1 Simple Action at the start of activation fighting the controls
+* Skidding = Machine starts the turn by making an immediate full movement in the last direction of travel. If it hits anything, it stops skidding and is prone.
+* Overheating = At the start of the turn, the machine gains 2 heat.
+* Weapon Failure = A weapon group is unusable for attack
+* Unstable = +2 DN to piloting tests, every move action is followed by a piloting roll to avoid falling prone (like Sprinting).
+* Reactor Instability = Energy Weapon Groups produce +1 heat and -1 damage
+* Stalled = -1 to Handling and System

@@ -2,6 +2,8 @@
 // Purpose: Enhances attack roll cards with CQ, outcome, and damage details.
 // How it fits: Keeps attack presentation as a pure render step over resolved engine data.
 
+import { buildMachineCriticalChatSummary } from "../../mwd/machine-crit-effects.js";
+
 export function enhanceAttack(resolved, vm) {
   const r = resolved ?? {};
   const attackResult = r?.attackResult ?? null;
@@ -205,7 +207,7 @@ export function enhanceAttack(resolved, vm) {
           }
           for (const crit of damageResult.critical?.records ?? []) {
             vm.footerRows.push({
-              text: `${result?.target?.name ?? "Target"}: Critical - ${crit.label}${crit.locationLabel ? ` (${crit.locationLabel})` : ""}`,
+              text: `${result?.target?.name ?? "Target"}: Critical - ${crit.label}${crit.locationLabel ? ` (${crit.locationLabel})` : ""} | ${buildMachineCriticalChatSummary(crit)}`,
               title: ""
             });
             if (isApplied && crit.active !== false && crit.remedyKey !== "none") {

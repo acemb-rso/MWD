@@ -3,12 +3,12 @@
 // How it fits: Serves as the base vehicle-scale V2 sheet and the reuse target for BattleMech sheets.
 
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
-import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import { getActiveMachineCrits } from "../mwd/critical-hits.js";
 import { getMachineCritRemedy } from "../mwd/machine-crit-remedies.js";
 import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
+import { describeMachineCriticalEffect } from "../mwd/machine-crit-effects.js";
 import {
   getMachineConditionLabel,
   getMachineConditionModifier,
@@ -571,6 +571,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const locationIndex = new Map((degradation.locations ?? []).map(location => [location.key, location]));
     return getActiveMachineCrits(actor).map(crit => {
       const remedy = getMachineCritRemedy(crit.remedyKey);
+      const effect = describeMachineCriticalEffect(crit);
       const location = locationIndex.get(String(crit.locationKey ?? "").trim()) ?? null;
       const remedySkillKey = String(crit.remedySkillKey ?? remedy.skillKey ?? "").trim();
       const remedySkillLabel = getSkillDef(remedySkillKey)?.label ?? startCase(remedySkillKey);
@@ -580,10 +581,12 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         label: crit.label ?? startCase(crit.key),
         locationLabel: crit.locationLabel ?? startCase(crit.locationKey),
         detail: compactList([
-          Array.isArray(crit.gates) && crit.gates.length ? `Gates: ${crit.gates.join(", ")}` : "",
-          Array.isArray(crit.mods) && crit.mods.length ? `Mods: ${crit.mods.join(", ")}` : "",
+          effect.statusLabel ? `Status: ${effect.statusLabel}` : "",
+          effect.scopeSummary,
+          effect.automationMode === "engine" ? "Automated" : "Reminder Only",
           crit.escalationKey ? `Escalates: ${crit.escalationKey}` : "",
         ]).join(" | "),
+        effectSummary: effect.effectText,
         remedyLabel: remedy.label,
         remedySummary: remedySkillLabel
           ? `Reliability + ${remedySkillLabel} vs DN ${remedyDn}${location ? ` (${location.conditionLabel})` : ""}`
@@ -649,19 +652,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     });
 
     if (result) {
-      const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
-      if (snapshot?.hasCombatant) {
-        const spend = await PersonalCombatTracker.spendResource(actor, {
-          token,
-          resource: "sa",
-          cost: 2,
-          actionId: "attack",
-          actionLabel: "Attack",
-          actionCostLabel: "2 SA",
-          actionCategory: "complex"
-        });
-        if (!spend?.ok) ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
-      }
+      return true;
     }
 
     return Boolean(result);

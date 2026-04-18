@@ -479,19 +479,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     });
 
     if (result) {
-      const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
-      if (snapshot?.hasCombatant) {
-        const spend = await PersonalCombatTracker.spendResource(actor, {
-          token,
-          resource: "sa",
-          cost: 2,
-          actionId: "attack",
-          actionLabel: "Attack",
-          actionCostLabel: "2 SA",
-          actionCategory: "complex"
-        });
-        if (!spend?.ok) ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
-      }
+      return true;
     }
   }
 
@@ -521,19 +509,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     });
 
     if (result) {
-      const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
-      if (snapshot?.hasCombatant) {
-        const spend = await PersonalCombatTracker.spendResource(actor, {
-          token,
-          resource: "sa",
-          cost: 2,
-          actionId: "attack",
-          actionLabel: "Attack",
-          actionCostLabel: "2 SA",
-          actionCategory: "complex"
-        });
-        if (!spend?.ok) ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
-      }
+      return true;
     }
   }
 

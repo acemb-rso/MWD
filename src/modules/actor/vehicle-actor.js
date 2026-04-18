@@ -8,6 +8,7 @@ import { AnarchyBaseActor } from "./base-actor.js";
 import { normalizeMachineMonitorResistance } from "../mwd/machine-monitors.js";
 import { normalizeMachineDegradationState } from "../mwd/machine-degradation.js";
 import { normalizeMachineMovement } from "../mwd/machine-movement.js";
+import { getMachineRuntimeAttributeAdjustments } from "../mwd/machine-crit-effects.js";
 
 function forcedDeletion() {
   return foundry.data.operators.ForcedDeletion;
@@ -97,6 +98,15 @@ export class VehicleActor extends AnarchyBaseActor {
         mergedAttributes[key].value = data?.value ?? 0;
       }
     });
+
+    const adjustments = getMachineRuntimeAttributeAdjustments(this);
+    for (const [key, delta] of Object.entries(adjustments)) {
+      if (!delta) continue;
+      mergedAttributes[key] = mergedAttributes[key] ?? { value: 0 };
+      mergedAttributes[key].value = Math.max(0, Number(mergedAttributes[key]?.value ?? 0) + Number(delta ?? 0));
+      mwd.attributes[key] = mwd.attributes[key] ?? {};
+      mwd.attributes[key].value = mergedAttributes[key].value;
+    }
   }
 
   _prepareMwdDegradation() {

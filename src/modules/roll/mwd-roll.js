@@ -26,6 +26,8 @@ import {
   resolveMachineCritIntentContext,
 } from "../mwd/machine-intents.js";
 import { recordBattlemechAttackHeat } from "../mwd/machine-heat.js";
+import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
 
 /**
  * Public roll API.
@@ -178,6 +180,44 @@ async function updateUserTargets(tokenIds = []) {
       ?? canvas?.tokens?.placeables?.find?.(entry => entry?.id === id)
       ?? null;
     token?.setTarget?.(true, { releaseOthers: false, user: game.user });
+  }
+}
+
+function getMachineAttackToken(actor, payload = {}) {
+  const sourceTokenId = String(payload?.sourceTokenId ?? "").trim();
+  if (sourceTokenId) {
+    const direct = canvas?.tokens?.get?.(sourceTokenId)
+      ?? canvas?.tokens?.placeables?.find?.(token => token?.id === sourceTokenId)
+      ?? null;
+    if (direct) return direct.document ?? direct;
+  }
+
+  return actor?.token?.document
+    ?? actor?.token
+    ?? actor?.getActiveTokens?.(true, true)?.[0]?.document
+    ?? actor?.getActiveTokens?.(true, true)?.[0]
+    ?? null;
+}
+
+async function commitMachineAttackAction(actor, payload = {}) {
+  if (!isMachineActor(actor)) return;
+
+  const token = getMachineAttackToken(actor, payload);
+  const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+  if (!snapshot?.hasCombatant) return;
+
+  const cost = getMachineAttackActionCost(actor);
+  const spend = await PersonalCombatTracker.spendResource(actor, {
+    token,
+    resource: "sa",
+    cost: cost.totalCost,
+    actionId: "attack",
+    actionLabel: "Attack",
+    actionCostLabel: `${cost.totalCost} SA`,
+    actionCategory: "complex",
+  });
+  if (!spend?.ok) {
+    ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
   }
 }
 
@@ -550,6 +590,10 @@ async function execute({ actor, payload, event } = {}) {
         console.warn("MWD | Unable to record BattleMech attack heat", error);
       }
     }
+  }
+
+  if (ctx.intent === "attack") {
+    await commitMachineAttackAction(actor, payload);
   }
 
   return ChatMessage.create({

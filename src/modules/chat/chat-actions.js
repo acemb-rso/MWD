@@ -21,6 +21,7 @@ import {
 } from "../area-effects/hazard-chat.js";
 import { resolveMachineOperator } from "../mwd/machine-operator.js";
 import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
+import { buildMachineCriticalChatSummary } from "../mwd/machine-crit-effects.js";
 
 export function registerMWDChatActions() {
   Hooks.on("renderChatMessageHTML", (message, htmlElement) => {
@@ -154,6 +155,16 @@ function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null
     rows.push({
       label: "Notes",
       value: String(summary.notes).trim()
+    });
+  }
+
+  const criticalRecords = Array.isArray(summary?.critical?.records) ? summary.critical.records : [];
+  if (criticalRecords.length) {
+    rows.push({
+      label: "Critical Effects",
+      value: criticalRecords
+        .map(crit => `${crit.label}${crit.locationLabel ? ` (${crit.locationLabel})` : ""}: ${buildMachineCriticalChatSummary(crit)}`)
+        .join(" ; ")
     });
   }
 

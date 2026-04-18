@@ -56,7 +56,8 @@
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
-            "escalationKey": "lockout"
+            "escalationKey": "lockout",
+            "statusId": "weaponFailure"
           }
         }
       }
@@ -114,7 +115,8 @@
             "mods": [],
             "resourceEffects": {},
             "pilotDamage": {},
-            "escalationKey": "feed"
+            "escalationKey": "feed",
+            "statusId": "jammedBallistic"
           }
         }
       }
