@@ -89,7 +89,12 @@ const CATASTROPHIC_FALLBACKS = Object.freeze({
 
 function deepClone(value) {
   if (typeof foundry !== "undefined" && typeof foundry?.utils?.deepClone === "function") {
-    return foundry.utils.deepClone(value);
+    try {
+      return foundry.utils.deepClone(value);
+    } catch (_error) {
+      // Test doubles and actor stubs sometimes carry functions that cannot be
+      // structured-cloned. Fall back to a data-only clone for degradation math.
+    }
   }
   return JSON.parse(JSON.stringify(value ?? null));
 }

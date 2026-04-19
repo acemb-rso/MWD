@@ -14,6 +14,9 @@ import {
   getAcquireDnModifier,
   getAcquireCeiling,
 } from "../../mwd/machine-ew-state.js";
+import {
+  isMachineSensorActionBlocked,
+} from "../../mwd/machine-state-effects.js";
 import { createUserFacingRollError } from "../roll-errors.js";
 
 function isMachineActor(actor) {
@@ -44,6 +47,9 @@ export async function resolveAcquire({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveAcquire requires actor");
   if (!isMachineActor(actor)) {
     throw createUserFacingRollError("Acquire is a machine action.", { severity: "warn" });
+  }
+  if (isMachineSensorActionBlocked(actor)) {
+    throw createUserFacingRollError("Sensor actions are blocked by the machine's current state.", { severity: "warn" });
   }
 
   const targetToken = resolveTargetToken(payload);

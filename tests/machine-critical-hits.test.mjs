@@ -45,6 +45,7 @@ function machineActor(overrides = {}) {
     name: overrides.name ?? "Test Machine",
     uuid: overrides.uuid ?? "Actor.machine",
     items,
+    statuses: new Set(overrides.statuses ?? []),
     system: {
       monitors: {
         armor: { value: 0, max: 6 },
@@ -68,6 +69,10 @@ function machineActor(overrides = {}) {
     },
     async update(update) {
       for (const [path, value] of Object.entries(update)) setPath(this, path, value);
+    },
+    async toggleStatusEffect(statusId, { active } = {}) {
+      if (active) this.statuses.add(statusId);
+      else this.statuses.delete(statusId);
     },
   };
   for (const [path, value] of Object.entries(overrides.paths ?? {})) setPath(actor, path, value);
@@ -263,6 +268,30 @@ test("pure structure hit auto-degrades the struck location in addition to crit-d
   assert.equal(result.degradation.shockDelta, 0);
 });
 
+test("degradation-derived statuses are surfaced when a location crosses a canonical threshold", async () => {
+  const actor = machineActor({
+    paths: {
+      "system.monitors.armor.value": 6,
+      "system.mwd.locations.torso.condition": 3,
+    },
+  });
+  const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 10, armorBefore: 0 });
+
+  const result = await applyMachineAttackDamage({
+    actor,
+    payload: {
+      damage: 1,
+      hitLocation,
+      preparedCriticalRecords: [],
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(actor.system.mwd.locations.torso.condition, 4);
+  assert.equal(actor.statuses.has("gyroDamage"), true);
+  assert.equal(actor.statuses.has("reactorBreach"), true);
+});
+
 test("cascade result draws one additional crit and recursive cascades become location breach", async () => {
   const actor = machineActor();
   const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 4, armorBefore: 6 });
@@ -310,7 +339,7 @@ test("machine critical remedy intent spends operator SA and resolves the crit", 
 
   assert.equal(result.ok, true);
   assert.equal(spent.actor, operator);
-  assert.equal(spent.packet.cost, 2);
+  assert.equal(spent.packet.cost, 1);
   assert.equal(machine.system.mwd.crits[0].active, false);
 
   delete globalThis.fromUuid;
@@ -464,7 +493,7 @@ test("machine crit effect helper reports attack cost, piloting DN, and activatio
   const activation = buildMachineActivationStartReport(actor);
 
   assert.equal(attackCost.totalCost, 3);
-  assert.equal(pilotingDn, 2);
+  assert.equal(pilotingDn, 0);
   assert.equal(activation.saCost, 1);
   assert.equal(activation.heatDelta, 2);
 });

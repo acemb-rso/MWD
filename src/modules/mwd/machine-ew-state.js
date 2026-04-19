@@ -3,9 +3,20 @@
 // This is the only module permitted to access combatant.flags.mwd.ewState.
 
 import { CONTACT_STATE_ORDER, getTargetingDataCap } from "./machine-ew.js";
+import {
+  adjustTargetingDataValue,
+  getMachineContactStateCap,
+  getMachineTrackingPenaltyAdjustment,
+} from "./machine-state-effects.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY   = "ewState";
+
+function resolveTargetActorFromUuid(targetTokenUuid = "") {
+  const uuid = String(targetTokenUuid ?? "").trim();
+  if (!uuid) return null;
+  return canvas?.tokens?.placeables?.find(token => (token.document?.uuid ?? token.uuid) === uuid)?.actor ?? null;
+}
 
 // ---------------------------------------------------------------------------
 // Combatant lookup
@@ -103,12 +114,16 @@ export function getTrackingPenalty(targetActor, targetCombatant) {
   const statuses = targetActor?.statuses ?? new Set();
   if (statuses.has("ecmJamming"))  penalty += 2;
   if (statuses.has("ecmShrouded")) penalty += 1;
+  if (statuses.has("obscuredLight")) penalty += 1;
+  if (statuses.has("obscuredHeavy")) penalty += 3;
+  if (statuses.has("obscured")) penalty += 1;
 
   if (targetCombatant) {
     const actionState = targetCombatant.getFlag(FLAG_SCOPE, "personalCombat")?.actionState ?? {};
     if (actionState.move !== null && actionState.move !== undefined) penalty += 1;
   }
 
+  penalty += getMachineTrackingPenaltyAdjustment(targetActor);
   return penalty;
 }
 
@@ -126,7 +141,11 @@ export function getAcquireDnModifier(targetActor) {
  */
 export function getAcquireCeiling(targetActor) {
   const statuses = targetActor?.statuses ?? new Set();
-  return statuses.has("ecmJamming") ? "track" : "lock";
+  const baseCap = statuses.has("ecmJamming") ? "track" : "lock";
+  const derivedCap = getMachineContactStateCap(targetActor);
+  const baseIndex = CONTACT_STATE_ORDER.indexOf(baseCap);
+  const derivedIndex = CONTACT_STATE_ORDER.indexOf(derivedCap);
+  return derivedIndex >= 0 && derivedIndex < baseIndex ? derivedCap : baseCap;
 }
 
 /**
@@ -145,13 +164,18 @@ export function getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr,
 
   const cap = getTargetingDataCap(systemAttr, contactState);
   const round = Number.isFinite(Number(currentRound)) ? Number(currentRound) : null;
+  const targetActor = resolveTargetActorFromUuid(targetTokenUuid);
 
   let best = null;
   for (const p of packets) {
     if (p.consumed) continue;
     if (p.suppressedBy) continue;
     if (!p.persistent && p.expiresAfterRound !== null && round !== null && round > p.expiresAfterRound) continue;
-    const usable = Math.min(p.value, cap);
+    const usable = adjustTargetingDataValue({
+      attacker: combatant?.actor ?? null,
+      targetActor,
+      value: Math.min(p.value, cap),
+    });
     if (best === null || usable > best.value) {
       best = { id: p.id, value: usable };
     }

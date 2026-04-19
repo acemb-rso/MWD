@@ -8,7 +8,7 @@ import { AnarchyBaseActor } from "./base-actor.js";
 import { normalizeMachineMonitorResistance } from "../mwd/machine-monitors.js";
 import { normalizeMachineDegradationState } from "../mwd/machine-degradation.js";
 import { normalizeMachineMovement } from "../mwd/machine-movement.js";
-import { getMachineRuntimeAttributeAdjustments } from "../mwd/machine-crit-effects.js";
+import { getMachineRuntimeAttributeAdjustments } from "../mwd/machine-state-effects.js";
 
 function forcedDeletion() {
   return foundry.data.operators.ForcedDeletion;

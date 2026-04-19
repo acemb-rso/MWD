@@ -24,6 +24,7 @@ import {
 } from "../area-effects/area-effect-engine.js";
 import { createHazardRegionFromAttack } from "../area-effects/hazard-regions.js";
 import { getMachineAttackDamageModifier } from "../mwd/machine-crit-effects.js";
+import { getMachineAttackCqAdjustments, getMachineHeatAdjustments } from "../mwd/machine-state-effects.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -132,6 +133,36 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
     value: armorDefense
   });
 
+  if (isMachineActor(attacker)) {
+    const attackerAdjustments = getMachineAttackCqAdjustments(attacker, {
+      rangeBand: ctx?.attack?.rangeBand,
+      role: "attacker",
+      target,
+    });
+    if (attackerAdjustments.ar) {
+      arParts.push({
+        id: "machineState.attackAr",
+        label: "Machine State",
+        value: attackerAdjustments.ar,
+      });
+    }
+  }
+
+  if (targetIsMachine) {
+    const targetAdjustments = getMachineAttackCqAdjustments(targetActor, {
+      rangeBand: ctx?.attack?.rangeBand,
+      role: "defender",
+      target,
+    });
+    if (targetAdjustments.dr) {
+      drParts.push({
+        id: "machineState.defenseDr",
+        label: "Machine State",
+        value: targetAdjustments.dr,
+      });
+    }
+  }
+
   const arTotal = sumParts(arParts);
   const drTotal = sumParts(drParts);
 
@@ -167,7 +198,9 @@ function buildDamageSnapshot(ctx = {}, outcome = {}) {
     weaponId: attack?.payload?.weaponId,
     weapon: attack?.weapon,
   });
-  const baseDamage = Math.max(0, (Number(attack?.weapon?.damage ?? 0) || 0) + critDamageDelta);
+  const stateHeat = getMachineHeatAdjustments(ctx?.attacker);
+  const isEnergyAttack = String(attack?.weapon?.damageType ?? "").trim().toLowerCase() === "energy";
+  const baseDamage = Math.max(0, (Number(attack?.weapon?.damage ?? 0) || 0) + critDamageDelta + (isEnergyAttack ? Number(stateHeat.energyAttackDamage ?? 0) : 0));
   const targetIsMachine = Boolean(ctx?.targetIsMachine);
   const rawDamageType = payloadDamageType || attack?.weapon?.damageType;
   const damageType = targetIsMachine

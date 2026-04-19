@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { describeMachineCriticalEffect, getMachineAttackRestriction } from "../src/modules/mwd/machine-crit-effects.js";
+import { getMachinePilotingDiceModifier } from "../src/modules/mwd/machine-state-effects.js";
 
 function buildActor(overrides = {}) {
   return {
@@ -25,7 +26,7 @@ function buildActor(overrides = {}) {
   };
 }
 
-test("piloting checks gain DN from unstable criticals", async () => {
+test("unstable criticals now penalize Piloting dice instead of DN", async () => {
   globalThis.foundry = {
     utils: {
       deepClone: value => structuredClone(value),
@@ -44,9 +45,9 @@ test("piloting checks gain DN from unstable criticals", async () => {
     payload: { key: "piloting", dn: 1 },
   });
 
-  assert.equal(resolved.difficulty.dn, 3);
-  assert.equal(resolved.dn.total, 3);
-  assert.equal(resolved.dn.parts[1].label, "Unstable");
+  assert.equal(resolved.difficulty.dn, 1);
+  assert.equal(resolved.dn.total, 1);
+  assert.equal(getMachinePilotingDiceModifier(actor), -2);
 
   delete globalThis.game;
   delete globalThis.foundry;

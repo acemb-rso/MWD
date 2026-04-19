@@ -20,6 +20,7 @@ import {
   buildMachineDegradationUpdates,
   resolveMachineDegradation,
 } from "./machine-degradation.js";
+import { getMachineDerivedStatusIds } from "./machine-state-effects.js";
 import {
   buildMachineCriticalConsequenceData,
   normalizeMachineCriticalRecord,
@@ -780,6 +781,16 @@ async function applyMachineCritStatusConditions(actor, newCritRecords) {
 }
 
 async function applyDegradationStatusConditions(actor, degradation) {
+  const derivedStatusIds = new Set(getMachineDerivedStatusIds(actor));
+  for (const statusId of derivedStatusIds) {
+    if (!statusId || (actor.statuses?.has?.(statusId) ?? false)) continue;
+    try {
+      await applyManagedStatusUpdate({ actor, statusId, active: true });
+    } catch (error) {
+      console.warn(`MWD | Unable to apply degradation-derived status "${statusId}"`, error);
+    }
+  }
+
   for (const event of Array.from(degradation?.fallbackEvents ?? [])) {
     if (!event?.destroyed) continue;
     const location = String(event.location ?? "").trim();

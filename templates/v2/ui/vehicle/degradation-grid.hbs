@@ -21,6 +21,14 @@ GM edit raw state directly on the sheet.
     </div>
   </div>
 
+  {{#if vehicleSheet.degradation.summaryEffects.length}}
+    <div class="mwd-record__tags">
+      {{#each vehicleSheet.degradation.summaryEffects as |effect|}}
+        <span class="mwd-record__tag">{{effect}}</span>
+      {{/each}}
+    </div>
+  {{/if}}
+
   <div class="mwd-degradation__body">
     <div class="mwd-degradation__figure">
       <div class="mwd-degradation__stage">
@@ -57,6 +65,9 @@ GM edit raw state directly on the sheet.
               <span>{{location.conditionLabel}}</span>
               <span>Stress {{location.stress}}</span>
             </div>
+            {{#if location.effectSummary}}
+              <div class="mwd-record__subtitle">{{location.effectSummary}}</div>
+            {{/if}}
           </div>
           {{#unless location.enabled}}
             <div class="mwd-degradation__legend-state">Offline</div>

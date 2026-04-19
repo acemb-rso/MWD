@@ -2,6 +2,8 @@
 // Purpose: Code-owned remedy catalog for machine critical hits.
 // How it fits: Roll Tables choose remedy keys, while action cost and meaning stay stable.
 
+import { getMachineActionDefinition } from "./machine-action-catalog.js";
+
 export const MACHINE_CRIT_REMEDY_KEYS = Object.freeze([
   "none",
   "emergencyRepair",
@@ -10,94 +12,59 @@ export const MACHINE_CRIT_REMEDY_KEYS = Object.freeze([
   "reboot",
   "feedReset",
   "pilotRecovery",
+  "stand",
+  "stabalize",
+  "powerReroute",
+  "epmFilter",
+  "powerCycle",
+  "acquireTarget",
+  "jettisonCore",
+  "breakLock",
+  "extinguish",
+  "reposition",
+  "toggle",
+  "majorRepair",
 ]);
 
-export const MACHINE_CRIT_REMEDIES = Object.freeze({
-  none: Object.freeze({
-    key: "none",
-    label: "No Field Remedy",
-    actionId: "machineCritNoFieldRemedy",
-    actionLabel: "No Field Remedy",
-    resource: "sa",
-    cost: 0,
-    category: "none",
-    remediable: false,
-    skillKey: "",
-    baseDn: 0,
-  }),
-  emergencyRepair: Object.freeze({
-    key: "emergencyRepair",
-    label: "Emergency Repair",
-    actionId: "machineCritEmergencyRepair",
-    actionLabel: "Emergency Repair",
-    resource: "sa",
-    cost: 2,
-    category: "complex",
-    remediable: true,
-    skillKey: "technician",
-    baseDn: 2,
-  }),
-  systemReset: Object.freeze({
-    key: "systemReset",
-    label: "System Reset",
-    actionId: "machineCritSystemReset",
-    actionLabel: "System Reset",
-    resource: "sa",
-    cost: 2,
-    category: "simple",
-    remediable: true,
-    skillKey: "systemOps",
-    baseDn: 2,
-  }),
-  coolantDump: Object.freeze({
-    key: "coolantDump",
-    label: "Coolant Dump",
-    actionId: "machineCritCoolantDump",
-    actionLabel: "Coolant Dump",
-    resource: "sa",
-    cost: 1,
-    category: "simple",
-    remediable: true,
-    skillKey: "systemOps",
-    baseDn: 1,
-  }),  
-  reboot: Object.freeze({
-    key: "reboot",
-    label: "Reboot",
-    actionId: "machineCritReboot",
-    actionLabel: "Reboot",
-    resource: "sa",
-    cost: 2,
-    category: "simple",
-    remediable: true,
-    skillKey: "computers",
-    baseDn: 1,
-  }),
-  feedReset: Object.freeze({
-    key: "feedReset",
-    label: "Reload / Feed Reset",
-    actionId: "machineCritFeedReset",
-    actionLabel: "Reload / Feed Reset",
-    resource: "sa",
-    cost: 1,
-    category: "simple",
-    remediable: true,
-    skillKey: "gunnery",
-    baseDn: 1,
-  }),
-  pilotRecovery: Object.freeze({
-    key: "pilotRecovery",
-    label: "Pilot Recovery",
-    actionId: "machineCritPilotRecovery",
-    actionLabel: "Pilot Recovery",
-    resource: "sa",
-    cost: 2,
-    category: "complex",
-    remediable: true,
-    skillKey: "piloting",
-    baseDn: 2,
-  }),
-});
+function remedy(key, overrides = {}) {
+  const definition = getMachineActionDefinition(key);
+  return Object.freeze({
+    key: definition.key,
+    label: overrides.label ?? definition.label,
+    actionId: overrides.actionId ?? `machineCrit${definition.key.charAt(0).toUpperCase()}${definition.key.slice(1)}`,
+    actionLabel: overrides.actionLabel ?? definition.label,
+    resource: definition.resource,
+    cost: definition.cost,
+    category: definition.category,
+    remediable: overrides.remediable ?? definition.remediable,
+    skillKey: overrides.skillKey ?? definition.skillKey,
+    baseDn: Number(overrides.baseDn ?? definition.cost ?? 0),
+  });
+}
+
+export const MACHINE_CRIT_REMEDIES = Object.freeze(Object.fromEntries(
+  [
+    ["none", remedy("none", { baseDn: 0 })],
+    ["emergencyRepair", remedy("emergencyRepair", { baseDn: 2 })],
+    ["systemReset", remedy("systemReset", { baseDn: 2 })],
+    ["coolantDump", remedy("coolantDump", { baseDn: 1 })],
+    ["reboot", remedy("reboot", { baseDn: 2 })],
+    ["feedReset", remedy("feedReset", { label: "Feed Reset", baseDn: 1 })],
+    ["pilotRecovery", remedy("pilotRecovery", { baseDn: 2 })],
+    ["stand", remedy("stand", { baseDn: 1 })],
+    ["stabalize", remedy("stabalize", { baseDn: 2 })],
+    ["powerReroute", remedy("powerReroute", { baseDn: 2 })],
+    ["epmFilter", remedy("epmFilter", { baseDn: 2 })],
+    ["powerCycle", remedy("powerCycle", { baseDn: 2 })],
+    ["acquireTarget", remedy("acquireTarget", { baseDn: 2 })],
+    ["jettisonCore", remedy("jettisonCore", { baseDn: 3 })],
+    ["breakLock", remedy("breakLock", { baseDn: 2 })],
+    ["extinguish", remedy("extinguish", { baseDn: 2 })],
+    ["reposition", remedy("reposition", { baseDn: 0 })],
+    ["toggle", remedy("toggle", { baseDn: 0, remediable: true })],
+    ["majorRepair", remedy("majorRepair", { baseDn: 0, remediable: false })],
+  ]
+));
 
 export function getMachineCritRemedy(remedyKey = "") {
   const key = String(remedyKey ?? "").trim();

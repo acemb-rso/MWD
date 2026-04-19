@@ -1,0 +1,76 @@
+{{!--
+templates/v2/ui/vehicle/ew-panel.hbs
+Purpose: Shared machine EW panel for vehicle and BattleMech V2 sheets.
+How it fits: Renders a dumb view model from vehicleSheet.ewPanel and launches shared EW intents.
+--}}
+
+<div class="mwd-inv mwd-ew-panel">
+  <div class="mwd-inv__toolbar">
+    <button
+      type="button"
+      class="mwd-inv__add-btn{{#unless vehicleSheet.ewPanel.canAcquireAny}} is-disabled{{/unless}}"
+      data-action="ewAcquire"
+      {{#unless vehicleSheet.ewPanel.canAcquireAny}}disabled{{/unless}}>
+      <i class="fas fa-satellite-dish"></i> Acquire
+    </button>
+    <button
+      type="button"
+      class="mwd-inv__add-btn{{#unless vehicleSheet.ewPanel.canTargetAny}} is-disabled{{/unless}}"
+      data-action="ewTarget"
+      {{#unless vehicleSheet.ewPanel.canTargetAny}}disabled{{/unless}}>
+      <i class="fas fa-crosshairs"></i> Target
+    </button>
+  </div>
+
+  <p class="mwd-hint">{{vehicleSheet.ewPanel.helpText}}</p>
+
+  {{#if vehicleSheet.ewPanel.rows.length}}
+    <div class="mwd-records mwd-records--inventory">
+      {{#each vehicleSheet.ewPanel.rows as |row|}}
+        <article class="mwd-record mwd-record--ew">
+          <div class="mwd-record__header">
+            <div class="mwd-record__main">
+              <div class="mwd-record__topline">
+                <div class="mwd-record__title">{{row.tokenName}}</div>
+                <div class="mwd-record__stats">
+                  <span class="mwd-record__stat is-strong">
+                    <span class="mwd-record__stat-label">State</span>
+                    <span class="mwd-record__stat-value">{{row.contactStateLabel}}</span>
+                  </span>
+                  {{#if row.hasPacket}}
+                    <span class="mwd-record__stat">
+                      <span class="mwd-record__stat-label">Packet</span>
+                      <span class="mwd-record__stat-value">+{{row.packetValue}}</span>
+                    </span>
+                  {{/if}}
+                  {{#if row.hasPacketCap}}
+                    <span class="mwd-record__stat">
+                      <span class="mwd-record__stat-label">Cap</span>
+                      <span class="mwd-record__stat-value">+{{row.packetCap}}</span>
+                    </span>
+                  {{/if}}
+                  {{#if row.hasTrackingPenalty}}
+                    <span class="mwd-record__stat">
+                      <span class="mwd-record__stat-label">Penalty</span>
+                      <span class="mwd-record__stat-value">-{{row.trackingPenalty}}</span>
+                    </span>
+                  {{/if}}
+                </div>
+              </div>
+
+              <div class="mwd-record__subtitle">{{row.acquireHint}}</div>
+              <div class="mwd-record__subtitle">{{row.targetHint}}</div>
+
+              <div class="mwd-record__tags">
+                <span class="mwd-record__tag{{#if row.canAcquire}} is-on{{/if}}">Acquire {{#if row.canAcquire}}Ready{{else}}Locked{{/if}}</span>
+                <span class="mwd-record__tag{{#if row.canTarget}} is-on{{/if}}">Target {{#if row.canTarget}}Ready{{else}}Waiting{{/if}}</span>
+              </div>
+            </div>
+          </div>
+        </article>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-inv__empty">{{vehicleSheet.ewPanel.emptyState}}</div>
+  {{/if}}
+</div>

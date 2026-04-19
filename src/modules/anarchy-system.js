@@ -31,6 +31,7 @@ import { LifeModuleModifiersProvider } from "../modules/modifiers/providers/life
 import { SceneModifiersProvider } from "../modules/modifiers/providers/scene-modifiers.js";
 import { TraitModifiersProvider } from "../modules/modifiers/providers/traits.js";
 import { MachineCriticalsProvider } from "../modules/modifiers/providers/machine-criticals.js";
+import { MachineStateEffectsProvider } from "../modules/modifiers/providers/machine-state-effects.js";
 import { EwTrackingPenaltyProvider } from "../modules/modifiers/providers/ew-tracking-penalty.js";
 import { EwTargetingDataProvider } from "../modules/modifiers/providers/ew-targeting-data.js";
 import { Modifiers } from "./modifiers/anarchy-modifiers.js";
@@ -256,6 +257,7 @@ export class AnarchySystem {
     modifierProviders.register(new LifeModuleModifiersProvider());
     modifierProviders.register(new TraitModifiersProvider());
     modifierProviders.register(new MachineCriticalsProvider());
+    modifierProviders.register(new MachineStateEffectsProvider());
     modifierProviders.register(new EwTrackingPenaltyProvider());
     modifierProviders.register(new EwTargetingDataProvider());
     modifierProviders.register(new SceneModifiersProvider());

@@ -27,6 +27,7 @@ import {
 } from "../mwd/machine-intents.js";
 import { recordBattlemechAttackHeat } from "../mwd/machine-heat.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { getMachineActionDefinition } from "../mwd/machine-action-catalog.js";
 import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
 import { resolveAcquireExecution, resolveTargetingExecution } from "./ew-execution.js";
 import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-state.js";
@@ -220,6 +221,30 @@ async function commitMachineAttackAction(actor, payload = {}) {
   });
   if (!spend?.ok) {
     ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
+  }
+}
+
+async function commitMachineAction(actor, actionKey = "", payload = {}) {
+  if (!isMachineActor(actor)) return;
+
+  const action = getMachineActionDefinition(actionKey);
+  if (!action?.cost || action?.resource !== "sa") return;
+
+  const token = getMachineAttackToken(actor, payload);
+  const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+  if (!snapshot?.hasCombatant) return;
+
+  const spend = await PersonalCombatTracker.spendResource(actor, {
+    token,
+    resource: action.resource,
+    cost: action.cost,
+    actionId: action.key,
+    actionLabel: action.label,
+    actionCostLabel: `${action.cost} SA`,
+    actionCategory: action.category,
+  });
+  if (!spend?.ok) {
+    ui.notifications?.warn(spend?.reason ?? `Unable to record ${action.label}.`);
   }
 }
 
@@ -622,6 +647,10 @@ async function execute({ actor, payload, event } = {}) {
 
   if (ctx.intent === "attack") {
     await commitMachineAttackAction(actor, payload);
+  } else if (ctx.intent === "acquire") {
+    await commitMachineAction(actor, "acquireTarget", payload);
+  } else if (ctx.intent === "targeting") {
+    await commitMachineAction(actor, "generateFireSolution", payload);
   }
 
   return ChatMessage.create({

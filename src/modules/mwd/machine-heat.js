@@ -4,6 +4,7 @@
 
 import { computeDangerCheckParams, computeHeatPenalties, hasVolatileComponents, resolveEndOfActivationHeat } from "./heat-effects.js";
 import { getMachineHeatStatusLabel, normalizeMachineHeatThresholds, resolveMachineHeatStatus } from "./heat-state.js";
+import { getMachineHeatAdjustments } from "./machine-state-effects.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -87,6 +88,7 @@ export function buildBattlemechHeatModel(source = {}) {
   const heatConfig = systemData?.mwd?.heat ?? {};
   const hybridHeat = systemData?.hybrid?.heat ?? {};
   const activeCrits = getActiveHeatCrits(systemData);
+  const stateHeat = getMachineHeatAdjustments(source);
   const current = clampMin(heatMonitor.value ?? heatConfig.current, 0);
   const trackLength = clampMin(heatMonitor.max ?? heatConfig.max ?? heatConfig.hardMax, 0);
   const thresholds = normalizeMachineHeatThresholds(heatConfig.thresholds ?? {}, trackLength);
@@ -97,8 +99,8 @@ export function buildBattlemechHeatModel(source = {}) {
   );
   const dissipation = clampMin(hybridHeat.dissipation ?? heatConfig.ventPerTurn, 1);
   const critImpaired = activeCrits.some(crit => crit?.escalationKey === "heat");
-  const coolingImpaired = Boolean(heatConfig.coolingImpaired || critImpaired);
-  const effectiveDissipation = coolingImpaired ? Math.max(1, Math.floor(dissipation / 2)) : dissipation;
+  const coolingImpaired = Boolean(heatConfig.coolingImpaired || critImpaired || stateHeat.coolingImpaired);
+  const effectiveDissipation = coolingImpaired ? Math.max(1, dissipation - 2) : dissipation;
   const pendingGenerated = getBattlemechPendingHeat(systemData);
   const lastResolvedActivationKey = String(heatConfig.lastResolvedActivationKey ?? "").trim();
   const statusCode = resolveMachineHeatStatus(current, thresholds, trackLength);
@@ -195,6 +197,12 @@ export async function recordBattlemechAttackHeat(actor, { weaponIds = [], reason
     weapons,
     crits: getActiveHeatCrits(actor.system),
   });
+  const stateHeat = getMachineHeatAdjustments(actor);
+  contribution.extraAttackHeat += Math.max(0, Number(stateHeat.attackHeat ?? 0));
+  contribution.extraEnergyHeat += weapons.some(isEnergyMachineWeapon)
+    ? Math.max(0, Number(stateHeat.energyAttackHeat ?? 0))
+    : 0;
+  contribution.total = contribution.baseHeat + contribution.extraAttackHeat + contribution.extraEnergyHeat;
   if (contribution.total <= 0) {
     return { ok: true, actor, pendingGenerated: getBattlemechPendingHeat(actor), contribution };
   }

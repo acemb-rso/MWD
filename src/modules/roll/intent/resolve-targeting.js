@@ -6,6 +6,7 @@ import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import { getTargetingDataCap, getContactStateLabel } from "../../mwd/machine-ew.js";
 import { getAttackerCombatant, getContactState } from "../../mwd/machine-ew-state.js";
+import { isMachineTargetingGenerationBlocked } from "../../mwd/machine-state-effects.js";
 import { createUserFacingRollError } from "../roll-errors.js";
 
 function isMachineActor(actor) {
@@ -36,6 +37,9 @@ export async function resolveTargeting({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveTargeting requires actor");
   if (!isMachineActor(actor)) {
     throw createUserFacingRollError("Targeting is a machine action.", { severity: "warn" });
+  }
+  if (isMachineTargetingGenerationBlocked(actor)) {
+    throw createUserFacingRollError("Targeting Data cannot be generated in the machine's current state.", { severity: "warn" });
   }
 
   const targetToken = resolveTargetToken(payload);

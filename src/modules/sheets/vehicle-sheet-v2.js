@@ -7,6 +7,7 @@ import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import { getActiveMachineCrits } from "../mwd/critical-hits.js";
 import { getMachineCritRemedy } from "../mwd/machine-crit-remedies.js";
+import { buildMachineEwPanel, resolveMachineEwActionTarget } from "../mwd/machine-ew-panel.js";
 import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
 import { describeMachineCriticalEffect } from "../mwd/machine-crit-effects.js";
 import {
@@ -16,10 +17,16 @@ import {
   getMachineReliabilityThreshold,
   normalizeMachineDegradationState,
 } from "../mwd/machine-degradation.js";
+import {
+  buildMachineDegradationEffectSummary,
+  getMachineMovementEffects,
+  getMachineRuleState,
+} from "../mwd/machine-state-effects.js";
 import { getMachineLocationLabel } from "../mwd/machine-hit-locations.js";
 import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import { buildMachineMovementFields, buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
 import { getSkillDef } from "../mwd/skills.js";
+import { notifyRollError } from "../roll/roll-errors.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { SelectActor } from "../dialog/select-actor.js";
 
@@ -187,6 +194,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       deleteOwnedItem: VehicleSheetV2.prototype._onDeleteOwnedItem,
       toggleInventoryAccordion: VehicleSheetV2.prototype._onToggleInventoryAccordion,
       machineWeaponAttack: VehicleSheetV2.prototype._onMachineWeaponAttack,
+      ewAcquire: VehicleSheetV2.prototype._onEwAcquire,
+      ewTarget: VehicleSheetV2.prototype._onEwTarget,
       toggleStatuses: VehicleSheetV2.prototype._onToggleStatuses,
       machineCritRemedy: VehicleSheetV2.prototype._onMachineCritRemedy,
       assignPilot: VehicleSheetV2.prototype._onAssignPilot,
@@ -210,6 +219,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         disabled: !this._resolveStatusToken(this.getPersistentActor() ?? this.actor),
         reason: "Statuses require a token for this actor on the current scene.",
       },
+      ewPanel: this._buildEwPanel(),
       activeCrits: this._buildActiveCrits(),
       attributes: this._buildAttributeCards(),
       movement: this._buildMovementCards(),
@@ -309,6 +319,12 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     return [];
   }
 
+  _buildEwPanel() {
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const token = this._resolveStatusToken(actor);
+    return buildMachineEwPanel({ actor, token });
+  }
+
   _buildAttributeCards() {
     const attributes = this.actor.system?.attributes ?? {};
     return Object.entries(VEHICLE_ATTRIBUTE_LABELS).map(([key, label]) => ({
@@ -340,6 +356,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const threshold = getMachineReliabilityThreshold(reliability);
     const shock = toNumber(mwd.shock?.value, 0);
     const spendable = toNumber(mwd.reliabilitySpendable?.value, reliability);
+    const machineState = getMachineRuleState(this.actor);
+    const movementEffects = getMachineMovementEffects(this.actor);
     const layout = DEGRADATION_LAYOUTS[this.actor.type] ?? DEGRADATION_LAYOUTS.vehicle;
     const priority = getMachineDegradationLocationPriority(this.actor.type);
     const entries = Object.entries(mwd.locations ?? {}).sort(([leftKey], [rightKey]) => {
@@ -364,6 +382,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         conditionLabel: getMachineConditionLabel(conditionValue),
         conditionModifier: getMachineConditionModifier(conditionValue),
         destroyed,
+        effectSummary: buildMachineDegradationEffectSummary(this.actor.type, key, location),
         enabled: location?.enabled !== false,
         tone,
         style: `--pin-top:${position.top}; --pin-left:${position.left};`,
@@ -378,6 +397,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       spendable,
       shock,
       threshold,
+      summaryEffects: machineState.effectTexts ?? [],
+      movementEffects,
       locations,
     };
   }
@@ -690,6 +711,18 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     return true;
   }
 
+  async _onEwAcquire(event, _target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    return this.#launchMachineEwIntent("acquire", event);
+  }
+
+  async _onEwTarget(event, _target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    return this.#launchMachineEwIntent("targeting", event);
+  }
+
   _resolveStatusToken(actor = this.actor) {
     return this.getSheetTokenDocument?.()
       ?? actor?.token?.document
@@ -711,5 +744,39 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
     if (!itemId) return null;
     return this.actor.items.get(itemId) ?? null;
+  }
+
+  async #launchMachineEwIntent(intent, event) {
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const token = this._resolveStatusToken(actor);
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) return false;
+
+    const panel = buildMachineEwPanel({ actor, token });
+    const targetRow = resolveMachineEwActionTarget(panel, intent);
+    if (!targetRow) {
+      const verb = intent === "targeting" ? "generate targeting data" : "acquire";
+      ui.notifications?.warn(`No targeted token is ready to ${verb}.`);
+      return false;
+    }
+
+    try {
+      await rollApi.execute({
+        actor,
+        payload: {
+          intent,
+          sourceTokenId: token?.id ?? null,
+          targetTokenId: targetRow.targetTokenId,
+          targetTokenUuid: targetRow.targetTokenUuid,
+        },
+        event,
+      });
+      return true;
+    } catch (error) {
+      console.error(`MWD | Failed to launch EW ${intent}`, error);
+      const label = intent === "targeting" ? "targeting" : "acquire";
+      notifyRollError(error, `Unable to launch ${label} roll.`);
+      return false;
+    }
   }
 }

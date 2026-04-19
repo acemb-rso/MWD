@@ -25,6 +25,10 @@ import {
   getContactState,
   getUsableTargetingPacket,
 } from "../../mwd/machine-ew-state.js";
+import {
+  getMachineAttackRestriction as getMachineStateAttackRestriction,
+  isMachineRangeCappedToClose,
+} from "../../mwd/machine-state-effects.js";
 
 function getTargets(payload = {}) {
   if (Array.isArray(payload?.targetSnapshots)) {
@@ -230,6 +234,16 @@ export async function resolveAttack({ actor, payload } = {}) {
         severity: "warn",
       });
     }
+    const stateRestriction = getMachineStateAttackRestriction(actor, {
+      weaponGroupId: payload?.weaponGroupId,
+      weaponId: payload?.weaponId,
+      weapon,
+    });
+    if (stateRestriction.blocked) {
+      throw createUserFacingRollError(stateRestriction.reason || "The machine's current state prevents this attack.", {
+        severity: "warn",
+      });
+    }
   }
   if (Array.isArray(weapon?.capabilityReport?.errors) && weapon.capabilityReport.errors.length > 0) {
     throw createUserFacingRollError(
@@ -284,6 +298,10 @@ export async function resolveAttack({ actor, payload } = {}) {
     : ((weapon?.type === "personalWeapon" || weapon?.isSynthetic)
       ? getPersonalRangeBandBaseDn(rangeBand, 1)
       : 1);
+
+  if (isMachineActor(actor) && isMachineRangeCappedToClose(actor) && rangeBand !== "close") {
+    throw createUserFacingRollError("Sensor Blind limits attacks to Close range.", { severity: "warn" });
+  }
 
   let ewContext = null;
   if (isMachineActor(actor) && targets.length > 0) {

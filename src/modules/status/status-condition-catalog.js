@@ -68,11 +68,13 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   // Machine stability and movement.
   status("unstable", "Unstable", "machine", "stability", ["movement", "piloting", "knockdown"], "falling.svg", { order: 1000 }),
   status("staggeredMechanical", "Staggered (Mechanical)", "machine", "stability", ["movement", "actionRestriction"], "falling.svg", { order: 1010 }),
-  status("proneMechFall", "Prone (Mech Fall)", "battlemech", "stability", ["movement", "posture", "standUp"], "prone.svg", { order: 1020 }),
+  status("proneMechFall", "Prone", "battlemech", "stability", ["movement", "posture", "standUp"], "prone.svg", { order: 1020 }),
   status("skidding", "Skidding", "machine", "movement", ["forcedMovement", "tracking"], "falling.svg", { order: 1030 }),
   status("stalled", "Stalled", "machine", "movement", ["movement", "actionRestriction"], "emp.svg", { order: 1040 }),
   status("limping", "Limping", "machine", "movement", ["movement", "location"], "broken_leg.svg", { order: 1050 }),
   status("jumpJetFailure", "Jump Jet Failure", "battlemech", "movement", ["jump", "equipment"], "surge.svg", { order: 1060 }),
+  status("actuatorFailure", "Actuator Failure", "machine", "movement", ["movement", "handling"], "broken_leg.svg", { order: 1070 }),
+  status("gyroDamage", "Gyro Damage", "battlemech", "movement", ["movement", "piloting"], "falling.svg", { order: 1080 }),
 
   // Machine weapons.
   status("weaponFailure", "Weapon Failure", "machine", "weapon", ["weapon", "mountScoped"], "broken_weapon.svg", { order: 1100 }),
@@ -84,13 +86,16 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("sensorBlind", "Sensor Blind", "machine", "sensor", ["sensor", "targeting", "rangeLimit"], "damaged_eye.svg", { order: 1210 }),
   status("ecmJamming", "ECM Jamming", "machine", "electronicWarfare", ["ecm", "tracking"], "emp.svg", { order: 1220 }),
   status("ecmShrouded", "ECM Shrouded", "machine", "electronicWarfare", ["ecm", "defense"], "hidden.svg", { order: 1230 }),
-  status("eccmBoosted", "ECCM Boosted", "machine", "electronicWarfare", ["eccm", "sensor"], "all-seeing-eye.webp", { order: 1240 }),
+  status("epmBoosted", "EPM Boosted", "machine", "electronicWarfare", ["ecm", "sensor"], "all-seeing-eye.webp", { order: 1240 }),
+  status("eccmBoosted", "EPM Boosted (Legacy)", "machine", "electronicWarfare", ["ecm", "sensor", "legacy"], "all-seeing-eye.webp", { order: 1241 }),
   status("sensorLocked", "Sensor Locked", "machine", "sensor", ["sensor", "targeted"], "all-seeing-eye.webp", { order: 1250 }),
+  status("trackingLost", "Tracking Lost", "machine", "sensor", ["sensor", "targetingData"], "damaged_eye.svg", { order: 1260 }),
 
   // Reactor and heat.
   status("reactorInstability", "Reactor Instability", "machine", "reactor", ["heat", "reactor", "escalating"], "surge.svg", { order: 1300 }),
   status("shutdown", "Shutdown", "machine", "reactor", ["heat", "actionRestriction"], "emp.svg", { order: 1310 }),
-  status("overheating", "Overheating", "machine", "reactor", ["heat", "escalating"], "on_fire_mild.svg", { order: 1320 }),
+  status("overheating", "Thermal Surge", "machine", "reactor", ["heat", "escalating"], "on_fire_mild.svg", { order: 1320 }),
+  status("coolingFailure", "Cooling Failure", "machine", "reactor", ["heat", "cooling"], "surge.svg", { order: 1325 }),
   status("reactorBreach", "Reactor Breach", "machine", "reactor", ["reactor", "catastrophic", "countdown"], "radiation_high.svg", { order: 1330 }),
 
   // Machine damage and battlefield exposure.
@@ -98,9 +103,11 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("exposed", "Exposed", "machine", "tactical", ["defense", "vulnerable"], "target.svg", { icon: `${DEFAULT_ICON_ROOT}/falling.svg`, order: 1410 }),
   status("entrenchedHullDown", "Entrenched / Hull Down", "machine", "tactical", ["defense", "cover"], "cover.svg", { order: 1420 }),
   status("obscured", "Obscured (Smoke/Dust)", "machine", "visibility", ["visibility", "cover"], "hidden.svg", { order: 1430 }),
+  status("obscuredLight", "Obscured (Light)", "machine", "visibility", ["visibility", "cover", "light"], "hidden.svg", { order: 1431 }),
+  status("obscuredHeavy", "Obscured (Heavy)", "machine", "visibility", ["visibility", "cover", "heavy"], "hidden.svg", { order: 1432 }),
 
   // Tactical markers.
-  status("evasiveWeave", "Evasive Weave", "machine", "tactical", ["defense", "attackPenalty", "selfInduced"], "falling.svg", { order: 1500 }),
+  status("evasiveWeave", "Evasive", "machine", "tactical", ["defense", "attackPenalty", "selfInduced"], "falling.svg", { order: 1500 }),
   status("braced", "Braced", "machine", "tactical", ["defense", "mobilityPenalty"], "cover.svg", { order: 1510 }),
   status("overextended", "Overextended", "machine", "tactical", ["attack", "defensePenalty"], "surge.svg", { order: 1520 }),
   status("targetFocused", "Target Focused", "machine", "tactical", ["targeted", "attack"], "all-seeing-eye.webp", { order: 1530 }),

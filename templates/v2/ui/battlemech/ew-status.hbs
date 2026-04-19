@@ -1,39 +1,7 @@
 {{!--
 templates/v2/ui/battlemech/ew-status.hbs
-Purpose: EW sensor state strip — shows contact state and targeting data for targeted tokens.
-How it fits: Read-only display driven by battlemechSheet.ewStatus; buttons launch acquire/targeting rolls.
+Purpose: Backward-compatible alias for the shared machine EW panel.
+How it fits: Delegates old includes to the shared vehicle/battlemech partial.
 --}}
 
-<section class="mwd-ew-status">
-  <div class="mwd-ew-status__actions">
-    <button
-      type="button"
-      class="mwd-ew-status__action{{#unless battlemechSheet.ewStatus.hasTargets}} is-disabled{{/unless}}"
-      data-action="ewAcquire"
-      {{#unless battlemechSheet.ewStatus.hasTargets}}disabled{{/unless}}>
-      Acquire
-    </button>
-    <button
-      type="button"
-      class="mwd-ew-status__action{{#unless battlemechSheet.ewStatus.hasTargets}} is-disabled{{/unless}}"
-      data-action="ewTarget"
-      {{#unless battlemechSheet.ewStatus.hasTargets}}disabled{{/unless}}>
-      Target
-    </button>
-  </div>
-  {{#if battlemechSheet.ewStatus.rows.length}}
-  <ul class="mwd-ew-status__list">
-    {{#each battlemechSheet.ewStatus.rows as |row|}}
-    <li class="mwd-ew-status__row mwd-ew-status__row--{{row.contactState}}">
-      <span class="mwd-ew-status__token-name">{{row.tokenName}}</span>
-      <span class="mwd-ew-status__state-badge">{{row.contactStateLabel}}</span>
-      {{#if row.hasPacket}}
-      <span class="mwd-ew-status__packet">+{{row.packetValue}}</span>
-      {{/if}}
-    </li>
-    {{/each}}
-  </ul>
-  {{else}}
-  <p class="mwd-ew-status__empty">No targets selected.</p>
-  {{/if}}
-</section>
+{{> "mwd.v2.ui.vehicle.ew-panel"}}

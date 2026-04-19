@@ -10,7 +10,9 @@ import {
   getSkillSpecializationDef,
   SKILL_SPECIALIZATION_BONUS,
 } from "../../mwd/skills.js";
-import { getMachinePilotingDnModifier } from "../../mwd/machine-crit-effects.js";
+import {
+  getMachinePilotingDnModifier,
+} from "../../mwd/machine-state-effects.js";
 
 export async function resolveSkill({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveSkill requires actor");

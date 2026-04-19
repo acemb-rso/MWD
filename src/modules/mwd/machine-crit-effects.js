@@ -104,9 +104,7 @@ export function getMachineAttackRestriction(actor = null, { weaponGroupId = "", 
 }
 
 export function getMachinePilotingDnModifier(actor = null) {
-  return getActiveMachineCrits(actor).reduce((sum, crit) => (
-    normalizeMachineCritId(crit?.statusId) === "unstable" ? sum + 2 : sum
-  ), 0);
+  return 0;
 }
 
 export function getMachineRuntimeAttributeAdjustments(actor = null) {
