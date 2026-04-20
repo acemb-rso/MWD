@@ -78,5 +78,4 @@ Make a Con Check at the end of each turn:
 * Some armors also provide a defense bonus
 * Armor with a rating of 0 provides no resistance
 
-## Dying and Surviving
 
