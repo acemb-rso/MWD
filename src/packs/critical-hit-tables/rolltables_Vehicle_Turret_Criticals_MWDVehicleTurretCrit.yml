@@ -1,0 +1,337 @@
+{
+  "_id": "MWDVehicleTurretCrit",
+  "_key": "!tables!MWDVehicleTurretCrit",
+  "name": "Vehicle Criticals: Turret",
+  "img": "icons/svg/d20-black.svg",
+  "description": "<p>Location-specific interpretation of the general machine critical result.</p>",
+  "results": [
+    {
+      "_id": "VehTCrit02",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit02",
+      "type": "text",
+      "text": "Turret Weapon Cascade",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        2,
+        2
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "turretWeaponCascade",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "cascade"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehTCrit03",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit03",
+      "type": "text",
+      "text": "Traverse Lock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        3,
+        3
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "traverseLock",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "lockout"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehTCrit04",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit04",
+      "type": "text",
+      "text": "Fire-Control Surge",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        4,
+        4
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "fireControlSurgeTurret",
+            "remedyKey": "systemReset",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {
+              "heatOrStrainOnTurretAttack": 1
+            },
+            "pilotDamage": {},
+            "escalationKey": "surge"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehTCrit05",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit05",
+      "type": "text",
+      "text": "Ammo / Feed Fault",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        5,
+        5
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "ammoFeedFaultTurret",
+            "remedyKey": "feedReset",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "feed"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehTCrit06",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit06",
+      "type": "text",
+      "text": "Control Fault",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        6,
+        6
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "controlFaultTurret",
+            "remedyKey": "systemReset",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {
+              "extraAttackCost": 1
+            },
+            "pilotDamage": {},
+            "escalationKey": "control"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehTCrit07",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit07",
+      "type": "text",
+      "text": "Tracking Desync",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        7,
+        7
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "trackingDesyncTurret",
+            "remedyKey": "systemReset",
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "noCqBonus"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "desync"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehTCrit08",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit08",
+      "type": "text",
+      "text": "Mount Shock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        8,
+        8
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "mountShockTurret",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "nextTurretAttackBlocked"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "shock"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehTCrit09",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit09",
+      "type": "text",
+      "text": "Overload",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        9,
+        9
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "overloadTurret",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {
+              "turretAttackStress": 1
+            },
+            "pilotDamage": {},
+            "escalationKey": "overload"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehTCrit10",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit10",
+      "type": "text",
+      "text": "Stabilizer Damage",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        10,
+        10
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "stabilizerDamageTurret",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "limitedArcFire"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "degradation"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehTCrit11",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit11",
+      "type": "text",
+      "text": "Turret Subsystem Outage",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        11,
+        11
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "turretSubsystemOutage",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "subsystem"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "outage"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehTCrit12",
+      "_key": "!tables.results!MWDVehicleTurretCrit.VehTCrit12",
+      "type": "text",
+      "text": "Turret condition +1",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        12,
+        12
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "turretCriticalBreach",
+            "remedyKey": "none",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "conditionAdvance"
+          }
+        }
+      }
+    }
+  ],
+  "formula": "2d6",
+  "replacement": true,
+  "displayRoll": true,
+  "flags": {
+    "mwd": {
+      "critTable": {
+        "version": 1
+      }
+    }
+  }
+}

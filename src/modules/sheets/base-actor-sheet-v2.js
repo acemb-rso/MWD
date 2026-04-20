@@ -41,6 +41,7 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
   /** Track active CSB tab per group across rerenders */
   #activeTabsByGroup = new Map(); // group -> tabId
   #activeAccordionSectionsByGroup = new Map(); // group -> sectionId|null
+  #pendingScrollRestore = null;
 
   /** @override */
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
@@ -122,6 +123,44 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
   _getRootElement() {
   return (this.element instanceof HTMLElement) ? this.element : this.element?.[0];
 }
+
+  _getPrimaryScroller() {
+    const root = this._getRootElement();
+    if (!root) return null;
+
+    return root.querySelector(".mwd-scroll-area")
+      ?? root.querySelector(".csb-tab-panels")
+      ?? root.querySelector(".window-content");
+  }
+
+  _captureScrollPosition() {
+    const scroller = this._getPrimaryScroller();
+    if (!(scroller instanceof HTMLElement)) {
+      this.#pendingScrollRestore = null;
+      return;
+    }
+
+    this.#pendingScrollRestore = {
+      top: scroller.scrollTop,
+      left: scroller.scrollLeft,
+    };
+  }
+
+  _restoreScrollPosition() {
+    const pending = this.#pendingScrollRestore;
+    if (!pending) return;
+
+    const apply = () => {
+      const scroller = this._getPrimaryScroller();
+      if (!(scroller instanceof HTMLElement)) return;
+      scroller.scrollTop = pending.top;
+      scroller.scrollLeft = pending.left;
+    };
+
+    apply();
+    requestAnimationFrame(apply);
+    this.#pendingScrollRestore = null;
+  }
 
   /**
    * Resolve the TokenDocument that launched this sheet when one exists.
@@ -509,6 +548,8 @@ _initializeApplicationOptions(options) {
         void this._updateRichTextHistory(editor);
       });
     }
+
+    this._restoreScrollPosition();
   }
 
   async _updateRichTextHistory(editor) {
@@ -538,6 +579,13 @@ _initializeApplicationOptions(options) {
       clampByPath: this._clampByPath.bind(this),
       skipNames: ["system.biography.history"],
     });
+
+    if (
+      ["vehicle", "battlemech"].includes(this.actor?.type)
+      && updates["system.movement.ground"] !== undefined
+    ) {
+      updates["system.moves"] = updates["system.movement.ground"];
+    }
 
     if (!Object.keys(updates).length) return;
 
@@ -638,6 +686,14 @@ async _prepareContext(options) {
     }
   };
 
+  const isMachineHeader = ["battlemech", "vehicle"].includes(this.actor?.type ?? "");
+  hbsData.machineHeader = {
+    enabled: isMachineHeader,
+    model: String(this.actor?.system?.mwd?.model ?? "").trim(),
+    path: "system.mwd.model",
+    placeholder: this.actor?.type === "battlemech" ? "WHM-6R Warhammer" : "Vehicle model",
+  };
+
   // Preserve the historical item buckets while the new sheets move toward the
   // explicit actorSheet.itemCollections contract.
   hbsData.items ??= {};
@@ -700,18 +756,31 @@ async _prepareContext(options) {
       return Math.max(0, Math.trunc(value));
     }
 
+    if (/^system\.movement\.(ground|flight|jump)$/.test(path)) {
+      return Math.max(0, Math.trunc(value));
+    }
+
     return value;
   }
   
   /** Action handler: Condition Monitor set */
   async _onMonitorSet(event, target) {
     event.preventDefault();
+    event.stopPropagation?.();
     if (!this.isEditable) return;
 
-    const monitorId = String(target?.dataset?.monitor ?? "").trim();
-    const raw = Number(target?.dataset?.value);
+    const control =
+      target?.closest?.("[data-action='monitorSet']") ??
+      event?.target?.closest?.("[data-action='monitorSet']") ??
+      target;
+    const monitorId = String(control?.dataset?.monitor ?? "").trim();
+    const raw = Number(control?.dataset?.value);
 
     if (!monitorId || !Number.isFinite(raw)) return;
+
+    // Monitor clicks usually trigger an actor update and sheet redraw; preserve
+    // the current tab scroll so deep systems panels do not snap back to top.
+    this._captureScrollPosition();
 
     // Toggle: clicking the already-active pip clears the monitor to 0
     const currentPath = monitorId === "burn"

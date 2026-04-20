@@ -18,8 +18,28 @@ test("battlemech defaults resolve nested templates before local fields", () => {
   const block = resolveDocumentTypeBlock(undefined, "Actor", "battlemech");
 
   assert.equal(block.mwd.unitType, "mech");
+  assert.equal(block.mwd.heat.hardMax, 10);
+  assert.equal(block.mwd.heat.max, 10);
+  assert.equal(block.monitors.heat.max, 10);
   assert.equal(block.mwd.heat.thresholds.shutdown, 4);
+  assert.equal(block.attributes.reliability.value, 3);
+  assert.equal(block.mwd.shock.value, 0);
+  assert.equal(block.mwd.locations.head.condition, 0);
+  assert.equal(block.mwd.locations.torso.condition, 0);
+  assert.equal(block.mwd.locations.arms.condition, 0);
+  assert.equal(block.mwd.locations.legs.condition, 0);
   assert.deepEqual(block.mwd.weaponGroups, []);
+  assert.deepEqual(block.movement, undefined);
+});
+
+test("vehicle defaults include ground and flight movement only", () => {
+  const block = resolveDocumentTypeBlock(undefined, "Actor", "vehicle");
+
+  assert.equal(block.attributes.reliability.value, 3);
+  assert.equal(block.mwd.shock.value, 0);
+  assert.equal(block.mwd.locations.front.condition, 0);
+  assert.deepEqual(block.movement, { ground: 0, flight: 0 });
+  assert.equal(block.movement.jump, undefined);
 });
 
 test("item defaults compose shared reference templates into system data", () => {
@@ -37,4 +57,16 @@ test("consumable defaults resolve through the same create-time graph as gear", (
   assert.equal(defaults.system.rating, 0);
   assert.equal(defaults.system.category, "ammo");
   assert.equal(defaults.system.description, "");
+});
+
+test("asset module defaults include structured jumping payload fields", () => {
+  const defaults = resolveDocumentTypeCreateDefaults("Item", "assetModule");
+
+  assert.equal(defaults.system.category, "special");
+  assert.equal(defaults.system.mobility.jumping.enabled, false);
+  assert.equal(defaults.system.mobility.jumping.movement, 0);
+  assert.equal(defaults.system.mobility.jumping.heat, 0);
+  assert.equal(defaults.system.mobility.jumping.attackRatingBonus, 0);
+  assert.equal(defaults.system.mobility.jumping.defenseRatingBonus, 0);
+  assert.equal(defaults.system.mobility.jumping.dfaEnabled, false);
 });

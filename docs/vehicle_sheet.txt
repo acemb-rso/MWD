@@ -58,44 +58,33 @@ sheet:
           label: "Actions"
           type: action-buttons
           actions:
-            - id: defense
-              label: "Defense"
-              tooltip: "Handling + Piloting"
-              formula: "attributes.handling + driverSnapshot.piloting"
-
             - id: sensors
               label: "Sensors"
               tooltip: "System + Perception"
-              formula: "attributes.system + driverSnapshot.perception"
+              formula: "attributes.system + pilot.perception"
 
             - id: stealth
               label: "Stealth"
               tooltip: "Handling + Stealth"
-              formula: "attributes.handling + driverSnapshot.stealth"
+              formula: "attributes.handling + pilot.stealth"
 
             - id: initiative
               label: "Initiative"
-              tooltip: "Reflexes + Intelligence (driver)"
-              formula: "driverSnapshot.reflexes + driverSnapshot.intelligence"
+              tooltip: "Best of Handling/System + pilot Reflexes"
+              formula: "max(attributes.handling, attributes.system) + pilot.reflexes"
 
         - id: crew
           label: "Crew"
           type: actorList
           actorsKey: "crew"          # array of linked Actor IDs
 
-        - id: driver-snapshot
-          label: "Driver Profile (Cached)"
-          help: "Cached values from primary driver used for action rolls."
+        - id: pilot-link
+          label: "Pilot / Driver"
+          help: "Linked pilot actor used for action rolls."
           type: grid
-          columns: 3
+          columns: 1
           fields:
-            - { key: "driverSnapshot.name",         label: "Primary Driver", type: text, readOnly: true }
-            - { key: "driverSnapshot.gunnery",      label: "Gunnery",       type: number }
-            - { key: "driverSnapshot.piloting",     label: "Piloting",      type: number }
-            - { key: "driverSnapshot.perception",   label: "Perception",    type: number }
-            - { key: "driverSnapshot.stealth",      label: "Stealth",       type: number }
-            - { key: "driverSnapshot.reflexes",     label: "Reflexes",      type: number }
-            - { key: "driverSnapshot.intelligence", label: "Intelligence",  type: number }
+            - { key: "pilot.uuid", label: "Primary Driver", type: actorReference }
 
         - id: skills
           label: "Vehicle Skills"

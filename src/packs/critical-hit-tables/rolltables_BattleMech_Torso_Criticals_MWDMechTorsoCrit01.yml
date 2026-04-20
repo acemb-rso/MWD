@@ -1,0 +1,355 @@
+{
+  "_id": "MWDMechTorsoCrit01",
+  "_key": "!tables!MWDMechTorsoCrit01",
+  "name": "BattleMech Criticals: Torso",
+  "img": "icons/svg/d20-black.svg",
+  "description": "<p>Location-specific interpretation of the general machine critical result.</p>",
+  "results": [
+    {
+      "_id": "MechTCrit02",
+      "_key": "!tables.results!MWDMechTorsoCrit01.MechTCrit02",
+      "type": "text",
+      "text": "Reactor / Gyro Cascade",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        2,
+        2
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "reactorGyroCascade",
+            "remedyKey": "none",
+            "gates": [
+              "piloting"
+            ],
+            "mods": [
+              "stabilityCheck"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "fatigue",
+              "amount": 3
+            },
+            "escalationKey": "cascade"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechTCrit03",
+      "_key": "!tables.results!MWDMechTorsoCrit01.MechTCrit03",
+      "type": "text",
+      "text": "Gyro Lock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        3,
+        3
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "gyroLock",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move",
+              "jump"
+            ],
+            "mods": [
+              "pilotingPenalty"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "lockout"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechTCrit04",
+      "_key": "!tables.results!MWDMechTorsoCrit01.MechTCrit04",
+      "type": "text",
+      "text": "Reactor Unstable",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        4,
+        4
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "reactorUnstable",
+            "remedyKey": "coolantDump",
+            "gates": [
+              "energyWeapon"
+            ],
+            "mods": [],
+            "resourceEffects": {
+              "heatPerEnergyAttack": 1
+            },
+            "pilotDamage": {
+              "track": "fatigue",
+              "amount": 2
+            },
+            "escalationKey": "heat",
+            "statusId": "reactorInstability"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechTCrit05",
+      "_key": "!tables.results!MWDMechTorsoCrit01.MechTCrit05",
+      "type": "text",
+      "text": "Power Routing Fault",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        5,
+        5
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "powerRoutingFault",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "weaponGroup"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "feed",
+            "statusId": "weaponFailure"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechTCrit06",
+      "_key": "!tables.results!MWDMechTorsoCrit01.MechTCrit06",
+      "type": "text",
+      "text": "Core Response Delay",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        6,
+        6
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "coreResponseDelay",
+            "remedyKey": "reboot",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "fatigue",
+              "amount": 2
+            },
+            "escalationKey": "control",
+            "statusId": "staggeredMechanical"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechTCrit07",
+      "_key": "!tables.results!MWDMechTorsoCrit01.MechTCrit07",
+      "type": "text",
+      "text": "Targeting / Movement Sync Fault",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        7,
+        7
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "targetingMovementSyncFault",
+            "remedyKey": "systemReset",
+            "gates": [
+              "attack",
+              "move"
+            ],
+            "mods": [
+              "noMovementFireAdvantage"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "desync"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechTCrit08",
+      "_key": "!tables.results!MWDMechTorsoCrit01.MechTCrit08",
+      "type": "text",
+      "text": "Internal Shock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        8,
+        8
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "internalShock",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "piloting"
+            ],
+            "mods": [
+              "stabilityCheck"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2,
+              "condition": "failedFallImpact"
+            },
+            "escalationKey": "shock",
+            "statusId": "unstable"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechTCrit09",
+      "_key": "!tables.results!MWDMechTorsoCrit01.MechTCrit09",
+      "type": "text",
+      "text": "Heat Sink Saturation",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        9,
+        9
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "heatSinkSaturation",
+            "remedyKey": "coolantDump",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "heat",
+            "statusId": "overheating"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechTCrit10",
+      "_key": "!tables.results!MWDMechTorsoCrit01.MechTCrit10",
+      "type": "text",
+      "text": "Gyro Drift",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        10,
+        10
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "gyroDrift",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
+            "mods": [
+              "highMobilityBlocked"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "degradation"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechTCrit11",
+      "_key": "!tables.results!MWDMechTorsoCrit01.MechTCrit11",
+      "type": "text",
+      "text": "Power Bus Outage",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        11,
+        11
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "powerBusOutage",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "subsystem"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "outage"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechTCrit12",
+      "_key": "!tables.results!MWDMechTorsoCrit01.MechTCrit12",
+      "type": "text",
+      "text": "Torso condition +1",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        12,
+        12
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "torsoCriticalBreach",
+            "remedyKey": "none",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "conditionAdvance"
+          }
+        }
+      }
+    }
+  ],
+  "formula": "2d6",
+  "replacement": true,
+  "displayRoll": true,
+  "flags": {
+    "mwd": {
+      "critTable": {
+        "version": 1
+      }
+    }
+  }
+}

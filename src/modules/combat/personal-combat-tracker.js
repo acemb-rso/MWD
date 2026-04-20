@@ -35,6 +35,8 @@ import {
   migrateHazardRegionFlag,
 } from "../area-effects/hazard-regions.js";
 import { renderHazardCard } from "../area-effects/hazard-chat.js";
+import { resolveBattlemechPendingHeat } from "../mwd/machine-heat.js";
+import { buildMachineActivationStartReport, isMachineActor } from "../mwd/machine-crit-effects.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -73,6 +75,7 @@ function defaultState(activation = null) {
     },
     hazards: {},
     pendingReaction: null,
+    machineCritsProcessed: false,
     actionLog: [],
     activation
   };
@@ -338,6 +341,7 @@ export class PersonalCombatTracker {
     await this.ensureCurrentCombatantState();
     await this.syncPreparedIndicators();
     await this._syncAllSceneHazards();
+    await this._processCurrentCombatantMachineCrits();
     if (game.combat?.id) {
       this._lastActivationByCombat.set(
         game.combat.id,
@@ -437,7 +441,13 @@ export class PersonalCombatTracker {
     if (resolvedTokenDoc?.combatant?.combat?.id === combat.id) return resolvedTokenDoc.combatant;
 
     let direct = null;
-    if (typeof combat.getCombatantByToken === "function") {
+    if (typeof combat.getCombatantsByToken === "function") {
+      try {
+        direct = combat.getCombatantsByToken(tokenId)?.[0] ?? null;
+      } catch (_error) {
+        direct = null;
+      }
+    } else if (typeof combat.getCombatantByToken === "function") {
       try {
         direct = combat.getCombatantByToken(tokenId) ?? null;
       } catch (_error) {
@@ -1803,6 +1813,14 @@ export class PersonalCombatTracker {
         await actor.spendEdge(adjustment.poolKey, Math.abs(amount), { skipTraitHooks: true, source: "endOfActivationTrait" });
       }
     }
+
+    if (actor.type === "battlemech") {
+      await resolveBattlemechPendingHeat(actor, {
+        source: "combat turn advance",
+        postDangerCard: true,
+        activation: this.getActivationIdentity(combat, combatant),
+      });
+    }
   }
 
   static async _onUpdateCombat(combat, changed) {
@@ -1824,6 +1842,7 @@ export class PersonalCombatTracker {
       }
       await this.ensureCurrentCombatantState();
       await this._processCurrentCombatantHazards(combat);
+      await this._processCurrentCombatantMachineCrits(combat);
       if (combat?.id) {
         this._lastActivationByCombat.set(combat.id, currentActivation);
       }
@@ -2111,6 +2130,67 @@ export class PersonalCombatTracker {
     }
 
     this._queueHazardOverlayRefresh(tokenDoc);
+  }
+
+  static async _processCurrentCombatantMachineCrits(combat = game.combat) {
+    const combatant = combat?.combatant ?? null;
+    const tokenDoc = this._getCombatantTokenDocument(combatant, combat?.scene?.id ?? canvas?.scene?.id);
+    const actor = tokenDoc?.actor ?? combatant?.actor ?? null;
+    if (!combatant || !tokenDoc || !actor || !isMachineActor(actor)) return;
+
+    const snapshot = this.getSnapshot(actor, { token: tokenDoc });
+    if (!snapshot?.hasCombatant || !snapshot?.isCurrentTurn || snapshot?.state?.machineCritsProcessed) return;
+
+    const report = buildMachineActivationStartReport(actor);
+    const reminderLines = [];
+
+    if (report.saCost > 0) {
+      const spend = await this.spendResource(actor, {
+        token: tokenDoc,
+        resource: "sa",
+        cost: report.saCost,
+        actionId: "machineCritStaggered",
+        actionLabel: "Staggered",
+        actionCostLabel: `${report.saCost} SA`,
+        actionCategory: "simple",
+      });
+      reminderLines.push(spend?.ok
+        ? `Staggered: spent ${report.saCost} SA at the start of activation.`
+        : `Staggered: unable to auto-spend ${report.saCost} SA (${spend?.reason ?? "manual resolution required"}).`);
+    }
+
+    if (report.heatDelta > 0 && actor.type === "battlemech") {
+      const currentHeat = Math.max(0, Number(actor.system?.monitors?.heat?.value ?? actor.system?.mwd?.heat?.current ?? 0) || 0);
+      const nextHeat = currentHeat + report.heatDelta;
+      await actor.update({
+        "system.monitors.heat.value": nextHeat,
+        "system.mwd.heat.current": nextHeat,
+      });
+      reminderLines.push(`Overheating: gained ${report.heatDelta} Heat at the start of activation.`);
+    }
+
+    reminderLines.push(...report.reminders.map(entry => `${entry.label}: ${entry.text}`));
+
+    if (reminderLines.length) {
+      const content = [
+        `<div class="mwd-gm-notice">`,
+        `<strong>${foundry.utils.escapeHTML(actor.name ?? "Machine")} - Critical Effects</strong>`,
+        `<ul>${reminderLines.map(line => `<li>${foundry.utils.escapeHTML(line)}</li>`).join("")}</ul>`,
+        `</div>`,
+      ].join("");
+      await ChatMessage.create(applyChatVisibility({
+        speaker: ChatMessage.getSpeaker({ actor, token: tokenDoc }),
+        content,
+      }));
+    }
+
+    await this.updateCombatantState(actor, {
+      token: tokenDoc,
+      mutate: state => {
+        state.machineCritsProcessed = true;
+        return state;
+      }
+    });
   }
 
   static _getHazardNextTier(hazardState = {}, hazardDef = {}) {

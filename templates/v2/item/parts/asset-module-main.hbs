@@ -1,0 +1,50 @@
+{{!--
+templates/v2/item/parts/asset-module-main.hbs
+Purpose: Renders the core authoring controls for Asset Modules.
+How it fits: Gives modules a structured payload surface so BattleMech abilities
+can be derived from installed modules instead of from sheet-side logic.
+--}}
+
+<div class="section-group">
+  <div class="form-group">
+    <label for="system.category">{{MWD.item.assetModule.category}}</label>
+    <select name="system.category" data-dtype="String">
+      {{selectOptions ENUMS.assetModuleCategories selected=system.category valueAttr="value" labelAttr="label" localize=false}}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="system.level">{{MWD.item.assetModule.level}}</label>
+    <input class="type-numeric" type="number" name="system.level" value="{{system.level}}" min="1" step="1" data-dtype="Number" />
+  </div>
+
+  <label class="checkbox">
+    <input type="checkbox" name="system.mobility.jumping.enabled" {{checked system.mobility.jumping.enabled}} />
+    {{MWD.item.assetModule.jumping.enabled}}
+  </label>
+
+  <div class="form-group">
+    <label for="system.mobility.jumping.movement">{{MWD.item.assetModule.jumping.movement}}</label>
+    <input class="type-numeric" type="number" name="system.mobility.jumping.movement" value="{{system.mobility.jumping.movement}}" min="0" step="1" data-dtype="Number" />
+  </div>
+
+  <div class="form-group">
+    <label for="system.mobility.jumping.heat">{{MWD.item.assetModule.jumping.heat}}</label>
+    <input class="type-numeric" type="number" name="system.mobility.jumping.heat" value="{{system.mobility.jumping.heat}}" min="0" step="1" data-dtype="Number" />
+  </div>
+
+  <div class="form-group">
+    <label for="system.mobility.jumping.attackRatingBonus">{{MWD.item.assetModule.jumping.attackRatingBonus}}</label>
+    <input class="type-numeric" type="number" name="system.mobility.jumping.attackRatingBonus" value="{{system.mobility.jumping.attackRatingBonus}}" step="1" data-dtype="Number" />
+  </div>
+
+  <div class="form-group">
+    <label for="system.mobility.jumping.defenseRatingBonus">{{MWD.item.assetModule.jumping.defenseRatingBonus}}</label>
+    <input class="type-numeric" type="number" name="system.mobility.jumping.defenseRatingBonus" value="{{system.mobility.jumping.defenseRatingBonus}}" step="1" data-dtype="Number" />
+  </div>
+
+  <label class="checkbox">
+    <input type="checkbox" name="system.mobility.jumping.dfaEnabled" {{checked system.mobility.jumping.dfaEnabled}} />
+    {{MWD.item.assetModule.jumping.dfaEnabled}}
+  </label>
+</div>

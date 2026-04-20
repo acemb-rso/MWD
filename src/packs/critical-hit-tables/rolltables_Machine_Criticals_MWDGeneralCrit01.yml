@@ -1,0 +1,305 @@
+{
+  "_id": "MWDGeneralCrit01",
+  "_key": "!tables!MWDGeneralCrit01",
+  "name": "Machine Criticals: General Problem",
+  "img": "icons/svg/d20-black.svg",
+  "description": "<p>Roll 2d6 to determine the type of machine critical problem, then apply the matching location table row.</p>",
+  "results": [
+    {
+      "_id": "GenCritResult02",
+      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult02",
+      "type": "text",
+      "text": "Catastrophic Cascade",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        2,
+        2
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "catastrophicCascade",
+            "remedyKey": "none",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "cascade"
+          }
+        }
+      }
+    },
+    {
+      "_id": "GenCritResult03",
+      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult03",
+      "type": "text",
+      "text": "Hard Lock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        3,
+        3
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "hardLock",
+            "remedyKey": "emergencyRepair",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "lockout"
+          }
+        }
+      }
+    },
+    {
+      "_id": "GenCritResult04",
+      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult04",
+      "type": "text",
+      "text": "Power Surge",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        4,
+        4
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "powerSurge",
+            "remedyKey": "coolantDump",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "surge"
+          }
+        }
+      }
+    },
+    {
+      "_id": "GenCritResult05",
+      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult05",
+      "type": "text",
+      "text": "Feed / Flow Disruption",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        5,
+        5
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "feedFlowDisruption",
+            "remedyKey": "feedReset",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "feed"
+          }
+        }
+      }
+    },
+    {
+      "_id": "GenCritResult06",
+      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult06",
+      "type": "text",
+      "text": "Control Fault",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        6,
+        6
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "controlFault",
+            "remedyKey": "systemReset",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "control"
+          }
+        }
+      }
+    },
+    {
+      "_id": "GenCritResult07",
+      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult07",
+      "type": "text",
+      "text": "System Desync",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        7,
+        7
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "systemDesync",
+            "remedyKey": "systemReset",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "desync"
+          }
+        }
+      }
+    },
+    {
+      "_id": "GenCritResult08",
+      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult08",
+      "type": "text",
+      "text": "Structural Shock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        8,
+        8
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "structuralShock",
+            "remedyKey": "emergencyRepair",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "shock"
+          }
+        }
+      }
+    },
+    {
+      "_id": "GenCritResult09",
+      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult09",
+      "type": "text",
+      "text": "Overload",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        9,
+        9
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "overload",
+            "remedyKey": "coolantDump",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "overload"
+          }
+        }
+      }
+    },
+    {
+      "_id": "GenCritResult10",
+      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult10",
+      "type": "text",
+      "text": "Degradation Spike",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        10,
+        10
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "degradationSpike",
+            "remedyKey": "emergencyRepair",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "degradation"
+          }
+        }
+      }
+    },
+    {
+      "_id": "GenCritResult11",
+      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult11",
+      "type": "text",
+      "text": "Partial Outage",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        11,
+        11
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "partialOutage",
+            "remedyKey": "emergencyRepair",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "outage"
+          }
+        }
+      }
+    },
+    {
+      "_id": "GenCritResult12",
+      "_key": "!tables.results!MWDGeneralCrit01.GenCritResult12",
+      "type": "text",
+      "text": "Critical Breach",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        12,
+        12
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "criticalBreach",
+            "remedyKey": "none",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "conditionAdvance"
+          }
+        }
+      }
+    }
+  ],
+  "formula": "2d6",
+  "replacement": true,
+  "displayRoll": true,
+  "flags": {
+    "mwd": {
+      "critTable": {
+        "version": 1
+      }
+    }
+  }
+}

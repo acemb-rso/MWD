@@ -33,7 +33,7 @@ export class SelectActor extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const options = {
       id: `select-actor-${foundry.utils.randomID()}`,
-      classes: [game.system.anarchy.styles.selectCssClass(), ...SelectActor.DEFAULT_OPTIONS.classes],
+      classes: [game.system?.mwd?.styles?.selectCssClass?.() ?? "", ...SelectActor.DEFAULT_OPTIONS.classes].filter(Boolean),
       window: { title }
     };
     const app = new SelectActor({ actors, onActorSelected, onCancel }, options);

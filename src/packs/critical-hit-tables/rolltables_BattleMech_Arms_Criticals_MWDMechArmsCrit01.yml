@@ -1,0 +1,339 @@
+{
+  "_id": "MWDMechArmsCrit01",
+  "_key": "!tables!MWDMechArmsCrit01",
+  "name": "BattleMech Criticals: Arms",
+  "img": "icons/svg/d20-black.svg",
+  "description": "<p>Location-specific interpretation of the general machine critical result.</p>",
+  "results": [
+    {
+      "_id": "MechACrit02",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit02",
+      "type": "text",
+      "text": "Weapon Mount Cascade",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        2,
+        2
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "weaponMountCascade",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "cascade"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechACrit03",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit03",
+      "type": "text",
+      "text": "Actuator Lock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        3,
+        3
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "actuatorLockArm",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "lockout",
+            "statusId": "weaponFailure"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechACrit04",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit04",
+      "type": "text",
+      "text": "Weapon Feedback",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        4,
+        4
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "weaponFeedback",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {
+              "nextArmAttackHeat": 1
+            },
+            "pilotDamage": {},
+            "escalationKey": "surge"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechACrit05",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit05",
+      "type": "text",
+      "text": "Ammo / Feed Fault",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        5,
+        5
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "ammoFeedFaultArm",
+            "remedyKey": "feedReset",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "feed",
+            "statusId": "jammedBallistic"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechACrit06",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit06",
+      "type": "text",
+      "text": "Fine Actuation Error",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        6,
+        6
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "fineActuationError",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "aimBlocked"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "control"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechACrit07",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit07",
+      "type": "text",
+      "text": "Targeting Misalignment",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        7,
+        7
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "targetingMisalignmentArm",
+            "remedyKey": "systemReset",
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "noCqBonus"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "desync"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechACrit08",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit08",
+      "type": "text",
+      "text": "Recoil Shock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        8,
+        8
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "recoilShock",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "nextArmAttackBlocked"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "shock"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechACrit09",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit09",
+      "type": "text",
+      "text": "Servo Strain",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        9,
+        9
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "servoStrainArm",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {
+              "heatOrStrainOnUse": 1
+            },
+            "pilotDamage": {},
+            "escalationKey": "overload"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechACrit10",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit10",
+      "type": "text",
+      "text": "Stabilizer Damage",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        10,
+        10
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "stabilizerDamageArm",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "armAttackSeverelyLimited"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "degradation"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechACrit11",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit11",
+      "type": "text",
+      "text": "Local Power Loss",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        11,
+        11
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "localPowerLossArm",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "subsystem"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "outage"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechACrit12",
+      "_key": "!tables.results!MWDMechArmsCrit01.MechACrit12",
+      "type": "text",
+      "text": "Arms condition +1",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        12,
+        12
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "armsCriticalBreach",
+            "remedyKey": "none",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "conditionAdvance"
+          }
+        }
+      }
+    }
+  ],
+  "formula": "2d6",
+  "replacement": true,
+  "displayRoll": true,
+  "flags": {
+    "mwd": {
+      "critTable": {
+        "version": 1
+      }
+    }
+  }
+}

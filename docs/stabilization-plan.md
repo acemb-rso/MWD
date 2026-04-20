@@ -5,7 +5,7 @@
 A concise implementation plan to modernize vehicles and BattleMechs without rewriting existing work. Use the structure references in `vehicle_sheet.txt`, `battlemech_sheet.txt`, and the item schema in `Items.txt` as the sources of truth for sheet wiring, actor data, and embedded item preparation.
 
 ## Inputs to respect
-- **Vehicle sheet layout:** attributes (Handling/System/Condition/Chassis), movement & structure, armor, condition track, action buttons (defense/sensors/stealth/initiative), crew list, driver snapshot, and lists for vehicle skills, upgrade modules, and weapons.【F:docs/vehicle_sheet.txt†L1-L76】
+- **Vehicle sheet layout:** attributes (Handling/System/Condition/Chassis), movement & structure, armor, condition track, action buttons (sensors/stealth/initiative), crew list, driver snapshot, and lists for vehicle skills, upgrade modules, and weapons.【F:docs/vehicle_sheet.txt†L1-L76】
 - **BattleMech sheet layout:** mech overview with chassis class/tonnage, shared attribute row, performance (run/jump/heat dissipation), structure/armor monitors, heat track, mount summary, equipment slots, crew/pilot snapshot, mech actions, and the dedicated Weapons & Mounts tab for primary weapon selection and grouped mount editing.【F:docs/battlemech_sheet.txt†L1-L105】
 - **Item schemas:** only the item types defined in `Items.txt` are expected (skills, traits, life modules, cues, dispositions, gear, modules, upgrades, equipment, and the weapon types/groups). Prepare embedded documents against these schemas and avoid reintroducing legacy Anarchy item templates.【F:docs/Items.txt†L1-L165】【F:docs/Items.txt†L200-L261】
 
@@ -22,11 +22,11 @@ A concise implementation plan to modernize vehicles and BattleMechs without rewr
    - Wire vehicle and BattleMech sheets to expose layout components per `vehicle_sheet.txt` / `battlemech_sheet.txt`: attribute rows, monitors, action buttons, crew list, weapon/equipment lists
    - Keep the BattleMech Weapons & Mounts tab focused on primary weapon selection and mount groups, leaving melee handling separate
    - Surface item details according to their schema segments (base/module/weapon blocks and range bands) so embedded items render consistently across vehicles and ‘Mechs
-   - Note: driver/pilot combat stats are **cached snapshots** on the sheet, not dynamic actor links
+   - Note: driver/pilot stats are read from the linked pilot actor when machine roll helpers need them
 
 3. **Rule mechanics integration** 🔲 Not started
    - Layer in MWD-specific logic (hit locations, crit workflows, heat handling, crew/catastrophic states) behind the structured data and sheet panels instead of ad hoc fields
-   - Use cached driver/pilot snapshot stats in roll formulas for vehicle/mech attack, defense, and initiative rolls
+   - Use linked driver/pilot stats in roll formulas for vehicle/mech attacks and initiative rolls
    - Apply item-driven modifiers (e.g., module effects, heat modifiers, weapon range bands) through prepared data rather than freeform sheet values
 
 4. **Validation and tests**

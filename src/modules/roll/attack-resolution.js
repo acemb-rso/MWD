@@ -7,6 +7,11 @@ import { TEMPLATE } from "../constants.js";
 import { getPersonalDamageTypeLabel, normalizePersonalDamageType } from "../mwd/personal-damage.js";
 import { getPersonalRangeBandName } from "../mwd/personal-range-bands.js";
 import {
+  isMachineActor,
+  resolveMachineHitLocation,
+  rollMachineHitLocationTotal,
+} from "../mwd/machine-hit-locations.js";
+import {
   AREA_EFFECT_KINDS,
   applyEvadeToExposure,
   cloneTemplateGeometry,
@@ -18,6 +23,8 @@ import {
   scaleDamageByExposure,
 } from "../area-effects/area-effect-engine.js";
 import { createHazardRegionFromAttack } from "../area-effects/hazard-regions.js";
+import { getMachineAttackDamageModifier } from "../mwd/machine-crit-effects.js";
+import { getMachineAttackCqAdjustments, getMachineHeatAdjustments } from "../mwd/machine-state-effects.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -68,14 +75,18 @@ function sumParts(parts = []) {
 async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {}) {
   const targetActor = await getTargetActor(target);
   const attackRating = Math.max(0, Number(ctx?.attack?.weapon?.attackRatingBand?.[ctx?.attack?.rangeBand] ?? 0) || 0);
-  const targetReflexes = getTargetAttributeValue(target, targetActor, "reflexes");
-  const targetReflexDefense = targetReflexes + targetReflexes;
+  const targetIsMachine = isMachineActor(targetActor);
+  const defenseAttributeKey = targetIsMachine ? TEMPLATE.actorAttributes.handling : "reflexes";
+  const targetDefenseAttribute = getTargetAttributeValue(target, targetActor, defenseAttributeKey);
+  const targetReflexDefense = targetDefenseAttribute + targetDefenseAttribute;
   const attackSkillCode = String(ctx?.attack?.skill?.code ?? ctx?.attack?.weapon?.skill ?? "").trim();
   const attackSkillLabel = String(ctx?.attack?.skill?.label ?? attackSkillCode ?? "Attack Skill").trim() || "Attack Skill";
   const attackerSkill = attackSkillCode
     ? Math.max(0, toNumber(attacker?.getSkillRating?.(attackSkillCode) ?? attacker?.system?.skills?.[attackSkillCode]?.rating, 0))
     : 0;
-  const defenderTactics = getTargetSkillRating(target, targetActor, "tactics");
+  const defenderSkillCode = targetIsMachine ? "piloting" : "tactics";
+  const defenderSkillLabel = targetIsMachine ? "Piloting" : "Tactics";
+  const defenderTactics = getTargetSkillRating(target, targetActor, defenderSkillCode);
   const skillDelta = attackerSkill - defenderTactics;
   const skillAdvantage = Math.abs(skillDelta);
   const armorDefense = Math.max(0, Number(target?.activeArmor?.defenseBonus ?? 0) || 0);
@@ -89,8 +100,8 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
     value: attackRating
   }];
   const drParts = [{
-    id: "target.reflexesDefense",
-    label: "Target REF + REF",
+    id: targetIsMachine ? "target.handlingDefense" : "target.reflexesDefense",
+    label: targetIsMachine ? "Target Handling + Handling" : "Target REF + REF",
     value: targetReflexDefense
   }];
 
@@ -103,7 +114,7 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
   } else if (skillDelta < 0) {
     drParts.push({
       id: "target.tacticsAdvantage",
-      label: `Tactics over ${attackSkillLabel}`,
+      label: `${defenderSkillLabel} over ${attackSkillLabel}`,
       value: skillAdvantage
     });
   }
@@ -122,6 +133,36 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
     value: armorDefense
   });
 
+  if (isMachineActor(attacker)) {
+    const attackerAdjustments = getMachineAttackCqAdjustments(attacker, {
+      rangeBand: ctx?.attack?.rangeBand,
+      role: "attacker",
+      target,
+    });
+    if (attackerAdjustments.ar) {
+      arParts.push({
+        id: "machineState.attackAr",
+        label: "Machine State",
+        value: attackerAdjustments.ar,
+      });
+    }
+  }
+
+  if (targetIsMachine) {
+    const targetAdjustments = getMachineAttackCqAdjustments(targetActor, {
+      rangeBand: ctx?.attack?.rangeBand,
+      role: "defender",
+      target,
+    });
+    if (targetAdjustments.dr) {
+      drParts.push({
+        id: "machineState.defenseDr",
+        label: "Machine State",
+        value: targetAdjustments.dr,
+      });
+    }
+  }
+
   const arTotal = sumParts(arParts);
   const drTotal = sumParts(drParts);
 
@@ -138,8 +179,8 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
       attackSkillCode,
       attackSkillLabel,
       attackerSkill,
-      defenderSkillCode: "tactics",
-      defenderSkillLabel: "Tactics",
+      defenderSkillCode,
+      defenderSkillLabel,
       defenderSkill: defenderTactics,
       delta: skillDelta,
       advantage: skillAdvantage,
@@ -152,8 +193,19 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
 function buildDamageSnapshot(ctx = {}, outcome = {}) {
   const attack = ctx?.attack ?? {};
   const payloadDamageType = String(attack?.payload?.modifies?.damageType ?? "").trim();
-  const baseDamage = Math.max(0, Number(attack?.weapon?.damage ?? 0) || 0);
-  const damageType = normalizePersonalDamageType(payloadDamageType || attack?.weapon?.damageType, "concussive");
+  const critDamageDelta = getMachineAttackDamageModifier(ctx?.attacker, {
+    weaponGroupId: attack?.weapon?.machineWeaponGroup?.id ?? attack?.payload?.weaponGroupId,
+    weaponId: attack?.payload?.weaponId,
+    weapon: attack?.weapon,
+  });
+  const stateHeat = getMachineHeatAdjustments(ctx?.attacker);
+  const isEnergyAttack = String(attack?.weapon?.damageType ?? "").trim().toLowerCase() === "energy";
+  const baseDamage = Math.max(0, (Number(attack?.weapon?.damage ?? 0) || 0) + critDamageDelta + (isEnergyAttack ? Number(stateHeat.energyAttackDamage ?? 0) : 0));
+  const targetIsMachine = Boolean(ctx?.targetIsMachine);
+  const rawDamageType = payloadDamageType || attack?.weapon?.damageType;
+  const damageType = targetIsMachine
+    ? (String(rawDamageType ?? "kinetic").trim() || "kinetic")
+    : normalizePersonalDamageType(rawDamageType, "concussive");
   const ap = Math.max(0, Number(attack?.totalAp ?? attack?.weapon?.ap ?? 0) || 0);
   const effectiveWeaponDamage = outcome.outcome === "graze" ? (baseDamage / 2) : (outcome.outcome === "hit" ? baseDamage : 0);
   const incoming = effectiveWeaponDamage + Number(outcome.netHits ?? 0);
@@ -172,11 +224,14 @@ function buildDamageSnapshot(ctx = {}, outcome = {}) {
     baseDamage,
     effectiveWeaponDamage,
     netHits: Number(outcome.netHits ?? 0),
+    attackQuality: outcome.outcome === "graze"
+      ? "graze"
+      : (outcome.outcome === "hit" && Number(outcome.netHits ?? 0) >= 4 ? "highMargin" : outcome.outcome === "hit" ? "hit" : ""),
     incoming,
     scaledIncoming,
     ap,
     damageType,
-    damageTypeLabel: getPersonalDamageTypeLabel(damageType),
+    damageTypeLabel: targetIsMachine ? damageType : getPersonalDamageTypeLabel(damageType),
     exposure,
     areaEffect,
   };
@@ -186,7 +241,36 @@ function getTargetPreviewKey(target = {}) {
   return String(target?.tokenUuid ?? target?.actorUuid ?? target?.tokenId ?? target?.actorId ?? target?.name ?? foundry.utils.randomID()).trim();
 }
 
-function buildQueuedDamagePayload({ attacker, ctx, damage } = {}) {
+function getMonitorRemaining(actor, monitorKey) {
+  const monitor = actor?.system?.monitors?.[monitorKey] ?? {};
+  const max = Math.max(0, Number(monitor.max ?? 0) || 0);
+  const value = Math.min(max, Math.max(0, Number(monitor.value ?? 0) || 0));
+  return Math.max(0, max - value);
+}
+
+function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, hitLocation = null } = {}) {
+  if (isMachineActor(targetActor)) {
+    return {
+      mode: "machineAttackDamage",
+      damage: damage?.scaledIncoming ?? 0,
+      attackQuality: damage?.attackQuality ?? "",
+      outcome: damage?.attackQuality === "highMargin" ? "hit" : (damage?.attackQuality ?? ""),
+      netHits: damage?.netHits ?? 0,
+      damageType: damage?.damageType,
+      ap: damage?.ap ?? 0,
+      hitLocation,
+      chaosCriticalSelected: false,
+      reliabilitySpendSelections: [],
+      source: `${attacker?.name ?? "Attacker"}: ${ctx?.attack?.weapon?.name ?? "Attack"}`,
+      sourceData: {
+        attackerUuid: attacker?.uuid ?? "",
+        weaponName: ctx?.attack?.weapon?.name ?? "Attack",
+        weaponUuid: ctx?.attack?.weapon?.uuid ?? "",
+      },
+      notes: "",
+    };
+  }
+
   return {
     mode: "attackDamage",
     track: TEMPLATE.monitors.physical,
@@ -228,6 +312,10 @@ export function summarizeAttackDamageResult(result, target = {}, damage = {}, { 
       usedArmor: Boolean(result.usedArmor),
       damageType: result.damageType ?? damage?.damageType ?? "",
       effectiveAp: Number(result.effectiveAp ?? damage?.ap ?? 0),
+      hitLocation: result.hitLocation ?? null,
+      critical: result.critical ?? null,
+      machine: result.machine ?? null,
+      degradation: result.degradation ?? null,
       mitigation: result.mitigation ? {
         baseMitigation: Number(result.mitigation.baseMitigation ?? 0),
         typeMitigationMod: Number(result.mitigation.typeMitigationMod ?? 0),
@@ -283,7 +371,17 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
     return summarizeAttackDamageResult(null, target, damage, { reason: "Unable to resolve attack target." });
   }
 
-  const payload = buildQueuedDamagePayload({ attacker, ctx, damage });
+  const targetIsMachine = isMachineActor(actor);
+  const hitLocation = targetIsMachine
+    ? resolveMachineHitLocation({
+      actor,
+      rollTotal: rollMachineHitLocationTotal(),
+      armorBefore: getMonitorRemaining(actor, TEMPLATE.monitors.armor),
+      structureBefore: getMonitorRemaining(actor, TEMPLATE.monitors.structure),
+    })
+    : null;
+
+  const payload = buildQueuedDamagePayload({ attacker, ctx, damage, targetActor: actor, hitLocation });
   const result = await HarmEngine.apply({
     actor,
     token,
@@ -297,6 +395,10 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
 
   if (result?.ok) {
     const preview = summarizeAttackDamageResult(result, target, damage, { queued: true, applied: false });
+    const queuedPayload = buildQueuedDamagePayload({ attacker, ctx, damage, targetActor: actor, hitLocation });
+    if (queuedPayload.mode === "machineAttackDamage" && Array.isArray(preview?.critical?.records) && preview.critical.records.length) {
+      queuedPayload.preparedCriticalRecords = foundry.utils.deepClone(preview.critical.records);
+    }
     return {
       ...preview,
       queuedMutation: {
@@ -308,7 +410,8 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
           actorUuid: target?.actorUuid ?? null,
           tokenUuid: target?.tokenUuid ?? null
         },
-        payload,
+        payload: queuedPayload,
+        hitLocation,
         preview
       }
     };
@@ -319,6 +422,7 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
 
 async function resolveTargetAttack({ attacker, ctx, outcomeModel, target, previewState = {} } = {}) {
   const cq = await buildCQBreakdown({ attacker, ctx, target });
+  const targetActor = await getTargetActor(target);
   const margin = Number(outcomeModel?.margin ?? 0);
   const cqValue = Number(cq.value ?? 0);
   const rawNetHits = margin;
@@ -337,6 +441,8 @@ async function resolveTargetAttack({ attacker, ctx, outcomeModel, target, previe
   const currentExposure = target?.exposure ?? createExposureData({ tier: "none" });
   const damage = buildDamageSnapshot({
     ...ctx,
+    attacker,
+    targetIsMachine: isMachineActor(targetActor),
     attack: {
       ...attack,
       currentExposure,

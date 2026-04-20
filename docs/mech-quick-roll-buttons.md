@@ -110,31 +110,11 @@ Each button triggers a **roll dialog** or a modal selector depending on the acti
 - Melee dice pool
 
 
-### 3.3 Dodge (Piloting)
+### 3.3 Piloting Check (Movement / Stability)
 
 **Behavior**
 
-- No modal needed (single roll)
-- Rolls **Piloting** for:
-  - Evasive maneuvers
-  - Missile dodge attempts
-  - Reaction defenses
-- Should appear in chat labeled as **"Dodge Check"**
-
-**Dependencies**
-
-- `actor.system.skills.piloting`
-
-**Roll Formula**
-
-- Piloting dice pool
-- Successes determine evasion or stability
-
-### 3.4 Piloting Check (Movement / Stability)
-
-**Behavior**
-
-- Similar to Dodge, but used for:
+- Used for:
   - Jump landings
   - Rough terrain
   - Falling checks
@@ -283,7 +263,6 @@ Buttons should be implemented as individual functions, for example:
 ```ts
 this.rollRangedAttack()
 this.rollMeleeAttack()
-this.rollDodge()
 this.rollPilotingCheck()
 this.rollSensorSweep()
 this.rollEmergencyRepair()

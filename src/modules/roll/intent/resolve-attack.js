@@ -14,9 +14,21 @@ import {
   getPersonalRangeBandName,
   selectPersonalRangeBand,
 } from "../../mwd/personal-range-bands.js";
+import { TEMPLATE } from "../../constants.js";
 import { WeaponItem } from "../../item/weapon-item.js";
 import { createUserFacingRollError } from "../roll-errors.js";
 import { buildTargetSnapshot } from "../template-placement.js";
+import { getMachineAttackRestriction } from "../../mwd/machine-crit-effects.js";
+import { getContactStateLabel } from "../../mwd/machine-ew.js";
+import {
+  getAttackerCombatant,
+  getContactState,
+  getUsableTargetingPacket,
+} from "../../mwd/machine-ew-state.js";
+import {
+  getMachineAttackRestriction as getMachineStateAttackRestriction,
+  isMachineRangeCappedToClose,
+} from "../../mwd/machine-state-effects.js";
 
 function getTargets(payload = {}) {
   if (Array.isArray(payload?.targetSnapshots)) {
@@ -106,6 +118,71 @@ function resolveRangeBand({ actor, payload, weapon, targets = [] } = {}) {
   return measuredBand;
 }
 
+function isMachineActor(actor) {
+  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
+}
+
+function isMachineWeapon(item) {
+  return ["mechWeapon", "vehicleWeapon"].includes(item?.canonicalType ?? item?.type);
+}
+
+function addBands(left = {}, right = {}) {
+  return {
+    close: Number(left.close ?? 0) + Number(right.close ?? 0),
+    near: Number(left.near ?? 0) + Number(right.near ?? 0),
+    far: Number(left.far ?? 0) + Number(right.far ?? 0),
+    extreme: Number(left.extreme ?? 0) + Number(right.extreme ?? 0),
+  };
+}
+
+function getMachineWeaponGroupProfile(actor, payload) {
+  const groupId = String(payload?.weaponGroupId ?? payload?.machineWeaponGroup?.id ?? "").trim();
+  if (!groupId) return null;
+
+  const group = Array.from(actor.system?.weaponGroups ?? actor.system?.mwd?.weaponGroupDetails ?? [])
+    .find(entry => String(entry?.id ?? "").trim() === groupId) ?? null;
+  const weaponIds = Array.isArray(group?.weaponIds)
+    ? group.weaponIds
+    : Array.isArray(group?.weapons)
+      ? group.weapons.map(weapon => weapon?.id).filter(Boolean)
+      : [];
+  const weapons = weaponIds
+    .map(id => actor.items?.get?.(id))
+    .filter(item => item && isMachineWeapon(item));
+  if (!group || !weapons.length) return null;
+
+  const profiles = weapons.map(weapon => weapon.getCombatProfile?.() ?? null).filter(Boolean);
+  const first = profiles[0] ?? {};
+  const attackRatingBand = profiles.reduce((bands, profile) => addBands(bands, profile.attackRatingBand), {});
+  const damage = profiles.reduce((sum, profile) => sum + (Number(profile.damage ?? 0) || 0), 0);
+  const ap = Math.max(0, ...profiles.map(profile => Number(profile.ap ?? 0) || 0));
+  const skill = String(first.skill ?? "gunnery").trim() || "gunnery";
+
+  return {
+    id: group.id,
+    uuid: actor.uuid ?? null,
+    name: group.name || "Weapon Group",
+    img: first.img,
+    type: "mechWeaponGroup",
+    machineWeaponGroup: {
+      id: group.id,
+      weaponIds,
+      weaponNames: weapons.map(weapon => weapon.name),
+    },
+    category: first.category ?? "ranged",
+    skill,
+    skillDef: getSkillDef(skill),
+    damage,
+    ap,
+    damageType: first.damageType ?? "kinetic",
+    attackRatingBand,
+    range: first.range ?? {},
+    defaultRangeBand: first.defaultRangeBand ?? "near",
+    effects: {},
+    notes: profiles.map(profile => profile.notes).filter(Boolean).join("\n"),
+  };
+}
+
 function getWeaponProfile(actor, payload) {
   if (payload?.syntheticWeapon?.id === "unarmed") {
     const unarmed = WeaponItem.buildDefaultUnarmedProfile(actor);
@@ -122,6 +199,17 @@ function getWeaponProfile(actor, payload) {
     };
   }
 
+  if (isMachineActor(actor)) {
+    const groupProfile = getMachineWeaponGroupProfile(actor, payload);
+    if (groupProfile) return groupProfile;
+
+    const item = actor.items?.get?.(payload?.weaponId ?? "") ?? null;
+    if (!item || !isMachineWeapon(item)) {
+      throw new Error("Machine attack requires an owned vehicle or BattleMech weapon.");
+    }
+    return item.getCombatProfile?.() ?? null;
+  }
+
   const item = actor.items?.get?.(payload?.weaponId ?? "") ?? null;
   if (!item || !(item.isPersonalWeapon?.() ?? item.type === "personalWeapon") || !item.system?.equipped) {
     throw new Error("Attack requires an equipped personal weapon.");
@@ -135,6 +223,28 @@ export async function resolveAttack({ actor, payload } = {}) {
 
   const weapon = getWeaponProfile(actor, payload);
   if (!weapon) throw new Error("Unable to resolve weapon profile.");
+  if (isMachineActor(actor)) {
+    const restriction = getMachineAttackRestriction(actor, {
+      weaponGroupId: payload?.weaponGroupId,
+      weaponId: payload?.weaponId,
+      weapon,
+    });
+    if (restriction.blocked) {
+      throw createUserFacingRollError(restriction.reason || "That weapon group cannot attack right now.", {
+        severity: "warn",
+      });
+    }
+    const stateRestriction = getMachineStateAttackRestriction(actor, {
+      weaponGroupId: payload?.weaponGroupId,
+      weaponId: payload?.weaponId,
+      weapon,
+    });
+    if (stateRestriction.blocked) {
+      throw createUserFacingRollError(stateRestriction.reason || "The machine's current state prevents this attack.", {
+        severity: "warn",
+      });
+    }
+  }
   if (Array.isArray(weapon?.capabilityReport?.errors) && weapon.capabilityReport.errors.length > 0) {
     throw createUserFacingRollError(
       weapon.capabilityReport.errors[0]?.message ?? "Weapon capability data is invalid for this attack.",
@@ -188,6 +298,38 @@ export async function resolveAttack({ actor, payload } = {}) {
     : ((weapon?.type === "personalWeapon" || weapon?.isSynthetic)
       ? getPersonalRangeBandBaseDn(rangeBand, 1)
       : 1);
+
+  if (isMachineActor(actor) && isMachineRangeCappedToClose(actor) && rangeBand !== "close") {
+    throw createUserFacingRollError("Sensor Blind limits attacks to Close range.", { severity: "warn" });
+  }
+
+  let ewContext = null;
+  if (isMachineActor(actor) && targets.length > 0) {
+    const firstTarget = targets[0];
+    const targetTokenUuid = String(firstTarget?.tokenUuid ?? "").trim();
+    const attackerToken = getSourceToken(actor, payload);
+    const combatant = getAttackerCombatant(attackerToken);
+
+    const targetTokenObj = canvas?.tokens?.get?.(targetTokenUuid);
+    const isVisible = targetTokenObj?.visible ?? true;
+    const effectiveState = isVisible ? getContactState(combatant, targetTokenUuid) : "blind";
+
+    if (effectiveState === "blind") {
+      throw createUserFacingRollError("No targeting solution. Acquire contact first.", { severity: "warn" });
+    }
+
+    const systemAttr = Number(actor?.system?.attributes?.system?.value ?? 0) || 0;
+    const usablePacket = getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, effectiveState, game.combat?.round);
+
+    ewContext = {
+      contactState: effectiveState,
+      contactStateLabel: getContactStateLabel(effectiveState),
+      targetTokenUuid,
+      attackerCombatantId: combatant?.id ?? null,
+      activePacketId: usablePacket?.id ?? null,
+      targetingDataValue: usablePacket?.value ?? 0,
+    };
+  }
 
   return {
     intent: "attack",
@@ -255,7 +397,8 @@ export async function resolveAttack({ actor, payload } = {}) {
       },
       targets,
       aim,
-      totalAp
+      totalAp,
+      ewContext,
     },
     specialization: selectedSpecialization ? {
       key: selectedSpecialization.key,

@@ -36,11 +36,7 @@ export const MWD = {
       "name": "Style of Destiny UI",
       "hint": "Select the style used for actors, items and GM Manager"
     },
-    "anarchyHack": {
-      "name": "Destiny hack",
-      "hint": "Use an Anarchy Hack provided by a module"
-    },
-    "skillSet": {
+"skillSet": {
       "name": "Skill set",
       "hint": "Select the set of skills to use"
     },
@@ -334,7 +330,6 @@ export const MWD = {
         "title": "Quick Actions",
         "rangedAttack": "Ranged Attack",
         "meleeAttack": "Melee Attack",
-        "dodgeCheck": "Dodge Check",
         "pilotingCheck": "Piloting Check",
         "sensorSweep": "Sensor Sweep",
         "emergencyRepair": "Emergency Repair",
@@ -359,7 +354,6 @@ export const MWD = {
         "tooltips": {
           "ranged": "Roll an attack using any Weapon Group or Primary Weapon",
           "melee": "Roll a melee attack using fists, kicks, or installed melee weapons",
-          "dodge": "Piloting roll to evade incoming fire or avoid danger",
           "piloting": "Piloting roll for movement, jumping, stability, or hazard checks",
           "sensorSweep": "Perception/Tech roll using sensors or Active Probe",
           "emergencyRepair": "Technician roll to stabilize or fix a system during battle"
@@ -379,15 +373,18 @@ export const MWD = {
 
       "heat": {
         "thresholds": "Heat thresholds",
-        "runningHot": "Running hot",
-        "overheated": "Overheated",
-        "shutdown": "Shutdown",
+        "runningHot": "Hot",
+        "overheated": "Overheat",
+        "shutdown": "Danger",
         "statusLabel": "Current heat state",
         "status": {
           "safe": "Safe",
-          "runningHot": "Running hot",
-          "overheated": "Overheated",
-          "shutdown": "Shutdown"
+          "hot": "Hot",
+          "overheat": "Overheat",
+          "danger": "Danger",
+          "runningHot": "Hot",
+          "overheated": "Overheat",
+          "shutdown": "Danger"
         }
       },
 
@@ -482,7 +479,15 @@ export const MWD = {
     "assetModule": {
       "category": "Category",
       "level": "Level",
-      "levelShort": "Lvl"
+      "levelShort": "Lvl",
+      "jumping": {
+        "enabled": "Grants Jumping",
+        "movement": "Jump Move",
+        "heat": "Jump Heat",
+        "attackRatingBonus": "Jump AR Bonus",
+        "defenseRatingBonus": "Jump DR Bonus",
+        "dfaEnabled": "Enable Death From Above"
+      }
     },
 
     "gear": {
@@ -605,10 +610,12 @@ export const MWD = {
   "assetModuleCategory": {
     "faction": "Faction",
     "logistics": "Logistics",
+    "mobility": "Mobility",
     "training": "Training",
     "influence": "Influence",
     "personal": "Personal",
-    "operations": "Operations"
+    "operations": "Operations",
+    "special": "Special"
   },
 
   "attributes": {
@@ -634,6 +641,7 @@ export const MWD = {
 
     // MWD vehicle attributes:
     "chassis": "Chassis",
+    "reliability": "Reliability",
     "condition": "Condition"
   },
 

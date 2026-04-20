@@ -5,7 +5,10 @@
 
 import { ACTOR_ATTRIBUTE_SETS, ICONS_PATH, TEMPLATE } from "../constants.js";
 import { AnarchyBaseActor } from "./base-actor.js";
-import { resistanceFromArmor } from "../mwd/derive-monitors.js";
+import { normalizeMachineMonitorResistance } from "../mwd/machine-monitors.js";
+import { normalizeMachineDegradationState } from "../mwd/machine-degradation.js";
+import { normalizeMachineMovement } from "../mwd/machine-movement.js";
+import { getMachineRuntimeAttributeAdjustments } from "../mwd/machine-state-effects.js";
 
 function forcedDeletion() {
   return foundry.data.operators.ForcedDeletion;
@@ -15,6 +18,8 @@ export class VehicleActor extends AnarchyBaseActor {
 
   prepareDerivedData() {
     this._prepareMwdAttributes();
+    this._prepareMwdDegradation();
+    this._prepareMwdMovement();
     this._prepareMwdMonitors();
     this._prepareMwdItems();
     super.prepareDerivedData();
@@ -25,7 +30,7 @@ export class VehicleActor extends AnarchyBaseActor {
   }
 
   static get initiative() {
-    return AnarchyBaseActor.initiative + " + max(@attributes.system.value, @attributes.handling.value)"
+    return AnarchyBaseActor.initiative
   }
 
   computePhysicalState() {
@@ -69,6 +74,7 @@ export class VehicleActor extends AnarchyBaseActor {
     const defaults = {
       [TEMPLATE.actorAttributes.handling]: { value: 0 },
       [TEMPLATE.actorAttributes.system]: { value: 0 },
+      [TEMPLATE.actorAttributes.reliability]: { value: 0 },
       [TEMPLATE.actorAttributes.condition]: { value: 0 },
       [TEMPLATE.actorAttributes.chassis]: { value: 0 },
     };
@@ -92,6 +98,29 @@ export class VehicleActor extends AnarchyBaseActor {
         mergedAttributes[key].value = data?.value ?? 0;
       }
     });
+
+    const adjustments = getMachineRuntimeAttributeAdjustments(this);
+    for (const [key, delta] of Object.entries(adjustments)) {
+      if (!delta) continue;
+      mergedAttributes[key] = mergedAttributes[key] ?? { value: 0 };
+      mergedAttributes[key].value = Math.max(0, Number(mergedAttributes[key]?.value ?? 0) + Number(delta ?? 0));
+      mwd.attributes[key] = mwd.attributes[key] ?? {};
+      mwd.attributes[key].value = mergedAttributes[key].value;
+    }
+  }
+
+  _prepareMwdDegradation() {
+    normalizeMachineDegradationState(this.system, this.type);
+  }
+
+  _prepareMwdMovement() {
+    const movement = normalizeMachineMovement(this.system.movement, {
+      actorType: this.type,
+      legacyMoves: this.system.moves,
+    });
+
+    this.system.movement = movement;
+    this.system.moves = movement.ground ?? Math.max(0, Number(this.system.moves ?? 0) || 0);
   }
 
   _prepareMwdMonitors() {
@@ -99,8 +128,9 @@ export class VehicleActor extends AnarchyBaseActor {
     const monitors = this.system.monitors = this.system.monitors ?? {};
 
     // --- Armor ---
-    // Normalize armor first; its max value drives structure resistance (like personal
-    // armor item baseMitigation drives armor monitor resistance for characters).
+    // Machine armor is a damage buffer, not innate resistance. Keep any legacy
+    // stored resistance from affecting generic monitor helpers by normalizing it
+    // to zero during actor preparation.
     const defaultArmorMax = this.type === TEMPLATE.actorTypes.battlemech ? 15 : 12;
     const armorMax = Math.max(0, Number(monitors.armor?.max ?? defaultArmorMax));
 
@@ -109,17 +139,9 @@ export class VehicleActor extends AnarchyBaseActor {
       monitors.armor ?? {},
       { inplace: false, recursive: true }
     );
-    // Always override: resistance is derived from armor rating, not stored.
-    monitors.armor.resistance = {
-      default: resistanceFromArmor(armorMax),
-      byType: monitors.armor.resistance?.byType ?? {}
-    };
+    monitors.armor.resistance = normalizeMachineMonitorResistance(monitors.armor.resistance);
 
     // --- Structure ---
-    // Structure resistance is derived from armor max (same formula as personal armor),
-    // so that armor automatically provides resistance to structural damage.
-    const derivedStructureResistance = resistanceFromArmor(armorMax);
-
     const structureDefaults = {
       value: monitors.structure?.value ?? 0,
       max: monitors.structure?.max ?? (this.type === TEMPLATE.actorTypes.battlemech ? 18 : 15),
@@ -131,11 +153,7 @@ export class VehicleActor extends AnarchyBaseActor {
       monitors.structure ?? {},
       { inplace: false, recursive: true }
     );
-    // Always override: derived from armor, not stored value.
-    monitors.structure.resistance = {
-      default: derivedStructureResistance,
-      byType: monitors.structure.resistance?.byType ?? {}
-    };
+    monitors.structure.resistance = normalizeMachineMonitorResistance(monitors.structure.resistance);
 
     mwd.monitors = mwd.monitors ?? {};
     mwd.monitors.structure = foundry.utils.mergeObject(
@@ -147,7 +165,7 @@ export class VehicleActor extends AnarchyBaseActor {
     if (this.type === TEMPLATE.actorTypes.battlemech) {
       const heatDefaults = {
         value: monitors.heat?.value ?? mwd.heat?.current ?? 0,
-        max: monitors.heat?.max ?? mwd.heat?.hardMax ?? 4,
+        max: monitors.heat?.max ?? mwd.heat?.hardMax ?? 10,
         resistance: AnarchyBaseActor.normalizeResistance(monitors.heat?.resistance),
       };
 

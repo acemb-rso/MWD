@@ -1,0 +1,332 @@
+{
+  "_id": "MWDVehicleBodyCrit1",
+  "_key": "!tables!MWDVehicleBodyCrit1",
+  "name": "Vehicle Criticals: Body",
+  "img": "icons/svg/d20-black.svg",
+  "description": "<p>Location-specific interpretation of the general machine critical result.</p>",
+  "results": [
+    {
+      "_id": "VehBCrit02",
+      "_key": "!tables.results!MWDVehicleBodyCrit1.VehBCrit02",
+      "type": "text",
+      "text": "Internal Systems Cascade",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        2,
+        2
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "internalSystemsCascade",
+            "remedyKey": "none",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2,
+              "condition": "openToppedOrCatastrophic"
+            },
+            "escalationKey": "cascade"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehBCrit03",
+      "_key": "!tables.results!MWDVehicleBodyCrit1.VehBCrit03",
+      "type": "text",
+      "text": "Core Systems Lock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        3,
+        3
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "coreSystemsLock",
+            "remedyKey": "systemReset",
+            "gates": [
+              "subsystem"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "lockout"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehBCrit04",
+      "_key": "!tables.results!MWDVehicleBodyCrit1.VehBCrit04",
+      "type": "text",
+      "text": "Engine / Power Surge",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        4,
+        4
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "enginePowerSurge",
+            "remedyKey": "coolantDump",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "fatigue",
+              "amount": 2,
+              "condition": "crewApplicable"
+            },
+            "escalationKey": "surge"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehBCrit05",
+      "_key": "!tables.results!MWDVehicleBodyCrit1.VehBCrit05",
+      "type": "text",
+      "text": "Fuel / Feed Disruption",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        5,
+        5
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "fuelFeedDisruption",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "subsystem"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "feed"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehBCrit06",
+      "_key": "!tables.results!MWDVehicleBodyCrit1.VehBCrit06",
+      "type": "text",
+      "text": "Control Fault",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        6,
+        6
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "controlFaultBody",
+            "remedyKey": "systemReset",
+            "gates": [
+              "move"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "control"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehBCrit07",
+      "_key": "!tables.results!MWDVehicleBodyCrit1.VehBCrit07",
+      "type": "text",
+      "text": "Systems Desync",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        7,
+        7
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "systemsDesyncBody",
+            "remedyKey": "systemReset",
+            "gates": [
+              "attack",
+              "move"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "desync"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehBCrit08",
+      "_key": "!tables.results!MWDVehicleBodyCrit1.VehBCrit08",
+      "type": "text",
+      "text": "Structural Shock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        8,
+        8
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "structuralShockBody",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "piloting"
+            ],
+            "mods": [
+              "controlTest"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2,
+              "condition": "crashImpact"
+            },
+            "escalationKey": "shock"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehBCrit09",
+      "_key": "!tables.results!MWDVehicleBodyCrit1.VehBCrit09",
+      "type": "text",
+      "text": "Overload",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        9,
+        9
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "overloadBody",
+            "remedyKey": "coolantDump",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "overload"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehBCrit10",
+      "_key": "!tables.results!MWDVehicleBodyCrit1.VehBCrit10",
+      "type": "text",
+      "text": "Hull Stress Spike",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        10,
+        10
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "hullStressSpike",
+            "remedyKey": "emergencyRepair",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "degradation"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehBCrit11",
+      "_key": "!tables.results!MWDVehicleBodyCrit1.VehBCrit11",
+      "type": "text",
+      "text": "Partial Outage",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        11,
+        11
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "partialOutageBody",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "subsystem"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "outage"
+          }
+        }
+      }
+    },
+    {
+      "_id": "VehBCrit12",
+      "_key": "!tables.results!MWDVehicleBodyCrit1.VehBCrit12",
+      "type": "text",
+      "text": "Body condition +1",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        12,
+        12
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "bodyCriticalBreach",
+            "remedyKey": "none",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "conditionAdvance"
+          }
+        }
+      }
+    }
+  ],
+  "formula": "2d6",
+  "replacement": true,
+  "displayRoll": true,
+  "flags": {
+    "mwd": {
+      "critTable": {
+        "version": 1
+      }
+    }
+  }
+}

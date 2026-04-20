@@ -98,15 +98,21 @@
           }
         }
       },
-      "mwd-base": {
-        "mwd": {
-          "unitType": "vehicle",
-          "heat": {
-            "current": 0,
-            "safeMax": 1,
-            "hardMax": 4,
-            "ventPerTurn": 1,
-            "coolingImpaired": false
+        "mwd-base": {
+          "mwd": {
+            "unitType": "vehicle",
+            "model": "",
+            "heat": {
+              "current": 0,
+              "safeMax": 1,
+              "hardMax": 10,
+              "coolingImpaired": false
+            },
+          "shock": {
+            "value": 0
+          },
+          "reliabilitySpendable": {
+            "value": 0
           },
           "locations": {},
           "crits": [],
@@ -134,11 +140,28 @@
         }
       },
       "mwd-vehicle": {
+        "templates": [
+          "mwd-base"
+        ],
         "attributes": {
           "handling": { "value": 3 },
           "system": { "value": 3 },
           "chassis": { "value": 3 },
-          "condition": { "value": 3 }
+          "reliability": { "value": 3 }
+        },
+        "mwd": {
+          "locations": {
+            "front": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "motiveSystem"], "destroyed": false },
+            "side": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "motiveSystem"], "destroyed": false },
+            "rear": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "motiveSystem", "ammoStore"], "destroyed": false },
+            "turret": { "enabled": true, "stress": 0, "condition": 0, "tags": ["turret", "weaponGroup"], "destroyed": false },
+            "rotor": { "enabled": false, "stress": 0, "condition": 0, "tags": ["rotor"], "destroyed": false },
+            "core": { "enabled": true, "stress": 0, "condition": 0, "tags": ["crewCompartment", "engine", "ammoStore"], "destroyed": false }
+          }
+        },
+        "movement": {
+          "ground": 0,
+          "flight": 0
         }
       },
       "mwd-battlemech": {
@@ -149,19 +172,15 @@
           "handling": { "value": 4 },
           "system": { "value": 3 },
           "chassis": { "value": 4 },
-          "condition": { "value": 3 }
+          "reliability": { "value": 3 }
         },
         "mwd": {
           "unitType": "mech",
           "locations": {
-            "head": { "enabled": true, "stress": 0, "tags": ["cockpit", "sensor"], "destroyed": false },
-            "torsoFront": { "enabled": true, "stress": 0, "tags": ["weaponGroup", "engine"], "destroyed": false },
-            "torsoRear": { "enabled": true, "stress": 0, "tags": ["weaponGroup", "ammoStore"], "destroyed": false },
-            "leftArm": { "enabled": true, "stress": 0, "tags": ["weaponGroup"], "destroyed": false },
-            "rightArm": { "enabled": true, "stress": 0, "tags": ["weaponGroup"], "destroyed": false },
-            "leftLeg": { "enabled": true, "stress": 0, "tags": ["motiveSystem"], "destroyed": false },
-            "rightLeg": { "enabled": true, "stress": 0, "tags": ["motiveSystem"], "destroyed": false },
-            "core": { "enabled": true, "stress": 0, "tags": ["engine", "gyro", "ammoStore"], "destroyed": false }
+            "head": { "enabled": true, "stress": 0, "condition": 0, "tags": ["cockpit", "sensor"], "destroyed": false },
+            "torso": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "engine", "gyro", "ammoStore"], "destroyed": false },
+            "arms": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup"], "destroyed": false },
+            "legs": { "enabled": true, "stress": 0, "condition": 0, "tags": ["motiveSystem"], "destroyed": false }
           },
           "crew": {
             "count": 1,
@@ -171,7 +190,7 @@
           },
           "heat": {
             "current": 0,
-            "max": 4,
+            "max": 10,
             "thresholds": {
               "runningHot": 2,
               "overheated": 3,
@@ -197,6 +216,12 @@
             "maxWeapons": 0,
             "allowedLocations": []
           }
+        }
+      },
+      "machine-movement-battlemech": {
+        "movement": {
+          "ground": 0,
+          "flight": 0
         }
       }
     },
@@ -370,7 +395,7 @@
         },
         "heat": {
           "value": 0,
-          "max": 4,
+          "max": 10,
           "resistance": {
             "default": 0,
             "byType": {}
@@ -472,7 +497,17 @@
         "references"
       ],
       "category": "special",
-      "level": 1
+      "level": 1,
+      "mobility": {
+        "jumping": {
+          "enabled": false,
+          "movement": 0,
+          "heat": 0,
+          "attackRatingBonus": 0,
+          "defenseRatingBonus": 0,
+          "dfaEnabled": false
+        }
+      }
     },
     "lifeModule": {
       "templates": [

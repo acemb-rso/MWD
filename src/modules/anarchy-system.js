@@ -30,6 +30,10 @@ import { burnModifier } from "../modules/modifiers/providers/burn-modifier.js";
 import { LifeModuleModifiersProvider } from "../modules/modifiers/providers/life-modules.js";
 import { SceneModifiersProvider } from "../modules/modifiers/providers/scene-modifiers.js";
 import { TraitModifiersProvider } from "../modules/modifiers/providers/traits.js";
+import { MachineCriticalsProvider } from "../modules/modifiers/providers/machine-criticals.js";
+import { MachineStateEffectsProvider } from "../modules/modifiers/providers/machine-state-effects.js";
+import { EwTrackingPenaltyProvider } from "../modules/modifiers/providers/ew-tracking-penalty.js";
+import { EwTargetingDataProvider } from "../modules/modifiers/providers/ew-targeting-data.js";
 import { Modifiers } from "./modifiers/anarchy-modifiers.js";
 import { PersonalCombatTracker } from "./combat/personal-combat-tracker.js";
 import { registerMWDChatActions } from "./chat/chat-actions.js";
@@ -45,6 +49,9 @@ import {
 } from "./mwd/life-modules.js";
 import { getSkillDef, listSkillDefs } from "./mwd/skills.js";
 import { HarmEngine } from "./harm/harm-engine.js";
+import { registerTokenStatusHudFilter } from "./dialog/token-status-dialog.js";
+import { HeatFxController } from "./token/heat-fx-controller.js";
+import { configureMWDStatusEffects } from "./status/status-condition-catalog.js";
 import {
   applyTraitMutations,
   buildActionCostTraitFacts,
@@ -58,6 +65,13 @@ import {
   getTraitEditorConfig,
   normalizeQualityTraitSystem,
 } from "./mwd/traits.js";
+import {
+  adjustBattlemechPendingHeat,
+  buildBattlemechHeatModel,
+  recordBattlemechAttackHeat,
+  resolveBattlemechPendingHeat,
+  setBattlemechPendingHeat,
+} from "./mwd/machine-heat.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -203,12 +217,23 @@ export class AnarchySystem {
     game.mwd.attacks = WeaponAttackActions;
     game.mwd.personalCombat = PersonalCombatTracker;
     game.mwd.harm = HarmEngine;
+    game.mwd.machineHeat = {
+      adjustPendingHeat: adjustBattlemechPendingHeat,
+      buildModel: buildBattlemechHeatModel,
+      recordAttackHeat: recordBattlemechAttackHeat,
+      resolvePendingHeat: resolveBattlemechPendingHeat,
+      setPendingHeat: setBattlemechPendingHeat,
+    };
+    game.mwd.tokenHeatFx = new HeatFxController();
+    game.mwd.tokenHeatFx.init();
 
     // Optional alias if you want it under the system object too:
       this.roll = MWDRoll;
       this.attacks = WeaponAttackActions;
       this.personalCombat = PersonalCombatTracker;
       this.harm = HarmEngine;
+      this.machineHeat = game.mwd.machineHeat;
+      this.tokenHeatFx = game.mwd.tokenHeatFx;
     this.skills = createMWDSkillsService();
     this.lifeModules = createMWDLifeModulesService();
     this.traits = createMWDTraitsService();
@@ -231,6 +256,10 @@ export class AnarchySystem {
     modifierProviders.register(burnModifier);
     modifierProviders.register(new LifeModuleModifiersProvider());
     modifierProviders.register(new TraitModifiersProvider());
+    modifierProviders.register(new MachineCriticalsProvider());
+    modifierProviders.register(new MachineStateEffectsProvider());
+    modifierProviders.register(new EwTrackingPenaltyProvider());
+    modifierProviders.register(new EwTargetingDataProvider());
     modifierProviders.register(new SceneModifiersProvider());
 
     //register handlebars helpers early
@@ -253,30 +282,21 @@ export class AnarchySystem {
     this.handlebarsManager = new HandlebarsManager();
     PersonalCombatTracker.init();
     SystemSettings.register();
+    Hooks.on("updateSetting", setting => {
+      if (setting?.key === `${SYSTEM_NAME}.statusConditionCatalog`) configureMWDStatusEffects();
+    });
 
     console.log(LOG_HEAD + 'AnarchySystem.onInit | loading system');
     CONFIG.ANARCHY = MWD;
     //CONFIG.Combat.documentClass = AnarchyCombat;
     CONFIG.Combat.initiative = { formula: "2d6" }
 
-    if (!(CONFIG.statusEffects ?? []).some(effect => effect?.id === "overloaded")) {
-      CONFIG.statusEffects.push({
-        id: "overloaded",
-        name: "Overloaded",
-        icon: "systems/mwd/img/icons/status/surge.svg"
-      });
-    }
-    if (!(CONFIG.statusEffects ?? []).some(effect => effect?.id === "preparedInterrupt")) {
-      CONFIG.statusEffects.push({
-        id: "preparedInterrupt",
-        name: "Prepared",
-        icon: "systems/mwd/img/icons/status/readied_action.svg"
-      });
-    }
+    configureMWDStatusEffects();
     CONFIG.Actor.documentClass = MWDActor;
     CONFIG.Item.documentClass = MWDItem;
     MWDItem.init();
     registerWeaponAttackHotbarHook();
+    registerTokenStatusHudFilter();
 
     // Register sheets (AppV2-only, no appv1 unregisters)
     registerActorSheetsV2();
@@ -292,6 +312,7 @@ export class AnarchySystem {
     console.log(LOG_HEAD + 'AnarchySystem.onReady');
 
     await PersonalCombatTracker.onReady();
+    game.mwd?.tokenHeatFx?.refreshAll?.();
 
     if (!game.user.isGM) return;
 

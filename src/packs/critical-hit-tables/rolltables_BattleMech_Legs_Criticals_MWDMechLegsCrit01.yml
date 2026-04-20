@@ -1,0 +1,349 @@
+{
+  "_id": "MWDMechLegsCrit01",
+  "_key": "!tables!MWDMechLegsCrit01",
+  "name": "BattleMech Criticals: Legs",
+  "img": "icons/svg/d20-black.svg",
+  "description": "<p>Location-specific interpretation of the general machine critical result.</p>",
+  "results": [
+    {
+      "_id": "MechLCrit02",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit02",
+      "type": "text",
+      "text": "Mobility Cascade",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        2,
+        2
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "mobilityCascadeLegs",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2,
+              "condition": "resultingFallImpact"
+            },
+            "escalationKey": "cascade",
+            "statusId": "proneMechFall"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechLCrit03",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit03",
+      "type": "text",
+      "text": "Leg Actuator Lock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        3,
+        3
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "legActuatorLock",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move",
+              "jump"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "lockout",
+            "statusId": "limping"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechLCrit04",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit04",
+      "type": "text",
+      "text": "Myomer Surge",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        4,
+        4
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "myomerSurge",
+            "remedyKey": "coolantDump",
+            "gates": [
+              "move"
+            ],
+            "mods": [],
+            "resourceEffects": {
+              "heatOrStrainOnMove": 1
+            },
+            "pilotDamage": {},
+            "escalationKey": "surge"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechLCrit05",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit05",
+      "type": "text",
+      "text": "Jump Jet / Mobility Feed Fault",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        5,
+        5
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "jumpJetMobilityFeedFault",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move",
+              "jump"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "feed"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechLCrit06",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit06",
+      "type": "text",
+      "text": "Gait Fault",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        6,
+        6
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "gaitFault",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "control",
+            "statusId": "unstable"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechLCrit07",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit07",
+      "type": "text",
+      "text": "Balance Timing Fault",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        7,
+        7
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "balanceTimingFault",
+            "remedyKey": "systemReset",
+            "gates": [
+              "move"
+            ],
+            "mods": [
+              "noMobilityCqBonus"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "desync"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechLCrit08",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit08",
+      "type": "text",
+      "text": "Forced Stability Test",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        8,
+        8
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "forcedStabilityTest",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move",
+              "piloting"
+            ],
+            "mods": [
+              "stabilityCheck"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2,
+              "condition": "resultingFallImpact"
+            },
+            "escalationKey": "shock"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechLCrit09",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit09",
+      "type": "text",
+      "text": "Mobility Overstress",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        9,
+        9
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "mobilityOverstress",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
+            "mods": [],
+            "resourceEffects": {
+              "repeatedMoveCost": 1
+            },
+            "pilotDamage": {},
+            "escalationKey": "overload"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechLCrit10",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit10",
+      "type": "text",
+      "text": "Leg Stabilizer Damage",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        10,
+        10
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "legStabilizerDamage",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
+            "mods": [
+              "advancedManeuverBlocked"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "degradation"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechLCrit11",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit11",
+      "type": "text",
+      "text": "Partial Mobility Outage",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        11,
+        11
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "partialMobilityOutageLegs",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "move"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "outage"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechLCrit12",
+      "_key": "!tables.results!MWDMechLegsCrit01.MechLCrit12",
+      "type": "text",
+      "text": "Legs condition +1",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        12,
+        12
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "legsCriticalBreach",
+            "remedyKey": "none",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "conditionAdvance"
+          }
+        }
+      }
+    }
+  ],
+  "formula": "2d6",
+  "replacement": true,
+  "displayRoll": true,
+  "flags": {
+    "mwd": {
+      "critTable": {
+        "version": 1
+      }
+    }
+  }
+}

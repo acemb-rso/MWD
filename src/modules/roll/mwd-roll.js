@@ -20,6 +20,17 @@ import {
   evaluateTraitPhase,
 } from "../mwd/traits.js";
 import { isPersistentAreaEffect } from "../area-effects/area-effect-engine.js";
+import {
+  applyMachineRemedyOutcome,
+  commitMachineRemedyCost,
+  resolveMachineCritIntentContext,
+} from "../mwd/machine-intents.js";
+import { recordBattlemechAttackHeat } from "../mwd/machine-heat.js";
+import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { getMachineActionDefinition } from "../mwd/machine-action-catalog.js";
+import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
+import { resolveAcquireExecution, resolveTargetingExecution } from "./ew-execution.js";
+import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-state.js";
 
 /**
  * Public roll API.
@@ -172,6 +183,68 @@ async function updateUserTargets(tokenIds = []) {
       ?? canvas?.tokens?.placeables?.find?.(entry => entry?.id === id)
       ?? null;
     token?.setTarget?.(true, { releaseOthers: false, user: game.user });
+  }
+}
+
+function getMachineAttackToken(actor, payload = {}) {
+  const sourceTokenId = String(payload?.sourceTokenId ?? "").trim();
+  if (sourceTokenId) {
+    const direct = canvas?.tokens?.get?.(sourceTokenId)
+      ?? canvas?.tokens?.placeables?.find?.(token => token?.id === sourceTokenId)
+      ?? null;
+    if (direct) return direct.document ?? direct;
+  }
+
+  return actor?.token?.document
+    ?? actor?.token
+    ?? actor?.getActiveTokens?.(true, true)?.[0]?.document
+    ?? actor?.getActiveTokens?.(true, true)?.[0]
+    ?? null;
+}
+
+async function commitMachineAttackAction(actor, payload = {}) {
+  if (!isMachineActor(actor)) return;
+
+  const token = getMachineAttackToken(actor, payload);
+  const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+  if (!snapshot?.hasCombatant) return;
+
+  const cost = getMachineAttackActionCost(actor);
+  const spend = await PersonalCombatTracker.spendResource(actor, {
+    token,
+    resource: "sa",
+    cost: cost.totalCost,
+    actionId: "attack",
+    actionLabel: "Attack",
+    actionCostLabel: `${cost.totalCost} SA`,
+    actionCategory: "complex",
+  });
+  if (!spend?.ok) {
+    ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
+  }
+}
+
+async function commitMachineAction(actor, actionKey = "", payload = {}) {
+  if (!isMachineActor(actor)) return;
+
+  const action = getMachineActionDefinition(actionKey);
+  if (!action?.cost || action?.resource !== "sa") return;
+
+  const token = getMachineAttackToken(actor, payload);
+  const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+  if (!snapshot?.hasCombatant) return;
+
+  const spend = await PersonalCombatTracker.spendResource(actor, {
+    token,
+    resource: action.resource,
+    cost: action.cost,
+    actionId: action.key,
+    actionLabel: action.label,
+    actionCostLabel: `${action.cost} SA`,
+    actionCategory: action.category,
+  });
+  if (!spend?.ok) {
+    ui.notifications?.warn(spend?.reason ?? `Unable to record ${action.label}.`);
   }
 }
 
@@ -345,6 +418,25 @@ async function execute({ actor, payload, event } = {}) {
   const runtime = {
     snapshot: game.mwd?.personalCombat?.getSnapshot?.(actor) ?? null,
   };
+
+  let machineRemedySpend = null;
+  let machineRemedyContext = null;
+  if (ctx.intent === "machineRemedy") {
+    machineRemedyContext = await resolveMachineCritIntentContext(payload, {
+      gmOverride: Boolean(payload?.gmOverride),
+    });
+    if (!machineRemedyContext.ok) {
+      ui.notifications?.warn(machineRemedyContext.reason ?? "Unable to resolve the machine remedy.");
+      return null;
+    }
+
+    machineRemedySpend = await commitMachineRemedyCost(machineRemedyContext);
+    if (!machineRemedySpend?.ok) {
+      ui.notifications?.warn(machineRemedySpend?.reason ?? "Unable to spend the remedy action.");
+      return null;
+    }
+  }
+
   const traitBuildResult = evaluateTraitPhase({
     actor,
     phase: "onBuildRoll",
@@ -449,12 +541,40 @@ async function execute({ actor, payload, event } = {}) {
   }
 
   let attackExecution = null;
+  let machineRemedyResult = null;
   if (ctx.intent === "attack") {
     attackExecution = await resolveAttackExecution({
       attacker: actor,
       ctx,
       outcomeModel
     });
+  } else if (ctx.intent === "machineRemedy") {
+    machineRemedyResult = await applyMachineRemedyOutcome(payload, {
+      gmOverride: Boolean(payload?.gmOverride),
+      passed: Boolean(outcomeModel?.passed),
+    });
+  }
+
+  let ewAcquireResult = null;
+  let ewTargetingResult = null;
+  if (ctx.intent === "acquire") {
+    ewAcquireResult = await resolveAcquireExecution({ attacker: actor, ctx, outcomeModel });
+  }
+  if (ctx.intent === "targeting") {
+    ewTargetingResult = await resolveTargetingExecution({ attacker: actor, ctx, outcomeModel });
+  }
+  if (ctx.intent === "attack" && ctx.attack?.ewContext?.activePacketId) {
+    const attackerToken = getMachineAttackToken(actor, payload);
+    const ewCombatant = getAttackerCombatant(attackerToken);
+    if (ewCombatant) {
+      Hooks.callAll("mwd.beforeTargetingPacketConsume", {
+        attacker: actor,
+        targetTokenUuid: ctx.attack.ewContext.targetTokenUuid,
+        packetId: ctx.attack.ewContext.activePacketId,
+        ctx,
+      });
+      await consumeTargetingPacket(ewCombatant, ctx.attack.ewContext.targetTokenUuid, ctx.attack.ewContext.activePacketId);
+    }
   }
 
   /* --------------------------- */
@@ -479,6 +599,18 @@ async function execute({ actor, payload, event } = {}) {
   if (attackExecution) {
     resolved.attackResult = attackExecution;
   }
+  if (ctx.intent === "machineRemedy") {
+    resolved.machineRemedy = ctx.machineRemedy ?? null;
+    resolved.machineRemedyResult = {
+      ...(machineRemedyResult ?? { ok: false, reason: "Machine remedy result missing." }),
+      spend: machineRemedySpend,
+      context: machineRemedyContext,
+    };
+  }
+  if (ewAcquireResult)   resolved.ewAcquireResult  = ewAcquireResult;
+  if (ewTargetingResult) resolved.ewTargetingResult = ewTargetingResult;
+  if (ctx.acquire)   resolved.acquire   = ctx.acquire;
+  if (ctx.targeting) resolved.targeting = ctx.targeting;
 
   /* --------------------------- */
   /* 8) Render chat             */
@@ -494,6 +626,31 @@ async function execute({ actor, payload, event } = {}) {
         ui.notifications?.warn(`Payload could not be consumed for ${weaponItem.name}.`);
       }
     }
+  }
+
+  if (ctx.intent === "attack" && actor.type === "battlemech") {
+    const weaponIds = Array.from(new Set([
+      ...((ctx?.attack?.weapon?.machineWeaponGroup?.weaponIds ?? []).map(id => String(id ?? "").trim()).filter(Boolean)),
+      ...(payload?.weaponId ? [String(payload.weaponId).trim()] : []),
+    ]));
+    if (weaponIds.length) {
+      try {
+        await recordBattlemechAttackHeat(actor, {
+          weaponIds,
+          reason: "attack resolution",
+        });
+      } catch (error) {
+        console.warn("MWD | Unable to record BattleMech attack heat", error);
+      }
+    }
+  }
+
+  if (ctx.intent === "attack") {
+    await commitMachineAttackAction(actor, payload);
+  } else if (ctx.intent === "acquire") {
+    await commitMachineAction(actor, "acquireTarget", payload);
+  } else if (ctx.intent === "targeting") {
+    await commitMachineAction(actor, "generateFireSolution", payload);
   }
 
   return ChatMessage.create({

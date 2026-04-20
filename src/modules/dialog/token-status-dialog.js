@@ -1,9 +1,17 @@
 // src/modules/dialog/token-status-dialog.js
-// Purpose: Defines function `asTokenDocument`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+// Purpose: Actor-aware token status dialog and status mutation helpers.
+// How it fits: UI emits status intent while the catalog resolves valid actor
+// conditions and ActiveEffects store the token indicators.
 
+import { SYSTEM_NAME } from "../constants.js";
+import {
+  buildStatusInstanceMetadata,
+  getStatusConditionCatalog,
+  getStatusConditionDefinition,
+  isStatusConditionApplicableToActor,
+} from "../status/status-condition-catalog.js";
 
-const MANAGED_STATUS_IDS = new Set(["overloaded"]);
+const MANAGED_STATUS_IDS = new Set(["overloaded", "preparedInterrupt"]);
 
 function asTokenDocument(token) {
   if (!token) return null;
@@ -64,37 +72,108 @@ function getStatusIcon(effect) {
   return "";
 }
 
+function cssEscape(value) {
+  return globalThis.CSS?.escape?.(String(value ?? ""))
+    ?? String(value ?? "").replace(/["\\]/g, "\\$&");
+}
+
+function actorHasBurnOverloadState(actor) {
+  return Object.prototype.hasOwnProperty.call(actor?.system?.burn ?? {}, "overloaded");
+}
+
+function getActorStatusEffect(actor, statusId) {
+  const id = String(statusId ?? "").trim();
+  if (!actor || !id) return null;
+
+  const effects = Array.from(actor.effects?.contents ?? actor.effects ?? []);
+  return effects.find(effect => {
+    if (effect?.statuses?.has?.(id)) return true;
+    if (Array.isArray(effect?.statuses) && effect.statuses.includes(id)) return true;
+    if (effect?.getFlag?.(SYSTEM_NAME, "status")?.id === id) return true;
+    if (effect?.flags?.[SYSTEM_NAME]?.status?.id === id) return true;
+    return String(effect?.statusId ?? effect?.id ?? "").trim() === id;
+  }) ?? null;
+}
+
+export function getStatusInstanceMetadata(actor, statusId) {
+  const effect = getActorStatusEffect(actor, statusId);
+  return effect?.getFlag?.(SYSTEM_NAME, "status")
+    ?? effect?.flags?.[SYSTEM_NAME]?.status
+    ?? null;
+}
+
 export function getCurrentStatusState(actor, statusId) {
-  if (statusId === "overloaded") {
+  if (statusId === "overloaded" && actorHasBurnOverloadState(actor)) {
     return !!actor?.system?.burn?.overloaded || !!actor?.statuses?.has?.(statusId);
   }
   return actor?.statuses?.has?.(statusId) ?? false;
 }
 
+function statusEffectFromCatalogEntry(entry, actor) {
+  const active = getCurrentStatusState(actor, entry.id);
+  const metadata = getStatusInstanceMetadata(actor, entry.id) ?? {};
+  return {
+    id: entry.id,
+    label: entry.label,
+    icon: entry.icon,
+    active,
+    managed: Boolean(entry.managed) || MANAGED_STATUS_IDS.has(entry.id),
+    manual: Boolean(entry.manual),
+    legacy: false,
+    category: entry.category,
+    tags: [...(entry.tags ?? [])],
+    scope: String(metadata.scope ?? "").trim(),
+    notes: String(metadata.notes ?? "").trim(),
+  };
+}
+
+function statusEffectFromConfigOrLegacy(statusId, actor) {
+  const effect = (CONFIG.statusEffects ?? []).find(item => String(item?.id ?? "").trim() === statusId) ?? null;
+  const metadata = getStatusInstanceMetadata(actor, statusId) ?? {};
+  return {
+    id: statusId,
+    label: effect ? getStatusLabel(effect) : humanizeStatusKey(statusId),
+    icon: effect ? getStatusIcon(effect) : "",
+    active: getCurrentStatusState(actor, statusId),
+    managed: false,
+    manual: false,
+    legacy: true,
+    category: "",
+    tags: [],
+    scope: String(metadata.scope ?? "").trim(),
+    notes: String(metadata.notes ?? "").trim(),
+  };
+}
+
 export function getToggleableStatusEffects(actor) {
   const seen = new Set();
+  const catalog = getStatusConditionCatalog();
+  const effects = [];
 
-  return (CONFIG.statusEffects ?? [])
-    .filter(effect => {
-      const statusId = String(effect?.id ?? "").trim();
-      if (!statusId || seen.has(statusId)) return false;
-      seen.add(statusId);
-      return true;
-    })
-    .map(effect => {
-      const statusId = String(effect.id).trim();
-      return {
-        id: statusId,
-        label: getStatusLabel(effect),
-        icon: getStatusIcon(effect),
-        active: getCurrentStatusState(actor, statusId),
-        managed: MANAGED_STATUS_IDS.has(statusId)
-      };
-    })
-    .sort((left, right) => {
-      if (left.active !== right.active) return left.active ? -1 : 1;
-      return left.label.localeCompare(right.label);
-    });
+  for (const entry of catalog) {
+    const statusId = String(entry?.id ?? "").trim();
+    if (!statusId || seen.has(statusId)) continue;
+
+    const active = getCurrentStatusState(actor, statusId);
+    const applicable = isStatusConditionApplicableToActor(entry, actor);
+    if (!active && (!applicable || !entry.manual)) continue;
+
+    seen.add(statusId);
+    effects.push(statusEffectFromCatalogEntry(entry, actor));
+  }
+
+  for (const statusId of Array.from(actor?.statuses ?? [])) {
+    const id = String(statusId ?? "").trim();
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    effects.push(statusEffectFromConfigOrLegacy(id, actor));
+  }
+
+  return effects.sort((left, right) => {
+    if (left.active !== right.active) return left.active ? -1 : 1;
+    if (left.legacy !== right.legacy) return left.legacy ? 1 : -1;
+    return left.label.localeCompare(right.label);
+  });
 }
 
 function buildDialogContent(effects) {
@@ -113,13 +192,26 @@ function buildDialogContent(effects) {
       ? `<small style="opacity: 0.7;">Managed by system state</small>`
       : "";
 
+    const legacyHint = effect.legacy
+      ? `<small style="opacity: 0.7;">Legacy / uncataloged</small>`
+      : "";
+
     return `
-      <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.2rem 0;">
-        <input type="checkbox" name="status" value="${escapeHtml(effect.id)}" ${checked} />
-        ${statusIcon}
-        <span style="flex: 1 1 auto;">${escapeHtml(effect.label)}</span>
-        ${managedHint}
-      </label>
+      <div class="mwd-token-status-dialog__row" data-status-id="${escapeHtml(effect.id)}" style="display: grid; gap: 0.2rem; padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <label style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="checkbox" name="status.${escapeHtml(effect.id)}.active" value="1" ${checked} />
+          ${statusIcon}
+          <span style="flex: 1 1 auto;">${escapeHtml(effect.label)}</span>
+          ${managedHint}
+          ${legacyHint}
+        </label>
+        ${effect.legacy ? "" : `
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem; padding-left: 1.85rem;">
+            <input type="text" name="status.${escapeHtml(effect.id)}.scope" value="${escapeHtml(effect.scope ?? "")}" placeholder="Scope" />
+            <input type="text" name="status.${escapeHtml(effect.id)}.notes" value="${escapeHtml(effect.notes ?? "")}" placeholder="Notes" />
+          </div>
+        `}
+      </div>
     `;
   }).join("");
 
@@ -134,27 +226,92 @@ function buildDialogContent(effects) {
 }
 
 async function applyStatusSelection({ actor, effects, selectedStatusIds }) {
-  const selected = new Set(selectedStatusIds);
+  const selected = new Map(selectedStatusIds.map(entry => [entry.id, entry]));
 
   for (const effect of effects) {
-    const isSelected = selected.has(effect.id);
-    await applyManagedStatusUpdate({ actor, statusId: effect.id, active: isSelected });
+    const selectedEntry = selected.get(effect.id);
+    const isSelected = Boolean(selectedEntry?.active);
+    await applyManagedStatusUpdate({
+      actor,
+      statusId: effect.id,
+      active: isSelected,
+      metadata: selectedEntry?.metadata ?? {},
+    });
   }
 }
 
-export async function applyManagedStatusUpdate({ actor, statusId, active }) {
+async function updateStatusEffectMetadata(actor, statusId, metadata = {}) {
+  const entry = getStatusConditionDefinition(statusId);
+  if (!entry) return false;
+
+  const effect = getActorStatusEffect(actor, statusId);
+  if (!effect) return false;
+
+  const normalizedMetadata = buildStatusInstanceMetadata({
+    actor,
+    statusId,
+    metadata,
+    catalogEntry: entry,
+  });
+  const update = { [`flags.${SYSTEM_NAME}.status`]: normalizedMetadata };
+
+  if (typeof effect.update === "function") {
+    await effect.update(update);
+    return true;
+  }
+
+  if (effect.id && typeof actor.updateEmbeddedDocuments === "function") {
+    await actor.updateEmbeddedDocuments("ActiveEffect", [{ _id: effect.id, ...update }]);
+    return true;
+  }
+
+  return false;
+}
+
+export async function applyManagedStatusUpdate({ actor, statusId, active, metadata = {} }) {
   if (!actor || !statusId) return false;
 
   const isActive = getCurrentStatusState(actor, statusId);
-  if (Boolean(active) === isActive) return false;
+  if (Boolean(active) === isActive) {
+    if (active) return updateStatusEffectMetadata(actor, statusId, metadata);
+    return false;
+  }
 
-  if (statusId === "overloaded") {
+  const entry = getStatusConditionDefinition(statusId);
+  const applicable = entry ? isStatusConditionApplicableToActor(entry, actor) : false;
+  if (active && entry && !applicable) return false;
+
+  if (statusId === "overloaded" && actorHasBurnOverloadState(actor)) {
     await actor.update({ "system.burn.overloaded": Boolean(active) });
     return true;
   }
 
   await actor.toggleStatusEffect(statusId, { active: Boolean(active), overlay: false });
+  if (active) await updateStatusEffectMetadata(actor, statusId, metadata);
   return true;
+}
+
+function readStatusSelectionFromForm(form) {
+  const byId = new Map();
+  const rows = Array.from(form?.querySelectorAll?.("[data-status-id]") ?? []);
+
+  for (const row of rows) {
+    const id = String(row?.dataset?.statusId ?? "").trim();
+    if (!id) continue;
+
+    const escapedId = cssEscape(id);
+    const active = Boolean(row.querySelector(`input[name="status.${escapedId}.active"]`)?.checked);
+    const scope = String(row.querySelector(`input[name="status.${escapedId}.scope"]`)?.value ?? "").trim();
+    const notes = String(row.querySelector(`input[name="status.${escapedId}.notes"]`)?.value ?? "").trim();
+
+    byId.set(id, {
+      id,
+      active,
+      metadata: { scope, notes },
+    });
+  }
+
+  return Array.from(byId.values());
 }
 
 export async function openTokenStatusDialog({ actor, token } = {}) {
@@ -183,9 +340,7 @@ export async function openTokenStatusDialog({ actor, token } = {}) {
         default: true,
         callback: async (_event, button) => {
           try {
-            const selectedStatusIds = Array.from(
-              button.form?.querySelectorAll('input[name="status"]:checked') ?? []
-            ).map(element => element.value);
+            const selectedStatusIds = readStatusSelectionFromForm(button.form);
 
             await applyStatusSelection({ actor: actorWriteTarget, effects, selectedStatusIds });
             return true;
@@ -204,5 +359,42 @@ export async function openTokenStatusDialog({ actor, token } = {}) {
       }
     ],
     close: () => false
+  });
+}
+
+export function registerTokenStatusHudFilter() {
+  if (typeof Hooks === "undefined") return;
+
+  Hooks.on("renderTokenHUD", (_app, html, data = {}) => {
+    const tokenId = data?._id ?? data?.id ?? "";
+    const token = canvas?.tokens?.get?.(tokenId) ?? null;
+    const actor = token?.actor ?? null;
+    if (!actor) return;
+
+    const catalog = getStatusConditionCatalog();
+    const byId = new Map(catalog.map(entry => [entry.id, entry]));
+    const isJQuery = typeof jQuery !== "undefined" && html instanceof jQuery;
+    const root = isJQuery ? html[0] : html;
+    if (!(root instanceof HTMLElement)) return;
+
+    const controls = root.querySelectorAll("[data-status-id], [data-statusId], [data-effect-id]");
+    for (const control of controls) {
+      const statusId = String(
+        control.dataset?.statusId
+        ?? control.dataset?.statusid
+        ?? control.dataset?.effectId
+        ?? ""
+      ).trim();
+      if (!statusId) continue;
+
+      const entry = byId.get(statusId);
+      if (!entry) continue;
+
+      const active = getCurrentStatusState(actor, statusId);
+      if (!active && !isStatusConditionApplicableToActor(entry, actor)) {
+        control.hidden = true;
+        control.style.display = "none";
+      }
+    }
   });
 }

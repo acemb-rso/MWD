@@ -3,8 +3,32 @@
 // How it fits: Serves as the base vehicle-scale V2 sheet and the reuse target for BattleMech sheets.
 
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
+import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
+import { getActiveMachineCrits } from "../mwd/critical-hits.js";
+import { getMachineCritRemedy } from "../mwd/machine-crit-remedies.js";
+import { buildMachineEwPanel, resolveMachineEwActionTarget } from "../mwd/machine-ew-panel.js";
+import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
+import { describeMachineCriticalEffect } from "../mwd/machine-crit-effects.js";
+import {
+  getMachineConditionLabel,
+  getMachineConditionModifier,
+  getMachineDegradationLocationPriority,
+  getMachineReliabilityThreshold,
+  normalizeMachineDegradationState,
+} from "../mwd/machine-degradation.js";
+import {
+  buildMachineDegradationEffectSummary,
+  getMachineMovementEffects,
+  getMachineRuleState,
+} from "../mwd/machine-state-effects.js";
+import { getMachineLocationLabel } from "../mwd/machine-hit-locations.js";
+import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
+import { buildMachineMovementFields, buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
+import { getSkillDef } from "../mwd/skills.js";
+import { notifyRollError } from "../roll/roll-errors.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
+import { SelectActor } from "../dialog/select-actor.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -42,11 +66,31 @@ function startCase(value = "") {
 
 function buildSummaryStats(stats = []) {
   return stats
-    .filter(stat => stat && stat.value !== undefined && stat.value !== null && String(stat.value).trim() !== "")
+    .map(stat => {
+      const data = stat ?? {};
+      return {
+        ...data,
+        label: String(data.label ?? "").trim(),
+        value: String(data.value ?? "").trim(),
+        emphasis: data.emphasis ?? "",
+        title: String(data.title ?? "").trim(),
+        tone: String(data.tone ?? "").trim(),
+        parts: Array.isArray(data.parts)
+          ? data.parts
+            .filter(part => part && part.value !== undefined && part.value !== null && String(part.value).trim() !== "")
+            .map(part => ({
+              label: String(part.label ?? "").trim(),
+              value: String(part.value ?? "").trim(),
+              tone: String(part.tone ?? "").trim(),
+              title: String(part.title ?? "").trim(),
+            }))
+          : [],
+      };
+    })
+    .filter(stat => stat.value !== "" || stat.parts.length)
     .map(stat => ({
-      label: String(stat.label ?? "").trim(),
-      value: String(stat.value ?? "").trim(),
-      emphasis: stat.emphasis ?? ""
+      ...stat,
+      hasParts: stat.parts.length > 0,
     }));
 }
 
@@ -79,7 +123,7 @@ const VEHICLE_ATTRIBUTE_LABELS = Object.freeze({
   handling: "Handling",
   system: "System",
   chassis: "Chassis",
-  condition: "Condition",
+  reliability: "Reliability",
 });
 
 const ITEM_TYPE_LABELS = Object.freeze({
@@ -93,6 +137,40 @@ const ITEM_TYPE_LABELS = Object.freeze({
   quality: "Trait",
   skill: "Skill",
 });
+
+const DEGRADATION_LAYOUTS = Object.freeze({
+  battlemech: Object.freeze({
+    artPath: "systems/mwd/img/mek/misc/repair/location_mek.png",
+    mode: "silhouette",
+    positions: Object.freeze({
+      head: Object.freeze({ top: "9%", left: "50%" }),
+      torso: Object.freeze({ top: "40%", left: "50%" }),
+      arms: Object.freeze({ top: "34%", left: "18%" }),
+      legs: Object.freeze({ top: "75%", left: "50%" }),
+    }),
+  }),
+  vehicle: Object.freeze({
+    artPath: "",
+    mode: "schematic",
+    positions: Object.freeze({
+      front: Object.freeze({ top: "13%", left: "50%" }),
+      side: Object.freeze({ top: "40%", left: "18%" }),
+      turret: Object.freeze({ top: "33%", left: "50%" }),
+      core: Object.freeze({ top: "57%", left: "50%" }),
+      rear: Object.freeze({ top: "83%", left: "50%" }),
+      rotor: Object.freeze({ top: "17%", left: "79%" }),
+    }),
+  }),
+});
+
+function getDegradationTone({ condition = 0, destroyed = false, stress = 0 } = {}) {
+  if (destroyed) return "dark-red";
+  if (Number(condition ?? 0) >= 4) return "red";
+  if (Number(condition ?? 0) >= 3) return "orange";
+  if (Number(condition ?? 0) >= 2) return "yellow";
+  if (Number(stress ?? 0) > 0) return "green";
+  return "";
+}
 
 export class VehicleSheetV2 extends BaseActorSheetV2 {
   static LAYOUT_ID = "vehicle";
@@ -115,8 +193,16 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       editOwnedItem: VehicleSheetV2.prototype._onEditOwnedItem,
       deleteOwnedItem: VehicleSheetV2.prototype._onDeleteOwnedItem,
       toggleInventoryAccordion: VehicleSheetV2.prototype._onToggleInventoryAccordion,
+      machineWeaponAttack: VehicleSheetV2.prototype._onMachineWeaponAttack,
+      ewAcquire: VehicleSheetV2.prototype._onEwAcquire,
+      ewTarget: VehicleSheetV2.prototype._onEwTarget,
+      toggleStatuses: VehicleSheetV2.prototype._onToggleStatuses,
+      machineCritRemedy: VehicleSheetV2.prototype._onMachineCritRemedy,
+      assignPilot: VehicleSheetV2.prototype._onAssignPilot,
+      removePilot: VehicleSheetV2.prototype._onRemovePilot,
+      openPilot: VehicleSheetV2.prototype._onOpenPilot,
     }
-  });
+  }, { inplace: false });
 
   #expandedInventoryRows = new Set();
 
@@ -126,29 +212,117 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     ctx.layout = await LayoutRegistry.get(this.constructor.LAYOUT_ID ?? VehicleSheetV2.LAYOUT_ID);
     ctx.vehicleSheet = {
       summaryStats: this._buildSummaryStats(),
+      summaryActions: this._buildSummaryActions(),
       alerts: this._buildAlerts(),
+      statusAction: {
+        label: "Statuses",
+        disabled: !this._resolveStatusToken(this.getPersistentActor() ?? this.actor),
+        reason: "Statuses require a token for this actor on the current scene.",
+      },
+      ewPanel: this._buildEwPanel(),
+      activeCrits: this._buildActiveCrits(),
       attributes: this._buildAttributeCards(),
+      movement: this._buildMovementCards(),
+      degradation: this._buildDegradationPanel(),
       sections: this._buildVehicleSections(),
+      pilotPanel: await this._buildPilotPanel(),
     };
     ctx.conditionMonitors = this._buildConditionMonitors();
     return ctx;
   }
 
+  async _buildPilotPanel() {
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const pilotUuid = String(actor.system?.pilot?.uuid ?? "").trim();
+    let pilotActor = null;
+    if (pilotUuid) {
+      try { pilotActor = await fromUuid(pilotUuid); } catch (_) {}
+    }
+    return {
+      uuid: pilotUuid,
+      linked: !!pilotActor,
+      name: pilotActor?.name ?? null,
+      id: pilotActor?.id ?? null,
+      canEdit: !!this.isEditable,
+    };
+  }
+
+  async _onAssignPilot(event, target) {
+    if (!this.isEditable) return;
+    const characters = (game.actors?.contents ?? []).filter(a => a.type === "character");
+    if (!characters.length) {
+      ui.notifications?.warn("No character actors found in this world.");
+      return;
+    }
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    await SelectActor.selectActor(
+      "Assign Pilot",
+      characters,
+      async (actor) => actorWriteTarget.update({ "system.pilot.uuid": actor.uuid }),
+    );
+  }
+
+  async _onRemovePilot(event, target) {
+    if (!this.isEditable) return;
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    await actorWriteTarget.update({ "system.pilot.uuid": "" });
+  }
+
+  async _onOpenPilot(event, target) {
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const uuid = String(actor.system?.pilot?.uuid ?? "").trim();
+    if (!uuid) return;
+    const pilot = await fromUuid(uuid).catch(() => null);
+    if (pilot) pilot.sheet.render(true, { focus: true });
+  }
+
+  async _onDrop(event) {
+    if (!this.isEditable) return super._onDrop?.(event);
+    let data;
+    try { data = TextEditor.getDragEventData(event); } catch (_) {}
+    if (data?.type === "Actor") {
+      const dropped = await fromUuid(data.uuid).catch(() => null);
+      if (dropped?.type === "character") {
+        const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+        await actorWriteTarget.update({ "system.pilot.uuid": dropped.uuid });
+        return;
+      }
+    }
+    return super._onDrop?.(event);
+  }
+
   _buildSummaryStats() {
     const attributes = this.actor.system?.attributes ?? {};
     const structure = this.actor.system?.monitors?.structure ?? {};
+    const movementParts = buildMachineMovementSummaryParts({
+      actorType: this.actor.type,
+      movement: this.actor.system?.movement,
+      legacyMoves: this.actor.system?.moves,
+      jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
+    });
 
     return buildSummaryStats([
       { label: "Handling", value: toNumber(attributes.handling?.value, 0), emphasis: "strong" },
+      { label: "Move", parts: movementParts },
       { label: "System", value: toNumber(attributes.system?.value, 0) },
       { label: "Chassis", value: toNumber(attributes.chassis?.value, 0) },
-      { label: "Condition", value: toNumber(attributes.condition?.value, 0) },
+      { label: "Reliability", value: toNumber(attributes.reliability?.value ?? attributes.condition?.value, 0) },
       { label: "Structure", value: `${toNumber(structure.value, 0)} / ${toNumber(structure.max, 0)}` },
     ]);
   }
 
   _buildAlerts() {
     return [];
+  }
+
+  _buildSummaryActions() {
+    return [];
+  }
+
+  _buildEwPanel() {
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const token = this._resolveStatusToken(actor);
+    return buildMachineEwPanel({ actor, token });
   }
 
   _buildAttributeCards() {
@@ -161,27 +335,79 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     }));
   }
 
+  _buildMovementCards() {
+    return buildMachineMovementFields({
+      actorType: this.actor.type,
+      movement: this.actor.system?.movement,
+      legacyMoves: this.actor.system?.moves,
+      editing: this.editing,
+      jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
+    });
+  }
+
+  _buildDegradationPanel() {
+    const normalizedSystem = normalizeMachineDegradationState(
+      foundry.utils.deepClone(this.actor.system ?? {}),
+      this.actor.type,
+    );
+    const attributes = normalizedSystem.attributes ?? {};
+    const mwd = normalizedSystem.mwd ?? {};
+    const reliability = toNumber(attributes.reliability?.value ?? attributes.condition?.value, 0);
+    const threshold = getMachineReliabilityThreshold(reliability);
+    const shock = toNumber(mwd.shock?.value, 0);
+    const spendable = toNumber(mwd.reliabilitySpendable?.value, reliability);
+    const machineState = getMachineRuleState(this.actor);
+    const movementEffects = getMachineMovementEffects(this.actor);
+    const layout = DEGRADATION_LAYOUTS[this.actor.type] ?? DEGRADATION_LAYOUTS.vehicle;
+    const priority = getMachineDegradationLocationPriority(this.actor.type);
+    const entries = Object.entries(mwd.locations ?? {}).sort(([leftKey], [rightKey]) => {
+      const leftIndex = priority.indexOf(leftKey);
+      const rightIndex = priority.indexOf(rightKey);
+      const safeLeft = leftIndex >= 0 ? leftIndex : Number.MAX_SAFE_INTEGER;
+      const safeRight = rightIndex >= 0 ? rightIndex : Number.MAX_SAFE_INTEGER;
+      if (safeLeft !== safeRight) return safeLeft - safeRight;
+      return String(leftKey).localeCompare(String(rightKey));
+    });
+    const locations = entries.map(([key, location]) => {
+      const conditionValue = toNumber(location?.condition, 0);
+      const stress = toNumber(location?.stress, 0);
+      const destroyed = Boolean(location?.destroyed);
+      const tone = getDegradationTone({ condition: conditionValue, destroyed, stress });
+      const position = layout.positions[key] ?? { top: "50%", left: "50%" };
+      return {
+        key,
+        label: getMachineLocationLabel(key),
+        stress,
+        conditionValue,
+        conditionLabel: getMachineConditionLabel(conditionValue),
+        conditionModifier: getMachineConditionModifier(conditionValue),
+        destroyed,
+        effectSummary: buildMachineDegradationEffectSummary(this.actor.type, key, location),
+        enabled: location?.enabled !== false,
+        tone,
+        style: `--pin-top:${position.top}; --pin-left:${position.left};`,
+        stressLabel: stress > 0 ? `Stress ${stress}` : "Stress 0",
+      };
+    });
+
+    return {
+      mode: layout.mode,
+      artPath: layout.artPath,
+      reliability,
+      spendable,
+      shock,
+      threshold,
+      summaryEffects: machineState.effectTexts ?? [],
+      movementEffects,
+      locations,
+    };
+  }
+
   _buildConditionMonitors() {
     const structure = this.actor.system?.monitors?.structure ?? this.actor.system?.mwd?.monitors?.structure ?? {};
-    return [{
-      id: "structure",
-      label: "Structure",
-      kind: "wound",
-      editable: Boolean(this.isEditable),
-      value: Math.max(0, toNumber(structure.value, 0)),
-      max: Math.max(0, toNumber(structure.max, 0)),
-      segments: Array.from({ length: Math.max(0, toNumber(structure.max, 0)) }, (_, index) => {
-        const segmentValue = index + 1;
-        return {
-          value: segmentValue,
-          filled: segmentValue <= Math.max(0, toNumber(structure.value, 0)),
-        };
-      }),
-      status: {
-        label: "Resist",
-        value: toNumber(structure.resistance, 0),
-      }
-    }];
+    return [
+      buildRemainingMonitorTrack({ id: "structure", label: "Structure", kind: "structure", monitor: structure, editable: this.isEditable }),
+    ];
   }
 
   _buildVehicleSections() {
@@ -242,6 +468,12 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         { label: "AP", value: toNumber(profile.ap, 0) },
         { label: "Type", value: profile.damageTypeLabel ?? profile.damageType ?? "" },
       ])
+      : canonicalType === "assetModule" && system?.mobility?.jumping?.enabled
+        ? buildSummaryStats([
+          { label: "Type", value: itemTypeLabel },
+          { label: "Jump", value: toNumber(system.mobility.jumping.movement, 0), emphasis: "strong" },
+          { label: "Heat", value: toNumber(system.mobility.jumping.heat, 0) },
+        ])
       : buildSummaryStats([
         { label: "Type", value: itemTypeLabel },
         ...(quantity !== undefined ? [{ label: "Qty", value: toNumber(quantity, 0) }] : []),
@@ -252,6 +484,14 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         { label: "Category", value: profile.category ?? system.weaponCategory ?? system.category ?? "" },
         { label: "Range", value: formatRangeSummary(profile.range) },
       ])
+      : canonicalType === "assetModule" && system?.mobility?.jumping?.enabled
+        ? buildDetailRows([
+          { label: "Category", value: system.category ?? itemTypeLabel },
+          { label: "Heat", value: toNumber(system.mobility.jumping.heat, 0) },
+          { label: "AR Bonus", value: toNumber(system.mobility.jumping.attackRatingBonus, 0) },
+          { label: "DR Bonus", value: toNumber(system.mobility.jumping.defenseRatingBonus, 0) },
+          { label: "DFA", value: system.mobility.jumping.dfaEnabled ? "Enabled" : "Disabled" },
+        ])
       : buildDetailRows([
         { label: "Category", value: system.category ?? itemTypeLabel },
         { label: "Quantity", value: quantity !== undefined ? toNumber(quantity, 0) : "" },
@@ -268,6 +508,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       detailTags: buildDetailTags([
         system.equipped ? "Equipped" : "",
         system.isPrimary ? "Primary" : "",
+        system.mobility?.jumping?.enabled ? "Jumping" : "",
         system.weaponCategory ?? system.category ?? "",
       ]),
       detailRows,
@@ -275,6 +516,12 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       equipped: Boolean(system.equipped),
       isPrimary: Boolean(system.isPrimary),
       canAdjustQuantity: false,
+      machineAttack: ["mechWeapon", "vehicleWeapon"].includes(canonicalType)
+        ? {
+          label: "Attack",
+          itemId: item?.id ?? "",
+        }
+        : null,
     };
   }
 
@@ -339,6 +586,154 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     this.render({ force: false });
   }
 
+  _buildActiveCrits() {
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const degradation = this._buildDegradationPanel();
+    const locationIndex = new Map((degradation.locations ?? []).map(location => [location.key, location]));
+    return getActiveMachineCrits(actor).map(crit => {
+      const remedy = getMachineCritRemedy(crit.remedyKey);
+      const effect = describeMachineCriticalEffect(crit);
+      const location = locationIndex.get(String(crit.locationKey ?? "").trim()) ?? null;
+      const remedySkillKey = String(crit.remedySkillKey ?? remedy.skillKey ?? "").trim();
+      const remedySkillLabel = getSkillDef(remedySkillKey)?.label ?? startCase(remedySkillKey);
+      const remedyDn = toNumber(crit.remedyBaseDn ?? remedy.baseDn, 0) + toNumber(location?.conditionModifier ?? 0, 0);
+      return {
+        id: crit.id,
+        label: crit.label ?? startCase(crit.key),
+        locationLabel: crit.locationLabel ?? startCase(crit.locationKey),
+        detail: compactList([
+          effect.statusLabel ? `Status: ${effect.statusLabel}` : "",
+          effect.scopeSummary,
+          effect.automationMode === "engine" ? "Automated" : "Reminder Only",
+          crit.escalationKey ? `Escalates: ${crit.escalationKey}` : "",
+        ]).join(" | "),
+        effectSummary: effect.effectText,
+        remedyLabel: remedy.label,
+        remedySummary: remedySkillLabel
+          ? `Reliability + ${remedySkillLabel} vs DN ${remedyDn}${location ? ` (${location.conditionLabel})` : ""}`
+          : "",
+        remedyKey: remedy.key,
+        remediable: remedy.remediable !== false,
+        machineActorUuid: actor?.uuid ?? "",
+      };
+    });
+  }
+
+  async _onToggleStatuses(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (target?.dataset?.actionDisabled === "true") {
+      ui.notifications?.warn(target?.dataset?.actionReason || "Statuses are not available right now.");
+      return false;
+    }
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const token = this._resolveStatusToken(actorWriteTarget);
+    if (!token) {
+      ui.notifications?.warn("Statuses require a token for this actor on the current scene.");
+      return false;
+    }
+
+    return openTokenStatusDialog({
+      actor: actorWriteTarget,
+      token,
+    });
+  }
+
+  async _onMachineWeaponAttack(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const itemId = String(target?.dataset?.itemId ?? "").trim();
+    const item = itemId ? actor.items?.get?.(itemId) : null;
+    if (!item) {
+      ui.notifications?.warn("That weapon is no longer available.");
+      return false;
+    }
+
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) {
+      ui.notifications?.error("MWD roll system not initialized.");
+      return false;
+    }
+
+    const token = this._resolveStatusToken(actor);
+    const result = await rollApi.execute({
+      actor,
+      payload: {
+        intent: "attack",
+        weaponId: item.id,
+        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
+        tags: ["combat", "attack", "machine"],
+        sourceTokenId: token?.id ?? null,
+      },
+      event,
+    });
+
+    if (result) {
+      return true;
+    }
+
+    return Boolean(result);
+  }
+
+  async _onMachineCritRemedy(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const machineActor = this.getPersistentActor() ?? this.actor;
+    const request = await prepareMachineRemedyRoll({
+      machineActorUuid: target?.dataset?.machineActorUuid ?? machineActor.uuid,
+      critId: target?.dataset?.critId ?? "",
+      remedyKey: target?.dataset?.remedyKey ?? "",
+    }, {
+      gmOverride: Boolean(game.user?.isGM),
+    });
+
+    if (!request.ok) {
+      ui.notifications?.warn(request.reason ?? "Unable to launch that machine remedy.");
+      return false;
+    }
+
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) {
+      ui.notifications?.error("MWD roll system not initialized.");
+      return false;
+    }
+
+    await rollApi.execute({
+      actor: request.actor,
+      payload: request.payload,
+      event,
+    });
+    return true;
+  }
+
+  async _onEwAcquire(event, _target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    return this.#launchMachineEwIntent("acquire", event);
+  }
+
+  async _onEwTarget(event, _target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    return this.#launchMachineEwIntent("targeting", event);
+  }
+
+  _resolveStatusToken(actor = this.actor) {
+    return this.getSheetTokenDocument?.()
+      ?? actor?.token?.document
+      ?? actor?.token
+      ?? actor?.getActiveTokens?.(true, true)?.[0]?.document
+      ?? actor?.getActiveTokens?.(true, true)?.[0]
+      ?? Array.from(canvas?.tokens?.placeables ?? [])
+        .find(token => token?.actor?.id && token.actor.id === actor?.id)?.document
+      ?? null;
+  }
+
   #getOwnedItemFromTarget(target, event) {
     const itemId = String(
       target?.dataset?.itemId
@@ -349,5 +744,39 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
     if (!itemId) return null;
     return this.actor.items.get(itemId) ?? null;
+  }
+
+  async #launchMachineEwIntent(intent, event) {
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const token = this._resolveStatusToken(actor);
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) return false;
+
+    const panel = buildMachineEwPanel({ actor, token });
+    const targetRow = resolveMachineEwActionTarget(panel, intent);
+    if (!targetRow) {
+      const verb = intent === "targeting" ? "generate targeting data" : "acquire";
+      ui.notifications?.warn(`No targeted token is ready to ${verb}.`);
+      return false;
+    }
+
+    try {
+      await rollApi.execute({
+        actor,
+        payload: {
+          intent,
+          sourceTokenId: token?.id ?? null,
+          targetTokenId: targetRow.targetTokenId,
+          targetTokenUuid: targetRow.targetTokenUuid,
+        },
+        event,
+      });
+      return true;
+    } catch (error) {
+      console.error(`MWD | Failed to launch EW ${intent}`, error);
+      const label = intent === "targeting" ? "targeting" : "acquire";
+      notifyRollError(error, `Unable to launch ${label} roll.`);
+      return false;
+    }
   }
 }

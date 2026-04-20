@@ -2,6 +2,8 @@
 // Purpose: Enhances attack roll cards with CQ, outcome, and damage details.
 // How it fits: Keeps attack presentation as a pure render step over resolved engine data.
 
+import { buildMachineCriticalChatSummary } from "../../mwd/machine-crit-effects.js";
+
 export function enhanceAttack(resolved, vm) {
   const r = resolved ?? {};
   const attackResult = r?.attackResult ?? null;
@@ -14,6 +16,13 @@ export function enhanceAttack(resolved, vm) {
     result?.queuedMutation && !result.queuedMutation.applied
   );
   const isAreaEffect = Boolean(r?.attack?.capabilityReport?.isTemplated);
+
+  const ewCtx = r?.attack?.ewContext ?? null;
+  if (ewCtx?.contactState && ewCtx.contactState !== "contact") {
+    const ewParts = [`EW: ${ewCtx.contactStateLabel ?? ewCtx.contactState}`];
+    if (ewCtx.targetingDataValue) ewParts.push(`+${ewCtx.targetingDataValue} targeting`);
+    vm.metaRows.push({ text: ewParts.join(" | "), title: "" });
+  }
 
   const modsApplied = Array.isArray(r?.modifiers?.applied) ? r.modifiers.applied : [];
   const modTotal = Number(r?.modifiers?.total ?? 0);
@@ -173,6 +182,80 @@ export function enhanceAttack(resolved, vm) {
       if (damageResult?.ok && !damageResult?.skipped) {
         const queuedMutation = result?.queuedMutation ?? damageResult?.queuedMutation ?? null;
         const isApplied = Boolean(queuedMutation?.applied || damageResult?.applied);
+        if (damageResult.mode === "machineAttackDamage") {
+          const machine = damageResult.machine ?? {};
+          const hitLocation = damageResult.hitLocation ?? {};
+          const degradation = damageResult.degradation ?? null;
+          vm.footerRows.push({
+            text: `${result?.target?.name ?? "Target"}: Location ${hitLocation.locationLabel ?? "Location"}${hitLocation.rollTotal ? ` (${hitLocation.rollTotal})` : ""} | Armor ${Number(machine.armorBefore ?? 0)} -> ${Number(machine.armorAfter ?? 0)} | Structure ${Number(machine.structureBefore ?? 0)} -> ${Number(machine.structureAfter ?? 0)}`,
+            title: ""
+          });
+          if (degradation?.summary) {
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Shock ${Number(degradation.summary.shockBefore ?? 0)} -> ${Number(degradation.summary.shockAfter ?? 0)} | Threshold ${Number(degradation.summary.threshold ?? 0)} | Reliability ${Number(degradation.summary.reliability ?? 0)} | Reserve ${Number(degradation.summary.reliabilitySpendableBefore ?? 0)} -> ${Number(degradation.summary.reliabilitySpendableAfter ?? 0)}`,
+              title: ""
+            });
+          }
+          if (damageResult.critical?.automatic) {
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Automatic critical pending`,
+              title: ""
+            });
+          } else if (damageResult.critical?.optional) {
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Chaos Edge can convert this location hit to a critical`,
+              title: ""
+            });
+          } else {
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Location hit is descriptive only`,
+              title: ""
+            });
+          }
+          for (const crit of damageResult.critical?.records ?? []) {
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Critical - ${crit.label}${crit.locationLabel ? ` (${crit.locationLabel})` : ""} | ${buildMachineCriticalChatSummary(crit)}`,
+              title: ""
+            });
+            if (isApplied && crit.active !== false && crit.remedyKey !== "none") {
+              vm.actions.push({
+                action: "machineCritRemedy",
+                label: `Remedy: ${crit.label}`,
+                dataset: {
+                  "machine-actor-uuid": result?.target?.actorUuid ?? "",
+                  "crit-id": crit.id,
+                  "remedy-key": crit.remedyKey,
+                  "gm-override": "true"
+                },
+                cssClass: "mwd-machine-crit-remedy"
+              });
+            }
+          }
+          if (queuedMutation && !isApplied && Array.isArray(degradation?.spendOpportunities)) {
+            for (const opportunity of degradation.spendOpportunities) {
+              if (!opportunity?.canSpend) continue;
+              vm.actions.push({
+                action: "toggleMachineReliabilitySpend",
+                label: opportunity.selected
+                  ? `Clear Reliability Spend: ${opportunity.location}`
+                  : `Spend Reliability: ${opportunity.location}`,
+                dataset: {
+                  "result-index": String(index),
+                  "spend-index": String(opportunity.index),
+                },
+                cssClass: `mwd-toggle-machine-reliability ${opportunity.selected ? "is-active" : ""}`
+              });
+            }
+          }
+        }
+        if (queuedMutation && !isApplied && damageResult?.critical?.optional) {
+          vm.actions.push({
+            action: "toggleMachineChaosCrit",
+            label: queuedMutation.payload?.chaosCriticalSelected ? `Clear Chaos Critical: ${damageResult.actorName ?? result?.target?.name ?? "Target"}` : `Spend Chaos Edge: ${damageResult.actorName ?? result?.target?.name ?? "Target"}`,
+            dataset: { "result-index": String(index) },
+            cssClass: `mwd-toggle-machine-chaos ${queuedMutation.payload?.chaosCriticalSelected ? "is-active" : ""}`
+          });
+        }
         if (queuedMutation && !isApplied) {
           vm.actions.push({
             action: "applyAttackDamage",

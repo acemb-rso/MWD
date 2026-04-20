@@ -1,0 +1,363 @@
+{
+  "_id": "MWDMechHeadCrit01",
+  "_key": "!tables!MWDMechHeadCrit01",
+  "name": "BattleMech Criticals: Head",
+  "img": "icons/svg/d20-black.svg",
+  "description": "<p>Location-specific interpretation of the general machine critical result.</p>",
+  "results": [
+    {
+      "_id": "MechHCrit02",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit02",
+      "type": "text",
+      "text": "Cockpit Shock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        2,
+        2
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "cockpitShock",
+            "remedyKey": "none",
+            "gates": [
+              "sensor"
+            ],
+            "mods": [
+              "sensorBlind"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 3
+            },
+            "escalationKey": "cascade"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechHCrit03",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit03",
+      "type": "text",
+      "text": "Targeting Processor Lock",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        3,
+        3
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "targetingProcessorLock",
+            "remedyKey": "reboot",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {
+              "extraAttackCost": 1
+            },
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2
+            },
+            "escalationKey": "lockout",
+            "effectText": "All fire modes require +1 SA to attack.",
+            "automationMode": "engine"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechHCrit04",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit04",
+      "type": "text",
+      "text": "Neural Feedback",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        4,
+        4
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "neuralFeedback",
+            "remedyKey": "systemReset",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "fatigue",
+              "amount": 1
+            },
+            "escalationKey": "surge",
+            "statusId": "staggeredMechanical"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechHCrit05",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit05",
+      "type": "text",
+      "text": "Optics Coolant Fog / View Obstruction",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        5,
+        5
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "opticsCoolantFog",
+            "remedyKey": "systemReset",
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "rangeLimitClose"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "feed"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechHCrit06",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit06",
+      "type": "text",
+      "text": "Command Input Delay",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        6,
+        6
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "commandInputDelay",
+            "remedyKey": "reboot",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "fatigue",
+              "amount": 2
+            },
+            "escalationKey": "control",
+            "statusId": "stalled"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechHCrit07",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit07",
+      "type": "text",
+      "text": "Fire-Control Desync",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        7,
+        7
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "fireControlDesyncHead",
+            "remedyKey": "systemReset",
+            "gates": [
+              "attack"
+            ],
+            "mods": [
+              "noCqBonus"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "desync"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechHCrit08",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit08",
+      "type": "text",
+      "text": "Cockpit Impact",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        8,
+        8
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "cockpitImpact",
+            "remedyKey": "pilotRecovery",
+            "gates": [
+              "piloting"
+            ],
+            "mods": [
+              "stabilityCheck"
+            ],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2
+            },
+            "escalationKey": "shock",
+            "statusId": "unstable"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechHCrit09",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit09",
+      "type": "text",
+      "text": "Sensor Overload",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        9,
+        9
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "sensorOverload",
+            "remedyKey": "systemReset",
+            "gates": [
+              "sensor"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "fatigue",
+              "amount": 2
+            },
+            "escalationKey": "overload",
+            "effectText": "Contacts are capped at Track until repaired.",
+            "automationMode": "callout"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechHCrit10",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit10",
+      "type": "text",
+      "text": "Optics Fracture",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        10,
+        10
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "opticsFracture",
+            "remedyKey": "emergencyRepair",
+            "gates": [
+              "attack"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "degradation",
+            "effectText": "All targets are treated as Obscured until repaired.",
+            "automationMode": "callout"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechHCrit11",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit11",
+      "type": "text",
+      "text": "Communications / Sensor Suite Out",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        11,
+        11
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "commsSensorSuiteOut",
+            "remedyKey": "systemReset",
+            "gates": [
+              "sensor"
+            ],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {},
+            "escalationKey": "outage",
+            "effectText": "No sensor or ECM actions may be taken until repaired.",
+            "automationMode": "callout"
+          }
+        }
+      }
+    },
+    {
+      "_id": "MechHCrit12",
+      "_key": "!tables.results!MWDMechHeadCrit01.MechHCrit12",
+      "type": "text",
+      "text": "Head condition +1",
+      "img": "icons/svg/d20-black.svg",
+      "weight": 1,
+      "range": [
+        12,
+        12
+      ],
+      "drawn": false,
+      "flags": {
+        "mwd": {
+          "crit": {
+            "key": "headCriticalBreach",
+            "remedyKey": "none",
+            "gates": [],
+            "mods": [],
+            "resourceEffects": {},
+            "pilotDamage": {
+              "track": "physical",
+              "amount": 2
+            },
+            "escalationKey": "conditionAdvance"
+          }
+        }
+      }
+    }
+  ],
+  "formula": "2d6",
+  "replacement": true,
+  "displayRoll": true,
+  "flags": {
+    "mwd": {
+      "critTable": {
+        "version": 1
+      }
+    }
+  }
+}

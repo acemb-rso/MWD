@@ -3,8 +3,6 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { CHECKBARS, Checkbars } from "./common/checkbars.js";
-import { ANARCHY } from "./config.js";
 import { LOG_HEAD, SYSTEM_NAME } from "./constants.js";
 
 export const ANARCHY_HOOKS = {
@@ -33,39 +31,17 @@ export const ANARCHY_HOOKS = {
    * Hook allowing to provide alternate way to apply damages for Anarchy hack modules
    */
   PROVIDE_DAMAGE_MODE: 'anarchy-provideDamageMode',
-  /**
-   * Hook allowing to provide alternate anarchy hack (TODO: document)
-   */
-  ANARCHY_HACK: 'anarchy-hack',
 }
 
 const ANARCHY_HOOK_PREFIX = 'anarchy-';
-const SETTING_KEY_ANARCHY_HACK = `${SYSTEM_NAME}.${ANARCHY_HOOKS.ANARCHY_HACK}`;
 
-const SHADOWRUN_ANARCHY_NO_HACK = {
-  id: SYSTEM_NAME,
-  name: 'Standard Shadowrun Anarchy',
-  hack: {
-    checkbars: () => CHECKBARS
-  }
-};
-
-// export hooks and settings for JS hacks
+// export hooks for JS modules
 globalThis.ANARCHY_HOOKS = ANARCHY_HOOKS;
-globalThis.SETTING_KEY_ANARCHY_HACK = SETTING_KEY_ANARCHY_HACK;
-globalThis.SHADOWRUN_ANARCHY_NO_HACK = SHADOWRUN_ANARCHY_NO_HACK;
 
 export class HooksManager {
 
   constructor() {
     this.hooks = [];
-    this.hacks = {};
-    this.hackNames = {};
-    this.hookMethods = {}
-    this._register(ANARCHY_HOOKS.ANARCHY_HACK);
-    Hooks.on(ANARCHY_HOOKS.ANARCHY_HACK, register => register(SHADOWRUN_ANARCHY_NO_HACK));
-    Hooks.on('updateSetting', async (setting, update, options, id) => this.onUpdateSetting(setting, update, options, id));
-    Hooks.once('ready', () => this.onReady());
     Hooks.on("getSceneControlButtons", (controls) => {
       if (!game.user?.isGM) return;
 
@@ -93,57 +69,6 @@ export class HooksManager {
         onChange: () => game.mwd?.gmGadget?.()
       };
     });
-  }
-
-  async onReady() {
-    Hooks.callAll(ANARCHY_HOOKS.ANARCHY_HACK, (hack) => {
-      this.hacks[hack.id] = hack;
-      this.hackNames[hack.id] = hack.name;
-    });
-    game.settings.register(SYSTEM_NAME, ANARCHY_HOOKS.ANARCHY_HACK, {
-      scope: "world",
-      name: ANARCHY.settings.anarchyHack.name,
-      hint: ANARCHY.settings.anarchyHack.hint,
-      config: true,
-      default: SHADOWRUN_ANARCHY_NO_HACK.id,
-      choices: this.hackNames,
-      type: String
-    });
-    this.applySelectedAnarchyHack();
-  }
-
-  async onUpdateSetting(setting, update, options, id) {
-    if (setting.key == SETTING_KEY_ANARCHY_HACK) {
-      this.applySelectedAnarchyHack();
-    }
-  }
-
-  applySelectedAnarchyHack() {
-    const selectedHack = this.getSelectedHack();
-    if (selectedHack) {
-      Checkbars.hackCheckbars(selectedHack.hack.checkbars());
-    }
-  }
-
-  selectHookMethod(selectedHack, hookMethod) {
-    Hooks.callAll(hookMethod, (hack, callback) => {
-      if (hack == selectedHack) {
-        this.hookMethods[hookMethod] = callback
-      }
-    });
-  }
-
-  getSelectedHack() {
-    return this.hacks[game.settings.get(SYSTEM_NAME, ANARCHY_HOOKS.ANARCHY_HACK)];
-  }
-
-  getHookMethod(hookMethod, fallback) {
-    return this.hookMethods[hookMethod] ?? fallback;
-  }
-
-  callHookMethod(hookMethod, ...args) {
-    const method = this.hookMethods[hookMethod];
-    return method ? method(...args) : undefined;
   }
 
   static instance() {

@@ -10,7 +10,7 @@
     "css": "sass --watch src/styles/mwd.scss:styles/mwd.css"
   },
   "devDependencies": {
-    "@foundryvtt/foundryvtt-cli": "^1.0.3",
+    "@foundryvtt/foundryvtt-cli": "^3.0.3",
     "@league-of-foundry-developers/foundry-vtt-types": "^9.280.0",
     "nodemon": "^3.1.2",
     "sass": "^1.97.1",

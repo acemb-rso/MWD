@@ -25,7 +25,7 @@ export class NpcSheetV2 extends BaseActorSheetV2 {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       classes: ["npc-sheet", SYSTEM_NAME, "actor-sheet-v2"],
       position: { width: 920, height: 860 }
-    });
+    }, { inplace: false });
   }
 
   async _prepareContext(options) {

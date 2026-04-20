@@ -10,6 +10,11 @@ import { VehicleActor } from "./vehicle-actor.js";
 import { formatString } from "../strings.js";
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 import { getSkillDef } from "../mwd/skills.js";
+import {
+  getMachineHeatStatusLabel,
+} from "../mwd/heat-state.js";
+import { buildBattlemechHeatModel } from "../mwd/machine-heat.js";
+import { buildBattlemechMobilityModel } from "../mwd/battlemech-mobility.js";
 
 export class BattlemechActor extends VehicleActor {
 
@@ -21,8 +26,10 @@ export class BattlemechActor extends VehicleActor {
     super.prepareDerivedData();
 
     this.system.mwd = this.system.mwd ?? {};
+    this.system.mwd.model = this.system.mwd.model ?? "";
     this.system.mwd.chassis = this.system.mwd.chassis ?? '';
     this.system.mwd.tonnage = this.system.mwd.tonnage ?? 0;
+    this.system.mwd.mobility = buildBattlemechMobilityModel(this);
     this.system.mwd.loadout = new BattlemechLoadout(this).compute();
     this.system.mwd.weaponGroupDetails = this._prepareConfiguredWeaponGroups();
     this.system.mwd.heat = this._prepareHeatTrack();
@@ -33,7 +40,8 @@ export class BattlemechActor extends VehicleActor {
     this.system.meleeProfiles = this._prepareMeleeProfiles();
     this.system.quickActions = {
       primaryWeaponGroup: this.system.weaponGroups.find(group => group.isPrimary),
-      hasSensorSweep: Boolean(this.system.skills.perception || this.system.skills.technician)
+      hasSensorSweep: Boolean(this.system.skills.perception || this.system.skills.technician),
+      jumping: this.system.mwd.mobility?.jumping ?? null,
     }
   }
 
@@ -81,12 +89,6 @@ export class BattlemechActor extends VehicleActor {
     });
   }
 
-  async rollDodge() {
-    await this._rollQuickSkill(this.system.skills.piloting, {
-      quickAction: { title: ANARCHY.actor.vehicle.quickActions.dodgeCheck }
-    });
-  }
-
   async rollPilotingCheck() {
     await this._rollQuickSkill(this.system.skills.piloting, {
       quickAction: { title: ANARCHY.actor.vehicle.quickActions.pilotingCheck }
@@ -131,44 +133,37 @@ export class BattlemechActor extends VehicleActor {
 
   _prepareHeatTrack() {
     const systemData = this.system ?? {};
-    const heatMonitor = systemData.monitors?.heat ?? { value: 0, max: 0 };
-    const mwdHeat = systemData.mwd?.heat ?? {};
-
-    const defaults = {
-      current: heatMonitor.value ?? 0,
-      max: heatMonitor.max ?? 0,
+    const prepared = buildBattlemechHeatModel(systemData);
+    const heat = foundry.utils.mergeObject(systemData.mwd?.heat ?? {}, {
+      current: prepared.current,
+      max: prepared.max,
+      dissipation: prepared.dissipation,
+      effectiveDissipation: prepared.effectiveDissipation,
+      coolingImpaired: prepared.coolingImpaired,
+      pendingGenerated: prepared.pendingGenerated,
       thresholds: {
-        runningHot: 2,
-        overheated: 3,
-        shutdown: 4,
-      }
-    };
+        runningHot: prepared.thresholds.runningHot,
+        overheated: prepared.thresholds.overheated,
+        shutdown: prepared.thresholds.shutdown,
+      },
+      penalties: {
+        movementPenalty: prepared.penalties.movementPenalty,
+        rangedDicePenalty: prepared.penalties.rangedDicePenalty,
+        dangerLevel: prepared.penalties.dangerLevel,
+      },
+      statusCode: prepared.statusCode,
+      status: prepared.status,
+      inDanger: prepared.inDanger,
+      volatile: prepared.volatile,
+    }, { inplace: false });
 
-    const heat = foundry.utils.mergeObject(defaults, mwdHeat, { inplace: false });
-    heat.thresholds = foundry.utils.mergeObject(defaults.thresholds, mwdHeat.thresholds ?? {}, { inplace: false });
-    heat.current = heatMonitor.value ?? heat.current;
-    heat.max = heatMonitor.max ?? heat.max;
-
-    const status = this._resolveHeatStatus(heat.current, heat.thresholds, heat.max);
+    const status = prepared.statusCode;
     this.system.mwd.heatStatus = {
       code: status,
-      label: ANARCHY.actor.battlemech.heat.status[status] ?? status
+      label: ANARCHY.actor.battlemech.heat.status[status] ?? getMachineHeatStatusLabel(status)
     };
 
     return heat;
-  }
-
-  _resolveHeatStatus(value, thresholds, max) {
-    if (value >= (thresholds?.shutdown ?? max)) {
-      return 'shutdown';
-    }
-    if (value >= (thresholds?.overheated ?? max)) {
-      return 'overheated';
-    }
-    if (value >= (thresholds?.runningHot ?? 0)) {
-      return 'runningHot';
-    }
-    return 'safe';
   }
 
   _prepareConfiguredWeaponGroups() {

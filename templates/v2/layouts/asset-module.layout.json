@@ -7,6 +7,14 @@
     "children": [
       {
         "type": "panel",
+        "title": "Module Profile",
+        "classes": ["mwd-item-section"],
+        "children": [
+          { "type": "include", "partial": "mwd.v2.item.parts.asset-module-main" }
+        ]
+      },
+      {
+        "type": "panel",
         "title": "Notes and Reference",
         "classes": ["mwd-item-section"],
         "children": [

@@ -172,6 +172,38 @@
   flex: 1 1 auto;
 }
 
+.mwd-sheet.actor-sheet-v2 .sheet-header .mwd-sheet__title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-header .mwd-sheet__subtitle {
+  min-height: 1.25rem;
+  font-family: var(--mwd-font-ui);
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: rgba(236, 225, 197, 0.92);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-header .mwd-sheet__subtitle input[name="system.mwd.model"] {
+  width: 100%;
+  min-width: 0;
+  padding: 0.14rem 0.5rem 0.18rem;
+  font-family: var(--mwd-font-ui);
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
 .mwd-sheet.actor-sheet-v2 .sheet-header input[name="name"] {
   width: 100%;
   min-width: 0;

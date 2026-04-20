@@ -1,0 +1,68 @@
+{{!--
+templates/v2/ui/character/assigned-mech.hbs
+Purpose: Shows assigned mech(s) condition summary and quick combat actions on the "Assigned Systems" tab.
+How it fits: Replaces the placeholder in the "Assigned Systems" tab of the character V2 sheet.
+--}}
+
+<div class="mwd-assigned-mech">
+  {{#if assignedMech.hasMech}}
+    {{#each assignedMech.mechs as |mech|}}
+      <div class="mwd-assigned-mech__entry">
+
+        {{!-- Header --}}
+        <div class="mwd-assigned-mech__header">
+          <div class="mwd-assigned-mech__title">
+            <span class="mwd-assigned-mech__type-label">{{mech.typeLabel}}</span>
+            {{#if mech.weightLabel}}
+              <span class="mwd-assigned-mech__weight">{{mech.weightLabel}}</span>
+            {{/if}}
+            <span class="mwd-assigned-mech__name">{{mech.name}}</span>
+          </div>
+          <button
+            type="button"
+            class="mwd-assigned-mech__open-btn"
+            data-action="openAssignedMech"
+            data-mech-id="{{mech.id}}"
+            title="Open {{mech.name}}"
+          >
+            <i class="fa-solid fa-robot"></i> Open Sheet
+          </button>
+        </div>
+
+        {{!-- Summary stats --}}
+        <section class="mwd-item-hero mwd-assigned-mech__summary">
+          {{#each mech.summaryStats as |stat|}}
+            <div class="mwd-item-hero__stat">
+              <span class="mwd-item-hero__label">{{stat.label}}</span>
+              <span class="mwd-item-hero__value{{#if stat.emphasis}} mwd-item-hero__value--{{stat.emphasis}}{{/if}}">{{stat.value}}</span>
+            </div>
+          {{/each}}
+        </section>
+
+{{!-- Quick combat actions --}}
+        {{#if mech.quickActions.length}}
+          <section class="mwd-assigned-mech__actions mwd-item-hero">
+            {{#each mech.quickActions as |action|}}
+              <button
+                type="button"
+                class="mwd-item-hero__stat mwd-item-hero__stat--button{{#if action.disabled}} is-disabled{{else}} is-action{{/if}}"
+                data-action="{{action.handler}}"
+                {{{mwd-dataset action.dataset}}}
+                {{#if action.disabled}}disabled{{/if}}
+              >
+                <span class="mwd-item-hero__label">{{action.label}}</span>
+                <span class="mwd-item-hero__value">{{action.hint}}</span>
+              </button>
+            {{/each}}
+          </section>
+        {{/if}}
+
+      </div>
+    {{/each}}
+  {{else}}
+    <div class="mwd-assigned-mech__empty">
+      <em>No mech or vehicle assigned.</em>
+      <p class="mwd-hint">Assign a pilot on a BattleMech or Vehicle sheet to link this character.</p>
+    </div>
+  {{/if}}
+</div>

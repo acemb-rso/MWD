@@ -13,8 +13,11 @@ import { resolveDefense } from "./resolve-defense.js";
 import { resolveResistance } from "./resolve-resistance.js";
 import { resolveInitiative} from "./resolve-initiative.js";
 import { resolveOverload } from "./resolve-overload.js";
+import { resolveMachineRemedy } from "./resolve-machine-remedy.js";
+import { resolveAcquire } from "./resolve-acquire.js";
+import { resolveTargeting } from "./resolve-targeting.js";
 
-// Registry: adding a roll is “data entry”
+// Registry: adding a roll is "data entry"
 const RESOLVERS = {
   skill: resolveSkill,
   edge: resolveEdge,
@@ -24,7 +27,12 @@ const RESOLVERS = {
   defense: resolveDefense,
   resistance: resolveResistance,
   initiative: resolveInitiative,
-  overload: resolveOverload
+  overload: resolveOverload,
+  machineRemedy: resolveMachineRemedy,
+  acquire: resolveAcquire,
+  acquireTarget: resolveAcquire,
+  targeting: resolveTargeting,
+  generateFireSolution: resolveTargeting,
 };
 
 export async function resolveIntent({ actor, payload, event } = {}) {

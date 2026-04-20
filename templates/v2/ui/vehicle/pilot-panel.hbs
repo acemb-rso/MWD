@@ -1,0 +1,33 @@
+{{!--
+templates/v2/ui/vehicle/pilot-panel.hbs
+Purpose: Displays the assigned pilot/driver for a vehicle or BattleMech, with controls to assign, open, or remove.
+How it fits: Included in the Systems tab of both the vehicle and battlemech V2 sheets.
+--}}
+
+<div class="mwd-pilot-panel">
+  {{#if vehicleSheet.pilotPanel.linked}}
+    <div class="mwd-pilot-panel__linked">
+      <span class="mwd-pilot-panel__name">{{vehicleSheet.pilotPanel.name}}</span>
+      <button type="button" data-action="openPilot" title="Open pilot sheet">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+      </button>
+      {{#if vehicleSheet.pilotPanel.canEdit}}
+        <button type="button" data-action="removePilot" title="Remove pilot">
+          <i class="fa-solid fa-user-minus"></i> Remove
+        </button>
+      {{/if}}
+    </div>
+  {{else}}
+    <div class="mwd-pilot-panel__empty">
+      <em>No pilot assigned.</em>
+      {{#if vehicleSheet.pilotPanel.canEdit}}
+        <button type="button" data-action="assignPilot">
+          <i class="fa-solid fa-user-plus"></i> Assign Pilot
+        </button>
+      {{/if}}
+    </div>
+  {{/if}}
+  {{#if vehicleSheet.pilotPanel.canEdit}}
+    <p class="mwd-hint">Drop a character actor here to assign as pilot.</p>
+  {{/if}}
+</div>

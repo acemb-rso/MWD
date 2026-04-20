@@ -31,6 +31,13 @@
               },
               {
                 "type": "panel",
+                "title": "Electronic Warfare",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.ew-panel" }
+                ]
+              },
+              {
+                "type": "panel",
                 "title": "Weapon Groups",
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.battlemech.weapon-groups" }
@@ -69,6 +76,13 @@
               },
               {
                 "type": "panel",
+                "title": "Movement",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.movement-grid" }
+                ]
+              },
+              {
+                "type": "panel",
                 "title": "Structure",
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.condition-monitors" }
@@ -76,9 +90,30 @@
               },
               {
                 "type": "panel",
+                "title": "Criticals",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.active-crits" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Degradation",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.degradation-grid" }
+                ]
+              },
+              {
+                "type": "panel",
                 "title": "Heat",
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.battlemech.heat-track" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Pilot",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.pilot-panel" }
                 ]
               }
             ]
