@@ -87,7 +87,7 @@ test("EW panel exposes Contact targets as acquire-ready but not targeting-ready"
     tokenId: "attacker-token",
     ewState: {
       [target.document.uuid]: {
-        contactState: "contact",
+        detectionState: "contact",
         packets: [],
       },
     },
@@ -98,7 +98,7 @@ test("EW panel exposes Contact targets as acquire-ready but not targeting-ready"
 
   assert.equal(panel.canAcquireAny, true);
   assert.equal(panel.canTargetAny, false);
-  assert.equal(row.contactState, "contact");
+  assert.equal(row.detectionState, "contact");
   assert.equal(row.canAcquire, true);
   assert.equal(row.canTarget, false);
   assert.equal(row.acquireHint, "Acquire can upgrade to Track.");
@@ -116,7 +116,7 @@ test("EW panel shows capped targeting data and penalties for Track targets", () 
     tokenId: "attacker-token",
     ewState: {
       [target.document.uuid]: {
-        contactState: "track",
+        detectionState: "track",
         packets: [{ id: "packet-1", value: 5, consumed: false }],
       },
     },
@@ -158,7 +158,7 @@ test("EW panel keeps blind targets informational only and lock targets optimized
     tokenId: "attacker-token",
     ewState: {
       [lockTarget.document.uuid]: {
-        contactState: "lock",
+        detectionState: "lock",
         packets: [],
       },
     },

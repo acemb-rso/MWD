@@ -518,6 +518,7 @@ export const MWD = {
 
     "mechWeapon": {
       "category": "Weapon Category",
+      "size": "Size",
       "hardpoint": "Hardpoint",
       "damage": "Damage Value",
       "damageType": "Damage Type",
@@ -735,11 +736,13 @@ export const MWD = {
 
     "hardpoint": {
       "type": {
-        "ballistic": "Ballistic",
+        "penetrating": "Penetrating",
+        "concussive": "Concussive",
         "energy": "Energy",
-        "missile": "Missile",
-        "special": "Special",
-        "melee": "Melee"
+        "thermal": "Thermal",
+        "electrical": "Electrical",
+        "support": "Support",
+        "omni": "Omni"
       },
       "size": {
         "small": "Small",
@@ -749,9 +752,29 @@ export const MWD = {
       "location": {
         "head": "Head",
         "torso": "Torso",
-        "arm": "Arm",
-        "leg": "Leg"
+        "arms": "Arms",
+        "turret": "Turret"
       }
+    },
+    "hardpointType": {
+      "penetrating": "Penetrating",
+      "concussive": "Concussive",
+      "energy": "Energy",
+      "thermal": "Thermal",
+      "electrical": "Electrical",
+      "support": "Support",
+      "omni": "Omni"
+    },
+    "hardpointSize": {
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large"
+    },
+    "hardpointLocation": {
+      "head": "Head",
+      "torso": "Torso",
+      "arms": "Arms",
+      "turret": "Turret"
     },
 
     "primarySlot": {

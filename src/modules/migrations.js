@@ -34,9 +34,43 @@ import {
   getMachineDefaultLocations,
   normalizeMachineDegradationState,
 } from "./mwd/machine-degradation.js";
+import { normalizeMachineWeaponSize } from "./mwd/machine-hardpoints.js";
 
 function forcedDeletion() {
   return foundry.data.operators.ForcedDeletion;
+}
+
+function normalizeLegacyHardpointType(value, fallback = "energy") {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (!normalized) return fallback;
+
+  if (["penetrating", "concussive", "energy", "thermal", "electrical", "support", "omni"].includes(normalized)) {
+    return normalized;
+  }
+  if (normalized === "ballistic") return "penetrating";
+  if (normalized === "missile") return "concussive";
+  if (normalized === "special") return "support";
+  return fallback;
+}
+
+function normalizeLegacyHardpointLocation(value, { actorType = "", fallback = "" } = {}) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  const defaultLocation = actorType === TEMPLATE.actorTypes.vehicle ? "turret" : (fallback || "arms");
+  if (!normalized) return defaultLocation;
+  if (normalized === "turret") return "turret";
+  if (["head", "cockpit"].includes(normalized)) return "head";
+  if (["torso", "body", "core", "center"].includes(normalized)) return "torso";
+  if (normalized === "arm" || normalized === "arms" || normalized.includes("arm")) return "arms";
+  return defaultLocation;
+}
+
+function normalizeMachineHardpointData(hardpoint, { actorType = "" } = {}) {
+  const next = foundry.utils.deepClone(hardpoint ?? {});
+  next.type = normalizeLegacyHardpointType(next.type, "energy");
+  next.size = normalizeMachineWeaponSize(next.size ?? "small");
+  next.location = normalizeLegacyHardpointLocation(next.location, { actorType });
+  next.itemId = String(next.itemId ?? "").trim();
+  return next;
 }
 
 export const DECLARE_MIGRATIONS = 'anarchy-declareMigration';
@@ -427,20 +461,22 @@ class _13_2_3_AddBattlemechLoadout extends Migration {
   get code() { return 'migrate-mwd-battlemech-loadout' }
 
   async migrate() {
-    const mechs = game.actors.filter(it => it.type === TEMPLATE.actorTypes.battlemech);
-    for (const actor of mechs) {
+    const machines = game.actors.filter(it => [TEMPLATE.actorTypes.battlemech, TEMPLATE.actorTypes.vehicle].includes(it.type));
+    for (const actor of machines) {
       const updates = {};
-      this._ensure(actor, updates, 'system.mwd.weightClass', 'medium');
       this._ensure(actor, updates, 'system.mwd.hardpoints', []);
-      this._ensure(actor, updates, 'system.mwd.weaponGroups', []);
-      this._ensure(actor, updates, 'system.mwd.primarySlot.mode', 'normal');
-      this._ensure(actor, updates, 'system.mwd.primarySlot.allowedWeaponIds', []);
-      this._ensure(actor, updates, 'system.mwd.primarySlot.typeRestriction', '');
-      this._ensure(actor, updates, 'system.mwd.melee.baseProfile.name', 'Unarmed');
-      this._ensure(actor, updates, 'system.mwd.melee.baseProfile.damage', '');
-      this._ensure(actor, updates, 'system.mwd.melee.baseProfile.notes', '');
-      this._ensure(actor, updates, 'system.mwd.melee.maxWeapons', 0);
-      this._ensure(actor, updates, 'system.mwd.melee.allowedLocations', []);
+      if (actor.type === TEMPLATE.actorTypes.battlemech) {
+        this._ensure(actor, updates, 'system.mwd.weightClass', 'medium');
+        this._ensure(actor, updates, 'system.mwd.weaponGroups', []);
+        this._ensure(actor, updates, 'system.mwd.primarySlot.mode', 'normal');
+        this._ensure(actor, updates, 'system.mwd.primarySlot.allowedWeaponIds', []);
+        this._ensure(actor, updates, 'system.mwd.primarySlot.typeRestriction', '');
+        this._ensure(actor, updates, 'system.mwd.melee.baseProfile.name', 'Unarmed');
+        this._ensure(actor, updates, 'system.mwd.melee.baseProfile.damage', '');
+        this._ensure(actor, updates, 'system.mwd.melee.baseProfile.notes', '');
+        this._ensure(actor, updates, 'system.mwd.melee.maxWeapons', 0);
+        this._ensure(actor, updates, 'system.mwd.melee.allowedLocations', []);
+      }
       if (Object.keys(updates).length > 0) {
         await actor.update(updates);
       }
@@ -475,9 +511,7 @@ class _13_2_3_AddBattlemechLoadout extends Migration {
   _collectWeaponUpdates(item) {
     const updates = {};
     this._ensureItem(item, updates, 'system.weaponCategory', 'ranged');
-    this._ensureItem(item, updates, 'system.hardpointType', 'energy');
-    this._ensureItem(item, updates, 'system.hardpointSize', 'small');
-    this._ensureItem(item, updates, 'system.mountLocation', '');
+    this._ensureItem(item, updates, 'system.size', 'small');
     return updates;
   }
 
@@ -798,6 +832,103 @@ class _13_11_0_MachineReliabilityAndShock extends Migration {
   }
 }
 
+class _13_12_0_NormalizeMachineHardpointVocabulary extends Migration {
+  get version() { return "13.12.0"; }
+  get code() { return "normalize-machine-hardpoint-vocabulary"; }
+
+  async migrate() {
+    const machineTypes = [TEMPLATE.actorTypes.vehicle, TEMPLATE.actorTypes.battlemech];
+    const machineActors = game.actors.filter(actor => machineTypes.includes(actor.type));
+
+    for (const actor of machineActors) {
+      const actorUpdates = {};
+      const currentHardpoints = Array.from(actor.system?.mwd?.hardpoints ?? []);
+      const normalizedHardpoints = currentHardpoints.map(hardpoint =>
+        normalizeMachineHardpointData(hardpoint, { actorType: actor.type })
+      );
+
+      if (!foundry.utils.deepEqual(currentHardpoints, normalizedHardpoints)) {
+        actorUpdates["system.mwd.hardpoints"] = normalizedHardpoints;
+      }
+
+      if (Object.keys(actorUpdates).length > 0) {
+        await actor.update(actorUpdates);
+      }
+    }
+  }
+}
+
+class _13_13_0_MoveMachineMountStateToHardpoints extends Migration {
+  get version() { return "13.13.0"; }
+  get code() { return "move-machine-mount-state-to-hardpoints"; }
+
+  async migrate() {
+    const machineActors = game.actors.filter(actor =>
+      [TEMPLATE.actorTypes.vehicle, TEMPLATE.actorTypes.battlemech].includes(actor.type)
+    );
+
+    for (const actor of machineActors) {
+      const hardpoints = Array.from(actor.system?.mwd?.hardpoints ?? []).map(hardpoint => ({
+        ...foundry.utils.deepClone(hardpoint ?? {}),
+        itemId: String(hardpoint?.itemId ?? "").trim(),
+      }));
+      let hardpointsChanged = false;
+      const embeddedItemUpdates = actor.items
+        .filter(item => (item.canonicalType ?? item.type) === TEMPLATE.itemType.mechWeapon)
+        .map(item => {
+          const update = { _id: item.id };
+          const legacyHardpointId = String(item.system?.hardpointId ?? "").trim();
+          if (legacyHardpointId) {
+            const hardpoint = hardpoints.find(entry => String(entry?.id ?? "").trim() === legacyHardpointId);
+            if (hardpoint && !String(hardpoint.itemId ?? "").trim()) {
+              hardpoint.itemId = item.id;
+              hardpointsChanged = true;
+            }
+          }
+
+          const normalizedSize = normalizeMachineWeaponSize(item.system?.size ?? item.system?.hardpointSize ?? "small");
+          if (item.system?.size !== normalizedSize) {
+            update["system.size"] = normalizedSize;
+          }
+          if (item.system?.hardpointId !== undefined) update["system.hardpointId"] = forcedDeletion();
+          if (item.system?.hardpointType !== undefined) update["system.hardpointType"] = forcedDeletion();
+          if (item.system?.hardpointSize !== undefined) update["system.hardpointSize"] = forcedDeletion();
+          if (item.system?.mountLocation !== undefined) update["system.mountLocation"] = forcedDeletion();
+
+          return update;
+        })
+        .filter(update => Object.keys(update).length > 1);
+
+      if (hardpointsChanged) {
+        await actor.update({ "system.mwd.hardpoints": hardpoints });
+      }
+      if (embeddedItemUpdates.length > 0) {
+        await actor.updateEmbeddedDocuments("Item", embeddedItemUpdates);
+      }
+    }
+
+    const worldItemUpdates = game.items
+      .filter(item => (item.canonicalType ?? item.type) === TEMPLATE.itemType.mechWeapon)
+      .map(item => {
+        const update = { _id: item.id };
+        const normalizedSize = normalizeMachineWeaponSize(item.system?.size ?? item.system?.hardpointSize ?? "small");
+        if (item.system?.size !== normalizedSize) {
+          update["system.size"] = normalizedSize;
+        }
+        if (item.system?.hardpointId !== undefined) update["system.hardpointId"] = forcedDeletion();
+        if (item.system?.hardpointType !== undefined) update["system.hardpointType"] = forcedDeletion();
+        if (item.system?.hardpointSize !== undefined) update["system.hardpointSize"] = forcedDeletion();
+        if (item.system?.mountLocation !== undefined) update["system.mountLocation"] = forcedDeletion();
+        return update;
+      })
+      .filter(update => Object.keys(update).length > 1);
+
+    if (worldItemUpdates.length > 0) {
+      await Item.updateDocuments(worldItemUpdates);
+    }
+  }
+}
+
 class _13_8_0_StandardGearTraitsAndAmmo extends Migration {
   get version() { return "13.8.0"; }
   get code() { return "standard-gear-traits-and-ammo"; }
@@ -1030,6 +1161,8 @@ export class Migrations {
       new _13_9_0_PayloadArchitecture(),
       new _13_10_0_PersonalWeaponCapabilityModelV1(),
       new _13_11_0_MachineReliabilityAndShock(),
+      new _13_12_0_NormalizeMachineHardpointVocabulary(),
+      new _13_13_0_MoveMachineMountStateToHardpoints(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

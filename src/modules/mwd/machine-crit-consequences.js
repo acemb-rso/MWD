@@ -3,6 +3,8 @@
 // How it fits: Keeps crit consequence normalization dependency-free so engine,
 // chat, sheets, and crit storage can all share one authority.
 
+import { getMachineHardpointByItemId } from "./machine-hardpoints.js";
+
 function startCase(value = "") {
   return String(value ?? "")
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
@@ -75,7 +77,7 @@ function groupMatchesLocationFamily(group = {}, actor = null, locationFamily = "
   const family = normalizeMachineMountLocationFamily(locationFamily);
   if (!family) return false;
   return getMachineWeaponsForGroup(actor, group).some(weapon =>
-    normalizeMachineMountLocationFamily(weapon?.system?.mountLocation) === family
+    normalizeMachineMountLocationFamily(getMachineHardpointByItemId(actor, weapon?.id)?.location) === family
   );
 }
 

@@ -25,6 +25,7 @@ import {
 import { createHazardRegionFromAttack } from "../area-effects/hazard-regions.js";
 import { getMachineAttackDamageModifier } from "../mwd/machine-crit-effects.js";
 import { getMachineAttackCqAdjustments, getMachineHeatAdjustments } from "../mwd/machine-state-effects.js";
+import { rollClusteringDamage } from "../mwd/machine-clustering.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -190,7 +191,7 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
   };
 }
 
-function buildDamageSnapshot(ctx = {}, outcome = {}) {
+async function buildDamageSnapshot(ctx = {}, outcome = {}) {
   const attack = ctx?.attack ?? {};
   const payloadDamageType = String(attack?.payload?.modifies?.damageType ?? "").trim();
   const critDamageDelta = getMachineAttackDamageModifier(ctx?.attacker, {
@@ -201,6 +202,23 @@ function buildDamageSnapshot(ctx = {}, outcome = {}) {
   const stateHeat = getMachineHeatAdjustments(ctx?.attacker);
   const isEnergyAttack = String(attack?.weapon?.damageType ?? "").trim().toLowerCase() === "energy";
   const baseDamage = Math.max(0, (Number(attack?.weapon?.damage ?? 0) || 0) + critDamageDelta + (isEnergyAttack ? Number(stateHeat.energyAttackDamage ?? 0) : 0));
+  const clusterDice = Math.max(0, Number(attack?.weapon?.clusteringDice ?? 0) || 0);
+  const clusterTargetNumber = Number(attack?.weapon?.clusteringTargetNumber ?? 5) || 5;
+  const clustering = outcome.outcome !== "miss" && clusterDice > 0
+    ? await rollClusteringDamage({
+      clusteringDice: clusterDice,
+      clusteringTargetNumber: clusterTargetNumber,
+    })
+    : {
+      rolled: false,
+      dice: clusterDice,
+      targetNumber: clusterTargetNumber,
+      hits: 0,
+      formula: clusterDice > 0 ? `${clusterDice}d6cs>=${clusterTargetNumber}` : "",
+      results: [],
+      roll: null,
+    };
+  const clusteringDamage = outcome.outcome === "miss" ? 0 : Number(clustering.hits ?? 0);
   const targetIsMachine = Boolean(ctx?.targetIsMachine);
   const rawDamageType = payloadDamageType || attack?.weapon?.damageType;
   const damageType = targetIsMachine
@@ -208,7 +226,7 @@ function buildDamageSnapshot(ctx = {}, outcome = {}) {
     : normalizePersonalDamageType(rawDamageType, "concussive");
   const ap = Math.max(0, Number(attack?.totalAp ?? attack?.weapon?.ap ?? 0) || 0);
   const effectiveWeaponDamage = outcome.outcome === "graze" ? (baseDamage / 2) : (outcome.outcome === "hit" ? baseDamage : 0);
-  const incoming = effectiveWeaponDamage + Number(outcome.netHits ?? 0);
+  const incoming = effectiveWeaponDamage + clusteringDamage + Number(outcome.netHits ?? 0);
   const exposure = applyEvadeToExposure(attack?.currentExposure ?? createExposureData({
     tier: attack?.currentExposure?.initialTier ?? attack?.currentExposure?.tier ?? "none",
   }), {
@@ -223,6 +241,10 @@ function buildDamageSnapshot(ctx = {}, outcome = {}) {
   return {
     baseDamage,
     effectiveWeaponDamage,
+    clustering: {
+      ...clustering,
+      damageBonus: clusteringDamage,
+    },
     netHits: Number(outcome.netHits ?? 0),
     attackQuality: outcome.outcome === "graze"
       ? "graze"
@@ -439,7 +461,7 @@ async function resolveTargetAttack({ attacker, ctx, outcomeModel, target, previe
   const previewKey = getTargetPreviewKey(target);
   const targetPreview = previewState?.[previewKey] ?? {};
   const currentExposure = target?.exposure ?? createExposureData({ tier: "none" });
-  const damage = buildDamageSnapshot({
+  const damage = await buildDamageSnapshot({
     ...ctx,
     attacker,
     targetIsMachine: isMachineActor(targetActor),

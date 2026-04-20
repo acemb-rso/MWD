@@ -1,64 +1,135 @@
 {{!--
 templates/v2/ui/battlemech/weapon-groups.hbs
-Purpose: Renders prepared BattleMech weapon groups with direct attack buttons.
-How it fits: Provides combat-facing group context without pushing semantics into the template.
+Purpose: Renders prepared BattleMech weapon groups with direct attack controls and hardpoint bundling in edit mode.
+How it fits: Keeps combat actions and combat-side group management together without duplicating hardpoint slot UX.
 --}}
 
-{{#if battlemechSheet.weaponGroups.length}}
-  <div class="mwd-records mwd-records--inventory">
-    {{#each battlemechSheet.weaponGroups as |group|}}
-      <article class="mwd-record">
-        <div class="mwd-record__header">
-          <div class="mwd-record__main">
-            <div class="mwd-record__topline">
-              <button type="button" class="mwd-record__title-btn" data-action="mechAttack" {{{mwd-dataset group.action.dataset}}}>
-                {{group.name}}
-              </button>
-              <div class="mwd-record__stats">
-                {{#each group.summaryStats as |stat|}}
-                  <span class="mwd-record__stat{{#if stat.emphasis}} is-{{stat.emphasis}}{{/if}}">
-                    <span class="mwd-record__stat-label">{{stat.label}}</span>
-                    <span class="mwd-record__stat-value">{{stat.value}}</span>
-                  </span>
-                {{/each}}
-              </div>
-            </div>
+<div class="mwd-battlemech-groups">
+  <div class="mwd-battlemech-groups__toolbar">
+    <div class="mwd-battlemech-groups__summary">
+      <span class="mwd-battlemech-groups__summary-label">Mount Points</span>
+      <span class="mwd-battlemech-groups__summary-value">{{battlemechSheet.weaponGroupSummary.used}} / {{battlemechSheet.weaponGroupSummary.total}}</span>
+      <span class="mwd-battlemech-groups__summary-copy">{{battlemechSheet.weaponGroupSummary.remaining}} remaining</span>
+    </div>
 
-            {{#if group.subtitle}}
-              <div class="mwd-record__subtitle">{{group.subtitle}}</div>
-            {{/if}}
-
-            {{#if group.detailTags.length}}
-              <div class="mwd-record__tags">
-                {{#each group.detailTags as |tag|}}
-                  <span class="mwd-record__tag">{{tag.label}}</span>
-                {{/each}}
-              </div>
-            {{/if}}
-          </div>
-
-          <div class="mwd-record__actions">
-            <button type="button" class="mwd-record__icon-btn" data-action="mechAttack" {{{mwd-dataset group.action.dataset}}} title="{{group.action.label}}">
-              <i class="fas fa-crosshairs"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="mwd-record__body">
-          {{#if group.detailRows.length}}
-            <div class="mwd-record__details">
-              {{#each group.detailRows as |row|}}
-                <div class="mwd-record__detail">
-                  <span class="mwd-record__detail-label">{{row.label}}</span>
-                  <span class="mwd-record__detail-value">{{row.value}}</span>
-                </div>
-              {{/each}}
-            </div>
-          {{/if}}
-        </div>
-      </article>
-    {{/each}}
+    {{#if @root.editing}}
+      <button type="button" class="mwd-inv__add-btn" data-action="addWeaponGroup">
+        <i class="fas fa-plus"></i> Add Weapon Group
+      </button>
+    {{/if}}
   </div>
-{{else}}
-  <div class="mwd-inv__empty">No weapon groups configured.</div>
-{{/if}}
+
+  {{#if battlemechSheet.weaponGroups.length}}
+    <div class="mwd-records mwd-records--inventory">
+      {{#each battlemechSheet.weaponGroups as |group|}}
+        <article class="mwd-record{{#if group.action.disabled}} is-disabled{{/if}}" data-group-id="{{group.id}}">
+          <div class="mwd-record__header">
+            <div class="mwd-record__main">
+              <div class="mwd-record__topline">
+                {{#if @root.editing}}
+                  <input
+                    type="text"
+                    class="mwd-battlemech-groups__name-input"
+                    value="{{group.name}}"
+                  />
+                {{else}}
+                  <button type="button" class="mwd-record__title-btn" data-action="mechAttack" {{{mwd-dataset group.action.dataset}}} title="{{group.action.title}}" {{#if group.action.disabled}}disabled{{/if}}>
+                    {{group.name}}
+                  </button>
+                {{/if}}
+
+                <div class="mwd-record__stats">
+                  {{#each group.summaryStats as |stat|}}
+                    <span class="mwd-record__stat{{#if stat.emphasis}} is-{{stat.emphasis}}{{/if}}">
+                      <span class="mwd-record__stat-label">{{stat.label}}</span>
+                      <span class="mwd-record__stat-value">{{stat.value}}</span>
+                    </span>
+                  {{/each}}
+                </div>
+              </div>
+
+              {{#if group.subtitle}}
+                <div class="mwd-record__subtitle">{{group.subtitle}}</div>
+              {{/if}}
+
+              {{#if group.detailTags.length}}
+                <div class="mwd-record__tags">
+                  {{#each group.detailTags as |tag|}}
+                    <span class="mwd-record__tag">{{tag.label}}</span>
+                  {{/each}}
+                </div>
+              {{/if}}
+            </div>
+
+            <div class="mwd-record__actions">
+              <button type="button" class="mwd-record__icon-btn" data-action="mechAttack" {{{mwd-dataset group.action.dataset}}} title="{{group.action.title}}" {{#if group.action.disabled}}disabled{{/if}}>
+                <i class="fas fa-crosshairs"></i>
+              </button>
+
+              {{#if @root.editing}}
+                <button
+                  type="button"
+                  class="mwd-record__icon-btn{{#if group.isPrimary}} is-on is-star{{/if}}"
+                  data-action="togglePrimaryWeaponGroup"
+                  data-group-id="{{group.id}}"
+                  title="{{#if group.isPrimary}}Primary weapon group{{else}}Set as primary weapon group{{/if}}">
+                  <i class="{{#if group.isPrimary}}fas{{else}}far{{/if}} fa-star"></i>
+                </button>
+
+                <button
+                  type="button"
+                  class="mwd-record__icon-btn is-danger"
+                  data-action="deleteWeaponGroup"
+                  data-group-id="{{group.id}}"
+                  title="Delete {{group.name}}">
+                  <i class="fas fa-times"></i>
+                </button>
+              {{/if}}
+            </div>
+          </div>
+
+          <div class="mwd-record__body">
+            {{#if group.detailRows.length}}
+              <div class="mwd-record__details">
+                {{#each group.detailRows as |row|}}
+                  <div class="mwd-record__detail">
+                    <span class="mwd-record__detail-label">{{row.label}}</span>
+                    <span class="mwd-record__detail-value">{{row.value}}</span>
+                  </div>
+                {{/each}}
+              </div>
+            {{/if}}
+
+            {{#if @root.editing}}
+              <div class="mwd-weapon-group-editor">
+                <div class="mwd-weapon-group-editor__label">Bundle Loaded Hardpoints</div>
+
+                {{#if group.bundleChoices.length}}
+                  <div class="mwd-weapon-group-editor__choices">
+                    {{#each group.bundleChoices as |choice|}}
+                      <button
+                        type="button"
+                        class="mwd-weapon-group-editor__choice{{#if choice.selected}} is-selected{{/if}}"
+                        data-action="toggleWeaponGroupHardpoint"
+                        data-group-id="{{group.id}}"
+                        data-hardpoint-id="{{choice.hardpointId}}"
+                        title="{{choice.title}}"
+                        {{#if choice.disabled}}disabled{{/if}}>
+                        {{choice.chipLabel}}
+                      </button>
+                    {{/each}}
+                  </div>
+                  <div class="mwd-weapon-group-editor__help">{{group.bundleHelp}}</div>
+                {{else}}
+                  <div class="mwd-inv__empty">{{group.bundleHelp}}</div>
+                {{/if}}
+              </div>
+            {{/if}}
+          </div>
+        </article>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-inv__empty">No weapon groups configured.</div>
+  {{/if}}
+</div>

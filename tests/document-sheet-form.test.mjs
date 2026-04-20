@@ -5,6 +5,7 @@ import { coerceDocumentFieldDescriptor } from "../src/modules/sheets/document-sh
 
 test("field coercion handles numeric, boolean, and checkbox rules", () => {
   assert.equal(coerceDocumentFieldDescriptor({ elementKind: "input", inputType: "number", value: "7" }), 7);
+  assert.equal(coerceDocumentFieldDescriptor({ elementKind: "input", dtype: "number", value: "3,181,082" }), 3181082);
   assert.equal(coerceDocumentFieldDescriptor({ elementKind: "input", dtype: "boolean", value: "true" }), true);
   assert.equal(coerceDocumentFieldDescriptor({ elementKind: "input", inputType: "checkbox", checked: true }), true);
 });

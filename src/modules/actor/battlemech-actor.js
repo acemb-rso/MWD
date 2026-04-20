@@ -7,7 +7,6 @@ import { ANARCHY } from "../config.js";
 import { ANARCHY_SYSTEM, ICONS_PATH, TEMPLATE } from "../constants.js";
 import { RollDialog } from "../roll/roll-dialog.js";
 import { VehicleActor } from "./vehicle-actor.js";
-import { formatString } from "../strings.js";
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 import { getSkillDef } from "../mwd/skills.js";
 import {
@@ -15,6 +14,7 @@ import {
 } from "../mwd/heat-state.js";
 import { buildBattlemechHeatModel } from "../mwd/machine-heat.js";
 import { buildBattlemechMobilityModel } from "../mwd/battlemech-mobility.js";
+import { prepareBattlemechWeaponGroups } from "../mwd/battlemech-weapon-groups.js";
 
 export class BattlemechActor extends VehicleActor {
 
@@ -38,15 +38,17 @@ export class BattlemechActor extends VehicleActor {
     this.system.skills = this._prepareSkillMap();
     this.system.weaponGroups = this._prepareWeaponGroups();
     this.system.meleeProfiles = this._prepareMeleeProfiles();
+    const primaryWeaponGroup = this.system.weaponGroups.find(group => group.isPrimary && group.isAttackLegal) ?? null;
     this.system.quickActions = {
-      primaryWeaponGroup: this.system.weaponGroups.find(group => group.isPrimary),
+      primaryWeaponGroup,
+      hasLegalRangedGroups: this.system.weaponGroups.some(group => group.isAttackLegal),
       hasSensorSweep: Boolean(this.system.skills.perception || this.system.skills.technician),
       jumping: this.system.mwd.mobility?.jumping ?? null,
-    }
+    };
   }
 
   async rollRangedAttack() {
-    const weaponGroups = this.system.weaponGroups ?? [];
+    const weaponGroups = (this.system.weaponGroups ?? []).filter(group => group?.isAttackLegal !== false);
     if (weaponGroups.length === 0) {
       ui.notifications.warn(ANARCHY.actor.vehicle.quickActions.errors.noRanged);
       return;
@@ -167,27 +169,7 @@ export class BattlemechActor extends VehicleActor {
   }
 
   _prepareConfiguredWeaponGroups() {
-    const groups = this.system.mwd?.weaponGroups ?? [];
-    const weapons = new Map(this.items.map(it => [it.id, it]));
-
-    return groups.map((group, index) => {
-      const weaponIds = Array.isArray(group.weaponIds) ? group.weaponIds : (group.weaponIds ? [group.weaponIds] : []);
-      const attachedWeapons = weaponIds
-        .map(id => weapons.get(id))
-        .filter(weapon => weapon?.type === TEMPLATE.itemType.mechWeapon);
-
-      const missingWeaponIds = weaponIds.filter(id => !weapons.has(id));
-
-      return {
-        id: group.id ?? `group-${index + 1}`,
-        index,
-        name: group.name || formatString(ANARCHY.common.newName, { type: ANARCHY.itemType.singular.weapon }),
-        weaponIds,
-        isPrimary: group.isPrimary ?? false,
-        weapons: attachedWeapons,
-        missingWeaponIds,
-      };
-    });
+    return prepareBattlemechWeaponGroups(this);
   }
 
   _resolveSkill(code) {
@@ -213,16 +195,23 @@ export class BattlemechActor extends VehicleActor {
     const configuredGroups = (this.system.mwd?.weaponGroupDetails ?? [])
       .map(group => ({
         ...group,
-        weapons: group.weapons ?? [],
+        weapons: group.memberWeapons ?? [],
       }))
-      .filter(group => group.weapons.length > 0);
+      .filter(group => group.weaponIds.length > 0);
 
     if (configuredGroups.length > 0) {
       return configuredGroups.map(group => ({
         id: group.id,
         name: group.name,
-        weaponIds: group.weapons.map(it => it.id),
+        weaponIds: group.weaponIds,
         isPrimary: group.isPrimary ?? false,
+        missingWeaponIds: group.missingWeaponIds ?? [],
+        memberWeapons: group.memberWeapons ?? [],
+        compatibilityWarnings: group.compatibilityWarnings ?? [],
+        isAttackLegal: group.isAttackLegal !== false,
+        isAvailableThisActivation: group.isAvailableThisActivation !== false,
+        disableReason: group.disableReason ?? "",
+        attackSummary: group.attackSummary ?? null,
       }));
     }
 
@@ -293,12 +282,14 @@ export class BattlemechActor extends VehicleActor {
   }
 
   async _promptWeaponGroup(groups) {
-    if (groups.length === 1) {
-      return groups[0];
-    }
+    const selectableGroups = Array.isArray(groups)
+      ? groups.filter(group => group?.isAttackLegal !== false)
+      : [];
+    if (selectableGroups.length === 0) return null;
+    if (selectableGroups.length === 1) return selectableGroups[0];
 
-    const defaultGroup = groups.find(it => it.isPrimary) ?? groups[0];
-    const content = `<form class="mwd-quick-select">${groups.map(group => `
+    const defaultGroup = selectableGroups.find(it => it.isPrimary) ?? selectableGroups[0];
+    const content = `<form class="mwd-quick-select">${selectableGroups.map(group => `
       <label class="quick-select-option">
         <input type="radio" name="weapon-group" value="${group.id}" ${group.id === defaultGroup.id ? 'checked' : ''}>
         <span>${group.name}${group.isPrimary ? ` (${ANARCHY.actor.vehicle.quickActions.primaryLabel})` : ''}</span>
@@ -311,7 +302,7 @@ export class BattlemechActor extends VehicleActor {
       callback: html => html.find('input[name="weapon-group"]:checked').val() ?? defaultGroup.id
     });
 
-    return groups.find(it => it.id === selectedId) ?? defaultGroup;
+    return selectableGroups.find(it => it.id === selectedId) ?? defaultGroup;
   }
 
   async _promptMeleeProfile(profiles) {

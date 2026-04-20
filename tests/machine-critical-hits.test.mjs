@@ -57,6 +57,7 @@ function machineActor(overrides = {}) {
       mwd: {
         shock: { value: 0 },
         reliabilitySpendable: { value: 3 },
+        hardpoints: overrides.hardpoints ?? [],
         locations: {
           head: { enabled: true, stress: 0, condition: 0, tags: ["cockpit"], destroyed: false },
           torso: { enabled: true, stress: 0, condition: 0, tags: ["engine"], destroyed: false },
@@ -292,6 +293,35 @@ test("degradation-derived statuses are surfaced when a location crosses a canoni
   assert.equal(actor.statuses.has("reactorBreach"), true);
 });
 
+test("vehicle reduced to zero structure disables all enabled locations immediately", async () => {
+  const actor = machineActor({
+    type: "vehicle",
+    paths: {
+      "system.monitors.armor.value": 6,
+      "system.monitors.structure.value": 8,
+      "system.monitors.structure.max": 10,
+    },
+  });
+  const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 10, armorBefore: 0 });
+
+  const result = await applyMachineAttackDamage({
+    actor,
+    payload: {
+      damage: 2,
+      hitLocation,
+      preparedCriticalRecords: [],
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.machine.structureAfter, 0);
+  assert.equal(actor.system.mwd.locations.front.condition, 4);
+  assert.equal(actor.system.mwd.locations.side.condition, 4);
+  assert.equal(actor.system.mwd.locations.rear.condition, 4);
+  assert.equal(actor.system.mwd.locations.core.condition, 4);
+  assert.equal(actor.system.mwd.locations.turret.condition, 4);
+});
+
 test("cascade result draws one additional crit and recursive cascades become location breach", async () => {
   const actor = machineActor();
   const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 4, armorBefore: 6 });
@@ -441,13 +471,17 @@ test("location crit records normalize updated status and remedy mappings", async
 });
 
 test("weapon failure scopes to a matching weapon group and blocks only that group", () => {
-  const armLaser = { id: "w-arm", system: { mountLocation: "arm", damageType: "energy" } };
-  const torsoLaser = { id: "w-torso", system: { mountLocation: "torso", damageType: "energy" } };
+  const armLaser = { id: "w-arm", system: { damageType: "energy", size: "small" } };
+  const torsoLaser = { id: "w-torso", system: { damageType: "energy", size: "small" } };
   const actor = machineActor({
     items: new Map([
       [armLaser.id, armLaser],
       [torsoLaser.id, torsoLaser],
     ]),
+    hardpoints: [
+      { id: "hp-arm", type: "energy", size: "small", location: "arms", itemId: "w-arm" },
+      { id: "hp-torso", type: "energy", size: "small", location: "torso", itemId: "w-torso" },
+    ],
     weaponGroups: [
       { id: "alpha", name: "Alpha", weaponIds: ["w-arm"], isPrimary: false },
       { id: "beta", name: "Beta", weaponIds: ["w-torso"], isPrimary: true },

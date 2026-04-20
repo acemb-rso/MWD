@@ -11,39 +11,49 @@ How it fits: Keeps battlemech mount editing inside the V2 sheet stack instead of
     </div>
   {{/if}}
 
-  {{#if @root.battlemechSheet.hardpoints.length}}
+  {{#if @root.vehicleSheet.hardpoints.length}}
     <div class="mwd-actor-items__list">
-      {{#each @root.battlemechSheet.hardpoints as |hardpoint|}}
+      {{#each @root.vehicleSheet.hardpoints as |hardpoint|}}
         <article class="mwd-actor-item">
           <div class="mwd-actor-item__main">
+            {{#if @root.editing}}
+              <input type="hidden" name="system.mwd.hardpoints.{{hardpoint.index}}.id" value="{{hardpoint.id}}" data-edit-field="staged">
+              <input type="hidden" name="system.mwd.hardpoints.{{hardpoint.index}}.itemId" value="{{hardpoint.itemId}}" data-edit-field="staged">
+            {{/if}}
             <div class="mwd-actor-field-grid" style="display:grid; gap:0.75rem; grid-template-columns:repeat(4, minmax(0, 1fr));">
               <div class="mwd-field-cluster">
                 <label>Type</label>
                 {{#if @root.editing}}
-                  <input type="text" name="system.mwd.hardpoints.{{hardpoint.index}}.type" value="{{hardpoint.type}}" data-edit-field="staged" />
+                  <select name="system.mwd.hardpoints.{{hardpoint.index}}.type" data-edit-field="staged">
+                    {{selectOptions hardpoint.typeOptions selected=hardpoint.type valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
                 {{else}}
-                  <div class="mwd-field-cluster__value">{{hardpoint.type}}</div>
+                  <div class="mwd-field-cluster__value">{{hardpoint.typeLabel}}</div>
                 {{/if}}
               </div>
               <div class="mwd-field-cluster">
                 <label>Size</label>
                 {{#if @root.editing}}
-                  <input type="text" name="system.mwd.hardpoints.{{hardpoint.index}}.size" value="{{hardpoint.size}}" data-edit-field="staged" />
+                  <select name="system.mwd.hardpoints.{{hardpoint.index}}.size" data-edit-field="staged">
+                    {{selectOptions hardpoint.sizeOptions selected=hardpoint.size valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
                 {{else}}
-                  <div class="mwd-field-cluster__value">{{hardpoint.size}}</div>
+                  <div class="mwd-field-cluster__value">{{hardpoint.sizeLabel}}</div>
                 {{/if}}
               </div>
               <div class="mwd-field-cluster">
                 <label>Location</label>
                 {{#if @root.editing}}
-                  <input type="text" name="system.mwd.hardpoints.{{hardpoint.index}}.location" value="{{hardpoint.location}}" data-edit-field="staged" />
+                  <select name="system.mwd.hardpoints.{{hardpoint.index}}.location" data-edit-field="staged">
+                    {{selectOptions hardpoint.locationOptions selected=hardpoint.location valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
                 {{else}}
-                  <div class="mwd-field-cluster__value">{{hardpoint.location}}</div>
+                  <div class="mwd-field-cluster__value">{{hardpoint.locationLabel}}</div>
                 {{/if}}
               </div>
               <div class="mwd-field-cluster">
                 <label>Occupancy</label>
-                <div class="mwd-field-cluster__value">{{hardpoint.occupiedByName}}</div>
+                <div class="mwd-field-cluster__value">{{hardpoint.occupancyLabel}}</div>
               </div>
             </div>
           </div>

@@ -181,6 +181,10 @@
 }
 
 .mwd-sheet.actor-sheet-v2 .sheet-header .mwd-sheet__subtitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: nowrap;
   min-height: 1.25rem;
   font-family: var(--mwd-font-ui);
   font-size: 0.96rem;
@@ -193,7 +197,7 @@
 }
 
 .mwd-sheet.actor-sheet-v2 .sheet-header .mwd-sheet__subtitle input[name="system.mwd.model"] {
-  width: 100%;
+  flex: 1 1 auto;
   min-width: 0;
   padding: 0.14rem 0.5rem 0.18rem;
   font-family: var(--mwd-font-ui);
@@ -202,6 +206,84 @@
   letter-spacing: 0.08em;
   line-height: 1.1;
   text-transform: uppercase;
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-header .mwd-sheet__cbill-group {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: max-content;
+  min-height: 2rem;
+  padding: 0.18rem 0.45rem 0.22rem 0.65rem;
+  border: 1px solid rgba(222, 194, 120, 0.62);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(55, 61, 75, 0.96), rgba(33, 38, 49, 0.96));
+  box-shadow:
+    0 0 0 1px rgba(10, 12, 18, 0.35),
+    0 7px 18px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 246, 214, 0.16);
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-header .mwd-sheet__cbill-label {
+  flex: 0 0 auto;
+  color: rgba(255, 236, 182, 0.98);
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  opacity: 1;
+  text-shadow:
+    0 0 8px rgba(232, 191, 93, 0.26),
+    0 1px 0 rgba(0, 0, 0, 0.6);
+  text-transform: none;
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-header .mwd-sheet__cbill-input {
+  flex: 0 0 8.75rem;
+  min-width: 0;
+  padding: 0.14rem 0.5rem 0.18rem;
+  border: 1px solid rgba(255, 244, 214, 0.12);
+  border-radius: 8px;
+  background: rgba(15, 18, 24, 0.68);
+  color: rgba(244, 246, 249, 0.98);
+  font-family: var(--mwd-font-ui);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+  text-transform: none;
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-header .mwd-sheet__cbill {
+  flex: 0 0 auto;
+  color: rgba(244, 246, 249, 0.98);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  opacity: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+  text-transform: none;
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-header .mwd-sheet__cbill-symbol {
+  flex: 0 0 auto;
+  color: rgba(255, 226, 134, 0.98);
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow:
+    0 0 10px rgba(232, 191, 93, 0.3),
+    0 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+.mwd-sheet.actor-sheet-v2 .sheet-header .mwd-sheet__cbill-group--readonly {
+  padding-right: 0.6rem;
 }
 
 .mwd-sheet.actor-sheet-v2 .sheet-header input[name="name"] {

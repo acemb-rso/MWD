@@ -27,8 +27,31 @@ How it fits: Used by rendering code to produce UI fragments.
                 placeholder="{{machineHeader.placeholder}}"
                 data-edit-field="staged"
               />
-            {{else if machineHeader.model}}
-              {{machineHeader.model}}
+              <span class="mwd-sheet__cbill-group">
+                <span class="mwd-sheet__cbill-label">Cost:</span>
+                <input
+                  class="mwd-sheet__cbill-input"
+                  name="{{machineHeader.cbillPath}}"
+                  type="text"
+                  inputmode="numeric"
+                  value="{{machineHeader.cbillDisplay}}"
+                  data-dtype="number"
+                  placeholder="0"
+                  data-edit-field="staged"
+                />
+                <span class="mwd-sheet__cbill-symbol" aria-hidden="true">Ꞓ</span>
+              </span>
+            {{else}}
+              {{#if machineHeader.model}}
+                <span>{{machineHeader.model}}</span>
+              {{/if}}
+              {{#if machineHeader.cbillCost}}
+                <span class="mwd-sheet__cbill-group mwd-sheet__cbill-group--readonly">
+                  <span class="mwd-sheet__cbill-label">Cost:</span>
+                  <span class="mwd-sheet__cbill">{{machineHeader.cbillDisplay}}</span>
+                  <span class="mwd-sheet__cbill-symbol" aria-hidden="true">Ꞓ</span>
+                </span>
+              {{/if}}
             {{/if}}
           </div>
         {{/if}}

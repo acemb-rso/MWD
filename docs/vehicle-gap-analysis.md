@@ -158,6 +158,7 @@ But each incoming damage packet rolls a **hit location**, which determines:
 * which **crit table** to use
 
 Location stress escalates independently of Structure.
+If a vehicle's shared Structure is reduced to **0 remaining**, all enabled vehicle locations immediately move to **Disabled** so the shared monitor and location-state model stay in sync.
 
 ### 2. Critical Triggers
 

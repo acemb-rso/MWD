@@ -1,9 +1,9 @@
 // src/modules/mwd/machine-ew.js
 // Pure, stateless EW derivation helpers — no actor/combatant lookups, no side effects.
 
-export const CONTACT_STATE_ORDER = Object.freeze(["blind", "contact", "track", "lock"]);
+export const DETECTION_STATE_ORDER = Object.freeze(["blind", "contact", "track", "lock"]);
 
-const CONTACT_STATE_LABELS = Object.freeze({
+const DETECTION_STATE_LABELS = Object.freeze({
   blind:   "Blind",
   contact: "Contact",
   track:   "Track",
@@ -11,14 +11,14 @@ const CONTACT_STATE_LABELS = Object.freeze({
 });
 
 /**
- * Advance contact state exactly one tier. The caller is responsible for
+ * Advance detection state exactly one tier. The caller is responsible for
  * verifying the roll passed before calling this.
  * Returns the same state if already at "lock" or state is unrecognized.
  */
-export function upgradeContactState(current) {
-  const idx = CONTACT_STATE_ORDER.indexOf(current);
-  if (idx < 0 || idx >= CONTACT_STATE_ORDER.length - 1) return CONTACT_STATE_ORDER.includes(current) ? current : "blind";
-  return CONTACT_STATE_ORDER[idx + 1];
+export function upgradeDetectionState(current) {
+  const idx = DETECTION_STATE_ORDER.indexOf(current);
+  if (idx < 0 || idx >= DETECTION_STATE_ORDER.length - 1) return DETECTION_STATE_ORDER.includes(current) ? current : "blind";
+  return DETECTION_STATE_ORDER[idx + 1];
 }
 
 /**
@@ -40,17 +40,17 @@ export function allowLockGatedSystems(state) {
   return state === "lock";
 }
 
-export function getContactStateLabel(state) {
-  return CONTACT_STATE_LABELS[state] ?? String(state ?? "Unknown");
+export function getDetectionStateLabel(state) {
+  return DETECTION_STATE_LABELS[state] ?? String(state ?? "Unknown");
 }
 
 /** Ordered list of all states for UI rendering. */
-export function listContactStates() {
-  return CONTACT_STATE_ORDER.map(s => ({ key: s, label: CONTACT_STATE_LABELS[s] }));
+export function listDetectionStates() {
+  return DETECTION_STATE_ORDER.map(s => ({ key: s, label: DETECTION_STATE_LABELS[s] }));
 }
 
 /**
- * Base DN for an acquire roll given the current contact state.
+ * Base DN for an acquire roll given the current detection state.
  * contact → track: DN 2
  * track → lock:    DN 3
  * Any other: DN 1 (fallback — should not normally occur)

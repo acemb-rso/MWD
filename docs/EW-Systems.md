@@ -6,7 +6,7 @@ BLUF:
 
 # 🎯 The Clean Model (Final Form)
 
-## 1) Contact State = Permission
+## 1) Detection State = Permission
 
 ```text
 blind   → no attack
@@ -239,7 +239,7 @@ Below is a **developer-ready targetingData + lock rules spec** that fits the rul
 
 Use a three-layer model:
 
-1. **contactState** = permission/gating
+1. **detectionState** = permission/gating
 2. **trackingPenalty** = negative dice friction
 3. **targetingData** = positive dice bonus generated from a separate roll
 
@@ -250,10 +250,10 @@ Lock improves what can be generated and what systems may be used.
 
 # 2. Core Terms
 
-## 2.1 contactState
+## 2.1 detectionState
 
 ```ts
-type ContactState = "blind" | "contact" | "track" | "lock";
+type DetectionState = "blind" | "contact" | "track" | "lock";
 ```
 
 Meaning:
@@ -312,23 +312,23 @@ interface TargetingData {
 ## 3.1 Attack permission
 
 ```ts
-if (contactState === "blind") {
+if (detectionState === "blind") {
   cannotAttack = true;
 }
 
-if (contactState === "contact") {
+if (detectionState === "contact") {
   canAttack = true;
   allowTargetingData = false;
   allowLockGatedSystems = false;
 }
 
-if (contactState === "track") {
+if (detectionState === "track") {
   canAttack = true;
   allowTargetingData = true;
   allowLockGatedSystems = false;
 }
 
-if (contactState === "lock") {
+if (detectionState === "lock") {
   canAttack = true;
   allowTargetingData = true;
   allowLockGatedSystems = true;
@@ -394,7 +394,7 @@ This roll does not attack. It only creates targetingData.
 ## 5.1 Precondition
 
 ```ts
-if (contactState !== "track" && contactState !== "lock") {
+if (detectionState !== "track" && detectionState !== "lock") {
   cannotGenerateTargetingData = true;
 }
 ```
@@ -421,9 +421,9 @@ rawValue = hits;
 ## 5.4 Cap
 
 ```ts
-function getTargetingDataCap(contactState, actorSystem) {
-  if (contactState === "track") return actorSystem;
-  if (contactState === "lock") return actorSystem + 1; // optional tuned premium
+function getTargetingDataCap(detectionState, actorSystem) {
+  if (detectionState === "track") return actorSystem;
+  if (detectionState === "lock") return actorSystem + 1; // optional tuned premium
   return 0;
 }
 ```
@@ -477,7 +477,7 @@ attackDice =
 ## 6.2 Usable targetingData
 
 ```ts
-if (contactState === "contact" || contactState === "blind") {
+if (detectionState === "contact" || detectionState === "blind") {
   usableTargetingData = 0;
 } else {
   usableTargetingData = sumOrBestAllowedTargetingData(...); // see sharing/stacking rules below
@@ -508,7 +508,7 @@ Recommended:
 
 Lock provides:
 
-1. `contactState = "lock"`
+1. `detectionState = "lock"`
 2. higher targetingData cap
 3. permission to use lock-gated equipment/effects
 4. optional stronger retention against disruption
@@ -556,7 +556,7 @@ C3 should share **state first, then data**.
 If connected to a valid network:
 
 ```ts
-effectiveContactState = bestStateAmongEligibleNetworkNodes(target)
+effectiveDetectionState = bestStateAmongEligibleNetworkNodes(target)
 ```
 
 ### Shared targetingData
@@ -704,7 +704,7 @@ Recommended:
 
 ```ts
 if hard LOS break:
-  contactState = "blind" or "contact" depending on sensor model
+  detectionState = "blind" or "contact" depending on sensor model
 ```
 
 If you want strict physical simplicity:
@@ -764,20 +764,20 @@ This is the critical dev section.
 
 ## 12.2 For targetingData generation
 
-1. validate target and contactState
+1. validate target and detectionState
 2. require `track` or `lock`
 3. gather relevant disruptions/reactions
 4. roll `System + Gunnery`
 5. compare to DN 2
 6. convert hits into targetingData
-7. cap by current contactState and System
+7. cap by current detectionState and System
 8. store packet
 9. emit chat/result
 
 ## 12.3 For attack resolution
 
-1. validate attack permission from contactState
-2. determine effective contactState (including C3/network)
+1. validate attack permission from detectionState
+2. determine effective detectionState (including C3/network)
 3. collect trackingPenalty as dice parts
 4. collect eligible targetingData packets
 5. suppress/reduce targetingData from ECM/interference
@@ -810,7 +810,7 @@ Example:
 flags.mwd.targeting = {
   byTarget: {
     [targetTokenUuid]: {
-      contactState: "track",
+      detectionState: "track",
       packets: [TargetingData, ...]
     }
   }

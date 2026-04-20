@@ -5,6 +5,11 @@
 
 import { ANARCHY } from "../config.js";
 import { TEMPLATE } from "../constants.js";
+import {
+  doesHardpointAcceptItem,
+  getMachineHardpointByItemId,
+  normalizeMachineWeaponSize,
+} from "./machine-hardpoints.js";
 import { formatString } from "../strings.js";
 
 const MOUNT_POINTS = {
@@ -20,6 +25,14 @@ const DEFAULT_MELEE = {
   maxWeapons: 0,
   allowedLocations: [],
 };
+
+function getHardpointTypeLabels() {
+  return ANARCHY?.mwd?.hardpointType ?? ANARCHY?.mwd?.hardpoint?.type ?? {};
+}
+
+function getHardpointSizeLabels() {
+  return ANARCHY?.mwd?.hardpointSize ?? ANARCHY?.mwd?.hardpoint?.size ?? {};
+}
 
 export class BattlemechLoadout {
   constructor(actor) {
@@ -64,8 +77,8 @@ export class BattlemechLoadout {
           warnings.push(formatString(ANARCHY.mwd.loadout.warnings.weaponMissing, { weapon: weaponId }));
           continue;
         }
-        const weaponType = weapon.system.hardpointType ?? "energy";
-        const weaponSize = weapon.system.hardpointSize ?? "small";
+        const weaponType = weapon.system.damageType ?? "energy";
+        const weaponSize = normalizeMachineWeaponSize(weapon.system.size ?? "small");
         if (usedWeapons.has(weaponId)) {
           errors.push(formatString(ANARCHY.mwd.loadout.errors.weaponAlreadyGrouped, { weapon: weapon.name }));
           continue;
@@ -80,14 +93,20 @@ export class BattlemechLoadout {
           continue;
         }
 
-        const match = hardpointState.find(hp => !hp.occupiedBy
-          && hp.type === weaponType
-          && hp.size === weaponSize);
+        const assignedHardpoint = getMachineHardpointByItemId(this.actor, weapon.id);
+        const match = hardpointState.find(hp => hp.id === assignedHardpoint?.id);
         if (!match) {
           errors.push(formatString(ANARCHY.mwd.loadout.errors.hardpointUnavailable, {
             weapon: weapon.name,
-            type: ANARCHY.mwd.hardpointType[weaponType] ?? weaponType,
-            size: ANARCHY.mwd.hardpointSize[weaponSize] ?? weaponSize,
+            type: getHardpointTypeLabels()[weaponType] ?? weaponType,
+            size: getHardpointSizeLabels()[weaponSize] ?? weaponSize,
+          }));
+        }
+        else if (!doesHardpointAcceptItem(match, weapon)) {
+          errors.push(formatString(ANARCHY.mwd.loadout.errors.hardpointUnavailable, {
+            weapon: weapon.name,
+            type: getHardpointTypeLabels()[weaponType] ?? weaponType,
+            size: getHardpointSizeLabels()[weaponSize] ?? weaponSize,
           }));
         }
         else {
@@ -133,8 +152,9 @@ export class BattlemechLoadout {
     return (this.mwd.hardpoints ?? []).map((hp, index) => ({
       id: hp.id ?? `hardpoint-${index + 1}`,
       type: hp.type ?? "energy",
-      size: hp.size ?? "small",
-      location: hp.location ?? "arm",
+      size: normalizeMachineWeaponSize(hp.size ?? "small"),
+      location: hp.location ?? "arms",
+      itemId: String(hp.itemId ?? "").trim(),
     }));
   }
 
@@ -165,10 +185,11 @@ export class BattlemechLoadout {
     });
 
     meleeWeapons.forEach(weapon => {
-      if (allowedLocations.length > 0 && weapon.system.mountLocation && !allowedLocations.includes(weapon.system.mountLocation)) {
+      const mountedLocation = getMachineHardpointByItemId(this.actor, weapon.id)?.location ?? "";
+      if (allowedLocations.length > 0 && mountedLocation && !allowedLocations.includes(mountedLocation)) {
         errors.push(formatString(ANARCHY.mwd.loadout.errors.meleeLocationRestricted, {
           weapon: weapon.name,
-          location: ANARCHY.mwd.meleeLocation[weapon.system.mountLocation] ?? weapon.system.mountLocation,
+          location: ANARCHY.mwd.meleeLocation[mountedLocation] ?? mountedLocation,
         }));
       }
       profiles.push({
@@ -189,7 +210,7 @@ export class BattlemechLoadout {
       if (primarySlot.typeRestriction && weaponType !== primarySlot.typeRestriction) {
         errors.push(formatString(ANARCHY.mwd.loadout.errors.primaryTypeRestriction, {
           weapon: weapon.name,
-          type: ANARCHY.mwd.hardpointType[primarySlot.typeRestriction] ?? primarySlot.typeRestriction,
+          type: getHardpointTypeLabels()[primarySlot.typeRestriction] ?? primarySlot.typeRestriction,
         }));
       }
     }

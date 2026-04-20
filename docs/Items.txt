@@ -94,6 +94,18 @@ Asset Module
 - Fields:
   - `category`
   - `level`
+  - `mobility.jumping.*`
+  - `targeting.clustering.diceModifier`
+  - `targeting.clustering.targetNumberModifier`
+- Runtime notes:
+  - asset modules may contribute derived machine capabilities instead of direct
+    actor fields
+  - clustering fire-control upgrades currently aggregate through installed
+    `assetModule` items
+  - `targeting.clustering.diceModifier` adds cluster dice to attacks that
+    already have clustering
+  - `targeting.clustering.targetNumberModifier` adjusts the cluster success
+    target number; negative values make cluster hits easier
 
 Life Module
 -----------
@@ -106,20 +118,66 @@ Mech Weapon
 -----------
 
 - Templates: `modifiers`, `inactive`, `references`
-- Fields:
-  - `weaponCategory`
-  - `hardpointType`
-  - `hardpointSize`
-  - `mountLocation`
+- This section follows the newer mech-weapon rules direction and overrides
+  older schema notes where they conflict.
+- Category rules:
+  - `weaponCategory` is restricted to `melee` or `ranged`
+  - `category` may exist as a normalized mirror of `weaponCategory`
+- Skill rules:
+  - ranged mech weapons use `gunnery`
+  - melee mech weapons use `meleeCombat`
+  - no other attack skills are valid for `mechWeapon`
+- Damage rules:
+  - mech weapons use a fixed base `damage` value
+  - `damageType` uses the same damage-type set as `personalWeapon`
+  - payloads may contribute `modifies.clusteringDice`
+  - payloads may also modify `damageType`, `ap`, and attack-rating bands
+  - clustering dice are rolled as `d6cs>=X`; each success adds `+1` damage
+  - machine fire-control upgrades may modify cluster dice count and cluster
+    target number before the attack resolves
+- Payload rules:
+  - mech weapons can have multiple payloads, using the same payload-style
+    architecture as personal weapons
+  - ranged mech weapons may define:
+    - `payloads`
+    - `selectedPayloadId`
+    - `consumptionSources`
+  - `selectedPayloadId` is the active payload selection used by the mech-weapon
+    sheet and by attack resolution
+  - melee mech weapons do not use payloads
+- Size field:
+  - `size`
+- Slot rules:
+  - hardpoints define machine inventory slots
+  - hardpoints own slot occupancy via hardpoint-level `itemId`
+  - mech weapons do not carry hardpoint assignment, hardpoint type, or hardpoint location fields
+  - these slot-backed items are separate from machine `assetModule` items and
+    separate from upgrade/equipment rails
+- Other primary fields:
+  - `skill`
   - `damage`
+  - `ap`
   - `damageType`
+  - `attackRatingBand.close`
+  - `attackRatingBand.near`
+  - `attackRatingBand.far`
+  - `attackRatingBand.extreme`
   - `heat`
+  - `volatile`
   - `area`
   - `range.max`
   - `range.close`
   - `range.near`
   - `range.far`
   - `range.extreme`
+  - `notes`
+- Explicitly not part of the mech-weapon model:
+  - `damageAttribute`
+  - `monitor`
+  - `defense`
+  - `noArmor`
+- Presentation defaults:
+  - default icon: `systems/mwd/img/icons/systems/upgrades/grenade_launcher_underbarrel.svg`
 
 Personal Weapon
 ---------------

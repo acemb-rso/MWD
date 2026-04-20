@@ -2,11 +2,11 @@
 // Purpose: Build a shared sheet view model for machine EW status and actions.
 // How it fits: Keeps EW state derivation in one place so vehicle and BattleMech sheets stay thin.
 
-import { getContactStateLabel, getTargetingDataCap } from "./machine-ew.js";
+import { getDetectionStateLabel, getTargetingDataCap } from "./machine-ew.js";
 import {
   getAcquireCeiling,
   getAttackerCombatant,
-  getContactState,
+  getDetectionState,
   getTargetCombatant,
   getTrackingPenalty,
   getUsableTargetingPacket,
@@ -21,19 +21,19 @@ function toTargets(targets) {
   return Array.from(targets ?? globalThis.game?.user?.targets ?? []).filter(target => target?.actor);
 }
 
-function buildAcquireHint({ contactState = "blind", canAcquire = false, ceiling = "lock" } = {}) {
-  if (contactState === "blind") return "No targeting solution. Acquire contact first.";
-  if (contactState === "contact") return "Acquire can upgrade to Track.";
-  if (contactState === "track" && canAcquire) return "Acquire can upgrade to Lock.";
-  if (contactState === "track" && ceiling === "track") return "ECM prevents advancing beyond Track.";
-  if (contactState === "lock") return "Targeting solution optimized.";
+function buildAcquireHint({ detectionState = "blind", canAcquire = false, ceiling = "lock" } = {}) {
+  if (detectionState === "blind") return "No targeting solution. Acquire contact first.";
+  if (detectionState === "contact") return "Acquire can upgrade to Track.";
+  if (detectionState === "track" && canAcquire) return "Acquire can upgrade to Lock.";
+  if (detectionState === "track" && ceiling === "track") return "ECM prevents advancing beyond Track.";
+  if (detectionState === "lock") return "Targeting solution optimized.";
   return "Review target state before acquiring.";
 }
 
-function buildTargetHint({ contactState = "blind", lockGated = false } = {}) {
-  if (contactState === "blind" || contactState === "contact") return "Targeting Data unavailable until Track.";
-  if (contactState === "track") return "Targeting Data available.";
-  if (contactState === "lock" && lockGated) return "Targeting solution optimized.";
+function buildTargetHint({ detectionState = "blind", lockGated = false } = {}) {
+  if (detectionState === "blind" || detectionState === "contact") return "Targeting Data unavailable until Track.";
+  if (detectionState === "track") return "Targeting Data available.";
+  if (detectionState === "lock" && lockGated) return "Targeting solution optimized.";
   return "Targeting solution available.";
 }
 
@@ -47,27 +47,27 @@ export function buildMachineEwRow({
 
   const targetTokenUuid = targetToken.document?.uuid ?? targetToken.uuid ?? "";
   const targetTokenId = String(targetToken.id ?? targetToken.document?.id ?? "").trim();
-  const contactState = getContactState(combatant, targetTokenUuid);
+  const detectionState = getDetectionState(combatant, targetTokenUuid);
   const ceiling = getAcquireCeiling(targetToken.actor);
   const targetCombatant = getTargetCombatant(targetTokenId);
   const trackingPenalty = getTrackingPenalty(targetToken.actor, targetCombatant);
-  const packetCap = (contactState === "track" || contactState === "lock")
-    ? getTargetingDataCap(systemAttr, contactState)
+  const packetCap = (detectionState === "track" || detectionState === "lock")
+    ? getTargetingDataCap(systemAttr, detectionState)
     : null;
-  const packet = (contactState === "track" || contactState === "lock")
-    ? getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, contactState, currentRound)
+  const packet = (detectionState === "track" || detectionState === "lock")
+    ? getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, detectionState, currentRound)
     : null;
 
-  const canAcquire = contactState === "contact" || (contactState === "track" && ceiling === "lock");
-  const canTarget = contactState === "track" || contactState === "lock";
-  const lockGated = contactState === "lock";
+  const canAcquire = detectionState === "contact" || (detectionState === "track" && ceiling === "lock");
+  const canTarget = detectionState === "track" || detectionState === "lock";
+  const lockGated = detectionState === "lock";
 
   return {
     tokenName: targetToken.name ?? "Target",
     targetTokenId,
     targetTokenUuid,
-    contactState,
-    contactStateLabel: getContactStateLabel(contactState),
+    detectionState,
+    detectionStateLabel: getDetectionStateLabel(detectionState),
     packetValue: packet?.value ?? 0,
     hasPacket: Boolean(packet),
     packetCap,
@@ -76,8 +76,8 @@ export function buildMachineEwRow({
     hasTrackingPenalty: trackingPenalty > 0,
     canAcquire,
     canTarget,
-    acquireHint: buildAcquireHint({ contactState, canAcquire, ceiling }),
-    targetHint: buildTargetHint({ contactState, lockGated }),
+    acquireHint: buildAcquireHint({ detectionState, canAcquire, ceiling }),
+    targetHint: buildTargetHint({ detectionState, lockGated }),
   };
 }
 

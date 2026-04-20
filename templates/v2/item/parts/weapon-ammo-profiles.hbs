@@ -45,10 +45,15 @@ How it fits: Used by the CSB-driven personal weapon details layout.
               </button>
             </div>
 
-            <div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
+            <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
               <div class="form-group mwd-weapon-compact__field">
                 <label>AP Mod</label>
                 <input class="type-numeric mwd-payload-field" type="number" value="{{payload.modifies.ap}}" data-payload-id="{{payload.id}}" data-field="modifies.ap" />
+              </div>
+
+              <div class="form-group mwd-weapon-compact__field">
+                <label data-tooltip="Roll these dice on a hit or graze. Each success adds +1 damage.">Cluster Dice</label>
+                <input class="type-numeric mwd-payload-field" type="number" value="{{payload.modifies.clusteringDice}}" data-payload-id="{{payload.id}}" data-field="modifies.clusteringDice" />
               </div>
 
               <div class="form-group mwd-weapon-compact__field">

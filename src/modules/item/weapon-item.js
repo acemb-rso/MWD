@@ -185,7 +185,7 @@ export class WeaponItem extends MWDItem {
 
   static defaultIconForType(type) {
     if (type === TEMPLATE.itemType.mechWeapon) {
-      return "systems/mwd/img/default/Default_Weapon.svg";
+      return "systems/mwd/img/icons/systems/upgrades/grenade_launcher_underbarrel.svg";
     }
     return this.defaultIcon;
   }

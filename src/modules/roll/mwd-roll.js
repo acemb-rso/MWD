@@ -210,17 +210,33 @@ async function commitMachineAttackAction(actor, payload = {}) {
   if (!snapshot?.hasCombatant) return;
 
   const cost = getMachineAttackActionCost(actor);
+  const isBattlemechGroupAttack = actor?.type === TEMPLATE.actorTypes.battlemech
+    && String(payload?.weaponGroupId ?? "").trim();
+  const totalCost = isBattlemechGroupAttack
+    ? (1 + Number(cost?.extraCost ?? 0))
+    : Number(cost?.totalCost ?? 0);
   const spend = await PersonalCombatTracker.spendResource(actor, {
     token,
     resource: "sa",
-    cost: cost.totalCost,
+    cost: totalCost,
     actionId: "attack",
     actionLabel: "Attack",
-    actionCostLabel: `${cost.totalCost} SA`,
+    actionCostLabel: `${totalCost} SA`,
     actionCategory: "complex",
   });
   if (!spend?.ok) {
     ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
+    return;
+  }
+
+  if (isBattlemechGroupAttack) {
+    const markUsed = await PersonalCombatTracker.markWeaponGroupUsed?.(actor, {
+      token,
+      groupId: payload.weaponGroupId,
+    });
+    if (!markUsed?.ok) {
+      ui.notifications?.warn(markUsed?.reason ?? "Unable to record BattleMech weapon-group usage.");
+    }
   }
 }
 

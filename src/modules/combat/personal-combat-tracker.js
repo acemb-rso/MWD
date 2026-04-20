@@ -37,6 +37,7 @@ import {
 import { renderHazardCard } from "../area-effects/hazard-chat.js";
 import { resolveBattlemechPendingHeat } from "../mwd/machine-heat.js";
 import { buildMachineActivationStartReport, isMachineActor } from "../mwd/machine-crit-effects.js";
+import { getBattlemechUsedWeaponGroupIds, markBattlemechWeaponGroupUsed } from "../mwd/battlemech-weapon-groups.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -71,7 +72,8 @@ function defaultState(activation = null) {
     actionState: {
       aim: null,
       move: null,
-      preparedInterrupt: null
+      preparedInterrupt: null,
+      usedWeaponGroupIds: []
     },
     hazards: {},
     pendingReaction: null,
@@ -973,6 +975,23 @@ export class PersonalCombatTracker {
     const mutated = typeof mutate === "function" ? mutate(nextState, snapshot) ?? nextState : nextState;
     await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, mutated);
     return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
+  }
+
+  static getUsedWeaponGroupIds(actor, { token = null, snapshot = null, currentTurnOnly = true } = {}) {
+    const resolvedSnapshot = snapshot ?? this.getSnapshot(actor, { token });
+    if (!resolvedSnapshot?.hasCombatant) return [];
+    if (currentTurnOnly && !resolvedSnapshot.isCurrentTurn) return [];
+    return getBattlemechUsedWeaponGroupIds(resolvedSnapshot);
+  }
+
+  static async markWeaponGroupUsed(actor, { token = null, groupId = "" } = {}) {
+    const normalizedId = String(groupId ?? "").trim();
+    if (!normalizedId) return { ok: false, reason: "Weapon group id is required." };
+
+    return this.updateCombatantState(actor, {
+      token,
+      mutate: state => markBattlemechWeaponGroupUsed(state, normalizedId),
+    });
   }
 
   static async setPendingReaction(actor, { token = null, pendingReaction = null } = {}) {

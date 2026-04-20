@@ -17,7 +17,7 @@ Status|Mechanical Impact|Remediation|SA Cost|DN|
 |-|-|-|-|-|
 Sensor Degraded|-2 dice to Acquire Target|reboot|1 SA|2|
 Sensor Blind|Cannot target beyond Close; no targetingData|reboot|2 SA|3|
-ECM Jamming|+2 trackingPenalty; targetingData -2; Target contactState capped at 'Track'|epmFilter|2 SA|2|
+ECM Jamming|+2 trackingPenalty; targetingData -2; Target detectionState capped at 'Track'|epmFilter|2 SA|2|
 Tracking Lost|targetingData unusable|acquireTarget|1 SA|2|
 Sensor Locked (defender)|attacker gains targeting bonuses|breakLock |Reaction|2|
 EPM Boosted|-2 dice to ECM Spike|toggle|2 SA||Free Action Sustained

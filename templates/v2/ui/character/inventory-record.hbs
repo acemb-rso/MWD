@@ -5,9 +5,11 @@ How it fits: Shared by the character inventory section partials.
 --}}
 
 
-<article class="mwd-record{{#if record.isExpanded}} is-expanded{{/if}}{{#if record.equipped}} is-equipped{{/if}}{{#if record.isPrimary}} is-primary{{/if}}"
+<article class="mwd-record{{#if record.isExpanded}} is-expanded{{/if}}{{#if record.equipped}} is-equipped{{/if}}{{#if record.isPrimary}} is-primary{{/if}}{{#if record.className}} {{record.className}}{{/if}}"
          data-item-id="{{record.id}}"
-         data-accordion-id="{{record.accordionId}}">
+         data-accordion-id="{{record.accordionId}}"
+         {{#if record.hardpointId}}data-hardpoint-id="{{record.hardpointId}}"{{/if}}
+         {{#if record.id}}draggable="true"{{/if}}>
   <div class="mwd-record__header">
     <button type="button"
             class="mwd-record__toggle"
@@ -30,17 +32,35 @@ How it fits: Shared by the character inventory section partials.
         <img class="mwd-record__thumb" src="{{record.img}}" alt="" draggable="false">
       </button>
     {{else}}
-      <button type="button"
-              class="mwd-record__media"
-              data-action="editOwnedItem"
-              title="Open {{record.name}}">
-        <img class="mwd-record__thumb" src="{{record.img}}" alt="">
-      </button>
+      {{#if record.isEmptyHardpoint}}
+        <div class="mwd-record__media{{#if record.mediaClassName}} {{record.mediaClassName}}{{/if}}">
+          <div class="mwd-record__slot-glyph" aria-hidden="true">
+            <span class="mwd-record__slot-glyph-main">{{record.slotTypeCode}}</span>
+            <span class="mwd-record__slot-glyph-sub">{{record.slotSizeCode}}</span>
+            <span class="mwd-record__slot-glyph-open">{{record.slotOpenLabel}}</span>
+          </div>
+        </div>
+      {{else if record.createHardpointItem}}
+        <div class="mwd-record__media{{#if record.mediaClassName}} {{record.mediaClassName}}{{/if}}">
+          <img class="mwd-record__thumb" src="{{record.img}}" alt="">
+        </div>
+      {{else}}
+        <button type="button"
+                class="mwd-record__media{{#if record.mediaClassName}} {{record.mediaClassName}}{{/if}}"
+                data-action="editOwnedItem"
+                title="Open {{record.name}}">
+          <img class="mwd-record__thumb" src="{{record.img}}" alt="">
+        </button>
+      {{/if}}
     {{/if}}
 
     <div class="mwd-record__main">
       <div class="mwd-record__topline">
-        <button type="button" class="mwd-record__title-btn" data-action="editOwnedItem">{{record.name}}</button>
+        {{#if record.id}}
+          <button type="button" class="mwd-record__title-btn" data-action="editOwnedItem">{{record.name}}</button>
+        {{else}}
+          <div class="mwd-record__title-btn">{{record.name}}</div>
+        {{/if}}
         <div class="mwd-record__stats">
           {{#each record.summaryStats as |stat|}}
             <span class="mwd-record__stat{{#if stat.emphasis}} is-{{stat.emphasis}}{{/if}}">
@@ -114,19 +134,52 @@ How it fits: Shared by the character inventory section partials.
         </button>
       {{/if}}
 
-      <button type="button"
-              class="mwd-record__icon-btn"
-              data-action="editOwnedItem"
-              title="Open">
-        <i class="fas fa-pen"></i>
-      </button>
+      {{#if record.createHardpointItem}}
+        <button type="button"
+                class="mwd-record__icon-btn"
+                data-action="createHardpointItem"
+                data-hardpoint-id="{{record.createHardpointItem.hardpointId}}"
+                data-item-type="{{record.createHardpointItem.itemType}}"
+                title="{{record.createHardpointItem.label}}">
+          <i class="fas fa-plus"></i>
+        </button>
+      {{/if}}
 
-      <button type="button"
-              class="mwd-record__icon-btn is-danger"
-              data-action="deleteOwnedItem"
-              title="Delete">
-        <i class="fas fa-times"></i>
-      </button>
+      {{#if record.assignHardpointItem}}
+        <button type="button"
+                class="mwd-record__icon-btn"
+                data-action="assignHardpointItem"
+                data-hardpoint-id="{{record.assignHardpointItem.hardpointId}}"
+                title="{{record.assignHardpointItem.label}}">
+          <i class="fas fa-link"></i>
+        </button>
+      {{/if}}
+
+      {{#if record.clearHardpointItem}}
+        <button type="button"
+                class="mwd-record__icon-btn"
+                data-action="clearHardpointItem"
+                data-hardpoint-id="{{record.clearHardpointItem.hardpointId}}"
+                title="{{record.clearHardpointItem.label}}">
+          <i class="fas fa-unlink"></i>
+        </button>
+      {{/if}}
+
+      {{#if record.id}}
+        <button type="button"
+                class="mwd-record__icon-btn"
+                data-action="editOwnedItem"
+                title="Open">
+          <i class="fas fa-pen"></i>
+        </button>
+
+        <button type="button"
+                class="mwd-record__icon-btn is-danger"
+                data-action="deleteOwnedItem"
+                title="Delete">
+          <i class="fas fa-times"></i>
+        </button>
+      {{/if}}
     </div>
   </div>
 

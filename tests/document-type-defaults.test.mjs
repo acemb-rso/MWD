@@ -37,6 +37,7 @@ test("vehicle defaults include ground and flight movement only", () => {
 
   assert.equal(block.attributes.reliability.value, 3);
   assert.equal(block.mwd.shock.value, 0);
+  assert.deepEqual(block.mwd.hardpoints, []);
   assert.equal(block.mwd.locations.front.condition, 0);
   assert.deepEqual(block.movement, { ground: 0, flight: 0 });
   assert.equal(block.movement.jump, undefined);
@@ -69,4 +70,16 @@ test("asset module defaults include structured jumping payload fields", () => {
   assert.equal(defaults.system.mobility.jumping.attackRatingBonus, 0);
   assert.equal(defaults.system.mobility.jumping.defenseRatingBonus, 0);
   assert.equal(defaults.system.mobility.jumping.dfaEnabled, false);
+});
+
+test("mech weapon defaults include hardpoint slot and payload scaffolding", () => {
+  const defaults = resolveDocumentTypeCreateDefaults("Item", "mechWeapon");
+
+  assert.equal(defaults.system.weaponCategory, "ranged");
+  assert.equal(defaults.system.skill, "gunnery");
+  assert.equal(defaults.system.size, "small");
+  assert.equal(defaults.system.damageType, "penetrating");
+  assert.equal(defaults.system.volatile, false);
+  assert.deepEqual(defaults.system.payloads, []);
+  assert.deepEqual(defaults.system.consumptionSources, []);
 });

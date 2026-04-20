@@ -52,6 +52,7 @@ import { HarmEngine } from "./harm/harm-engine.js";
 import { registerTokenStatusHudFilter } from "./dialog/token-status-dialog.js";
 import { HeatFxController } from "./token/heat-fx-controller.js";
 import { configureMWDStatusEffects } from "./status/status-condition-catalog.js";
+import { AttributeActions } from "./attribute-actions.js";
 import {
   applyTraitMutations,
   buildActionCostTraitFacts,
@@ -263,6 +264,7 @@ export class AnarchySystem {
     modifierProviders.register(new SceneModifiersProvider());
 
     //register handlebars helpers early
+    AttributeActions.init();
     Handlebars.registerHelper("mwdClassList", (classes) => {
       if (Array.isArray(classes)) return classes.join(" ");
       if (typeof classes === "string") return classes;

@@ -203,6 +203,26 @@ function initializeMwdBlock(systemData = {}, actorType = TEMPLATE.actorTypes.veh
   return mwd;
 }
 
+function getStructureRemaining(systemData = {}) {
+  const structure = systemData?.monitors?.structure ?? {};
+  const max = Math.max(0, toNumber(structure?.max, 0));
+  if (max <= 0) return null;
+  const applied = clamp(toNumber(structure?.value, 0), 0, max);
+  return Math.max(0, max - applied);
+}
+
+function applyVehicleStructureZeroLocationDisable(systemData = {}, actorType = TEMPLATE.actorTypes.vehicle) {
+  if (getActorType(actorType) !== TEMPLATE.actorTypes.vehicle) return systemData;
+  if ((getStructureRemaining(systemData) ?? 1) > 0) return systemData;
+
+  const locations = systemData?.mwd?.locations ?? {};
+  for (const location of Object.values(locations)) {
+    if (!location || location.enabled !== true) continue;
+    location.condition = MACHINE_CONDITION_STAGES.disabled;
+  }
+  return systemData;
+}
+
 function resolveReliabilityValue(systemData = {}) {
   const attributes = systemData.attributes = systemData.attributes ?? {};
   const reliability = attributes.reliability?.value;
@@ -376,7 +396,26 @@ export function normalizeMachineDegradationState(systemData = {}, actorType = TE
   mwd.reliabilitySpendable.value = Math.max(0, toNumber(spendableSource ?? reliabilityValue, reliabilityValue));
 
   mwd.locations = normalizeLocations(mwd.locations ?? {}, resolvedActorType);
+  applyVehicleStructureZeroLocationDisable(systemData, resolvedActorType);
   return systemData;
+}
+
+export function buildVehicleStructureZeroDisableUpdates(actor = null, structureRemaining = null) {
+  const actorType = getActorType(actor);
+  if (actorType !== TEMPLATE.actorTypes.vehicle) return {};
+
+  const systemData = normalizeMachineDegradationState(deepClone(actor?.system ?? {}), actorType);
+  const remaining = Number.isFinite(Number(structureRemaining))
+    ? Math.max(0, Number(structureRemaining))
+    : getStructureRemaining(systemData);
+  if (remaining === null || remaining > 0) return {};
+
+  const updates = {};
+  for (const [locationKey, location] of Object.entries(systemData.mwd?.locations ?? {})) {
+    if (!location || location.enabled !== true) continue;
+    updates[`system.mwd.locations.${locationKey}.condition`] = MACHINE_CONDITION_STAGES.disabled;
+  }
+  return updates;
 }
 
 export function resolveCatastrophicFallback({ actorSnapshot = null, unitType = "", locationKey = "" } = {}) {
@@ -556,6 +595,7 @@ export function buildMachineDegradationUpdates(actor = null, degradation = null)
   const currentSpendable = Math.max(0, toNumber(systemData.mwd?.reliabilitySpendable?.value, 0));
   updates["system.mwd.reliabilitySpendable.value"] = Math.max(0, currentSpendable - reliabilitySpendCount);
   updates["system.mwd.shock.value"] = Math.max(0, toNumber(systemData.mwd?.shock?.value, 0) + toNumber(degradation.shockDelta, 0));
+  Object.assign(updates, buildVehicleStructureZeroDisableUpdates(actor));
 
   if (degradation.statusState) {
     updates["system.mwd.status.state"] = degradation.statusState;

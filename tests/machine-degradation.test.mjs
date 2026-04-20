@@ -137,3 +137,27 @@ test("legacy battlemech location keys normalize into grouped degradation buckets
   assert.equal(system.mwd.locations.legs.stress, 4);
   assert.equal(system.mwd.locations.legs.condition, 2);
 });
+
+test("vehicle zero structure normalizes enabled locations to disabled", () => {
+  const system = normalizeMachineDegradationState({
+    monitors: {
+      structure: { value: 10, max: 10 },
+    },
+    attributes: {
+      reliability: { value: 2 },
+    },
+    mwd: {
+      locations: {
+        front: { enabled: true, stress: 0, condition: 1, destroyed: false, tags: [] },
+        rotor: { enabled: false, stress: 0, condition: 1, destroyed: false, tags: [] },
+      },
+    },
+  }, "vehicle");
+
+  assert.equal(system.mwd.locations.front.condition, 4);
+  assert.equal(system.mwd.locations.side.condition, 4);
+  assert.equal(system.mwd.locations.rear.condition, 4);
+  assert.equal(system.mwd.locations.core.condition, 4);
+  assert.equal(system.mwd.locations.turret.condition, 4);
+  assert.equal(system.mwd.locations.rotor.condition, 1);
+});

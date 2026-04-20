@@ -5,9 +5,9 @@ export function enhanceTargeting(resolved, vm) {
   const result = resolved?.ewTargetingResult ?? null;
   const targeting = resolved?.targeting ?? null;
 
-  if (targeting?.contactStateLabel) {
+  if (targeting?.detectionStateLabel) {
     vm.metaRows.push({
-      text: `State: ${targeting.contactStateLabel} | Cap: ${Number(targeting.cap ?? 0)}`,
+      text: `State: ${targeting.detectionStateLabel} | Cap: ${Number(targeting.cap ?? 0)}`,
       title: "",
     });
   }

@@ -23,6 +23,7 @@ import {
   getLifeModuleCatalogEntry,
   normalizeLifeModuleItemSystem,
 } from "../mwd/life-modules.js";
+import { normalizeMachineWeaponSize } from "../mwd/machine-hardpoints.js";
 import {
   normalizeQualityTraitSystem,
   normalizeTraitEffects,
@@ -145,6 +146,29 @@ function normalizeRangeData(range) {
   const normalized = normalizePersonalRangeData(range);
   normalized.max = normalizeRangeKey(normalized.max ?? range?.max ?? "extreme");
   return normalized;
+}
+
+function normalizeMechWeaponCategory(value) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  return normalized === "melee" ? "melee" : "ranged";
+}
+
+function normalizeMechWeaponSkill(category, _value = "") {
+  return normalizeMechWeaponCategory(category) === "melee" ? "meleeCombat" : "gunnery";
+}
+
+function normalizeMechWeaponRange(range, category) {
+  if (normalizeMechWeaponCategory(category) === "melee") {
+    return normalizeRangeData({
+      max: "close",
+      close: 0,
+      near: 0,
+      far: 0,
+      extreme: 0,
+    });
+  }
+
+  return normalizeRangeData(range);
 }
 
 function normalizeAttackRatingBand(bands) {
@@ -478,6 +502,41 @@ export class MWDItem extends Item {
       changed.system.ammo = forcedDeletion();
     }
 
+    if (nextSystem && this.isMechWeapon()) {
+      changed.system ??= {};
+      const legacyAmmo = nextSystem.ammo;
+      const category = normalizeMechWeaponCategory(nextSystem.weaponCategory ?? nextSystem.category);
+      changed.system.category = category;
+      changed.system.weaponCategory = category;
+      changed.system.skill = normalizeMechWeaponSkill(category, nextSystem.skill);
+      changed.system.size = normalizeMachineWeaponSize(nextSystem.size ?? nextSystem.hardpointSize ?? "small");
+      changed.system.ap = Number(nextSystem.ap ?? nextSystem.armorPiercing ?? 0) || 0;
+      changed.system.damage = Math.max(0, Number(nextSystem.damage ?? 0) || 0);
+      changed.system.damageType = normalizePersonalDamageType(nextSystem.damageType);
+      changed.system.attackRatingBand = normalizeAttackRatingBand(nextSystem.attackRatingBand);
+      changed.system.range = normalizeMechWeaponRange(nextSystem.range, category);
+      changed.system.payloads = normalizeWeaponPayloads(nextSystem.payloads, { legacyAmmo, category });
+      changed.system.consumptionSources = normalizeWeaponConsumptionSources(nextSystem.consumptionSources, { legacyAmmo });
+      changed.system.selectedPayloadId = normalizeSelectedPayloadId(
+        nextSystem.selectedPayloadId,
+        changed.system.payloads,
+        { legacyAmmo, category }
+      );
+      changed.system.heat = Math.max(0, Number(nextSystem.heat ?? 0) || 0);
+      changed.system.area = String(nextSystem.area ?? "none").trim() || "none";
+      changed.system.volatile = Boolean(nextSystem.volatile);
+      changed.system.ammo = forcedDeletion();
+      changed.system.hardpointId = forcedDeletion();
+      changed.system.hardpointType = forcedDeletion();
+      changed.system.hardpointSize = forcedDeletion();
+      changed.system.mountLocation = forcedDeletion();
+      changed.system.damageAttribute = forcedDeletion();
+      changed.system.monitor = forcedDeletion();
+      changed.system.noArmor = forcedDeletion();
+      changed.system.armorAvoidance = forcedDeletion();
+      changed.system.defense = forcedDeletion();
+    }
+
     if (nextSystem && this.isArmor()) {
       changed.system ??= {};
       changed.system.mitigationByType = normalizeArmorMitigationByType(nextSystem.mitigationByType ?? nextSystem.mitigation);
@@ -543,6 +602,8 @@ export class MWDItem extends Item {
     const canonicalType = this.canonicalType;
     if (canonicalType === TEMPLATE.itemType.personalWeapon) {
       this._preparePersonalWeaponBaseData();
+    } else if (canonicalType === TEMPLATE.itemType.mechWeapon) {
+      this._prepareMechWeaponBaseData();
     } else if (canonicalType === TEMPLATE.itemType.armor) {
       this._prepareArmorBaseData();
     } else if (canonicalType === TEMPLATE.itemType.lifeModule) {
@@ -585,6 +646,40 @@ export class MWDItem extends Item {
     system.selectedPayloadId = normalizeSelectedPayloadId(system.selectedPayloadId, system.payloads, { legacyAmmo, category: system.category });
     delete system.ammo;
     system.notes = String(system.notes ?? "").trim();
+  }
+
+  _prepareMechWeaponBaseData() {
+    const system = this.system ?? {};
+    const legacyAmmo = system.ammo;
+    const category = normalizeMechWeaponCategory(system.weaponCategory ?? system.category);
+
+    system.category = category;
+    system.weaponCategory = category;
+    system.skill = normalizeMechWeaponSkill(category, system.skill);
+    system.size = normalizeMachineWeaponSize(system.size ?? system.hardpointSize ?? "small");
+    system.ap = Number(system.ap ?? system.armorPiercing ?? 0) || 0;
+    system.damage = Math.max(0, Number(system.damage ?? 0) || 0);
+    system.damageType = normalizePersonalDamageType(system.damageType);
+    system.attackRatingBand = normalizeAttackRatingBand(system.attackRatingBand);
+    system.range = normalizeMechWeaponRange(system.range, category);
+    system.payloads = normalizeWeaponPayloads(system.payloads, { legacyAmmo, category });
+    system.consumptionSources = normalizeWeaponConsumptionSources(system.consumptionSources, { legacyAmmo });
+    system.selectedPayloadId = normalizeSelectedPayloadId(system.selectedPayloadId, system.payloads, { legacyAmmo, category });
+    system.heat = Math.max(0, Number(system.heat ?? 0) || 0);
+    system.area = String(system.area ?? "none").trim() || "none";
+    system.volatile = Boolean(system.volatile);
+    system.notes = String(system.notes ?? "").trim();
+
+    delete system.ammo;
+    delete system.hardpointId;
+    delete system.hardpointType;
+    delete system.hardpointSize;
+    delete system.mountLocation;
+    delete system.damageAttribute;
+    delete system.monitor;
+    delete system.noArmor;
+    delete system.armorAvoidance;
+    delete system.defense;
   }
 
   _prepareArmorBaseData() {
@@ -660,6 +755,10 @@ export class MWDItem extends Item {
 
   isPersonalWeapon() {
     return this.canonicalType === TEMPLATE.itemType.personalWeapon;
+  }
+
+  isMechWeapon() {
+    return this.canonicalType === TEMPLATE.itemType.mechWeapon;
   }
 
   isArmor() {
@@ -1532,14 +1631,20 @@ export class MWDItem extends Item {
   }
 
   getCombatProfile({ payloadId = "", ammoTypeId = "" } = {}) {
-    if (!this.isPersonalWeapon()) return null;
+    if (!this.isWeapon()) return null;
 
     const system = this.system ?? {};
-    const range = normalizeRangeData(system.range);
-    const skillCode = String(system.skill ?? "").trim();
+    const category = this.isMechWeapon()
+      ? normalizeMechWeaponCategory(system.weaponCategory ?? system.category)
+      : (String(system.category ?? system.weaponCategory ?? "ranged").trim() || "ranged");
+    const range = this.isMechWeapon()
+      ? normalizeMechWeaponRange(system.range, category)
+      : normalizeRangeData(system.range);
+    const skillCode = this.isMechWeapon()
+      ? normalizeMechWeaponSkill(category, system.skill)
+      : (String(system.skill ?? "").trim() || "firearms");
     const skillDef = getSkillDef(skillCode);
     const damage = Number(system.damage ?? 0) || 0;
-    const category = String(system.category ?? system.weaponCategory ?? "ranged").trim() || "ranged";
     const effectiveProfile = resolveEffectiveWeaponProfile({
       damageType: system.damageType,
       ap: Number(system.ap ?? system.armorPiercing ?? 0) || 0,
@@ -1567,9 +1672,10 @@ export class MWDItem extends Item {
       equipped: Boolean(system.equipped),
       isPrimary: Boolean(system.isPrimary),
       category,
-      skill: skillCode || "firearms",
+      skill: skillCode,
       skillDef,
       damage,
+      clusteringDice: Number(effectiveProfile.clusteringDice ?? 0) || 0,
       ap: effectiveProfile.ap,
       damageType: effectiveProfile.damageType,
       damageTypeLabel: getPersonalDamageTypeLabel(effectiveProfile.damageType),
@@ -1594,6 +1700,9 @@ export class MWDItem extends Item {
       ammoLabel: effectiveProfile.payloadLabel,
       ammoType: effectiveProfile.payload,
       ammoState: effectiveProfile.ammoState,
+      heat: Math.max(0, Number(system.heat ?? 0) || 0),
+      area: String(system.area ?? "none").trim() || "none",
+      volatile: Boolean(system.volatile),
       notes: String(system.notes ?? system.description ?? "").trim()
     };
   }
@@ -1671,8 +1780,9 @@ export class MWDItem extends Item {
   }
 
   getDefense() {
-    if (!this.isPersonalWeapon()) {
-      return this.system.defense ? AttributeActions.fixedDefenseCode(this.system.defense) : undefined;
+    if (this.isMechWeapon()) {
+      const skillDef = getSkillDef(normalizeMechWeaponSkill(this.system?.weaponCategory ?? this.system?.category, this.system?.skill));
+      return skillDef?.defense ? AttributeActions.fixedDefenseCode(skillDef.defense) : undefined;
     }
     if (this.system.defense) {
       return AttributeActions.fixedDefenseCode(this.system.defense);
@@ -1685,11 +1795,24 @@ export class MWDItem extends Item {
   getDamage() {
     if (!this.parent) return undefined;
 
+    const profile = this.isWeapon() ? this.getCombatProfile() : null;
     const monitor = this._getMonitor();
+
+    if (this.isMechWeapon()) {
+      return {
+        value: Math.max(0, Number(profile?.damage ?? this.system.damage ?? 0) || 0),
+        monitor,
+        damageType: profile?.damageType ?? this.system.damageType,
+        damageTypeLabel: profile?.damageTypeLabel ?? this.getDamageTypeLabel(),
+        noArmor: false,
+        armorMode: "",
+        clusteringDice: Number(profile?.clusteringDice ?? 0) || 0,
+      };
+    }
+
     const damageAttributeValue = this.system.damageAttribute
       ? (this.parent.getAttributeValue(this.system.damageAttribute) ?? 0)
       : 0;
-    const profile = this.isPersonalWeapon() ? this.getCombatProfile() : null;
 
     return {
       value: damageValue(
@@ -1707,6 +1830,12 @@ export class MWDItem extends Item {
   }
 
   getDamageCode() {
+    if (this.isMechWeapon()) {
+      const baseDamage = Math.max(0, Number(this.system?.damage ?? 0) || 0);
+      const clusteringDice = Math.max(0, Number(this.getCombatProfile()?.clusteringDice ?? 0) || 0);
+      return clusteringDice > 0 ? `${baseDamage} + ${clusteringDice}d6 cluster` : String(baseDamage);
+    }
+
     return damageCode(
       this._getMonitor(),
       this.system.damage,
@@ -1715,11 +1844,11 @@ export class MWDItem extends Item {
   }
 
   getDamageTypeLabel() {
-    if (this.isPersonalWeapon()) {
+    if (this.isWeapon()) {
       return getPersonalDamageTypeLabel(this.getCombatProfile()?.damageType ?? this.system.damageType);
     }
-    const labelKey = MWD.mwd.weaponDamageType[this.system.damageType]
-      ?? MWD.mwd.personalDamageType[this.system.damageType];
+    const labelKey = MWD.mwd.weaponDamageType?.[this.system.damageType]
+      ?? MWD.mwd.personalDamageType?.[this.system.damageType];
     return labelKey ? labelKey : this.system.damageType;
   }
 
@@ -1778,7 +1907,7 @@ export class MWDItem extends Item {
   }
 
   _getMonitor() {
-    if (this.isPersonalWeapon()) {
+    if (this.isWeapon()) {
       return TEMPLATE.monitors.physical;
     }
     return this.system.monitor || TEMPLATE.monitors.physical;

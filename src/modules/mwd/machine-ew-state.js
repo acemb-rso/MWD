@@ -2,10 +2,10 @@
 // Combatant-flag read/write for EW state.
 // This is the only module permitted to access combatant.flags.mwd.ewState.
 
-import { CONTACT_STATE_ORDER, getTargetingDataCap } from "./machine-ew.js";
+import { DETECTION_STATE_ORDER, getTargetingDataCap } from "./machine-ew.js";
 import {
   adjustTargetingDataValue,
-  getMachineContactStateCap,
+  getMachineDetectionStateCap,
   getMachineTrackingPenaltyAdjustment,
 } from "./machine-state-effects.js";
 
@@ -52,11 +52,11 @@ export function getTargetCombatant(targetTokenId) {
 // ---------------------------------------------------------------------------
 
 export function normalizeEwTargetState(raw) {
-  const contactState = CONTACT_STATE_ORDER.includes(raw?.contactState) ? raw.contactState : "blind";
+  const detectionState = DETECTION_STATE_ORDER.includes(raw?.detectionState) ? raw.detectionState : "blind";
   const packets = Array.isArray(raw?.packets)
     ? raw.packets.map(normalizePacket).filter(Boolean)
     : [];
-  return { contactState, packets };
+  return { detectionState, packets };
 }
 
 function normalizePacket(raw) {
@@ -97,10 +97,10 @@ export function getEwTargetState(combatant, targetTokenUuid) {
 }
 
 /**
- * Contact state the attacker has on this target. Defaults to "blind".
+ * Detection state the attacker has on this target. Defaults to "blind".
  */
-export function getContactState(combatant, targetTokenUuid) {
-  return getEwTargetState(combatant, targetTokenUuid).contactState;
+export function getDetectionState(combatant, targetTokenUuid) {
+  return getEwTargetState(combatant, targetTokenUuid).detectionState;
 }
 
 /**
@@ -136,15 +136,15 @@ export function getAcquireDnModifier(targetActor) {
 }
 
 /**
- * Maximum contact state achievable against this target.
+ * Maximum detection state achievable against this target.
  * ecmJamming hard-caps at "track".
  */
 export function getAcquireCeiling(targetActor) {
   const statuses = targetActor?.statuses ?? new Set();
   const baseCap = statuses.has("ecmJamming") ? "track" : "lock";
-  const derivedCap = getMachineContactStateCap(targetActor);
-  const baseIndex = CONTACT_STATE_ORDER.indexOf(baseCap);
-  const derivedIndex = CONTACT_STATE_ORDER.indexOf(derivedCap);
+  const derivedCap = getMachineDetectionStateCap(targetActor);
+  const baseIndex = DETECTION_STATE_ORDER.indexOf(baseCap);
+  const derivedIndex = DETECTION_STATE_ORDER.indexOf(derivedCap);
   return derivedIndex >= 0 && derivedIndex < baseIndex ? derivedCap : baseCap;
 }
 
@@ -154,15 +154,15 @@ export function getAcquireCeiling(targetActor) {
  *
  * "Best" = highest capped value. Stacking policy: max, not sum.
  * A packet is unusable if: consumed, suppressed, or expired.
- * If contact state < "track", always returns null.
+ * If detection state < "track", always returns null.
  */
-export function getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, contactState, currentRound) {
-  if (contactState !== "track" && contactState !== "lock") return null;
+export function getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, detectionState, currentRound) {
+  if (detectionState !== "track" && detectionState !== "lock") return null;
 
   const { packets } = getEwTargetState(combatant, targetTokenUuid);
   if (!packets.length) return null;
 
-  const cap = getTargetingDataCap(systemAttr, contactState);
+  const cap = getTargetingDataCap(systemAttr, detectionState);
   const round = Number.isFinite(Number(currentRound)) ? Number(currentRound) : null;
   const targetActor = resolveTargetActorFromUuid(targetTokenUuid);
 
@@ -188,13 +188,13 @@ export function getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr,
 // Writes
 // ---------------------------------------------------------------------------
 
-export async function setContactState(combatant, targetTokenUuid, newState) {
+export async function setDetectionState(combatant, targetTokenUuid, newState) {
   const uuid = String(targetTokenUuid ?? "").trim();
   if (!uuid || !combatant) return;
-  const state = CONTACT_STATE_ORDER.includes(newState) ? newState : "blind";
+  const state = DETECTION_STATE_ORDER.includes(newState) ? newState : "blind";
   const all = { ...readEwState(combatant) };
   const current = normalizeEwTargetState(all[uuid]);
-  all[uuid] = { ...current, contactState: state };
+  all[uuid] = { ...current, detectionState: state };
   await combatant.setFlag(FLAG_SCOPE, FLAG_KEY, all);
 }
 

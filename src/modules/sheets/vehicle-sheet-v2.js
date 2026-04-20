@@ -2,6 +2,7 @@
 // Purpose: Layout-driven AppV2 vehicle sheet that prepares semantic view models for dumb templates.
 // How it fits: Serves as the base vehicle-scale V2 sheet and the reuse target for BattleMech sheets.
 
+import { ANARCHY } from "../config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
@@ -22,6 +23,13 @@ import {
   getMachineMovementEffects,
   getMachineRuleState,
 } from "../mwd/machine-state-effects.js";
+import {
+  doesHardpointAcceptItem,
+  getAssignedMachineItemIds,
+  getHardpointCompatibilityError,
+  getConfiguredMachineHardpoints,
+  rawHardpointsArray,
+} from "../mwd/machine-hardpoints.js";
 import { getMachineLocationLabel } from "../mwd/machine-hit-locations.js";
 import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import { buildMachineMovementFields, buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
@@ -63,6 +71,13 @@ function startCase(value = "") {
     .trim()
     .replace(/\b\w/g, char => char.toUpperCase());
 }
+
+const HARDPOINT_TYPE_CODES = Object.freeze({
+  energy: "ENG",
+  ballistic: "BAL",
+  missile: "MSL",
+  omni: "OMNI",
+});
 
 function buildSummaryStats(stats = []) {
   return stats
@@ -107,6 +122,12 @@ function buildDetailRows(rows = []) {
     }));
 }
 
+function getHardpointTypeCode(type = "") {
+  const normalized = String(type ?? "").trim().toLowerCase();
+  if (HARDPOINT_TYPE_CODES[normalized]) return HARDPOINT_TYPE_CODES[normalized];
+  return startCase(normalized).slice(0, 3).toUpperCase() || "SLOT";
+}
+
 function formatRangeSummary(range = {}) {
   const orderedKeys = ["close", "near", "far", "extreme", "max"];
   const entries = orderedKeys
@@ -127,7 +148,7 @@ const VEHICLE_ATTRIBUTE_LABELS = Object.freeze({
 });
 
 const ITEM_TYPE_LABELS = Object.freeze({
-  mechWeapon: "BattleMech Weapon",
+  mechWeapon: "Machine Weapon",
   vehicleWeapon: "Vehicle Weapon",
   personalWeapon: "Personal Weapon",
   assetModule: "Asset Module",
@@ -193,6 +214,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       editOwnedItem: VehicleSheetV2.prototype._onEditOwnedItem,
       deleteOwnedItem: VehicleSheetV2.prototype._onDeleteOwnedItem,
       toggleInventoryAccordion: VehicleSheetV2.prototype._onToggleInventoryAccordion,
+      addHardpoint: VehicleSheetV2.prototype._onAddHardpoint,
+      deleteHardpoint: VehicleSheetV2.prototype._onDeleteHardpoint,
+      createHardpointItem: VehicleSheetV2.prototype._onCreateHardpointItem,
+      assignHardpointItem: VehicleSheetV2.prototype._onAssignHardpointItem,
+      clearHardpointItem: VehicleSheetV2.prototype._onClearHardpointItem,
       machineWeaponAttack: VehicleSheetV2.prototype._onMachineWeaponAttack,
       ewAcquire: VehicleSheetV2.prototype._onEwAcquire,
       ewTarget: VehicleSheetV2.prototype._onEwTarget,
@@ -205,6 +231,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   }, { inplace: false });
 
   #expandedInventoryRows = new Set();
+  #hardpointDragController = null;
 
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
@@ -224,6 +251,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       attributes: this._buildAttributeCards(),
       movement: this._buildMovementCards(),
       degradation: this._buildDegradationPanel(),
+      hardpoints: this._buildMachineHardpoints(),
+      hardpointOptions: this._buildHardpointOptions(),
       sections: this._buildVehicleSections(),
       pilotPanel: await this._buildPilotPanel(),
     };
@@ -280,6 +309,9 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     if (!this.isEditable) return super._onDrop?.(event);
     let data;
     try { data = TextEditor.getDragEventData(event); } catch (_) {}
+    if (await this._handleHardpointItemDrop(event, data)) {
+      return;
+    }
     if (data?.type === "Actor") {
       const dropped = await fromUuid(data.uuid).catch(() => null);
       if (dropped?.type === "character") {
@@ -289,6 +321,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       }
     }
     return super._onDrop?.(event);
+  }
+
+  _onRender(context, options) {
+    super._onRender?.(context, options);
+    this.#bindHardpointDragDrop();
   }
 
   _buildSummaryStats() {
@@ -413,13 +450,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   _buildVehicleSections() {
     const buckets = this.actor.system?.mwd?.items ?? {};
     return {
-      weapons: this._buildRecordSection({
-        sectionId: "weapons",
-        itemType: "vehicleWeapon",
-        addLabel: "Add Weapon",
-        emptyLabel: "No vehicle weapons configured.",
-        items: buckets.vehicleWeapons ?? [],
-      }),
+      slots: this._buildHardpointSlotSection(),
       upgrades: this._buildRecordSection({
         sectionId: "upgrades",
         itemType: "vehicleUpgrade",
@@ -441,6 +472,374 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         emptyLabel: "No stored gear.",
         items: buckets.gear ?? [],
       }),
+    };
+  }
+
+  _buildHardpointSlotSection() {
+    const configuredHardpoints = getConfiguredMachineHardpoints(this.actor);
+    const slotRecords = configuredHardpoints.map((hardpoint, index) =>
+      this._buildHardpointSlotRecord(hardpoint, index)
+    );
+
+    return {
+      sectionId: "slots",
+      itemType: "",
+      addLabel: "",
+      emptyLabel: "No hardpoint slots configured.",
+      records: slotRecords,
+    };
+  }
+
+  _buildMachineHardpoints() {
+    const configured = getConfiguredMachineHardpoints(this.actor);
+    const loadout = Array.from(this.actor.system?.mwd?.loadout?.hardpoints ?? []);
+    const slottedItemById = new Map(this._getHardpointSlottableItems()
+      .map(item => [String(item?.id ?? "").trim(), item])
+      .filter(([id]) => id));
+    const loadoutById = new Map(loadout.map((hardpoint, index) => [
+      String(hardpoint?.id ?? `hardpoint-${index + 1}`),
+      hardpoint,
+    ]));
+    const typeLabels = this._getHardpointTypeLabels();
+    const sizeLabels = this._getHardpointSizeLabels();
+    const locationLabels = this._getHardpointLocationLabels();
+    const hardpointOptions = this._buildHardpointOptions();
+
+    return configured.map((hardpoint, index) => {
+      const id = String(hardpoint?.id ?? `hardpoint-${index + 1}`);
+      const occupancy = loadoutById.get(id) ?? {};
+      const type = String(hardpoint?.type ?? occupancy?.type ?? "energy").trim() || "energy";
+      const size = String(hardpoint?.size ?? occupancy?.size ?? "small").trim() || "small";
+      const location = String(hardpoint?.location ?? occupancy?.location ?? "").trim()
+        || this._getDefaultHardpointLocation();
+      const occupiedByName = String(
+        slottedItemById.get(String(hardpoint?.itemId ?? "").trim())?.name
+        ?? occupancy?.occupiedByName
+        ?? ""
+      ).trim();
+
+      return {
+        id,
+        index,
+        itemId: String(hardpoint?.itemId ?? "").trim(),
+        type,
+        size,
+        location,
+        typeLabel: typeLabels[type] ?? startCase(type),
+        sizeLabel: sizeLabels[size] ?? startCase(size),
+        locationLabel: locationLabels[location] ?? startCase(location),
+        occupiedByName,
+        occupancyLabel: occupiedByName || "Open",
+        typeOptions: hardpointOptions.types.map(option => ({ ...option, selected: option.value === type })),
+        sizeOptions: hardpointOptions.sizes.map(option => ({ ...option, selected: option.value === size })),
+        locationOptions: hardpointOptions.locations.map(option => ({ ...option, selected: option.value === location })),
+      };
+    });
+  }
+
+  _buildHardpointOptions() {
+    return {
+      types: Object.entries(this._getHardpointTypeLabels()).map(([value, label]) => ({ value, label })),
+      sizes: Object.entries(this._getHardpointSizeLabels()).map(([value, label]) => ({ value, label })),
+      locations: this._getAvailableHardpointLocations().map(value => ({
+        value,
+        label: this._getHardpointLocationLabels()[value] ?? startCase(value),
+      })),
+    };
+  }
+
+  _getHardpointTypeLabels() {
+    return ANARCHY?.mwd?.hardpointType ?? ANARCHY?.mwd?.hardpoint?.type ?? {};
+  }
+
+  _getHardpointSizeLabels() {
+    return ANARCHY?.mwd?.hardpointSize ?? ANARCHY?.mwd?.hardpoint?.size ?? {};
+  }
+
+  _getHardpointLocationLabels() {
+    return ANARCHY?.mwd?.hardpointLocation ?? ANARCHY?.mwd?.hardpoint?.location ?? {};
+  }
+
+  _getAvailableHardpointLocations() {
+    return this.actor?.type === "battlemech"
+      ? ["arms", "head", "torso"]
+      : ["turret"];
+  }
+
+  _getCompatibleHardpointItems(hardpoint, { includeAssignedItem = false } = {}) {
+    const assignedItemIds = getAssignedMachineItemIds(this.actor);
+    const currentItemId = String(hardpoint?.itemId ?? "").trim();
+    return this._getHardpointSlottableItems().filter(item => {
+      const itemId = String(item?.id ?? "").trim();
+      if (!itemId) return false;
+      if (!includeAssignedItem && assignedItemIds.has(itemId) && itemId !== currentItemId) return false;
+      return doesHardpointAcceptItem(hardpoint, item);
+    });
+  }
+
+  #bindHardpointDragDrop() {
+    const root = this._getRootElement?.();
+    if (!root) return;
+
+    this.#hardpointDragController?.abort();
+    const controller = new AbortController();
+    this.#hardpointDragController = controller;
+
+    root.addEventListener("dragstart", event => {
+      const record = event.target?.closest?.(".mwd-record[data-item-id][draggable='true']");
+      if (!record || !root.contains(record)) return;
+
+      const item = this._getOwnedItemFromTarget(record, event);
+      const dragData = item?.toDragData?.() ?? (item?.uuid ? {
+        type: "Item",
+        uuid: item.uuid,
+      } : null);
+      if (!dragData) {
+        event.preventDefault();
+        return;
+      }
+
+      event.stopPropagation();
+      event.dataTransfer?.setData("text/plain", JSON.stringify(dragData));
+      if (event.dataTransfer) event.dataTransfer.effectAllowed = "copyMove";
+    }, { signal: controller.signal });
+
+    root.addEventListener("dragover", event => {
+      const hardpointSlot = event.target?.closest?.(".mwd-record[data-hardpoint-id]");
+      if (!hardpointSlot || !root.contains(hardpointSlot)) return;
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+    }, { signal: controller.signal });
+  }
+
+  async _handleHardpointItemDrop(event, data = null) {
+    const hardpointSlot = event?.target?.closest?.(".mwd-record[data-hardpoint-id]");
+    if (!hardpointSlot) return false;
+
+    const hardpointId = String(hardpointSlot.dataset?.hardpointId ?? "").trim();
+    if (!hardpointId) return false;
+
+    const hardpoint = getConfiguredMachineHardpoints(this.actor).find(entry => entry.id === hardpointId);
+    if (!hardpoint) return false;
+
+    if (String(hardpoint?.itemId ?? "").trim()) {
+      ui.notifications?.warn("That hardpoint is already filled.");
+      return true;
+    }
+
+    const droppedItem = await this._resolveDroppedHardpointItem(data);
+    if (!droppedItem) return false;
+
+    const compatibilityError = getHardpointCompatibilityError(hardpoint, droppedItem);
+    if (compatibilityError) {
+      ui.notifications?.warn(compatibilityError);
+      return true;
+    }
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    let targetItemId = String(droppedItem?.id ?? "").trim();
+    const isOwnedByActor = droppedItem?.parent === actorWriteTarget || droppedItem?.actor === actorWriteTarget;
+
+    if (!isOwnedByActor) {
+      const sourceData = foundry.utils.deepClone(droppedItem.toObject?.() ?? droppedItem ?? {});
+      delete sourceData._id;
+      const created = await actorWriteTarget.createEmbeddedDocuments("Item", [sourceData]);
+      targetItemId = String(created?.[0]?.id ?? "").trim();
+    }
+
+    if (!targetItemId) {
+      ui.notifications?.warn("That item could not be mounted.");
+      return true;
+    }
+
+    await this._setHardpointOccupant(hardpointId, targetItemId);
+    this.render({ force: true });
+    return true;
+  }
+
+  async _resolveDroppedHardpointItem(data = null) {
+    if (!data) return null;
+    if (data?.type !== "Item") return null;
+
+    const dropped = data?.uuid
+      ? await fromUuid(data.uuid).catch(() => null)
+      : null;
+    if (!dropped) return null;
+
+    return dropped;
+  }
+
+  async _promptHardpointAssignment(hardpoint) {
+    const compatibleItems = this._getCompatibleHardpointItems(hardpoint);
+    if (!compatibleItems.length) return "";
+    if (compatibleItems.length === 1) return compatibleItems[0].id ?? "";
+
+    const content = `<form class="mwd-quick-select">${compatibleItems.map((item, index) => `
+      <label class="quick-select-option">
+        <input type="radio" name="slot-item" value="${item.id}" ${index === 0 ? "checked" : ""}>
+        <span>${item.name}</span>
+      </label>`).join("")}</form>`;
+
+    return await Dialog.prompt({
+      title: "Assign Hardpoint Item",
+      content,
+      label: "Assign",
+      callback: html => html.find('input[name="slot-item"]:checked').val() ?? compatibleItems[0].id,
+    });
+  }
+
+  async _setHardpointOccupant(hardpointId = "", itemId = "") {
+    const normalizedHardpointId = String(hardpointId ?? "").trim();
+    if (!normalizedHardpointId) return;
+
+    const normalizedItemId = String(itemId ?? "").trim();
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const hardpoints = foundry.utils.deepClone(rawHardpointsArray(actorWriteTarget));
+    let changed = false;
+
+    for (const hardpoint of hardpoints) {
+      const currentId = String(hardpoint?.itemId ?? "").trim();
+      if (normalizedItemId && currentId === normalizedItemId && String(hardpoint?.id ?? "").trim() !== normalizedHardpointId) {
+        hardpoint.itemId = "";
+        changed = true;
+      }
+      if (String(hardpoint?.id ?? "").trim() === normalizedHardpointId) {
+        const nextValue = normalizedItemId || "";
+        if (currentId !== nextValue) {
+          hardpoint.itemId = nextValue;
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) {
+      await actorWriteTarget.update({ "system.mwd.hardpoints": hardpoints });
+    }
+  }
+
+  async _deleteMountedHardpointItem(hardpointId = "") {
+    const normalizedHardpointId = String(hardpointId ?? "").trim();
+    if (!normalizedHardpointId) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const hardpoint = getConfiguredMachineHardpoints(actorWriteTarget).find(entry => entry.id === normalizedHardpointId);
+    const itemId = String(hardpoint?.itemId ?? "").trim();
+    if (!itemId) return;
+
+    const item = actorWriteTarget.items?.get?.(itemId) ?? null;
+    if (!item) return;
+
+    await actorWriteTarget.deleteEmbeddedDocuments("Item", [itemId]);
+  }
+
+  _getHardpointSlottableItems() {
+    return Array.from(this.actor?.items ?? []).filter(item => {
+      const canonicalType = String(item?.canonicalType ?? item?.type ?? "").trim();
+      return canonicalType === "mechWeapon";
+    });
+  }
+
+  _buildHardpointSlotRecord(hardpoint, index = 0) {
+    const slotId = String(hardpoint?.id ?? `hardpoint-${index + 1}`).trim();
+    const type = String(hardpoint?.type ?? "").trim();
+    const size = String(hardpoint?.size ?? "").trim();
+    const location = String(hardpoint?.location ?? "").trim() || this._getDefaultHardpointLocation();
+    const typeLabels = this._getHardpointTypeLabels();
+    const sizeLabels = this._getHardpointSizeLabels();
+    const locationLabels = this._getHardpointLocationLabels();
+    const itemId = String(hardpoint?.itemId ?? "").trim();
+    const item = itemId ? this.actor?.items?.get?.(itemId) ?? null : null;
+    const profile = typeof item?.getCombatProfile === "function" ? item.getCombatProfile() : null;
+    const accordionId = `slot:${slotId}`;
+    const compatibleItems = this._getCompatibleHardpointItems(hardpoint);
+    const typeLabel = typeLabels[type] ?? startCase(type);
+    const sizeLabel = sizeLabels[size] ?? startCase(size);
+    const locationLabel = locationLabels[location] ?? startCase(location);
+
+    if (!item) {
+      return {
+        id: "",
+        hardpointId: slotId,
+        accordionId,
+        className: "is-hardpoint-slot is-empty-hardpoint",
+        mediaClassName: "is-slot-placeholder",
+        isExpanded: this.#expandedInventoryRows.has(accordionId),
+        isEmptyHardpoint: true,
+        slotTypeCode: getHardpointTypeCode(type),
+        slotSizeCode: sizeLabel.slice(0, 1).toUpperCase() || "S",
+        slotOpenLabel: "Open",
+        img: "systems/mwd/img/default/Default_Weapon.svg",
+        name: `Empty ${typeLabel} ${sizeLabel} Slot`,
+        subtitle: `${locationLabel} mount available`,
+        summaryStats: buildSummaryStats([
+          { label: "Mount", value: `${typeLabel} ${sizeLabel}`, emphasis: "strong" },
+          { label: "Ready", value: compatibleItems.length ? String(compatibleItems.length) : "0", tone: compatibleItems.length ? "green" : "orange" },
+        ]),
+        detailTags: buildDetailTags(["Open Hardpoint", typeLabel, sizeLabel]),
+        detailRows: buildDetailRows([
+          { label: "Location", value: locationLabel },
+          { label: "Accepts", value: `${sizeLabel} ${typeLabel} weapons` },
+          { label: "Assigned Item", value: "Empty" },
+          { label: "Compatible Items", value: compatibleItems.length ? String(compatibleItems.length) : "None" },
+        ]),
+        detailText: compatibleItems.length
+          ? "Drag a compatible weapon here, create a new weapon for this slot, or mount an existing item."
+          : "This mount is open, but there are no compatible weapons currently available to assign.",
+        createHardpointItem: {
+          hardpointId: slotId,
+          itemType: "mechWeapon",
+          label: "Create Weapon for Slot",
+        },
+        assignHardpointItem: compatibleItems.length
+          ? {
+              hardpointId: slotId,
+              label: compatibleItems.length === 1 ? "Mount Existing Weapon" : "Choose Existing Weapon",
+            }
+          : null,
+      };
+    }
+
+    const canonicalType = item?.canonicalType ?? item?.type ?? "";
+    const itemTypeLabel = ITEM_TYPE_LABELS[canonicalType] ?? startCase(canonicalType || "item");
+    const notes = item?.system?.notes ?? item?.system?.description ?? item?.system?.references?.description ?? "";
+
+    return {
+      id: item.id ?? "",
+      hardpointId: slotId,
+      accordionId,
+      className: "is-hardpoint-slot is-occupied-hardpoint",
+      isExpanded: this.#expandedInventoryRows.has(accordionId),
+      name: item.name ?? itemTypeLabel,
+      img: item.img ?? "icons/svg/item-bag.svg",
+      subtitle: `${itemTypeLabel} | ${locationLabel}`,
+      summaryStats: profile
+        ? buildSummaryStats([
+            { label: "DV", value: toNumber(profile.damage, 0), emphasis: "strong" },
+            { label: "AP", value: toNumber(profile.ap, 0) },
+            { label: "Type", value: profile.damageTypeLabel ?? profile.damageType ?? "" },
+          ])
+        : buildSummaryStats([
+            { label: "Type", value: itemTypeLabel, emphasis: "strong" },
+            { label: "Slot", value: sizeLabels[size] ?? startCase(size) },
+          ]),
+      detailTags: buildDetailTags([
+        "Mounted",
+        typeLabel,
+      ]),
+      detailRows: buildDetailRows([
+        { label: "Slot Type", value: typeLabel },
+        { label: "Slot Size", value: sizeLabel },
+        { label: "Location", value: locationLabel },
+        { label: "Assigned Item", value: item.name ?? itemTypeLabel },
+      ]),
+      detailText: toSnippet(notes),
+      clearHardpointItem: {
+        hardpointId: slotId,
+        label: "Unmount Item",
+      },
+      machineAttack: canonicalType === "mechWeapon"
+        ? { label: "Attack", itemId: item.id ?? "" }
+        : null,
     };
   }
 
@@ -561,7 +960,13 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     if (!item) return;
 
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const assignedHardpoint = getConfiguredMachineHardpoints(actorWriteTarget).find(hardpoint =>
+      String(hardpoint?.itemId ?? "").trim() === String(item?.id ?? "").trim()
+    );
     await actorWriteTarget.deleteEmbeddedDocuments("Item", [item.id]);
+    if (assignedHardpoint?.id) {
+      await this._setHardpointOccupant(assignedHardpoint.id, "");
+    }
     this.render({ force: true });
   }
 
@@ -584,6 +989,126 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     }
 
     this.render({ force: false });
+  }
+
+  async _onAddHardpoint(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const hardpoints = foundry.utils.deepClone(rawHardpointsArray(actorWriteTarget));
+    const options = this._buildHardpointOptions();
+    hardpoints.push({
+      id: foundry.utils.randomID?.() ?? `hardpoint-${hardpoints.length + 1}`,
+      type: options.types[0]?.value ?? "energy",
+      size: options.sizes[0]?.value ?? "small",
+      location: this._getDefaultHardpointLocation(),
+      itemId: "",
+    });
+
+    await actorWriteTarget.update({ "system.mwd.hardpoints": hardpoints });
+    this.render({ force: true });
+  }
+
+  async _onDeleteHardpoint(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const index = Number(
+      target?.dataset?.hardpointIndex
+      ?? target?.closest?.("[data-hardpoint-index]")?.dataset?.hardpointIndex
+      ?? event?.target?.closest?.("[data-hardpoint-index]")?.dataset?.hardpointIndex
+    );
+    if (!Number.isInteger(index) || index < 0) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const hardpoints = foundry.utils.deepClone(rawHardpointsArray(actorWriteTarget));
+    const removed = hardpoints[index] ?? null;
+    hardpoints.splice(index, 1);
+
+    const removedItemId = String(removed?.itemId ?? "").trim();
+    if (removedItemId) {
+      await actorWriteTarget.deleteEmbeddedDocuments("Item", [removedItemId]);
+    }
+    await actorWriteTarget.update({ "system.mwd.hardpoints": hardpoints });
+    this.render({ force: true });
+  }
+
+  async _onCreateHardpointItem(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const hardpointId = String(
+      target?.dataset?.hardpointId
+      ?? target?.closest?.("[data-hardpoint-id]")?.dataset?.hardpointId
+      ?? ""
+    ).trim();
+    if (!hardpointId) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const hardpoint = rawHardpointsArray(actorWriteTarget).find(entry =>
+      String(entry?.id ?? "").trim() === hardpointId
+    );
+    if (!hardpoint) return;
+
+    const existingCount = actorWriteTarget.items.filter(item => (item.canonicalType ?? item.type) === "mechWeapon").length;
+    const defaultDamageType = ["penetrating", "concussive", "energy", "thermal", "electrical"].includes(String(hardpoint?.type ?? "").trim())
+      ? String(hardpoint.type).trim()
+      : "penetrating";
+    const created = await actorWriteTarget.createEmbeddedDocuments("Item", [{
+      name: `Mech Weapon ${existingCount + 1}`,
+      type: "mechWeapon",
+      system: {
+        size: String(hardpoint?.size ?? "").trim() || "small",
+        damageType: defaultDamageType,
+      },
+    }]);
+
+    await this._setHardpointOccupant(hardpointId, created?.[0]?.id ?? "");
+    created?.[0]?.sheet?.render?.(true);
+    this.render({ force: true });
+  }
+
+  async _onAssignHardpointItem(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const hardpointId = String(
+      target?.dataset?.hardpointId
+      ?? target?.closest?.("[data-hardpoint-id]")?.dataset?.hardpointId
+      ?? ""
+    ).trim();
+    if (!hardpointId) return;
+
+    const hardpoint = getConfiguredMachineHardpoints(this.actor).find(entry => entry.id === hardpointId);
+    if (!hardpoint) return;
+
+    const itemId = await this._promptHardpointAssignment(hardpoint);
+    if (!itemId) return;
+
+    await this._setHardpointOccupant(hardpointId, itemId);
+    this.render({ force: true });
+  }
+
+  async _onClearHardpointItem(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const hardpointId = String(
+      target?.dataset?.hardpointId
+      ?? target?.closest?.("[data-hardpoint-id]")?.dataset?.hardpointId
+      ?? ""
+    ).trim();
+    if (!hardpointId) return;
+
+    await this._deleteMountedHardpointItem(hardpointId);
+    await this._setHardpointOccupant(hardpointId, "");
+    this.render({ force: true });
   }
 
   _buildActiveCrits() {
@@ -732,6 +1257,10 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       ?? Array.from(canvas?.tokens?.placeables ?? [])
         .find(token => token?.actor?.id && token.actor.id === actor?.id)?.document
       ?? null;
+  }
+
+  _getDefaultHardpointLocation() {
+    return this._getAvailableHardpointLocations()[0] ?? "torso";
   }
 
   #getOwnedItemFromTarget(target, event) {

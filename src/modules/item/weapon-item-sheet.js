@@ -4,6 +4,7 @@
 
 
 import { AttributeActions } from "../attribute-actions.js";
+import { MWD } from "../config.js";
 import { BaseItemSheet } from "./base-item-sheet.js";
 import { WeaponItem } from "./weapon-item.js";
 import {
@@ -31,15 +32,9 @@ const PERSONAL_WEAPON_SKILL_CODES = Object.freeze([
   "meleeCombat"
 ]);
 
-const MECH_WEAPON_DAMAGE_TYPES = Object.freeze([
-  { value: "energy", label: "Energy" },
-  { value: "kinetic", label: "Kinetic" },
-  { value: "ballistic", label: "Ballistic" },
-  { value: "explosive", label: "Explosive" },
-  { value: "plasma", label: "Plasma" },
-  { value: "electrical", label: "Electrical" },
+const MECH_WEAPON_CATEGORY_OPTIONS = Object.freeze([
   { value: "melee", label: "Melee" },
-  { value: "none", label: "None" }
+  { value: "ranged", label: "Ranged" },
 ]);
 
 const ITEM_REF_PATH_PRESETS = Object.freeze([
@@ -135,6 +130,15 @@ function buildConsumptionSourceEditorEntry(item, source) {
   };
 }
 
+function startCase(value = "") {
+  return String(value ?? "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
+
 /**
  * Weapon item sheet (AppV2).
  * Handles weapon skill selection and defense attribute assignment.
@@ -147,7 +151,8 @@ export class WeaponItemSheet extends BaseItemSheet {
     return foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       actions: {
         ...super.DEFAULT_OPTIONS.actions,
-        weaponSkillChange: WeaponItemSheet._onWeaponSkillChange
+        weaponSkillChange: WeaponItemSheet._onWeaponSkillChange,
+        weaponCategoryChange: WeaponItemSheet._onWeaponCategoryChange,
       }
     }, { inplace: false });
   }
@@ -185,20 +190,26 @@ export class WeaponItemSheet extends BaseItemSheet {
           value => allSkills.find(entry => entry.value === value)?.label ?? value
         )
       : allSkills;
+    const mechCategory = String(this.item.system?.weaponCategory ?? this.item.system?.category ?? "ranged").trim().toLowerCase() === "melee"
+      ? "melee"
+      : "ranged";
+    const hardpointSizeLabels = MWD?.mwd?.hardpointSize ?? MWD?.mwd?.hardpoint?.size ?? {};
 
     context.weaponProfile = this.item.getCombatProfile?.() ?? null;
     context.weaponEditor = {
       skills: skillOptions,
-      categories: [
-        { value: "melee", label: "Melee" },
-        { value: "ranged", label: "Ranged" },
-        { value: "thrown", label: "Thrown" },
-        { value: "other", label: "Other" }
-      ],
+      categories: canonicalType === "mechWeapon"
+        ? [...MECH_WEAPON_CATEGORY_OPTIONS]
+        : [
+            { value: "melee", label: "Melee" },
+            { value: "ranged", label: "Ranged" },
+            { value: "thrown", label: "Thrown" },
+            { value: "other", label: "Other" }
+          ],
       damageTypes: appendSelectedOption(
-        canonicalType === "personalWeapon" ? [...PERSONAL_DAMAGE_TYPES] : [...MECH_WEAPON_DAMAGE_TYPES],
+        [...PERSONAL_DAMAGE_TYPES],
         selectedDamageType,
-        value => canonicalType === "personalWeapon" ? getPersonalDamageTypeLabel(value) : value
+        value => getPersonalDamageTypeLabel(value)
       ),
       ranges: WeaponItem.RANGE_ORDER.map(value => ({
         value,
@@ -236,6 +247,7 @@ export class WeaponItemSheet extends BaseItemSheet {
         { value: "actorResource", label: "Actor Resource" },
         { value: "itemRef", label: "Linked Item" }
       ],
+      hardpointSizes: Object.entries(hardpointSizeLabels).map(([value, label]) => ({ value, label })),
       consumptionSources: Array.isArray(this.item.system?.consumptionSources)
         ? this.item.system.consumptionSources.map(source => buildConsumptionSourceEditorEntry(this.item, source))
         : []
@@ -244,7 +256,9 @@ export class WeaponItemSheet extends BaseItemSheet {
     context.itemSheet = {
       ...(context.itemSheet ?? {}),
       isCompactWeaponSheet: true,
-      weaponSheetVariant: canonicalType === "mechWeapon" ? "mech" : "personal"
+      weaponSheetVariant: canonicalType === "mechWeapon" ? "mech" : "personal",
+      mechDerivedSkillLabel: mechCategory === "melee" ? "Melee Combat" : "Gunnery",
+      mechIsMelee: canonicalType === "mechWeapon" && mechCategory === "melee",
     };
     context.itemSheet.stateChips = (context.itemSheet.stateChips ?? []).filter(
       chip => !["ownership", "equipment", "role"].includes(chip.kind)
@@ -261,11 +275,128 @@ export class WeaponItemSheet extends BaseItemSheet {
    * @static
    * @async
    */
+  _onRender(context, options) {
+    super._onRender?.(context, options);
+    this._bindPayloadEditorControls();
+  }
+
+  _bindPayloadEditorControls() {
+    const root = this._getRootElement?.();
+    if (!root) return;
+
+    const preserveScroll = (work) => {
+      this._captureScrollPositions?.();
+      return work();
+    };
+
+    root.querySelectorAll(".mwd-payload-add").forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        void preserveScroll(() => this.item.createPayload?.());
+      });
+    });
+
+    root.querySelectorAll(".mwd-payload-delete").forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        void preserveScroll(() => this.item.deletePayload?.(button.dataset.payloadId));
+      });
+    });
+
+    root.querySelectorAll(".mwd-payload-field").forEach(field => {
+      field.addEventListener("change", event => {
+        event.preventDefault();
+        void preserveScroll(() => this.item.updatePayloadField?.(
+          field.dataset.payloadId,
+          field.dataset.field,
+          field.value
+        ));
+      });
+    });
+
+    root.querySelectorAll(".mwd-source-add").forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        void preserveScroll(() => this.item.createConsumptionSource?.());
+      });
+    });
+
+    root.querySelectorAll(".mwd-source-delete").forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        void preserveScroll(() => this.item.deleteConsumptionSource?.(button.dataset.sourceId));
+      });
+    });
+
+    root.querySelectorAll(".mwd-source-field").forEach(field => {
+      field.addEventListener("change", event => {
+        event.preventDefault();
+        void preserveScroll(() => this.item.updateConsumptionSourceField?.(
+          field.dataset.sourceId,
+          field.dataset.field,
+          field.value
+        ));
+      });
+    });
+
+    root.querySelectorAll(".mwd-capability-picker").forEach(field => {
+      field.addEventListener("change", event => {
+        event.preventDefault();
+        const selected = String(field.value ?? "").trim();
+        if (!selected) return;
+
+        const current = String(field.dataset.values ?? "")
+          .split(",")
+          .map(entry => entry.trim())
+          .filter(Boolean);
+        const next = Array.from(new Set([...current, selected]));
+        field.value = "";
+
+        const payloadId = String(field.dataset.payloadId ?? "").trim();
+        const targetField = String(field.dataset.field ?? "").trim();
+        if (!targetField) return;
+
+        if (payloadId) {
+          void preserveScroll(() => this.item.updatePayloadField?.(payloadId, targetField, next.join(", ")));
+          return;
+        }
+
+        void preserveScroll(() => this.item.update({ [targetField]: next }));
+      });
+    });
+  }
+
   static async _onWeaponSkillChange(event, target) {
     const skillCode = target.value;
     const skill = game.system.mwd.skills?.get?.(skillCode);
     await this._syncNamedField(target, {
       ...(skill?.defense ? { "system.defense": skill.defense } : {})
     });
+  }
+
+  static async _onWeaponCategoryChange(event, target) {
+    const category = String(target?.value ?? "").trim().toLowerCase() === "melee" ? "melee" : "ranged";
+    const canonicalType = this._getCanonicalItemType?.() ?? this.item?.canonicalType ?? this.item?.type;
+
+    if (canonicalType === "mechWeapon") {
+      const updateData = {
+        "system.category": category,
+        "system.weaponCategory": category,
+        "system.skill": category === "melee" ? "meleeCombat" : "gunnery",
+      };
+
+      if (category === "melee") {
+        updateData["system.range.max"] = "close";
+        updateData["system.range.close"] = 0;
+        updateData["system.range.near"] = 0;
+        updateData["system.range.far"] = 0;
+        updateData["system.range.extreme"] = 0;
+      }
+
+      await this._syncNamedField(target, updateData);
+      return;
+    }
+
+    await this._syncNamedField(target);
   }
 }

@@ -20,6 +20,7 @@ function buildActor(overrides = {}) {
       },
       mwd: {
         crits: overrides.crits ?? [],
+        hardpoints: overrides.hardpoints ?? [],
       },
       weaponGroups: overrides.weaponGroups ?? [],
     },
@@ -74,13 +75,17 @@ test("crit presentation differentiates automated and reminder-only effects", () 
 });
 
 test("jammed ballistic blocks only ballistic attacks from the scoped group", () => {
-  const ballisticWeapon = { id: "w-ac", system: { mountLocation: "arm", damageType: "ballistic" } };
-  const energyWeapon = { id: "w-ppc", system: { mountLocation: "torso", damageType: "energy" } };
+  const ballisticWeapon = { id: "w-ac", system: { damageType: "ballistic", size: "small" } };
+  const energyWeapon = { id: "w-ppc", system: { damageType: "energy", size: "small" } };
   const actor = buildActor({
     items: new Map([
       [ballisticWeapon.id, ballisticWeapon],
       [energyWeapon.id, energyWeapon],
     ]),
+    hardpoints: [
+      { id: "hp-ac", type: "penetrating", size: "small", location: "arms", itemId: "w-ac" },
+      { id: "hp-ppc", type: "energy", size: "small", location: "torso", itemId: "w-ppc" },
+    ],
     weaponGroups: [
       { id: "alpha", name: "Alpha", weaponIds: ["w-ac"], isPrimary: true },
       { id: "beta", name: "Beta", weaponIds: ["w-ppc"], isPrimary: false },

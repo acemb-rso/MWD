@@ -4,8 +4,8 @@
 import { TEMPLATE } from "../../constants.js";
 import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
-import { getTargetingDataCap, getContactStateLabel } from "../../mwd/machine-ew.js";
-import { getAttackerCombatant, getContactState } from "../../mwd/machine-ew-state.js";
+import { getTargetingDataCap, getDetectionStateLabel } from "../../mwd/machine-ew.js";
+import { getAttackerCombatant, getDetectionState } from "../../mwd/machine-ew-state.js";
 import { isMachineTargetingGenerationBlocked } from "../../mwd/machine-state-effects.js";
 import { createUserFacingRollError } from "../roll-errors.js";
 
@@ -50,9 +50,9 @@ export async function resolveTargeting({ actor, payload } = {}) {
 
   const attackerToken = resolveAttackerToken(actor, payload);
   const combatant     = getAttackerCombatant(attackerToken);
-  const contactState  = getContactState(combatant, targetTokenUuid);
+  const detectionState  = getDetectionState(combatant, targetTokenUuid);
 
-  if (contactState !== "track" && contactState !== "lock") {
+  if (detectionState !== "track" && detectionState !== "lock") {
     throw createUserFacingRollError("Track or Lock is required to generate targeting data.", { severity: "warn" });
   }
 
@@ -66,7 +66,7 @@ export async function resolveTargeting({ actor, payload } = {}) {
   const skillDef      = getSkillDef("gunnery");
   const gunneryRating = Number(roller?.system?.skills?.gunnery?.rating ?? 0) || 0;
   const gunneryBonus  = Number(roller?.system?.skills?.gunnery?.bonus  ?? 0) || 0;
-  const cap           = getTargetingDataCap(systemAttr, contactState);
+  const cap           = getTargetingDataCap(systemAttr, detectionState);
 
   return {
     intent:    "targeting",
@@ -98,8 +98,8 @@ export async function resolveTargeting({ actor, payload } = {}) {
       attackerTokenUuid: attackerToken?.document?.uuid ?? attackerToken?.uuid ?? "",
       targetTokenUuid,
       targetTokenId:     targetToken?.id ?? "",
-      contactState,
-      contactStateLabel: getContactStateLabel(contactState),
+      detectionState,
+      detectionStateLabel: getDetectionStateLabel(detectionState),
       cap,
     },
   };

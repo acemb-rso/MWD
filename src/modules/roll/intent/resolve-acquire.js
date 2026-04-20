@@ -6,11 +6,11 @@ import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import {
   getAcquireBaseDn,
-  getContactStateLabel,
+  getDetectionStateLabel,
 } from "../../mwd/machine-ew.js";
 import {
   getAttackerCombatant,
-  getContactState,
+  getDetectionState,
   getAcquireDnModifier,
   getAcquireCeiling,
 } from "../../mwd/machine-ew-state.js";
@@ -62,7 +62,7 @@ export async function resolveAcquire({ actor, payload } = {}) {
   const attackerToken = resolveAttackerToken(actor, payload);
   const combatant = getAttackerCombatant(attackerToken);
 
-  const currentState = getContactState(combatant, targetTokenUuid);
+  const currentState = getDetectionState(combatant, targetTokenUuid);
 
   if (currentState === "blind") {
     throw createUserFacingRollError("Establish visual contact before acquiring a sensor lock.", { severity: "warn" });
@@ -125,7 +125,7 @@ export async function resolveAcquire({ actor, payload } = {}) {
       targetTokenUuid,
       targetTokenId:      targetToken?.id ?? "",
       currentState,
-      currentStateLabel:  getContactStateLabel(currentState),
+      currentStateLabel:  getDetectionStateLabel(currentState),
       ceiling,
     },
   };

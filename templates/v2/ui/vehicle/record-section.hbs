@@ -8,15 +8,19 @@ How it fits: Shared by vehicle and BattleMech V2 sheets.
   {{#if section}}
     <div class="mwd-inv">
       {{#if editing}}
-        <div class="mwd-inv__toolbar">
-          <button
-            type="button"
-            class="mwd-inv__add-btn"
-            data-action="createOwnedItem"
-            data-item-type="{{section.itemType}}">
-            <i class="fas fa-plus"></i> {{section.addLabel}}
-          </button>
-        </div>
+        {{#if section.itemType}}
+          {{#if section.addLabel}}
+            <div class="mwd-inv__toolbar">
+              <button
+                type="button"
+                class="mwd-inv__add-btn"
+                data-action="createOwnedItem"
+                data-item-type="{{section.itemType}}">
+                <i class="fas fa-plus"></i> {{section.addLabel}}
+              </button>
+            </div>
+          {{/if}}
+        {{/if}}
       {{/if}}
 
       {{#if section.records.length}}

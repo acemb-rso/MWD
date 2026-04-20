@@ -79,12 +79,19 @@
               },
               {
                 "type": "panel",
-                "title": "Vehicle Weapons",
+                "title": "Hardpoints",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.actor.hardpoint-list" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Hardpoint Slots",
                 "children": [
                   {
                     "type": "include",
                     "partial": "mwd.v2.ui.vehicle.record-section",
-                    "context": { "sectionId": "weapons" }
+                    "context": { "sectionId": "slots" }
                   }
                 ]
               }

@@ -135,7 +135,7 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     skillKey: "systemOps",
     cost: 0,
     category: "reaction",
-    notes: "Degrade contact state from an attacker.",
+    notes: "Degrade detection state from an attacker.",
   }),
   ecmSpike: action("ecmSpike", {
     label: "ECM Spike",

@@ -102,6 +102,7 @@
           "mwd": {
             "unitType": "vehicle",
             "model": "",
+            "cbillCost": 0,
             "heat": {
               "current": 0,
               "safeMax": 1,
@@ -150,6 +151,7 @@
           "reliability": { "value": 3 }
         },
         "mwd": {
+          "hardpoints": [],
           "locations": {
             "front": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "motiveSystem"], "destroyed": false },
             "side": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "motiveSystem"], "destroyed": false },
@@ -518,14 +520,26 @@
     },
     "mechWeapon": {
       "templates": ["modifiers", "inactive", "references"],
+      "category": "ranged",
       "weaponCategory": "ranged",
-      "hardpointType": "energy",
-      "hardpointSize": "small",
-      "mountLocation": "",
+      "skill": "gunnery",
+      "size": "small",
       "damage": 0,
-      "damageType": "kinetic",
+      "ap": 0,
+      "damageType": "penetrating",
+      "attackRatingBand": {
+        "close": 0,
+        "near": 0,
+        "far": 0,
+        "extreme": 0
+      },
+      "payloads": [],
+      "selectedPayloadId": "",
+      "consumptionSources": [],
       "heat": 0,
+      "volatile": false,
       "area": "none",
+      "notes": "",
       "range": {
         "max": "close",
         "close": 0,

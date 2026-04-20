@@ -42,17 +42,6 @@
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.battlemech.weapon-groups" }
                 ]
-              },
-              {
-                "type": "panel",
-                "title": "BattleMech Weapons",
-                "children": [
-                  {
-                    "type": "include",
-                    "partial": "mwd.v2.ui.vehicle.record-section",
-                    "context": { "sectionId": "weapons" }
-                  }
-                ]
               }
             ]
           },
@@ -126,7 +115,7 @@
                 "type": "panel",
                 "title": "Hardpoints",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.battlemech.hardpoints" }
+                  { "type": "include", "partial": "mwd.v2.ui.battlemech.loadout-hardpoints" }
                 ]
               },
               {

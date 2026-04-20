@@ -4,6 +4,11 @@
 
 const SKIP_FIELD = Symbol("SKIP_FIELD");
 
+function normalizeNumericFieldValue(value) {
+  if (typeof value === "number") return value;
+  return String(value ?? "").replace(/[,_\s]/g, "");
+}
+
 function isNamedField(field) {
   return field instanceof HTMLInputElement
     || field instanceof HTMLSelectElement
@@ -39,7 +44,7 @@ export function coerceDocumentFieldDescriptor({
   }
 
   if (normalizedDtype === "number" || (normalizedKind === "input" && normalizedInputType === "number")) {
-    const numeric = Number(value);
+    const numeric = Number(normalizeNumericFieldValue(value));
     return Number.isFinite(numeric) ? numeric : 0;
   }
 

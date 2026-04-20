@@ -2,10 +2,10 @@
 // Post-roll EW state mutations.  Called by mwd-roll.js immediately after
 // the roll resolves — no deferred Apply button.
 
-import { CONTACT_STATE_ORDER, upgradeContactState } from "../mwd/machine-ew.js";
+import { DETECTION_STATE_ORDER, upgradeDetectionState } from "../mwd/machine-ew.js";
 import {
   getAttackerCombatant,
-  setContactState,
+  setDetectionState,
   addTargetingPacket,
   buildTargetingPacket,
 } from "../mwd/machine-ew-state.js";
@@ -17,7 +17,7 @@ function getAttackerTokenFromUuid(uuid) {
 }
 
 /**
- * Apply the result of an acquire roll: advance the contact state by 1 tier
+ * Apply the result of an acquire roll: advance the detection state by 1 tier
  * (capped by the ceiling declared in ctx.acquire).
  *
  * State changes are written immediately to combatant flags.
@@ -42,9 +42,9 @@ export async function resolveAcquireExecution({ attacker, ctx, outcomeModel } = 
   }
 
   const ceiling      = acquire.ceiling ?? "lock";
-  const rawNewState  = upgradeContactState(acquire.currentState);
-  const ceilingIndex = CONTACT_STATE_ORDER.indexOf(ceiling);
-  const newIndex     = CONTACT_STATE_ORDER.indexOf(rawNewState);
+  const rawNewState  = upgradeDetectionState(acquire.currentState);
+  const ceilingIndex = DETECTION_STATE_ORDER.indexOf(ceiling);
+  const newIndex     = DETECTION_STATE_ORDER.indexOf(rawNewState);
   const newState     = newIndex <= ceilingIndex ? rawNewState : ceiling;
 
   Hooks.callAll("mwd.beforeAcquireStateChange", {
@@ -58,7 +58,7 @@ export async function resolveAcquireExecution({ attacker, ctx, outcomeModel } = 
   const attackerToken = getAttackerTokenFromUuid(acquire.attackerTokenUuid);
   const combatant     = getAttackerCombatant(attackerToken);
   if (combatant) {
-    await setContactState(combatant, acquire.targetTokenUuid, newState);
+    await setDetectionState(combatant, acquire.targetTokenUuid, newState);
   } else {
     console.warn("MWD | EW acquire: no combatant found for attacker token — state change not persisted.");
   }

@@ -692,6 +692,9 @@ async _prepareContext(options) {
     model: String(this.actor?.system?.mwd?.model ?? "").trim(),
     path: "system.mwd.model",
     placeholder: this.actor?.type === "battlemech" ? "WHM-6R Warhammer" : "Vehicle model",
+    cbillCost: Number(this.actor?.system?.mwd?.cbillCost ?? 0) || 0,
+    cbillDisplay: new Intl.NumberFormat("en-US").format(Number(this.actor?.system?.mwd?.cbillCost ?? 0) || 0),
+    cbillPath: "system.mwd.cbillCost",
   };
 
   // Preserve the historical item buckets while the new sheets move toward the

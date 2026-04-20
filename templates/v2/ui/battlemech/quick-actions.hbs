@@ -11,6 +11,7 @@ How it fits: Provides the first-pass mech roll/attack wiring on the V2 sheet.
       class="mwd-item-hero__stat mwd-item-hero__stat--button{{#if action.disabled}} is-disabled{{else}} is-action{{/if}}"
       data-action="{{action.handler}}"
       {{{mwd-dataset action.dataset}}}
+      title="{{action.hint}}"
       {{#if action.disabled}}disabled{{/if}}>
       <span class="mwd-item-hero__label">{{action.label}}</span>
       <span class="mwd-item-hero__value">{{action.hint}}</span>

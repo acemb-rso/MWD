@@ -17,6 +17,7 @@ import {
   isValidMachineCritRemedy,
 } from "./machine-crit-remedies.js";
 import {
+  buildVehicleStructureZeroDisableUpdates,
   buildMachineDegradationUpdates,
   resolveMachineDegradation,
 } from "./machine-degradation.js";
@@ -873,6 +874,7 @@ export async function applyMachineAttackDamage({
       "system.monitors.armor.value": preview.machine.armorDamageAfter,
       "system.monitors.structure.value": preview.machine.structureDamageAfter,
       ...buildMachineDegradationUpdates(actor, degradation),
+      ...buildVehicleStructureZeroDisableUpdates(actor, preview.machine.structureAfter),
     };
     if (critDraw.ok && critDraw.crits.length) {
       update["system.mwd.crits"] = nextCrits;

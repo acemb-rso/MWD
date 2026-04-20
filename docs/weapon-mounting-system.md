@@ -2,6 +2,9 @@
 
 This document summarizes the mounting rules for Foundry VTT implementations of **MechWarrior: Destiny**. It focuses on hardpoints, mount points, weapon groups, and melee subsystems while omitting tonnage, ammo, or critical slot rules.
 
+Where this document conflicts with older BattleMech-only notes, the newer
+slot-based hardpoint model should be treated as authoritative.
+
 ## 1. Mount Points (MP)
 
 Mount points determine how many weapon groups a 'Mech can field.
@@ -25,19 +28,37 @@ The system must enforce this whenever groups are created, deleted, or toggled.
 
 ## 2. Hardpoints
 
-Hardpoints describe what types of ranged weapons a 'Mech can physically mount. Each hardpoint is defined as:
+Hardpoints describe machine inventory slots for mountable weapons and other
+future slottable items. BattleMechs and vehicles use the same core hardpoint
+structure, with actor-type-specific location choices.
+
+Each hardpoint is defined as:
 
 ```ts
 {
   id: string,
-  type: "energy" | "ballistic" | "missile" | "support",
+  type: "penetrating" | "concussive" | "energy" | "thermal" | "electrical" | "support" | "omni",
   size: "small" | "medium" | "large",
-  location: "head" | "torso" | "arm" | "leg",
-  occupiedBy: groupId | null
+  location: "arms" | "head" | "torso" | "turret",
+  itemId: string
 }
 ```
 
-Ranged weapons require exactly one matching hardpoint (type + size). No ranged weapon requires more than one hardpoint. The system assigns hardpoints to weapons during validation.
+- BattleMech locations use `arms`, `head`, and `torso`.
+- Vehicle locations currently use `turret`.
+- Hardpoint editors should use fixed dropdowns for type, size, and location.
+- Hardpoints create mount slots in machine inventory and own slot occupancy via
+  `itemId`.
+- Mounted items do not store hardpoint assignment or hardpoint location on the
+  item itself.
+- Slotted items are separate from machine `assetModule` items and separate from
+  upgrade/equipment rails.
+- `energy`, `thermal`, and `electrical` hardpoints are one compatibility
+  family for mounting; any of those weapon damage types can fit any of those
+  slot types.
+- Ranged weapons require exactly one compatible hardpoint (type gate + size
+  gate). Weapon size lives on the weapon item; hardpoint type/size/location
+  live on the actor hardpoint entry.
 
 ## 3. Weapon Groups
 
@@ -109,9 +130,9 @@ When the user changes loadout or groups, perform:
 
 For each non-melee weapon in all groups:
 
-- Find an unused hardpoint with matching type + size.
-- Mark it occupied by that group.
-- If no hardpoint is found, invalidate the loadout.
+- Resolve the weapon's occupied hardpoint via the actor-side hardpoint `itemId`.
+- Validate that the occupied hardpoint's type + size are compatible with the weapon.
+- If no compatible occupied hardpoint is found, invalidate the loadout.
 
 ## 6. Melee Weapons (Separate Subsystem)
 

@@ -8,6 +8,8 @@ export function enhanceAttack(resolved, vm) {
   const r = resolved ?? {};
   const attackResult = r?.attackResult ?? null;
   if (!attackResult) return;
+  const groupSummary = r?.attack?.weapon?.attackSummary ?? null;
+  const machineGroup = r?.attack?.weapon?.machineWeaponGroup ?? null;
 
   const targetResults = Array.isArray(attackResult?.results) ? attackResult.results : [];
   const summary = attackResult?.summary ?? summarizeTargetResults(targetResults);
@@ -18,10 +20,41 @@ export function enhanceAttack(resolved, vm) {
   const isAreaEffect = Boolean(r?.attack?.capabilityReport?.isTemplated);
 
   const ewCtx = r?.attack?.ewContext ?? null;
-  if (ewCtx?.contactState && ewCtx.contactState !== "contact") {
-    const ewParts = [`EW: ${ewCtx.contactStateLabel ?? ewCtx.contactState}`];
+  if (ewCtx?.detectionState && ewCtx.detectionState !== "contact") {
+    const ewParts = [`EW: ${ewCtx.detectionStateLabel ?? ewCtx.detectionState}`];
     if (ewCtx.targetingDataValue) ewParts.push(`+${ewCtx.targetingDataValue} targeting`);
     vm.metaRows.push({ text: ewParts.join(" | "), title: "" });
+  }
+
+  const clusterDice = Math.max(0, Number(r?.attack?.weapon?.clusteringDice ?? 0) || 0);
+  const clusterTargetNumber = Number(r?.attack?.weapon?.clusteringTargetNumber ?? 5) || 5;
+  if (clusterDice > 0) {
+    const clusterSources = Array.isArray(r?.attack?.weapon?.clusteringModifiers?.sourceNames)
+      ? r.attack.weapon.clusteringModifiers.sourceNames.filter(Boolean)
+      : [];
+    vm.metaRows.push({
+      text: `Clustering: ${clusterDice}d6 @ ${clusterTargetNumber}+${clusterSources.length ? ` | Control: ${clusterSources.join(", ")}` : ""}`,
+      title: ""
+    });
+  }
+
+  if (machineGroup?.id) {
+    const memberNames = Array.isArray(machineGroup?.weaponNames) ? machineGroup.weaponNames.filter(Boolean) : [];
+    vm.metaRows.push({
+      text: `Group: ${r?.attack?.weapon?.name ?? "Weapon Group"}${memberNames.length ? ` | Members: ${memberNames.join(", ")}` : ""}`,
+      title: ""
+    });
+
+    if (groupSummary) {
+      vm.metaRows.push({
+        text: `Profile: ${groupSummary.damage ?? 0} damage${Number(groupSummary.clusteringDice ?? 0) ? ` | ${Number(groupSummary.clusteringDice ?? 0)}d6 cluster @ ${clusterTargetNumber}+` : ""} | AP ${groupSummary.ap ?? 0} | Heat ${groupSummary.heat ?? 0} | ${groupSummary.damageTypeLabel ?? groupSummary.damageType ?? "Damage"} | Range Cap ${startCase(groupSummary.rangeCap ?? "")}`,
+        title: ""
+      });
+      vm.footerRows.push({
+        text: `Attack Ratings: ${formatAttackRatings(groupSummary.attackRatings ?? {})}`,
+        title: ""
+      });
+    }
   }
 
   const modsApplied = Array.isArray(r?.modifiers?.applied) ? r.modifiers.applied : [];
@@ -172,10 +205,17 @@ export function enhanceAttack(resolved, vm) {
     for (const [index, result] of targetResults.entries()) {
       const damage = result?.damage ?? null;
       if (damage && result?.outcome !== "miss") {
+        const clusterHits = Number(damage?.clustering?.damageBonus ?? damage?.clustering?.hits ?? 0);
         vm.footerRows.push({
-          text: `${result?.target?.name ?? "Target"}: ${damage.damageTypeLabel} ${fmt(damage.effectiveWeaponDamage)} weapon${damage.netHits ? ` + ${damage.netHits} net` : ""}`,
+          text: `${result?.target?.name ?? "Target"}: ${damage.damageTypeLabel} ${fmt(damage.effectiveWeaponDamage)} weapon${clusterHits ? ` + ${clusterHits} cluster` : ""}${damage.netHits ? ` + ${damage.netHits} net` : ""}`,
           title: ""
         });
+        if (Number(damage?.clustering?.dice ?? 0) > 0) {
+          vm.footerRows.push({
+            text: `${result?.target?.name ?? "Target"}: Cluster ${Number(damage.clustering.dice ?? 0)}d6 @ ${Number(damage.clustering.targetNumber ?? 5) || 5}+ -> ${Number(damage.clustering.hits ?? 0)} hit${Number(damage.clustering.hits ?? 0) === 1 ? "" : "s"}`,
+            title: ""
+          });
+        }
       }
 
       const damageResult = result?.damageResult ?? null;
@@ -300,4 +340,19 @@ function summarizeTargetResults(results = []) {
 function fmt(n) {
   const num = Number(n ?? 0);
   return num >= 0 ? `+${num}` : `${num}`;
+}
+
+function startCase(value = "") {
+  return String(value ?? "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function formatAttackRatings(bands = {}) {
+  return ["close", "near", "far", "extreme"]
+    .map(band => `${startCase(band)} ${Number(bands?.[band] ?? 0) || 0}`)
+    .join(" | ");
 }

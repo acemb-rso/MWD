@@ -454,6 +454,7 @@ function normalizePayloadModifies(value = {}) {
   return {
     damageType: normalizeOptionalPersonalDamageType(source.damageType),
     ap: Number(source.ap ?? source.apMod ?? 0) || 0,
+    clusteringDice: Math.max(0, Number(source.clusteringDice ?? source.clusterDice ?? 0) || 0),
     attackRatingBand: normalizeAttackRatingBandValue(source.attackRatingBand ?? source.attackRatingBandMod),
   };
 }
@@ -846,6 +847,7 @@ export function resolveWeaponAmmo(ammo = {}, ammoTypeId = "") {
           name: payloadState.activePayload.label,
           damageType: payloadState.activePayload.modifies?.damageType ?? "",
           apMod: Number(payloadState.activePayload.modifies?.ap ?? 0) || 0,
+          clusteringDice: Number(payloadState.activePayload.modifies?.clusteringDice ?? 0) || 0,
           attackRatingBandMod: payloadState.activePayload.modifies?.attackRatingBand ?? {},
           traits: payloadState.activePayload.traits ?? [],
           keywords: payloadState.activePayload.keywords ?? [],
@@ -934,6 +936,7 @@ export function resolveEffectiveWeaponProfile({
   return {
     damageType: activePayload?.modifies?.damageType || normalizePersonalDamageType(damageType),
     ap: (Number(ap ?? 0) || 0) + (Number(activePayload?.modifies?.ap ?? 0) || 0),
+    clusteringDice: Number(activePayload?.modifies?.clusteringDice ?? 0) || 0,
     attackRatingBand: mergeAttackRatingBands(
       attackRatingBand,
       activePayload?.modifies?.attackRatingBand ?? {}
@@ -981,6 +984,7 @@ export function resolveEffectiveWeaponProfile({
         id: payload.id,
         name: payload.label,
         damageType: payload.modifies?.damageType ?? "",
+        clusteringDice: Number(payload.modifies?.clusteringDice ?? 0) || 0,
         traits: payload.traits ?? [],
         keywords: payload.keywords ?? [],
       })),

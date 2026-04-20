@@ -32,9 +32,19 @@ export function normalizeAssetModuleJumping(source = {}) {
   };
 }
 
+export function normalizeAssetModuleClustering(source = {}) {
+  const clustering = source && typeof source === "object" ? source : {};
+
+  return {
+    diceModifier: toInteger(clustering.diceModifier, 0),
+    targetNumberModifier: toInteger(clustering.targetNumberModifier, 0),
+  };
+}
+
 export function normalizeAssetModuleSystem(system = {}) {
   const source = system && typeof system === "object" ? system : {};
   const mobility = source.mobility && typeof source.mobility === "object" ? source.mobility : {};
+  const targeting = source.targeting && typeof source.targeting === "object" ? source.targeting : {};
 
   return {
     ...source,
@@ -44,10 +54,19 @@ export function normalizeAssetModuleSystem(system = {}) {
       ...mobility,
       jumping: normalizeAssetModuleJumping(mobility.jumping),
     },
+    targeting: {
+      ...targeting,
+      clustering: normalizeAssetModuleClustering(targeting.clustering),
+    },
   };
 }
 
 export function getAssetModuleJumpingProfile(itemOrSystem = {}) {
   const system = itemOrSystem?.system ?? itemOrSystem;
   return normalizeAssetModuleSystem(system).mobility.jumping;
+}
+
+export function getAssetModuleClusteringProfile(itemOrSystem = {}) {
+  const system = itemOrSystem?.system ?? itemOrSystem;
+  return normalizeAssetModuleSystem(system).targeting.clustering;
 }

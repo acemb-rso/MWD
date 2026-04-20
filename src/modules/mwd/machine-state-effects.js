@@ -6,6 +6,7 @@
 
 import { TEMPLATE } from "../constants.js";
 import { getActiveMachineCrits } from "./critical-hits.js";
+import { getMachineHardpointByItemId } from "./machine-hardpoints.js";
 import {
   getConfiguredMachineWeaponGroups,
   getMachineWeaponsForGroup,
@@ -14,7 +15,7 @@ import {
   normalizeMachineMountLocationFamily,
 } from "./machine-crit-consequences.js";
 
-const CONTACT_CAP_RANKS = Object.freeze({
+const DETECTION_CAP_RANKS = Object.freeze({
   contact: 1,
   track: 2,
   lock: 3,
@@ -42,9 +43,9 @@ function startCase(value = "") {
     .replace(/\b\w/g, char => char.toUpperCase());
 }
 
-function setContactCap(currentCap = "lock", nextCap = "lock") {
-  const currentRank = CONTACT_CAP_RANKS[currentCap] ?? CONTACT_CAP_RANKS.lock;
-  const nextRank = CONTACT_CAP_RANKS[nextCap] ?? CONTACT_CAP_RANKS.lock;
+function setDetectionCap(currentCap = "lock", nextCap = "lock") {
+  const currentRank = DETECTION_CAP_RANKS[currentCap] ?? DETECTION_CAP_RANKS.lock;
+  const nextRank = DETECTION_CAP_RANKS[nextCap] ?? DETECTION_CAP_RANKS.lock;
   return nextRank < currentRank ? nextCap : currentCap;
 }
 
@@ -68,7 +69,9 @@ function getAttackScope(actor = null, { weaponGroupId = "", weaponId = "", weapo
   const weapons = derivedGroup
     ? getMachineWeaponsForGroup(actor, derivedGroup)
     : (resolvedWeapon ? [resolvedWeapon] : []);
-  const families = new Set(weapons.map(entry => normalizeMachineMountLocationFamily(entry?.system?.mountLocation)).filter(Boolean));
+  const families = new Set(weapons.map(entry =>
+    normalizeMachineMountLocationFamily(getMachineHardpointByItemId(actor, entry?.id)?.location)
+  ).filter(Boolean));
 
   return {
     weaponGroupId: normalizeMachineCritId(derivedGroup?.id),
@@ -192,16 +195,16 @@ function applyBattlemechDegradation(state, actor = null) {
     pushEffect(state, "Head impaired: attackers gain +1 tracking penalty bonus against this machine.");
   }
   if (headCondition >= 2) {
-    state.contactStateCap = setContactCap(state.contactStateCap, "track");
-    pushEffect(state, "Head damaged: contact state against this machine is capped at Track.");
+    state.detectionStateCap = setDetectionCap(state.detectionStateCap, "track");
+    pushEffect(state, "Head damaged: detection state against this machine is capped at Track.");
   }
   if (headCondition >= 3) {
     state.noSensorActions = true;
     pushEffect(state, "Head crippled: no sensor or ECM actions.");
   }
   if (headCondition >= 4) {
-    state.contactStateCap = setContactCap(state.contactStateCap, "contact");
-    pushEffect(state, "Head disabled: contact state against this machine is capped at Contact.");
+    state.detectionStateCap = setDetectionCap(state.detectionStateCap, "contact");
+    pushEffect(state, "Head disabled: detection state against this machine is capped at Contact.");
   }
 
   const torsoCondition = getCondition(torso);
@@ -352,7 +355,7 @@ export function getMachineRuleState(actor = null) {
     immobile: false,
     rangeCapClose: false,
     coolingImpaired: false,
-    contactStateCap: "lock",
+    detectionStateCap: "lock",
     armMountedOffline: false,
     turretOffline: false,
     targetFocused: false,
@@ -452,8 +455,8 @@ export function getMachineTrackingPenaltyAdjustment(actor = null) {
   return getMachineRuleState(actor).trackingPenaltyAsTarget;
 }
 
-export function getMachineContactStateCap(actor = null) {
-  return getMachineRuleState(actor).contactStateCap;
+export function getMachineDetectionStateCap(actor = null) {
+  return getMachineRuleState(actor).detectionStateCap;
 }
 
 export function adjustTargetingDataValue({ attacker = null, targetActor = null, value = 0 } = {}) {

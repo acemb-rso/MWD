@@ -13,11 +13,20 @@ import {
   resolveBattlemechPendingHeat,
   setBattlemechPendingHeat,
 } from "../mwd/machine-heat.js";
+import { getConfiguredMachineHardpoints } from "../mwd/machine-hardpoints.js";
+import { prepareBattlemechWeaponGroups } from "../mwd/battlemech-weapon-groups.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+// Foundry stores arrays-of-objects as plain objects keyed by index after the
+// first save. Always coerce to a real array before mutating.
+function readWeaponGroups(actor) {
+  const raw = foundry.utils.deepClone(actor?.system?.mwd?.weaponGroups);
+  return Array.isArray(raw) ? raw : Object.values(raw ?? {});
 }
 
 function compactList(values = []) {
@@ -78,6 +87,18 @@ function buildDetailRows(rows = []) {
     }));
 }
 
+function formatRangeBandLabel(value = "") {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (!normalized) return "";
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+function formatAttackRatings(bands = {}) {
+  return ["close", "near", "far", "extreme"]
+    .map(band => `${formatRangeBandLabel(band)} ${toNumber(bands?.[band], 0)}`)
+    .join(" | ");
+}
+
 function getQuickActionLabel(key = "") {
   const labels = ANARCHY?.actor?.vehicle?.quickActions ?? {};
   return String(labels?.[key] ?? startCase(key)).trim() || startCase(key);
@@ -102,6 +123,10 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       mechAttack: BattlemechSheetV2.prototype._onMechAttack,
       mechRoll: BattlemechSheetV2.prototype._onMechRoll,
       openHeatDialog: BattlemechSheetV2.prototype._onOpenHeatDialog,
+      addWeaponGroup: BattlemechSheetV2.prototype._onAddWeaponGroup,
+      deleteWeaponGroup: BattlemechSheetV2.prototype._onDeleteWeaponGroup,
+      togglePrimaryWeaponGroup: BattlemechSheetV2.prototype._onTogglePrimaryWeaponGroup,
+      toggleWeaponGroupHardpoint: BattlemechSheetV2.prototype._onToggleWeaponGroupHardpoint,
     }
   }, { inplace: false });
 
@@ -110,11 +135,39 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     ctx.battlemechSheet = {
       heat: this._buildHeatModel(),
       quickActions: this._buildQuickActions(),
+      weaponGroupSummary: this._buildWeaponGroupSummary(),
       weaponGroups: this._buildWeaponGroups(),
       hardpoints: this._buildHardpoints(),
       chassisFields: this._buildChassisFields(),
     };
     return ctx;
+  }
+
+  _onRender(context, options) {
+    super._onRender(context, options);
+    const root = this._getRootElement();
+    if (!root) return;
+    root.querySelectorAll(".mwd-battlemech-groups__name-input").forEach(input => {
+      input.addEventListener("change", e => this.#onWeaponGroupNameChange(e));
+    });
+  }
+
+  async #onWeaponGroupNameChange(event) {
+    if (!this.isEditable) return;
+    const input = event.target;
+    const newName = String(input?.value ?? "").trim();
+    if (!newName) return;
+    const groupId = String(
+      input.closest?.("[data-group-id]")?.dataset?.groupId ?? ""
+    ).trim();
+    if (!groupId) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const weaponGroups = readWeaponGroups(actorWriteTarget);
+    const group = weaponGroups.find(g => String(g?.id ?? "").trim() === groupId);
+    if (!group || group.name === newName) return;
+    group.name = newName;
+    await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
   }
 
   _buildChassisFields() {
@@ -196,13 +249,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   _buildVehicleSections() {
     const buckets = this.actor.system?.mwd?.items ?? {};
     return {
-      weapons: this._buildRecordSection({
-        sectionId: "weapons",
-        itemType: "mechWeapon",
-        addLabel: "Add Weapon",
-        emptyLabel: "No BattleMech weapons configured.",
-        items: buckets.mechWeapons ?? [],
-      }),
+      slots: this._buildHardpointSlotSection(),
       equipment: this._buildRecordSection({
         sectionId: "equipment",
         itemType: "mechEquipment",
@@ -291,24 +338,31 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   }
 
   _buildQuickActions() {
-    const quickActions = this.actor.system?.quickActions ?? {};
-    const primaryGroup = quickActions.primaryWeaponGroup ?? null;
-    const hasRangedGroups = Array.isArray(this.actor.system?.weaponGroups) && this.actor.system.weaponGroups.length > 0;
+    const actor = this.getPersistentActor() ?? this.actor;
+    const preparedGroups = this._getPreparedRangedWeaponGroups(actor);
+    const quickActions = actor.system?.quickActions ?? {};
+    const primaryGroup = preparedGroups.find(group => group.isPrimary) ?? null;
+    const availableRangedGroups = preparedGroups.filter(group => group.isAttackLegal && group.isAvailableThisActivation);
     const hasMeleeProfiles = Array.isArray(this.actor.system?.meleeProfiles) && this.actor.system.meleeProfiles.length > 0;
+    const primaryHint = primaryGroup?.isAttackLegal && primaryGroup?.isAvailableThisActivation
+      ? primaryGroup.name
+      : (primaryGroup?.disableReason || "No ready primary ranged group");
 
     return [
       {
         label: getQuickActionLabel("primaryWeapons"),
-        hint: primaryGroup?.name ?? "Primary weapon group",
+        hint: primaryHint,
         handler: "mechAttack",
-        disabled: !primaryGroup,
+        disabled: !(primaryGroup?.isAttackLegal && primaryGroup?.isAvailableThisActivation),
         dataset: { attackKind: "primary" }
       },
       {
         label: getQuickActionLabel("rangedAttack"),
-        hint: "Prompt for a weapon group",
+        hint: availableRangedGroups.length > 0
+          ? "Prompt for a ready weapon group"
+          : "No ready ranged weapon groups",
         handler: "mechAttack",
-        disabled: !hasRangedGroups,
+        disabled: availableRangedGroups.length === 0,
         dataset: { attackKind: "ranged" }
       },
       {
@@ -342,35 +396,131 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     ];
   }
 
-  _buildWeaponGroups() {
-    const groups = Array.isArray(this.actor.system?.mwd?.weaponGroupDetails)
-      ? this.actor.system.mwd.weaponGroupDetails
-      : [];
+  _buildWeaponGroupSummary() {
+    const actor = this.getPersistentActor() ?? this.actor;
+    const mountPoints = actor.system?.mwd?.loadout?.mountPoints ?? {};
+    const total = toNumber(mountPoints.total, 0);
+    const used = toNumber(mountPoints.used, 0);
 
-    return groups.map(group => ({
-      id: group.id,
-      name: group.name,
-      subtitle: (group.weapons ?? []).map(weapon => weapon.name).join(", "),
-      summaryStats: buildSummaryStats([
-        { label: "Weapons", value: Array.isArray(group.weapons) ? group.weapons.length : 0, emphasis: "strong" },
-        { label: "Missing", value: Array.isArray(group.missingWeaponIds) ? group.missingWeaponIds.length : 0 },
-      ]),
-      detailTags: buildDetailTags([
-        group.isPrimary ? "Primary" : "",
-        ...(Array.isArray(group.weapons) ? group.weapons.map(weapon => weapon.system?.weaponCategory ?? "") : []),
-      ]),
-      detailRows: buildDetailRows([
-        { label: "Weapon Names", value: (group.weapons ?? []).map(weapon => weapon.name).join(", ") },
-        { label: "Missing IDs", value: (group.missingWeaponIds ?? []).join(", ") },
-      ]),
-      action: {
-        label: "Attack Group",
-        dataset: {
-          attackKind: "group",
-          groupId: group.id,
-        }
+    return {
+      total,
+      used,
+      remaining: Math.max(0, toNumber(mountPoints.remaining, total - used)),
+    };
+  }
+
+  _buildLoadedHardpointChoices(actor) {
+    const typeLabels = ANARCHY?.mwd?.hardpointType ?? {};
+    const sizeLabels = ANARCHY?.mwd?.hardpointSize ?? {};
+    const locationLabels = ANARCHY?.mwd?.hardpointLocation ?? {};
+
+    return getConfiguredMachineHardpoints(actor).map((hardpoint, index) => {
+      const itemId = String(hardpoint?.itemId ?? "").trim();
+      if (!itemId) return null;
+
+      const item = actor.items?.get?.(itemId) ?? null;
+      if (!item) return null;
+
+      const locationLabel = locationLabels[hardpoint.location] ?? startCase(hardpoint.location);
+      const typeLabel = typeLabels[hardpoint.type] ?? startCase(hardpoint.type);
+      const sizeLabel = sizeLabels[hardpoint.size] ?? startCase(hardpoint.size);
+      const hardpointName = `${locationLabel} ${typeLabel} ${sizeLabel}`.trim();
+
+      return {
+        hardpointId: String(hardpoint?.id ?? `hardpoint-${index + 1}`).trim(),
+        itemId,
+        itemName: String(item?.name ?? "Mounted Weapon").trim() || "Mounted Weapon",
+        hardpointName,
+        chipLabel: `${item?.name ?? "Mounted Weapon"} | ${hardpointName}`,
+        detailLabel: `${hardpointName}: ${item?.name ?? "Mounted Weapon"}`,
+      };
+    }).filter(Boolean);
+  }
+
+  _buildWeaponGroups() {
+    const actor = this.getPersistentActor() ?? this.actor;
+    const groups = this._getPreparedRangedWeaponGroups(actor);
+    const loadedHardpoints = this._buildLoadedHardpointChoices(actor);
+    const groupNameById = new Map(groups.map(group => [group.id, group.name]));
+    const owningGroupByItemId = new Map();
+
+    for (const group of groups) {
+      for (const weaponId of Array.from(group.weaponIds ?? [])) {
+        const normalizedId = String(weaponId ?? "").trim();
+        if (!normalizedId || owningGroupByItemId.has(normalizedId)) continue;
+        owningGroupByItemId.set(normalizedId, group.id);
       }
-    }));
+    }
+
+    return groups.map(group => {
+      const groupWeaponIds = Array.from(group.weaponIds ?? []).map(weaponId => String(weaponId ?? "").trim()).filter(Boolean);
+      const bundledHardpoints = loadedHardpoints.filter(choice => groupWeaponIds.includes(choice.itemId));
+      const unloadedMembers = groupWeaponIds
+        .filter(weaponId => !bundledHardpoints.some(choice => choice.itemId === weaponId))
+        .map(weaponId => actor.items?.get?.(weaponId)?.name ?? weaponId)
+        .filter(Boolean);
+      const bundleChoices = loadedHardpoints.map(choice => {
+        const selected = groupWeaponIds.includes(choice.itemId);
+        const ownerGroupId = owningGroupByItemId.get(choice.itemId) ?? "";
+        const assignedElsewhere = Boolean(ownerGroupId && ownerGroupId !== group.id);
+        return {
+          ...choice,
+          selected,
+          disabled: assignedElsewhere,
+          title: selected
+            ? `Remove ${choice.itemName} from ${group.name}`
+            : assignedElsewhere
+              ? `${choice.itemName} is already bundled in ${groupNameById.get(ownerGroupId) ?? "another group"}`
+              : `Add ${choice.itemName} to ${group.name}`,
+        };
+      });
+
+      return {
+        id: group.id,
+        index: group.index,
+        isPrimary: Boolean(group.isPrimary),
+        name: group.name,
+        subtitle: bundledHardpoints.length
+          ? bundledHardpoints.map(choice => choice.itemName).join(", ")
+          : (group.memberWeapons ?? []).map(weapon => weapon.name).join(", "),
+        summaryStats: buildSummaryStats([
+          { label: "Weapons", value: Array.isArray(group.memberWeapons) ? group.memberWeapons.length : 0, emphasis: "strong" },
+          { label: "Damage", value: toNumber(group.attackSummary?.damage, 0) },
+          { label: "AP", value: toNumber(group.attackSummary?.ap, 0) },
+          { label: "Heat", value: toNumber(group.attackSummary?.heat, 0) },
+        ]),
+        detailTags: buildDetailTags([
+          group.isPrimary ? "Primary" : "",
+          group.attackSummary?.damageTypeLabel ?? "",
+          group.isAttackLegal
+            ? (group.isAvailableThisActivation ? "Ready" : "Used")
+            : "Blocked",
+        ]),
+        detailRows: buildDetailRows([
+          { label: "Weapon Names", value: (group.memberWeapons ?? []).map(weapon => weapon.name).join(", ") },
+          { label: "Bundled Hardpoints", value: bundledHardpoints.map(choice => choice.detailLabel).join(" | ") },
+          { label: "Unloaded Members", value: unloadedMembers.join(", ") },
+          { label: "Range Cap", value: formatRangeBandLabel(group.attackSummary?.rangeCap ?? "") },
+          { label: "Attack Ratings", value: formatAttackRatings(group.attackSummary?.attackRatings ?? {}) },
+          { label: "Missing IDs", value: (group.missingWeaponIds ?? []).join(", ") },
+          { label: "Warnings", value: (group.compatibilityWarnings ?? []).join(" | ") },
+          { label: "Status", value: group.disableReason || (group.isAvailableThisActivation ? "Ready to fire" : "Already fired this activation") },
+        ]),
+        bundleChoices,
+        bundleHelp: loadedHardpoints.length
+          ? "Select the loaded hardpoints that should fire together in this group."
+          : "Load weapons into hardpoints on the Loadout tab before bundling them here.",
+        action: {
+          label: group.isAttackLegal && group.isAvailableThisActivation ? "Attack Group" : "Unavailable",
+          disabled: !(group.isAttackLegal && group.isAvailableThisActivation),
+          title: group.disableReason || "Attack Group",
+          dataset: {
+            attackKind: "group",
+            groupId: group.id,
+          }
+        }
+      };
+    });
   }
 
   _buildHardpoints() {
@@ -404,16 +554,17 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const actor = this.getPersistentActor() ?? this.actor;
     const attackKind = String(target?.dataset?.attackKind ?? "").trim();
     const groupId = String(target?.dataset?.groupId ?? "").trim();
+    const preparedGroups = this._getPreparedRangedWeaponGroups(actor);
 
     try {
       if (attackKind === "group" && groupId) {
         await this.#rollWeaponGroup(actor, groupId);
       } else if (attackKind === "primary") {
-        const primaryGroup = (actor.system?.weaponGroups ?? []).find(group => group?.isPrimary) ?? null;
+        const primaryGroup = preparedGroups.find(group => group?.isPrimary) ?? null;
         if (primaryGroup?.id) await this.#rollWeaponGroup(actor, primaryGroup.id);
         else await actor.rollRangedAttack?.();
       } else if (attackKind === "ranged") {
-        const selectedGroup = await this.#promptWeaponGroup(actor);
+        const selectedGroup = await this.#promptWeaponGroup(actor, preparedGroups);
         if (selectedGroup?.id) await this.#rollWeaponGroup(actor, selectedGroup.id);
       } else if (attackKind === "melee") {
         const selectedProfile = await this.#promptMeleeProfile(actor);
@@ -445,18 +596,142 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     }
   }
 
+  async _onAddWeaponGroup(event, _target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const weaponGroups = readWeaponGroups(actorWriteTarget);
+    weaponGroups.push({
+      id: foundry.utils.randomID?.() ?? `group-${weaponGroups.length + 1}`,
+      name: ANARCHY?.mwd?.loadout?.newGroup ?? `Weapon Group ${weaponGroups.length + 1}`,
+      weaponIds: [],
+      isPrimary: weaponGroups.length === 0,
+    });
+
+    await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
+    this.render({ force: true });
+  }
+
+  async _onDeleteWeaponGroup(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const groupId = String(
+      target?.dataset?.groupId
+      ?? target?.closest?.("[data-group-id]")?.dataset?.groupId
+      ?? event?.target?.closest?.("[data-group-id]")?.dataset?.groupId
+      ?? ""
+    ).trim();
+    if (!groupId) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const weaponGroups = readWeaponGroups(actorWriteTarget);
+    const groupIndex = weaponGroups.findIndex(group => String(group?.id ?? "").trim() === groupId);
+    if (groupIndex < 0) return;
+
+    weaponGroups.splice(groupIndex, 1);
+    await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
+    this.render({ force: true });
+  }
+
+  async _onTogglePrimaryWeaponGroup(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const groupId = String(
+      target?.dataset?.groupId
+      ?? target?.closest?.("[data-group-id]")?.dataset?.groupId
+      ?? event?.target?.closest?.("[data-group-id]")?.dataset?.groupId
+      ?? ""
+    ).trim();
+    if (!groupId) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const weaponGroups = readWeaponGroups(actorWriteTarget);
+    let changed = false;
+
+    for (const group of weaponGroups) {
+      const nextPrimary = String(group?.id ?? "").trim() === groupId;
+      if (Boolean(group?.isPrimary) !== nextPrimary) {
+        group.isPrimary = nextPrimary;
+        changed = true;
+      }
+    }
+
+    if (!changed) return;
+    await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
+    this.render({ force: true });
+  }
+
+  async _onToggleWeaponGroupHardpoint(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const groupId = String(
+      target?.dataset?.groupId
+      ?? target?.closest?.("[data-group-id]")?.dataset?.groupId
+      ?? event?.target?.closest?.("[data-group-id]")?.dataset?.groupId
+      ?? ""
+    ).trim();
+    const hardpointId = String(
+      target?.dataset?.hardpointId
+      ?? target?.closest?.("[data-hardpoint-id]")?.dataset?.hardpointId
+      ?? event?.target?.closest?.("[data-hardpoint-id]")?.dataset?.hardpointId
+      ?? ""
+    ).trim();
+    if (!groupId || !hardpointId) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const hardpoint = getConfiguredMachineHardpoints(actorWriteTarget)
+      .find(entry => String(entry?.id ?? "").trim() === hardpointId) ?? null;
+    const itemId = String(hardpoint?.itemId ?? "").trim();
+    if (!itemId) {
+      ui.notifications?.warn("Only loaded hardpoints can be bundled into a weapon group.");
+      return;
+    }
+
+    const weaponGroups = readWeaponGroups(actorWriteTarget);
+    const group = weaponGroups.find(entry => String(entry?.id ?? "").trim() === groupId) ?? null;
+    if (!group) return;
+
+    group.weaponIds = Array.isArray(group.weaponIds)
+      ? group.weaponIds.map(id => String(id ?? "").trim()).filter(Boolean)
+      : [];
+
+    const selected = group.weaponIds.includes(itemId);
+    const owner = weaponGroups.find(entry =>
+      String(entry?.id ?? "").trim() !== groupId
+      && Array.isArray(entry?.weaponIds)
+      && entry.weaponIds.map(id => String(id ?? "").trim()).includes(itemId)
+    ) ?? null;
+
+    if (!selected && owner) {
+      ui.notifications?.warn(`${actorWriteTarget.items?.get?.(itemId)?.name ?? "That weapon"} is already bundled in ${owner.name ?? "another group"}.`);
+      return;
+    }
+
+    group.weaponIds = selected
+      ? group.weaponIds.filter(id => id !== itemId)
+      : [...group.weaponIds, itemId];
+
+    await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
+    this.render({ force: true });
+  }
+
   async #rollWeaponGroup(actor, groupId) {
-    const group = Array.from(actor.system?.weaponGroups ?? []).find(entry => String(entry?.id ?? "").trim() === String(groupId ?? "").trim()) ?? null;
+    const group = this._getPreparedRangedWeaponGroups(actor)
+      .find(entry => String(entry?.id ?? "").trim() === String(groupId ?? "").trim()) ?? null;
     if (!group) {
       ui.notifications?.warn("That weapon group is no longer available.");
       return;
     }
-
-    const weapons = Array.from(group.weaponIds ?? [])
-      .map(id => actor.items.get(id))
-      .filter(Boolean);
-    if (!weapons.length) {
-      ui.notifications?.warn("That weapon group has no attached weapons.");
+    if (!group.isAttackLegal || !group.isAvailableThisActivation) {
+      ui.notifications?.warn(group.disableReason || "That weapon group cannot attack right now.");
       return;
     }
 
@@ -513,13 +788,21 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     }
   }
 
-  async #promptWeaponGroup(actor) {
-    const groups = Array.from(actor.system?.weaponGroups ?? []).filter(group => Array.isArray(group?.weaponIds) && group.weaponIds.length > 0);
-    if (!groups.length) return null;
-    if (groups.length === 1) return groups[0];
+  async #promptWeaponGroup(actor, preparedGroups = null) {
+    const groups = Array.isArray(preparedGroups) && preparedGroups.length
+      ? preparedGroups
+      : this._getPreparedRangedWeaponGroups(actor);
+    const selectableGroups = groups.filter(group =>
+      Array.isArray(group?.weaponIds)
+      && group.weaponIds.length > 0
+      && group.isAttackLegal
+      && group.isAvailableThisActivation
+    );
+    if (!selectableGroups.length) return null;
+    if (selectableGroups.length === 1) return selectableGroups[0];
 
-    const defaultGroup = groups.find(group => group?.isPrimary) ?? groups[0];
-    const content = `<form class="mwd-quick-select">${groups.map(group => `
+    const defaultGroup = selectableGroups.find(group => group?.isPrimary) ?? selectableGroups[0];
+    const content = `<form class="mwd-quick-select">${selectableGroups.map(group => `
       <label class="quick-select-option">
         <input type="radio" name="weapon-group" value="${group.id}" ${group.id === defaultGroup.id ? "checked" : ""}>
         <span>${group.name}${group.isPrimary ? ` (${ANARCHY.actor.vehicle.quickActions.primaryLabel})` : ""}</span>
@@ -532,7 +815,17 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       callback: html => html.find('input[name="weapon-group"]:checked').val() ?? defaultGroup.id,
     });
 
-    return groups.find(group => group.id === selectedId) ?? defaultGroup;
+    return selectableGroups.find(group => group.id === selectedId) ?? defaultGroup;
+  }
+
+  _getPreparedRangedWeaponGroups(actor) {
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+    const usedWeaponGroupIds = snapshot?.isCurrentTurn
+      ? PersonalCombatTracker.getUsedWeaponGroupIds?.(actor, { token, snapshot }) ?? []
+      : [];
+
+    return prepareBattlemechWeaponGroups(actor, { usedWeaponGroupIds });
   }
 
   async #promptMeleeProfile(actor) {

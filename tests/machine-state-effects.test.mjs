@@ -49,7 +49,7 @@ test("battlemech degradation effects follow the canonical state thresholds", () 
 
   const state = getMachineRuleState(actor);
 
-  assert.equal(state.contactStateCap, "track");
+  assert.equal(state.detectionStateCap, "track");
   assert.equal(state.attackHeat, 1);
   assert.equal(state.armMountedOffline, true);
   assert.equal(state.immobile, true);

@@ -1,5 +1,40 @@
 Below is a **canonical Asset Module item schema** plus a **controlled tag taxonomy** for quirk-style modules in MWD.
 
+**Live implementation note:** the shipped `assetModule` schema is currently much
+smaller than the long-form design described below. The live engine currently
+derives module behavior primarily from:
+
+```json
+{
+  "system": {
+    "category": "special",
+    "level": 1,
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    }
+  }
+}
+```
+
+For clustering attacks, `targeting.clustering.diceModifier` adds cluster dice
+to weapons or weapon groups that already have clustering, and
+`targeting.clustering.targetNumberModifier` shifts the cluster success target
+number. Negative target-number modifiers make clustering hits easier, which is
+the intended hook for Artemis-style fire-control upgrades.
+
 **Design intent:** quirks become **data-driven item records** that feed the existing **intent → resolver → RollContext** pipeline, with effects expressed as **dice parts, CQ parts, action injections, constraints, and rare rule hooks**, rather than sheet-side logic or bespoke one-off systems. That matches your locked resolver doctrine, especially “DN = Range + Motion only,” “CQ = AR – DR,” provider-based collection, and the requirement that the sheet emit intent while the engine does the work.    
 
 # 1) Canonical item type

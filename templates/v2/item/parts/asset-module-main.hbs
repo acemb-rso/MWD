@@ -47,4 +47,20 @@ can be derived from installed modules instead of from sheet-side logic.
     <input type="checkbox" name="system.mobility.jumping.dfaEnabled" {{checked system.mobility.jumping.dfaEnabled}} />
     {{MWD.item.assetModule.jumping.dfaEnabled}}
   </label>
+
+  <div class="mwd-form-section-label">Cluster Fire Control</div>
+
+  <div class="form-group">
+    <label for="system.targeting.clustering.diceModifier">Cluster Dice Mod</label>
+    <input class="type-numeric" type="number" name="system.targeting.clustering.diceModifier" value="{{system.targeting.clustering.diceModifier}}" step="1" data-dtype="Number" />
+  </div>
+
+  <div class="form-group">
+    <label for="system.targeting.clustering.targetNumberModifier">Cluster TN Mod</label>
+    <input class="type-numeric" type="number" name="system.targeting.clustering.targetNumberModifier" value="{{system.targeting.clustering.targetNumberModifier}}" step="1" data-dtype="Number" />
+  </div>
+
+  <div class="mwd-item-note">
+    These modifiers apply only to attacks that already have clustering dice. Negative TN mods make clustering hits easier, so an Artemis-style system would usually use <code>-1</code>.
+  </div>
 </div>

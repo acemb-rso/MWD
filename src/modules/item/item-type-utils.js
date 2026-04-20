@@ -8,6 +8,7 @@ import { TEMPLATE } from "../constants.js";
 // migration inputs, but the rest of the runtime should normalize immediately.
 export const LEGACY_ITEM_TYPE_MAP = Object.freeze({
   weapon: TEMPLATE.itemType.personalWeapon,
+  vehicleWeapon: TEMPLATE.itemType.mechWeapon,
   shadowamp: TEMPLATE.itemType.assetModule,
 });
 
@@ -21,7 +22,7 @@ export const DEFAULT_ITEM_ICONS = Object.freeze({
   assetModule: "systems/mwd/img/default/upgrade.svg",
   skill: "systems/mwd/img/default/Default_Skill.svg",
   lifeModule: "systems/mwd/img/default/book.svg",
-  mechWeapon: "systems/mwd/img/default/Default_Weapon.svg",
+  mechWeapon: "systems/mwd/img/icons/systems/upgrades/grenade_launcher_underbarrel.svg",
   personalWeapon: "systems/mwd/img/colt-m1911.svg",
   armor: "systems/mwd/img/default/Default_Armor.svg",
 });

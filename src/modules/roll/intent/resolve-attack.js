@@ -19,16 +19,20 @@ import { WeaponItem } from "../../item/weapon-item.js";
 import { createUserFacingRollError } from "../roll-errors.js";
 import { buildTargetSnapshot } from "../template-placement.js";
 import { getMachineAttackRestriction } from "../../mwd/machine-crit-effects.js";
-import { getContactStateLabel } from "../../mwd/machine-ew.js";
+import { getDetectionStateLabel } from "../../mwd/machine-ew.js";
 import {
   getAttackerCombatant,
-  getContactState,
+  getDetectionState,
   getUsableTargetingPacket,
 } from "../../mwd/machine-ew-state.js";
+import { PersonalCombatTracker } from "../../combat/personal-combat-tracker.js";
 import {
   getMachineAttackRestriction as getMachineStateAttackRestriction,
   isMachineRangeCappedToClose,
 } from "../../mwd/machine-state-effects.js";
+import { buildBattlemechWeaponGroupAttackProfile } from "../../mwd/battlemech-weapon-groups.js";
+import { getMachineFireControlProfile } from "../../mwd/machine-fire-control.js";
+import { buildClusteringProfile } from "../../mwd/machine-clustering.js";
 
 function getTargets(payload = {}) {
   if (Array.isArray(payload?.targetSnapshots)) {
@@ -155,6 +159,7 @@ function getMachineWeaponGroupProfile(actor, payload) {
   const first = profiles[0] ?? {};
   const attackRatingBand = profiles.reduce((bands, profile) => addBands(bands, profile.attackRatingBand), {});
   const damage = profiles.reduce((sum, profile) => sum + (Number(profile.damage ?? 0) || 0), 0);
+  const clusteringDice = profiles.reduce((sum, profile) => sum + (Math.max(0, Number(profile.clusteringDice ?? 0) || 0)), 0);
   const ap = Math.max(0, ...profiles.map(profile => Number(profile.ap ?? 0) || 0));
   const skill = String(first.skill ?? "gunnery").trim() || "gunnery";
 
@@ -173,6 +178,7 @@ function getMachineWeaponGroupProfile(actor, payload) {
     skill,
     skillDef: getSkillDef(skill),
     damage,
+    clusteringDice,
     ap,
     damageType: first.damageType ?? "kinetic",
     attackRatingBand,
@@ -200,6 +206,23 @@ function getWeaponProfile(actor, payload) {
   }
 
   if (isMachineActor(actor)) {
+    if (actor?.type === TEMPLATE.actorTypes.battlemech && payload?.weaponGroupId) {
+      const sourceToken = getSourceToken(actor, payload);
+      const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token: sourceToken }) ?? null;
+      const usedWeaponGroupIds = snapshot?.isCurrentTurn
+        ? PersonalCombatTracker.getUsedWeaponGroupIds?.(actor, { token: sourceToken, snapshot }) ?? []
+        : [];
+      const battlemechGroup = buildBattlemechWeaponGroupAttackProfile(actor, payload.weaponGroupId, {
+        usedWeaponGroupIds,
+      });
+      if (!battlemechGroup?.ok) {
+        throw createUserFacingRollError(battlemechGroup?.reason || "That weapon group cannot attack right now.", {
+          severity: "warn",
+        });
+      }
+      return battlemechGroup.profile;
+    }
+
     const groupProfile = getMachineWeaponGroupProfile(actor, payload);
     if (groupProfile) return groupProfile;
 
@@ -223,11 +246,32 @@ export async function resolveAttack({ actor, payload } = {}) {
 
   const weapon = getWeaponProfile(actor, payload);
   if (!weapon) throw new Error("Unable to resolve weapon profile.");
+  const machineFireControl = isMachineActor(actor) ? getMachineFireControlProfile(actor) : null;
+  const clusteringProfile = buildClusteringProfile({
+    clusteringDice: Number(weapon?.clusteringDice ?? 0) || 0,
+    clusteringTargetNumber: Number(weapon?.clusteringTargetNumber ?? 5) || 5,
+    diceModifier: Number(machineFireControl?.diceModifier ?? 0) || 0,
+    targetNumberModifier: Number(machineFireControl?.targetNumberModifier ?? 0) || 0,
+  });
+  const effectiveWeapon = {
+    ...weapon,
+    clusteringDice: clusteringProfile.dice,
+    clusteringTargetNumber: clusteringProfile.targetNumber,
+    clusteringBaseDice: clusteringProfile.baseDice,
+    clusteringBaseTargetNumber: clusteringProfile.baseTargetNumber,
+    clusteringModifiers: {
+      diceModifier: clusteringProfile.diceModifier,
+      targetNumberModifier: clusteringProfile.targetNumberModifier,
+      sourceIds: Array.isArray(machineFireControl?.sourceIds) ? [...machineFireControl.sourceIds] : [],
+      sourceNames: Array.isArray(machineFireControl?.sourceNames) ? [...machineFireControl.sourceNames] : [],
+      sourceLabel: String(machineFireControl?.sourceLabel ?? "").trim(),
+    },
+  };
   if (isMachineActor(actor)) {
     const restriction = getMachineAttackRestriction(actor, {
       weaponGroupId: payload?.weaponGroupId,
       weaponId: payload?.weaponId,
-      weapon,
+      weapon: effectiveWeapon,
     });
     if (restriction.blocked) {
       throw createUserFacingRollError(restriction.reason || "That weapon group cannot attack right now.", {
@@ -237,7 +281,7 @@ export async function resolveAttack({ actor, payload } = {}) {
     const stateRestriction = getMachineStateAttackRestriction(actor, {
       weaponGroupId: payload?.weaponGroupId,
       weaponId: payload?.weaponId,
-      weapon,
+      weapon: effectiveWeapon,
     });
     if (stateRestriction.blocked) {
       throw createUserFacingRollError(stateRestriction.reason || "The machine's current state prevents this attack.", {
@@ -245,39 +289,39 @@ export async function resolveAttack({ actor, payload } = {}) {
       });
     }
   }
-  if (Array.isArray(weapon?.capabilityReport?.errors) && weapon.capabilityReport.errors.length > 0) {
+  if (Array.isArray(effectiveWeapon?.capabilityReport?.errors) && effectiveWeapon.capabilityReport.errors.length > 0) {
     throw createUserFacingRollError(
-      weapon.capabilityReport.errors[0]?.message ?? "Weapon capability data is invalid for this attack.",
+      effectiveWeapon.capabilityReport.errors[0]?.message ?? "Weapon capability data is invalid for this attack.",
       { severity: "warn" }
     );
   }
 
-  const skillDef = getSkillDef(weapon.skill) ?? {
-    code: weapon.skill,
-    label: weapon.skill || "Attack",
+  const skillDef = getSkillDef(effectiveWeapon.skill) ?? {
+    code: effectiveWeapon.skill,
+    label: effectiveWeapon.skill || "Attack",
     attribute: "reflexes",
     domains: ["physical"]
   };
 
   const attrKey = String(skillDef.attribute ?? "reflexes").trim() || "reflexes";
   const attribute = actor.getAttributeValue?.(attrKey) ?? Number(actor.system?.attributes?.[attrKey]?.value ?? 0);
-  const skill = actor.getSkillRating?.(weapon.skill) ?? Number(actor.system?.skills?.[weapon.skill]?.rating ?? 0);
-  const skillBonus = Number(actor.system?.skills?.[weapon.skill]?.bonus ?? 0);
-  const ownedSpecializations = new Set(getOwnedSkillSpecializationKeys(actor.system ?? {}, weapon.skill));
-  const requestedSpecialization = getSkillSpecializationDef(weapon.skill, payload?.specializationKey);
+  const skill = actor.getSkillRating?.(effectiveWeapon.skill) ?? Number(actor.system?.skills?.[effectiveWeapon.skill]?.rating ?? 0);
+  const skillBonus = Number(actor.system?.skills?.[effectiveWeapon.skill]?.bonus ?? 0);
+  const ownedSpecializations = new Set(getOwnedSkillSpecializationKeys(actor.system ?? {}, effectiveWeapon.skill));
+  const requestedSpecialization = getSkillSpecializationDef(effectiveWeapon.skill, payload?.specializationKey);
   const selectedSpecialization = requestedSpecialization && ownedSpecializations.has(requestedSpecialization.key)
     ? requestedSpecialization
     : null;
   const specializationBonus = selectedSpecialization ? SKILL_SPECIALIZATION_BONUS : 0;
-  const accuracyBonus = Number(weapon?.effects?.accuracyMod ?? 0) || 0;
+  const accuracyBonus = Number(effectiveWeapon?.effects?.accuracyMod ?? 0) || 0;
   const bonus = skillBonus + accuracyBonus;
   const targets = getTargets(payload);
-  const rangeBand = resolveRangeBand({ actor, payload, weapon, targets });
-  const rangeBandLabel = (weapon?.type === "personalWeapon" || weapon?.isSynthetic)
+  const rangeBand = resolveRangeBand({ actor, payload, weapon: effectiveWeapon, targets });
+  const rangeBandLabel = (effectiveWeapon?.type === "personalWeapon" || effectiveWeapon?.isSynthetic)
     ? getPersonalRangeBandName(rangeBand)
     : rangeBand;
-  const attackRating = Number(weapon?.attackRatingBand?.[rangeBand] ?? 0) || 0;
-  const requiresTemplatedWorkflow = Boolean(weapon?.capabilityReport?.isTemplated);
+  const attackRating = Number(effectiveWeapon?.attackRatingBand?.[rangeBand] ?? 0) || 0;
+  const requiresTemplatedWorkflow = Boolean(effectiveWeapon?.capabilityReport?.isTemplated);
   const aim = payload?.aim?.active
     ? {
       active: true,
@@ -285,17 +329,17 @@ export async function resolveAttack({ actor, payload } = {}) {
       ineligibleReason: requiresTemplatedWorkflow
         ? "Aim cannot apply to template attacks."
         : (targets.length !== 1 ? "Aim cannot apply to multi-target attacks." : ""),
-      skillCode: weapon.skill,
-      skillLabel: skillDef.label ?? weapon.skill ?? "Attack Skill"
+      skillCode: effectiveWeapon.skill,
+      skillLabel: skillDef.label ?? effectiveWeapon.skill ?? "Attack Skill"
     }
     : null;
   if (!requiresTemplatedWorkflow && targets.length === 0) {
     throw createUserFacingRollError("Target at least one token to attack.", { severity: "warn" });
   }
-  const totalAp = Number(weapon.ap ?? 0) + Number(weapon?.effects?.ap ?? 0);
+  const totalAp = Number(effectiveWeapon.ap ?? 0) + Number(effectiveWeapon?.effects?.ap ?? 0);
   const dn = Number.isFinite(Number(payload?.dn))
     ? Number(payload.dn)
-    : ((weapon?.type === "personalWeapon" || weapon?.isSynthetic)
+    : ((effectiveWeapon?.type === "personalWeapon" || effectiveWeapon?.isSynthetic)
       ? getPersonalRangeBandBaseDn(rangeBand, 1)
       : 1);
 
@@ -312,7 +356,7 @@ export async function resolveAttack({ actor, payload } = {}) {
 
     const targetTokenObj = canvas?.tokens?.get?.(targetTokenUuid);
     const isVisible = targetTokenObj?.visible ?? true;
-    const effectiveState = isVisible ? getContactState(combatant, targetTokenUuid) : "blind";
+    const effectiveState = isVisible ? getDetectionState(combatant, targetTokenUuid) : "blind";
 
     if (effectiveState === "blind") {
       throw createUserFacingRollError("No targeting solution. Acquire contact first.", { severity: "warn" });
@@ -322,8 +366,8 @@ export async function resolveAttack({ actor, payload } = {}) {
     const usablePacket = getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, effectiveState, game.combat?.round);
 
     ewContext = {
-      contactState: effectiveState,
-      contactStateLabel: getContactStateLabel(effectiveState),
+      detectionState: effectiveState,
+      detectionStateLabel: getDetectionStateLabel(effectiveState),
       targetTokenUuid,
       attackerCombatantId: combatant?.id ?? null,
       activePacketId: usablePacket?.id ?? null,
@@ -334,7 +378,7 @@ export async function resolveAttack({ actor, payload } = {}) {
   return {
     intent: "attack",
     rollType: "simple",
-    title: `${weapon.name} Attack`,
+    title: `${effectiveWeapon.name} Attack`,
     subtitle: actor.name ?? "Actor",
     domains: Array.isArray(skillDef.domains) && skillDef.domains.length ? skillDef.domains : ["physical"],
     domainTags: ["combat", "attack"],
@@ -343,7 +387,7 @@ export async function resolveAttack({ actor, payload } = {}) {
     dn: {
       parts: [{
         id: "difficulty.current",
-        label: (weapon?.type === "personalWeapon" || weapon?.isSynthetic)
+        label: (effectiveWeapon?.type === "personalWeapon" || effectiveWeapon?.isSynthetic)
           ? `Base DN (${rangeBandLabel})`
           : "DN",
         value: dn,
@@ -365,29 +409,33 @@ export async function resolveAttack({ actor, payload } = {}) {
         value: specializationBonus
       }] : []),
       { id: "weaponAccuracy", label: "Weapon Accuracy", value: accuracyBonus },
-      { id: "damage", label: "Damage", value: Number(weapon.damage ?? 0) || 0 },
+      { id: "damage", label: "Damage", value: Number(effectiveWeapon.damage ?? 0) || 0 },
+      ...(clusteringProfile.active ? [
+        { id: "clusterDice", label: "Cluster Dice", value: clusteringProfile.dice },
+        { id: "clusterTarget", label: "Cluster TN", value: clusteringProfile.targetNumber },
+      ] : []),
       { id: "ap", label: "AP", value: totalAp },
       { id: "attackRating", label: `Attack Rating (${rangeBandLabel})`, value: attackRating }
     ],
     attack: {
       rangeBand,
-      weapon,
-      payload: weapon?.payload ?? null,
-      payloadState: weapon?.payloadState ?? null,
-      source: weapon?.source ?? null,
-      sourceState: weapon?.sourceState ?? null,
-      template: weapon?.template ?? null,
-      areaEffect: weapon?.areaEffect ?? null,
+      weapon: effectiveWeapon,
+      payload: effectiveWeapon?.payload ?? null,
+      payloadState: effectiveWeapon?.payloadState ?? null,
+      source: effectiveWeapon?.source ?? null,
+      sourceState: effectiveWeapon?.sourceState ?? null,
+      template: effectiveWeapon?.template ?? null,
+      areaEffect: effectiveWeapon?.areaEffect ?? null,
       templateGeometry: payload?.templateGeometry ?? null,
       templatePlacement: payload?.templatePlacement ?? null,
-      resolution: weapon?.resolution ?? null,
-      resolverKey: weapon?.resolverKey ?? "standard",
-      fireModes: weapon?.fireModes ?? null,
-      keywords: weapon?.keywords ?? [],
-      capabilityReport: weapon?.capabilityReport ?? null,
+      resolution: effectiveWeapon?.resolution ?? null,
+      resolverKey: effectiveWeapon?.resolverKey ?? "standard",
+      fireModes: effectiveWeapon?.fireModes ?? null,
+      keywords: effectiveWeapon?.keywords ?? [],
+      capabilityReport: effectiveWeapon?.capabilityReport ?? null,
       skill: {
-        code: skillDef.code ?? weapon.skill,
-        label: skillDef.label ?? weapon.skill,
+        code: skillDef.code ?? effectiveWeapon.skill,
+        label: skillDef.label ?? effectiveWeapon.skill,
         attribute: attrKey,
         specialization: selectedSpecialization ? {
           key: selectedSpecialization.key,
@@ -404,7 +452,7 @@ export async function resolveAttack({ actor, payload } = {}) {
       key: selectedSpecialization.key,
       label: selectedSpecialization.label,
       value: specializationBonus,
-      skillKey: skillDef.code ?? weapon.skill
+      skillKey: skillDef.code ?? effectiveWeapon.skill
     } : null
   };
 }
