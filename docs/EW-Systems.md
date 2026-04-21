@@ -7,19 +7,18 @@ BLUF:
 # 🎯 The Clean Model (Final Form)
 
 ## 1) Detection State = Permission
-
-```text
-blind   → no attack
+Detection State is the ladder that describes how good your firing solution is.
+```
+blind   → no sensor data,  direct fire attacks at Close or Near range only
 contact → attack, no sensor help
 track   → normal attack + can generate bonus
 lock    → optimized attack + full system use
 ```
-
 ---
 
 ## 2) TargetingData = Temporary Dice Bonus
 
-```ts
+```
 targetingData = +X dice
 ```
 
@@ -32,15 +31,20 @@ targetingData = +X dice
 # ⚙️ How It Works Step-by-Step
 
 ## Step 1 — Acquire Target (Sensors)
+**Acquire Target** is how you improve your Detection State.
 
-```text
-System + Perception
-```
+**Roll:** ```System + Perception```
+
+| Goal                 | DN |
+| -------------------- | -- |
+| Gain **Contact**     | 1  |
+| Improve to **Track** | 2  |
+| Improve to **Lock**  | 3  |
 
 Result:
 
 ```text
-contact → track → lock
+Blind → Contact → Track → Lock
 ```
 
 ---
@@ -49,29 +53,52 @@ contact → track → lock
 
 Only if **Track or Lock**
 
-```text
+**Roll:**```text
 System + Gunnery vs DN 2
 ```
 
-Result:
+**Result:** each hit becomes TargetingData, up to your cap.
 
 ```text
 hits → targetingData (capped)
 ```
+<u>Cap</u>  
+* *Track*: cap = System  
+* *Lock*: cap = System + 1
+
+<u>Duration</u>   
+*TargetingData* normally lasts for one attack.
 
 ---
 
 ## Step 3 — Apply to Attack
 
 ```text
-Dice Pool:
-  base
-− tracking penalty
-+ targetingData
+Attack Dice Pool:
+= base dice − Tracking Penalty + TargetingData + other normal dice mods
 ```
 
+### Tracking Penalty
+
+Tracking Penalty is the total negative dice friction on the shot.
+
+<u>Typical sources:</u>
+* movement saturation
+* ECM
+* stealth / signature reduction
+* degraded sensors
+* weather / obscurants
+
 Roll vs DN
-Then apply CQ (afterward)
+
+### Attack Sequence at the Table
+When making a shot:
+
+1. Check **Detection State**
+2. Apply **Tracking Penalty**
+3. Apply usable **TargetingData**
+4. Roll the attack
+5. Apply **CQ** afterward
 
 ---
 
@@ -92,15 +119,6 @@ Lock:  cap = System (+1 optional)
 
 ---
 
-### 2. Better efficiency (optional but recommended)
-
-Examples:
-
-* reroll 1 die
-* convert 1 failure → success
-
----
-
 ### 3. Access to advanced systems
 
 Only at **Lock**:
@@ -110,14 +128,6 @@ Only at **Lock**:
 * full indirect fire
 * advanced targeting features
 
----
-
-# 🚫 What Lock Does NOT Do
-
-* does NOT add dice directly
-* does NOT remove tracking penalty
-* does NOT affect DN
-* does NOT guarantee a hit
 
 ---
 
@@ -218,7 +228,119 @@ Also:
 * can use guided systems
 
 ---
+## ECM and EPM
+### ECM
 
+ECM makes enemy targeting worse.
+
+ECM can:
+* add Tracking Penalty
+* suppress TargetingData
+* make Lock harder to achieve
+* cap Detection State at Track
+
+### EPM
+
+EPM protects your targeting from ECM.
+
+EPM can:
+* reduce or ignore ECM penalties
+* allow Lock attempts under ECM
+* help resist disruption
+
+**The table loop**
+```
+- ECM degrades
+- EPM protects
+- Acquire advances
+- Break Lock regresses
+```
+That is the intended *tug-of-war*.
+
+---
+## Break Lock
+
+**Break Lock** is the primary defensive EW reaction.
+
+**Trigger:** an enemy reaches Lock, or a locked enemy is about to capitalize on it
+
+**Roll:** ```Handling + System Operations``` 
+
+**Result:** on success, reduce the attacker’s Detection State by one step:
+```
+Lock → Track
+Track → Contact
+Contact → Blind
+```
+**Default table recommendation**
+
+For normal reactions, most of the time this should be used as:
+
+Lock → Track
+
+That keeps it disruptive without turning it into a total denial tool every time.
+
+---
+## EPM Filter
+
+If you are jammed or disrupted, you can try to clear it.
+
+**Roll:** ```System + System Operations```
+
+Use it to:
+
+* clear ECM-style disruption
+* remove temporary EMP scramble
+* stabilize your sensors/fire control
+
+---
+## C3, TAG, and NARC
+### C3
+
+C3 shares best state and targeting data among network nodes.
+
+If the network is intact, use:
+* the best Detection State in the network for that target
+* the best eligible targeting packet in the network for that target
+
+Some *Electronic Warefare Suites* disrupts C3 network for any enemy node in range.  
+
+C3 does not sum everyone’s bonuses.
+
+### TAG
+TAG is primarily an enabler, not a generic dice bonus.
+* TAG upgrades friendly all units Track → Lock against Target (tagBasedLock)
+* TAG  based Locks all degrade if the Target breaks the Lock from TAG
+
+### NARC
+NARC creates persistent targeting assistance.  
+* NARC provides +2 targetingData for any NARC compatible attack (normal caps apply).  
+* NARC bonus is applied to every attack, and does not require a Gunnery roll to generate targetData.  
+* NARC lasts until the target removes it.  
+
+---
+## EMP Weapons
+
+Electrical weapons may carry an EMP effect.
+
+### Light EMP
+
+Until end of target’s next activation:
+
+* +1 trackingPenalty
+* −1 targetingData 
+* target cannot improve above Track
+
+### Heavy EMP
+
+Until end of target’s next activation:
+
+* +2 trackingPenalty
+* −2 targetingData 
+* if target is at Lock, downgrade to Track
+* target cannot improve above Track
+
+---
 # 🎯 Final One-Line Summary
 
 > **Track lets you generate targeting bonuses; Lock improves how much you can generate and unlocks advanced targeting systems—but the bonus itself always comes from the Gunnery roll, not the lock.**
