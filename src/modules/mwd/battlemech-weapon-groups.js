@@ -2,13 +2,16 @@
 // Purpose: Centralizes BattleMech ranged weapon-group legality, aggregation,
 // and activation-local availability so sheets and resolvers share one source.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE, startCase } from "../constants.js";
 import {
   doesHardpointAcceptItem,
   getMachineHardpointByItemId,
 } from "./machine-hardpoints.js";
 
 const RANGE_ORDER = ["close", "near", "far", "extreme"];
+// Preferred default engagement band: near is the sweet spot; fall back toward
+// closer bands if the weapon can't reach near.
+const DEFAULT_BAND_PREFERENCE = ["near", "close", "far", "extreme"];
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -18,14 +21,6 @@ function normalizeId(value = "") {
   return String(value ?? "").trim();
 }
 
-function startCase(value = "") {
-  return String(value ?? "")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, char => char.toUpperCase());
-}
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -80,13 +75,19 @@ function isSpecialCaseRangedProfile(weapon = null, profile = null) {
   const resolverKey = getWeaponResolverKey(weapon, profile);
   if (resolverKey !== "standard") return true;
 
-  const area = String(
+  const areaKind = String(
     profile?.areaEffect?.kind
       ?? weapon?.system?.areaEffect?.kind
+      ?? ""
+  ).trim().toLowerCase();
+  if (areaKind === "persistent") return true;
+
+  const legacyArea = String(
+    profile?.area
       ?? weapon?.system?.area
       ?? "none"
   ).trim().toLowerCase();
-  if (area && area !== "none") return true;
+  if (legacyArea && legacyArea !== "none") return true;
 
   return false;
 }
@@ -262,7 +263,7 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
     ...(firstWeapon?.range ?? normalizeRangeData({ max: rangeCap })),
       max: rangeCap,
     };
-  const defaultRangeBand = ["near", "close", "far", "extreme"]
+  const defaultRangeBand = DEFAULT_BAND_PREFERENCE
     .find(band => getRangeCapIndex(band) <= rangeCapIndex)
     ?? "close";
 

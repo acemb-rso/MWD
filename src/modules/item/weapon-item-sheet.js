@@ -5,6 +5,7 @@
 
 import { AttributeActions } from "../attribute-actions.js";
 import { MWD } from "../config.js";
+import { startCase } from "../constants.js";
 import { BaseItemSheet } from "./base-item-sheet.js";
 import { WeaponItem } from "./weapon-item.js";
 import {
@@ -130,14 +131,6 @@ function buildConsumptionSourceEditorEntry(item, source) {
   };
 }
 
-function startCase(value = "") {
-  return String(value ?? "")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, char => char.toUpperCase());
-}
 
 /**
  * Weapon item sheet (AppV2).

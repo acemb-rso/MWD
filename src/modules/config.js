@@ -495,7 +495,20 @@ export const MWD = {
       "quantityShort": "Qty",
       "rating": "Rating",
       "category": "Category",
-      "tags": "Tags"
+      "tags": "Tags",
+      "categoryLabels": {
+        "audiovisual": "Audiovisual Gear",
+        "communication": "Communication Gear",
+        "computing": "Computing Gear",
+        "espionage": "Espionage Gear",
+        "hostileEnvironment": "Hostile Environment Gear",
+        "medical": "Medical Gear",
+        "optical": "Optical Gear",
+        "power": "Power Gear",
+        "repairSalvage": "Repair/Salvage Gear",
+        "survival": "Survival Gear",
+        "surveillance": "Surveillance Gear"
+      }
     },
 
     "consumable": {
@@ -503,7 +516,15 @@ export const MWD = {
       "quantityShort": "Qty",
       "rating": "Potency",
       "category": "Consumable Type",
-      "tags": "Tags"
+      "tags": "Tags",
+      "categoryLabels": {
+        "ammo": "Ammunition",
+        "explosive": "Explosive",
+        "medical": "Medical",
+        "repair": "Repair",
+        "fuel": "Fuel / Power Cell",
+        "utility": "Utility"
+      }
     },
 
     "lifeModule": {
@@ -726,6 +747,14 @@ export const MWD = {
   },
 
   "mwd": {
+    "armorMitigationType": {
+      "penetrating": "Penetrating",
+      "concussive": "Concussive",
+      "energy": "Energy",
+      "thermal": "Thermal",
+      "electrical": "Electrical"
+    },
+
     "weightClass": {
       "label": "Weight class",
       "light": "Light",

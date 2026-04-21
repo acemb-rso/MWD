@@ -4,7 +4,7 @@
 // How it fits: Centralizes machine-state rule expression so the roll engine,
 //              EW helpers, heat, and sheets share one authority.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE, startCase } from "../constants.js";
 import { getActiveMachineCrits } from "./critical-hits.js";
 import { getMachineHardpointByItemId } from "./machine-hardpoints.js";
 import {
@@ -34,14 +34,6 @@ function hasStatus(actor = null, statusId = "") {
   return actor?.statuses?.has?.(statusId) ?? false;
 }
 
-function startCase(value = "") {
-  return String(value ?? "")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, char => char.toUpperCase());
-}
 
 function setDetectionCap(currentCap = "lock", nextCap = "lock") {
   const currentRank = DETECTION_CAP_RANKS[currentCap] ?? DETECTION_CAP_RANKS.lock;

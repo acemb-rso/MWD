@@ -3,16 +3,8 @@
 // How it fits: Keeps crit consequence normalization dependency-free so engine,
 // chat, sheets, and crit storage can all share one authority.
 
+import { startCase } from "../constants.js";
 import { getMachineHardpointByItemId } from "./machine-hardpoints.js";
-
-function startCase(value = "") {
-  return String(value ?? "")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, char => char.toUpperCase());
-}
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];

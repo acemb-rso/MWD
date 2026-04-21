@@ -3,10 +3,10 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { TEMPLATES_PATH, SYSTEM_NAME } from "../constants.js";
+import { TEMPLATES_PATH, SYSTEM_NAME, EDGE_POOL_GROUPS } from "../constants.js";
+import { MWD } from "../config.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
-import { EDGE_POOL_GROUPS } from "../constants.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import {
@@ -85,36 +85,9 @@ function buildDetailRows(rows = []) {
     }));
 }
 
-const ARMOR_MODIFIER_LABELS = {
-  penetrating: "Penetrating",
-  concussive: "Concussive",
-  energy: "Energy",
-  thermal: "Thermal",
-  electrical: "Electrical",
-};
-
-const GEAR_CATEGORY_LABELS = {
-  audiovisual: "Audiovisual Gear",
-  communication: "Communication Gear",
-  computing: "Computing Gear",
-  espionage: "Espionage Gear",
-  hostileEnvironment: "Hostile Environment Gear",
-  medical: "Medical Gear",
-  optical: "Optical Gear",
-  power: "Power Gear",
-  repairSalvage: "Repair/Salvage Gear",
-  survival: "Survival Gear",
-  surveillance: "Surveillance Gear",
-};
-
-const CONSUMABLE_CATEGORY_LABELS = {
-  ammo: "Ammunition",
-  explosive: "Explosive",
-  medical: "Medical",
-  repair: "Repair",
-  fuel: "Fuel / Power Cell",
-  utility: "Utility",
-};
+const ARMOR_MODIFIER_LABELS = MWD.mwd.armorMitigationType;
+const GEAR_CATEGORY_LABELS = MWD.item.gear.categoryLabels;
+const CONSUMABLE_CATEGORY_LABELS = MWD.item.consumable.categoryLabels;
 
 function formatSignedValue(value) {
   const numeric = Number(value ?? 0) || 0;
@@ -211,6 +184,103 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function getActorIdentityKeys(actor = null) {
+  const keys = new Set();
+  if (!actor) return keys;
+
+  const push = (value) => {
+    const normalized = String(value ?? "").trim();
+    if (normalized) keys.add(normalized);
+  };
+
+  push(actor.id);
+  push(actor.uuid);
+  push(actor.actor?.id);
+  push(actor.actor?.uuid);
+  push(actor.baseActor?.id);
+  push(actor.baseActor?.uuid);
+  return keys;
+}
+
+async function resolvePilotActorDocument(machineActor = null) {
+  const pilotUuid = String(
+    machineActor?.system?.pilot?.uuid
+    ?? machineActor?.system?.mwd?.pilot?.uuid
+    ?? ""
+  ).trim();
+  if (!pilotUuid || typeof fromUuid !== "function") return null;
+
+  try {
+    const resolved = await fromUuid(pilotUuid);
+    return resolved?.actor ?? resolved?.baseActor ?? resolved ?? null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+async function machineIsAssignedToPilot(machineActor = null, pilotActor = null) {
+  const pilotUuid = String(
+    machineActor?.system?.pilot?.uuid
+    ?? machineActor?.system?.mwd?.pilot?.uuid
+    ?? ""
+  ).trim();
+  if (!pilotActor) return false;
+
+  const identityKeys = getActorIdentityKeys(pilotActor);
+  if (identityKeys.has(pilotUuid)) return true;
+
+  const resolvedPilot = await resolvePilotActorDocument(machineActor);
+  if (!resolvedPilot) return false;
+
+  for (const key of getActorIdentityKeys(resolvedPilot)) {
+    if (identityKeys.has(key)) return true;
+  }
+  return false;
+}
+
+function getAssignedMachineCandidates() {
+  const candidates = [];
+  const seen = new Set();
+
+  const addCandidate = ({ actor = null, uuid = "", source = "actor" } = {}) => {
+    const machineActor = actor ?? null;
+    const normalizedUuid = String(uuid ?? machineActor?.uuid ?? "").trim();
+    if (!machineActor || !normalizedUuid || seen.has(normalizedUuid)) return;
+    if (machineActor.type !== "battlemech" && machineActor.type !== "vehicle") return;
+    seen.add(normalizedUuid);
+    candidates.push({ actor: machineActor, uuid: normalizedUuid, source });
+  };
+
+  for (const actor of game.actors?.contents ?? []) {
+    addCandidate({ actor, uuid: actor?.uuid, source: "actor" });
+  }
+
+  for (const scene of game.scenes?.contents ?? []) {
+    const tokenDocs = scene?.tokens?.contents ?? scene?.tokens ?? [];
+    for (const tokenDoc of tokenDocs) {
+      if (tokenDoc?.isLinked) continue;
+      addCandidate({ actor: tokenDoc?.actor ?? null, uuid: tokenDoc?.uuid, source: "token" });
+    }
+  }
+
+  return candidates;
+}
+
+async function resolveAssignedMachineFromTarget(target = null) {
+  const machineUuid = String(target?.dataset?.mechUuid ?? "").trim();
+  if (machineUuid && typeof fromUuid === "function") {
+    try {
+      const resolved = await fromUuid(machineUuid);
+      return resolved?.actor ?? resolved?.baseActor ?? resolved ?? null;
+    } catch (_error) {
+      // Fall through to actor-id lookup.
+    }
+  }
+
+  const machineId = String(target?.dataset?.mechId ?? "").trim();
+  return machineId ? game.actors.get(machineId) ?? null : null;
 }
 
 async function promptSelectOption({ title, label, options = [], confirmLabel = "Select" } = {}) {
@@ -688,21 +758,23 @@ ctx.edgeConsole.poolsOrdered = order
         }),
     }));
 
-    ctx.assignedMech = this._buildAssignedMech();
+    ctx.assignedMech = await this._buildAssignedMech();
 
     return ctx;
   }
 
-  _buildAssignedMech() {
-    const actorUuid = this.actor.uuid;
-    const WEIGHT_LABELS = { light: "Light", medium: "Medium", heavy: "Heavy", assault: "Assault" };
+  async _buildAssignedMech() {
+    const characterActor = this.getPersistentActor?.() ?? this.actor;
+    const weightClassLabels = MWD.mwd.weightClass;
+    const linkedMachines = [];
 
-    const mechs = (game.actors?.contents ?? [])
-      .filter(a =>
-        (a.type === "battlemech" || a.type === "vehicle") &&
-        String(a.system?.pilot?.uuid ?? "").trim() === actorUuid
-      )
-      .map(a => {
+    for (const candidate of getAssignedMachineCandidates()) {
+      if (await machineIsAssignedToPilot(candidate.actor, characterActor)) {
+        linkedMachines.push(candidate);
+      }
+    }
+
+    const mechs = linkedMachines.map(({ actor: a, uuid }) => {
         const isMech = a.type === "battlemech";
         const structure = a.system?.monitors?.structure ?? {};
         const armor = a.system?.monitors?.armor ?? {};
@@ -762,12 +834,12 @@ ctx.edgeConsole.poolsOrdered = order
         const primaryGroup = quickActions.primaryWeaponGroup ?? null;
 
         const mechQuickActions = isMech ? [
-          { label: "Primary", hint: primaryGroup?.name ?? "Primary weapon group", handler: "mechAttack", disabled: !primaryGroup, dataset: { attackKind: "primary", mechId: a.id } },
-          { label: "Ranged", hint: "Prompt for a weapon group", handler: "mechAttack", disabled: !hasRangedGroups, dataset: { attackKind: "ranged", mechId: a.id } },
-          { label: "Melee", hint: "Prompt for a melee profile", handler: "mechAttack", disabled: !hasMeleeProfiles, dataset: { attackKind: "melee", mechId: a.id } },
-          { label: "Piloting", hint: "Vehicle handling test", handler: "mechRoll", disabled: false, dataset: { rollKind: "piloting", mechId: a.id } },
-          { label: "Sensors", hint: "Perception or technician", handler: "mechRoll", disabled: !Boolean(quickActions.hasSensorSweep), dataset: { rollKind: "sensor", mechId: a.id } },
-          { label: "Repair", hint: "Technician quick check", handler: "mechRoll", disabled: false, dataset: { rollKind: "repair", mechId: a.id } },
+          { label: "Primary", hint: primaryGroup?.name ?? "Primary weapon group", handler: "mechAttack", disabled: !primaryGroup, dataset: { attackKind: "primary", mechUuid: uuid, mechId: a.id } },
+          { label: "Ranged", hint: "Prompt for a weapon group", handler: "mechAttack", disabled: !hasRangedGroups, dataset: { attackKind: "ranged", mechUuid: uuid, mechId: a.id } },
+          { label: "Melee", hint: "Prompt for a melee profile", handler: "mechAttack", disabled: !hasMeleeProfiles, dataset: { attackKind: "melee", mechUuid: uuid, mechId: a.id } },
+          { label: "Piloting", hint: "Vehicle handling test", handler: "mechRoll", disabled: false, dataset: { rollKind: "piloting", mechUuid: uuid, mechId: a.id } },
+          { label: "Sensors", hint: "Perception or technician", handler: "mechRoll", disabled: !Boolean(quickActions.hasSensorSweep), dataset: { rollKind: "sensor", mechUuid: uuid, mechId: a.id } },
+          { label: "Repair", hint: "Technician quick check", handler: "mechRoll", disabled: false, dataset: { rollKind: "repair", mechUuid: uuid, mechId: a.id } },
         ] : [];
 
         const armorMax = Math.max(0, toNumber(armor.max, 0));
@@ -777,11 +849,11 @@ ctx.edgeConsole.poolsOrdered = order
 
         return {
           id: a.id,
-          uuid: a.uuid,
+          uuid,
           name: a.name,
           typeLabel: isMech ? "BattleMech" : "Vehicle",
           isMech,
-          weightLabel: WEIGHT_LABELS[a.system?.mwd?.weightClass] ?? "",
+          weightLabel: weightClassLabels[a.system?.mwd?.weightClass] ?? "",
             summaryStats: buildSummaryStats([
               ...(isMech ? [{ label: "Armor", value: `${armorRemaining} / ${armorMax}` }] : []),
               { label: "Structure", value: `${structureRemaining} / ${structureMax}` },
@@ -799,16 +871,14 @@ ctx.edgeConsole.poolsOrdered = order
   }
 
   async _onOpenAssignedMech(event, target) {
-    const mechId = target?.dataset?.mechId;
-    const mech = mechId ? game.actors.get(mechId) : null;
+    const mech = await resolveAssignedMachineFromTarget(target);
     if (mech) mech.sheet.render(true, { focus: true });
   }
 
   async _onMechAttack(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
-    const mechId = target?.dataset?.mechId;
-    const mech = mechId ? game.actors.get(mechId) : null;
+    const mech = await resolveAssignedMachineFromTarget(target);
     if (!mech) return;
     const attackKind = String(target?.dataset?.attackKind ?? "").trim();
     try {
@@ -822,8 +892,7 @@ ctx.edgeConsole.poolsOrdered = order
   async _onMechRoll(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
-    const mechId = target?.dataset?.mechId;
-    const mech = mechId ? game.actors.get(mechId) : null;
+    const mech = await resolveAssignedMachineFromTarget(target);
     if (!mech) return;
     const rollKind = String(target?.dataset?.rollKind ?? "").trim();
     try {
@@ -910,11 +979,21 @@ ctx.edgeConsole.poolsOrdered = order
 
  #bindLinkedMechHook() {
     if (this.#linkedMechHookId !== null) return;
-    const actorUuid = this.actor.uuid;
-    this.#linkedMechHookId = Hooks.on("updateActor", (actor) => {
+    const characterActor = this.getPersistentActor?.() ?? this.actor;
+    const characterIdentityKeys = getActorIdentityKeys(characterActor);
+    this.#linkedMechHookId = Hooks.on("updateActor", (actor, changed) => {
       if (actor.type !== "battlemech" && actor.type !== "vehicle") return;
-      if (String(actor.system?.pilot?.uuid ?? "").trim() !== actorUuid) return;
-      this.render();
+
+      const changedPilotUuid = String(changed?.system?.pilot?.uuid ?? changed?.system?.mwd?.pilot?.uuid ?? "").trim();
+      const currentPilotUuid = String(actor.system?.pilot?.uuid ?? actor.system?.mwd?.pilot?.uuid ?? "").trim();
+      const pilotChanged = changedPilotUuid !== "";
+      const isRelevantCurrentPilot = characterIdentityKeys.has(currentPilotUuid);
+      const isRelevantChangedPilot = characterIdentityKeys.has(changedPilotUuid);
+
+      if (!pilotChanged && !isRelevantCurrentPilot) return;
+      if (pilotChanged || isRelevantCurrentPilot || isRelevantChangedPilot) {
+        this.render();
+      }
     });
   }
 

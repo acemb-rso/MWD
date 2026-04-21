@@ -75,6 +75,7 @@ function createWeapon({
           far: 0,
           extreme: 0,
         },
+        areaEffect: { kind: "discrete" },
         resolverKey,
         notes: "",
       };
@@ -189,6 +190,29 @@ test("BattleMech ranged groups block mixed damage types and special-case profile
   assert.match(mixed.disableReason, /same damage type/i);
   assert.equal(special.isAttackLegal, false);
   assert.match(special.disableReason, /special attack mode/i);
+});
+
+test("BattleMech standard direct-fire profiles remain groupable when their area effect is discrete", () => {
+  const laser = createWeapon({
+    id: "laser",
+    name: "Laser",
+    damage: 4,
+    heat: 2,
+    damageType: "energy",
+    rangeCap: "near",
+    attackRatings: { close: 2, near: 3, far: 0, extreme: 0 },
+  });
+  const actor = createActor({
+    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"], isPrimary: true }],
+    weapons: [laser],
+  });
+
+  const [group] = prepareBattlemechWeaponGroups(actor);
+
+  assert.equal(group.isAttackLegal, true);
+  assert.equal(group.memberWeapons.length, 1);
+  assert.equal(group.attackSummary?.damage, 4);
+  assert.equal(group.attackSummary?.heat, 2);
 });
 
 test("BattleMech ranged groups become unavailable once marked used this activation", () => {

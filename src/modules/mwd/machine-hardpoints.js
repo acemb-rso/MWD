@@ -3,19 +3,11 @@
 // How it fits: Keeps slot ownership actor-side so sheets, crit logic, and
 // loadout validation can all resolve the same mounted-item state.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE, startCase } from "../constants.js";
 
 const MACHINE_HARDPOINT_SIZES = Object.freeze(["small", "medium", "large"]);
 const ENERGY_HARDPOINT_FAMILY = Object.freeze(new Set(["energy", "thermal", "electrical", "electric"]));
 
-function startCase(value = "") {
-  return String(value ?? "")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, char => char.toUpperCase());
-}
 
 export function normalizeMachineWeaponSize(value, fallback = "small") {
   const normalized = String(value ?? "").trim().toLowerCase();

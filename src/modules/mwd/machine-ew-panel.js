@@ -22,7 +22,7 @@ function toTargets(targets) {
 }
 
 function buildAcquireHint({ detectionState = "blind", canAcquire = false, ceiling = "lock" } = {}) {
-  if (detectionState === "blind") return "No targeting solution. Acquire contact first.";
+  if (detectionState === "blind") return "Acquire can establish Contact (DN 1).";
   if (detectionState === "contact") return "Acquire can upgrade to Track.";
   if (detectionState === "track" && canAcquire) return "Acquire can upgrade to Lock.";
   if (detectionState === "track" && ceiling === "track") return "ECM prevents advancing beyond Track.";
@@ -58,7 +58,7 @@ export function buildMachineEwRow({
     ? getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, detectionState, currentRound)
     : null;
 
-  const canAcquire = detectionState === "contact" || (detectionState === "track" && ceiling === "lock");
+  const canAcquire = detectionState === "blind" || detectionState === "contact" || (detectionState === "track" && ceiling === "lock");
   const canTarget = detectionState === "track" || detectionState === "lock";
   const lockGated = detectionState === "lock";
 

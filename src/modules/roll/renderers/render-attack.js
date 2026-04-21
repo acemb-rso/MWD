@@ -2,6 +2,7 @@
 // Purpose: Enhances attack roll cards with CQ, outcome, and damage details.
 // How it fits: Keeps attack presentation as a pure render step over resolved engine data.
 
+import { startCase } from "../../constants.js";
 import { buildMachineCriticalChatSummary } from "../../mwd/machine-crit-effects.js";
 
 export function enhanceAttack(resolved, vm) {
@@ -342,14 +343,6 @@ function fmt(n) {
   return num >= 0 ? `+${num}` : `${num}`;
 }
 
-function startCase(value = "") {
-  return String(value ?? "")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, char => char.toUpperCase());
-}
 
 function formatAttackRatings(bands = {}) {
   return ["close", "near", "far", "extreme"]

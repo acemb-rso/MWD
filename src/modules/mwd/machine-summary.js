@@ -2,6 +2,8 @@
 // Purpose: Small view-model helpers for machine sheet summary stats.
 // How it fits: Keeps BattleMech hero-bar math testable without instantiating Foundry sheets.
 
+import { startCase } from "../constants.js";
+
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : fallback;
@@ -11,14 +13,6 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-function startCase(value = "") {
-  return String(value ?? "")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, char => char.toUpperCase());
-}
 
 export function getIntegrityToneForPercent(percent = 0) {
   const normalized = clamp(toNumber(percent, 0), 0, 100);

@@ -2,8 +2,8 @@
 // Purpose: Layout-driven flagship BattleMech sheet built on the reusable vehicle V2 sheet patterns.
 // How it fits: Surfaces prepared BattleMech data through semantic context and V2-native action wiring.
 
-import { ANARCHY } from "../config.js";
-import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
+import { MWD } from "../config.js";
+import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../constants.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
@@ -14,6 +14,7 @@ import {
   setBattlemechPendingHeat,
 } from "../mwd/machine-heat.js";
 import { getConfiguredMachineHardpoints } from "../mwd/machine-hardpoints.js";
+import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 import { prepareBattlemechWeaponGroups } from "../mwd/battlemech-weapon-groups.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
 
@@ -35,14 +36,6 @@ function compactList(values = []) {
     .filter(Boolean);
 }
 
-function startCase(value = "") {
-  return String(value ?? "")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, char => char.toUpperCase());
-}
 
 function buildSummaryStats(stats = []) {
   return stats
@@ -100,7 +93,7 @@ function formatAttackRatings(bands = {}) {
 }
 
 function getQuickActionLabel(key = "") {
-  const labels = ANARCHY?.actor?.vehicle?.quickActions ?? {};
+  const labels = MWD?.actor?.vehicle?.quickActions ?? {};
   return String(labels?.[key] ?? startCase(key)).trim() || startCase(key);
 }
 
@@ -173,7 +166,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   _buildChassisFields() {
     const tonnage = toNumber(this.actor.system?.mwd?.tonnage, 0);
     const weightClass = this.actor.system?.mwd?.weightClass ?? "medium";
-    const WEIGHT_CLASS_LABELS = { light: "Light", medium: "Medium", heavy: "Heavy", assault: "Assault" };
+    const weightClassLabels = MWD.mwd.weightClass;
 
     return [
       {
@@ -184,17 +177,14 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         displayValue: String(tonnage),
       },
       {
-        label: "Weight Class",
+        label: weightClassLabels.label,
         path: "system.mwd.weightClass",
         isSelect: true,
         value: weightClass,
-        displayValue: WEIGHT_CLASS_LABELS[weightClass] ?? startCase(weightClass),
-        options: [
-          { value: "light",   label: "Light",   selected: weightClass === "light" },
-          { value: "medium",  label: "Medium",  selected: weightClass === "medium" },
-          { value: "heavy",   label: "Heavy",   selected: weightClass === "heavy" },
-          { value: "assault", label: "Assault", selected: weightClass === "assault" },
-        ],
+        displayValue: weightClassLabels[weightClass] ?? startCase(weightClass),
+        options: Object.entries(weightClassLabels)
+          .filter(([key]) => key !== "label")
+          .map(([key, label]) => ({ value: key, label, selected: weightClass === key })),
       },
     ];
   }
@@ -398,7 +388,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
 
   _buildWeaponGroupSummary() {
     const actor = this.getPersistentActor() ?? this.actor;
-    const mountPoints = actor.system?.mwd?.loadout?.mountPoints ?? {};
+    const computedLoadout = new BattlemechLoadout(actor).compute();
+    const mountPoints = computedLoadout?.mountPoints ?? actor.system?.mwd?.loadout?.mountPoints ?? {};
     const total = toNumber(mountPoints.total, 0);
     const used = toNumber(mountPoints.used, 0);
 
@@ -410,9 +401,9 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   }
 
   _buildLoadedHardpointChoices(actor) {
-    const typeLabels = ANARCHY?.mwd?.hardpointType ?? {};
-    const sizeLabels = ANARCHY?.mwd?.hardpointSize ?? {};
-    const locationLabels = ANARCHY?.mwd?.hardpointLocation ?? {};
+    const typeLabels = MWD?.mwd?.hardpointType ?? {};
+    const sizeLabels = MWD?.mwd?.hardpointSize ?? {};
+    const locationLabels = MWD?.mwd?.hardpointLocation ?? {};
 
     return getConfiguredMachineHardpoints(actor).map((hardpoint, index) => {
       const itemId = String(hardpoint?.itemId ?? "").trim();
@@ -525,9 +516,9 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
 
   _buildHardpoints() {
     const loadout = this.actor.system?.mwd?.loadout ?? {};
-    const typeLabels = ANARCHY?.mwd?.hardpointType ?? {};
-    const sizeLabels = ANARCHY?.mwd?.hardpointSize ?? {};
-    const locationLabels = ANARCHY?.mwd?.hardpointLocation ?? {};
+    const typeLabels = MWD?.mwd?.hardpointType ?? {};
+    const sizeLabels = MWD?.mwd?.hardpointSize ?? {};
+    const locationLabels = MWD?.mwd?.hardpointLocation ?? {};
 
     return Array.from(loadout.hardpoints ?? []).map(hardpoint => ({
       id: hardpoint.id,
@@ -605,7 +596,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const weaponGroups = readWeaponGroups(actorWriteTarget);
     weaponGroups.push({
       id: foundry.utils.randomID?.() ?? `group-${weaponGroups.length + 1}`,
-      name: ANARCHY?.mwd?.loadout?.newGroup ?? `Weapon Group ${weaponGroups.length + 1}`,
+      name: MWD?.mwd?.loadout?.newGroup ?? `Weapon Group ${weaponGroups.length + 1}`,
       weaponIds: [],
       isPrimary: weaponGroups.length === 0,
     });
@@ -805,14 +796,22 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const content = `<form class="mwd-quick-select">${selectableGroups.map(group => `
       <label class="quick-select-option">
         <input type="radio" name="weapon-group" value="${group.id}" ${group.id === defaultGroup.id ? "checked" : ""}>
-        <span>${group.name}${group.isPrimary ? ` (${ANARCHY.actor.vehicle.quickActions.primaryLabel})` : ""}</span>
+        <span>${group.name}${group.isPrimary ? ` (${MWD.actor.vehicle.quickActions.primaryLabel})` : ""}</span>
       </label>`).join("")}</form>`;
 
-    const selectedId = await Dialog.prompt({
-      title: ANARCHY.actor.vehicle.quickActions.selectWeaponGroup,
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.selectWeaponGroup },
       content,
-      label: ANARCHY.common.roll.button,
-      callback: html => html.find('input[name="weapon-group"]:checked').val() ?? defaultGroup.id,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["weapon-group"]?.value ?? defaultGroup.id,
+        },
+      ],
     });
 
     return selectableGroups.find(group => group.id === selectedId) ?? defaultGroup;
@@ -840,11 +839,19 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         <span>${profile.name}</span>
       </label>`).join("")}</form>`;
 
-    const selectedId = await Dialog.prompt({
-      title: ANARCHY.actor.vehicle.quickActions.selectMeleeProfile,
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.selectMeleeProfile },
       content,
-      label: ANARCHY.common.roll.button,
-      callback: html => html.find('input[name="melee-profile"]:checked').val() ?? defaultProfile.id,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["melee-profile"]?.value ?? defaultProfile.id,
+        },
+      ],
     });
 
     return profiles.find(profile => profile.id === selectedId) ?? defaultProfile;

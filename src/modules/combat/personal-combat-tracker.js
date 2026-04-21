@@ -169,6 +169,10 @@ function nextActivationState(stored = null, activation = null) {
   return state;
 }
 
+function cloneWritableSnapshotState(snapshot = null) {
+  return cloneStoredState(snapshot?.state, snapshot?.state?.activation ?? null);
+}
+
 function actionCostLabel(resource, cost) {
   if (resource === "free") return "Free";
   if (resource === "burn") return `+${cost} Burn`;
@@ -350,7 +354,7 @@ export class PersonalCombatTracker {
         this.getActivationIdentity(game.combat, game.combat.combatant)
       );
     }
-    this.renderOpenCharacterSheets();
+    this.renderOpenActorSheets();
   }
 
   static _asTokenDocument(token) {
@@ -889,7 +893,7 @@ export class PersonalCombatTracker {
     if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
     if (!allowCurrentTurn && snapshot.isCurrentTurn) return { ok: false, reason: "Only outside your activation." };
 
-    const nextState = cloneStoredState(snapshot.combatant.getFlag(FLAG_SCOPE, FLAG_KEY), snapshot.state?.activation);
+    const nextState = cloneWritableSnapshotState(snapshot);
     const runtime = {
       combat: snapshot.combat,
       combatant: snapshot.combatant,
@@ -971,7 +975,7 @@ export class PersonalCombatTracker {
     const snapshot = this.getSnapshot(actor, { token });
     if (!snapshot?.combatant) return { ok: false, reason: "No combatant on the current scene." };
 
-    const nextState = cloneStoredState(snapshot.combatant.getFlag(FLAG_SCOPE, FLAG_KEY), snapshot.state?.activation);
+    const nextState = cloneWritableSnapshotState(snapshot);
     const mutated = typeof mutate === "function" ? mutate(nextState, snapshot) ?? nextState : nextState;
     await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, mutated);
     return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
@@ -1448,7 +1452,7 @@ export class PersonalCombatTracker {
     const snapshot = this.getSnapshot(actor, { token });
     if (!snapshot?.combatant) return { ok: false, reason: "No combatant on the current scene." };
 
-    const nextState = cloneStoredState(snapshot.combatant.getFlag(FLAG_SCOPE, FLAG_KEY), snapshot.state?.activation);
+    const nextState = cloneWritableSnapshotState(snapshot);
     nextState.actionState ??= {};
     if (!nextState.actionState.aim) return { ok: true, snapshot };
 
@@ -1466,7 +1470,7 @@ export class PersonalCombatTracker {
     const snapshot = this.getSnapshot(actor, { token });
     if (!snapshot?.combatant) return { ok: false, reason: "No combatant on the current scene." };
 
-    const nextState = cloneStoredState(snapshot.combatant.getFlag(FLAG_SCOPE, FLAG_KEY), snapshot.state?.activation);
+    const nextState = cloneWritableSnapshotState(snapshot);
     nextState.actionState ??= {};
     if (!nextState.actionState.preparedInterrupt) return { ok: true, snapshot };
 
@@ -1867,7 +1871,7 @@ export class PersonalCombatTracker {
       }
     }
 
-    this.renderOpenCharacterSheets();
+    this.renderOpenActorSheets();
   }
 
   static async _onCreateCombatant(combatant) {
@@ -1880,12 +1884,12 @@ export class PersonalCombatTracker {
     if (tokenDoc) {
       await this._syncHazardPresenceForToken(tokenDoc);
     }
-    this.renderOpenCharacterSheets();
+    this.renderOpenActorSheets();
   }
 
   static async _onDeleteCombatant(combatant) {
     await this.clearPreparedIndicatorForCombatant(combatant);
-    this.renderOpenCharacterSheets();
+    this.renderOpenActorSheets();
   }
 
   static async _onDeleteCombat(combat) {
@@ -1895,7 +1899,7 @@ export class PersonalCombatTracker {
     for (const combatant of this._getCombatants(combat)) {
       await this.clearPreparedIndicatorForCombatant(combatant);
     }
-    this.renderOpenCharacterSheets();
+    this.renderOpenActorSheets();
   }
 
   static _onUpdateCombatant(combatant, changed) {
@@ -1903,7 +1907,7 @@ export class PersonalCombatTracker {
       void this._syncPreparedIndicatorForCombatant(combatant);
       const tokenDoc = this._getCombatantTokenDocument(combatant, this._getCombatantSceneId(combatant) || canvas?.scene?.id);
       if (tokenDoc) this._queueHazardOverlayRefresh(tokenDoc);
-      this.renderOpenCharacterSheets(combatant?.actor?.id);
+      this.renderOpenActorSheets(combatant?.actor?.id);
     }
   }
 
@@ -2370,15 +2374,21 @@ export class PersonalCombatTracker {
 
     this._targetRefreshTimeout = setTimeout(() => {
       this._targetRefreshTimeout = null;
-      this.renderOpenCharacterSheets(actorId);
+      this.renderOpenActorSheets(actorId);
     }, 0);
   }
 
-  static _collectOpenCharacterSheetApps() {
+  static _collectOpenActorSheetApps(actorTypes = null) {
+    const typeFilter = Array.isArray(actorTypes) && actorTypes.length
+      ? new Set(actorTypes.map(type => String(type ?? "").trim()).filter(Boolean))
+      : null;
     const apps = new Set();
     const addApps = actorLike => {
       for (const app of Object.values(actorLike?.apps ?? {})) {
-        if (app?.actor?.type === "character") apps.add(app);
+        const actorType = String(app?.actor?.type ?? "").trim();
+        if (!actorType) continue;
+        if (typeFilter && !typeFilter.has(actorType)) continue;
+        apps.add(app);
       }
     };
 
@@ -2391,14 +2401,17 @@ export class PersonalCombatTracker {
     }
 
     for (const app of Object.values(ui.windows ?? {})) {
-      if (app?.actor?.type === "character") apps.add(app);
+      const actorType = String(app?.actor?.type ?? "").trim();
+      if (!actorType) continue;
+      if (typeFilter && !typeFilter.has(actorType)) continue;
+      apps.add(app);
     }
 
     return Array.from(apps);
   }
 
-  static renderOpenCharacterSheets(actorId = null) {
-    const apps = this._collectOpenCharacterSheetApps();
+  static renderOpenActorSheets(actorId = null, actorTypes = null) {
+    const apps = this._collectOpenActorSheetApps(actorTypes);
     for (const app of apps) {
       if (actorId && app.actor?.id !== actorId) continue;
       if (typeof app.requestCombatDashboardRefresh === "function") {
@@ -2407,6 +2420,10 @@ export class PersonalCombatTracker {
       }
       app.render({ force: true });
     }
+  }
+
+  static renderOpenCharacterSheets(actorId = null) {
+    this.renderOpenActorSheets(actorId, ["character"]);
   }
 }
 

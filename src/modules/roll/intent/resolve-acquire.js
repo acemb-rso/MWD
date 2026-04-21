@@ -64,9 +64,6 @@ export async function resolveAcquire({ actor, payload } = {}) {
 
   const currentState = getDetectionState(combatant, targetTokenUuid);
 
-  if (currentState === "blind") {
-    throw createUserFacingRollError("Establish visual contact before acquiring a sensor lock.", { severity: "warn" });
-  }
   if (currentState === "lock") {
     throw createUserFacingRollError("Target is already at lock state.", { severity: "info" });
   }

@@ -51,11 +51,12 @@ export function listDetectionStates() {
 
 /**
  * Base DN for an acquire roll given the current detection state.
- * contact → track: DN 2
- * track → lock:    DN 3
- * Any other: DN 1 (fallback — should not normally occur)
+ * blind   → contact: DN 1
+ * contact → track:   DN 2
+ * track   → lock:    DN 3
  */
 export function getAcquireBaseDn(currentState) {
+  if (currentState === "blind")   return 1;
   if (currentState === "contact") return 2;
   if (currentState === "track")   return 3;
   return 1;

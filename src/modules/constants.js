@@ -169,6 +169,15 @@ export const TEMPLATE = {
     return a.some(d => b.includes(d));
   }
 
+export function startCase(value = "") {
+  return String(value ?? "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
+
 export const ACTOR_ATTRIBUTE_SETS = {
   [TEMPLATE.actorTypes.character]: [
     TEMPLATE.actorAttributes.strength,
