@@ -9,12 +9,30 @@ import { RollDialog } from "../roll/roll-dialog.js";
 import { VehicleActor } from "./vehicle-actor.js";
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 import { getSkillDef } from "../mwd/skills.js";
+import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import {
   getMachineHeatStatusLabel,
 } from "../mwd/heat-state.js";
 import { buildBattlemechHeatModel } from "../mwd/machine-heat.js";
 import { buildBattlemechMobilityModel } from "../mwd/battlemech-mobility.js";
 import { prepareBattlemechWeaponGroups } from "../mwd/battlemech-weapon-groups.js";
+import { buildMachineEwPanel, resolveMachineEwActionTarget } from "../mwd/machine-ew-panel.js";
+import { getMachineRepairIssues } from "../mwd/machine-repair-issues.js";
+import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
+
+function getMachineRollApi() {
+  return game.mwd?.roll ?? game.system?.mwd?.roll ?? null;
+}
+
+function resolveMachineToken(actor) {
+  return actor?.token?.document
+    ?? actor?.token
+    ?? actor?.getActiveTokens?.(true, true)?.[0]?.document
+    ?? actor?.getActiveTokens?.(true, true)?.[0]
+    ?? Array.from(canvas?.tokens?.placeables ?? [])
+      .find(token => token?.actor?.id && token.actor.id === actor?.id)?.document
+    ?? null;
+}
 
 export class BattlemechActor extends VehicleActor {
 
@@ -48,7 +66,13 @@ export class BattlemechActor extends VehicleActor {
   }
 
   async rollRangedAttack() {
-    const weaponGroups = (this.system.weaponGroups ?? []).filter(group => group?.isAttackLegal !== false);
+    const token = resolveMachineToken(this);
+    const snapshot = PersonalCombatTracker.getSnapshot?.(this, { token }) ?? null;
+    const usedWeaponGroupIds = snapshot?.isCurrentTurn
+      ? PersonalCombatTracker.getUsedWeaponGroupIds?.(this, { token, snapshot }) ?? []
+      : [];
+    const weaponGroups = prepareBattlemechWeaponGroups(this, { usedWeaponGroupIds })
+      .filter(group => group?.isAttackLegal && group?.isAvailableThisActivation);
     if (weaponGroups.length === 0) {
       ui.notifications.warn(ANARCHY.actor.vehicle.quickActions.errors.noRanged);
       return;
@@ -59,14 +83,22 @@ export class BattlemechActor extends VehicleActor {
       return;
     }
 
-    const weapons = selectedGroup.weaponIds
-      .map(id => this.items.get(id))
-      .filter(it => it);
+    const rollApi = getMachineRollApi();
+    if (!rollApi?.execute) {
+      ui.notifications?.error("MWD roll system not initialized.");
+      return;
+    }
 
-    await this._rollQuickSkill(this.system.skills.gunnery, {
-      quickAction: {
-        title: ANARCHY.actor.vehicle.quickActions.rangedAttack,
-        weaponGroup: this._serializeWeaponGroup(selectedGroup, weapons)
+    await rollApi.execute({
+      actor: this,
+      payload: {
+        intent: "attack",
+        sourceType: "weaponGroup",
+        sourceId: selectedGroup.id,
+        weaponGroupId: selectedGroup.id,
+        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
+        tags: ["combat", "attack", "machine", "groupFire"],
+        sourceTokenId: token?.id ?? null,
       }
     });
   }
@@ -83,10 +115,33 @@ export class BattlemechActor extends VehicleActor {
       return;
     }
 
-    await this._rollQuickSkill(this.system.skills.melee, {
-      quickAction: {
-        title: ANARCHY.actor.vehicle.quickActions.meleeAttack,
-        meleeProfile: selectedProfile
+    if (!selectedProfile.weaponId) {
+      await this._rollQuickSkill(this.system.skills.melee, {
+        quickAction: {
+          title: ANARCHY.actor.vehicle.quickActions.meleeAttack,
+          meleeProfile: selectedProfile
+        }
+      });
+      return;
+    }
+
+    const rollApi = getMachineRollApi();
+    if (!rollApi?.execute) {
+      ui.notifications?.error("MWD roll system not initialized.");
+      return;
+    }
+
+    const token = resolveMachineToken(this);
+    await rollApi.execute({
+      actor: this,
+      payload: {
+        intent: "attack",
+        sourceType: "mechWeapon",
+        sourceId: selectedProfile.weaponId,
+        weaponId: selectedProfile.weaponId,
+        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
+        tags: ["combat", "attack", "machine"],
+        sourceTokenId: token?.id ?? null,
       }
     });
   }
@@ -97,29 +152,100 @@ export class BattlemechActor extends VehicleActor {
     });
   }
 
-  async rollSensorSweep() {
-    const sensorSkills = [this.system.skills.perception, this.system.skills.technician].filter(it => it);
-    if (sensorSkills.length === 0) {
+  async rollElectronicWarfare() {
+    const token = resolveMachineToken(this);
+    const panel = buildMachineEwPanel({ actor: this, token });
+    const actions = [
+      {
+        id: "acquire",
+        intent: "acquire",
+        label: "Acquire Target",
+        hint: "Advance detection state on the first eligible targeted token.",
+        disabled: !panel.canAcquireAny,
+      },
+      {
+        id: "targeting",
+        intent: "targeting",
+        label: "Generate Fire Solution",
+        hint: "Create targeting data for the first eligible targeted token.",
+        disabled: !panel.canTargetAny,
+      },
+    ].filter(action => !action.disabled);
+
+    if (!actions.length) {
       ui.notifications.warn(ANARCHY.actor.vehicle.quickActions.errors.noSensorSweep);
       return;
     }
 
-    const selectedSkill = await this._promptSensorSweepSkill(sensorSkills);
-    if (!selectedSkill) {
+    const selectedAction = actions.length === 1
+      ? actions[0]
+      : await this._promptElectronicWarfareAction(actions);
+    if (!selectedAction) return;
+
+    const targetRow = resolveMachineEwActionTarget(panel, selectedAction.intent);
+    if (!targetRow) {
+      ui.notifications?.warn("No targeted token is ready for that EW action.");
       return;
     }
 
-    await this._rollQuickSkill(selectedSkill, {
-      quickAction: {
-        title: ANARCHY.actor.vehicle.quickActions.sensorSweep,
-        skillName: selectedSkill.name
+    const rollApi = getMachineRollApi();
+    if (!rollApi?.execute) {
+      ui.notifications?.error("MWD roll system not initialized.");
+      return;
+    }
+
+    await rollApi.execute({
+      actor: this,
+      payload: {
+        intent: selectedAction.intent,
+        sourceTokenId: token?.id ?? null,
+        targetTokenId: targetRow.targetTokenId,
+        targetTokenUuid: targetRow.targetTokenUuid,
       }
     });
   }
 
+  async rollSensorSweep() {
+    return this.rollElectronicWarfare();
+  }
+
   async rollEmergencyRepair() {
-    await this._rollQuickSkill(this.system.skills.technician, {
-      quickAction: { title: ANARCHY.actor.vehicle.quickActions.emergencyRepair }
+    const issues = getMachineRepairIssues(this);
+    if (!issues.length) {
+      ui.notifications?.warn("No active criticals or repairable statuses are available.");
+      return;
+    }
+
+    const selectedIssue = issues.length === 1
+      ? issues[0]
+      : await this._promptRepairIssue(issues);
+    if (!selectedIssue) return;
+
+    const request = await prepareMachineRemedyRoll({
+      machineActorUuid: this.uuid,
+      issueKind: selectedIssue.issueKind,
+      issueId: selectedIssue.issueId,
+      critId: selectedIssue.issueKind === "crit" ? selectedIssue.issueId : "",
+      statusId: selectedIssue.issueKind === "status" ? selectedIssue.issueId : "",
+      remedyKey: selectedIssue.remedyKey,
+    }, {
+      gmOverride: Boolean(game.user?.isGM),
+    });
+
+    if (!request.ok) {
+      ui.notifications?.warn(request.reason ?? "Unable to launch the repair action.");
+      return;
+    }
+
+    const rollApi = getMachineRollApi();
+    if (!rollApi?.execute) {
+      ui.notifications?.error("MWD roll system not initialized.");
+      return;
+    }
+
+    await rollApi.execute({
+      actor: request.actor,
+      payload: request.payload,
     });
   }
 
@@ -346,6 +472,44 @@ export class BattlemechActor extends VehicleActor {
     });
 
     return skills.find(it => it.system.code === selectedCode) ?? skills[0];
+  }
+
+  async _promptElectronicWarfareAction(actions) {
+    const defaultAction = actions[0];
+    const content = `<form class="mwd-quick-select">${actions.map(action => `
+      <label class="quick-select-option">
+        <input type="radio" name="ew-action" value="${action.id}" ${action.id === defaultAction.id ? "checked" : ""}>
+        <span>${action.label}</span>
+        <small>${action.hint}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await Dialog.prompt({
+      title: "Electronic Warfare",
+      content,
+      label: ANARCHY.common.roll.button,
+      callback: html => html.find('input[name="ew-action"]:checked').val() ?? defaultAction.id
+    });
+
+    return actions.find(action => action.id === selectedId) ?? defaultAction;
+  }
+
+  async _promptRepairIssue(issues) {
+    const defaultIssue = issues[0];
+    const content = `<form class="mwd-quick-select">${issues.map(issue => `
+      <label class="quick-select-option">
+        <input type="radio" name="repair-issue" value="${issue.issueKind}:${issue.issueId}" ${issue.issueKind === defaultIssue.issueKind && issue.issueId === defaultIssue.issueId ? "checked" : ""}>
+        <span>${issue.label}</span>
+        <small>${issue.remedyLabel} | ${issue.remedySummary || `DN ${issue.totalDn}`}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedKey = await Dialog.prompt({
+      title: ANARCHY.actor.vehicle.quickActions.emergencyRepair,
+      content,
+      label: ANARCHY.common.roll.button,
+      callback: html => html.find('input[name="repair-issue"]:checked').val() ?? `${defaultIssue.issueKind}:${defaultIssue.issueId}`
+    });
+
+    return issues.find(issue => `${issue.issueKind}:${issue.issueId}` === selectedKey) ?? defaultIssue;
   }
 
   _serializeWeaponGroup(group, weapons) {

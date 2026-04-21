@@ -1903,10 +1903,17 @@ export class PersonalCombatTracker {
   }
 
   static _onUpdateCombatant(combatant, changed) {
-    if (foundry.utils.hasProperty(changed, `flags.${FLAG_SCOPE}.${FLAG_KEY}`)) {
+    const touchedPersonalCombat = foundry.utils.hasProperty(changed, `flags.${FLAG_SCOPE}.${FLAG_KEY}`);
+    const touchedTargeting = foundry.utils.hasProperty(changed, `flags.${FLAG_SCOPE}.targeting`)
+      || foundry.utils.hasProperty(changed, `flags.${FLAG_SCOPE}.ewState`);
+
+    if (touchedPersonalCombat) {
       void this._syncPreparedIndicatorForCombatant(combatant);
       const tokenDoc = this._getCombatantTokenDocument(combatant, this._getCombatantSceneId(combatant) || canvas?.scene?.id);
       if (tokenDoc) this._queueHazardOverlayRefresh(tokenDoc);
+    }
+
+    if (touchedPersonalCombat || touchedTargeting) {
       this.renderOpenActorSheets(combatant?.actor?.id);
     }
   }

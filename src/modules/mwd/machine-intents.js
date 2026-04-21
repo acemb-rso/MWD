@@ -4,6 +4,7 @@
 // the machine-side authority and state changes centralized.
 
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { SYSTEM_NAME } from "../constants.js";
 import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 import { MACHINE_CRITICAL_STATUS_ID } from "./critical-hits.js";
 import {
@@ -12,6 +13,7 @@ import {
   getMachineRemedyEffect,
   getMachineRemedySkillKey,
 } from "./machine-crit-remedies.js";
+import { getRepairableMachineStatusIssue } from "./machine-repair-issues.js";
 import { resolveMachineOperator } from "./machine-operator.js";
 import {
   getMachineConditionLabel,
@@ -77,32 +79,96 @@ function buildRemedyUpdate(crit, { passed = false, actorUuid = "", gmOverride = 
   };
 }
 
+async function updateStatusRemedyMetadata(machineActor, statusId, {
+  passed = false,
+  actorUuid = "",
+  gmOverride = false,
+} = {}) {
+  const normalizedStatusId = String(statusId ?? "").trim();
+  if (!machineActor || !normalizedStatusId) return null;
+
+  const current = foundry.utils.deepClone(machineActor.getFlag(SYSTEM_NAME, "statusRemedyMeta") ?? {});
+  current[normalizedStatusId] = {
+    ...(current[normalizedStatusId] ?? {}),
+    lastRemedyAttemptAt: new Date().toISOString(),
+    lastRemedyPassed: passed,
+    lastRemedyActorUuid: actorUuid,
+    lastRemedyOverride: gmOverride && !actorUuid,
+    ...(passed ? {
+      resolvedAt: new Date().toISOString(),
+      resolvedBy: actorUuid,
+      resolvedByOverride: gmOverride && !actorUuid,
+    } : {}),
+  };
+  await machineActor.setFlag(SYSTEM_NAME, "statusRemedyMeta", current);
+  return current[normalizedStatusId];
+}
+
 export async function resolveMachineCritIntentContext(intent = {}, options = {}) {
-  const critId = String(intent.critId ?? "").trim();
+  const issueKind = String(
+    intent.issueKind
+    ?? (intent.statusId ? "status" : "crit")
+  ).trim() || "crit";
+  const issueId = String(
+    intent.issueId
+    ?? (issueKind === "status" ? intent.statusId : intent.critId)
+    ?? ""
+  ).trim();
   const gmOverride = Boolean(options.gmOverride ?? globalThis.game?.user?.isGM);
 
   const machineActor = await resolveUuid(intent.machineActorUuid);
   if (!machineActor) return { ok: false, reason: "Machine actor could not be resolved." };
-
-  const crits = Array.isArray(machineActor.system?.mwd?.crits)
-    ? machineActor.system.mwd.crits.slice()
-    : [];
-  const index = crits.findIndex(crit => String(crit?.id ?? "") === critId && crit?.active !== false);
-  if (index < 0) return { ok: false, reason: "That critical effect is no longer active." };
-
-  const crit = crits[index];
-  const remedy = getMachineCritRemedy(intent.remedyKey || crit.remedyKey);
   const operator = await resolveMachineOperator({
     machineActor,
     operatorActorUuid: intent.operatorActorUuid,
   });
 
-  if (remedy.remediable === false) {
-    return { ok: false, reason: "That critical effect has no field remedy." };
-  }
-
   if (!operator.actor && !gmOverride) {
     return { ok: false, reason: operator.reason || "No linked operator or pilot actor." };
+  }
+
+  if (issueKind === "status") {
+    const statusIssue = getRepairableMachineStatusIssue(machineActor, issueId);
+    if (!statusIssue) return { ok: false, reason: "That status is not currently repairable." };
+
+    const remedy = getMachineCritRemedy(intent.remedyKey || statusIssue.remedyKey);
+    if (remedy.remediable === false) {
+      return { ok: false, reason: "That status has no field remedy." };
+    }
+
+    return {
+      ok: true,
+      issueKind,
+      issueId: statusIssue.issueId,
+      machineActor,
+      statusId: statusIssue.statusId,
+      issue: statusIssue,
+      remedy,
+      operatorActor: operator.actor ?? null,
+      operator,
+      gmOverride,
+      rollingActor: operator.actor ?? machineActor,
+      locationKey: "",
+      locationCondition: 0,
+      locationConditionLabel: "",
+      locationConditionModifier: 0,
+      skillKey: statusIssue.remedySkillKey,
+      baseDn: statusIssue.remedyBaseDn,
+      totalDn: statusIssue.totalDn,
+      remedyEffect: { onSuccess: "clear", onFailure: "noChange" },
+    };
+  }
+
+  const crits = Array.isArray(machineActor.system?.mwd?.crits)
+    ? machineActor.system.mwd.crits.slice()
+    : [];
+  const index = crits.findIndex(crit => String(crit?.id ?? "") === issueId && crit?.active !== false);
+  if (index < 0) return { ok: false, reason: "That critical effect is no longer active." };
+
+  const crit = crits[index];
+  const remedy = getMachineCritRemedy(intent.remedyKey || crit.remedyKey);
+  if (remedy.remediable === false) {
+    return { ok: false, reason: "That critical effect has no field remedy." };
   }
 
   const normalized = normalizeMachineDegradationState(
@@ -119,6 +185,8 @@ export async function resolveMachineCritIntentContext(intent = {}, options = {})
 
   return {
     ok: true,
+    issueKind: "crit",
+    issueId: crit.id,
     machineActor,
     crit,
     critIndex: index,
@@ -148,7 +216,10 @@ export async function prepareMachineRemedyRoll(intent = {}, options = {}) {
     payload: {
       intent: "machineRemedy",
       machineActorUuid: context.machineActor.uuid ?? intent.machineActorUuid ?? "",
-      critId: context.crit.id,
+      issueKind: context.issueKind ?? "crit",
+      issueId: context.issueId ?? context.crit?.id ?? context.statusId ?? "",
+      critId: context.crit?.id ?? "",
+      statusId: context.statusId ?? "",
       remedyKey: context.remedy.key,
       operatorActorUuid: context.operatorActor?.uuid ?? "",
       gmOverride: context.gmOverride,
@@ -185,6 +256,36 @@ export async function applyMachineRemedyOutcome(intent = {}, options = {}) {
 
   const passed = Boolean(options.passed);
   const effect = context.remedyEffect ?? getMachineRemedyEffect(context.crit);
+
+  if (context.issueKind === "status") {
+    const applied = passed && effect.onSuccess === "clear";
+    const metadata = await updateStatusRemedyMetadata(context.machineActor, context.statusId, {
+      passed: applied,
+      actorUuid: context.operatorActor?.uuid ?? "",
+      gmOverride: context.gmOverride,
+    });
+
+    if (applied) {
+      await applyManagedStatusUpdate({
+        actor: context.machineActor,
+        statusId: context.statusId,
+        active: false,
+      });
+    }
+
+    return {
+      ok: true,
+      passed,
+      applied,
+      machineActor: context.machineActor,
+      operatorActor: context.operatorActor,
+      statusId: context.statusId,
+      remedy: context.remedy,
+      context,
+      metadata,
+    };
+  }
+
   const crits = Array.isArray(context.machineActor.system?.mwd?.crits)
     ? context.machineActor.system.mwd.crits.slice()
     : [];

@@ -94,6 +94,9 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
 
   const normalized = foundry.utils.deepClone(payload ?? {});
   const loadout = actor.getPersonalCombatLoadout?.({ refresh: true }) ?? null;
+  const isMachine = isMachineActor(actor);
+  const explicitSourceType = String(normalized?.sourceType ?? "").trim();
+  const explicitSourceId = String(normalized?.sourceId ?? "").trim();
 
   const resolveWeaponProfile = (weaponId) => {
     const item = actor.items?.get?.(weaponId) ?? null;
@@ -102,12 +105,49 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     return item.getCombatProfile?.({ payloadId: normalized?.payloadId }) ?? null;
   };
 
+  if (!explicitSourceType || !explicitSourceId) {
+    const legacyGroupId = String(normalized?.weaponGroupId ?? normalized?.machineWeaponGroup?.id ?? "").trim();
+    const legacyWeaponId = String(normalized?.weaponId ?? "").trim();
+
+    if (legacyGroupId) {
+      normalized.sourceType = "weaponGroup";
+      normalized.sourceId = legacyGroupId;
+    } else if (legacyWeaponId) {
+      normalized.sourceType = isMachine ? "mechWeapon" : "personalWeapon";
+      normalized.sourceId = legacyWeaponId;
+    }
+  }
+
+  if (String(normalized?.sourceType ?? "").trim() === "weaponGroup") {
+    normalized.weaponGroupId = String(normalized?.sourceId ?? normalized?.weaponGroupId ?? "").trim();
+    normalized.sourceId = normalized.weaponGroupId;
+    if (!normalized.weaponGroupId) {
+      throw new Error("Attack requires a valid weapon group source.");
+    }
+    return normalized;
+  }
+
+  if (String(normalized?.sourceType ?? "").trim() === "mechWeapon") {
+    normalized.weaponId = String(normalized?.sourceId ?? normalized?.weaponId ?? "").trim();
+    normalized.sourceId = normalized.weaponId;
+    if (!normalized.weaponId) {
+      throw new Error("Attack requires a valid machine weapon source.");
+    }
+    return normalized;
+  }
+
+  if (String(normalized?.sourceType ?? "").trim() === "personalWeapon" && explicitSourceId) {
+    normalized.weaponId = explicitSourceId;
+  }
+
   if (normalized.weaponId) {
     const profile = resolveWeaponProfile(normalized.weaponId);
     if (!profile) {
       throw new Error("Attack requires an owned equipped personal weapon.");
     }
 
+    normalized.sourceType = "personalWeapon";
+    normalized.sourceId = normalized.weaponId;
     normalized.payloadId = normalized.payloadId ?? profile?.payloadState?.activePayloadId ?? "";
     return normalized;
   }
@@ -121,6 +161,8 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
       if (!selected) return null;
 
       normalized.weaponId = selected.id;
+      normalized.sourceType = "personalWeapon";
+      normalized.sourceId = selected.id;
       normalized.payloadId = normalized.payloadId ?? selected?.payloadState?.activePayloadId ?? "";
       delete normalized.mode;
       return normalized;
@@ -129,6 +171,8 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     if (loadout?.defaultWeapon?.isSynthetic || loadout?.defaultWeapon?.id === "unarmed") {
       normalized.syntheticWeapon = foundry.utils.deepClone(loadout.defaultWeapon ?? WeaponItem.buildDefaultUnarmedProfile(actor));
       normalized.weaponId = normalized.syntheticWeapon.id;
+      normalized.sourceType = "personalWeapon";
+      normalized.sourceId = normalized.syntheticWeapon.id;
       normalized.payloadId = normalized.payloadId ?? normalized.syntheticWeapon?.payloadState?.activePayloadId ?? "";
       delete normalized.mode;
       return normalized;
@@ -136,6 +180,8 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
 
     if (loadout?.defaultWeapon?.id) {
       normalized.weaponId = loadout.defaultWeapon.id;
+      normalized.sourceType = "personalWeapon";
+      normalized.sourceId = loadout.defaultWeapon.id;
       normalized.payloadId = normalized.payloadId ?? loadout.defaultWeapon?.payloadState?.activePayloadId ?? "";
       delete normalized.mode;
       return normalized;
@@ -145,6 +191,8 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
   if (normalized.fallback === "unarmed") {
     normalized.syntheticWeapon = foundry.utils.deepClone(WeaponItem.buildDefaultUnarmedProfile(actor));
     normalized.weaponId = normalized.syntheticWeapon.id;
+    normalized.sourceType = "personalWeapon";
+    normalized.sourceId = normalized.syntheticWeapon.id;
     normalized.payloadId = normalized.payloadId ?? normalized.syntheticWeapon?.payloadState?.activePayloadId ?? "";
     delete normalized.mode;
     return normalized;
@@ -211,7 +259,8 @@ async function commitMachineAttackAction(actor, payload = {}) {
 
   const cost = getMachineAttackActionCost(actor);
   const isBattlemechGroupAttack = actor?.type === TEMPLATE.actorTypes.battlemech
-    && String(payload?.weaponGroupId ?? "").trim();
+    && String(payload?.sourceType ?? "").trim() === "weaponGroup"
+    && String(payload?.sourceId ?? payload?.weaponGroupId ?? "").trim();
   const totalCost = isBattlemechGroupAttack
     ? (1 + Number(cost?.extraCost ?? 0))
     : Number(cost?.totalCost ?? 0);
@@ -232,7 +281,7 @@ async function commitMachineAttackAction(actor, payload = {}) {
   if (isBattlemechGroupAttack) {
     const markUsed = await PersonalCombatTracker.markWeaponGroupUsed?.(actor, {
       token,
-      groupId: payload.weaponGroupId,
+      groupId: String(payload?.sourceId ?? payload?.weaponGroupId ?? "").trim(),
     });
     if (!markUsed?.ok) {
       ui.notifications?.warn(markUsed?.reason ?? "Unable to record BattleMech weapon-group usage.");

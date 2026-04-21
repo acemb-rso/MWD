@@ -370,15 +370,15 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         dataset: { rollKind: "piloting" }
       },
       {
-        label: getQuickActionLabel("sensorSweep"),
-        hint: "Perception or technician",
+        label: "EW",
+        hint: "Acquire or generate fire solution",
         handler: "mechRoll",
         disabled: !Boolean(quickActions.hasSensorSweep),
         dataset: { rollKind: "sensor" }
       },
       {
         label: getQuickActionLabel("emergencyRepair"),
-        hint: "Technician quick check",
+        hint: "Choose a crit or repairable status",
         handler: "mechRoll",
         disabled: false,
         dataset: { rollKind: "repair" }
@@ -579,7 +579,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
 
     try {
       if (rollKind === "piloting") await actor.rollPilotingCheck?.();
-      else if (rollKind === "sensor") await actor.rollSensorSweep?.();
+      else if (rollKind === "sensor") await (actor.rollElectronicWarfare?.() ?? actor.rollSensorSweep?.());
       else if (rollKind === "repair") await actor.rollEmergencyRepair?.();
     } catch (error) {
       console.error("MWD | Failed to launch BattleMech check", error);
@@ -737,6 +737,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       actor,
       payload: {
         intent: "attack",
+        sourceType: "weaponGroup",
+        sourceId: group.id,
         weaponGroupId: group.id,
         edge: { pool: "physical.grit", allowed: ["pre", "post"] },
         tags: ["combat", "attack", "machine", "groupFire"],
@@ -767,6 +769,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       actor,
       payload: {
         intent: "attack",
+        sourceType: "mechWeapon",
+        sourceId: item.id,
         weaponId: item.id,
         edge: { pool: "physical.grit", allowed: ["pre", "post"] },
         tags: ["combat", "attack", "machine"],

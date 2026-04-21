@@ -19,6 +19,13 @@ import {
   SCENE_MODIFIER_INTENT_OPTIONS,
   normalizeActiveModifier
 } from "../modifiers/providers/scene-modifiers.js";
+import { TEMPLATE } from "../constants.js";
+import { DETECTION_STATE_ORDER, getDetectionStateLabel } from "../mwd/machine-ew.js";
+import {
+  clearTargetingPacket as clearTargetingPacketState,
+  getTargetingState,
+  setDetectionState as setTargetingDetectionState,
+} from "../mwd/machine-ew-state.js";
 import { SETTING_SCENE_MODIFIER_TEMPLATES } from "../settings/scene-modifier-template-settings.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -62,6 +69,11 @@ const DEFAULT_HAZARD_STATE = Object.freeze({
   ap: 0,
   damageType: "thermal",
   color: "#d86a2c"
+});
+
+const DEFAULT_TARGETING_STATE = Object.freeze({
+  attackerTokenId: "",
+  bulkDetectionState: "blind",
 });
 
 function parseLegacyDnPresetString(value = "") {
@@ -154,6 +166,95 @@ function cloneHazardState(state = {}) {
     state ?? {},
     { inplace: false, overwrite: true }
   );
+}
+
+function cloneTargetingState(state = {}) {
+  return foundry.utils.mergeObject(
+    foundry.utils.deepClone(DEFAULT_TARGETING_STATE),
+    state ?? {},
+    { inplace: false, overwrite: true }
+  );
+}
+
+function isMachineActor(actor) {
+  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
+}
+
+function getMachineTargetingAttackerOptions() {
+  const combat = game.combat;
+  if (!combat || (combat.scene?.id && combat.scene.id !== canvas?.scene?.id)) return [];
+
+  return Array.from(combat.combatants ?? [])
+    .filter(combatant => isMachineActor(combatant?.actor))
+    .map(combatant => {
+      const tokenDoc = combatant.token ?? canvas?.scene?.tokens?.get?.(combatant.tokenId) ?? null;
+      const actor = combatant.actor ?? tokenDoc?.actor ?? null;
+      const label = String(tokenDoc?.name ?? actor?.name ?? "Machine").trim() || "Machine";
+      return {
+        tokenId: String(combatant.tokenId ?? tokenDoc?.id ?? "").trim(),
+        tokenUuid: String(tokenDoc?.uuid ?? tokenDoc?.document?.uuid ?? "").trim(),
+        actorId: String(actor?.id ?? "").trim(),
+        actorUuid: String(actor?.uuid ?? "").trim(),
+        label,
+      };
+    })
+    .filter(option => option.tokenId);
+}
+
+function getPreferredTargetingAttackerTokenId(options = [], preferredTokenId = "") {
+  const normalizedPreferred = String(preferredTokenId ?? "").trim();
+  if (normalizedPreferred && options.some(option => option.tokenId === normalizedPreferred)) {
+    return normalizedPreferred;
+  }
+
+  const controlledMachine = Array.from(canvas?.tokens?.controlled ?? [])
+    .find(token => isMachineActor(token?.actor));
+  const controlledTokenId = String(controlledMachine?.id ?? controlledMachine?.document?.id ?? "").trim();
+  if (controlledTokenId && options.some(option => option.tokenId === controlledTokenId)) {
+    return controlledTokenId;
+  }
+
+  return options[0]?.tokenId ?? "";
+}
+
+function getMachineCombatantByTokenId(tokenId = "") {
+  const normalizedTokenId = String(tokenId ?? "").trim();
+  if (!normalizedTokenId) return null;
+  return game.combat?.combatants?.find(combatant => String(combatant?.tokenId ?? "").trim() === normalizedTokenId) ?? null;
+}
+
+function getTargetingStateOptions(selectedValue = "blind") {
+  return DETECTION_STATE_ORDER.map(value => ({
+    value,
+    label: getDetectionStateLabel(value),
+    selected: value === selectedValue,
+  }));
+}
+
+function buildTargetingAdminRows(attackerCombatant = null, targets = []) {
+  return Array.from(targets ?? [])
+    .filter(target => target?.actor)
+    .map(target => {
+      const targetTokenUuid = String(target.document?.uuid ?? target.uuid ?? "").trim();
+      if (!targetTokenUuid) return null;
+
+      const state = getTargetingState(attackerCombatant, targetTokenUuid);
+      const packet = state.packet ?? null;
+
+      return {
+        targetTokenId: String(target.id ?? target.document?.id ?? "").trim(),
+        targetTokenUuid,
+        tokenName: String(target.name ?? target.actor?.name ?? "Target").trim() || "Target",
+        detectionState: state.detectionState,
+        detectionStateLabel: getDetectionStateLabel(state.detectionState),
+        stateOptions: getTargetingStateOptions(state.detectionState),
+        hasPacket: Boolean(packet),
+        packetValue: Number(packet?.value ?? 0) || 0,
+        packetRound: packet?.round ?? null,
+        packetExpiry: packet?.expiresAfterRound ?? null,
+      };
+    })
+    .filter(Boolean);
 }
 
 function getRegionShapeType(region = null) {
@@ -299,6 +400,12 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
       harmInputChange: MWDGMGadget.prototype._onHarmInputChange,
       refreshHarmTarget: MWDGMGadget.prototype._onRefreshHarmTarget,
       applyHarm: MWDGMGadget.prototype._onApplyHarm,
+      targetingInputChange: MWDGMGadget.prototype._onTargetingInputChange,
+      refreshTargeting: MWDGMGadget.prototype._onRefreshTargeting,
+      setTargetingState: MWDGMGadget.prototype._onSetTargetingState,
+      clearTargetingPacket: MWDGMGadget.prototype._onClearTargetingPacket,
+      bulkSetTargetingState: MWDGMGadget.prototype._onBulkSetTargetingState,
+      bulkClearTargetingPackets: MWDGMGadget.prototype._onBulkClearTargetingPackets,
       hazardInputChange: MWDGMGadget.prototype._onHazardInputChange,
       refreshHazardTemplate: MWDGMGadget.prototype._onRefreshHazardTemplate,
       createHazard: MWDGMGadget.prototype._onCreateHazard,
@@ -319,6 +426,7 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
     this.systemId = systemId;
     this.activeTab = "difficulty";
     this.harmState = cloneHarmState();
+    this.targetingState = cloneTargetingState();
     this.hazardState = cloneHazardState();
   }
 
@@ -363,6 +471,13 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
     const selectedHazardTemplate = getSelectedTemplateRegion();
     const hazardTemplateSummary = describeSelectedHazardTemplate(selectedHazardTemplate);
     const hazardState = cloneHazardState(this.hazardState);
+    const targetingState = cloneTargetingState(this.targetingState);
+    const attackerOptions = getMachineTargetingAttackerOptions();
+    const selectedAttackerTokenId = getPreferredTargetingAttackerTokenId(attackerOptions, targetingState.attackerTokenId);
+    targetingState.attackerTokenId = selectedAttackerTokenId;
+    this.targetingState.attackerTokenId = selectedAttackerTokenId;
+    const attackerCombatant = getMachineCombatantByTokenId(selectedAttackerTokenId);
+    const targetRows = buildTargetingAdminRows(attackerCombatant, game.user?.targets ?? []);
 
     return foundry.utils.mergeObject(context, {
       presets,
@@ -391,6 +506,20 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
         showDamageType: (harmState.mode === "physical" || harmState.mode === "fatigue") && harmState.useArmor,
         showStatusFields: harmState.mode === "status",
         showDeltaFields: harmState.mode !== "status"
+      },
+      targeting: {
+        state: targetingState,
+        attackerOptions: attackerOptions.map(option => ({
+          ...option,
+          selected: option.tokenId === selectedAttackerTokenId,
+        })),
+        hasAttackerOptions: attackerOptions.length > 0,
+        hasAttacker: Boolean(attackerCombatant),
+        attackerLabel: attackerOptions.find(option => option.tokenId === selectedAttackerTokenId)?.label ?? "",
+        rows: targetRows,
+        hasTargets: targetRows.length > 0,
+        emptyState: "Target one or more tokens on the canvas to inspect directional targeting state.",
+        bulkStateOptions: getTargetingStateOptions(targetingState.bulkDetectionState),
       },
       hazard: {
         state: hazardState,
@@ -445,6 +574,25 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
     return this.harmState;
   }
 
+  _captureTargetingStateFromDom(target = null) {
+    const root = target?.closest?.(".mwd-gmgadget__root") ?? this._getRootElement();
+    if (!(root instanceof HTMLElement)) return this.targetingState;
+
+    const readValue = (selector, fallback = "") => {
+      const el = root.querySelector(selector);
+      return el instanceof HTMLInputElement || el instanceof HTMLSelectElement
+        ? el.value
+        : fallback;
+    };
+
+    this.targetingState = cloneTargetingState({
+      attackerTokenId: readValue('[name="targeting-attackerTokenId"]', this.targetingState.attackerTokenId),
+      bulkDetectionState: readValue('[name="targeting-bulkDetectionState"]', this.targetingState.bulkDetectionState),
+    });
+
+    return this.targetingState;
+  }
+
   async _onSetDn(event, target) {
     event.preventDefault();
     event.stopPropagation();
@@ -476,6 +624,7 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!nextTab || nextTab === this.activeTab) return;
 
     this._captureHarmStateFromDom(target);
+    this._captureTargetingStateFromDom(target);
     this._captureHazardStateFromDom(target);
     this.activeTab = nextTab;
     return this.render({ parts: ["body"] });
@@ -544,6 +693,106 @@ export class MWDGMGadget extends HandlebarsApplicationMixin(ApplicationV2) {
       return this.render({ parts: ["body"] });
     }
 
+    return this.render({ parts: ["body"] });
+  }
+
+  _getSelectedTargetingTargetUuids(target = null) {
+    const root = target?.closest?.(".mwd-gmgadget__root") ?? this._getRootElement();
+    if (!(root instanceof HTMLElement)) return [];
+    return Array.from(root.querySelectorAll('input[name="targeting-selected"]:checked'))
+      .map(input => input instanceof HTMLInputElement ? String(input.value ?? "").trim() : "")
+      .filter(Boolean);
+  }
+
+  async _onTargetingInputChange(event, target) {
+    event?.preventDefault?.();
+    this._captureTargetingStateFromDom(target);
+    return this.render({ parts: ["body"] });
+  }
+
+  async _onRefreshTargeting(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    this._captureTargetingStateFromDom(target);
+    return this.render({ parts: ["body"] });
+  }
+
+  async _onSetTargetingState(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!game.user?.isGM) return;
+
+    const state = this._captureTargetingStateFromDom(target);
+    const combatant = getMachineCombatantByTokenId(state.attackerTokenId);
+    const targetTokenUuid = String(target?.dataset?.targetTokenUuid ?? "").trim();
+    if (!combatant || !targetTokenUuid) {
+      ui.notifications?.warn("Select a machine attacker and a target row before setting targeting state.");
+      return;
+    }
+
+    const root = target?.closest?.(".mwd-gmgadget__root") ?? this._getRootElement();
+    const selectName = `targeting-row-state-${String(target?.dataset?.targetTokenId ?? "").trim()}`;
+    const select = root instanceof HTMLElement ? root.querySelector(`[name="${selectName}"]`) : null;
+    const nextState = select instanceof HTMLSelectElement
+      ? String(select.value ?? "").trim()
+      : String(target?.dataset?.detectionState ?? "").trim();
+
+    await setTargetingDetectionState(combatant, targetTokenUuid, nextState);
+    return this.render({ parts: ["body"] });
+  }
+
+  async _onClearTargetingPacket(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!game.user?.isGM) return;
+
+    const state = this._captureTargetingStateFromDom(target);
+    const combatant = getMachineCombatantByTokenId(state.attackerTokenId);
+    const targetTokenUuid = String(target?.dataset?.targetTokenUuid ?? "").trim();
+    if (!combatant || !targetTokenUuid) {
+      ui.notifications?.warn("Select a machine attacker and a target row before clearing packet data.");
+      return;
+    }
+
+    await clearTargetingPacketState(combatant, targetTokenUuid);
+    return this.render({ parts: ["body"] });
+  }
+
+  async _onBulkSetTargetingState(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!game.user?.isGM) return;
+
+    const state = this._captureTargetingStateFromDom(target);
+    const combatant = getMachineCombatantByTokenId(state.attackerTokenId);
+    const targetTokenUuids = this._getSelectedTargetingTargetUuids(target);
+    if (!combatant || !targetTokenUuids.length) {
+      ui.notifications?.warn("Select a machine attacker and at least one checked target row.");
+      return;
+    }
+
+    for (const targetTokenUuid of targetTokenUuids) {
+      await setTargetingDetectionState(combatant, targetTokenUuid, state.bulkDetectionState);
+    }
+    return this.render({ parts: ["body"] });
+  }
+
+  async _onBulkClearTargetingPackets(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!game.user?.isGM) return;
+
+    const state = this._captureTargetingStateFromDom(target);
+    const combatant = getMachineCombatantByTokenId(state.attackerTokenId);
+    const targetTokenUuids = this._getSelectedTargetingTargetUuids(target);
+    if (!combatant || !targetTokenUuids.length) {
+      ui.notifications?.warn("Select a machine attacker and at least one checked target row.");
+      return;
+    }
+
+    for (const targetTokenUuid of targetTokenUuids) {
+      await clearTargetingPacketState(combatant, targetTokenUuid);
+    }
     return this.render({ parts: ["body"] });
   }
 

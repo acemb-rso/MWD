@@ -331,7 +331,7 @@ export const MWD = {
         "rangedAttack": "Ranged Attack",
         "meleeAttack": "Melee Attack",
         "pilotingCheck": "Piloting Check",
-        "sensorSweep": "Sensor Sweep",
+        "sensorSweep": "EW",
         "emergencyRepair": "Emergency Repair",
 
         "primaryWeapons": "Primary Weapons",
@@ -355,14 +355,14 @@ export const MWD = {
           "ranged": "Roll an attack using any Weapon Group or Primary Weapon",
           "melee": "Roll a melee attack using fists, kicks, or installed melee weapons",
           "piloting": "Piloting roll for movement, jumping, stability, or hazard checks",
-          "sensorSweep": "Perception/Tech roll using sensors or Active Probe",
-          "emergencyRepair": "Technician roll to stabilize or fix a system during battle"
+          "sensorSweep": "Acquire contact or generate targeting data using the machine sensor suite",
+          "emergencyRepair": "Choose a crit or repairable status and attempt the matching remedy"
         },
 
         "errors": {
           "noRanged": "No weapon groups available for ranged attack.",
           "noMelee": "No melee attacks available.",
-          "noSensorSweep": "Sensor sweep requires Perception or Technician."
+          "noSensorSweep": "EW actions require an eligible targeted token and an available sensor action."
         }
       }
     },

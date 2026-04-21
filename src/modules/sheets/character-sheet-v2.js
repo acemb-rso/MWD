@@ -838,8 +838,8 @@ ctx.edgeConsole.poolsOrdered = order
           { label: "Ranged", hint: "Prompt for a weapon group", handler: "mechAttack", disabled: !hasRangedGroups, dataset: { attackKind: "ranged", mechUuid: uuid, mechId: a.id } },
           { label: "Melee", hint: "Prompt for a melee profile", handler: "mechAttack", disabled: !hasMeleeProfiles, dataset: { attackKind: "melee", mechUuid: uuid, mechId: a.id } },
           { label: "Piloting", hint: "Vehicle handling test", handler: "mechRoll", disabled: false, dataset: { rollKind: "piloting", mechUuid: uuid, mechId: a.id } },
-          { label: "Sensors", hint: "Perception or technician", handler: "mechRoll", disabled: !Boolean(quickActions.hasSensorSweep), dataset: { rollKind: "sensor", mechUuid: uuid, mechId: a.id } },
-          { label: "Repair", hint: "Technician quick check", handler: "mechRoll", disabled: false, dataset: { rollKind: "repair", mechUuid: uuid, mechId: a.id } },
+          { label: "EW", hint: "Acquire or generate fire solution", handler: "mechRoll", disabled: !Boolean(quickActions.hasSensorSweep), dataset: { rollKind: "sensor", mechUuid: uuid, mechId: a.id } },
+          { label: "Repair", hint: "Choose a crit or repairable status", handler: "mechRoll", disabled: false, dataset: { rollKind: "repair", mechUuid: uuid, mechId: a.id } },
         ] : [];
 
         const armorMax = Math.max(0, toNumber(armor.max, 0));
@@ -897,7 +897,7 @@ ctx.edgeConsole.poolsOrdered = order
     const rollKind = String(target?.dataset?.rollKind ?? "").trim();
     try {
       if (rollKind === "piloting") await mech.rollPilotingCheck?.();
-      else if (rollKind === "sensor") await mech.rollSensorSweep?.();
+      else if (rollKind === "sensor") await (mech.rollElectronicWarfare?.() ?? mech.rollSensorSweep?.());
       else if (rollKind === "repair") await mech.rollEmergencyRepair?.();
     } catch (error) {
       notifyRollError(error, "Unable to launch BattleMech check.");

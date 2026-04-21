@@ -1210,6 +1210,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       actor,
       payload: {
         intent: "attack",
+        sourceType: "mechWeapon",
+        sourceId: item.id,
         weaponId: item.id,
         edge: { pool: "physical.grit", allowed: ["pre", "post"] },
         tags: ["combat", "attack", "machine"],

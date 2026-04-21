@@ -8,11 +8,12 @@ import { buildMachineEwPanel, resolveMachineEwActionTarget } from "../src/module
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-function createCombatant({ tokenId, ewState = {}, moved = false } = {}) {
+function createCombatant({ tokenId, targeting = {}, ewState = {}, moved = false } = {}) {
   return {
     tokenId,
     getFlag(scope, key) {
       if (scope !== "mwd") return null;
+      if (key === "targeting") return targeting;
       if (key === "ewState") return ewState;
       if (key === "personalCombat") {
         return moved ? { actionState: { move: "advance" } } : { actionState: {} };
@@ -85,10 +86,10 @@ test("EW panel exposes Contact targets as acquire-ready but not targeting-ready"
   });
   const attackerCombatant = createCombatant({
     tokenId: "attacker-token",
-    ewState: {
+    targeting: {
       [target.document.uuid]: {
         detectionState: "contact",
-        packets: [],
+        packet: null,
       },
     },
   });
@@ -114,10 +115,10 @@ test("EW panel shows capped targeting data and penalties for Track targets", () 
   });
   const attackerCombatant = createCombatant({
     tokenId: "attacker-token",
-    ewState: {
+    targeting: {
       [target.document.uuid]: {
         detectionState: "track",
-        packets: [{ id: "packet-1", value: 5, consumed: false }],
+        packet: { id: "packet-1", value: 5, round: 3, expiresAfterRound: 3 },
       },
     },
   });
@@ -156,10 +157,10 @@ test("EW panel keeps blind targets informational only and lock targets optimized
   });
   const attackerCombatant = createCombatant({
     tokenId: "attacker-token",
-    ewState: {
+    targeting: {
       [lockTarget.document.uuid]: {
         detectionState: "lock",
-        packets: [],
+        packet: null,
       },
     },
   });
@@ -171,9 +172,9 @@ test("EW panel keeps blind targets informational only and lock targets optimized
   const blindRow = panel.rows.find(row => row.targetTokenId === "target-3");
   const lockRow = panel.rows.find(row => row.targetTokenId === "target-4");
 
-  assert.equal(blindRow.canAcquire, false);
+  assert.equal(blindRow.canAcquire, true);
   assert.equal(blindRow.canTarget, false);
-  assert.equal(blindRow.acquireHint, "No targeting solution. Acquire contact first.");
+  assert.equal(blindRow.acquireHint, "Acquire can establish Contact (DN 1).");
   assert.equal(lockRow.canAcquire, false);
   assert.equal(lockRow.canTarget, true);
   assert.equal(lockRow.targetHint, "Targeting solution optimized.");

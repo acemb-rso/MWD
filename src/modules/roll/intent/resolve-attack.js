@@ -140,7 +140,7 @@ function addBands(left = {}, right = {}) {
 }
 
 function getMachineWeaponGroupProfile(actor, payload) {
-  const groupId = String(payload?.weaponGroupId ?? payload?.machineWeaponGroup?.id ?? "").trim();
+  const groupId = String(payload?.sourceId ?? payload?.weaponGroupId ?? payload?.machineWeaponGroup?.id ?? "").trim();
   if (!groupId) return null;
 
   const group = Array.from(actor.system?.weaponGroups ?? actor.system?.mwd?.weaponGroupDetails ?? [])
@@ -190,6 +190,9 @@ function getMachineWeaponGroupProfile(actor, payload) {
 }
 
 function getWeaponProfile(actor, payload) {
+  const sourceType = String(payload?.sourceType ?? "").trim();
+  const sourceId = String(payload?.sourceId ?? "").trim();
+
   if (payload?.syntheticWeapon?.id === "unarmed") {
     const unarmed = WeaponItem.buildDefaultUnarmedProfile(actor);
     return {
@@ -206,13 +209,13 @@ function getWeaponProfile(actor, payload) {
   }
 
   if (isMachineActor(actor)) {
-    if (actor?.type === TEMPLATE.actorTypes.battlemech && payload?.weaponGroupId) {
+    if (actor?.type === TEMPLATE.actorTypes.battlemech && (sourceType === "weaponGroup" || payload?.weaponGroupId)) {
       const sourceToken = getSourceToken(actor, payload);
       const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token: sourceToken }) ?? null;
       const usedWeaponGroupIds = snapshot?.isCurrentTurn
         ? PersonalCombatTracker.getUsedWeaponGroupIds?.(actor, { token: sourceToken, snapshot }) ?? []
         : [];
-      const battlemechGroup = buildBattlemechWeaponGroupAttackProfile(actor, payload.weaponGroupId, {
+      const battlemechGroup = buildBattlemechWeaponGroupAttackProfile(actor, sourceId || payload.weaponGroupId, {
         usedWeaponGroupIds,
       });
       if (!battlemechGroup?.ok) {
@@ -226,14 +229,16 @@ function getWeaponProfile(actor, payload) {
     const groupProfile = getMachineWeaponGroupProfile(actor, payload);
     if (groupProfile) return groupProfile;
 
-    const item = actor.items?.get?.(payload?.weaponId ?? "") ?? null;
+    const itemId = sourceType === "mechWeapon" ? sourceId : String(payload?.weaponId ?? "").trim();
+    const item = actor.items?.get?.(itemId ?? "") ?? null;
     if (!item || !isMachineWeapon(item)) {
       throw new Error("Machine attack requires an owned vehicle or BattleMech weapon.");
     }
     return item.getCombatProfile?.() ?? null;
   }
 
-  const item = actor.items?.get?.(payload?.weaponId ?? "") ?? null;
+  const itemId = sourceType === "personalWeapon" ? sourceId : String(payload?.weaponId ?? "").trim();
+  const item = actor.items?.get?.(itemId ?? "") ?? null;
   if (!item || !(item.isPersonalWeapon?.() ?? item.type === "personalWeapon") || !item.system?.equipped) {
     throw new Error("Attack requires an equipped personal weapon.");
   }

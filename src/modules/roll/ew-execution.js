@@ -6,7 +6,7 @@ import { DETECTION_STATE_ORDER, upgradeDetectionState } from "../mwd/machine-ew.
 import {
   getAttackerCombatant,
   setDetectionState,
-  addTargetingPacket,
+  setTargetingPacket,
   buildTargetingPacket,
 } from "../mwd/machine-ew-state.js";
 
@@ -26,7 +26,7 @@ export async function resolveAcquireExecution({ attacker, ctx, outcomeModel } = 
   const acquire = ctx?.acquire;
   if (!acquire) return { ok: false, reason: "Missing acquire context." };
 
-  const hits    = Number(outcomeModel?.hits ?? 0);
+  const hits = Number(outcomeModel?.successes ?? outcomeModel?.hits ?? 0);
   const dn      = Number(ctx?.difficulty?.dn ?? 1);
   const passed  = hits >= dn;
 
@@ -84,7 +84,7 @@ export async function resolveTargetingExecution({ attacker, ctx, outcomeModel } 
   const targeting = ctx?.targeting;
   if (!targeting) return { ok: false, reason: "Missing targeting context." };
 
-  const hits   = Number(outcomeModel?.hits ?? 0);
+  const hits = Number(outcomeModel?.successes ?? outcomeModel?.hits ?? 0);
   const dn     = Number(ctx?.difficulty?.dn ?? 2);
   const passed = hits >= dn;
 
@@ -109,7 +109,7 @@ export async function resolveTargetingExecution({ attacker, ctx, outcomeModel } 
 
   const combatant = getAttackerCombatant(attackerToken);
   if (combatant) {
-    await addTargetingPacket(combatant, targeting.targetTokenUuid, packet);
+    await setTargetingPacket(combatant, targeting.targetTokenUuid, packet);
   } else {
     console.warn("MWD | EW targeting: no combatant found for attacker token — packet not persisted.");
   }
