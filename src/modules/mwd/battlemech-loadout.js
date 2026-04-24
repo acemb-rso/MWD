@@ -8,6 +8,7 @@ import { TEMPLATE } from "../constants.js";
 import {
   doesHardpointAcceptItem,
   getMachineHardpointByItemId,
+  getMountedMachineItems,
   normalizeMachineWeaponSize,
 } from "./machine-hardpoints.js";
 import { formatString } from "../strings.js";
@@ -140,7 +141,7 @@ export class BattlemechLoadout {
   }
 
   _normalizeWeaponGroups() {
-    return (this.mwd.weaponGroups ?? []).map((group, index) => ({
+    return this._toCollection(this.mwd.weaponGroups).map((group, index) => ({
       id: group.id ?? `group-${index + 1}`,
       name: group.name || formatString(ANARCHY.common.newName, { type: ANARCHY.itemType.singular.weapon }),
       weaponIds: this._asArray(group.weaponIds),
@@ -149,7 +150,7 @@ export class BattlemechLoadout {
   }
 
   _normalizeHardpoints() {
-    return (this.mwd.hardpoints ?? []).map((hp, index) => ({
+    return this._toCollection(this.mwd.hardpoints).map((hp, index) => ({
       id: hp.id ?? `hardpoint-${index + 1}`,
       type: hp.type ?? "energy",
       size: normalizeMachineWeaponSize(hp.size ?? "small"),
@@ -220,18 +221,24 @@ export class BattlemechLoadout {
   }
 
   _getWeapons(filter) {
-    return this.actor.items
-      .filter(it => it.type === TEMPLATE.itemType.mechWeapon)
+    return getMountedMachineItems(this.actor, { canonicalType: TEMPLATE.itemType.mechWeapon })
       .filter(it => it.isActive?.())
       .filter(filter);
   }
 
   _asArray(value) {
+    return this._toCollection(value);
+  }
+
+  _toCollection(value) {
     if (Array.isArray(value)) {
       return value;
     }
     if (value === undefined || value === null || value === "") {
       return [];
+    }
+    if (typeof value === "object") {
+      return Object.values(value);
     }
     return [value];
   }

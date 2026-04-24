@@ -51,6 +51,29 @@ export function getAssignedMachineItemIds(actor = null) {
   );
 }
 
+export function getMountedMachineItems(actor = null, { canonicalType = "" } = {}) {
+  const normalizedType = String(canonicalType ?? "").trim();
+  const itemMap = new Map(
+    Array.from(actor?.items ?? [])
+      .map(item => [String(item?.id ?? "").trim(), item])
+      .filter(([id, item]) => id && item)
+  );
+  const seenIds = new Set();
+
+  return getConfiguredMachineHardpoints(actor)
+    .map(hardpoint => {
+      const itemId = String(hardpoint?.itemId ?? "").trim();
+      if (!itemId || seenIds.has(itemId)) return null;
+      seenIds.add(itemId);
+      return itemMap.get(itemId) ?? null;
+    })
+    .filter(item => {
+      if (!item) return false;
+      if (!normalizedType) return true;
+      return String(item?.canonicalType ?? item?.type ?? "").trim() === normalizedType;
+    });
+}
+
 export function getMachineWeaponRequiredType(item = null) {
   return String(item?.system?.damageType ?? "").trim() || "energy";
 }

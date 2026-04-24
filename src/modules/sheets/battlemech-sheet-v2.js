@@ -16,6 +16,7 @@ import {
 import { getConfiguredMachineHardpoints } from "../mwd/machine-hardpoints.js";
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 import { prepareBattlemechWeaponGroups } from "../mwd/battlemech-weapon-groups.js";
+import { normalizeMachineWeaponGroups } from "../mwd/machine-weapon-group-state.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
 
 function toNumber(value, fallback = 0) {
@@ -27,7 +28,7 @@ function toNumber(value, fallback = 0) {
 // first save. Always coerce to a real array before mutating.
 function readWeaponGroups(actor) {
   const raw = foundry.utils.deepClone(actor?.system?.mwd?.weaponGroups);
-  return Array.isArray(raw) ? raw : Object.values(raw ?? {});
+  return normalizeMachineWeaponGroups(raw);
 }
 
 function compactList(values = []) {
@@ -446,10 +447,6 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     return groups.map(group => {
       const groupWeaponIds = Array.from(group.weaponIds ?? []).map(weaponId => String(weaponId ?? "").trim()).filter(Boolean);
       const bundledHardpoints = loadedHardpoints.filter(choice => groupWeaponIds.includes(choice.itemId));
-      const unloadedMembers = groupWeaponIds
-        .filter(weaponId => !bundledHardpoints.some(choice => choice.itemId === weaponId))
-        .map(weaponId => actor.items?.get?.(weaponId)?.name ?? weaponId)
-        .filter(Boolean);
       const bundleChoices = loadedHardpoints.map(choice => {
         const selected = groupWeaponIds.includes(choice.itemId);
         const ownerGroupId = owningGroupByItemId.get(choice.itemId) ?? "";
@@ -457,6 +454,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         return {
           ...choice,
           selected,
+          assignedElsewhere,
           disabled: assignedElsewhere,
           title: selected
             ? `Remove ${choice.itemName} from ${group.name}`
@@ -490,7 +488,6 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         detailRows: buildDetailRows([
           { label: "Weapon Names", value: (group.memberWeapons ?? []).map(weapon => weapon.name).join(", ") },
           { label: "Bundled Hardpoints", value: bundledHardpoints.map(choice => choice.detailLabel).join(" | ") },
-          { label: "Unloaded Members", value: unloadedMembers.join(", ") },
           { label: "Range Cap", value: formatRangeBandLabel(group.attackSummary?.rangeCap ?? "") },
           { label: "Attack Ratings", value: formatAttackRatings(group.attackSummary?.attackRatings ?? {}) },
           { label: "Missing IDs", value: (group.missingWeaponIds ?? []).join(", ") },
@@ -499,8 +496,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         ]),
         bundleChoices,
         bundleHelp: loadedHardpoints.length
-          ? "Select the loaded hardpoints that should fire together in this group."
-          : "Load weapons into hardpoints on the Loadout tab before bundling them here.",
+          ? "Bundle mounted slot weapons here. Only attached slot weapons appear."
+          : "Mount weapons into loadout slots first, then bundle the mounted slot weapons here.",
         action: {
           label: group.isAttackLegal && group.isAvailableThisActivation ? "Attack Group" : "Unavailable",
           disabled: !(group.isAttackLegal && group.isAvailableThisActivation),

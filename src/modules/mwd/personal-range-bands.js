@@ -16,9 +16,11 @@ export const PERSONAL_RANGE_BANDS = Object.freeze([
   Object.freeze({ key: "extreme", label: "Extreme", min: 63, max: 120, baseDn: 5 })
 ]);
 
-// Reserved namespaces for future combat scales. These are intentionally left
-// data-light until their band sizes and rules are defined.
-export const MECH_RANGE_BANDS = Object.freeze([]);
+export const MECH_RANGE_BANDS = Object.freeze(PERSONAL_RANGE_BANDS.map(band => Object.freeze({
+  ...band,
+  min: band.min * 10,
+  max: band.max * 10,
+})));
 export const WARSHIP_RANGE_BANDS = Object.freeze([]);
 
 export const RANGE_BANDS_BY_SCALE = Object.freeze({
@@ -32,6 +34,7 @@ export function getRangeBandsForScale(scale = PERSONAL_COMBAT_SCALE) {
 }
 
 const PERSONAL_RANGE_BY_KEY = new Map(PERSONAL_RANGE_BANDS.map(band => [band.key, band]));
+const MECH_RANGE_BY_KEY = new Map(MECH_RANGE_BANDS.map(band => [band.key, band]));
 
 function normalizeBandNumber(value, fallback) {
   const numeric = Number(value);
@@ -41,6 +44,10 @@ function normalizeBandNumber(value, fallback) {
 
 export function getPersonalRangeBand(key = "") {
   return PERSONAL_RANGE_BY_KEY.get(String(key ?? "").trim().toLowerCase()) ?? null;
+}
+
+export function getMechRangeBand(key = "") {
+  return MECH_RANGE_BY_KEY.get(String(key ?? "").trim().toLowerCase()) ?? null;
 }
 
 export function getPersonalRangeBandLabel(key = "") {
@@ -53,6 +60,20 @@ export function getPersonalRangeBandLabel(key = "") {
 export function getPersonalRangeBandName(key = "") {
   if (String(key ?? "").trim().toLowerCase() === "outofrange") return "Out of Range";
   const band = getPersonalRangeBand(key);
+  if (!band) return String(key ?? "").trim() || "Range";
+  return band.label;
+}
+
+export function getMechRangeBandLabel(key = "") {
+  if (String(key ?? "").trim().toLowerCase() === "outofrange") return "Out of Range";
+  const band = getMechRangeBand(key);
+  if (!band) return String(key ?? "").trim() || "Range";
+  return `${band.label} ${band.min}-${band.max} m`;
+}
+
+export function getMechRangeBandName(key = "") {
+  if (String(key ?? "").trim().toLowerCase() === "outofrange") return "Out of Range";
+  const band = getMechRangeBand(key);
   if (!band) return String(key ?? "").trim() || "Range";
   return band.label;
 }
@@ -99,4 +120,23 @@ export function selectPersonalRangeBand(distance, range = {}, fallback = "close"
   }
 
   return bandKey;
+}
+
+export function selectMechRangeBand(distance, fallback = "close") {
+  const numericDistance = Number(distance);
+  if (!Number.isFinite(numericDistance) || numericDistance < 0) {
+    return String(fallback ?? "close").trim().toLowerCase() || "close";
+  }
+
+  const normalizedFallback = String(fallback ?? "close").trim().toLowerCase() || "close";
+  const maxBand = MECH_RANGE_BANDS[MECH_RANGE_BANDS.length - 1] ?? null;
+  if (maxBand && numericDistance > Number(maxBand.max ?? NaN)) {
+    return "outOfRange";
+  }
+
+  for (const band of MECH_RANGE_BANDS) {
+    if (numericDistance <= band.max) return band.key;
+  }
+
+  return normalizedFallback;
 }

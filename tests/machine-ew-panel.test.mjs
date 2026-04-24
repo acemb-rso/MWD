@@ -27,6 +27,7 @@ function createTargetToken({ id, uuid, name, statuses = [] } = {}) {
   return {
     id,
     name,
+    center: { x: 100, y: 0 },
     actor: {
       statuses: new Set(statuses),
     },
@@ -104,6 +105,52 @@ test("EW panel exposes Contact targets as acquire-ready but not targeting-ready"
   assert.equal(row.canTarget, false);
   assert.equal(row.acquireHint, "Acquire can upgrade to Track.");
   assert.equal(row.targetHint, "Targeting Data unavailable until Track.");
+  assert.equal(row.acquireAction.enabled, true);
+  assert.equal(row.targetAction.enabled, false);
+  assert.match(panel.helpText, /each row's Acquire or Target button/i);
+});
+
+test("EW panel shows measured machine-scale range and distance for targets", () => {
+  globalThis.canvas = {
+    scene: {
+      grid: {
+        units: "m",
+      },
+    },
+    grid: {
+      measurePath(points) {
+        const [source, target] = points;
+        return { distance: Math.abs(Number(target?.x ?? 0) - Number(source?.x ?? 0)) };
+      },
+    },
+  };
+
+  const target = createTargetToken({
+    id: "target-range",
+    uuid: "Scene.scene.Token.target-range",
+    name: "Enemy at Range",
+  });
+  target.center = { x: 140, y: 0 };
+
+  const panel = buildMachineEwPanel({
+    actor: {
+      system: {
+        attributes: {
+          system: { value: 3 },
+        },
+      },
+    },
+    token: { id: "attacker-token", center: { x: 0, y: 0 } },
+    targets: [target],
+  });
+
+  const [row] = panel.rows;
+  assert.equal(row.hasRange, true);
+  assert.equal(row.rangeBand, "near");
+  assert.equal(row.rangeBandLabel, "Near");
+  assert.equal(row.distanceLabel, "140 m");
+
+  delete globalThis.canvas;
 });
 
 test("EW panel shows capped targeting data and penalties for Track targets", () => {
@@ -142,6 +189,8 @@ test("EW panel shows capped targeting data and penalties for Track targets", () 
   assert.equal(row.canTarget, true);
   assert.equal(row.acquireHint, "Acquire can upgrade to Lock.");
   assert.equal(row.targetHint, "Targeting Data available.");
+  assert.equal(row.acquireAction.title, "Acquire can upgrade to Lock.");
+  assert.equal(row.targetAction.title, "Targeting Data available.");
 });
 
 test("EW panel keeps blind targets informational only and lock targets optimized", () => {
@@ -175,8 +224,10 @@ test("EW panel keeps blind targets informational only and lock targets optimized
   assert.equal(blindRow.canAcquire, true);
   assert.equal(blindRow.canTarget, false);
   assert.equal(blindRow.acquireHint, "Acquire can establish Contact (DN 1).");
+  assert.equal(blindRow.targetAction.title, "Track or Lock is required before generating targeting data.");
   assert.equal(lockRow.canAcquire, false);
   assert.equal(lockRow.canTarget, true);
+  assert.equal(lockRow.acquireAction.title, "Target is already at Lock.");
   assert.equal(lockRow.targetHint, "Targeting solution optimized.");
 });
 

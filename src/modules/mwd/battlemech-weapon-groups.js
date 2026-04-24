@@ -254,8 +254,9 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
   const rangeCapIndex = getRangeCapIndex(rangeCap);
   const attackRatings = RANGE_ORDER.reduce((bands, band, index) => {
     bands[band] = index <= rangeCapIndex
-      ? memberWeapons.reduce((sum, weapon) => sum + toNumber(weapon.attackRatingBand?.[band], 0), 0)
+      ? memberWeapons.reduce((worst, weapon) => Math.min(worst, toNumber(weapon.attackRatingBand?.[band], 0)), Number.POSITIVE_INFINITY)
       : 0;
+    if (!Number.isFinite(bands[band])) bands[band] = 0;
     return bands;
   }, {});
 

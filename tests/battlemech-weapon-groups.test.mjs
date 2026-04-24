@@ -105,7 +105,7 @@ function createActor({ groups = [], weapons = [] } = {}) {
   };
 }
 
-test("BattleMech ranged groups aggregate homogeneous ranged weapons and respect worst range cap", () => {
+test("BattleMech ranged groups aggregate homogeneous ranged weapons and use the worst attack ratings at the worst range cap", () => {
   const laserA = createWeapon({
     id: "laser-a",
     name: "Medium Laser A",
@@ -141,8 +141,8 @@ test("BattleMech ranged groups aggregate homogeneous ranged weapons and respect 
   assert.equal(group.attackSummary.heat, 5);
   assert.equal(group.attackSummary.rangeCap, "near");
   assert.deepEqual(group.attackSummary.attackRatings, {
-    close: 3,
-    near: 6,
+    close: 1,
+    near: 2,
     far: 0,
     extreme: 0,
   });
@@ -297,7 +297,7 @@ test("attack card enhancement surfaces BattleMech group members and aggregate pr
           damageType: "energy",
           damageTypeLabel: "Energy",
           rangeCap: "near",
-          attackRatings: { close: 3, near: 6, far: 0, extreme: 0 },
+          attackRatings: { close: 1, near: 2, far: 0, extreme: 0 },
         },
       },
       capabilityReport: { isTemplated: false },
@@ -336,7 +336,7 @@ test("attack card enhancement surfaces BattleMech group members and aggregate pr
   assert(vm.metaRows.some(row => /Members: Medium Laser A, Medium Laser B/i.test(row.text)));
   assert(vm.metaRows.some(row => /Clustering: 2d6 @ 4\+/i.test(row.text)));
   assert(vm.metaRows.some(row => /Profile: 9 damage \| 2d6 cluster @ 4\+ \| AP 2 \| Heat 5/i.test(row.text)));
-  assert(vm.footerRows.some(row => /Attack Ratings: Close 3 \| Near 6 \| Far 0 \| Extreme 0/i.test(row.text)));
+  assert(vm.footerRows.some(row => /Attack Ratings: Close 1 \| Near 2 \| Far 0 \| Extreme 0/i.test(row.text)));
   assert(vm.footerRows.some(row => /Target: Energy \+9 weapon \+ ?1 cluster \+ ?2 net/i.test(row.text)));
   assert(vm.footerRows.some(row => /Target: Cluster 2d6 @ 4\+ -> 1 hit/i.test(row.text)));
 });

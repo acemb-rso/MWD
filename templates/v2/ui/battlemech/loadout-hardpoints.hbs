@@ -8,13 +8,13 @@ How it fits: Keeps the full hardpoint workflow inside the loadout tab.
   <section class="mwd-hardpoint-workspace__panel">
     <div class="mwd-hardpoint-workspace__header">
       <div>
-        <div class="mwd-hardpoint-workspace__title">Hardpoint Configuration</div>
-        <div class="mwd-hardpoint-workspace__copy">Define the slot type, size, and location for each BattleMech mount.</div>
+        <div class="mwd-hardpoint-workspace__title">Loadout Slots</div>
+        <div class="mwd-hardpoint-workspace__copy">Create each slot here, then mount mech weapons into those slots below. Slot changes save back to the actor sheet.</div>
       </div>
 
       {{#if @root.editing}}
         <button type="button" class="mwd-inv__add-btn" data-action="addHardpoint">
-          <i class="fas fa-plus"></i> Add Hardpoint
+          <i class="fas fa-plus"></i> Create Loadout Slot
         </button>
       {{/if}}
     </div>
@@ -87,7 +87,7 @@ How it fits: Keeps the full hardpoint workflow inside the loadout tab.
     <div class="mwd-hardpoint-workspace__header">
       <div>
         <div class="mwd-hardpoint-workspace__title">Mounted Slots</div>
-        <div class="mwd-hardpoint-workspace__copy">Load or unload compatible weapons here. Drag-and-drop still works on open slots.</div>
+        <div class="mwd-hardpoint-workspace__copy">Weapons only exist here as mounted slot equipment. Drag a mech weapon item onto an open slot or create one directly for that slot.</div>
       </div>
     </div>
 

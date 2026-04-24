@@ -109,7 +109,7 @@ How it fits: Keeps combat actions and combat-side group management together with
                     {{#each group.bundleChoices as |choice|}}
                       <button
                         type="button"
-                        class="mwd-weapon-group-editor__choice{{#if choice.selected}} is-selected{{/if}}"
+                        class="mwd-weapon-group-editor__choice{{#if choice.selected}} is-selected{{/if}}{{#if choice.assignedElsewhere}} is-assigned{{/if}}"
                         data-action="toggleWeaponGroupHardpoint"
                         data-group-id="{{group.id}}"
                         data-hardpoint-id="{{choice.hardpointId}}"

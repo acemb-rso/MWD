@@ -34,8 +34,11 @@ import { getMachineLocationLabel } from "../mwd/machine-hit-locations.js";
 import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import { buildMachineMovementFields, buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
 import { getSkillDef } from "../mwd/skills.js";
+import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
+import { normalizeMachineWeaponGroups, pruneWeaponGroupsToMountedItems } from "../mwd/machine-weapon-group-state.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
+import { collectDocumentFormUpdates } from "./document-sheet-form.js";
 import { SelectActor } from "../dialog/select-actor.js";
 
 function toNumber(value, fallback = 0) {
@@ -224,6 +227,12 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
   #expandedInventoryRows = new Set();
   #hardpointDragController = null;
+  #ewHookIds = [];
+
+  async close(options = {}) {
+    this.#teardownEwHooks();
+    return super.close(options);
+  }
 
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
@@ -318,6 +327,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   _onRender(context, options) {
     super._onRender?.(context, options);
     this.#bindHardpointDragDrop();
+    this.#bindEwHooks();
   }
 
   _buildSummaryStats() {
@@ -614,6 +624,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const hardpointId = String(hardpointSlot.dataset?.hardpointId ?? "").trim();
     if (!hardpointId) return false;
 
+    await this._persistStagedHardpointFields();
+
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
     const hardpoint = getConfiguredMachineHardpoints(actorWriteTarget).find(entry => entry.id === hardpointId);
     if (!hardpoint) return false;
@@ -733,6 +745,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     if (changed) {
       await actorWriteTarget.update({ "system.mwd.hardpoints": hardpoints });
     }
+
+    await this._sanitizeMountedWeaponGroups(actorWriteTarget);
   }
 
   async _deleteMountedHardpointItem(hardpointId = "") {
@@ -771,7 +785,6 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const item = itemId ? actor?.items?.get?.(itemId) ?? null : null;
     const profile = typeof item?.getCombatProfile === "function" ? item.getCombatProfile() : null;
     const accordionId = `slot:${slotId}`;
-    const compatibleItems = this._getCompatibleHardpointItems(hardpoint);
     const typeLabel = typeLabels[type] ?? startCase(type);
     const sizeLabel = sizeLabels[size] ?? startCase(size);
     const locationLabel = locationLabels[location] ?? startCase(location);
@@ -793,29 +806,20 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         subtitle: `${locationLabel} mount available`,
         summaryStats: buildSummaryStats([
           { label: "Mount", value: `${typeLabel} ${sizeLabel}`, emphasis: "strong" },
-          { label: "Compatible", value: compatibleItems.length ? String(compatibleItems.length) : "0", tone: compatibleItems.length ? "green" : "orange" },
+          { label: "Status", value: "Open", tone: "green" },
         ]),
         detailTags: buildDetailTags(["Open Hardpoint", typeLabel, sizeLabel]),
         detailRows: buildDetailRows([
           { label: "Location", value: locationLabel },
           { label: "Accepts", value: `${sizeLabel} ${typeLabel} weapons` },
-          { label: "Assigned Item", value: "Empty" },
-          { label: "Compatible Items", value: compatibleItems.length ? String(compatibleItems.length) : "None" },
+          { label: "Assigned Weapon", value: "Empty" },
         ]),
-        detailText: compatibleItems.length
-          ? "Drag a compatible weapon here, create a new weapon for this slot, or mount an existing item."
-          : "This mount is open, but there are no compatible weapons currently available to assign.",
+        detailText: "Drag a matching mech weapon item onto this slot, or create one directly for this slot.",
         createHardpointItem: {
           hardpointId: slotId,
           itemType: "mechWeapon",
           label: "Create Weapon for Slot",
         },
-        assignHardpointItem: compatibleItems.length
-          ? {
-              hardpointId: slotId,
-              label: compatibleItems.length === 1 ? "Mount Existing Weapon" : "Choose Existing Weapon",
-            }
-          : null,
       };
     }
 
@@ -853,9 +857,14 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         { label: "Assigned Item", value: item.name ?? itemTypeLabel },
       ]),
       detailText: toSnippet(notes),
+      suppressDeleteButton: true,
       clearHardpointItem: {
         hardpointId: slotId,
-        label: "Unmount Item",
+        label: "Empty Slot",
+        hint: "Delete the attached weapon and leave this slot open.",
+        icon: "fa-trash-can",
+        buttonClassName: "is-danger",
+        inlineLabel: "Empty Slot",
       },
       machineAttack: canonicalType === "mechWeapon"
         ? { label: "Attack", itemId: item.id ?? "" }
@@ -1016,6 +1025,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     event?.stopPropagation?.();
     if (!this.isEditable) return;
 
+    await this._persistStagedHardpointFields();
+
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
     const hardpoints = foundry.utils.deepClone(rawHardpointsArray(actorWriteTarget));
     const options = this._buildHardpointOptions();
@@ -1043,6 +1054,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     );
     if (!Number.isInteger(index) || index < 0) return;
 
+    await this._persistStagedHardpointFields();
+
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
     const hardpoints = foundry.utils.deepClone(rawHardpointsArray(actorWriteTarget));
     const removed = hardpoints[index] ?? null;
@@ -1053,6 +1066,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       await actorWriteTarget.deleteEmbeddedDocuments("Item", [removedItemId]);
     }
     await actorWriteTarget.update({ "system.mwd.hardpoints": hardpoints });
+    await this._sanitizeMountedWeaponGroups(actorWriteTarget);
     this.render({ force: true });
   }
 
@@ -1067,6 +1081,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       ?? ""
     ).trim();
     if (!hardpointId) return;
+
+    await this._persistStagedHardpointFields();
 
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
     const hardpoint = rawHardpointsArray(actorWriteTarget).find(entry =>
@@ -1104,6 +1120,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     ).trim();
     if (!hardpointId) return;
 
+    await this._persistStagedHardpointFields();
+
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
     const hardpoint = getConfiguredMachineHardpoints(actorWriteTarget).find(entry => entry.id === hardpointId);
     if (!hardpoint) return;
@@ -1127,9 +1145,40 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     ).trim();
     if (!hardpointId) return;
 
+    await this._persistStagedHardpointFields();
+
     await this._deleteMountedHardpointItem(hardpointId);
     await this._setHardpointOccupant(hardpointId, "");
     this.render({ force: true });
+  }
+
+  async _persistStagedHardpointFields() {
+    if (!this.isEditable) return;
+
+    const root = this._getRootElement?.();
+    if (!(root instanceof HTMLElement)) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const updates = collectDocumentFormUpdates({
+      root,
+      document: actorWriteTarget,
+      selector: 'input[name^="system.mwd.hardpoints."][data-edit-field="staged"], select[name^="system.mwd.hardpoints."][data-edit-field="staged"], textarea[name^="system.mwd.hardpoints."][data-edit-field="staged"]',
+      clampByPath: this._clampByPath?.bind(this),
+    });
+
+    if (!Object.keys(updates).length) return;
+    await actorWriteTarget.update(updates);
+  }
+
+  async _sanitizeMountedWeaponGroups(actor = this.getPersistentActor() ?? this.actor) {
+    const actorWriteTarget = actor ?? this.actor;
+    const mountedItemIds = getConfiguredMachineHardpoints(actorWriteTarget)
+      .map(hardpoint => String(hardpoint?.itemId ?? "").trim())
+      .filter(Boolean);
+    const currentGroups = normalizeMachineWeaponGroups(foundry.utils.deepClone(actorWriteTarget?.system?.mwd?.weaponGroups));
+    const pruned = pruneWeaponGroupsToMountedItems(currentGroups, mountedItemIds);
+    if (!pruned.changed) return;
+    await actorWriteTarget.update({ "system.mwd.weaponGroups": pruned.groups });
   }
 
   _buildActiveCrits() {
@@ -1259,27 +1308,22 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     return true;
   }
 
-  async _onEwAcquire(event, _target) {
+  async _onEwAcquire(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
-    return this.#launchMachineEwIntent("acquire", event);
+    return this.#launchMachineEwIntent("acquire", event, target);
   }
 
-  async _onEwTarget(event, _target) {
+  async _onEwTarget(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
-    return this.#launchMachineEwIntent("targeting", event);
+    return this.#launchMachineEwIntent("targeting", event, target);
   }
 
   _resolveStatusToken(actor = this.actor) {
-    return this.getSheetTokenDocument?.()
-      ?? actor?.token?.document
-      ?? actor?.token
-      ?? actor?.getActiveTokens?.(true, true)?.[0]?.document
-      ?? actor?.getActiveTokens?.(true, true)?.[0]
-      ?? Array.from(canvas?.tokens?.placeables ?? [])
-        .find(token => token?.actor?.id && token.actor.id === actor?.id)?.document
-      ?? null;
+    return resolveMachineSceneToken(actor, {
+      sheetToken: this.getSheetTokenDocument?.() ?? null,
+    });
   }
 
   _getDefaultHardpointLocation() {
@@ -1298,17 +1342,32 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     return this.actor.items.get(itemId) ?? null;
   }
 
-  async #launchMachineEwIntent(intent, event) {
+  async #launchMachineEwIntent(intent, event, target) {
     const actor = this.getPersistentActor?.() ?? this.actor;
     const token = this._resolveStatusToken(actor);
     const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
     if (!rollApi?.execute) return false;
 
     const panel = buildMachineEwPanel({ actor, token });
-    const targetRow = resolveMachineEwActionTarget(panel, intent);
+    const explicitTargetTokenUuid = String(target?.dataset?.targetTokenUuid ?? "").trim();
+    const explicitTargetTokenId = String(target?.dataset?.targetTokenId ?? "").trim();
+    const targetRow = explicitTargetTokenUuid || explicitTargetTokenId
+      ? (panel.rows ?? []).find(row =>
+        (explicitTargetTokenUuid && row?.targetTokenUuid === explicitTargetTokenUuid)
+        || (explicitTargetTokenId && row?.targetTokenId === explicitTargetTokenId)
+      ) ?? null
+      : resolveMachineEwActionTarget(panel, intent);
     if (!targetRow) {
       const verb = intent === "targeting" ? "generate targeting data" : "acquire";
       ui.notifications?.warn(`No targeted token is ready to ${verb}.`);
+      return false;
+    }
+
+    const isEligible = intent === "targeting" ? targetRow.canTarget : targetRow.canAcquire;
+    if (!isEligible) {
+      ui.notifications?.warn(intent === "targeting"
+        ? "That target is not ready for targeting data yet."
+        : "That target cannot advance its detection state right now.");
       return false;
     }
 
@@ -1323,6 +1382,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         },
         event,
       });
+      this.#renderEwState();
       return true;
     } catch (error) {
       console.error(`MWD | Failed to launch EW ${intent}`, error);
@@ -1330,5 +1390,78 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       notifyRollError(error, `Unable to launch ${label} roll.`);
       return false;
     }
+  }
+
+  #bindEwHooks() {
+    if (this.#ewHookIds.length) return;
+
+    this.#ewHookIds = [
+      ["targetToken", Hooks.on("targetToken", user => {
+        if (user?.id !== game.user?.id) return;
+        this.#renderEwState();
+      })],
+      ["updateCombatant", Hooks.on("updateCombatant", (combatant, changed) => {
+        if (!this.#isRelevantEwCombatant(combatant)) return;
+        if (!this.#didCombatantEwStateChange(changed)) return;
+        this.#renderEwState();
+      })],
+      ["createCombatant", Hooks.on("createCombatant", combatant => {
+        if (!this.#isRelevantEwCombatant(combatant)) return;
+        this.#renderEwState();
+      })],
+      ["deleteCombatant", Hooks.on("deleteCombatant", combatant => {
+        if (!this.#isRelevantEwCombatant(combatant)) return;
+        this.#renderEwState();
+      })],
+      ["updateCombat", Hooks.on("updateCombat", combat => {
+        if (!this.#isTrackedCombat(combat)) return;
+        this.#renderEwState();
+      })],
+      ["deleteCombat", Hooks.on("deleteCombat", combat => {
+        if (!this.#isTrackedCombat(combat)) return;
+        this.#renderEwState();
+      })],
+    ];
+  }
+
+  #teardownEwHooks() {
+    for (const [hookName, hookId] of this.#ewHookIds) {
+      Hooks.off(hookName, hookId);
+    }
+    this.#ewHookIds = [];
+  }
+
+  #renderEwState() {
+    if (!this.rendered) return;
+    this._captureScrollPosition();
+    this.render({ force: false });
+  }
+
+  #isTrackedCombat(combat) {
+    return Boolean(combat?.id && combat.id === game.combat?.id);
+  }
+
+  #isRelevantEwCombatant(combatant) {
+    if (!combatant) return false;
+
+    const sheetToken = this._resolveStatusToken(this.getPersistentActor?.() ?? this.actor);
+    const sheetTokenId = String(sheetToken?.id ?? sheetToken?.document?.id ?? "").trim();
+    const combatantTokenId = String(combatant?.tokenId ?? combatant?.token?.id ?? combatant?.token?.document?.id ?? "").trim();
+    if (!combatantTokenId) return false;
+    if (sheetTokenId && combatantTokenId === sheetTokenId) return true;
+
+    const targetedTokenIds = new Set(
+      Array.from(game.user?.targets ?? [])
+        .map(targetToken => String(targetToken?.id ?? targetToken?.document?.id ?? "").trim())
+        .filter(Boolean)
+    );
+    return targetedTokenIds.has(combatantTokenId);
+  }
+
+  #didCombatantEwStateChange(changed) {
+    return foundry.utils.hasProperty(changed, "flags.mwd.targeting")
+      || foundry.utils.hasProperty(changed, "flags.mwd.ewState")
+      || foundry.utils.hasProperty(changed, "flags.mwd.personalCombat")
+      || foundry.utils.hasProperty(changed, "tokenId");
   }
 }

@@ -19,19 +19,15 @@ import { prepareBattlemechWeaponGroups } from "../mwd/battlemech-weapon-groups.j
 import { buildMachineEwPanel, resolveMachineEwActionTarget } from "../mwd/machine-ew-panel.js";
 import { getMachineRepairIssues } from "../mwd/machine-repair-issues.js";
 import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
+import { getMountedMachineItems } from "../mwd/machine-hardpoints.js";
+import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
 
 function getMachineRollApi() {
   return game.mwd?.roll ?? game.system?.mwd?.roll ?? null;
 }
 
 function resolveMachineToken(actor) {
-  return actor?.token?.document
-    ?? actor?.token
-    ?? actor?.getActiveTokens?.(true, true)?.[0]?.document
-    ?? actor?.getActiveTokens?.(true, true)?.[0]
-    ?? Array.from(canvas?.tokens?.placeables ?? [])
-      .find(token => token?.actor?.id && token.actor.id === actor?.id)?.document
-    ?? null;
+  return resolveMachineSceneToken(actor);
 }
 
 export class BattlemechActor extends VehicleActor {
@@ -341,7 +337,7 @@ export class BattlemechActor extends VehicleActor {
       }));
     }
 
-    const weapons = this.items.filter(it => it.type === TEMPLATE.itemType.mechWeapon);
+    const weapons = getMountedMachineItems(this, { canonicalType: TEMPLATE.itemType.mechWeapon });
     if (weapons.length === 0) {
       return [];
     }
@@ -376,9 +372,8 @@ export class BattlemechActor extends VehicleActor {
       notes: ANARCHY.actor.vehicle.quickActions.unarmedNotes
     }];
 
-    const meleeWeapons = this.items.filter(it =>
-      it.type === TEMPLATE.itemType.mechWeapon
-      && it.system.skill === 'meleeCombat');
+    const meleeWeapons = getMountedMachineItems(this, { canonicalType: TEMPLATE.itemType.mechWeapon })
+      .filter(it => it.system.skill === 'meleeCombat');
 
     profiles.push(...meleeWeapons.map(weapon => ({
       id: weapon.id,
