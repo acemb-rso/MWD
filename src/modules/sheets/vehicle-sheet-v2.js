@@ -24,11 +24,17 @@ import {
   getMachineRuleState,
 } from "../mwd/machine-state-effects.js";
 import {
+  appendMachineHardpoint,
+  assignMachineHardpointOccupant,
   doesHardpointAcceptItem,
   getAssignedMachineItemIds,
   getHardpointCompatibilityError,
   getConfiguredMachineHardpoints,
+  normalizeMachineHardpoints,
   rawHardpointsArray,
+  reconcileMachineHardpoints,
+  removeMachineHardpointById,
+  updateMachineHardpointSettings,
 } from "../mwd/machine-hardpoints.js";
 import { getMachineLocationLabel } from "../mwd/machine-hit-locations.js";
 import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
@@ -38,7 +44,6 @@ import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
 import { normalizeMachineWeaponGroups, pruneWeaponGroupsToMountedItems } from "../mwd/machine-weapon-group-state.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
-import { collectDocumentFormUpdates } from "./document-sheet-form.js";
 import { SelectActor } from "../dialog/select-actor.js";
 
 function toNumber(value, fallback = 0) {
@@ -227,10 +232,13 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
   #expandedInventoryRows = new Set();
   #hardpointDragController = null;
+  #hardpointConfigController = null;
   #ewHookIds = [];
 
   async close(options = {}) {
     this.#teardownEwHooks();
+    this.#hardpointConfigController?.abort();
+    this.#hardpointDragController?.abort();
     return super.close(options);
   }
 
@@ -327,6 +335,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   _onRender(context, options) {
     super._onRender?.(context, options);
     this.#bindHardpointDragDrop();
+    this.#bindHardpointConfigChanges();
     this.#bindEwHooks();
   }
 
@@ -570,6 +579,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       : ["turret"];
   }
 
+  async _commitEditsToActor() {
+    await super._commitEditsToActor();
+    await this._persistStagedHardpointFields();
+  }
+
   _getCompatibleHardpointItems(hardpoint, { includeAssignedItem = false } = {}) {
     const actor = this.getPersistentActor?.() ?? this.actor;
     const assignedItemIds = getAssignedMachineItemIds(actor);
@@ -617,6 +631,43 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     }, { signal: controller.signal });
   }
 
+  #bindHardpointConfigChanges() {
+    const root = this._getRootElement?.();
+    if (!root) return;
+
+    this.#hardpointConfigController?.abort();
+    const controller = new AbortController();
+    this.#hardpointConfigController = controller;
+
+    root.addEventListener("change", event => {
+      const field = event.target?.closest?.("[data-hardpoint-field]");
+      if (!field || !root.contains(field)) return;
+      void this.#onHardpointConfigChange(field);
+    }, { signal: controller.signal });
+  }
+
+  async #onHardpointConfigChange(field) {
+    if (!this.isEditable) return;
+
+    const row = field?.closest?.("[data-hardpoint-config][data-hardpoint-id]");
+    const hardpointId = String(row?.dataset?.hardpointId ?? "").trim();
+    if (!row || !hardpointId) return;
+
+    const settings = this._collectHardpointRowSettings(row);
+    if (!settings) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const result = updateMachineHardpointSettings(
+      rawHardpointsArray(actorWriteTarget),
+      hardpointId,
+      settings,
+      { defaultLocation: this._getDefaultHardpointLocation() },
+    );
+    if (!result.changed) return;
+
+    await actorWriteTarget.update({ "system.mwd.hardpoints": result.hardpoints });
+  }
+
   async _handleHardpointItemDrop(event, data = null) {
     const hardpointSlot = event?.target?.closest?.(".mwd-record[data-hardpoint-id]");
     if (!hardpointSlot) return false;
@@ -624,10 +675,10 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const hardpointId = String(hardpointSlot.dataset?.hardpointId ?? "").trim();
     if (!hardpointId) return false;
 
-    await this._persistStagedHardpointFields();
+    const persistedHardpoints = await this._persistStagedHardpointFields();
 
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const hardpoint = getConfiguredMachineHardpoints(actorWriteTarget).find(entry => entry.id === hardpointId);
+    const hardpoint = persistedHardpoints.find(entry => entry.id === hardpointId);
     if (!hardpoint) return false;
 
     if (String(hardpoint?.itemId ?? "").trim()) {
@@ -665,7 +716,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       return true;
     }
 
-    await this._setHardpointOccupant(hardpointId, targetItemId);
+    await this._setHardpointOccupant(hardpointId, targetItemId, { hardpoints: persistedHardpoints });
     this.render({ force: true });
     return true;
   }
@@ -718,32 +769,20 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     });
   }
 
-  async _setHardpointOccupant(hardpointId = "", itemId = "") {
+  async _setHardpointOccupant(hardpointId = "", itemId = "", { hardpoints = null } = {}) {
     const normalizedHardpointId = String(hardpointId ?? "").trim();
     if (!normalizedHardpointId) return;
 
-    const normalizedItemId = String(itemId ?? "").trim();
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const hardpoints = foundry.utils.deepClone(rawHardpointsArray(actorWriteTarget));
-    let changed = false;
+    const result = assignMachineHardpointOccupant(
+      hardpoints ?? rawHardpointsArray(actorWriteTarget),
+      normalizedHardpointId,
+      itemId,
+      { defaultLocation: this._getDefaultHardpointLocation() },
+    );
 
-    for (const hardpoint of hardpoints) {
-      const currentId = String(hardpoint?.itemId ?? "").trim();
-      if (normalizedItemId && currentId === normalizedItemId && String(hardpoint?.id ?? "").trim() !== normalizedHardpointId) {
-        hardpoint.itemId = "";
-        changed = true;
-      }
-      if (String(hardpoint?.id ?? "").trim() === normalizedHardpointId) {
-        const nextValue = normalizedItemId || "";
-        if (currentId !== nextValue) {
-          hardpoint.itemId = nextValue;
-          changed = true;
-        }
-      }
-    }
-
-    if (changed) {
-      await actorWriteTarget.update({ "system.mwd.hardpoints": hardpoints });
+    if (result.changed) {
+      await actorWriteTarget.update({ "system.mwd.hardpoints": result.hardpoints });
     }
 
     await this._sanitizeMountedWeaponGroups(actorWriteTarget);
@@ -1025,17 +1064,18 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     event?.stopPropagation?.();
     if (!this.isEditable) return;
 
-    await this._persistStagedHardpointFields();
+    const persistedHardpoints = await this._persistStagedHardpointFields();
 
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const hardpoints = foundry.utils.deepClone(rawHardpointsArray(actorWriteTarget));
     const options = this._buildHardpointOptions();
-    hardpoints.push({
-      id: foundry.utils.randomID?.() ?? `hardpoint-${hardpoints.length + 1}`,
+    const hardpoints = appendMachineHardpoint(persistedHardpoints, {
+      id: foundry.utils.randomID?.(),
       type: options.types[0]?.value ?? "energy",
       size: options.sizes[0]?.value ?? "small",
       location: this._getDefaultHardpointLocation(),
-      itemId: "",
+    }, {
+      defaultLocation: this._getDefaultHardpointLocation(),
+      idFactory: index => foundry.utils.randomID?.() ?? `hardpoint-${index + 1}`,
     });
 
     await actorWriteTarget.update({ "system.mwd.hardpoints": hardpoints });
@@ -1047,19 +1087,21 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     event?.stopPropagation?.();
     if (!this.isEditable) return;
 
-    const index = Number(
-      target?.dataset?.hardpointIndex
-      ?? target?.closest?.("[data-hardpoint-index]")?.dataset?.hardpointIndex
-      ?? event?.target?.closest?.("[data-hardpoint-index]")?.dataset?.hardpointIndex
-    );
-    if (!Number.isInteger(index) || index < 0) return;
+    const hardpointId = String(
+      target?.dataset?.hardpointId
+      ?? target?.closest?.("[data-hardpoint-id]")?.dataset?.hardpointId
+      ?? event?.target?.closest?.("[data-hardpoint-id]")?.dataset?.hardpointId
+      ?? ""
+    ).trim();
+    if (!hardpointId) return;
 
-    await this._persistStagedHardpointFields();
+    const persistedHardpoints = await this._persistStagedHardpointFields();
 
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const hardpoints = foundry.utils.deepClone(rawHardpointsArray(actorWriteTarget));
-    const removed = hardpoints[index] ?? null;
-    hardpoints.splice(index, 1);
+    const { hardpoints, removed } = removeMachineHardpointById(persistedHardpoints, hardpointId, {
+      defaultLocation: this._getDefaultHardpointLocation(),
+    });
+    if (!removed) return;
 
     const removedItemId = String(removed?.itemId ?? "").trim();
     if (removedItemId) {
@@ -1082,10 +1124,10 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     ).trim();
     if (!hardpointId) return;
 
-    await this._persistStagedHardpointFields();
+    const persistedHardpoints = await this._persistStagedHardpointFields();
 
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const hardpoint = rawHardpointsArray(actorWriteTarget).find(entry =>
+    const hardpoint = persistedHardpoints.find(entry =>
       String(entry?.id ?? "").trim() === hardpointId
     );
     if (!hardpoint) return;
@@ -1103,7 +1145,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       },
     }]);
 
-    await this._setHardpointOccupant(hardpointId, created?.[0]?.id ?? "");
+    await this._setHardpointOccupant(hardpointId, created?.[0]?.id ?? "", { hardpoints: persistedHardpoints });
     created?.[0]?.sheet?.render?.(true);
     this.render({ force: true });
   }
@@ -1120,16 +1162,16 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     ).trim();
     if (!hardpointId) return;
 
-    await this._persistStagedHardpointFields();
+    const persistedHardpoints = await this._persistStagedHardpointFields();
 
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const hardpoint = getConfiguredMachineHardpoints(actorWriteTarget).find(entry => entry.id === hardpointId);
+    const hardpoint = persistedHardpoints.find(entry => entry.id === hardpointId);
     if (!hardpoint) return;
 
     const itemId = await this._promptHardpointAssignment(hardpoint);
     if (!itemId) return;
 
-    await this._setHardpointOccupant(hardpointId, itemId);
+    await this._setHardpointOccupant(hardpointId, itemId, { hardpoints: persistedHardpoints });
     this.render({ force: true });
   }
 
@@ -1145,29 +1187,59 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     ).trim();
     if (!hardpointId) return;
 
-    await this._persistStagedHardpointFields();
+    const persistedHardpoints = await this._persistStagedHardpointFields();
 
     await this._deleteMountedHardpointItem(hardpointId);
-    await this._setHardpointOccupant(hardpointId, "");
+    await this._setHardpointOccupant(hardpointId, "", { hardpoints: persistedHardpoints });
     this.render({ force: true });
   }
 
-  async _persistStagedHardpointFields() {
-    if (!this.isEditable) return;
-
+  _collectStagedHardpointFields() {
     const root = this._getRootElement?.();
-    if (!(root instanceof HTMLElement)) return;
+    if (!(root instanceof HTMLElement)) return [];
 
+    return Array.from(root.querySelectorAll("[data-hardpoint-config][data-hardpoint-id]"))
+      .map(row => {
+        const id = String(row.dataset?.hardpointId ?? "").trim();
+        if (!id) return null;
+
+        const settings = this._collectHardpointRowSettings(row);
+        return settings ? { id, ...settings } : null;
+      })
+      .filter(Boolean);
+  }
+
+  _collectHardpointRowSettings(row = null) {
+    if (!(row instanceof HTMLElement)) return null;
+
+    const settings = {};
+    for (const field of row.querySelectorAll("[data-hardpoint-field]")) {
+      if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement)) continue;
+      if (field.disabled) continue;
+
+      const fieldName = String(field.dataset?.hardpointField ?? "").trim();
+      if (!["type", "size", "location"].includes(fieldName)) continue;
+      settings[fieldName] = field.value;
+    }
+
+    return Object.keys(settings).length ? settings : null;
+  }
+
+  async _persistStagedHardpointFields() {
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const updates = collectDocumentFormUpdates({
-      root,
-      document: actorWriteTarget,
-      selector: 'input[name^="system.mwd.hardpoints."][data-edit-field="staged"], select[name^="system.mwd.hardpoints."][data-edit-field="staged"], textarea[name^="system.mwd.hardpoints."][data-edit-field="staged"]',
-      clampByPath: this._clampByPath?.bind(this),
-    });
+    const current = rawHardpointsArray(actorWriteTarget);
+    const defaultLocation = this._getDefaultHardpointLocation();
+    const normalizedCurrent = normalizeMachineHardpoints(current, { defaultLocation });
+    if (!this.isEditable) return normalizedCurrent;
 
-    if (!Object.keys(updates).length) return;
-    await actorWriteTarget.update(updates);
+    const stagedHardpoints = this._collectStagedHardpointFields();
+    if (!stagedHardpoints.length) return normalizedCurrent;
+
+    const next = reconcileMachineHardpoints(current, stagedHardpoints, { defaultLocation });
+
+    if (JSON.stringify(next) === JSON.stringify(normalizedCurrent)) return normalizedCurrent;
+    await actorWriteTarget.update({ "system.mwd.hardpoints": next });
+    return next;
   }
 
   async _sanitizeMountedWeaponGroups(actor = this.getPersistentActor() ?? this.actor) {

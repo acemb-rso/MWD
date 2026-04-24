@@ -7,6 +7,12 @@ import { TEMPLATE, startCase } from "../constants.js";
 
 const MACHINE_HARDPOINT_SIZES = Object.freeze(["small", "medium", "large"]);
 const ENERGY_HARDPOINT_FAMILY = Object.freeze(new Set(["energy", "thermal", "electrical", "electric"]));
+const DEFAULT_MACHINE_HARDPOINT = Object.freeze({
+  type: "energy",
+  size: "small",
+  location: "",
+  itemId: "",
+});
 
 
 export function normalizeMachineWeaponSize(value, fallback = "small") {
@@ -21,14 +27,117 @@ export function rawHardpointsArray(actor = null) {
   return Array.isArray(raw) ? [...raw] : Object.values(raw);
 }
 
-export function getConfiguredMachineHardpoints(actor = null) {
-  return rawHardpointsArray(actor).map((hardpoint, index) => ({
+export function normalizeMachineHardpoints(rawHardpoints = [], { defaultLocation = "", idFactory = null } = {}) {
+  const raw = Array.isArray(rawHardpoints) ? rawHardpoints : Object.values(rawHardpoints && typeof rawHardpoints === "object" ? rawHardpoints : {});
+  return raw.map((hardpoint, index) => ({
     id: String(hardpoint?.id ?? `hardpoint-${index + 1}`).trim(),
-    type: String(hardpoint?.type ?? "energy").trim() || "energy",
-    size: normalizeMachineWeaponSize(hardpoint?.size ?? "small"),
-    location: String(hardpoint?.location ?? "").trim(),
-    itemId: String(hardpoint?.itemId ?? "").trim(),
+    type: String(hardpoint?.type ?? DEFAULT_MACHINE_HARDPOINT.type).trim() || DEFAULT_MACHINE_HARDPOINT.type,
+    size: normalizeMachineWeaponSize(hardpoint?.size ?? DEFAULT_MACHINE_HARDPOINT.size),
+    location: String(hardpoint?.location ?? defaultLocation ?? DEFAULT_MACHINE_HARDPOINT.location).trim(),
+    itemId: String(hardpoint?.itemId ?? DEFAULT_MACHINE_HARDPOINT.itemId).trim(),
+  })).map((hardpoint, index) => ({
+    ...hardpoint,
+    id: hardpoint.id || (typeof idFactory === "function" ? idFactory(index) : `hardpoint-${index + 1}`),
   }));
+}
+
+export function getConfiguredMachineHardpoints(actor = null) {
+  return normalizeMachineHardpoints(rawHardpointsArray(actor));
+}
+
+export function reconcileMachineHardpoints(currentRaw = [], stagedRaw = [], { defaultLocation = "" } = {}) {
+  const current = normalizeMachineHardpoints(currentRaw, { defaultLocation });
+  const stagedById = new Map(
+    normalizeMachineHardpoints(stagedRaw, { defaultLocation })
+      .map(hardpoint => [hardpoint.id, hardpoint])
+      .filter(([id]) => id)
+  );
+
+  return current.map(hardpoint => {
+    const staged = stagedById.get(hardpoint.id);
+    if (!staged) return hardpoint;
+    return {
+      ...hardpoint,
+      type: staged.type,
+      size: staged.size,
+      location: staged.location || defaultLocation,
+      itemId: hardpoint.itemId,
+    };
+  });
+}
+
+export function appendMachineHardpoint(currentRaw = [], hardpoint = {}, { defaultLocation = "", idFactory = null } = {}) {
+  const current = normalizeMachineHardpoints(currentRaw, { defaultLocation });
+  const nextId = String(hardpoint?.id ?? "").trim()
+    || (typeof idFactory === "function" ? idFactory(current.length) : `hardpoint-${current.length + 1}`);
+
+  return [
+    ...current,
+    ...normalizeMachineHardpoints([{
+      ...DEFAULT_MACHINE_HARDPOINT,
+      location: defaultLocation,
+      ...hardpoint,
+      id: nextId,
+    }], { defaultLocation }),
+  ];
+}
+
+export function removeMachineHardpointById(currentRaw = [], hardpointId = "", { defaultLocation = "" } = {}) {
+  const normalizedId = String(hardpointId ?? "").trim();
+  const current = normalizeMachineHardpoints(currentRaw, { defaultLocation });
+  let removed = null;
+  const hardpoints = current.filter(hardpoint => {
+    if (hardpoint.id !== normalizedId) return true;
+    removed = hardpoint;
+    return false;
+  });
+  return { hardpoints, removed };
+}
+
+export function assignMachineHardpointOccupant(currentRaw = [], hardpointId = "", itemId = "", { defaultLocation = "" } = {}) {
+  const normalizedHardpointId = String(hardpointId ?? "").trim();
+  const normalizedItemId = String(itemId ?? "").trim();
+  const current = normalizeMachineHardpoints(currentRaw, { defaultLocation });
+  let changed = false;
+
+  const hardpoints = current.map(hardpoint => {
+    let nextItemId = hardpoint.itemId;
+    if (normalizedItemId && hardpoint.id !== normalizedHardpointId && hardpoint.itemId === normalizedItemId) {
+      nextItemId = "";
+    }
+    if (hardpoint.id === normalizedHardpointId) {
+      nextItemId = normalizedItemId;
+    }
+    if (nextItemId !== hardpoint.itemId) changed = true;
+    return {
+      ...hardpoint,
+      itemId: nextItemId,
+    };
+  });
+
+  return { hardpoints, changed };
+}
+
+export function updateMachineHardpointSettings(currentRaw = [], hardpointId = "", settings = {}, { defaultLocation = "" } = {}) {
+  const normalizedId = String(hardpointId ?? "").trim();
+  const current = normalizeMachineHardpoints(currentRaw, { defaultLocation });
+  let changed = false;
+
+  const hardpoints = current.map(hardpoint => {
+    if (hardpoint.id !== normalizedId) return hardpoint;
+
+    const next = {
+      ...hardpoint,
+      type: String(settings?.type ?? hardpoint.type).trim() || hardpoint.type,
+      size: normalizeMachineWeaponSize(settings?.size ?? hardpoint.size, hardpoint.size),
+      location: String(settings?.location ?? hardpoint.location ?? defaultLocation).trim() || defaultLocation,
+      itemId: hardpoint.itemId,
+    };
+    changed ||= JSON.stringify(next) !== JSON.stringify(hardpoint);
+    return next;
+  });
+
+  return { hardpoints, changed };
 }
 
 export function getMachineHardpointById(actor = null, hardpointId = "") {
