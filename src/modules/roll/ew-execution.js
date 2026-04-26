@@ -16,6 +16,29 @@ function getAttackerTokenFromUuid(uuid) {
   return canvas?.tokens?.placeables?.find(t => (t.document?.uuid ?? t.uuid) === id) ?? null;
 }
 
+function getAttackerTokenFromId(id) {
+  const tokenId = String(id ?? "").trim();
+  if (!tokenId) return null;
+  return canvas?.tokens?.get?.(tokenId)
+    ?? canvas?.tokens?.placeables?.find(t => (t.id ?? t.document?.id) === tokenId)
+    ?? null;
+}
+
+function getCombatantById(id) {
+  const combatantId = String(id ?? "").trim();
+  if (!combatantId) return null;
+  const combatants = game.combat?.combatants;
+  return combatants?.get?.(combatantId)
+    ?? combatants?.find?.(combatant => combatant?.id === combatantId)
+    ?? null;
+}
+
+function resolveAttackerCombatant(context = {}) {
+  return getCombatantById(context?.attackerCombatantId)
+    ?? getAttackerCombatant(getAttackerTokenFromUuid(context?.attackerTokenUuid))
+    ?? getAttackerCombatant(getAttackerTokenFromId(context?.attackerTokenId));
+}
+
 /**
  * Apply the result of an acquire roll: advance the detection state by 1 tier
  * (capped by the ceiling declared in ctx.acquire).
@@ -55,8 +78,7 @@ export async function resolveAcquireExecution({ attacker, ctx, outcomeModel } = 
     ctx,
   });
 
-  const attackerToken = getAttackerTokenFromUuid(acquire.attackerTokenUuid);
-  const combatant     = getAttackerCombatant(attackerToken);
+  const combatant = resolveAttackerCombatant(acquire);
   if (combatant) {
     await setDetectionState(combatant, acquire.targetTokenUuid, newState);
   } else {
@@ -100,14 +122,15 @@ export async function resolveTargetingExecution({ attacker, ctx, outcomeModel } 
   const rawValue = hits;
   const capped   = Math.min(rawValue, targeting.cap);
 
-  const attackerToken = getAttackerTokenFromUuid(targeting.attackerTokenUuid);
+  const attackerToken = getAttackerTokenFromUuid(targeting.attackerTokenUuid)
+    ?? getAttackerTokenFromId(targeting.attackerTokenId);
   const packet = buildTargetingPacket({
     value:       capped,
     sourceToken: attackerToken,
     round:       game.combat?.round ?? null,
   });
 
-  const combatant = getAttackerCombatant(attackerToken);
+  const combatant = resolveAttackerCombatant(targeting);
   if (combatant) {
     await setTargetingPacket(combatant, targeting.targetTokenUuid, packet);
   } else {

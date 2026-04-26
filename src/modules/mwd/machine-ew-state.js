@@ -27,6 +27,46 @@ function asObject(value) {
   return value && typeof value === "object" ? value : {};
 }
 
+function getObjectPath(source = {}, path = "") {
+  const key = normalizeTargetUuid(path);
+  if (!key) return undefined;
+  if (Object.prototype.hasOwnProperty.call(source, key)) return source[key];
+
+  if (typeof foundry?.utils?.getProperty === "function") {
+    const value = foundry.utils.getProperty(source, key);
+    if (value !== undefined) return value;
+  }
+
+  return key.split(".").reduce((current, part) => {
+    if (!current || typeof current !== "object") return undefined;
+    return current[part];
+  }, source);
+}
+
+function setObjectPath(target = {}, path = "", value = null) {
+  const key = normalizeTargetUuid(path);
+  if (!key) return target;
+
+  if (Object.prototype.hasOwnProperty.call(target, key)) {
+    target[key] = value;
+    return target;
+  }
+
+  if (typeof foundry?.utils?.setProperty === "function") {
+    foundry.utils.setProperty(target, key, value);
+    return target;
+  }
+
+  const parts = key.split(".").filter(Boolean);
+  let current = target;
+  for (const part of parts.slice(0, -1)) {
+    if (!current[part] || typeof current[part] !== "object") current[part] = {};
+    current = current[part];
+  }
+  current[parts.at(-1)] = value;
+  return target;
+}
+
 // ---------------------------------------------------------------------------
 // Combatant lookup
 // ---------------------------------------------------------------------------
@@ -137,7 +177,7 @@ export function listTargetingStates(combatant) {
 export function getTargetingState(combatant, targetTokenUuid) {
   const uuid = normalizeTargetUuid(targetTokenUuid);
   const all = asObject(readRawTargetingState(combatant));
-  return normalizeTargetingState(all[uuid]);
+  return normalizeTargetingState(getObjectPath(all, uuid));
 }
 
 export const getEwTargetState = getTargetingState;
@@ -221,10 +261,10 @@ export async function setDetectionState(combatant, targetTokenUuid, newState) {
   const detectionState = DETECTION_STATE_ORDER.includes(newState) ? newState : "blind";
   const all = cloneAllTargetingStates(combatant);
   const current = getTargetingState(combatant, uuid);
-  all[uuid] = {
+  setObjectPath(all, uuid, {
     detectionState,
     packet: current.packet ? foundry.utils.deepClone(current.packet) : null,
-  };
+  });
   await writeRawTargetingState(combatant, all);
 }
 
@@ -234,10 +274,10 @@ export async function setTargetingPacket(combatant, targetTokenUuid, packet) {
   if (!uuid || !combatant || !normalizedPacket) return;
   const all = cloneAllTargetingStates(combatant);
   const current = getTargetingState(combatant, uuid);
-  all[uuid] = {
+  setObjectPath(all, uuid, {
     detectionState: current.detectionState,
     packet: normalizedPacket,
-  };
+  });
   await writeRawTargetingState(combatant, all);
 }
 
@@ -248,10 +288,10 @@ export async function clearTargetingPacket(combatant, targetTokenUuid) {
   if (!uuid || !combatant) return;
   const all = cloneAllTargetingStates(combatant);
   const current = getTargetingState(combatant, uuid);
-  all[uuid] = {
+  setObjectPath(all, uuid, {
     detectionState: current.detectionState,
     packet: null,
-  };
+  });
   await writeRawTargetingState(combatant, all);
 }
 

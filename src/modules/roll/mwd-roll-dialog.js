@@ -9,7 +9,21 @@ import {
   getSkillSpecializationLabel,
 } from "../mwd/skills.js";
 import { getPersonalRangeBandName } from "../mwd/personal-range-bands.js";
+import {
+  getIndirectAttackPenalty,
+  isMachineActor,
+  normalizeTargetMotion,
+  TARGET_MOTION_LABELS,
+} from "../mwd/machine-attack-motion.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
+const ATTACK_OPTION_MODIFIERS = Object.freeze([
+  Object.freeze({ id: "attackOption.lightObscuring", label: "Light obscuring terrain", value: -1 }),
+  Object.freeze({ id: "attackOption.heavyObscuring", label: "Heavy obscuring terrain", value: -2 }),
+  Object.freeze({ id: "attackOption.multipleObscurants", label: "Multiple/intervening obscurants", value: -3 }),
+  Object.freeze({ id: "attackOption.sensorHaze", label: "Smoke / ECM / sensor haze", value: -1 }),
+  Object.freeze({ id: "attackOption.advantageousPosition", label: "Advantageous Position", value: 1 }),
+]);
 
 /**
  * Build display steps for a horizontal modifier stepper.
@@ -47,6 +61,90 @@ function normalizeManualRows(rows) {
     label: typeof r?.label === "string" ? r.label : "Manual",
     value: Number(r?.value ?? 0)
   }));
+}
+
+function normalizeAttackOptions(payload = {}) {
+  return payload.attackOptions && typeof payload.attackOptions === "object"
+    ? payload.attackOptions
+    : {};
+}
+
+function writeAttackOptions(payload = {}, next = {}) {
+  payload.attackOptions = {
+    ...normalizeAttackOptions(payload),
+    ...next,
+  };
+}
+
+function writeMachineMotion(payload = {}, next = {}) {
+  payload.machineMotion = {
+    ...(payload.machineMotion && typeof payload.machineMotion === "object" ? payload.machineMotion : {}),
+    ...next,
+  };
+}
+
+function hasManualRow(rows = [], id = "") {
+  return rows.some(row => row?.id === id);
+}
+
+function addOrUpdateManualRow(rows = [], row = {}) {
+  const id = String(row?.id ?? "").trim();
+  if (!id) return rows;
+  const index = rows.findIndex(entry => entry?.id === id);
+  const nextRow = {
+    id,
+    label: String(row?.label ?? "Manual").trim() || "Manual",
+    value: Number(row?.value ?? 0),
+  };
+  if (index >= 0) {
+    rows[index] = nextRow;
+  } else {
+    rows.push(nextRow);
+  }
+  return rows;
+}
+
+function removeManualRow(rows = [], id = "") {
+  return rows.filter(row => row?.id !== id);
+}
+
+function buildAttackOptionControls({ manual = [], attack = null, payload = {} } = {}) {
+  if (!attack) return null;
+
+  const attackOptions = normalizeAttackOptions(payload);
+  const indirectValue = getIndirectAttackPenalty(attack.rangeBand);
+  const indirectActive = Boolean(attackOptions.indirectAttack) || hasManualRow(manual, "attackOption.indirectAttack");
+  if (indirectActive) {
+    addOrUpdateManualRow(manual, {
+      id: "attackOption.indirectAttack",
+      label: "Indirect Attack",
+      value: indirectValue,
+    });
+    writeAttackOptions(payload, { indirectAttack: true });
+  }
+  const options = [
+    ...ATTACK_OPTION_MODIFIERS,
+    { id: "attackOption.indirectAttack", label: "Indirect Attack", value: indirectValue, flag: "indirectAttack" },
+  ].map(option => ({
+    ...option,
+    valueLabel: option.value >= 0 ? `+${option.value}` : String(option.value),
+    active: option.id === "attackOption.indirectAttack"
+      ? indirectActive
+      : hasManualRow(manual, option.id),
+  }));
+
+  const motion = payload.machineMotion && typeof payload.machineMotion === "object" ? payload.machineMotion : {};
+  const selectedMotion = normalizeTargetMotion(motion.targetMotion);
+  return {
+    motionChoices: Object.entries(TARGET_MOTION_LABELS).map(([key, label]) => ({
+      key,
+      label,
+      selected: key === selectedMotion,
+    })),
+    jumped: Boolean(motion.jumped),
+    options,
+    losBlocked: Boolean(attackOptions.losBlocked),
+  };
 }
 
 function readToggle(payload, key) {
@@ -120,6 +218,10 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         setManualStepper: MWDRollDialog.prototype._onSetManualStepper,
         setEdgePrePool: MWDRollDialog.prototype._onSetEdgePrePool,
         toggleCheckbox: MWDRollDialog.prototype._onToggleCheckbox,
+        setMachineTargetMotion: MWDRollDialog.prototype._onSetMachineTargetMotion,
+        toggleMachineTargetJumped: MWDRollDialog.prototype._onToggleMachineTargetJumped,
+        toggleAttackOption: MWDRollDialog.prototype._onToggleAttackOption,
+        toggleAttackFlag: MWDRollDialog.prototype._onToggleAttackFlag,
         setDn: MWDRollDialog.prototype._onSetDn,
         setPayload: MWDRollDialog.prototype._onSetPayload,
         setSpecialization: MWDRollDialog.prototype._onSetSpecialization
@@ -285,6 +387,9 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const usesPayloads = String(attack?.weapon?.category ?? "").trim().toLowerCase() !== "melee" && payloads.length > 0;
     const selectedPayloadId = String(st?.payload?.payloadId ?? attack?.payloadState?.activePayloadId ?? "").trim();
     const selectedPayload = payloads.find(type => type.id === selectedPayloadId) ?? null;
+    const machineAttackOptions = intent === "attack" && attack && isMachineActor(this.actor)
+      ? buildAttackOptionControls({ manual: st.manual ?? [], attack, payload: st.payload ?? {} })
+      : null;
 
 
     return {
@@ -299,7 +404,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
       manual: (st.manual ?? []).map((r) => ({
         ...r,
-        steps: buildStepperSteps(Number(r.value ?? 0), -3, 3)
+        steps: buildStepperSteps(Number(r.value ?? 0), Math.min(-4, Number(r.value ?? 0), -3), 3)
       })),
       
       edge: {
@@ -341,7 +446,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         selectedPayloadId,
         selectedPayloadLabel: selectedPayload?.label ?? attack?.payload?.label ?? attack?.weapon?.payloadLabel ?? "",
         selectedSourceLabel: attack?.sourceState?.label ?? "",
-      } : null
+      } : null,
+      machineAttackOptions,
     };
   }
 
@@ -475,6 +581,47 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     return this.render(false);
   }
 
+  async _onSetMachineTargetMotion(event, target) {
+    event?.preventDefault();
+    const motion = normalizeTargetMotion(target?.dataset?.motion);
+    writeMachineMotion(this._mwd.state.payload, { targetMotion: motion });
+    return this.render(false);
+  }
+
+  async _onToggleMachineTargetJumped(event, target) {
+    event?.preventDefault();
+    writeMachineMotion(this._mwd.state.payload, { jumped: Boolean(target?.checked) });
+    return this.render(false);
+  }
+
+  async _onToggleAttackOption(event, target) {
+    event?.preventDefault();
+    const id = String(target?.dataset?.optionId ?? "").trim();
+    if (!id) return;
+
+    const manual = this._mwd.state.manual ?? [];
+    const active = hasManualRow(manual, id);
+    this._mwd.state.manual = active
+      ? removeManualRow(manual, id)
+      : addOrUpdateManualRow(manual, {
+        id,
+        label: target?.dataset?.label ?? "Attack Option",
+        value: Number(target?.dataset?.value ?? 0),
+      });
+
+    const flag = String(target?.dataset?.flag ?? "").trim();
+    if (flag) writeAttackOptions(this._mwd.state.payload, { [flag]: !active });
+    return this.render(false);
+  }
+
+  async _onToggleAttackFlag(event, target) {
+    event?.preventDefault();
+    const flag = String(target?.dataset?.flag ?? "").trim();
+    if (!flag) return;
+    writeAttackOptions(this._mwd.state.payload, { [flag]: Boolean(target?.checked) });
+    return this.render(false);
+  }
+
   async _onSetDn(event, target) {
     event?.preventDefault();
 
@@ -524,6 +671,18 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     root.querySelectorAll("[data-action='setDn']").forEach(input => {
       input.addEventListener("change", event => {
         void this._onSetDn(event, event.currentTarget);
+      });
+    });
+
+    root.querySelectorAll("[data-action='toggleMachineTargetJumped']").forEach(input => {
+      input.addEventListener("change", event => {
+        void this._onToggleMachineTargetJumped(event, event.currentTarget);
+      });
+    });
+
+    root.querySelectorAll("[data-action='toggleAttackFlag']").forEach(input => {
+      input.addEventListener("change", event => {
+        void this._onToggleAttackFlag(event, event.currentTarget);
       });
     });
   }

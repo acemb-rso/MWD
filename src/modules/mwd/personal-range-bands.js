@@ -16,11 +16,12 @@ export const PERSONAL_RANGE_BANDS = Object.freeze([
   Object.freeze({ key: "extreme", label: "Extreme", min: 63, max: 120, baseDn: 5 })
 ]);
 
-export const MECH_RANGE_BANDS = Object.freeze(PERSONAL_RANGE_BANDS.map(band => Object.freeze({
-  ...band,
-  min: band.min * 10,
-  max: band.max * 10,
-})));
+export const MECH_RANGE_BANDS = Object.freeze([
+  Object.freeze({ key: "close", label: "Close", min: 0, max: 59, baseDn: 2 }),
+  Object.freeze({ key: "near", label: "Near", min: 60, max: 269, baseDn: 3 }),
+  Object.freeze({ key: "far", label: "Far", min: 270, max: 629, baseDn: 4 }),
+  Object.freeze({ key: "extreme", label: "Extreme", min: 630, max: 1200, baseDn: 5 })
+]);
 export const WARSHIP_RANGE_BANDS = Object.freeze([]);
 
 export const RANGE_BANDS_BY_SCALE = Object.freeze({
@@ -81,6 +82,12 @@ export function getMechRangeBandName(key = "") {
 export function getPersonalRangeBandBaseDn(key = "", fallback = 1) {
   if (String(key ?? "").trim().toLowerCase() === "outofrange") return 6;
   const band = getPersonalRangeBand(key);
+  return Number.isFinite(Number(band?.baseDn)) ? Number(band.baseDn) : fallback;
+}
+
+export function getMechRangeBandBaseDn(key = "", fallback = 1) {
+  if (String(key ?? "").trim().toLowerCase() === "outofrange") return 6;
+  const band = getMechRangeBand(key);
   return Number.isFinite(Number(band?.baseDn)) ? Number(band.baseDn) : fallback;
 }
 

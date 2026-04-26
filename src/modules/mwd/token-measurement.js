@@ -3,10 +3,44 @@
 // How it fits: EW panels, combat trackers, and roll intents can all measure with
 // the same Foundry v12/v11-compatible fallback chain.
 
+const pendingTokenPositions = new Map();
+
 function getTokenCenter(token = null) {
-  return token?.center
-    ?? token?.object?.center
+  const tokenDocument = token?.document ?? token ?? null;
+  const tokenObject = token?.object ?? tokenDocument?.object ?? token ?? null;
+  const tokenId = String(tokenDocument?.id ?? token?.id ?? "").trim();
+  const pendingPosition = pendingTokenPositions.get(tokenId) ?? null;
+  const x = Number(pendingPosition?.x ?? tokenDocument?.x ?? token?.x);
+  const y = Number(pendingPosition?.y ?? tokenDocument?.y ?? token?.y);
+
+  if (tokenObject && Number.isFinite(x) && Number.isFinite(y)) {
+    if (typeof tokenObject.getCenterPoint === "function") {
+      return tokenObject.getCenterPoint({ x, y });
+    }
+    if (typeof tokenObject.getCenter === "function") {
+      return tokenObject.getCenter(x, y);
+    }
+  }
+
+  return tokenObject?.center
+    ?? tokenDocument?.object?.center
     ?? null;
+}
+
+export function cachePendingTokenPosition(tokenDocument = null, changed = {}) {
+  const tokenId = String(tokenDocument?.id ?? tokenDocument?.document?.id ?? "").trim();
+  if (!tokenId) return false;
+
+  const nextX = Object.prototype.hasOwnProperty.call(changed ?? {}, "x")
+    ? Number(changed.x)
+    : Number(tokenDocument?.x ?? tokenDocument?.document?.x);
+  const nextY = Object.prototype.hasOwnProperty.call(changed ?? {}, "y")
+    ? Number(changed.y)
+    : Number(tokenDocument?.y ?? tokenDocument?.document?.y);
+
+  if (!Number.isFinite(nextX) || !Number.isFinite(nextY)) return false;
+  pendingTokenPositions.set(tokenId, { x: nextX, y: nextY });
+  return true;
 }
 
 export function measureTokenDistance(sourceToken = null, targetToken = null) {

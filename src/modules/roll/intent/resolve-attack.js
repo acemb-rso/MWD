@@ -10,8 +10,11 @@ import {
   SKILL_SPECIALIZATION_BONUS,
 } from "../../mwd/skills.js";
 import {
+  getMechRangeBandBaseDn,
+  getMechRangeBandName,
   getPersonalRangeBandBaseDn,
   getPersonalRangeBandName,
+  selectMechRangeBand,
   selectPersonalRangeBand,
 } from "../../mwd/personal-range-bands.js";
 import { TEMPLATE } from "../../constants.js";
@@ -33,6 +36,10 @@ import {
 import { buildBattlemechWeaponGroupAttackProfile } from "../../mwd/battlemech-weapon-groups.js";
 import { getMachineFireControlProfile } from "../../mwd/machine-fire-control.js";
 import { buildClusteringProfile } from "../../mwd/machine-clustering.js";
+import {
+  buildMachineAttackMotionContext,
+  isMachineActor,
+} from "../../mwd/machine-attack-motion.js";
 
 function getTargets(payload = {}) {
   if (Array.isArray(payload?.targetSnapshots)) {
@@ -61,6 +68,10 @@ function getTargetToken(target = {}) {
   return canvas?.tokens?.get?.(tokenId)
     ?? canvas?.tokens?.placeables?.find?.(token => token?.id === tokenId)
     ?? null;
+}
+
+function getTargetActor(target = {}) {
+  return getTargetToken(target)?.actor ?? null;
 }
 
 function measureTokenDistance(sourceToken, targetToken) {
@@ -102,13 +113,23 @@ function measureTokenDistance(sourceToken, targetToken) {
 function resolveRangeBand({ actor, payload, weapon, targets = [] } = {}) {
   const explicit = String(payload?.rangeBand ?? "").trim().toLowerCase();
   const canMeasurePersonalRange = (weapon?.type === "personalWeapon" || weapon?.isSynthetic) && targets.length === 1;
-  if (!canMeasurePersonalRange) {
+  const canMeasureMachineRange = isMachineActor(actor) && targets.length === 1;
+  if (!canMeasurePersonalRange && !canMeasureMachineRange) {
     return explicit || String(weapon?.defaultRangeBand ?? "close").trim() || "close";
   }
 
   const sourceToken = getSourceToken(actor, payload);
   const targetToken = getTargetToken(targets[0]);
   const distance = measureTokenDistance(sourceToken, targetToken);
+  if (canMeasureMachineRange) {
+    const measuredBand = selectMechRangeBand(distance, weapon?.defaultRangeBand ?? "close");
+    if (measuredBand === "outOfRange") {
+      return measuredBand;
+    }
+    if (explicit) return explicit;
+    return measuredBand;
+  }
+
   const measuredBand = selectPersonalRangeBand(distance, weapon?.range ?? {}, weapon?.defaultRangeBand ?? "close");
   if (measuredBand === "outOfRange") {
     return measuredBand;
@@ -120,10 +141,6 @@ function resolveRangeBand({ actor, payload, weapon, targets = [] } = {}) {
     return String(weapon?.defaultRangeBand ?? "close").trim() || "close";
   }
   return measuredBand;
-}
-
-function isMachineActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
 }
 
 function isMachineWeapon(item) {
@@ -324,7 +341,7 @@ export async function resolveAttack({ actor, payload } = {}) {
   const rangeBand = resolveRangeBand({ actor, payload, weapon: effectiveWeapon, targets });
   const rangeBandLabel = (effectiveWeapon?.type === "personalWeapon" || effectiveWeapon?.isSynthetic)
     ? getPersonalRangeBandName(rangeBand)
-    : rangeBand;
+    : getMechRangeBandName(rangeBand);
   const attackRating = Number(effectiveWeapon?.attackRatingBand?.[rangeBand] ?? 0) || 0;
   const requiresTemplatedWorkflow = Boolean(effectiveWeapon?.capabilityReport?.isTemplated);
   const aim = payload?.aim?.active
@@ -342,11 +359,47 @@ export async function resolveAttack({ actor, payload } = {}) {
     throw createUserFacingRollError("Target at least one token to attack.", { severity: "warn" });
   }
   const totalAp = Number(effectiveWeapon.ap ?? 0) + Number(effectiveWeapon?.effects?.ap ?? 0);
-  const dn = Number.isFinite(Number(payload?.dn))
-    ? Number(payload.dn)
-    : ((effectiveWeapon?.type === "personalWeapon" || effectiveWeapon?.isSynthetic)
-      ? getPersonalRangeBandBaseDn(rangeBand, 1)
-      : 1);
+  const attackOptions = payload?.attackOptions && typeof payload.attackOptions === "object" ? payload.attackOptions : {};
+  if (isMachineActor(actor) && attackOptions.losBlocked && !attackOptions.indirectAttack) {
+    throw createUserFacingRollError("Line of sight is fully blocked. Use Indirect Attack or sensor-enabled fire.", { severity: "warn" });
+  }
+
+  const machineMotion = isMachineActor(actor) && targets.length === 1
+    ? buildMachineAttackMotionContext({
+      targetActor: getTargetActor(targets[0]),
+      payload,
+    })
+    : null;
+  const baseDn = (effectiveWeapon?.type === "personalWeapon" || effectiveWeapon?.isSynthetic)
+    ? getPersonalRangeBandBaseDn(rangeBand, 1)
+    : getMechRangeBandBaseDn(rangeBand, 1);
+  const hasDnOverride = Number.isFinite(Number(payload?.dn));
+  const dnParts = [{
+    id: "difficulty.current",
+    label: (effectiveWeapon?.type === "personalWeapon" || effectiveWeapon?.isSynthetic)
+      ? `Base DN (${rangeBandLabel})`
+      : `Base DN (${rangeBandLabel})`,
+    value: baseDn,
+    tags: ["base", "range"]
+  }];
+  if (machineMotion?.motionDn) {
+    dnParts.push({
+      id: "machineMotion.actions",
+      label: `Target Motion (${machineMotion.targetMotionLabel})`,
+      value: machineMotion.motionDn,
+      tags: ["motion"],
+    });
+  }
+  if (machineMotion?.jumpDn) {
+    dnParts.push({
+      id: "machineMotion.jump",
+      label: "Target Jumped",
+      value: machineMotion.jumpDn,
+      tags: ["motion", "jump"],
+    });
+  }
+  const computedDn = dnParts.reduce((sum, part) => sum + Number(part.value ?? 0), 0);
+  const dn = hasDnOverride ? Number(payload.dn) : computedDn;
 
   if (isMachineActor(actor) && isMachineRangeCappedToClose(actor) && rangeBand !== "close") {
     throw createUserFacingRollError("Sensor Blind limits attacks to Close range.", { severity: "warn" });
@@ -363,7 +416,7 @@ export async function resolveAttack({ actor, payload } = {}) {
     const isVisible = targetTokenObj?.visible ?? true;
     const effectiveState = isVisible ? getDetectionState(combatant, targetTokenUuid) : "blind";
 
-    if (effectiveState === "blind") {
+    if (combatant && effectiveState === "blind") {
       throw createUserFacingRollError("No targeting solution. Acquire contact first.", { severity: "warn" });
     }
 
@@ -390,14 +443,14 @@ export async function resolveAttack({ actor, payload } = {}) {
     diceTarget: Number.isFinite(Number(payload?.diceTarget)) ? Number(payload.diceTarget) : 5,
     difficulty: { dn },
     dn: {
-      parts: [{
-        id: "difficulty.current",
-        label: (effectiveWeapon?.type === "personalWeapon" || effectiveWeapon?.isSynthetic)
-          ? `Base DN (${rangeBandLabel})`
-          : "DN",
-        value: dn,
-        tags: ["manual"]
-      }],
+      parts: hasDnOverride
+        ? [{
+          id: "difficulty.override",
+          label: "DN Override",
+          value: dn,
+          tags: ["override"],
+        }]
+        : dnParts,
       total: dn
     },
     edge: {
@@ -452,6 +505,11 @@ export async function resolveAttack({ actor, payload } = {}) {
       aim,
       totalAp,
       ewContext,
+      machineMotion,
+      attackOptions: {
+        indirectAttack: Boolean(attackOptions.indirectAttack),
+        losBlocked: Boolean(attackOptions.losBlocked),
+      },
     },
     specialization: selectedSpecialization ? {
       key: selectedSpecialization.key,

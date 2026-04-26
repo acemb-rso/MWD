@@ -31,6 +31,10 @@ function resolveAttackerToken(actor, payload) {
     ?? null;
 }
 
+function getTokenDisplayName(token, fallback = "Target") {
+  return String(token?.name ?? token?.actor?.name ?? fallback).trim() || fallback;
+}
+
 const DN = 2;
 
 export async function resolveTargeting({ actor, payload } = {}) {
@@ -47,6 +51,7 @@ export async function resolveTargeting({ actor, payload } = {}) {
     throw createUserFacingRollError("Target a token to generate targeting data.", { severity: "warn" });
   }
   const targetTokenUuid = targetToken.document?.uuid ?? targetToken.uuid ?? "";
+  const targetName = getTokenDisplayName(targetToken);
 
   const attackerToken = resolveAttackerToken(actor, payload);
   const combatant     = getAttackerCombatant(attackerToken);
@@ -72,7 +77,7 @@ export async function resolveTargeting({ actor, payload } = {}) {
     intent:    "targeting",
     rollType:  "simple",
     title:     "Generate Targeting Data",
-    subtitle:  actor.name ?? "Machine",
+    subtitle:  targetName,
     domains:   ["mental"],
     diceTarget: 5,
     difficulty: { dn: DN },
@@ -95,9 +100,12 @@ export async function resolveTargeting({ actor, payload } = {}) {
     targeting: {
       machineActorUuid:  actor.uuid ?? "",
       operatorActorUuid: operator.actor?.uuid ?? "",
+      attackerTokenId:   attackerToken?.id ?? attackerToken?.document?.id ?? "",
       attackerTokenUuid: attackerToken?.document?.uuid ?? attackerToken?.uuid ?? "",
+      attackerCombatantId: combatant?.id ?? "",
       targetTokenUuid,
       targetTokenId:     targetToken?.id ?? "",
+      targetName,
       detectionState,
       detectionStateLabel: getDetectionStateLabel(detectionState),
       cap,

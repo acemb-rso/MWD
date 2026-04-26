@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { buildMachineEwPanel, resolveMachineEwActionTarget } from "../src/modules/mwd/machine-ew-panel.js";
+import { cachePendingTokenPosition } from "../src/modules/mwd/token-measurement.js";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -149,6 +150,106 @@ test("EW panel shows measured machine-scale range and distance for targets", () 
   assert.equal(row.rangeBand, "near");
   assert.equal(row.rangeBandLabel, "Near");
   assert.equal(row.distanceLabel, "140 m");
+
+  delete globalThis.canvas;
+});
+
+test("EW panel measures TokenDocument positions through current document coordinates", () => {
+  globalThis.canvas = {
+    scene: {
+      grid: {
+        units: "m",
+      },
+    },
+    grid: {
+      measurePath(points) {
+        const [source, target] = points;
+        return { distance: Math.abs(Number(target?.x ?? 0) - Number(source?.x ?? 0)) };
+      },
+    },
+  };
+
+  const target = createTargetToken({
+    id: "target-document-range",
+    uuid: "Scene.scene.Token.target-document-range",
+    name: "Enemy at Current Range",
+  });
+  target.center = { x: 60, y: 0 };
+
+  const panel = buildMachineEwPanel({
+    actor: {
+      system: {
+        attributes: {
+          system: { value: 3 },
+        },
+      },
+    },
+    token: {
+      id: "attacker-token",
+      x: 10,
+      y: 0,
+      object: {
+        center: { x: 999, y: 0 },
+        getCenterPoint: ({ x, y }) => ({ x, y }),
+      },
+    },
+    targets: [target],
+  });
+
+  const [row] = panel.rows;
+  assert.equal(row.hasRange, true);
+  assert.equal(row.rangeBand, "close");
+  assert.equal(row.distanceLabel, "50 m");
+
+  delete globalThis.canvas;
+});
+
+test("EW panel uses pending token move coordinates before canvas centers refresh", () => {
+  globalThis.canvas = {
+    scene: {
+      grid: {
+        units: "m",
+      },
+    },
+    grid: {
+      measurePath(points) {
+        const [source, target] = points;
+        return { distance: Math.abs(Number(target?.x ?? 0) - Number(source?.x ?? 0)) };
+      },
+    },
+  };
+
+  const target = createTargetToken({
+    id: "target-pending-range",
+    uuid: "Scene.scene.Token.target-pending-range",
+    name: "Enemy After Move",
+  });
+  target.center = { x: 60, y: 0 };
+  target.document.x = 60;
+  target.document.y = 0;
+  target.object = {
+    center: { x: 60, y: 0 },
+    getCenterPoint: ({ x, y }) => ({ x, y }),
+  };
+
+  cachePendingTokenPosition(target.document, { x: 280 });
+
+  const panel = buildMachineEwPanel({
+    actor: {
+      system: {
+        attributes: {
+          system: { value: 3 },
+        },
+      },
+    },
+    token: { id: "attacker-token", center: { x: 0, y: 0 } },
+    targets: [target],
+  });
+
+  const [row] = panel.rows;
+  assert.equal(row.hasRange, true);
+  assert.equal(row.rangeBand, "far");
+  assert.equal(row.distanceLabel, "280 m");
 
   delete globalThis.canvas;
 });

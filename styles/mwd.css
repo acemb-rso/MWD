@@ -5686,8 +5686,14 @@
   border-color: rgba(120, 70, 160, 0.5);
 }
 
+.mwd-roll-dialog {
+  max-height: calc(100vh - 48px);
+}
 .mwd-roll-dialog .window-content {
   padding: 0;
+  max-height: calc(100vh - 92px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .mwd-roll-dialog__root {
@@ -5695,6 +5701,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-height: 0;
 }
 
 .mwd-roll-dialog__header {
@@ -5721,7 +5728,7 @@
 
 .mwd-roll-dialog__panel {
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 10px;
   background: rgba(0, 0, 0, 0.18);
 }
@@ -5846,6 +5853,105 @@
   opacity: 0.95;
 }
 
+.mwd-roll-dialog__check--toggle {
+  width: fit-content;
+  margin-top: 8px;
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mwd-roll-dialog__check--toggle.is-selected {
+  border-color: var(--csb-success, #5a9a5a);
+  background: rgba(90, 154, 90, 0.22);
+  box-shadow: inset 3px 0 0 var(--csb-success, #5a9a5a);
+  font-weight: 700;
+}
+
+.mwd-roll-dialog__choice-grid {
+  display: grid;
+  gap: 6px;
+}
+
+.mwd-roll-dialog__choice-grid--motion {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mwd-roll-dialog__choice-grid--options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mwd-roll-dialog__choice {
+  position: relative;
+  min-width: 0;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.mwd-roll-dialog__choice:hover,
+.mwd-roll-dialog__check--toggle:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mwd-roll-dialog__choice.is-selected {
+  border-color: var(--csb-success, #5a9a5a);
+  background: rgba(90, 154, 90, 0.22);
+  box-shadow: inset 3px 0 0 var(--csb-success, #5a9a5a);
+  font-weight: 700;
+}
+
+.mwd-roll-dialog__choice.is-selected::after {
+  content: "ON";
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--csb-success, #5a9a5a);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.mwd-roll-dialog__choice-grid--motion .mwd-roll-dialog__choice {
+  justify-content: center;
+  text-align: center;
+}
+
+.mwd-roll-dialog__choice-grid--motion .mwd-roll-dialog__choice.is-selected::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.mwd-roll-dialog__choice-label {
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.mwd-roll-dialog__choice-value {
+  flex: 0 0 auto;
+  opacity: 0.78;
+  font-variant-numeric: tabular-nums;
+}
+
 .mwd-roll-dialog__footer {
   display: flex;
   justify-content: space-between;
@@ -5948,38 +6054,45 @@
   mask: var(--mwd-die-url) center/contain no-repeat;
   opacity: 0.75;
 }
-.mwd-mod-stepper__die .mwd-roll-dialog__edge-pools {
+
+.mwd-roll-dialog__edge-pools {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.5rem;
 }
-.mwd-mod-stepper__die .mwd-edge-pool {
+
+.mwd-roll-dialog .mwd-edge-pool {
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--csb-border);
   background: var(--wrapper-background-color);
 }
-.mwd-mod-stepper__die .mwd-edge-pool.is-selected {
-  border-color: var(--csb-accent);
-  background: var(--wrapper-background-color);
-  outline: 2px solid var(--csb-accent, #caa95a);
-  font-weight: 600;
-}
-.mwd-mod-stepper__die .mwd-roll-dialog__edge-pools .mwd-edge-pool.is-selected {
+
+.mwd-roll-dialog .mwd-edge-pool.is-selected,
+.mwd-roll-dialog__edge-pools .mwd-edge-pool.is-selected {
   outline: 2px solid var(--csb-success, #5a9a5a);
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2) inset;
   font-weight: 600;
 }
-.mwd-mod-stepper__die .mwd-roll-dialog__edge-selected {
+
+.mwd-roll-dialog__edge-selected {
   margin-left: 0.35rem;
   opacity: 0.85;
   font-weight: 600;
 }
-.mwd-mod-stepper__die .mwd-roll-dialog__edge-selected.is-missing {
+
+.mwd-roll-dialog__edge-selected.is-missing {
   opacity: 0.6;
   font-weight: 500;
   font-style: italic;
 }
 
+@media (max-width: 540px) {
+  .mwd-roll-dialog__choice-grid--motion,
+  .mwd-roll-dialog__choice-grid--options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 /* ----------------------------------------- */
 /* MWD GM Gadget                             */
 /* ----------------------------------------- */

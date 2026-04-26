@@ -43,6 +43,10 @@ function resolveAttackerToken(actor, payload) {
     ?? null;
 }
 
+function getTokenDisplayName(token, fallback = "Target") {
+  return String(token?.name ?? token?.actor?.name ?? fallback).trim() || fallback;
+}
+
 export async function resolveAcquire({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveAcquire requires actor");
   if (!isMachineActor(actor)) {
@@ -58,6 +62,7 @@ export async function resolveAcquire({ actor, payload } = {}) {
   }
   const targetActor = targetToken.actor;
   const targetTokenUuid = targetToken.document?.uuid ?? targetToken.uuid ?? "";
+  const targetName = getTokenDisplayName(targetToken);
 
   const attackerToken = resolveAttackerToken(actor, payload);
   const combatant = getAttackerCombatant(attackerToken);
@@ -92,7 +97,7 @@ export async function resolveAcquire({ actor, payload } = {}) {
     intent:    "acquire",
     rollType:  "simple",
     title:     "Acquire Target",
-    subtitle:  actor.name ?? "Machine",
+    subtitle:  targetName,
     domains:   ["mental"],
     diceTarget: 5,
     difficulty: { dn },
@@ -118,9 +123,12 @@ export async function resolveAcquire({ actor, payload } = {}) {
     acquire: {
       machineActorUuid:   actor.uuid ?? "",
       operatorActorUuid:  operator.actor?.uuid ?? "",
+      attackerTokenId:    attackerToken?.id ?? attackerToken?.document?.id ?? "",
       attackerTokenUuid:  attackerToken?.document?.uuid ?? attackerToken?.uuid ?? "",
+      attackerCombatantId: combatant?.id ?? "",
       targetTokenUuid,
       targetTokenId:      targetToken?.id ?? "",
+      targetName,
       currentState,
       currentStateLabel:  getDetectionStateLabel(currentState),
       ceiling,

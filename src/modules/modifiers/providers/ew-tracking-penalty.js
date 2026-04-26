@@ -2,7 +2,8 @@
 // Emits negative dice-pool modifiers for attack rolls against EW-hardened targets.
 
 import { TEMPLATE } from "../../constants.js";
-import { getAttackerCombatant, getTrackingPenalty } from "../../mwd/machine-ew-state.js";
+import { getTrackingPenalty } from "../../mwd/machine-ew-state.js";
+import { buildMachineAttackMotionContext } from "../../mwd/machine-attack-motion.js";
 
 function isMachineActor(actor) {
   return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
@@ -26,16 +27,37 @@ export class EwTrackingPenaltyProvider {
 
     const targetToken = canvas?.tokens?.get?.(targetTokenId) ?? null;
     const targetActor = targetToken?.actor ?? null;
-    const targetCombatant = game.combat?.combatants?.find(c => c.tokenId === targetTokenId) ?? null;
+    const mods = [];
 
-    const penalty = getTrackingPenalty(targetActor, targetCombatant);
-    if (!penalty) return [];
+    const penalty = getTrackingPenalty(targetActor, null);
+    if (penalty) {
+      mods.push({
+        id: "ew.trackingPenalty",
+        label: "Tracking Penalty",
+        value: -penalty,
+        source: "EW",
+      });
+    }
 
-    return [{
-      id: "ew.trackingPenalty",
-      label: "Tracking Penalty",
-      value: -penalty,
-      source: "EW",
-    }];
+    const motion = resolved?.attack?.machineMotion
+      ?? buildMachineAttackMotionContext({ targetActor, payload });
+    if (motion?.movementTrackingPenalty) {
+      mods.push({
+        id: "machineMotion.tracking",
+        label: `Target Movement (${Number(motion.trackingHexes ?? 0)} hex)`,
+        value: motion.movementTrackingPenalty,
+        source: "Motion",
+      });
+    }
+    if (motion?.jumpTrackingPenalty) {
+      mods.push({
+        id: "machineMotion.jumpTracking",
+        label: "Target Jumped",
+        value: motion.jumpTrackingPenalty,
+        source: "Motion",
+      });
+    }
+
+    return mods;
   }
 }

@@ -125,6 +125,63 @@ How it fits: Used by rendering code to produce UI fragments.
     </div>
   {{/if}}
 
+  {{#if machineAttackOptions}}
+    <div class="mwd-roll-dialog__panel">
+      <div class="mwd-roll-dialog__panel-title">Target Motion</div>
+
+      <div class="mwd-roll-dialog__choice-grid mwd-roll-dialog__choice-grid--motion">
+        {{#each machineAttackOptions.motionChoices as |choice|}}
+          <button
+            type="button"
+            class="mwd-roll-dialog__choice {{#if choice.selected}}is-selected{{/if}}"
+            data-action="setMachineTargetMotion"
+            data-motion="{{choice.key}}"
+            aria-pressed="{{#if choice.selected}}true{{else}}false{{/if}}">
+            <span class="mwd-roll-dialog__choice-label">{{choice.label}}</span>
+          </button>
+        {{/each}}
+      </div>
+
+      <label class="mwd-roll-dialog__check mwd-roll-dialog__check--toggle {{#if machineAttackOptions.jumped}}is-selected{{/if}}">
+        <input
+          type="checkbox"
+          {{checked machineAttackOptions.jumped}}
+          data-action="toggleMachineTargetJumped" />
+        <span>Target jumped</span>
+      </label>
+    </div>
+
+    <div class="mwd-roll-dialog__panel">
+      <div class="mwd-roll-dialog__panel-title">Attack Options</div>
+
+      <div class="mwd-roll-dialog__choice-grid mwd-roll-dialog__choice-grid--options">
+        {{#each machineAttackOptions.options as |option|}}
+          <button
+            type="button"
+            class="mwd-roll-dialog__choice {{#if option.active}}is-selected{{/if}}"
+            data-action="toggleAttackOption"
+            data-option-id="{{option.id}}"
+            data-label="{{option.label}}"
+            data-value="{{option.value}}"
+            {{#if option.flag}}data-flag="{{option.flag}}"{{/if}}
+            aria-pressed="{{#if option.active}}true{{else}}false{{/if}}">
+            <span class="mwd-roll-dialog__choice-label">{{option.label}}</span>
+            <span class="mwd-roll-dialog__choice-value">{{option.valueLabel}}</span>
+          </button>
+        {{/each}}
+      </div>
+
+      <label class="mwd-roll-dialog__check mwd-roll-dialog__check--toggle {{#if machineAttackOptions.losBlocked}}is-selected{{/if}}">
+        <input
+          type="checkbox"
+          {{checked machineAttackOptions.losBlocked}}
+          data-action="toggleAttackFlag"
+          data-flag="losBlocked" />
+        <span>LOS fully blocked</span>
+      </label>
+    </div>
+  {{/if}}
+
   {{#if specialization}}
     <div class="mwd-field">
       <label>Specialization</label>

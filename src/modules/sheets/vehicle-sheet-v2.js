@@ -40,6 +40,7 @@ import { getMachineLocationLabel } from "../mwd/machine-hit-locations.js";
 import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import { buildMachineMovementFields, buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
 import { getSkillDef } from "../mwd/skills.js";
+import { cachePendingTokenPosition } from "../mwd/token-measurement.js";
 import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
 import { normalizeMachineWeaponGroups, pruneWeaponGroupsToMountedItems } from "../mwd/machine-weapon-group-state.js";
 import { notifyRollError } from "../roll/roll-errors.js";
@@ -1472,6 +1473,12 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         if (user?.id !== game.user?.id) return;
         this.#renderEwState();
       })],
+      ["updateToken", Hooks.on("updateToken", (tokenDocument, changed) => {
+        if (!this.#didTokenPositionChange(changed)) return;
+        if (!this.#isRelevantEwToken(tokenDocument)) return;
+        cachePendingTokenPosition(tokenDocument, changed);
+        this.#renderEwState();
+      })],
       ["updateCombatant", Hooks.on("updateCombatant", (combatant, changed) => {
         if (!this.#isRelevantEwCombatant(combatant)) return;
         if (!this.#didCombatantEwStateChange(changed)) return;
@@ -1513,6 +1520,22 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     return Boolean(combat?.id && combat.id === game.combat?.id);
   }
 
+  #isRelevantEwToken(token) {
+    const tokenId = String(token?.id ?? token?.document?.id ?? "").trim();
+    if (!tokenId) return false;
+
+    const sheetToken = this._resolveStatusToken(this.getPersistentActor?.() ?? this.actor);
+    const sheetTokenId = String(sheetToken?.id ?? sheetToken?.document?.id ?? "").trim();
+    if (sheetTokenId && tokenId === sheetTokenId) return true;
+
+    const targetedTokenIds = new Set(
+      Array.from(game.user?.targets ?? [])
+        .map(targetToken => String(targetToken?.id ?? targetToken?.document?.id ?? "").trim())
+        .filter(Boolean)
+    );
+    return targetedTokenIds.has(tokenId);
+  }
+
   #isRelevantEwCombatant(combatant) {
     if (!combatant) return false;
 
@@ -1531,9 +1554,21 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   }
 
   #didCombatantEwStateChange(changed) {
-    return foundry.utils.hasProperty(changed, "flags.mwd.targeting")
-      || foundry.utils.hasProperty(changed, "flags.mwd.ewState")
-      || foundry.utils.hasProperty(changed, "flags.mwd.personalCombat")
-      || foundry.utils.hasProperty(changed, "tokenId");
+    return this.#didChangedPathTouch(changed, "flags.mwd.targeting")
+      || this.#didChangedPathTouch(changed, "flags.mwd.ewState")
+      || this.#didChangedPathTouch(changed, "flags.mwd.personalCombat")
+      || this.#didChangedPathTouch(changed, "tokenId");
+  }
+
+  #didChangedPathTouch(changed, path) {
+    if (foundry.utils.hasProperty(changed, path)) return true;
+    const prefix = `${path}.`;
+    return Object.keys(changed ?? {}).some(key => key === path || key.startsWith(prefix));
+  }
+
+  #didTokenPositionChange(changed) {
+    return foundry.utils.hasProperty(changed, "x")
+      || foundry.utils.hasProperty(changed, "y")
+      || foundry.utils.hasProperty(changed, "elevation");
   }
 }
