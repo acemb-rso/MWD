@@ -707,8 +707,10 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       ? group.weaponIds.filter(id => id !== itemId)
       : [...group.weaponIds, itemId];
 
+    this._captureScrollPosition();
     await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
-    this.render({ force: true });
+    target?.closest?.(".mwd-weapon-group-editor__choice")?.classList?.toggle("is-selected", !selected);
+    this.render({ force: false });
   }
 
   async #rollWeaponGroup(actor, groupId) {
