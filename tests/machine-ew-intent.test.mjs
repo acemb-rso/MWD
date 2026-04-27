@@ -196,3 +196,90 @@ test("targeting roll card subtitle uses the target token name", async () => {
     clearScene();
   }
 });
+
+test("EW rolls use the linked pilot as the roll actor", async () => {
+  const { attackerActor, attackerToken, targetTokenUuid } = setScene({ detectionState: "track" });
+  attackerActor.system.pilot = { uuid: "Actor.pilot" };
+  attackerActor.system.skills.gunnery.rating = 0;
+  const pilot = {
+    id: "pilot",
+    uuid: "Actor.pilot",
+    type: "character",
+    name: "Sensor Pilot",
+    system: {
+      skills: {
+        perception: { rating: 4, bonus: 1 },
+        gunnery: { rating: 5, bonus: 2 },
+      },
+    },
+  };
+  const previousFromUuid = globalThis.fromUuid;
+  globalThis.fromUuid = async uuid => uuid === pilot.uuid ? pilot : null;
+
+  try {
+    const resolved = await resolveTargeting({
+      actor: attackerActor,
+      payload: {
+        sourceTokenId: attackerToken.id,
+        targetTokenUuid,
+      },
+    });
+
+    assert.equal(resolved.pool.attribute, 3);
+    assert.equal(resolved.pool.skill, 5);
+    assert.equal(resolved.pool.bonus, 2);
+    assert.equal(resolved.rollActor, pilot);
+    assert.equal(resolved.targeting.operatorActorUuid, pilot.uuid);
+    assert.deepEqual(resolved.breakdown.slice(0, 3), [
+      { id: "attribute", label: "System (Mauler)", value: 3 },
+      { id: "skill", label: "Gunnery (Sensor Pilot)", value: 5 },
+      { id: "bonus", label: "Gunnery Bonus", value: 2 },
+    ]);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
+    clearScene();
+  }
+});
+
+test("acquire roll labels show machine System plus linked pilot Perception", async () => {
+  const { attackerActor, attackerToken, targetTokenUuid } = setScene({ detectionState: "blind" });
+  attackerActor.system.pilot = { uuid: "Actor.pilot" };
+  attackerActor.system.skills.perception.rating = 0;
+  const pilot = {
+    id: "pilot",
+    uuid: "Actor.pilot",
+    type: "character",
+    name: "Sensor Pilot",
+    system: {
+      skills: {
+        perception: { rating: 4, bonus: 1 },
+      },
+    },
+  };
+  const previousFromUuid = globalThis.fromUuid;
+  globalThis.fromUuid = async uuid => uuid === pilot.uuid ? pilot : null;
+
+  try {
+    const resolved = await resolveAcquire({
+      actor: attackerActor,
+      payload: {
+        sourceTokenId: attackerToken.id,
+        targetTokenUuid,
+      },
+    });
+
+    assert.equal(resolved.pool.attribute, 3);
+    assert.equal(resolved.pool.skill, 4);
+    assert.equal(resolved.pool.bonus, 1);
+    assert.equal(resolved.rollActor, pilot);
+    assert.equal(resolved.acquire.operatorActorUuid, pilot.uuid);
+    assert.deepEqual(resolved.breakdown.slice(0, 3), [
+      { id: "attribute", label: "System (Mauler)", value: 3 },
+      { id: "skill", label: "Perception (Sensor Pilot)", value: 4 },
+      { id: "bonus", label: "Perception Bonus", value: 1 },
+    ]);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
+    clearScene();
+  }
+});

@@ -13,6 +13,21 @@ import {
 import {
   getMachinePilotingDnModifier,
 } from "../../mwd/machine-state-effects.js";
+import { TEMPLATE } from "../../constants.js";
+import { resolveMachineOperator } from "../../mwd/machine-operator.js";
+
+function isMachineActor(actor = null) {
+  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
+}
+
+function startCase(value = "") {
+  return String(value ?? "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
 
 export async function resolveSkill({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveSkill requires actor");
@@ -21,16 +36,34 @@ export async function resolveSkill({ actor, payload } = {}) {
   const def = getSkillDef(code);
   if (!def) throw new Error(`Unknown skill: ${code}`);
 
-  const sys = actor.system ?? {};
+  const machineRoll = isMachineActor(actor);
+  const operator = machineRoll
+    ? await resolveMachineOperator({
+      machineActor: actor,
+      operatorActorUuid: String(payload?.operatorActorUuid ?? "").trim(),
+    })
+    : null;
+  const rollActor = operator?.actor ?? actor;
+  const skillSys = rollActor.system ?? {};
 
   // Allow an on-the-fly attribute override (dialog can set payload.attrKey).
-  const attrKey = String(payload?.attrKey ?? def.attribute ?? "").trim();
+  const machineAttributeKey = String(payload?.machineAttributeKey ?? "").trim();
+  const attrKey = String(
+    machineAttributeKey
+    || payload?.attrKey
+    || (machineRoll && code === "piloting" ? TEMPLATE.actorAttributes.handling : def.attribute)
+    || ""
+  ).trim();
   if (!attrKey) throw new Error(`Skill ${code} missing attribute key`);
+  const attrActor = machineAttributeKey || (machineRoll && code === "piloting")
+    ? actor
+    : rollActor;
+  const attrSys = attrActor.system ?? {};
 
-  const attribute = Number(sys?.attributes?.[attrKey]?.value ?? 0);
-  const skill = Number(sys?.skills?.[code]?.rating ?? 0);
-  const bonus = Number(sys?.skills?.[code]?.bonus ?? 0);
-  const ownedSpecializations = new Set(getOwnedSkillSpecializationKeys(sys, code));
+  const attribute = Number(attrSys?.attributes?.[attrKey]?.value ?? 0);
+  const skill = Number(skillSys?.skills?.[code]?.rating ?? 0);
+  const bonus = Number(skillSys?.skills?.[code]?.bonus ?? 0);
+  const ownedSpecializations = new Set(getOwnedSkillSpecializationKeys(skillSys, code));
   const requestedSpecialization = getSkillSpecializationDef(code, payload?.specializationKey);
   const selectedSpecialization = requestedSpecialization && ownedSpecializations.has(requestedSpecialization.key)
     ? requestedSpecialization
@@ -49,14 +82,17 @@ export async function resolveSkill({ actor, payload } = {}) {
   const baseDnHits = Number.isFinite(Number(payload?.dn))
     ? Number(payload.dn)
     : 1;
-  const pilotingDnMod = code === "piloting" ? getMachinePilotingDnModifier(actor) : 0;
+  const pilotingDnMod = machineRoll && code === "piloting" ? getMachinePilotingDnModifier(actor) : 0;
   const dnHits = baseDnHits + pilotingDnMod;
+  const attrLabel = startCase(attrKey);
+  const attrOwner = attrActor !== rollActor && attrActor?.name ? ` (${attrActor.name})` : "";
+  const skillOwner = machineRoll && rollActor?.name ? ` (${rollActor.name})` : "";
 
   return {
     intent: "skill",
     rollType: "simple",
 
-    title: `${def.label} (${attrKey})`,
+    title: `${def.label} (${attrLabel})`,
     subtitle: actor.name ?? "Actor",
     domains,
 
@@ -78,8 +114,8 @@ export async function resolveSkill({ actor, payload } = {}) {
     pool: { attribute, skill, bonus, specialization: specializationBonus },
 
     breakdown: [
-      { id: "attribute", label: "Attribute", value: attribute },
-      { id: "skill", label: "Skill", value: skill },
+      { id: "attribute", label: `${attrLabel}${attrOwner}`, value: attribute },
+      { id: "skill", label: `${def.label}${skillOwner}`, value: skill },
       { id: "bonus", label: "Bonus", value: bonus },
       ...(selectedSpecialization ? [{
         id: "specialization",
@@ -98,9 +134,19 @@ export async function resolveSkill({ actor, payload } = {}) {
     data: {
       skillKey: code,
       attrKey,
+      machineActorUuid: machineRoll ? actor.uuid ?? "" : "",
+      operatorActorUuid: operator?.actor?.uuid ?? "",
       label: `${attrKey}+${def.label}`,
       specializationKey: selectedSpecialization?.key ?? "",
       specializationLabel: selectedSpecialization?.label ?? ""
-    }
+    },
+    rollActor,
+    machineActor: machineRoll ? actor : null,
+    operator: operator ? {
+      actorUuid: operator.actor?.uuid ?? "",
+      name: operator.actor?.name ?? "",
+      source: operator.source ?? "",
+      reason: operator.reason ?? "",
+    } : null,
   };
 }

@@ -40,6 +40,7 @@ import {
   buildMachineAttackMotionContext,
   isMachineActor,
 } from "../../mwd/machine-attack-motion.js";
+import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 
 function getTargets(payload = {}) {
   if (Array.isArray(payload?.targetSnapshots)) {
@@ -145,6 +146,15 @@ function resolveRangeBand({ actor, payload, weapon, targets = [] } = {}) {
 
 function isMachineWeapon(item) {
   return ["mechWeapon", "vehicleWeapon"].includes(item?.canonicalType ?? item?.type);
+}
+
+function startCase(value = "") {
+  return String(value ?? "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, char => char.toUpperCase());
 }
 
 function addBands(left = {}, right = {}) {
@@ -268,6 +278,13 @@ export async function resolveAttack({ actor, payload } = {}) {
 
   const weapon = getWeaponProfile(actor, payload);
   if (!weapon) throw new Error("Unable to resolve weapon profile.");
+  const operator = isMachineActor(actor)
+    ? await resolveMachineOperator({
+      machineActor: actor,
+      operatorActorUuid: String(payload?.operatorActorUuid ?? "").trim(),
+    })
+    : null;
+  const rollActor = operator?.actor ?? actor;
   const machineFireControl = isMachineActor(actor) ? getMachineFireControlProfile(actor) : null;
   const clusteringProfile = buildClusteringProfile({
     clusteringDice: Number(weapon?.clusteringDice ?? 0) || 0,
@@ -326,10 +343,11 @@ export async function resolveAttack({ actor, payload } = {}) {
   };
 
   const attrKey = String(skillDef.attribute ?? "reflexes").trim() || "reflexes";
-  const attribute = actor.getAttributeValue?.(attrKey) ?? Number(actor.system?.attributes?.[attrKey]?.value ?? 0);
-  const skill = actor.getSkillRating?.(effectiveWeapon.skill) ?? Number(actor.system?.skills?.[effectiveWeapon.skill]?.rating ?? 0);
-  const skillBonus = Number(actor.system?.skills?.[effectiveWeapon.skill]?.bonus ?? 0);
-  const ownedSpecializations = new Set(getOwnedSkillSpecializationKeys(actor.system ?? {}, effectiveWeapon.skill));
+  const attrLabel = startCase(attrKey);
+  const attribute = rollActor.getAttributeValue?.(attrKey) ?? Number(rollActor.system?.attributes?.[attrKey]?.value ?? 0);
+  const skill = rollActor.getSkillRating?.(effectiveWeapon.skill) ?? Number(rollActor.system?.skills?.[effectiveWeapon.skill]?.rating ?? 0);
+  const skillBonus = Number(rollActor.system?.skills?.[effectiveWeapon.skill]?.bonus ?? 0);
+  const ownedSpecializations = new Set(getOwnedSkillSpecializationKeys(rollActor.system ?? {}, effectiveWeapon.skill));
   const requestedSpecialization = getSkillSpecializationDef(effectiveWeapon.skill, payload?.specializationKey);
   const selectedSpecialization = requestedSpecialization && ownedSpecializations.has(requestedSpecialization.key)
     ? requestedSpecialization
@@ -458,8 +476,12 @@ export async function resolveAttack({ actor, payload } = {}) {
     },
     pool: { attribute, skill, bonus, specialization: specializationBonus },
     breakdown: [
-      { id: "attribute", label: "Attribute", value: attribute },
-      { id: "skill", label: skillDef.label, value: skill },
+      {
+        id: "attribute",
+        label: operator?.actor?.name ? `${attrLabel} (${operator.actor.name})` : attrLabel,
+        value: attribute
+      },
+      { id: "skill", label: operator?.actor?.name ? `${skillDef.label} (${operator.actor.name})` : skillDef.label, value: skill },
       { id: "bonus", label: "Skill Bonus", value: skillBonus },
       ...(selectedSpecialization ? [{
         id: "specialization",
@@ -506,11 +528,18 @@ export async function resolveAttack({ actor, payload } = {}) {
       totalAp,
       ewContext,
       machineMotion,
+      operator: operator ? {
+        actorUuid: operator.actor?.uuid ?? "",
+        name: operator.actor?.name ?? "",
+        source: operator.source ?? "",
+        reason: operator.reason ?? "",
+      } : null,
       attackOptions: {
         indirectAttack: Boolean(attackOptions.indirectAttack),
         losBlocked: Boolean(attackOptions.losBlocked),
       },
     },
+    rollActor,
     specialization: selectedSpecialization ? {
       key: selectedSpecialization.key,
       label: selectedSpecialization.label,

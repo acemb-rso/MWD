@@ -18,6 +18,12 @@ function getSkillRating(actor = null, skillKey = "") {
   };
 }
 
+function withOwner(label = "", actor = null) {
+  const base = String(label ?? "").trim();
+  const owner = String(actor?.name ?? "").trim();
+  return owner ? `${base} (${owner})` : base;
+}
+
 export async function resolveMachineRemedy({ actor, payload } = {}) {
   const prepared = await prepareMachineRemedyRoll(payload, {
     gmOverride: Boolean(payload?.gmOverride),
@@ -57,10 +63,11 @@ export async function resolveMachineRemedy({ actor, payload } = {}) {
       specialization: 0,
     },
     breakdown: [
-      { id: "reliability", label: "Reliability", value: reliability },
-      { id: "skill", label: skillDef.label, value: skill.rating },
-      ...(skill.bonus ? [{ id: "skillBonus", label: "Skill Bonus", value: skill.bonus }] : []),
+      { id: "attribute", label: withOwner("Reliability", context.machineActor), value: reliability },
+      { id: "skill", label: withOwner(skillDef.label, context.operatorActor), value: skill.rating },
+      ...(skill.bonus ? [{ id: "bonus", label: "Skill Bonus", value: skill.bonus }] : []),
     ],
+    specialization: null,
     machineRemedy: {
       machineActorUuid: context.machineActor?.uuid ?? "",
       operatorActorUuid: context.operatorActor?.uuid ?? "",
@@ -81,5 +88,14 @@ export async function resolveMachineRemedy({ actor, payload } = {}) {
       remedyEffect: context.remedyEffect,
       cost: context.remedy.cost,
     },
+    data: {
+      skillKey: context.skillKey,
+      attrKey: "reliability",
+      machineActorUuid: context.machineActor?.uuid ?? "",
+      operatorActorUuid: context.operatorActor?.uuid ?? "",
+      label: `reliability+${skillDef.label}`,
+    },
+    rollActor: roller,
+    machineActor: context.machineActor,
   };
 }

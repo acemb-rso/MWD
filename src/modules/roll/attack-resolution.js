@@ -32,6 +32,10 @@ function toNumber(value, fallback = 0) {
   return Number.isFinite(numeric) ? numeric : fallback;
 }
 
+export function doesAttackAddNetHitsToDamage(weapon = null) {
+  return Boolean(weapon?.type === TEMPLATE.itemType.personalWeapon || weapon?.isSynthetic);
+}
+
 function getTargetSnapshots(ctx = {}) {
   const targets = Array.isArray(ctx?.attack?.targets) ? ctx.attack.targets : [];
   const areaEffect = normalizeAreaEffect(ctx?.attack?.areaEffect ?? ctx?.attack?.payload?.areaEffect ?? {});
@@ -226,7 +230,10 @@ async function buildDamageSnapshot(ctx = {}, outcome = {}) {
     : normalizePersonalDamageType(rawDamageType, "concussive");
   const ap = Math.max(0, Number(attack?.totalAp ?? attack?.weapon?.ap ?? 0) || 0);
   const effectiveWeaponDamage = outcome.outcome === "graze" ? (baseDamage / 2) : (outcome.outcome === "hit" ? baseDamage : 0);
-  const incoming = effectiveWeaponDamage + clusteringDamage + Number(outcome.netHits ?? 0);
+  const netDamageBonus = doesAttackAddNetHitsToDamage(attack?.weapon)
+    ? Number(outcome.netHits ?? 0)
+    : 0;
+  const incoming = effectiveWeaponDamage + clusteringDamage + netDamageBonus;
   const exposure = applyEvadeToExposure(attack?.currentExposure ?? createExposureData({
     tier: attack?.currentExposure?.initialTier ?? attack?.currentExposure?.tier ?? "none",
   }), {
@@ -246,6 +253,7 @@ async function buildDamageSnapshot(ctx = {}, outcome = {}) {
       damageBonus: clusteringDamage,
     },
     netHits: Number(outcome.netHits ?? 0),
+    netDamageBonus,
     attackQuality: outcome.outcome === "graze"
       ? "graze"
       : (outcome.outcome === "hit" && Number(outcome.netHits ?? 0) >= 4 ? "highMargin" : outcome.outcome === "hit" ? "hit" : ""),

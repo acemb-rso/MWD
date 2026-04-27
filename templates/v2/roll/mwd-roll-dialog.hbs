@@ -46,23 +46,23 @@ How it fits: Used by rendering code to produce UI fragments.
   {{else}}
 
     <div class="mwd-roll-dialog__row">
-      <div class="mwd-roll-dialog__label">Attribute</div>
+      <div class="mwd-roll-dialog__label">{{dice.attributeLabel}}</div>
       <div class="mwd-roll-dialog__pill">{{dice.attribute}}</div>
     </div>
 
     <div class="mwd-roll-dialog__row">
-      <div class="mwd-roll-dialog__label">Skill</div>
+      <div class="mwd-roll-dialog__label">{{dice.skillLabel}}</div>
       <div class="mwd-roll-dialog__pill">{{dice.skill}}</div>
     </div>
 
     <div class="mwd-roll-dialog__row">
-      <div class="mwd-roll-dialog__label">Bonus</div>
+      <div class="mwd-roll-dialog__label">{{dice.bonusLabel}}</div>
       <div class="mwd-roll-dialog__pill">{{dice.bonus}}</div>
     </div>
 
     {{#if dice.specialization}}
       <div class="mwd-roll-dialog__row">
-        <div class="mwd-roll-dialog__label">Specialization</div>
+        <div class="mwd-roll-dialog__label">{{dice.specializationLabel}}</div>
         <div class="mwd-roll-dialog__pill">{{dice.specialization}}</div>
       </div>
     {{/if}}

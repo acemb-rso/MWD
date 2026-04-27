@@ -35,6 +35,12 @@ function getTokenDisplayName(token, fallback = "Target") {
   return String(token?.name ?? token?.actor?.name ?? fallback).trim() || fallback;
 }
 
+function withOwner(label = "", actor = null) {
+  const base = String(label ?? "").trim();
+  const owner = String(actor?.name ?? "").trim();
+  return owner ? `${base} (${owner})` : base;
+}
+
 const DN = 2;
 
 export async function resolveTargeting({ actor, payload } = {}) {
@@ -67,10 +73,12 @@ export async function resolveTargeting({ actor, payload } = {}) {
   });
   const roller = operator.actor ?? actor;
 
-  const systemAttr    = Math.max(0, Number(actor?.system?.attributes?.system?.value ?? 0) || 0);
-  const skillDef      = getSkillDef("gunnery");
-  const gunneryRating = Number(roller?.system?.skills?.gunnery?.rating ?? 0) || 0;
-  const gunneryBonus  = Number(roller?.system?.skills?.gunnery?.bonus  ?? 0) || 0;
+  const attrKey       = "system";
+  const skillKey      = "gunnery";
+  const systemAttr    = Math.max(0, Number(actor?.system?.attributes?.[attrKey]?.value ?? 0) || 0);
+  const skillDef      = getSkillDef(skillKey);
+  const gunneryRating = Number(roller?.system?.skills?.[skillKey]?.rating ?? 0) || 0;
+  const gunneryBonus  = Number(roller?.system?.skills?.[skillKey]?.bonus  ?? 0) || 0;
   const cap           = getTargetingDataCap(systemAttr, detectionState);
 
   return {
@@ -93,13 +101,22 @@ export async function resolveTargeting({ actor, payload } = {}) {
       specialization: 0,
     },
     breakdown: [
-      { id: "system",  label: "System",                       value: systemAttr },
-      { id: "gunnery", label: skillDef?.label ?? "Gunnery",   value: gunneryRating },
-      ...(gunneryBonus ? [{ id: "gunneryBonus", label: "Gunnery Bonus", value: gunneryBonus }] : []),
+      { id: "attribute", label: withOwner("System", actor), value: systemAttr },
+      { id: "skill", label: withOwner(skillDef?.label ?? "Gunnery", operator.actor), value: gunneryRating },
+      ...(gunneryBonus ? [{ id: "bonus", label: "Gunnery Bonus", value: gunneryBonus }] : []),
     ],
+    specialization: null,
+    data: {
+      skillKey,
+      attrKey,
+      machineActorUuid: actor.uuid ?? "",
+      operatorActorUuid: operator.actor?.uuid ?? "",
+      label: `${attrKey}+${skillDef?.label ?? "Gunnery"}`,
+    },
     targeting: {
       machineActorUuid:  actor.uuid ?? "",
       operatorActorUuid: operator.actor?.uuid ?? "",
+      operatorName:      operator.actor?.name ?? "",
       attackerTokenId:   attackerToken?.id ?? attackerToken?.document?.id ?? "",
       attackerTokenUuid: attackerToken?.document?.uuid ?? attackerToken?.uuid ?? "",
       attackerCombatantId: combatant?.id ?? "",
@@ -110,5 +127,7 @@ export async function resolveTargeting({ actor, payload } = {}) {
       detectionStateLabel: getDetectionStateLabel(detectionState),
       cap,
     },
+    rollActor: roller,
+    machineActor: actor,
   };
 }

@@ -19,6 +19,7 @@ import { normalizeMachineMonitorResistance } from "../src/modules/mwd/machine-mo
 import { buildRemainingMonitorTrack } from "../src/modules/mwd/machine-summary.js";
 import { resolveMachineCritRemedyIntent } from "../src/modules/mwd/machine-intents.js";
 import { prepareMachineRemedyRoll } from "../src/modules/mwd/machine-intents.js";
+import { resolveMachineRemedy } from "../src/modules/roll/intent/resolve-machine-remedy.js";
 import { MachineCriticalsProvider } from "../src/modules/modifiers/providers/machine-criticals.js";
 import {
   buildMachineActivationStartReport,
@@ -395,6 +396,7 @@ test("machine remedy roll preparation resolves operator, pool source, and DN fro
   });
   const operator = {
     uuid: "Actor.operator",
+    name: "Pilot Tech",
     system: {
       skills: {
         computers: { rating: 3, bonus: 1 },
@@ -402,21 +404,45 @@ test("machine remedy roll preparation resolves operator, pool source, and DN fro
     },
   };
   const byUuid = new Map([[machine.uuid, machine], [operator.uuid, operator]]);
+  const previousFoundry = globalThis.foundry;
   globalThis.fromUuid = async uuid => byUuid.get(uuid) ?? null;
+  globalThis.foundry = {
+    ...(globalThis.foundry ?? {}),
+    utils: {
+      ...(globalThis.foundry?.utils ?? {}),
+      deepClone: value => structuredClone(value),
+    },
+  };
 
-  const prepared = await prepareMachineRemedyRoll({
-    machineActorUuid: machine.uuid,
-    critId: "crit-2",
-    operatorActorUuid: operator.uuid,
-  });
+  try {
+    const prepared = await prepareMachineRemedyRoll({
+      machineActorUuid: machine.uuid,
+      critId: "crit-2",
+      operatorActorUuid: operator.uuid,
+    });
 
-  assert.equal(prepared.ok, true);
-  assert.equal(prepared.actor, operator);
-  assert.equal(prepared.payload.intent, "machineRemedy");
-  assert.equal(prepared.context.totalDn, 3);
-  assert.equal(prepared.context.skillKey, "computers");
+    assert.equal(prepared.ok, true);
+    assert.equal(prepared.actor, operator);
+    assert.equal(prepared.payload.intent, "machineRemedy");
+    assert.equal(prepared.context.totalDn, 3);
+    assert.equal(prepared.context.skillKey, "computers");
 
-  delete globalThis.fromUuid;
+    const resolved = await resolveMachineRemedy({
+      actor: operator,
+      payload: prepared.payload,
+    });
+
+    assert.equal(resolved.rollActor, operator);
+    assert.deepEqual(resolved.breakdown.slice(0, 3), [
+      { id: "attribute", label: "Reliability (Test Machine)", value: 3 },
+      { id: "skill", label: "Computers (Pilot Tech)", value: 3 },
+      { id: "bonus", label: "Skill Bonus", value: 1 },
+    ]);
+  } finally {
+    delete globalThis.fromUuid;
+    if (previousFoundry === undefined) delete globalThis.foundry;
+    else globalThis.foundry = previousFoundry;
+  }
 });
 
 test("machine critical provider reads active crit records instead of token statuses", () => {

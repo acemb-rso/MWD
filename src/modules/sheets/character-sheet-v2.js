@@ -834,7 +834,7 @@ ctx.edgeConsole.poolsOrdered = order
         const primaryGroup = quickActions.primaryWeaponGroup ?? null;
 
         const mechQuickActions = isMech ? [
-          { label: "Primary", hint: primaryGroup?.name ?? "Primary weapon group", handler: "mechAttack", disabled: !primaryGroup, dataset: { attackKind: "primary", mechUuid: uuid, mechId: a.id } },
+          { label: "Primary", hint: primaryGroup?.name ?? "Primary weapon group", handler: "mechAttack", disabled: !primaryGroup, dataset: { attackKind: "primary", groupId: primaryGroup?.id ?? "", mechUuid: uuid, mechId: a.id } },
           { label: "Ranged", hint: "Prompt for a weapon group", handler: "mechAttack", disabled: !hasRangedGroups, dataset: { attackKind: "ranged", mechUuid: uuid, mechId: a.id } },
           { label: "Melee", hint: "Prompt for a melee profile", handler: "mechAttack", disabled: !hasMeleeProfiles, dataset: { attackKind: "melee", mechUuid: uuid, mechId: a.id } },
           { label: "Piloting", hint: "Vehicle handling test", handler: "mechRoll", disabled: false, dataset: { rollKind: "piloting", mechUuid: uuid, mechId: a.id } },
@@ -881,9 +881,14 @@ ctx.edgeConsole.poolsOrdered = order
     const mech = await resolveAssignedMachineFromTarget(target);
     if (!mech) return;
     const attackKind = String(target?.dataset?.attackKind ?? "").trim();
+    const groupId = String(target?.dataset?.groupId ?? "").trim();
+    const operatorActorUuid = this.actor?.uuid ?? "";
     try {
-      if (attackKind === "melee") await mech.rollMeleeAttack?.();
-      else await mech.rollRangedAttack?.();
+      if (attackKind === "melee") await mech.rollMeleeAttack?.({ operatorActorUuid });
+      else await mech.rollRangedAttack?.({
+        groupId,
+        operatorActorUuid,
+      });
     } catch (error) {
       notifyRollError(error, "Unable to launch BattleMech attack.");
     }
@@ -895,10 +900,11 @@ ctx.edgeConsole.poolsOrdered = order
     const mech = await resolveAssignedMachineFromTarget(target);
     if (!mech) return;
     const rollKind = String(target?.dataset?.rollKind ?? "").trim();
+    const operatorActorUuid = this.actor?.uuid ?? "";
     try {
-      if (rollKind === "piloting") await mech.rollPilotingCheck?.();
-      else if (rollKind === "sensor") await (mech.rollElectronicWarfare?.() ?? mech.rollSensorSweep?.());
-      else if (rollKind === "repair") await mech.rollEmergencyRepair?.();
+      if (rollKind === "piloting") await mech.rollPilotingCheck?.({ operatorActorUuid });
+      else if (rollKind === "sensor") await (mech.rollElectronicWarfare?.({ operatorActorUuid }) ?? mech.rollSensorSweep?.({ operatorActorUuid }));
+      else if (rollKind === "repair") await mech.rollEmergencyRepair?.({ operatorActorUuid });
     } catch (error) {
       notifyRollError(error, "Unable to launch BattleMech check.");
     }

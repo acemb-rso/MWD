@@ -61,7 +61,7 @@ export class BattlemechActor extends VehicleActor {
     };
   }
 
-  async rollRangedAttack() {
+  async rollRangedAttack({ groupId = "", operatorActorUuid = "" } = {}) {
     const token = resolveMachineToken(this);
     const snapshot = PersonalCombatTracker.getSnapshot?.(this, { token }) ?? null;
     const usedWeaponGroupIds = snapshot?.isCurrentTurn
@@ -74,7 +74,11 @@ export class BattlemechActor extends VehicleActor {
       return;
     }
 
-    const selectedGroup = await this._promptWeaponGroup(weaponGroups);
+    const requestedGroupId = String(groupId ?? "").trim();
+    const requestedGroup = requestedGroupId
+      ? weaponGroups.find(group => String(group?.id ?? "").trim() === requestedGroupId) ?? null
+      : null;
+    const selectedGroup = requestedGroup ?? await this._promptWeaponGroup(weaponGroups);
     if (!selectedGroup) {
       return;
     }
@@ -95,11 +99,12 @@ export class BattlemechActor extends VehicleActor {
         edge: { pool: "physical.grit", allowed: ["pre", "post"] },
         tags: ["combat", "attack", "machine", "groupFire"],
         sourceTokenId: token?.id ?? null,
+        operatorActorUuid: String(operatorActorUuid ?? "").trim(),
       }
     });
   }
 
-  async rollMeleeAttack() {
+  async rollMeleeAttack({ operatorActorUuid = "" } = {}) {
     const meleeProfiles = this.system.meleeProfiles ?? [];
     if (meleeProfiles.length === 0) {
       ui.notifications.warn(ANARCHY.actor.vehicle.quickActions.errors.noMelee);
@@ -113,6 +118,7 @@ export class BattlemechActor extends VehicleActor {
 
     if (!selectedProfile.weaponId) {
       await this._rollQuickSkill(this.system.skills.melee, {
+        operatorActorUuid,
         quickAction: {
           title: ANARCHY.actor.vehicle.quickActions.meleeAttack,
           meleeProfile: selectedProfile
@@ -138,17 +144,20 @@ export class BattlemechActor extends VehicleActor {
         edge: { pool: "physical.grit", allowed: ["pre", "post"] },
         tags: ["combat", "attack", "machine"],
         sourceTokenId: token?.id ?? null,
+        operatorActorUuid: String(operatorActorUuid ?? "").trim(),
       }
     });
   }
 
-  async rollPilotingCheck() {
+  async rollPilotingCheck({ operatorActorUuid = "" } = {}) {
     await this._rollQuickSkill(this.system.skills.piloting, {
+      operatorActorUuid,
+      machineAttributeKey: TEMPLATE.actorAttributes.handling,
       quickAction: { title: ANARCHY.actor.vehicle.quickActions.pilotingCheck }
     });
   }
 
-  async rollElectronicWarfare() {
+  async rollElectronicWarfare({ operatorActorUuid = "" } = {}) {
     const token = resolveMachineToken(this);
     const panel = buildMachineEwPanel({ actor: this, token });
     const actions = [
@@ -197,15 +206,16 @@ export class BattlemechActor extends VehicleActor {
         sourceTokenId: token?.id ?? null,
         targetTokenId: targetRow.targetTokenId,
         targetTokenUuid: targetRow.targetTokenUuid,
+        operatorActorUuid: String(operatorActorUuid ?? "").trim(),
       }
     });
   }
 
-  async rollSensorSweep() {
-    return this.rollElectronicWarfare();
+  async rollSensorSweep(options = {}) {
+    return this.rollElectronicWarfare(options);
   }
 
-  async rollEmergencyRepair() {
+  async rollEmergencyRepair({ operatorActorUuid = "" } = {}) {
     const issues = getMachineRepairIssues(this);
     if (!issues.length) {
       ui.notifications?.warn("No active criticals or repairable statuses are available.");
@@ -224,6 +234,7 @@ export class BattlemechActor extends VehicleActor {
       critId: selectedIssue.issueKind === "crit" ? selectedIssue.issueId : "",
       statusId: selectedIssue.issueKind === "status" ? selectedIssue.issueId : "",
       remedyKey: selectedIssue.remedyKey,
+      operatorActorUuid: String(operatorActorUuid ?? "").trim(),
     }, {
       gmOverride: Boolean(game.user?.isGM),
     });
@@ -387,6 +398,24 @@ export class BattlemechActor extends VehicleActor {
   }
 
   async _rollQuickSkill(skill, options = {}) {
+    const rollApi = getMachineRollApi();
+    if (rollApi?.execute) {
+      await rollApi.execute({
+        actor: this,
+        payload: {
+          intent: "skill",
+          key: skill?.system?.code ?? "",
+          attrKey: skill?.system?.attribute ?? this.getPhysicalAgility(),
+          ...(options.machineAttributeKey ? { machineAttributeKey: options.machineAttributeKey } : {}),
+          ...(options.operatorActorUuid ? { operatorActorUuid: String(options.operatorActorUuid).trim() } : {}),
+          quickAction: options.quickAction ?? null,
+          edge: { allowed: ["pre", "post"] },
+          tags: ["machine", "skill"],
+        }
+      });
+      return;
+    }
+
     const attribute = skill?.system?.attribute ?? this.getPhysicalAgility();
     const rollData = foundry.utils.mergeObject(RollDialog.prepareActorRoll(this), {
       mode: ANARCHY_SYSTEM.rollType.skill,

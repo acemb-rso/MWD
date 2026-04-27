@@ -239,9 +239,10 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
   /** @type {{ baseContext: any, state: any }} */
   _mwd = { baseContext: null, state: null };
 
-  constructor({ actor, baseContext, initialState = null, options = {} }) {
+  constructor({ actor, rollActor = null, baseContext, initialState = null, options = {} }) {
     super(options);
     this.actor = actor;
+    this.rollActor = rollActor ?? actor;
 
     this._mwd.baseContext = baseContext ?? {};
     const payload = foundry.utils.deepClone(this._mwd.baseContext.payload ?? {});
@@ -329,9 +330,13 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       // Skill roll (existing behavior)
       dice = {
         attribute: Number(bc?.dice?.attribute ?? 0),
+        attributeLabel: String(bc?.dice?.attributeLabel ?? "Attribute").trim() || "Attribute",
         skill: Number(bc?.dice?.skill ?? 0),
+        skillLabel: String(bc?.dice?.skillLabel ?? "Skill").trim() || "Skill",
         bonus: Number(bc?.dice?.bonus ?? 0),
+        bonusLabel: String(bc?.dice?.bonusLabel ?? "Bonus").trim() || "Bonus",
         specialization: Number(bc?.dice?.specialization ?? 0),
+        specializationLabel: String(bc?.dice?.specializationLabel ?? "Specialization").trim() || "Specialization",
         modifiers: Number(bc?.dice?.modifiers ?? 0)
       };
 
@@ -354,7 +359,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const edgeChoices = pair.map(k => ({
       key: k,
       label: k.charAt(0).toUpperCase() + k.slice(1),
-      available: Number(this.actor?.getEdgePool?.(k)?.effectiveValue ?? 0),
+      available: Number(this.rollActor?.getEdgePool?.(k)?.effectiveValue ?? 0),
       selected: k === (st.edge?.prePoolKey ?? null)
     }));
 
@@ -369,7 +374,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       ?? ""
     ).trim();
     const specializationOptions = specializationSkillCode
-      ? getOwnedSkillSpecializations(this.actor?.system ?? {}, specializationSkillCode)
+      ? getOwnedSkillSpecializations(this.rollActor?.system ?? {}, specializationSkillCode)
       : [];
     const selectedSpecializationKey = String(st?.payload?.specializationKey ?? "").trim();
     const selectedSpecialization = specializationOptions.find(option => option.key === selectedSpecializationKey) ?? null;
@@ -387,7 +392,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const usesPayloads = String(attack?.weapon?.category ?? "").trim().toLowerCase() !== "melee" && payloads.length > 0;
     const selectedPayloadId = String(st?.payload?.payloadId ?? attack?.payloadState?.activePayloadId ?? "").trim();
     const selectedPayload = payloads.find(type => type.id === selectedPayloadId) ?? null;
-    const machineAttackOptions = intent === "attack" && attack && isMachineActor(this.actor)
+    const machineActor = bc?.machineActor ?? this.actor;
+    const machineAttackOptions = intent === "attack" && attack && isMachineActor(machineActor)
       ? buildAttackOptionControls({ manual: st.manual ?? [], attack, payload: st.payload ?? {} })
       : null;
 
@@ -695,7 +701,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
    *  - Prefer passing explicit dice parts via args.diceParts (attribute/skill/bonus).
    *  - This avoids scraping resolved.breakdown.
    */
-  static async prompt({ actor, basePayload, resolved, diceParts = null, mods = [], modTotal = 0 } = {}) {
+  static async prompt({ actor, rollActor = null, basePayload, resolved, diceParts = null, mods = [], modTotal = 0 } = {}) {
     const payload = foundry.utils.deepClone(basePayload ?? {});
 
     // ------------------------------
@@ -728,9 +734,13 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const dice = {
       attribute: Number(parts?.attribute ?? 0),
+      attributeLabel: resolved?.breakdown?.find?.(row => row?.id === "attribute")?.label ?? "Attribute",
       skill: Number(parts?.skill ?? 0),
+      skillLabel: resolved?.breakdown?.find?.(row => row?.id === "skill")?.label ?? "Skill",
       bonus: Number(parts?.bonus ?? 0),
+      bonusLabel: resolved?.breakdown?.find?.(row => row?.id === "bonus")?.label ?? "Bonus",
       specialization: Number(parts?.specialization ?? 0),
+      specializationLabel: resolved?.breakdown?.find?.(row => row?.id === "specialization")?.label ?? "Specialization",
       modifiers: Number(modTotal ?? 0)
     };
 
@@ -745,6 +755,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const dlg = new MWDRollDialog({
       actor,
+      rollActor,
       baseContext: {
         intent: resolved?.intent ?? "skill",
         header,
@@ -753,6 +764,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         modifiers,
         payload,
         resolved, // keep full resolved for edge display
+        rollActor,
+        machineActor: actor,
         dn: Number(payload?.dn ?? resolved?.dn?.total ?? resolved?.difficulty?.dn ?? 1)
       }
     });

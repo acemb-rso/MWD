@@ -13,6 +13,7 @@ import {
 import { EwTrackingPenaltyProvider } from "../src/modules/modifiers/providers/ew-tracking-penalty.js";
 
 let resolveAttackModule = null;
+let attackResolutionModule = null;
 
 async function getResolveAttack() {
   globalThis.Item ??= class {};
@@ -46,6 +47,12 @@ async function getResolveAttack() {
   };
   resolveAttackModule ??= await import("../src/modules/roll/intent/resolve-attack.js");
   return resolveAttackModule.resolveAttack;
+}
+
+async function getAttackResolution() {
+  await getResolveAttack();
+  attackResolutionModule ??= await import("../src/modules/roll/attack-resolution.js");
+  return attackResolutionModule;
 }
 
 function createCombatant({ tokenId, targetTokenUuid } = {}) {
@@ -218,6 +225,15 @@ test("machine motion helpers convert meters to hexes and apply tracking table", 
   assert.equal(getTrackingPenaltyByHexes(9), -5);
 });
 
+test("machine weapons do not add net hits to damage", async () => {
+  const { doesAttackAddNetHitsToDamage } = await getAttackResolution();
+  assert.equal(doesAttackAddNetHitsToDamage({ type: "mechWeapon" }), false);
+  assert.equal(doesAttackAddNetHitsToDamage({ type: "mechWeaponGroup" }), false);
+  assert.equal(doesAttackAddNetHitsToDamage({ type: "vehicleWeapon" }), false);
+  assert.equal(doesAttackAddNetHitsToDamage({ type: "personalWeapon" }), true);
+  assert.equal(doesAttackAddNetHitsToDamage({ isSynthetic: true }), true);
+});
+
 test("machine attack DN follows explicit machine range band", async () => {
   const resolveAttack = await getResolveAttack();
   const actor = createActor();
@@ -240,6 +256,57 @@ test("machine attack DN follows explicit machine range band", async () => {
     assert.equal(resolved.difficulty.dn, 4);
     assert.equal(resolved.dn.parts[0].label, "Base DN (Far)");
   } finally {
+    clearScene();
+  }
+});
+
+test("machine attack pool uses the linked pilot's attribute and skill", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createActor();
+  actor.system.pilot = { uuid: "Actor.pilot" };
+  actor.system.attributes.reflexes.value = 1;
+  actor.system.skills.gunnery.rating = 0;
+  actor.system.skills.gunnery.bonus = 0;
+
+  const pilot = {
+    id: "pilot",
+    uuid: "Actor.pilot",
+    type: "character",
+    name: "Ace Pilot",
+    system: {
+      attributes: {
+        reflexes: { value: 5 },
+      },
+      skills: {
+        gunnery: { rating: 4, bonus: 1 },
+      },
+    },
+  };
+  const previousFromUuid = globalThis.fromUuid;
+  globalThis.fromUuid = async uuid => uuid === pilot.uuid ? pilot : null;
+  const { targetSnapshot } = setScene();
+
+  try {
+    const resolved = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        rangeBand: "near",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+
+    assert.equal(resolved.pool.attribute, 5);
+    assert.equal(resolved.pool.skill, 4);
+    assert.equal(resolved.pool.bonus, 1);
+    assert.equal(resolved.rollActor, pilot);
+    assert.equal(resolved.attack.operator.actorUuid, pilot.uuid);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
     clearScene();
   }
 });

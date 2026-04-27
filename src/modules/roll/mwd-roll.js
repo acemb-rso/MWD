@@ -250,11 +250,12 @@ function getMachineAttackToken(actor, payload = {}) {
     ?? null;
 }
 
-async function commitMachineAttackAction(actor, payload = {}) {
+async function commitMachineAttackAction(actor, payload = {}, { rollActor = null } = {}) {
   if (!isMachineActor(actor)) return;
 
   const token = getMachineAttackToken(actor, payload);
-  const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+  const spendActor = rollActor ?? actor;
+  const snapshot = PersonalCombatTracker.getSnapshot?.(spendActor, { token }) ?? null;
   if (!snapshot?.hasCombatant) return;
 
   const cost = getMachineAttackActionCost(actor);
@@ -264,7 +265,7 @@ async function commitMachineAttackAction(actor, payload = {}) {
   const totalCost = isBattlemechGroupAttack
     ? (1 + Number(cost?.extraCost ?? 0))
     : Number(cost?.totalCost ?? 0);
-  const spend = await PersonalCombatTracker.spendResource(actor, {
+  const spend = await PersonalCombatTracker.spendResource(spendActor, {
     token,
     resource: "sa",
     cost: totalCost,
@@ -289,17 +290,18 @@ async function commitMachineAttackAction(actor, payload = {}) {
   }
 }
 
-async function commitMachineAction(actor, actionKey = "", payload = {}) {
+async function commitMachineAction(actor, actionKey = "", payload = {}, { rollActor = null } = {}) {
   if (!isMachineActor(actor)) return;
 
   const action = getMachineActionDefinition(actionKey);
   if (!action?.cost || action?.resource !== "sa") return;
 
   const token = getMachineAttackToken(actor, payload);
-  const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+  const spendActor = rollActor ?? actor;
+  const snapshot = PersonalCombatTracker.getSnapshot?.(spendActor, { token }) ?? null;
   if (!snapshot?.hasCombatant) return;
 
-  const spend = await PersonalCombatTracker.spendResource(actor, {
+  const spend = await PersonalCombatTracker.spendResource(spendActor, {
     token,
     resource: action.resource,
     cost: action.cost,
@@ -329,6 +331,7 @@ async function execute({ actor, payload, event } = {}) {
   /* -------------------------------- */
 
   let ctx = await resolveIntent({ actor, payload, event });
+  let rollActor = ctx?.rollActor ?? actor;
 
   if (payload.intent === "attack" && ctx?.attack?.capabilityReport?.isTemplated) {
     const placementResult = await placeTemplatedAttack({
@@ -362,6 +365,7 @@ async function execute({ actor, payload, event } = {}) {
     payload.templateGeometry = placementResult.templateGeometry ?? null;
     payload.templatePlacement = placementResult.placement;
     ctx = await resolveIntent({ actor, payload, event });
+    rollActor = ctx?.rollActor ?? actor;
   } else if (payload.intent === "attack") {
     delete payload.targetSnapshots;
     delete payload.templatePlacement;
@@ -388,6 +392,7 @@ async function execute({ actor, payload, event } = {}) {
 
   const updatedPayload = await MWDRollDialog.prompt({
     actor,
+    rollActor,
     basePayload: payload,
     resolved: ctx,
     diceParts: {
@@ -407,6 +412,7 @@ async function execute({ actor, payload, event } = {}) {
 
   payload = normalizePayload(updatedPayload);
   ctx = await resolveIntent({ actor, payload, event });
+  rollActor = ctx?.rollActor ?? actor;
 
   if (payload.intent === "attack" && !ctx?.attack?.capabilityReport?.isTemplated) {
     delete payload.targetSnapshots;
@@ -477,7 +483,7 @@ async function execute({ actor, payload, event } = {}) {
   // Edge may *later* be used to gain actions, but that's not "roll spend".
   const edgeAllowed = payload.intent !== "initiative";
 
-  const edgeInfo = edgeAllowed ? computeEdgeInfo({ actor, ctx, payload }) : null;
+  const edgeInfo = edgeAllowed ? computeEdgeInfo({ actor: rollActor, ctx, payload }) : null;
   const diceTarget = edgeInfo?.pre?.spent ? 4 : Number(ctx.diceTarget ?? ctx.target ?? 5);
 
   const runtime = {
@@ -513,7 +519,7 @@ async function execute({ actor, payload, event } = {}) {
 
   // Spend pre-edge (once) before rolling
   if (edgeAllowed && edgeInfo?.pre?.spent && edgeInfo?.pre?.poolKey) {
-    await actor.spendEdge?.(edgeInfo.pre.poolKey, 1);
+    await rollActor.spendEdge?.(edgeInfo.pre.poolKey, 1);
   }
 
 
@@ -593,9 +599,9 @@ async function execute({ actor, payload, event } = {}) {
       ctx?.domains?.includes("mental") ? "mental" :
       ctx?.domains?.includes("social") ? "social" : null;
 
-    const poolKey = pickMostMissingEdgePool(actor, domain);
+    const poolKey = pickMostMissingEdgePool(rollActor, domain);
 
-    await actor.gainEdge?.(poolKey, earned.amount);
+    await rollActor.gainEdge?.(poolKey, earned.amount);
 
     // so chat shows where it went
     outcomeModel.edgeEarned.pool = poolKey;
@@ -711,11 +717,11 @@ async function execute({ actor, payload, event } = {}) {
   }
 
   if (ctx.intent === "attack") {
-    await commitMachineAttackAction(actor, payload);
+    await commitMachineAttackAction(actor, payload, { rollActor });
   } else if (ctx.intent === "acquire") {
-    await commitMachineAction(actor, "acquireTarget", payload);
+    await commitMachineAction(actor, "acquireTarget", payload, { rollActor });
   } else if (ctx.intent === "targeting") {
-    await commitMachineAction(actor, "generateFireSolution", payload);
+    await commitMachineAction(actor, "generateFireSolution", payload, { rollActor });
   }
 
   return ChatMessage.create({

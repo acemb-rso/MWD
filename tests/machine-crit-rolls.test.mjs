@@ -54,6 +54,51 @@ test("unstable criticals now penalize Piloting dice instead of DN", async () => 
   delete globalThis.foundry;
 });
 
+test("machine piloting checks use machine handling plus linked pilot piloting", async () => {
+  globalThis.foundry = {
+    utils: {
+      deepClone: value => structuredClone(value),
+      duplicate: value => structuredClone(value),
+      mergeObject: (left, right) => ({ ...(left ?? {}), ...(right ?? {}) }),
+    },
+  };
+  const { resolveSkill } = await import("../src/modules/roll/intent/resolve-skill.js");
+  const actor = buildActor();
+  actor.uuid = "Actor.machine";
+  actor.system.pilot = { uuid: "Actor.pilot" };
+  actor.system.attributes.handling.value = 4;
+  actor.system.skills.piloting.rating = 0;
+
+  const pilot = {
+    id: "pilot",
+    uuid: "Actor.pilot",
+    type: "character",
+    name: "Linked Pilot",
+    system: {
+      attributes: { reflexes: { value: 1 } },
+      skills: { piloting: { rating: 5, bonus: 1 } },
+    },
+  };
+  const previousFromUuid = globalThis.fromUuid;
+  globalThis.fromUuid = async uuid => uuid === pilot.uuid ? pilot : null;
+
+  try {
+    const resolved = await resolveSkill({
+      actor,
+      payload: { key: "piloting", dn: 1 },
+    });
+
+    assert.equal(resolved.pool.attribute, 4);
+    assert.equal(resolved.pool.skill, 5);
+    assert.equal(resolved.pool.bonus, 1);
+    assert.equal(resolved.rollActor, pilot);
+    assert.equal(resolved.data.operatorActorUuid, pilot.uuid);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
+    delete globalThis.foundry;
+  }
+});
+
 test("crit presentation differentiates automated and reminder-only effects", () => {
   const automated = describeMachineCriticalEffect({
     key: "targetingProcessorLock",
