@@ -107,6 +107,19 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
           {{/if}}
         </span>
       </div>
+      {{#if battlemechSheet.heat.dangerActions.length}}
+        {{#each battlemechSheet.heat.dangerActions as |action|}}
+          <button
+            type="button"
+            class="mwd-item-hero__stat mwd-item-hero__stat--button mwd-heat-checks__stat is-action"
+            data-action="heatDangerCheck"
+            {{{mwd-dataset action.dataset}}}
+            title="{{action.hint}}">
+            <span class="mwd-item-hero__label">{{action.label}}</span>
+            <span class="mwd-item-hero__value">{{action.hint}}</span>
+          </button>
+        {{/each}}
+      {{/if}}
     </section>
 
     {{#if battlemechSheet.heat.inDanger}}

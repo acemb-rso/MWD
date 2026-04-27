@@ -22,42 +22,52 @@ function normalizeDomain(domain) {
   return KNOWN_DOMAINS.has(d) ? d : undefined;
 }
 
+function uniqueActors(...actors) {
+  const seen = new Set();
+  return actors.filter(actor => {
+    if (!actor) return false;
+    const key = actor.uuid ?? actor.id ?? actor;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export class ItemModifiersProvider {
   id = "mwd.itemModifiers";
   label = "Item Modifiers";
 
   collect(ctx) {
-    const actor = ctx?.actor;
-    if (!actor) return [];
-
     const mods = [];
 
-    for (const item of actor.items) {
-      // If you want to constrain to trait items only, keep this on:
-      // if (item.type !== "trait") continue;
+    for (const actor of uniqueActors(ctx?.actor, ctx?.rollActor)) {
+      for (const item of actor.items ?? []) {
+        // If you want to constrain to trait items only, keep this on:
+        // if (item.type !== "trait") continue;
 
-      const declared = item.flags?.mwd?.modifiers;
-      if (!Array.isArray(declared) || declared.length === 0) continue;
+        const declared = item.flags?.mwd?.modifiers;
+        if (!Array.isArray(declared) || declared.length === 0) continue;
 
-      for (const d of declared) {
-        if (!d) continue;
+        for (const d of declared) {
+          if (!d) continue;
 
-        const n = coerceNumber(d.value);
-        if (n === null) {
-          console.warn("MWD | Dropping item modifier with invalid value", {
-            actor: actor.name,
-            item: item.name,
-            modifier: d
+          const n = coerceNumber(d.value);
+          if (n === null) {
+            console.warn("MWD | Dropping item modifier with invalid value", {
+              actor: actor.name,
+              item: item.name,
+              modifier: d
+            });
+            continue;
+          }
+
+          mods.push({
+            label: d.label ?? item.name,
+            value: n,
+            source: item.name,
+            domain: normalizeDomain(d.domain),
           });
-          continue;
         }
-
-        mods.push({
-          label: d.label ?? item.name,
-          value: n,
-          source: item.name,
-          domain: normalizeDomain(d.domain),
-        });
       }
     }
 

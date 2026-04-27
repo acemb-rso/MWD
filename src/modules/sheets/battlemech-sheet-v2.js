@@ -116,6 +116,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       ...super.DEFAULT_OPTIONS.actions,
       mechAttack: BattlemechSheetV2.prototype._onMechAttack,
       mechRoll: BattlemechSheetV2.prototype._onMechRoll,
+      heatDangerCheck: BattlemechSheetV2.prototype._onHeatDangerCheck,
       openHeatDialog: BattlemechSheetV2.prototype._onOpenHeatDialog,
       addWeaponGroup: BattlemechSheetV2.prototype._onAddWeaponGroup,
       deleteWeaponGroup: BattlemechSheetV2.prototype._onDeleteWeaponGroup,
@@ -294,6 +295,24 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         dangerLevel: heat.penalties.dangerLevel,
       },
       dangerChecks: heat.dangerChecks,
+      dangerActions: heat.inDanger && heat.dangerChecks ? [
+        {
+          label: "Shutdown Check",
+          hint: `Roll ${toNumber(heat.dangerChecks.shutdownPool, 0)}d6 vs DN ${toNumber(heat.dangerChecks.shutdownDN, 0)}`,
+          dataset: {
+            checkKind: "shutdown",
+            dn: toNumber(heat.dangerChecks.shutdownDN, 0),
+          },
+        },
+        {
+          label: "Explosion Check",
+          hint: `Roll ${toNumber(heat.dangerChecks.explosionPool, 0)}d6 vs DN ${toNumber(heat.dangerChecks.explosionDN, 0)}`,
+          dataset: {
+            checkKind: "explosion",
+            dn: toNumber(heat.dangerChecks.explosionDN, 0),
+          },
+        },
+      ] : [],
       volatile: heat.volatile,
       inDanger: heat.inDanger,
       segments: Array.from({ length: heat.displayMax }, (_, index) => {
@@ -581,6 +600,51 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     } catch (error) {
       console.error("MWD | Failed to launch BattleMech check", error);
       notifyRollError(error, "Unable to launch that BattleMech check.");
+    }
+  }
+
+  async _onHeatDangerCheck(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const checkKind = String(target?.dataset?.checkKind ?? "").trim();
+    if (!["shutdown", "explosion"].includes(checkKind)) {
+      ui.notifications?.warn("Unknown heat danger check.");
+      return;
+    }
+
+    const heat = buildBattlemechHeatModel(actor);
+    if (!heat.inDanger || !heat.dangerChecks) {
+      ui.notifications?.warn("Heat danger checks are only available while the BattleMech is in Danger heat.");
+      return;
+    }
+
+    const dn = checkKind === "shutdown"
+      ? toNumber(heat.dangerChecks.shutdownDN, 1)
+      : toNumber(heat.dangerChecks.explosionDN, 1);
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) {
+      ui.notifications?.error("MWD roll system not initialized.");
+      return;
+    }
+
+    try {
+      await rollApi.execute({
+        actor,
+        event,
+        payload: {
+          intent: "heatDangerCheck",
+          checkKind,
+          dn,
+          tags: ["machine", "heat", "danger", checkKind],
+          edge: { allowed: [] },
+          sourceTokenId: (this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor))?.id ?? null,
+        },
+      });
+    } catch (error) {
+      console.error("MWD | Failed to launch BattleMech heat danger check", error);
+      notifyRollError(error, "Unable to launch that heat danger check.");
     }
   }
 

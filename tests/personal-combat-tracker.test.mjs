@@ -114,3 +114,290 @@ test("markWeaponGroupUsed starts from the reset snapshot state instead of revivi
     PersonalCombatTracker.getSnapshot = originalGetSnapshot;
   }
 });
+
+test("pilot action economy follows the assigned machine combatant during mech activation", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.getProperty ??= getProperty;
+  globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
+  globalThis.foundry.utils.deepClone ??= deepClone;
+  globalThis.foundry.utils.mergeObject ??= mergeObject;
+  globalThis.Hooks ??= { on() {} };
+  globalThis.CONFIG ??= { statusEffects: [] };
+
+  let pilotBurnUpdate = null;
+  const pilotActor = {
+    id: "pilot-1",
+    uuid: "Actor.pilot-1",
+    type: "character",
+    flags: {},
+    items: [],
+    system: {
+      burn: { value: 1, overloaded: false },
+      attributes: {
+        reflexes: { value: 3 },
+        willpower: { value: 3 },
+      },
+    },
+    getActiveTokens: () => [],
+    async update(update) {
+      pilotBurnUpdate = update;
+      if (Object.prototype.hasOwnProperty.call(update, "system.burn.value")) {
+        this.system.burn.value = update["system.burn.value"];
+      }
+    },
+  };
+  const machineActor = {
+    id: "mech-1",
+    uuid: "Actor.mech-1",
+    type: "battlemech",
+    flags: {},
+    items: [],
+    system: {
+      pilot: { uuid: pilotActor.uuid },
+      mwd: { heat: {}, heatStatus: {} },
+      monitors: { heat: { value: 0, max: 10 } },
+    },
+    getActiveTokens: () => [],
+  };
+  const actors = new Map([
+    [pilotActor.id, pilotActor],
+    [machineActor.id, machineActor],
+  ]);
+  actors.contents = [pilotActor, machineActor];
+
+  const tokenDoc = {
+    id: "mech-token",
+    actor: machineActor,
+    actorId: machineActor.id,
+    parent: { id: "scene-1" },
+  };
+  let writtenState = null;
+  const storedState = {
+    activation: { combatId: "combat-1", combatantId: "combatant-mech", round: 1, turn: 0 },
+    actionState: {
+      aim: null,
+      move: null,
+      preparedInterrupt: null,
+      usedWeaponGroupIds: [],
+    },
+    saRemaining: 0,
+    faRemaining: 1,
+    raRemaining: 1,
+    saSpentThisActivation: 3,
+    burnThisActivation: 0,
+    attacksThisActivation: 1,
+    reactionBurnSinceLastActivation: 0,
+    hazards: {},
+    pendingReaction: null,
+    machineCritsProcessed: false,
+    actionLog: [{ id: "move", label: "Move", costLabel: "1 SA" }],
+    traitUsage: { activation: {}, round: {} },
+  };
+  const combatant = {
+    id: "combatant-mech",
+    actor: machineActor,
+    tokenId: tokenDoc.id,
+    token: tokenDoc,
+    getFlag: () => writtenState ?? storedState,
+    async setFlag(_scope, _key, value) {
+      writtenState = value;
+    },
+  };
+  const combatants = new Map([[combatant.id, combatant]]);
+  const combat = {
+    id: "combat-1",
+    round: 1,
+    turn: 0,
+    scene: { id: "scene-1" },
+    combatant,
+    combatants,
+    getCombatantsByToken: (tokenId) => tokenId === tokenDoc.id ? [combatant] : [],
+  };
+
+  globalThis.canvas = {
+    scene: {
+      id: "scene-1",
+      tokens: {
+        get: (id) => id === tokenDoc.id ? tokenDoc : null,
+        [Symbol.iterator]: function* () { yield tokenDoc; },
+      },
+    },
+    tokens: {
+      get: () => null,
+      placeables: [],
+    },
+  };
+  globalThis.game = {
+    user: { isGM: true, id: "gm-1" },
+    combat,
+    actors,
+    scenes: new Map(),
+  };
+
+  const { PersonalCombatTracker } = await import("../src/modules/combat/personal-combat-tracker.js");
+
+  const snapshot = PersonalCombatTracker.getSnapshot(pilotActor);
+  assert.equal(snapshot.combatant.id, combatant.id);
+  assert.equal(snapshot.isCurrentTurn, true);
+  assert.equal(snapshot.burn.value, 1);
+
+  const result = await PersonalCombatTracker.spendResource(pilotActor, {
+    resource: "sa",
+    cost: 2,
+    actionId: "attack",
+    actionLabel: "Attack",
+    actionCostLabel: "2 SA",
+    actionCategory: "complex",
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(writtenState.saSpentThisActivation, 5);
+  assert.equal(writtenState.attacksThisActivation, 2);
+  assert.deepEqual(writtenState.actionLog.map(entry => entry.label), ["Move", "Attack"]);
+  assert.deepEqual(pilotBurnUpdate, { "system.burn.value": 4 });
+});
+
+test("ending a tracked mech activation applies pending heat to the mech", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.getProperty ??= getProperty;
+  globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
+  globalThis.foundry.utils.deepClone ??= deepClone;
+  globalThis.foundry.utils.mergeObject ??= mergeObject;
+  globalThis.Hooks ??= { on() {} };
+  globalThis.CONFIG ??= { statusEffects: [] };
+  globalThis.ChatMessage ??= { create: async () => null, getSpeaker: () => ({}) };
+
+  const pilotActor = {
+    id: "pilot-heat",
+    uuid: "Actor.pilot-heat",
+    type: "character",
+    flags: {},
+    items: [],
+    system: {
+      burn: { value: 0, overloaded: false },
+      attributes: {
+        reflexes: { value: 3 },
+        willpower: { value: 3 },
+      },
+    },
+    getActiveTokens: () => [],
+    async update(update) {
+      if (Object.prototype.hasOwnProperty.call(update, "system.burn.value")) {
+        this.system.burn.value = update["system.burn.value"];
+      }
+    },
+    async setFlag() {},
+  };
+  const machineActor = {
+    id: "mech-heat",
+    uuid: "Actor.mech-heat",
+    type: "battlemech",
+    name: "Heat Mech",
+    flags: {},
+    items: [],
+    system: {
+      pilot: { uuid: pilotActor.uuid },
+      attributes: {
+        chassis: { value: 4 },
+        reliability: { value: 3 },
+      },
+      hybrid: { heat: { dissipation: 1 } },
+      monitors: { heat: { value: 4, max: 10 } },
+      mwd: {
+        heat: {
+          current: 4,
+          pendingGenerated: 3,
+          thresholds: { runningHot: 3, overheated: 5, shutdown: 7 },
+        },
+        heatStatus: {},
+        crits: [],
+        locations: {},
+      },
+    },
+    getActiveTokens: () => [],
+    async update(update) {
+      for (const [path, value] of Object.entries(update)) {
+        const keys = path.replace(/^system\./, "").split(".");
+        let cursor = this.system;
+        while (keys.length > 1) {
+          const key = keys.shift();
+          cursor[key] ??= {};
+          cursor = cursor[key];
+        }
+        cursor[keys[0]] = value;
+      }
+    },
+  };
+  const actors = new Map([
+    [pilotActor.id, pilotActor],
+    [machineActor.id, machineActor],
+  ]);
+  actors.contents = [pilotActor, machineActor];
+
+  const tokenDoc = {
+    id: "mech-heat-token",
+    actor: machineActor,
+    actorId: machineActor.id,
+    parent: { id: "scene-1" },
+  };
+  const storedState = {
+    activation: { combatId: "combat-heat", combatantId: "combatant-mech-heat", round: 1, turn: 0 },
+    actionState: { aim: null, move: null, preparedInterrupt: null, usedWeaponGroupIds: [] },
+    saRemaining: 1,
+    faRemaining: 1,
+    raRemaining: 1,
+    saSpentThisActivation: 2,
+    burnThisActivation: 0,
+    attacksThisActivation: 1,
+    reactionBurnSinceLastActivation: 0,
+    hazards: {},
+    pendingReaction: null,
+    machineCritsProcessed: true,
+    actionLog: [],
+    traitUsage: { activation: {}, round: {} },
+  };
+  const combatant = {
+    id: "combatant-mech-heat",
+    actor: machineActor,
+    tokenId: tokenDoc.id,
+    token: tokenDoc,
+    getFlag: () => storedState,
+    async setFlag() {},
+  };
+  const combatants = new Map([[combatant.id, combatant]]);
+  const combat = {
+    id: "combat-heat",
+    round: 1,
+    turn: 0,
+    scene: { id: "scene-1" },
+    combatant,
+    combatants,
+    getCombatantsByToken: (tokenId) => tokenId === tokenDoc.id ? [combatant] : [],
+  };
+
+  globalThis.canvas = {
+    scene: {
+      id: "scene-1",
+      tokens: {
+        get: (id) => id === tokenDoc.id ? tokenDoc : null,
+        [Symbol.iterator]: function* () { yield tokenDoc; },
+      },
+    },
+    tokens: { get: () => null, placeables: [] },
+  };
+  globalThis.game = {
+    user: { isGM: true, id: "gm-1" },
+    combat,
+    actors,
+    scenes: new Map(),
+  };
+
+  const { PersonalCombatTracker } = await import("../src/modules/combat/personal-combat-tracker.js");
+
+  PersonalCombatTracker.getSnapshot(pilotActor);
+  await PersonalCombatTracker.finalizeActivation(combat, combatant.id);
+
+  assert.equal(machineActor.system.monitors.heat.value, 6);
+  assert.equal(machineActor.system.mwd.heat.current, 6);
+  assert.equal(machineActor.system.mwd.heat.pendingGenerated, 0);
+});

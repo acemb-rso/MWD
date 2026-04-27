@@ -151,6 +151,7 @@ export function buildResolved({
     domains: Array.isArray(ctx?.domains) ? ctx.domains : [],
     attack: ctx?.attack ?? null,
     machineRemedy: ctx?.machineRemedy ?? null,
+    heatDangerCheck: ctx?.heatDangerCheck ?? null,
     specialization: ctx?.specialization ?? null,
     dn: ctx?.dn ?? (
       ctx?.difficulty?.dn !== undefined

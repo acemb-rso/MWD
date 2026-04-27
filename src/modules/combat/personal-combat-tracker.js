@@ -318,6 +318,78 @@ function buildHazardOverlayText(hazards = []) {
   return highest.evadeLocked ? `${label} LOCK` : label;
 }
 
+function getActorIdentityKeys(actor = null) {
+  const keys = new Set();
+  const add = (value) => {
+    const normalized = String(value ?? "").trim();
+    if (normalized) keys.add(normalized);
+  };
+
+  add(actor?.id);
+  add(actor?._id);
+  add(actor?.uuid);
+  add(actor?.actor?.id);
+  add(actor?.actor?.uuid);
+  add(actor?.baseActor?.id);
+  add(actor?.baseActor?.uuid);
+  return keys;
+}
+
+function resolveActorUuidSync(uuid = "") {
+  const value = String(uuid ?? "").trim();
+  if (!value) return null;
+
+  if (typeof fromUuidSync === "function") {
+    try {
+      const resolved = fromUuidSync(value);
+      if (resolved) return resolved?.actor ?? resolved?.baseActor ?? resolved;
+    } catch (_error) {
+      // Fall through to actor collection lookup.
+    }
+  }
+
+  const actorId = value.startsWith("Actor.") ? value.slice("Actor.".length).split(".")[0] : value;
+  return game?.actors?.get?.(actorId)
+    ?? (game?.actors?.contents ?? []).find(actor => getActorIdentityKeys(actor).has(value))
+    ?? null;
+}
+
+function getMachinePilotActorSync(machineActor = null) {
+  if (!isMachineActor(machineActor)) return null;
+
+  const pilotUuid = String(
+    machineActor?.system?.pilot?.uuid
+    ?? machineActor?.system?.mwd?.pilot?.uuid
+    ?? machineActor?.system?.mwd?.crew?.operatorActorUuid
+    ?? machineActor?.system?.mwd?.crew?.pilotActorUuid
+    ?? ""
+  ).trim();
+
+  return resolveActorUuidSync(pilotUuid);
+}
+
+function isMachineAssignedToOperator(machineActor = null, operatorActor = null) {
+  if (!isMachineActor(machineActor) || !operatorActor) return false;
+
+  const pilotUuid = String(
+    machineActor?.system?.pilot?.uuid
+    ?? machineActor?.system?.mwd?.pilot?.uuid
+    ?? machineActor?.system?.mwd?.crew?.operatorActorUuid
+    ?? machineActor?.system?.mwd?.crew?.pilotActorUuid
+    ?? ""
+  ).trim();
+  const operatorKeys = getActorIdentityKeys(operatorActor);
+  if (operatorKeys.has(pilotUuid)) return true;
+
+  const pilotActor = getMachinePilotActorSync(machineActor);
+  if (!pilotActor) return false;
+
+  for (const key of getActorIdentityKeys(pilotActor)) {
+    if (operatorKeys.has(key)) return true;
+  }
+  return false;
+}
+
 export class PersonalCombatTracker {
   static _targetRefreshTimeout = null;
   static _pendingTokenPositions = new Map();
@@ -415,6 +487,22 @@ export class PersonalCombatTracker {
     if (!combat?.combatants) return [];
     if (typeof combat.combatants.values === "function") return Array.from(combat.combatants.values());
     return Array.from(combat.combatants ?? []);
+  }
+
+  static _getCombatantActor(combatant, sceneId = canvas?.scene?.id) {
+    const tokenDoc = this._getCombatantTokenDocument(combatant, sceneId);
+    return tokenDoc?.actor ?? combatant?.actor ?? null;
+  }
+
+  static getActionEconomyActorForCombatant(combatant, sceneId = canvas?.scene?.id) {
+    const actor = this._getCombatantActor(combatant, sceneId);
+    if (!isMachineActor(actor)) return actor;
+    return getMachinePilotActorSync(actor) ?? actor;
+  }
+
+  static rememberActivation(combat, combatant) {
+    if (!combat?.id || !combatant?.id) return;
+    this._lastActivationByCombat.set(combat.id, this.getActivationIdentity(combat, combatant));
   }
 
   static _getCombatSceneId(combat) {
@@ -704,6 +792,13 @@ export class PersonalCombatTracker {
     }
 
     let combatant = this._findCombatantForToken(combat, preferredSceneTokenDoc, sceneId);
+    if (!hasExplicitToken) {
+      const currentCombatant = combat?.combatant ?? null;
+      const currentActor = this._getCombatantActor(currentCombatant, sceneId);
+      if (isMachineAssignedToOperator(currentActor, actor)) {
+        combatant = currentCombatant;
+      }
+    }
 
     const combatants = this._getCombatants(combat);
     if (!combatant) {
@@ -716,7 +811,9 @@ export class PersonalCombatTracker {
         if (hasExplicitToken && preferredSceneTokenId) return combatantTokenId === preferredSceneTokenId;
         if (actorIds.has(this._getCombatantActorId(it))) return true;
 
-        return this._tokenDocumentMatchesActor(combatantTokenDoc, actor, actorIds);
+        const combatantActor = combatantTokenDoc?.actor ?? it?.actor ?? null;
+        return this._tokenDocumentMatchesActor(combatantTokenDoc, actor, actorIds)
+          || (!hasExplicitToken && isMachineAssignedToOperator(combatantActor, actor));
       });
 
       const activeMatchingCombatant = matchingCombatants.find(it => it.id === combat?.combatant?.id) ?? null;
@@ -758,6 +855,9 @@ export class PersonalCombatTracker {
     } = this.getCombat(actor, token);
     const isCurrentTurn = !!combatant && combat?.combatant?.id === combatant.id;
     const activation = combatant ? this.getActivationIdentity(combat, combatant) : null;
+    if (isCurrentTurn && combat?.id && !this._lastActivationByCombat.has(combat.id)) {
+      this.rememberActivation(combat, combatant);
+    }
     const stored = combatant ? combatant.getFlag(FLAG_SCOPE, FLAG_KEY) : null;
     const state = combatant
       ? (isCurrentTurn
@@ -1582,6 +1682,7 @@ export class PersonalCombatTracker {
     const combat = game.combat;
     const combatant = combat?.combatant;
     if (!combat || !combatant || combat.scene?.id !== canvas?.scene?.id) return;
+    this.rememberActivation(combat, combatant);
 
     const activation = this.getActivationIdentity(combat, combatant);
     const stored = combatant.getFlag(FLAG_SCOPE, FLAG_KEY);
@@ -1606,6 +1707,7 @@ export class PersonalCombatTracker {
     if (!snapshot.isCurrentTurn) {
       return { ok: false, reason: "Only available during your activation." };
     }
+    this.rememberActivation(snapshot.combat, snapshot.combatant);
 
     const runtime = {
       combat: snapshot.combat,
@@ -1783,7 +1885,8 @@ export class PersonalCombatTracker {
     if (!combatantId || !combat) return;
 
     const combatant = combat.combatants?.get?.(combatantId) ?? null;
-    const actor = combatant?.actor ?? null;
+    const machineActor = this._getCombatantActor(combatant, combat?.scene?.id ?? canvas?.scene?.id);
+    const actor = this.getActionEconomyActorForCombatant(combatant, combat?.scene?.id ?? canvas?.scene?.id);
     if (!combatant || !actor) return;
 
     const stored = combatant.getFlag(FLAG_SCOPE, FLAG_KEY);
@@ -1837,8 +1940,8 @@ export class PersonalCombatTracker {
       }
     }
 
-    if (actor.type === "battlemech") {
-      await resolveBattlemechPendingHeat(actor, {
+    if (machineActor?.type === "battlemech") {
+      await resolveBattlemechPendingHeat(machineActor, {
         source: "combat turn advance",
         postDangerCard: true,
         activation: this.getActivationIdentity(combat, combatant),
@@ -1915,6 +2018,13 @@ export class PersonalCombatTracker {
 
     if (touchedPersonalCombat || touchedTargeting) {
       this.renderOpenActorSheets(combatant?.actor?.id);
+      const actionEconomyActor = this.getActionEconomyActorForCombatant(
+        combatant,
+        this._getCombatantSceneId(combatant) || canvas?.scene?.id
+      );
+      if (actionEconomyActor?.id && actionEconomyActor.id !== combatant?.actor?.id) {
+        this.renderOpenActorSheets(actionEconomyActor.id);
+      }
     }
   }
 

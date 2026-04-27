@@ -29,6 +29,8 @@ function normalizeModifier(mod) {
  */
 export async function collectModifiers({
   actor,
+  rollActor = null,
+  machineActor = null,
   rollType,
   skillId,
   domains,
@@ -38,10 +40,9 @@ export async function collectModifiers({
   resolved,
   context
 } = {}) {
-  const ctx = { actor, rollType, skillId, domains, payload, resolved, context };
+  const ctx = { actor, rollActor, machineActor, rollType, skillId, domains, payload, resolved, context };
 
   const raw = await modifierProviders.collectAll(ctx);
-  console.log("MWD|condition collect called", ctx.rollType);
   // 1) Normalize + drop invalid values
   let mods = [];
   for (const m of raw ?? []) {

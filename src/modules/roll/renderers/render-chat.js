@@ -10,6 +10,7 @@ import { enhanceNet } from "./render-net.js";
 import { enhanceOpposed } from "./render-opposed.js";
 import { enhanceExtended } from "./render-extended.js";
 import { enhanceMachineRemedy } from "./render-machine-remedy.js";
+import { enhanceHeatDangerCheck } from "./render-heat-danger-check.js";
 import { enhanceAcquire } from "./render-acquire.js";
 import { enhanceTargeting } from "./render-targeting.js";
 import { getPersonalRangeBandName } from "../../mwd/personal-range-bands.js";
@@ -23,6 +24,7 @@ const ENHANCERS = {
   opposed: enhanceOpposed,
   extended: enhanceExtended,
   machineRemedy: enhanceMachineRemedy,
+  heatDangerCheck: enhanceHeatDangerCheck,
   acquire: enhanceAcquire,
   targeting: enhanceTargeting,
   // defense: enhanceDefense,

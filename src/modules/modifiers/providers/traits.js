@@ -4,23 +4,34 @@
 
 import { evaluateTraitPhase, buildRollTraitFacts } from "../../mwd/traits.js";
 
+function uniqueActors(...actors) {
+  const seen = new Set();
+  return actors.filter(actor => {
+    if (!actor) return false;
+    const key = actor.uuid ?? actor.id ?? actor;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export class TraitModifiersProvider {
   id = "mwd.traits";
   label = "Traits";
 
-  collect({ actor, resolved, payload } = {}) {
-    if (!actor) return [];
+  collect({ actor, rollActor, resolved, payload } = {}) {
+    return uniqueActors(rollActor, actor).flatMap(sourceActor => {
+      const runtime = {
+        snapshot: game.mwd?.personalCombat?.getSnapshot?.(sourceActor) ?? null,
+      };
 
-    const runtime = {
-      snapshot: game.mwd?.personalCombat?.getSnapshot?.(actor) ?? null,
-    };
-
-    return evaluateTraitPhase({
-      actor,
-      phase: "onBuildRoll",
-      facts: buildRollTraitFacts({ actor, resolved, payload, runtime }),
-      packet: {},
-      options: { runtime, consumeUsage: false },
-    }).modifiers;
+      return evaluateTraitPhase({
+        actor: sourceActor,
+        phase: "onBuildRoll",
+        facts: buildRollTraitFacts({ actor: sourceActor, resolved, payload, runtime }),
+        packet: {},
+        options: { runtime, consumeUsage: false },
+      }).modifiers;
+    });
   }
 }

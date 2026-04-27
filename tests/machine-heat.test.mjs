@@ -5,8 +5,11 @@ import {
   buildBattlemechHeatModel,
   computeBattlemechAttackHeat,
   getBattlemechHeatActivationKey,
+  recordBattlemechAttackHeat,
   resolveBattlemechHeatActivation,
 } from "../src/modules/mwd/machine-heat.js";
+import { applyHeatDangerCheckOutcome } from "../src/modules/mwd/heat-danger-outcomes.js";
+import { resolveHeatDangerCheck } from "../src/modules/roll/intent/resolve-heat-danger-check.js";
 
 function createSystemData(overrides = {}) {
   return {
@@ -32,6 +35,22 @@ function createSystemData(overrides = {}) {
       },
     },
     ...overrides,
+  };
+}
+
+function createBattlemechActor(overrides = {}) {
+  return {
+    type: "battlemech",
+    name: "Hot Machine",
+    statuses: new Set(overrides.statuses ?? []),
+    effects: [],
+    system: createSystemData(overrides.system ?? {}),
+    async toggleStatusEffect(statusId, { active } = {}) {
+      if (active) this.statuses.add(statusId);
+      else this.statuses.delete(statusId);
+      return true;
+    },
+    ...overrides.actor,
   };
 }
 
@@ -99,6 +118,48 @@ test("battlemech attack heat sums weapon heat and crit-based attack surcharges",
   assert.equal(result.total, 6);
 });
 
+test("recording BattleMech attack heat accumulates pending heat from weapon ids and resolved profiles", async () => {
+  const actor = {
+    type: "battlemech",
+    system: createSystemData({
+      mwd: {
+        heat: {
+          pendingGenerated: 1,
+          thresholds: { runningHot: 3, overheated: 5, shutdown: 7 },
+        },
+        crits: [{ active: true, resourceEffects: { heatPerAttack: 1 } }],
+        locations: {},
+      },
+    }),
+    items: new Map([
+      ["laser", { id: "laser", system: { heat: 2, damageType: "energy" } }],
+    ]),
+    async update(update) {
+      for (const [path, value] of Object.entries(update)) {
+        const keys = path.replace(/^system\./, "").split(".");
+        let cursor = this.system;
+        while (keys.length > 1) {
+          const key = keys.shift();
+          cursor[key] ??= {};
+          cursor = cursor[key];
+        }
+        cursor[keys[0]] = value;
+      }
+    },
+  };
+
+  const first = await recordBattlemechAttackHeat(actor, {
+    weaponIds: ["laser"],
+    attackProfile: { heat: 2, damageType: "energy" },
+  });
+  assert.equal(first.pendingGenerated, 4);
+
+  const second = await recordBattlemechAttackHeat(actor, {
+    attackProfile: { heat: 3, damageType: "thermal" },
+  });
+  assert.equal(second.pendingGenerated, 8);
+});
+
 test("activation resolution applies pending heat, dissipation, and danger checks", () => {
   const result = resolveBattlemechHeatActivation(createSystemData({
     monitors: {
@@ -150,4 +211,140 @@ test("activation resolution does not clamp heat to the configured track length",
 
   assert.equal(result.newHeat, 12);
   assert.equal(result.penalties.dangerLevel, 6);
+});
+
+test("heat danger roll resolver prepares shutdown and explosion checks", async () => {
+  const actor = createBattlemechActor({
+    system: {
+      monitors: {
+        heat: { value: 8, max: 10 },
+      },
+      mwd: {
+        heat: {
+          pendingGenerated: 0,
+          thresholds: { runningHot: 3, overheated: 5, shutdown: 7 },
+        },
+        crits: [],
+        locations: {
+          torso: { enabled: true, destroyed: false, tags: ["ammoStore"] },
+        },
+      },
+    },
+  });
+
+  const shutdown = await resolveHeatDangerCheck({
+    actor,
+    payload: { checkKind: "shutdown", dn: 2 },
+  });
+  assert.equal(shutdown.title, "Shutdown Check");
+  assert.equal(shutdown.pool.attribute, 4);
+  assert.equal(shutdown.pool.skill, 3);
+  assert.equal(shutdown.pool.bonus, 0);
+  assert.equal(shutdown.dn.total, 2);
+  assert.equal(shutdown.heatDangerCheck.dangerLevel, 2);
+
+  const explosion = await resolveHeatDangerCheck({
+    actor,
+    payload: { checkKind: "explosion", dn: 1 },
+  });
+  assert.equal(explosion.title, "Explosion Check");
+  assert.equal(explosion.pool.attribute, 4);
+  assert.equal(explosion.pool.skill, 3);
+  assert.equal(explosion.pool.bonus, -2);
+  assert.equal(explosion.heatDangerCheck.pool, 5);
+  assert.equal(explosion.heatDangerCheck.volatile, true);
+});
+
+test("failed shutdown danger check applies Shutdown when no override is available", async () => {
+  const actor = createBattlemechActor();
+  const result = await applyHeatDangerCheckOutcome({
+    actor,
+    ctx: {
+      heatDangerCheck: {
+        kind: "shutdown",
+        dn: 3,
+        operatorName: "Pilot",
+        systemOpsRating: 2,
+      },
+    },
+    outcomeModel: {
+      passed: false,
+      successes: 1,
+      difficulty: { dn: 3 },
+      margin: -2,
+    },
+  });
+
+  assert.equal(result.outcome, "shutdownApplied");
+  assert.equal(result.statusApplied, true);
+  assert.equal(result.overrideAvailable, false);
+  assert.equal(actor.statuses.has("shutdown"), true);
+});
+
+test("failed shutdown danger check offers pilot override when margin is below System Operations", async () => {
+  const actor = createBattlemechActor();
+  const result = await applyHeatDangerCheckOutcome({
+    actor,
+    ctx: {
+      heatDangerCheck: {
+        kind: "shutdown",
+        dn: 3,
+        operatorName: "Pilot",
+        systemOpsRating: 3,
+      },
+    },
+    outcomeModel: {
+      passed: false,
+      successes: 1,
+      difficulty: { dn: 3 },
+      margin: -2,
+    },
+  });
+
+  assert.equal(result.outcome, "overrideAvailable");
+  assert.equal(result.statusApplied, false);
+  assert.equal(result.overrideAvailable, true);
+  assert.equal(actor.statuses.has("shutdown"), false);
+});
+
+test("failed explosion danger check reports detonation only when volatile components exist", async () => {
+  const volatileResult = await applyHeatDangerCheckOutcome({
+    actor: createBattlemechActor(),
+    ctx: {
+      heatDangerCheck: {
+        kind: "explosion",
+        dn: 1,
+        volatile: true,
+      },
+    },
+    outcomeModel: {
+      passed: false,
+      successes: 0,
+      difficulty: { dn: 1 },
+      margin: -1,
+    },
+  });
+
+  assert.equal(volatileResult.outcome, "explosionTriggered");
+  assert.equal(volatileResult.explosionTriggered, true);
+
+  const inertResult = await applyHeatDangerCheckOutcome({
+    actor: createBattlemechActor(),
+    ctx: {
+      heatDangerCheck: {
+        kind: "explosion",
+        dn: 1,
+        volatile: false,
+      },
+    },
+    outcomeModel: {
+      passed: false,
+      successes: 0,
+      difficulty: { dn: 1 },
+      margin: -1,
+    },
+  });
+
+  assert.equal(inertResult.outcome, "noVolatileComponents");
+  assert.equal(inertResult.explosionTriggered, false);
 });

@@ -10,44 +10,57 @@ import {
   isStatusConditionApplicableToActor,
 } from "../../status/status-condition-catalog.js";
 
+function uniqueActors(...actors) {
+  const seen = new Set();
+  return actors.filter(actor => {
+    if (!actor) return false;
+    const key = actor.uuid ?? actor.id ?? actor;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export class StatusEffectsProvider {
   id = "mwd.statusEffects";
   label = "Status Effects";
 
-  collect({ actor } = {}) {
-    const statuses = actor?.statuses;
-    if (!actor || !statuses) return [];
-
+  collect({ actor, rollActor } = {}) {
     const mods = [];
 
-    for (const statusId of statuses) {
-      const statusEntry = getStatusConditionDefinition(statusId);
-      const modifierKey = statusEntry
-        ? (isStatusConditionApplicableToActor(statusEntry, actor) ? statusEntry.modifierKey : "")
-        : statusId;
-      const def = STATUS_MAP?.[modifierKey];
-      if (!def?.mods?.length) continue;
+    for (const sourceActor of uniqueActors(actor, rollActor)) {
+      const statuses = sourceActor?.statuses;
+      if (!statuses) continue;
 
-      for (const entry of def.mods) {
-        const entryDomains = Array.isArray(entry.domains) ? entry.domains : [];
-        const value = entry.value;
+      for (const statusId of statuses) {
+        const statusEntry = getStatusConditionDefinition(statusId);
+        const modifierKey = statusEntry
+          ? (isStatusConditionApplicableToActor(statusEntry, sourceActor) ? statusEntry.modifierKey : "")
+          : statusId;
+        const def = STATUS_MAP?.[modifierKey];
+        if (!def?.mods?.length) continue;
 
-        // Emit one mod per domain tag (so central filtering works)
-        if (entryDomains.length) {
-          for (const domain of entryDomains) {
+        for (const entry of def.mods) {
+          const entryDomains = Array.isArray(entry.domains) ? entry.domains : [];
+          const value = entry.value;
+
+          // Emit one mod per domain tag (so central filtering works)
+          if (entryDomains.length) {
+            for (const domain of entryDomains) {
+              mods.push({
+                label: def.label ?? statusId,
+                value,
+                source: "Status",
+                domain
+              });
+            }
+          } else {
             mods.push({
               label: def.label ?? statusId,
               value,
-              source: "Status",
-              domain
+              source: "Status"
             });
           }
-        } else {
-          mods.push({
-            label: def.label ?? statusId,
-            value,
-            source: "Status"
-          });
         }
       }
     }

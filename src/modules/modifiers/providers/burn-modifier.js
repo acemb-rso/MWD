@@ -7,7 +7,7 @@ export const burnModifier = {
   id: "burn",
 
   async collect(ctx) {
-    const actor = ctx.actor;
+    const actor = ctx.rollActor ?? ctx.actor;
     if (!actor) return [];
 
     const burn = Number(actor.system?.burn?.value ?? 0);

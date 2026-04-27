@@ -26,6 +26,7 @@ import {
   resolveMachineCritIntentContext,
 } from "../mwd/machine-intents.js";
 import { recordBattlemechAttackHeat } from "../mwd/machine-heat.js";
+import { applyHeatDangerCheckOutcome } from "../mwd/heat-danger-outcomes.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { getMachineActionDefinition } from "../mwd/machine-action-catalog.js";
 import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
@@ -71,6 +72,17 @@ function normalizeManualMods(payload) {
 
   const total = mods.reduce((a, m) => a + m.value, 0);
   return { mods, total };
+}
+
+function uniqueActors(...actors) {
+  const seen = new Set();
+  return actors.filter(actor => {
+    if (!actor) return false;
+    const key = actor.uuid ?? actor.id ?? actor;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function normalizePayload(payload = {}) {
@@ -378,6 +390,8 @@ async function execute({ actor, payload, event } = {}) {
 
   let collected = await collectModifiers({
     actor,
+    rollActor,
+    machineActor: ctx?.machineActor ?? null,
     rollType: payload.intent,
     skillId: payload.key,
     domains: ctx.domains,
@@ -444,6 +458,8 @@ async function execute({ actor, payload, event } = {}) {
 
   collected = await collectModifiers({
     actor,
+    rollActor,
+    machineActor: ctx?.machineActor ?? null,
     rollType: payload.intent,
     skillId: payload.key,
     domains: ctx.domains,
@@ -508,14 +524,19 @@ async function execute({ actor, payload, event } = {}) {
     }
   }
 
-  const traitBuildResult = evaluateTraitPhase({
-    actor,
-    phase: "onBuildRoll",
-    facts: buildRollTraitFacts({ actor, resolved: ctx, payload, runtime }),
-    packet: {},
-    options: { runtime, consumeUsage: true },
-  });
-  await applyTraitMutations({ actor, mutations: traitBuildResult.mutations, runtime });
+  for (const traitActor of uniqueActors(rollActor, actor)) {
+    const traitRuntime = {
+      snapshot: game.mwd?.personalCombat?.getSnapshot?.(traitActor) ?? null,
+    };
+    const traitBuildResult = evaluateTraitPhase({
+      actor: traitActor,
+      phase: "onBuildRoll",
+      facts: buildRollTraitFacts({ actor: traitActor, resolved: ctx, payload, runtime: traitRuntime }),
+      packet: {},
+      options: { runtime: traitRuntime, consumeUsage: true },
+    });
+    await applyTraitMutations({ actor: traitActor, mutations: traitBuildResult.mutations, runtime: traitRuntime });
+  }
 
   // Spend pre-edge (once) before rolling
   if (edgeAllowed && edgeInfo?.pre?.spent && edgeInfo?.pre?.poolKey) {
@@ -611,6 +632,11 @@ async function execute({ actor, payload, event } = {}) {
     await applyOverloadResult({ actor, passed: outcomeModel.passed });
   }
 
+  let heatDangerResult = null;
+  if (ctx.intent === "heatDangerCheck") {
+    heatDangerResult = await applyHeatDangerCheckOutcome({ actor, ctx, outcomeModel });
+  }
+
   let attackExecution = null;
   let machineRemedyResult = null;
   if (ctx.intent === "attack") {
@@ -670,6 +696,9 @@ async function execute({ actor, payload, event } = {}) {
   if (attackExecution) {
     resolved.attackResult = attackExecution;
   }
+  if (heatDangerResult) {
+    resolved.heatDangerResult = heatDangerResult;
+  }
   if (ctx.intent === "machineRemedy") {
     resolved.machineRemedy = ctx.machineRemedy ?? null;
     resolved.machineRemedyResult = {
@@ -704,15 +733,14 @@ async function execute({ actor, payload, event } = {}) {
       ...((ctx?.attack?.weapon?.machineWeaponGroup?.weaponIds ?? []).map(id => String(id ?? "").trim()).filter(Boolean)),
       ...(payload?.weaponId ? [String(payload.weaponId).trim()] : []),
     ]));
-    if (weaponIds.length) {
-      try {
-        await recordBattlemechAttackHeat(actor, {
-          weaponIds,
-          reason: "attack resolution",
-        });
-      } catch (error) {
-        console.warn("MWD | Unable to record BattleMech attack heat", error);
-      }
+    try {
+      await recordBattlemechAttackHeat(actor, {
+        weaponIds,
+        attackProfile: ctx?.attack?.weapon ?? null,
+        reason: "attack resolution",
+      });
+    } catch (error) {
+      console.warn("MWD | Unable to record BattleMech attack heat", error);
     }
   }
 

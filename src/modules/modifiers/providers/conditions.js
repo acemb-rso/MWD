@@ -19,11 +19,12 @@ export class ConditionModifiersProvider {
   id = "mwd.condition";
   label = "Condition";
 
-  collect({ actor, rollType } = {}) {
-    if (!actor) return [];
+  collect({ actor, rollActor, rollType } = {}) {
+    const sourceActor = rollActor ?? actor;
+    if (!sourceActor) return [];
     if (rollType === "edge") return []; // don’t penalize edge-only rolls
 
-    const d = actor.system?.derived ?? {};
+    const d = sourceActor.system?.derived ?? {};
 
     const phys = Number(
       d?.condition?.physicalPenalty ??
@@ -58,7 +59,6 @@ export class ConditionModifiersProvider {
         // domain: "physical" // optional
       });
     }
-    console.log("MWD|condition derived snapshot", actor.name, foundry.utils.deepClone(actor.system?.derived));
     return mods;
   }
 }

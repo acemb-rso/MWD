@@ -3,6 +3,10 @@ import assert from "node:assert/strict";
 
 import { describeMachineCriticalEffect, getMachineAttackRestriction } from "../src/modules/mwd/machine-crit-effects.js";
 import { getMachinePilotingDiceModifier } from "../src/modules/mwd/machine-state-effects.js";
+import { burnModifier } from "../src/modules/modifiers/providers/burn-modifier.js";
+import { ConditionModifiersProvider } from "../src/modules/modifiers/providers/conditions.js";
+import { MachineStateEffectsProvider } from "../src/modules/modifiers/providers/machine-state-effects.js";
+import { StatusEffectsProvider } from "../src/modules/modifiers/providers/status-effects.js";
 
 function buildActor(overrides = {}) {
   return {
@@ -97,6 +101,86 @@ test("machine piloting checks use machine handling plus linked pilot piloting", 
     globalThis.fromUuid = previousFromUuid;
     delete globalThis.foundry;
   }
+});
+
+test("machine roll modifiers include operator condition and burn penalties", async () => {
+  const machine = buildActor();
+  const pilot = {
+    id: "pilot",
+    uuid: "Actor.pilot",
+    name: "Linked Pilot",
+    type: "character",
+    statuses: new Set(["frightened"]),
+    system: {
+      burn: { value: 5 },
+      derived: {
+        condition: { physicalPenalty: -1, fatiguePenalty: -2 },
+      },
+    },
+  };
+
+  const conditionMods = new ConditionModifiersProvider().collect({
+    actor: machine,
+    rollActor: pilot,
+    rollType: "attack",
+  });
+  assert.deepEqual(conditionMods.map(mod => [mod.id, mod.value]), [
+    ["conditionPhysical", -1],
+    ["conditionFatigue", -2],
+  ]);
+
+  const burnMods = await burnModifier.collect({ actor: machine, rollActor: pilot });
+  assert.deepEqual(burnMods.map(mod => [mod.id, mod.value]), [["burn", -2]]);
+
+  const statusMods = new StatusEffectsProvider().collect({ actor: machine, rollActor: pilot });
+  assert.equal(statusMods.some(mod => mod.label === "Frightened" && mod.value === -1), true);
+});
+
+test("BattleMech overheat applies ranged attack dice penalty only to ranged attacks", () => {
+  const actor = buildActor();
+  actor.system.monitors = { heat: { value: 6, max: 10 } };
+  actor.system.hybrid = { heat: { dissipation: 1 } };
+  actor.system.attributes.chassis = { value: 4 };
+  actor.system.attributes.reliability = { value: 3 };
+  actor.system.mwd = {
+    ...actor.system.mwd,
+    heat: {
+      pendingGenerated: 0,
+      thresholds: { runningHot: 3, overheated: 5, shutdown: 7 },
+    },
+    crits: [],
+    locations: {},
+  };
+  const provider = new MachineStateEffectsProvider();
+
+  const rangedMods = provider.collect({
+    actor,
+    payload: { intent: "attack" },
+    resolved: {
+      intent: "attack",
+      attack: {
+        weapon: { category: "ranged", skill: "gunnery" },
+        skill: { code: "gunnery" },
+      },
+    },
+  });
+  assert.deepEqual(
+    rangedMods.filter(mod => mod.id === "battlemechHeat.rangedDice").map(mod => mod.value),
+    [-2],
+  );
+
+  const meleeMods = provider.collect({
+    actor,
+    payload: { intent: "attack" },
+    resolved: {
+      intent: "attack",
+      attack: {
+        weapon: { category: "melee", skill: "meleeCombat" },
+        skill: { code: "meleeCombat" },
+      },
+    },
+  });
+  assert.equal(meleeMods.some(mod => mod.id === "battlemechHeat.rangedDice"), false);
 });
 
 test("crit presentation differentiates automated and reminder-only effects", () => {

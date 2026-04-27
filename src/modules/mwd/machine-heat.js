@@ -32,7 +32,7 @@ function getActiveHeatCrits(systemData = {}) {
 }
 
 export function getBattlemechPendingHeat(systemData = {}) {
-  return clampMin(systemData?.mwd?.heat?.pendingGenerated, 0);
+  return clampMin(getSystemData(systemData)?.mwd?.heat?.pendingGenerated, 0);
 }
 
 export function getBattlemechHeatActivationKey(activation = null) {
@@ -182,24 +182,24 @@ export async function adjustBattlemechPendingHeat(actor, delta, { reason = "" } 
   return setBattlemechPendingHeat(actor, current + toNumber(delta, 0), { reason });
 }
 
-export async function recordBattlemechAttackHeat(actor, { weaponIds = [], reason = "" } = {}) {
+export async function recordBattlemechAttackHeat(actor, { weaponIds = [], attackProfile = null, reason = "" } = {}) {
   if (!actor || actor.type !== "battlemech") return { ok: false, reason: "BattleMech actor required." };
 
   const resolvedWeaponIds = Array.from(new Set(asArray(weaponIds).map(id => String(id ?? "").trim()).filter(Boolean)));
-  if (!resolvedWeaponIds.length) {
-    return { ok: true, actor, pendingGenerated: getBattlemechPendingHeat(actor), contribution: { total: 0 } };
-  }
-
   const weapons = resolvedWeaponIds
     .map(id => actor.items?.get?.(id))
     .filter(Boolean);
+  const profileHeat = clampMin(attackProfile?.heat ?? attackProfile?.attackSummary?.heat, 0);
   const contribution = computeBattlemechAttackHeat({
     weapons,
     crits: getActiveHeatCrits(actor.system),
   });
+  contribution.weaponCount = Math.max(contribution.weaponCount, resolvedWeaponIds.length, profileHeat > 0 ? 1 : 0);
+  contribution.baseHeat = Math.max(contribution.baseHeat, profileHeat);
   const stateHeat = getMachineHeatAdjustments(actor);
+  const hasEnergyHeatSource = weapons.some(isEnergyMachineWeapon) || isEnergyMachineWeapon(attackProfile);
   contribution.extraAttackHeat += Math.max(0, Number(stateHeat.attackHeat ?? 0));
-  contribution.extraEnergyHeat += weapons.some(isEnergyMachineWeapon)
+  contribution.extraEnergyHeat += hasEnergyHeatSource
     ? Math.max(0, Number(stateHeat.energyAttackHeat ?? 0))
     : 0;
   contribution.total = contribution.baseHeat + contribution.extraAttackHeat + contribution.extraEnergyHeat;
