@@ -81,7 +81,6 @@ test("BattlemechLoadout normalizes object-backed persisted hardpoints and weapon
             weaponIds: {
               0: "laser-1",
             },
-            isPrimary: true,
           },
         },
       },
@@ -96,7 +95,6 @@ test("BattlemechLoadout normalizes object-backed persisted hardpoints and weapon
   assert.equal(loadout.hardpoints[0].occupiedBy, "group-1");
   assert.equal(loadout.weaponGroups.length, 1);
   assert.deepEqual(loadout.weaponGroups[0].weaponIds, ["laser-1"]);
-  assert.equal(loadout.primaryGroupId, "group-1");
   assert.deepEqual(loadout.errors, []);
 });
 
@@ -131,7 +129,6 @@ test("BattlemechLoadout ignores unattached mech weapons when validating mounted 
           id: "group-1",
           name: "Alpha",
           weaponIds: ["laser-1"],
-          isPrimary: true,
         }],
         melee: {
           maxWeapons: 0,

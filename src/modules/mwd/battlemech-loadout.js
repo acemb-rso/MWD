@@ -20,7 +20,6 @@ const MOUNT_POINTS = {
   assault: 7,
 };
 
-const DEFAULT_PRIMARY_SLOT = { mode: "normal", allowedWeaponIds: [], typeRestriction: "" };
 const DEFAULT_MELEE = {
   baseProfile: { name: "Unarmed", damage: "", notes: "" },
   maxWeapons: 0,
@@ -46,19 +45,11 @@ export class BattlemechLoadout {
     const mountPointTotal = MOUNT_POINTS[weightClass] ?? MOUNT_POINTS.medium;
     const hardpoints = this._normalizeHardpoints();
     const groups = this._normalizeWeaponGroups();
-    const primaryGroup = groups.find(it => it.isPrimary);
-    const primaryGroups = groups.filter(it => it.isPrimary);
-    const primarySlot = this._primarySlot();
     const errors = [];
     const warnings = [];
 
-    if (primaryGroups.length > 1) {
-      errors.push(ANARCHY.mwd.loadout.errors.multiplePrimary);
-    }
-
-    const maxGroupCount = primaryGroup ? mountPointTotal - 1 : mountPointTotal;
-    const usedMountPoints = groups.length + (primaryGroup ? 1 : 0);
-    if (groups.length > maxGroupCount) {
+    const usedMountPoints = groups.length;
+    if (usedMountPoints > mountPointTotal) {
       errors.push(formatString(ANARCHY.mwd.loadout.errors.mountPointsExceeded, {
         used: usedMountPoints,
         total: mountPointTotal,
@@ -85,10 +76,6 @@ export class BattlemechLoadout {
           continue;
         }
         usedWeapons.add(weaponId);
-
-        if (group.isPrimary) {
-          this._validatePrimaryWeapon(weapon, weaponType, weaponSize, primarySlot, errors);
-        }
 
         if ((weapon.system.weaponCategory ?? "ranged") === "melee") {
           continue;
@@ -117,10 +104,6 @@ export class BattlemechLoadout {
       }
     }
 
-    if (primaryGroup && (!primaryGroup.weaponIds || primaryGroup.weaponIds.length === 0)) {
-      errors.push(ANARCHY.mwd.loadout.errors.primaryWithoutWeapon);
-    }
-
     const meleeState = this._computeMeleeState(errors);
 
     return {
@@ -132,7 +115,6 @@ export class BattlemechLoadout {
       weightClass,
       hardpoints: hardpointState,
       weaponGroups: groups,
-      primaryGroupId: primaryGroup?.id,
       errors,
       warnings,
       meleeProfiles: meleeState.profiles,
@@ -145,7 +127,6 @@ export class BattlemechLoadout {
       id: group.id ?? `group-${index + 1}`,
       name: group.name || formatString(ANARCHY.common.newName, { type: ANARCHY.itemType.singular.weapon }),
       weaponIds: this._asArray(group.weaponIds),
-      isPrimary: group.isPrimary ?? false,
     }));
   }
 
@@ -157,12 +138,6 @@ export class BattlemechLoadout {
       location: hp.location ?? "arms",
       itemId: String(hp.itemId ?? "").trim(),
     }));
-  }
-
-  _primarySlot() {
-    const slot = foundry.utils.mergeObject(foundry.utils.duplicate(DEFAULT_PRIMARY_SLOT), this.mwd.primarySlot ?? {});
-    slot.allowedWeaponIds = this._asArray(slot.allowedWeaponIds);
-    return slot;
   }
 
   _computeMeleeState(errors) {
@@ -201,23 +176,6 @@ export class BattlemechLoadout {
     });
 
     return { profiles, limit };
-  }
-
-  _validatePrimaryWeapon(weapon, weaponType, weaponSize, primarySlot, errors) {
-    if (primarySlot.mode === "converted") {
-      if (primarySlot.allowedWeaponIds?.length > 0 && !primarySlot.allowedWeaponIds.includes(weapon.id)) {
-        errors.push(formatString(ANARCHY.mwd.loadout.errors.primaryNotAllowedWeapon, { weapon: weapon.name }));
-      }
-      if (primarySlot.typeRestriction && weaponType !== primarySlot.typeRestriction) {
-        errors.push(formatString(ANARCHY.mwd.loadout.errors.primaryTypeRestriction, {
-          weapon: weapon.name,
-          type: getHardpointTypeLabels()[primarySlot.typeRestriction] ?? primarySlot.typeRestriction,
-        }));
-      }
-    }
-    else if (weaponSize !== "large") {
-      errors.push(formatString(ANARCHY.mwd.loadout.errors.primaryNeedsLarge, { weapon: weapon.name }));
-    }
   }
 
   _getWeapons(filter) {

@@ -55,12 +55,14 @@ async function getAttackResolution() {
   return attackResolutionModule;
 }
 
-function createCombatant({ tokenId, targetTokenUuid } = {}) {
+function createCombatant({ tokenId, targetTokenUuid, personalCombat = null } = {}) {
   return {
     id: `${tokenId}-combatant`,
     tokenId,
     getFlag(scope, key) {
-      if (scope !== "mwd" || key !== "targeting") return {};
+      if (scope !== "mwd") return {};
+      if (key === "personalCombat") return personalCombat ?? {};
+      if (key !== "targeting") return {};
       return {
         [targetTokenUuid]: {
           detectionState: "contact",
@@ -120,7 +122,7 @@ function createActor() {
   };
 }
 
-function setScene({ distance = 270, targetMovement = {} } = {}) {
+function setScene({ distance = 270, targetMovement = {}, targetPersonalCombat = null } = {}) {
   const targetTokenUuid = "Scene.scene.Token.target-token";
   const attackerToken = {
     id: "attacker-token",
@@ -154,7 +156,10 @@ function setScene({ distance = 270, targetMovement = {} } = {}) {
   globalThis.game = {
     combat: {
       round: 1,
-      combatants: [createCombatant({ tokenId: attackerToken.id, targetTokenUuid })],
+      combatants: [
+        createCombatant({ tokenId: attackerToken.id, targetTokenUuid }),
+        createCombatant({ tokenId: targetToken.id, personalCombat: targetPersonalCombat }),
+      ],
     },
     user: {
       targets: new Set(),
@@ -405,6 +410,118 @@ test("machine target motion action count changes DN without multiplying tracking
     assert.equal(resolved.difficulty.dn, 6);
     assert.equal(resolved.attack.machineMotion.trackingHexes, 6);
     assert.equal(mods.find(mod => mod.id === "machineMotion.tracking")?.value, -3);
+  } finally {
+    clearScene();
+  }
+});
+
+test("machine target motion defaults from target combatant movement state", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createActor();
+  const { targetSnapshot } = setScene({
+    distance: 100,
+    targetMovement: { ground: 180 },
+    targetPersonalCombat: {
+      actionState: {
+        move: {
+          movementKind: "run",
+          moved: true,
+          round: 1,
+        },
+      },
+    },
+  });
+
+  try {
+    const resolved = await resolveAttack({
+      actor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+
+    assert.equal(resolved.attack.machineMotion.targetMotion, "moved2");
+    assert.equal(resolved.attack.machineMotion.jumped, false);
+    assert.equal(resolved.difficulty.dn, 5);
+  } finally {
+    clearScene();
+  }
+});
+
+test("machine target motion defaults target jumped from jump movement state", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createActor();
+  const { targetSnapshot } = setScene({
+    distance: 100,
+    targetMovement: { ground: 60 },
+    targetPersonalCombat: {
+      actionState: {
+        move: {
+          movementKind: "jump",
+          moved: true,
+          round: 1,
+        },
+      },
+    },
+  });
+
+  try {
+    const resolved = await resolveAttack({
+      actor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+
+    assert.equal(resolved.attack.machineMotion.targetMotion, "moved1");
+    assert.equal(resolved.attack.machineMotion.jumped, true);
+    assert.equal(resolved.difficulty.dn, 5);
+  } finally {
+    clearScene();
+  }
+});
+
+test("explicit machine target motion overrides target combatant movement state", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createActor();
+  const { targetSnapshot } = setScene({
+    distance: 100,
+    targetMovement: { ground: 180 },
+    targetPersonalCombat: {
+      actionState: {
+        move: {
+          movementKind: "sprint",
+          moved: true,
+          round: 1,
+        },
+      },
+    },
+  });
+
+  try {
+    const resolved = await resolveAttack({
+      actor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+        machineMotion: { targetMotion: "stationary", jumped: false },
+      },
+    });
+
+    assert.equal(resolved.attack.machineMotion.targetMotion, "stationary");
+    assert.equal(resolved.attack.machineMotion.jumped, false);
+    assert.equal(resolved.difficulty.dn, 3);
   } finally {
     clearScene();
   }

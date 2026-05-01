@@ -106,7 +106,7 @@ This is the **core invariant of the system**
 ✔ Good:
 
 ```json
-{ "intent": "attack", "mode": "primary" }
+{ "intent": "attack", "mode": "equipped" }
 ```
 
 ❌ Bad:

@@ -7,6 +7,10 @@ import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../constants.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
+import {
+  buildBattlemechMovementActionChoices,
+  performBattlemechMovementAction,
+} from "../mwd/battlemech-movement-actions.js";
 import { buildCriticalStatusSummary, buildIntegritySummary, buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import {
   buildBattlemechHeatModel,
@@ -72,6 +76,25 @@ function buildDetailTags(tags = []) {
   return compactList(tags).map(label => ({ label }));
 }
 
+function getMovementActionChoices(actor) {
+  const directChoices = typeof actor?.getMovementActionChoices === "function"
+    ? actor.getMovementActionChoices()
+    : [];
+  if (Array.isArray(directChoices) && directChoices.length) return directChoices;
+
+  const preparedChoices = actor?.system?.quickActions?.movement;
+  if (Array.isArray(preparedChoices) && preparedChoices.length) return preparedChoices;
+
+  return buildBattlemechMovementActionChoices(actor);
+}
+
+async function performMovementAction(actor, options = {}) {
+  if (typeof actor?.performMovementAction === "function") {
+    return actor.performMovementAction(options);
+  }
+  return performBattlemechMovementAction(actor, options);
+}
+
 function buildDetailRows(rows = []) {
   return rows
     .filter(row => row && row.value !== undefined && row.value !== null && String(row.value).trim() !== "")
@@ -115,12 +138,12 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     actions: {
       ...super.DEFAULT_OPTIONS.actions,
       mechAttack: BattlemechSheetV2.prototype._onMechAttack,
+      mechMovement: BattlemechSheetV2.prototype._onMechMovement,
       mechRoll: BattlemechSheetV2.prototype._onMechRoll,
       heatDangerCheck: BattlemechSheetV2.prototype._onHeatDangerCheck,
       openHeatDialog: BattlemechSheetV2.prototype._onOpenHeatDialog,
       addWeaponGroup: BattlemechSheetV2.prototype._onAddWeaponGroup,
       deleteWeaponGroup: BattlemechSheetV2.prototype._onDeleteWeaponGroup,
-      togglePrimaryWeaponGroup: BattlemechSheetV2.prototype._onTogglePrimaryWeaponGroup,
       toggleWeaponGroupHardpoint: BattlemechSheetV2.prototype._onToggleWeaponGroupHardpoint,
     }
   }, { inplace: false });
@@ -351,20 +374,20 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const actor = this.getPersistentActor() ?? this.actor;
     const preparedGroups = this._getPreparedRangedWeaponGroups(actor);
     const quickActions = actor.system?.quickActions ?? {};
-    const primaryGroup = preparedGroups.find(group => group.isPrimary) ?? null;
     const availableRangedGroups = preparedGroups.filter(group => group.isAttackLegal && group.isAvailableThisActivation);
     const hasMeleeProfiles = Array.isArray(this.actor.system?.meleeProfiles) && this.actor.system.meleeProfiles.length > 0;
-    const primaryHint = primaryGroup?.isAttackLegal && primaryGroup?.isAvailableThisActivation
-      ? primaryGroup.name
-      : (primaryGroup?.disableReason || "No ready primary ranged group");
+    const movementChoices = getMovementActionChoices(actor);
+    const enabledMovementChoices = movementChoices.filter(choice => !choice.disabled);
 
     return [
       {
-        label: getQuickActionLabel("primaryWeapons"),
-        hint: primaryHint,
-        handler: "mechAttack",
-        disabled: !(primaryGroup?.isAttackLegal && primaryGroup?.isAvailableThisActivation),
-        dataset: { attackKind: "primary" }
+        label: "Movement",
+        hint: enabledMovementChoices.length
+          ? enabledMovementChoices.map(choice => choice.label).join(" / ")
+          : "No movement actions available",
+        handler: "mechMovement",
+        disabled: enabledMovementChoices.length === 0,
+        dataset: {}
       },
       {
         label: getQuickActionLabel("rangedAttack"),
@@ -486,7 +509,6 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       return {
         id: group.id,
         index: group.index,
-        isPrimary: Boolean(group.isPrimary),
         name: group.name,
         subtitle: bundledHardpoints.length
           ? bundledHardpoints.map(choice => choice.itemName).join(", ")
@@ -498,7 +520,6 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
           { label: "Heat", value: toNumber(group.attackSummary?.heat, 0) },
         ]),
         detailTags: buildDetailTags([
-          group.isPrimary ? "Primary" : "",
           group.attackSummary?.damageTypeLabel ?? "",
           group.isAttackLegal
             ? (group.isAvailableThisActivation ? "Ready" : "Used")
@@ -561,16 +582,12 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const actor = this.getPersistentActor() ?? this.actor;
     const attackKind = String(target?.dataset?.attackKind ?? "").trim();
     const groupId = String(target?.dataset?.groupId ?? "").trim();
-    const preparedGroups = this._getPreparedRangedWeaponGroups(actor);
 
     try {
       if (attackKind === "group" && groupId) {
         await this.#rollWeaponGroup(actor, groupId);
-      } else if (attackKind === "primary") {
-        const primaryGroup = preparedGroups.find(group => group?.isPrimary) ?? null;
-        if (primaryGroup?.id) await this.#rollWeaponGroup(actor, primaryGroup.id);
-        else await actor.rollRangedAttack?.();
       } else if (attackKind === "ranged") {
+        const preparedGroups = this._getPreparedRangedWeaponGroups(actor);
         const selectedGroup = await this.#promptWeaponGroup(actor, preparedGroups);
         if (selectedGroup?.id) await this.#rollWeaponGroup(actor, selectedGroup.id);
       } else if (attackKind === "melee") {
@@ -583,6 +600,22 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     } catch (error) {
       console.error("MWD | Failed to launch BattleMech attack", error);
       notifyRollError(error, "Unable to launch that BattleMech attack.");
+    }
+  }
+
+  async _onMechMovement(event, _target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const selectedAction = await this.#promptMovementAction(actor);
+    if (!selectedAction) return;
+
+    try {
+      await performMovementAction(actor, { movementKind: selectedAction.id });
+    } catch (error) {
+      console.error("MWD | Failed to record BattleMech movement", error);
+      notifyRollError(error, "Unable to record that BattleMech movement.");
     }
   }
 
@@ -659,7 +692,6 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       id: foundry.utils.randomID?.() ?? `group-${weaponGroups.length + 1}`,
       name: MWD?.mwd?.loadout?.newGroup ?? `Weapon Group ${weaponGroups.length + 1}`,
       weaponIds: [],
-      isPrimary: weaponGroups.length === 0,
     });
 
     await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
@@ -685,36 +717,6 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     if (groupIndex < 0) return;
 
     weaponGroups.splice(groupIndex, 1);
-    await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
-    this.render({ force: true });
-  }
-
-  async _onTogglePrimaryWeaponGroup(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-    if (!this.isEditable) return;
-
-    const groupId = String(
-      target?.dataset?.groupId
-      ?? target?.closest?.("[data-group-id]")?.dataset?.groupId
-      ?? event?.target?.closest?.("[data-group-id]")?.dataset?.groupId
-      ?? ""
-    ).trim();
-    if (!groupId) return;
-
-    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const weaponGroups = readWeaponGroups(actorWriteTarget);
-    let changed = false;
-
-    for (const group of weaponGroups) {
-      const nextPrimary = String(group?.id ?? "").trim() === groupId;
-      if (Boolean(group?.isPrimary) !== nextPrimary) {
-        group.isPrimary = nextPrimary;
-        changed = true;
-      }
-    }
-
-    if (!changed) return;
     await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
     this.render({ force: true });
   }
@@ -859,11 +861,11 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     if (!selectableGroups.length) return null;
     if (selectableGroups.length === 1) return selectableGroups[0];
 
-    const defaultGroup = selectableGroups.find(group => group?.isPrimary) ?? selectableGroups[0];
+    const defaultGroup = selectableGroups[0];
     const content = `<form class="mwd-quick-select">${selectableGroups.map(group => `
       <label class="quick-select-option">
         <input type="radio" name="weapon-group" value="${group.id}" ${group.id === defaultGroup.id ? "checked" : ""}>
-        <span>${group.name}${group.isPrimary ? ` (${MWD.actor.vehicle.quickActions.primaryLabel})` : ""}</span>
+        <span>${group.name}</span>
       </label>`).join("")}</form>`;
 
     const selectedId = await foundry.applications.api.DialogV2.wait({
@@ -882,6 +884,40 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     });
 
     return selectableGroups.find(group => group.id === selectedId) ?? defaultGroup;
+  }
+
+  async #promptMovementAction(actor) {
+    const choices = getMovementActionChoices(actor);
+    const selectableChoices = choices.filter(choice => !choice.disabled);
+    if (!selectableChoices.length) {
+      ui.notifications?.warn("No movement actions are currently available.");
+      return null;
+    }
+
+    const defaultChoice = selectableChoices[0];
+    const content = `<form class="mwd-quick-select">${choices.map(choice => `
+      <label class="quick-select-option${choice.disabled ? " is-disabled" : ""}" title="${foundry.utils.escapeHTML(choice.reason || choice.hint || "")}">
+        <input type="radio" name="movement-action" value="${choice.id}" ${choice.id === defaultChoice.id ? "checked" : ""} ${choice.disabled ? "disabled" : ""}>
+        <span>${foundry.utils.escapeHTML(choice.label)}</span>
+        <small>${foundry.utils.escapeHTML(`${choice.cost} SA${choice.heat > 0 ? ` | +${choice.heat} Heat` : ""}${choice.hint ? ` | ${choice.hint}` : ""}`)}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Movement" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: "Move",
+          icon: "fa-solid fa-person-running",
+          default: true,
+          callback: (_event, button) => button.form?.elements["movement-action"]?.value ?? defaultChoice.id,
+        },
+      ],
+    });
+
+    return selectableChoices.find(choice => choice.id === selectedId) ?? defaultChoice;
   }
 
   _getPreparedRangedWeaponGroups(actor) {

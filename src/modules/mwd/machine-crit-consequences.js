@@ -96,9 +96,7 @@ export function resolveMachineCriticalWeaponScope(actor = null, { statusId = "",
     };
   }
 
-  const primary = eligible.find(group => Boolean(group?.isPrimary)) ?? null;
   const scoped = eligible.find(group => groupMatchesLocationFamily(group, actor, locationFamily))
-    ?? primary
     ?? eligible[0]
     ?? null;
 

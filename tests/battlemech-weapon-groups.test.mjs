@@ -128,7 +128,7 @@ test("BattleMech ranged groups aggregate homogeneous ranged weapons and use the 
     clusteringDice: 2,
   });
   const actor = createActor({
-    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser-a", "laser-b"], isPrimary: true }],
+    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser-a", "laser-b"] }],
     weapons: [laserA, laserB],
   });
 
@@ -203,7 +203,7 @@ test("BattleMech standard direct-fire profiles remain groupable when their area 
     attackRatings: { close: 2, near: 3, far: 0, extreme: 0 },
   });
   const actor = createActor({
-    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"], isPrimary: true }],
+    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"] }],
     weapons: [laser],
   });
 
@@ -225,7 +225,7 @@ test("BattleMech ranged groups become unavailable once marked used this activati
     attackRatings: { close: 2, near: 3, far: 0, extreme: 0 },
   });
   const actor = createActor({
-    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"], isPrimary: true }],
+    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"] }],
     weapons: [laser],
   });
 
@@ -259,7 +259,7 @@ test("BattleMech ranged groups require mounted hardpoints to stay actionable", (
     system: {
       mwd: {
         hardpoints: [],
-        weaponGroups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"], isPrimary: true }],
+        weaponGroups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"] }],
       },
     },
     items: new Map([[laser.id, laser]]),

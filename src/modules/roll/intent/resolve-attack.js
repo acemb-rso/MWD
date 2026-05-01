@@ -26,6 +26,7 @@ import { getDetectionStateLabel } from "../../mwd/machine-ew.js";
 import {
   getAttackerCombatant,
   getDetectionState,
+  getTargetCombatant,
   getUsableTargetingPacket,
 } from "../../mwd/machine-ew-state.js";
 import { PersonalCombatTracker } from "../../combat/personal-combat-tracker.js";
@@ -385,6 +386,7 @@ export async function resolveAttack({ actor, payload } = {}) {
   const machineMotion = isMachineActor(actor) && targets.length === 1
     ? buildMachineAttackMotionContext({
       targetActor: getTargetActor(targets[0]),
+      targetCombatant: getTargetCombatant(targets[0]?.tokenId),
       payload,
     })
     : null;

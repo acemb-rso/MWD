@@ -4,6 +4,10 @@
 
 
 import { ANARCHY } from "../config.js";
+import {
+  buildBattlemechMovementActionChoices,
+  performBattlemechMovementAction,
+} from "../mwd/battlemech-movement-actions.js";
 import { VehicleSheet } from "./vehicle-sheet.js";
 
 export class BattlemechSheet extends VehicleSheet {
@@ -24,6 +28,16 @@ export class BattlemechSheet extends VehicleSheet {
       if (event.currentTarget.dataset.disabled === "true") return;
       const action = event.currentTarget.dataset.action;
       switch (action) {
+        case 'movement':
+          {
+            const choices = this.actor.getMovementActionChoices?.() ?? buildBattlemechMovementActionChoices(this.actor);
+            const selected = choices.find(choice => !choice.disabled) ?? null;
+            if (selected) {
+              if (typeof this.actor.performMovementAction === "function") await this.actor.performMovementAction({ movementKind: selected.id });
+              else await performBattlemechMovementAction(this.actor, { movementKind: selected.id });
+            }
+          }
+          break;
         case 'ranged':
           await this.actor.rollRangedAttack();
           break;
@@ -69,7 +83,6 @@ export class BattlemechSheet extends VehicleSheet {
         id: foundry.utils.randomID(),
         name: ANARCHY.mwd.loadout.newGroup,
         weaponIds: [],
-        isPrimary: weaponGroups.length === 0,
       });
       await this.actor.update({ 'system.mwd.weaponGroups': weaponGroups });
     });
@@ -79,13 +92,6 @@ export class BattlemechSheet extends VehicleSheet {
       const index = Number($(event.currentTarget).attr('data-index'));
       const weaponGroups = foundry.utils.deepClone(this.actor.system.mwd.weaponGroups ?? []);
       weaponGroups.splice(index, 1);
-      await this.actor.update({ 'system.mwd.weaponGroups': weaponGroups });
-    });
-
-    html.find('.input-primary-group').change(async event => {
-      const index = Number($(event.currentTarget).attr('data-index'));
-      const weaponGroups = foundry.utils.deepClone(this.actor.system.mwd.weaponGroups ?? []);
-      weaponGroups.forEach((group, idx) => group.isPrimary = idx === index ? event.currentTarget.checked : false);
       await this.actor.update({ 'system.mwd.weaponGroups': weaponGroups });
     });
   }

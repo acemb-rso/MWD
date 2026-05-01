@@ -15,6 +15,10 @@ import {
 } from "../mwd/heat-state.js";
 import { buildBattlemechHeatModel } from "../mwd/machine-heat.js";
 import { buildBattlemechMobilityModel } from "../mwd/battlemech-mobility.js";
+import {
+  buildBattlemechMovementActionChoices,
+  performBattlemechMovementAction,
+} from "../mwd/battlemech-movement-actions.js";
 import { prepareBattlemechWeaponGroups } from "../mwd/battlemech-weapon-groups.js";
 import { buildMachineEwPanel, resolveMachineEwActionTarget } from "../mwd/machine-ew-panel.js";
 import { getMachineRepairIssues } from "../mwd/machine-repair-issues.js";
@@ -47,16 +51,14 @@ export class BattlemechActor extends VehicleActor {
     this.system.mwd.loadout = new BattlemechLoadout(this).compute();
     this.system.mwd.weaponGroupDetails = this._prepareConfiguredWeaponGroups();
     this.system.mwd.heat = this._prepareHeatTrack();
-    this.system.mwd.primaryGroupName = this.system.mwd.weaponGroupDetails.find(group => group.isPrimary)?.name ?? '';
 
     this.system.skills = this._prepareSkillMap();
     this.system.weaponGroups = this._prepareWeaponGroups();
     this.system.meleeProfiles = this._prepareMeleeProfiles();
-    const primaryWeaponGroup = this.system.weaponGroups.find(group => group.isPrimary && group.isAttackLegal) ?? null;
     this.system.quickActions = {
-      primaryWeaponGroup,
       hasLegalRangedGroups: this.system.weaponGroups.some(group => group.isAttackLegal),
       hasSensorSweep: Boolean(this.system.skills.perception || this.system.skills.technician),
+      movement: this.getMovementActionChoices(),
       jumping: this.system.mwd.mobility?.jumping ?? null,
     };
   }
@@ -102,6 +104,14 @@ export class BattlemechActor extends VehicleActor {
         operatorActorUuid: String(operatorActorUuid ?? "").trim(),
       }
     });
+  }
+
+  getMovementActionChoices() {
+    return buildBattlemechMovementActionChoices(this);
+  }
+
+  async performMovementAction({ movementKind = "", operatorActorUuid = "" } = {}) {
+    return performBattlemechMovementAction(this, { movementKind, operatorActorUuid });
   }
 
   async rollMeleeAttack({ operatorActorUuid = "" } = {}) {
@@ -337,7 +347,6 @@ export class BattlemechActor extends VehicleActor {
         id: group.id,
         name: group.name,
         weaponIds: group.weaponIds,
-        isPrimary: group.isPrimary ?? false,
         missingWeaponIds: group.missingWeaponIds ?? [],
         memberWeapons: group.memberWeapons ?? [],
         compatibilityWarnings: group.compatibilityWarnings ?? [],
@@ -358,9 +367,8 @@ export class BattlemechActor extends VehicleActor {
     if (favoriteWeapons.length > 0) {
       groups.push({
         id: 'favorite',
-        name: ANARCHY.actor.vehicle.quickActions.primaryWeapons,
+        name: ANARCHY.common.favorite,
         weaponIds: favoriteWeapons.map(it => it.id),
-        isPrimary: true
       });
     }
 
@@ -368,7 +376,6 @@ export class BattlemechActor extends VehicleActor {
       id: 'all',
       name: ANARCHY.actor.vehicle.quickActions.allWeapons,
       weaponIds: weapons.map(it => it.id),
-      isPrimary: groups.length === 0
     });
 
     return groups;
@@ -438,11 +445,11 @@ export class BattlemechActor extends VehicleActor {
     if (selectableGroups.length === 0) return null;
     if (selectableGroups.length === 1) return selectableGroups[0];
 
-    const defaultGroup = selectableGroups.find(it => it.isPrimary) ?? selectableGroups[0];
+    const defaultGroup = selectableGroups[0];
     const content = `<form class="mwd-quick-select">${selectableGroups.map(group => `
       <label class="quick-select-option">
         <input type="radio" name="weapon-group" value="${group.id}" ${group.id === defaultGroup.id ? 'checked' : ''}>
-        <span>${group.name}${group.isPrimary ? ` (${ANARCHY.actor.vehicle.quickActions.primaryLabel})` : ''}</span>
+        <span>${group.name}</span>
       </label>`).join('')}</form>`;
 
     const selectedId = await Dialog.prompt({
@@ -540,7 +547,6 @@ export class BattlemechActor extends VehicleActor {
     return {
       id: group.id,
       name: group.name,
-      isPrimary: group.isPrimary,
       weaponNames: weapons.map(it => it.name)
     }
   }

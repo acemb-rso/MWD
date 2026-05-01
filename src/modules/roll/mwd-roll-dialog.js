@@ -83,6 +83,28 @@ function writeMachineMotion(payload = {}, next = {}) {
   };
 }
 
+function hasMachineMotionValue(payload = {}, key = "") {
+  const motion = payload.machineMotion && typeof payload.machineMotion === "object"
+    ? payload.machineMotion
+    : {};
+  return Object.prototype.hasOwnProperty.call(motion, key);
+}
+
+function seedMachineMotionPayloadFromResolved(payload = {}, resolved = null) {
+  const motion = resolved?.attack?.machineMotion;
+  if (!motion || typeof motion !== "object") return payload;
+
+  const next = {};
+  if (!hasMachineMotionValue(payload, "targetMotion")) {
+    next.targetMotion = normalizeTargetMotion(motion.targetMotion);
+  }
+  if (!hasMachineMotionValue(payload, "jumped")) {
+    next.jumped = Boolean(motion.jumped);
+  }
+  if (Object.keys(next).length) writeMachineMotion(payload, next);
+  return payload;
+}
+
 function hasManualRow(rows = [], id = "") {
   return rows.some(row => row?.id === id);
 }
@@ -703,6 +725,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   static async prompt({ actor, rollActor = null, basePayload, resolved, diceParts = null, mods = [], modTotal = 0 } = {}) {
     const payload = foundry.utils.deepClone(basePayload ?? {});
+    seedMachineMotionPayloadFromResolved(payload, resolved);
 
     // ------------------------------
     // Default DN (hits needed) from GM Gadget for SIMPLE tests

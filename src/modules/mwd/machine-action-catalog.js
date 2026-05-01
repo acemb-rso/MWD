@@ -149,9 +149,9 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     label: "Sprint",
     attributeKey: "handling",
     skillKey: "piloting",
-    cost: 1,
-    category: "simple",
-    notes: "Third move action in the activation.",
+    cost: 3,
+    category: "complex",
+    notes: "Fast movement; generates 2 Heat.",
   }),
   extinguish: action("extinguish", {
     label: "Extinguish",

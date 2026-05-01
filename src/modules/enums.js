@@ -34,7 +34,6 @@ export class Enums {
   static hbsMwdHardpointTypes;
   static hbsMwdHardpointSizes;
   static hbsMwdHardpointLocations;
-  static hbsMwdPrimaryModes;
   static hbsMwdWeaponCategories;
   static hbsMwdWeaponDamageTypes;
   static hbsPersonalWeaponDamageTypes;
@@ -75,7 +74,6 @@ export class Enums {
     Enums.hbsMwdHardpointTypes = Enums.mapObjectToKeyValue(MWD.mwd?.hardpointType);
     Enums.hbsMwdHardpointSizes = Enums.mapObjectToKeyValue(MWD.mwd?.hardpointSize);
     Enums.hbsMwdHardpointLocations = Enums.mapObjectToKeyValue(MWD.mwd?.hardpointLocation);
-    Enums.hbsMwdPrimaryModes = Enums.mapObjectToKeyValue(MWD.mwd?.primarySlotMode);
     Enums.hbsMwdWeaponCategories = Enums.mapObjectToKeyValue(MWD.mwd?.weaponCategory);
     Enums.hbsMwdWeaponDamageTypes = Enums.mapObjectToKeyValue(MWD.mwd?.weaponDamageType);
     Enums.hbsPersonalWeaponDamageTypes = Enums.mapObjectToKeyValue(MWD.mwd?.personalDamageType);
@@ -170,7 +168,6 @@ export class Enums {
       mwdHardpointTypes: Enums.hbsMwdHardpointTypes ?? [],
       mwdHardpointSizes: Enums.hbsMwdHardpointSizes ?? [],
       mwdHardpointLocations: Enums.hbsMwdHardpointLocations ?? [],
-      mwdPrimaryModes: Enums.hbsMwdPrimaryModes ?? [],
       mwdWeaponCategories: Enums.hbsMwdWeaponCategories ?? [],
       mwdWeaponDamageTypes: Enums.hbsMwdWeaponDamageTypes ?? [],
       personalWeaponDamageTypes: Enums.hbsPersonalWeaponDamageTypes ?? [],

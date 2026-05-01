@@ -204,11 +204,6 @@
           "weightClass": "medium",
           "hardpoints": [],
           "weaponGroups": [],
-          "primarySlot": {
-            "mode": "normal",
-            "allowedWeaponIds": [],
-            "typeRestriction": ""
-          },
           "melee": {
             "baseProfile": {
               "name": "Unarmed",

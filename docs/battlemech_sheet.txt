@@ -83,7 +83,6 @@ sheet:
           columns: 3
           fields:
             - { key: "mounts.baseSlots",     label: "Base Mount Slots",    type: number }
-            - { key: "mounts.primaryBonus",  label: "Primary Weapon Bonus", type: number }
             - { key: "mounts.totalSlots",    label: "Total Slots",         type: number, readOnly: true }
             - { key: "mounts.usedSlots",     label: "Used Slots",          type: number, readOnly: true }
             - { key: "mounts.freeSlots",     label: "Free Slots",          type: number, readOnly: true }
@@ -139,17 +138,6 @@ sheet:
     weapons:
       sections:
 
-        # --- Primary weapon selection (AC/20 iconic gun etc.) ---
-        - id: primary-weapon
-          label: "Primary Weapon"
-          type: primary-weapon
-          fields:
-            - { key: "mounts.primaryWeaponId", label: "Primary Weapon Item ID", type: hidden }
-          help: >
-            One weapon may be marked as Primary. It costs 2 normal mount slots and
-            may have additional rules (signature gun, fluff bonus, etc).
-            Primary selection drives 'Primary Weapon Bonus' in the mount summary.
-
         # --- Weapons list with slot cost & mount size/type ---
         - id: weapons-list
           label: "Weapons"
@@ -160,7 +148,6 @@ sheet:
             - { key: "system.type",   label: "Type" }           # Ballistic / Energy / Missile / Support / Melee
             - { key: "system.size",   label: "Size" }           # Small / Medium / Large
             - { key: "system.slotCost", label: "Slot Cost" }    # cost per houserule table
-            - { key: "system.isPrimary", label: "Primary?", type: checkbox }
             - { key: "system.damage", label: "Damage" }
             - { key: "system.heat",   label: "Heat" }
             - { key: "system.range",  label: "Range Profile" }  # Close/Short/Med/Long/Extrm text

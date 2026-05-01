@@ -115,7 +115,6 @@ export function getBattlemechConfiguredWeaponGroups(actor = null) {
     index: Number.isInteger(Number(group?.index)) ? Number(group.index) : index,
     name: String(group?.name ?? `Weapon Group ${index + 1}`).trim() || `Weapon Group ${index + 1}`,
     weaponIds: asArray(group?.weaponIds).map(normalizeId).filter(Boolean),
-    isPrimary: Boolean(group?.isPrimary),
   }));
 }
 
@@ -286,7 +285,6 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
     index: Number.isInteger(Number(group?.index)) ? Number(group.index) : 0,
     name: String(group?.name ?? "Weapon Group").trim() || "Weapon Group",
     weaponIds,
-    isPrimary: Boolean(group?.isPrimary),
     missingWeaponIds,
     memberWeapons: memberWeapons.map(weapon => ({
       id: weapon.id,
@@ -323,7 +321,6 @@ export function prepareBattlemechWeaponGroups(actor = null, { usedWeaponGroupIds
       index: inspected.index,
       name: inspected.name,
       weaponIds: inspected.weaponIds,
-      isPrimary: inspected.isPrimary,
       missingWeaponIds: inspected.missingWeaponIds,
       memberWeapons: inspected.memberWeapons,
       memberHardpoints: inspected.memberHardpoints,
@@ -376,7 +373,6 @@ export function buildBattlemechWeaponGroupAttackProfile(actor = null, groupId = 
       item: null,
       type: "mechWeaponGroup",
       equipped: true,
-      isPrimary: Boolean(group.isPrimary),
       category: "ranged",
       skill: firstMember?.skill ?? "gunnery",
       skillDef: firstMember?.skillDef ?? null,

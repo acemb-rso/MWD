@@ -62,7 +62,7 @@ Small self-contained implementation once hit/damage rules are solid
 
 7. Weapon Mounting Validation
 
-MP budget enforcement, primary legality, hardpoint availability not enforced at actor update time
+MP budget enforcement and hardpoint availability not enforced at actor update time
 Design is fully specified; just needs validation code wired into actor update hooks
 Files: src/modules/actor/battlemech-actor.js, docs/weapon-mounting-system.md
 8. Dead Code Cleanup

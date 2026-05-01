@@ -69,15 +69,6 @@ How it fits: Keeps combat actions and combat-side group management together with
               {{#if @root.editing}}
                 <button
                   type="button"
-                  class="mwd-record__icon-btn{{#if group.isPrimary}} is-on is-star{{/if}}"
-                  data-action="togglePrimaryWeaponGroup"
-                  data-group-id="{{group.id}}"
-                  title="{{#if group.isPrimary}}Primary weapon group{{else}}Set as primary weapon group{{/if}}">
-                  <i class="{{#if group.isPrimary}}fas{{else}}far{{/if}} fa-star"></i>
-                </button>
-
-                <button
-                  type="button"
                   class="mwd-record__icon-btn is-danger"
                   data-action="deleteWeaponGroup"
                   data-group-id="{{group.id}}"

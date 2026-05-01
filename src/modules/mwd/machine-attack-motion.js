@@ -30,6 +30,14 @@ export const TARGET_MOTION_LABELS = Object.freeze({
   moved3Plus: "Moved 3+",
 });
 
+const TARGET_MOTION_BY_MOVEMENT_KIND = Object.freeze({
+  walk: "moved1",
+  fly: "moved1",
+  jump: "moved1",
+  run: "moved2",
+  sprint: "moved3Plus",
+});
+
 const MACHINE_TYPES = new Set([TEMPLATE.actorTypes.vehicle, TEMPLATE.actorTypes.battlemech]);
 
 function toNumber(value, fallback = 0) {
@@ -63,6 +71,33 @@ export function getTargetMotionDn(value = "stationary") {
   return TARGET_MOTION_DN_BY_ACTIONS[normalizeTargetMotion(value)] ?? 0;
 }
 
+function hasOwnValue(source = {}, key = "") {
+  return source && typeof source === "object" && Object.prototype.hasOwnProperty.call(source, key);
+}
+
+function getCombatantPersonalCombatState(combatant = null) {
+  if (!combatant) return {};
+  return combatant.getFlag?.("mwd", "personalCombat")
+    ?? combatant.flags?.mwd?.personalCombat
+    ?? {};
+}
+
+export function getKnownTargetMotionFromCombatant(combatant = null, { combat = globalThis.game?.combat } = {}) {
+  const move = getCombatantPersonalCombatState(combatant)?.actionState?.move ?? null;
+  if (!move || typeof move !== "object" || move.moved === false) return null;
+
+  const currentRound = Number(combat?.round ?? 0);
+  const moveRound = Number(move.round ?? 0);
+  if (currentRound > 0 && moveRound > 0 && currentRound !== moveRound) return null;
+
+  const movementKind = String(move.movementKind ?? "").trim();
+  return {
+    targetMotion: TARGET_MOTION_BY_MOVEMENT_KIND[movementKind] ?? "moved1",
+    jumped: movementKind === "jump",
+    movementKind,
+  };
+}
+
 export function getHighestNonJumpMovementSpeed(actor = null) {
   if (!isMachineActor(actor)) return 0;
   const movement = normalizeMachineMovement(actor.system?.movement ?? {}, {
@@ -75,21 +110,30 @@ export function getHighestNonJumpMovementSpeed(actor = null) {
   );
 }
 
-export function normalizeMachineMotionPayload(payload = {}) {
+export function normalizeMachineMotionPayload(payload = {}, { targetCombatant = null } = {}) {
   const source = payload?.machineMotion && typeof payload.machineMotion === "object"
     ? payload.machineMotion
     : {};
+  const knownMotion = getKnownTargetMotionFromCombatant(targetCombatant);
+  const hasExplicitMotion = hasOwnValue(source, "targetMotion") || hasOwnValue(payload, "targetMotion");
+  const hasExplicitJump = hasOwnValue(source, "jumped") || hasOwnValue(payload, "targetJumped");
+
   return {
-    targetMotion: normalizeTargetMotion(source.targetMotion ?? payload?.targetMotion),
-    jumped: Boolean(source.jumped ?? payload?.targetJumped),
+    targetMotion: normalizeTargetMotion(hasExplicitMotion
+      ? (source.targetMotion ?? payload?.targetMotion)
+      : knownMotion?.targetMotion),
+    jumped: Boolean(hasExplicitJump
+      ? (source.jumped ?? payload?.targetJumped)
+      : knownMotion?.jumped),
   };
 }
 
 export function buildMachineAttackMotionContext({
   targetActor = null,
+  targetCombatant = null,
   payload = {},
 } = {}) {
-  const declaration = normalizeMachineMotionPayload(payload);
+  const declaration = normalizeMachineMotionPayload(payload, { targetCombatant });
   const targetMotion = declaration.targetMotion;
   const moved = targetMotion !== "stationary";
   const speedMeters = getHighestNonJumpMovementSpeed(targetActor);

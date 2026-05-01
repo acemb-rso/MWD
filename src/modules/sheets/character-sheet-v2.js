@@ -26,6 +26,10 @@ import {
 } from "../mwd/skills.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { buildCriticalStatusSummary } from "../mwd/machine-summary.js";
+import {
+  buildBattlemechMovementActionChoices,
+  performBattlemechMovementAction,
+} from "../mwd/battlemech-movement-actions.js";
 import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
 import {
   getQualityCategoryLabel,
@@ -186,6 +190,25 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+function getBattlemechMovementChoices(actor) {
+  const directChoices = typeof actor?.getMovementActionChoices === "function"
+    ? actor.getMovementActionChoices()
+    : [];
+  if (Array.isArray(directChoices) && directChoices.length) return directChoices;
+
+  const preparedChoices = actor?.system?.quickActions?.movement;
+  if (Array.isArray(preparedChoices) && preparedChoices.length) return preparedChoices;
+
+  return buildBattlemechMovementActionChoices(actor);
+}
+
+async function performAssignedBattlemechMovement(actor, options = {}) {
+  if (typeof actor?.performMovementAction === "function") {
+    return actor.performMovementAction(options);
+  }
+  return performBattlemechMovementAction(actor, options);
+}
+
 function getActorIdentityKeys(actor = null) {
   const keys = new Set();
   if (!actor) return keys;
@@ -344,6 +367,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       attackWeapon: CharacterSheetV2.prototype._onAttackWeapon,
       openAssignedMech: CharacterSheetV2.prototype._onOpenAssignedMech,
       mechAttack: CharacterSheetV2.prototype._onMechAttack,
+      mechMovement: CharacterSheetV2.prototype._onMechMovement,
       mechRoll: CharacterSheetV2.prototype._onMechRoll,
     }
   }, { inplace: false });
@@ -831,10 +855,17 @@ ctx.edgeConsole.poolsOrdered = order
 
         const hasRangedGroups = Array.isArray(a.system?.weaponGroups) && a.system.weaponGroups.length > 0;
         const hasMeleeProfiles = Array.isArray(a.system?.meleeProfiles) && a.system.meleeProfiles.length > 0;
-        const primaryGroup = quickActions.primaryWeaponGroup ?? null;
+        const movementChoices = getBattlemechMovementChoices(a);
+        const enabledMovementChoices = movementChoices.filter(choice => !choice.disabled);
 
         const mechQuickActions = isMech ? [
-          { label: "Primary", hint: primaryGroup?.name ?? "Primary weapon group", handler: "mechAttack", disabled: !primaryGroup, dataset: { attackKind: "primary", groupId: primaryGroup?.id ?? "", mechUuid: uuid, mechId: a.id } },
+          {
+            label: "Movement",
+            hint: enabledMovementChoices.length ? enabledMovementChoices.map(choice => choice.label).join(" / ") : "No movement actions available",
+            handler: "mechMovement",
+            disabled: enabledMovementChoices.length === 0,
+            dataset: { mechUuid: uuid, mechId: a.id },
+          },
           { label: "Ranged", hint: "Prompt for a weapon group", handler: "mechAttack", disabled: !hasRangedGroups, dataset: { attackKind: "ranged", mechUuid: uuid, mechId: a.id } },
           { label: "Melee", hint: "Prompt for a melee profile", handler: "mechAttack", disabled: !hasMeleeProfiles, dataset: { attackKind: "melee", mechUuid: uuid, mechId: a.id } },
           { label: "Piloting", hint: "Vehicle handling test", handler: "mechRoll", disabled: false, dataset: { rollKind: "piloting", mechUuid: uuid, mechId: a.id } },
@@ -894,6 +925,25 @@ ctx.edgeConsole.poolsOrdered = order
     }
   }
 
+  async _onMechMovement(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const mech = await resolveAssignedMachineFromTarget(target);
+    if (!mech) return;
+
+    const selectedAction = await this.#promptAssignedMechMovementAction(mech);
+    if (!selectedAction) return;
+
+    try {
+      await performAssignedBattlemechMovement(mech, {
+        movementKind: selectedAction.id,
+        operatorActorUuid: this.actor?.uuid ?? "",
+      });
+    } catch (error) {
+      notifyRollError(error, "Unable to record BattleMech movement.");
+    }
+  }
+
   async _onMechRoll(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
@@ -908,6 +958,40 @@ ctx.edgeConsole.poolsOrdered = order
     } catch (error) {
       notifyRollError(error, "Unable to launch BattleMech check.");
     }
+  }
+
+  async #promptAssignedMechMovementAction(mech) {
+    const choices = getBattlemechMovementChoices(mech);
+    const selectableChoices = choices.filter(choice => !choice.disabled);
+    if (!selectableChoices.length) {
+      ui.notifications?.warn("No movement actions are currently available.");
+      return null;
+    }
+
+    const defaultChoice = selectableChoices[0];
+    const content = `<form class="mwd-quick-select">${choices.map(choice => `
+      <label class="quick-select-option${choice.disabled ? " is-disabled" : ""}" title="${foundry.utils.escapeHTML(choice.reason || choice.hint || "")}">
+        <input type="radio" name="movement-action" value="${choice.id}" ${choice.id === defaultChoice.id ? "checked" : ""} ${choice.disabled ? "disabled" : ""}>
+        <span>${foundry.utils.escapeHTML(choice.label)}</span>
+        <small>${foundry.utils.escapeHTML(`${choice.cost} SA${choice.heat > 0 ? ` | +${choice.heat} Heat` : ""}${choice.hint ? ` | ${choice.hint}` : ""}`)}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Movement" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: "Move",
+          icon: "fa-solid fa-person-running",
+          default: true,
+          callback: (_event, button) => button.form?.elements["movement-action"]?.value ?? defaultChoice.id,
+        },
+      ],
+    });
+
+    return selectableChoices.find(choice => choice.id === selectedId) ?? defaultChoice;
   }
 
   _onRender(context, options) {

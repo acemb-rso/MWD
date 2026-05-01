@@ -334,9 +334,7 @@ export const MWD = {
         "sensorSweep": "EW",
         "emergencyRepair": "Emergency Repair",
 
-        "primaryWeapons": "Primary Weapons",
         "allWeapons": "All Weapons",
-        "primaryLabel": "Primary",
 
         "unarmed": "Unarmed (Punch/Kick)",
         "unarmedNotes": "Basic unarmed strike.",
@@ -352,7 +350,7 @@ export const MWD = {
         "skillUsed": "Skill",
 
         "tooltips": {
-          "ranged": "Roll an attack using any Weapon Group or Primary Weapon",
+          "ranged": "Roll an attack using a Weapon Group",
           "melee": "Roll a melee attack using fists, kicks, or installed melee weapons",
           "piloting": "Piloting roll for movement, jumping, stability, or hazard checks",
           "sensorSweep": "Acquire contact or generate targeting data using the machine sensor suite",
@@ -806,13 +804,6 @@ export const MWD = {
       "turret": "Turret"
     },
 
-    "primarySlot": {
-      "mode": {
-        "normal": "Large hardpoint",
-        "converted": "Converted slot"
-      }
-    },
-
     "weaponCategory": {
       "ranged": "Ranged",
       "melee": "Melee"
@@ -839,26 +830,15 @@ export const MWD = {
     "loadout": {
       "title": "Weapon loadout",
       "mountPoints": "Mount points used",
-      "primarySlot": {
-        "label": "Primary weapon slot",
-        "noRestriction": "No type restriction",
-        "allowedWeapons": "Allowed primary weapons"
-      },
       "hardpoints": "Hardpoints",
       "weaponGroups": "Weapon groups",
-      "primaryTag": "Primary",
       "occupied": "{{weaponGroup}} assigned",
       "emptyHardpoint": "Empty",
       "errors": {
         "label": "Errors",
-        "multiplePrimary": "Only one primary weapon group is allowed.",
         "mountPointsExceeded": "Loadout uses {used} mount points but only {total} are available.",
         "hardpointUnavailable": "No matching hardpoint for {weapon} ({type}, {size}).",
-        "primaryNeedsLarge": "{weapon} must use a large hardpoint to be primary.",
-        "primaryWithoutWeapon": "Primary group needs at least one weapon.",
         "weaponAlreadyGrouped": "{weapon} is already assigned to another group.",
-        "primaryNotAllowedWeapon": "{weapon} is not allowed in the converted primary slot.",
-        "primaryTypeRestriction": "{weapon} does not match the converted primary slot restriction ({type}).",
         "meleeLimitExceeded": "Equipped melee weapons {equipped} exceed limit {limit}.",
         "meleeLocationRestricted": "{weapon} cannot be mounted at that location."
       },

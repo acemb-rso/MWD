@@ -667,7 +667,6 @@ attack.direct
 attack.area
 attack.split
 attack.reaction
-attack.primary
 attack.secondary
 ```
 
@@ -729,7 +728,6 @@ weapon.missile
 weapon.support
 weapon.melee
 weapon.usesAmmo
-weapon.primaryEligible
 weapon.stabilized
 weapon.modular
 weapon.jettisonCapable

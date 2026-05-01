@@ -405,11 +405,6 @@ class _13_2_2_AddMwdVehicleModel extends Migration {
       locations: {},
       hardpoints: [],
       weaponGroups: [],
-      primarySlot: {
-        mode: 'normal',
-        allowedWeaponIds: [],
-        typeRestriction: '',
-      },
       melee: {
         baseProfile: {
           name: 'Unarmed',
@@ -468,9 +463,6 @@ class _13_2_3_AddBattlemechLoadout extends Migration {
       if (actor.type === TEMPLATE.actorTypes.battlemech) {
         this._ensure(actor, updates, 'system.mwd.weightClass', 'medium');
         this._ensure(actor, updates, 'system.mwd.weaponGroups', []);
-        this._ensure(actor, updates, 'system.mwd.primarySlot.mode', 'normal');
-        this._ensure(actor, updates, 'system.mwd.primarySlot.allowedWeaponIds', []);
-        this._ensure(actor, updates, 'system.mwd.primarySlot.typeRestriction', '');
         this._ensure(actor, updates, 'system.mwd.melee.baseProfile.name', 'Unarmed');
         this._ensure(actor, updates, 'system.mwd.melee.baseProfile.damage', '');
         this._ensure(actor, updates, 'system.mwd.melee.baseProfile.notes', '');

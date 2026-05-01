@@ -10,19 +10,20 @@ This document is intended to be directly handed to a developer for implementatio
 
 ## 1. List of Quick-Roll Buttons
 
-The mech sheet will include between **4 and 6** quick-action buttons. The required baseline set is **five**, with one optional.
+The mech sheet will include between **5 and 7** quick-action buttons. The required baseline set is **six**, with one optional.
 
 ### Required Buttons
 
-1. **Ranged Attack (Gunnery)**
-2. **Melee Attack (Melee)**
-3. **Dodge (Piloting)**
-4. **Piloting Check (Movement/Stability)**
-5. **Sensor Sweep (Perception/Technician)**
+1. **Movement**
+2. **Ranged Attack (Gunnery)**
+3. **Melee Attack (Melee)**
+4. **Dodge (Piloting)**
+5. **Piloting Check (Movement/Stability)**
+6. **Sensor Sweep (Perception/Technician)**
 
 ### Optional Button (Recommended)
 
-6. **Emergency Repair (Technician)**
+7. **Emergency Repair (Technician)**
 
 All buttons must be modular, styled consistently, and callable from both the UI and automation macros.
 
@@ -52,7 +53,8 @@ Each button displays a tooltip on hover:
 
 | Button           | Tooltip                                                            |
 | ---------------- | ------------------------------------------------------------------ |
-| Ranged Attack    | Roll an attack using any Weapon Group or Primary Weapon            |
+| Movement         | Choose Walk, Run, Sprint, Prone, and available Fly/Jump movement   |
+| Ranged Attack    | Roll an attack using any ready Weapon Group                        |
 | Melee Attack     | Roll a melee attack using fists, kicks, or installed melee weapons |
 | Dodge            | Piloting roll to evade incoming fire or avoid danger               |
 | Piloting Check   | Piloting roll for movement, jumping, stability, or hazard checks   |
@@ -65,16 +67,35 @@ Each button displays a tooltip on hover:
 
 Each button triggers a **roll dialog** or a modal selector depending on the action. All rolls use the underlying Destiny skill system already implemented in the vehicle sheet.
 
-### 3.1 Ranged Attack (Gunnery)
+### 3.1 Movement
+
+**Behavior**
+
+- Opens a modal listing movement choices:
+  - **Walk**: costs 1 SA
+  - **Run**: costs 2 SA and generates 1 Heat
+  - **Sprint**: costs 3 SA and generates 2 Heat
+  - **Prone**: costs 1 SA and applies the Prone BattleMech status
+  - **Fly**: appears only when the machine has flight movement
+  - **Jump**: appears only when the machine has available jump capability
+- Run/Sprint/Jump heat is added to pending heat and resolves through the normal end-of-activation heat flow.
+- Movement spends the linked pilot/operator's SA when one exists.
+
+**Dependencies**
+
+- `actor.system.movement`
+- `actor.system.mwd.mobility.jumping`
+- Current machine movement/status effects
+- Personal combat tracker activation state
+
+### 3.2 Ranged Attack (Gunnery)
 
 **Behavior**
 
 - Opens a modal listing:
   - All **Weapon Groups**
-  - The **Primary Weapon Group** (highlighted)
 - Selecting a group:
   - Pulls associated weapon data
-  - Applies primary weapon bonuses (if any)
   - Applies accuracy modifiers from equipment (Targeting Computer, Artemis, etc.)
   - Triggers a standard **Gunnery skill test**
 
@@ -89,7 +110,7 @@ Each button triggers a **roll dialog** or a modal selector depending on the acti
 - Destiny Gunnery dice pool (Skill + Attribute + bonuses)
 - DN determined by GM or automation
 
-### 3.2 Melee Attack (Melee)
+### 3.3 Melee Attack (Melee)
 
 **Behavior**
 
@@ -110,7 +131,7 @@ Each button triggers a **roll dialog** or a modal selector depending on the acti
 - Melee dice pool
 
 
-### 3.3 Piloting Check (Movement / Stability)
+### 3.4 Piloting Check (Movement / Stability)
 
 **Behavior**
 
@@ -187,8 +208,7 @@ Ensure the following exist on the actor:
 actor.system.weaponGroups = [{
   id: string,
   name: string,
-  weaponIds: string[],
-  isPrimary: boolean
+  weaponIds: string[]
 }]
 ```
 
@@ -234,7 +254,6 @@ All rolls must:
 Ranged attacks must also include:
 
 - Which weapon group was fired
-- Primary Weapon status
 - Weapon tags (Heat, Range modifiers, etc.)
 
 Melee attacks must include:
