@@ -43,7 +43,7 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 - `src/modules/actor/character-actor.js` - Character/NPC actor preparation.
 - `src/modules/actor/vehicle-actor.js` - Vehicle actor preparation.
 - `src/modules/actor/battlemech-actor.js` - BattleMech actor preparation, loadout helpers, and mech-specific rolls.
-- `src/modules/actor/actor-damage.js` - Damage application manager for the older combat damage flow.
+- `src/modules/actor/actor-damage.js` - Legacy damage helper retained for older flow compatibility; machine attack consequences use queued mutations and HarmEngine.
 
 ### AppV2 actor sheets
 
@@ -116,7 +116,7 @@ Every supported item sheet now has one authoritative AppV2 root template under `
 - `src/modules/roll/mwd-roll-dialog.js` - AppV2 roll dialog.
 - `src/modules/roll/intent/` - Intent resolvers for skill, defense, attack, edge, initiative, and related flows.
 - `src/modules/combat/combat-manager.js` - Attack/defend/apply-damage flow.
-- `src/modules/harm/harm-engine.js` - GM harm application service for track damage, burn, and status changes.
+- `src/modules/harm/harm-engine.js` - Harm application service for GM harm, chat-card damage apply, and queued machine attack consequences.
 - `src/modules/harm/harm-engine-utils.js` - Pure harm helpers extracted for testing and easier debugging.
 
 ---

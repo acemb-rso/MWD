@@ -228,8 +228,11 @@ export function enhanceAttack(resolved, vm) {
           const machine = damageResult.machine ?? {};
           const hitLocation = damageResult.hitLocation ?? {};
           const degradation = damageResult.degradation ?? null;
+          const criticalState = damageResult.critical ?? {};
+          const impactLabel = hitLocation.impactLabel ?? hitLocation.locationLabel ?? "Location";
+          const rulesLocation = hitLocation.rulesLocationLabel ?? hitLocation.rulesLocation ?? "";
           vm.footerRows.push({
-            text: `${result?.target?.name ?? "Target"}: Location ${hitLocation.locationLabel ?? "Location"}${hitLocation.rollTotal ? ` (${hitLocation.rollTotal})` : ""} | Armor ${Number(machine.armorBefore ?? 0)} -> ${Number(machine.armorAfter ?? 0)} | Structure ${Number(machine.structureBefore ?? 0)} -> ${Number(machine.structureAfter ?? 0)}`,
+            text: `${result?.target?.name ?? "Target"}: Impact ${impactLabel}${rulesLocation && rulesLocation !== impactLabel ? ` | Rules ${rulesLocation}` : ""}${hitLocation.rollTotal ? ` (${hitLocation.rollTotal})` : ""} | Armor ${Number(machine.armorBefore ?? 0)} -> ${Number(machine.armorAfter ?? 0)} | Structure ${Number(machine.structureBefore ?? 0)} -> ${Number(machine.structureAfter ?? 0)}`,
             title: ""
           });
           if (degradation?.summary) {
@@ -238,12 +241,17 @@ export function enhanceAttack(resolved, vm) {
               title: ""
             });
           }
-          if (damageResult.critical?.automatic) {
+          if (criticalState.mode === "automatic" || damageResult.critical?.automatic) {
             vm.footerRows.push({
               text: `${result?.target?.name ?? "Target"}: Automatic critical pending`,
               title: ""
             });
-          } else if (damageResult.critical?.optional) {
+          } else if (criticalState.mode === "chaosSelected") {
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Chaos critical selected`,
+              title: ""
+            });
+          } else if (criticalState.mode === "chaosOptional" || damageResult.critical?.optional) {
             vm.footerRows.push({
               text: `${result?.target?.name ?? "Target"}: Chaos Edge can convert this location hit to a critical`,
               title: ""
@@ -290,12 +298,19 @@ export function enhanceAttack(resolved, vm) {
             }
           }
         }
-        if (queuedMutation && !isApplied && damageResult?.critical?.optional) {
+        if (queuedMutation && !isApplied && damageResult?.critical?.mode === "chaosOptional") {
           vm.actions.push({
             action: "toggleMachineChaosCrit",
-            label: queuedMutation.payload?.chaosCriticalSelected ? `Clear Chaos Critical: ${damageResult.actorName ?? result?.target?.name ?? "Target"}` : `Spend Chaos Edge: ${damageResult.actorName ?? result?.target?.name ?? "Target"}`,
+            label: `Spend Chaos Edge: ${damageResult.actorName ?? result?.target?.name ?? "Target"}`,
             dataset: { "result-index": String(index) },
-            cssClass: `mwd-toggle-machine-chaos ${queuedMutation.payload?.chaosCriticalSelected ? "is-active" : ""}`
+            cssClass: "mwd-toggle-machine-chaos"
+          });
+        } else if (queuedMutation && !isApplied && damageResult?.critical?.mode === "chaosSelected") {
+          vm.actions.push({
+            action: "toggleMachineChaosCrit",
+            label: `Clear Chaos Critical: ${damageResult.actorName ?? result?.target?.name ?? "Target"}`,
+            dataset: { "result-index": String(index) },
+            cssClass: "mwd-toggle-machine-chaos is-active"
           });
         }
         if (queuedMutation && !isApplied) {

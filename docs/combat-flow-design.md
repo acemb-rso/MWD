@@ -1,53 +1,50 @@
-# 0) Design Doctrine (Locked)
+# Combat Flow Design
 
-These are the rules the engine enforces:
+## Design Doctrine
 
-1. **DN = Range + Motion only**
-2. **Dice pool mods = execution friction** (environment, heat, system damage, sensors, tracking penalty)
-3. **CQ = AR – DR** from tactical packages and state
-4. **NetHits saturates via** `min(CQ, Margin)`
-5. **Graze floor:** if `Margin >= 1` but `NetHitsRaw <= 0` ⇒ **Graze**
-6. **Speed is tiered state**; motion difficulty saturates and then becomes tracking pool penalty
-7. **Handling affects piloting** and **offsets eligible AR/DR penalties only**, via tags (no name-based logic)
+These are the rules the resolver and application flow enforce:
 
----
+1. DN = Range + Motion only.
+2. Dice pool mods = execution friction: environment, heat, system damage, sensors, and tracking penalty.
+3. CQ = AR - DR from tactical packages and state.
+4. NetHits saturates via `min(CQ, Margin)`.
+5. Graze floor: if `Margin >= 1` but `NetHitsRaw <= 0`, the outcome is Graze.
+6. Speed is tiered state; motion difficulty saturates and then becomes tracking pool penalty.
+7. Handling affects piloting and offsets eligible AR/DR penalties only, via tags.
+8. Actor writes happen through queued apply actions, not during attack resolution.
 
-# 1) Core Resolver Contract
+## Core Resolver Contract
 
-## `AttackIntentResolver.resolve(ctx) -> AttackResolution`
+`AttackIntentResolver.resolve(ctx) -> AttackResolution`
 
-**Input (`ctx`) must already contain:**
+Input `ctx` must already contain:
 
-* attacker, target
-* weapon / attack mode
-* range band (or distance) + LOS info
-* movement state (speed tiers, movement mode)
-* chosen tactical actions for this attack (“packages”)
+- attacker and target
+- weapon or attack mode
+- range band or distance plus LOS information
+- movement state, including speed tiers and movement mode
+- chosen tactical actions for this attack
 
-**Output must include:**
+Output must include:
 
-* computed dice pool breakdown
-* computed DN breakdown
-* computed CQ breakdown (AR/DR with tags)
-* roll results (hits, margin)
-* outcome (miss/graze/hit)
-* nethits
-* damage breakdown + applied damage
-* state changes to apply (heat, unstable, etc.)
+- computed dice pool breakdown
+- computed DN breakdown
+- computed CQ breakdown, including AR/DR with tags
+- roll results: hits and margin
+- outcome: miss, graze, or hit
+- NetHits
+- damage and resistance preview
+- queued mutations for consequences that require deliberate chat-card apply
 
-This keeps UI, chat cards, and automation consistent.
+The resolver creates canonical results. It does not directly mutate target damage state.
 
----
-
-# 2) Data Structures to Lock
-
-## 2.1 Dice Pool Parts
+## Dice Pool Parts
 
 ```js
 dice: {
-  base: number,            // attribute+skill+weapon base
-  parts: DicePart[],       // detailed breakdown list
-  total: number            // clamped >= 0
+  base: number,
+  parts: DicePart[],
+  total: number
 }
 ```
 
@@ -55,22 +52,20 @@ dice: {
 DicePart = {
   id: string,
   label: string,
-  value: number,           // can be negative
-  tags?: string[]          // e.g. ["heat"], ["terrain.visibility"], ["tracking"]
+  value: number,
+  tags?: string[]
 }
 ```
 
-**Contract:** Dice parts are additive and explainable.
+Dice parts are additive and explainable.
 
----
-
-## 2.2 DN Parts (Range + Motion ONLY)
+## DN Parts
 
 ```js
 dn: {
-  base: number,            // usually 0
+  base: number,
   parts: DNPart[],
-  total: number            // typically 0..5 normal
+  total: number
 }
 ```
 
@@ -78,22 +73,20 @@ dn: {
 DNPart = {
   id: string,
   label: string,
-  value: number,           // non-negative
-  tags?: string[]          // e.g. ["range"], ["motion"]
+  value: number,
+  tags?: string[]
 }
 ```
 
-**Contract:** only tags `["range"]` and `["motion"]` should appear here.
+Only `range` and `motion` tags belong in DN parts.
 
----
-
-## 2.3 CQ Breakdown (AR/DR contributions with eligibility tags)
+## CQ Breakdown
 
 ```js
 cq: {
   ar: Breakdown,
   dr: Breakdown,
-  value: number            // ar.total - dr.total
+  value: number
 }
 ```
 
@@ -105,60 +98,41 @@ Breakdown = { parts: CQPart[], total: number }
 CQPart = {
   id: string,
   label: string,
-  ar?: number,             // can be + or -
-  dr?: number,             // can be + or -
-  tags?: string[]          // critical for Handling eligibility
+  ar?: number,
+  dr?: number,
+  tags?: string[]
 }
 ```
 
-### Handling eligibility tagging (lock this)
+Recommended tags:
 
-We need a standard tag scheme.
+- `selfInduced`: penalties caused by the actor's own maneuver or posture choice.
+- `stability`: penalties caused by instability state.
+- `environment`: terrain, visibility, or other external state.
+- `tracking`: tracking friction.
+- `heat`: heat friction.
+- `systemDamage`: system damage friction.
 
-**Recommended minimal tags:**
+Handling offset applies only to eligible CQPart negative terms tagged `selfInduced`, and optionally `stability` where a rule explicitly allows it.
 
-* `"selfInduced"` — penalties caused by your own maneuver/posture choice
-* `"stability"` — penalties caused by instability state (optional for offset)
-* `"environment"` — terrain/visibility/etc (not eligible)
-* `"tracking"` — not eligible
-* `"heat"` — not eligible
-* `"systemDamage"` — not eligible
+## Speed Tier And Tracking Penalty
 
-So a Circle Strafe penalty would include:
-
-* `tags: ["selfInduced"]`
-
-A woods penalty would be a dice mod with:
-
-* `tags: ["terrain.visibility","environment"]`
-
-**Contract:** Handling offset only applies to CQPart negative terms where `tags` contains `"selfInduced"` (and optionally `"stability"` if you want that too).
-
----
-
-## 2.4 Speed Tier and TrackingPenalty
-
-These should be computed by a mobility provider and emitted as:
-
-* DN motion parts (until saturation)
-* then a dice pool part (tracking penalty) once saturated
+Mobility providers emit speed and tracking state:
 
 ```js
 mobility: {
   targetSpeedTier: number,
   attackerSpeedTier: number,
-  dnMotion: number,                // already in DN parts
-  trackingPenalty: number          // already in dice parts (negative)
+  dnMotion: number,
+  trackingPenalty: number
 }
 ```
 
-**Contract:** TrackingPenalty is a dice pool part tagged `"tracking"`.
+`dnMotion` is represented in DN parts. `trackingPenalty` is represented in dice parts and tagged `tracking`.
 
----
+## Handling Offset
 
-## 2.5 Handling Offset
-
-Handling is not a modifier; it’s a processing step:
+Handling is a processing step, not a raw modifier:
 
 ```js
 handling: {
@@ -176,102 +150,92 @@ HandlingApplication = {
 }
 ```
 
-**Contract:** Handling offset is applied *after* CQ parts are collected but *before* CQ totals are finalized.
+Apply Handling after CQ parts are collected and before CQ totals are finalized.
 
----
+## Processing Order
 
-# 3) Processing Order (Critical Contract)
+1. Collect dice parts: base, passive mods, and tracking penalty.
+2. Collect DN parts: range and motion.
+3. Collect CQ parts: packages, states, posture, and tactical modifiers.
+4. Apply Handling offset to eligible CQ penalties.
+5. Finalize AR/DR totals and CQ.
+6. Roll dice and count hits.
+7. Compute Margin = Hits - DN.
+8. Compute outcome with the graze floor.
+9. Compute NetHits for hits.
+10. Compute damage and resistance preview.
+11. Emit queued mutations for damage, heat, states, or other consequences that require deliberate apply.
 
-Lock this order so you don’t get double-application bugs:
+## Provider Contracts
 
-1. Collect dice parts (base + passive mods + tracking penalty)
-2. Collect DN parts (range + motion)
-3. Collect CQ parts (packages, states, posture)
-4. Apply Handling offset to eligible CQ penalties
-5. Finalize AR/DR totals → CQ
-6. Roll dice → Hits
-7. Compute Margin = Hits − DN
-8. Compute outcome with graze floor
-9. Compute NetHits (Hit only)
-10. Compute damage + resistance
-11. Emit mutations (damage, heat, states) as a list of “updates”
+Use providers to keep rules out of UI code:
 
----
+- `DiceModProvider`: adds DicePart entries.
+- `DNProvider`: adds DNPart entries for range and motion.
+- `CQProvider`: adds CQPart entries for packages and states.
+- `HandlingProvider`: supplies handling rating and offset budget.
+- `DamageModel`: computes damage preview and queued mutation data.
 
-# 4) Providers (Extensibility Contract)
+## Action Package Contract
 
-To avoid hard-coded rules, define provider interfaces:
-
-### `DiceModProvider`
-
-* adds DicePart entries
-
-### `DNProvider`
-
-* adds DNPart entries (range/motion only)
-
-### `CQProvider`
-
-* adds CQPart entries (packages, states)
-
-### `HandlingProvider`
-
-* supplies handling rating + offset budget
-
-### `DamageModel`
-
-* applies damage rules and returns mutations
-
-This aligns with your existing roll pipeline architecture (providers + resolver).
-
----
-
-# 5) Minimal “Action Package” Contract
-
-An action like Circle Strafe should be a data object that a CQProvider emits:
+An action such as Circle Strafe is data consumed by a CQ provider:
 
 ```js
 ActionPackage = {
   id: "circleStrafe",
   label: "Circle Strafe",
   cqParts: [
-    { id:"circleStrafe.ar", label:"Circle Strafe", ar:+2, tags:["selfInduced"] },
-    { id:"circleStrafe.dr", label:"Circle Strafe", dr:-2, tags:["selfInduced"] }
+    { id: "circleStrafe.ar", label: "Circle Strafe", ar: 2, tags: ["selfInduced"] },
+    { id: "circleStrafe.dr", label: "Circle Strafe", dr: -2, tags: ["selfInduced"] }
   ],
   costs: [
-    { type:"action", value:1 },
-    { type:"heat", value:1 } // optional
+    { type: "action", value: 1 },
+    { type: "heat", value: 1 }
   ]
 }
 ```
 
-The engine doesn’t need to “know” Circle Strafe exists. It just processes parts and costs.
+The engine processes parts and costs. It does not need special-case knowledge of individual action names.
 
----
+## Machine Damage Handoff
 
-# 6) Ready-to-build MVP Scope
+Successful vehicle and BattleMech hits queue a `machineAttackDamage` mutation:
 
-To start wiring combat, you only need:
+```js
+{
+  id,
+  type: "machineAttackDamage",
+  targetActorUuid,
+  targetTokenUuid,
+  hitLocation,
+  damagePreview,
+  critical,
+  preparedCriticalRecords,
+  reliabilityOptions,
+  previewRevision,
+  applied: false
+}
+```
 
-1. The `AttackIntentResolver` skeleton
-2. The breakdown structures
-3. One DN range provider
-4. One DN motion provider (speed tier → DN + tracking penalty)
-5. One CQ provider for “Aim” and “Evasive Weave”
-6. Handling offset step (selfInduced penalties only)
-7. The personal damage model already locked
+Misses do not create machine damage mutations.
 
-Everything else can be plugged in later.
----
+`hitLocation.impactLabel` is descriptive. `hitLocation.rulesLocation` is the grouped rules key used for degradation and critical tables.
 
-1. System damage expresses as:
-    * Dice pool penalties and/or
-    * Handling rating or other attribute reductions   
-2. Handling offset applies only to selfInduced CQ penalties.
-    * Not environment
-    * Not tracking
-    * Not heat
-    * Not system damage (because it already reduced Handling upstream)
-3. Stability failure states are discrete (Unstable/Prone/Stalled/etc.)
-    * Handling helps avoid them via piloting tests
-    * Not “offset” once they happen
+`critical.mode` drives chat behavior:
+
+- `none`: no critical record preview.
+- `chaosOptional`: show the Chaos conversion control.
+- `chaosSelected`: require prepared critical records.
+- `automatic`: require prepared critical records.
+
+Reliability options are pending choices only. Preview may show the expected effect, but actor state changes happen only when `HarmEngine.applyMachineAttackDamage` applies the queued mutation.
+
+Chaos toggle, Reliability toggle, or damage recalculation increments `previewRevision`, clears derived preview fields, recalculates damage, critical, and Reliability previews, and rebuilds prepared critical records when required.
+
+Apply refuses stale prepared critical records and is idempotent. Reapplying an already-applied mutation must not apply additional damage, stress, degradation, Reliability spend, or critical records.
+
+## System Damage Boundaries
+
+System damage expresses as dice pool penalties, Handling reductions, or other attribute reductions through providers and actor preparation. Handling offset applies only to self-induced CQ penalties. It does not offset environment, tracking, heat, or system damage penalties unless a future rule explicitly tags them as eligible.
+
+Stability failure states are discrete states such as Unstable, Prone, or Stalled. Handling helps avoid them through piloting tests; it does not erase them after they happen.

@@ -291,6 +291,8 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
       hitLocation,
       chaosCriticalSelected: false,
       reliabilitySpendSelections: [],
+      previewRevision: 0,
+      requirePreparedCriticalRecords: true,
       source: `${attacker?.name ?? "Attacker"}: ${ctx?.attack?.weapon?.name ?? "Attack"}`,
       sourceData: {
         attackerUuid: attacker?.uuid ?? "",
@@ -313,6 +315,46 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
     notes: damage?.exposure?.initialTier
       ? `Exposure ${getExposureLabel(damage.exposure.initialTier)}${damage.exposure.evadeUsed ? ` -> ${getExposureLabel(damage.exposure.finalTier)}` : ""}`
       : "",
+  };
+}
+
+function clone(value) {
+  return typeof foundry !== "undefined" && foundry?.utils?.deepClone
+    ? foundry.utils.deepClone(value)
+    : JSON.parse(JSON.stringify(value ?? null));
+}
+
+function buildCanonicalMachineMutation({ target = {}, payload = {}, hitLocation = null, preview = {} } = {}) {
+  const preparedCriticalRecords = Array.isArray(preview?.critical?.records)
+    ? clone(preview.critical.records)
+    : [];
+  const previewRevision = Math.max(0, Math.trunc(Number(payload?.previewRevision ?? 0) || 0));
+  if (preparedCriticalRecords.length) {
+    payload.preparedCriticalRecords = preparedCriticalRecords.map(record => ({
+      ...record,
+      previewRevision,
+    }));
+  }
+
+  return {
+    id: foundry.utils.randomID(),
+    type: "machineAttackDamage",
+    targetActorUuid: target?.actorUuid ?? null,
+    targetTokenUuid: target?.tokenUuid ?? null,
+    target: {
+      name: target?.name ?? "Target",
+      actorUuid: target?.actorUuid ?? null,
+      tokenUuid: target?.tokenUuid ?? null
+    },
+    hitLocation: preview?.hitLocation ?? hitLocation,
+    damagePreview: preview?.damagePreview ?? null,
+    critical: preview?.critical ?? null,
+    preparedCriticalRecords: payload.preparedCriticalRecords ?? [],
+    reliabilityOptions: preview?.reliabilityOptions ?? null,
+    previewRevision,
+    applied: false,
+    payload,
+    preview,
   };
 }
 
@@ -344,6 +386,9 @@ export function summarizeAttackDamageResult(result, target = {}, damage = {}, { 
       effectiveAp: Number(result.effectiveAp ?? damage?.ap ?? 0),
       hitLocation: result.hitLocation ?? null,
       critical: result.critical ?? null,
+      damagePreview: result.damagePreview ?? null,
+      reliabilityOptions: result.reliabilityOptions ?? null,
+      previewRevision: Number(result.previewRevision ?? 0) || 0,
       machine: result.machine ?? null,
       degradation: result.degradation ?? null,
       mitigation: result.mitigation ? {
@@ -426,12 +471,9 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
   if (result?.ok) {
     const preview = summarizeAttackDamageResult(result, target, damage, { queued: true, applied: false });
     const queuedPayload = buildQueuedDamagePayload({ attacker, ctx, damage, targetActor: actor, hitLocation });
-    if (queuedPayload.mode === "machineAttackDamage" && Array.isArray(preview?.critical?.records) && preview.critical.records.length) {
-      queuedPayload.preparedCriticalRecords = foundry.utils.deepClone(preview.critical.records);
-    }
-    return {
-      ...preview,
-      queuedMutation: {
+    const queuedMutation = queuedPayload.mode === "machineAttackDamage"
+      ? buildCanonicalMachineMutation({ target, payload: queuedPayload, hitLocation, preview })
+      : {
         id: foundry.utils.randomID(),
         type: "attackDamage",
         applied: false,
@@ -443,7 +485,10 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
         payload: queuedPayload,
         hitLocation,
         preview
-      }
+      };
+    return {
+      ...preview,
+      queuedMutation
     };
   }
 

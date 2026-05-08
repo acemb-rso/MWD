@@ -10,8 +10,8 @@ NPCs, vehicles, and BattleMechs are present and registered, but they are not all
 - Foundry compatibility: **minimum v11**, **verified through v13**
 - Actor types: `character`, `npc`, `vehicle`, `battlemech`
 - Item types: `contact`, `gear`, `quality`, `assetModule`, `skill`, `lifeModule`, `personalWeapon`, `mechWeapon`, `armor`
-- Active modernized systems: AppV2 actor sheets, AppV2 item sheets, MWD roll engine, GM Gadget, personal combat tracker, personal weapon and armor data models
-- Main transition areas: full mech/vehicle combat automation, broad weapon trait automation, and older Anarchy naming that still appears in some code and templates
+- Active modernized systems: AppV2 actor sheets, AppV2 item sheets, MWD roll engine, GM Gadget, personal combat tracker, personal weapon and armor data models, queued machine hit-location and critical-hit resolution
+- Main transition areas: broader mech/vehicle combat automation, broad weapon trait automation, and older Anarchy naming that still appears in some code and templates
 
 ## What Works Today
 
@@ -69,6 +69,8 @@ CQ = AR - DR
 
 Damage application is queued on the chat card. Applying damage uses the shared harm engine so armor mitigation, damage type mitigation, armor durability, and track changes use the same path as GM-applied harm.
 
+Machine targets use the same deliberate chat-apply doctrine. Successful vehicle and BattleMech hits queue a canonical `machineAttackDamage` mutation with impact label, grouped rules location, damage preview, critical state, reliability choice preview, and any prepared critical records. Chat can toggle pending Chaos and Reliability choices, but armor, structure, stress, shock/pressure, Reliability, degradation, crit records, and status are written only when `HarmEngine.applyMachineAttackDamage` applies the queued mutation.
+
 ### Area And Multi-Target Attacks
 
 - Multiple targeted tokens are resolved as separate target results from one attack roll
@@ -96,7 +98,7 @@ Damage application is queued on the chat card. Applying damage uses the shared h
 - Area support is limited to the currently executable template shapes
 - Multi-target attacks use one roll result with per-target CQ/resistance/damage previews
 - Attack damage application is queued from chat, not automatically pushed to targets on roll
-- Mech and vehicle combat systems exist but are less complete than personal combat
+- Mech and vehicle combat systems exist but still need broader automation beyond the implemented queued hit-location, critical preview, and machine damage application path
 - Some code, settings, docs, and templates still use older Anarchy terminology while the migration continues
 - No licensed MechWarrior: Destiny rulebook content is distributed
 

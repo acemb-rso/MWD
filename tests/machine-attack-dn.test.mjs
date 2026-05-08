@@ -28,6 +28,7 @@ async function getResolveAttack() {
       deepClone: value => structuredClone(value),
       duplicate: value => structuredClone(value),
       mergeObject: (left = {}, right = {}) => ({ ...left, ...right }),
+      randomID: () => "test-random-id",
     },
     applications: {
       ...(globalThis.foundry?.applications ?? {}),
@@ -310,6 +311,86 @@ test("machine attack pool uses the linked pilot's attribute and skill", async ()
     assert.equal(resolved.pool.bonus, 1);
     assert.equal(resolved.rollActor, pilot);
     assert.equal(resolved.attack.operator.actorUuid, pilot.uuid);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
+    clearScene();
+  }
+});
+
+test("machine attack execution queues canonical machine damage mutation", async () => {
+  const resolveAttack = await getResolveAttack();
+  const { resolveAttackExecution } = await getAttackResolution();
+  const actor = createActor();
+  const { targetSnapshot } = setScene();
+  const targetActor = {
+    id: "target-actor",
+    uuid: "Actor.target-mech",
+    type: "battlemech",
+    name: "Target Mech",
+    statuses: new Set(),
+    system: {
+      monitors: {
+        armor: { value: 0, max: 6 },
+        structure: { value: 0, max: 10 },
+      },
+      attributes: {
+        handling: { value: 1 },
+        reliability: { value: 3 },
+      },
+      skills: {
+        piloting: { rating: 1 },
+      },
+      mwd: {
+        shock: { value: 0 },
+        reliabilitySpendable: { value: 3 },
+        locations: {
+          head: { enabled: true, stress: 0, condition: 0, destroyed: false },
+          torso: { enabled: true, stress: 0, condition: 0, destroyed: false },
+          arms: { enabled: true, stress: 0, condition: 0, destroyed: false },
+          legs: { enabled: true, stress: 0, condition: 0, destroyed: false },
+        },
+        crits: [],
+      },
+    },
+  };
+  const targetToken = { uuid: targetSnapshot.tokenUuid, actor: targetActor };
+  const previousFromUuid = globalThis.fromUuid;
+  globalThis.fromUuid = async uuid => {
+    if (uuid === targetActor.uuid) return targetActor;
+    if (uuid === targetToken.uuid) return targetToken;
+    return null;
+  };
+
+  try {
+    const ctx = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        rangeBand: "near",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+    const execution = await resolveAttackExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: { margin: 4 },
+    });
+    const mutation = execution.results[0].queuedMutation;
+
+    assert.equal(mutation.type, "machineAttackDamage");
+    assert.equal(mutation.targetActorUuid, targetActor.uuid);
+    assert.equal(mutation.targetTokenUuid, targetToken.uuid);
+    assert.equal(mutation.applied, false);
+    assert.equal(mutation.previewRevision, 0);
+    assert.equal(typeof mutation.hitLocation.impactLabel, "string");
+    assert.ok(["head", "torso", "arms", "legs"].includes(mutation.hitLocation.rulesLocation));
+    assert.equal(typeof mutation.critical.mode, "string");
+    assert.equal(mutation.payload.requirePreparedCriticalRecords, true);
+    assert.deepEqual(mutation.preparedCriticalRecords, mutation.payload.preparedCriticalRecords ?? []);
   } finally {
     globalThis.fromUuid = previousFromUuid;
     clearScene();

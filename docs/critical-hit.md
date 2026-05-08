@@ -100,6 +100,100 @@ Roll this table first to determine *what kind of problem* occurred. This table a
 
 ---
 
+## Implementation Contract
+
+The live attack pipeline uses a queued mutation model:
+
+1. Sheets and quick actions emit `intent: "attack"`.
+2. `resolveAttackExecution` resolves the attack and attaches one queued mutation to each non-miss machine target.
+3. Chat renders the resolved result and previews pending consequences.
+4. `HarmEngine.applyMachineAttackDamage` is the only writer for armor, structure, stress, shock/pressure, Reliability, degradation, crit records, and status sync.
+
+Machine hit consequences are represented by one canonical queued mutation:
+
+```js
+{
+  id,
+  type: "machineAttackDamage",
+  targetActorUuid,
+  targetTokenUuid,
+  hitLocation,
+  damagePreview,
+  critical,
+  preparedCriticalRecords,
+  reliabilityOptions,
+  previewRevision,
+  applied: false
+}
+```
+
+`hitLocation` stores both descriptive impact text and rules location data:
+
+```js
+{
+  impactLabel,
+  rulesLocation,
+  rollTotal,
+  automaticCritical,
+  chaosCriticalOption,
+  sourceArmor,
+  sourceStructure
+}
+```
+
+`impactLabel` preserves flavor such as `Rear Torso`, `Front`, or `Side`. `rulesLocation` is the grouped rules bucket used by degradation and critical tables: `head`, `torso`, `arms`, or `legs` for BattleMechs, and `body`, `turret`, or `mobility` for vehicles.
+
+`critical` is state, not just result data:
+
+```js
+{
+  eligible: boolean,
+  mode: "none" | "automatic" | "chaosOptional" | "chaosSelected",
+  source: "hitLocation" | "criticalBreach" | "manual" | null,
+  selected: boolean,
+  reason: string
+}
+```
+
+`chaosOptional` means the chat card shows the Chaos conversion control. `chaosSelected` and `automatic` require prepared critical records. `none` must not carry prepared critical records.
+
+Prepared critical records are drawn during preview only when required, pinned to the current preview revision, and reused on apply:
+
+```js
+{
+  id,
+  previewRevision,
+  table,
+  rollTotal,
+  rulesLocation,
+  resultKey,
+  label,
+  remedy,
+  effects
+}
+```
+
+Apply refuses stale prepared records if any `record.previewRevision !== mutation.previewRevision`.
+
+Reliability is also a pending preview choice:
+
+```js
+{
+  canSpend: boolean,
+  selected: boolean,
+  cost: 1,
+  prevents: ["conditionAdvance"],
+  pressureDeltaPreview,
+  stressDeltaPreview
+}
+```
+
+Preview shows the effect of the choice, but does not mutate actor state. Chaos toggle, Reliability toggle, or damage recalculation creates a new preview state by incrementing `previewRevision`, clearing derived preview fields, recalculating `damagePreview`, `critical`, and `reliabilityOptions`, and rebuilding `preparedCriticalRecords` when required.
+
+`applyMachineAttackDamage` is idempotent. If the queued mutation is already applied, the apply path returns the already-applied result or refuses without applying additional damage, stress, degradation, Reliability spend, or critical records.
+
+---
+
 ## BattleMech Location Crit Tables
 
 ### Head
@@ -311,7 +405,7 @@ Each crit entry should produce at most **one** of:
 
 Not multiple stacked penalties.
 
-**Minimum playable version:**
+**Implemented baseline:**
 
 1. Roll General Table
 2. Apply location interpretation

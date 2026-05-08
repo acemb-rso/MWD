@@ -52,6 +52,73 @@ function hasAppliedAttackMutation(resolved = {}) {
   return results.some(result => Boolean(result?.queuedMutation?.applied));
 }
 
+function isMachineDamageMutation(mutation = {}) {
+  return mutation?.type === "machineAttackDamage" || mutation?.payload?.mode === "machineAttackDamage";
+}
+
+function getMutationTargetActorUuid(mutation = {}) {
+  return mutation?.targetActorUuid ?? mutation?.target?.actorUuid ?? null;
+}
+
+function getMutationTargetTokenUuid(mutation = {}) {
+  return mutation?.targetTokenUuid ?? mutation?.target?.tokenUuid ?? null;
+}
+
+function syncMachineMutationPreview(mutation = {}, summary = {}) {
+  if (!isMachineDamageMutation(mutation)) return mutation;
+  const previewRevision = Math.max(0, Math.trunc(Number(mutation?.payload?.previewRevision ?? mutation?.previewRevision ?? summary?.previewRevision ?? 0) || 0));
+  const preparedCriticalRecords = Array.isArray(summary?.critical?.records)
+    ? foundry.utils.deepClone(summary.critical.records).map(record => ({ ...record, previewRevision }))
+    : [];
+  mutation.type = "machineAttackDamage";
+  mutation.targetActorUuid = getMutationTargetActorUuid(mutation);
+  mutation.targetTokenUuid = getMutationTargetTokenUuid(mutation);
+  mutation.hitLocation = summary?.hitLocation ?? mutation.hitLocation ?? mutation.payload?.hitLocation ?? null;
+  mutation.damagePreview = summary?.damagePreview ?? null;
+  mutation.critical = summary?.critical ?? null;
+  mutation.preparedCriticalRecords = preparedCriticalRecords;
+  mutation.reliabilityOptions = summary?.reliabilityOptions ?? null;
+  mutation.previewRevision = previewRevision;
+  mutation.preview = summary;
+  mutation.payload ??= {};
+  mutation.payload.previewRevision = previewRevision;
+  mutation.payload.hitLocation = mutation.hitLocation;
+  mutation.payload.preparedCriticalRecords = preparedCriticalRecords;
+  return mutation;
+}
+
+async function rebuildMachineMutationPreview({ mutation = {}, result = {}, targetActor = null, targetToken = null } = {}) {
+  if (!isMachineDamageMutation(mutation)) return null;
+  mutation.previewRevision = Math.max(0, Math.trunc(Number(mutation.previewRevision ?? mutation.payload?.previewRevision ?? 0) || 0)) + 1;
+  mutation.payload ??= {};
+  mutation.payload.previewRevision = mutation.previewRevision;
+  delete mutation.payload.preparedCriticalRecords;
+  mutation.preparedCriticalRecords = [];
+  mutation.damagePreview = null;
+  mutation.critical = null;
+  mutation.reliabilityOptions = null;
+
+  const previewResult = await HarmEngine.apply({
+    actor: targetActor,
+    token: targetToken,
+    payload: mutation.payload,
+    options: {
+      actorId: targetActor?.id ?? "",
+      dryRun: true,
+      logToChat: false
+    }
+  });
+
+  const summary = summarizeAttackDamageResult(
+    previewResult,
+    result?.target ?? mutation.target ?? {},
+    result?.damage ?? {},
+    { queued: true, applied: false }
+  );
+  syncMachineMutationPreview(mutation, summary);
+  return summary;
+}
+
 function getTrackLabel(track) {
   if (track === TEMPLATE.monitors.physical) return "Physical";
   if (track === TEMPLATE.monitors.fatigue) return "Fatigue";
@@ -508,8 +575,8 @@ async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
   let targetActor = null;
   let targetToken = null;
   try {
-    targetActor = mutation.target?.actorUuid ? await fromUuid(mutation.target.actorUuid) : null;
-    targetToken = mutation.target?.tokenUuid ? await fromUuid(mutation.target.tokenUuid) : null;
+    targetActor = getMutationTargetActorUuid(mutation) ? await fromUuid(getMutationTargetActorUuid(mutation)) : null;
+    targetToken = getMutationTargetTokenUuid(mutation) ? await fromUuid(getMutationTargetTokenUuid(mutation)) : null;
     if (result?.evadeActive && targetActor) {
       const spend = await PersonalCombatTracker.commitReactionSpend(targetActor, {
         token: targetToken,
@@ -524,12 +591,20 @@ async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
       }
       await PersonalCombatTracker.clearPendingReaction(targetActor, { token: targetToken });
     }
-    if (mutation.payload?.mode === "machineAttackDamage" && mutation.payload?.chaosCriticalSelected) {
+    if (isMachineDamageMutation(mutation) && mutation.payload?.chaosCriticalSelected) {
       const spend = await spendMachineChaosCriticalEdge({
         machineActor: targetActor,
         operatorActorUuid: mutation.payload?.operatorActorUuid,
       });
       if (!spend.ok) return spend;
+    }
+    if (isMachineDamageMutation(mutation)) {
+      mutation.payload ??= {};
+      mutation.payload.applied = Boolean(mutation.applied);
+      mutation.payload.previewRevision = Math.max(0, Math.trunc(Number(mutation.previewRevision ?? mutation.payload.previewRevision ?? 0) || 0));
+      mutation.payload.preparedCriticalRecords = Array.isArray(mutation.preparedCriticalRecords)
+        ? foundry.utils.deepClone(mutation.preparedCriticalRecords)
+        : (Array.isArray(mutation.payload.preparedCriticalRecords) ? mutation.payload.preparedCriticalRecords : []);
     }
     applyResult = await HarmEngine.apply({
       actor: targetActor,
@@ -558,6 +633,13 @@ async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
 
   mutation.applied = true;
   mutation.appliedResult = summary;
+  if (isMachineDamageMutation(mutation)) {
+    mutation.payload.applied = true;
+    mutation.payload.appliedResult = summary;
+    syncMachineMutationPreview(mutation, summary);
+    mutation.applied = true;
+    mutation.appliedResult = summary;
+  }
   result.queuedMutation = mutation;
   result.damageResult = summary;
   result.evadeApplied = Boolean(result.evadeActive);
@@ -604,33 +686,15 @@ async function onToggleMachineChaosCrit(ev, message) {
   const resolved = foundry.utils.deepClone(message.getFlag("mwd", "resolved"));
   const result = resolved?.attackResult?.results?.[resultIndex] ?? null;
   const mutation = result?.queuedMutation ?? null;
-  if (!mutation || mutation.applied || mutation.payload?.mode !== "machineAttackDamage") return;
+  if (!mutation || mutation.applied || !isMachineDamageMutation(mutation)) return;
 
   mutation.payload.chaosCriticalSelected = !Boolean(mutation.payload.chaosCriticalSelected);
-  delete mutation.payload.preparedCriticalRecords;
   mutation.payload.reliabilitySpendSelections = [];
 
-  const targetActor = mutation.target?.actorUuid ? await fromUuid(mutation.target.actorUuid) : null;
-  const targetToken = mutation.target?.tokenUuid ? await fromUuid(mutation.target.tokenUuid) : null;
-  const previewResult = await HarmEngine.apply({
-    actor: targetActor,
-    token: targetToken,
-    payload: mutation.payload,
-    options: {
-      actorId: targetActor?.id ?? "",
-      dryRun: true,
-      logToChat: false
-    }
-  });
+  const targetActor = getMutationTargetActorUuid(mutation) ? await fromUuid(getMutationTargetActorUuid(mutation)) : null;
+  const targetToken = getMutationTargetTokenUuid(mutation) ? await fromUuid(getMutationTargetTokenUuid(mutation)) : null;
+  const summary = await rebuildMachineMutationPreview({ mutation, result, targetActor, targetToken });
 
-  const summary = summarizeAttackDamageResult(
-    previewResult,
-    result?.target ?? mutation.target ?? {},
-    result?.damage ?? {},
-    { queued: true, applied: false }
-  );
-
-  mutation.preview = summary;
   result.queuedMutation = mutation;
   result.damageResult = summary;
 
@@ -651,7 +715,7 @@ async function onToggleMachineReliabilitySpend(ev, message) {
   const resolved = foundry.utils.deepClone(message.getFlag("mwd", "resolved"));
   const result = resolved?.attackResult?.results?.[resultIndex] ?? null;
   const mutation = result?.queuedMutation ?? null;
-  if (!mutation || mutation.applied || mutation.payload?.mode !== "machineAttackDamage") return;
+  if (!mutation || mutation.applied || !isMachineDamageMutation(mutation)) return;
 
   const selections = new Set(
     Array.isArray(mutation.payload?.reliabilitySpendSelections)
@@ -662,27 +726,10 @@ async function onToggleMachineReliabilitySpend(ev, message) {
   else selections.add(spendIndex);
   mutation.payload.reliabilitySpendSelections = Array.from(selections).sort((left, right) => left - right);
 
-  const targetActor = mutation.target?.actorUuid ? await fromUuid(mutation.target.actorUuid) : null;
-  const targetToken = mutation.target?.tokenUuid ? await fromUuid(mutation.target.tokenUuid) : null;
-  const previewResult = await HarmEngine.apply({
-    actor: targetActor,
-    token: targetToken,
-    payload: mutation.payload,
-    options: {
-      actorId: targetActor?.id ?? "",
-      dryRun: true,
-      logToChat: false
-    }
-  });
+  const targetActor = getMutationTargetActorUuid(mutation) ? await fromUuid(getMutationTargetActorUuid(mutation)) : null;
+  const targetToken = getMutationTargetTokenUuid(mutation) ? await fromUuid(getMutationTargetTokenUuid(mutation)) : null;
+  const summary = await rebuildMachineMutationPreview({ mutation, result, targetActor, targetToken });
 
-  const summary = summarizeAttackDamageResult(
-    previewResult,
-    result?.target ?? mutation.target ?? {},
-    result?.damage ?? {},
-    { queued: true, applied: false }
-  );
-
-  mutation.preview = summary;
   result.queuedMutation = mutation;
   result.damageResult = summary;
 

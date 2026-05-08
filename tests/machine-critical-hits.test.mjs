@@ -97,6 +97,19 @@ test("machine hit locations distinguish armor hits, pure structure crits, and Ch
   assert.equal(headArmor.chaosTargetLocationKey, "torso");
   assert.equal(forced.isForcedCritical, true);
   assert.equal(forced.isAutomaticCritical, true);
+  assert.equal(armArmor.impactLabel, "Arms");
+  assert.equal(armArmor.rulesLocation, "arms");
+});
+
+test("vehicle hit locations separate descriptive impact from grouped rules location", () => {
+  const actor = machineActor({ type: "vehicle" });
+  const side = resolveMachineHitLocation({ actor, rollTotal: 7, armorBefore: 4 });
+  const turret = resolveMachineHitLocation({ actor, rollTotal: 11, armorBefore: 4 });
+
+  assert.equal(side.impactLabel, "Side");
+  assert.equal(side.rulesLocation, "mobility");
+  assert.equal(turret.impactLabel, "Turret");
+  assert.equal(turret.rulesLocation, "turret");
 });
 
 test("machine damage preview splits armor before structure and preserves pure-structure timing", () => {
@@ -114,6 +127,31 @@ test("machine damage preview splits armor before structure and preserves pure-st
   assert.equal(preview.machine.structureAfter, 8);
   assert.equal(preview.machine.pureStructureHit, false);
   assert.equal(preview.finalDamage, 2);
+  assert.equal(preview.critical.mode, "none");
+  assert.equal(preview.critical.selected, false);
+  assert.equal(preview.damagePreview.finalDamage, 2);
+  assert.equal(preview.previewRevision, 0);
+});
+
+test("critical preview state distinguishes automatic, optional, and selected Chaos criticals", () => {
+  const actor = machineActor();
+  const automaticLocation = resolveMachineHitLocation({ actor, rollTotal: 4, armorBefore: 6 });
+  const optionalLocation = resolveMachineHitLocation({ actor, rollTotal: 16, armorBefore: 4 });
+
+  const automatic = previewMachineAttackDamage({ actor, payload: { damage: 1, hitLocation: automaticLocation } });
+  const optional = previewMachineAttackDamage({ actor, payload: { damage: 1, hitLocation: optionalLocation } });
+  const selected = previewMachineAttackDamage({
+    actor,
+    payload: { damage: 1, hitLocation: optionalLocation },
+    chaosCriticalSelected: true,
+  });
+
+  assert.equal(automatic.critical.mode, "automatic");
+  assert.equal(automatic.critical.selected, true);
+  assert.equal(optional.critical.mode, "chaosOptional");
+  assert.equal(optional.critical.selected, false);
+  assert.equal(selected.critical.mode, "chaosSelected");
+  assert.equal(selected.critical.selected, true);
 });
 
 test("machine system monitor pips display remaining armor and structure", () => {
@@ -341,6 +379,100 @@ test("cascade result draws one additional crit and recursive cascades become loc
   assert.equal(draw.crits[0].key, "reactorGyroCascade");
   assert.equal(draw.crits[1].key, "torsoCriticalBreach");
   assert.equal(draw.crits[1].generalKey, "criticalBreach");
+});
+
+test("prepared critical records carry preview revision and stale records are refused", async () => {
+  const actor = machineActor();
+  const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 4, armorBefore: 6 });
+  const draw = await drawMachineCriticalRecords({
+    actor,
+    hitLocation,
+    previewRevision: 2,
+    drawFn: () => ({
+      label: "Hard Lock",
+      rollTotal: 3,
+      signal: { key: "hardLock", remedyKey: "emergencyRepair", gates: [], mods: [], resourceEffects: {}, pilotDamage: {}, escalationKey: "lockout" },
+    }),
+  });
+
+  assert.equal(draw.ok, true);
+  assert.equal(draw.crits[0].previewRevision, 2);
+  assert.equal(draw.crits[0].rulesLocation, "torso");
+  assert.equal(draw.crits[0].resultKey, "gyroLock");
+
+  const stale = await applyMachineAttackDamage({
+    actor,
+    payload: {
+      damage: 1,
+      hitLocation,
+      previewRevision: 3,
+      preparedCriticalRecords: draw.crits,
+    },
+  });
+
+  assert.equal(stale.ok, false);
+  assert.match(stale.reason, /stale/i);
+});
+
+test("machine damage dry-run previews reliability options without mutating reliability", async () => {
+  const actor = machineActor({
+    paths: {
+      "system.monitors.armor.value": 6,
+      "system.mwd.shock.value": 3,
+      "system.mwd.reliabilitySpendable.value": 2,
+    },
+  });
+  const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 10, armorBefore: 0 });
+
+  const result = await applyMachineAttackDamage({
+    actor,
+    payload: {
+      damage: 1,
+      hitLocation,
+      outcome: "hit",
+      netHits: 1,
+      reliabilitySpendSelections: [0],
+    },
+    options: { dryRun: true },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.reliabilityOptions.canSpend, true);
+  assert.equal(result.reliabilityOptions.selected, true);
+  assert.equal(actor.system.mwd.reliabilitySpendable.value, 2);
+  assert.equal(actor.system.mwd.locations.torso.condition, 0);
+});
+
+test("machine damage apply is idempotent when payload is already applied", async () => {
+  const actor = machineActor({
+    paths: {
+      "system.monitors.armor.value": 6,
+    },
+  });
+  const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 16, armorBefore: 0 });
+  const first = await applyMachineAttackDamage({
+    actor,
+    payload: {
+      damage: 2,
+      hitLocation,
+      preparedCriticalRecords: [],
+    },
+  });
+  const second = await applyMachineAttackDamage({
+    actor,
+    payload: {
+      damage: 2,
+      hitLocation,
+      applied: true,
+      appliedResult: first,
+    },
+  });
+
+  assert.equal(first.ok, true);
+  assert.equal(second.skipped, true);
+  assert.equal(actor.system.monitors.structure.value, 2);
+  assert.equal(actor.system.mwd.locations.arms.condition, 1);
+  assert.equal(actor.system.mwd.crits.length, 0);
 });
 
 test("machine critical remedy intent spends operator SA and resolves the crit", async () => {
