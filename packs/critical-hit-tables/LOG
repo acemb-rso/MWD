@@ -1,11 +1,11 @@
-2026/04/30-09:51:25.350 59b0 Recovering log #98
-2026/04/30-09:51:25.352 59b0 Level-0 table #101: started
-2026/04/30-09:51:25.354 59b0 Level-0 table #101: 18662 bytes OK
-2026/04/30-09:51:25.357 59b0 Delete type=0 #98
-2026/04/30-09:51:25.357 59b0 Delete type=3 #96
-2026/04/30-09:51:25.423 b224 Compacting 1@0 + 1@1 files
-2026/04/30-09:51:25.442 b224 Generated table #103@0: 563 keys, 29138 bytes
-2026/04/30-09:51:25.442 b224 Compacted 1@0 + 1@1 files => 29138 bytes
-2026/04/30-09:51:25.448 b224 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/04/30-09:51:25.448 b224 Delete type=2 #99
-2026/04/30-09:51:25.448 b224 Delete type=2 #101
+2026/05/07-10:11:00.964 64e4 Recovering log #110
+2026/05/07-10:11:00.964 64e4 Level-0 table #113: started
+2026/05/07-10:11:00.967 64e4 Level-0 table #113: 18562 bytes OK
+2026/05/07-10:11:00.970 64e4 Delete type=0 #110
+2026/05/07-10:11:00.970 64e4 Delete type=3 #108
+2026/05/07-10:11:00.992 3c50 Compacting 1@0 + 1@1 files
+2026/05/07-10:11:01.000 3c50 Generated table #115@0: 641 keys, 31124 bytes
+2026/05/07-10:11:01.000 3c50 Compacted 1@0 + 1@1 files => 31124 bytes
+2026/05/07-10:11:01.001 3c50 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/05/07-10:11:01.001 3c50 Delete type=2 #111
+2026/05/07-10:11:01.002 3c50 Delete type=2 #113

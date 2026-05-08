@@ -3681,6 +3681,27 @@
   letter-spacing: 0.05em;
 }
 
+.mwd-combat-actions-panel__log-remove {
+  display: inline-grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: -0.15rem -0.25rem -0.15rem 0;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--mwd-combat-border) 70%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mwd-combat-text-muted);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.mwd-combat-actions-panel__log-remove:hover,
+.mwd-combat-actions-panel__log-remove:focus-visible {
+  background: var(--mwd-combat-chip-bg);
+  color: var(--mwd-combat-text);
+}
+
 .mwd-combat-actions-panel__empty {
   color: var(--mwd-combat-text-faint);
   font-size: 0.92em;

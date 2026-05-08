@@ -3919,6 +3919,25 @@
   background: currentColor !important;
 }
 
+.mwd-sheet .sheet-body .mwd-heat-checks__stat {
+  min-inline-size: 142px;
+  max-inline-size: 190px;
+  border: 1px solid rgba(255, 188, 118, 0.34);
+  background: rgba(119, 43, 24, 0.14);
+}
+
+.mwd-sheet .sheet-body .mwd-heat-checks__stat:hover,
+.mwd-sheet .sheet-body .mwd-heat-checks__stat:focus-visible {
+  border-color: rgba(255, 215, 160, 0.72);
+  background: rgba(119, 43, 24, 0.22);
+  box-shadow: 0 0 0 1px rgba(255, 215, 160, 0.12);
+}
+
+.mwd-heat-checks__stat .mwd-item-hero__value {
+  font-size: 0.86rem;
+  line-height: 1.18;
+}
+
 /* ========================= */
 /* Condition Monitors        */
 /* ========================= */
@@ -4526,6 +4545,27 @@
   opacity: 0.72;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.mwd-combat-actions-panel__log-remove {
+  display: inline-grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: -0.15rem -0.25rem -0.15rem 0;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--mwd-combat-border) 70%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mwd-combat-text-muted);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.mwd-combat-actions-panel__log-remove:hover,
+.mwd-combat-actions-panel__log-remove:focus-visible {
+  background: var(--mwd-combat-chip-bg);
+  color: var(--mwd-combat-text);
 }
 
 .mwd-combat-actions-panel__empty {

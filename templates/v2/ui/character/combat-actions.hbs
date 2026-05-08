@@ -51,6 +51,17 @@ How it fits: Used by rendering code to produce UI fragments.
             {{#if entry.costLabel}}
               <span class="mwd-combat-actions-panel__log-cost">{{entry.costLabel}}</span>
             {{/if}}
+            {{#if entry.canRemove}}
+              <button
+                type="button"
+                class="mwd-combat-actions-panel__log-remove"
+                data-action="removeActivationAction"
+                data-log-index="{{entry.logIndex}}"
+                title="Remove action"
+                aria-label="Remove {{entry.label}}">
+                &times;
+              </button>
+            {{/if}}
           </li>
         {{/each}}
       </ol>

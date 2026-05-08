@@ -15,6 +15,8 @@ import {
   normalizeTargetMotion,
   TARGET_MOTION_LABELS,
 } from "../mwd/machine-attack-motion.js";
+import { normalizeMachineMotionPayload } from "../mwd/machine-attack-motion.js";
+import { getTargetCombatant } from "../mwd/machine-ew-state.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 const ATTACK_OPTION_MODIFIERS = Object.freeze([
@@ -91,15 +93,30 @@ function hasMachineMotionValue(payload = {}, key = "") {
 }
 
 function seedMachineMotionPayloadFromResolved(payload = {}, resolved = null) {
-  const motion = resolved?.attack?.machineMotion;
-  if (!motion || typeof motion !== "object") return payload;
+  // Prefer explicit resolved machineMotion, but fall back to deriving
+  // the known motion from the target combatant when missing.
+  const explicit = resolved?.attack?.machineMotion;
+  const tokenId = resolved?.attack?.targets?.[0]?.tokenId ?? null;
+
+  let declaration = null;
+  if (explicit && typeof explicit === "object") {
+    declaration = {
+      targetMotion: normalizeTargetMotion(explicit.targetMotion),
+      jumped: Boolean(explicit.jumped),
+    };
+  } else {
+    const targetCombatant = getTargetCombatant(tokenId);
+    declaration = normalizeMachineMotionPayload(payload, { targetCombatant });
+  }
+
+  if (!declaration || typeof declaration !== "object") return payload;
 
   const next = {};
   if (!hasMachineMotionValue(payload, "targetMotion")) {
-    next.targetMotion = normalizeTargetMotion(motion.targetMotion);
+    next.targetMotion = normalizeTargetMotion(declaration.targetMotion);
   }
   if (!hasMachineMotionValue(payload, "jumped")) {
-    next.jumped = Boolean(motion.jumped);
+    next.jumped = Boolean(declaration.jumped);
   }
   if (Object.keys(next).length) writeMachineMotion(payload, next);
   return payload;

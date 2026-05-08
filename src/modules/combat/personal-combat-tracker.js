@@ -145,13 +145,98 @@ function normalizeActionLog(entries) {
       const label = String(entry?.label ?? "").trim();
       if (!label) return null;
 
-      return {
+      const normalized = {
         id: String(entry?.id ?? "").trim(),
         label,
         costLabel: String(entry?.costLabel ?? "").trim()
       };
+
+      const resource = normalizeLoggedResource(entry?.resource);
+      if (resource) normalized.resource = resource;
+      for (const [key, value] of Object.entries({
+        cost: entry?.cost,
+        saSpentDelta: entry?.saSpentDelta,
+        attackDelta: entry?.attackDelta,
+        burnThisActivationDelta: entry?.burnThisActivationDelta,
+        reactionBurnDelta: entry?.reactionBurnDelta,
+        actorBurnDelta: entry?.actorBurnDelta,
+        actorEdgeDelta: entry?.actorEdgeDelta
+      })) {
+        const number = Number(value);
+        if (Number.isFinite(number) && number !== 0) normalized[key] = number;
+      }
+
+      const edgePoolKey = String(entry?.edgePoolKey ?? "").trim();
+      if (edgePoolKey) normalized.edgePoolKey = edgePoolKey;
+
+      return normalized;
     })
     .filter(Boolean);
+}
+
+function normalizeLoggedResource(value) {
+  const resource = String(value ?? "").trim().toLowerCase();
+  return ["sa", "fa", "ra", "burn", "edge"].includes(resource) ? resource : "";
+}
+
+function parseLoggedCostLabel(costLabel = "") {
+  const label = String(costLabel ?? "").trim();
+  if (!label) return {};
+  if (/^free$/i.test(label)) return { resource: "fa", cost: 1 };
+
+  const burnMatch = label.match(/^\+?\s*(\d+)\s*burn\b/i);
+  if (burnMatch) return { resource: "burn", cost: Math.max(0, Number(burnMatch[1]) || 0) };
+
+  const edgeMatch = label.match(/^(\d+)\s*edge(?:\s*\(([^)]+)\))?/i);
+  if (edgeMatch) {
+    return {
+      resource: "edge",
+      cost: Math.max(0, Number(edgeMatch[1]) || 0),
+      edgePoolKey: String(edgeMatch[2] ?? "").trim()
+    };
+  }
+
+  const resourceMatch = label.match(/^(\d+)\s*(sa|fa|ra)\b/i);
+  if (resourceMatch) {
+    return {
+      resource: resourceMatch[2].toLowerCase(),
+      cost: Math.max(0, Number(resourceMatch[1]) || 0)
+    };
+  }
+
+  return {};
+}
+
+function getActionLogRemovalDeltas(entry = {}) {
+  const parsed = parseLoggedCostLabel(entry.costLabel);
+  const resource = normalizeLoggedResource(entry.resource) || parsed.resource || "";
+  const cost = Math.max(0, Number(entry.cost ?? parsed.cost ?? 0) || 0);
+  const action = getPersonalAction(entry.id);
+  const fallbackAttackDelta = entry.id === "attack" ? 1 : 0;
+  const fallbackSaSpentDelta = resource === "sa" ? cost : 0;
+  const fallbackReactionBurnDelta = resource === "burn" && action?.category === PERSONAL_ACTION_CATEGORIES.reaction
+    ? cost
+    : 0;
+  const burnThisActivationDelta = Math.max(0, Number(
+    entry.burnThisActivationDelta ?? entry.burnDelta ?? 0
+  ) || 0);
+  const actorBurnDelta = Number.isFinite(Number(entry.actorBurnDelta))
+    ? Number(entry.actorBurnDelta)
+    : (entry.id === "reduceBurn"
+      ? -1
+      : Math.max(0, burnThisActivationDelta + (resource === "burn" ? cost : 0)));
+
+  return {
+    resource,
+    cost,
+    saSpentDelta: Math.max(0, Number(entry.saSpentDelta ?? fallbackSaSpentDelta) || 0),
+    attackDelta: Math.max(0, Number(entry.attackDelta ?? fallbackAttackDelta) || 0),
+    burnThisActivationDelta,
+    reactionBurnDelta: Math.max(0, Number(entry.reactionBurnDelta ?? fallbackReactionBurnDelta) || 0),
+    actorBurnDelta,
+    actorEdgeDelta: Number(entry.actorEdgeDelta ?? (resource === "edge" ? -cost : 0)) || 0,
+    edgePoolKey: String(entry.edgePoolKey ?? parsed.edgePoolKey ?? "").trim()
+  };
 }
 
 function filterReactionActionLog(entries = []) {
@@ -1048,7 +1133,13 @@ export class PersonalCombatTracker {
     this._appendActionLog(nextState, {
       id: actionId,
       label: logLabel || actionLabel,
-      costLabel: preview.costLabel
+      costLabel: preview.costLabel,
+      resource: preview.usesReaction ? "ra" : (preview.edgePoolKey ? "edge" : "burn"),
+      cost: preview.usesReaction ? 1 : (preview.edgePoolKey ? 1 : burnDelta),
+      reactionBurnDelta: burnDelta,
+      actorBurnDelta: burnDelta,
+      actorEdgeDelta: preview.edgePoolKey ? -1 : 0,
+      edgePoolKey: preview.edgePoolKey ?? ""
     });
 
     if (runtime.pendingMutations?.length) {
@@ -1256,7 +1347,9 @@ export class PersonalCombatTracker {
       ],
       activationLog: normalizeActionLog(snapshot.state?.actionLog).map((entry, index) => ({
         ...entry,
-        index: index + 1
+        index: index + 1,
+        logIndex: index,
+        canRemove: Boolean(snapshot.hasCombatant && snapshot.isCurrentTurn)
       })),
       menus: [
         {
@@ -1653,18 +1746,125 @@ export class PersonalCombatTracker {
     return `${cost} ${String(resource).toUpperCase()}`;
   }
 
-  static _appendActionLog(state, { id = "", label = "", costLabel = "" } = {}) {
+  static _appendActionLog(state, {
+    id = "",
+    label = "",
+    costLabel = "",
+    resource = "",
+    cost = 0,
+    saSpentDelta = 0,
+    attackDelta = 0,
+    burnThisActivationDelta = 0,
+    reactionBurnDelta = 0,
+    actorBurnDelta = 0,
+    actorEdgeDelta = 0,
+    edgePoolKey = ""
+  } = {}) {
     const normalizedLabel = String(label ?? "").trim();
     if (!normalizedLabel) return;
 
     const nextLog = normalizeActionLog(state?.actionLog);
-    nextLog.push({
+    const entry = {
       id: String(id ?? "").trim(),
       label: normalizedLabel,
       costLabel: String(costLabel ?? "").trim()
-    });
+    };
+
+    const loggedResource = normalizeLoggedResource(resource);
+    if (loggedResource) entry.resource = loggedResource;
+    for (const [key, value] of Object.entries({
+      cost,
+      saSpentDelta,
+      attackDelta,
+      burnThisActivationDelta,
+      reactionBurnDelta,
+      actorBurnDelta,
+      actorEdgeDelta
+    })) {
+      const number = Number(value);
+      if (Number.isFinite(number) && number !== 0) entry[key] = number;
+    }
+
+    const normalizedEdgePoolKey = String(edgePoolKey ?? "").trim();
+    if (normalizedEdgePoolKey) entry.edgePoolKey = normalizedEdgePoolKey;
+
+    nextLog.push(entry);
 
     state.actionLog = nextLog;
+  }
+
+  static async removeActivationLogEntry(actor, { token = null, index = null } = {}) {
+    const snapshot = this.getSnapshot(actor, { token });
+    if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
+    if (!snapshot.isCurrentTurn) return { ok: false, reason: "Only available during your activation." };
+
+    const log = normalizeActionLog(snapshot.state?.actionLog);
+    const entryIndex = Number(index);
+    if (!Number.isInteger(entryIndex) || entryIndex < 0 || entryIndex >= log.length) {
+      return { ok: false, reason: "That action is no longer in this activation log." };
+    }
+
+    const [removed] = log.splice(entryIndex, 1);
+    const deltas = getActionLogRemovalDeltas(removed);
+    const nextState = cloneWritableSnapshotState(snapshot);
+    nextState.actionLog = log;
+
+    if (deltas.resource === "sa") {
+      nextState.saSpentThisActivation = Math.max(
+        0,
+        Number(nextState.saSpentThisActivation ?? 0) - deltas.saSpentDelta
+      );
+      nextState.saRemaining = Math.max(0, BASE_SA - Number(nextState.saSpentThisActivation ?? 0));
+    } else if (deltas.resource === "fa") {
+      nextState.faRemaining = Math.min(
+        BASE_FA,
+        Math.max(0, Number(nextState.faRemaining ?? 0) + deltas.cost)
+      );
+    } else if (deltas.resource === "ra") {
+      nextState.raRemaining = Math.min(
+        BASE_RA,
+        Math.max(0, Number(nextState.raRemaining ?? 0) + deltas.cost)
+      );
+    }
+
+    nextState.attacksThisActivation = Math.max(
+      0,
+      Number(nextState.attacksThisActivation ?? 0) - deltas.attackDelta
+    );
+    nextState.burnThisActivation = Math.max(
+      0,
+      Number(nextState.burnThisActivation ?? 0) - deltas.burnThisActivationDelta
+    );
+    nextState.reactionBurnSinceLastActivation = Math.max(
+      0,
+      Number(nextState.reactionBurnSinceLastActivation ?? 0) - deltas.reactionBurnDelta
+    );
+
+    nextState.actionState ??= {};
+    if (removed.id === "aim" && !log.some(entry => entry.id === "aim")) nextState.actionState.aim = null;
+    if (removed.id === "move" && !log.some(entry => entry.id === "move")) nextState.actionState.move = null;
+    if (removed.id === "prepare" && !log.some(entry => entry.id === "prepare")) {
+      nextState.actionState.preparedInterrupt = null;
+    }
+
+    await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextState);
+
+    if (deltas.actorBurnDelta !== 0) {
+      await actor.update({
+        "system.burn.value": Math.max(
+          0,
+          Number(actor.system?.burn?.value ?? 0) - deltas.actorBurnDelta
+        )
+      });
+    }
+
+    if (deltas.actorEdgeDelta < 0 && deltas.edgePoolKey && actor.gainEdge) {
+      await actor.gainEdge(deltas.edgePoolKey, Math.abs(deltas.actorEdgeDelta), { source: "removeActivationLogEntry" });
+    } else if (deltas.actorEdgeDelta > 0 && deltas.edgePoolKey && actor.spendEdge) {
+      await actor.spendEdge(deltas.edgePoolKey, deltas.actorEdgeDelta, { source: "removeActivationLogEntry" });
+    }
+
+    return { ok: true, snapshot: this.getSnapshot(actor, { token: snapshot.token }), removed };
   }
 
   static getActivationIdentity(combat, combatant) {
@@ -1755,12 +1955,6 @@ export class PersonalCombatTracker {
       }
     }
 
-    this._appendActionLog(nextState, {
-      id: actionId,
-      label: actionLabel,
-      costLabel: actionCostLabel || this._formatCostLabel(resource, finalCost)
-    });
-
     let burnDelta = 0;
     if (resource === "sa") {
       const extraBefore = Math.max(0, spentBefore - BASE_SA);
@@ -1832,6 +2026,18 @@ export class PersonalCombatTracker {
       nextState.burnThisActivation = Math.max(0, Number(nextState.burnThisActivation ?? 0) + burnDelta);
     }
 
+    this._appendActionLog(nextState, {
+      id: actionId,
+      label: actionLabel,
+      costLabel: actionCostLabel || this._formatCostLabel(resource, finalCost),
+      resource,
+      cost: finalCost,
+      saSpentDelta: resource === "sa" ? finalCost : 0,
+      attackDelta: resource === "sa" && actionId === "attack" ? 1 : 0,
+      burnThisActivationDelta: burnDelta,
+      actorBurnDelta: burnDelta
+    });
+
     if (runtime.pendingMutations?.length) {
       await applyTraitMutations({
         actor,
@@ -1849,7 +2055,13 @@ export class PersonalCombatTracker {
       await actor.update({ "system.burn.value": Math.max(0, Number(actor.system?.burn?.value ?? 0) + burnDelta) });
     }
 
-    return { ok: true, snapshot: this.getSnapshot(actor, { token: snapshot.token }) };
+    return {
+      ok: true,
+      snapshot: this.getSnapshot(actor, { token: snapshot.token }),
+      burnDelta,
+      finalCost,
+      costLabel: actionCostLabel || this._formatCostLabel(resource, finalCost)
+    };
   }
 
   static async reduceBurn(actor, { token = null } = {}) {
@@ -1877,6 +2089,27 @@ export class PersonalCombatTracker {
     }
 
     await actor.update(update);
+    await this.updateCombatantState(actor, {
+      token: snapshot.token,
+      mutate: state => {
+        const log = normalizeActionLog(state.actionLog);
+        const lastReduceBurnIndex = log.findLastIndex?.(entry => entry.id === "reduceBurn")
+          ?? (() => {
+            for (let index = log.length - 1; index >= 0; index -= 1) {
+              if (log[index]?.id === "reduceBurn") return index;
+            }
+            return -1;
+          })();
+        if (lastReduceBurnIndex >= 0) {
+          log[lastReduceBurnIndex] = {
+            ...log[lastReduceBurnIndex],
+            actorBurnDelta: Math.max(0, Number(spend.burnDelta ?? 0) || 0) - 1
+          };
+          state.actionLog = log;
+        }
+        return state;
+      }
+    });
     return { ok: true, snapshot: this.getSnapshot(actor, { token: snapshot.token }) };
   }
 

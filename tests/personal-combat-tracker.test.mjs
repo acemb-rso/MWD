@@ -257,6 +257,176 @@ test("pilot action economy follows the assigned machine combatant during mech ac
   assert.deepEqual(pilotBurnUpdate, { "system.burn.value": 4 });
 });
 
+test("removeActivationLogEntry refunds tracked activation costs and burn", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.getProperty ??= getProperty;
+  globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
+  globalThis.foundry.utils.deepClone ??= deepClone;
+  globalThis.foundry.utils.mergeObject ??= mergeObject;
+  globalThis.Hooks ??= { on() {} };
+  globalThis.CONFIG ??= { statusEffects: [] };
+  globalThis.canvas = { scene: { id: "scene-1" }, tokens: { get: () => null, placeables: [] } };
+  globalThis.game = {
+    user: { isGM: true, id: "gm-1" },
+    combat: null,
+    actors: new Map(),
+    scenes: new Map(),
+  };
+
+  const { PersonalCombatTracker } = await import("../src/modules/combat/personal-combat-tracker.js");
+
+  const actor = {
+    id: "actor-remove",
+    type: "character",
+    system: {
+      burn: { value: 4, overloaded: false },
+      attributes: {
+        reflexes: { value: 3 },
+        willpower: { value: 3 },
+      },
+    },
+    async update(update) {
+      if (Object.prototype.hasOwnProperty.call(update, "system.burn.value")) {
+        this.system.burn.value = update["system.burn.value"];
+      }
+    },
+  };
+  const combatant = {
+    id: "combatant-remove",
+    async setFlag(_scope, _key, value) {
+      state = value;
+    },
+  };
+  let state = {
+    activation: { combatId: "combat-remove", combatantId: combatant.id, round: 1, turn: 0 },
+    actionState: {
+      aim: null,
+      move: { moved: true },
+      preparedInterrupt: null,
+      usedWeaponGroupIds: [],
+    },
+    saRemaining: 0,
+    faRemaining: 1,
+    raRemaining: 1,
+    saSpentThisActivation: 5,
+    burnThisActivation: 3,
+    attacksThisActivation: 2,
+    reactionBurnSinceLastActivation: 0,
+    hazards: {},
+    pendingReaction: null,
+    machineCritsProcessed: false,
+    traitUsage: { activation: {}, round: {} },
+    actionLog: [
+      { id: "move", label: "Move", costLabel: "1 SA", resource: "sa", cost: 1, saSpentDelta: 1 },
+      {
+        id: "attack",
+        label: "Attack",
+        costLabel: "2 SA",
+        resource: "sa",
+        cost: 2,
+        saSpentDelta: 2,
+        attackDelta: 1,
+        burnThisActivationDelta: 3,
+        actorBurnDelta: 3,
+      },
+    ],
+  };
+
+  const originalGetSnapshot = PersonalCombatTracker.getSnapshot;
+  PersonalCombatTracker.getSnapshot = () => ({
+    hasCombatant: true,
+    isCurrentTurn: true,
+    combatant,
+    token: null,
+    state: deepClone(state),
+  });
+
+  try {
+    const result = await PersonalCombatTracker.removeActivationLogEntry(actor, { index: 1 });
+
+    assert.equal(result.ok, true);
+    assert.equal(state.saSpentThisActivation, 3);
+    assert.equal(state.saRemaining, 0);
+    assert.equal(state.attacksThisActivation, 1);
+    assert.equal(state.burnThisActivation, 0);
+    assert.equal(actor.system.burn.value, 1);
+    assert.deepEqual(state.actionLog.map(entry => entry.label), ["Move"]);
+  } finally {
+    PersonalCombatTracker.getSnapshot = originalGetSnapshot;
+  }
+});
+
+test("removeActivationLogEntry refunds free actions", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.getProperty ??= getProperty;
+  globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
+  globalThis.foundry.utils.deepClone ??= deepClone;
+  globalThis.foundry.utils.mergeObject ??= mergeObject;
+  globalThis.Hooks ??= { on() {} };
+  globalThis.CONFIG ??= { statusEffects: [] };
+  globalThis.canvas = { scene: { id: "scene-1" }, tokens: { get: () => null, placeables: [] } };
+  globalThis.game = {
+    user: { isGM: true, id: "gm-1" },
+    combat: null,
+    actors: new Map(),
+    scenes: new Map(),
+  };
+
+  const { PersonalCombatTracker } = await import("../src/modules/combat/personal-combat-tracker.js");
+  const actor = {
+    id: "actor-free-remove",
+    type: "character",
+    system: { burn: { value: 0, overloaded: false }, attributes: {} },
+    async update() {},
+  };
+  const combatant = {
+    id: "combatant-free-remove",
+    async setFlag(_scope, _key, value) {
+      state = value;
+    },
+  };
+  let state = {
+    activation: { combatId: "combat-remove", combatantId: combatant.id, round: 1, turn: 0 },
+    actionState: {
+      aim: null,
+      move: null,
+      preparedInterrupt: null,
+      usedWeaponGroupIds: [],
+    },
+    saRemaining: 3,
+    faRemaining: 0,
+    raRemaining: 1,
+    saSpentThisActivation: 0,
+    burnThisActivation: 0,
+    attacksThisActivation: 0,
+    reactionBurnSinceLastActivation: 0,
+    hazards: {},
+    pendingReaction: null,
+    machineCritsProcessed: false,
+    traitUsage: { activation: {}, round: {} },
+    actionLog: [{ id: "readyItem", label: "Ready Item", costLabel: "Free" }],
+  };
+
+  const originalGetSnapshot = PersonalCombatTracker.getSnapshot;
+  PersonalCombatTracker.getSnapshot = () => ({
+    hasCombatant: true,
+    isCurrentTurn: true,
+    combatant,
+    token: null,
+    state: deepClone(state),
+  });
+
+  try {
+    const result = await PersonalCombatTracker.removeActivationLogEntry(actor, { index: 0 });
+
+    assert.equal(result.ok, true);
+    assert.equal(state.faRemaining, 1);
+    assert.deepEqual(state.actionLog, []);
+  } finally {
+    PersonalCombatTracker.getSnapshot = originalGetSnapshot;
+  }
+});
+
 test("ending a tracked mech activation applies pending heat to the mech", async () => {
   globalThis.foundry ??= { utils: {} };
   globalThis.foundry.utils.getProperty ??= getProperty;

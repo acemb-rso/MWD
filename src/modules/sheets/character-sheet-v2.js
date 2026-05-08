@@ -354,6 +354,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       combatReduceBurn: CharacterSheetV2.prototype._onCombatReduceBurn,
       combatOverloadCheck: CharacterSheetV2.prototype._onCombatOverloadCheck,
       combatAttack: CharacterSheetV2.prototype._onCombatAttack,
+      removeActivationAction: CharacterSheetV2.prototype._onRemoveActivationAction,
       createOwnedItem: CharacterSheetV2.prototype._onCreateOwnedItem,
       addSkillSpecialization: CharacterSheetV2.prototype._onAddSkillSpecialization,
       removeSkillSpecialization: CharacterSheetV2.prototype._onRemoveSkillSpecialization,
@@ -1267,6 +1268,36 @@ ctx.edgeConsole.poolsOrdered = order
   } catch (error) {
     console.error("MWD | Failed to perform combat action", error);
     ui.notifications?.error("Unable to perform action.");
+  }
+ }
+
+ async _onRemoveActivationAction(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable) return;
+
+  const logIndex = Number(target?.dataset?.logIndex ?? -1);
+  if (!Number.isInteger(logIndex) || logIndex < 0) return;
+
+  try {
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const result = await PersonalCombatTracker.removeActivationLogEntry(actorWriteTarget, {
+      token: this.getSheetTokenDocument?.()
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
+      index: logIndex
+    });
+
+    if (!result?.ok) {
+      ui.notifications?.warn(result?.reason ?? "Unable to remove action.");
+      return;
+    }
+
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to remove activation action", error);
+    ui.notifications?.error("Unable to remove action.");
   }
  }
 
