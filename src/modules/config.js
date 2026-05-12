@@ -780,6 +780,9 @@ export const MWD = {
         "head": "Head",
         "torso": "Torso",
         "arms": "Arms",
+        "front": "Front",
+        "side": "Side",
+        "rear": "Rear",
         "turret": "Turret"
       }
     },
@@ -801,6 +804,9 @@ export const MWD = {
       "head": "Head",
       "torso": "Torso",
       "arms": "Arms",
+      "front": "Front",
+      "side": "Side",
+      "rear": "Rear",
       "turret": "Turret"
     },
 

@@ -24,6 +24,13 @@
             "children": [
               {
                 "type": "panel",
+                "title": "Movement Profile",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.movement-profile" }
+                ]
+              },
+              {
+                "type": "panel",
                 "title": "Attributes",
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.vehicle.attributes-grid" }
@@ -41,6 +48,13 @@
                 "title": "Structure",
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.condition-monitors" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Strain",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.strain-track" }
                 ]
               },
               {
@@ -63,6 +77,13 @@
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.vehicle.pilot-panel" }
                 ]
+              },
+              {
+                "type": "panel",
+                "title": "Crew",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.crew-panel" }
+                ]
               }
             ]
           },
@@ -70,6 +91,13 @@
             "id": "weapons",
             "label": "Combat",
             "children": [
+              {
+                "type": "panel",
+                "title": "Quick Actions",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.quick-actions" }
+                ]
+              },
               {
                 "type": "panel",
                 "title": "Electronic Warfare",

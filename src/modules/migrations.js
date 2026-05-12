@@ -35,6 +35,8 @@ import {
   normalizeMachineDegradationState,
 } from "./mwd/machine-degradation.js";
 import { normalizeMachineWeaponSize } from "./mwd/machine-hardpoints.js";
+import { normalizeVehicleMovementProfile } from "./mwd/vehicle-profiles.js";
+import { normalizeVehicleStrainState } from "./mwd/vehicle-strain.js";
 
 function forcedDeletion() {
   return foundry.data.operators.ForcedDeletion;
@@ -58,6 +60,7 @@ function normalizeLegacyHardpointLocation(value, { actorType = "", fallback = ""
   const defaultLocation = actorType === TEMPLATE.actorTypes.vehicle ? "turret" : (fallback || "arms");
   if (!normalized) return defaultLocation;
   if (normalized === "turret") return "turret";
+  if (actorType === TEMPLATE.actorTypes.vehicle && ["front", "side", "rear"].includes(normalized)) return normalized;
   if (["head", "cockpit"].includes(normalized)) return "head";
   if (["torso", "body", "core", "center"].includes(normalized)) return "torso";
   if (normalized === "arm" || normalized === "arms" || normalized.includes("arm")) return "arms";
@@ -1125,6 +1128,37 @@ class _13_10_0_PersonalWeaponCapabilityModelV1 extends Migration {
   }
 }
 
+class _13_14_0_AddVehicleMovementProfileAndStrain extends Migration {
+  get version() { return "13.14.0"; }
+  get code() { return "add-vehicle-movement-profile-and-strain"; }
+
+  async migrate() {
+    const vehicles = game.actors.filter(actor => actor.type === TEMPLATE.actorTypes.vehicle);
+    for (const actor of vehicles) {
+      const nextSystem = foundry.utils.deepClone(actor.system ?? {});
+      normalizeVehicleMovementProfile(nextSystem);
+      normalizeVehicleStrainState(nextSystem, actor.type);
+
+      const crew = nextSystem.mwd?.crew ?? {};
+      const crewCount = Math.max(0, Number(crew.count ?? 1) || 0);
+      const updates = {
+        "system.mwd.movementProfile": nextSystem.mwd?.movementProfile ?? "tracked",
+        "system.mwd.flightSubtype": nextSystem.mwd?.flightSubtype ?? "",
+        "system.mwd.favoredTerrain": nextSystem.mwd?.favoredTerrain ?? [],
+        "system.mwd.adverseTerrain": nextSystem.mwd?.adverseTerrain ?? [],
+        "system.mwd.affordances": nextSystem.mwd?.affordances ?? [],
+        "system.mwd.strain": nextSystem.mwd?.strain ?? {},
+        "system.mwd.crew.count": crewCount,
+        "system.mwd.crew.effectiveCount": Math.max(0, Number(crew.effectiveCount ?? crewCount) || 0),
+        "system.mwd.crew.injuryLevel": Math.max(0, Number(crew.injuryLevel ?? 0) || 0),
+        "system.mwd.crew.bailedOut": Boolean(crew.bailedOut),
+      };
+
+      await actor.update(updates);
+    }
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -1155,6 +1189,7 @@ export class Migrations {
       new _13_11_0_MachineReliabilityAndShock(),
       new _13_12_0_NormalizeMachineHardpointVocabulary(),
       new _13_13_0_MoveMachineMountStateToHardpoints(),
+      new _13_14_0_AddVehicleMovementProfileAndStrain(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

@@ -46,8 +46,11 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/bio-identity.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/bio-history.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/summary-bar.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/quick-actions.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/attributes-grid.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/movement-grid.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/movement-profile.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/strain-track.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/degradation-grid.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/active-crits.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/record-section.hbs`,
@@ -60,6 +63,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/loadout-hardpoints.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/battlemech/ew-status.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/pilot-panel.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/crew-panel.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/assigned-mech.hbs`,
 
   // Sheet wrapper

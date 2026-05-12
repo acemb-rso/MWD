@@ -39,6 +39,9 @@ import {
 import { getMachineLocationLabel } from "../mwd/machine-hit-locations.js";
 import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import { buildMachineMovementFields, buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
+import { buildVehicleMovementActionChoices, performVehicleMovementAction } from "../mwd/vehicle-movement-actions.js";
+import { buildVehicleProfileSummary, VEHICLE_FLIGHT_SUBTYPES, VEHICLE_MOVEMENT_PROFILES, VEHICLE_TERRAIN_CLASSES } from "../mwd/vehicle-profiles.js";
+import { buildVehicleStrainModel, resolveVehiclePendingStrain } from "../mwd/vehicle-strain.js";
 import { getSkillDef } from "../mwd/skills.js";
 import { cachePendingTokenPosition } from "../mwd/token-measurement.js";
 import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
@@ -221,6 +224,10 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       assignHardpointItem: VehicleSheetV2.prototype._onAssignHardpointItem,
       clearHardpointItem: VehicleSheetV2.prototype._onClearHardpointItem,
       machineWeaponAttack: VehicleSheetV2.prototype._onMachineWeaponAttack,
+      vehicleAttack: VehicleSheetV2.prototype._onVehicleAttack,
+      vehicleMovement: VehicleSheetV2.prototype._onVehicleMovement,
+      vehicleRoll: VehicleSheetV2.prototype._onVehicleRoll,
+      openStrainDialog: VehicleSheetV2.prototype._onOpenStrainDialog,
       ewAcquire: VehicleSheetV2.prototype._onEwAcquire,
       ewTarget: VehicleSheetV2.prototype._onEwTarget,
       toggleStatuses: VehicleSheetV2.prototype._onToggleStatuses,
@@ -251,6 +258,10 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       summaryStats: this._buildSummaryStats(),
       summaryActions: this._buildSummaryActions(),
       alerts: this._buildAlerts(),
+      quickActions: this._buildQuickActions(),
+      strain: this._buildStrainModel(),
+      movementProfile: this._buildMovementProfilePanel(),
+      crewPanel: this._buildCrewPanel(),
       statusAction: {
         label: "Statuses",
         disabled: !this._resolveStatusToken(this.getPersistentActor() ?? this.actor),
@@ -368,6 +379,135 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     return [];
   }
 
+  _buildQuickActions() {
+    if (this.actor.type !== "vehicle") return [];
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const mountedWeapons = this._getHardpointSlottableItems().filter(item =>
+      getConfiguredMachineHardpoints(actor).some(hardpoint => String(hardpoint?.itemId ?? "").trim() === String(item?.id ?? "").trim())
+    );
+    const movementChoices = buildVehicleMovementActionChoices(actor);
+    const enabledMovementChoices = movementChoices.filter(choice => !choice.disabled);
+    const quickActions = actor.system?.quickActions ?? {};
+
+    return [
+      {
+        label: "Movement",
+        hint: enabledMovementChoices.length
+          ? enabledMovementChoices.map(choice => choice.label).join(" / ")
+          : "No movement actions available",
+        handler: "vehicleMovement",
+        disabled: enabledMovementChoices.length === 0,
+        dataset: {},
+      },
+      {
+        label: "Mounted Fire",
+        hint: mountedWeapons.length ? "Attack with a mounted weapon" : "No mounted weapons",
+        handler: "vehicleAttack",
+        disabled: mountedWeapons.length === 0,
+        dataset: {},
+      },
+      {
+        label: "Piloting",
+        hint: "Vehicle handling, terrain, or stability check",
+        handler: "vehicleRoll",
+        disabled: false,
+        dataset: { rollKind: "piloting" },
+      },
+      {
+        label: "EW",
+        hint: "Acquire or generate fire solution",
+        handler: "vehicleRoll",
+        disabled: !Boolean(quickActions.hasSensorSweep),
+        dataset: { rollKind: "sensor" },
+      },
+      {
+        label: "Repair",
+        hint: "Choose a crit or repairable status",
+        handler: "vehicleRoll",
+        disabled: false,
+        dataset: { rollKind: "repair" },
+      },
+    ];
+  }
+
+  _buildStrainModel() {
+    if (this.actor.type !== "vehicle") return null;
+    const strain = buildVehicleStrainModel(this.actor);
+    const thresholds = strain.thresholds ?? {};
+    return {
+      ...strain,
+      editable: Boolean(this.isEditable),
+      segments: Array.from({ length: strain.max }, (_, index) => {
+        const value = index + 1;
+        const band = value >= thresholds.critical
+          ? "critical"
+          : value >= thresholds.overstressed
+            ? "overstressed"
+            : value >= thresholds.strained
+              ? "strained"
+              : "normal";
+        return {
+          value,
+          filled: value <= strain.value,
+          current: value === strain.value,
+          band,
+          bandLabel: startCase(band),
+        };
+      }),
+    };
+  }
+
+  _buildMovementProfilePanel() {
+    if (this.actor.type !== "vehicle") return null;
+    const profile = buildVehicleProfileSummary(this.actor.system ?? {});
+    const profileOptions = Object.values(VEHICLE_MOVEMENT_PROFILES).map(definition => ({
+      value: definition.key,
+      label: definition.label,
+      selected: definition.key === profile.key,
+    }));
+    const flightSubtypeOptions = Object.entries(VEHICLE_FLIGHT_SUBTYPES).map(([value, label]) => ({
+      value,
+      label,
+      selected: value === profile.flightSubtype,
+    }));
+    const terrainOptions = VEHICLE_TERRAIN_CLASSES.map(value => ({
+      value,
+      label: startCase(value),
+    }));
+    return {
+      ...profile,
+      profileOptions,
+      flightSubtypeOptions,
+      terrainOptions,
+      favoredTerrainText: profile.favoredTerrain.map(startCase).join(", "),
+      adverseTerrainText: profile.adverseTerrain.map(startCase).join(", "),
+      affordanceText: profile.affordances.map(startCase).join(", "),
+      profilePath: "system.mwd.movementProfile",
+      flightSubtypePath: "system.mwd.flightSubtype",
+      favoredTerrainPath: "system.mwd.favoredTerrain",
+      adverseTerrainPath: "system.mwd.adverseTerrain",
+    };
+  }
+
+  _buildCrewPanel() {
+    const crew = this.actor.system?.mwd?.crew ?? {};
+    return {
+      count: toNumber(crew.count, 1),
+      effectiveCount: toNumber(crew.effectiveCount ?? crew.count, 1),
+      injuryLevel: toNumber(crew.injuryLevel, 0),
+      bailedOut: Boolean(crew.bailedOut),
+      countPath: "system.mwd.crew.count",
+      effectiveCountPath: "system.mwd.crew.effectiveCount",
+      injuryLevelPath: "system.mwd.crew.injuryLevel",
+      bailedOutPath: "system.mwd.crew.bailedOut",
+      summary: compactList([
+        `${toNumber(crew.effectiveCount ?? crew.count, 1)} / ${toNumber(crew.count, 1)} effective`,
+        toNumber(crew.injuryLevel, 0) > 0 ? `Injury ${toNumber(crew.injuryLevel, 0)}` : "",
+        crew.bailedOut ? "Bailed Out" : "",
+      ]).join(" | "),
+    };
+  }
+
   _buildEwPanel() {
     const actor = this.getPersistentActor?.() ?? this.actor;
     const token = this._resolveStatusToken(actor);
@@ -454,8 +594,10 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
   _buildConditionMonitors() {
     const structure = this.actor.system?.monitors?.structure ?? this.actor.system?.mwd?.monitors?.structure ?? {};
+    const armor = this.actor.system?.monitors?.armor ?? {};
     return [
       buildRemainingMonitorTrack({ id: "structure", label: "Structure", kind: "structure", monitor: structure, editable: this.isEditable }),
+      buildRemainingMonitorTrack({ id: "armor", label: "Armor", kind: "armor", monitor: armor, editable: this.isEditable }),
     ];
   }
 
@@ -577,7 +719,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   _getAvailableHardpointLocations() {
     return this.actor?.type === "battlemech"
       ? ["arms", "head", "torso"]
-      : ["turret"];
+      : ["front", "side", "rear", "turret"];
   }
 
   async _commitEditsToActor() {
@@ -1385,6 +1527,146 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     event?.preventDefault?.();
     event?.stopPropagation?.();
     return this.#launchMachineEwIntent("acquire", event, target);
+  }
+
+  async _onVehicleAttack(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const actor = this.getPersistentActor() ?? this.actor;
+    try {
+      await actor.rollRangedAttack?.();
+    } catch (error) {
+      console.error("MWD | Failed to launch vehicle mounted attack", error);
+      notifyRollError(error, "Unable to launch that vehicle attack.");
+    }
+  }
+
+  async _onVehicleMovement(event, _target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const choices = buildVehicleMovementActionChoices(actor);
+    const selectableChoices = choices.filter(choice => !choice.disabled);
+    if (!selectableChoices.length) {
+      ui.notifications?.warn("No vehicle movement actions are currently available.");
+      return;
+    }
+
+    const defaultChoice = selectableChoices[0];
+    const content = `<form class="mwd-quick-select">${choices.map(choice => `
+      <label class="quick-select-option${choice.disabled ? " is-disabled" : ""}" title="${foundry.utils.escapeHTML(choice.reason || choice.hint || "")}">
+        <input type="radio" name="vehicle-movement-action" value="${choice.id}" ${choice.id === defaultChoice.id ? "checked" : ""} ${choice.disabled ? "disabled" : ""}>
+        <span>${foundry.utils.escapeHTML(choice.label)}</span>
+        <small>${foundry.utils.escapeHTML(`${choice.cost} SA${choice.strain > 0 ? ` | +${choice.strain} Strain` : ""}${choice.hint ? ` | ${choice.hint}` : ""}`)}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Vehicle Movement" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: "Move",
+          icon: "fa-solid fa-gauge-high",
+          default: true,
+          callback: (_event, button) => button.form?.elements["vehicle-movement-action"]?.value ?? defaultChoice.id,
+        },
+      ],
+    });
+
+    const selectedAction = selectableChoices.find(choice => choice.id === selectedId) ?? defaultChoice;
+    try {
+      await performVehicleMovementAction(actor, { movementKind: selectedAction.id });
+    } catch (error) {
+      console.error("MWD | Failed to record vehicle movement", error);
+      notifyRollError(error, "Unable to record that vehicle movement.");
+    }
+  }
+
+  async _onVehicleRoll(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const rollKind = String(target?.dataset?.rollKind ?? "").trim();
+    try {
+      if (rollKind === "piloting") await actor.rollPilotingCheck?.();
+      else if (rollKind === "sensor") await (actor.rollElectronicWarfare?.() ?? actor.rollSensorSweep?.());
+      else if (rollKind === "repair") await actor.rollEmergencyRepair?.();
+    } catch (error) {
+      console.error("MWD | Failed to launch vehicle check", error);
+      notifyRollError(error, "Unable to launch that vehicle check.");
+    }
+  }
+
+  async _onOpenStrainDialog(event, _target) {
+    event?.preventDefault?.();
+    if (!this.isEditable) return;
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const strain = buildVehicleStrainModel(actor);
+    const content = `
+      <form class="mwd-heat-dialog" style="display:grid; gap:0.75rem;">
+        <label style="display:grid; gap:0.25rem;">
+          <span style="font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Current Strain</span>
+          <input type="number" name="currentStrain" value="${strain.value}" min="0" max="${strain.max}" step="1" />
+        </label>
+        <label style="display:grid; gap:0.25rem;">
+          <span style="font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Pending Strain</span>
+          <input type="number" name="pendingStrain" value="${strain.pendingGenerated}" min="0" step="1" />
+        </label>
+        <p style="margin:0; opacity:0.8;">Redline adds pending strain. Resolve it here when the vehicle's operational stress should take effect.</p>
+      </form>
+    `;
+
+    await foundry.applications.api.DialogV2.wait({
+      window: { title: `${actor.name ?? "Vehicle"} Strain` },
+      position: { width: 420 },
+      content,
+      buttons: [
+        {
+          action: "apply",
+          label: "Apply",
+          icon: "fa-solid fa-check",
+          default: true,
+          callback: async (_event, button) => {
+            const currentInput = button?.form?.elements?.namedItem?.("currentStrain");
+            const pendingInput = button?.form?.elements?.namedItem?.("pendingStrain");
+            const currentStrain = Math.max(0, Number(currentInput?.value ?? strain.value) || 0);
+            const pendingStrain = Math.max(0, Number(pendingInput?.value ?? strain.pendingGenerated) || 0);
+            await actor.update({
+              "system.mwd.strain.value": currentStrain,
+              "system.mwd.strain.pendingGenerated": pendingStrain,
+            });
+            return true;
+          },
+        },
+        {
+          action: "resolve",
+          label: "Resolve Pending",
+          icon: "fa-solid fa-gauge-high",
+          callback: async (_event, button) => {
+            const currentInput = button?.form?.elements?.namedItem?.("currentStrain");
+            const pendingInput = button?.form?.elements?.namedItem?.("pendingStrain");
+            await actor.update({
+              "system.mwd.strain.value": Math.max(0, Number(currentInput?.value ?? strain.value) || 0),
+              "system.mwd.strain.pendingGenerated": Math.max(0, Number(pendingInput?.value ?? strain.pendingGenerated) || 0),
+            });
+            await resolveVehiclePendingStrain(actor, { reason: "strain dialog" });
+            return true;
+          },
+        },
+        {
+          action: "cancel",
+          label: "Cancel",
+          icon: "fa-solid fa-xmark",
+          callback: () => false,
+        },
+      ],
+      close: () => false,
+    });
   }
 
   async _onEwTarget(event, target) {

@@ -1,0 +1,20 @@
+{{!--
+templates/v2/ui/vehicle/quick-actions.hbs
+Purpose: Renders vehicle quick-action buttons from prepared sheet context.
+How it fits: Keeps vehicle templates as dumb intent emitters.
+--}}
+
+<section class="mwd-item-hero">
+  {{#each vehicleSheet.quickActions as |action|}}
+    <button
+      type="button"
+      class="mwd-item-hero__stat mwd-item-hero__stat--button{{#if action.disabled}} is-disabled{{else}} is-action{{/if}}"
+      data-action="{{action.handler}}"
+      {{{mwd-dataset action.dataset}}}
+      title="{{action.hint}}"
+      {{#if action.disabled}}disabled{{/if}}>
+      <span class="mwd-item-hero__label">{{action.label}}</span>
+      <span class="mwd-item-hero__value">{{action.hint}}</span>
+    </button>
+  {{/each}}
+</section>

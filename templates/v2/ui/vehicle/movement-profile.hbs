@@ -1,0 +1,53 @@
+{{!--
+templates/v2/ui/vehicle/movement-profile.hbs
+Purpose: Surfaces vehicle propulsion and terrain hook data.
+How it fits: Stores broad terrain/profile scaffolding for providers without sheet-side rules.
+--}}
+
+{{#if vehicleSheet.movementProfile}}
+  {{#if editing}}
+    <div class="mwd-gmgadget__grid">
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Profile</span>
+        <select name="{{vehicleSheet.movementProfile.profilePath}}" data-edit-field="staged">
+          {{selectOptions vehicleSheet.movementProfile.profileOptions selected=vehicleSheet.movementProfile.key valueAttr="value" labelAttr="label" localize=false}}
+        </select>
+      </label>
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">VTOL Subtype</span>
+        <select name="{{vehicleSheet.movementProfile.flightSubtypePath}}" data-edit-field="staged">
+          <option value="">None</option>
+          {{selectOptions vehicleSheet.movementProfile.flightSubtypeOptions selected=vehicleSheet.movementProfile.flightSubtype valueAttr="value" labelAttr="label" localize=false}}
+        </select>
+      </label>
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Favored Terrain</span>
+        <input type="text" name="{{vehicleSheet.movementProfile.favoredTerrainPath}}" value="{{vehicleSheet.movementProfile.favoredTerrainText}}" data-edit-field="staged" />
+      </label>
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Adverse Terrain</span>
+        <input type="text" name="{{vehicleSheet.movementProfile.adverseTerrainPath}}" value="{{vehicleSheet.movementProfile.adverseTerrainText}}" data-edit-field="staged" />
+      </label>
+    </div>
+  {{else}}
+    <section class="mwd-item-hero">
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Profile</span>
+        <span class="mwd-item-hero__value">{{vehicleSheet.movementProfile.label}}</span>
+      </div>
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Favored</span>
+        <span class="mwd-item-hero__value">{{vehicleSheet.movementProfile.favoredTerrainText}}</span>
+      </div>
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Adverse</span>
+        <span class="mwd-item-hero__value">{{vehicleSheet.movementProfile.adverseTerrainText}}</span>
+      </div>
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Hooks</span>
+        <span class="mwd-item-hero__value">{{vehicleSheet.movementProfile.affordanceText}}</span>
+      </div>
+    </section>
+    <p class="mwd-hint">{{vehicleSheet.movementProfile.doctrine}}</p>
+  {{/if}}
+{{/if}}

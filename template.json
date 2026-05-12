@@ -152,6 +152,21 @@
         },
         "mwd": {
           "hardpoints": [],
+          "strain": {
+            "value": 0,
+            "pendingGenerated": 0,
+            "max": 6,
+            "thresholds": {
+              "strained": 2,
+              "overstressed": 4,
+              "critical": 6
+            }
+          },
+          "movementProfile": "tracked",
+          "flightSubtype": "",
+          "favoredTerrain": ["open", "rough", "urban"],
+          "adverseTerrain": ["water"],
+          "affordances": ["stabilizedFire", "hullDown"],
           "locations": {
             "front": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "motiveSystem"], "destroyed": false },
             "side": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "motiveSystem"], "destroyed": false },

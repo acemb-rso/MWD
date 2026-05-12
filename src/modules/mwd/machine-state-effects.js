@@ -14,6 +14,7 @@ import {
   normalizeMachineCritId,
   normalizeMachineMountLocationFamily,
 } from "./machine-crit-consequences.js";
+import { getVehicleStrainStateEffects } from "./vehicle-strain.js";
 
 const DETECTION_CAP_RANKS = Object.freeze({
   contact: 1,
@@ -168,11 +169,26 @@ function applyExplicitStatuses(state, actor = null) {
     state.targetFocused = true;
   }
   if (hasStatus(actor, "entrenchedHullDown")) {
-    state.defenseDr += 5;
+    state.defenseDr += actor?.type === TEMPLATE.actorTypes.vehicle ? 7 : 5;
+    if (actor?.type === TEMPLATE.actorTypes.vehicle) {
+      pushEffect(state, "Hull Down: vehicle gains a strong prepared-position defense bonus.");
+    }
   }
   if (hasStatus(actor, "exposed")) {
     state.defenseDr += -2;
   }
+}
+
+function applyVehicleStrain(state, actor = null) {
+  if (getActorType(actor) !== TEMPLATE.actorTypes.vehicle) return;
+  const strainEffects = getVehicleStrainStateEffects(actor);
+  state.handling += strainEffects.handling;
+  state.system += strainEffects.system;
+  state.pilotingDice += strainEffects.pilotingDice;
+  state.pilotingDn += strainEffects.pilotingDn;
+  state.movementPenalty += strainEffects.movementPenalty;
+  state.redlineBlocked = Boolean(strainEffects.redlineBlocked);
+  for (const text of strainEffects.effectTexts ?? []) pushEffect(state, text);
 }
 
 function applyBattlemechDegradation(state, actor = null) {
@@ -354,9 +370,11 @@ export function getMachineRuleState(actor = null) {
     reactorBreach: false,
     forcedProne: false,
     prone: false,
+    redlineBlocked: false,
     effectTexts: [],
   };
 
+  applyVehicleStrain(state, actor);
   applyMachineCritDerivedState(state, actor);
   applyExplicitStatuses(state, actor);
   if (getActorType(actor) === TEMPLATE.actorTypes.battlemech) applyBattlemechDegradation(state, actor);
@@ -550,6 +568,15 @@ export function getMachineDerivedStatusIds(actor = null) {
     if (getCondition(getLocationState(actor, "legs")) >= 3) statuses.add("actuatorFailure");
     if (getLocationState(actor, "arms")?.destroyed) statuses.add("armDestroyed");
     if (getCondition(getLocationState(actor, "legs")) >= 4 || getLocationState(actor, "legs")?.destroyed) statuses.add("legDestroyed");
+  }
+  if (actorType === TEMPLATE.actorTypes.vehicle) {
+    if (getCondition(getLocationState(actor, "turret")) >= 4) statuses.add("weaponFailure");
+    if (
+      getCondition(getLocationState(actor, "rear")) >= 4
+      || getCondition(getLocationState(actor, "rotor")) >= 4
+    ) statuses.add("stalled");
+    if (getCondition(getLocationState(actor, "core")) >= 2) statuses.add("sensorDegraded");
+    if (getCondition(getLocationState(actor, "core")) >= 4) statuses.add("shutdown");
   }
   return Array.from(statuses);
 }
