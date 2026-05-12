@@ -10,10 +10,14 @@ import { normalizeMachineDegradationState } from "../mwd/machine-degradation.js"
 import { normalizeMachineMovement } from "../mwd/machine-movement.js";
 import { getMachineRuntimeAttributeAdjustments } from "../mwd/machine-state-effects.js";
 import { getSkillDef } from "../mwd/skills.js";
-import { buildMachineEwPanel, resolveMachineEwActionTarget } from "../mwd/machine-ew-panel.js";
 import { getMountedMachineItems } from "../mwd/machine-hardpoints.js";
-import { getMachineRepairIssues } from "../mwd/machine-repair-issues.js";
-import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
+import {
+  buildMachineCriticalRepairIssues,
+  buildMachineEwActionChoices,
+  performMachineCriticalRepair,
+  performMachineElectronicWarfare,
+  performMachinePilotingCheck,
+} from "../mwd/machine-quick-actions.js";
 import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
 import { buildVehicleMovementActionChoices, performVehicleMovementAction } from "../mwd/vehicle-movement-actions.js";
 import { normalizeVehicleMovementProfile } from "../mwd/vehicle-profiles.js";
@@ -304,32 +308,12 @@ export class VehicleActor extends AnarchyBaseActor {
   }
 
   async rollPilotingCheck({ operatorActorUuid = "" } = {}) {
-    await this._rollQuickSkill(this.system.skills?.piloting, {
-      operatorActorUuid,
-      machineAttributeKey: TEMPLATE.actorAttributes.handling,
-      quickAction: { title: "Piloting Check" },
-    });
+    await performMachinePilotingCheck(this, { operatorActorUuid });
   }
 
   async rollElectronicWarfare({ operatorActorUuid = "" } = {}) {
     const token = resolveMachineToken(this);
-    const panel = buildMachineEwPanel({ actor: this, token });
-    const actions = [
-      {
-        id: "acquire",
-        intent: "acquire",
-        label: "Acquire Target",
-        hint: "Advance detection state on the first eligible targeted token.",
-        disabled: !panel.canAcquireAny,
-      },
-      {
-        id: "targeting",
-        intent: "targeting",
-        label: "Generate Fire Solution",
-        hint: "Create targeting data for the first eligible targeted token.",
-        disabled: !panel.canTargetAny,
-      },
-    ].filter(action => !action.disabled);
+    const actions = buildMachineEwActionChoices(this, { token });
 
     if (!actions.length) {
       ui.notifications?.warn("EW actions require an eligible targeted token and an available sensor action.");
@@ -339,28 +323,7 @@ export class VehicleActor extends AnarchyBaseActor {
     const selectedAction = actions.length === 1 ? actions[0] : await this._promptElectronicWarfareAction(actions);
     if (!selectedAction) return;
 
-    const targetRow = resolveMachineEwActionTarget(panel, selectedAction.intent);
-    if (!targetRow) {
-      ui.notifications?.warn("No targeted token is ready for that EW action.");
-      return;
-    }
-
-    const rollApi = getMachineRollApi();
-    if (!rollApi?.execute) {
-      ui.notifications?.error("MWD roll system not initialized.");
-      return;
-    }
-
-    await rollApi.execute({
-      actor: this,
-      payload: {
-        intent: selectedAction.intent,
-        sourceTokenId: token?.id ?? null,
-        targetTokenId: targetRow.targetTokenId,
-        targetTokenUuid: targetRow.targetTokenUuid,
-        operatorActorUuid: String(operatorActorUuid ?? "").trim(),
-      },
-    });
+    await performMachineElectronicWarfare(this, { action: selectedAction, token, operatorActorUuid });
   }
 
   async rollSensorSweep(options = {}) {
@@ -368,7 +331,7 @@ export class VehicleActor extends AnarchyBaseActor {
   }
 
   async rollEmergencyRepair({ operatorActorUuid = "" } = {}) {
-    const issues = getMachineRepairIssues(this);
+    const issues = buildMachineCriticalRepairIssues(this);
     if (!issues.length) {
       ui.notifications?.warn("No active criticals or repairable statuses are available.");
       return;
@@ -377,30 +340,7 @@ export class VehicleActor extends AnarchyBaseActor {
     const selectedIssue = issues.length === 1 ? issues[0] : await this._promptRepairIssue(issues);
     if (!selectedIssue) return;
 
-    const request = await prepareMachineRemedyRoll({
-      machineActorUuid: this.uuid,
-      issueKind: selectedIssue.issueKind,
-      issueId: selectedIssue.issueId,
-      critId: selectedIssue.issueKind === "crit" ? selectedIssue.issueId : "",
-      statusId: selectedIssue.issueKind === "status" ? selectedIssue.issueId : "",
-      remedyKey: selectedIssue.remedyKey,
-      operatorActorUuid: String(operatorActorUuid ?? "").trim(),
-    }, {
-      gmOverride: Boolean(game.user?.isGM),
-    });
-
-    if (!request.ok) {
-      ui.notifications?.warn(request.reason ?? "Unable to launch the repair action.");
-      return;
-    }
-
-    const rollApi = getMachineRollApi();
-    if (!rollApi?.execute) {
-      ui.notifications?.error("MWD roll system not initialized.");
-      return;
-    }
-
-    await rollApi.execute({ actor: request.actor, payload: request.payload });
+    await performMachineCriticalRepair(this, { issue: selectedIssue, operatorActorUuid });
   }
 
   _prepareSkillMap() {
@@ -427,28 +367,6 @@ export class VehicleActor extends AnarchyBaseActor {
         value: 0,
       },
     };
-  }
-
-  async _rollQuickSkill(skill, options = {}) {
-    const rollApi = getMachineRollApi();
-    if (!rollApi?.execute) {
-      ui.notifications?.error("MWD roll system not initialized.");
-      return;
-    }
-
-    await rollApi.execute({
-      actor: this,
-      payload: {
-        intent: "skill",
-        key: skill?.system?.code ?? "",
-        attrKey: skill?.system?.attribute ?? this.getPhysicalAgility(),
-        ...(options.machineAttributeKey ? { machineAttributeKey: options.machineAttributeKey } : {}),
-        ...(options.operatorActorUuid ? { operatorActorUuid: String(options.operatorActorUuid).trim() } : {}),
-        quickAction: options.quickAction ?? null,
-        edge: { allowed: ["pre", "post"] },
-        tags: ["machine", "vehicle", "skill"],
-      },
-    });
   }
 
   async _promptMountedWeapon(weapons) {
@@ -502,7 +420,7 @@ export class VehicleActor extends AnarchyBaseActor {
       </label>`).join("")}</form>`;
 
     const selectedKey = await Dialog.prompt({
-      title: "Emergency Repair",
+      title: "Critical Repair",
       content,
       label: "Roll",
       callback: html => html.find('input[name="repair-issue"]:checked').val() ?? `${defaultIssue.issueKind}:${defaultIssue.issueId}`,

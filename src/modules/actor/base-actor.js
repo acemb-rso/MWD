@@ -238,7 +238,7 @@ export class AnarchyBaseActor extends Actor {
 
   _getMonitorMax(attribute) {
     const attributeValue = this.getAttributeValue(attribute);
-    return attributeValue == 0 ? 0 : (BASE_MONITOR + Misc.divup(attributeValue, 2));
+    return attributeValue == 0 ? 0 : (BASE_MONITOR + attributeValue);
   }
 
 

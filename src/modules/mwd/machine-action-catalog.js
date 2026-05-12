@@ -29,7 +29,7 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     category: "none",
   }),
   emergencyRepair: action("emergencyRepair", {
-    label: "Emergency Repair",
+    label: "Critical Repair",
     attributeKey: "reliability",
     skillKey: "technician",
     cost: 2,

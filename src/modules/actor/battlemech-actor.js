@@ -9,7 +9,6 @@ import { RollDialog } from "../roll/roll-dialog.js";
 import { VehicleActor } from "./vehicle-actor.js";
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 import { getSkillDef } from "../mwd/skills.js";
-import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import {
   getMachineHeatStatusLabel,
 } from "../mwd/heat-state.js";
@@ -19,10 +18,22 @@ import {
   buildBattlemechMovementActionChoices,
   performBattlemechMovementAction,
 } from "../mwd/battlemech-movement-actions.js";
+import {
+  buildBattlemechMeleeProfiles,
+  performBattlemechMeleeAttack,
+} from "../mwd/battlemech-melee-actions.js";
+import {
+  buildBattlemechRangedAttackGroups,
+  performBattlemechRangedAttack,
+} from "../mwd/battlemech-ranged-actions.js";
 import { prepareBattlemechWeaponGroups } from "../mwd/battlemech-weapon-groups.js";
-import { buildMachineEwPanel, resolveMachineEwActionTarget } from "../mwd/machine-ew-panel.js";
-import { getMachineRepairIssues } from "../mwd/machine-repair-issues.js";
-import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
+import {
+  buildMachineCriticalRepairIssues,
+  buildMachineEwActionChoices,
+  performMachineCriticalRepair,
+  performMachineElectronicWarfare,
+  performMachinePilotingCheck,
+} from "../mwd/machine-quick-actions.js";
 import { getMountedMachineItems } from "../mwd/machine-hardpoints.js";
 import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
 
@@ -65,11 +76,7 @@ export class BattlemechActor extends VehicleActor {
 
   async rollRangedAttack({ groupId = "", operatorActorUuid = "" } = {}) {
     const token = resolveMachineToken(this);
-    const snapshot = PersonalCombatTracker.getSnapshot?.(this, { token }) ?? null;
-    const usedWeaponGroupIds = snapshot?.isCurrentTurn
-      ? PersonalCombatTracker.getUsedWeaponGroupIds?.(this, { token, snapshot }) ?? []
-      : [];
-    const weaponGroups = prepareBattlemechWeaponGroups(this, { usedWeaponGroupIds })
+    const weaponGroups = buildBattlemechRangedAttackGroups(this, { token })
       .filter(group => group?.isAttackLegal && group?.isAvailableThisActivation);
     if (weaponGroups.length === 0) {
       ui.notifications.warn(ANARCHY.actor.vehicle.quickActions.errors.noRanged);
@@ -85,25 +92,7 @@ export class BattlemechActor extends VehicleActor {
       return;
     }
 
-    const rollApi = getMachineRollApi();
-    if (!rollApi?.execute) {
-      ui.notifications?.error("MWD roll system not initialized.");
-      return;
-    }
-
-    await rollApi.execute({
-      actor: this,
-      payload: {
-        intent: "attack",
-        sourceType: "weaponGroup",
-        sourceId: selectedGroup.id,
-        weaponGroupId: selectedGroup.id,
-        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-        tags: ["combat", "attack", "machine", "groupFire"],
-        sourceTokenId: token?.id ?? null,
-        operatorActorUuid: String(operatorActorUuid ?? "").trim(),
-      }
-    });
+    await performBattlemechRangedAttack(this, { group: selectedGroup, token, operatorActorUuid });
   }
 
   getMovementActionChoices() {
@@ -115,7 +104,7 @@ export class BattlemechActor extends VehicleActor {
   }
 
   async rollMeleeAttack({ operatorActorUuid = "" } = {}) {
-    const meleeProfiles = this.system.meleeProfiles ?? [];
+    const meleeProfiles = buildBattlemechMeleeProfiles(this);
     if (meleeProfiles.length === 0) {
       ui.notifications.warn(ANARCHY.actor.vehicle.quickActions.errors.noMelee);
       return;
@@ -126,66 +115,16 @@ export class BattlemechActor extends VehicleActor {
       return;
     }
 
-    if (!selectedProfile.weaponId) {
-      await this._rollQuickSkill(this.system.skills.melee, {
-        operatorActorUuid,
-        quickAction: {
-          title: ANARCHY.actor.vehicle.quickActions.meleeAttack,
-          meleeProfile: selectedProfile
-        }
-      });
-      return;
-    }
-
-    const rollApi = getMachineRollApi();
-    if (!rollApi?.execute) {
-      ui.notifications?.error("MWD roll system not initialized.");
-      return;
-    }
-
-    const token = resolveMachineToken(this);
-    await rollApi.execute({
-      actor: this,
-      payload: {
-        intent: "attack",
-        sourceType: "mechWeapon",
-        sourceId: selectedProfile.weaponId,
-        weaponId: selectedProfile.weaponId,
-        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-        tags: ["combat", "attack", "machine"],
-        sourceTokenId: token?.id ?? null,
-        operatorActorUuid: String(operatorActorUuid ?? "").trim(),
-      }
-    });
+    await performBattlemechMeleeAttack(this, { profile: selectedProfile, operatorActorUuid });
   }
 
   async rollPilotingCheck({ operatorActorUuid = "" } = {}) {
-    await this._rollQuickSkill(this.system.skills.piloting, {
-      operatorActorUuid,
-      machineAttributeKey: TEMPLATE.actorAttributes.handling,
-      quickAction: { title: ANARCHY.actor.vehicle.quickActions.pilotingCheck }
-    });
+    await performMachinePilotingCheck(this, { operatorActorUuid });
   }
 
   async rollElectronicWarfare({ operatorActorUuid = "" } = {}) {
     const token = resolveMachineToken(this);
-    const panel = buildMachineEwPanel({ actor: this, token });
-    const actions = [
-      {
-        id: "acquire",
-        intent: "acquire",
-        label: "Acquire Target",
-        hint: "Advance detection state on the first eligible targeted token.",
-        disabled: !panel.canAcquireAny,
-      },
-      {
-        id: "targeting",
-        intent: "targeting",
-        label: "Generate Fire Solution",
-        hint: "Create targeting data for the first eligible targeted token.",
-        disabled: !panel.canTargetAny,
-      },
-    ].filter(action => !action.disabled);
+    const actions = buildMachineEwActionChoices(this, { token });
 
     if (!actions.length) {
       ui.notifications.warn(ANARCHY.actor.vehicle.quickActions.errors.noSensorSweep);
@@ -197,28 +136,7 @@ export class BattlemechActor extends VehicleActor {
       : await this._promptElectronicWarfareAction(actions);
     if (!selectedAction) return;
 
-    const targetRow = resolveMachineEwActionTarget(panel, selectedAction.intent);
-    if (!targetRow) {
-      ui.notifications?.warn("No targeted token is ready for that EW action.");
-      return;
-    }
-
-    const rollApi = getMachineRollApi();
-    if (!rollApi?.execute) {
-      ui.notifications?.error("MWD roll system not initialized.");
-      return;
-    }
-
-    await rollApi.execute({
-      actor: this,
-      payload: {
-        intent: selectedAction.intent,
-        sourceTokenId: token?.id ?? null,
-        targetTokenId: targetRow.targetTokenId,
-        targetTokenUuid: targetRow.targetTokenUuid,
-        operatorActorUuid: String(operatorActorUuid ?? "").trim(),
-      }
-    });
+    await performMachineElectronicWarfare(this, { action: selectedAction, token, operatorActorUuid });
   }
 
   async rollSensorSweep(options = {}) {
@@ -226,7 +144,7 @@ export class BattlemechActor extends VehicleActor {
   }
 
   async rollEmergencyRepair({ operatorActorUuid = "" } = {}) {
-    const issues = getMachineRepairIssues(this);
+    const issues = buildMachineCriticalRepairIssues(this);
     if (!issues.length) {
       ui.notifications?.warn("No active criticals or repairable statuses are available.");
       return;
@@ -237,33 +155,7 @@ export class BattlemechActor extends VehicleActor {
       : await this._promptRepairIssue(issues);
     if (!selectedIssue) return;
 
-    const request = await prepareMachineRemedyRoll({
-      machineActorUuid: this.uuid,
-      issueKind: selectedIssue.issueKind,
-      issueId: selectedIssue.issueId,
-      critId: selectedIssue.issueKind === "crit" ? selectedIssue.issueId : "",
-      statusId: selectedIssue.issueKind === "status" ? selectedIssue.issueId : "",
-      remedyKey: selectedIssue.remedyKey,
-      operatorActorUuid: String(operatorActorUuid ?? "").trim(),
-    }, {
-      gmOverride: Boolean(game.user?.isGM),
-    });
-
-    if (!request.ok) {
-      ui.notifications?.warn(request.reason ?? "Unable to launch the repair action.");
-      return;
-    }
-
-    const rollApi = getMachineRollApi();
-    if (!rollApi?.execute) {
-      ui.notifications?.error("MWD roll system not initialized.");
-      return;
-    }
-
-    await rollApi.execute({
-      actor: request.actor,
-      payload: request.payload,
-    });
+    await performMachineCriticalRepair(this, { issue: selectedIssue, operatorActorUuid });
   }
 
   _prepareSkillMap() {
@@ -391,7 +283,7 @@ export class BattlemechActor extends VehicleActor {
     }];
 
     const meleeWeapons = getMountedMachineItems(this, { canonicalType: TEMPLATE.itemType.mechWeapon })
-      .filter(it => it.system.skill === 'meleeCombat');
+      .filter(it => it.system.skill === 'meleeCombat' || it.system.weaponCategory === 'melee' || it.system.category === 'melee');
 
     profiles.push(...meleeWeapons.map(weapon => ({
       id: weapon.id,

@@ -310,8 +310,8 @@
           "meleeAttack": "Melee Attack",
           "dodgeCheck": "Dodge Check",
           "pilotingCheck": "Piloting Check",
-          "sensorSweep": "Sensor Sweep",
-          "emergencyRepair": "Emergency Repair",
+          "sensorSweep": "EW",
+          "emergencyRepair": "Critical Repair",
           "primaryWeapons": "Primary Weapons",
           "allWeapons": "All Weapons",
           "primaryLabel": "Primary",
@@ -330,13 +330,13 @@
             "melee": "Roll a melee attack using fists, kicks, or installed melee weapons",
             "dodge": "Piloting roll to evade incoming fire or avoid danger",
             "piloting": "Piloting roll for movement, jumping, stability, or hazard checks",
-            "sensorSweep": "Perception/Tech roll using sensors or Active Probe",
-            "emergencyRepair": "Technician roll to stabilize or fix a system during battle"
+            "sensorSweep": "Acquire contact or generate targeting data using the machine sensor suite",
+            "emergencyRepair": "Choose a critical or repairable status and attempt the matching remedy"
           },
           "errors": {
             "noRanged": "No weapon groups available for ranged attack.",
             "noMelee": "No melee attacks available.",
-            "noSensorSweep": "Sensor sweep requires Perception or Technician."
+            "noSensorSweep": "EW actions require an eligible targeted token and an available sensor action."
           }
         }
       },

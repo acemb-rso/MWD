@@ -332,7 +332,7 @@ export const MWD = {
         "meleeAttack": "Melee Attack",
         "pilotingCheck": "Piloting Check",
         "sensorSweep": "EW",
-        "emergencyRepair": "Emergency Repair",
+        "emergencyRepair": "Critical Repair",
 
         "allWeapons": "All Weapons",
 
@@ -354,7 +354,7 @@ export const MWD = {
           "melee": "Roll a melee attack using fists, kicks, or installed melee weapons",
           "piloting": "Piloting roll for movement, jumping, stability, or hazard checks",
           "sensorSweep": "Acquire contact or generate targeting data using the machine sensor suite",
-          "emergencyRepair": "Choose a crit or repairable status and attempt the matching remedy"
+          "emergencyRepair": "Choose a critical or repairable status and attempt the matching remedy"
         },
 
         "errors": {

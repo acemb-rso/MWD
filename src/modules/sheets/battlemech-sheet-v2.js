@@ -18,8 +18,22 @@ import {
   setBattlemechPendingHeat,
 } from "../mwd/machine-heat.js";
 import { getConfiguredMachineHardpoints } from "../mwd/machine-hardpoints.js";
+import {
+  buildBattlemechMeleeProfiles,
+  performBattlemechMeleeAttack,
+} from "../mwd/battlemech-melee-actions.js";
+import {
+  buildBattlemechRangedAttackGroups,
+  performBattlemechRangedAttack,
+} from "../mwd/battlemech-ranged-actions.js";
+import {
+  buildMachineCriticalRepairIssues,
+  buildMachineEwActionChoices,
+  performMachineCriticalRepair,
+  performMachineElectronicWarfare,
+  performMachinePilotingCheck,
+} from "../mwd/machine-quick-actions.js";
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
-import { prepareBattlemechWeaponGroups } from "../mwd/battlemech-weapon-groups.js";
 import { normalizeMachineWeaponGroups } from "../mwd/machine-weapon-group-state.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
 
@@ -375,7 +389,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const preparedGroups = this._getPreparedRangedWeaponGroups(actor);
     const quickActions = actor.system?.quickActions ?? {};
     const availableRangedGroups = preparedGroups.filter(group => group.isAttackLegal && group.isAvailableThisActivation);
-    const hasMeleeProfiles = Array.isArray(this.actor.system?.meleeProfiles) && this.actor.system.meleeProfiles.length > 0;
+    const hasMeleeProfiles = actor.type === "battlemech"
+      || (Array.isArray(actor.system?.meleeProfiles) && actor.system.meleeProfiles.length > 0);
     const movementChoices = getMovementActionChoices(actor);
     const enabledMovementChoices = movementChoices.filter(choice => !choice.disabled);
 
@@ -591,9 +606,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         const selectedGroup = await this.#promptWeaponGroup(actor, preparedGroups);
         if (selectedGroup?.id) await this.#rollWeaponGroup(actor, selectedGroup.id);
       } else if (attackKind === "melee") {
-        const selectedProfile = await this.#promptMeleeProfile(actor);
-        if (selectedProfile?.weaponId) await this.#rollWeapon(actor, selectedProfile.weaponId);
-        else await actor.rollMeleeAttack?.();
+        await this.#rollMeleeAttack(actor);
       } else {
         await actor.rollRangedAttack?.();
       }
@@ -627,9 +640,15 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const rollKind = String(target?.dataset?.rollKind ?? "").trim();
 
     try {
-      if (rollKind === "piloting") await actor.rollPilotingCheck?.();
-      else if (rollKind === "sensor") await (actor.rollElectronicWarfare?.() ?? actor.rollSensorSweep?.());
-      else if (rollKind === "repair") await actor.rollEmergencyRepair?.();
+      if (rollKind === "piloting") {
+        await performMachinePilotingCheck(actor);
+      } else if (rollKind === "sensor") {
+        const selectedAction = await this.#promptMachineEwAction(actor);
+        if (selectedAction) await performMachineElectronicWarfare(actor, { action: selectedAction });
+      } else if (rollKind === "repair") {
+        const selectedIssue = await this.#promptMachineCriticalRepairIssue(actor);
+        if (selectedIssue) await performMachineCriticalRepair(actor, { issue: selectedIssue });
+      }
     } catch (error) {
       console.error("MWD | Failed to launch BattleMech check", error);
       notifyRollError(error, "Unable to launch that BattleMech check.");
@@ -780,72 +799,51 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   }
 
   async #rollWeaponGroup(actor, groupId) {
-    const group = this._getPreparedRangedWeaponGroups(actor)
-      .find(entry => String(entry?.id ?? "").trim() === String(groupId ?? "").trim()) ?? null;
-    if (!group) {
-      ui.notifications?.warn("That weapon group is no longer available.");
-      return;
-    }
-    if (!group.isAttackLegal || !group.isAvailableThisActivation) {
-      ui.notifications?.warn(group.disableReason || "That weapon group cannot attack right now.");
-      return;
-    }
-
-    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
-    if (!rollApi?.execute) {
-      await actor.rollRangedAttack?.();
-      return;
-    }
-
-    const token = this._resolveStatusToken(actor);
-    const result = await rollApi.execute({
-      actor,
-      payload: {
-        intent: "attack",
-        sourceType: "weaponGroup",
-        sourceId: group.id,
-        weaponGroupId: group.id,
-        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-        tags: ["combat", "attack", "machine", "groupFire"],
-        sourceTokenId: token?.id ?? null,
-      }
-    });
-
-    if (result) {
-      return true;
-    }
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    return performBattlemechRangedAttack(actor, { groupId, token });
   }
 
-  async #rollWeapon(actor, weaponId) {
-    const item = weaponId ? actor.items?.get?.(weaponId) : null;
-    if (!item) {
-      ui.notifications?.warn("That weapon is no longer available.");
+  async #rollMeleeAttack(actor) {
+    const profiles = buildBattlemechMeleeProfiles(actor);
+    if (!profiles.length) {
+      ui.notifications?.warn(MWD.actor.vehicle.quickActions.errors.noMelee);
       return;
     }
 
-    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
-    if (!rollApi?.execute) {
-      await actor.rollRangedAttack?.();
-      return;
-    }
+    const selectedProfile = await this.#promptMeleeProfile(profiles);
+    if (!selectedProfile) return;
 
-    const token = this._resolveStatusToken(actor);
-    const result = await rollApi.execute({
-      actor,
-      payload: {
-        intent: "attack",
-        sourceType: "mechWeapon",
-        sourceId: item.id,
-        weaponId: item.id,
-        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-        tags: ["combat", "attack", "machine"],
-        sourceTokenId: token?.id ?? null,
-      }
+    await performBattlemechMeleeAttack(actor, { profile: selectedProfile });
+  }
+
+  async #promptMeleeProfile(profiles) {
+    const selectableProfiles = Array.isArray(profiles) ? profiles : [];
+    if (!selectableProfiles.length) return null;
+    if (selectableProfiles.length === 1) return selectableProfiles[0];
+
+    const defaultProfile = selectableProfiles[0];
+    const content = `<form class="mwd-quick-select">${selectableProfiles.map(profile => `
+      <label class="quick-select-option">
+        <input type="radio" name="melee-profile" value="${foundry.utils.escapeHTML(String(profile.id ?? ""))}" ${profile.id === defaultProfile.id ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(profile.name ?? ""))}</span>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.selectMeleeProfile },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["melee-profile"]?.value ?? defaultProfile.id,
+        },
+      ],
     });
 
-    if (result) {
-      return true;
-    }
+    return selectableProfiles.find(profile => profile.id === selectedId) ?? defaultProfile;
   }
 
   async #promptWeaponGroup(actor, preparedGroups = null) {
@@ -920,30 +918,25 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     return selectableChoices.find(choice => choice.id === selectedId) ?? defaultChoice;
   }
 
-  _getPreparedRangedWeaponGroups(actor) {
+  async #promptMachineEwAction(actor) {
     const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
-    const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
-    const usedWeaponGroupIds = snapshot?.isCurrentTurn
-      ? PersonalCombatTracker.getUsedWeaponGroupIds?.(actor, { token, snapshot }) ?? []
-      : [];
+    const actions = buildMachineEwActionChoices(actor, { token });
+    if (!actions.length) {
+      ui.notifications?.warn(MWD.actor.vehicle.quickActions.errors.noSensorSweep);
+      return null;
+    }
+    if (actions.length === 1) return actions[0];
 
-    return prepareBattlemechWeaponGroups(actor, { usedWeaponGroupIds });
-  }
-
-  async #promptMeleeProfile(actor) {
-    const profiles = Array.from(actor.system?.meleeProfiles ?? []);
-    if (!profiles.length) return null;
-    if (profiles.length === 1) return profiles[0];
-
-    const defaultProfile = profiles[0];
-    const content = `<form class="mwd-quick-select">${profiles.map(profile => `
+    const defaultAction = actions[0];
+    const content = `<form class="mwd-quick-select">${actions.map(action => `
       <label class="quick-select-option">
-        <input type="radio" name="melee-profile" value="${profile.id}" ${profile.id === defaultProfile.id ? "checked" : ""}>
-        <span>${profile.name}</span>
+        <input type="radio" name="ew-action" value="${foundry.utils.escapeHTML(String(action.id ?? ""))}" ${action.id === defaultAction.id ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(action.label ?? ""))}</span>
+        <small>${foundry.utils.escapeHTML(String(action.hint ?? ""))}</small>
       </label>`).join("")}</form>`;
 
     const selectedId = await foundry.applications.api.DialogV2.wait({
-      window: { title: MWD.actor.vehicle.quickActions.selectMeleeProfile },
+      window: { title: "Electronic Warfare" },
       content,
       rejectClose: false,
       buttons: [
@@ -952,12 +945,51 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
           label: MWD.common.roll.button,
           icon: "fa-solid fa-dice",
           default: true,
-          callback: (_event, button) => button.form?.elements["melee-profile"]?.value ?? defaultProfile.id,
+          callback: (_event, button) => button.form?.elements["ew-action"]?.value ?? defaultAction.id,
         },
       ],
     });
 
-    return profiles.find(profile => profile.id === selectedId) ?? defaultProfile;
+    return actions.find(action => action.id === selectedId) ?? defaultAction;
+  }
+
+  async #promptMachineCriticalRepairIssue(actor) {
+    const issues = buildMachineCriticalRepairIssues(actor);
+    if (!issues.length) {
+      ui.notifications?.warn("No active criticals or repairable statuses are available.");
+      return null;
+    }
+    if (issues.length === 1) return issues[0];
+
+    const defaultIssue = issues[0];
+    const content = `<form class="mwd-quick-select">${issues.map(issue => `
+      <label class="quick-select-option">
+        <input type="radio" name="repair-issue" value="${foundry.utils.escapeHTML(`${issue.issueKind}:${issue.issueId}`)}" ${issue.issueKind === defaultIssue.issueKind && issue.issueId === defaultIssue.issueId ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(issue.label ?? ""))}</span>
+        <small>${foundry.utils.escapeHTML(`${issue.remedyLabel ?? ""} | ${issue.remedySummary || `DN ${issue.totalDn}`}`)}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedKey = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.emergencyRepair },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["repair-issue"]?.value ?? `${defaultIssue.issueKind}:${defaultIssue.issueId}`,
+        },
+      ],
+    });
+
+    return issues.find(issue => `${issue.issueKind}:${issue.issueId}` === selectedKey) ?? defaultIssue;
+  }
+
+  _getPreparedRangedWeaponGroups(actor) {
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    return buildBattlemechRangedAttackGroups(actor, { token });
   }
 
   async #openHeatDialog(actor) {

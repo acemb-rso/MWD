@@ -86,8 +86,8 @@ Penalties apply immediately when Burn changes.
 At end of your activation:
 
 If Burn ≥ 6, make a Control Test:
-* Dice pool: (REF + WIL) minus Burn and Injury modifiers
-* DN: floor(Burn / 2) − 1
+* Dice pool: WIL + WIL (2 × WIL) minus Burn and Injury modifiers
+* DN: Burn − 5 (minimum 0)
 
 On failure → you become **Overloaded**.
 

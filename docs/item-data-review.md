@@ -31,7 +31,7 @@ The canonicalization helpers live in `src/modules/item/item-type-utils.js` and a
 
 ## Create-time defaults
 
-Create defaults are resolved from bundled `template.json` data by `src/modules/document-type-defaults.js`.
+Create defaults are resolved from an inlined JS constant in `src/modules/document-type-defaults.js`.
 
 Important rules:
 
@@ -40,7 +40,7 @@ Important rules:
 - Other resolved fields are placed under `system`.
 - The public API remains async (`getDocumentTypeCreateDefaults`) so existing creation hooks do not need a second migration.
 
-This replaces the older runtime `fetch(template.json)` path and removes a second hidden source of truth for defaults.
+The inlined constant replaces both the older runtime `fetch(template.json)` path and the deprecated `template.json` Foundry mechanism.
 
 ---
 

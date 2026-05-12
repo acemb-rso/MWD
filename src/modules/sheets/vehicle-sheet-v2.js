@@ -40,6 +40,13 @@ import { getMachineLocationLabel } from "../mwd/machine-hit-locations.js";
 import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import { buildMachineMovementFields, buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
 import { buildVehicleMovementActionChoices, performVehicleMovementAction } from "../mwd/vehicle-movement-actions.js";
+import {
+  buildMachineCriticalRepairIssues,
+  buildMachineEwActionChoices,
+  performMachineCriticalRepair,
+  performMachineElectronicWarfare,
+  performMachinePilotingCheck,
+} from "../mwd/machine-quick-actions.js";
 import { buildVehicleProfileSummary, VEHICLE_FLIGHT_SUBTYPES, VEHICLE_MOVEMENT_PROFILES, VEHICLE_TERRAIN_CLASSES } from "../mwd/vehicle-profiles.js";
 import { buildVehicleStrainModel, resolveVehiclePendingStrain } from "../mwd/vehicle-strain.js";
 import { getSkillDef } from "../mwd/skills.js";
@@ -1592,13 +1599,87 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const actor = this.getPersistentActor() ?? this.actor;
     const rollKind = String(target?.dataset?.rollKind ?? "").trim();
     try {
-      if (rollKind === "piloting") await actor.rollPilotingCheck?.();
-      else if (rollKind === "sensor") await (actor.rollElectronicWarfare?.() ?? actor.rollSensorSweep?.());
-      else if (rollKind === "repair") await actor.rollEmergencyRepair?.();
+      if (rollKind === "piloting") await performMachinePilotingCheck(actor);
+      else if (rollKind === "sensor") {
+        const token = this._resolveStatusToken(actor);
+        const selectedAction = await this.#promptVehicleEwAction(actor, { token });
+        if (selectedAction) await performMachineElectronicWarfare(actor, { action: selectedAction, token });
+      } else if (rollKind === "repair") {
+        const selectedIssue = await this.#promptVehicleCriticalRepairIssue(actor);
+        if (selectedIssue) await performMachineCriticalRepair(actor, { issue: selectedIssue });
+      }
     } catch (error) {
       console.error("MWD | Failed to launch vehicle check", error);
       notifyRollError(error, "Unable to launch that vehicle check.");
     }
+  }
+
+  async #promptVehicleEwAction(actor, { token = null } = {}) {
+    const actions = buildMachineEwActionChoices(actor, { token });
+    if (!actions.length) {
+      ui.notifications?.warn(MWD.actor.vehicle.quickActions.errors.noSensorSweep);
+      return null;
+    }
+    if (actions.length === 1) return actions[0];
+
+    const defaultAction = actions[0];
+    const content = `<form class="mwd-quick-select">${actions.map(action => `
+      <label class="quick-select-option">
+        <input type="radio" name="ew-action" value="${foundry.utils.escapeHTML(String(action.id ?? ""))}" ${action.id === defaultAction.id ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(action.label ?? ""))}</span>
+        <small>${foundry.utils.escapeHTML(String(action.hint ?? ""))}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Electronic Warfare" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["ew-action"]?.value ?? defaultAction.id,
+        },
+      ],
+    });
+
+    return actions.find(action => action.id === selectedId) ?? defaultAction;
+  }
+
+  async #promptVehicleCriticalRepairIssue(actor) {
+    const issues = buildMachineCriticalRepairIssues(actor);
+    if (!issues.length) {
+      ui.notifications?.warn("No active criticals or repairable statuses are available.");
+      return null;
+    }
+    if (issues.length === 1) return issues[0];
+
+    const defaultIssue = issues[0];
+    const content = `<form class="mwd-quick-select">${issues.map(issue => `
+      <label class="quick-select-option">
+        <input type="radio" name="repair-issue" value="${foundry.utils.escapeHTML(`${issue.issueKind}:${issue.issueId}`)}" ${issue.issueKind === defaultIssue.issueKind && issue.issueId === defaultIssue.issueId ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(issue.label ?? ""))}</span>
+        <small>${foundry.utils.escapeHTML(`${issue.remedyLabel ?? ""} | ${issue.remedySummary || `DN ${issue.totalDn}`}`)}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedKey = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.emergencyRepair },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["repair-issue"]?.value ?? `${defaultIssue.issueKind}:${defaultIssue.issueId}`,
+        },
+      ],
+    });
+
+    return issues.find(issue => `${issue.issueKind}:${issue.issueId}` === selectedKey) ?? defaultIssue;
   }
 
   async _onOpenStrainDialog(event, _target) {

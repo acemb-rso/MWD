@@ -30,7 +30,7 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 - `src/modules/enums.js` - Enum builders used by sheets and dialogs.
 - `src/modules/system-settings.js` - World settings for themes, GM tools, and runtime options.
 - `src/modules/styles.js` - Theme selection helpers used by AppV2 sheets.
-- `src/modules/document-type-defaults.js` - Resolves create-time actor/item defaults directly from bundled `template.json` data. This replaces the old runtime `fetch(template.json)` path.
+- `src/modules/document-type-defaults.js` - Resolves create-time actor/item defaults from an inlined JS constant. The data previously lived in `template.json`; it was moved here to eliminate the deprecated Foundry `template.json` mechanism.
 
 ---
 
