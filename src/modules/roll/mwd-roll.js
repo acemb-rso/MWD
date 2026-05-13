@@ -45,18 +45,103 @@ const EDGE_DOMAIN_POOLS = {
   social: ["legend","credibility"],
 };
 
+const CRITICAL_EDGE_REASONS = new Set(["criticalSuccess", "criticalFailure", "critFail"]);
+
+function uniqueStrings(values = []) {
+  return Array.from(new Set(values.map(value => String(value ?? "").trim()).filter(Boolean)));
+}
+
+function getEdgeAwardComponents(earned) {
+  if (earned?.reason === "multiple" && Array.isArray(earned?.details?.awards)) {
+    return earned.details.awards.filter(award => Number(award?.amount ?? 0) > 0);
+  }
+  return Number(earned?.amount ?? 0) > 0 ? [earned] : [];
+}
+
+function isCriticalEdgeAward(award) {
+  return CRITICAL_EDGE_REASONS.has(String(award?.reason ?? ""));
+}
+
 function pickMostMissingEdgePool(actor, domain) {
   const keys = EDGE_DOMAIN_POOLS[domain] ?? [];
-  let best = null, bestMissing = -1;
+  let best = null;
+  let bestMissing = -1;
 
-  for (const k of keys) {
-    const p = actor.getEdgePool?.(k);
-    const rating = Number(p?.rating ?? 0);
-    const value  = Number(p?.value ?? 0);
-    const missing = Math.max(0, rating - value);
-    if (missing > bestMissing) { bestMissing = missing; best = k; }
+  for (const key of keys) {
+    const pool = actor.getEdgePool?.(key);
+    const max = Number(pool?.effectiveMax ?? pool?.rating ?? 0);
+    const value = Number(pool?.effectiveValue ?? pool?.value ?? 0);
+    const missing = Math.max(0, max - value);
+    if (missing > bestMissing) {
+      bestMissing = missing;
+      best = key;
+    }
   }
+
   return best ?? keys[0] ?? null;
+}
+
+function getCriticalEdgeDomain(ctx, edgeInfo) {
+  return edgeInfo?.domain ?? pickEdgeDomain(ctx?.domains);
+}
+
+function getAwardPoolKeys(actor, award, domain) {
+  if (isCriticalEdgeAward(award)) {
+    const poolKey = pickMostMissingEdgePool(actor, domain);
+    return poolKey ? [poolKey] : [];
+  }
+  return award?.pool ? [String(award.pool)] : [];
+}
+
+async function applyEarnedEdgeAwards({ actor, ctx, edgeInfo, earned } = {}) {
+  if (!actor?.gainEdge || !earned?.amount) return null;
+
+  // Critical outcome Edge restores one pool in the roll's domain: whichever
+  // domain pool is currently missing the most Edge.
+  const domain = getCriticalEdgeDomain(ctx, edgeInfo);
+  const components = getEdgeAwardComponents(earned);
+  const appliedAwards = [];
+  const targetPools = [];
+
+  for (const award of components) {
+    const amount = Math.max(0, Number(award?.amount ?? 0));
+    if (!amount) continue;
+
+    const poolKeys = getAwardPoolKeys(actor, award, domain);
+    for (const poolKey of poolKeys) {
+      const beforeState = actor.getEdgePool?.(poolKey) ?? {};
+      const before = Number(beforeState.effectiveValue ?? beforeState.value ?? 0);
+      const max = Number(beforeState.effectiveMax ?? beforeState.rating ?? 0);
+      const expectedApplied = Number.isFinite(max)
+        ? Math.max(0, Math.min(amount, max - before))
+        : amount;
+
+      if (expectedApplied <= 0) continue;
+
+      await actor.gainEdge(poolKey, amount, {
+        source: isCriticalEdgeAward(award) ? "criticalOutcome" : "rollOutcome",
+      });
+
+      targetPools.push(poolKey);
+      appliedAwards.push({
+        pool: poolKey,
+        amount: expectedApplied,
+        reason: String(award?.reason ?? earned.reason ?? "rollOutcome"),
+      });
+    }
+  }
+
+  if (!appliedAwards.length) return null;
+
+  const pools = uniqueStrings(targetPools);
+  return {
+    ...earned,
+    pool: pools.length === 1 ? pools[0] : null,
+    pools,
+    targetLabel: pools.join(", "),
+    applied: true,
+    appliedAwards,
+  };
 }
 
 function normalizeManualMods(payload) {
@@ -306,7 +391,7 @@ async function commitMachineAction(actor, actionKey = "", payload = {}, { rollAc
   if (!isMachineActor(actor)) return;
 
   const action = getMachineActionDefinition(actionKey);
-  if (!action?.cost || action?.resource !== "sa") return;
+  if (!action?.cost || !action?.resource) return;
 
   const token = getMachineAttackToken(actor, payload);
   const spendActor = rollActor ?? actor;
@@ -319,7 +404,7 @@ async function commitMachineAction(actor, actionKey = "", payload = {}, { rollAc
     cost: action.cost,
     actionId: action.key,
     actionLabel: action.label,
-    actionCostLabel: `${action.cost} SA`,
+    actionCostLabel: `${action.cost} ${String(action.resource).toUpperCase()}`,
     actionCategory: action.category,
   });
   if (!spend?.ok) {
@@ -614,18 +699,18 @@ async function execute({ actor, payload, event } = {}) {
   );
 
   const earned = outcomeModel?.edgeEarned;
-  if (earned?.amount > 0) {
-    const domain =
-      ctx?.domains?.includes("physical") ? "physical" :
-      ctx?.domains?.includes("mental") ? "mental" :
-      ctx?.domains?.includes("social") ? "social" : null;
-
-    const poolKey = pickMostMissingEdgePool(rollActor, domain);
-
-    await rollActor.gainEdge?.(poolKey, earned.amount);
-
-    // so chat shows where it went
-    outcomeModel.edgeEarned.pool = poolKey;
+  // Post-roll Edge can still be chosen from the chat card, so any awarded Edge
+  // is recorded with enough detail for the chat action to revoke it first.
+  const noEdgeSpent = !edgeInfo?.pre?.spent && !edgeInfo?.post?.spent;
+  if (noEdgeSpent && earned?.amount > 0) {
+    outcomeModel.edgeEarned = await applyEarnedEdgeAwards({
+      actor: rollActor,
+      ctx,
+      edgeInfo,
+      earned,
+    });
+  } else if (earned?.amount > 0) {
+    outcomeModel.edgeEarned = null;
   }
 
   if (ctx.intent === "overload") {
@@ -750,6 +835,8 @@ async function execute({ actor, payload, event } = {}) {
     await commitMachineAction(actor, "acquireTarget", payload, { rollActor });
   } else if (ctx.intent === "targeting") {
     await commitMachineAction(actor, "generateFireSolution", payload, { rollActor });
+  } else if (ctx.intent === "skill" && payload.machineActionKey) {
+    await commitMachineAction(actor, payload.machineActionKey, payload, { rollActor });
   }
 
   return ChatMessage.create({

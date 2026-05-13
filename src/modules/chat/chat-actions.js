@@ -294,7 +294,10 @@ async function recomputeResolvedOutcomeAndAttack(resolved = {}, actor = null) {
   const successes = Number(resolved?.outcome?.hits ?? 0) || 0;
   const edgeEarned = resolved?.outcomeModel?.edgeEarned ?? null;
   resolved.outcomeModel = interpretOutcome(ctx, { successes, raw: resolved?.roll?.json }, null);
-  resolved.outcomeModel.edgeEarned = edgeEarned;
+  const edgeSpent =
+    Number(resolved?.edge?.pre?.spent ?? 0) > 0 ||
+    Number(resolved?.edge?.post?.spent ?? 0) > 0;
+  resolved.outcomeModel.edgeEarned = edgeSpent ? null : edgeEarned;
 
   if (ctx.intent === "attack" && actor && ctx.attack) {
     resolved.attackResult = await resolveAttackExecution({
@@ -384,6 +387,46 @@ async function updateAreaEffectPreview(message, mutateResolved) {
   });
 
   return resolved;
+}
+
+function getAppliedEdgeAwards(edgeEarned = null) {
+  if (Array.isArray(edgeEarned?.appliedAwards)) {
+    return edgeEarned.appliedAwards
+      .map(award => ({
+        pool: String(award?.pool ?? "").trim(),
+        amount: Math.max(0, Number(award?.amount ?? 0)),
+      }))
+      .filter(award => award.pool && award.amount > 0);
+  }
+
+  const pool = String(edgeEarned?.pool ?? "").trim();
+  const amount = Math.max(0, Number(edgeEarned?.amount ?? 0));
+  return edgeEarned?.applied && pool && amount > 0 ? [{ pool, amount }] : [];
+}
+
+function getSpendableEdgeAfterRevokingEarned(actor, resolved = {}, poolKey = "") {
+  // A critical outcome award cannot be used to pay for post-roll Edge, because
+  // spending post-roll Edge invalidates that award.
+  const current = Number(actor?.getEdgePoolValue?.(poolKey) ?? actor?.getRemainingEdge?.(poolKey) ?? 0);
+  const revokedFromPool = getAppliedEdgeAwards(resolved?.outcomeModel?.edgeEarned)
+    .filter(award => award.pool === poolKey)
+    .reduce((sum, award) => sum + Number(award.amount ?? 0), 0);
+
+  return Math.max(0, current - revokedFromPool);
+}
+
+async function revokeAppliedEdgeEarned(actor, resolved = {}) {
+  const awards = getAppliedEdgeAwards(resolved?.outcomeModel?.edgeEarned);
+  if (!awards.length) return;
+
+  for (const award of awards) {
+    await actor.spendEdge?.(award.pool, award.amount, {
+      skipTraitHooks: true,
+      source: "postEdgeRevokesEarnedEdge",
+    });
+  }
+
+  if (resolved?.outcomeModel) resolved.outcomeModel.edgeEarned = null;
 }
 
 async function setAttackPendingReaction(message, result, { active = false, edgePoolKey = "" } = {}) {
@@ -1138,6 +1181,12 @@ async function onEdgePostReroll(ev, message) {
     return;
   }
 
+  if (getSpendableEdgeAfterRevokingEarned(actor, resolved, poolKey) <= 0) {
+    ui.notifications?.warn?.(`No ${poolKey} Edge available for post-spend.`);
+    return;
+  }
+
+  await revokeAppliedEdgeEarned(actor, resolved);
   await actor.spendEdge?.(poolKey, 1);
 
   const tn = Number(resolved?.roll?.target ?? 5);

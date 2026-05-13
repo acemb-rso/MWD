@@ -832,8 +832,8 @@ These fit your existing clickable intent payload model.
 
 ```json
 {
-  "intent": "acquireSolution",
-  "target": "<tokenUuid>",
+  "intent": "acquireTarget",
+  "targetTokenUuid": "<tokenUuid>",
   "goal": "contact|track|lock"
 }
 ```
@@ -842,8 +842,8 @@ These fit your existing clickable intent payload model.
 
 ```json
 {
-  "intent": "generateTargetingData",
-  "target": "<tokenUuid>"
+  "intent": "generateFireSolution",
+  "targetTokenUuid": "<tokenUuid>"
 }
 ```
 

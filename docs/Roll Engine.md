@@ -172,6 +172,16 @@ Responsibilities:
 * Apply Edge spends or rerolls
 * Produce a resolved outcome object
 
+### Critical Outcome Edge
+
+Critical outcome Edge is awarded only when the roll spends no Edge in either the pre-roll or post-roll window.
+
+* Simple critical success: success margin must be greater than 4.
+* Opposed critical success: net hits must be greater than 4.
+* Critical failure: 0 successes and at least half the dice showing 1s.
+* The award is +1 Edge to the roll domain's most depleted pool.
+* If a chat-card post-roll Edge reroll is used after a critical award was already applied, the awarded Edge is revoked before the post-roll spend is paid.
+
 No UI assumptions are made here.
 
 ---

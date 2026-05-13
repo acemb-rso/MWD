@@ -25,8 +25,9 @@ export function enhanceNet(resolved, vm) {
   // edge earned visibility
   const earned = om?.edgeEarned?.amount > 0 ? om.edgeEarned : null;
   if (earned) {
+    const targetLabel = earned.targetLabel ?? earned.pool ?? (Array.isArray(earned.pools) ? earned.pools.join(", ") : "");
     vm.footerRows.push({
-      text: `Edge Earned: +${earned.amount}${earned.pool ? ` (${earned.pool})` : ""}`,
+      text: `Edge Earned: +${earned.amount}${targetLabel ? ` (${targetLabel})` : ""}`,
       title: earned.reason ?? ""
     });
   }

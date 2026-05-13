@@ -153,7 +153,10 @@ export function buildMachineEwRow({
 
 export function resolveMachineEwActionTarget(panel, intent = "") {
   const rows = Array.isArray(panel?.rows) ? panel.rows : [];
-  const key = String(intent ?? "").trim() === "targeting" ? "canTarget" : "canAcquire";
+  const normalized = String(intent ?? "").trim();
+  const key = normalized === "targeting" || normalized === "generateFireSolution"
+    ? "canTarget"
+    : "canAcquire";
   return rows.find(row => Boolean(row?.[key])) ?? null;
 }
 
@@ -185,7 +188,7 @@ export function buildMachineEwPanel({
     canTargetAny: rows.some(row => row.canTarget),
     emptyState: "Target one or more tokens on the canvas to review EW status.",
     helpText: hasTargets
-      ? "Detection state is tracked per targeted machine. Use each row's Acquire or Target button."
-      : "Select targets on the canvas to review EW state and launch Acquire or Target per machine.",
+      ? "Detection state is tracked per targeted machine. Use row buttons for the automated Acquire and Fire Solution actions."
+      : "Select targets on the canvas to review EW state and launch target-specific EW actions.",
   };
 }

@@ -142,8 +142,8 @@ export function isCriticalFailureOnes(successes, raw) {
 
 /**
  * Critical Success (margin-based)
- * passed AND margin >= 4
+ * passed AND margin > 4
  */
 export function isCriticalSuccessMargin(passed, margin, rate = 4) {
-  return Boolean(passed && toInt(margin, 0) >= toInt(rate, 4));
+  return Boolean(passed && toInt(margin, 0) > toInt(rate, 4));
 }

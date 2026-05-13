@@ -44,6 +44,9 @@ How it fits: Used by rendering code to produce UI fragments.
             <span class="sep">•</span>
             <span class="k">Earned</span>
             <span class="v">+{{edge.earned.amount}}</span>
+            {{#if edge.earned.targetLabel}}
+              <span class="v">({{edge.earned.targetLabel}})</span>
+            {{/if}}
           {{/if}}
         </div>
       {{/if}}

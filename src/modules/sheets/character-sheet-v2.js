@@ -821,8 +821,6 @@ ctx.edgeConsole.poolsOrdered = order
         const heat = a.system?.mwd?.heat ?? {};
         const heatStatus = a.system?.mwd?.heatStatus ?? {};
         const crits = a.system?.mwd?.crits ?? [];
-        const quickActions = a.system?.quickActions ?? {};
-
         const buildReadOnlyTrack = (id, label, kind, data) => {
           const value = Math.max(0, toNumber(data.value, 0));
           const max = Math.max(0, toNumber(data.max, 0));
@@ -874,6 +872,7 @@ ctx.edgeConsole.poolsOrdered = order
         const hasMeleeProfiles = isMech && buildBattlemechMeleeProfiles(a).length > 0;
         const movementChoices = getBattlemechMovementChoices(a);
         const enabledMovementChoices = movementChoices.filter(choice => !choice.disabled);
+        const enabledEwActions = isMech ? buildMachineEwActionChoices(a) : [];
 
         const mechQuickActions = isMech ? [
           {
@@ -886,7 +885,7 @@ ctx.edgeConsole.poolsOrdered = order
           { label: "Ranged", hint: "Prompt for a weapon group", handler: "mechAttack", disabled: !hasRangedGroups, dataset: { attackKind: "ranged", mechUuid: uuid, mechId: a.id } },
           { label: "Melee", hint: "Prompt for a melee profile", handler: "mechAttack", disabled: !hasMeleeProfiles, dataset: { attackKind: "melee", mechUuid: uuid, mechId: a.id } },
           { label: "Piloting", hint: "Vehicle handling test", handler: "mechRoll", disabled: false, dataset: { rollKind: "piloting", mechUuid: uuid, mechId: a.id } },
-          { label: "EW", hint: "Acquire or generate fire solution", handler: "mechRoll", disabled: !Boolean(quickActions.hasSensorSweep), dataset: { rollKind: "sensor", mechUuid: uuid, mechId: a.id } },
+          { label: "EW", hint: enabledEwActions.length ? "Choose an EW action" : "No EW actions available", handler: "mechRoll", disabled: enabledEwActions.length === 0, dataset: { rollKind: "sensor", mechUuid: uuid, mechId: a.id } },
           { label: "Repair", hint: "Choose a crit or repairable status", handler: "mechRoll", disabled: false, dataset: { rollKind: "repair", mechUuid: uuid, mechId: a.id } },
         ] : [];
 
@@ -1070,19 +1069,19 @@ ctx.edgeConsole.poolsOrdered = order
   }
 
   async #promptAssignedMechEwAction(mech) {
-    const actions = buildMachineEwActionChoices(mech);
-    if (!actions.length) {
+    const actions = buildMachineEwActionChoices(mech, { includeDisabled: true });
+    const selectableActions = actions.filter(action => !action.disabled);
+    if (!selectableActions.length) {
       ui.notifications?.warn(MWD.actor.vehicle.quickActions.errors.noSensorSweep);
       return null;
     }
-    if (actions.length === 1) return actions[0];
 
-    const defaultAction = actions[0];
+    const defaultAction = selectableActions[0];
     const content = `<form class="mwd-quick-select">${actions.map(action => `
-      <label class="quick-select-option">
-        <input type="radio" name="ew-action" value="${foundry.utils.escapeHTML(String(action.id ?? ""))}" ${action.id === defaultAction.id ? "checked" : ""}>
+      <label class="quick-select-option${action.disabled ? " is-disabled" : ""}" title="${foundry.utils.escapeHTML(String(action.reason ?? ""))}">
+        <input type="radio" name="ew-action" value="${foundry.utils.escapeHTML(String(action.id ?? ""))}" ${action.id === defaultAction.id ? "checked" : ""} ${action.disabled ? "disabled" : ""}>
         <span>${foundry.utils.escapeHTML(String(action.label ?? ""))}</span>
-        <small>${foundry.utils.escapeHTML(String(action.hint ?? ""))}</small>
+        <small>${foundry.utils.escapeHTML(String(action.disabled ? action.reason : action.hint ?? ""))}</small>
       </label>`).join("")}</form>`;
 
     const selectedId = await foundry.applications.api.DialogV2.wait({
@@ -1100,7 +1099,7 @@ ctx.edgeConsole.poolsOrdered = order
       ],
     });
 
-    return actions.find(action => action.id === selectedId) ?? defaultAction;
+    return selectableActions.find(action => action.id === selectedId) ?? defaultAction;
   }
 
   async #promptAssignedMechCriticalRepairIssue(mech) {

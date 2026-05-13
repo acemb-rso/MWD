@@ -26,5 +26,8 @@ export function enhanceExtended(resolved, vm) {
   }
 
   const earned = om?.edgeEarned?.amount > 0 ? om.edgeEarned : null;
-  if (earned) vm.footerRows.push({ text: `Edge Earned: +${earned.amount}${earned.pool ? ` (${earned.pool})` : ""}` });
+  if (earned) {
+    const targetLabel = earned.targetLabel ?? earned.pool ?? (Array.isArray(earned.pools) ? earned.pools.join(", ") : "");
+    vm.footerRows.push({ text: `Edge Earned: +${earned.amount}${targetLabel ? ` (${targetLabel})` : ""}` });
+  }
 }

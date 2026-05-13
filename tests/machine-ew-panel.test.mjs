@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { buildMachineEwPanel, resolveMachineEwActionTarget } from "../src/modules/mwd/machine-ew-panel.js";
+import { buildMachineEwActionChoices } from "../src/modules/mwd/machine-quick-actions.js";
 import { cachePendingTokenPosition } from "../src/modules/mwd/token-measurement.js";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -108,7 +109,7 @@ test("EW panel exposes Contact targets as acquire-ready but not targeting-ready"
   assert.equal(row.targetHint, "Targeting Data unavailable until Track.");
   assert.equal(row.acquireAction.enabled, true);
   assert.equal(row.targetAction.enabled, false);
-  assert.match(panel.helpText, /each row's Acquire or Target button/i);
+  assert.match(panel.helpText, /automated Acquire and Fire Solution/i);
 });
 
 test("EW panel shows measured machine-scale range and distance for targets", () => {
@@ -343,6 +344,63 @@ test("EW action target selection chooses the first eligible targeted token", () 
 
   assert.equal(resolveMachineEwActionTarget(panel, "acquire")?.targetTokenId, "contact");
   assert.equal(resolveMachineEwActionTarget(panel, "targeting")?.targetTokenId, "track");
+  assert.equal(resolveMachineEwActionTarget(panel, "acquireTarget")?.targetTokenId, "contact");
+  assert.equal(resolveMachineEwActionTarget(panel, "generateFireSolution")?.targetTokenId, "track");
+});
+
+test("EW quick action menu exposes canonical player-facing actions", () => {
+  const target = createTargetToken({
+    id: "target-1",
+    uuid: "Scene.scene.Token.target-1",
+    name: "Tracked Target",
+  });
+  const attackerCombatant = createCombatant({
+    tokenId: "attacker-token",
+    targeting: {
+      [target.document.uuid]: { detectionState: "track" },
+    },
+  });
+  setSceneState({ targets: [target], attackerCombatant });
+
+  const actions = buildMachineEwActionChoices({
+    system: { attributes: { system: { value: 3 } } },
+  }, {
+    token: { id: "attacker-token" },
+    includeDisabled: true,
+  });
+
+  assert.deepEqual(actions.map(action => action.id), [
+    "sensorSweep",
+    "acquireTarget",
+    "generateFireSolution",
+    "ecmSpike",
+    "epmFilter",
+    "breakLock",
+    "suppressBeacon",
+    "swat",
+    "tagTarget",
+    "shareTargetingData",
+  ]);
+  assert.equal(actions.find(action => action.id === "acquireTarget")?.intent, "acquireTarget");
+  assert.equal(actions.find(action => action.id === "generateFireSolution")?.intent, "generateFireSolution");
+  assert.equal(actions.find(action => action.id === "generateFireSolution")?.disabled, false);
+});
+
+test("EW quick action menu keeps unavailable target-gated actions visible with reasons", () => {
+  setSceneState({ targets: [], attackerCombatant: createCombatant({ tokenId: "attacker-token" }) });
+
+  const actions = buildMachineEwActionChoices({
+    system: { attributes: { system: { value: 3 } } },
+  }, {
+    token: { id: "attacker-token" },
+    includeDisabled: true,
+  });
+
+  assert.equal(actions.find(action => action.id === "sensorSweep")?.disabled, false);
+  assert.equal(actions.find(action => action.id === "acquireTarget")?.disabled, true);
+  assert.match(actions.find(action => action.id === "acquireTarget")?.reason ?? "", /detection state/i);
+  assert.equal(actions.find(action => action.id === "tagTarget")?.disabled, true);
+  assert.match(actions.find(action => action.id === "tagTarget")?.reason ?? "", /Target a token/i);
 });
 
 test("machine layouts surface the shared EW panel on battlemech and vehicle sheets", async () => {

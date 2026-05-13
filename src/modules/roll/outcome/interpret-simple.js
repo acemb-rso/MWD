@@ -3,14 +3,15 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { getDN, toInt, computeEdgeEarned, getEdgeEarnConfig, getEdgePoolKey,
+import { getDN, toInt, getEdgePoolKey,
   isCriticalSuccessMargin, isCriticalFailureOnes } from "./_outcome-helpers.js";
 
 /**
  * Simple roll:
  * - pass if successes >= DN
  * - margin = successes - DN
- * - Edge earn rule: if margin >= 4, earn 1 (default) (configurable via ctx.edge.earn)
+ * - Edge earn: margin > 4 net hits (critical success), or 0 hits with half+ dice as 1s (critical failure)
+ *   Only applies when no edge was spent on the roll (enforced by caller).
  */
 export function interpretSimpleOutcome(ctx, primary) {
   const successes = toInt(primary?.successes, 0);
@@ -19,21 +20,16 @@ export function interpretSimpleOutcome(ctx, primary) {
   const passed = successes >= dn;
   const margin = successes - dn;
 
-  // ✅ Critical Success: passed with margin >= 4
-  // ✅ Critical Failure: 0 hits AND half-or-more dice are 1s
   const criticalSuccess = isCriticalSuccessMargin(passed, margin, 4);
   const criticalFailure = isCriticalFailureOnes(successes, primary?.raw);
 
-  const earnCfg = getEdgeEarnConfig(ctx);
-  const maxPerRoll = earnCfg.maxPerRoll ?? 1;
-
-  const edge = (earnCfg.enabled && margin >= earnCfg.rate)
-    ? (() => {
-        const { amount, rate } = computeEdgeEarned(margin, { rate: earnCfg.rate, maxPerRoll });
-        const pool = getEdgePoolKey(ctx);
-        return amount > 0 ? { amount, pool, reason: "net4", details: { margin, rate } } : null;
-      })()
-    : null;
+  const pool = getEdgePoolKey(ctx);
+  let edgeEarned = null;
+  if (margin > 4) {
+    edgeEarned = { amount: 1, pool, reason: "criticalSuccess", details: { margin } };
+  } else if (criticalFailure) {
+    edgeEarned = { amount: 1, pool, reason: "criticalFailure", details: {} };
+  }
 
   const tier =
     criticalSuccess ? "criticalSuccess" :
@@ -49,7 +45,7 @@ export function interpretSimpleOutcome(ctx, primary) {
     criticalSuccess,
     criticalFailure,
     tier,
-    edgeEarned: edge,
+    edgeEarned,
   };
 }
 

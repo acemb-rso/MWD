@@ -5,8 +5,11 @@
 
 import { MWD } from "../config.js";
 import { TEMPLATE } from "../constants.js";
+import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { buildMachineEwPanel, resolveMachineEwActionTarget } from "./machine-ew-panel.js";
+import { getMachineActionDefinition } from "./machine-action-catalog.js";
 import { prepareMachineRemedyRoll } from "./machine-intents.js";
+import { resolveMachineOperator } from "./machine-operator.js";
 import { resolveMachineSceneToken } from "./machine-token-resolution.js";
 import { getMachineRepairIssues } from "./machine-repair-issues.js";
 
@@ -18,6 +21,80 @@ function getRollUnavailableResult() {
   const reason = "MWD roll system not initialized.";
   ui.notifications?.error(reason);
   return { ok: false, reason };
+}
+
+function getActionCostLabel(action = {}) {
+  if (action.category === "reaction") return "Reaction";
+  if (!action.cost) return action.category === "narrative" ? "Narrative" : "Free";
+  return `${action.cost} ${String(action.resource ?? "sa").toUpperCase()}`;
+}
+
+function getEwActionTypeLabel(action = {}) {
+  if (action.category === "complex") return "Complex";
+  if (action.category === "reaction") return "Reaction";
+  if (action.resource === "fa") return "FA";
+  return getActionCostLabel(action);
+}
+
+function buildEwAction({
+  id,
+  purpose = "",
+  targetMode = "none",
+  execution = "skill",
+  enabled = true,
+  reason = "",
+  mechanics = "",
+} = {}) {
+  const action = getMachineActionDefinition(id);
+  return {
+    id,
+    actionKey: action.key,
+    intent: action.intent || id,
+    label: action.label,
+    actionType: getEwActionTypeLabel(action),
+    attributeKey: action.attributeKey,
+    skillKey: action.skillKey,
+    targetMode,
+    execution,
+    purpose: purpose || action.notes,
+    hint: [
+      getEwActionTypeLabel(action),
+      action.attributeKey && action.skillKey ? `${action.attributeKey} + ${action.skillKey}` : "",
+      purpose || action.notes,
+      mechanics,
+    ].filter(Boolean).join(" | "),
+    disabled: !enabled,
+    reason: reason || (!enabled ? "This EW action is not available right now." : ""),
+    mechanics,
+  };
+}
+
+function getAnyEwTarget(panel = {}) {
+  return Array.isArray(panel?.rows) ? panel.rows.find(row => row?.targetTokenUuid || row?.targetTokenId) ?? null : null;
+}
+
+async function recordMachineActionCost(actor, action, { token = null, operatorActorUuid = "" } = {}) {
+  if (!action?.cost) return { ok: true, skipped: true };
+
+  const operator = await resolveMachineOperator({
+    machineActor: actor,
+    operatorActorUuid,
+  });
+  const spendActor = operator?.actor ?? actor;
+  const snapshot = PersonalCombatTracker.getSnapshot?.(spendActor, { token }) ?? null;
+  if (!snapshot?.hasCombatant) return { ok: true, skipped: true };
+
+  const spend = await PersonalCombatTracker.spendResource(spendActor, {
+    token,
+    resource: action.resource,
+    cost: action.cost,
+    actionId: action.key,
+    actionLabel: action.label,
+    actionCostLabel: getActionCostLabel(action),
+    actionCategory: action.category,
+  });
+  if (!spend?.ok) ui.notifications?.warn(spend?.reason ?? `Unable to record ${action.label}.`);
+  return spend;
 }
 
 export async function performMachinePilotingCheck(actor, { operatorActorUuid = "" } = {}) {
@@ -41,25 +118,93 @@ export async function performMachinePilotingCheck(actor, { operatorActorUuid = "
   return { ok: true };
 }
 
-export function buildMachineEwActionChoices(actor, { token = null } = {}) {
+export function buildMachineEwActionChoices(actor, { token = null, includeDisabled = false } = {}) {
   const sourceToken = token ?? resolveMachineSceneToken(actor);
   const panel = buildMachineEwPanel({ actor, token: sourceToken });
-  return [
-    {
-      id: "acquire",
-      intent: "acquire",
-      label: "Acquire Target",
-      hint: "Advance detection state on the first eligible targeted token.",
-      disabled: !panel.canAcquireAny,
-    },
-    {
-      id: "targeting",
-      intent: "targeting",
-      label: "Generate Fire Solution",
-      hint: "Create targeting data for the first eligible targeted token.",
-      disabled: !panel.canTargetAny,
-    },
-  ].filter(action => !action.disabled);
+  const hasTargets = Boolean(panel.hasTargets);
+  const actions = [
+    buildEwAction({
+      id: "sensorSweep",
+      purpose: "General scan: reveal hidden units, detect signatures, identify contacts, and read the battlefield.",
+      targetMode: "none",
+      execution: "skill",
+    }),
+    buildEwAction({
+      id: "acquireTarget",
+      purpose: "Improve detection state on the first eligible targeted token.",
+      targetMode: "acquire",
+      execution: "intent",
+      enabled: panel.canAcquireAny,
+      reason: "No targeted token can currently advance detection state.",
+      mechanics: "Automated detection-state update on success.",
+    }),
+    buildEwAction({
+      id: "generateFireSolution",
+      purpose: "Create short-lived targeting data from an existing Track or Lock.",
+      targetMode: "targeting",
+      execution: "intent",
+      enabled: panel.canTargetAny,
+      reason: "Track or Lock is required before generating targeting data.",
+      mechanics: "Automated targeting-data packet on success.",
+    }),
+    buildEwAction({
+      id: "ecmSpike",
+      purpose: "Offensive EW: jam or disrupt a specific target.",
+      targetMode: "any",
+      execution: "skill",
+      enabled: hasTargets,
+      reason: "Target a token before launching an ECM Spike.",
+      mechanics: "Roll only; ECM state effects are not automated yet.",
+    }),
+    buildEwAction({
+      id: "epmFilter",
+      purpose: "Defensive remediation: remove or reduce ECM Jamming.",
+      targetMode: "none",
+      execution: "skill",
+      mechanics: "Roll only unless launched as a critical/status remedy.",
+    }),
+    buildEwAction({
+      id: "breakLock",
+      purpose: "Defensive reaction: degrade an attacker's detection state.",
+      targetMode: "anyOptional",
+      execution: "skill",
+      mechanics: "Roll only; detection-state degradation is not automated yet.",
+    }),
+    buildEwAction({
+      id: "suppressBeacon",
+      purpose: "Suppress beacon-based targeting support such as NARC or TAG.",
+      targetMode: "any",
+      execution: "skill",
+      enabled: hasTargets,
+      reason: "Target a token before suppressing a beacon.",
+      mechanics: "Roll only; beacon suppression is not automated yet.",
+    }),
+    buildEwAction({
+      id: "swat",
+      purpose: "Physical removal action for BattleArmor, NARC, or similar attachments.",
+      targetMode: "anyOptional",
+      execution: "skill",
+      mechanics: "Roll only; removal is handled narratively or by status changes.",
+    }),
+    buildEwAction({
+      id: "tagTarget",
+      purpose: "Apply a TAG enabler flag for guided systems.",
+      targetMode: "any",
+      execution: "skill",
+      enabled: hasTargets,
+      reason: "Target a token before using TAG.",
+      mechanics: "Roll only; TAG flags are not automated yet.",
+    }),
+    buildEwAction({
+      id: "shareTargetingData",
+      purpose: "Share best detection state and best eligible packet through C3 or a similar network.",
+      targetMode: "none",
+      execution: "narrative",
+      mechanics: "Provider-driven; no roll required.",
+    }),
+  ];
+
+  return includeDisabled ? actions : actions.filter(action => !action.disabled);
 }
 
 export async function performMachineElectronicWarfare(actor, {
@@ -70,36 +215,75 @@ export async function performMachineElectronicWarfare(actor, {
 } = {}) {
   const sourceToken = token ?? resolveMachineSceneToken(actor);
   const panel = buildMachineEwPanel({ actor, token: sourceToken });
-  const actions = buildMachineEwActionChoices(actor, { token: sourceToken });
+  const actions = buildMachineEwActionChoices(actor, { token: sourceToken, includeDisabled: true });
   const selectedAction = action
     ?? actions.find(entry => String(entry.id ?? "").trim() === String(actionId ?? "").trim())
     ?? (actions.length === 1 ? actions[0] : null);
 
-  if (!selectedAction) {
+  if (!selectedAction || selectedAction.disabled) {
     const reason = MWD.actor.vehicle.quickActions.errors.noSensorSweep;
-    ui.notifications?.warn(reason);
+    ui.notifications?.warn(selectedAction?.reason || reason);
     return { ok: false, reason };
   }
 
-  const targetRow = resolveMachineEwActionTarget(panel, selectedAction.intent);
-  if (!targetRow) {
+  let targetRow = null;
+  if (selectedAction.targetMode === "acquire" || selectedAction.targetMode === "targeting") {
+    targetRow = resolveMachineEwActionTarget(panel, selectedAction.intent);
+  } else if (selectedAction.targetMode === "any" || selectedAction.targetMode === "anyOptional") {
+    targetRow = getAnyEwTarget(panel);
+  }
+
+  if ((selectedAction.targetMode === "acquire" || selectedAction.targetMode === "targeting" || selectedAction.targetMode === "any") && !targetRow) {
     const reason = "No targeted token is ready for that EW action.";
     ui.notifications?.warn(reason);
     return { ok: false, reason };
   }
 
+  if (selectedAction.execution === "narrative") {
+    const actionDef = getMachineActionDefinition(selectedAction.actionKey);
+    const spend = await recordMachineActionCost(actor, actionDef, { token: sourceToken, operatorActorUuid });
+    if (spend && spend.ok === false) return spend;
+    ui.notifications?.info(`${selectedAction.label}: ${selectedAction.mechanics || "No roll required."}`);
+    return { ok: true, action: selectedAction, target: targetRow, narrative: true };
+  }
+
   const rollApi = getMachineRollApi();
   if (!rollApi?.execute) return getRollUnavailableResult();
 
-  await rollApi.execute({
-    actor,
-    payload: {
+  const payload = selectedAction.execution === "intent"
+    ? {
       intent: selectedAction.intent,
       sourceTokenId: sourceToken?.id ?? null,
-      targetTokenId: targetRow.targetTokenId,
-      targetTokenUuid: targetRow.targetTokenUuid,
+      targetTokenId: targetRow?.targetTokenId ?? null,
+      targetTokenUuid: targetRow?.targetTokenUuid ?? null,
       operatorActorUuid: String(operatorActorUuid ?? "").trim(),
     }
+    : {
+      intent: "skill",
+      key: selectedAction.skillKey,
+      attrKey: selectedAction.attributeKey,
+      machineAttributeKey: selectedAction.attributeKey,
+      operatorActorUuid: String(operatorActorUuid ?? "").trim(),
+      sourceTokenId: sourceToken?.id ?? null,
+      targetTokenId: targetRow?.targetTokenId ?? null,
+      targetTokenUuid: targetRow?.targetTokenUuid ?? null,
+      machineActionKey: selectedAction.actionKey,
+      quickAction: {
+        title: selectedAction.label,
+        ewAction: {
+          id: selectedAction.id,
+          actionType: selectedAction.actionType,
+          purpose: selectedAction.purpose,
+          mechanics: selectedAction.mechanics,
+        },
+      },
+      edge: { allowed: ["pre", "post"] },
+      tags: ["machine", "ew", selectedAction.id],
+    };
+
+  await rollApi.execute({
+    actor,
+    payload,
   });
 
   return { ok: true, action: selectedAction, target: targetRow };

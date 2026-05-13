@@ -394,7 +394,9 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     );
     const movementChoices = buildVehicleMovementActionChoices(actor);
     const enabledMovementChoices = movementChoices.filter(choice => !choice.disabled);
-    const quickActions = actor.system?.quickActions ?? {};
+    const enabledEwActions = buildMachineEwActionChoices(actor, {
+      token: this._resolveStatusToken(actor),
+    });
 
     return [
       {
@@ -422,9 +424,9 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       },
       {
         label: "EW",
-        hint: "Acquire or generate fire solution",
+        hint: enabledEwActions.length ? "Choose an EW action" : "No EW actions available",
         handler: "vehicleRoll",
-        disabled: !Boolean(quickActions.hasSensorSweep),
+        disabled: enabledEwActions.length === 0,
         dataset: { rollKind: "sensor" },
       },
       {
@@ -1615,19 +1617,19 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   }
 
   async #promptVehicleEwAction(actor, { token = null } = {}) {
-    const actions = buildMachineEwActionChoices(actor, { token });
-    if (!actions.length) {
+    const actions = buildMachineEwActionChoices(actor, { token, includeDisabled: true });
+    const selectableActions = actions.filter(action => !action.disabled);
+    if (!selectableActions.length) {
       ui.notifications?.warn(MWD.actor.vehicle.quickActions.errors.noSensorSweep);
       return null;
     }
-    if (actions.length === 1) return actions[0];
 
-    const defaultAction = actions[0];
+    const defaultAction = selectableActions[0];
     const content = `<form class="mwd-quick-select">${actions.map(action => `
-      <label class="quick-select-option">
-        <input type="radio" name="ew-action" value="${foundry.utils.escapeHTML(String(action.id ?? ""))}" ${action.id === defaultAction.id ? "checked" : ""}>
+      <label class="quick-select-option${action.disabled ? " is-disabled" : ""}" title="${foundry.utils.escapeHTML(String(action.reason ?? ""))}">
+        <input type="radio" name="ew-action" value="${foundry.utils.escapeHTML(String(action.id ?? ""))}" ${action.id === defaultAction.id ? "checked" : ""} ${action.disabled ? "disabled" : ""}>
         <span>${foundry.utils.escapeHTML(String(action.label ?? ""))}</span>
-        <small>${foundry.utils.escapeHTML(String(action.hint ?? ""))}</small>
+        <small>${foundry.utils.escapeHTML(String(action.disabled ? action.reason : action.hint ?? ""))}</small>
       </label>`).join("")}</form>`;
 
     const selectedId = await foundry.applications.api.DialogV2.wait({
@@ -1645,7 +1647,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       ],
     });
 
-    return actions.find(action => action.id === selectedId) ?? defaultAction;
+    return selectableActions.find(action => action.id === selectedId) ?? defaultAction;
   }
 
   async #promptVehicleCriticalRepairIssue(actor) {
