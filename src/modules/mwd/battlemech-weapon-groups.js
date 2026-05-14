@@ -7,6 +7,10 @@ import {
   doesHardpointAcceptItem,
   getMachineHardpointByItemId,
 } from "./machine-hardpoints.js";
+import {
+  getMachineWeaponDamageTypeLabel,
+  normalizeMachineWeaponDamageType,
+} from "./machine-weapon-types.js";
 
 const RANGE_ORDER = ["close", "near", "far", "extreme"];
 // Preferred default engagement band: near is the sweet spot; fall back toward
@@ -183,19 +187,27 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
       continue;
     }
 
+    const baseDamageType = normalizeMachineWeaponDamageType(
+      profile?.baseDamageType ?? weapon?.system?.damageType ?? "energy",
+      "energy"
+    );
+    const effectiveDamageType = String(profile?.damageType ?? baseDamageType).trim() || baseDamageType;
+    const effectiveDamageTypeLabel = String(
+      profile?.damageTypeLabel
+        ?? (effectiveDamageType === baseDamageType
+          ? getMachineWeaponDamageTypeLabel(baseDamageType)
+          : startCase(effectiveDamageType))
+    ).trim() || startCase(effectiveDamageType);
+
     memberWeapons.push({
       id: normalizeId(weapon?.id),
       name: String(weapon?.name ?? "Weapon").trim() || "Weapon",
       img: weapon?.img ?? "",
       skill: String(profile?.skill ?? weapon?.system?.skill ?? "gunnery").trim() || "gunnery",
-      damageType: String(profile?.damageType ?? weapon?.system?.damageType ?? "kinetic").trim() || "kinetic",
-      damageTypeLabel: String(
-        profile?.damageTypeLabel
-          ?? weapon?.getDamageTypeLabel?.()
-          ?? profile?.damageType
-          ?? weapon?.system?.damageType
-          ?? "kinetic"
-      ).trim() || "kinetic",
+      baseDamageType,
+      baseDamageTypeLabel: getMachineWeaponDamageTypeLabel(baseDamageType),
+      damageType: effectiveDamageType,
+      damageTypeLabel: effectiveDamageTypeLabel,
       resolverKey: getWeaponResolverKey(weapon, profile),
       range: normalizeRangeData(profile?.range ?? weapon?.system?.range ?? {}),
       rangeCap: normalizeRangeCap(profile?.range ?? weapon?.system?.range ?? {}),
@@ -230,7 +242,7 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
     blockingReasons.push("No active ranged weapons in this group.");
   }
 
-  const uniqueDamageTypes = new Set(memberWeapons.map(weapon => weapon.damageType));
+  const uniqueDamageTypes = new Set(memberWeapons.map(weapon => weapon.baseDamageType));
   if (uniqueDamageTypes.size > 1) {
     blockingReasons.push("All grouped ranged weapons must share the same damage type.");
   }
@@ -246,6 +258,13 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
   }
 
   const firstWeapon = memberWeapons[0] ?? null;
+  const uniqueEffectiveDamageTypes = new Set(memberWeapons.map(weapon => weapon.damageType));
+  const displayDamageType = uniqueEffectiveDamageTypes.size === 1
+    ? (firstWeapon?.damageType ?? firstWeapon?.baseDamageType ?? "energy")
+    : (firstWeapon?.baseDamageType ?? "energy");
+  const displayDamageTypeLabel = uniqueEffectiveDamageTypes.size === 1
+    ? (firstWeapon?.damageTypeLabel ?? startCase(displayDamageType))
+    : (firstWeapon?.baseDamageTypeLabel ?? getMachineWeaponDamageTypeLabel(displayDamageType));
   const rangeCap = memberWeapons.reduce(
     (current, weapon) => chooseWorseRangeCap(current, weapon.rangeCap),
     firstWeapon?.rangeCap ?? "near"
@@ -272,8 +291,10 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
     clusteringDice: memberWeapons.reduce((sum, weapon) => sum + weapon.clusteringDice, 0),
     ap: Math.max(0, ...memberWeapons.map(weapon => weapon.ap)),
     heat: memberWeapons.reduce((sum, weapon) => sum + weapon.heat, 0),
-    damageType: firstWeapon?.damageType ?? "kinetic",
-    damageTypeLabel: firstWeapon?.damageTypeLabel ?? startCase(firstWeapon?.damageType ?? "kinetic"),
+    baseDamageType: firstWeapon?.baseDamageType ?? "energy",
+    baseDamageTypeLabel: firstWeapon?.baseDamageTypeLabel ?? "Energy",
+    damageType: displayDamageType,
+    damageTypeLabel: displayDamageTypeLabel,
     rangeCap,
     range,
     defaultRangeBand,
@@ -291,6 +312,8 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
       name: weapon.name,
       img: weapon.img,
       skill: weapon.skill,
+      baseDamageType: weapon.baseDamageType,
+      baseDamageTypeLabel: weapon.baseDamageTypeLabel,
       damageType: weapon.damageType,
       damageTypeLabel: weapon.damageTypeLabel,
       clusteringDice: weapon.clusteringDice,
@@ -380,8 +403,10 @@ export function buildBattlemechWeaponGroupAttackProfile(actor = null, groupId = 
       clusteringDice: Math.max(0, toNumber(summary.clusteringDice, 0)),
       ap: toNumber(summary.ap, 0),
       heat: toNumber(summary.heat, 0),
-      damageType: String(summary.damageType ?? "kinetic").trim() || "kinetic",
-      damageTypeLabel: String(summary.damageTypeLabel ?? summary.damageType ?? "kinetic").trim() || "kinetic",
+      baseDamageType: String(summary.baseDamageType ?? "energy").trim() || "energy",
+      baseDamageTypeLabel: String(summary.baseDamageTypeLabel ?? summary.baseDamageType ?? "energy").trim() || "Energy",
+      damageType: String(summary.damageType ?? summary.baseDamageType ?? "energy").trim() || "energy",
+      damageTypeLabel: String(summary.damageTypeLabel ?? summary.damageType ?? summary.baseDamageTypeLabel ?? "Energy").trim() || "Energy",
       attackRatingBand: normalizeAttackRatings(summary.attackRatings ?? {}),
       range: normalizeRangeData(summary.range ?? { max: summary.rangeCap ?? "near" }),
       defaultRangeBand: String(summary.defaultRangeBand ?? "near").trim() || "near",
@@ -398,8 +423,10 @@ export function buildBattlemechWeaponGroupAttackProfile(actor = null, groupId = 
         clusteringDice: Math.max(0, toNumber(summary.clusteringDice, 0)),
         ap: toNumber(summary.ap, 0),
         heat: toNumber(summary.heat, 0),
-        damageType: String(summary.damageType ?? "kinetic").trim() || "kinetic",
-        damageTypeLabel: String(summary.damageTypeLabel ?? summary.damageType ?? "kinetic").trim() || "kinetic",
+        baseDamageType: String(summary.baseDamageType ?? "energy").trim() || "energy",
+        baseDamageTypeLabel: String(summary.baseDamageTypeLabel ?? summary.baseDamageType ?? "energy").trim() || "Energy",
+        damageType: String(summary.damageType ?? summary.baseDamageType ?? "energy").trim() || "energy",
+        damageTypeLabel: String(summary.damageTypeLabel ?? summary.damageType ?? summary.baseDamageTypeLabel ?? "Energy").trim() || "Energy",
         rangeCap: String(summary.rangeCap ?? "near").trim() || "near",
         attackRatings: normalizeAttackRatings(summary.attackRatings ?? {}),
       },

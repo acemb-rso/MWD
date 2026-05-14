@@ -25,6 +25,11 @@ import {
 } from "../mwd/life-modules.js";
 import { normalizeMachineWeaponSize } from "../mwd/machine-hardpoints.js";
 import {
+  buildMachineEnergyPayloadModel,
+  getMachineWeaponDamageTypeLabel,
+  normalizeMachineWeaponDamageType,
+} from "../mwd/machine-weapon-types.js";
+import {
   normalizeQualityTraitSystem,
   normalizeTraitEffects,
   normalizeTraitLimits,
@@ -506,22 +511,21 @@ export class MWDItem extends Item {
       changed.system ??= {};
       const legacyAmmo = nextSystem.ammo;
       const category = normalizeMechWeaponCategory(nextSystem.weaponCategory ?? nextSystem.category);
+      const payloadModel = buildMachineEnergyPayloadModel({ ...nextSystem, category, weaponCategory: category }, {
+        idFactory: () => foundry.utils.randomID(),
+      });
       changed.system.category = category;
       changed.system.weaponCategory = category;
       changed.system.skill = normalizeMechWeaponSkill(category, nextSystem.skill);
       changed.system.size = normalizeMachineWeaponSize(nextSystem.size ?? nextSystem.hardpointSize ?? "small");
       changed.system.ap = Number(nextSystem.ap ?? nextSystem.armorPiercing ?? 0) || 0;
       changed.system.damage = Math.max(0, Number(nextSystem.damage ?? 0) || 0);
-      changed.system.damageType = normalizePersonalDamageType(nextSystem.damageType);
+      changed.system.damageType = payloadModel.damageType;
       changed.system.attackRatingBand = normalizeAttackRatingBand(nextSystem.attackRatingBand);
       changed.system.range = normalizeMechWeaponRange(nextSystem.range, category);
-      changed.system.payloads = normalizeWeaponPayloads(nextSystem.payloads, { legacyAmmo, category });
+      changed.system.payloads = payloadModel.payloads;
       changed.system.consumptionSources = normalizeWeaponConsumptionSources(nextSystem.consumptionSources, { legacyAmmo });
-      changed.system.selectedPayloadId = normalizeSelectedPayloadId(
-        nextSystem.selectedPayloadId,
-        changed.system.payloads,
-        { legacyAmmo, category }
-      );
+      changed.system.selectedPayloadId = payloadModel.selectedPayloadId;
       changed.system.heat = Math.max(0, Number(nextSystem.heat ?? 0) || 0);
       changed.system.area = String(nextSystem.area ?? "none").trim() || "none";
       changed.system.volatile = Boolean(nextSystem.volatile);
@@ -659,12 +663,13 @@ export class MWDItem extends Item {
     system.size = normalizeMachineWeaponSize(system.size ?? system.hardpointSize ?? "small");
     system.ap = Number(system.ap ?? system.armorPiercing ?? 0) || 0;
     system.damage = Math.max(0, Number(system.damage ?? 0) || 0);
-    system.damageType = normalizePersonalDamageType(system.damageType);
+    const payloadModel = buildMachineEnergyPayloadModel({ ...system, category, weaponCategory: category });
+    system.damageType = payloadModel.damageType;
     system.attackRatingBand = normalizeAttackRatingBand(system.attackRatingBand);
     system.range = normalizeMechWeaponRange(system.range, category);
-    system.payloads = normalizeWeaponPayloads(system.payloads, { legacyAmmo, category });
+    system.payloads = payloadModel.payloads;
     system.consumptionSources = normalizeWeaponConsumptionSources(system.consumptionSources, { legacyAmmo });
-    system.selectedPayloadId = normalizeSelectedPayloadId(system.selectedPayloadId, system.payloads, { legacyAmmo, category });
+    system.selectedPayloadId = payloadModel.selectedPayloadId;
     system.heat = Math.max(0, Number(system.heat ?? 0) || 0);
     system.area = String(system.area ?? "none").trim() || "none";
     system.volatile = Boolean(system.volatile);
@@ -1645,8 +1650,11 @@ export class MWDItem extends Item {
       : (String(system.skill ?? "").trim() || "firearms");
     const skillDef = getSkillDef(skillCode);
     const damage = Number(system.damage ?? 0) || 0;
+    const baseDamageType = this.isMechWeapon()
+      ? normalizeMachineWeaponDamageType(system.damageType, "energy")
+      : normalizePersonalDamageType(system.damageType);
     const effectiveProfile = resolveEffectiveWeaponProfile({
-      damageType: system.damageType,
+      damageType: baseDamageType,
       ap: Number(system.ap ?? system.armorPiercing ?? 0) || 0,
       attackRatingBand: normalizeAttackRatingBand(system.attackRatingBand),
       traits: normalizeTraits(system.traits),
@@ -1677,6 +1685,10 @@ export class MWDItem extends Item {
       damage,
       clusteringDice: Number(effectiveProfile.clusteringDice ?? 0) || 0,
       ap: effectiveProfile.ap,
+      baseDamageType,
+      baseDamageTypeLabel: this.isMechWeapon()
+        ? getMachineWeaponDamageTypeLabel(baseDamageType)
+        : getPersonalDamageTypeLabel(baseDamageType),
       damageType: effectiveProfile.damageType,
       damageTypeLabel: getPersonalDamageTypeLabel(effectiveProfile.damageType),
       attackRatingBand: effectiveProfile.attackRatingBand,
@@ -1845,7 +1857,11 @@ export class MWDItem extends Item {
 
   getDamageTypeLabel() {
     if (this.isWeapon()) {
-      return getPersonalDamageTypeLabel(this.getCombatProfile()?.damageType ?? this.system.damageType);
+      const profile = this.getCombatProfile();
+      if (this.isMechWeapon() && profile?.damageType === profile?.baseDamageType) {
+        return getMachineWeaponDamageTypeLabel(profile?.baseDamageType ?? this.system.damageType);
+      }
+      return getPersonalDamageTypeLabel(profile?.damageType ?? this.system.damageType);
     }
     const labelKey = MWD.mwd.weaponDamageType?.[this.system.damageType]
       ?? MWD.mwd.personalDamageType?.[this.system.damageType];

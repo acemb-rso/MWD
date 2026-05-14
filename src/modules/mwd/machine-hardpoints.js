@@ -4,9 +4,12 @@
 // loadout validation can all resolve the same mounted-item state.
 
 import { TEMPLATE, startCase } from "../constants.js";
+import {
+  normalizeMachineHardpointType,
+  normalizeMachineWeaponDamageType,
+} from "./machine-weapon-types.js";
 
 const MACHINE_HARDPOINT_SIZES = Object.freeze(["small", "medium", "large"]);
-const ENERGY_HARDPOINT_FAMILY = Object.freeze(new Set(["energy", "thermal", "electrical", "electric"]));
 const DEFAULT_MACHINE_HARDPOINT = Object.freeze({
   type: "energy",
   size: "small",
@@ -31,7 +34,7 @@ export function normalizeMachineHardpoints(rawHardpoints = [], { defaultLocation
   const raw = Array.isArray(rawHardpoints) ? rawHardpoints : Object.values(rawHardpoints && typeof rawHardpoints === "object" ? rawHardpoints : {});
   return raw.map((hardpoint, index) => ({
     id: String(hardpoint?.id ?? `hardpoint-${index + 1}`).trim(),
-    type: String(hardpoint?.type ?? DEFAULT_MACHINE_HARDPOINT.type).trim() || DEFAULT_MACHINE_HARDPOINT.type,
+    type: normalizeMachineHardpointType(hardpoint?.type ?? DEFAULT_MACHINE_HARDPOINT.type, DEFAULT_MACHINE_HARDPOINT.type),
     size: normalizeMachineWeaponSize(hardpoint?.size ?? DEFAULT_MACHINE_HARDPOINT.size),
     location: String(hardpoint?.location ?? defaultLocation ?? DEFAULT_MACHINE_HARDPOINT.location).trim(),
     itemId: String(hardpoint?.itemId ?? DEFAULT_MACHINE_HARDPOINT.itemId).trim(),
@@ -58,7 +61,7 @@ export function reconcileMachineHardpoints(currentRaw = [], stagedRaw = [], { de
     if (!staged) return hardpoint;
     return {
       ...hardpoint,
-      type: staged.type,
+      type: normalizeMachineHardpointType(staged.type, hardpoint.type),
       size: staged.size,
       location: staged.location || defaultLocation,
       itemId: hardpoint.itemId,
@@ -128,7 +131,7 @@ export function updateMachineHardpointSettings(currentRaw = [], hardpointId = ""
 
     const next = {
       ...hardpoint,
-      type: String(settings?.type ?? hardpoint.type).trim() || hardpoint.type,
+      type: normalizeMachineHardpointType(settings?.type ?? hardpoint.type, hardpoint.type),
       size: normalizeMachineWeaponSize(settings?.size ?? hardpoint.size, hardpoint.size),
       location: String(settings?.location ?? hardpoint.location ?? defaultLocation).trim() || defaultLocation,
       itemId: hardpoint.itemId,
@@ -184,13 +187,7 @@ export function getMountedMachineItems(actor = null, { canonicalType = "" } = {}
 }
 
 export function getMachineWeaponRequiredType(item = null) {
-  return String(item?.system?.damageType ?? "").trim() || "energy";
-}
-
-function getMachineHardpointTypeFamily(value = "") {
-  const normalized = String(value ?? "").trim().toLowerCase();
-  if (ENERGY_HARDPOINT_FAMILY.has(normalized)) return "energy";
-  return normalized || "energy";
+  return normalizeMachineWeaponDamageType(item?.system?.damageType ?? "energy", "energy");
 }
 
 export function getMachineWeaponRequiredSize(item = null) {
@@ -201,12 +198,12 @@ export function doesHardpointAcceptItem(hardpoint = {}, item = null) {
   const canonicalType = String(item?.canonicalType ?? item?.type ?? "").trim();
   if (canonicalType !== TEMPLATE.itemType.mechWeapon) return false;
 
-  const hardpointType = String(hardpoint?.type ?? "").trim() || "energy";
+  const hardpointType = normalizeMachineHardpointType(hardpoint?.type ?? "energy", "energy");
   const hardpointSize = normalizeMachineWeaponSize(hardpoint?.size ?? "small");
   const requiredType = getMachineWeaponRequiredType(item);
   const requiredSize = getMachineWeaponRequiredSize(item);
   const typeMatches = hardpointType === "omni"
-    || getMachineHardpointTypeFamily(hardpointType) === getMachineHardpointTypeFamily(requiredType);
+    || hardpointType === requiredType;
 
   return typeMatches && hardpointSize === requiredSize;
 }
@@ -217,12 +214,12 @@ export function getHardpointCompatibilityError(hardpoint = {}, item = null) {
     return "Only mech weapons can be mounted in hardpoint slots.";
   }
 
-  const hardpointType = String(hardpoint?.type ?? "").trim() || "energy";
+  const hardpointType = normalizeMachineHardpointType(hardpoint?.type ?? "energy", "energy");
   const hardpointSize = normalizeMachineWeaponSize(hardpoint?.size ?? "small");
   const requiredType = getMachineWeaponRequiredType(item);
   const requiredSize = getMachineWeaponRequiredSize(item);
   const typeMatches = hardpointType === "omni"
-    || getMachineHardpointTypeFamily(hardpointType) === getMachineHardpointTypeFamily(requiredType);
+    || hardpointType === requiredType;
 
   if (!typeMatches) {
     return `${item?.name ?? "That weapon"} is ${startCase(requiredType)} and cannot fit a ${startCase(hardpointType)} slot.`;

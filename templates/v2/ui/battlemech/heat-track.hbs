@@ -31,6 +31,26 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
   {{#if editing}}
     <div class="mwd-gmgadget__grid" style="margin-top:0.5rem;">
       <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Tier</span>
+        <select
+          name="system.mwd.heat.profileCode"
+          data-edit-field="staged"
+          data-heat-profile-select>
+          <option value="">Manual</option>
+          {{#each battlemechSheet.heat.profileOptions as |profile|}}
+            <option
+              value="{{profile.value}}"
+              data-track-length="{{profile.trackLength}}"
+              data-running-hot="{{profile.thresholds.runningHot}}"
+              data-overheated="{{profile.thresholds.overheated}}"
+              data-shutdown="{{profile.thresholds.shutdown}}"
+              {{#if profile.selected}}selected{{/if}}>
+              {{profile.label}}
+            </option>
+          {{/each}}
+        </select>
+      </label>
+      <label class="mwd-gmgadget__field">
         <span class="mwd-gmgadget__field-label">Track Length</span>
         <input
           type="number"

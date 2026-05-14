@@ -5,6 +5,7 @@
 import { computeDangerCheckParams, computeHeatPenalties, hasVolatileComponents, resolveEndOfActivationHeat } from "./heat-effects.js";
 import { getMachineHeatStatusLabel, normalizeMachineHeatThresholds, resolveMachineHeatStatus } from "./heat-state.js";
 import { getMachineHeatAdjustments } from "./machine-state-effects.js";
+import { isMachineEnergyDamageFamily } from "./machine-weapon-types.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -49,6 +50,7 @@ export function getBattlemechHeatActivationKey(activation = null) {
 export function isEnergyMachineWeapon(weapon = {}) {
   const system = weapon?.system ?? weapon ?? {};
   const typeHints = [
+    system.baseDamageType,
     system.damageType,
     system.category,
     system.weaponCategory,
@@ -56,7 +58,7 @@ export function isEnergyMachineWeapon(weapon = {}) {
   ].map(value => String(value ?? "").trim().toLowerCase()).filter(Boolean);
   const traits = asArray(system.traits).map(value => String(value ?? "").trim().toLowerCase());
 
-  return typeHints.includes("energy") || traits.includes("energy");
+  return typeHints.some(isMachineEnergyDamageFamily) || traits.some(isMachineEnergyDamageFamily);
 }
 
 export function computeBattlemechAttackHeat({ weapons = [], crits = [] } = {}) {

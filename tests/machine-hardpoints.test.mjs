@@ -11,6 +11,7 @@ import {
   removeMachineHardpointById,
   updateMachineHardpointSettings,
 } from "../src/modules/mwd/machine-hardpoints.js";
+import { normalizeMachineHardpointType } from "../src/modules/mwd/machine-weapon-types.js";
 
 function createWeapon({ damageType = "energy", size = "small" } = {}) {
   return {
@@ -24,11 +25,13 @@ function createWeapon({ damageType = "energy", size = "small" } = {}) {
   };
 }
 
-test("energy-family hardpoints accept energy, thermal, and electrical weapons interchangeably", () => {
+test("legacy thermal and electrical hardpoints normalize into energy compatibility", () => {
   const energySlot = { type: "energy", size: "small" };
   const thermalSlot = { type: "thermal", size: "small" };
   const electricalSlot = { type: "electrical", size: "small" };
 
+  assert.equal(normalizeMachineHardpointType("thermal"), "energy");
+  assert.equal(normalizeMachineHardpointType("electrical"), "energy");
   assert.equal(doesHardpointAcceptItem(energySlot, createWeapon({ damageType: "thermal" })), true);
   assert.equal(doesHardpointAcceptItem(energySlot, createWeapon({ damageType: "electrical" })), true);
   assert.equal(doesHardpointAcceptItem(thermalSlot, createWeapon({ damageType: "energy" })), true);
@@ -79,8 +82,8 @@ test("reconcileMachineHardpoints preserves actor-side slot occupants while savin
   const reconciled = reconcileMachineHardpoints(current, staged, { defaultLocation: "arms" });
 
   assert.deepEqual(reconciled, [
-    { id: "hp-1", type: "thermal", size: "large", location: "head", itemId: "weapon-a" },
-    { id: "hp-2", type: "missile", size: "small", location: "arms", itemId: "weapon-b" },
+    { id: "hp-1", type: "energy", size: "large", location: "head", itemId: "weapon-a" },
+    { id: "hp-2", type: "concussive", size: "small", location: "arms", itemId: "weapon-b" },
   ]);
 });
 
@@ -96,7 +99,7 @@ test("appendMachineHardpoint keeps existing filled slots intact", () => {
 
   assert.deepEqual(hardpoints, [
     { id: "hp-1", type: "energy", size: "small", location: "arms", itemId: "weapon-a" },
-    { id: "hp-2", type: "ballistic", size: "medium", location: "torso", itemId: "" },
+    { id: "hp-2", type: "penetrating", size: "medium", location: "torso", itemId: "" },
   ]);
 });
 

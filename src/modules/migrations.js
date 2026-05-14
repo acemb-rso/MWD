@@ -35,6 +35,10 @@ import {
   normalizeMachineDegradationState,
 } from "./mwd/machine-degradation.js";
 import { normalizeMachineWeaponSize } from "./mwd/machine-hardpoints.js";
+import {
+  buildMachineEnergyPayloadModel,
+  normalizeMachineHardpointType,
+} from "./mwd/machine-weapon-types.js";
 import { normalizeVehicleMovementProfile } from "./mwd/vehicle-profiles.js";
 import { normalizeVehicleStrainState } from "./mwd/vehicle-strain.js";
 
@@ -46,13 +50,8 @@ function normalizeLegacyHardpointType(value, fallback = "energy") {
   const normalized = String(value ?? "").trim().toLowerCase();
   if (!normalized) return fallback;
 
-  if (["penetrating", "concussive", "energy", "thermal", "electrical", "support", "omni"].includes(normalized)) {
-    return normalized;
-  }
-  if (normalized === "ballistic") return "penetrating";
-  if (normalized === "missile") return "concussive";
   if (normalized === "special") return "support";
-  return fallback;
+  return normalizeMachineHardpointType(normalized, fallback);
 }
 
 function normalizeLegacyHardpointLocation(value, { actorType = "", fallback = "" } = {}) {
@@ -1159,6 +1158,39 @@ class _13_14_0_AddVehicleMovementProfileAndStrain extends Migration {
   }
 }
 
+class _13_15_0_MachineEnergyPayloads extends Migration {
+  get version() { return "13.15.0"; }
+  get code() { return "machine-energy-payloads"; }
+
+  async migrate() {
+    await this.applyItemsUpdates(items => items
+      .filter(item => String(item?.canonicalType ?? item?.type ?? "").trim() === TEMPLATE.itemType.mechWeapon)
+      .map(item => this._collectWeaponUpdate(item))
+      .filter(Boolean));
+  }
+
+  _collectWeaponUpdate(item) {
+    const payloadModel = buildMachineEnergyPayloadModel(item.system ?? {}, {
+      idFactory: () => foundry.utils.randomID(),
+    });
+    const currentDamageType = String(item.system?.damageType ?? "").trim();
+    const updates = {
+      _id: item.id,
+    };
+
+    if (currentDamageType !== payloadModel.damageType) {
+      updates["system.damageType"] = payloadModel.damageType;
+    }
+
+    if (payloadModel.payloadDamageType) {
+      updates["system.payloads"] = payloadModel.payloads;
+      updates["system.selectedPayloadId"] = payloadModel.selectedPayloadId;
+    }
+
+    return Object.keys(updates).length > 1 ? updates : null;
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -1190,6 +1222,7 @@ export class Migrations {
       new _13_12_0_NormalizeMachineHardpointVocabulary(),
       new _13_13_0_MoveMachineMountStateToHardpoints(),
       new _13_14_0_AddVehicleMovementProfileAndStrain(),
+      new _13_15_0_MachineEnergyPayloads(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

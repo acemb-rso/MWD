@@ -328,7 +328,7 @@ const templateData = {
       size: "small",
       damage: 0,
       ap: 0,
-      damageType: "penetrating",
+      damageType: "energy",
       attackRatingBand: { close: 0, near: 0, far: 0, extreme: 0 },
       payloads: [],
       selectedPayloadId: "",

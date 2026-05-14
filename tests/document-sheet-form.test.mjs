@@ -10,6 +10,10 @@ test("field coercion handles numeric, boolean, and checkbox rules", () => {
   assert.equal(coerceDocumentFieldDescriptor({ elementKind: "input", inputType: "checkbox", checked: true }), true);
 });
 
+test("select fields preserve saved BattleMech heat profile codes", () => {
+  assert.equal(coerceDocumentFieldDescriptor({ elementKind: "select", value: "HT-04" }), "HT-04");
+});
+
 test("unchecked radios are skipped while checked radios keep their value", () => {
   const skipped = coerceDocumentFieldDescriptor({ elementKind: "input", inputType: "radio", checked: false, value: "a" });
   const chosen = coerceDocumentFieldDescriptor({ elementKind: "input", inputType: "radio", checked: true, value: "b" });

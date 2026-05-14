@@ -24,7 +24,20 @@ function createWeapon({
   area = "none",
   active = true,
   clusteringDice = 0,
+  payloadDamageType = "",
 } = {}) {
+  const effectiveDamageType = payloadDamageType || damageType;
+  const labelFor = (type) => type === "energy"
+    ? "Energy"
+    : type === "penetrating" || type === "ballistic"
+      ? "Penetrating"
+      : type === "concussive" || type === "explosive"
+        ? "Concussive"
+        : type === "thermal"
+          ? "Thermal"
+          : type === "electrical"
+            ? "Electrical"
+            : type;
   return {
     id,
     name,
@@ -48,7 +61,7 @@ function createWeapon({
       return active;
     },
     getDamageTypeLabel() {
-      return damageType === "energy" ? "Energy" : damageType === "ballistic" ? "Ballistic" : damageType;
+      return labelFor(effectiveDamageType);
     },
     getCombatProfile() {
       return {
@@ -60,7 +73,9 @@ function createWeapon({
         damage,
         clusteringDice,
         ap,
-        damageType,
+        baseDamageType: damageType,
+        baseDamageTypeLabel: labelFor(damageType),
+        damageType: effectiveDamageType,
         damageTypeLabel: this.getDamageTypeLabel(),
         attackRatingBand: {
           close: Number(attackRatings.close ?? 0) || 0,
@@ -190,6 +205,36 @@ test("BattleMech ranged groups block mixed damage types and special-case profile
   assert.match(mixed.disableReason, /same damage type/i);
   assert.equal(special.isAttackLegal, false);
   assert.match(special.disableReason, /special attack mode/i);
+});
+
+test("BattleMech energy weapons with thermal and electrical payload effects group as Energy", () => {
+  const flamer = createWeapon({
+    id: "flamer",
+    name: "Flamer",
+    damageType: "energy",
+    payloadDamageType: "thermal",
+    rangeCap: "near",
+    attackRatings: { close: 2, near: 2, far: 0, extreme: 0 },
+  });
+  const taser = createWeapon({
+    id: "taser",
+    name: "Taser",
+    damageType: "energy",
+    payloadDamageType: "electrical",
+    rangeCap: "near",
+    attackRatings: { close: 1, near: 2, far: 0, extreme: 0 },
+  });
+  const actor = createActor({
+    groups: [{ id: "specialized-energy", name: "Specialized Energy", weaponIds: ["flamer", "taser"] }],
+    weapons: [flamer, taser],
+  });
+
+  const [group] = prepareBattlemechWeaponGroups(actor);
+
+  assert.equal(group.isAttackLegal, true);
+  assert.equal(group.attackSummary.baseDamageType, "energy");
+  assert.equal(group.attackSummary.damageType, "energy");
+  assert.equal(group.attackSummary.damageTypeLabel, "Energy");
 });
 
 test("BattleMech standard direct-fire profiles remain groupable when their area effect is discrete", () => {

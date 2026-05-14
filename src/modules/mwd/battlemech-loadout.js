@@ -11,6 +11,10 @@ import {
   getMountedMachineItems,
   normalizeMachineWeaponSize,
 } from "./machine-hardpoints.js";
+import {
+  normalizeMachineHardpointType,
+  normalizeMachineWeaponDamageType,
+} from "./machine-weapon-types.js";
 import { formatString } from "../strings.js";
 
 const MOUNT_POINTS = {
@@ -69,7 +73,7 @@ export class BattlemechLoadout {
           warnings.push(formatString(ANARCHY.mwd.loadout.warnings.weaponMissing, { weapon: weaponId }));
           continue;
         }
-        const weaponType = weapon.system.damageType ?? "energy";
+        const weaponType = normalizeMachineWeaponDamageType(weapon.system.damageType ?? "energy", "energy");
         const weaponSize = normalizeMachineWeaponSize(weapon.system.size ?? "small");
         if (usedWeapons.has(weaponId)) {
           errors.push(formatString(ANARCHY.mwd.loadout.errors.weaponAlreadyGrouped, { weapon: weapon.name }));
@@ -133,7 +137,7 @@ export class BattlemechLoadout {
   _normalizeHardpoints() {
     return this._toCollection(this.mwd.hardpoints).map((hp, index) => ({
       id: hp.id ?? `hardpoint-${index + 1}`,
-      type: hp.type ?? "energy",
+      type: normalizeMachineHardpointType(hp.type ?? "energy", "energy"),
       size: normalizeMachineWeaponSize(hp.size ?? "small"),
       location: hp.location ?? "arms",
       itemId: String(hp.itemId ?? "").trim(),

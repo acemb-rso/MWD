@@ -22,6 +22,10 @@ import {
   normalizeWeaponTraits,
 } from "../mwd/personal-damage.js";
 import {
+  getMachineWeaponDamageTypeLabel,
+  normalizeMachineWeaponDamageType,
+} from "../mwd/machine-weapon-types.js";
+import {
   getPersonalRangeBandLabel,
   normalizePersonalRangeData,
 } from "../mwd/personal-range-bands.js";
@@ -236,6 +240,9 @@ export class WeaponItem extends MWDItem {
     const ap = Number(system.ap ?? system.armorPiercing ?? 0) || 0;
     const category = String(system.category ?? system.weaponCategory ?? "ranged").trim() || "ranged";
     const traits = WeaponItem.normalizeTraits(system.traits);
+    const baseDamageType = canonicalType === TEMPLATE.itemType.personalWeapon
+      ? normalizePersonalDamageType(system.damageType)
+      : normalizeMachineWeaponDamageType(system.damageType, "energy");
 
     return {
       id: this.id ?? "weapon",
@@ -251,9 +258,14 @@ export class WeaponItem extends MWDItem {
       skillDef,
       damage,
       ap,
-      damageType: canonicalType === TEMPLATE.itemType.personalWeapon
-        ? normalizePersonalDamageType(system.damageType)
-        : String(system.damageType ?? "kinetic").trim() || "kinetic",
+      baseDamageType,
+      baseDamageTypeLabel: canonicalType === TEMPLATE.itemType.personalWeapon
+        ? getPersonalDamageTypeLabel(baseDamageType)
+        : getMachineWeaponDamageTypeLabel(baseDamageType),
+      damageType: baseDamageType,
+      damageTypeLabel: canonicalType === TEMPLATE.itemType.personalWeapon
+        ? getPersonalDamageTypeLabel(baseDamageType)
+        : getMachineWeaponDamageTypeLabel(baseDamageType),
       attackRatingBand: WeaponItem.normalizeAttackRatingBand(system.attackRatingBand),
       range,
       defaultRangeBand: this.getDefaultRangeBand(range),
@@ -365,9 +377,8 @@ export class WeaponItem extends MWDItem {
     if ((this.canonicalType ?? this.type) === TEMPLATE.itemType.personalWeapon) {
       return getPersonalDamageTypeLabel(this.system.damageType);
     }
-    const labelKey = MWD.mwd.weaponDamageType[this.system.damageType]
-      ?? MWD.mwd.personalDamageType[this.system.damageType];
-    return labelKey ? labelKey : this.system.damageType;
+    const normalized = normalizeMachineWeaponDamageType(this.system.damageType, "energy");
+    return getMachineWeaponDamageTypeLabel(normalized);
   }
 
   getRanges() {

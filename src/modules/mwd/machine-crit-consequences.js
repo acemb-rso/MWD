@@ -5,6 +5,10 @@
 
 import { startCase } from "../constants.js";
 import { getMachineHardpointByItemId } from "./machine-hardpoints.js";
+import {
+  isMachineEnergyDamageFamily,
+  isMachinePenetratingDamageFamily,
+} from "./machine-weapon-types.js";
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -44,25 +48,27 @@ export function getMachineWeaponsForGroup(actor = null, group = null) {
 export function isEnergyMachineWeapon(weapon = {}) {
   const system = weapon?.system ?? weapon ?? {};
   const hints = [
+    system.baseDamageType,
     system.damageType,
     system.category,
     system.weaponCategory,
     system.attackType,
   ].map(value => String(value ?? "").trim().toLowerCase()).filter(Boolean);
   const traits = asArray(system.traits).map(value => String(value ?? "").trim().toLowerCase());
-  return hints.includes("energy") || traits.includes("energy");
+  return hints.some(isMachineEnergyDamageFamily) || traits.some(isMachineEnergyDamageFamily);
 }
 
 export function isBallisticMachineWeapon(weapon = {}) {
   const system = weapon?.system ?? weapon ?? {};
   const hints = [
+    system.baseDamageType,
     system.damageType,
     system.category,
     system.weaponCategory,
     system.attackType,
   ].map(value => String(value ?? "").trim().toLowerCase()).filter(Boolean);
   const traits = asArray(system.traits).map(value => String(value ?? "").trim().toLowerCase());
-  return hints.includes("ballistic") || traits.includes("ballistic");
+  return hints.some(isMachinePenetratingDamageFamily) || traits.some(isMachinePenetratingDamageFamily);
 }
 
 function groupMatchesLocationFamily(group = {}, actor = null, locationFamily = "") {

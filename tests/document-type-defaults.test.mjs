@@ -78,7 +78,7 @@ test("mech weapon defaults include hardpoint slot and payload scaffolding", () =
   assert.equal(defaults.system.weaponCategory, "ranged");
   assert.equal(defaults.system.skill, "gunnery");
   assert.equal(defaults.system.size, "small");
-  assert.equal(defaults.system.damageType, "penetrating");
+  assert.equal(defaults.system.damageType, "energy");
   assert.equal(defaults.system.volatile, false);
   assert.deepEqual(defaults.system.payloads, []);
   assert.deepEqual(defaults.system.consumptionSources, []);

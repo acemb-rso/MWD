@@ -207,6 +207,7 @@
           },
           "heat": {
             "current": 0,
+            "profileCode": "",
             "max": 10,
             "thresholds": {
               "runningHot": 2,
@@ -536,7 +537,7 @@
       "size": "small",
       "damage": 0,
       "ap": 0,
-      "damageType": "penetrating",
+      "damageType": "energy",
       "attackRatingBand": {
         "close": 0,
         "near": 0,

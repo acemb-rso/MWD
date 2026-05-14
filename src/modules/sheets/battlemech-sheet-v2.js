@@ -17,6 +17,10 @@ import {
   resolveBattlemechPendingHeat,
   setBattlemechPendingHeat,
 } from "../mwd/machine-heat.js";
+import {
+  BATTLEMECH_HEAT_PROFILES,
+  getBattlemechHeatProfile,
+} from "../mwd/battlemech-heat-profiles.js";
 import { getConfiguredMachineHardpoints } from "../mwd/machine-hardpoints.js";
 import {
   buildBattlemechMeleeProfiles,
@@ -182,6 +186,9 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     root.querySelectorAll(".mwd-battlemech-groups__name-input").forEach(input => {
       input.addEventListener("change", e => this.#onWeaponGroupNameChange(e));
     });
+    root.querySelectorAll("[data-heat-profile-select]").forEach(select => {
+      select.addEventListener("change", e => this.#onHeatProfileChange(e));
+    });
   }
 
   async #onWeaponGroupNameChange(event) {
@@ -200,6 +207,32 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     if (!group || group.name === newName) return;
     group.name = newName;
     await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
+  }
+
+  #onHeatProfileChange(event) {
+    if (!this.isEditable) return;
+
+    const select = event?.target;
+    if (!(select instanceof HTMLSelectElement)) return;
+
+    const profile = getBattlemechHeatProfile(select.value);
+    if (!profile) return;
+
+    const root = this._getRootElement();
+    if (!root) return;
+
+    const setNumberField = (name, value) => {
+      const field = root.querySelector(`[name="${name}"]`);
+      if (!(field instanceof HTMLInputElement)) return;
+      field.value = String(value);
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+
+    setNumberField("system.monitors.heat.max", profile.trackLength);
+    setNumberField("system.mwd.heat.thresholds.runningHot", profile.thresholds.runningHot);
+    setNumberField("system.mwd.heat.thresholds.overheated", profile.thresholds.overheated);
+    setNumberField("system.mwd.heat.thresholds.shutdown", profile.thresholds.shutdown);
   }
 
   _buildChassisFields() {
@@ -306,6 +339,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   _buildHeatModel() {
     const heat = buildBattlemechHeatModel(this.actor);
     const thresholds = heat.thresholds ?? {};
+    const profileCode = String(this.actor.system?.mwd?.heat?.profileCode ?? "").trim();
 
     return {
       label: "Heat",
@@ -317,6 +351,14 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       coolingImpaired: heat.coolingImpaired,
       pendingGenerated: heat.pendingGenerated,
       editable: Boolean(this.isEditable),
+      profileCode,
+      profileOptions: BATTLEMECH_HEAT_PROFILES.map(profile => ({
+        value: profile.code,
+        label: profile.tier,
+        selected: profile.code === profileCode,
+        trackLength: profile.trackLength,
+        thresholds: profile.thresholds,
+      })),
       status: heat.status,
       thresholds: {
         runningHot: toNumber(thresholds.runningHot, 0),

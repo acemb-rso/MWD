@@ -766,8 +766,6 @@ export const MWD = {
         "penetrating": "Penetrating",
         "concussive": "Concussive",
         "energy": "Energy",
-        "thermal": "Thermal",
-        "electrical": "Electrical",
         "support": "Support",
         "omni": "Omni"
       },
@@ -790,8 +788,6 @@ export const MWD = {
       "penetrating": "Penetrating",
       "concussive": "Concussive",
       "energy": "Energy",
-      "thermal": "Thermal",
-      "electrical": "Electrical",
       "support": "Support",
       "omni": "Omni"
     },

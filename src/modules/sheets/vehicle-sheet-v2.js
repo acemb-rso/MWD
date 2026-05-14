@@ -1285,9 +1285,9 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     if (!hardpoint) return;
 
     const existingCount = actorWriteTarget.items.filter(item => (item.canonicalType ?? item.type) === "mechWeapon").length;
-    const defaultDamageType = ["penetrating", "concussive", "energy", "thermal", "electrical"].includes(String(hardpoint?.type ?? "").trim())
+    const defaultDamageType = ["penetrating", "concussive", "energy"].includes(String(hardpoint?.type ?? "").trim())
       ? String(hardpoint.type).trim()
-      : "penetrating";
+      : "energy";
     const created = await actorWriteTarget.createEmbeddedDocuments("Item", [{
       name: `Mech Weapon ${existingCount + 1}`,
       type: "mechWeapon",

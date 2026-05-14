@@ -26,6 +26,7 @@ import { createHazardRegionFromAttack } from "../area-effects/hazard-regions.js"
 import { getMachineAttackDamageModifier } from "../mwd/machine-crit-effects.js";
 import { getMachineAttackCqAdjustments, getMachineHeatAdjustments } from "../mwd/machine-state-effects.js";
 import { rollClusteringDamage } from "../mwd/machine-clustering.js";
+import { isMachineEnergyDamageFamily } from "../mwd/machine-weapon-types.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -204,7 +205,7 @@ async function buildDamageSnapshot(ctx = {}, outcome = {}) {
     weapon: attack?.weapon,
   });
   const stateHeat = getMachineHeatAdjustments(ctx?.attacker);
-  const isEnergyAttack = String(attack?.weapon?.damageType ?? "").trim().toLowerCase() === "energy";
+  const isEnergyAttack = isMachineEnergyDamageFamily(attack?.weapon?.baseDamageType ?? attack?.weapon?.damageType);
   const baseDamage = Math.max(0, (Number(attack?.weapon?.damage ?? 0) || 0) + critDamageDelta + (isEnergyAttack ? Number(stateHeat.energyAttackDamage ?? 0) : 0));
   const clusterDice = Math.max(0, Number(attack?.weapon?.clusteringDice ?? 0) || 0);
   const clusterTargetNumber = Number(attack?.weapon?.clusteringTargetNumber ?? 5) || 5;

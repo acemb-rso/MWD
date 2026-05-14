@@ -118,6 +118,20 @@ test("battlemech attack heat sums weapon heat and crit-based attack surcharges",
   assert.equal(result.total, 6);
 });
 
+test("payload-specialized energy attacks count as energy for heat surcharges", () => {
+  const result = computeBattlemechAttackHeat({
+    weapons: [
+      { system: { heat: 2, damageType: "thermal" } },
+    ],
+    crits: [
+      { active: true, resourceEffects: { heatPerEnergyAttack: 2 } },
+    ],
+  });
+
+  assert.equal(result.extraEnergyHeat, 2);
+  assert.equal(result.total, 4);
+});
+
 test("recording BattleMech attack heat accumulates pending heat from weapon ids and resolved profiles", async () => {
   const actor = {
     type: "battlemech",

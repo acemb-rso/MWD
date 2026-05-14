@@ -14,6 +14,10 @@ import {
   normalizeConsumptionSource,
   resolveConsumptionSourceState,
 } from "../mwd/personal-damage.js";
+import {
+  MACHINE_WEAPON_DAMAGE_TYPES,
+  getMachineWeaponDamageTypeLabel,
+} from "../mwd/machine-weapon-types.js";
 import { getPersonalRangeBandLabel } from "../mwd/personal-range-bands.js";
 import {
   PERSONAL_WEAPON_PAYLOAD_CAPABILITY_OPTIONS,
@@ -187,6 +191,12 @@ export class WeaponItemSheet extends BaseItemSheet {
       ? "melee"
       : "ranged";
     const hardpointSizeLabels = MWD?.mwd?.hardpointSize ?? MWD?.mwd?.hardpoint?.size ?? {};
+    const baseDamageTypeOptions = canonicalType === "mechWeapon"
+      ? [...MACHINE_WEAPON_DAMAGE_TYPES]
+      : [...PERSONAL_DAMAGE_TYPES];
+    const getBaseDamageTypeLabel = canonicalType === "mechWeapon"
+      ? getMachineWeaponDamageTypeLabel
+      : getPersonalDamageTypeLabel;
 
     context.weaponProfile = this.item.getCombatProfile?.() ?? null;
     context.weaponEditor = {
@@ -200,9 +210,9 @@ export class WeaponItemSheet extends BaseItemSheet {
             { value: "other", label: "Other" }
           ],
       damageTypes: appendSelectedOption(
-        [...PERSONAL_DAMAGE_TYPES],
+        baseDamageTypeOptions,
         selectedDamageType,
-        value => getPersonalDamageTypeLabel(value)
+        value => getBaseDamageTypeLabel(value)
       ),
       ranges: WeaponItem.RANGE_ORDER.map(value => ({
         value,
