@@ -9,13 +9,14 @@ import { LayoutRegistry } from "../layout/layout-registry.js";
 import { getActiveMachineCrits } from "../mwd/critical-hits.js";
 import { getMachineCritRemedy } from "../mwd/machine-crit-remedies.js";
 import { buildMachineEwPanel, resolveMachineEwActionTarget } from "../mwd/machine-ew-panel.js";
-import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
 import { describeMachineCriticalEffect } from "../mwd/machine-crit-effects.js";
 import {
   getMachineConditionLabel,
   getMachineConditionModifier,
   getMachineDegradationLocationPriority,
   getMachineReliabilityThreshold,
+  MACHINE_CONDITION_LABELS,
+  MACHINE_CONDITION_STAGES,
   normalizeMachineDegradationState,
 } from "../mwd/machine-degradation.js";
 import {
@@ -39,16 +40,13 @@ import {
 import { getMachineLocationLabel } from "../mwd/machine-hit-locations.js";
 import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import { buildMachineMovementFields, buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
-import { buildVehicleMovementActionChoices, performVehicleMovementAction } from "../mwd/vehicle-movement-actions.js";
+import { buildVehicleMovementActionChoices } from "../mwd/vehicle-movement-actions.js";
 import {
   buildMachineCriticalRepairIssues,
   buildMachineEwActionChoices,
-  performMachineCriticalRepair,
-  performMachineElectronicWarfare,
-  performMachinePilotingCheck,
 } from "../mwd/machine-quick-actions.js";
 import { buildVehicleProfileSummary, VEHICLE_FLIGHT_SUBTYPES, VEHICLE_MOVEMENT_PROFILES, VEHICLE_TERRAIN_CLASSES } from "../mwd/vehicle-profiles.js";
-import { buildVehicleStrainModel, resolveVehiclePendingStrain } from "../mwd/vehicle-strain.js";
+import { buildVehicleStrainModel } from "../mwd/vehicle-strain.js";
 import { getSkillDef } from "../mwd/skills.js";
 import { cachePendingTokenPosition } from "../mwd/token-measurement.js";
 import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
@@ -82,6 +80,15 @@ function toSnippet(value, max = 180) {
   return `${plain.slice(0, Math.max(0, max - 3)).trim()}...`;
 }
 
+function getMachineActionService() {
+  return game.mwd?.machineActions ?? game.system?.mwd?.machineActions ?? null;
+}
+
+async function executeMachineAction(actor, request = {}) {
+  const service = getMachineActionService();
+  if (!service?.execute) throw new Error("MWD machine action service not initialized.");
+  return service.execute(actor, request);
+}
 
 const HARDPOINT_TYPE_CODES = Object.freeze({
   energy: "ENG",
@@ -566,6 +573,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       if (safeLeft !== safeRight) return safeLeft - safeRight;
       return String(leftKey).localeCompare(String(rightKey));
     });
+    const conditionOptions = Object.entries(MACHINE_CONDITION_LABELS).map(([value, label]) => ({
+      value: Number(value),
+      label,
+    }));
+
     const locations = entries.map(([key, location]) => {
       const conditionValue = toNumber(location?.condition, 0);
       const stress = toNumber(location?.stress, 0);
@@ -576,9 +588,12 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         key,
         label: getMachineLocationLabel(key),
         stress,
+        stressPath: `system.mwd.locations.${key}.stress`,
         conditionValue,
+        conditionPath: `system.mwd.locations.${key}.condition`,
         conditionLabel: getMachineConditionLabel(conditionValue),
         conditionModifier: getMachineConditionModifier(conditionValue),
+        conditionOptions: conditionOptions.map(opt => ({ ...opt, selected: opt.value === conditionValue })),
         destroyed,
         effectSummary: buildMachineDegradationEffectSummary(this.actor.type, key, location),
         enabled: location?.enabled !== false,
@@ -595,6 +610,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       spendable,
       shock,
       threshold,
+      shockPath: "system.mwd.shock.value",
+      spendablePath: "system.mwd.reliabilitySpendable.value",
       summaryEffects: machineState.effectTexts ?? [],
       movementEffects,
       locations,
@@ -1472,32 +1489,21 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       return false;
     }
 
-    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
-    if (!rollApi?.execute) {
-      ui.notifications?.error("MWD roll system not initialized.");
-      return false;
-    }
-
     const token = this._resolveStatusToken(actor);
-    const result = await rollApi.execute({
-      actor,
-      payload: {
-        intent: "attack",
-        sourceType: "mechWeapon",
-        sourceId: item.id,
-        weaponId: item.id,
-        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-        tags: ["combat", "attack", "machine"],
-        sourceTokenId: token?.id ?? null,
-      },
+    const result = await executeMachineAction(actor, {
+      kind: "attack",
+      sourceType: "mechWeapon",
+      sourceId: item.id,
+      token,
       event,
     });
 
-    if (result) {
+    if (result?.ok) {
       return true;
     }
 
-    return Boolean(result);
+    if (result?.userMessage || result?.reason) ui.notifications?.warn(result.userMessage ?? result.reason);
+    return false;
   }
 
   async _onMachineCritRemedy(event, target) {
@@ -1505,31 +1511,16 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     event?.stopPropagation?.();
 
     const machineActor = this.getPersistentActor() ?? this.actor;
-    const request = await prepareMachineRemedyRoll({
-      machineActorUuid: target?.dataset?.machineActorUuid ?? machineActor.uuid,
+    const result = await executeMachineAction(machineActor, {
+      kind: "repair",
+      issueKind: target?.dataset?.issueKind ?? "crit",
+      issueId: target?.dataset?.critId ?? "",
       critId: target?.dataset?.critId ?? "",
       remedyKey: target?.dataset?.remedyKey ?? "",
-    }, {
-      gmOverride: Boolean(game.user?.isGM),
-    });
-
-    if (!request.ok) {
-      ui.notifications?.warn(request.reason ?? "Unable to launch that machine remedy.");
-      return false;
-    }
-
-    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
-    if (!rollApi?.execute) {
-      ui.notifications?.error("MWD roll system not initialized.");
-      return false;
-    }
-
-    await rollApi.execute({
-      actor: request.actor,
-      payload: request.payload,
       event,
     });
-    return true;
+    if (!result?.ok) ui.notifications?.warn(result?.userMessage ?? result?.reason ?? "Unable to launch that machine remedy.");
+    return Boolean(result?.ok);
   }
 
   async _onEwAcquire(event, target) {
@@ -1587,7 +1578,10 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
     const selectedAction = selectableChoices.find(choice => choice.id === selectedId) ?? defaultChoice;
     try {
-      await performVehicleMovementAction(actor, { movementKind: selectedAction.id });
+      await executeMachineAction(actor, {
+        kind: "movement",
+        movementKind: selectedAction.id,
+      });
     } catch (error) {
       console.error("MWD | Failed to record vehicle movement", error);
       notifyRollError(error, "Unable to record that vehicle movement.");
@@ -1601,14 +1595,21 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const actor = this.getPersistentActor() ?? this.actor;
     const rollKind = String(target?.dataset?.rollKind ?? "").trim();
     try {
-      if (rollKind === "piloting") await performMachinePilotingCheck(actor);
+      if (rollKind === "piloting") await executeMachineAction(actor, { kind: "piloting" });
       else if (rollKind === "sensor") {
         const token = this._resolveStatusToken(actor);
         const selectedAction = await this.#promptVehicleEwAction(actor, { token });
-        if (selectedAction) await performMachineElectronicWarfare(actor, { action: selectedAction, token });
+        if (selectedAction) await executeMachineAction(actor, {
+          kind: "ew",
+          action: selectedAction,
+          token,
+        });
       } else if (rollKind === "repair") {
         const selectedIssue = await this.#promptVehicleCriticalRepairIssue(actor);
-        if (selectedIssue) await performMachineCriticalRepair(actor, { issue: selectedIssue });
+        if (selectedIssue) await executeMachineAction(actor, {
+          kind: "repair",
+          issue: selectedIssue,
+        });
       }
     } catch (error) {
       console.error("MWD | Failed to launch vehicle check", error);
@@ -1737,7 +1738,10 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
               "system.mwd.strain.value": Math.max(0, Number(currentInput?.value ?? strain.value) || 0),
               "system.mwd.strain.pendingGenerated": Math.max(0, Number(pendingInput?.value ?? strain.pendingGenerated) || 0),
             });
-            await resolveVehiclePendingStrain(actor, { reason: "strain dialog" });
+            await executeMachineAction(actor, {
+              kind: "resolvePendingStrain",
+              reason: "strain dialog",
+            });
             return true;
           },
         },
@@ -1783,8 +1787,6 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   async #launchMachineEwIntent(intent, event, target) {
     const actor = this.getPersistentActor?.() ?? this.actor;
     const token = this._resolveStatusToken(actor);
-    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
-    if (!rollApi?.execute) return false;
 
     const panel = buildMachineEwPanel({ actor, token });
     const explicitTargetTokenUuid = String(target?.dataset?.targetTokenUuid ?? "").trim();
@@ -1810,16 +1812,18 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     }
 
     try {
-      await rollApi.execute({
-        actor,
-        payload: {
-          intent,
-          sourceTokenId: token?.id ?? null,
-          targetTokenId: targetRow.targetTokenId,
-          targetTokenUuid: targetRow.targetTokenUuid,
-        },
+      const result = await executeMachineAction(actor, {
+        kind: "ew",
+        intent,
+        token,
+        targetTokenId: targetRow.targetTokenId,
+        targetTokenUuid: targetRow.targetTokenUuid,
         event,
       });
+      if (!result?.ok) {
+        ui.notifications?.warn(result?.userMessage ?? result?.reason ?? "Unable to launch that EW action.");
+        return false;
+      }
       this.#renderEwState();
       return true;
     } catch (error) {

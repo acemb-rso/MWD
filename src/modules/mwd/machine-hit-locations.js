@@ -110,7 +110,7 @@ export function rollMachineHitLocationTotal() {
   if (typeof Roll === "function") {
     try {
       const roll = new Roll("3d6");
-      const evaluated = roll.evaluate({ async: false });
+      const evaluated = roll.evaluateSync();
       return Number(evaluated?.total ?? roll.total ?? 10) || 10;
     } catch (_error) {
       // Foundry versions differ on synchronous Roll support; the location helper

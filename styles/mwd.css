@@ -4245,8 +4245,8 @@
 }
 
 .mwd-damage-card__detail {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(5.75rem, max-content) minmax(0, 1fr);
   gap: 0.75rem;
   align-items: baseline;
   padding: 0.45rem 0.55rem;
@@ -4255,7 +4255,15 @@
   border: 1px solid var(--mwd-damage-card-row-border);
 }
 
+.mwd-damage-card__detail-label {
+  min-width: 0;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
 .mwd-damage-card__detail-value {
+  min-width: 0;
   text-align: right;
   font-weight: 700;
   color: var(--mwd-damage-card-text);

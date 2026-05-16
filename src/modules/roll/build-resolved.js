@@ -41,14 +41,18 @@ export function buildResolved({
   const diceTerm = roll.dice?.[0];
   const results = Array.isArray(diceTerm?.results) ? diceTerm.results : [];
 
+  const FACE_NAMES = ["", "one", "two", "three", "four", "five", "six"];
+
   const dice = results.map((r, i) => {
     const ref = `pool:${i}`; // stable group-based addressing
     const face = Number(r.result);
     const isSuccess = Boolean(r.success);
+    const faceName = FACE_NAMES[face] ?? "one";
 
     return {
       ref,
       face,
+      fasClass: isSuccess ? `fas fa-dice-${faceName}` : `far fa-dice-${faceName}`,
       isSuccess,
       isFailure: !isSuccess,
       tooltip: isSuccess

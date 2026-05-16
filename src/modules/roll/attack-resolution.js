@@ -283,7 +283,7 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
   if (isMachineActor(targetActor)) {
     return {
       mode: "machineAttackDamage",
-      damage: damage?.scaledIncoming ?? 0,
+      damage: damage?.incoming ?? 0,
       attackQuality: damage?.attackQuality ?? "",
       outcome: damage?.attackQuality === "highMargin" ? "hit" : (damage?.attackQuality ?? ""),
       netHits: damage?.netHits ?? 0,

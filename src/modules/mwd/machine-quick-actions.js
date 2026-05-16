@@ -6,12 +6,18 @@
 import { MWD } from "../config.js";
 import { TEMPLATE } from "../constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { performBattlemechMeleeAttack } from "./battlemech-melee-actions.js";
+import { performBattlemechMovementAction } from "./battlemech-movement-actions.js";
+import { performBattlemechRangedAttack } from "./battlemech-ranged-actions.js";
 import { buildMachineEwPanel, resolveMachineEwActionTarget } from "./machine-ew-panel.js";
 import { getMachineActionDefinition } from "./machine-action-catalog.js";
+import { buildBattlemechHeatModel, resolveBattlemechPendingHeat } from "./machine-heat.js";
 import { prepareMachineRemedyRoll } from "./machine-intents.js";
 import { resolveMachineOperator } from "./machine-operator.js";
 import { resolveMachineSceneToken } from "./machine-token-resolution.js";
 import { getMachineRepairIssues } from "./machine-repair-issues.js";
+import { performVehicleMovementAction } from "./vehicle-movement-actions.js";
+import { resolveVehiclePendingStrain } from "./vehicle-strain.js";
 
 function getMachineRollApi() {
   return game.mwd?.roll ?? game.system?.mwd?.roll ?? null;
@@ -22,6 +28,229 @@ function getRollUnavailableResult() {
   ui.notifications?.error(reason);
   return { ok: false, reason };
 }
+
+function assertMachineActionActor(actor) {
+  if (!actor) throw new Error("MWD machine action requires actor.");
+}
+
+function normalizeMachineActionRequest(request = {}) {
+  if (!request || typeof request !== "object") {
+    throw new Error("MWD machine action request must be an object.");
+  }
+  const kind = String(request.kind ?? "").trim();
+  if (!kind) throw new Error("MWD machine action request requires kind.");
+  return { ...request, kind };
+}
+
+function assertMachineActionResult(result, kind) {
+  if (!result || typeof result !== "object" || typeof result.ok !== "boolean") {
+    throw new Error(`MWD machine action "${kind}" returned an invalid result.`);
+  }
+  if (result.ok === false && !String(result.reason ?? "").trim()) {
+    throw new Error(`MWD machine action "${kind}" returned a failure without reason.`);
+  }
+  return result;
+}
+
+async function executeRollPayload(actor, payload, event = null) {
+  const rollApi = getMachineRollApi();
+  if (!rollApi?.execute) return getRollUnavailableResult();
+  const value = await rollApi.execute({ actor, payload, event });
+  return { ok: true, value };
+}
+
+async function executeMachineAttack(actor, request) {
+  const attackKind = String(request.attackKind ?? request.actionId ?? "").trim();
+  const operatorActorUuid = String(request.operatorActorUuid ?? "").trim();
+  const token = request.token ?? resolveMachineSceneToken(actor);
+  const sourceType = String(request.sourceType ?? "").trim();
+  const sourceId = String(request.sourceId ?? request.itemId ?? request.weaponId ?? "").trim();
+
+  if (sourceType === "mechWeapon" || sourceId) {
+    if (!sourceId) throw new Error("Machine mechWeapon attack requires sourceId.");
+    return executeRollPayload(actor, {
+      intent: "attack",
+      sourceType: "mechWeapon",
+      sourceId,
+      weaponId: sourceId,
+      edge: { pool: "physical.grit", allowed: ["pre", "post"] },
+      tags: ["combat", "attack", "machine"],
+      sourceTokenId: token?.id ?? null,
+      operatorActorUuid,
+    }, request.event);
+  }
+
+  if (attackKind === "melee") {
+    if (typeof actor.rollMeleeAttack === "function" && !request.profile && !request.profileId) {
+      const value = await actor.rollMeleeAttack({ operatorActorUuid });
+      return { ok: true, value };
+    }
+    return performBattlemechMeleeAttack(actor, {
+      profile: request.profile ?? null,
+      profileId: request.profileId ?? "",
+      operatorActorUuid,
+    });
+  }
+
+  const groupId = String(request.groupId ?? "").trim();
+  if (attackKind === "ranged" || attackKind === "group" || groupId) {
+    if (typeof actor.rollRangedAttack === "function" && !request.group && !request.token) {
+      const value = await actor.rollRangedAttack({ groupId, operatorActorUuid });
+      return { ok: true, value };
+    }
+    return performBattlemechRangedAttack(actor, {
+      group: request.group ?? null,
+      groupId,
+      token,
+      operatorActorUuid,
+    });
+  }
+
+  throw new Error(`Unknown machine attack kind: ${attackKind || "(empty)"}`);
+}
+
+async function executeMachineMovement(actor, request) {
+  const movementKind = String(request.movementKind ?? request.actionId ?? "").trim();
+  if (!movementKind) throw new Error("Machine movement action requires movementKind or actionId.");
+  const options = {
+    movementKind,
+    operatorActorUuid: String(request.operatorActorUuid ?? "").trim(),
+  };
+  if (actor?.type === TEMPLATE.actorTypes.vehicle) return performVehicleMovementAction(actor, options);
+  if (actor?.type === TEMPLATE.actorTypes.battlemech) return performBattlemechMovementAction(actor, options);
+  return { ok: false, reason: "actor-not-machine", userMessage: "That actor is not a machine." };
+}
+
+async function executeMachineEwIntent(actor, request) {
+  const intent = String(request.intent ?? "").trim();
+  if (intent !== "acquire" && intent !== "targeting") return null;
+
+  const token = request.token ?? resolveMachineSceneToken(actor);
+  const panel = buildMachineEwPanel({ actor, token });
+  const explicitTargetTokenUuid = String(request.targetTokenUuid ?? "").trim();
+  const explicitTargetTokenId = String(request.targetTokenId ?? "").trim();
+  const targetRow = explicitTargetTokenUuid || explicitTargetTokenId
+    ? (panel.rows ?? []).find(row =>
+      (explicitTargetTokenUuid && row?.targetTokenUuid === explicitTargetTokenUuid)
+      || (explicitTargetTokenId && row?.targetTokenId === explicitTargetTokenId)
+    ) ?? null
+    : resolveMachineEwActionTarget(panel, intent);
+  if (!targetRow) {
+    const verb = intent === "targeting" ? "generate targeting data" : "acquire";
+    return { ok: false, reason: "missing-target", userMessage: `No targeted token is ready to ${verb}.` };
+  }
+
+  const isEligible = intent === "targeting" ? targetRow.canTarget : targetRow.canAcquire;
+  if (!isEligible) {
+    return {
+      ok: false,
+      reason: "target-not-eligible",
+      userMessage: intent === "targeting"
+        ? "That target is not ready for targeting data yet."
+        : "That target cannot advance its detection state right now.",
+    };
+  }
+
+  return executeRollPayload(actor, {
+    intent,
+    sourceTokenId: token?.id ?? null,
+    targetTokenId: targetRow.targetTokenId,
+    targetTokenUuid: targetRow.targetTokenUuid,
+    operatorActorUuid: String(request.operatorActorUuid ?? "").trim(),
+  }, request.event);
+}
+
+async function executeMachineHeatDangerCheck(actor, request) {
+  const checkKind = String(request.checkKind ?? request.actionId ?? "").trim();
+  if (!["shutdown", "explosion"].includes(checkKind)) {
+    return { ok: false, reason: "unknown-heat-danger-check", userMessage: "Unknown heat danger check." };
+  }
+
+  const heat = buildBattlemechHeatModel(actor);
+  if (!heat.inDanger || !heat.dangerChecks) {
+    return {
+      ok: false,
+      reason: "heat-not-in-danger",
+      userMessage: "Heat danger checks are only available while the BattleMech is in Danger heat.",
+    };
+  }
+
+  const dn = checkKind === "shutdown"
+    ? Math.max(1, Number(heat.dangerChecks.shutdownDN ?? 1) || 1)
+    : Math.max(1, Number(heat.dangerChecks.explosionDN ?? 1) || 1);
+
+  const token = request.token ?? resolveMachineSceneToken(actor);
+  return executeRollPayload(actor, {
+    intent: "heatDangerCheck",
+    checkKind,
+    dn,
+    tags: ["machine", "heat", "danger", checkKind],
+    edge: { allowed: [] },
+    sourceTokenId: token?.id ?? null,
+  }, request.event);
+}
+
+export async function executeMachineQuickAction(actor, request = {}) {
+  assertMachineActionActor(actor);
+  const normalized = normalizeMachineActionRequest(request);
+  let result;
+
+  switch (normalized.kind) {
+    case "attack":
+      result = await executeMachineAttack(actor, normalized);
+      break;
+    case "movement":
+      result = await executeMachineMovement(actor, normalized);
+      break;
+    case "piloting":
+      result = await performMachinePilotingCheck(actor, {
+        operatorActorUuid: normalized.operatorActorUuid,
+      });
+      break;
+    case "ew":
+      result = await executeMachineEwIntent(actor, normalized)
+        ?? await performMachineElectronicWarfare(actor, {
+          action: normalized.action ?? null,
+          actionId: normalized.actionId ?? "",
+          token: normalized.token ?? null,
+          operatorActorUuid: normalized.operatorActorUuid,
+        });
+      break;
+    case "repair":
+      result = await performMachineCriticalRepair(actor, {
+        issue: normalized.issue ?? null,
+        issueKind: normalized.issueKind ?? "",
+        issueId: normalized.issueId ?? "",
+        remedyKey: normalized.remedyKey ?? "",
+        operatorActorUuid: normalized.operatorActorUuid,
+      });
+      break;
+    case "heatDangerCheck":
+      result = await executeMachineHeatDangerCheck(actor, normalized);
+      break;
+    case "resolvePendingHeat":
+      result = await resolveBattlemechPendingHeat(actor, {
+        token: normalized.token ?? null,
+        source: normalized.source ?? normalized.reason ?? "sheet control",
+        activation: normalized.activation ?? null,
+        postDangerCard: normalized.postDangerCard ?? true,
+      });
+      break;
+    case "resolvePendingStrain":
+      result = await resolveVehiclePendingStrain(actor, {
+        reason: normalized.reason ?? "sheet control",
+      });
+      break;
+    default:
+      throw new Error(`Unknown machine action kind: ${normalized.kind}`);
+  }
+
+  return assertMachineActionResult(result, normalized.kind);
+}
+
+export const MachineActions = Object.freeze({
+  execute: executeMachineQuickAction,
+});
 
 function getActionCostLabel(action = {}) {
   if (action.category === "reaction") return "Reaction";
@@ -297,6 +526,7 @@ export async function performMachineCriticalRepair(actor, {
   issue = null,
   issueKind = "",
   issueId = "",
+  remedyKey = "",
   operatorActorUuid = "",
 } = {}) {
   const issues = buildMachineCriticalRepairIssues(actor);
@@ -319,7 +549,7 @@ export async function performMachineCriticalRepair(actor, {
     issueId: selectedIssue.issueId,
     critId: selectedIssue.issueKind === "crit" ? selectedIssue.issueId : "",
     statusId: selectedIssue.issueKind === "status" ? selectedIssue.issueId : "",
-    remedyKey: selectedIssue.remedyKey,
+    remedyKey: String(remedyKey ?? "").trim() || selectedIssue.remedyKey,
     operatorActorUuid: String(operatorActorUuid ?? "").trim(),
   }, {
     gmOverride: Boolean(game.user?.isGM),

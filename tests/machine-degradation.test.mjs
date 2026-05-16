@@ -38,7 +38,7 @@ test("reliability threshold mapping matches the locked curve", () => {
   assert.equal(getMachineReliabilityThreshold(5), 8);
 });
 
-test("zero-damage hit still adds shock without adding stress", () => {
+test("zero-structure hit does not add shock or stress by default", () => {
   const result = resolveMachineDegradation({
     actorSnapshot: buildActorSnapshot({ reliability: 3 }),
     locationKey: "front",
@@ -47,13 +47,40 @@ test("zero-damage hit still adds shock without adding stress", () => {
   });
 
   assert.equal(result.stressDelta.front ?? 0, 0);
+  assert.equal(result.shockDelta, 0);
+  assert.equal(result.summary.shockAfter, 0);
+});
+
+test("structure damage adds stress and shock", () => {
+  const result = resolveMachineDegradation({
+    actorSnapshot: buildActorSnapshot({ reliability: 3 }),
+    locationKey: "front",
+    machineDamageDealt: 2,
+    attackQuality: "highMargin",
+  });
+
+  assert.equal(result.stressDelta.front, 2);
   assert.equal(result.shockDelta, 3);
   assert.equal(result.summary.shockAfter, 3);
 });
 
+test("explicit critical shock can add pressure without structure damage", () => {
+  const result = resolveMachineDegradation({
+    actorSnapshot: buildActorSnapshot({ reliability: 3 }),
+    locationKey: "front",
+    machineDamageDealt: 0,
+    attackQuality: "",
+    extraShockGain: 2,
+  });
+
+  assert.equal(result.stressDelta.front ?? 0, 0);
+  assert.equal(result.shockDelta, 2);
+  assert.equal(result.summary.shockAfter, 2);
+});
+
 test("shock overflow advances the highest-stress location and reduces shock/stress", () => {
   const actor = buildActorSnapshot({ reliability: 2, shock: 1 });
-  actor.system.mwd.locations.front.stress = 3;
+  actor.system.mwd.locations.front.stress = 4;
   actor.system.mwd.locations.side.stress = 1;
 
   const result = resolveMachineDegradation({
@@ -79,7 +106,8 @@ test("reliability spend cancels one advancement but still consumes reduction ste
     actorSnapshot: actor,
     locationKey: "front",
     machineDamageDealt: 0,
-    attackQuality: "hit",
+    attackQuality: "",
+    extraShockGain: 2,
     allowReliabilitySpend: true,
     reliabilitySpendSelections: [0],
   });
@@ -102,10 +130,30 @@ test("disabled locations remain eligible and route to fallback", () => {
     actorSnapshot: actor,
     locationKey: "rear",
     machineDamageDealt: 0,
-    attackQuality: "hit",
+    attackQuality: "",
+    extraShockGain: 2,
   });
 
   assert.equal(result.fallbackEvents[0].location, "front");
+  assert.equal(result.summary.shockAfter, 0);
+});
+
+test("shock tie-breaks prefer the current hit location after stress and condition", () => {
+  const actor = buildActorSnapshot({ reliability: 1, shock: 1 });
+  actor.system.mwd.locations.front.stress = 1;
+  actor.system.mwd.locations.side.stress = 1;
+
+  const result = resolveMachineDegradation({
+    actorSnapshot: actor,
+    locationKey: "side",
+    machineDamageDealt: 0,
+    attackQuality: "",
+    extraShockGain: 1,
+  });
+
+  assert.equal(result.conditionAdvancements.length, 1);
+  assert.equal(result.conditionAdvancements[0].location, "side");
+  assert.equal(result.stressDelta.side, -1);
   assert.equal(result.summary.shockAfter, 0);
 });
 

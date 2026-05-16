@@ -20,6 +20,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/tabs.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/accordion.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/nodes/unknown.hbs`,
+  `systems/${SYSTEM_NAME}/templates/common/actor-reference.hbs`,
   `systems/${SYSTEM_NAME}/templates/common/view-mode.hbs`,
   `systems/${SYSTEM_NAME}/templates/common/label.hbs`,
   `systems/${SYSTEM_NAME}/templates/common/enum-value-label.hbs`,

@@ -72,6 +72,8 @@ function buildBaseCardVM(resolved) {
 
     breakdownTooltip,
 
+    diceGroups: Array.isArray(r?.roll?.diceGroups) ? r.roll.diceGroups : [],
+
     metaRows: [],
     targetRows: [],
     actions: [],

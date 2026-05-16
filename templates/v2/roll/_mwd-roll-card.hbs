@@ -64,22 +64,35 @@ How it fits: Used by rendering code to produce UI fragments.
     </div>
   </div>
 
-  {{!-- Result banner --}}
-  <div class="mwd-roll-card__result">
-    {{!-- Prefer outcomeText if provided; else derive from passed/success --}}
+  {{!-- Result banner — click to expand dice tray --}}
+  <div class="mwd-roll-card__result{{#if diceGroups.length}} is-expandable{{/if}}" {{#if diceGroups.length}}data-mwd-action="toggleDice" title="Click to show dice"{{/if}}>
     {{#if outcomeText}}
       {{outcomeText}}
     {{else}}
       {{#if passed}}SUCCESS!{{else}}{{#if success}}SUCCESS!{{else}}FAILURE!{{/if}}{{/if}}
     {{/if}}
-
-    {{!-- Optional margin (if provided in VM) --}}
     {{#if margin}}
       <span class="mwd-roll-card__margin">
         ({{#if margin}} {{margin}} {{/if}})
       </span>
     {{/if}}
   </div>
+
+  {{!-- Collapsible dice tray --}}
+  {{#if diceGroups.length}}
+    <div class="mwd-roll-card__dice">
+      {{#each diceGroups as |group|}}
+        <div class="mwd-roll-card__dice-group">
+          <div class="mwd-roll-card__dice-label">{{group.label}}</div>
+          <div class="mwd-roll-card__dice-row">
+            {{#each group.dice as |die|}}
+              <i class="mwd-die {{die.fasClass}}{{#if die.isSuccess}} is-success{{else}} is-failure{{/if}}" title="{{die.tooltip}}"></i>
+            {{/each}}
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
 
   {{!-- Meta rows (enhancer-friendly) --}}
   {{#if metaRows.length}}

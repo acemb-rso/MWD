@@ -26,24 +26,12 @@ import {
 } from "../mwd/skills.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { buildCriticalStatusSummary } from "../mwd/machine-summary.js";
-import {
-  buildBattlemechMovementActionChoices,
-  performBattlemechMovementAction,
-} from "../mwd/battlemech-movement-actions.js";
-import {
-  buildBattlemechMeleeProfiles,
-  performBattlemechMeleeAttack,
-} from "../mwd/battlemech-melee-actions.js";
-import {
-  buildBattlemechRangedAttackGroups,
-  performBattlemechRangedAttack,
-} from "../mwd/battlemech-ranged-actions.js";
+import { buildBattlemechMovementActionChoices } from "../mwd/battlemech-movement-actions.js";
+import { buildBattlemechMeleeProfiles } from "../mwd/battlemech-melee-actions.js";
+import { buildBattlemechRangedAttackGroups } from "../mwd/battlemech-ranged-actions.js";
 import {
   buildMachineCriticalRepairIssues,
   buildMachineEwActionChoices,
-  performMachineCriticalRepair,
-  performMachineElectronicWarfare,
-  performMachinePilotingCheck,
 } from "../mwd/machine-quick-actions.js";
 import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
 import {
@@ -211,8 +199,14 @@ function getBattlemechMovementChoices(actor) {
   return buildBattlemechMovementActionChoices(actor);
 }
 
-async function performAssignedBattlemechMovement(actor, options = {}) {
-  return performBattlemechMovementAction(actor, options);
+function getMachineActionService() {
+  return game.mwd?.machineActions ?? game.system?.mwd?.machineActions ?? null;
+}
+
+async function executeMachineAction(actor, request = {}) {
+  const service = getMachineActionService();
+  if (!service?.execute) throw new Error("MWD machine action service not initialized.");
+  return service.execute(actor, request);
 }
 
 function getActorIdentityKeys(actor = null) {
@@ -923,19 +917,20 @@ ctx.edgeConsole.poolsOrdered = order
     const operatorActorUuid = this.actor?.uuid ?? "";
     try {
       if (attackKind === "melee") {
-        if (typeof mech.rollMeleeAttack === "function") {
-          await mech.rollMeleeAttack({ operatorActorUuid });
-        } else {
-          const selectedProfile = await this.#promptAssignedMechMeleeProfile(mech);
-          if (selectedProfile) await performBattlemechMeleeAttack(mech, { profile: selectedProfile, operatorActorUuid });
-        }
-      } else if (typeof mech.rollRangedAttack === "function") {
-        await mech.rollRangedAttack({ groupId, operatorActorUuid });
+        const selectedProfile = await this.#promptAssignedMechMeleeProfile(mech);
+        if (selectedProfile) await executeMachineAction(mech, {
+          kind: "attack",
+          attackKind: "melee",
+          profile: selectedProfile,
+          operatorActorUuid,
+        });
       } else {
         const selectedGroup = groupId
           ? { id: groupId }
           : await this.#promptAssignedMechRangedGroup(mech);
-        if (selectedGroup?.id) await performBattlemechRangedAttack(mech, {
+        if (selectedGroup?.id) await executeMachineAction(mech, {
+          kind: "attack",
+          attackKind: "ranged",
           groupId: selectedGroup.id,
           operatorActorUuid,
         });
@@ -955,7 +950,8 @@ ctx.edgeConsole.poolsOrdered = order
     if (!selectedAction) return;
 
     try {
-      await performAssignedBattlemechMovement(mech, {
+      await executeMachineAction(mech, {
+        kind: "movement",
         movementKind: selectedAction.id,
         operatorActorUuid: this.actor?.uuid ?? "",
       });
@@ -973,13 +969,21 @@ ctx.edgeConsole.poolsOrdered = order
     const operatorActorUuid = this.actor?.uuid ?? "";
     try {
       if (rollKind === "piloting") {
-        await performMachinePilotingCheck(mech, { operatorActorUuid });
+        await executeMachineAction(mech, { kind: "piloting", operatorActorUuid });
       } else if (rollKind === "sensor") {
         const selectedAction = await this.#promptAssignedMechEwAction(mech);
-        if (selectedAction) await performMachineElectronicWarfare(mech, { action: selectedAction, operatorActorUuid });
+        if (selectedAction) await executeMachineAction(mech, {
+          kind: "ew",
+          action: selectedAction,
+          operatorActorUuid,
+        });
       } else if (rollKind === "repair") {
         const selectedIssue = await this.#promptAssignedMechCriticalRepairIssue(mech);
-        if (selectedIssue) await performMachineCriticalRepair(mech, { issue: selectedIssue, operatorActorUuid });
+        if (selectedIssue) await executeMachineAction(mech, {
+          kind: "repair",
+          issue: selectedIssue,
+          operatorActorUuid,
+        });
       }
     } catch (error) {
       notifyRollError(error, "Unable to launch BattleMech check.");

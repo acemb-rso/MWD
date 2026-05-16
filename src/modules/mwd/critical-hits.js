@@ -19,6 +19,7 @@ import {
 import {
   buildVehicleStructureZeroDisableUpdates,
   buildMachineDegradationUpdates,
+  getMachineAttackQualityShockGain,
   resolveMachineDegradation,
 } from "./machine-degradation.js";
 import { getMachineDerivedStatusIds } from "./machine-state-effects.js";
@@ -885,6 +886,13 @@ function getDirectConditionLocations(crits = []) {
     .filter(Boolean);
 }
 
+function getCriticalShockGain(crits = [], attackQuality = "") {
+  const hasShockCritical = Array.from(crits ?? [])
+    .some(crit => String(crit?.escalationKey ?? "").trim() === "shock");
+  if (!hasShockCritical) return 0;
+  return Math.max(1, getMachineAttackQualityShockGain(attackQuality));
+}
+
 function getAutomaticDegradationLocations(preview = {}) {
   if (!preview?.machine?.pureStructureHit) return [];
   if (Math.max(0, Number(preview?.machine?.structureDamage ?? 0) || 0) <= 0) return [];
@@ -1003,7 +1011,10 @@ export async function applyMachineAttackDamage({
     actorSnapshot: actor,
     locationKey: preview.critical.locationKey || preview.hitLocation.locationKey,
     machineDamageDealt: preview.machine.structureDamage,
-    attackQuality: preview.degradation?.attackQuality ?? resolveAttackQuality(payload),
+    attackQuality: preview.machine.structureDamage > 0
+      ? (preview.degradation?.attackQuality ?? resolveAttackQuality(payload))
+      : "",
+    extraShockGain: getCriticalShockGain(critDraw.ok ? critDraw.crits : [], preview.degradation?.attackQuality ?? resolveAttackQuality(payload)),
     allowReliabilitySpend: true,
     reliabilitySpendSelections: Array.isArray(payload?.reliabilitySpendSelections) ? payload.reliabilitySpendSelections : [],
     directConditionLocations: [

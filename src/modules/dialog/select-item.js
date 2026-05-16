@@ -47,13 +47,10 @@ export class SelectItem extends HandlebarsApplicationMixin(ApplicationV2) {
     return { items: this.items };
   }
 
-  async activateListeners(html) {
-    const element = html instanceof HTMLElement ? html : html?.[0];
-    await super.activateListeners(element);
-    const jqHtml = $(element);
-
-    jqHtml.find(".click-select-item").click((event) => this.onSelectItem(event));
-    jqHtml.find('[data-action="cancel"]').on("click", async () => {
+  _onRender(context, options) {
+    super._onRender?.(context, options);
+    $(this.element).find(".click-select-item").on("click", (event) => this.onSelectItem(event));
+    $(this.element).find('[data-action="cancel"]').on("click", async () => {
       if (this._resolve) {
         const resolve = this._resolve;
         this._resolve = null;

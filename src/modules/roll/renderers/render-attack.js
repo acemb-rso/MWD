@@ -256,11 +256,6 @@ export function enhanceAttack(resolved, vm) {
               text: `${result?.target?.name ?? "Target"}: Chaos Edge can convert this location hit to a critical`,
               title: ""
             });
-          } else {
-            vm.footerRows.push({
-              text: `${result?.target?.name ?? "Target"}: Location hit is descriptive only`,
-              title: ""
-            });
           }
           for (const crit of damageResult.critical?.records ?? []) {
             vm.footerRows.push({

@@ -37,7 +37,7 @@ import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-
  * Public roll API.
  * Sheets call: game.mwd.roll.execute({ actor, payload, event })
  */
-export const MWDRoll = { execute };
+export const MWDRoll = { execute, recomputeResolvedOutcomeAndAttack, applyPostRerollFailures };
 
 const EDGE_DOMAIN_POOLS = {
   physical: ["grit","chaos"],
@@ -56,6 +56,201 @@ function getEdgeAwardComponents(earned) {
     return earned.details.awards.filter(award => Number(award?.amount ?? 0) > 0);
   }
   return Number(earned?.amount ?? 0) > 0 ? [earned] : [];
+}
+
+function buildOutcomeContext(resolved = {}) {
+  const snapshot = resolved?.ctxSnapshot ?? {};
+  const dnTotal = Number(resolved?.dn?.total ?? snapshot?.dn?.total ?? snapshot?.difficulty?.dn ?? 1);
+
+  return {
+    intent: resolved?.intent ?? "unknown",
+    rollType: snapshot?.rollType ?? "simple",
+    difficulty: {
+      ...((snapshot?.difficulty && typeof snapshot.difficulty === "object") ? snapshot.difficulty : {}),
+      dn: Number.isFinite(dnTotal) ? dnTotal : 1
+    },
+    dn: resolved?.dn ?? snapshot?.dn ?? null,
+    opposed: snapshot?.opposed ?? null,
+    net: snapshot?.net ?? null,
+    edge: snapshot?.edge ?? null,
+    domains: Array.isArray(resolved?.domains) ? resolved.domains : [],
+    attack: resolved?.attack ?? null,
+  };
+}
+
+async function recomputeResolvedOutcomeAndAttack(resolved = {}, actor = null) {
+  const ctx = buildOutcomeContext(resolved);
+  const successes = Number(resolved?.outcome?.hits ?? 0) || 0;
+  const edgeEarned = resolved?.outcomeModel?.edgeEarned ?? null;
+  resolved.outcomeModel = interpretOutcome(ctx, { successes, raw: resolved?.roll?.json }, null);
+  const edgeSpent =
+    Number(resolved?.edge?.pre?.spent ?? 0) > 0 ||
+    Number(resolved?.edge?.post?.spent ?? 0) > 0;
+  resolved.outcomeModel.edgeEarned = edgeSpent ? null : edgeEarned;
+
+  if (ctx.intent === "attack" && actor && ctx.attack) {
+    resolved.attackResult = await resolveAttackExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: resolved.outcomeModel,
+      previewState: resolved.areaEffectPreviewState ?? {},
+      existingAttackResult: resolved.attackResult ?? null,
+    });
+  }
+
+  return resolved;
+}
+
+function hasAppliedAttackMutation(resolved = {}) {
+  const results = Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [];
+  return results.some(result => Boolean(result?.queuedMutation?.applied));
+}
+
+function getAppliedEdgeAwards(edgeEarned = null) {
+  if (Array.isArray(edgeEarned?.appliedAwards)) {
+    return edgeEarned.appliedAwards
+      .map(award => ({
+        pool: String(award?.pool ?? "").trim(),
+        amount: Math.max(0, Number(award?.amount ?? 0)),
+      }))
+      .filter(award => award.pool && award.amount > 0);
+  }
+
+  const pool = String(edgeEarned?.pool ?? "").trim();
+  const amount = Math.max(0, Number(edgeEarned?.amount ?? 0));
+  return edgeEarned?.applied && pool && amount > 0 ? [{ pool, amount }] : [];
+}
+
+function getSpendableEdgeAfterRevokingEarned(actor, resolved = {}, poolKey = "") {
+  const current = Number(actor?.getEdgePoolValue?.(poolKey) ?? actor?.getRemainingEdge?.(poolKey) ?? 0);
+  const revokedFromPool = getAppliedEdgeAwards(resolved?.outcomeModel?.edgeEarned)
+    .filter(award => award.pool === poolKey)
+    .reduce((sum, award) => sum + Number(award.amount ?? 0), 0);
+
+  return Math.max(0, current - revokedFromPool);
+}
+
+async function revokeAppliedEdgeEarned(actor, resolved = {}) {
+  const awards = getAppliedEdgeAwards(resolved?.outcomeModel?.edgeEarned);
+  if (!awards.length) return;
+
+  for (const award of awards) {
+    await actor.spendEdge?.(award.pool, award.amount, {
+      skipTraitHooks: true,
+      source: "postEdgeRevokesEarnedEdge",
+    });
+  }
+
+  if (resolved?.outcomeModel) resolved.outcomeModel.edgeEarned = null;
+}
+
+async function applyPostRerollFailures({ message = null, poolKey = "" } = {}) {
+  const normalizedPoolKey = String(poolKey ?? "").trim();
+  if (!message) throw new Error("Post-reroll requires a chat message.");
+  if (!normalizedPoolKey) throw new Error("Post-reroll requires poolKey.");
+
+  const resolved = foundry.utils.deepClone(message?.flags?.mwd?.resolved);
+  if (!resolved) return { ok: false, reason: "missing-resolved", userMessage: "Roll data is no longer available." };
+
+  if (hasAppliedAttackMutation(resolved)) {
+    return {
+      ok: false,
+      reason: "attack-damage-applied",
+      userMessage: "Post-roll Edge is disabled after attack damage has been applied.",
+    };
+  }
+
+  if (Number(resolved?.edge?.post?.spent ?? 0) === 1) {
+    return { ok: false, reason: "already-spent", userMessage: "Post-roll Edge has already been spent." };
+  }
+
+  const allowed = Array.isArray(resolved?.edge?.allowed?.postPools)
+    ? resolved.edge.allowed.postPools
+    : [];
+
+  if (!allowed.includes(normalizedPoolKey)) {
+    return {
+      ok: false,
+      reason: "pool-not-allowed",
+      userMessage: `Post-spend pool not allowed: ${normalizedPoolKey}`,
+    };
+  }
+
+  const failureRefs = Array.isArray(resolved?.roll?.failureDiceRefs)
+    ? resolved.roll.failureDiceRefs
+    : [];
+
+  if (failureRefs.length <= 0) {
+    return { ok: false, reason: "no-failures", userMessage: "No failures to reroll." };
+  }
+
+  const actor = await fromUuid(resolved.actorUuid);
+  if (!actor) return { ok: false, reason: "actor-not-found", userMessage: "Actor not found for this roll." };
+
+  if (getSpendableEdgeAfterRevokingEarned(actor, resolved, normalizedPoolKey) <= 0) {
+    return {
+      ok: false,
+      reason: "edge-unavailable",
+      userMessage: `No ${normalizedPoolKey} Edge available for post-spend.`,
+    };
+  }
+
+  await revokeAppliedEdgeEarned(actor, resolved);
+  await actor.spendEdge?.(normalizedPoolKey, 1);
+
+  const tn = Number(resolved?.roll?.target ?? 5);
+  const reroll = await new Roll(`${failureRefs.length}d6cs>=${tn}`).evaluate();
+  const term = reroll.dice?.[0];
+  const results = Array.isArray(term?.results) ? term.results : [];
+  const addHits = results.filter(r => r.success).length;
+
+  resolved.outcome = resolved.outcome ?? {};
+  resolved.outcome.hits = Number(resolved.outcome.hits ?? 0) + addHits;
+
+  resolved.edge = resolved.edge ?? {};
+  resolved.edge.post = { poolKey: normalizedPoolKey, spent: 1 };
+
+  resolved.edge.availableActions = {
+    ...(resolved.edge.availableActions ?? {}),
+    canSpendPost: false,
+    canPostRerollFailures: false
+  };
+
+  resolved.roll = resolved.roll ?? {};
+  resolved.roll.diceGroups = Array.isArray(resolved.roll.diceGroups) ? resolved.roll.diceGroups : [];
+  resolved.roll.diceGroups.push({
+    id: "post",
+    label: "Post Reroll",
+    faces: 6,
+    termIndex: null,
+    dice: results.map((r, i) => {
+      const face = Number(r.result);
+      const isSuccess = Boolean(r.success);
+      return {
+        ref: `post:${i}`,
+        face,
+        isSuccess,
+        isFailure: !isSuccess,
+        tooltip: isSuccess
+          ? `Post die ${i + 1}: ${face} (Success vs TN ${tn})`
+          : `Post die ${i + 1}: ${face} (Failure vs TN ${tn})`
+      };
+    })
+  });
+
+  await recomputeResolvedOutcomeAndAttack(resolved, actor);
+  const content = await renderChat({ resolved });
+
+  return {
+    ok: true,
+    resolved,
+    content,
+    updateData: {
+      content,
+      "flags.mwd.resolved": resolved,
+      "flags.mwd.payload.edge.post": { poolKey: normalizedPoolKey, spent: 1 },
+    },
+  };
 }
 
 function isCriticalEdgeAward(award) {

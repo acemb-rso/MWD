@@ -7,14 +7,10 @@ import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../constants.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
-import {
-  buildBattlemechMovementActionChoices,
-  performBattlemechMovementAction,
-} from "../mwd/battlemech-movement-actions.js";
+import { buildBattlemechMovementActionChoices } from "../mwd/battlemech-movement-actions.js";
 import { buildCriticalStatusSummary, buildIntegritySummary, buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import {
   buildBattlemechHeatModel,
-  resolveBattlemechPendingHeat,
   setBattlemechPendingHeat,
 } from "../mwd/machine-heat.js";
 import {
@@ -22,20 +18,11 @@ import {
   getBattlemechHeatProfile,
 } from "../mwd/battlemech-heat-profiles.js";
 import { getConfiguredMachineHardpoints } from "../mwd/machine-hardpoints.js";
-import {
-  buildBattlemechMeleeProfiles,
-  performBattlemechMeleeAttack,
-} from "../mwd/battlemech-melee-actions.js";
-import {
-  buildBattlemechRangedAttackGroups,
-  performBattlemechRangedAttack,
-} from "../mwd/battlemech-ranged-actions.js";
+import { buildBattlemechMeleeProfiles } from "../mwd/battlemech-melee-actions.js";
+import { buildBattlemechRangedAttackGroups } from "../mwd/battlemech-ranged-actions.js";
 import {
   buildMachineCriticalRepairIssues,
   buildMachineEwActionChoices,
-  performMachineCriticalRepair,
-  performMachineElectronicWarfare,
-  performMachinePilotingCheck,
 } from "../mwd/machine-quick-actions.js";
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 import { normalizeMachineWeaponGroups } from "../mwd/machine-weapon-group-state.js";
@@ -100,8 +87,14 @@ function getMovementActionChoices(actor) {
   return buildBattlemechMovementActionChoices(actor);
 }
 
-async function performMovementAction(actor, options = {}) {
-  return performBattlemechMovementAction(actor, options);
+function getMachineActionService() {
+  return game.mwd?.machineActions ?? game.system?.mwd?.machineActions ?? null;
+}
+
+async function executeMachineAction(actor, request = {}) {
+  const service = getMachineActionService();
+  if (!service?.execute) throw new Error("MWD machine action service not initialized.");
+  return service.execute(actor, request);
 }
 
 function buildDetailRows(rows = []) {
@@ -660,7 +653,10 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     if (!selectedAction) return;
 
     try {
-      await performMovementAction(actor, { movementKind: selectedAction.id });
+      await executeMachineAction(actor, {
+        kind: "movement",
+        movementKind: selectedAction.id,
+      });
     } catch (error) {
       console.error("MWD | Failed to record BattleMech movement", error);
       notifyRollError(error, "Unable to record that BattleMech movement.");
@@ -676,13 +672,19 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
 
     try {
       if (rollKind === "piloting") {
-        await performMachinePilotingCheck(actor);
+        await executeMachineAction(actor, { kind: "piloting" });
       } else if (rollKind === "sensor") {
         const selectedAction = await this.#promptMachineEwAction(actor);
-        if (selectedAction) await performMachineElectronicWarfare(actor, { action: selectedAction });
+        if (selectedAction) await executeMachineAction(actor, {
+          kind: "ew",
+          action: selectedAction,
+        });
       } else if (rollKind === "repair") {
         const selectedIssue = await this.#promptMachineCriticalRepairIssue(actor);
-        if (selectedIssue) await performMachineCriticalRepair(actor, { issue: selectedIssue });
+        if (selectedIssue) await executeMachineAction(actor, {
+          kind: "repair",
+          issue: selectedIssue,
+        });
       }
     } catch (error) {
       console.error("MWD | Failed to launch BattleMech check", error);
@@ -707,27 +709,12 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       return;
     }
 
-    const dn = checkKind === "shutdown"
-      ? toNumber(heat.dangerChecks.shutdownDN, 1)
-      : toNumber(heat.dangerChecks.explosionDN, 1);
-    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
-    if (!rollApi?.execute) {
-      ui.notifications?.error("MWD roll system not initialized.");
-      return;
-    }
-
     try {
-      await rollApi.execute({
-        actor,
+      await executeMachineAction(actor, {
+        kind: "heatDangerCheck",
         event,
-        payload: {
-          intent: "heatDangerCheck",
-          checkKind,
-          dn,
-          tags: ["machine", "heat", "danger", checkKind],
-          edge: { allowed: [] },
-          sourceTokenId: (this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor))?.id ?? null,
-        },
+        checkKind,
+        token: this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor),
       });
     } catch (error) {
       console.error("MWD | Failed to launch BattleMech heat danger check", error);
@@ -835,7 +822,12 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
 
   async #rollWeaponGroup(actor, groupId) {
     const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
-    return performBattlemechRangedAttack(actor, { groupId, token });
+    return executeMachineAction(actor, {
+      kind: "attack",
+      attackKind: "group",
+      groupId,
+      token,
+    });
   }
 
   async #rollMeleeAttack(actor) {
@@ -848,7 +840,11 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const selectedProfile = await this.#promptMeleeProfile(profiles);
     if (!selectedProfile) return;
 
-    await performBattlemechMeleeAttack(actor, { profile: selectedProfile });
+    await executeMachineAction(actor, {
+      kind: "attack",
+      attackKind: "melee",
+      profile: selectedProfile,
+    });
   }
 
   async #promptMeleeProfile(profiles) {
@@ -1110,7 +1106,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
     const activation = snapshot?.hasCombatant && snapshot?.isCurrentTurn ? snapshot.activation : null;
 
-    await resolveBattlemechPendingHeat(actor, {
+    await executeMachineAction(actor, {
+      kind: "resolvePendingHeat",
       source,
       activation,
       postDangerCard: true,

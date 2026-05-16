@@ -46,6 +46,7 @@ import {
 } from "./mwd/life-modules.js";
 import { getSkillDef, listSkillDefs } from "./mwd/skills.js";
 import { HarmEngine } from "./harm/harm-engine.js";
+import { QueuedAttackDamageActions } from "./harm/queued-attack-damage.js";
 import { registerTokenStatusHudFilter } from "./dialog/token-status-dialog.js";
 import { HeatFxController } from "./token/heat-fx-controller.js";
 import { configureMWDStatusEffects } from "./status/status-condition-catalog.js";
@@ -70,6 +71,7 @@ import {
   resolveBattlemechPendingHeat,
   setBattlemechPendingHeat,
 } from "./mwd/machine-heat.js";
+import { MachineActions } from "./mwd/machine-quick-actions.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -214,7 +216,8 @@ export class AnarchySystem {
     game.mwd.roll = MWDRoll;
     game.mwd.attacks = WeaponAttackActions;
     game.mwd.personalCombat = PersonalCombatTracker;
-    game.mwd.harm = HarmEngine;
+    game.mwd.machineActions = MachineActions;
+    game.mwd.harm = Object.assign(HarmEngine, QueuedAttackDamageActions);
     game.mwd.machineHeat = {
       adjustPendingHeat: adjustBattlemechPendingHeat,
       buildModel: buildBattlemechHeatModel,
@@ -229,7 +232,8 @@ export class AnarchySystem {
       this.roll = MWDRoll;
       this.attacks = WeaponAttackActions;
       this.personalCombat = PersonalCombatTracker;
-      this.harm = HarmEngine;
+      this.machineActions = MachineActions;
+      this.harm = game.mwd.harm;
       this.machineHeat = game.mwd.machineHeat;
       this.tokenHeatFx = game.mwd.tokenHeatFx;
     this.skills = createMWDSkillsService();

@@ -133,6 +133,80 @@ test("machine damage preview splits armor before structure and preserves pure-st
   assert.equal(preview.previewRevision, 0);
 });
 
+test("armor-only machine hits strip armor without shock, stress, or degradation", async () => {
+  const actor = machineActor();
+  const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 10, armorBefore: 6 });
+
+  const result = await applyMachineAttackDamage({
+    actor,
+    payload: {
+      damage: 2,
+      hitLocation,
+      outcome: "hit",
+      netHits: 1,
+      preparedCriticalRecords: [],
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(actor.system.monitors.armor.value, 2);
+  assert.equal(actor.system.monitors.structure.value, 0);
+  assert.equal(actor.system.mwd.shock.value, 0);
+  assert.equal(actor.system.mwd.locations.torso.stress, 0);
+  assert.equal(actor.system.mwd.locations.torso.condition, 0);
+  assert.equal(actor.system.mwd.locations.head.condition, 0);
+  assert.equal(result.degradation.shockDelta, 0);
+  assert.equal(result.degradation.conditionAdvancements.length, 0);
+});
+
+test("armor-only shock critical can create pressure and prefers the current hit location on ties", async () => {
+  const actor = machineActor({
+    paths: {
+      "system.attributes.reliability.value": 1,
+      "system.mwd.reliabilitySpendable.value": 1,
+    },
+  });
+  const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 10, armorBefore: 6 });
+
+  const result = await applyMachineAttackDamage({
+    actor,
+    payload: {
+      damage: 2,
+      hitLocation,
+      outcome: "hit",
+      netHits: 1,
+      preparedCriticalRecords: [{
+        id: "crit-shock",
+        key: "internalShock",
+        label: "Internal Shock",
+        generalKey: "structuralShock",
+        remedyKey: "emergencyRepair",
+        remedySkillKey: "technician",
+        remedyBaseDn: 1,
+        locationKey: "torso",
+        locationLabel: "Torso",
+        locationFamily: "torso",
+        gates: [],
+        mods: [],
+        resourceEffects: {},
+        pilotDamage: {},
+        escalationKey: "shock",
+        remedyEffect: { onSuccess: "clear", onFailure: "noChange" },
+        active: true,
+      }],
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(actor.system.monitors.armor.value, 2);
+  assert.equal(actor.system.monitors.structure.value, 0);
+  assert.equal(actor.system.mwd.locations.torso.stress, 0);
+  assert.equal(actor.system.mwd.locations.torso.condition, 1);
+  assert.equal(actor.system.mwd.locations.head.condition, 0);
+  assert.equal(result.degradation.conditionAdvancements[0].location, "torso");
+  assert.equal(result.degradation.summary.shockGain, 2);
+});
+
 test("critical preview state distinguishes automatic, optional, and selected Chaos criticals", () => {
   const actor = machineActor();
   const automaticLocation = resolveMachineHitLocation({ actor, rollTotal: 4, armorBefore: 6 });

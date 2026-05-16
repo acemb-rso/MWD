@@ -2,11 +2,8 @@
 // Purpose: Registers Foundry hooks: renderChatMessageHTML.
 // How it fits: Wires chat-card post-roll and queued attack mutation actions.
 
-import { HarmEngine } from "../harm/harm-engine.js";
 import { TEMPLATE } from "../constants.js";
 import { getPersonalDamageTypeLabel } from "../mwd/personal-damage.js";
-import { resolveAttackExecution, summarizeAttackDamageResult } from "../roll/attack-resolution.js";
-import { interpretOutcome } from "../roll/outcome/interpret-outcome.js";
 import { renderChat } from "../roll/renderers/render-chat.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import {
@@ -19,8 +16,6 @@ import {
   normalizeHazardCard,
   renderHazardCard,
 } from "../area-effects/hazard-chat.js";
-import { resolveMachineOperator } from "../mwd/machine-operator.js";
-import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
 import { buildMachineCriticalChatSummary } from "../mwd/machine-crit-effects.js";
 
 export function registerMWDChatActions() {
@@ -32,6 +27,7 @@ export function registerMWDChatActions() {
       const action = String(btn.dataset.mwdAction || "").trim();
       if (!action) return;
 
+      if (action === "toggleDice") { btn.closest(".mwd-roll-card")?.classList.toggle("is-dice-open"); return; }
       if (action === "edgePostReroll") void onEdgePostReroll(ev, message);
       if (action === "toggleEvade") void onToggleEvade(ev, message);
       if (action === "toggleEvadeEdge") void onToggleEvadeEdge(ev, message);
@@ -47,76 +43,28 @@ export function registerMWDChatActions() {
   });
 }
 
-function hasAppliedAttackMutation(resolved = {}) {
-  const results = Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [];
-  return results.some(result => Boolean(result?.queuedMutation?.applied));
+function getHarmService() {
+  return game.mwd?.harm ?? game.system?.mwd?.harm ?? null;
+}
+
+function getRollService() {
+  return game.mwd?.roll ?? game.system?.mwd?.roll ?? null;
+}
+
+function getMachineActionService() {
+  return game.mwd?.machineActions ?? game.system?.mwd?.machineActions ?? null;
 }
 
 function isMachineDamageMutation(mutation = {}) {
-  return mutation?.type === "machineAttackDamage" || mutation?.payload?.mode === "machineAttackDamage";
+  return Boolean(getHarmService()?.isMachineDamageMutation?.(mutation));
 }
 
 function getMutationTargetActorUuid(mutation = {}) {
-  return mutation?.targetActorUuid ?? mutation?.target?.actorUuid ?? null;
+  return getHarmService()?.getMutationTargetActorUuid?.(mutation) ?? null;
 }
 
 function getMutationTargetTokenUuid(mutation = {}) {
-  return mutation?.targetTokenUuid ?? mutation?.target?.tokenUuid ?? null;
-}
-
-function syncMachineMutationPreview(mutation = {}, summary = {}) {
-  if (!isMachineDamageMutation(mutation)) return mutation;
-  const previewRevision = Math.max(0, Math.trunc(Number(mutation?.payload?.previewRevision ?? mutation?.previewRevision ?? summary?.previewRevision ?? 0) || 0));
-  const preparedCriticalRecords = Array.isArray(summary?.critical?.records)
-    ? foundry.utils.deepClone(summary.critical.records).map(record => ({ ...record, previewRevision }))
-    : [];
-  mutation.type = "machineAttackDamage";
-  mutation.targetActorUuid = getMutationTargetActorUuid(mutation);
-  mutation.targetTokenUuid = getMutationTargetTokenUuid(mutation);
-  mutation.hitLocation = summary?.hitLocation ?? mutation.hitLocation ?? mutation.payload?.hitLocation ?? null;
-  mutation.damagePreview = summary?.damagePreview ?? null;
-  mutation.critical = summary?.critical ?? null;
-  mutation.preparedCriticalRecords = preparedCriticalRecords;
-  mutation.reliabilityOptions = summary?.reliabilityOptions ?? null;
-  mutation.previewRevision = previewRevision;
-  mutation.preview = summary;
-  mutation.payload ??= {};
-  mutation.payload.previewRevision = previewRevision;
-  mutation.payload.hitLocation = mutation.hitLocation;
-  mutation.payload.preparedCriticalRecords = preparedCriticalRecords;
-  return mutation;
-}
-
-async function rebuildMachineMutationPreview({ mutation = {}, result = {}, targetActor = null, targetToken = null } = {}) {
-  if (!isMachineDamageMutation(mutation)) return null;
-  mutation.previewRevision = Math.max(0, Math.trunc(Number(mutation.previewRevision ?? mutation.payload?.previewRevision ?? 0) || 0)) + 1;
-  mutation.payload ??= {};
-  mutation.payload.previewRevision = mutation.previewRevision;
-  delete mutation.payload.preparedCriticalRecords;
-  mutation.preparedCriticalRecords = [];
-  mutation.damagePreview = null;
-  mutation.critical = null;
-  mutation.reliabilityOptions = null;
-
-  const previewResult = await HarmEngine.apply({
-    actor: targetActor,
-    token: targetToken,
-    payload: mutation.payload,
-    options: {
-      actorId: targetActor?.id ?? "",
-      dryRun: true,
-      logToChat: false
-    }
-  });
-
-  const summary = summarizeAttackDamageResult(
-    previewResult,
-    result?.target ?? mutation.target ?? {},
-    result?.damage ?? {},
-    { queued: true, applied: false }
-  );
-  syncMachineMutationPreview(mutation, summary);
-  return summary;
+  return getHarmService()?.getMutationTargetTokenUuid?.(mutation) ?? null;
 }
 
 function getTrackLabel(track) {
@@ -143,6 +91,110 @@ function getDamageSeverity(finalDamage) {
   return { key: "is-critical", label: "Critical Damage" };
 }
 
+function getAppliedDamageBreakdown(summary = {}) {
+  const machine = summary?.machine ?? summary?.damagePreview?.machine ?? null;
+  if (machine) {
+    const armor = Math.max(0, Number(machine.armorAbsorbed ?? 0) || 0);
+    const structure = Math.max(0, Number(machine.structureDamage ?? summary?.finalDamage ?? summary?.appliedDelta ?? 0) || 0);
+    return {
+      isMachine: true,
+      armor,
+      structure,
+      total: armor + structure,
+    };
+  }
+
+  const total = Math.max(0, Number(summary?.finalDamage ?? summary?.appliedDelta ?? 0) || 0);
+  return {
+    isMachine: false,
+    armor: 0,
+    structure: total,
+    total,
+  };
+}
+
+function formatDamagePoints(amount) {
+  const value = Math.max(0, Number(amount ?? 0) || 0);
+  return value === 1 ? "1 point" : `${value} points`;
+}
+
+function buildDamageImpactText({ damageTypeLabel = "Damage", trackLabel = "Track", breakdown = {} } = {}) {
+  const total = Math.max(0, Number(breakdown.total ?? 0) || 0);
+  if (total <= 0) return `${damageTypeLabel} damage did not affect the target.`;
+
+  if (breakdown.isMachine) {
+    const parts = [];
+    if (breakdown.armor > 0) parts.push(`${formatDamagePoints(breakdown.armor)} to armor`);
+    if (breakdown.structure > 0) parts.push(`${formatDamagePoints(breakdown.structure)} to structure`);
+    if (parts.length) return `${damageTypeLabel} damage applied: ${parts.join(", ")}.`;
+  }
+
+  return `${damageTypeLabel} damage applied to ${trackLabel}.`;
+}
+
+function formatMonitorValue(current, max) {
+  return `${Math.max(0, Number(current ?? 0) || 0)}/${Math.max(0, Number(max ?? 0) || 0)}`;
+}
+
+function buildMachineMonitorRows(machine = null) {
+  if (!machine) return [];
+  return [
+    {
+      label: "Armor",
+      value: `${formatMonitorValue(machine.armorBefore, machine.armorMax)} -> ${formatMonitorValue(machine.armorAfter, machine.armorMax)}`,
+      class: "is-monitor"
+    },
+    {
+      label: "Structure",
+      value: `${formatMonitorValue(machine.structureBefore, machine.structureMax)} -> ${formatMonitorValue(machine.structureAfter, machine.structureMax)}`,
+      class: "is-monitor"
+    }
+  ];
+}
+
+function getHitLocationLabel(hitLocation = null) {
+  if (!hitLocation || typeof hitLocation !== "object") return "";
+  const impactLabel = String(hitLocation.impactLabel ?? hitLocation.locationLabel ?? "").trim();
+  const rulesLabel = String(hitLocation.rulesLocationLabel ?? "").trim();
+  if (impactLabel && rulesLabel && impactLabel !== rulesLabel) return `${impactLabel} (${rulesLabel})`;
+  return impactLabel || rulesLabel || String(hitLocation.locationKey ?? hitLocation.rulesLocation ?? "").trim();
+}
+
+function formatSignedAmount(amount) {
+  const value = Number(amount ?? 0) || 0;
+  if (value > 0) return `+${value}`;
+  return String(value);
+}
+
+function getStressDeltaTotal(summary = {}, machine = null) {
+  const entries = Object.values(summary?.degradation?.stressDelta ?? {});
+  if (entries.length) {
+    return entries.reduce((sum, value) => sum + Number(value ?? 0), 0);
+  }
+  return Number(machine?.locationStressGain ?? 0) || 0;
+}
+
+function getShockDelta(summary = {}) {
+  if (Number.isFinite(Number(summary?.degradation?.shockDelta))) return Number(summary.degradation.shockDelta);
+  const before = Number(summary?.degradation?.summary?.shockBefore);
+  const after = Number(summary?.degradation?.summary?.shockAfter);
+  if (Number.isFinite(before) && Number.isFinite(after)) return after - before;
+  return 0;
+}
+
+function buildCriticalInfo(summary = {}) {
+  const criticalRecords = Array.isArray(summary?.critical?.records) ? summary.critical.records : [];
+  if (criticalRecords.length) {
+    return criticalRecords
+      .map(crit => `${crit.label}${crit.locationLabel ? ` (${crit.locationLabel})` : ""}: ${buildMachineCriticalChatSummary(crit)}`)
+      .join(" ; ");
+  }
+  if (summary?.critical?.drawOk === false) {
+    return String(summary.critical.reason ?? "Critical effect was not resolved.").trim();
+  }
+  return "None";
+}
+
 function getPortraitSource({ actor = null, token = null } = {}) {
   const tokenDoc = token?.document ?? token ?? null;
   const tokenTexture = String(tokenDoc?.texture?.src ?? "").trim();
@@ -151,9 +203,9 @@ function getPortraitSource({ actor = null, token = null } = {}) {
 }
 
 function applyChatVisibility(chatData) {
-  const rollMode = game.settings?.get?.("core", "rollMode");
-  if (typeof ChatMessage.applyRollMode === "function") {
-    ChatMessage.applyRollMode(chatData, rollMode);
+  const rollMode = game.settings?.get?.("core", "messageMode");
+  if (typeof ChatMessage.applyMode === "function") {
+    ChatMessage.applyMode(chatData, rollMode);
   }
   return chatData;
 }
@@ -162,23 +214,55 @@ function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null
   const damageType = String(summary?.damageType ?? "").trim();
   const damageTypeLabel = getPersonalDamageTypeLabel(damageType || "concussive") || "Damage";
   const trackLabel = getTrackLabel(summary?.track);
-  const finalDamage = Math.max(0, Number(summary?.finalDamage ?? summary?.appliedDelta ?? 0) || 0);
-  const severity = getDamageSeverity(finalDamage);
-  const appliedAmountLabel = finalDamage === 1 ? "1 point" : `${finalDamage} points`;
+  const appliedDamage = getAppliedDamageBreakdown(summary);
+  const severity = getDamageSeverity(appliedDamage.total);
+  const appliedAmountLabel = formatDamagePoints(appliedDamage.total);
   const targetName = String(summary?.actorName ?? actor?.name ?? "Target").trim() || "Target";
   const rows = [];
+  const machine = summary?.machine ?? summary?.damagePreview?.machine ?? null;
 
-  if (summary?.beforeLabel && summary?.afterLabel) {
+  const machineMonitorRows = buildMachineMonitorRows(machine);
+  if (machineMonitorRows.length) {
+    rows.push(...machineMonitorRows);
+  } else if (summary?.beforeLabel && summary?.afterLabel) {
     rows.push({
       label: "Monitor",
-      value: `${summary.beforeLabel} -> ${summary.afterLabel}`
+      value: `${summary.beforeLabel} -> ${summary.afterLabel}`,
+      class: "is-monitor"
     });
   }
 
+  if (appliedDamage.isMachine) {
+    const hitLocationLabel = getHitLocationLabel(summary?.hitLocation);
+    if (hitLocationLabel) {
+      rows.push({
+        label: "Hit Location",
+        value: hitLocationLabel
+      });
+    }
+  }
+
   rows.push({
-    label: "Final Damage",
+    label: "Applied Damage",
     value: appliedAmountLabel
   });
+
+  if (appliedDamage.isMachine) {
+    rows.push({
+      label: "Shock",
+      value: formatSignedAmount(getShockDelta(summary))
+    });
+
+    rows.push({
+      label: "Location Stress",
+      value: formatSignedAmount(getStressDeltaTotal(summary, machine))
+    });
+
+    rows.push({
+      label: "Critical",
+      value: buildCriticalInfo(summary)
+    });
+  }
 
   if (Number.isFinite(Number(summary?.damageIncoming))) {
     rows.push({
@@ -225,16 +309,6 @@ function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null
     });
   }
 
-  const criticalRecords = Array.isArray(summary?.critical?.records) ? summary.critical.records : [];
-  if (criticalRecords.length) {
-    rows.push({
-      label: "Critical Effects",
-      value: criticalRecords
-        .map(crit => `${crit.label}${crit.locationLabel ? ` (${crit.locationLabel})` : ""}: ${buildMachineCriticalChatSummary(crit)}`)
-        .join(" ; ")
-    });
-  }
-
   return {
     classes: ["mwd-damage-card", getDamageTypeTheme(damageType), severity.key].join(" "),
     header: {
@@ -247,10 +321,8 @@ function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null
     },
     damageTypeLabel,
     severityLabel: severity.label,
-    impactValue: finalDamage,
-    impactText: finalDamage > 0
-      ? `${damageTypeLabel} damage applied to ${trackLabel}.`
-      : `${damageTypeLabel} damage did not penetrate.`,
+    impactValue: appliedDamage.total,
+    impactText: buildDamageImpactText({ damageTypeLabel, trackLabel, breakdown: appliedDamage }),
     rows
   };
 }
@@ -269,49 +341,6 @@ async function createDamageApplicationMessage({ summary = {}, actor = null, toke
   return ChatMessage.create(chatData);
 }
 
-function buildOutcomeContext(resolved = {}) {
-  const snapshot = resolved?.ctxSnapshot ?? {};
-  const dnTotal = Number(resolved?.dn?.total ?? snapshot?.dn?.total ?? snapshot?.difficulty?.dn ?? 1);
-
-  return {
-    intent: resolved?.intent ?? "unknown",
-    rollType: snapshot?.rollType ?? "simple",
-    difficulty: {
-      ...((snapshot?.difficulty && typeof snapshot.difficulty === "object") ? snapshot.difficulty : {}),
-      dn: Number.isFinite(dnTotal) ? dnTotal : 1
-    },
-    dn: resolved?.dn ?? snapshot?.dn ?? null,
-    opposed: snapshot?.opposed ?? null,
-    net: snapshot?.net ?? null,
-    edge: snapshot?.edge ?? null,
-    domains: Array.isArray(resolved?.domains) ? resolved.domains : [],
-    attack: resolved?.attack ?? null,
-  };
-}
-
-async function recomputeResolvedOutcomeAndAttack(resolved = {}, actor = null) {
-  const ctx = buildOutcomeContext(resolved);
-  const successes = Number(resolved?.outcome?.hits ?? 0) || 0;
-  const edgeEarned = resolved?.outcomeModel?.edgeEarned ?? null;
-  resolved.outcomeModel = interpretOutcome(ctx, { successes, raw: resolved?.roll?.json }, null);
-  const edgeSpent =
-    Number(resolved?.edge?.pre?.spent ?? 0) > 0 ||
-    Number(resolved?.edge?.post?.spent ?? 0) > 0;
-  resolved.outcomeModel.edgeEarned = edgeSpent ? null : edgeEarned;
-
-  if (ctx.intent === "attack" && actor && ctx.attack) {
-    resolved.attackResult = await resolveAttackExecution({
-      attacker: actor,
-      ctx,
-      outcomeModel: resolved.outcomeModel,
-      previewState: resolved.areaEffectPreviewState ?? {},
-      existingAttackResult: resolved.attackResult ?? null,
-    });
-  }
-
-  return resolved;
-}
-
 async function onApplyAttackDamage(ev, message) {
   ev.preventDefault();
 
@@ -319,24 +348,17 @@ async function onApplyAttackDamage(ev, message) {
   const resultIndex = Number(btn?.dataset?.resultIndex);
   if (!Number.isInteger(resultIndex) || resultIndex < 0) return;
 
-  const resolved = foundry.utils.deepClone(message?.flags?.mwd?.resolved);
-  if (!resolved) return;
-
-  const result = await applyQueuedAttackDamageAtIndex(resolved, resultIndex);
+  const result = await getHarmService()?.applyQueuedAttackDamageFromMessage?.({ message, resultIndex });
   if (!result.ok) {
-    ui.notifications?.warn?.(result.reason ?? "Unable to apply attack damage.");
+    ui.notifications?.warn?.(result.userMessage ?? result.reason ?? "Unable to apply attack damage.");
     return;
   }
   if (result.skipped) {
-    ui.notifications?.info?.(result.reason ?? "That attack damage has already been applied.");
+    ui.notifications?.info?.(result.userMessage ?? result.reason ?? "That attack damage has already been applied.");
     return;
   }
 
-  const htmlContent = await renderChat({ resolved });
-  await message.update({
-    content: htmlContent,
-    "flags.mwd.resolved": resolved
-  });
+  await message.update(result.updateData);
 
   await createDamageApplicationMessage({
     summary: result.summary,
@@ -378,7 +400,9 @@ async function updateAreaEffectPreview(message, mutateResolved) {
 
   const actor = await fromUuid(resolved.actorUuid);
   if (!actor) return;
-  await recomputeResolvedOutcomeAndAttack(resolved, actor);
+  const rollService = getRollService();
+  if (!rollService?.recomputeResolvedOutcomeAndAttack) throw new Error("MWD roll recompute service not initialized.");
+  await rollService.recomputeResolvedOutcomeAndAttack(resolved, actor);
 
   const htmlContent = await renderChat({ resolved });
   await message.update({
@@ -387,46 +411,6 @@ async function updateAreaEffectPreview(message, mutateResolved) {
   });
 
   return resolved;
-}
-
-function getAppliedEdgeAwards(edgeEarned = null) {
-  if (Array.isArray(edgeEarned?.appliedAwards)) {
-    return edgeEarned.appliedAwards
-      .map(award => ({
-        pool: String(award?.pool ?? "").trim(),
-        amount: Math.max(0, Number(award?.amount ?? 0)),
-      }))
-      .filter(award => award.pool && award.amount > 0);
-  }
-
-  const pool = String(edgeEarned?.pool ?? "").trim();
-  const amount = Math.max(0, Number(edgeEarned?.amount ?? 0));
-  return edgeEarned?.applied && pool && amount > 0 ? [{ pool, amount }] : [];
-}
-
-function getSpendableEdgeAfterRevokingEarned(actor, resolved = {}, poolKey = "") {
-  // A critical outcome award cannot be used to pay for post-roll Edge, because
-  // spending post-roll Edge invalidates that award.
-  const current = Number(actor?.getEdgePoolValue?.(poolKey) ?? actor?.getRemainingEdge?.(poolKey) ?? 0);
-  const revokedFromPool = getAppliedEdgeAwards(resolved?.outcomeModel?.edgeEarned)
-    .filter(award => award.pool === poolKey)
-    .reduce((sum, award) => sum + Number(award.amount ?? 0), 0);
-
-  return Math.max(0, current - revokedFromPool);
-}
-
-async function revokeAppliedEdgeEarned(actor, resolved = {}) {
-  const awards = getAppliedEdgeAwards(resolved?.outcomeModel?.edgeEarned);
-  if (!awards.length) return;
-
-  for (const award of awards) {
-    await actor.spendEdge?.(award.pool, award.amount, {
-      skipTraitHooks: true,
-      source: "postEdgeRevokesEarnedEdge",
-    });
-  }
-
-  if (resolved?.outcomeModel) resolved.outcomeModel.edgeEarned = null;
 }
 
 async function setAttackPendingReaction(message, result, { active = false, edgePoolKey = "" } = {}) {
@@ -553,173 +537,26 @@ async function onToggleEvadeEdge(ev, message) {
 async function onApplyAllAttackDamage(ev, message) {
   ev.preventDefault();
 
-  const resolved = foundry.utils.deepClone(message?.flags?.mwd?.resolved);
-  if (!resolved) return;
-
-  const results = Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [];
-  const pendingIndexes = results
-    .map((result, index) => ({ result, index }))
-    .filter(({ result }) => result?.queuedMutation && !result.queuedMutation.applied)
-    .map(({ index }) => index);
-
-  if (!pendingIndexes.length) {
-    ui.notifications?.info?.("No queued attack damage remains to apply.");
+  const result = await getHarmService()?.applyAllQueuedAttackDamageFromMessage?.({ message });
+  if (!result?.ok) {
+    const notify = result?.reason === "none-pending" ? "info" : "warn";
+    ui.notifications?.[notify]?.(result?.userMessage ?? result?.reason ?? "Unable to apply queued attack damage.");
     return;
   }
 
-  let applied = 0;
-  const failures = [];
-  const appliedResults = [];
-  for (const resultIndex of pendingIndexes) {
-    const result = await applyQueuedAttackDamageAtIndex(resolved, resultIndex);
-    if (result.ok && result.applied) {
-      applied += 1;
-      appliedResults.push(result);
-    } else if (!result.ok) {
-      failures.push(result.reason ?? `Target ${resultIndex + 1} failed.`);
-    }
-  }
+  await message.update(result.updateData);
 
-  if (applied <= 0) {
-    ui.notifications?.warn?.(failures[0] ?? "Unable to apply queued attack damage.");
-    return;
-  }
-
-  const htmlContent = await renderChat({ resolved });
-  await message.update({
-    content: htmlContent,
-    "flags.mwd.resolved": resolved
-  });
-
-  for (const result of appliedResults) {
+  for (const appliedResult of result.appliedResults ?? []) {
     await createDamageApplicationMessage({
-      summary: result.summary,
-      actor: result.targetActor,
-      token: result.targetToken
+      summary: appliedResult.summary,
+      actor: appliedResult.targetActor,
+      token: appliedResult.targetToken
     });
   }
 
-  if (failures.length) {
-    ui.notifications?.warn?.(`Applied ${applied} queued damage result${applied === 1 ? "" : "s"}; ${failures.length} failed.`);
+  if (result.failures?.length) {
+    ui.notifications?.warn?.(`Applied ${result.applied} queued damage result${result.applied === 1 ? "" : "s"}; ${result.failures.length} failed.`);
   }
-}
-
-async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
-  const result = resolved?.attackResult?.results?.[resultIndex] ?? null;
-  const mutation = result?.queuedMutation ?? null;
-  if (!mutation) {
-    return { ok: false, reason: "No queued attack damage to apply." };
-  }
-  if (mutation.applied) {
-    return { ok: true, skipped: true, reason: "That attack damage has already been applied." };
-  }
-
-  let applyResult = null;
-  let targetActor = null;
-  let targetToken = null;
-  try {
-    targetActor = getMutationTargetActorUuid(mutation) ? await fromUuid(getMutationTargetActorUuid(mutation)) : null;
-    targetToken = getMutationTargetTokenUuid(mutation) ? await fromUuid(getMutationTargetTokenUuid(mutation)) : null;
-    if (result?.evadeActive && targetActor) {
-      const spend = await PersonalCombatTracker.commitReactionSpend(targetActor, {
-        token: targetToken,
-        actionId: "evade",
-        actionLabel: "Evade",
-        actionCategory: "reaction",
-        logLabel: `Evade: ${mutation.target?.name ?? result?.target?.name ?? "Target"}`,
-        edgePoolKey: String(result?.evadeEdgePoolKey ?? "").trim(),
-      });
-      if (!spend?.ok) {
-        return { ok: false, reason: spend?.reason ?? "Unable to spend the Evade reaction." };
-      }
-      await PersonalCombatTracker.clearPendingReaction(targetActor, { token: targetToken });
-    }
-    if (isMachineDamageMutation(mutation) && mutation.payload?.chaosCriticalSelected) {
-      const spend = await spendMachineChaosCriticalEdge({
-        machineActor: targetActor,
-        operatorActorUuid: mutation.payload?.operatorActorUuid,
-      });
-      if (!spend.ok) return spend;
-    }
-    if (isMachineDamageMutation(mutation)) {
-      mutation.payload ??= {};
-      mutation.payload.applied = Boolean(mutation.applied);
-      mutation.payload.previewRevision = Math.max(0, Math.trunc(Number(mutation.previewRevision ?? mutation.payload.previewRevision ?? 0) || 0));
-      mutation.payload.preparedCriticalRecords = Array.isArray(mutation.preparedCriticalRecords)
-        ? foundry.utils.deepClone(mutation.preparedCriticalRecords)
-        : (Array.isArray(mutation.payload.preparedCriticalRecords) ? mutation.payload.preparedCriticalRecords : []);
-    }
-    applyResult = await HarmEngine.apply({
-      actor: targetActor,
-      token: targetToken,
-      payload: mutation.payload ?? {},
-      options: {
-        actorId: targetActor?.id ?? "",
-        logToChat: false
-      }
-    });
-  } catch (error) {
-    console.warn("MWD | Unable to apply queued attack damage", error);
-    return { ok: false, reason: "Unable to apply attack damage to that target." };
-  }
-
-  const summary = summarizeAttackDamageResult(
-    applyResult,
-    result?.target ?? mutation.target ?? {},
-    result?.damage ?? {},
-    { queued: false, applied: Boolean(applyResult?.ok) }
-  );
-
-  if (!applyResult?.ok) {
-    return { ok: false, reason: summary.reason ?? "Unable to apply attack damage." };
-  }
-
-  mutation.applied = true;
-  mutation.appliedResult = summary;
-  if (isMachineDamageMutation(mutation)) {
-    mutation.payload.applied = true;
-    mutation.payload.appliedResult = summary;
-    syncMachineMutationPreview(mutation, summary);
-    mutation.applied = true;
-    mutation.appliedResult = summary;
-  }
-  result.queuedMutation = mutation;
-  result.damageResult = summary;
-  result.evadeApplied = Boolean(result.evadeActive);
-
-  resolved.edge ??= {};
-  resolved.edge.availableActions = {
-    ...(resolved.edge.availableActions ?? {}),
-    canSpendPost: false,
-    canPostRerollFailures: false
-  };
-
-  return {
-    ok: true,
-    applied: true,
-    summary,
-    targetActor,
-    targetToken
-  };
-}
-
-async function spendMachineChaosCriticalEdge({ machineActor = null, operatorActorUuid = "" } = {}) {
-  const operator = await resolveMachineOperator({ machineActor, operatorActorUuid });
-  if (!operator.actor) {
-    if (game.user?.isGM) return { ok: true, gmOverride: true };
-    return { ok: false, reason: operator.reason || "No linked operator or pilot actor for Chaos Edge." };
-  }
-
-  const pool = TEMPLATE.counters.edgePools.chaos;
-  const remaining = Number(operator.actor.getRemainingEdge?.(pool) ?? operator.actor.getEdgePoolValue?.(pool) ?? 0);
-  if (remaining <= 0 && !game.user?.isGM) {
-    return { ok: false, reason: `${operator.actor.name ?? "Operator"} has no Chaos Edge remaining.` };
-  }
-
-  if (remaining > 0) {
-    await operator.actor.spendEdge?.(pool, 1, { source: "machineChaosCritical" });
-  }
-  return { ok: true, operatorActor: operator.actor };
 }
 
 async function onToggleMachineChaosCrit(ev, message) {
@@ -736,7 +573,9 @@ async function onToggleMachineChaosCrit(ev, message) {
 
   const targetActor = getMutationTargetActorUuid(mutation) ? await fromUuid(getMutationTargetActorUuid(mutation)) : null;
   const targetToken = getMutationTargetTokenUuid(mutation) ? await fromUuid(getMutationTargetTokenUuid(mutation)) : null;
-  const summary = await rebuildMachineMutationPreview({ mutation, result, targetActor, targetToken });
+  const preview = await getHarmService()?.rebuildQueuedAttackDamagePreview?.({ mutation, result, targetActor, targetToken });
+  if (!preview?.ok) return;
+  const summary = preview.summary;
 
   result.queuedMutation = mutation;
   result.damageResult = summary;
@@ -771,7 +610,9 @@ async function onToggleMachineReliabilitySpend(ev, message) {
 
   const targetActor = getMutationTargetActorUuid(mutation) ? await fromUuid(getMutationTargetActorUuid(mutation)) : null;
   const targetToken = getMutationTargetTokenUuid(mutation) ? await fromUuid(getMutationTargetTokenUuid(mutation)) : null;
-  const summary = await rebuildMachineMutationPreview({ mutation, result, targetActor, targetToken });
+  const preview = await getHarmService()?.rebuildQueuedAttackDamagePreview?.({ mutation, result, targetActor, targetToken });
+  if (!preview?.ok) return;
+  const summary = preview.summary;
 
   result.queuedMutation = mutation;
   result.damageResult = summary;
@@ -786,30 +627,27 @@ async function onToggleMachineReliabilitySpend(ev, message) {
 async function onMachineCritRemedy(ev, message) {
   ev.preventDefault();
   const btn = ev.target.closest("[data-mwd-action='machineCritRemedy']");
-  const request = await prepareMachineRemedyRoll({
-    machineActorUuid: btn?.dataset?.machineActorUuid ?? "",
+  const machineActorUuid = String(btn?.dataset?.machineActorUuid ?? "").trim();
+  const machineActor = machineActorUuid ? await fromUuid(machineActorUuid) : null;
+  if (!machineActor) {
+    ui.notifications?.warn?.("Machine actor could not be resolved.");
+    return;
+  }
+
+  const result = await getMachineActionService()?.execute?.(machineActor, {
+    kind: "repair",
+    issueKind: "crit",
+    issueId: btn?.dataset?.critId ?? "",
     critId: btn?.dataset?.critId ?? "",
     remedyKey: btn?.dataset?.remedyKey ?? "",
     operatorActorUuid: btn?.dataset?.operatorActorUuid ?? "",
-  }, {
     gmOverride: Boolean(game.user?.isGM && btn?.dataset?.gmOverride === "true"),
-  });
-  if (!request.ok) {
-    ui.notifications?.warn?.(request.reason ?? "Unable to launch the machine remedy roll.");
-    return;
-  }
-
-  const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
-  if (!rollApi?.execute) {
-    ui.notifications?.error?.("MWD roll system not initialized.");
-    return;
-  }
-
-  await rollApi.execute({
-    actor: request.actor,
-    payload: request.payload,
     event: ev,
   });
+  if (!result?.ok) {
+    ui.notifications?.warn?.(result?.userMessage ?? result?.reason ?? "Unable to launch the machine remedy roll.");
+    return;
+  }
 }
 
 async function renderAndPersistHazardMessage(message, card) {
@@ -983,7 +821,7 @@ async function onApplyHazardTick(ev, message) {
     notes: `Hazard exposure ${card.exposure.initialLabel}${card.preview?.evadeActive ? ` -> ${String(card.preview.finalTier ?? card.exposure.initialTier).toUpperCase()}` : ""}`.trim(),
   };
 
-  const applyResult = await HarmEngine.apply({
+  const applyResult = await getHarmService()?.apply?.({
     actor: targetActor,
     token: targetToken,
     payload,
@@ -1147,95 +985,12 @@ async function onEdgePostReroll(ev, message) {
   const poolKey = String(btn?.dataset?.poolKey ?? "").trim();
   if (!poolKey) return;
 
-  const resolved = foundry.utils.deepClone(message?.flags?.mwd?.resolved);
-  if (!resolved) return;
-
-  if (hasAppliedAttackMutation(resolved)) {
-    ui.notifications?.warn?.("Post-roll Edge is disabled after attack damage has been applied.");
+  const result = await getRollService()?.applyPostRerollFailures?.({ message, poolKey });
+  if (!result?.ok) {
+    const notify = result?.reason === "no-failures" ? "info" : "warn";
+    ui.notifications?.[notify]?.(result?.userMessage ?? result?.reason ?? "Unable to spend post-roll Edge.");
     return;
   }
 
-  if (Number(resolved?.edge?.post?.spent ?? 0) === 1) return;
-
-  const allowed = Array.isArray(resolved?.edge?.allowed?.postPools)
-    ? resolved.edge.allowed.postPools
-    : [];
-
-  if (!allowed.includes(poolKey)) {
-    ui.notifications?.warn?.(`Post-spend pool not allowed: ${poolKey}`);
-    return;
-  }
-
-  const failureRefs = Array.isArray(resolved?.roll?.failureDiceRefs)
-    ? resolved.roll.failureDiceRefs
-    : [];
-
-  if (failureRefs.length <= 0) {
-    ui.notifications?.info?.("No failures to reroll.");
-    return;
-  }
-
-  const actor = await fromUuid(resolved.actorUuid);
-  if (!actor) {
-    ui.notifications?.warn?.("Actor not found for this roll.");
-    return;
-  }
-
-  if (getSpendableEdgeAfterRevokingEarned(actor, resolved, poolKey) <= 0) {
-    ui.notifications?.warn?.(`No ${poolKey} Edge available for post-spend.`);
-    return;
-  }
-
-  await revokeAppliedEdgeEarned(actor, resolved);
-  await actor.spendEdge?.(poolKey, 1);
-
-  const tn = Number(resolved?.roll?.target ?? 5);
-  const reroll = await new Roll(`${failureRefs.length}d6cs>=${tn}`).evaluate();
-  const term = reroll.dice?.[0];
-  const results = Array.isArray(term?.results) ? term.results : [];
-  const addHits = results.filter(r => r.success).length;
-
-  resolved.outcome = resolved.outcome ?? {};
-  resolved.outcome.hits = Number(resolved.outcome.hits ?? 0) + addHits;
-
-  resolved.edge = resolved.edge ?? {};
-  resolved.edge.post = { poolKey, spent: 1 };
-
-  resolved.edge.availableActions = {
-    ...(resolved.edge.availableActions ?? {}),
-    canSpendPost: false,
-    canPostRerollFailures: false
-  };
-
-  resolved.roll = resolved.roll ?? {};
-  resolved.roll.diceGroups = Array.isArray(resolved.roll.diceGroups) ? resolved.roll.diceGroups : [];
-  resolved.roll.diceGroups.push({
-    id: "post",
-    label: "Post Reroll",
-    faces: 6,
-    termIndex: null,
-    dice: results.map((r, i) => {
-      const face = Number(r.result);
-      const isSuccess = Boolean(r.success);
-      return {
-        ref: `post:${i}`,
-        face,
-        isSuccess,
-        isFailure: !isSuccess,
-        tooltip: isSuccess
-          ? `Post die ${i + 1}: ${face} (Success vs TN ${tn})`
-          : `Post die ${i + 1}: ${face} (Failure vs TN ${tn})`
-      };
-    })
-  });
-
-  await recomputeResolvedOutcomeAndAttack(resolved, actor);
-
-  const htmlContent = await renderChat({ resolved });
-
-  await message.update({
-    content: htmlContent,
-    "flags.mwd.resolved": resolved,
-    "flags.mwd.payload.edge.post": { poolKey, spent: 1 }
-  });
+  await message.update(result.updateData);
 }
