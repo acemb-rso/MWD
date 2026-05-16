@@ -4,12 +4,12 @@
 
 ## Current character registration
 
-- `AnarchySystem` registers both `character` and `npc` actor types to the same `CharacterActor` class. This is intentional: NPCs share the same mechanical framework as characters but use a smaller sheet layout (`NpcSheetV2`). The shared class does not cause data leakage because sheet layouts are type-scoped. 【F:src/modules/anarchy-system.js†L74-L110】
+- `AnarchySystem` sets `CONFIG.Actor.documentClass = MWDActor`. All actors — character, npc, vehicle, battlemech — are `MWDActor` instances. There is no per-type class routing. `MWDActor` handles all four types with internal type-specific branches. 【F:src/modules/actor/mwd-actor.js】
 
 ## Actor template definitions
 
 - The `character` type in `src/modules/document-type-defaults.js` declares the correct MWD attribute set: **reflexes, strength, willpower, intelligence, charisma, edge**. The former Anarchy values (`agility`, `logic`) have been replaced.
-- Condition monitors are defined for character actors: **physical** (max = 8 + STR), **fatigue** (max = 8 + WIL), **armor** (9-box track). These are prepared as derived data in `CharacterActor` and `MWDActor`. 【F:src/modules/actor/character-actor.js†L1-L80】
+- Condition monitors are defined for character actors: **physical** (max = 8 + STR), **fatigue** (max = 8 + WIL), **armor** (9-box track). These are prepared as derived data in `MWDActor._prepareMonitors()`. 【F:src/modules/actor/mwd-actor.js】
 - Edge pools are structured with both a **rating** (advancement ceiling) and **value** (current spendable tokens): `grit`, `chaos` (physical), `insight`, `rumor` (mental), `legend`, `credibility` (social). Pool hygiene (clamping values to rating, zeroing depleted pools) runs in `MWDActor.prepareBaseData()`. 【F:src/modules/actor/mwd-actor.js†L1-L60】
 - The `npc` template mirrors the character attribute and monitor structure, which is correct given the shared class. The NPC sheet simply exposes a smaller subset of those fields.
 

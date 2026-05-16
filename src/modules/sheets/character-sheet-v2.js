@@ -206,21 +206,12 @@ function escapeHtml(value) {
 }
 
 function getBattlemechMovementChoices(actor) {
-  const directChoices = typeof actor?.getMovementActionChoices === "function"
-    ? actor.getMovementActionChoices()
-    : [];
-  if (Array.isArray(directChoices) && directChoices.length) return directChoices;
-
   const preparedChoices = actor?.system?.quickActions?.movement;
   if (Array.isArray(preparedChoices) && preparedChoices.length) return preparedChoices;
-
   return buildBattlemechMovementActionChoices(actor);
 }
 
 async function performAssignedBattlemechMovement(actor, options = {}) {
-  if (typeof actor?.performMovementAction === "function") {
-    return actor.performMovementAction(options);
-  }
   return performBattlemechMovementAction(actor, options);
 }
 
@@ -396,7 +387,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
     ctx.layout = await LayoutRegistry.get("character");
 
     // Character-only Edge console context
-    const cap = this.actor.getEdgeCap?.() ?? Number(this.actor.system?.attributes?.edge?.value ?? 0);
+    const cap = this.actor.getEdgeCap();
     const editable = !!this.isEditable;
 
     const GROUP_LABELS = { physical: "Physical", mental: "Mental", social: "Social" };
@@ -568,7 +559,7 @@ ctx.edgeConsole.poolsOrdered = order
       }))
     };
 
-    const loadout = this.actor.getPersonalCombatLoadout?.() ?? null;
+    const loadout = this.actor.getPersonalCombatLoadout();
     ctx.personalInventory = {
       warnings: [...(loadout?.warnings ?? [])],
       weapons: (loadout?.weapons ?? []).map(weapon => {

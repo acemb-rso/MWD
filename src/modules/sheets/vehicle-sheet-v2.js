@@ -1543,7 +1543,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     event?.stopPropagation?.();
     const actor = this.getPersistentActor() ?? this.actor;
     try {
-      await actor.rollRangedAttack?.();
+      throw new Error("MWD | Vehicle ranged attack is not yet implemented.");
     } catch (error) {
       console.error("MWD | Failed to launch vehicle mounted attack", error);
       notifyRollError(error, "Unable to launch that vehicle attack.");

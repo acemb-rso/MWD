@@ -95,21 +95,12 @@ function buildDetailTags(tags = []) {
 }
 
 function getMovementActionChoices(actor) {
-  const directChoices = typeof actor?.getMovementActionChoices === "function"
-    ? actor.getMovementActionChoices()
-    : [];
-  if (Array.isArray(directChoices) && directChoices.length) return directChoices;
-
   const preparedChoices = actor?.system?.quickActions?.movement;
   if (Array.isArray(preparedChoices) && preparedChoices.length) return preparedChoices;
-
   return buildBattlemechMovementActionChoices(actor);
 }
 
 async function performMovementAction(actor, options = {}) {
-  if (typeof actor?.performMovementAction === "function") {
-    return actor.performMovementAction(options);
-  }
   return performBattlemechMovementAction(actor, options);
 }
 
@@ -652,7 +643,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       } else if (attackKind === "melee") {
         await this.#rollMeleeAttack(actor);
       } else {
-        await actor.rollRangedAttack?.();
+        throw new Error(`MWD | Unrecognised attackKind: "${attackKind}"`);
       }
     } catch (error) {
       console.error("MWD | Failed to launch BattleMech attack", error);

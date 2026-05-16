@@ -11,9 +11,6 @@ import { RemoteCall } from './remotecall.js';
 import { Styles } from './styles.js';
 import { HooksManager } from './hooks-manager.js';
 import { MWDItem } from './item/anarchy-base-item.js';
-import { CharacterActor } from './actor/character-actor.js';
-import { VehicleActor } from './actor/vehicle-actor.js';
-import { BattlemechActor } from './actor/battlemech-actor.js';
 import { SystemSettings } from './system-settings.js';
 import { registerActorSheetsV2 } from "./sheets/register-actor-sheets-v2.js";
 import { registerItemSheetsV2 } from "./sheets/register-item-sheets-v2.js";
@@ -272,12 +269,6 @@ export class AnarchySystem {
       return "";
     });
 
-    this.actorClasses = {
-      character: CharacterActor,
-      npc: CharacterActor,
-      vehicle: VehicleActor,
-      battlemech: BattlemechActor
-    }
     //Required for proper loading of sheets
     this.hooks = new HooksManager();
     this.styles = new Styles();

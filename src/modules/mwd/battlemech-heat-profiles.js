@@ -6,7 +6,7 @@
 export const BATTLEMECH_HEAT_PROFILES = Object.freeze([
   Object.freeze({ code: "HT-01", tier: "D", trackLength: 8, thresholds: Object.freeze({ runningHot: 2, overheated: 4, shutdown: 6 }) }),
   Object.freeze({ code: "HT-02", tier: "C", trackLength: 10, thresholds: Object.freeze({ runningHot: 3, overheated: 5, shutdown: 7 }) }),
-  Object.freeze({ code: "HT-03", tier: "B", trackLength: 12, thresholds: Object.freeze({ runningHot: 3, overheated: 6, shutdown: 8 }) }),
+  Object.freeze({ code: "HT-03", tier: "B", trackLength: 11, thresholds: Object.freeze({ runningHot: 3, overheated: 6, shutdown: 8 }) }),
   Object.freeze({ code: "HT-04", tier: "A", trackLength: 12, thresholds: Object.freeze({ runningHot: 4, overheated: 7, shutdown: 9 }) }),
   Object.freeze({ code: "HT-05", tier: "AA", trackLength: 13, thresholds: Object.freeze({ runningHot: 5, overheated: 8, shutdown: 10 }) }),
   Object.freeze({ code: "HT-06", tier: "AAA", trackLength: 14, thresholds: Object.freeze({ runningHot: 5, overheated: 9, shutdown: 11 }) }),

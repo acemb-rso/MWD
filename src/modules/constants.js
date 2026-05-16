@@ -269,6 +269,20 @@ export const MONITOR_DEFS = {
  * Definitions for the Anarchy system constants
  * Remaining here for refernce
  */
+export const ROLL_PARAMETER_CATEGORY = {
+  title: 'title',
+  pool: 'pool',
+  reroll: 'reroll',
+  rerollMax: 'rerollMax',
+  rerollForced: 'rerollForced',
+  successReroll: 'successReroll',
+  glitch: 'glitch',
+  edge: 'edge',
+  risk: 'risk',
+  opponentPool: 'opponentPool',
+  opponentReroll: 'opponentReroll'
+}
+
 export const ANARCHY_SYSTEM = {
   rollType: {
     attributeAction: 'attributeAction',
@@ -321,5 +335,6 @@ globalThis.ANARCHY_CONSTANTS = {
   ITEM_ATTRIBUTES,
   EDGE_POOL_GROUPS,
   TEMPLATE,
-  ANARCHY_SYSTEM
+  ANARCHY_SYSTEM,
+  ROLL_PARAMETER_CATEGORY
 }

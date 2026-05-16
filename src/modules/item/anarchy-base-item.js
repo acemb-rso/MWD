@@ -10,7 +10,6 @@ import { Checkbars } from "../common/checkbars.js";
 import { ErrorManager } from "../error-manager.js";
 import { Enums } from "../enums.js";
 import { Misc } from "../misc.js";
-import { RollDialog } from "../roll/roll-dialog.js";
 import { AnarchyUsers } from "../users.js";
 import { formatString } from "../strings.js";
 import { getSkillDef } from "../mwd/skills.js";
@@ -897,12 +896,6 @@ export class MWDItem extends Item {
 
   isSkill() {
     return this.canonicalType === TEMPLATE.itemType.skill;
-  }
-
-  async rollAttribute(attribute) {
-    if (this.parent) {
-      await RollDialog.itemAttributeRoll(this, attribute);
-    }
   }
 
   async switchMonitorCheck(monitor, index, checked, sourceActorId = undefined) {

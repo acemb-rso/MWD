@@ -3,13 +3,12 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { TEMPLATE, TEMPLATES_PATH } from "../constants.js";
+import { TEMPLATE, TEMPLATES_PATH, ROLL_PARAMETER_CATEGORY } from "../constants.js";
 import { MWD } from "../config.js";
 import { Enums } from "../enums.js";
 import { MWDItem } from "./anarchy-base-item.js";
 import { Checkbars } from "../common/checkbars.js";
 import { AnarchyUsers } from "../users.js";
-import { ROLL_PARAMETER_CATEGORY } from "../roll/roll-parameters.js";
 import { ANARCHY_HOOKS } from "../hooks-manager.js";
 import { AttributeActions } from "../attribute-actions.js";
 import { ErrorManager } from "../error-manager.js";
