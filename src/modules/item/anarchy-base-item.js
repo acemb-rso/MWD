@@ -163,13 +163,14 @@ function normalizeMechWeaponSkill(category, _value = "") {
 
 function normalizeMechWeaponRange(range, category) {
   if (normalizeMechWeaponCategory(category) === "melee") {
-    return normalizeRangeData({
-      max: "close",
+    const max = normalizeRangeKey(range?.max ?? "close");
+    return {
+      max: max === "near" ? "near" : "close",
       close: 0,
       near: 0,
       far: 0,
       extreme: 0,
-    });
+    };
   }
 
   return normalizeRangeData(range);

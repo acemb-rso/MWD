@@ -23,10 +23,12 @@ export const MACHINE_WEAPON_DAMAGE_TYPES = Object.freeze(
 
 export const MACHINE_WEAPON_DAMAGE_TYPE_MAP = Object.freeze({
   penetrating: "penetrating",
+  p: "penetrating",
   ballistic: "penetrating",
   melee: "penetrating",
   kinetic: "concussive",
   concussive: "concussive",
+  c: "concussive",
   explosive: "concussive",
   missile: "concussive",
   energy: "energy",

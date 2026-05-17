@@ -10,6 +10,7 @@ import {
   getTrackingPenaltyByHexes,
   metersToHexes,
 } from "../src/modules/mwd/machine-attack-motion.js";
+import { MACHINE_STANDARD_MELEE_ID } from "../src/modules/mwd/machine-melee-weapons.js";
 import { EwTrackingPenaltyProvider } from "../src/modules/modifiers/providers/ew-tracking-penalty.js";
 
 let resolveAttackModule = null;
@@ -123,6 +124,111 @@ function createActor() {
   };
 }
 
+function createPilot({ reflexes = 5, meleeCombat = 4 } = {}) {
+  return {
+    type: "character",
+    name: "Pilot",
+    uuid: "Actor.pilot",
+    getAttributeValue(key) {
+      return key === "reflexes" ? reflexes : 0;
+    },
+    getSkillRating(key) {
+      return key === "meleeCombat" ? meleeCombat : 0;
+    },
+    system: {
+      attributes: {
+        reflexes: { value: reflexes },
+      },
+      skills: {
+        meleeCombat: { rating: meleeCombat, bonus: 0 },
+      },
+    },
+  };
+}
+
+function createMeleeWeapon({
+  id = "katana",
+  name = "Katana",
+  damage = 1,
+  damageType = "p",
+  close = 3,
+  near = 0,
+  rangeMax = "close",
+  size = "medium",
+} = {}) {
+  return {
+    id,
+    type: "mechWeapon",
+    canonicalType: "mechWeapon",
+    name,
+    system: {
+      category: "melee",
+      weaponCategory: "melee",
+      skill: "meleeCombat",
+      size,
+      damage,
+      ap: 0,
+      heat: 0,
+      damageType,
+      attackRatingBand: { close, near, far: 0, extreme: 0 },
+      range: { max: rangeMax, close: 0, near: 0, far: 0, extreme: 0 },
+    },
+    getCombatProfile() {
+      return {
+        id: this.id,
+        uuid: `Item.${this.id}`,
+        name: this.name,
+        item: this,
+        type: "mechWeapon",
+        category: "melee",
+        skill: "meleeCombat",
+        damage: this.system.damage,
+        ap: this.system.ap,
+        heat: this.system.heat,
+        damageType: this.system.damageType,
+        attackRatingBand: this.system.attackRatingBand,
+        range: this.system.range,
+        defaultRangeBand: "close",
+        effects: {},
+        capabilityReport: { isTemplated: false, errors: [] },
+      };
+    },
+  };
+}
+
+function createMeleeActor({ weapon = createMeleeWeapon(), tonnage = 90, pilotUuid = "Actor.pilot" } = {}) {
+  return {
+    type: "battlemech",
+    name: "Melee Mech",
+    uuid: "Actor.melee-mech",
+    statuses: new Set(),
+    items: new Map([[weapon.id, weapon]]),
+    system: {
+      attributes: {
+        reflexes: { value: 1 },
+        system: { value: 3 },
+      },
+      skills: {
+        meleeCombat: { rating: 1, bonus: 0 },
+      },
+      pilot: { uuid: pilotUuid },
+      mwd: {
+        tonnage,
+        crits: [],
+        hardpoints: [{
+          id: "hp-melee",
+          type: "penetrating",
+          size: weapon.system.size,
+          location: "arms",
+          itemId: weapon.id,
+        }],
+        locations: {},
+        crew: { count: 1, effectiveCount: 1 },
+      },
+    },
+  };
+}
+
 function setScene({ distance = 270, targetMovement = {}, targetPersonalCombat = null } = {}) {
   const targetTokenUuid = "Scene.scene.Token.target-token";
   const attackerToken = {
@@ -229,6 +335,143 @@ test("machine motion helpers convert meters to hexes and apply tracking table", 
   assert.equal(getTrackingPenaltyByHexes(3), -2);
   assert.equal(getTrackingPenaltyByHexes(8), -4);
   assert.equal(getTrackingPenaltyByHexes(9), -5);
+});
+
+test("machine melee weapons resolve tonnage damage and pilot REF attack ratings", async () => {
+  const resolveAttack = await getResolveAttack();
+  const pilot = createPilot({ reflexes: 5, meleeCombat: 4 });
+  globalThis.fromUuid = async uuid => uuid === pilot.uuid ? pilot : null;
+
+  const actor = createMeleeActor({
+    weapon: createMeleeWeapon({
+      id: "katana",
+      name: "Katana",
+      damage: 1,
+      damageType: "p",
+      close: 3,
+      rangeMax: "close",
+    }),
+    tonnage: 90,
+  });
+  const { targetSnapshot } = setScene({ distance: 30 });
+
+  try {
+    const resolved = await resolveAttack({
+      actor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "katana",
+        weaponId: "katana",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+
+    assert.equal(resolved.attack.rangeBand, "close");
+    assert.equal(resolved.attack.weapon.damage, 10);
+    assert.equal(resolved.attack.weapon.damageType, "penetrating");
+    assert.equal(resolved.attack.weapon.attackRatingBand.close, 8);
+    assert.equal(resolved.pool.attribute, 5);
+    assert.equal(resolved.pool.skill, 4);
+  } finally {
+    delete globalThis.fromUuid;
+    clearScene();
+  }
+});
+
+test("machine melee reach supports Battle Flail near penalties and blocks close-only melee at near", async () => {
+  const resolveAttack = await getResolveAttack();
+  const pilot = createPilot({ reflexes: 5, meleeCombat: 4 });
+  globalThis.fromUuid = async uuid => uuid === pilot.uuid ? pilot : null;
+
+  const flailActor = createMeleeActor({
+    weapon: createMeleeWeapon({
+      id: "battle-flail",
+      name: "Battle Flail",
+      damage: 2,
+      damageType: "c",
+      close: -2,
+      near: -4,
+      rangeMax: "near",
+    }),
+    tonnage: 90,
+  });
+  const { targetSnapshot } = setScene({ distance: 100 });
+
+  try {
+    const flail = await resolveAttack({
+      actor: flailActor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "battle-flail",
+        weaponId: "battle-flail",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+
+    assert.equal(flail.attack.rangeBand, "near");
+    assert.equal(flail.attack.weapon.damage, 11);
+    assert.equal(flail.attack.weapon.damageType, "concussive");
+    assert.equal(flail.attack.weapon.attackRatingBand.close, 3);
+    assert.equal(flail.attack.weapon.attackRatingBand.near, 1);
+
+    const swordActor = createMeleeActor({
+      weapon: createMeleeWeapon({
+        id: "sword",
+        name: "Sword",
+        damage: 1,
+        damageType: "p",
+        close: 0,
+        rangeMax: "close",
+      }),
+      tonnage: 90,
+    });
+    const sword = await resolveAttack({
+      actor: swordActor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "sword",
+        weaponId: "sword",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+    assert.equal(sword.attack.rangeBand, "outOfRange");
+  } finally {
+    delete globalThis.fromUuid;
+    clearScene();
+  }
+});
+
+test("standard machine melee uses floor tonnage over ten and pilot REF", async () => {
+  const resolveAttack = await getResolveAttack();
+  const pilot = createPilot({ reflexes: 4, meleeCombat: 3 });
+  globalThis.fromUuid = async uuid => uuid === pilot.uuid ? pilot : null;
+
+  const actor = createMeleeActor({ weapon: createMeleeWeapon(), tonnage: 75 });
+  const { targetSnapshot } = setScene({ distance: 30 });
+
+  try {
+    const resolved = await resolveAttack({
+      actor,
+      payload: {
+        sourceType: "mechWeapon",
+        syntheticWeapon: { id: MACHINE_STANDARD_MELEE_ID },
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+
+    assert.equal(resolved.attack.weapon.name, "Standard Melee");
+    assert.equal(resolved.attack.weapon.damage, 7);
+    assert.equal(resolved.attack.weapon.attackRatingBand.close, 4);
+    assert.equal(resolved.pool.attribute, 4);
+    assert.equal(resolved.pool.skill, 3);
+  } finally {
+    delete globalThis.fromUuid;
+    clearScene();
+  }
 });
 
 test("machine weapons do not add net hits to damage", async () => {

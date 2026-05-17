@@ -42,6 +42,12 @@ import {
   isMachineActor,
 } from "../../mwd/machine-attack-motion.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
+import {
+  buildStandardMachineMeleeProfile,
+  isMachineMeleeRangeAllowed,
+  MACHINE_STANDARD_MELEE_ID,
+  resolveMachineMeleeCombatProfile,
+} from "../../mwd/machine-melee-weapons.js";
 
 function getTargets(payload = {}) {
   if (Array.isArray(payload?.targetSnapshots)) {
@@ -128,7 +134,8 @@ function resolveRangeBand({ actor, payload, weapon, targets = [] } = {}) {
     if (measuredBand === "outOfRange") {
       return measuredBand;
     }
-    if (explicit) return explicit;
+    if (explicit) return isMachineMeleeRangeAllowed(weapon, explicit) ? explicit : "outOfRange";
+    if (!isMachineMeleeRangeAllowed(weapon, measuredBand)) return "outOfRange";
     return measuredBand;
   }
 
@@ -224,6 +231,24 @@ function getWeaponProfile(actor, payload) {
   const sourceType = String(payload?.sourceType ?? "").trim();
   const sourceId = String(payload?.sourceId ?? "").trim();
 
+  if (isMachineActor(actor) && payload?.syntheticWeapon?.id === MACHINE_STANDARD_MELEE_ID) {
+    return {
+      ...buildStandardMachineMeleeProfile(actor),
+      ...payload.syntheticWeapon,
+      id: MACHINE_STANDARD_MELEE_ID,
+      damage: 0,
+      attackRatingBand: {
+        close: 0,
+        near: 0,
+        far: 0,
+        extreme: 0,
+        ...(payload.syntheticWeapon?.attackRatingBand ?? {}),
+      },
+      isSynthetic: true,
+      defaultRangeBand: "close",
+    };
+  }
+
   if (payload?.syntheticWeapon?.id === "unarmed") {
     const unarmed = WeaponItem.buildDefaultUnarmedProfile(actor);
     return {
@@ -280,8 +305,8 @@ function getWeaponProfile(actor, payload) {
 export async function resolveAttack({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveAttack requires actor");
 
-  const weapon = getWeaponProfile(actor, payload);
-  if (!weapon) throw new Error("Unable to resolve weapon profile.");
+  const rawWeapon = getWeaponProfile(actor, payload);
+  if (!rawWeapon) throw new Error("Unable to resolve weapon profile.");
   const operator = isMachineActor(actor)
     ? await resolveMachineOperator({
       machineActor: actor,
@@ -289,6 +314,9 @@ export async function resolveAttack({ actor, payload } = {}) {
     })
     : null;
   const rollActor = operator?.actor ?? actor;
+  const weapon = isMachineActor(actor)
+    ? resolveMachineMeleeCombatProfile({ machineActor: actor, pilotActor: rollActor, profile: rawWeapon })
+    : rawWeapon;
   const machineFireControl = isMachineActor(actor)
     ? getMachineFireControlProfile(actor, {
       payload,

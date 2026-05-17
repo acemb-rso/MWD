@@ -6,6 +6,7 @@
 import { MWD } from "../config.js";
 import { TEMPLATE } from "../constants.js";
 import { getMountedMachineItems } from "./machine-hardpoints.js";
+import { buildStandardMachineMeleeProfile, resolveMachineMeleeCombatProfile } from "./machine-melee-weapons.js";
 import { resolveMachineSceneToken } from "./machine-token-resolution.js";
 
 function getMachineRollApi() {
@@ -38,10 +39,13 @@ export function buildBattlemechMeleeProfiles(actor = null) {
   if (prepared.length > 0) return prepared;
 
   const profiles = [normalizeProfile({
-    id: "unarmed",
+    ...resolveMachineMeleeCombatProfile({
+      machineActor: actor,
+      pilotActor: null,
+      profile: buildStandardMachineMeleeProfile(actor),
+    }),
     name: MWD.actor.vehicle.quickActions.unarmed,
     weaponId: null,
-    damage: 1,
     notes: MWD.actor.vehicle.quickActions.unarmedNotes,
   })];
 
@@ -104,15 +108,12 @@ export async function performBattlemechMeleeAttack(actor, {
   await rollApi.execute({
     actor,
     payload: {
-      intent: "skill",
-      key: "meleeCombat",
-      attrKey: TEMPLATE.actorAttributes.reflexes,
-      quickAction: {
-        title: MWD.actor.vehicle.quickActions.meleeAttack,
-        meleeProfile: selectedProfile,
-      },
+      intent: "attack",
+      sourceType: "mechWeapon",
+      syntheticWeapon: buildStandardMachineMeleeProfile(actor),
       edge: { allowed: ["pre", "post"] },
       tags: ["machine", "skill", "combat", "attack", "melee"],
+      sourceTokenId: token?.id ?? null,
       operatorActorUuid: normalizedOperatorUuid,
     }
   });
