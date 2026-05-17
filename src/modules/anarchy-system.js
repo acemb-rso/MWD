@@ -72,7 +72,9 @@ import {
   resolveBattlemechPendingHeat,
   setBattlemechPendingHeat,
 } from "./mwd/machine-heat.js";
-import { MachineActions } from "./mwd/machine-quick-actions.js";
+import { registerMachineIntentGmOperations } from "./mwd/machine-intents.js";
+import { MachineActions, registerMachineActionGmOperations } from "./mwd/machine-quick-actions.js";
+import { registerMachinePilotVisionSync, syncAllMachinePilotVision } from "./mwd/machine-pilot-vision.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -243,6 +245,9 @@ export class AnarchySystem {
 
     // initialize remote calls registry first: used by other singleton managers
     this.remoteCall = new RemoteCall();
+    registerMachineActionGmOperations();
+    registerMachineIntentGmOperations();
+    registerMachinePilotVisionSync();
     game.system.mwd.skills = this.skills;
     game.system.mwd.lifeModules = this.lifeModules;
     game.system.mwd.traits = this.traits;
@@ -316,6 +321,7 @@ export class AnarchySystem {
     if (!game.user.isGM) return;
 
     await ensureLifeModuleCatalogDefaults();
+    await syncAllMachinePilotVision();
 
     const enabled = game.settings.get(SYSTEM_NAME, "enableGMGadget");
 

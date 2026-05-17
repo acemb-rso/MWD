@@ -17,7 +17,7 @@ import {
 } from "../src/modules/mwd/heat-state.js";
 import { normalizeMachineMonitorResistance } from "../src/modules/mwd/machine-monitors.js";
 import { buildRemainingMonitorTrack } from "../src/modules/mwd/machine-summary.js";
-import { resolveMachineCritRemedyIntent } from "../src/modules/mwd/machine-intents.js";
+import { commitMachineRemedyCost, resolveMachineCritRemedyIntent } from "../src/modules/mwd/machine-intents.js";
 import { prepareMachineRemedyRoll } from "../src/modules/mwd/machine-intents.js";
 import { resolveMachineRemedy } from "../src/modules/roll/intent/resolve-machine-remedy.js";
 import { MachineCriticalsProvider } from "../src/modules/modifiers/providers/machine-criticals.js";
@@ -644,6 +644,59 @@ test("machine critical remedy intent spends operator SA and resolves the crit", 
   assert.equal(machine.system.mwd.crits[0].active, false);
 
   delete globalThis.fromUuid;
+});
+
+test("machine critical remedy cost still spends a resolved operator when launched by a GM", async () => {
+  const operator = { uuid: "Actor.operator", name: "Pilot" };
+  let spent = null;
+
+  const result = await commitMachineRemedyCost({
+    ok: true,
+    operatorActor: operator,
+    gmOverride: true,
+    remedy: {
+      resource: "sa",
+      cost: 1,
+      actionId: "machineCritSystemReset",
+      actionLabel: "System Reset",
+      category: "simple",
+    },
+  }, {
+    spendResource: async (actor, packet) => {
+      spent = { actor, packet };
+      return { ok: true };
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(spent.actor, operator);
+  assert.equal(spent.packet.cost, 1);
+  assert.equal(spent.packet.actionCostLabel, "1 SA");
+});
+
+test("machine critical remedy cost only skips GM override when no operator is resolved", async () => {
+  let spent = false;
+
+  const result = await commitMachineRemedyCost({
+    ok: true,
+    operatorActor: null,
+    gmOverride: true,
+    remedy: {
+      resource: "sa",
+      cost: 1,
+      actionId: "machineCritSystemReset",
+      actionLabel: "System Reset",
+      category: "simple",
+    },
+  }, {
+    spendResource: async () => {
+      spent = true;
+      return { ok: true };
+    },
+  });
+
+  assert.deepEqual(result, { ok: true, skipped: true });
+  assert.equal(spent, false);
 });
 
 test("machine remedy roll preparation resolves operator, pool source, and DN from condition", async () => {

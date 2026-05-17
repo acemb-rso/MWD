@@ -4,8 +4,9 @@
 // canonical roll intent payloads into the shared roll engine.
 
 import { MWD } from "../config.js";
-import { TEMPLATE } from "../constants.js";
+import { SYSTEM_SOCKET, TEMPLATE } from "../constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { RemoteCall } from "../remotecall.js";
 import { performBattlemechMeleeAttack } from "./battlemech-melee-actions.js";
 import { performBattlemechMovementAction } from "./battlemech-movement-actions.js";
 import { performBattlemechRangedAttack } from "./battlemech-ranged-actions.js";
@@ -19,6 +20,12 @@ import { resolveMachineSceneToken } from "./machine-token-resolution.js";
 import { getMachineRepairIssues } from "./machine-repair-issues.js";
 import { performVehicleMovementAction } from "./vehicle-movement-actions.js";
 import { resolveVehiclePendingStrain } from "./vehicle-strain.js";
+
+const GM_MACHINE_ACTION_REQUEST = "MachineActions.gmMachineActionRequest";
+const GM_MACHINE_ACTION_RESPONSE = "MachineActions.gmMachineActionResponse";
+const GM_MACHINE_ACTION_TIMEOUT_MS = 10000;
+const pendingGmMachineActionRequests = new Map();
+let gmMachineActionSocketRegistered = false;
 
 function getMachineRollApi() {
   return game.mwd?.roll ?? game.system?.mwd?.roll ?? null;
@@ -53,6 +60,268 @@ function assertMachineActionResult(result, kind) {
   return result;
 }
 
+function isMachineActor(actor = null) {
+  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
+}
+
+function getActorIdentityKeys(actor = null) {
+  const keys = new Set();
+  const add = value => {
+    const normalized = String(value ?? "").trim();
+    if (normalized) keys.add(normalized);
+  };
+
+  add(actor?.id);
+  add(actor?._id);
+  add(actor?.uuid);
+  add(actor?.actor?.id);
+  add(actor?.actor?.uuid);
+  add(actor?.baseActor?.id);
+  add(actor?.baseActor?.uuid);
+  return keys;
+}
+
+function actorsMatch(left = null, right = null) {
+  if (!left || !right) return false;
+  const rightKeys = getActorIdentityKeys(right);
+  for (const key of getActorIdentityKeys(left)) {
+    if (rightKeys.has(key)) return true;
+  }
+  return false;
+}
+
+function getUserById(userId = "") {
+  const id = String(userId ?? "").trim();
+  if (!id) return null;
+  const users = globalThis.game?.users;
+  if (typeof users?.get === "function") return users.get(id) ?? null;
+  return Array.from(users ?? []).find(user => String(user?.id ?? "") === id) ?? null;
+}
+
+function userCanOperateAsActor(user = null, actor = null) {
+  if (!user || !actor) return false;
+  if (user.isGM) return true;
+
+  if (typeof actor.testUserPermission === "function") {
+    const ownerLevel = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? 3;
+    try {
+      if (actor.testUserPermission(user, ownerLevel)) return true;
+    } catch (_error) {
+      // Fall through to character identity matching.
+    }
+  }
+
+  return actorsMatch(actor, user.character);
+}
+
+function userOwnsActor(actor = null, user = globalThis.game?.user) {
+  if (!actor || !user) return false;
+  if (user.isGM) return true;
+  if (typeof actor.testUserPermission !== "function") return true;
+
+  const ownerLevel = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? 3;
+  try {
+    return actor.testUserPermission(user, ownerLevel);
+  } catch (_error) {
+    return false;
+  }
+}
+
+async function resolveActorUuid(uuid = "") {
+  const value = String(uuid ?? "").trim();
+  if (!value || typeof fromUuid !== "function") return null;
+  try {
+    return await fromUuid(value);
+  } catch (_error) {
+    return null;
+  }
+}
+
+function getRequestId() {
+  return globalThis.foundry?.utils?.randomID?.()
+    ?? globalThis.crypto?.randomUUID?.()
+    ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function getTokenId(token = null) {
+  return String(token?.document?.id ?? token?.id ?? "").trim();
+}
+
+function getTokenById(tokenId = "") {
+  const id = String(tokenId ?? "").trim();
+  if (!id) return null;
+  return canvas?.scene?.tokens?.get?.(id)
+    ?? canvas?.tokens?.get?.(id)?.document
+    ?? canvas?.tokens?.placeables?.find?.(token => token?.id === id)?.document
+    ?? canvas?.tokens?.placeables?.find?.(token => token?.id === id)
+    ?? null;
+}
+
+function resolveRequestToken(actor, request = {}) {
+  return request.token ?? getTokenById(request.tokenId) ?? resolveMachineSceneToken(actor);
+}
+
+function serializeMachineActionRequest(actor, request = {}) {
+  const serialized = {
+    kind: String(request.kind ?? "").trim(),
+    machineActorUuid: String(actor?.uuid ?? request.machineActorUuid ?? "").trim(),
+    operatorActorUuid: String(request.operatorActorUuid ?? "").trim(),
+    tokenId: getTokenId(request.token),
+    attackKind: String(request.attackKind ?? request.actionId ?? "").trim(),
+    movementKind: String(request.movementKind ?? request.actionId ?? "").trim(),
+    actionId: String(request.actionId ?? request.action?.id ?? request.action?.actionKey ?? "").trim(),
+    intent: String(request.intent ?? "").trim(),
+    sourceType: String(request.sourceType ?? "").trim(),
+    sourceId: String(request.sourceId ?? request.itemId ?? request.weaponId ?? "").trim(),
+    weaponId: String(request.weaponId ?? request.itemId ?? "").trim(),
+    groupId: String(request.groupId ?? request.group?.id ?? "").trim(),
+    profileId: String(request.profileId ?? request.profile?.id ?? "").trim(),
+    targetTokenId: String(request.targetTokenId ?? "").trim(),
+    targetTokenUuid: String(request.targetTokenUuid ?? "").trim(),
+    checkKind: String(request.checkKind ?? request.actionId ?? "").trim(),
+    issueKind: String(request.issueKind ?? request.issue?.issueKind ?? "").trim(),
+    issueId: String(request.issueId ?? request.issue?.issueId ?? request.critId ?? request.statusId ?? "").trim(),
+    critId: String(request.critId ?? (request.issue?.issueKind === "crit" ? request.issue?.issueId : "") ?? "").trim(),
+    statusId: String(request.statusId ?? (request.issue?.issueKind === "status" ? request.issue?.issueId : "") ?? "").trim(),
+    remedyKey: String(request.remedyKey ?? request.issue?.remedyKey ?? "").trim(),
+    source: String(request.source ?? "").trim(),
+    reason: String(request.reason ?? "").trim(),
+    postDangerCard: request.postDangerCard !== false,
+    _gmRouted: true,
+  };
+
+  if (!serialized.sourceId && serialized.weaponId) serialized.sourceId = serialized.weaponId;
+  if (!serialized.tokenId) delete serialized.tokenId;
+  return serialized;
+}
+
+function serializeMachineActionResult(result = {}) {
+  return {
+    ok: Boolean(result?.ok),
+    reason: String(result?.reason ?? "").trim(),
+    userMessage: String(result?.userMessage ?? "").trim(),
+    skipped: Boolean(result?.skipped),
+  };
+}
+
+function shouldRouteMachineActionThroughGm(actor, request = {}) {
+  return Boolean(globalThis.game?.user)
+    && !globalThis.game.user.isGM
+    && isMachineActor(actor)
+    && !request?._gmRouted
+    && !userOwnsActor(actor, globalThis.game.user);
+}
+
+function resolvePendingGmMachineActionRequest(data = {}) {
+  const requestId = String(data?.requestId ?? "").trim();
+  const userId = String(data?.userId ?? "").trim();
+  if (!requestId || userId !== String(game?.user?.id ?? "")) return;
+
+  const pending = pendingGmMachineActionRequests.get(requestId);
+  if (!pending) return;
+
+  clearTimeout(pending.timeout);
+  pendingGmMachineActionRequests.delete(requestId);
+  pending.resolve(data.result ?? { ok: false, reason: "GM operation returned no result." });
+}
+
+async function requestGmMachineAction(actor, request = {}) {
+  const requestId = getRequestId();
+  const userId = String(game?.user?.id ?? "").trim();
+  if (!userId) return { ok: false, reason: "No active user for GM operation." };
+
+  return new Promise(resolve => {
+    const timeout = setTimeout(() => {
+      pendingGmMachineActionRequests.delete(requestId);
+      resolve({ ok: false, reason: "No active GM responded to the machine action request." });
+    }, GM_MACHINE_ACTION_TIMEOUT_MS);
+
+    pendingGmMachineActionRequests.set(requestId, { resolve, timeout });
+    const sent = RemoteCall.call(GM_MACHINE_ACTION_REQUEST, {
+      requestId,
+      userId,
+      request: serializeMachineActionRequest(actor, request),
+    });
+
+    if (!sent) {
+      clearTimeout(timeout);
+      pendingGmMachineActionRequests.delete(requestId);
+      resolve({ ok: false, reason: "No remote GM is available for that machine action." });
+    }
+  });
+}
+
+async function authorizeGmMachineActionRequest(data = {}) {
+  const requester = getUserById(data.userId);
+  if (!requester) return { ok: false, reason: "Requesting user could not be resolved." };
+
+  const request = normalizeMachineActionRequest(data.request ?? {});
+  const machineActor = await resolveActorUuid(request.machineActorUuid);
+  if (!isMachineActor(machineActor)) return { ok: false, reason: "Machine actor could not be resolved." };
+
+  const operator = await resolveMachineOperator({
+    machineActor,
+    operatorActorUuid: request.operatorActorUuid,
+  });
+  if (!operator.actor) return { ok: false, reason: operator.reason || "No linked operator or pilot actor." };
+  if (!userCanOperateAsActor(requester, operator.actor)) {
+    return { ok: false, reason: "You do not control the assigned pilot or operator for this machine." };
+  }
+
+  return {
+    ok: true,
+    actor: machineActor,
+    request: {
+      ...request,
+      operatorActorUuid: operator.actor.uuid ?? request.operatorActorUuid ?? "",
+      token: getTokenById(request.tokenId),
+      _gmRouted: true,
+    },
+  };
+}
+
+async function handleGmMachineActionRequest(data = {}) {
+  if (!game?.user?.isGM) return;
+
+  let result;
+  try {
+    const authorized = await authorizeGmMachineActionRequest(data);
+    if (!authorized.ok) {
+      result = { ok: false, reason: authorized.reason ?? "Machine action request was not authorized." };
+    } else {
+      result = serializeMachineActionResult(await executeMachineQuickAction(authorized.actor, authorized.request));
+    }
+  } catch (error) {
+    console.error("MWD | GM machine action request failed", error);
+    result = { ok: false, reason: error?.message ?? "Machine action GM operation failed." };
+  }
+
+  game.socket?.emit?.(SYSTEM_SOCKET, {
+    msg: GM_MACHINE_ACTION_RESPONSE,
+    data: {
+      requestId: data.requestId,
+      userId: data.userId,
+      result,
+    },
+  });
+}
+
+export async function registerMachineActionGmOperations() {
+  if (gmMachineActionSocketRegistered) return;
+  gmMachineActionSocketRegistered = true;
+
+  await RemoteCall.register(GM_MACHINE_ACTION_REQUEST, {
+    condition: user => user.isGM,
+    multiple: false,
+    callback: data => { void handleGmMachineActionRequest(data); },
+  });
+  await RemoteCall.register(GM_MACHINE_ACTION_RESPONSE, {
+    condition: () => true,
+    multiple: true,
+    callback: data => resolvePendingGmMachineActionRequest(data),
+  });
+}
+
 async function executeRollPayload(actor, payload, event = null) {
   const rollApi = getMachineRollApi();
   if (!rollApi?.execute) return getRollUnavailableResult();
@@ -63,7 +332,7 @@ async function executeRollPayload(actor, payload, event = null) {
 async function executeMachineAttack(actor, request) {
   const attackKind = String(request.attackKind ?? request.actionId ?? "").trim();
   const operatorActorUuid = String(request.operatorActorUuid ?? "").trim();
-  const token = request.token ?? resolveMachineSceneToken(actor);
+  const token = resolveRequestToken(actor, request);
   const sourceType = String(request.sourceType ?? "").trim();
   const sourceId = String(request.sourceId ?? request.itemId ?? request.weaponId ?? "").trim();
 
@@ -126,7 +395,7 @@ async function executeMachineEwIntent(actor, request) {
   const intent = String(request.intent ?? "").trim();
   if (intent !== "acquire" && intent !== "targeting") return null;
 
-  const token = request.token ?? resolveMachineSceneToken(actor);
+  const token = resolveRequestToken(actor, request);
   const panel = buildMachineEwPanel({ actor, token });
   const explicitTargetTokenUuid = String(request.targetTokenUuid ?? "").trim();
   const explicitTargetTokenId = String(request.targetTokenId ?? "").trim();
@@ -180,7 +449,7 @@ async function executeMachineHeatDangerCheck(actor, request) {
     ? Math.max(1, Number(heat.dangerChecks.shutdownDN ?? 1) || 1)
     : Math.max(1, Number(heat.dangerChecks.explosionDN ?? 1) || 1);
 
-  const token = request.token ?? resolveMachineSceneToken(actor);
+  const token = resolveRequestToken(actor, request);
   return executeRollPayload(actor, {
     intent: "heatDangerCheck",
     checkKind,
@@ -194,6 +463,9 @@ async function executeMachineHeatDangerCheck(actor, request) {
 export async function executeMachineQuickAction(actor, request = {}) {
   assertMachineActionActor(actor);
   const normalized = normalizeMachineActionRequest(request);
+  if (shouldRouteMachineActionThroughGm(actor, normalized)) {
+    return assertMachineActionResult(await requestGmMachineAction(actor, normalized), normalized.kind);
+  }
   let result;
 
   switch (normalized.kind) {
