@@ -22,6 +22,11 @@ import {
 } from "../mwd/traits.js";
 import { getDocumentTypeCreateDefaults } from "../document-type-defaults.js";
 import { getAttackerCombatant, resetAllSensorTargetingStatesToBlind } from "../mwd/machine-ew-state.js";
+import {
+  MACHINE_MONITOR_STORAGE_FLAG,
+  MACHINE_MONITOR_STORAGE_REMAINING_V1,
+  isMachineActorType,
+} from "../mwd/machine-monitors.js";
 
 function mitigationLabel(mitigation = {}) {
   return Object.entries(normalizeArmorMitigationByType(mitigation))
@@ -58,6 +63,11 @@ export class MWDActor extends Actor {
 
     if (Object.keys(updates).length) {
       this.updateSource(updates);
+    }
+
+    const actorType = data?.type ?? this.type;
+    if (isMachineActorType(actorType) && !this.getFlag?.("mwd", MACHINE_MONITOR_STORAGE_FLAG)) {
+      this.updateSource({ [`flags.mwd.${MACHINE_MONITOR_STORAGE_FLAG}`]: MACHINE_MONITOR_STORAGE_REMAINING_V1 });
     }
   }
 
@@ -613,25 +623,6 @@ export class MWDActor extends Actor {
     }
 
     return this.adjustEdgePoolValue(poolKey, actualAmount);
-  }
-
-  /* -------------------------------------------- */
-  /* Token Bar                                     */
-  /* -------------------------------------------- */
-
-  /** @override */
-  getBarAttribute(barName, options = {}) {
-    const result = super.getBarAttribute(barName, options);
-    if (!result || result.type !== "bar") return result;
-    if (this.type !== "battlemech" && this.type !== "vehicle") return result;
-
-    // Machine monitors store damage-taken (0 = healthy, max = destroyed).
-    // Invert for token bar display so the bar depletes as damage is taken.
-    const attr = result.attribute ?? "";
-    if (attr === "monitors.structure" || attr === "monitors.armor") {
-      return { ...result, value: Math.max(0, result.max - result.value) };
-    }
-    return result;
   }
 
   /* -------------------------------------------- */

@@ -27,6 +27,7 @@ import {
   buildMachineCriticalConsequenceData,
   normalizeMachineCriticalRecord,
 } from "./machine-crit-consequences.js";
+import { getMachineMonitorState } from "./machine-monitors.js";
 
 export const MACHINE_CRITICAL_STATUS_ID = "machineCritical";
 export const SETTING_MACHINE_CRIT_TABLE_GENERAL = "machineCriticalTableGeneralUuid";
@@ -319,17 +320,6 @@ export function getActiveMachineCrits(actor, filters = {}) {
     .filter(crit => !filters.mod || (Array.isArray(crit.mods) && crit.mods.includes(filters.mod)));
 }
 
-function getMonitorDamageState(actor, monitorKey) {
-  const monitor = actor?.system?.monitors?.[monitorKey] ?? {};
-  const max = Math.max(0, Number(monitor.max ?? 0) || 0);
-  const value = Math.min(max, Math.max(0, Number(monitor.value ?? 0) || 0));
-  return {
-    max,
-    value,
-    remaining: Math.max(0, max - value),
-  };
-}
-
 function isMachineActor(actor) {
   return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
 }
@@ -468,18 +458,18 @@ export function previewMachineAttackDamage({
   if (!isMachineActor(actor)) return { ok: false, reason: "Machine damage requires a vehicle or BattleMech actor." };
 
   const incoming = Math.max(0, Math.ceil(Number(payload?.damage ?? payload?.amount ?? 0) || 0));
-  const armor = getMonitorDamageState(actor, TEMPLATE.monitors.armor);
-  const structure = getMonitorDamageState(actor, TEMPLATE.monitors.structure);
+  const armor = getMachineMonitorState(actor, TEMPLATE.monitors.armor);
+  const structure = getMachineMonitorState(actor, TEMPLATE.monitors.structure);
   const resolvedHitLocation = hitLocation
     ? { ...hitLocation, armorBefore: armor.remaining, structureBefore: structure.remaining, pureStructureHit: armor.remaining <= 0 }
     : normalizeHitLocationForDamage(actor, payload, armor.remaining, structure.remaining);
 
-  // Monitor values are damage-taken counters; armor remaining must be computed
-  // before this hit mutates armor or the pure-structure trigger becomes wrong.
   const armorAbsorbed = Math.min(incoming, actor.type === TEMPLATE.actorTypes.vehicle && armor.max <= 0 ? 0 : armor.remaining);
   const structureDamage = Math.min(structure.remaining, Math.max(0, incoming - armorAbsorbed));
-  const armorAfterValue = Math.min(armor.max, armor.value + armorAbsorbed);
-  const structureAfterValue = Math.min(structure.max, structure.value + structureDamage);
+  const armorAfterValue = Math.max(0, armor.remaining - armorAbsorbed);
+  const structureAfterValue = Math.max(0, structure.remaining - structureDamage);
+  const armorDamageAfter = Math.max(0, armor.max - armorAfterValue);
+  const structureDamageAfter = Math.max(0, structure.max - structureAfterValue);
   const criticalLocation = getCriticalLocation(resolvedHitLocation, chaosCriticalSelected);
   const criticalState = buildCriticalState(resolvedHitLocation, criticalLocation, chaosCriticalSelected);
   const attackQuality = resolveAttackQuality(payload);
@@ -494,7 +484,7 @@ export function previewMachineAttackDamage({
     damageType: String(payload?.damageType ?? "kinetic").trim() || "kinetic",
     effectiveAp: Math.max(0, Number(payload?.ap ?? 0) || 0),
     beforeLabel: `Armor ${armor.remaining}/${armor.max}, Structure ${structure.remaining}/${structure.max}`,
-    afterLabel: `Armor ${Math.max(0, armor.max - armorAfterValue)}/${armor.max}, Structure ${Math.max(0, structure.max - structureAfterValue)}/${structure.max}`,
+    afterLabel: `Armor ${armorAfterValue}/${armor.max}, Structure ${structureAfterValue}/${structure.max}`,
   };
 
   return {
@@ -513,16 +503,24 @@ export function previewMachineAttackDamage({
     hitLocation: resolvedHitLocation,
     critical: criticalState,
     machine: {
+      armorRemainingBefore: armor.remaining,
+      armorRemainingAfter: armorAfterValue,
       armorBefore: armor.remaining,
-      armorAfter: Math.max(0, armor.max - armorAfterValue),
-      armorDamageBefore: armor.value,
-      armorDamageAfter: armorAfterValue,
+      armorAfter: armorAfterValue,
+      armorDamageTakenBefore: armor.damageTaken,
+      armorDamageTakenAfter: armorDamageAfter,
+      armorDamageBefore: armor.damageTaken,
+      armorDamageAfter,
       armorMax: armor.max,
       armorAbsorbed,
+      structureRemainingBefore: structure.remaining,
+      structureRemainingAfter: structureAfterValue,
       structureBefore: structure.remaining,
-      structureAfter: Math.max(0, structure.max - structureAfterValue),
-      structureDamageBefore: structure.value,
-      structureDamageAfter: structureAfterValue,
+      structureAfter: structureAfterValue,
+      structureDamageTakenBefore: structure.damageTaken,
+      structureDamageTakenAfter: structureDamageAfter,
+      structureDamageBefore: structure.damageTaken,
+      structureDamageAfter,
       structureMax: structure.max,
       structureDamage,
       pureStructureHit: armor.remaining <= 0,
@@ -536,16 +534,24 @@ export function previewMachineAttackDamage({
     damagePreview: {
       ...preview,
       machine: {
+        armorRemainingBefore: armor.remaining,
+        armorRemainingAfter: armorAfterValue,
         armorBefore: armor.remaining,
-        armorAfter: Math.max(0, armor.max - armorAfterValue),
-        armorDamageBefore: armor.value,
-        armorDamageAfter: armorAfterValue,
+        armorAfter: armorAfterValue,
+        armorDamageTakenBefore: armor.damageTaken,
+        armorDamageTakenAfter: armorDamageAfter,
+        armorDamageBefore: armor.damageTaken,
+        armorDamageAfter,
         armorMax: armor.max,
         armorAbsorbed,
+        structureRemainingBefore: structure.remaining,
+        structureRemainingAfter: structureAfterValue,
         structureBefore: structure.remaining,
-        structureAfter: Math.max(0, structure.max - structureAfterValue),
-        structureDamageBefore: structure.value,
-        structureDamageAfter: structureAfterValue,
+        structureAfter: structureAfterValue,
+        structureDamageTakenBefore: structure.damageTaken,
+        structureDamageTakenAfter: structureDamageAfter,
+        structureDamageBefore: structure.damageTaken,
+        structureDamageAfter,
         structureMax: structure.max,
         structureDamage,
         pureStructureHit: armor.remaining <= 0,
@@ -1074,8 +1080,8 @@ export async function applyMachineAttackDamage({
 
   if (!dryRun) {
     const update = {
-      "system.monitors.armor.value": preview.machine.armorDamageAfter,
-      "system.monitors.structure.value": preview.machine.structureDamageAfter,
+      "system.monitors.armor.value": preview.machine.armorRemainingAfter,
+      "system.monitors.structure.value": preview.machine.structureRemainingAfter,
       ...buildMachineDegradationUpdates(actor, degradation),
       ...buildVehicleStructureZeroDisableUpdates(actor, preview.machine.structureAfter),
     };

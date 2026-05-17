@@ -176,6 +176,21 @@ export function getToggleableStatusEffects(actor) {
   });
 }
 
+export function getActiveStatusSummaries(actor) {
+  const seen = new Set();
+  return getToggleableStatusEffects(actor)
+    .filter(effect => effect.active)
+    .map(effect => ({
+      id: String(effect.id ?? "").trim(),
+      label: String(effect.label ?? "").trim() || humanizeStatusKey(effect.id),
+    }))
+    .filter(effect => {
+      if (!effect.id || seen.has(effect.id)) return false;
+      seen.add(effect.id);
+      return true;
+    });
+}
+
 function buildDialogContent(effects) {
   if (!effects.length) {
     return "<p>No token statuses are configured.</p>";

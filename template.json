@@ -353,7 +353,7 @@
       "attributes": {},
       "monitors": {
         "structure": {
-          "value": 0,
+          "value": 15,
           "max": 15,
           "resistance": {
             "default": 2,
@@ -361,7 +361,7 @@
           }
         },
         "armor": {
-          "value": 0,
+          "value": 12,
           "max": 12,
           "resistance": {
             "default": 1,
@@ -391,7 +391,7 @@
       "attributes": {},
       "monitors": {
         "structure": {
-          "value": 0,
+          "value": 18,
           "max": 18,
           "resistance": {
             "default": 1,
@@ -399,7 +399,7 @@
           }
         },
         "armor": {
-          "value": 0,
+          "value": 15,
           "max": 15,
           "resistance": {
             "default": 1,

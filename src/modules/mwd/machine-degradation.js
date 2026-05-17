@@ -207,8 +207,7 @@ function getStructureRemaining(systemData = {}) {
   const structure = systemData?.monitors?.structure ?? {};
   const max = Math.max(0, toNumber(structure?.max, 0));
   if (max <= 0) return null;
-  const applied = clamp(toNumber(structure?.value, 0), 0, max);
-  return Math.max(0, max - applied);
+  return clamp(toNumber(structure?.value, 0), 0, max);
 }
 
 function applyVehicleStructureZeroLocationDisable(systemData = {}, actorType = TEMPLATE.actorTypes.vehicle) {

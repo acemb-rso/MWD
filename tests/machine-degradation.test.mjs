@@ -189,7 +189,7 @@ test("legacy battlemech location keys normalize into grouped degradation buckets
 test("vehicle zero structure normalizes enabled locations to disabled", () => {
   const system = normalizeMachineDegradationState({
     monitors: {
-      structure: { value: 10, max: 10 },
+      structure: { value: 0, max: 10 },
     },
     attributes: {
       reliability: { value: 2 },

@@ -10,6 +10,7 @@ import {
 import { StatusEffectsProvider } from "../src/modules/modifiers/providers/status-effects.js";
 import {
   applyManagedStatusUpdate,
+  getActiveStatusSummaries,
   getToggleableStatusEffects,
   getStatusInstanceMetadata,
 } from "../src/modules/dialog/token-status-dialog.js";
@@ -121,6 +122,19 @@ test("active uncataloged statuses remain visible and removable", () => {
 
   assert.equal(legacy.active, true);
   assert.equal(legacy.legacy, true);
+});
+
+test("active status summaries expose labels only for active statuses", () => {
+  globalThis.CONFIG = { statusEffects: [] };
+
+  assert.deepEqual(
+    getActiveStatusSummaries(actor("battlemech", ["machineCritical", "sensorBlind", "oldWorldStatus"])),
+    [
+      { id: "machineCritical", label: "Machine Critical" },
+      { id: "sensorBlind", label: "Sensor Blind" },
+      { id: "oldWorldStatus", label: "Old World Status" },
+    ],
+  );
 });
 
 test("visual-only statuses emit no modifiers while existing mechanical statuses still do", () => {

@@ -4,7 +4,7 @@
 
 import { MWD } from "../config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../constants.js";
-import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
+import { getActiveStatusSummaries, openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import { getActiveMachineCrits } from "../mwd/critical-hits.js";
 import { getMachineCritRemedy } from "../mwd/machine-crit-remedies.js";
@@ -271,6 +271,9 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const ctx = await super._prepareContext(options);
     ctx._mwdThemeClass = game.system?.mwd?.styles?.selectCssClass?.() ?? "";
     ctx.layout = await LayoutRegistry.get(this.constructor.LAYOUT_ID ?? VehicleSheetV2.LAYOUT_ID);
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const activeStatuses = getActiveStatusSummaries(actor);
+
     ctx.vehicleSheet = {
       summaryStats: this._buildSummaryStats(),
       summaryActions: this._buildSummaryActions(),
@@ -281,7 +284,9 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       crewPanel: this._buildCrewPanel(),
       statusAction: {
         label: "Statuses",
-        disabled: !this._resolveStatusToken(this.getPersistentActor() ?? this.actor),
+        activeStatuses,
+        summaryTitle: activeStatuses.map(status => status.label).join(", "),
+        disabled: !this._resolveStatusToken(actor),
         reason: "Statuses require a token for this actor on the current scene.",
       },
       ewPanel: this._buildEwPanel(),

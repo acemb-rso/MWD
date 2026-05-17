@@ -25,9 +25,7 @@ export function getIntegrityToneForPercent(percent = 0) {
 
 export function buildIntegrityPart(label, monitor = {}) {
   const max = Math.max(0, toNumber(monitor?.max, 0));
-  const damageTaken = clamp(toNumber(monitor?.value, 0), 0, max);
-  // Machine monitor values store damage taken; the hero bar reports remaining integrity.
-  const remaining = Math.max(0, max - damageTaken);
+  const remaining = clamp(toNumber(monitor?.value, 0), 0, max);
   const percent = max > 0 ? (remaining / max) * 100 : 0;
 
   return {
@@ -61,8 +59,7 @@ export function buildRemainingMonitorTrack({
   editable = false,
 } = {}) {
   const max = Math.max(0, toNumber(monitor?.max, 0));
-  const damageTaken = clamp(toNumber(monitor?.value, 0), 0, max);
-  const remaining = Math.max(0, max - damageTaken);
+  const remaining = clamp(toNumber(monitor?.value, 0), 0, max);
 
   return {
     id,
@@ -74,7 +71,7 @@ export function buildRemainingMonitorTrack({
     segments: Array.from({ length: max }, (_entry, index) => {
       const segmentValue = index + 1;
       return {
-        value: Math.max(0, max - segmentValue),
+        value: segmentValue,
         filled: segmentValue <= remaining,
       };
     }),

@@ -42,7 +42,7 @@ How it fits: Shared by both vehicle-scale V2 sheets.
 {{/if}}
 
 {{#if vehicleSheet.statusAction}}
-  <div class="mwd-item-toolbar" style="margin-top: 0.5rem;">
+  <div class="mwd-item-toolbar mwd-status-toolbar" style="margin-top: 0.5rem;">
     <button
       type="button"
       data-action="toggleStatuses"
@@ -53,6 +53,13 @@ How it fits: Shared by both vehicle-scale V2 sheets.
       <i class="fa-solid fa-heart-pulse"></i>
       {{vehicleSheet.statusAction.label}}
     </button>
+    {{#if vehicleSheet.statusAction.activeStatuses.length}}
+      <div class="mwd-status-summary" title="{{vehicleSheet.statusAction.summaryTitle}}" aria-label="Active statuses">
+        {{#each vehicleSheet.statusAction.activeStatuses as |status|}}
+          <span class="mwd-status-summary__chip">{{status.label}}</span>
+        {{/each}}
+      </div>
+    {{/if}}
   </div>
 {{/if}}
 

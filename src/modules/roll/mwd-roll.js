@@ -185,7 +185,7 @@ async function applyPostRerollFailures({ message = null, poolKey = "" } = {}) {
     return { ok: false, reason: "no-failures", userMessage: "No failures to reroll." };
   }
 
-  const actor = await fromUuid(resolved.actorUuid);
+  const actor = await fromUuid(resolved.rollActorUuid ?? resolved.actorUuid);
   if (!actor) return { ok: false, reason: "actor-not-found", userMessage: "Actor not found for this roll." };
 
   if (getSpendableEdgeAfterRevokingEarned(actor, resolved, normalizedPoolKey) <= 0) {
@@ -1015,6 +1015,12 @@ async function execute({ actor, payload, event } = {}) {
     edge: edgeInfo,
     outcomeModel
   });
+
+  // For mech attacks the roll actor is the pilot, not the machine.
+  // Store the pilot's UUID separately so edge operations target the correct actor.
+  if (rollActor && rollActor.uuid !== actor.uuid) {
+    resolved.rollActorUuid = rollActor.uuid;
+  }
 
   if (attackExecution) {
     resolved.attackResult = attackExecution;

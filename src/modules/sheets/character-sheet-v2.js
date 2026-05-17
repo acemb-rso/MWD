@@ -875,9 +875,9 @@ ctx.edgeConsole.poolsOrdered = order
         ] : [];
 
         const armorMax = Math.max(0, toNumber(armor.max, 0));
-        const armorRemaining = Math.max(0, armorMax - toNumber(armor.value, 0));
+        const armorRemaining = Math.min(armorMax, Math.max(0, toNumber(armor.value, 0)));
         const structureMax = Math.max(0, toNumber(structure.max, 0));
-        const structureRemaining = Math.max(0, structureMax - toNumber(structure.value, 0));
+        const structureRemaining = Math.min(structureMax, Math.max(0, toNumber(structure.value, 0)));
 
         return {
           id: a.id,

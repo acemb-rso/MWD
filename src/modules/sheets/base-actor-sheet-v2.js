@@ -7,6 +7,7 @@
 import { LOG_HEAD, SYSTEM_NAME } from "../constants.js";
 import { Misc } from "../misc.js";
 import { buildSkillDisplay } from "../mwd/skills.js";
+import { getDepletingMachineMonitorClickValue, isMachineActorType } from "../mwd/machine-monitors.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { collectDocumentFormUpdates } from "./document-sheet-form.js";
 
@@ -785,13 +786,15 @@ async _prepareContext(options) {
     // the current tab scroll so deep systems panels do not snap back to top.
     this._captureScrollPosition();
 
-    // Toggle: clicking the already-active pip clears the monitor to 0
+    // Toggle: clicking the currently filled edge pip clears that pip.
     const currentPath = monitorId === "burn"
       ? "system.burn.value"
       : `system.monitors.${monitorId}.value`;
     const current = Number(foundry.utils.getProperty(this.actor, currentPath) ?? 0);
-    const next = monitorId === "armor"
-      ? raw
+    const depletingMachineMonitor = isMachineActorType(this.actor)
+      && (monitorId === "armor" || monitorId === "structure");
+    const next = depletingMachineMonitor
+      ? getDepletingMachineMonitorClickValue(current, raw)
       : (current === raw ? 0 : raw);
 
     // Prefer actor-owned semantics

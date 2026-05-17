@@ -230,8 +230,8 @@ const templateData = {
       templates: ["description", "matrix-monitor", "mwd-vehicle"],
       attributes: {},
       monitors: {
-        structure: { value: 0, max: 15, resistance: { default: 2, byType: {} } },
-        armor:     { value: 0, max: 12, resistance: { default: 1, byType: {} } }
+        structure: { value: 15, max: 15, resistance: { default: 2, byType: {} } },
+        armor:     { value: 12, max: 12, resistance: { default: 1, byType: {} } }
       },
       weaponGroups: [],
       meleeProfiles: [],
@@ -249,8 +249,8 @@ const templateData = {
       templates: ["description", "mwd-battlemech"],
       attributes: {},
       monitors: {
-        structure: { value: 0, max: 18, resistance: { default: 1, byType: {} } },
-        armor:     { value: 0, max: 15, resistance: { default: 1, byType: {} } },
+        structure: { value: 18, max: 18, resistance: { default: 1, byType: {} } },
+        armor:     { value: 15, max: 15, resistance: { default: 1, byType: {} } },
         heat:      { value: 0, max: 10, resistance: { default: 0, byType: {} } }
       },
       hybrid: {

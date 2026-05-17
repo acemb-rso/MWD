@@ -295,7 +295,7 @@ function getMonitorRemaining(actor, monitorKey) {
   const monitor = actor?.system?.monitors?.[monitorKey] ?? {};
   const max = Math.max(0, Number(monitor.max ?? 0) || 0);
   const value = Math.min(max, Math.max(0, Number(monitor.value ?? 0) || 0));
-  return Math.max(0, max - value);
+  return value;
 }
 
 function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, hitLocation = null } = {}) {

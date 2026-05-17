@@ -2445,6 +2445,40 @@
   color: rgba(102, 82, 51, 0.86);
 }
 
+.mwd-status-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mwd-status-summary {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mwd-status-summary__chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 11rem;
+  min-height: 22px;
+  padding: 2px 7px;
+  border: 1px solid rgba(141, 31, 24, 0.28);
+  border-radius: 5px;
+  background: rgba(174, 48, 37, 0.14);
+  color: #8d1f18;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .mwd-degradation {
   display: flex;
   flex-direction: column;

@@ -39,6 +39,9 @@ import {
   buildMachineEnergyPayloadModel,
   normalizeMachineHardpointType,
 } from "./mwd/machine-weapon-types.js";
+import {
+  migrateMachineMonitorStorageOnce,
+} from "./mwd/machine-monitors.js";
 import { normalizeVehicleMovementProfile } from "./mwd/vehicle-profiles.js";
 import { normalizeVehicleStrainState } from "./mwd/vehicle-strain.js";
 
@@ -77,6 +80,7 @@ function normalizeMachineHardpointData(hardpoint, { actorType = "" } = {}) {
 
 export const DECLARE_MIGRATIONS = 'anarchy-declareMigration';
 const SYSTEM_MIGRATION_CURRENT_VERSION = "systemMigrationVersion";
+const MACHINE_MONITOR_STORAGE_WORLD_MIGRATION = "machineMonitorStorageMigration";
 
 export class Migration {
   get code() { return "sample"; }
@@ -1232,6 +1236,14 @@ export class Migrations {
       type: String,
       default: "0.0.0"
     });
+
+    game.settings.register(SYSTEM_NAME, MACHINE_MONITOR_STORAGE_WORLD_MIGRATION, {
+      name: "Machine Monitor Storage Migration",
+      scope: "world",
+      config: false,
+      type: String,
+      default: ""
+    });
   }
 
   migrate() {
@@ -1261,6 +1273,16 @@ export class Migrations {
     else {
       console.log(LOG_HEAD + `No system version changed`);
     }
+    void this.migrateMachineMonitorStorage();
+  }
+
+  async migrateMachineMonitorStorage() {
+    const current = game.settings.get(SYSTEM_NAME, MACHINE_MONITOR_STORAGE_WORLD_MIGRATION);
+    return migrateMachineMonitorStorageOnce({
+      actors: game.actors ?? [],
+      currentMigration: current,
+      setMigration: value => game.settings.set(SYSTEM_NAME, MACHINE_MONITOR_STORAGE_WORLD_MIGRATION, value),
+    });
   }
 
 }

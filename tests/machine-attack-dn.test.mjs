@@ -330,8 +330,8 @@ test("machine attack execution queues canonical machine damage mutation", async 
     statuses: new Set(),
     system: {
       monitors: {
-        armor: { value: 0, max: 6 },
-        structure: { value: 0, max: 10 },
+        armor: { value: 6, max: 6 },
+        structure: { value: 10, max: 10 },
       },
       attributes: {
         handling: { value: 1 },

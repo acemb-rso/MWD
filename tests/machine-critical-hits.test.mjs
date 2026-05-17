@@ -50,8 +50,8 @@ function machineActor(overrides = {}) {
     statuses: new Set(overrides.statuses ?? []),
     system: {
       monitors: {
-        armor: { value: 0, max: 6 },
-      structure: { value: 0, max: 10 },
+        armor: { value: 6, max: 6 },
+        structure: { value: 10, max: 10 },
       },
       attributes: {
         reliability: { value: 3 },
@@ -150,8 +150,8 @@ test("armor-only machine hits strip armor without shock, stress, or degradation"
   });
 
   assert.equal(result.ok, true);
-  assert.equal(actor.system.monitors.armor.value, 2);
-  assert.equal(actor.system.monitors.structure.value, 0);
+  assert.equal(actor.system.monitors.armor.value, 4);
+  assert.equal(actor.system.monitors.structure.value, 10);
   assert.equal(actor.system.mwd.shock.value, 0);
   assert.equal(actor.system.mwd.locations.torso.stress, 0);
   assert.equal(actor.system.mwd.locations.torso.condition, 0);
@@ -199,8 +199,8 @@ test("armor-only shock critical can create pressure and prefers the current hit 
   });
 
   assert.equal(result.ok, true);
-  assert.equal(actor.system.monitors.armor.value, 2);
-  assert.equal(actor.system.monitors.structure.value, 0);
+  assert.equal(actor.system.monitors.armor.value, 4);
+  assert.equal(actor.system.monitors.structure.value, 10);
   assert.equal(actor.system.mwd.locations.torso.stress, 0);
   assert.equal(actor.system.mwd.locations.torso.condition, 1);
   assert.equal(actor.system.mwd.locations.head.condition, 0);
@@ -241,17 +241,17 @@ test("machine system monitor pips display remaining armor and structure", () => 
     id: "armor",
     label: "Armor",
     kind: "armor",
-    monitor: { value: 2, max: 5 },
+    monitor: { value: 3, max: 5 },
     editable: true,
   });
 
   assert.equal(structure.value, 3);
   assert.equal(structure.kind, "structure");
   assert.equal(structure.segments.filter(segment => segment.filled).length, 3);
-  assert.deepEqual(structure.segments.map(segment => segment.value), [5, 4, 3, 2, 1, 0]);
+  assert.deepEqual(structure.segments.map(segment => segment.value), [1, 2, 3, 4, 5, 6]);
   assert.equal(armor.value, 3);
   assert.equal(armor.segments.filter(segment => segment.filled).length, 3);
-  assert.deepEqual(armor.segments.map(segment => segment.value), [4, 3, 2, 1, 0]);
+  assert.deepEqual(armor.segments.map(segment => segment.value), [1, 2, 3, 4, 5]);
 });
 
 test("vehicle structure pips display remaining structure", () => {
@@ -259,14 +259,14 @@ test("vehicle structure pips display remaining structure", () => {
     id: "structure",
     label: "Structure",
     kind: "structure",
-    monitor: { value: 4, max: 7 },
+    monitor: { value: 3, max: 7 },
     editable: false,
   });
 
   assert.equal(structure.value, 3);
   assert.equal(structure.kind, "structure");
   assert.equal(structure.segments.filter(segment => segment.filled).length, 3);
-  assert.deepEqual(structure.segments.map(segment => segment.value), [6, 5, 4, 3, 2, 1, 0]);
+  assert.deepEqual(structure.segments.map(segment => segment.value), [1, 2, 3, 4, 5, 6, 7]);
 });
 
 test("machine heat status resolves safe, hot, overheat, and danger bands", () => {
@@ -309,7 +309,7 @@ test("critical signal validation accepts valid data and rejects malformed rows",
 test("applying machine damage writes monitors, location stress, and crit records", async () => {
   const actor = machineActor({
     paths: {
-      "system.monitors.armor.value": 6,
+      "system.monitors.armor.value": 0,
     },
   });
   const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 16, armorBefore: 0 });
@@ -330,7 +330,7 @@ test("applying machine damage writes monitors, location stress, and crit records
   });
 
   assert.equal(result.ok, true);
-  assert.equal(actor.system.monitors.structure.value, 3);
+  assert.equal(actor.system.monitors.structure.value, 7);
   assert.equal(actor.system.mwd.locations.arms.stress, 3);
   assert.equal(actor.system.mwd.locations.arms.condition, 1);
   assert.equal(actor.system.mwd.shock.value, 0);
@@ -344,7 +344,7 @@ test("applying machine damage writes monitors, location stress, and crit records
 test("pure structure hit auto-degrades the struck location in addition to crit-driven degradation", async () => {
   const actor = machineActor({
     paths: {
-      "system.monitors.armor.value": 6,
+      "system.monitors.armor.value": 0,
     },
   });
   const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 16, armorBefore: 0 });
@@ -386,7 +386,7 @@ test("pure structure hit auto-degrades the struck location in addition to crit-d
 test("degradation-derived statuses are surfaced when a location crosses a canonical threshold", async () => {
   const actor = machineActor({
     paths: {
-      "system.monitors.armor.value": 6,
+      "system.monitors.armor.value": 0,
       "system.mwd.locations.torso.condition": 3,
     },
   });
@@ -411,7 +411,7 @@ test("optics coolant fog caps attack range without applying sensor degraded", as
   const actor = machineActor({
     paths: {
       "system.monitors.armor.value": 0,
-      "system.monitors.structure.value": 10,
+      "system.monitors.structure.value": 0,
     },
   });
   const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 18, armorBefore: 0 });
@@ -474,8 +474,8 @@ test("vehicle reduced to zero structure disables all enabled locations immediate
   const actor = machineActor({
     type: "vehicle",
     paths: {
-      "system.monitors.armor.value": 6,
-      "system.monitors.structure.value": 8,
+      "system.monitors.armor.value": 0,
+      "system.monitors.structure.value": 2,
       "system.monitors.structure.max": 10,
     },
   });
@@ -555,7 +555,7 @@ test("prepared critical records carry preview revision and stale records are ref
 test("machine damage dry-run previews reliability options without mutating reliability", async () => {
   const actor = machineActor({
     paths: {
-      "system.monitors.armor.value": 6,
+      "system.monitors.armor.value": 0,
       "system.mwd.shock.value": 3,
       "system.mwd.reliabilitySpendable.value": 2,
     },
@@ -584,7 +584,7 @@ test("machine damage dry-run previews reliability options without mutating relia
 test("machine damage apply is idempotent when payload is already applied", async () => {
   const actor = machineActor({
     paths: {
-      "system.monitors.armor.value": 6,
+      "system.monitors.armor.value": 0,
     },
   });
   const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 16, armorBefore: 0 });
@@ -608,7 +608,7 @@ test("machine damage apply is idempotent when payload is already applied", async
 
   assert.equal(first.ok, true);
   assert.equal(second.skipped, true);
-  assert.equal(actor.system.monitors.structure.value, 2);
+  assert.equal(actor.system.monitors.structure.value, 8);
   assert.equal(actor.system.mwd.locations.arms.condition, 1);
   assert.equal(actor.system.mwd.crits.length, 0);
 });
