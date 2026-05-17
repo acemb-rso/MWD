@@ -98,7 +98,14 @@ export async function resolveAcquire({ actor, payload } = {}) {
   const perceptionBonus  = Number(roller?.system?.skills?.[skillKey]?.bonus  ?? 0) || 0;
 
   const dnBase     = getAcquireBaseDn(currentState);
-  const dnModifier = getAcquireDnModifier(targetActor);
+  const dnModifier = getAcquireDnModifier(targetActor, {
+    attacker: actor,
+    payload,
+    resolved: {
+      intent: "acquire",
+      acquire: { currentState },
+    },
+  });
   const dn         = dnBase + dnModifier;
 
   return {

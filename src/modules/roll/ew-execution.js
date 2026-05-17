@@ -1,6 +1,6 @@
 // src/modules/roll/ew-execution.js
-// Post-roll EW state mutations.  Called by mwd-roll.js immediately after
-// the roll resolves — no deferred Apply button.
+// Post-roll EW state mutations. Called by mwd-roll.js immediately after
+// the roll resolves; there is no deferred Apply button.
 
 import { DETECTION_STATE_ORDER, upgradeDetectionState } from "../mwd/machine-ew.js";
 import {
@@ -24,12 +24,23 @@ function getAttackerTokenFromId(id) {
     ?? null;
 }
 
+function combatantsToArray(combatants) {
+  if (!combatants) return [];
+  if (Array.isArray(combatants)) return combatants;
+  if (Array.isArray(combatants.contents)) return combatants.contents;
+  if (typeof combatants[Symbol.iterator] === "function") return Array.from(combatants);
+  return [];
+}
+
 function getCombatantById(id) {
   const combatantId = String(id ?? "").trim();
   if (!combatantId) return null;
-  const combatants = game.combat?.combatants;
+  const combatants = globalThis.game?.combat?.combatants;
   return combatants?.get?.(combatantId)
-    ?? combatants?.find?.(combatant => combatant?.id === combatantId)
+    ?? combatantsToArray(combatants).find(entry => {
+      const combatant = Array.isArray(entry) ? entry[1] : entry;
+      return combatant?.id === combatantId;
+    })
     ?? null;
 }
 
@@ -40,10 +51,8 @@ function resolveAttackerCombatant(context = {}) {
 }
 
 /**
- * Apply the result of an acquire roll: advance the detection state by 1 tier
- * (capped by the ceiling declared in ctx.acquire).
- *
- * State changes are written immediately to combatant flags.
+ * Apply the result of an acquire roll: advance the detection state by one tier
+ * capped by the ceiling declared in ctx.acquire.
  */
 export async function resolveAcquireExecution({ attacker, ctx, outcomeModel } = {}) {
   const acquire = ctx?.acquire;
@@ -79,11 +88,24 @@ export async function resolveAcquireExecution({ attacker, ctx, outcomeModel } = 
   });
 
   const combatant = resolveAttackerCombatant(acquire);
-  if (combatant) {
-    await setDetectionState(combatant, acquire.targetTokenUuid, newState);
-  } else {
-    console.warn("MWD | EW acquire: no combatant found for attacker token — state change not persisted.");
+  if (!combatant) {
+    const reason = "Acquire succeeded, but no attacker combatant was found; detection state was not persisted.";
+    console.warn(`MWD | EW acquire: ${reason}`);
+    return {
+      ok: false,
+      reason,
+      persistenceFailed: true,
+      previousState: acquire.currentState,
+      newState: acquire.currentState,
+      attemptedState: newState,
+      ceiling,
+      hits,
+      dn,
+      hitCeiling: newState !== rawNewState,
+    };
   }
+
+  await setDetectionState(combatant, acquire.targetTokenUuid, newState);
 
   return {
     ok:            true,
@@ -97,10 +119,8 @@ export async function resolveAcquireExecution({ attacker, ctx, outcomeModel } = 
 }
 
 /**
- * Apply the result of a targeting roll: store a new targeting data packet.
- * Packet value = roll hits, capped by ctx.targeting.cap.
- *
- * The packet is written immediately to combatant flags.
+ * Apply the result of a targeting roll by storing a targeting data packet.
+ * Packet value equals roll hits, capped by ctx.targeting.cap.
  */
 export async function resolveTargetingExecution({ attacker, ctx, outcomeModel } = {}) {
   const targeting = ctx?.targeting;
@@ -131,11 +151,19 @@ export async function resolveTargetingExecution({ attacker, ctx, outcomeModel } 
   });
 
   const combatant = resolveAttackerCombatant(targeting);
-  if (combatant) {
-    await setTargetingPacket(combatant, targeting.targetTokenUuid, packet);
-  } else {
-    console.warn("MWD | EW targeting: no combatant found for attacker token — packet not persisted.");
+  if (!combatant) {
+    const reason = "Targeting roll succeeded, but no attacker combatant was found; targeting data was not persisted.";
+    console.warn(`MWD | EW targeting: ${reason}`);
+    return {
+      ok: false,
+      reason,
+      persistenceFailed: true,
+      rawHits: rawValue,
+      dn,
+    };
   }
+
+  await setTargetingPacket(combatant, targeting.targetTokenUuid, packet);
 
   return {
     ok:          true,

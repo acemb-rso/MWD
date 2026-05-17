@@ -11,6 +11,7 @@ import { performBattlemechMovementAction } from "./battlemech-movement-actions.j
 import { performBattlemechRangedAttack } from "./battlemech-ranged-actions.js";
 import { buildMachineEwPanel, resolveMachineEwActionTarget } from "./machine-ew-panel.js";
 import { getMachineActionDefinition } from "./machine-action-catalog.js";
+import { findAssetModuleActionOverride } from "./asset-module-effects.js";
 import { buildBattlemechHeatModel, resolveBattlemechPendingHeat } from "./machine-heat.js";
 import { prepareMachineRemedyRoll } from "./machine-intents.js";
 import { resolveMachineOperator } from "./machine-operator.js";
@@ -303,7 +304,18 @@ function getAnyEwTarget(panel = {}) {
 }
 
 async function recordMachineActionCost(actor, action, { token = null, operatorActorUuid = "" } = {}) {
-  if (!action?.cost) return { ok: true, skipped: true };
+  const override = findAssetModuleActionOverride(actor, action?.key, {
+    payload: { actionId: action?.key },
+  });
+  const effectiveAction = override
+    ? {
+      ...action,
+      cost: Number.isFinite(Number(override.cost)) ? Math.max(0, Number(override.cost)) : action.cost,
+      resource: String(override.resource ?? action.resource ?? "sa").trim() || "sa",
+      category: String(override.category ?? action.category ?? "simple").trim() || "simple",
+    }
+    : action;
+  if (!effectiveAction?.cost) return { ok: true, skipped: true };
 
   const operator = await resolveMachineOperator({
     machineActor: actor,
@@ -315,14 +327,14 @@ async function recordMachineActionCost(actor, action, { token = null, operatorAc
 
   const spend = await PersonalCombatTracker.spendResource(spendActor, {
     token,
-    resource: action.resource,
-    cost: action.cost,
-    actionId: action.key,
-    actionLabel: action.label,
-    actionCostLabel: getActionCostLabel(action),
-    actionCategory: action.category,
+    resource: effectiveAction.resource,
+    cost: effectiveAction.cost,
+    actionId: effectiveAction.key,
+    actionLabel: effectiveAction.label,
+    actionCostLabel: getActionCostLabel(effectiveAction),
+    actionCategory: effectiveAction.category,
   });
-  if (!spend?.ok) ui.notifications?.warn(spend?.reason ?? `Unable to record ${action.label}.`);
+  if (!spend?.ok) ui.notifications?.warn(spend?.reason ?? `Unable to record ${effectiveAction.label}.`);
   return spend;
 }
 

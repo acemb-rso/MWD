@@ -1,14 +1,42 @@
 Below is a **canonical Asset Module item schema** plus a **controlled tag taxonomy** for quirk-style modules in MWD.
 
-**Live implementation note:** the shipped `assetModule` schema is currently much
-smaller than the long-form design described below. The live engine currently
-derives module behavior primarily from:
+**Live implementation note:** the shipped `assetModule` schema now supports the
+structured v1 effect rail in addition to the older compatibility fields. The
+live engine normalizes and validates:
 
 ```json
 {
   "system": {
+    "installClass": "module",
     "category": "special",
     "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "sensor-suite.acquire",
+        "label": "Active Probe",
+        "timing": "active",
+        "scope": "self",
+        "requires": {
+          "actionIds": ["acquireTarget"]
+        },
+        "grants": {
+          "statuses": [],
+          "actionOverrides": []
+        },
+        "modifies": {
+          "dice": 2,
+          "bypassStatuses": ["ecmShrouded"]
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
     "mobility": {
       "jumping": {
         "enabled": false,
@@ -29,11 +57,19 @@ derives module behavior primarily from:
 }
 ```
 
+Validation is intentionally fail-loud. Invalid effect schema blocks item saves
+from the item sheet, and invalid installed module data raises an
+`AssetModuleValidationError` during runtime lookup instead of silently dropping
+mechanics. Use `epmBoosted`; `ecmBoosted` is invalid. `bypassStatuses` is
+currently intentionally narrow and may only include `ecmShrouded`.
+
 For clustering attacks, `targeting.clustering.diceModifier` adds cluster dice
 to weapons or weapon groups that already have clustering, and
 `targeting.clustering.targetNumberModifier` shifts the cluster success target
 number. Negative target-number modifiers make clustering hits easier, which is
-the intended hook for Artemis-style fire-control upgrades.
+the intended hook for Artemis-style fire-control upgrades. New module-authored
+effects can also use `modifies.clusteringDice` and
+`modifies.clusteringTarget`, gated by effect requirements.
 
 **Design intent:** quirks become **data-driven item records** that feed the existing **intent → resolver → RollContext** pipeline, with effects expressed as **dice parts, CQ parts, action injections, constraints, and rare rule hooks**, rather than sheet-side logic or bespoke one-off systems. That matches your locked resolver doctrine, especially “DN = Range + Motion only,” “CQ = AR – DR,” provider-based collection, and the requirement that the sheet emit intent while the engine does the work.    
 

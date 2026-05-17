@@ -3,6 +3,8 @@
 // How it fits: Called by the sheet context builder and by the end-of-activation
 //              heat resolution handler to compute active penalties and danger checks.
 
+import { movementPenaltyStepsToMeters } from "./machine-movement.js";
+
 /**
  * Computes how many discrete levels deep into each heat band the mech currently is.
  *
@@ -38,14 +40,14 @@ export function computeHeatBandLevels(current, thresholds) {
 /**
  * Derives the active mechanical penalties from the current heat level.
  *
- * - movementPenalty:   reduction to ground movement (1 per level in Hot)
+ * - movementPenalty:   reduction to movement speed in meters (30 per level in Hot)
  * - rangedDicePenalty: reduction to ranged attack dice pool (1 per level in Overheat)
  * - dangerLevel:       how many levels deep into Danger (drives check parameters)
  */
 export function computeHeatPenalties(current, thresholds) {
   const { levelsInHot, levelsInOverheat, levelsInDanger } = computeHeatBandLevels(current, thresholds);
   return {
-    movementPenalty: levelsInHot,
+    movementPenalty: movementPenaltyStepsToMeters(levelsInHot),
     rangedDicePenalty: levelsInOverheat,
     dangerLevel: levelsInDanger,
   };

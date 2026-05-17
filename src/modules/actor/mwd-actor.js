@@ -21,6 +21,7 @@ import {
   evaluateTraitPhase,
 } from "../mwd/traits.js";
 import { getDocumentTypeCreateDefaults } from "../document-type-defaults.js";
+import { getAttackerCombatant, resetAllSensorTargetingStatesToBlind } from "../mwd/machine-ew-state.js";
 
 function mitigationLabel(mitigation = {}) {
   return Object.entries(normalizeArmorMitigationByType(mitigation))
@@ -615,6 +616,25 @@ export class MWDActor extends Actor {
   }
 
   /* -------------------------------------------- */
+  /* Token Bar                                     */
+  /* -------------------------------------------- */
+
+  /** @override */
+  getBarAttribute(barName, options = {}) {
+    const result = super.getBarAttribute(barName, options);
+    if (!result || result.type !== "bar") return result;
+    if (this.type !== "battlemech" && this.type !== "vehicle") return result;
+
+    // Machine monitors store damage-taken (0 = healthy, max = destroyed).
+    // Invert for token bar display so the bar depletes as damage is taken.
+    const attr = result.attribute ?? "";
+    if (attr === "monitors.structure" || attr === "monitors.armor") {
+      return { ...result, value: Math.max(0, result.max - result.value) };
+    }
+    return result;
+  }
+
+  /* -------------------------------------------- */
   /* Document Lifecycle                            */
   /* -------------------------------------------- */
 
@@ -633,7 +653,13 @@ export class MWDActor extends Actor {
 
   _onCreateDescendantDocuments(parent, collection, documents, data, options, userId) {
     super._onCreateDescendantDocuments(parent, collection, documents, data, options, userId);
-    if (collection === "effects") void this._syncOverloadedFieldFromEffects();
+    if (collection === "effects") {
+      void this._syncOverloadedFieldFromEffects();
+      const gainedShutdown = documents.some(effect => effect.statuses?.has?.("shutdown"));
+      if (gainedShutdown && game.user.isGM && (this.type === "battlemech" || this.type === "vehicle")) {
+        void this._onGainShutdownStatus();
+      }
+    }
   }
 
   _onUpdateDescendantDocuments(parent, collection, documents, changes, options, userId) {
@@ -644,6 +670,13 @@ export class MWDActor extends Actor {
   _onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId) {
     super._onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId);
     if (collection === "effects") void this._syncOverloadedFieldFromEffects();
+  }
+
+  async _onGainShutdownStatus() {
+    for (const token of this.getActiveTokens(true)) {
+      const combatant = getAttackerCombatant(token);
+      if (combatant) await resetAllSensorTargetingStatesToBlind(combatant);
+    }
   }
 
   async _syncOverloadedEffect(overloaded) {

@@ -9,7 +9,7 @@ import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 import { adjustBattlemechPendingHeat } from "./machine-heat.js";
 import { resolveMachineOperator } from "./machine-operator.js";
 import { resolveMachineSceneToken } from "./machine-token-resolution.js";
-import { normalizeMachineMovement } from "./machine-movement.js";
+import { applyMachineMovementPenalty, normalizeMachineMovement } from "./machine-movement.js";
 import { getMachineMovementEffects } from "./machine-state-effects.js";
 
 export const BATTLEMECH_MOVEMENT_ACTIONS = Object.freeze({
@@ -34,8 +34,13 @@ export function buildBattlemechMovementActionChoices(actor = null) {
   });
   const movementEffects = getMachineMovementEffects(actor);
   const jumping = actor?.system?.mwd?.mobility?.jumping ?? null;
-  const flightSpeed = movementNumber(movement.flight, 0);
-  const groundSpeed = movementNumber(movement.ground, 0);
+  const movementBonus = movementNumber(movementEffects.movementBonus, 0);
+  const flightSpeed = applyMachineMovementPenalty(movementNumber(movement.flight, 0) + movementBonus, movementEffects.movementPenalty, {
+    immobile: movementEffects.immobile,
+  });
+  const groundSpeed = applyMachineMovementPenalty(movementNumber(movement.ground, 0) + movementBonus, movementEffects.movementPenalty, {
+    immobile: movementEffects.immobile,
+  });
   const isProne = actor?.statuses?.has?.("proneMechFall") ?? false;
 
   const disabledForImmobile = movementEffects.immobile ? "Machine is immobilized." : "";
@@ -44,7 +49,7 @@ export function buildBattlemechMovementActionChoices(actor = null) {
       ...BATTLEMECH_MOVEMENT_ACTIONS.walk,
       heat: 0,
       distance: groundSpeed,
-      hint: groundSpeed > 0 ? `${groundSpeed} movement` : "Ground movement",
+      hint: groundSpeed > 0 ? `${groundSpeed} m movement` : "Ground movement",
       disabled: Boolean(disabledForImmobile),
       reason: disabledForImmobile,
     },
@@ -52,7 +57,7 @@ export function buildBattlemechMovementActionChoices(actor = null) {
       ...BATTLEMECH_MOVEMENT_ACTIONS.run,
       heat: 1,
       distance: groundSpeed,
-      hint: groundSpeed > 0 ? `${groundSpeed} movement | +1 Heat` : "+1 Heat",
+      hint: groundSpeed > 0 ? `${groundSpeed} m movement | +1 Heat` : "+1 Heat",
       disabled: Boolean(disabledForImmobile),
       reason: disabledForImmobile,
     },
@@ -60,7 +65,7 @@ export function buildBattlemechMovementActionChoices(actor = null) {
       ...BATTLEMECH_MOVEMENT_ACTIONS.sprint,
       heat: 2,
       distance: groundSpeed,
-      hint: groundSpeed > 0 ? `${groundSpeed} movement | +2 Heat` : "+2 Heat",
+      hint: groundSpeed > 0 ? `${groundSpeed} m movement | +2 Heat` : "+2 Heat",
       disabled: Boolean(disabledForImmobile || movementEffects.noSprint),
       reason: disabledForImmobile || (movementEffects.noSprint ? "Sprint is blocked by current damage or status effects." : ""),
     },
@@ -76,7 +81,7 @@ export function buildBattlemechMovementActionChoices(actor = null) {
     choices.push({
       ...BATTLEMECH_MOVEMENT_ACTIONS.fly,
       distance: flightSpeed,
-      hint: `${flightSpeed} flight movement`,
+      hint: `${flightSpeed} m flight movement`,
       disabled: Boolean(disabledForImmobile),
       reason: disabledForImmobile,
     });
@@ -89,7 +94,7 @@ export function buildBattlemechMovementActionChoices(actor = null) {
       heat: jumpHeat,
       distance: movementNumber(jumping.movement, 0),
       hint: [
-        `${movementNumber(jumping.movement, 0)} jump movement`,
+        `${movementNumber(jumping.movement, 0)} m jump movement`,
         jumpHeat > 0 ? `+${jumpHeat} Heat` : "",
         jumping.sourceLabel ?? "",
       ].filter(Boolean).join(" | "),

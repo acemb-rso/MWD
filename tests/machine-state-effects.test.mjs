@@ -13,13 +13,17 @@ function buildActor({
   type = "battlemech",
   statuses = [],
   locations = {},
+  crits = [],
+  system = {},
 } = {}) {
   return {
     type,
     statuses: new Set(statuses),
     system: {
+      ...system,
       mwd: {
-        crits: [],
+        ...(system.mwd ?? {}),
+        crits,
         locations: {
           head: { enabled: true, stress: 0, condition: 0, destroyed: false, ...(locations.head ?? {}) },
           torso: { enabled: true, stress: 0, condition: 0, destroyed: false, ...(locations.torso ?? {}) },
@@ -87,4 +91,37 @@ test("prone battlemechs apply close-range penalties through the shared state hel
   assert.equal(movement.noJump, true);
   assert.equal(attackDice, -3);
   assert.equal(cq.dr, -5);
+});
+
+test("machine movement penalties are expressed in meters", () => {
+  const actor = buildActor({
+    crits: [{ active: true, statusId: "limping" }],
+    locations: {
+      legs: { condition: 1 },
+    },
+  });
+
+  const movement = getMachineMovementEffects(actor);
+
+  assert.equal(movement.movementPenalty, 60);
+  assert.equal(movement.immobile, false);
+});
+
+test("battlemech heat movement penalties join shared movement effects in meters", () => {
+  const actor = buildActor({
+    system: {
+      monitors: {
+        heat: { value: 4, max: 10 },
+      },
+      mwd: {
+        heat: {
+          thresholds: { runningHot: 3, overheated: 5, shutdown: 7 },
+        },
+      },
+    },
+  });
+
+  const movement = getMachineMovementEffects(actor);
+
+  assert.equal(movement.movementPenalty, 60);
 });

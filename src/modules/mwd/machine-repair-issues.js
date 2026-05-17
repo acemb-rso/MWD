@@ -181,7 +181,7 @@ export function getMachineRepairIssues(actor) {
     .filter(Boolean)
     .filter(statusId => !critBackedStatusIds.has(statusId))
     .map(statusId => getRepairableMachineStatusIssue(actor, statusId))
-    .filter(issue => issue?.remediable !== false)
+    .filter(issue => issue !== null && issue.remediable !== false)
     .sort((left, right) => left.sortLabel.localeCompare(right.sortLabel));
 
   return [...activeCrits, ...statusIssues];

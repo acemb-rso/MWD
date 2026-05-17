@@ -11,10 +11,30 @@ const MOVEMENT_LABELS = Object.freeze({
   jump: "Jump",
 });
 
+export const MACHINE_MOVEMENT_PENALTY_STEP_METERS = 30;
+export const MACHINE_MINIMUM_PENALIZED_MOVEMENT_METERS = 10;
+
 function toNonNegativeInteger(value, fallback = 0) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return fallback;
   return Math.max(0, Math.trunc(numeric));
+}
+
+export function movementPenaltyStepsToMeters(steps = 0) {
+  return toNonNegativeInteger(steps, 0) * MACHINE_MOVEMENT_PENALTY_STEP_METERS;
+}
+
+export function applyMachineMovementPenalty(
+  speed = 0,
+  movementPenalty = 0,
+  { immobile = false, minimum = MACHINE_MINIMUM_PENALIZED_MOVEMENT_METERS } = {},
+) {
+  const base = toNonNegativeInteger(speed, 0);
+  if (immobile) return 0;
+  const penalty = toNonNegativeInteger(movementPenalty, 0);
+  if (base <= 0 || penalty <= 0) return base;
+  const floor = Math.min(base, toNonNegativeInteger(minimum, MACHINE_MINIMUM_PENALIZED_MOVEMENT_METERS));
+  return Math.max(floor, base - penalty);
 }
 
 export function isMachineActorType(actorType = "") {
@@ -44,11 +64,12 @@ export function normalizeMachineMovement(movement = {}, { actorType = "", legacy
   return normalized;
 }
 
-function buildBattlemechJumpField(jumpProfile = null) {
+function buildBattlemechJumpField(jumpProfile = null, movementEffects = {}) {
   if (!jumpProfile?.enabled) return null;
 
   const value = toNonNegativeInteger(jumpProfile.movement, 0);
   if (value <= 0) return null;
+  const blockedByEffects = Boolean(movementEffects?.immobile || movementEffects?.noJump);
 
   const detailParts = [
     jumpProfile.heat > 0 ? `Heat +${toNonNegativeInteger(jumpProfile.heat, 0)}` : "",
@@ -68,8 +89,10 @@ function buildBattlemechJumpField(jumpProfile = null) {
     derived: true,
     title: String(jumpProfile.sourceLabel ?? "").trim(),
     detail: detailParts.join(" | "),
-    blocked: Boolean(jumpProfile.blocked),
-    blockedReason: String(jumpProfile.blockedReason ?? "").trim(),
+    blocked: Boolean(jumpProfile.blocked || blockedByEffects),
+    blockedReason: blockedByEffects
+      ? (movementEffects?.immobile ? "Machine is immobilized." : "Jump movement is blocked by current damage or status effects.")
+      : String(jumpProfile.blockedReason ?? "").trim(),
   };
 }
 
@@ -80,37 +103,48 @@ export function buildMachineMovementFields({
   editing = false,
   basePath = "system.movement",
   jumpProfile = null,
+  movementEffects = {},
 } = {}) {
   const normalized = normalizeMachineMovement(movement, { actorType, legacyMoves });
+  const movementPenalty = toNonNegativeInteger(movementEffects?.movementPenalty, 0);
+  const movementBonus = toNonNegativeInteger(movementEffects?.movementBonus, 0);
+  const immobile = Boolean(movementEffects?.immobile);
 
   const fields = getMachineMovementModes(actorType)
     .map(key => {
-      const value = toNonNegativeInteger(normalized[key], 0);
+      const rawValue = toNonNegativeInteger(normalized[key], 0);
+      const value = rawValue + movementBonus;
+      const adjustedValue = applyMachineMovementPenalty(value, movementPenalty, { immobile });
       const isOptionalFlight = key === "flight";
+      const details = [];
+      if (!editing && movementBonus > 0) details.push(`+${movementBonus} m`);
+      if (!editing && immobile && value > 0) details.push("Immobilized");
+      else if (!editing && adjustedValue !== value) details.push(`-${movementPenalty} m`);
       return {
         key,
         label: MOVEMENT_LABELS[key] ?? key,
-        value,
-        displayValue: String(value),
+        value: rawValue,
+        adjustedValue,
+        displayValue: String(editing ? rawValue : adjustedValue),
         path: `${basePath}.${key}`,
         visible: editing || !isOptionalFlight || value > 0,
         editable: true,
         derived: false,
         title: "",
-        detail: "",
+        detail: details.join(" | "),
       };
     })
     .filter(field => field.visible);
 
   const jumpField = actorType === TEMPLATE.actorTypes.battlemech
-    ? buildBattlemechJumpField(jumpProfile)
+    ? buildBattlemechJumpField(jumpProfile, movementEffects)
     : null;
   if (jumpField) fields.push(jumpField);
 
   return fields;
 }
 
-export function buildMachineMovementSummaryParts({ actorType = "", movement = {}, legacyMoves = 0, jumpProfile = null } = {}) {
+export function buildMachineMovementSummaryParts({ actorType = "", movement = {}, legacyMoves = 0, jumpProfile = null, movementEffects = {} } = {}) {
   const normalized = normalizeMachineMovement(movement, { actorType, legacyMoves });
 
   return buildMachineMovementFields({
@@ -119,8 +153,9 @@ export function buildMachineMovementSummaryParts({ actorType = "", movement = {}
     legacyMoves,
     editing: false,
     jumpProfile,
+    movementEffects,
   }).map(field => ({
     label: field.label,
-    value: String(field.value),
+    value: String(field.adjustedValue ?? field.value),
   }));
 }

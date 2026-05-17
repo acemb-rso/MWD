@@ -46,3 +46,23 @@ test("battlemech movement actions add equipment-gated flight and jump choices", 
   assert.equal(jump?.distance, 6);
   assert.equal(jump?.heat, 2);
 });
+
+test("battlemech movement actions apply meter penalties with a 10 m floor", () => {
+  const choices = buildBattlemechMovementActionChoices({
+    type: "battlemech",
+    system: {
+      movement: { ground: 60, flight: 90 },
+      mwd: {
+        crits: [{ active: true, statusId: "limping" }],
+        locations: {
+          legs: { enabled: true, condition: 1, destroyed: false },
+        },
+      },
+    },
+    statuses: new Set(),
+  });
+
+  assert.equal(choices.find(choice => choice.id === "walk")?.distance, 10);
+  assert.equal(choices.find(choice => choice.id === "fly")?.distance, 30);
+  assert.match(choices.find(choice => choice.id === "walk")?.hint ?? "", /10 m/);
+});

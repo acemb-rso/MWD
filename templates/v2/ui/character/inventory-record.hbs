@@ -134,6 +134,17 @@ How it fits: Shared by the character inventory section partials.
         </button>
       {{/if}}
 
+      {{#if record.supportsModuleActivation}}
+        <button type="button"
+                class="mwd-record__icon-btn {{#if record.moduleActive}}is-on{{/if}}"
+                data-action="toggleAssetModuleActive"
+                data-item-id="{{record.id}}"
+                title="{{#if record.moduleActive}}Deactivate module{{else}}Activate module{{/if}}"
+                {{#unless record.moduleReady}}disabled{{/unless}}>
+          <i class="fas {{#if record.moduleActive}}fa-toggle-on{{else}}fa-toggle-off{{/if}}"></i>
+        </button>
+      {{/if}}
+
       {{#if record.createHardpointItem}}
         <button type="button"
                 class="mwd-record__icon-btn"

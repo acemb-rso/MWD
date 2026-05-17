@@ -8,6 +8,7 @@ import { notifyRollError } from "../roll/roll-errors.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
 import { buildBattlemechMovementActionChoices } from "../mwd/battlemech-movement-actions.js";
+import { getMachineMovementEffects } from "../mwd/machine-state-effects.js";
 import { buildCriticalStatusSummary, buildIntegritySummary, buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import {
   buildBattlemechHeatModel,
@@ -267,6 +268,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       movement: this.actor.system?.movement,
       legacyMoves: this.actor.system?.moves,
       jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
+      movementEffects: getMachineMovementEffects(this.actor),
     });
 
     return buildSummaryStats([

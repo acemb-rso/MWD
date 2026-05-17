@@ -9,7 +9,7 @@ import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 import { getVehicleStrainStateEffects, adjustVehiclePendingStrain } from "./vehicle-strain.js";
 import { resolveMachineOperator } from "./machine-operator.js";
 import { resolveMachineSceneToken } from "./machine-token-resolution.js";
-import { normalizeMachineMovement } from "./machine-movement.js";
+import { applyMachineMovementPenalty, normalizeMachineMovement } from "./machine-movement.js";
 import { getMachineMovementEffects } from "./machine-state-effects.js";
 import { buildVehicleProfileSummary } from "./vehicle-profiles.js";
 
@@ -36,8 +36,13 @@ export function buildVehicleMovementActionChoices(actor = null) {
   const movementEffects = getMachineMovementEffects(actor);
   const strainEffects = getVehicleStrainStateEffects(actor);
   const profile = buildVehicleProfileSummary(actor?.system ?? {});
-  const flightSpeed = movementNumber(movement.flight, 0);
-  const groundSpeed = movementNumber(movement.ground, 0);
+  const movementBonus = movementNumber(movementEffects.movementBonus, 0);
+  const flightSpeed = applyMachineMovementPenalty(movementNumber(movement.flight, 0) + movementBonus, movementEffects.movementPenalty, {
+    immobile: movementEffects.immobile,
+  });
+  const groundSpeed = applyMachineMovementPenalty(movementNumber(movement.ground, 0) + movementBonus, movementEffects.movementPenalty, {
+    immobile: movementEffects.immobile,
+  });
 
   const disabledForImmobile = movementEffects.immobile ? "Vehicle is immobilized." : "";
   const redlineBlocked = disabledForImmobile
@@ -48,7 +53,7 @@ export function buildVehicleMovementActionChoices(actor = null) {
     {
       ...VEHICLE_MOVEMENT_ACTIONS.move,
       distance: groundSpeed,
-      hint: groundSpeed > 0 ? `${groundSpeed} movement | stable operation` : "Stable movement",
+      hint: groundSpeed > 0 ? `${groundSpeed} m movement | stable operation` : "Stable movement",
       disabled: Boolean(disabledForImmobile),
       reason: disabledForImmobile,
     },
@@ -62,7 +67,7 @@ export function buildVehicleMovementActionChoices(actor = null) {
     {
       ...VEHICLE_MOVEMENT_ACTIONS.redline,
       distance: groundSpeed,
-      hint: groundSpeed > 0 ? `${groundSpeed} movement | +1 Strain` : "+1 Strain",
+      hint: groundSpeed > 0 ? `${groundSpeed} m movement | +1 Strain` : "+1 Strain",
       disabled: Boolean(redlineBlocked),
       reason: redlineBlocked,
     },
@@ -84,7 +89,7 @@ export function buildVehicleMovementActionChoices(actor = null) {
     choices.splice(1, 0, {
       ...VEHICLE_MOVEMENT_ACTIONS.fly,
       distance: flightSpeed,
-      hint: flightSpeed > 0 ? `${flightSpeed} flight movement | ${profile.label}` : `${profile.label} flight movement`,
+      hint: flightSpeed > 0 ? `${flightSpeed} m flight movement | ${profile.label}` : `${profile.label} flight movement`,
       disabled: Boolean(disabledForImmobile),
       reason: disabledForImmobile,
     });
@@ -155,4 +160,3 @@ export async function performVehicleMovementAction(actor, { movementKind = "", o
   ui.notifications?.info(`${actor?.name ?? "Vehicle"}: ${action.label} recorded (${action.cost} SA${action.strain > 0 ? `, +${action.strain} Strain` : ""}).`);
   return { ok: true, action, spend };
 }
-

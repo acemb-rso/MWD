@@ -27,6 +27,7 @@ import {
   getMachineAttackRestriction,
   getMachinePilotingDnModifier,
 } from "../src/modules/mwd/machine-crit-effects.js";
+import { isMachineRangeCappedToClose } from "../src/modules/mwd/machine-state-effects.js";
 
 function setPath(object, path, value) {
   const parts = path.split(".");
@@ -404,6 +405,69 @@ test("degradation-derived statuses are surfaced when a location crosses a canoni
   assert.equal(actor.system.mwd.locations.torso.condition, 4);
   assert.equal(actor.statuses.has("gyroDamage"), true);
   assert.equal(actor.statuses.has("reactorBreach"), true);
+});
+
+test("optics coolant fog caps attack range without applying sensor degraded", async () => {
+  const actor = machineActor({
+    paths: {
+      "system.monitors.armor.value": 0,
+      "system.monitors.structure.value": 10,
+    },
+  });
+  const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 18, armorBefore: 0 });
+
+  const result = await applyMachineAttackDamage({
+    actor,
+    payload: {
+      damage: 1,
+      hitLocation,
+    },
+    options: {
+      drawCritical: () => ({
+        label: "Feed / Flow Disruption",
+        rollTotal: 5,
+        signal: { key: "feedFlowDisruption", remedyKey: "feedReset", gates: [], mods: [], resourceEffects: {}, pilotDamage: {}, escalationKey: "feed" },
+      }),
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(actor.system.mwd.crits[0].key, "opticsCoolantFog");
+  assert.equal(actor.system.mwd.crits[0].statusId, "");
+  assert.equal(actor.statuses.has("sensorDegraded"), false);
+  assert.equal(isMachineRangeCappedToClose(actor), true);
+});
+
+test("chaos critical routing uses the selected critical location for table and display", async () => {
+  const actor = machineActor({
+    paths: {
+      "system.monitors.armor.value": 6,
+      "system.monitors.structure.value": 10,
+    },
+  });
+  const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 18, armorBefore: 6 });
+
+  const result = await applyMachineAttackDamage({
+    actor,
+    payload: {
+      damage: 1,
+      hitLocation,
+      chaosCriticalSelected: true,
+    },
+    options: {
+      drawCritical: () => ({
+        label: "Feed / Flow Disruption",
+        rollTotal: 5,
+        signal: { key: "feedFlowDisruption", remedyKey: "feedReset", gates: [], mods: [], resourceEffects: {}, pilotDamage: {}, escalationKey: "feed" },
+      }),
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(actor.system.mwd.crits[0].key, "powerRoutingFault");
+  assert.equal(actor.system.mwd.crits[0].locationKey, "torso");
+  assert.equal(actor.system.mwd.crits[0].locationFamily, "torso");
+  assert.equal(actor.system.mwd.crits[0].locationLabel, "Torso");
 });
 
 test("vehicle reduced to zero structure disables all enabled locations immediately", async () => {

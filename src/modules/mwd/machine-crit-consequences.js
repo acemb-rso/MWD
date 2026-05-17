@@ -133,6 +133,7 @@ export function getMachineCritEffectText(crit = {}) {
   const groupSuffix = groupName ? ` (${groupName})` : "";
 
   if (key === "targetingProcessorLock") return "All fire modes require +1 SA to attack.";
+  if (key === "opticsCoolantFog") return "No attacks beyond Close until repaired.";
   if (statusId === "staggeredMechanical") return "At the start of activation, immediately spend 1 Simple Action fighting the controls.";
   if (statusId === "stalled") return "-1 Handling and -1 System.";
   if (statusId === "unstable") return "-2 dice to Piloting tests. Each move action is followed by a piloting roll to avoid falling prone.";
@@ -141,7 +142,7 @@ export function getMachineCritEffectText(crit = {}) {
   if (statusId === "weaponFailure") return `Weapon group unusable for attacks${groupSuffix}.`;
   if (statusId === "jammedBallistic") return `Ballistic attacks from this weapon group cannot be used${groupSuffix}.`;
   if (statusId === "skidding") return "At the start of the turn, make an immediate full move in the last direction of travel; collision ends the skid and leaves the machine prone.";
-  if (statusId === "limping") return "-1 movement and +1 Piloting DN until repaired.";
+  if (statusId === "limping") return "-30 m movement and +1 Piloting DN until repaired.";
   if (statusId === "proneMechFall") return "The machine immediately falls prone.";
   if (key === "sensorOverload") return "Contacts are capped at Track until repaired.";
   if (key === "opticsFracture") return "All targets are treated as Obscured until repaired.";
@@ -157,7 +158,7 @@ export function getMachineCritAutomationMode(crit = {}) {
   if (explicit === "engine" || explicit === "callout") return explicit;
   const key = normalizeMachineCritId(crit?.key);
   const statusId = normalizeMachineCritId(crit?.statusId);
-  if (key === "targetingProcessorLock") return "engine";
+  if (key === "targetingProcessorLock" || key === "opticsCoolantFog") return "engine";
   if (["staggeredMechanical", "stalled", "unstable", "overheating", "reactorInstability", "weaponFailure", "jammedBallistic"].includes(statusId)) {
     return "engine";
   }

@@ -25,6 +25,7 @@ import {
 import { createHazardRegionFromAttack } from "../area-effects/hazard-regions.js";
 import { getMachineAttackDamageModifier } from "../mwd/machine-crit-effects.js";
 import { getMachineAttackCqAdjustments, getMachineHeatAdjustments } from "../mwd/machine-state-effects.js";
+import { getAssetModuleCqEffects } from "../mwd/asset-module-effects.js";
 import { rollClusteringDamage } from "../mwd/machine-clustering.js";
 import { isMachineEnergyDamageFamily } from "../mwd/machine-weapon-types.js";
 
@@ -152,6 +153,15 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
         value: attackerAdjustments.ar,
       });
     }
+    for (const effect of getAssetModuleCqEffects(attacker, { resolved: ctx, payload: ctx?.attack?.payload ?? {} })) {
+      const ar = toNumber(effect.modifies?.ar, 0);
+      if (!ar) continue;
+      arParts.push({
+        id: `assetModule.${effect.sourceId}.${effect.id}.ar`,
+        label: effect.label,
+        value: ar,
+      });
+    }
   }
 
   if (targetIsMachine) {
@@ -165,6 +175,15 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
         id: "machineState.defenseDr",
         label: "Machine State",
         value: targetAdjustments.dr,
+      });
+    }
+    for (const effect of getAssetModuleCqEffects(targetActor, { resolved: ctx, payload: ctx?.attack?.payload ?? {} })) {
+      const dr = toNumber(effect.modifies?.dr, 0);
+      if (!dr) continue;
+      drParts.push({
+        id: `assetModule.${effect.sourceId}.${effect.id}.dr`,
+        label: effect.label,
+        value: dr,
       });
     }
   }

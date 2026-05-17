@@ -54,6 +54,8 @@ import { normalizeMachineWeaponGroups, pruneWeaponGroupsToMountedItems } from ".
 import { notifyRollError } from "../roll/roll-errors.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { SelectActor } from "../dialog/select-actor.js";
+import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { buildAssetModuleSummary } from "../mwd/asset-module-effects.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -246,6 +248,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       ewTarget: VehicleSheetV2.prototype._onEwTarget,
       toggleStatuses: VehicleSheetV2.prototype._onToggleStatuses,
       machineCritRemedy: VehicleSheetV2.prototype._onMachineCritRemedy,
+      toggleAssetModuleActive: VehicleSheetV2.prototype._onToggleAssetModuleActive,
       assignPilot: VehicleSheetV2.prototype._onAssignPilot,
       removePilot: VehicleSheetV2.prototype._onRemovePilot,
       openPilot: VehicleSheetV2.prototype._onOpenPilot,
@@ -373,6 +376,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       movement: this.actor.system?.movement,
       legacyMoves: this.actor.system?.moves,
       jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
+      movementEffects: getMachineMovementEffects(this.actor),
     });
 
     return buildSummaryStats([
@@ -547,6 +551,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       legacyMoves: this.actor.system?.moves,
       editing: this.editing,
       jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
+      movementEffects: getMachineMovementEffects(this.actor),
     });
   }
 
@@ -1094,6 +1099,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const system = item?.system ?? {};
     const canonicalType = item?.canonicalType ?? item?.type ?? "";
     const profile = typeof item?.getCombatProfile === "function" ? item.getCombatProfile() : null;
+    const assetModuleSummary = canonicalType === "assetModule" ? buildAssetModuleSummary(item) : null;
+    const activationMode = String(system.activation?.mode ?? "passive").trim() || "passive";
+    const supportsModuleActivation = canonicalType === "assetModule" && ["toggle", "mode"].includes(activationMode);
+    const moduleActive = Boolean(system.activation?.active);
+    const moduleReady = canonicalType === "assetModule" && !system.inactive;
     const accordionId = `${String(sectionId ?? "").trim()}:${String(item?.id ?? "").trim()}`;
     const itemTypeLabel = ITEM_TYPE_LABELS[canonicalType] ?? startCase(canonicalType || "item");
     const notes = system.notes ?? system.description ?? system.references?.description ?? "";
@@ -1123,10 +1133,18 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       : canonicalType === "assetModule" && system?.mobility?.jumping?.enabled
         ? buildDetailRows([
           { label: "Category", value: system.category ?? itemTypeLabel },
+          { label: "Activation", value: startCase(activationMode) },
           { label: "Heat", value: toNumber(system.mobility.jumping.heat, 0) },
           { label: "AR Bonus", value: toNumber(system.mobility.jumping.attackRatingBonus, 0) },
           { label: "DR Bonus", value: toNumber(system.mobility.jumping.defenseRatingBonus, 0) },
           { label: "DFA", value: system.mobility.jumping.dfaEnabled ? "Enabled" : "Disabled" },
+          { label: "Effects", value: assetModuleSummary?.summary ?? "" },
+        ])
+      : canonicalType === "assetModule"
+        ? buildDetailRows([
+          { label: "Category", value: system.category ?? itemTypeLabel },
+          { label: "Activation", value: startCase(activationMode) },
+          { label: "Effects", value: assetModuleSummary?.summary ?? "" },
         ])
       : buildDetailRows([
         { label: "Category", value: system.category ?? itemTypeLabel },
@@ -1144,13 +1162,18 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       detailTags: buildDetailTags([
         system.equipped ? "Equipped" : "",
         system.isPrimary ? "Primary" : "",
+        canonicalType === "assetModule" ? (moduleReady ? "Ready" : "Inactive") : "",
+        supportsModuleActivation ? (moduleActive ? "Active" : "Standby") : "",
         system.mobility?.jumping?.enabled ? "Jumping" : "",
         system.weaponCategory ?? system.category ?? "",
       ]),
       detailRows,
-      detailText: toSnippet(notes),
+      detailText: toSnippet(assetModuleSummary?.summary || notes),
       equipped: Boolean(system.equipped),
       isPrimary: Boolean(system.isPrimary),
+      supportsModuleActivation,
+      moduleActive,
+      moduleReady,
       canAdjustQuantity: false,
       machineAttack: ["mechWeapon", "vehicleWeapon"].includes(canonicalType)
         ? {
@@ -1204,6 +1227,44 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     if (assignedHardpoint?.id) {
       await this._setHardpointOccupant(assignedHardpoint.id, "");
     }
+    this.render({ force: true });
+  }
+
+  async _onToggleAssetModuleActive(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const item = this.#getOwnedItemFromTarget(target, event);
+    if (!item || (item.canonicalType ?? item.type) !== "assetModule") return;
+    if (item.system?.inactive) {
+      ui.notifications?.warn("Inactive modules cannot be activated.");
+      return;
+    }
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const token = resolveMachineSceneToken(actorWriteTarget);
+    const snapshot = PersonalCombatTracker.getSnapshot?.(actorWriteTarget, { token }) ?? null;
+    if (snapshot?.hasCombatant) {
+      const spend = await PersonalCombatTracker.spendResource(actorWriteTarget, {
+        token,
+        resource: "fa",
+        cost: 1,
+        actionId: "assetModuleToggle",
+        actionLabel: `Toggle ${item.name}`,
+        actionCostLabel: "1 FA",
+        actionCategory: "free",
+      });
+      if (!spend?.ok) {
+        ui.notifications?.warn(spend?.reason ?? `Unable to toggle ${item.name}.`);
+        return;
+      }
+    }
+
+    const ownedItem = actorWriteTarget.items?.get?.(item.id) ?? item;
+    await ownedItem.update({
+      "system.activation.active": !Boolean(item.system?.activation?.active),
+    });
     this.render({ force: true });
   }
 

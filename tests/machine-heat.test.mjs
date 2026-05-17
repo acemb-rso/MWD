@@ -197,7 +197,7 @@ test("activation resolution applies pending heat, dissipation, and danger checks
   assert.equal(result.previousHeat, 6);
   assert.equal(result.generated, 3);
   assert.equal(result.newHeat, 7);
-  assert.equal(result.penalties.movementPenalty, 2);
+  assert.equal(result.penalties.movementPenalty, 60);
   assert.equal(result.penalties.rangedDicePenalty, 2);
   assert.equal(result.penalties.dangerLevel, 1);
   assert.equal(result.dangerChecks.shutdownPool, 7);

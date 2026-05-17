@@ -57,12 +57,13 @@ test("targeting helpers read legacy ewState data and normalize a single active p
   assert.equal(consumed.packet, null);
 });
 
-test("targeting helpers read and advance Foundry-expanded token UUID paths", async () => {
+test("targeting helpers read legacy Foundry-expanded token UUID paths and migrate writes to literal keys", async () => {
   globalThis.foundry ??= { utils: {} };
   globalThis.foundry.utils.deepClone ??= value => JSON.parse(JSON.stringify(value));
 
   const {
     getDetectionState,
+    listTargetingStates,
     setDetectionState,
   } = await import("../src/modules/mwd/machine-ew-state.js");
 
@@ -98,5 +99,63 @@ test("targeting helpers read and advance Foundry-expanded token UUID paths", asy
   await setDetectionState(combatant, targetUuid, "track");
 
   assert.equal(getDetectionState(combatant, targetUuid), "track");
-  assert.equal(flags.targeting.Scene.RqeJhsMF07uyTM2W.Token["3wtfLjfKXMk34ieX"].detectionState, "track");
+  assert.equal(flags.targeting[targetUuid].detectionState, "track");
+  assert.equal(flags.targeting.Scene, undefined);
+  assert.deepEqual(listTargetingStates(combatant).map(entry => entry.targetTokenUuid), [targetUuid]);
+});
+
+test("targeting helpers store brand-new token UUIDs as literal keys", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.deepClone ??= value => JSON.parse(JSON.stringify(value));
+
+  const {
+    getDetectionState,
+    listTargetingStates,
+    setDetectionState,
+  } = await import("../src/modules/mwd/machine-ew-state.js");
+
+  const targetUuid = "Scene.scene.Token.target-1";
+  const flags = { targeting: {} };
+  const combatant = {
+    getFlag(scope, key) {
+      if (scope !== "mwd") return null;
+      return flags[key] ?? null;
+    },
+    async setFlag(scope, key, value) {
+      if (scope !== "mwd") throw new Error("unexpected scope");
+      flags[key] = value;
+    },
+  };
+
+  await setDetectionState(combatant, targetUuid, "contact");
+
+  assert.equal(getDetectionState(combatant, targetUuid), "contact");
+  assert.equal(flags.targeting[targetUuid].detectionState, "contact");
+  assert.equal(flags.targeting.Scene, undefined);
+  assert.deepEqual(listTargetingStates(combatant).map(entry => entry.targetTokenUuid), [targetUuid]);
+});
+
+test("combatant lookup reads Foundry collection contents", async () => {
+  const {
+    getAttackerCombatant,
+    getTargetCombatant,
+  } = await import("../src/modules/mwd/machine-ew-state.js");
+
+  const attackerCombatant = { id: "attacker-combatant", tokenId: "attacker-token" };
+  const targetCombatant = { id: "target-combatant", tokenId: "target-token" };
+  globalThis.game = {
+    combat: {
+      combatants: {
+        contents: [attackerCombatant, targetCombatant],
+        get: () => null,
+      },
+    },
+  };
+
+  try {
+    assert.equal(getAttackerCombatant({ id: "attacker-token" }), attackerCombatant);
+    assert.equal(getTargetCombatant("target-token"), targetCombatant);
+  } finally {
+    delete globalThis.game;
+  }
 });

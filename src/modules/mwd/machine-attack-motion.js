@@ -3,7 +3,8 @@
 // How it fits: Resolves target movement declarations into DN and dice modifiers.
 
 import { TEMPLATE } from "../constants.js";
-import { normalizeMachineMovement } from "./machine-movement.js";
+import { applyMachineMovementPenalty, normalizeMachineMovement } from "./machine-movement.js";
+import { getMachineMovementEffects } from "./machine-state-effects.js";
 
 export const METERS_PER_HEX = 30;
 
@@ -104,9 +105,10 @@ export function getHighestNonJumpMovementSpeed(actor = null) {
     actorType: actor.type,
     legacyMoves: actor.system?.moves,
   });
+  const effects = getMachineMovementEffects(actor);
   return Math.max(
-    toNonNegativeInteger(movement.ground, 0),
-    toNonNegativeInteger(movement.flight, 0)
+    applyMachineMovementPenalty(toNonNegativeInteger(movement.ground, 0), effects.movementPenalty, { immobile: effects.immobile }),
+    applyMachineMovementPenalty(toNonNegativeInteger(movement.flight, 0), effects.movementPenalty, { immobile: effects.immobile })
   );
 }
 

@@ -277,7 +277,7 @@ Legs threaten mobility and falls, but not direct pilot damage unless impact foll
 | 8 | Structural Shock | **Forced Stability Test** or fall || Emergency Repair | Only from resulting fall/impact |
 | 9 | Overload | **Mobility Overstress:** +1 DN for any Handling based Roll || Emergency Repair | — |
 | 10 | Degradation Spike | **Leg Stabilizer Damage:** no charge, push, pull, or melee actions || Emergency Repair | — |
-| 11 | Partial Outage | **Joint Motivator Failure:** -1 movement || System Reset | — |
+| 11 | Partial Outage | **Joint Motivator Failure:** -30 m movement || System Reset | — |
 | 12 | Critical Breach | Legs condition +1 || — | — |
 
 **Catastrophic fallback (Legs already Disabled):** Mech collapses hard or becomes completely immobile beyond field recovery.

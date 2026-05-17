@@ -25,10 +25,11 @@ import {
   commitMachineRemedyCost,
   resolveMachineCritIntentContext,
 } from "../mwd/machine-intents.js";
-import { recordBattlemechAttackHeat } from "../mwd/machine-heat.js";
+import { adjustBattlemechPendingHeat, recordBattlemechAttackHeat } from "../mwd/machine-heat.js";
 import { applyHeatDangerCheckOutcome } from "../mwd/heat-danger-outcomes.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { getMachineActionDefinition } from "../mwd/machine-action-catalog.js";
+import { findAssetModuleActionOverride, getAssetModuleActionCosts } from "../mwd/asset-module-effects.js";
 import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
 import { resolveAcquireExecution, resolveTargetingExecution } from "./ew-execution.js";
 import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-state.js";
@@ -582,28 +583,70 @@ async function commitMachineAttackAction(actor, payload = {}, { rollActor = null
   }
 }
 
-async function commitMachineAction(actor, actionKey = "", payload = {}, { rollActor = null } = {}) {
+function applyAssetModuleActionOverride(action = {}, override = null) {
+  if (!override) return action;
+  return {
+    ...action,
+    cost: Number.isFinite(Number(override.cost)) ? Math.max(0, Number(override.cost)) : action.cost,
+    resource: String(override.resource ?? action.resource ?? "sa").trim() || "sa",
+    category: String(override.category ?? action.category ?? "simple").trim() || "simple",
+  };
+}
+
+async function commitMachineAction(actor, actionKey = "", payload = {}, { rollActor = null, resolved = null } = {}) {
   if (!isMachineActor(actor)) return;
 
-  const action = getMachineActionDefinition(actionKey);
-  if (!action?.cost || !action?.resource) return;
+  const baseAction = getMachineActionDefinition(actionKey);
+  const override = findAssetModuleActionOverride(actor, baseAction.key, {
+    payload,
+    resolved,
+    context: {
+      targetState: resolved?.acquire?.currentState ?? "",
+      detectionState: resolved?.targeting?.detectionState ?? resolved?.acquire?.currentState ?? "",
+    },
+  });
+  const action = applyAssetModuleActionOverride(baseAction, override);
 
   const token = getMachineAttackToken(actor, payload);
   const spendActor = rollActor ?? actor;
   const snapshot = PersonalCombatTracker.getSnapshot?.(spendActor, { token }) ?? null;
-  if (!snapshot?.hasCombatant) return;
+  if (action?.cost && action?.resource && snapshot?.hasCombatant) {
+    const spend = await PersonalCombatTracker.spendResource(spendActor, {
+      token,
+      resource: action.resource,
+      cost: action.cost,
+      actionId: action.key,
+      actionLabel: action.label,
+      actionCostLabel: `${action.cost} ${String(action.resource).toUpperCase()}`,
+      actionCategory: action.category,
+    });
+    if (!spend?.ok) {
+      ui.notifications?.warn(spend?.reason ?? `Unable to record ${action.label}.`);
+      return;
+    }
+  }
 
-  const spend = await PersonalCombatTracker.spendResource(spendActor, {
-    token,
-    resource: action.resource,
-    cost: action.cost,
-    actionId: action.key,
-    actionLabel: action.label,
-    actionCostLabel: `${action.cost} ${String(action.resource).toUpperCase()}`,
-    actionCategory: action.category,
+  const costs = getAssetModuleActionCosts(actor, action.key, {
+    payload,
+    resolved,
+    context: {
+      targetState: resolved?.acquire?.currentState ?? "",
+      detectionState: resolved?.targeting?.detectionState ?? resolved?.acquire?.currentState ?? "",
+    },
   });
-  if (!spend?.ok) {
-    ui.notifications?.warn(spend?.reason ?? `Unable to record ${action.label}.`);
+  if (costs.heat && actor?.type === TEMPLATE.actorTypes.battlemech) {
+    await adjustBattlemechPendingHeat(actor, costs.heat, { reason: `${action.label} module cost` });
+  }
+  if (costs.stress?.length) {
+    const updates = {};
+    for (const stress of costs.stress) {
+      const location = String(stress.location ?? "").trim();
+      if (!location) continue;
+      const path = `system.mwd.locations.${location}.stress`;
+      const current = Number(foundry.utils.getProperty(actor, path) ?? 0) || 0;
+      updates[path] = Math.max(0, current + (Number(stress.value ?? 0) || 0));
+    }
+    if (Object.keys(updates).length) await actor.update(updates);
   }
 }
 
@@ -1027,11 +1070,11 @@ async function execute({ actor, payload, event } = {}) {
   if (ctx.intent === "attack") {
     await commitMachineAttackAction(actor, payload, { rollActor });
   } else if (ctx.intent === "acquire") {
-    await commitMachineAction(actor, "acquireTarget", payload, { rollActor });
+    await commitMachineAction(actor, "acquireTarget", payload, { rollActor, resolved: ctx });
   } else if (ctx.intent === "targeting") {
-    await commitMachineAction(actor, "generateFireSolution", payload, { rollActor });
+    await commitMachineAction(actor, "generateFireSolution", payload, { rollActor, resolved: ctx });
   } else if (ctx.intent === "skill" && payload.machineActionKey) {
-    await commitMachineAction(actor, payload.machineActionKey, payload, { rollActor });
+    await commitMachineAction(actor, payload.machineActionKey, payload, { rollActor, resolved: ctx });
   }
 
   return ChatMessage.create({

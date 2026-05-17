@@ -5,6 +5,7 @@
 // provider-friendly state and simple actor update helpers.
 
 import { TEMPLATE } from "../constants.js";
+import { movementPenaltyStepsToMeters } from "./machine-movement.js";
 
 export const VEHICLE_STRAIN_THRESHOLDS = Object.freeze({
   strained: 2,
@@ -125,7 +126,7 @@ export function getVehicleStrainStateEffects(actor = null) {
     effects.handling += -2;
     effects.system += -1;
     effects.pilotingDn += 2;
-    effects.movementPenalty += 1;
+    effects.movementPenalty += movementPenaltyStepsToMeters(1);
     effects.effectTexts.push("Critical strain: Redline blocked; mobility and control are under severe stress.");
   }
 
@@ -150,4 +151,3 @@ export async function resolveVehiclePendingStrain(actor, { reason = "" } = {}) {
   });
   return { ok: true, value: nextValue, applied: model.pendingGenerated, reason };
 }
-

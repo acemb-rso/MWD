@@ -8,6 +8,11 @@ import {
   getMachineDetectionStateCap,
   getMachineTrackingPenaltyAdjustment,
 } from "./machine-state-effects.js";
+import {
+  getApplicableAssetModuleEffects,
+  getAssetModuleBypassStatuses,
+  getAssetModuleDerivedStatuses,
+} from "./asset-module-effects.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "targeting";
@@ -32,8 +37,8 @@ function getObjectPath(source = {}, path = "") {
   if (!key) return undefined;
   if (Object.prototype.hasOwnProperty.call(source, key)) return source[key];
 
-  if (typeof foundry?.utils?.getProperty === "function") {
-    const value = foundry.utils.getProperty(source, key);
+  if (typeof globalThis.foundry?.utils?.getProperty === "function") {
+    const value = globalThis.foundry.utils.getProperty(source, key);
     if (value !== undefined) return value;
   }
 
@@ -43,27 +48,37 @@ function getObjectPath(source = {}, path = "") {
   }, source);
 }
 
+function deleteExpandedObjectPath(target = {}, path = "") {
+  const parts = normalizeTargetUuid(path).split(".").filter(Boolean);
+  if (!parts.length) return;
+
+  const stack = [];
+  let current = target;
+  for (const part of parts.slice(0, -1)) {
+    if (!current || typeof current !== "object" || !Object.prototype.hasOwnProperty.call(current, part)) return;
+    stack.push([current, part]);
+    current = current[part];
+  }
+
+  if (!current || typeof current !== "object") return;
+  delete current[parts.at(-1)];
+
+  for (let index = stack.length - 1; index >= 0; index -= 1) {
+    const [parent, part] = stack[index];
+    const child = parent[part];
+    if (child && typeof child === "object" && !Array.isArray(child) && Object.keys(child).length === 0) {
+      delete parent[part];
+    } else {
+      break;
+    }
+  }
+}
+
 function setObjectPath(target = {}, path = "", value = null) {
   const key = normalizeTargetUuid(path);
   if (!key) return target;
-
-  if (Object.prototype.hasOwnProperty.call(target, key)) {
-    target[key] = value;
-    return target;
-  }
-
-  if (typeof foundry?.utils?.setProperty === "function") {
-    foundry.utils.setProperty(target, key, value);
-    return target;
-  }
-
-  const parts = key.split(".").filter(Boolean);
-  let current = target;
-  for (const part of parts.slice(0, -1)) {
-    if (!current[part] || typeof current[part] !== "object") current[part] = {};
-    current = current[part];
-  }
-  current[parts.at(-1)] = value;
+  deleteExpandedObjectPath(target, key);
+  target[key] = value;
   return target;
 }
 
@@ -71,18 +86,39 @@ function setObjectPath(target = {}, path = "", value = null) {
 // Combatant lookup
 // ---------------------------------------------------------------------------
 
+function combatantsToArray(combatants) {
+  if (!combatants) return [];
+  if (Array.isArray(combatants)) return combatants;
+  if (Array.isArray(combatants.contents)) return combatants.contents;
+  if (typeof combatants[Symbol.iterator] === "function") return Array.from(combatants);
+  return [];
+}
+
+function findCombatantByTokenId(tokenId) {
+  const id = String(tokenId ?? "").trim();
+  const combatants = globalThis.game?.combat?.combatants;
+  if (!id || !combatants) return null;
+
+  const direct = combatants.get?.(id);
+  const directTokenId = direct?.tokenId ?? direct?.token?.id ?? direct?.token?.document?.id;
+  if (direct && directTokenId === id) return direct;
+
+  return combatantsToArray(combatants).find(entry => {
+    const combatant = Array.isArray(entry) ? entry[1] : entry;
+    const combatantTokenId = combatant?.tokenId ?? combatant?.token?.id ?? combatant?.token?.document?.id;
+    return combatantTokenId === id;
+  })
+    ?? null;
+}
+
 export function getAttackerCombatant(token) {
-  const combat = game.combat;
-  if (!combat || !token) return null;
-  const tokenId = token?.id ?? token?.document?.id ?? String(token ?? "").trim();
-  if (!tokenId) return null;
-  return combat.combatants.find(c => c.tokenId === tokenId) ?? null;
+  if (!token) return null;
+  const tokenId = token?.id ?? token?.document?.id ?? token?.tokenId ?? String(token ?? "").trim();
+  return findCombatantByTokenId(tokenId);
 }
 
 export function getTargetCombatant(targetTokenId) {
-  const id = String(targetTokenId ?? "").trim();
-  if (!id) return null;
-  return game.combat?.combatants?.find(c => c.tokenId === id) ?? null;
+  return findCombatantByTokenId(targetTokenId);
 }
 
 // ---------------------------------------------------------------------------
@@ -189,11 +225,18 @@ export function getDetectionState(combatant, targetTokenUuid) {
 export function getTrackingPenalty(targetActor, targetCombatant) {
   let penalty = 0;
   const statuses = targetActor?.statuses ?? new Set();
+  const derivedStatuses = getAssetModuleDerivedStatuses(targetActor);
   if (statuses.has("ecmJamming")) penalty += 2;
-  if (statuses.has("ecmShrouded")) penalty += 1;
+  if (statuses.has("ecmShrouded") || derivedStatuses.has("ecmShrouded")) penalty += 1;
   if (statuses.has("obscuredLight")) penalty += 1;
   if (statuses.has("obscuredHeavy")) penalty += 3;
   if (statuses.has("obscured")) penalty += 1;
+
+  const moduleTrackingPenalty = getApplicableAssetModuleEffects(targetActor, {
+    payload: { intent: "attack" },
+    resolved: { intent: "attack" },
+  }).effects.reduce((sum, effect) => sum + (Number(effect.modifies?.trackingPenalty ?? 0) || 0), 0);
+  penalty += moduleTrackingPenalty;
 
   if (targetCombatant) {
     const actionState = targetCombatant.getFlag(FLAG_SCOPE, "personalCombat")?.actionState ?? {};
@@ -201,12 +244,20 @@ export function getTrackingPenalty(targetActor, targetCombatant) {
   }
 
   penalty += getMachineTrackingPenaltyAdjustment(targetActor);
-  return penalty;
+  return Math.max(0, penalty);
 }
 
-export function getAcquireDnModifier(targetActor) {
+export function getAcquireDnModifier(targetActor, { attacker = null, payload = {}, resolved = {} } = {}) {
   const statuses = targetActor?.statuses ?? new Set();
-  return statuses.has("ecmShrouded") ? 1 : 0;
+  const derivedStatuses = getAssetModuleDerivedStatuses(targetActor);
+  const shrouded = statuses.has("ecmShrouded") || derivedStatuses.has("ecmShrouded");
+  if (!shrouded) return 0;
+
+  const bypasses = getAssetModuleBypassStatuses(attacker, {
+    payload: { ...payload, actionId: "acquireTarget" },
+    resolved: { ...resolved, intent: "acquire" },
+  });
+  return bypasses.has("ecmShrouded") ? 0 : 1;
 }
 
 export function getAcquireCeiling(targetActor) {
@@ -308,6 +359,18 @@ export async function consumeTargetingPacket(combatant, targetTokenUuid, packetI
 // ---------------------------------------------------------------------------
 // Packet factory
 // ---------------------------------------------------------------------------
+
+export async function resetAllSensorTargetingStatesToBlind(combatant) {
+  if (!combatant) return;
+  const all = cloneAllTargetingStates(combatant);
+  if (!Object.keys(all).length) return;
+  const reset = {};
+  for (const [uuid, raw] of Object.entries(all)) {
+    const current = normalizeTargetingState(raw);
+    reset[uuid] = { detectionState: "blind", packet: current.packet ? foundry.utils.deepClone(current.packet) : null };
+  }
+  await writeRawTargetingState(combatant, reset);
+}
 
 export function buildTargetingPacket({ value, sourceToken, round } = {}) {
   const normalizedRound = Number.isFinite(Number(round)) ? Number(round) : null;

@@ -75,7 +75,7 @@ export const LOCATION_CRITICAL_RESULTS = Object.freeze({
       2: critRow("cockpitShock", "Cockpit Shock", "none", ["sensor"], ["sensorBlind"], {}, { track: "physical", amount: 3 }, "cascade", "sensorBlind"),
       3: critRow("targetingProcessorLock", "Targeting Processor Lock", "reboot", ["attack"], [], { extraAttackCost: 1 }, { track: "physical", amount: 2 }, "lockout", "", "All fire modes require +1 SA to attack.", "engine"),
       4: critRow("neuralFeedback", "Neural Feedback", "systemReset", [], [], {}, { track: "fatigue", amount: 1 }, "surge", "staggeredMechanical"),
-      5: critRow("opticsCoolantFog", "Optics Coolant Fog / View Obstruction", "systemReset", ["attack"], ["rangeLimitClose"], {}, {}, "feed", "sensorDegraded"),
+      5: critRow("opticsCoolantFog", "Optics Coolant Fog / View Obstruction", "coolantDump", ["attack"], ["rangeLimitClose"], {}, {}, "feed", "", "No attacks beyond Close until repaired.", "engine"),
       6: critRow("commandInputDelay", "Command Input Delay", "reboot", [], [], {}, { track: "fatigue", amount: 2 }, "control", "stalled"),
       7: critRow("fireControlDesyncHead", "Fire-Control Desync", "systemReset", ["attack"], ["noCqBonus"], {}, {}, "desync", "sensorDegraded"),
       8: critRow("cockpitImpact", "Cockpit Impact", "pilotRecovery", ["piloting"], ["stabilityCheck"], {}, { track: "physical", amount: 2 }, "shock", "unstable"),
@@ -648,14 +648,50 @@ function findResultForRoll(table, rollTotal) {
   }) ?? null;
 }
 
+function hasTextField(data = {}, key = "") {
+  return String(data?.[key] ?? "").trim() !== "";
+}
+
+function hasArrayField(data = {}, key = "") {
+  if (Array.isArray(data?.[key])) return data[key].length > 0;
+  return String(data?.[key] ?? "").trim() !== "";
+}
+
+function hasObjectField(data = {}, key = "") {
+  const value = data?.[key];
+  return value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0;
+}
+
+function mergeLocationSignalWithFallback(resultOrData = {}, fallbackResult = {}) {
+  const tableSignal = normalizeCriticalSignal(resultOrData, { strict: true });
+  const fallbackSignal = normalizeCriticalSignal(fallbackResult, { strict: true });
+  if (tableSignal.key !== fallbackSignal.key) return tableSignal;
+
+  const data = getCritFlagData(resultOrData);
+  return normalizeCriticalSignal({
+    ...tableSignal,
+    remedyKey: hasTextField(data, "remedyKey") ? tableSignal.remedyKey : fallbackSignal.remedyKey,
+    gates: hasArrayField(data, "gates") ? tableSignal.gates : fallbackSignal.gates,
+    mods: hasArrayField(data, "mods") ? tableSignal.mods : fallbackSignal.mods,
+    resourceEffects: hasObjectField(data, "resourceEffects") ? tableSignal.resourceEffects : fallbackSignal.resourceEffects,
+    pilotDamage: hasObjectField(data, "pilotDamage") ? tableSignal.pilotDamage : fallbackSignal.pilotDamage,
+    escalationKey: hasTextField(data, "escalationKey") ? tableSignal.escalationKey : fallbackSignal.escalationKey,
+    statusId: hasTextField(data, "statusId") ? tableSignal.statusId : fallbackSignal.statusId,
+    effectText: hasTextField(data, "effectText") ? tableSignal.effectText : fallbackSignal.effectText,
+    automationMode: hasTextField(data, "automationMode") ? tableSignal.automationMode : fallbackSignal.automationMode,
+    statusLabel: hasTextField(data, "statusLabel") ? tableSignal.statusLabel : fallbackSignal.statusLabel,
+  }, { strict: true });
+}
+
 async function resolveLocationCriticalSignal({ actor = null, hitLocation = {}, rollTotal = 7, tableUuid = "" } = {}) {
   const fallback = getDefaultLocationCriticalResult(actor, hitLocation, rollTotal);
+  const fallbackSignal = normalizeCriticalSignal(fallback.signal, { strict: true });
   const uuid = String(tableUuid || getMachineLocationCriticalTableUuid(actor, hitLocation)).trim();
   if (!fallback) return { error: "No location critical table is defined for this hit location." };
 
   if (!uuid || typeof fromUuid !== "function") {
     return {
-      signal: normalizeCriticalSignal(fallback.signal, { strict: true }),
+      signal: fallbackSignal,
       label: fallback.label,
       tableUuid: uuid,
       resultId: "",
@@ -669,10 +705,10 @@ async function resolveLocationCriticalSignal({ actor = null, hitLocation = {}, r
   const result = findResultForRoll(table, rollTotal);
   if (!result) return { error: `Machine location critical table has no result for ${rollTotal}: ${uuid}` };
 
-  const signal = normalizeCriticalSignal(result, { strict: true });
+  const signal = mergeLocationSignalWithFallback(result, fallback.signal);
   return {
     signal,
-    label: String(result?.text ?? result?.name ?? signal.key).trim() || signal.key,
+    label: String(result?.name ?? signal.key).trim() || signal.key,
     tableUuid: table.uuid ?? uuid,
     resultId: result.id ?? result._id ?? "",
     rollTotal,
@@ -702,7 +738,7 @@ async function drawCriticalSignal({ actor = null, drawFn = null, tableUuid = "",
   const signal = normalizeCriticalSignal(result, { strict: true });
   return {
     signal,
-    label: String(result?.text ?? result?.name ?? signal.key).trim() || signal.key,
+    label: String(result?.name ?? signal.key).trim() || signal.key,
     tableUuid: table.uuid ?? tableUuid,
     resultId: result.id ?? result._id ?? "",
     rollTotal: Number(draw?.roll?.total ?? 0) || null,
@@ -993,6 +1029,7 @@ export async function applyMachineAttackDamage({
       hitLocation: {
         ...preview.hitLocation,
         locationKey: preview.critical.locationKey,
+        rulesLocation: preview.critical.rulesLocation,
         locationFamily: preview.critical.locationFamily,
         locationLabel: preview.critical.locationLabel,
       },

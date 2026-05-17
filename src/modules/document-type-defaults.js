@@ -303,8 +303,16 @@ const templateData = {
     },
     assetModule: {
       templates: ["modifiers", "inactive", "references"],
+      installClass: "module",
       category: "special",
       level: 1,
+      activation: {
+        mode: "passive",
+        active: false,
+        selectedMode: "",
+        cooldownUntilRound: 0
+      },
+      effects: [],
       mobility: {
         jumping: {
           enabled: false,

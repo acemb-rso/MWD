@@ -289,7 +289,15 @@ export async function resolveAttack({ actor, payload } = {}) {
     })
     : null;
   const rollActor = operator?.actor ?? actor;
-  const machineFireControl = isMachineActor(actor) ? getMachineFireControlProfile(actor) : null;
+  const machineFireControl = isMachineActor(actor)
+    ? getMachineFireControlProfile(actor, {
+      payload,
+      resolved: {
+        intent: "attack",
+        attack: { weapon },
+      },
+    })
+    : null;
   const clusteringProfile = buildClusteringProfile({
     clusteringDice: Number(weapon?.clusteringDice ?? 0) || 0,
     clusteringTargetNumber: Number(weapon?.clusteringTargetNumber ?? 5) || 5,

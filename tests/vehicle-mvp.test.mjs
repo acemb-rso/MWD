@@ -153,3 +153,17 @@ test("vehicle degradation distinguishes turret and mobility consequences", () =>
   assert.equal(state.turretOffline, true);
   assert.equal(movement.immobile, true);
 });
+
+test("vehicle movement penalties are meters and clamp non-immobilized speed to 10 m", () => {
+  const actor = vehicle({
+    movement: { ground: 60, flight: 90 },
+    locations: {
+      rear: { condition: 2 },
+    },
+  });
+  const choices = buildVehicleMovementActionChoices(actor);
+
+  assert.equal(getMachineMovementEffects(actor).movementPenalty, 60);
+  assert.equal(choices.find(choice => choice.id === "move")?.distance, 10);
+  assert.equal(choices.find(choice => choice.id === "fly")?.distance, 30);
+});

@@ -177,6 +177,38 @@ test("successful acquire execution persists detection state on attacker combatan
   }
 });
 
+test("successful acquire execution fails loud when detection state cannot persist", async () => {
+  const { attackerActor, attackerToken, targetTokenUuid } = setScene({ detectionState: "blind" });
+  globalThis.game.combat.combatants = [];
+  const warn = console.warn;
+  console.warn = () => {};
+
+  try {
+    const resolved = await resolveAcquire({
+      actor: attackerActor,
+      payload: {
+        sourceTokenId: attackerToken.id,
+        targetTokenUuid,
+      },
+    });
+
+    const result = await resolveAcquireExecution({
+      attacker: attackerActor,
+      ctx: resolved,
+      outcomeModel: { successes: 1 },
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.persistenceFailed, true);
+    assert.equal(result.newState, "blind");
+    assert.equal(result.attemptedState, "contact");
+    assert.match(result.reason, /not persisted/i);
+  } finally {
+    console.warn = warn;
+    clearScene();
+  }
+});
+
 test("targeting roll card subtitle uses the target token name", async () => {
   const { attackerActor, attackerToken, targetTokenUuid } = setScene({ detectionState: "track" });
 
@@ -280,6 +312,52 @@ test("acquire roll labels show machine System plus linked pilot Perception", asy
     ]);
   } finally {
     globalThis.fromUuid = previousFromUuid;
+    clearScene();
+  }
+});
+
+test("acquire can bypass ecmShrouded only through matching asset module effect", async () => {
+  const { attackerActor, attackerToken, targetToken, targetTokenUuid } = setScene({ detectionState: "blind" });
+  targetToken.actor.statuses.add("ecmShrouded");
+
+  try {
+    const shrouded = await resolveAcquire({
+      actor: attackerActor,
+      payload: {
+        sourceTokenId: attackerToken.id,
+        targetTokenUuid,
+      },
+    });
+    assert.equal(shrouded.difficulty.dn, 2);
+
+    attackerActor.items = [{
+      id: "probe",
+      name: "Active Probe",
+      type: "assetModule",
+      canonicalType: "assetModule",
+      system: {
+        activation: { mode: "toggle", active: true },
+        effects: [{
+          id: "ignore-shroud",
+          timing: "active",
+          requires: { actionIds: ["acquireTarget"] },
+          modifies: { bypassStatuses: ["ecmShrouded"] },
+        }],
+      },
+    }];
+
+    const bypassed = await resolveAcquire({
+      actor: attackerActor,
+      payload: {
+        sourceTokenId: attackerToken.id,
+        targetTokenUuid,
+      },
+    });
+    assert.equal(bypassed.difficulty.dn, 1);
+    assert.deepEqual(bypassed.dn.parts, [
+      { id: "difficulty.base", label: "Base DN", value: 1, tags: ["base"] },
+    ]);
+  } finally {
     clearScene();
   }
 });

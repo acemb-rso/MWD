@@ -31,6 +31,7 @@ import { MachineCriticalsProvider } from "../modules/modifiers/providers/machine
 import { MachineStateEffectsProvider } from "../modules/modifiers/providers/machine-state-effects.js";
 import { EwTrackingPenaltyProvider } from "../modules/modifiers/providers/ew-tracking-penalty.js";
 import { EwTargetingDataProvider } from "../modules/modifiers/providers/ew-targeting-data.js";
+import { AssetModuleEffectsProvider } from "../modules/modifiers/providers/asset-module-effects.js";
 import { Modifiers } from "./modifiers/anarchy-modifiers.js";
 import { PersonalCombatTracker } from "./combat/personal-combat-tracker.js";
 import { registerMWDChatActions } from "./chat/chat-actions.js";
@@ -260,6 +261,7 @@ export class AnarchySystem {
     modifierProviders.register(new TraitModifiersProvider());
     modifierProviders.register(new MachineCriticalsProvider());
     modifierProviders.register(new MachineStateEffectsProvider());
+    modifierProviders.register(new AssetModuleEffectsProvider());
     modifierProviders.register(new EwTrackingPenaltyProvider());
     modifierProviders.register(new EwTargetingDataProvider());
     modifierProviders.register(new SceneModifiersProvider());
