@@ -47,12 +47,13 @@ export async function resolveMachineRemedy({ actor, payload } = {}) {
   const roller = prepared.actor ?? actor ?? context.operatorActor ?? context.machineActor;
   const reliability = toNumber(context.machineActor?.system?.attributes?.reliability?.value, 0);
   const skill = getSkillRating(roller, context.skillKey);
+  const issue = context.crit ?? context.issue ?? {};
 
   return {
     intent: "machineRemedy",
     rollType: "simple",
-    title: `${context.remedy.label}: ${context.crit.label ?? "Critical Remedy"}`,
-    subtitle: `${context.machineActor?.name ?? "Machine"} | ${context.crit.locationLabel ?? context.locationKey}`,
+    title: `${context.remedy.label}: ${issue.label ?? "Critical Remedy"}`,
+    subtitle: `${context.machineActor?.name ?? "Machine"} | ${issue.locationLabel ?? context.locationKey}`,
     domains: ["mental"],
     diceTarget: 5,
     difficulty: { dn: context.totalDn },
@@ -71,10 +72,10 @@ export async function resolveMachineRemedy({ actor, payload } = {}) {
     machineRemedy: {
       machineActorUuid: context.machineActor?.uuid ?? "",
       operatorActorUuid: context.operatorActor?.uuid ?? "",
-      critId: context.crit.id,
-      critLabel: context.crit.label ?? "",
+      critId: context.crit?.id ?? "",
+      critLabel: issue.label ?? "",
       locationKey: context.locationKey,
-      locationLabel: context.crit.locationLabel ?? context.locationKey,
+      locationLabel: issue.locationLabel ?? context.locationKey,
       remedyKey: context.remedy.key,
       remedyLabel: context.remedy.label,
       skillKey: context.skillKey,

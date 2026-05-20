@@ -4,6 +4,7 @@
 
 import { startCase } from "../../constants.js";
 import { buildMachineCriticalChatSummary } from "../../mwd/machine-crit-effects.js";
+import { enhancePostEdge } from "./render-edge-post.js";
 
 export function enhanceAttack(resolved, vm) {
   const r = resolved ?? {};
@@ -71,42 +72,7 @@ export function enhanceAttack(resolved, vm) {
     });
   }
 
-  const edge = r?.edge ?? null;
-  const failureRefs = Array.isArray(r?.roll?.failureDiceRefs) ? r.roll.failureDiceRefs : [];
-  const canPost = Boolean(edge?.availableActions?.canPostRerollFailures) && !hasAppliedMutation;
-  const postPools = Array.isArray(edge?.allowed?.postPools) ? edge.allowed.postPools : [];
-
-  if (edge?.domain) {
-    vm.edge = {
-      domain: edge.domain,
-      earned: r?.outcomeModel?.edgeEarned ?? null,
-      preSpent: Number(edge?.pre?.spent ?? 0),
-      postSpent: Number(edge?.post?.spent ?? 0),
-      canPost: canPost && failureRefs.length > 0 && postPools.length > 0,
-      failureCount: failureRefs.length,
-      postPools
-    };
-
-    vm.metaRows.push({
-      text: `Edge: ${edge.domain} | pre ${vm.edge.preSpent} | post ${vm.edge.postSpent}`,
-      title: ""
-    });
-  }
-
-  if (vm.edge?.canPost) {
-    vm.footerRows.push({
-      text: `Post-spend: Reroll ${vm.edge.failureCount} failure${vm.edge.failureCount === 1 ? "" : "s"}`
-    });
-
-    for (const poolKey of vm.edge.postPools) {
-      vm.actions.push({
-        action: "edgePostReroll",
-        label: `Spend ${poolKey}`,
-        dataset: { "pool-key": poolKey },
-        cssClass: "mwd-edge-post"
-      });
-    }
-  }
+  enhancePostEdge(r, vm, { canPost: !hasAppliedMutation });
 
   const outcome = String(summary?.overallOutcome ?? "").trim();
   vm.outcomeText = targetResults.length > 1

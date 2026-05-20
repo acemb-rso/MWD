@@ -38,6 +38,13 @@
               },
               {
                 "type": "panel",
+                "title": "Fire Mode",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.battlemech.fire-mode" }
+                ]
+              },
+              {
+                "type": "panel",
                 "title": "Weapon Groups",
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.battlemech.weapon-groups" }

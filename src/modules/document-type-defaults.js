@@ -144,6 +144,7 @@ const templateData = {
           chassis: "",
           tonnage: 0,
           weightClass: "medium",
+          fireMode: "alphaStrike",
           hardpoints: [],
           weaponGroups: [],
           melee: {
@@ -335,12 +336,17 @@ const templateData = {
       skill: "gunnery",
       size: "small",
       damage: 0,
+      clusteringDice: 0,
+      clusteringTargetNumber: 5,
       ap: 0,
       damageType: "energy",
       attackRatingBand: { close: 0, near: 0, far: 0, extreme: 0 },
       payloads: [],
       selectedPayloadId: "",
       consumptionSources: [],
+      fireControl: {
+        usesPerActivation: 1
+      },
       heat: 0,
       volatile: false,
       area: "none",

@@ -11,6 +11,7 @@ import {
   getMachineWeaponDamageTypeLabel,
   normalizeMachineWeaponDamageType,
 } from "./machine-weapon-types.js";
+import { DEFAULT_FIRE_MODE } from "./battlemech-fire-modes.js";
 
 const RANGE_ORDER = ["close", "near", "far", "extreme"];
 // Preferred default engagement band: near is the sweet spot; fall back toward
@@ -216,6 +217,7 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
       clusteringDice: Math.max(0, toNumber(profile?.clusteringDice, 0)),
       ap: toNumber(profile?.ap ?? weapon?.system?.ap ?? weapon?.system?.armorPiercing, 0),
       heat: toNumber(weapon?.system?.heat ?? profile?.heat, 0),
+      usesPerActivation: Math.max(1, toNumber(profile?.fireControl?.usesPerActivation ?? weapon?.system?.fireControl?.usesPerActivation, 1)),
       notes: String(profile?.notes ?? weapon?.system?.notes ?? weapon?.system?.description ?? "").trim(),
       skillDef: profile?.skillDef ?? null,
       hardpointId: normalizeId(mountedHardpoint?.id),
@@ -301,6 +303,21 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
     attackRatings,
   } : null;
 
+  const minUses = memberWeapons.length > 0
+    ? memberWeapons.reduce((min, weapon) => Math.min(min, weapon.usesPerActivation), Number.POSITIVE_INFINITY)
+    : 1;
+  const limitingWeapon = memberWeapons.find(weapon => weapon.usesPerActivation === minUses) ?? null;
+  const rapidFireEligible = memberWeapons.length > 0 && minUses >= 2 && blockingReasons.length === 0;
+  const rapidFire = {
+    eligible: rapidFireEligible,
+    repeatCount: rapidFireEligible ? minUses : 1,
+    reason: rapidFireEligible
+      ? `${minUses} uses/activation`
+      : limitingWeapon
+        ? `Not rapid-fire capable. Limited by ${limitingWeapon.name}: ${minUses} use/activation`
+        : "Not rapid-fire capable. No weapons in group",
+  };
+
   return {
     id: normalizeId(group?.id),
     index: Number.isInteger(Number(group?.index)) ? Number(group.index) : 0,
@@ -318,24 +335,28 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
       damageTypeLabel: weapon.damageTypeLabel,
       clusteringDice: weapon.clusteringDice,
       heat: weapon.heat,
+      usesPerActivation: weapon.usesPerActivation,
     })),
     memberHardpoints,
     compatibilityWarnings,
     baseDisableReason: blockingReasons[0] ?? "",
     isAttackLegal: blockingReasons.length === 0 && memberWeapons.length > 0,
     attackSummary,
+    rapidFire,
     _memberProfiles: memberWeapons,
   };
 }
 
-export function prepareBattlemechWeaponGroups(actor = null, { usedWeaponGroupIds = [] } = {}) {
+export function prepareBattlemechWeaponGroups(actor = null, { usedWeaponGroupIds = [], fireMode = DEFAULT_FIRE_MODE } = {}) {
   const usedIds = new Set(asArray(usedWeaponGroupIds).map(normalizeId).filter(Boolean));
+  const activeFireMode = String(fireMode ?? DEFAULT_FIRE_MODE).trim() || DEFAULT_FIRE_MODE;
 
   return getBattlemechConfiguredWeaponGroups(actor).map(group => {
     const inspected = inspectBattlemechWeaponGroup(actor, group);
     const usedThisActivation = usedIds.has(inspected.id);
-    const isAvailableThisActivation = !usedThisActivation;
-    const disableReason = usedThisActivation
+    const lockedOut = usedThisActivation;
+    const isAvailableThisActivation = !lockedOut;
+    const disableReason = lockedOut
       ? "Already fired this activation."
       : inspected.baseDisableReason;
 
@@ -352,6 +373,8 @@ export function prepareBattlemechWeaponGroups(actor = null, { usedWeaponGroupIds
       isAvailableThisActivation,
       disableReason,
       attackSummary: inspected.attackSummary,
+      rapidFire: inspected.rapidFire,
+      fireMode: activeFireMode,
       _memberProfiles: inspected._memberProfiles,
     };
   });

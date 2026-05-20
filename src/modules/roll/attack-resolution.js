@@ -319,6 +319,12 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
         weaponName: ctx?.attack?.weapon?.name ?? "Attack",
         weaponUuid: ctx?.attack?.weapon?.uuid ?? "",
       },
+      attackDamage: {
+        effectiveWeaponDamage: damage?.effectiveWeaponDamage ?? 0,
+        clustering: damage?.clustering ?? null,
+        netDamageBonus: damage?.netDamageBonus ?? 0,
+        incoming: damage?.incoming ?? 0,
+      },
       notes: "",
     };
   }
@@ -332,6 +338,13 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
     ap: damage?.ap ?? 0,
     effects: ctx?.attack?.weapon?.effects ?? {},
     source: `${attacker?.name ?? "Attacker"}: ${ctx?.attack?.weapon?.name ?? "Attack"}`,
+    attackDamage: {
+      effectiveWeaponDamage: damage?.effectiveWeaponDamage ?? 0,
+      clustering: damage?.clustering ?? null,
+      netDamageBonus: damage?.netDamageBonus ?? 0,
+      incoming: damage?.incoming ?? 0,
+      scaledIncoming: damage?.scaledIncoming ?? damage?.incoming ?? 0,
+    },
     notes: damage?.exposure?.initialTier
       ? `Exposure ${getExposureLabel(damage.exposure.initialTier)}${damage.exposure.evadeUsed ? ` -> ${getExposureLabel(damage.exposure.finalTier)}` : ""}`
       : "",
@@ -424,6 +437,13 @@ export function summarizeAttackDamageResult(result, target = {}, damage = {}, { 
       damageIncoming: Number(result.damageIncoming ?? 0),
       adjustedIncoming: Number(result.adjustedIncoming ?? 0),
       finalDamage: Number(result.finalDamage ?? 0),
+      attackDamage: result.attackDamage ?? damage?.attackDamage ?? {
+        effectiveWeaponDamage: damage?.effectiveWeaponDamage ?? 0,
+        clustering: damage?.clustering ?? null,
+        netDamageBonus: damage?.netDamageBonus ?? 0,
+        incoming: damage?.incoming ?? result.damageIncoming ?? 0,
+        scaledIncoming: damage?.scaledIncoming ?? result.adjustedIncoming ?? result.damageIncoming ?? 0,
+      },
       beforeLabel: String(result.beforeLabel ?? "").trim(),
       afterLabel: String(result.afterLabel ?? "").trim(),
       source: String(result.source ?? "").trim(),

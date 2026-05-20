@@ -75,7 +75,7 @@ function createCombatant({ tokenId, targetTokenUuid, personalCombat = null } = {
   };
 }
 
-function createActor() {
+function createActor({ weaponProfile = {} } = {}) {
   const weapon = {
     id: "w-laser",
     type: "mechWeapon",
@@ -90,6 +90,8 @@ function createActor() {
         category: "ranged",
         skill: "gunnery",
         damage: 4,
+        clusteringDice: Number(weaponProfile.clusteringDice ?? 0) || 0,
+        clusteringTargetNumber: Number(weaponProfile.clusteringTargetNumber ?? 5) || 5,
         ap: 0,
         damageType: "energy",
         attackRatingBand: { close: 4, near: 3, far: 2, extreme: 1 },
@@ -636,6 +638,113 @@ test("machine attack execution queues canonical machine damage mutation", async 
     assert.deepEqual(mutation.preparedCriticalRecords, mutation.payload.preparedCriticalRecords ?? []);
   } finally {
     globalThis.fromUuid = previousFromUuid;
+    clearScene();
+  }
+});
+
+test("machine clustered attacks roll cluster dice and add hits to queued damage", async () => {
+  const resolveAttack = await getResolveAttack();
+  const { resolveAttackExecution } = await getAttackResolution();
+  const actor = createActor({ weaponProfile: { clusteringDice: 4, clusteringTargetNumber: 5 } });
+  const { targetSnapshot } = setScene();
+  const targetActor = {
+    id: "target-actor",
+    uuid: "Actor.target-mech",
+    type: "battlemech",
+    name: "Target Mech",
+    statuses: new Set(),
+    system: {
+      monitors: {
+        armor: { value: 10, max: 10 },
+        structure: { value: 10, max: 10 },
+      },
+      attributes: {
+        handling: { value: 1 },
+        reliability: { value: 3 },
+      },
+      skills: {
+        piloting: { rating: 1 },
+      },
+      mwd: {
+        shock: { value: 0 },
+        reliabilitySpendable: { value: 3 },
+        locations: {
+          head: { enabled: true, stress: 0, condition: 0, destroyed: false },
+          torso: { enabled: true, stress: 0, condition: 0, destroyed: false },
+          arms: { enabled: true, stress: 0, condition: 0, destroyed: false },
+          legs: { enabled: true, stress: 0, condition: 0, destroyed: false },
+        },
+        crits: [],
+      },
+    },
+  };
+  const targetToken = { uuid: targetSnapshot.tokenUuid, actor: targetActor };
+  const previousFromUuid = globalThis.fromUuid;
+  const previousRoll = globalThis.Roll;
+  globalThis.fromUuid = async uuid => {
+    if (uuid === targetActor.uuid) return targetActor;
+    if (uuid === targetToken.uuid) return targetToken;
+    return null;
+  };
+  globalThis.Roll = class {
+    constructor(formula) {
+      this.formula = formula;
+      this.total = 10;
+      this.dice = [{
+        results: formula.includes("cs>=")
+          ? [
+            { result: 6, success: true },
+            { result: 5, success: true },
+            { result: 3, success: false },
+            { result: 1, success: false },
+          ]
+          : [],
+      }];
+    }
+
+    async evaluate() {
+      return this;
+    }
+
+    evaluateSync() {
+      return this;
+    }
+
+    toJSON() {
+      return { formula: this.formula };
+    }
+  };
+
+  try {
+    const ctx = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        rangeBand: "near",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+    const execution = await resolveAttackExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: { margin: 4 },
+    });
+    const result = execution.results[0];
+    const mutation = result.queuedMutation;
+
+    assert.equal(result.damage.clustering.rolled, true);
+    assert.equal(result.damage.clustering.hits, 2);
+    assert.equal(result.damage.incoming, 6);
+    assert.equal(mutation.payload.damage, 6);
+    assert.equal(mutation.payload.attackDamage.clustering.hits, 2);
+    assert.equal(result.damageResult.attackDamage.clustering.hits, 2);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
+    globalThis.Roll = previousRoll;
     clearScene();
   }
 });

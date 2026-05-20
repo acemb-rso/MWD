@@ -57,6 +57,9 @@ How it fits: Keeps combat actions and combat-side group management together with
                   {{#each group.detailTags as |tag|}}
                     <span class="mwd-record__tag">{{tag.label}}</span>
                   {{/each}}
+                  {{#if group.rapidFire.eligible}}
+                    <span class="mwd-record__tag mwd-tag--rapid" title="{{group.rapidFire.reason}}">Rapid x{{group.rapidFire.repeatCount}}</span>
+                  {{/if}}
                 </div>
               {{/if}}
             </div>

@@ -7,6 +7,7 @@ import { MWD } from "../config.js";
 import { SYSTEM_SOCKET, TEMPLATE } from "../constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { RemoteCall } from "../remotecall.js";
+import { DEFAULT_FIRE_MODE, FIRE_MODE_IDS, getFireModeDefinition } from "./battlemech-fire-modes.js";
 import { performBattlemechMeleeAttack } from "./battlemech-melee-actions.js";
 import { performBattlemechMovementAction } from "./battlemech-movement-actions.js";
 import { performBattlemechRangedAttack } from "./battlemech-ranged-actions.js";
@@ -175,6 +176,7 @@ function serializeMachineActionRequest(actor, request = {}) {
     sourceId: String(request.sourceId ?? request.itemId ?? request.weaponId ?? "").trim(),
     weaponId: String(request.weaponId ?? request.itemId ?? "").trim(),
     groupId: String(request.groupId ?? request.group?.id ?? "").trim(),
+    newMode: String(request.newMode ?? request.fireMode ?? "").trim(),
     profileId: String(request.profileId ?? request.profile?.id ?? "").trim(),
     targetTokenId: String(request.targetTokenId ?? "").trim(),
     targetTokenUuid: String(request.targetTokenUuid ?? "").trim(),
@@ -364,6 +366,14 @@ async function executeMachineAttack(actor, request) {
 
   const groupId = String(request.groupId ?? "").trim();
   if (attackKind === "ranged" || attackKind === "group" || groupId) {
+    if (actor?.type === TEMPLATE.actorTypes.battlemech) {
+      return performBattlemechRangedAttack(actor, {
+        group: request.group ?? null,
+        groupId,
+        token,
+        operatorActorUuid,
+      });
+    }
     if (typeof actor.rollRangedAttack === "function" && !request.group && !request.token) {
       const value = await actor.rollRangedAttack({ groupId, operatorActorUuid });
       return { ok: true, value };
@@ -377,6 +387,65 @@ async function executeMachineAttack(actor, request) {
   }
 
   throw new Error(`Unknown machine attack kind: ${attackKind || "(empty)"}`);
+}
+
+async function executeMachineFireModeChange(actor, request) {
+  if (actor?.type !== TEMPLATE.actorTypes.battlemech) {
+    return { ok: false, reason: "Fire modes are only available to BattleMechs." };
+  }
+
+  const newMode = String(request.newMode ?? request.fireMode ?? "").trim();
+  if (!FIRE_MODE_IDS.includes(newMode)) {
+    return { ok: false, reason: `Unknown BattleMech fire mode: ${newMode || "(empty)"}.` };
+  }
+
+  const modeDef = getFireModeDefinition(newMode);
+  if (!modeDef.implemented) {
+    return { ok: false, reason: `${modeDef.label} is not implemented yet.` };
+  }
+
+  const currentMode = String(actor.system?.mwd?.fireMode ?? DEFAULT_FIRE_MODE).trim() || DEFAULT_FIRE_MODE;
+  if (newMode === currentMode) return { ok: true, unchanged: true };
+
+  const token = resolveRequestToken(actor, request);
+  const operator = await resolveMachineOperator({
+    machineActor: actor,
+    operatorActorUuid: String(request.operatorActorUuid ?? "").trim(),
+  });
+  const spendActor = operator?.actor ?? actor;
+  const snapshot = PersonalCombatTracker.getSnapshot?.(spendActor, { token }) ?? null;
+
+  if (!snapshot?.hasCombatant) {
+    await actor.update({ "system.mwd.fireMode": newMode });
+    return { ok: true };
+  }
+
+  if (!snapshot.isCurrentTurn) {
+    return { ok: false, reason: "Only available during your activation." };
+  }
+  if (snapshot.state?.actionState?.fireModeChangedThisActivation) {
+    return { ok: false, reason: "Fire mode can only be changed once per activation." };
+  }
+
+  const usesFreeAction = Number(snapshot.state?.faRemaining ?? 0) > 0;
+  const spend = await PersonalCombatTracker.spendResource(spendActor, {
+    token,
+    resource: usesFreeAction ? "fa" : "sa",
+    cost: 1,
+    actionId: "changeFireMode",
+    actionLabel: "Change Fire Mode",
+    actionCostLabel: usesFreeAction ? "Free" : "1 SA",
+    actionCategory: "free",
+  });
+  if (!spend?.ok) return spend;
+
+  await PersonalCombatTracker._applyActionState?.(spendActor, {
+    token,
+    actionId: "changeFireMode",
+    snapshot: spend.snapshot,
+  });
+  await actor.update({ "system.mwd.fireMode": newMode });
+  return { ok: true };
 }
 
 async function executeMachineMovement(actor, request) {
@@ -471,6 +540,9 @@ export async function executeMachineQuickAction(actor, request = {}) {
   switch (normalized.kind) {
     case "attack":
       result = await executeMachineAttack(actor, normalized);
+      break;
+    case "changeFireMode":
+      result = await executeMachineFireModeChange(actor, normalized);
       break;
     case "movement":
       result = await executeMachineMovement(actor, normalized);
@@ -770,6 +842,8 @@ export async function performMachineElectronicWarfare(actor, {
       targetTokenId: targetRow?.targetTokenId ?? null,
       targetTokenUuid: targetRow?.targetTokenUuid ?? null,
       operatorActorUuid: String(operatorActorUuid ?? "").trim(),
+      edge: { allowed: ["pre", "post"] },
+      tags: ["machine", "ew", selectedAction.id],
     }
     : {
       intent: "skill",

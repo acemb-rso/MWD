@@ -76,6 +76,9 @@ function buildOutcomeContext(resolved = {}) {
     edge: snapshot?.edge ?? null,
     domains: Array.isArray(resolved?.domains) ? resolved.domains : [],
     attack: resolved?.attack ?? null,
+    machineRemedy: resolved?.machineRemedy ?? null,
+    acquire: resolved?.acquire ?? null,
+    targeting: resolved?.targeting ?? null,
   };
 }
 
@@ -96,6 +99,27 @@ async function recomputeResolvedOutcomeAndAttack(resolved = {}, actor = null) {
       outcomeModel: resolved.outcomeModel,
       previewState: resolved.areaEffectPreviewState ?? {},
       existingAttackResult: resolved.attackResult ?? null,
+    });
+  } else if (ctx.intent === "machineRemedy") {
+    resolved.machineRemedyResult = {
+      ...(await applyMachineRemedyOutcome(resolved.originPayload ?? {}, {
+        gmOverride: Boolean(resolved?.originPayload?.gmOverride),
+        passed: Boolean(resolved.outcomeModel?.passed),
+      })),
+      spend: resolved.machineRemedyResult?.spend ?? null,
+      context: resolved.machineRemedyResult?.context ?? null,
+    };
+  } else if (ctx.intent === "acquire" && actor && ctx.acquire) {
+    resolved.ewAcquireResult = await resolveAcquireExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: resolved.outcomeModel,
+    });
+  } else if (ctx.intent === "targeting" && actor && ctx.targeting) {
+    resolved.ewTargetingResult = await resolveTargetingExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: resolved.outcomeModel,
     });
   }
 
@@ -185,10 +209,11 @@ async function applyPostRerollFailures({ message = null, poolKey = "" } = {}) {
     return { ok: false, reason: "no-failures", userMessage: "No failures to reroll." };
   }
 
-  const actor = await fromUuid(resolved.rollActorUuid ?? resolved.actorUuid);
-  if (!actor) return { ok: false, reason: "actor-not-found", userMessage: "Actor not found for this roll." };
+  const rollActor = await fromUuid(resolved.rollActorUuid ?? resolved.actorUuid);
+  if (!rollActor) return { ok: false, reason: "actor-not-found", userMessage: "Actor not found for this roll." };
+  const contextActor = await fromUuid(resolved.actorUuid) ?? rollActor;
 
-  if (getSpendableEdgeAfterRevokingEarned(actor, resolved, normalizedPoolKey) <= 0) {
+  if (getSpendableEdgeAfterRevokingEarned(rollActor, resolved, normalizedPoolKey) <= 0) {
     return {
       ok: false,
       reason: "edge-unavailable",
@@ -196,8 +221,8 @@ async function applyPostRerollFailures({ message = null, poolKey = "" } = {}) {
     };
   }
 
-  await revokeAppliedEdgeEarned(actor, resolved);
-  await actor.spendEdge?.(normalizedPoolKey, 1);
+  await revokeAppliedEdgeEarned(rollActor, resolved);
+  await rollActor.spendEdge?.(normalizedPoolKey, 1);
 
   const tn = Number(resolved?.roll?.target ?? 5);
   const reroll = await new Roll(`${failureRefs.length}d6cs>=${tn}`).evaluate();
@@ -239,7 +264,7 @@ async function applyPostRerollFailures({ message = null, poolKey = "" } = {}) {
     })
   });
 
-  await recomputeResolvedOutcomeAndAttack(resolved, actor);
+  await recomputeResolvedOutcomeAndAttack(resolved, contextActor);
   const content = await renderChat({ resolved });
 
   return {
@@ -545,6 +570,7 @@ function getMachineAttackToken(actor, payload = {}) {
 
 async function commitMachineAttackAction(actor, payload = {}, { rollActor = null } = {}) {
   if (!isMachineActor(actor)) return;
+  if (Boolean(payload?.machineActionPrecommitted)) return;
 
   const token = getMachineAttackToken(actor, payload);
   const spendActor = rollActor ?? actor;

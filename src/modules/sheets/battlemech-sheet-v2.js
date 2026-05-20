@@ -18,6 +18,7 @@ import {
   BATTLEMECH_HEAT_PROFILES,
   getBattlemechHeatProfile,
 } from "../mwd/battlemech-heat-profiles.js";
+import { DEFAULT_FIRE_MODE, FIRE_MODES } from "../mwd/battlemech-fire-modes.js";
 import { getConfiguredMachineHardpoints } from "../mwd/machine-hardpoints.js";
 import { buildBattlemechMeleeProfiles } from "../mwd/battlemech-melee-actions.js";
 import { buildBattlemechRangedAttackGroups } from "../mwd/battlemech-ranged-actions.js";
@@ -148,13 +149,18 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       addWeaponGroup: BattlemechSheetV2.prototype._onAddWeaponGroup,
       deleteWeaponGroup: BattlemechSheetV2.prototype._onDeleteWeaponGroup,
       toggleWeaponGroupHardpoint: BattlemechSheetV2.prototype._onToggleWeaponGroupHardpoint,
+      setFireMode: BattlemechSheetV2.prototype._onSetFireMode,
     }
   }, { inplace: false });
 
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
+    const actor = this.getPersistentActor() ?? this.actor;
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
     ctx.battlemechSheet = {
       heat: this._buildHeatModel(),
+      fireMode: this._buildFireModeSection(actor, snapshot),
       quickActions: this._buildQuickActions(),
       weaponGroupSummary: this._buildWeaponGroupSummary(),
       weaponGroups: this._buildWeaponGroups(),
@@ -404,6 +410,30 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     };
   }
 
+  _buildFireModeSection(actor, snapshot = null) {
+    const activeModeId = String(actor.system?.mwd?.fireMode ?? DEFAULT_FIRE_MODE).trim() || DEFAULT_FIRE_MODE;
+    const changedThisActivation = Boolean(
+      snapshot?.isCurrentTurn
+      && snapshot.state?.actionState?.fireModeChangedThisActivation
+    );
+    let activeMode = null;
+    const modes = Object.values(FIRE_MODES).map(mode => {
+      const isActive = mode.id === activeModeId;
+      if (isActive) activeMode = mode;
+      return {
+        ...mode,
+        isActive,
+        disabled: !mode.implemented || (changedThisActivation && !isActive),
+      };
+    });
+
+    return {
+      activeModeId,
+      activeMode: activeMode ?? FIRE_MODES[DEFAULT_FIRE_MODE],
+      modes,
+    };
+  }
+
   async _onOpenHeatDialog(event, _target) {
     event?.preventDefault?.();
     if (!this.isEditable) return;
@@ -519,6 +549,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   _buildWeaponGroups() {
     const actor = this.getPersistentActor() ?? this.actor;
     const groups = this._getPreparedRangedWeaponGroups(actor);
+    const activeFireMode = String(actor.system?.mwd?.fireMode ?? DEFAULT_FIRE_MODE).trim() || DEFAULT_FIRE_MODE;
     const loadedHardpoints = this._buildLoadedHardpointChoices(actor);
     const groupNameById = new Map(groups.map(group => [group.id, group.name]));
     const owningGroupByItemId = new Map();
@@ -570,6 +601,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
             ? (group.isAvailableThisActivation ? "Ready" : "Used")
             : "Blocked",
         ]),
+        rapidFire: group.rapidFire,
         detailRows: buildDetailRows([
           { label: "Weapon Names", value: (group.memberWeapons ?? []).map(weapon => weapon.name).join(", ") },
           { label: "Bundled Hardpoints", value: bundledHardpoints.map(choice => choice.detailLabel).join(" | ") },
@@ -577,6 +609,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
           { label: "Attack Ratings", value: formatAttackRatings(group.attackSummary?.attackRatings ?? {}) },
           { label: "Missing IDs", value: (group.missingWeaponIds ?? []).join(", ") },
           { label: "Warnings", value: (group.compatibilityWarnings ?? []).join(" | ") },
+          { label: "Rapid Fire", value: group.rapidFire?.reason ?? "" },
           { label: "Status", value: group.disableReason || (group.isAvailableThisActivation ? "Ready to fire" : "Already fired this activation") },
         ]),
         bundleChoices,
@@ -586,7 +619,9 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         action: {
           label: group.isAttackLegal && group.isAvailableThisActivation ? "Attack Group" : "Unavailable",
           disabled: !(group.isAttackLegal && group.isAvailableThisActivation),
-          title: group.disableReason || "Attack Group",
+          title: activeFireMode === "rapidFire" && !group.rapidFire?.eligible
+            ? (group.rapidFire?.reason || "Not rapid-fire capable.")
+            : group.disableReason || "Attack Group",
           dataset: {
             attackKind: "group",
             groupId: group.id,
@@ -632,6 +667,11 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       if (attackKind === "group" && groupId) {
         await this.#rollWeaponGroup(actor, groupId);
       } else if (attackKind === "ranged") {
+        const activeFireMode = String(actor.system?.mwd?.fireMode ?? DEFAULT_FIRE_MODE).trim() || DEFAULT_FIRE_MODE;
+        if (activeFireMode === "alphaStrike") {
+          await this.#rollWeaponGroup(actor, "");
+          return;
+        }
         const preparedGroups = this._getPreparedRangedWeaponGroups(actor);
         const selectedGroup = await this.#promptWeaponGroup(actor, preparedGroups);
         if (selectedGroup?.id) await this.#rollWeaponGroup(actor, selectedGroup.id);
@@ -721,6 +761,27 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     } catch (error) {
       console.error("MWD | Failed to launch BattleMech heat danger check", error);
       notifyRollError(error, "Unable to launch that heat danger check.");
+    }
+  }
+
+  async _onSetFireMode(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const newMode = String(target?.dataset?.fireModeId ?? "").trim();
+    if (!newMode) return;
+
+    try {
+      const result = await executeMachineAction(actor, {
+        kind: "changeFireMode",
+        newMode,
+        token: this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor),
+      });
+      if (!result?.ok) ui.notifications?.warn(result?.reason ?? "Could not change fire mode.");
+    } catch (error) {
+      console.error("MWD | Failed to change BattleMech fire mode", error);
+      notifyRollError(error, "Could not change fire mode.");
     }
   }
 

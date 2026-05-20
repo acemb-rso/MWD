@@ -24,6 +24,7 @@ test("battlemech defaults resolve nested templates before local fields", () => {
   assert.equal(block.mwd.heat.thresholds.shutdown, 4);
   assert.equal(block.attributes.reliability.value, 3);
   assert.equal(block.mwd.shock.value, 0);
+  assert.equal(block.mwd.fireMode, "alphaStrike");
   assert.equal(block.mwd.locations.head.condition, 0);
   assert.equal(block.mwd.locations.torso.condition, 0);
   assert.equal(block.mwd.locations.arms.condition, 0);
@@ -79,7 +80,10 @@ test("mech weapon defaults include hardpoint slot and payload scaffolding", () =
   assert.equal(defaults.system.skill, "gunnery");
   assert.equal(defaults.system.size, "small");
   assert.equal(defaults.system.damageType, "energy");
+  assert.equal(defaults.system.clusteringDice, 0);
+  assert.equal(defaults.system.clusteringTargetNumber, 5);
   assert.equal(defaults.system.volatile, false);
   assert.deepEqual(defaults.system.payloads, []);
   assert.deepEqual(defaults.system.consumptionSources, []);
+  assert.equal(defaults.system.fireControl.usesPerActivation, 1);
 });

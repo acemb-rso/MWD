@@ -140,6 +140,7 @@ test("acquire roll card subtitle uses the target token name", async () => {
     assert.equal(resolved.acquire.targetName, "Vindicator");
     assert.equal(resolved.acquire.attackerTokenId, attackerToken.id);
     assert.equal(resolved.acquire.attackerCombatantId, `${attackerToken.id}-combatant`);
+    assert.deepEqual(resolved.edge.allowed, ["pre", "post"]);
   } finally {
     clearScene();
   }
@@ -224,6 +225,7 @@ test("targeting roll card subtitle uses the target token name", async () => {
     assert.equal(resolved.title, "Generate Targeting Data");
     assert.equal(resolved.subtitle, "Vindicator");
     assert.equal(resolved.targeting.targetName, "Vindicator");
+    assert.deepEqual(resolved.edge.allowed, ["pre", "post"]);
   } finally {
     clearScene();
   }

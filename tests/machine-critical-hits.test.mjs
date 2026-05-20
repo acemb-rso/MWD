@@ -747,6 +747,7 @@ test("machine remedy roll preparation resolves operator, pool source, and DN fro
     assert.equal(prepared.ok, true);
     assert.equal(prepared.actor, operator);
     assert.equal(prepared.payload.intent, "machineRemedy");
+    assert.deepEqual(prepared.payload.edge.allowed, ["pre", "post"]);
     assert.equal(prepared.context.totalDn, 3);
     assert.equal(prepared.context.skillKey, "computers");
 

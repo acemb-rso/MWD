@@ -93,7 +93,7 @@ export async function resolveTargeting({ actor, payload } = {}) {
       parts: [{ id: "difficulty.base", label: "DN (Targeting)", value: DN, tags: ["base"] }],
       total: DN
     },
-    edge: { earn: { enabled: true, rate: 4, maxPerRoll: 1 } },
+    edge: { allowed: ["pre", "post"], earn: { enabled: true, rate: 4, maxPerRoll: 1 } },
     pool: {
       attribute:    systemAttr,
       skill:        gunneryRating,

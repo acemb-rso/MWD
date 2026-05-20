@@ -2,6 +2,8 @@
 // Purpose: Machine remedy roll card enhancer.
 // How it fits: Adds machine- and remedy-specific context to the shared roll card.
 
+import { enhancePostEdge } from "./render-edge-post.js";
+
 export function enhanceMachineRemedy(resolved, vm) {
   const remedy = resolved?.machineRemedy ?? null;
   const result = resolved?.machineRemedyResult ?? null;
@@ -18,6 +20,10 @@ export function enhanceMachineRemedy(resolved, vm) {
   vm.footerRows.push({
     text: `DN ${Number(remedy.baseDn ?? 0)} base + ${Number(remedy.conditionModifier ?? 0)} condition (${remedy.conditionLabel})`,
     title: "",
+  });
+
+  enhancePostEdge(resolved, vm, {
+    canPost: !(result?.ok && result?.passed && result?.applied),
   });
 
   if (!result) return;

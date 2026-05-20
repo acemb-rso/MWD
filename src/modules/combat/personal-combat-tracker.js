@@ -73,7 +73,8 @@ function defaultState(activation = null) {
       aim: null,
       move: null,
       preparedInterrupt: null,
-      usedWeaponGroupIds: []
+      usedWeaponGroupIds: [],
+      fireModeChangedThisActivation: false
     },
     hazards: {},
     pendingReaction: null,
@@ -294,6 +295,10 @@ function mergeActionState(state = {}, actionId = "", { snapshot = null, metadata
       condition: String(metadata?.condition ?? "").trim(),
       scope: String(metadata?.scope ?? "").trim()
     };
+  }
+
+  if (actionId === "changeFireMode") {
+    nextState.actionState.fireModeChangedThisActivation = true;
   }
 
   return nextState;
@@ -1186,6 +1191,23 @@ export class PersonalCombatTracker {
     return this.updateCombatantState(actor, {
       token,
       mutate: state => markBattlemechWeaponGroupUsed(state, normalizedId),
+    });
+  }
+
+  static async markWeaponGroupsUsed(actor, { token = null, groupIds = [] } = {}) {
+    const normalizedIds = Array.from(groupIds ?? [])
+      .map(id => String(id ?? "").trim())
+      .filter(Boolean);
+    if (!normalizedIds.length) return { ok: true, skipped: true };
+
+    return this.updateCombatantState(actor, {
+      token,
+      mutate: state => {
+        for (const groupId of normalizedIds) {
+          markBattlemechWeaponGroupUsed(state, groupId);
+        }
+        return state;
+      },
     });
   }
 

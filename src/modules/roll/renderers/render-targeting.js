@@ -1,6 +1,8 @@
 // src/modules/roll/renderers/render-targeting.js
 // Enhances targeting-data roll card with packet value and cap details.
 
+import { enhancePostEdge } from "./render-edge-post.js";
+
 export function enhanceTargeting(resolved, vm) {
   const result = resolved?.ewTargetingResult ?? null;
   const targeting = resolved?.targeting ?? null;
@@ -11,6 +13,8 @@ export function enhanceTargeting(resolved, vm) {
       title: "",
     });
   }
+
+  enhancePostEdge(resolved, vm);
 
   if (!result) return;
 

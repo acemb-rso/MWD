@@ -562,6 +562,7 @@ export class HarmEngine {
       adjustedIncoming: damageIncoming,
       finalDamage,
       tagEffectResult,
+      attackDamage: payload?.attackDamage ?? null,
       beforeLabel: `${getHarmTrackLabel(track)} ${beforeTrack}`,
       afterLabel: `${getHarmTrackLabel(track)} ${afterTrack}`,
       source: String(payload?.source ?? "").trim(),

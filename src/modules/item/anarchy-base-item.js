@@ -1644,6 +1644,8 @@ export class MWDItem extends Item {
       : (String(system.skill ?? "").trim() || "firearms");
     const skillDef = getSkillDef(skillCode);
     const damage = Number(system.damage ?? 0) || 0;
+    const baseClusteringDice = Math.max(0, Number(system.clusteringDice ?? system.clusterDice ?? 0) || 0);
+    const clusteringTargetNumber = Number(system.clusteringTargetNumber ?? system.clusterTargetNumber ?? 5) || 5;
     const baseDamageType = this.isMechWeapon()
       ? normalizeMachineWeaponDamageType(system.damageType, "energy")
       : normalizePersonalDamageType(system.damageType);
@@ -1677,7 +1679,8 @@ export class MWDItem extends Item {
       skill: skillCode,
       skillDef,
       damage,
-      clusteringDice: Number(effectiveProfile.clusteringDice ?? 0) || 0,
+      clusteringDice: baseClusteringDice + Math.max(0, Number(effectiveProfile.clusteringDice ?? 0) || 0),
+      clusteringTargetNumber,
       ap: effectiveProfile.ap,
       baseDamageType,
       baseDamageTypeLabel: this.isMechWeapon()

@@ -25,6 +25,7 @@ function createWeapon({
   active = true,
   clusteringDice = 0,
   payloadDamageType = "",
+  usesPerActivation = 1,
 } = {}) {
   const effectiveDamageType = payloadDamageType || damageType;
   const labelFor = (type) => type === "energy"
@@ -55,6 +56,7 @@ function createWeapon({
       range: { max: rangeCap },
       attackRatingBand: attackRatings,
       resolution: { resolverKey },
+      fireControl: { usesPerActivation },
       area,
     },
     isActive() {
@@ -92,6 +94,7 @@ function createWeapon({
         },
         areaEffect: { kind: "discrete" },
         resolverKey,
+        fireControl: { usesPerActivation },
         notes: "",
       };
     },
@@ -287,6 +290,64 @@ test("BattleMech ranged groups become unavailable once marked used this activati
   assert.match(group.disableReason, /already fired this activation/i);
   assert.equal(profile.ok, false);
   assert.match(profile.reason, /already fired this activation/i);
+});
+
+test("BattleMech ranged groups expose rapid-fire metadata from fire-control uses", () => {
+  const laser = createWeapon({
+    id: "laser",
+    name: "Pulse Laser",
+    damage: 4,
+    damageType: "energy",
+    rangeCap: "near",
+    attackRatings: { close: 2, near: 3, far: 0, extreme: 0 },
+    usesPerActivation: 3,
+  });
+  const flamer = createWeapon({
+    id: "flamer",
+    name: "Flamer",
+    damage: 2,
+    damageType: "energy",
+    rangeCap: "near",
+    attackRatings: { close: 1, near: 2, far: 0, extreme: 0 },
+    usesPerActivation: 2,
+  });
+  const actor = createActor({
+    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser", "flamer"] }],
+    weapons: [laser, flamer],
+  });
+
+  const [group] = prepareBattlemechWeaponGroups(actor, { fireMode: "rapidFire" });
+
+  assert.equal(group.rapidFire.eligible, true);
+  assert.equal(group.rapidFire.repeatCount, 2);
+  assert.match(group.rapidFire.reason, /2 uses\/activation/i);
+  assert.equal(group.fireMode, "rapidFire");
+});
+
+test("BattleMech rapid fire does not unlock a group already used this activation", () => {
+  const laser = createWeapon({
+    id: "laser",
+    name: "Pulse Laser",
+    damage: 4,
+    damageType: "energy",
+    rangeCap: "near",
+    attackRatings: { close: 2, near: 3, far: 0, extreme: 0 },
+    usesPerActivation: 2,
+  });
+  const actor = createActor({
+    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"] }],
+    weapons: [laser],
+  });
+  const usedState = markBattlemechWeaponGroupUsed({ actionState: {} }, "alpha");
+
+  const [group] = prepareBattlemechWeaponGroups(actor, {
+    usedWeaponGroupIds: usedState.actionState.usedWeaponGroupIds,
+    fireMode: "rapidFire",
+  });
+
+  assert.equal(group.rapidFire.eligible, true);
+  assert.equal(group.isAvailableThisActivation, false);
+  assert.match(group.disableReason, /already fired this activation/i);
 });
 
 test("BattleMech ranged groups require mounted hardpoints to stay actionable", () => {

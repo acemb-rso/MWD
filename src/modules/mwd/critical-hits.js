@@ -495,6 +495,7 @@ export function previewMachineAttackDamage({
     damageIncoming: preview.damageIncoming,
     adjustedIncoming: preview.adjustedIncoming,
     finalDamage: preview.finalDamage,
+    attackDamage: clone(payload?.attackDamage ?? null),
     requestedDelta: incoming,
     appliedDelta: preview.appliedDelta,
     usedArmor: preview.usedArmor,

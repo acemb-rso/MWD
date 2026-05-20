@@ -3892,6 +3892,98 @@
   gap: 12px;
 }
 
+.mwd-fire-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mwd-fire-mode__current {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(222, 166, 74, 0.46);
+  border-radius: 8px;
+  background: rgba(120, 84, 36, 0.38);
+  color: rgba(248, 242, 224, 0.96);
+}
+
+.mwd-fire-mode__current-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(239, 190, 93, 0.92);
+}
+
+.mwd-fire-mode__current strong {
+  font-family: var(--mwd-font-display);
+  font-size: 0.96rem;
+}
+
+.mwd-fire-mode__current span:last-child {
+  font-size: 0.78rem;
+  color: rgba(232, 216, 180, 0.9);
+}
+
+.mwd-fire-mode-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 8px;
+}
+
+.mwd-fire-mode-btn {
+  display: flex;
+  min-height: 54px;
+  position: relative;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 10px;
+  border: 1px solid rgba(232, 216, 180, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(248, 242, 224, 0.94);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mwd-fire-mode-btn span {
+  font-family: var(--mwd-font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.mwd-fire-mode-btn small {
+  font-size: 0.75rem;
+  color: rgba(232, 216, 180, 0.82);
+}
+
+.mwd-fire-mode-btn:hover:not(:disabled) {
+  background: rgba(222, 166, 74, 0.16);
+  border-color: rgba(239, 190, 93, 0.48);
+}
+
+.mwd-fire-mode-btn.is-active {
+  background: rgba(222, 166, 74, 0.18);
+  border-color: rgba(239, 190, 93, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(239, 190, 93, 0.38);
+}
+
+.mwd-fire-mode-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.mwd-record__tag.mwd-tag--rapid {
+  background: rgba(60, 122, 116, 0.18);
+  border-color: rgba(60, 122, 116, 0.26);
+  color: rgba(29, 78, 74, 0.96);
+}
+
 .mwd-hardpoint-workspace__panel,
 .mwd-weapon-group-editor {
   display: flex;

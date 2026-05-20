@@ -182,6 +182,19 @@ function getShockDelta(summary = {}) {
   return 0;
 }
 
+function formatClusterRoll(summary = {}) {
+  const clustering = summary?.attackDamage?.clustering ?? null;
+  const dice = Math.max(0, Number(clustering?.dice ?? 0) || 0);
+  if (!dice) return "";
+
+  const targetNumber = Number(clustering?.targetNumber ?? 5) || 5;
+  const hits = Math.max(0, Number(clustering?.hits ?? clustering?.damageBonus ?? 0) || 0);
+  const resultText = Array.isArray(clustering?.results) && clustering.results.length
+    ? ` (${clustering.results.map(entry => Number(entry?.result ?? 0) || 0).join(", ")})`
+    : "";
+  return `${dice}d6 @ ${targetNumber}+ -> ${hits} hit${hits === 1 ? "" : "s"}${resultText}`;
+}
+
 function buildCriticalInfo(summary = {}) {
   const criticalRecords = Array.isArray(summary?.critical?.records) ? summary.critical.records : [];
   if (criticalRecords.length) {
@@ -246,6 +259,14 @@ function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null
     label: "Applied Damage",
     value: appliedAmountLabel
   });
+
+  const clusterRoll = formatClusterRoll(summary);
+  if (clusterRoll) {
+    rows.push({
+      label: "Cluster Roll",
+      value: clusterRoll
+    });
+  }
 
   if (appliedDamage.isMachine) {
     rows.push({

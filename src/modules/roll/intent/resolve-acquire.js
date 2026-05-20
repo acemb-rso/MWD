@@ -123,7 +123,7 @@ export async function resolveAcquire({ actor, payload } = {}) {
       ],
       total: dn
     },
-    edge: { earn: { enabled: true, rate: 4, maxPerRoll: 1 } },
+    edge: { allowed: ["pre", "post"], earn: { enabled: true, rate: 4, maxPerRoll: 1 } },
     pool: {
       attribute:    systemAttr,
       skill:        perceptionRating,
