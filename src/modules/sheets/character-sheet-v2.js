@@ -1,6 +1,4 @@
 // src/modules/sheets/character-sheet-v2.js
-// Purpose: Defines helper or exported constant `getNum`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
 
 
 import { TEMPLATES_PATH, SYSTEM_NAME, EDGE_POOL_GROUPS } from "../constants.js";

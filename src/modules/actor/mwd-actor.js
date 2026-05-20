@@ -1,6 +1,5 @@
 // src/modules/actor/mwd-actor.js
-// Purpose: Defines function `mitigationLabel`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+
 
 import { BASE_MONITOR, MONITOR_DEFS, TEMPLATE } from "../constants.js";
 import { WeaponItem } from "../item/weapon-item.js";
