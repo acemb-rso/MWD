@@ -5,6 +5,7 @@
 
 import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
 import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
+import { ASSET_MODULE_HOOKS, dispatchAssetModuleHook } from "./asset-module-hooks.js";
 import {
   getMachineLocationLabel,
   resolveMachineHitLocation,
@@ -458,14 +459,25 @@ export function previewMachineAttackDamage({
   if (!isMachineActor(actor)) return { ok: false, reason: "Machine damage requires a vehicle or BattleMech actor." };
 
   const incoming = Math.max(0, Math.ceil(Number(payload?.damage ?? payload?.amount ?? 0) || 0));
+  const damageContext = {
+    actor,
+    payload,
+    damageIncoming: incoming,
+    adjustedIncoming: incoming,
+    effectiveAp: Math.max(0, Number(payload?.ap ?? 0) || 0),
+    damageType: String(payload?.damageType ?? "kinetic").trim() || "kinetic",
+    contributions: [],
+  };
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.harm.beforeMachineDamagePreview, damageContext);
+  const adjustedIncoming = Math.max(0, Math.ceil(Number(damageContext.adjustedIncoming ?? damageContext.damageIncoming ?? incoming) || 0));
   const armor = getMachineMonitorState(actor, TEMPLATE.monitors.armor);
   const structure = getMachineMonitorState(actor, TEMPLATE.monitors.structure);
   const resolvedHitLocation = hitLocation
     ? { ...hitLocation, armorBefore: armor.remaining, structureBefore: structure.remaining, pureStructureHit: armor.remaining <= 0 }
     : normalizeHitLocationForDamage(actor, payload, armor.remaining, structure.remaining);
 
-  const armorAbsorbed = Math.min(incoming, actor.type === TEMPLATE.actorTypes.vehicle && armor.max <= 0 ? 0 : armor.remaining);
-  const structureDamage = Math.min(structure.remaining, Math.max(0, incoming - armorAbsorbed));
+  const armorAbsorbed = Math.min(adjustedIncoming, actor.type === TEMPLATE.actorTypes.vehicle && armor.max <= 0 ? 0 : armor.remaining);
+  const structureDamage = Math.min(structure.remaining, Math.max(0, adjustedIncoming - armorAbsorbed));
   const armorAfterValue = Math.max(0, armor.remaining - armorAbsorbed);
   const structureAfterValue = Math.max(0, structure.remaining - structureDamage);
   const armorDamageAfter = Math.max(0, armor.max - armorAfterValue);
@@ -477,12 +489,13 @@ export function previewMachineAttackDamage({
   const previewRevision = getPreviewRevision(payload);
   const preview = {
     damageIncoming: incoming,
-    adjustedIncoming: incoming,
+    adjustedIncoming,
     finalDamage: structureDamage,
     appliedDelta: structureDamage,
     usedArmor: armorAbsorbed > 0,
-    damageType: String(payload?.damageType ?? "kinetic").trim() || "kinetic",
-    effectiveAp: Math.max(0, Number(payload?.ap ?? 0) || 0),
+    damageType: damageContext.damageType,
+    effectiveAp: damageContext.effectiveAp,
+    assetModuleContributions: damageContext.contributions,
     beforeLabel: `Armor ${armor.remaining}/${armor.max}, Structure ${structure.remaining}/${structure.max}`,
     afterLabel: `Armor ${armorAfterValue}/${armor.max}, Structure ${structureAfterValue}/${structure.max}`,
   };
@@ -501,6 +514,7 @@ export function previewMachineAttackDamage({
     usedArmor: preview.usedArmor,
     damageType: preview.damageType,
     effectiveAp: preview.effectiveAp,
+    assetModuleContributions: preview.assetModuleContributions,
     hitLocation: resolvedHitLocation,
     critical: criticalState,
     machine: {
@@ -559,6 +573,7 @@ export function previewMachineAttackDamage({
         locationStressGain,
         locationTakesStress: locationStressGain > 0,
       },
+      assetModuleContributions: preview.assetModuleContributions,
     },
     reliabilityOptions: buildReliabilityOptionsFromDegradation(null),
     beforeLabel: preview.beforeLabel,
@@ -976,6 +991,22 @@ async function applyMachineCritStatusConditions(actor, newCritRecords) {
 }
 
 async function applyDegradationStatusConditions(actor, degradation) {
+  if (String(degradation?.statusState ?? "").trim() === "destroyed" && !(actor.statuses?.has?.("destroyed") ?? false)) {
+    try {
+      await applyManagedStatusUpdate({
+        actor,
+        statusId: "destroyed",
+        active: true,
+        metadata: {
+          scope: "Machine destroyed",
+          notes: "Applied by catastrophic machine degradation.",
+        },
+      });
+    } catch (error) {
+      console.warn("MWD | Unable to apply destroyed status", error);
+    }
+  }
+
   const derivedStatusIds = new Set(getMachineDerivedStatusIds(actor));
   for (const statusId of derivedStatusIds) {
     if (!statusId || (actor.statuses?.has?.(statusId) ?? false)) continue;
@@ -1019,6 +1050,10 @@ export async function applyMachineAttackDamage({
     chaosCriticalSelected: Boolean(payload?.chaosCriticalSelected),
   });
   if (!preview.ok) return preview;
+  const applyContext = { actor, token, payload, options, preview };
+  if (dispatchAssetModuleHook(ASSET_MODULE_HOOKS.harm.beforeMachineDamageApply, applyContext) === false) {
+    return { ok: false, reason: "Machine damage application was cancelled by a module hook." };
+  }
 
   const dryRun = Boolean(options.dryRun);
   const preparedCrits = getPreparedCriticalRecords(payload, actor);
@@ -1098,7 +1133,7 @@ export async function applyMachineAttackDamage({
     await applyDegradationStatusConditions(actor, degradation);
   }
 
-  return {
+  const result = {
     ...preview,
     dryRun,
     appliedDelta: preview.machine.structureDamage,
@@ -1113,4 +1148,13 @@ export async function applyMachineAttackDamage({
     },
     degradation,
   };
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.harm.afterMachineDamageApply, {
+    actor,
+    token,
+    payload,
+    options,
+    preview,
+    result,
+  });
+  return result;
 }

@@ -29,6 +29,46 @@ class MockBlurFilter {
   }
 }
 
+class MockSprite {
+  constructor(texture) {
+    this.texture = texture;
+    this.name = "";
+    this.visible = true;
+    this.alpha = 1;
+    this.eventMode = "";
+    this.interactive = true;
+    this.zIndex = 0;
+    this.parent = null;
+    this.x = 0;
+    this.y = 0;
+    this.rotation = 0;
+    this.filters = null;
+    this.width = texture?.width ?? 100;
+    this.height = texture?.height ?? 100;
+    this.anchor = {
+      x: 0,
+      y: 0,
+      set: (x, y) => {
+        this.anchor.x = x;
+        this.anchor.y = y;
+      },
+    };
+    this.scale = {
+      x: 1,
+      y: 1,
+      set: (x, y) => {
+        this.scale.x = x;
+        this.scale.y = y;
+      },
+    };
+    this.destroyedWith = null;
+  }
+
+  destroy(options) {
+    this.destroyedWith = options;
+  }
+}
+
 function createMockTicker() {
   return {
     added: [],
@@ -43,8 +83,10 @@ function createMockTicker() {
 }
 
 function createToken() {
-  return {
+  const token = {
     id: "token-1",
+    w: 140,
+    h: 120,
     document: {
       uuid: "Scene.scene.Token.token-1",
       baseActor: { id: "actor-1" },
@@ -64,12 +106,29 @@ function createToken() {
           },
         },
       },
+      statuses: new Set(),
     },
     mesh: {
       filters: [],
       destroyed: false,
+      x: 0,
+      y: 0,
+      width: 140,
+      height: 120,
+    },
+    children: [],
+    addChild(child) {
+      this.children.push(child);
+      child.parent = this;
+      return child;
+    },
+    removeChild(child) {
+      this.children = this.children.filter(entry => entry !== child);
+      child.parent = null;
+      return child;
     },
   };
+  return token;
 }
 
 test("controller creates filters once, updates them in place, and tears down ticker when cleared", async () => {
@@ -135,4 +194,80 @@ test("controller reacts to heat change paths and ignores unrelated actor updates
   assert.equal(hasBattlemechHeatVisualChange({ system: { mwd: { heat: { current: 4 } } } }), true);
   assert.equal(hasBattlemechHeatVisualChange({ system: { mwd: { heat: { thresholds: { shutdown: 8 } } } } }), true);
   assert.equal(hasBattlemechHeatVisualChange({ system: { attributes: { reliability: { value: 4 } } } }), false);
+});
+
+test("controller shows a ruined decal when machine destroyed state is set", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
+  globalThis.PIXI = {
+    ColorMatrixFilter: MockColorMatrixFilter,
+    BlurFilter: MockBlurFilter,
+    Sprite: MockSprite,
+    Texture: {
+      from: path => ({ path, width: 100, height: 100 }),
+    },
+  };
+  globalThis.Hooks = { on() {} };
+  globalThis.game = {
+    settings: { get: () => true },
+  };
+  const ticker = createMockTicker();
+  globalThis.canvas = {
+    ready: true,
+    photosensitiveMode: false,
+    blurFilters: new Set(),
+    createBlurFilter: () => new MockBlurFilter(),
+    app: { ticker },
+    tokens: { placeables: [] },
+  };
+
+  const { HeatFxController, MACHINE_RUINED_DECAL_PATH, isMachineRuined } = await import("../src/modules/token/heat-fx-controller.js");
+
+  const controller = new HeatFxController();
+  const token = createToken();
+  token.actor.type = "vehicle";
+  token.actor.system.monitors.heat.value = 0;
+  token.actor.system.mwd.heat.current = 0;
+  token.actor.system.mwd.status = { state: "destroyed" };
+  canvas.tokens.placeables = [token];
+
+  assert.equal(isMachineRuined(token.actor), true);
+
+  controller.syncToken(token);
+
+  const decal = token.children.find(child => child?.name === "mwd-machine-ruined-decal");
+  assert.ok(decal);
+  assert.equal(decal.texture.path, MACHINE_RUINED_DECAL_PATH);
+  assert.equal(decal.visible, true);
+  assert.equal(decal.anchor.x, 0.5);
+  assert.equal(decal.anchor.y, 0.5);
+  assert.equal(decal.blendMode, "screen");
+  assert.equal(decal.filters.length, 3);
+  assert.equal(ticker.added.length, 1);
+
+  const initialAlpha = decal.alpha;
+  const initialScale = decal.scale.x;
+  ticker.added[0]({ deltaMS: 500 });
+  assert.notEqual(decal.alpha, initialAlpha);
+  assert.notEqual(decal.scale.x, initialScale);
+
+  token.actor.system.mwd.status.state = "";
+  controller.syncToken(token);
+
+  assert.equal(decal.parent, null);
+  assert.equal(token.children.includes(decal), false);
+});
+
+test("destroyed status effect changes trigger ruined visual sync", async () => {
+  const { HeatFxController, hasMachineRuinedVisualChange } = await import("../src/modules/token/heat-fx-controller.js");
+  const controller = new HeatFxController();
+  const actor = { id: "actor-1", type: "battlemech", statuses: new Set(["destroyed"]) };
+  let synced = null;
+  controller.syncActor = nextActor => { synced = nextActor; };
+
+  controller._onActiveEffectChange({ parent: actor, statuses: new Set(["destroyed"]) });
+
+  assert.equal(synced, actor);
+  assert.equal(hasMachineRuinedVisualChange({ system: { mwd: { status: { state: "destroyed" } } } }), true);
+  assert.equal(hasMachineRuinedVisualChange({ system: { attributes: { reliability: { value: 4 } } } }), false);
 });

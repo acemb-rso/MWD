@@ -106,6 +106,8 @@ export const TEMPLATE = {
     consumable: 'consumable',
     contact: 'contact',
     lifeModule: 'lifeModule',
+    mechEquipment: 'mechEquipment',
+    vehicleUpgrade: 'vehicleUpgrade',
   },
   actorAttributes: ACTOR_ATTRIBUTES,
   itemAttributes: ITEM_ATTRIBUTES,

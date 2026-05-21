@@ -407,6 +407,30 @@ test("degradation-derived statuses are surfaced when a location crosses a canoni
   assert.equal(actor.statuses.has("reactorBreach"), true);
 });
 
+test("catastrophic destroyed state applies the toggleable destroyed status", async () => {
+  const actor = machineActor({
+    paths: {
+      "system.monitors.armor.value": 0,
+      "system.mwd.locations.torso.condition": 4,
+    },
+  });
+  const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 10, armorBefore: 0 });
+
+  const result = await applyMachineAttackDamage({
+    actor,
+    payload: {
+      damage: 1,
+      hitLocation,
+      preparedCriticalRecords: [],
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(actor.system.mwd.status.state, "destroyed");
+  assert.equal(actor.system.mwd.locations.torso.destroyed, true);
+  assert.equal(actor.statuses.has("destroyed"), true);
+});
+
 test("optics coolant fog caps attack range without applying sensor degraded", async () => {
   const actor = machineActor({
     paths: {

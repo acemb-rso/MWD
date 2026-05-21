@@ -5,6 +5,7 @@ import {
   buildAssetModuleSummary,
   findAssetModuleActionOverride,
   getApplicableAssetModuleEffects,
+  getAssetModuleState,
   getAssetModuleBypassStatuses,
   getAssetModuleClusteringProfile,
   getAssetModuleDerivedStatuses,
@@ -12,6 +13,11 @@ import {
   sumAssetModuleDice,
 } from "../src/modules/mwd/asset-module-effects.js";
 import { AssetModuleValidationError, normalizeAssetModuleSystem } from "../src/modules/mwd/asset-module-rules.js";
+import { modifierProviders } from "../src/modules/modifiers/index.js";
+import { AssetModuleEffectsProvider } from "../src/modules/modifiers/providers/asset-module-effects.js";
+import { collectModifiers } from "../src/modules/roll/collect-modifiers.js";
+
+modifierProviders.register(new AssetModuleEffectsProvider());
 
 function actorWithModule(system) {
   return {
@@ -102,6 +108,31 @@ test("ready, active, and cooldown filtering choose the right module effects", ()
   }
 });
 
+test("shared readiness helper blocks disabled module states", () => {
+  const baseSystem = {
+    activation: { mode: "toggle", active: true },
+    effects: [{ id: "dice", timing: "active", modifies: { dice: 1 } }],
+  };
+  for (const blocked of [
+    { inactive: true },
+    { enabled: false },
+    { state: { suppressed: true } },
+    { state: { offline: true } },
+    { state: { destroyed: true } },
+  ]) {
+    const actor = actorWithModule({ ...baseSystem, ...blocked });
+    assert.equal(getAssetModuleState(actor.items[0], { installed: true }).ready, false);
+    assert.equal(sumAssetModuleDice(actor, { payload: { intent: "skill", key: "piloting" } }), 0);
+  }
+
+  const passiveActor = actorWithModule({
+    activation: { mode: "passive", active: false },
+    effects: [{ id: "passive-active", timing: "active", modifies: { dice: 1 } }],
+  });
+  assert.equal(getAssetModuleState(passiveActor.items[0], { installed: true }).active, true);
+  assert.equal(sumAssetModuleDice(passiveActor, { payload: { intent: "skill", key: "piloting" } }), 1);
+});
+
 test("effect requirements match action, skill, tags, weapon tags, and target state", () => {
   const actor = actorWithModule({
     effects: [
@@ -154,6 +185,89 @@ test("effect requirements match action, skill, tags, weapon tags, and target sta
   });
   assert.equal(override.cost, 0);
   assert.equal(override.resource, "fa");
+});
+
+test("provider selector coverage runs through collectModifiers", async () => {
+  const actor = actorWithModule({
+    activation: { mode: "toggle", active: true },
+    effects: [
+      {
+        id: "sensor",
+        label: "Sensor Bonus",
+        timing: "active",
+        requires: { actionIds: ["sensorSweep"], skillIds: ["perception"] },
+        modifies: { dice: 2 },
+      },
+      {
+        id: "missile-lock",
+        label: "Missile Lock",
+        timing: "active",
+        requires: {
+          tags: ["range.far"],
+          weaponTags: ["weapon.missile"],
+          statuses: ["epmBoosted"],
+          detectionState: "lock",
+        },
+        modifies: { dice: 3 },
+      },
+      {
+        id: "forbid-heat",
+        label: "Cool Targeting",
+        timing: "active",
+        requires: { forbidsTags: ["heat.danger"] },
+        modifies: { dice: 1 },
+      },
+    ],
+  });
+  actor.statuses.add("epmBoosted");
+
+  const sensor = await collectModifiers({
+    actor,
+    payload: { intent: "skill", key: "perception", machineActionKey: "sensorSweep" },
+  });
+  assert.equal(sensor.total, 3);
+  assert.deepEqual(sensor.mods.map(mod => mod.id).sort(), [
+    "assetModule.module-1.forbid-heat.dice",
+    "assetModule.module-1.sensor.dice",
+  ]);
+
+  const missile = await collectModifiers({
+    actor,
+    payload: { intent: "attack", tags: ["range.far"] },
+    resolved: {
+      intent: "attack",
+      attack: {
+        ewContext: { detectionState: "lock" },
+        weapon: { weaponType: "missile", category: "ranged" },
+      },
+    },
+  });
+  assert.equal(missile.mods.some(mod => mod.id === "assetModule.module-1.missile-lock.dice"), true);
+
+  const suppressed = actorWithModule({
+    activation: { mode: "toggle", active: true },
+    state: { suppressed: true },
+    effects: [{ id: "blocked", timing: "active", modifies: { dice: 5 } }],
+  });
+  const blocked = await collectModifiers({
+    actor: suppressed,
+    payload: { intent: "skill", key: "perception", machineActionKey: "sensorSweep" },
+  });
+  assert.equal(blocked.total, 0);
+
+  const negative = await collectModifiers({
+    actor,
+    payload: { intent: "attack", tags: ["range.far", "heat.danger"] },
+    resolved: {
+      intent: "attack",
+      attack: {
+        ewContext: { detectionState: "contact" },
+        weapon: { weaponType: "energy", category: "ranged" },
+      },
+    },
+  });
+  assert.equal(negative.mods.some(mod => mod.id === "assetModule.module-1.missile-lock.dice"), false);
+  assert.equal(negative.mods.some(mod => mod.id === "assetModule.module-1.forbid-heat.dice"), false);
 });
 
 test("active effects grant derived statuses, movement, shroud bypass, and clustering", () => {

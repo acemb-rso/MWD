@@ -1,10 +1,12 @@
 // src/modules/token/heat-fx-controller.js
-// Purpose: Applies BattleMech heat visuals to token meshes using PIXI filters.
-// How it fits: Isolates canvas/filter lifecycle from heat rules and actor state prep.
+// Purpose: Applies machine token visuals such as BattleMech heat filters and ruined decals.
+// How it fits: Isolates canvas/filter/decal lifecycle from heat rules and actor state prep.
 
 import { SETTING_BATTLEMECH_TOKEN_HEAT_FX, SYSTEM_NAME } from "../constants.js";
 import { buildBattlemechHeatVisualState } from "../mwd/heat-visual-state.js";
 import { createHeatShimmerFilter } from "./filters/heat-shimmer-filter.js";
+
+export const MACHINE_RUINED_DECAL_PATH = "systems/mwd/img/mek/units/DamageDecals/FireMulti/SmokeFireMulti.png";
 
 function hasProperty(root, path) {
   if (globalThis.foundry?.utils?.hasProperty) return foundry.utils.hasProperty(root, path);
@@ -20,6 +22,18 @@ function getColorMatrixFilterClass() {
 
 function getBlurFilterClass() {
   return globalThis.PIXI?.BlurFilter ?? globalThis.PIXI?.filters?.BlurFilter ?? null;
+}
+
+function getSpriteClass() {
+  return globalThis.PIXI?.Sprite ?? null;
+}
+
+function getTextureClass() {
+  return globalThis.PIXI?.Texture ?? null;
+}
+
+function getBlendMode(name = "SCREEN") {
+  return globalThis.PIXI?.BLEND_MODES?.[name] ?? String(name).toLowerCase();
 }
 
 function getTokenKey(token) {
@@ -39,6 +53,16 @@ function matchesActor(token, actor) {
   if (!token || !actor) return false;
   if (token.actor?.id === actor.id) return true;
   return String(token?.document?.baseActor?.id ?? "").trim() === String(actor.id ?? "").trim();
+}
+
+function isMachineActor(actor = null) {
+  return actor?.type === "battlemech" || actor?.type === "vehicle";
+}
+
+export function isMachineRuined(actor = null) {
+  if (!isMachineActor(actor)) return false;
+  if (actor?.statuses?.has?.("destroyed")) return true;
+  return String(actor?.system?.mwd?.status?.state ?? "").trim().toLowerCase() === "destroyed";
 }
 
 function filterNotOwned(current = [], owned = []) {
@@ -72,6 +96,10 @@ export function hasBattlemechHeatVisualChange(changed = {}) {
     || hasProperty(changed, "system.mwd.heat.thresholds.shutdown");
 }
 
+export function hasMachineRuinedVisualChange(changed = {}) {
+  return hasProperty(changed, "system.mwd.status.state");
+}
+
 export class HeatFxController {
   constructor({
     settingKey = SETTING_BATTLEMECH_TOKEN_HEAT_FX,
@@ -90,6 +118,8 @@ export class HeatFxController {
     Hooks.on("canvasReady", () => this.refreshAll());
     Hooks.on("refreshToken", token => this._onRefreshToken(token));
     Hooks.on("updateActor", (actor, changed) => this._onUpdateActor(actor, changed));
+    Hooks.on("createActiveEffect", effect => this._onActiveEffectChange(effect));
+    Hooks.on("deleteActiveEffect", effect => this._onActiveEffectChange(effect));
     Hooks.on("canvasTearDown", () => this.onCanvasTearDown());
     Hooks.on("updateSetting", setting => this._onUpdateSetting(setting));
   }
@@ -103,7 +133,7 @@ export class HeatFxController {
   }
 
   syncActor(actor) {
-    if (!actor || actor.type !== "battlemech" || !canvas?.ready) return;
+    if (!actor || !isMachineActor(actor) || !canvas?.ready) return;
 
     for (const token of canvas.tokens?.placeables ?? []) {
       if (matchesActor(token, actor)) this.syncToken(token);
@@ -113,7 +143,7 @@ export class HeatFxController {
   refreshAll() {
     if (!canvas?.ready) return;
     for (const token of canvas.tokens?.placeables ?? []) {
-      if (token?.actor?.type === "battlemech") this.syncToken(token);
+      if (isMachineActor(token?.actor)) this.syncToken(token);
       else this.clearToken(token);
     }
   }
@@ -126,19 +156,21 @@ export class HeatFxController {
     }
 
     const actor = token.actor ?? null;
-    const state = buildBattlemechHeatVisualState(actor);
-    if (!state?.active) {
+    const heatState = actor?.type === "battlemech" ? buildBattlemechHeatVisualState(actor) : null;
+    const ruined = isMachineRuined(actor);
+    if (!heatState?.active && !ruined) {
       this.clearToken(token);
-      return state;
+      return heatState;
     }
 
     const record = this.ensure(token);
-    if (!record) return state;
+    if (!record) return heatState;
 
-    this._applyState(record, state, {
+    this._applyHeatState(record, heatState, {
       photosensitive: Boolean(canvas?.photosensitiveMode),
     });
-    return state;
+    this._applyRuinedState(record, { ruined });
+    return heatState;
   }
 
   ensure(token) {
@@ -167,8 +199,12 @@ export class HeatFxController {
         color,
         blur,
         shimmer,
+        ruinedDecal: null,
+        ruinedFilters: null,
+        ruinedBaseScale: 1,
         time: 0,
         animated: false,
+        decalAnimated: false,
       };
       this._records.set(key, record);
     } else {
@@ -204,7 +240,7 @@ export class HeatFxController {
   }
 
   _onRefreshToken(token) {
-    if (token?.actor?.type !== "battlemech") {
+    if (!isMachineActor(token?.actor)) {
       this.clearToken(token);
       return;
     }
@@ -212,9 +248,18 @@ export class HeatFxController {
   }
 
   _onUpdateActor(actor, changed) {
-    if (actor?.type !== "battlemech") return;
-    if (!hasBattlemechHeatVisualChange(changed)) return;
+    if (!isMachineActor(actor)) return;
+    if (!hasBattlemechHeatVisualChange(changed) && !hasMachineRuinedVisualChange(changed)) return;
     this.syncActor(actor);
+  }
+
+  _onActiveEffectChange(effect) {
+    const actor = effect?.parent ?? null;
+    if (!isMachineActor(actor)) return;
+    const statuses = effect?.statuses;
+    const touchesDestroyed = statuses?.has?.("destroyed")
+      || (Array.isArray(statuses) && statuses.includes("destroyed"));
+    if (touchesDestroyed) this.syncActor(actor);
   }
 
   _onUpdateSetting(setting) {
@@ -246,6 +291,22 @@ export class HeatFxController {
     return FilterClass ? new FilterClass() : null;
   }
 
+  _createRuinedDecal() {
+    const SpriteClass = getSpriteClass();
+    if (!SpriteClass) return null;
+
+    const TextureClass = getTextureClass();
+    const texture = TextureClass?.from ? TextureClass.from(MACHINE_RUINED_DECAL_PATH) : MACHINE_RUINED_DECAL_PATH;
+    const sprite = new SpriteClass(texture);
+    sprite.name = "mwd-machine-ruined-decal";
+    sprite.visible = false;
+    sprite.alpha = 0.92;
+    sprite.eventMode = "none";
+    sprite.interactive = false;
+    sprite.zIndex = 95;
+    return sprite;
+  }
+
   _ownedFilters(record) {
     return [record.shimmer, record.color, record.blur].filter(Boolean);
   }
@@ -264,10 +325,17 @@ export class HeatFxController {
       display.filters = next.length ? next : null;
     }
 
+    this._destroyRuinedDecal(record);
+
     if (record.blur) canvas?.blurFilters?.delete?.(record.blur);
   }
 
-  _applyState(record, state, { photosensitive = false } = {}) {
+  _applyHeatState(record, state, { photosensitive = false } = {}) {
+    if (!state?.active) {
+      this._disableHeatFilters(record);
+      return;
+    }
+
     if (record.color) {
       if (typeof record.color.reset === "function") record.color.reset();
       record.color.matrix = buildWarmMatrix(state.warmth);
@@ -292,16 +360,168 @@ export class HeatFxController {
     }
 
     const shouldAnimate = Boolean(state.animated) && !photosensitive;
-    if (shouldAnimate) {
+    record.animated = shouldAnimate;
+    if (!shouldAnimate && !record.decalAnimated) record.time = 0;
+    this._syncAnimatedKey(record);
+  }
+
+  _disableHeatFilters(record) {
+    if (record.color) record.color.enabled = false;
+    if (record.blur) record.blur.enabled = false;
+    if (record.shimmer) record.shimmer.enabled = false;
+    record.animated = false;
+    if (!record.decalAnimated) record.time = 0;
+    this._syncAnimatedKey(record);
+  }
+
+  _applyRuinedState(record, { ruined = false, photosensitive = Boolean(canvas?.photosensitiveMode) } = {}) {
+    if (!ruined) {
+      record.decalAnimated = false;
+      this._destroyRuinedDecal(record);
+      this._syncAnimatedKey(record);
+      return;
+    }
+
+    if (!record.ruinedDecal) record.ruinedDecal = this._createRuinedDecal();
+    const decal = record.ruinedDecal;
+    if (!decal) return;
+
+    const parent = this._getDecalParent(record);
+    if (decal.parent !== parent) {
+      decal.parent?.removeChild?.(decal);
+      parent?.addChild?.(decal);
+    }
+
+    decal.visible = true;
+    decal.blendMode = getBlendMode("SCREEN");
+    this._fitRuinedDecal(record, decal);
+    this._applyRuinedDecalFilters(record, { photosensitive });
+    record.decalAnimated = !photosensitive;
+    this._animateRuinedDecal(record, 0);
+    this._syncAnimatedKey(record);
+  }
+
+  _getDecalParent(record) {
+    return record.token ?? record.display?.parent ?? null;
+  }
+
+  _fitRuinedDecal(record, decal) {
+    const bounds = this._getTokenVisualBounds(record);
+    const width = bounds.width || 1;
+    const height = bounds.height || width;
+
+    if (decal.anchor?.set) decal.anchor.set(0.5, 0.5);
+    if (decal.scale?.set) {
+      const textureWidth = Math.max(1, Number(decal.texture?.width ?? decal.width ?? width) || 1);
+      const textureHeight = Math.max(1, Number(decal.texture?.height ?? decal.height ?? height) || 1);
+      const scale = Math.max(width / textureWidth, height / textureHeight) * 1.05;
+      record.ruinedBaseScale = scale;
+      decal.scale.set(scale, scale);
+    } else {
+      decal.width = width * 1.05;
+      decal.height = height * 1.05;
+      record.ruinedBaseScale = 1;
+    }
+
+    decal.x = bounds.x + (width / 2);
+    decal.y = bounds.y + (height / 2);
+  }
+
+  _applyRuinedDecalFilters(record, { photosensitive = false } = {}) {
+    const decal = record.ruinedDecal;
+    if (!decal) return;
+
+    if (!record.ruinedFilters) {
+      record.ruinedFilters = {
+        color: this._createColorFilter(),
+        blur: this._createBlurFilter(),
+        shimmer: createHeatShimmerFilter(),
+      };
+    }
+
+    const { shimmer, color, blur } = record.ruinedFilters;
+    if (shimmer?.setVisualState) {
+      shimmer.enabled = true;
+      shimmer.setVisualState({
+        active: true,
+        normalized: 0.85,
+        glow: 0.45,
+        shimmer: 0.55,
+        pulseAmplitude: 0.18,
+      }, { photosensitive });
+      shimmer.setTime?.(record.time);
+    }
+    if (color) {
+      if (typeof color.reset === "function") color.reset();
+      color.matrix = buildWarmMatrix(0.78);
+      color.alpha = 0.95;
+      color.enabled = true;
+    }
+    if (blur) {
+      blur.enabled = !photosensitive;
+      if ("blur" in blur) blur.blur = 0.35;
+      if ("strength" in blur) blur.strength = 0.35;
+      if ("blurX" in blur) blur.blurX = 0.18;
+      if ("blurY" in blur) blur.blurY = 0.38;
+    }
+
+    const filters = [shimmer, color, blur].filter(Boolean);
+    decal.filters = filters.length ? filters : null;
+  }
+
+  _destroyRuinedDecal(record) {
+    if (!record.ruinedDecal) return;
+
+    record.ruinedDecal.parent?.removeChild?.(record.ruinedDecal);
+    record.ruinedDecal.filters = null;
+    record.ruinedDecal.destroy?.({ children: true });
+    record.ruinedDecal = null;
+    for (const filter of Object.values(record.ruinedFilters ?? {})) {
+      canvas?.blurFilters?.delete?.(filter);
+    }
+    record.ruinedFilters = null;
+    record.decalAnimated = false;
+  }
+
+  _animateRuinedDecal(record, seconds = 0) {
+    const decal = record.ruinedDecal;
+    if (!decal?.visible) return;
+
+    const time = Number(seconds) || 0;
+    const flicker = Math.sin(time * 3.4) * 0.035 + Math.sin(time * 7.1) * 0.018;
+    const smokeLift = Math.sin(time * 1.7) * 0.018;
+    const scale = record.ruinedBaseScale * (1 + flicker + smokeLift);
+    decal.alpha = 0.78 + (Math.sin(time * 4.6) * 0.08) + (Math.sin(time * 9.3) * 0.025);
+    decal.rotation = Math.sin(time * 0.8) * 0.018;
+    if (decal.scale?.set) decal.scale.set(scale, scale);
+
+    for (const filter of Object.values(record.ruinedFilters ?? {})) {
+      filter?.setTime?.(time);
+    }
+  }
+
+  _syncAnimatedKey(record) {
+    if (!record?.key) return;
+    if (record.animated || record.decalAnimated) {
       this._animatedKeys.add(record.key);
-      record.animated = true;
       this._ensureTicker();
     } else {
-      record.animated = false;
-      record.time = 0;
       this._animatedKeys.delete(record.key);
       this._teardownTickerIfIdle();
     }
+  }
+
+  _getTokenVisualBounds(record) {
+    const token = record.token ?? {};
+    const display = record.display ?? {};
+    const width = Number(token.w ?? token.document?.widthPx ?? display.width ?? token.width ?? 0) || 1;
+    const height = Number(token.h ?? token.document?.heightPx ?? display.height ?? token.height ?? width) || width;
+    return {
+      x: Number(display.x ?? 0) || 0,
+      y: Number(display.y ?? 0) || 0,
+      width,
+      height,
+    };
   }
 
   _ensureTicker() {
@@ -336,7 +556,8 @@ export class HeatFxController {
       }
 
       record.time += deltaSeconds;
-      record.shimmer?.setTime?.(record.time);
+      if (record.animated) record.shimmer?.setTime?.(record.time);
+      if (record.decalAnimated) this._animateRuinedDecal(record, record.time);
     }
 
     this._teardownTickerIfIdle();

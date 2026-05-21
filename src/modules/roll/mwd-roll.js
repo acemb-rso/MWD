@@ -47,6 +47,14 @@ const EDGE_DOMAIN_POOLS = {
 };
 
 const CRITICAL_EDGE_REASONS = new Set(["criticalSuccess", "criticalFailure", "critFail"]);
+const MACHINE_PLATFORM_ROLL_INTENTS = new Set([
+  "acquire",
+  "acquireTarget",
+  "generateFireSolution",
+  "heatDangerCheck",
+  "machineRemedy",
+  "targeting",
+]);
 
 function uniqueStrings(values = []) {
   return Array.from(new Set(values.map(value => String(value ?? "").trim()).filter(Boolean)));
@@ -407,6 +415,27 @@ function normalizePayload(payload = {}) {
   };
 }
 
+function shouldRouteToOperatedPlatform(payload = {}) {
+  const intent = String(payload?.intent ?? "").trim();
+  if (MACHINE_PLATFORM_ROLL_INTENTS.has(intent)) return true;
+  if (intent === "initiative") return true;
+  if (intent === "skill" && payload?.machineActionKey) return true;
+  if (intent !== "attack") return false;
+
+  const sourceType = String(payload?.sourceType ?? "").trim();
+  return sourceType === "weaponGroup"
+    || sourceType === "mechWeapon"
+    || sourceType === "vehicleWeapon"
+    || Boolean(payload?.weaponGroupId)
+    || Boolean(payload?.machineWeaponGroup?.id);
+}
+
+function resolveOperatedPlatformRollActor(actor, payload = {}) {
+  if (!actor || isMachineActor(actor) || !shouldRouteToOperatedPlatform(payload)) return actor;
+  const unit = PersonalCombatTracker.resolveActivationUnit?.({ actor }) ?? null;
+  return unit?.platformActor && unit?.operatorActor ? unit.platformActor : actor;
+}
+
 async function normalizeAttackPayload({ actor, payload } = {}) {
   if (payload?.intent !== "attack") return payload;
 
@@ -684,6 +713,7 @@ async function execute({ actor, payload, event } = {}) {
   if (!actor) throw new Error("MWD.roll.execute requires actor");
   if (!payload?.intent) throw new Error("MWD.roll.execute requires payload.intent");
   payload = normalizePayload(payload);
+  actor = resolveOperatedPlatformRollActor(actor, payload);
   payload = await normalizeAttackPayload({ actor, payload });
   if (!payload) return null;
 
@@ -1181,6 +1211,11 @@ const EDGE_POOLS_BY_DOMAIN = {
 };
 
 async function applyInitiativeToCombat({ actor, total }) {
+  const unit = PersonalCombatTracker.resolveActivationUnit?.({ actor }) ?? null;
+  if (unit?.combatant) {
+    await unit.combatant.update({ initiative: Number(total) });
+    return;
+  }
 
   // Require token (Option 3A)
   const controlled = canvas?.tokens?.controlled?.find(t => t.actor?.id === actor.id);

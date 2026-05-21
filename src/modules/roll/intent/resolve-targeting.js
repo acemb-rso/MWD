@@ -87,6 +87,7 @@ export async function resolveTargeting({ actor, payload } = {}) {
     title:     "Generate Targeting Data",
     subtitle:  targetName,
     domains:   ["mental"],
+    domainTags: ["sensor", "sensor.targeting", "skill.gunnery"],
     diceTarget: 5,
     difficulty: { dn: DN },
     dn: {

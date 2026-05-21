@@ -421,6 +421,16 @@ export async function resolveAttack({ actor, payload } = {}) {
   if (isMachineActor(actor) && attackOptions.losBlocked && !attackOptions.indirectAttack) {
     throw createUserFacingRollError("Line of sight is fully blocked. Use Indirect Attack or sensor-enabled fire.", { severity: "warn" });
   }
+  const attackKindDomain = effectiveWeapon.category === "melee" ? "attack.melee" : "attack.ranged";
+  const weaponTypeDomains = [
+    effectiveWeapon.damageType,
+    effectiveWeapon.baseDamageType,
+    effectiveWeapon.weaponType,
+    effectiveWeapon.weaponCategory,
+  ]
+    .map(value => String(value ?? "").trim().toLowerCase())
+    .filter(Boolean)
+    .map(value => `attack.${value}`);
 
   const machineMotion = isMachineActor(actor) && targets.length === 1
     ? buildMachineAttackMotionContext({
@@ -498,7 +508,7 @@ export async function resolveAttack({ actor, payload } = {}) {
     title: `${effectiveWeapon.name} Attack`,
     subtitle: actor.name ?? "Actor",
     domains: Array.isArray(skillDef.domains) && skillDef.domains.length ? skillDef.domains : ["physical"],
-    domainTags: ["combat", "attack"],
+    domainTags: Array.from(new Set(["combat", "attack", attackKindDomain, ...weaponTypeDomains])),
     diceTarget: Number.isFinite(Number(payload?.diceTarget)) ? Number(payload.diceTarget) : 5,
     difficulty: { dn },
     dn: {

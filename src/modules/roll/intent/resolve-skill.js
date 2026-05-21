@@ -70,7 +70,10 @@ export async function resolveSkill({ actor, payload } = {}) {
     : null;
   const specializationBonus = selectedSpecialization ? SKILL_SPECIALIZATION_BONUS : 0;
 
-  const domains = Array.isArray(payload?.domains) ? payload.domains : (def.domains ?? []);
+  const domains = Array.from(new Set([
+    ...(Array.isArray(payload?.domains) ? payload.domains : (def.domains ?? [])),
+    `skill.${code}`,
+  ]));
 
   // --- NEW: semantic roll typing + thresholds ---
   // diceTarget = per-die success threshold (cs>=X). Default 5.

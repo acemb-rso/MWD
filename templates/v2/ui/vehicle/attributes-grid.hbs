@@ -4,7 +4,7 @@ Purpose: Renders prepared vehicle attribute values in view mode and staged numer
 How it fits: Shared by vehicle-scale V2 sheets.
 --}}
 
-{{#if editing}}
+{{#if @root.editing}}
   <div class="mwd-gmgadget__grid">
     {{#each vehicleSheet.attributes as |attribute|}}
       <label class="mwd-gmgadget__field">

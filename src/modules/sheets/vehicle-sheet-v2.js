@@ -52,6 +52,7 @@ import { cachePendingTokenPosition } from "../mwd/token-measurement.js";
 import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
 import { normalizeMachineWeaponGroups, pruneWeaponGroupsToMountedItems } from "../mwd/machine-weapon-group-state.js";
 import { notifyRollError } from "../roll/roll-errors.js";
+import { Misc } from "../misc.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { SelectActor } from "../dialog/select-actor.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
@@ -638,7 +639,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   }
 
   _buildVehicleSections() {
-    const buckets = this.actor.system?.mwd?.items ?? {};
+    const buckets = Misc.classify(this.actor.items);
     return {
       slots: this._buildHardpointSlotSection(),
       upgrades: this._buildRecordSection({
@@ -646,14 +647,14 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         itemType: "vehicleUpgrade",
         addLabel: "Add Upgrade",
         emptyLabel: "No vehicle upgrades installed.",
-        items: buckets.vehicleUpgrades ?? [],
+        items: buckets.vehicleUpgrade ?? [],
       }),
       modules: this._buildRecordSection({
         sectionId: "modules",
         itemType: "assetModule",
         addLabel: "Add Module",
         emptyLabel: "No asset modules assigned.",
-        items: buckets.assetModules ?? [],
+        items: buckets.assetModule ?? [],
       }),
       gear: this._buildRecordSection({
         sectionId: "gear",

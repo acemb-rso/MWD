@@ -23,6 +23,25 @@ function normalizeModifier(mod) {
   return { ...mod, value: n };
 }
 
+function normalizeDomainList(...sources) {
+  const seen = new Set();
+  const out = [];
+  for (const source of sources) {
+    const values = Array.isArray(source)
+      ? source
+      : typeof source === "string"
+        ? source.split(",")
+        : [];
+    for (const value of values) {
+      const domain = String(value ?? "").trim();
+      if (!domain || seen.has(domain)) continue;
+      seen.add(domain);
+      out.push(domain);
+    }
+  }
+  return out;
+}
+
 /**
  * collectModifiers
  * Now accepts optional { payload, resolved, context } and forwards to providers.
@@ -40,7 +59,8 @@ export async function collectModifiers({
   resolved,
   context
 } = {}) {
-  const ctx = { actor, rollActor, machineActor, rollType, skillId, domains, payload, resolved, context };
+  const effectiveDomains = normalizeDomainList(domains, resolved?.domains, resolved?.domainTags, payload?.domains);
+  const ctx = { actor, rollActor, machineActor, rollType, skillId, domains: effectiveDomains, payload, resolved, context };
 
   const raw = await modifierProviders.collectAll(ctx);
   // 1) Normalize + drop invalid values
@@ -55,8 +75,8 @@ export async function collectModifiers({
   }
 
   // 2) Apply domain filter once, centrally
-  if (Array.isArray(domains) && domains.length) {
-    mods = mods.filter(m => !m.domain || domains.includes(m.domain));
+  if (effectiveDomains.length) {
+    mods = mods.filter(m => !m.domain || effectiveDomains.includes(m.domain));
   }
 
   // 3) Safe total

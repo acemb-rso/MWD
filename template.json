@@ -454,12 +454,14 @@
       "consumable",
       "quality",
       "assetModule",
-        "skill",
-        "lifeModule",
-        "mechWeapon",
-        "personalWeapon",
-        "armor"
-      ],
+      "skill",
+      "lifeModule",
+      "mechWeapon",
+      "personalWeapon",
+      "armor",
+      "mechEquipment",
+      "vehicleUpgrade"
+    ],
     "templates": {
       "modifiers": {
         "modifiers": []
@@ -513,6 +515,13 @@
       "installClass": "module",
       "category": "special",
       "level": 1,
+      "enabled": true,
+      "state": {
+        "suppressed": false,
+        "offline": false,
+        "destroyed": false,
+        "reason": ""
+      },
       "activation": {
         "mode": "passive",
         "active": false,
@@ -659,6 +668,21 @@
         "inactive",
         "references"
       ]
+    },
+    "mechEquipment": {
+      "templates": ["modifiers", "inactive", "references"],
+      "category": "",
+      "ammo": { "current": 0, "max": 0 },
+      "state": { "suppressed": false, "offline": false, "destroyed": false, "reason": "" },
+      "effects": [],
+      "notes": ""
+    },
+    "vehicleUpgrade": {
+      "templates": ["modifiers", "inactive", "references"],
+      "category": "",
+      "state": { "suppressed": false, "offline": false, "destroyed": false, "reason": "" },
+      "effects": [],
+      "notes": ""
     }
   }
 }

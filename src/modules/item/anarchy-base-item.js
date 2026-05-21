@@ -57,7 +57,7 @@ import {
   resolveEffectiveWeaponProfile,
   resolveWeaponPayloadState,
 } from "../mwd/personal-damage.js";
-import { normalizeAssetModuleSystem } from "../mwd/asset-module-rules.js";
+import { getAssetModuleState, normalizeAssetModuleSystem } from "../mwd/asset-module-rules.js";
 import {
   createCapabilityMigrationReport,
   normalizeWeaponCapabilityState,
@@ -791,11 +791,15 @@ export class MWDItem extends Item {
   }
 
   supportsEquippedEffectSync() {
-    return this.isPersonalWeapon() || this.isArmor();
+    return this.isPersonalWeapon() || this.isArmor() || this.canonicalType === TEMPLATE.itemType.assetModule;
   }
 
   shouldApplyEquippedEffects() {
-    return this.supportsEquippedEffectSync() && Boolean(this.actor) && Boolean(this.system?.equipped);
+    if (!this.supportsEquippedEffectSync() || !this.actor) return false;
+    if (this.canonicalType === TEMPLATE.itemType.assetModule) {
+      return getAssetModuleState(this, { installed: true }).active;
+    }
+    return Boolean(this.system?.equipped);
   }
 
   getSyncedActorEffects({ actor = this.actor } = {}) {
@@ -886,6 +890,7 @@ export class MWDItem extends Item {
           synced: true,
           sourceItemId: this.id,
           sourceItemUuid: this.uuid ?? null,
+          sourceItemType: this.canonicalType,
           sourceEffectId: sourceEffect.id,
           sourceEffectUuid: sourceEffect.uuid ?? null
         }

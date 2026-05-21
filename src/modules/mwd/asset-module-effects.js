@@ -4,7 +4,12 @@
 // schema-first module rules without hardcoding individual upgrade names.
 
 import { TEMPLATE } from "../constants.js";
-import { AssetModuleValidationError, normalizeAssetModuleSystem, validateAssetModuleEffects } from "./asset-module-rules.js";
+import {
+  AssetModuleValidationError,
+  getAssetModuleState,
+  normalizeAssetModuleSystem,
+  validateAssetModuleEffects,
+} from "./asset-module-rules.js";
 
 const MACHINE_ACTOR_TYPES = new Set([TEMPLATE.actorTypes.battlemech, TEMPLATE.actorTypes.vehicle]);
 
@@ -51,24 +56,7 @@ function isMachineActor(source = {}) {
   return MACHINE_ACTOR_TYPES.has(getActorType(source));
 }
 
-function getModuleState(item = null) {
-  const system = normalizeAssetModuleSystem(item?.system ?? {});
-  const currentRound = Number(globalThis.game?.combat?.round ?? 0) || 0;
-  const cooldownUntilRound = Number(system.activation?.cooldownUntilRound ?? 0) || 0;
-  const coolingDown = cooldownUntilRound > 0 && currentRound > 0 && cooldownUntilRound >= currentRound;
-  const ready = !system.inactive;
-  const mode = system.activation?.mode ?? "passive";
-  const available = ready && !coolingDown;
-  const active = available && mode !== "passive" && Boolean(system.activation?.active);
-  return {
-    ready: available,
-    installedReady: ready,
-    active,
-    coolingDown,
-    activation: system.activation,
-    system,
-  };
-}
+export { getAssetModuleState };
 
 function addSetEntries(target, values) {
   for (const value of normalizeStringArray(values)) target.add(value);
@@ -231,7 +219,7 @@ export function getApplicableAssetModuleEffects(actor = null, context = {}) {
   const effects = [];
 
   for (const item of getAssetModules(actor)) {
-    const moduleState = getModuleState(item);
+    const moduleState = getAssetModuleState(item, { installed: true });
     const moduleEffects = getNormalizedEffects(item);
     for (const effect of moduleEffects) {
       if (!isEffectTimingAvailable(effect, moduleState, facts)) continue;

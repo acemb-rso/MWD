@@ -4,6 +4,7 @@
 
 import { MWD } from "../config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../constants.js";
+import { Misc } from "../misc.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
@@ -301,7 +302,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   }
 
   _buildVehicleSections() {
-    const buckets = this.actor.system?.mwd?.items ?? {};
+    const buckets = Misc.classify(this.actor.items);
     return {
       slots: this._buildHardpointSlotSection(),
       equipment: this._buildRecordSection({
@@ -316,7 +317,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         itemType: "assetModule",
         addLabel: "Add Module",
         emptyLabel: "No asset modules installed.",
-        items: buckets.assetModules ?? [],
+        items: buckets.assetModule ?? [],
       }),
       gear: this._buildRecordSection({
         sectionId: "gear",

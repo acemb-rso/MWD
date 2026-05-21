@@ -114,6 +114,7 @@ export async function resolveAcquire({ actor, payload } = {}) {
     title:     "Acquire Target",
     subtitle:  targetName,
     domains:   ["mental"],
+    domainTags: ["sensor", "sensor.acquire", "skill.perception"],
     diceTarget: 5,
     difficulty: { dn },
     dn: {

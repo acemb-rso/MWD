@@ -257,6 +257,252 @@ test("pilot action economy follows the assigned machine combatant during mech ac
   assert.deepEqual(pilotBurnUpdate, { "system.burn.value": 4 });
 });
 
+test("operated pilot lookups use the machine combatant when a duplicate pilot combatant exists", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.getProperty ??= getProperty;
+  globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
+  globalThis.foundry.utils.deepClone ??= deepClone;
+  globalThis.foundry.utils.mergeObject ??= mergeObject;
+  globalThis.Hooks ??= { on() {} };
+  globalThis.CONFIG ??= { statusEffects: [] };
+
+  const pilotActor = {
+    id: "pilot-dup",
+    uuid: "Actor.pilot-dup",
+    type: "character",
+    flags: {},
+    items: [],
+    system: {
+      burn: { value: 2, overloaded: false },
+      attributes: { reflexes: { value: 3 }, willpower: { value: 3 } },
+    },
+    getActiveTokens: () => [],
+    async update() {},
+  };
+  const machineActor = {
+    id: "mech-dup",
+    uuid: "Actor.mech-dup",
+    type: "battlemech",
+    flags: {},
+    items: [],
+    system: {
+      pilot: { uuid: pilotActor.uuid },
+      mwd: { heat: {}, heatStatus: {} },
+      monitors: { heat: { value: 0, max: 10 } },
+    },
+    getActiveTokens: () => [],
+  };
+  const actors = new Map([[pilotActor.id, pilotActor], [machineActor.id, machineActor]]);
+  actors.contents = [pilotActor, machineActor];
+
+  const machineToken = { id: "machine-token", actor: machineActor, actorId: machineActor.id, parent: { id: "scene-1" } };
+  const pilotToken = { id: "pilot-token", actor: pilotActor, actorId: pilotActor.id, parent: { id: "scene-1" } };
+  const machineState = {
+    activation: { combatId: "combat-dup", combatantId: "combatant-machine", round: 1, turn: 0 },
+    actionState: { aim: null, move: null, preparedInterrupt: null, usedWeaponGroupIds: [] },
+    saRemaining: 1,
+    faRemaining: 1,
+    raRemaining: 1,
+    saSpentThisActivation: 2,
+    burnThisActivation: 1,
+    attacksThisActivation: 1,
+    reactionBurnSinceLastActivation: 0,
+    hazards: {},
+    pendingReaction: null,
+    machineCritsProcessed: true,
+    actionLog: [],
+    traitUsage: { activation: {}, round: {} },
+  };
+  const pilotState = {
+    ...machineState,
+    activation: { combatId: "combat-dup", combatantId: "combatant-pilot", round: 1, turn: 1 },
+    saSpentThisActivation: 0,
+    burnThisActivation: 0,
+  };
+  const machineCombatant = {
+    id: "combatant-machine",
+    actor: machineActor,
+    tokenId: machineToken.id,
+    token: machineToken,
+    getFlag: () => machineState,
+    async setFlag() {},
+  };
+  const pilotCombatant = {
+    id: "combatant-pilot",
+    actor: pilotActor,
+    tokenId: pilotToken.id,
+    token: pilotToken,
+    getFlag: () => pilotState,
+    async setFlag() {},
+  };
+  const combatants = new Map([[machineCombatant.id, machineCombatant], [pilotCombatant.id, pilotCombatant]]);
+  const combat = {
+    id: "combat-dup",
+    round: 1,
+    turn: 0,
+    scene: { id: "scene-1" },
+    combatant: machineCombatant,
+    combatants,
+    getCombatantsByToken: (tokenId) => tokenId === machineToken.id ? [machineCombatant] : tokenId === pilotToken.id ? [pilotCombatant] : [],
+    async deleteEmbeddedDocuments(_type, ids) {
+      for (const id of ids) combatants.delete(id);
+    },
+  };
+
+  globalThis.canvas = {
+    scene: {
+      id: "scene-1",
+      tokens: {
+        get: id => id === machineToken.id ? machineToken : id === pilotToken.id ? pilotToken : null,
+        [Symbol.iterator]: function* () { yield machineToken; yield pilotToken; },
+      },
+    },
+    tokens: { get: () => null, placeables: [] },
+  };
+  globalThis.game = {
+    user: { isGM: true, id: "gm-1" },
+    combat,
+    actors,
+    scenes: new Map(),
+  };
+
+  const { PersonalCombatTracker } = await import("../src/modules/combat/personal-combat-tracker.js");
+
+  const snapshot = PersonalCombatTracker.getSnapshot(pilotActor);
+  assert.equal(snapshot.combatant.id, machineCombatant.id);
+  assert.equal(snapshot.actionEconomyActor, pilotActor);
+  assert.equal(snapshot.platformActor, machineActor);
+  assert.equal(snapshot.activation.burnThisActivation, 1);
+
+  const unit = PersonalCombatTracker.resolveActivationUnit({ actor: pilotActor, combat });
+  assert.equal(unit.kind, "operatedMachine");
+  assert.equal(unit.combatant.id, machineCombatant.id);
+  assert.equal(unit.actingActor, pilotActor);
+  assert.equal(unit.platformActor, machineActor);
+});
+
+test("GM reconciliation removes duplicate pilot combatants for operated machines", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.getProperty ??= getProperty;
+  globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
+  globalThis.foundry.utils.deepClone ??= deepClone;
+  globalThis.foundry.utils.mergeObject ??= mergeObject;
+  globalThis.Hooks ??= { on() {} };
+  globalThis.CONFIG ??= { statusEffects: [] };
+  globalThis.canvas = { scene: { id: "scene-1" }, tokens: { get: () => null, placeables: [] } };
+
+  const pilotActor = { id: "pilot-clean", uuid: "Actor.pilot-clean", type: "character", system: { burn: { value: 0 }, attributes: {} }, getActiveTokens: () => [] };
+  const machineActor = {
+    id: "mech-clean",
+    uuid: "Actor.mech-clean",
+    type: "battlemech",
+    system: { pilot: { uuid: pilotActor.uuid }, mwd: {}, monitors: {} },
+    getActiveTokens: () => [],
+  };
+  const actors = new Map([[pilotActor.id, pilotActor], [machineActor.id, machineActor]]);
+  actors.contents = [pilotActor, machineActor];
+  const machineCombatant = { id: "machine-clean", actor: machineActor, tokenId: "machine-token", getFlag: () => null, async setFlag() {} };
+  const pilotCombatant = { id: "pilot-clean-c", actor: pilotActor, tokenId: "pilot-token", getFlag: () => null, async setFlag() {} };
+  const combatants = new Map([[machineCombatant.id, machineCombatant], [pilotCombatant.id, pilotCombatant]]);
+  const combat = {
+    id: "combat-clean",
+    scene: { id: "scene-1" },
+    combatants,
+    async deleteEmbeddedDocuments(_type, ids) {
+      for (const id of ids) combatants.delete(id);
+    },
+  };
+  globalThis.game = { user: { isGM: true }, combat, actors, scenes: new Map() };
+
+  const { PersonalCombatTracker } = await import("../src/modules/combat/personal-combat-tracker.js");
+  const result = await PersonalCombatTracker.reconcileOperatedCombatants(combat);
+
+  assert.deepEqual(result.removed, [pilotCombatant.id]);
+  assert.equal(combatants.has(machineCombatant.id), true);
+  assert.equal(combatants.has(pilotCombatant.id), false);
+});
+
+test("duplicate pilot finalization and turn fallback do not cool burn", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.getProperty ??= getProperty;
+  globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
+  globalThis.foundry.utils.deepClone ??= deepClone;
+  globalThis.foundry.utils.mergeObject ??= mergeObject;
+  globalThis.Hooks ??= { on() {} };
+  globalThis.CONFIG ??= { statusEffects: [] };
+  globalThis.canvas = { scene: { id: "scene-1" }, tokens: { get: () => null, placeables: [] } };
+
+  let burnUpdate = null;
+  const pilotActor = {
+    id: "pilot-skip",
+    uuid: "Actor.pilot-skip",
+    type: "character",
+    flags: {},
+    items: [],
+    system: { burn: { value: 5, overloaded: false }, attributes: { reflexes: { value: 3 }, willpower: { value: 3 } } },
+    getActiveTokens: () => [],
+    async update(update) { burnUpdate = update; },
+  };
+  const machineActor = {
+    id: "mech-skip",
+    uuid: "Actor.mech-skip",
+    type: "battlemech",
+    flags: {},
+    items: [],
+    system: { pilot: { uuid: pilotActor.uuid }, mwd: { heat: {}, heatStatus: {} }, monitors: { heat: { value: 0 } } },
+    getActiveTokens: () => [],
+  };
+  const actors = new Map([[pilotActor.id, pilotActor], [machineActor.id, machineActor]]);
+  actors.contents = [pilotActor, machineActor];
+
+  const machineCombatant = { id: "machine-skip", actor: machineActor, tokenId: "machine-token", getFlag: () => null, async setFlag() {} };
+  const pilotCombatant = {
+    id: "pilot-skip-c",
+    actor: pilotActor,
+    tokenId: "pilot-token",
+    getFlag: () => ({
+      activation: { combatId: "combat-skip", combatantId: "pilot-skip-c", round: 1, turn: 1 },
+      saSpentThisActivation: 0,
+      burnThisActivation: 0,
+      reactionBurnSinceLastActivation: 0,
+      traitUsage: { activation: {}, round: {} },
+    }),
+    async setFlag() {},
+  };
+  const combatants = new Map([[machineCombatant.id, machineCombatant], [pilotCombatant.id, pilotCombatant]]);
+  let nextTurnCalled = false;
+  const combat = {
+    id: "combat-skip",
+    round: 1,
+    turn: 1,
+    scene: { id: "scene-1" },
+    combatant: pilotCombatant,
+    combatants,
+    async deleteEmbeddedDocuments(_type, ids) {
+      for (const id of ids) combatants.delete(id);
+    },
+    async nextTurn() {
+      nextTurnCalled = true;
+    },
+  };
+  globalThis.game = { user: { isGM: true }, combat, actors, scenes: new Map() };
+
+  const { PersonalCombatTracker } = await import("../src/modules/combat/personal-combat-tracker.js");
+
+  await PersonalCombatTracker.finalizeActivation(combat, pilotCombatant.id);
+  assert.equal(burnUpdate, null);
+
+  const skipped = await PersonalCombatTracker._skipDuplicatePilotTurn(combat);
+  assert.equal(skipped, true);
+  assert.equal(nextTurnCalled, true);
+  assert.deepEqual(PersonalCombatTracker._lastActivationByCombat.get(combat.id), {
+    combatId: "combat-skip",
+    combatantId: pilotCombatant.id,
+    round: 1,
+    turn: 1,
+  });
+});
+
 test("removeActivationLogEntry refunds tracked activation costs and burn", async () => {
   globalThis.foundry ??= { utils: {} };
   globalThis.foundry.utils.getProperty ??= getProperty;

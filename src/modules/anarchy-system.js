@@ -50,7 +50,7 @@ import { HarmEngine } from "./harm/harm-engine.js";
 import { QueuedAttackDamageActions } from "./harm/queued-attack-damage.js";
 import { registerTokenStatusHudFilter } from "./dialog/token-status-dialog.js";
 import { HeatFxController } from "./token/heat-fx-controller.js";
-import { configureMWDStatusEffects } from "./status/status-condition-catalog.js";
+import { configureMWDStatusEffects, ensureStatusConditionCatalogDefaults } from "./status/status-condition-catalog.js";
 import { AttributeActions } from "./attribute-actions.js";
 import {
   applyTraitMutations,
@@ -75,6 +75,7 @@ import {
 import { registerMachineIntentGmOperations } from "./mwd/machine-intents.js";
 import { MachineActions, registerMachineActionGmOperations } from "./mwd/machine-quick-actions.js";
 import { registerMachinePilotVisionSync, syncAllMachinePilotVision } from "./mwd/machine-pilot-vision.js";
+import { registerAssetModuleRuntimeHandlers } from "./mwd/asset-module-runtime-handlers.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -219,6 +220,12 @@ export class AnarchySystem {
     game.mwd.roll = MWDRoll;
     game.mwd.attacks = WeaponAttackActions;
     game.mwd.personalCombat = PersonalCombatTracker;
+    game.mwd.combat = {
+      resolveActivationUnit: (...args) => PersonalCombatTracker.resolveActivationUnit(...args),
+      resolveCombatantForActor: (...args) => PersonalCombatTracker.resolveCombatantForActor(...args),
+      getActionEconomyActorForCombatant: (...args) => PersonalCombatTracker.getActionEconomyActorForCombatant(...args),
+      getPlatformActorForCombatant: (...args) => PersonalCombatTracker.getPlatformActorForCombatant(...args),
+    };
     game.mwd.machineActions = MachineActions;
     game.mwd.harm = Object.assign(HarmEngine, QueuedAttackDamageActions);
     game.mwd.machineHeat = {
@@ -235,6 +242,7 @@ export class AnarchySystem {
       this.roll = MWDRoll;
       this.attacks = WeaponAttackActions;
       this.personalCombat = PersonalCombatTracker;
+      this.combat = game.mwd.combat;
       this.machineActions = MachineActions;
       this.harm = game.mwd.harm;
       this.machineHeat = game.mwd.machineHeat;
@@ -248,6 +256,7 @@ export class AnarchySystem {
     registerMachineActionGmOperations();
     registerMachineIntentGmOperations();
     registerMachinePilotVisionSync();
+    registerAssetModuleRuntimeHandlers();
     game.system.mwd.skills = this.skills;
     game.system.mwd.lifeModules = this.lifeModules;
     game.system.mwd.traits = this.traits;
@@ -321,6 +330,7 @@ export class AnarchySystem {
     if (!game.user.isGM) return;
 
     await ensureLifeModuleCatalogDefaults();
+    await ensureStatusConditionCatalogDefaults();
     await syncAllMachinePilotVision();
 
     const enabled = game.settings.get(SYSTEM_NAME, "enableGMGadget");

@@ -4,7 +4,7 @@
 // the sheet or on a permanently authored movement field.
 
 import { TEMPLATE } from "../constants.js";
-import { getAssetModuleJumpingProfile } from "./asset-module-rules.js";
+import { getAssetModuleJumpingProfile, getAssetModuleState } from "./asset-module-rules.js";
 
 function toNonNegativeInteger(value, fallback = 0) {
   const numeric = Number(value);
@@ -96,9 +96,10 @@ export function buildBattlemechMobilityModel(source = {}) {
   const jumpModules = getAssetModules(source)
     .map(item => ({
       item,
+      state: getAssetModuleState(item, { installed: true }),
       profile: getAssetModuleJumpingProfile(item),
     }))
-    .filter(entry => entry.profile.enabled);
+    .filter(entry => entry.state.active && entry.profile.enabled);
 
   const legacyMovement = getLegacyJumpMovement(source);
   const legacyEnabled = jumpModules.length === 0 && legacyMovement > 0;

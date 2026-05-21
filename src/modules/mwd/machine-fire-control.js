@@ -4,7 +4,10 @@
 // without hardcoding Artemis-style behavior into sheets.
 
 import { TEMPLATE } from "../constants.js";
-import { getAssetModuleClusteringProfile as getLegacyAssetModuleClusteringProfile } from "./asset-module-rules.js";
+import {
+  getAssetModuleClusteringProfile as getLegacyAssetModuleClusteringProfile,
+  getAssetModuleState,
+} from "./asset-module-rules.js";
 import { getAssetModuleClusteringProfile as getEffectAssetModuleClusteringProfile } from "./asset-module-effects.js";
 
 function toCollectionArray(value) {
@@ -47,11 +50,15 @@ export function buildMachineFireControlModel(source = {}, context = {}) {
   const modules = getAssetModules(source)
     .map(item => ({
       item,
+      state: getAssetModuleState(item, { installed: true }),
       profile: getLegacyAssetModuleClusteringProfile(item),
     }))
     .filter(entry =>
-      Number(entry.profile?.diceModifier ?? 0) !== 0
-      || Number(entry.profile?.targetNumberModifier ?? 0) !== 0
+      entry.state.active
+      && (
+        Number(entry.profile?.diceModifier ?? 0) !== 0
+        || Number(entry.profile?.targetNumberModifier ?? 0) !== 0
+      )
     );
 
   const effectProfile = getEffectAssetModuleClusteringProfile(source?.actor ?? source, context);

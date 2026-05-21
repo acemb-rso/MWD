@@ -36,6 +36,7 @@ function normalizeChoice(value, allowed, fallback) {
 
 const INSTALL_CLASSES = Object.freeze(["module", "equipment"]);
 const ACTIVATION_MODES = Object.freeze(["passive", "toggle", "mode", "triggered"]);
+const STATE_REASONS = Object.freeze(["", "suppressed", "offline", "destroyed", "disabled", "cooldown"]);
 const EFFECT_TIMINGS = Object.freeze(["ready", "active", "triggered"]);
 const EFFECT_SCOPES = Object.freeze(["self", "target", "alliesInRange", "enemiesInRange", "sourceTargetPair"]);
 
@@ -175,6 +176,16 @@ export function normalizeAssetModuleActivation(source = {}) {
   };
 }
 
+export function normalizeAssetModuleState(source = {}) {
+  const state = source && typeof source === "object" ? source : {};
+  return {
+    suppressed: Boolean(state.suppressed),
+    offline: Boolean(state.offline),
+    destroyed: Boolean(state.destroyed),
+    reason: normalizeChoice(state.reason, STATE_REASONS, ""),
+  };
+}
+
 export function normalizeAssetModuleEffectRequires(source = {}) {
   const requires = source && typeof source === "object" ? source : {};
   return {
@@ -292,9 +303,21 @@ export function normalizeAssetModuleSystem(system = {}) {
   const source = system && typeof system === "object" ? system : {};
   const mobility = source.mobility && typeof source.mobility === "object" ? source.mobility : {};
   const targeting = source.targeting && typeof source.targeting === "object" ? source.targeting : {};
+  const state = normalizeAssetModuleState({
+    ...(source.state && typeof source.state === "object" ? source.state : {}),
+    suppressed: source.state?.suppressed ?? source.suppressed,
+    offline: source.state?.offline ?? source.offline,
+    destroyed: source.state?.destroyed ?? source.destroyed,
+    reason: source.state?.reason ?? source.stateReason ?? "",
+  });
+  const enabled = source.enabled === undefined
+    ? !Boolean(source.inactive)
+    : Boolean(source.enabled) && !Boolean(source.inactive);
 
   return {
     ...source,
+    enabled,
+    state,
     installClass: normalizeChoice(source.installClass, INSTALL_CLASSES, "module"),
     category: toTrimmedString(source.category, "special"),
     level: Math.max(1, toInteger(source.level, 1)),
@@ -308,6 +331,43 @@ export function normalizeAssetModuleSystem(system = {}) {
       ...targeting,
       clustering: normalizeAssetModuleClustering(targeting.clustering),
     },
+  };
+}
+
+export function getAssetModuleState(item = null, { installed = null, currentRound = null } = {}) {
+  const system = normalizeAssetModuleSystem(item?.system ?? {});
+  const resolvedRound = currentRound === null || currentRound === undefined
+    ? Number(globalThis.game?.combat?.round ?? 0) || 0
+    : Number(currentRound) || 0;
+  const cooldownUntilRound = Number(system.activation?.cooldownUntilRound ?? 0) || 0;
+  const coolingDown = cooldownUntilRound > 0 && resolvedRound > 0 && cooldownUntilRound >= resolvedRound;
+  const installedValue = installed === null || installed === undefined
+    ? Boolean(item?.actor ?? item?.parent ?? item?.isOwned ?? item?.id)
+    : Boolean(installed);
+  const mode = system.activation?.mode ?? "passive";
+  const passive = mode === "passive";
+  const enabled = Boolean(system.enabled) && !Boolean(system.inactive);
+  const suppressed = Boolean(system.state?.suppressed);
+  const offline = Boolean(system.state?.offline);
+  const destroyed = Boolean(system.state?.destroyed);
+  const ready = installedValue && enabled && !suppressed && !offline && !destroyed && !coolingDown;
+  const active = ready && (passive || Boolean(system.activation?.active));
+
+  return {
+    installed: installedValue,
+    enabled,
+    passive,
+    ready,
+    active,
+    contributes: active,
+    coolingDown,
+    suppressed,
+    offline,
+    destroyed,
+    mode,
+    activation: system.activation,
+    state: system.state,
+    system,
   };
 }
 

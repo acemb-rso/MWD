@@ -7,7 +7,7 @@ How it fits: Shared by vehicle and BattleMech V2 sheets.
 {{#with (lookup vehicleSheet.sections context.sectionId) as |section|}}
   {{#if section}}
     <div class="mwd-inv">
-      {{#if editing}}
+      {{#if @root.editing}}
         {{#if section.itemType}}
           {{#if section.addLabel}}
             <div class="mwd-inv__toolbar">

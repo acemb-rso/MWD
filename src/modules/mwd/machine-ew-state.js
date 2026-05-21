@@ -3,6 +3,7 @@
 // This is the only module permitted to access combatant.flags.mwd.targeting.
 
 import { DETECTION_STATE_ORDER, getTargetingDataCap } from "./machine-ew.js";
+import { ASSET_MODULE_HOOKS, dispatchAssetModuleHook } from "./asset-module-hooks.js";
 import {
   adjustTargetingDataValue,
   getMachineDetectionStateCap,
@@ -270,6 +271,8 @@ export function getAcquireCeiling(targetActor) {
 }
 
 export function getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, detectionState, currentRound) {
+  const beforeContext = { combatant, targetTokenUuid, systemAttr, detectionState, currentRound };
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.ew.beforeAttackTargeting, beforeContext);
   if (detectionState !== "track" && detectionState !== "lock") return null;
 
   const { packet } = getTargetingState(combatant, targetTokenUuid);
@@ -310,6 +313,10 @@ export async function setDetectionState(combatant, targetTokenUuid, newState) {
   const uuid = normalizeTargetUuid(targetTokenUuid);
   if (!uuid || !combatant) return;
   const detectionState = DETECTION_STATE_ORDER.includes(newState) ? newState : "blind";
+  const hookName = detectionState === "track" || detectionState === "lock"
+    ? ASSET_MODULE_HOOKS.ew.beforeAcquireSolution
+    : ASSET_MODULE_HOOKS.ew.suppressTargetingNetwork;
+  dispatchAssetModuleHook(hookName, { combatant, targetTokenUuid: uuid, detectionState });
   const all = cloneAllTargetingStates(combatant);
   const current = getTargetingState(combatant, uuid);
   setObjectPath(all, uuid, {
@@ -317,12 +324,18 @@ export async function setDetectionState(combatant, targetTokenUuid, newState) {
     packet: current.packet ? foundry.utils.deepClone(current.packet) : null,
   });
   await writeRawTargetingState(combatant, all);
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.ew.afterAcquireSolution, { combatant, targetTokenUuid: uuid, detectionState });
 }
 
 export async function setTargetingPacket(combatant, targetTokenUuid, packet) {
   const uuid = normalizeTargetUuid(targetTokenUuid);
   const normalizedPacket = normalizePacket(packet);
   if (!uuid || !combatant || !normalizedPacket) return;
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.ew.beforeGenerateTargetingData, {
+    combatant,
+    targetTokenUuid: uuid,
+    packet: normalizedPacket,
+  });
   const all = cloneAllTargetingStates(combatant);
   const current = getTargetingState(combatant, uuid);
   setObjectPath(all, uuid, {
@@ -330,6 +343,11 @@ export async function setTargetingPacket(combatant, targetTokenUuid, packet) {
     packet: normalizedPacket,
   });
   await writeRawTargetingState(combatant, all);
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.ew.afterGenerateTargetingData, {
+    combatant,
+    targetTokenUuid: uuid,
+    packet: normalizedPacket,
+  });
 }
 
 export const addTargetingPacket = setTargetingPacket;
@@ -353,6 +371,11 @@ export async function consumeTargetingPacket(combatant, targetTokenUuid, packetI
   const current = getTargetingState(combatant, uuid);
   if (!current.packet) return;
   if (id && current.packet.id !== id) return;
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.ew.consumeTargetingData, {
+    combatant,
+    targetTokenUuid: uuid,
+    packet: current.packet,
+  });
   await clearTargetingPacket(combatant, uuid);
 }
 

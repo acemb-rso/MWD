@@ -1,5 +1,60 @@
 Below is a **canonical Asset Module item schema** plus a **controlled tag taxonomy** for quirk-style modules in MWD.
 
+## AE-first authority model
+
+Asset-module mechanics use one authoritative representation per mechanical
+effect:
+
+* **AE-native** effects are authored as embedded item ActiveEffects on the
+  asset-module item. When the module contributes, the item AE is mirrored onto
+  the owning actor. Actor-side ActiveEffects created by this sync are mirrors;
+  manually created actor ActiveEffects are direct actor effects and are not
+  touched by asset-module sync.
+* **Provider-contextual** effects stay in `system.effects` when they need roll
+  context: intent, action id, skill id, weapon tags, target state, status
+  prerequisites, heat band, or selected module mode.
+* **Runtime-event** effects are authored as runtime packets when they
+  participate in events: targeting/EW state, network sharing/suppression,
+  damage interception, charges, auras, heat lifecycle, or start/end activation
+  timing.
+
+Do not duplicate the same mechanic in more than one rail. For example,
+`ecmShrouded` should be either an embedded AE status or a provider-derived
+contextual status, not both. The existing structured `system.effects` rail is
+therefore provider-contextual/runtime-compatibility data, not the home for
+stable actor-state changes that ActiveEffects can represent.
+
+## Readiness model
+
+Every subsystem must use the same readiness model before an asset module can
+contribute AE mirrors, provider effects, or runtime packets.
+
+```js
+ready = installed && enabled && !suppressed && !offline && !destroyed && !coolingDown
+```
+
+Field authority:
+
+* `installed`: derived from the module being an owned item on the actor.
+* `enabled`: stored at `system.enabled`; defaults true unless
+  `system.inactive === true`. The legacy `system.inactive` flag still disables
+  contribution.
+* `active`: stored at `system.activation.active`. Passive modules count as
+  active for contribution; toggle/mode modules contribute active-timed effects
+  only while this value is true.
+* `coolingDown`: derived from `system.activation.cooldownUntilRound` compared
+  to the current combat round.
+* `suppressed`: stored at `system.state.suppressed`. Used for EW/network
+  suppression or temporary rule suppression.
+* `offline`: stored at `system.state.offline`. Used for disabled/offline module
+  state that is not destruction.
+* `destroyed`: stored at `system.state.destroyed`. It may be set by damage
+  automation, but it is a module-level state and is not guessed from item name.
+
+`system.state.reason` may hold one of `suppressed`, `offline`, `destroyed`,
+`disabled`, or `cooldown` for UI/debugging. It is descriptive; the booleans
+above remain authoritative.
+
 **Live implementation note:** the shipped `assetModule` schema now supports the
 structured v1 effect rail in addition to the older compatibility fields. The
 live engine normalizes and validates:
@@ -15,6 +70,12 @@ live engine normalizes and validates:
       "active": false,
       "selectedMode": "",
       "cooldownUntilRound": 0
+    },
+    "state": {
+      "suppressed": false,
+      "offline": false,
+      "destroyed": false,
+      "reason": ""
     },
     "effects": [
       {
@@ -94,12 +155,18 @@ This aligns with the existing sheet direction where mechs/NPCs already have an `
   "name": "Fire Control Suite",
   "type": "assetModule",
   "img": "systems/mwd/icons/modules/fire-control.webp",
-  "system": {
-    "moduleType": "system",
-    "subtype": "quirk",
-    "tier": 1,
-    "enabled": true,
-    "source": {
+    "system": {
+      "moduleType": "system",
+      "subtype": "quirk",
+      "tier": 1,
+      "enabled": true,
+      "state": {
+        "suppressed": false,
+        "offline": false,
+        "destroyed": false,
+        "reason": ""
+      },
+      "source": {
       "origin": "design",
       "family": "fire-control",
       "canonicalId": "fireControlSuite"

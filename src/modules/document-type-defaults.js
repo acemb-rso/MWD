@@ -275,7 +275,8 @@ const templateData = {
   Item: {
     types: [
       "contact", "gear", "consumable", "quality", "assetModule",
-      "skill", "lifeModule", "mechWeapon", "personalWeapon", "armor"
+      "skill", "lifeModule", "mechWeapon", "personalWeapon", "armor",
+      "mechEquipment", "vehicleUpgrade"
     ],
     templates: {
       modifiers: { modifiers: [] },
@@ -411,6 +412,21 @@ const templateData = {
     },
     contact: {
       templates: ["inactive", "references"]
+    },
+    mechEquipment: {
+      templates: ["modifiers", "inactive", "references"],
+      category: "",
+      ammo: { current: 0, max: 0 },
+      state: { suppressed: false, offline: false, destroyed: false, reason: "" },
+      effects: [],
+      notes: ""
+    },
+    vehicleUpgrade: {
+      templates: ["modifiers", "inactive", "references"],
+      category: "",
+      state: { suppressed: false, offline: false, destroyed: false, reason: "" },
+      effects: [],
+      notes: ""
     }
   }
 };

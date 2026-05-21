@@ -25,6 +25,8 @@ export const DEFAULT_ITEM_ICONS = Object.freeze({
   mechWeapon: "systems/mwd/img/icons/systems/upgrades/grenade_launcher_underbarrel.svg",
   personalWeapon: "systems/mwd/img/colt-m1911.svg",
   armor: "systems/mwd/img/default/Default_Armor.svg",
+  mechEquipment: "systems/mwd/img/default/upgrade.svg",
+  vehicleUpgrade: "systems/mwd/img/default/upgrade.svg",
 });
 
 export function canonicalizeItemType(type) {

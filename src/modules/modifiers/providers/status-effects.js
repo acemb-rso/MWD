@@ -25,8 +25,11 @@ export class StatusEffectsProvider {
   id = "mwd.statusEffects";
   label = "Status Effects";
 
-  collect({ actor, rollActor } = {}) {
+  collect({ actor, rollActor, domains } = {}) {
     const mods = [];
+    const rollDomains = Array.isArray(domains)
+      ? domains.map(domain => String(domain ?? "").trim()).filter(Boolean)
+      : [];
 
     for (const sourceActor of uniqueActors(actor, rollActor)) {
       const statuses = sourceActor?.statuses;
@@ -43,24 +46,16 @@ export class StatusEffectsProvider {
         for (const entry of def.mods) {
           const entryDomains = Array.isArray(entry.domains) ? entry.domains : [];
           const value = entry.value;
+          const matchedDomain = entryDomains.find(domain => rollDomains.includes(domain)) ?? entryDomains[0] ?? "";
+          if (rollDomains.length && entryDomains.length && !matchedDomain) continue;
+          if (rollDomains.length && entryDomains.length && !entryDomains.some(domain => rollDomains.includes(domain))) continue;
 
-          // Emit one mod per domain tag (so central filtering works)
-          if (entryDomains.length) {
-            for (const domain of entryDomains) {
-              mods.push({
-                label: def.label ?? statusId,
-                value,
-                source: "Status",
-                domain
-              });
-            }
-          } else {
-            mods.push({
-              label: def.label ?? statusId,
-              value,
-              source: "Status"
-            });
-          }
+          mods.push({
+            label: def.label ?? statusId,
+            value,
+            source: "Status",
+            ...(matchedDomain ? { domain: matchedDomain } : {}),
+          });
         }
       }
     }
