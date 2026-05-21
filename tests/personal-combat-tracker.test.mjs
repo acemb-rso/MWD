@@ -389,6 +389,7 @@ test("GM reconciliation removes duplicate pilot combatants for operated machines
   globalThis.foundry.utils.mergeObject ??= mergeObject;
   globalThis.Hooks ??= { on() {} };
   globalThis.CONFIG ??= { statusEffects: [] };
+  globalThis.ui ??= { windows: {} };
   globalThis.canvas = { scene: { id: "scene-1" }, tokens: { get: () => null, placeables: [] } };
 
   const pilotActor = { id: "pilot-clean", uuid: "Actor.pilot-clean", type: "character", system: { burn: { value: 0 }, attributes: {} }, getActiveTokens: () => [] };
@@ -420,6 +421,101 @@ test("GM reconciliation removes duplicate pilot combatants for operated machines
   assert.deepEqual(result.removed, [pilotCombatant.id]);
   assert.equal(combatants.has(machineCombatant.id), true);
   assert.equal(combatants.has(pilotCombatant.id), false);
+});
+
+test("destroyed machine status marks its combatant defeated", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.getProperty ??= getProperty;
+  globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
+  globalThis.foundry.utils.deepClone ??= deepClone;
+  globalThis.foundry.utils.mergeObject ??= mergeObject;
+  globalThis.Hooks ??= { on() {} };
+  globalThis.CONFIG ??= { statusEffects: [] };
+  globalThis.ui ??= { windows: {} };
+  globalThis.canvas = { scene: { id: "scene-1" }, tokens: { get: () => null, placeables: [] } };
+
+  const destroyedMech = {
+    id: "mech-destroyed",
+    type: "battlemech",
+    statuses: new Set(["destroyed"]),
+    system: { mwd: {} },
+  };
+  const activeMech = {
+    id: "mech-active",
+    type: "battlemech",
+    statuses: new Set(),
+    system: { mwd: {} },
+  };
+  const destroyedCombatant = { id: "c-destroyed", actor: destroyedMech, tokenId: "t-destroyed", defeated: false };
+  const activeCombatant = { id: "c-active", actor: activeMech, tokenId: "t-active", defeated: true };
+  const combatants = new Map([
+    [destroyedCombatant.id, destroyedCombatant],
+    [activeCombatant.id, activeCombatant],
+  ]);
+  const updates = [];
+  const combat = {
+    id: "combat-destroyed",
+    scene: { id: "scene-1" },
+    combatants,
+    async updateEmbeddedDocuments(_type, payload) {
+      updates.push(...payload);
+      for (const update of payload) {
+        const combatant = combatants.get(update._id);
+        if (combatant) combatant.defeated = update.defeated;
+      }
+    },
+  };
+  globalThis.game = { user: { isGM: true }, combat, actors: new Map(), scenes: new Map() };
+
+  const { PersonalCombatTracker } = await import("../src/modules/combat/personal-combat-tracker.js");
+  const result = await PersonalCombatTracker.syncDestroyedMachineDefeatedCombatants(combat);
+
+  assert.deepEqual(result.updated, [
+    { _id: "c-destroyed", defeated: true },
+    { _id: "c-active", defeated: false },
+  ]);
+  assert.deepEqual(updates, result.updated);
+  assert.equal(destroyedCombatant.defeated, true);
+  assert.equal(activeCombatant.defeated, false);
+});
+
+test("manual destroyed ActiveEffect changes queue combatant defeat sync", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.getProperty ??= getProperty;
+  globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
+  globalThis.foundry.utils.deepClone ??= deepClone;
+  globalThis.foundry.utils.mergeObject ??= mergeObject;
+  globalThis.Hooks ??= { on() {} };
+  globalThis.CONFIG ??= { statusEffects: [] };
+  globalThis.canvas = { scene: { id: "scene-1" }, tokens: { get: () => null, placeables: [] } };
+
+  const mech = {
+    id: "mech-effect-destroyed",
+    type: "battlemech",
+    statuses: new Set(),
+    effects: [{ statuses: new Set(["destroyed"]) }],
+    system: { mwd: {} },
+  };
+  const combatant = { id: "c-effect-destroyed", actor: mech, tokenId: "t-effect-destroyed", defeated: false };
+  const combatants = new Map([[combatant.id, combatant]]);
+  const combat = {
+    id: "combat-effect-destroyed",
+    scene: { id: "scene-1" },
+    combatants,
+    async updateEmbeddedDocuments(_type, payload) {
+      for (const update of payload) {
+        const target = combatants.get(update._id);
+        if (target) target.defeated = update.defeated;
+      }
+    },
+  };
+  globalThis.game = { user: { isGM: true }, combat, actors: new Map(), scenes: new Map() };
+
+  const { PersonalCombatTracker } = await import("../src/modules/combat/personal-combat-tracker.js");
+  PersonalCombatTracker._onActiveEffectChange({ parent: mech, statuses: new Set(["destroyed"]) });
+  await Promise.resolve();
+
+  assert.equal(combatant.defeated, true);
 });
 
 test("duplicate pilot finalization and turn fallback do not cool burn", async () => {

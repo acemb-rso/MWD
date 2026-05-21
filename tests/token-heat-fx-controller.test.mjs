@@ -258,16 +258,50 @@ test("controller shows a ruined decal when machine destroyed state is set", asyn
   assert.equal(token.children.includes(decal), false);
 });
 
+test("controller recognizes persisted destroyed statuses from effects and token icons", async () => {
+  globalThis.CONFIG = {
+    statusEffects: [{ id: "destroyed", img: "systems/mwd/img/icons/status/destroyed.svg" }],
+  };
+
+  const { isMachineRuined } = await import("../src/modules/token/heat-fx-controller.js");
+
+  const effectBacked = createToken();
+  effectBacked.actor.statuses = new Set();
+  effectBacked.actor.effects = [{ statuses: new Set(["destroyed"]) }];
+
+  assert.equal(isMachineRuined(effectBacked.actor, effectBacked), true);
+
+  const tokenBacked = createToken();
+  tokenBacked.actor.statuses = new Set();
+  tokenBacked.actor.effects = [];
+  tokenBacked.document.effects = ["systems/mwd/img/icons/status/destroyed.svg"];
+
+  assert.equal(isMachineRuined(tokenBacked.actor, tokenBacked), true);
+});
+
 test("destroyed status effect changes trigger ruined visual sync", async () => {
   const { HeatFxController, hasMachineRuinedVisualChange } = await import("../src/modules/token/heat-fx-controller.js");
   const controller = new HeatFxController();
-  const actor = { id: "actor-1", type: "battlemech", statuses: new Set(["destroyed"]) };
-  let synced = null;
-  controller.syncActor = nextActor => { synced = nextActor; };
+  const actor = { id: "actor-1", type: "battlemech", statuses: new Set() };
+  const syncedStates = [];
+  controller.syncActor = nextActor => {
+    syncedStates.push({
+      actor: nextActor,
+      ruined: nextActor.statuses.has("destroyed"),
+    });
+  };
 
   controller._onActiveEffectChange({ parent: actor, statuses: new Set(["destroyed"]) });
+  actor.statuses.add("destroyed");
+  await Promise.resolve();
 
-  assert.equal(synced, actor);
+  assert.deepEqual(syncedStates.at(-1), { actor, ruined: true });
+
+  controller._onActiveEffectChange({ parent: actor, flags: { mwd: { status: { id: "destroyed" } } } });
+  actor.statuses.delete("destroyed");
+  await Promise.resolve();
+
+  assert.deepEqual(syncedStates.at(-1), { actor, ruined: false });
   assert.equal(hasMachineRuinedVisualChange({ system: { mwd: { status: { state: "destroyed" } } } }), true);
   assert.equal(hasMachineRuinedVisualChange({ system: { attributes: { reliability: { value: 4 } } } }), false);
 });

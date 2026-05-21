@@ -44,6 +44,15 @@ function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function collectionEntries(collection = null) {
+  if (!collection) return [];
+  if (Array.isArray(collection)) return collection;
+  if (collection.contents && Array.isArray(collection.contents)) return collection.contents;
+  if (typeof collection.values === "function") return Array.from(collection.values());
+  if (typeof collection[Symbol.iterator] === "function") return Array.from(collection);
+  return [];
+}
+
 function clampMin(value, min = 0) {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? Math.max(min, numeric) : min;
@@ -59,9 +68,63 @@ function isMachineActor(actor = null) {
   return actor?.type === "battlemech" || actor?.type === "vehicle";
 }
 
-export function isMachineRuined(actor = null) {
+function getEffectStatusIds(effect = null) {
+  const ids = new Set();
+  const add = value => {
+    const id = String(value ?? "").trim();
+    if (id) ids.add(id);
+  };
+
+  const statuses = effect?.statuses;
+  if (statuses?.forEach) statuses.forEach(add);
+  else if (Array.isArray(statuses)) statuses.forEach(add);
+
+  add(effect?.getFlag?.(SYSTEM_NAME, "status")?.id);
+  add(effect?.flags?.[SYSTEM_NAME]?.status?.id);
+  add(effect?.statusId);
+  return ids;
+}
+
+function actorHasStatusId(actor = null, statusId = "") {
+  const id = String(statusId ?? "").trim();
+  if (!actor || !id) return false;
+
+  const statuses = actor.statuses;
+  if (statuses?.has?.(id)) return true;
+  if (Array.isArray(statuses) && statuses.includes(id)) return true;
+
+  const effects = [
+    ...collectionEntries(actor.effects),
+    ...collectionEntries(actor.appliedEffects),
+  ];
+  return effects.some(effect => getEffectStatusIds(effect).has(id));
+}
+
+function tokenHasStatusId(token = null, statusId = "") {
+  const id = String(statusId ?? "").trim();
+  if (!token || !id) return false;
+
+  const statuses = token.document?.statuses ?? token.statuses;
+  if (statuses?.has?.(id)) return true;
+  if (Array.isArray(statuses) && statuses.includes(id)) return true;
+
+  const configured = (globalThis.CONFIG?.statusEffects ?? [])
+    .find(effect => String(effect?.id ?? "").trim() === id);
+  const statusKeys = new Set([
+    id,
+    String(configured?.img ?? "").trim(),
+    String(configured?.icon ?? "").trim(),
+  ].filter(Boolean));
+
+  return collectionEntries(token.document?.effects ?? token.effects)
+    .map(effect => String(effect ?? "").trim())
+    .some(effect => statusKeys.has(effect));
+}
+
+export function isMachineRuined(actor = null, token = null) {
   if (!isMachineActor(actor)) return false;
-  if (actor?.statuses?.has?.("destroyed")) return true;
+  if (actorHasStatusId(actor, "destroyed")) return true;
+  if (tokenHasStatusId(token, "destroyed")) return true;
   return String(actor?.system?.mwd?.status?.state ?? "").trim().toLowerCase() === "destroyed";
 }
 
@@ -115,10 +178,15 @@ export class HeatFxController {
   }
 
   init() {
-    Hooks.on("canvasReady", () => this.refreshAll());
+    Hooks.on("canvasReady", () => {
+      this.refreshAll();
+      this._queueRefreshAll(250);
+    });
     Hooks.on("refreshToken", token => this._onRefreshToken(token));
+    Hooks.on("updateToken", (tokenDocument, changed) => this._onUpdateTokenDocument(tokenDocument, changed));
     Hooks.on("updateActor", (actor, changed) => this._onUpdateActor(actor, changed));
     Hooks.on("createActiveEffect", effect => this._onActiveEffectChange(effect));
+    Hooks.on("updateActiveEffect", effect => this._onActiveEffectChange(effect));
     Hooks.on("deleteActiveEffect", effect => this._onActiveEffectChange(effect));
     Hooks.on("canvasTearDown", () => this.onCanvasTearDown());
     Hooks.on("updateSetting", setting => this._onUpdateSetting(setting));
@@ -157,7 +225,7 @@ export class HeatFxController {
 
     const actor = token.actor ?? null;
     const heatState = actor?.type === "battlemech" ? buildBattlemechHeatVisualState(actor) : null;
-    const ruined = isMachineRuined(actor);
+    const ruined = isMachineRuined(actor, token);
     if (!heatState?.active && !ruined) {
       this.clearToken(token);
       return heatState;
@@ -253,13 +321,39 @@ export class HeatFxController {
     this.syncActor(actor);
   }
 
+  _onUpdateTokenDocument(tokenDocument, changed = {}) {
+    if (!hasProperty(changed, "effects") && !hasProperty(changed, "overlayEffect")) return;
+    const token = canvas?.tokens?.get?.(tokenDocument?.id)
+      ?? (canvas?.tokens?.placeables ?? []).find(candidate => candidate?.document === tokenDocument)
+      ?? null;
+    if (!token || !isMachineActor(token.actor)) return;
+    this._queueTokenSync(token);
+  }
+
   _onActiveEffectChange(effect) {
     const actor = effect?.parent ?? null;
     if (!isMachineActor(actor)) return;
-    const statuses = effect?.statuses;
-    const touchesDestroyed = statuses?.has?.("destroyed")
-      || (Array.isArray(statuses) && statuses.includes("destroyed"));
-    if (touchesDestroyed) this.syncActor(actor);
+    if (getEffectStatusIds(effect).has("destroyed")) this._queueActorSync(actor);
+  }
+
+  _queueRefreshAll(delayMs = 0) {
+    const refresh = () => this.refreshAll();
+    const delay = Math.max(0, Number(delayMs) || 0);
+    if (delay && typeof setTimeout === "function") setTimeout(refresh, delay);
+    else if (typeof queueMicrotask === "function") queueMicrotask(refresh);
+    else Promise.resolve().then(refresh);
+  }
+
+  _queueActorSync(actor) {
+    const sync = () => this.syncActor(actor);
+    if (typeof queueMicrotask === "function") queueMicrotask(sync);
+    else Promise.resolve().then(sync);
+  }
+
+  _queueTokenSync(token) {
+    const sync = () => this.syncToken(token);
+    if (typeof queueMicrotask === "function") queueMicrotask(sync);
+    else Promise.resolve().then(sync);
   }
 
   _onUpdateSetting(setting) {

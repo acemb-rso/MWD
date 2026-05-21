@@ -1,21 +1,8 @@
-2026/05/20-15:42:41.014 da98 Recovering log #495
-2026/05/20-15:42:41.017 da98 Delete type=0 #495
-2026/05/20-15:42:41.017 da98 Delete type=3 #494
-2026/05/21-00:42:22.109 2130 Level-0 table #499: started
-2026/05/21-00:42:22.109 2130 Level-0 table #499: 0 bytes OK
-2026/05/21-00:42:22.110 2130 Delete type=0 #497
-2026/05/21-00:42:22.129 2130 Manual compaction at level-0 from '!items!28fa5496ff3afc21' @ 72057594037927935 : 1 .. '!items!eea9ceddf58b91e5' @ 0 : 0; will stop at '!items!eea9ceddf58b91e5' @ 64 : 1
-2026/05/21-00:42:22.129 2130 Compacting 1@0 + 0@1 files
-2026/05/21-00:42:22.132 2130 Generated table #500@0: 32 keys, 5331 bytes
-2026/05/21-00:42:22.132 2130 Compacted 1@0 + 0@1 files => 5331 bytes
-2026/05/21-00:42:22.133 2130 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/05/21-00:42:22.133 2130 Delete type=2 #430
-2026/05/21-00:42:22.139 2130 Manual compaction at level-0 from '!items!eea9ceddf58b91e5' @ 64 : 1 .. '!items!eea9ceddf58b91e5' @ 0 : 0; will stop at (end)
-2026/05/21-00:42:22.142 2130 Manual compaction at level-1 from '!items!28fa5496ff3afc21' @ 72057594037927935 : 1 .. '!items!eea9ceddf58b91e5' @ 0 : 0; will stop at '!items!eea9ceddf58b91e5' @ 64 : 1
-2026/05/21-00:42:22.142 2130 Compacting 1@1 + 1@2 files
-2026/05/21-00:42:22.144 2130 Generated table #501@1: 32 keys, 5331 bytes
-2026/05/21-00:42:22.144 2130 Compacted 1@1 + 1@2 files => 5331 bytes
-2026/05/21-00:42:22.145 2130 compacted to: files[ 0 0 1 0 0 0 0 ]
-2026/05/21-00:42:22.145 2130 Delete type=2 #426
-2026/05/21-00:42:22.145 2130 Delete type=2 #500
-2026/05/21-00:42:22.149 2130 Manual compaction at level-1 from '!items!eea9ceddf58b91e5' @ 64 : 1 .. '!items!eea9ceddf58b91e5' @ 0 : 0; will stop at (end)
+2026/05/21-00:42:25.930 bee4 Recovering log #498
+2026/05/21-00:42:25.932 bee4 Delete type=0 #498
+2026/05/21-00:42:25.932 bee4 Delete type=3 #496
+2026/05/21-00:59:49.498 2130 Level-0 table #505: started
+2026/05/21-00:59:49.499 2130 Level-0 table #505: 0 bytes OK
+2026/05/21-00:59:49.499 2130 Delete type=0 #503
+2026/05/21-00:59:49.503 2130 Manual compaction at level-0 from '!items!28fa5496ff3afc21' @ 72057594037927935 : 1 .. '!items!eea9ceddf58b91e5' @ 0 : 0; will stop at (end)
+2026/05/21-00:59:49.503 2130 Manual compaction at level-1 from '!items!28fa5496ff3afc21' @ 72057594037927935 : 1 .. '!items!eea9ceddf58b91e5' @ 0 : 0; will stop at (end)

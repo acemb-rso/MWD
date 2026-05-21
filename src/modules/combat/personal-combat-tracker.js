@@ -43,6 +43,7 @@ const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
 const PREPARED_INTERRUPT_STATUS_ID = "preparedInterrupt";
 const PREPARED_INTERRUPT_ICON = "systems/mwd/img/icons/status/readied_action.svg";
+const DESTROYED_STATUS_ID = "destroyed";
 
 const BASE_SA = 3;
 const BASE_FA = 1;
@@ -395,6 +396,53 @@ function isHazardRegionDocument(region) {
   return Boolean(getHazardRegionFlag(region));
 }
 
+function collectionEntries(collection = null) {
+  if (!collection) return [];
+  if (Array.isArray(collection)) return collection;
+  if (collection.contents && Array.isArray(collection.contents)) return collection.contents;
+  if (typeof collection.values === "function") return Array.from(collection.values());
+  if (typeof collection[Symbol.iterator] === "function") return Array.from(collection);
+  return [];
+}
+
+function getEffectStatusIds(effect = null) {
+  const ids = new Set();
+  const add = value => {
+    const id = String(value ?? "").trim();
+    if (id) ids.add(id);
+  };
+
+  const statuses = effect?.statuses;
+  if (statuses?.forEach) statuses.forEach(add);
+  else if (Array.isArray(statuses)) statuses.forEach(add);
+
+  add(effect?.getFlag?.(FLAG_SCOPE, "status")?.id);
+  add(effect?.flags?.[FLAG_SCOPE]?.status?.id);
+  add(effect?.statusId);
+  return ids;
+}
+
+function actorHasStatusId(actor = null, statusId = "") {
+  const id = String(statusId ?? "").trim();
+  if (!actor || !id) return false;
+
+  const statuses = actor.statuses;
+  if (statuses?.has?.(id)) return true;
+  if (Array.isArray(statuses) && statuses.includes(id)) return true;
+
+  const effects = [
+    ...collectionEntries(actor.effects),
+    ...collectionEntries(actor.appliedEffects),
+  ];
+  return effects.some(effect => getEffectStatusIds(effect).has(id));
+}
+
+function isMachineDestroyedForCombat(actor = null) {
+  if (!isMachineActor(actor)) return false;
+  if (actorHasStatusId(actor, DESTROYED_STATUS_ID)) return true;
+  return String(actor?.system?.mwd?.status?.state ?? "").trim().toLowerCase() === DESTROYED_STATUS_ID;
+}
+
 function buildHazardOverlayText(hazards = []) {
   const entries = Array.isArray(hazards) ? hazards.filter(Boolean) : [];
   if (!entries.length) return "";
@@ -494,6 +542,9 @@ export class PersonalCombatTracker {
     Hooks.on("createCombatant", combatant => this._onCreateCombatant(combatant));
     Hooks.on("deleteCombatant", combatant => this._onDeleteCombatant(combatant));
     Hooks.on("deleteCombat", combat => this._onDeleteCombat(combat));
+    Hooks.on("createActiveEffect", effect => this._onActiveEffectChange(effect));
+    Hooks.on("updateActiveEffect", effect => this._onActiveEffectChange(effect));
+    Hooks.on("deleteActiveEffect", effect => this._onActiveEffectChange(effect));
     Hooks.on("createRegion", region => this._onCreateRegion(region));
     Hooks.on("updateRegion", region => this._onUpdateRegion(region));
     Hooks.on("deleteRegion", region => this._onDeleteRegion(region));
@@ -508,6 +559,7 @@ export class PersonalCombatTracker {
 
   static async onReady() {
     await this.reconcileOperatedCombatants(game.combat);
+    await this.syncDestroyedMachineDefeatedCombatants(game.combat);
     await this.ensureCurrentCombatantState();
     await this.syncPreparedIndicators();
     await this._syncAllSceneHazards();
@@ -2037,6 +2089,38 @@ export class PersonalCombatTracker {
     return { ok: true, removed: ids };
   }
 
+  static async syncDestroyedMachineDefeatedCombatants(combat = game?.combat, actorFilter = null) {
+    if (!game.user?.isGM || !combat) return { ok: true, updated: [] };
+
+    const sceneId = this._getCombatSceneId(combat) || canvas?.scene?.id;
+    const updates = [];
+
+    for (const combatant of this._getCombatants(combat)) {
+      const actor = this._getCombatantActor(combatant, sceneId);
+      if (!isMachineActor(actor)) continue;
+      if (actorFilter && !this._actorsMatch(actor, actorFilter)) continue;
+
+      const shouldBeDefeated = isMachineDestroyedForCombat(actor);
+      const isDefeated = Boolean(combatant?.defeated);
+      if (isDefeated === shouldBeDefeated) continue;
+      updates.push({ _id: combatant.id, defeated: shouldBeDefeated });
+    }
+
+    if (!updates.length) return { ok: true, updated: [] };
+
+    if (typeof combat.updateEmbeddedDocuments === "function") {
+      await combat.updateEmbeddedDocuments("Combatant", updates);
+    } else {
+      for (const update of updates) {
+        const combatant = combat.combatants?.get?.(update._id);
+        if (typeof combatant?.update === "function") await combatant.update({ defeated: update.defeated });
+        else if (combatant) combatant.defeated = update.defeated;
+      }
+    }
+
+    return { ok: true, updated: updates };
+  }
+
   static async _skipDuplicatePilotTurn(combat) {
     if (!game.user?.isGM || !combat?.combatant) return false;
     if (!this._isDuplicatePilotCombatant(combat.combatant, combat)) return false;
@@ -2375,6 +2459,7 @@ export class PersonalCombatTracker {
         return;
       }
       await this.reconcileOperatedCombatants(combat);
+      await this.syncDestroyedMachineDefeatedCombatants(combat);
       await this.ensureCurrentCombatantState();
       await this._processCurrentCombatantHazards(combat);
       await this._processCurrentCombatantMachineCrits(combat);
@@ -2392,6 +2477,7 @@ export class PersonalCombatTracker {
       ui.notifications?.warn?.("Linked pilots act through their machine combatant and are not added as separate turns.");
     }
     await this.reconcileOperatedCombatants(combat);
+    await this.syncDestroyedMachineDefeatedCombatants(combat);
     if (combat?.combatant?.id === combatant?.id) {
       await this.ensureCurrentCombatantState();
     }
@@ -2419,14 +2505,32 @@ export class PersonalCombatTracker {
     this.renderOpenActorSheets();
   }
 
-  static _onUpdateActor(_actor, changed) {
+  static _onUpdateActor(actor, changed) {
     const touchesPilotLink = foundry.utils.hasProperty(changed, "system.pilot.uuid")
       || foundry.utils.hasProperty(changed, "system.mwd.pilot.uuid")
       || foundry.utils.hasProperty(changed, "system.mwd.crew.operatorActorUuid")
       || foundry.utils.hasProperty(changed, "system.mwd.crew.pilotActorUuid");
-    if (!touchesPilotLink) return;
-    void this.reconcileOperatedCombatants(game.combat);
+    const touchesDestroyedState = foundry.utils.hasProperty(changed, "system.mwd.status.state");
+    if (!touchesPilotLink && !touchesDestroyedState) return;
+    if (touchesPilotLink) void this.reconcileOperatedCombatants(game.combat);
+    if (touchesDestroyedState) void this.syncDestroyedMachineDefeatedCombatants(game.combat, actor);
     this.renderOpenActorSheets();
+  }
+
+  static _onActiveEffectChange(effect) {
+    const actor = effect?.parent ?? null;
+    if (!isMachineActor(actor)) return;
+    if (!getEffectStatusIds(effect).has(DESTROYED_STATUS_ID)) return;
+    this._queueDestroyedMachineDefeatedSync(actor);
+  }
+
+  static _queueDestroyedMachineDefeatedSync(actor) {
+    const sync = () => {
+      void this.syncDestroyedMachineDefeatedCombatants(game.combat, actor);
+      this.renderOpenActorSheets(actor?.id);
+    };
+    if (typeof queueMicrotask === "function") queueMicrotask(sync);
+    else Promise.resolve().then(sync);
   }
 
   static _onUpdateCombatant(combatant, changed) {
