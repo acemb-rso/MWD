@@ -7,6 +7,7 @@ import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../constants.js";
 import { Misc } from "../misc.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { buildCombatAwarenessPreview } from "../combat/combat-awareness-preview.js";
 import { buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
 import { buildBattlemechMovementActionChoices } from "../mwd/battlemech-movement-actions.js";
 import { getMachineMovementEffects } from "../mwd/machine-state-effects.js";
@@ -19,6 +20,7 @@ import {
   BATTLEMECH_HEAT_PROFILES,
   getBattlemechHeatProfile,
 } from "../mwd/battlemech-heat-profiles.js";
+import { resolveBattlemechJumpProfile } from "../mwd/battlemech-mobility.js";
 import { DEFAULT_FIRE_MODE, FIRE_MODES } from "../mwd/battlemech-fire-modes.js";
 import { getConfiguredMachineHardpoints } from "../mwd/machine-hardpoints.js";
 import { buildBattlemechMeleeProfiles } from "../mwd/battlemech-melee-actions.js";
@@ -159,6 +161,9 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const actor = this.getPersistentActor() ?? this.actor;
     const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
     const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+    ctx.combatAwarenessPreview = buildCombatAwarenessPreview(actor, {
+      sourceToken: token,
+    });
     ctx.battlemechSheet = {
       heat: this._buildHeatModel(),
       fireMode: this._buildFireModeSection(actor, snapshot),
@@ -274,7 +279,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       actorType: this.actor.type,
       movement: this.actor.system?.movement,
       legacyMoves: this.actor.system?.moves,
-      jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
+      jumpProfile: resolveBattlemechJumpProfile(this.actor),
       movementEffects: getMachineMovementEffects(this.actor),
     });
 

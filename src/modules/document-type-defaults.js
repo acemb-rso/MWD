@@ -16,17 +16,6 @@ const templateData = {
           fatigue: { value: 0, max: 0 }
         }
       },
-      "matrix-monitor": {
-        monitors: {
-          matrix: {
-            canMark: true,
-            marks: [],
-            value: 0,
-            max: 6,
-            resistance: { default: 0, byType: {} }
-          }
-        }
-      },
       "attribute-reflexes": { attributes: { reflexes: { value: 1 } } },
       "attribute-strength": { attributes: { strength: { value: 1 } } },
       "attribute-willpower": { attributes: { willpower: { value: 1 } } },
@@ -45,7 +34,6 @@ const templateData = {
           }
         }
       },
-      "attribute-autopilot": { attributes: { autopilot: { value: 6 } } },
       "attribute-handling": { attributes: { handling: { value: 0 } } },
       "mwd-base": {
         mwd: {

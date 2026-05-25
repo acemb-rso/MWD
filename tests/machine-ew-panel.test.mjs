@@ -109,6 +109,10 @@ test("EW panel exposes Contact targets as acquire-ready but not targeting-ready"
   assert.equal(row.targetHint, "Targeting Data unavailable until Track.");
   assert.equal(row.acquireAction.enabled, true);
   assert.equal(row.targetAction.enabled, false);
+  assert.deepEqual(row.compactActions.map(action => action.id), ["acquire", "target", "ecmSpike", "tagTarget"]);
+  assert.equal(row.compactActions.find(action => action.id === "acquire")?.dn, 2);
+  assert.equal(row.compactActions.find(action => action.id === "target")?.dn, 2);
+  assert.equal(row.compactActions.find(action => action.id === "ecmSpike")?.action, "machineEwAction");
   assert.match(panel.helpText, /automated Acquire and Fire Solution/i);
 });
 
@@ -403,12 +407,15 @@ test("EW quick action menu keeps unavailable target-gated actions visible with r
   assert.match(actions.find(action => action.id === "tagTarget")?.reason ?? "", /Target a token/i);
 });
 
-test("machine layouts surface the shared EW panel on battlemech and vehicle sheets", async () => {
-  const [battlemechLayoutRaw, vehicleLayoutRaw] = await Promise.all([
+test("machine layouts surface EW controls through combat awareness on battlemech and vehicle sheets", async () => {
+  const [battlemechLayoutRaw, vehicleLayoutRaw, combatAwarenessRaw] = await Promise.all([
     readFile(path.join(repoRoot, "templates/v2/layouts/battlemech.layout.json"), "utf8"),
     readFile(path.join(repoRoot, "templates/v2/layouts/vehicle.layout.json"), "utf8"),
+    readFile(path.join(repoRoot, "templates/v2/ui/combat-awareness-preview.hbs"), "utf8"),
   ]);
 
-  assert.match(battlemechLayoutRaw, /"partial": "mwd\.v2\.ui\.vehicle\.ew-panel"/);
-  assert.match(vehicleLayoutRaw, /"partial": "mwd\.v2\.ui\.vehicle\.ew-panel"/);
+  assert.match(battlemechLayoutRaw, /"partial": "mwd\.v2\.ui\.combat-awareness-preview"/);
+  assert.match(vehicleLayoutRaw, /"partial": "mwd\.v2\.ui\.combat-awareness-preview"/);
+  assert.match(combatAwarenessRaw, /data-action="\{\{action\.action\}\}"/);
+  assert.match(combatAwarenessRaw, /row\.compactActions/);
 });

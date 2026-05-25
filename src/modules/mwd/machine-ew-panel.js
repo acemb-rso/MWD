@@ -2,7 +2,7 @@
 // Purpose: Build a shared sheet view model for machine EW status and actions.
 // How it fits: Keeps EW state derivation in one place so vehicle and BattleMech sheets stay thin.
 
-import { getDetectionStateLabel, getTargetingDataCap } from "./machine-ew.js";
+import { getAcquireBaseDn, getDetectionStateLabel, getTargetingDataCap } from "./machine-ew.js";
 import { getMechRangeBandName, selectMechRangeBand } from "./personal-range-bands.js";
 import { formatDistanceLabel, measureTokenDistance } from "./token-measurement.js";
 import {
@@ -73,6 +73,53 @@ function buildTargetAction({ canTarget = false, targetHint = "" } = {}) {
   };
 }
 
+function buildCompactActions({ row = {}, detectionState = "blind", canAcquire = false, canTarget = false, acquireHint = "", targetHint = "" } = {}) {
+  return [
+    {
+      id: "acquire",
+      action: "ewAcquire",
+      label: "Acquire",
+      icon: "fa-satellite-dish",
+      dn: getAcquireBaseDn(detectionState),
+      enabled: canAcquire,
+      title: canAcquire ? acquireHint : "Acquire is not available for this target right now.",
+    },
+    {
+      id: "target",
+      action: "ewTarget",
+      label: "Target",
+      icon: "fa-crosshairs",
+      dn: 2,
+      enabled: canTarget,
+      title: canTarget ? targetHint : "Track or Lock is required before generating targeting data.",
+    },
+    {
+      id: "ecmSpike",
+      action: "machineEwAction",
+      actionId: "ecmSpike",
+      label: "Spike",
+      icon: "fa-bolt",
+      dn: 1,
+      enabled: true,
+      title: "Launch an ECM Spike roll against this target.",
+    },
+    {
+      id: "tagTarget",
+      action: "machineEwAction",
+      actionId: "tagTarget",
+      label: "TAG",
+      icon: "fa-location-crosshairs",
+      dn: 1,
+      enabled: true,
+      title: "Launch a TAG roll against this target.",
+    },
+  ].map(action => ({
+    ...action,
+    targetTokenId: row.targetTokenId,
+    targetTokenUuid: row.targetTokenUuid,
+  }));
+}
+
 function buildMeasuredRange(sourceToken = null, targetToken = null) {
   const distance = measureTokenDistance(sourceToken, targetToken);
   if (!Number.isFinite(distance)) {
@@ -125,7 +172,7 @@ export function buildMachineEwRow({
   const targetHint = buildTargetHint({ detectionState, lockGated });
   const measuredRange = buildMeasuredRange(sourceToken, targetToken);
 
-  return {
+  const row = {
     tokenName: targetToken.name ?? "Target",
     targetTokenId,
     targetTokenUuid,
@@ -149,6 +196,8 @@ export function buildMachineEwRow({
     acquireAction: buildAcquireAction({ canAcquire, detectionState, acquireHint }),
     targetAction: buildTargetAction({ canTarget, targetHint }),
   };
+  row.compactActions = buildCompactActions({ row, detectionState, canAcquire, canTarget, acquireHint, targetHint });
+  return row;
 }
 
 export function resolveMachineEwActionTarget(panel, intent = "") {

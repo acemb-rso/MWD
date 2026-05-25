@@ -52,6 +52,13 @@
               },
               {
                 "type": "panel",
+                "title": "Combat Awareness",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.combat-awareness-preview" }
+                ]
+              },
+              {
+                "type": "panel",
                 "title": "Asset Modules",
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "assetModules", "itemType": "assetModule", "addLabel": "Module", "emptyLabel": "No asset modules assigned." } }

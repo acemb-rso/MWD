@@ -28,6 +28,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/common/damage-armor.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/mod-stepper.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/condition-monitors.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/combat-awareness-preview.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/roll/_mwd-roll-card.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/roll/_mwd-damage-application-card.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/roll/_mwd-hazard-card.hbs`,

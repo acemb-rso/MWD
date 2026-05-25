@@ -76,6 +76,20 @@ import { registerMachineIntentGmOperations } from "./mwd/machine-intents.js";
 import { MachineActions, registerMachineActionGmOperations } from "./mwd/machine-quick-actions.js";
 import { registerMachinePilotVisionSync, syncAllMachinePilotVision } from "./mwd/machine-pilot-vision.js";
 import { registerAssetModuleRuntimeHandlers } from "./mwd/asset-module-runtime-handlers.js";
+import {
+  canDetect as canMachineSensorDetect,
+  getDetectionState as getMachineSensorDetectionState,
+  registerMwdSensorDetectionMode,
+  syncTokenDetectionModes,
+} from "./canvas/machine-sensor-detection.js";
+import {
+  clearSensorOverlays,
+  refreshSensorOverlays,
+  registerMachineSensorOverlayHooks,
+  renderContactOverlay,
+  renderLockOverlay,
+  renderTrackOverlay,
+} from "./canvas/machine-sensor-overlays.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -213,6 +227,8 @@ export class AnarchySystem {
     game.mwd ??= {};
 
     configureMWDFonts();
+    registerMwdSensorDetectionMode();
+    registerMachineSensorOverlayHooks();
     registerMWDChatActions();
     registerMWDGMGadgetSettings("mwd");
     
@@ -227,6 +243,16 @@ export class AnarchySystem {
       getPlatformActorForCombatant: (...args) => PersonalCombatTracker.getPlatformActorForCombatant(...args),
     };
     game.mwd.machineActions = MachineActions;
+    game.mwd.machineSensors = {
+      canDetect: canMachineSensorDetect,
+      getDetectionState: getMachineSensorDetectionState,
+      syncTokenDetectionModes,
+      refreshSensorOverlays,
+      renderContactOverlay,
+      renderTrackOverlay,
+      renderLockOverlay,
+      clearSensorOverlays,
+    };
     game.mwd.harm = Object.assign(HarmEngine, QueuedAttackDamageActions);
     game.mwd.machineHeat = {
       adjustPendingHeat: adjustBattlemechPendingHeat,
@@ -332,6 +358,7 @@ export class AnarchySystem {
     await ensureLifeModuleCatalogDefaults();
     await ensureStatusConditionCatalogDefaults();
     await syncAllMachinePilotVision();
+    await syncTokenDetectionModes();
 
     const enabled = game.settings.get(SYSTEM_NAME, "enableGMGadget");
 

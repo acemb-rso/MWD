@@ -11,6 +11,7 @@ import { resolveMachineOperator } from "./machine-operator.js";
 import { resolveMachineSceneToken } from "./machine-token-resolution.js";
 import { applyMachineMovementPenalty, normalizeMachineMovement } from "./machine-movement.js";
 import { getMachineMovementEffects } from "./machine-state-effects.js";
+import { resolveBattlemechJumpProfile } from "./battlemech-mobility.js";
 
 export const BATTLEMECH_MOVEMENT_ACTIONS = Object.freeze({
   walk: Object.freeze({ id: "walk", label: "Walk", cost: 1, heat: 0, mode: "ground" }),
@@ -33,7 +34,7 @@ export function buildBattlemechMovementActionChoices(actor = null) {
     legacyMoves: actor?.system?.moves,
   });
   const movementEffects = getMachineMovementEffects(actor);
-  const jumping = actor?.system?.mwd?.mobility?.jumping ?? null;
+  const jumping = resolveBattlemechJumpProfile(actor);
   const movementBonus = movementNumber(movementEffects.movementBonus, 0);
   const flightSpeed = applyMachineMovementPenalty(movementNumber(movement.flight, 0) + movementBonus, movementEffects.movementPenalty, {
     immobile: movementEffects.immobile,

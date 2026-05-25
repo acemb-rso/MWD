@@ -3,6 +3,7 @@
 // How it fits: Brings NPCs onto the same shell, preload, and context-shaping path as the character sheet.
 
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
+import { buildCombatAwarenessPreview } from "../combat/combat-awareness-preview.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import {
   attributeFields,
@@ -31,8 +32,12 @@ export class NpcSheetV2 extends BaseActorSheetV2 {
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const actor = this.actor;
+    const sheetToken = this.getSheetTokenDocument?.() ?? null;
 
     context.layout = await LayoutRegistry.get("npc");
+    context.combatAwarenessPreview = buildCombatAwarenessPreview(actor, {
+      sourceToken: sheetToken,
+    });
     context.actorSheet = {
       profileFields: [
         textField(actor, "system.role", "Role / Archetype")

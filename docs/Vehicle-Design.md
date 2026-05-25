@@ -51,7 +51,7 @@ BattleMechs dominate:
 * breakthrough warfare
 * aggressive maneuver
 * sustained frontline combat
-* thermal overdrive gameplay
+* heat-management gameplay
 
 Vehicles dominate:
 
@@ -292,7 +292,7 @@ rather than aggressive maneuver dominance.
 * aggressive maneuver
 * active dueling
 * mobile offense
-* overdrive pressure
+* heat pressure
 
 ---
 

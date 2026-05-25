@@ -26,6 +26,7 @@ import { createHazardRegionFromAttack } from "../area-effects/hazard-regions.js"
 import { getMachineAttackDamageModifier } from "../mwd/machine-crit-effects.js";
 import { getMachineAttackCqAdjustments, getMachineHeatAdjustments } from "../mwd/machine-state-effects.js";
 import { getAssetModuleCqEffects } from "../mwd/asset-module-effects.js";
+import { getMachineJumpProfile, getMachineJumpedThisActivation } from "../mwd/battlemech-mobility.js";
 import { rollClusteringDamage } from "../mwd/machine-clustering.js";
 import { isMachineEnergyDamageFamily } from "../mwd/machine-weapon-types.js";
 
@@ -162,6 +163,12 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
         value: ar,
       });
     }
+    if (getMachineJumpedThisActivation(attacker)) {
+      const jumpAr = toNumber(getMachineJumpProfile(attacker)?.attackRatingBonus, 0);
+      if (jumpAr) {
+        arParts.push({ id: "jumping.attackRatingBonus", label: "Jump Maneuver", value: jumpAr });
+      }
+    }
   }
 
   if (targetIsMachine) {
@@ -185,6 +192,12 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
         label: effect.label,
         value: dr,
       });
+    }
+    if (getMachineJumpedThisActivation(targetActor)) {
+      const jumpDr = toNumber(getMachineJumpProfile(targetActor)?.defenseRatingBonus, 0);
+      if (jumpDr) {
+        drParts.push({ id: "jumping.defenseRatingBonus", label: "Jump Maneuver", value: jumpDr });
+      }
     }
   }
 

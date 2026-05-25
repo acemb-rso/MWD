@@ -4,6 +4,7 @@
 
 import { MWD } from "../config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../constants.js";
+import { buildCombatAwarenessPreview } from "../combat/combat-awareness-preview.js";
 import { getActiveStatusSummaries, openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import { getActiveMachineCrits } from "../mwd/critical-hits.js";
@@ -47,6 +48,7 @@ import {
 } from "../mwd/machine-quick-actions.js";
 import { buildVehicleProfileSummary, VEHICLE_FLIGHT_SUBTYPES, VEHICLE_MOVEMENT_PROFILES, VEHICLE_TERRAIN_CLASSES } from "../mwd/vehicle-profiles.js";
 import { buildVehicleStrainModel } from "../mwd/vehicle-strain.js";
+import { resolveBattlemechJumpProfile } from "../mwd/battlemech-mobility.js";
 import { getSkillDef } from "../mwd/skills.js";
 import { cachePendingTokenPosition } from "../mwd/token-measurement.js";
 import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
@@ -180,6 +182,12 @@ const ITEM_TYPE_LABELS = Object.freeze({
   skill: "Skill",
 });
 
+function getActorJumpProfile(actor = null) {
+  return actor?.type === "battlemech"
+    ? resolveBattlemechJumpProfile(actor)
+    : actor?.system?.mwd?.mobility?.jumping ?? null;
+}
+
 const DEGRADATION_LAYOUTS = Object.freeze({
   battlemech: Object.freeze({
     artPath: "systems/mwd/img/mek/misc/repair/location_mek.png",
@@ -247,6 +255,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       openStrainDialog: VehicleSheetV2.prototype._onOpenStrainDialog,
       ewAcquire: VehicleSheetV2.prototype._onEwAcquire,
       ewTarget: VehicleSheetV2.prototype._onEwTarget,
+      machineEwAction: VehicleSheetV2.prototype._onMachineEwAction,
       toggleStatuses: VehicleSheetV2.prototype._onToggleStatuses,
       machineCritRemedy: VehicleSheetV2.prototype._onMachineCritRemedy,
       toggleAssetModuleActive: VehicleSheetV2.prototype._onToggleAssetModuleActive,
@@ -273,7 +282,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     ctx._mwdThemeClass = game.system?.mwd?.styles?.selectCssClass?.() ?? "";
     ctx.layout = await LayoutRegistry.get(this.constructor.LAYOUT_ID ?? VehicleSheetV2.LAYOUT_ID);
     const actor = this.getPersistentActor?.() ?? this.actor;
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
     const activeStatuses = getActiveStatusSummaries(actor);
+    ctx.combatAwarenessPreview = buildCombatAwarenessPreview(actor, {
+      sourceToken: token,
+    });
 
     ctx.vehicleSheet = {
       summaryStats: this._buildSummaryStats(),
@@ -381,7 +394,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       actorType: this.actor.type,
       movement: this.actor.system?.movement,
       legacyMoves: this.actor.system?.moves,
-      jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
+      jumpProfile: getActorJumpProfile(this.actor),
       movementEffects: getMachineMovementEffects(this.actor),
     });
 
@@ -556,7 +569,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       movement: this.actor.system?.movement,
       legacyMoves: this.actor.system?.moves,
       editing: this.editing,
-      jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
+      jumpProfile: getActorJumpProfile(this.actor),
       movementEffects: getMachineMovementEffects(this.actor),
     });
   }
@@ -1827,6 +1840,36 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     event?.preventDefault?.();
     event?.stopPropagation?.();
     return this.#launchMachineEwIntent("targeting", event, target);
+  }
+
+  async _onMachineEwAction(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const actionId = String(target?.dataset?.actionId ?? "").trim();
+    if (!actionId) return false;
+
+    try {
+      const result = await executeMachineAction(actor, {
+        kind: "ew",
+        actionId,
+        token: this._resolveStatusToken(actor),
+        targetTokenId: String(target?.dataset?.targetTokenId ?? "").trim(),
+        targetTokenUuid: String(target?.dataset?.targetTokenUuid ?? "").trim(),
+        event,
+      });
+      if (!result?.ok) {
+        ui.notifications?.warn(result?.userMessage ?? result?.reason ?? "Unable to launch that EW action.");
+        return false;
+      }
+      this.#renderEwState();
+      return true;
+    } catch (error) {
+      console.error("MWD | Failed to launch machine EW action", error);
+      notifyRollError(error, "Unable to launch that EW action.");
+      return false;
+    }
   }
 
   _resolveStatusToken(actor = this.actor) {

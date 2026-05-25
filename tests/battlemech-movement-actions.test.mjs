@@ -47,6 +47,38 @@ test("battlemech movement actions add equipment-gated flight and jump choices", 
   assert.equal(jump?.heat, 2);
 });
 
+test("battlemech movement actions derive jump choices from installed jump modules", () => {
+  const choices = buildBattlemechMovementActionChoices({
+    type: "battlemech",
+    system: {
+      movement: { ground: 8, flight: 0 },
+      mwd: { crits: [] },
+    },
+    items: [{
+      id: "jump-jets",
+      type: "assetModule",
+      name: "Jump Jets",
+      system: {
+        category: "mobility",
+        mobility: {
+          jumping: {
+            enabled: true,
+            movement: 5,
+            heat: 1,
+          },
+        },
+      },
+    }],
+    statuses: new Set(),
+  });
+
+  const jump = choices.find(choice => choice.id === "jump");
+  assert.equal(jump?.label, "Jump");
+  assert.equal(jump?.distance, 5);
+  assert.equal(jump?.heat, 1);
+  assert.match(jump?.hint ?? "", /Jump Jets/);
+});
+
 test("battlemech movement actions apply meter penalties with a 10 m floor", () => {
   const choices = buildBattlemechMovementActionChoices({
     type: "battlemech",

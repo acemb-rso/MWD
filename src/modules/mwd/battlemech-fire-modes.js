@@ -28,14 +28,6 @@ export const FIRE_MODES = Object.freeze({
     coverageHint: "1 group xN",
     hint: "Sustained fire from one rapid-capable weapon group."
   }),
-  overdrive: Object.freeze({
-    id: "overdrive",
-    label: "Overdrive",
-    saCost: null,
-    implemented: false,
-    coverageHint: "-",
-    hint: "Reserved for future fire-control rules."
-  }),
 });
 
 export const DEFAULT_FIRE_MODE = "alphaStrike";

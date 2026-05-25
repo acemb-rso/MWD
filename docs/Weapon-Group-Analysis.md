@@ -20,8 +20,7 @@ Fire Modes define **how weapons are used**, cost **SA**, and each resolution cou
 type FireMode =
   | "chain fire"
   | "alpha strike"
-  | "rapid fire"
-  | "overdrive";
+  | "rapid fire";
 ```
 
 * Stored on actor:
@@ -131,26 +130,6 @@ All Fire Modes resolve as **exactly one attack**.
 
 ---
 
-## 2.4 Overdrive
-
-```ts
-{
-  mode: "overdrive",
-  saCost: 3,
-  groups: "multiple",
-  targets: "any",
-  repeats: "multiple"
-}
-```
-
-**Effect:**
-
-* Select multiple weapon groups
-* Each group may repeat
-* Targets may vary
-
----
-
 # 🔥 3. Attack & Burn Model
 
 ## 3.1 Attack Definition (CRITICAL)
@@ -224,7 +203,6 @@ for (group of selectedGroups) {
 * Standard: 1 target
 * Alpha: targets per group
 * Rapid: 1 target
-* Overdrive: targets per group and repetition
 
 ---
 

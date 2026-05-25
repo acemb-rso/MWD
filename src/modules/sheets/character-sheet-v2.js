@@ -7,6 +7,7 @@ import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { buildCombatAwarenessPreview } from "../combat/combat-awareness-preview.js";
 import {
   evaluateActorLifeModules,
   getLifeModuleCatalogEntry,
@@ -536,6 +537,9 @@ ctx.edgeConsole.poolsOrdered = order
       activation: combatSnapshot.activation,
       inactiveReason: combatSnapshot.inactiveReason
     };
+    ctx.combatAwarenessPreview = buildCombatAwarenessPreview(this.actor, {
+      sourceToken: sheetToken,
+    });
 
     const combatActions = PersonalCombatTracker.buildActionModel(this.actor, combatSnapshot);
     const menuIds = new Set((combatActions.menus ?? []).map(menu => menu.id));
