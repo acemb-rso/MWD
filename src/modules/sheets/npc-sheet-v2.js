@@ -3,16 +3,33 @@
 // How it fits: Brings NPCs onto the same shell, preload, and context-shaping path as the character sheet.
 
 import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
+import { MWD } from "../config.js";
 import { buildCombatAwarenessPreview } from "../combat/combat-awareness-preview.js";
+import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import {
   attributeFields,
-  collectActorItemRecords,
-  numberField,
+  buildPersonalCombatDashboardContext,
+  buildPersonalConditionMonitors,
+  buildPersonalInventoryContext,
   textField,
-  textareaField,
 } from "./actor-sheet-support.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
+
+const ARMOR_MODIFIER_LABELS = MWD.mwd.armorMitigationType;
+const GEAR_CATEGORY_LABELS = MWD.item.gear.categoryLabels;
+const CONSUMABLE_CATEGORY_LABELS = MWD.item.consumable.categoryLabels;
+
+function filterVisibleNpcSkills(skillsDisplay = {}, { editing = false } = {}) {
+  if (editing) return skillsDisplay;
+
+  const keepRated = skill => Number(skill?.rating ?? 0) !== 0;
+  return {
+    ...skillsDisplay,
+    left: (skillsDisplay.left ?? []).filter(keepRated),
+    right: (skillsDisplay.right ?? []).filter(keepRated),
+  };
+}
 
 export class NpcSheetV2 extends BaseActorSheetV2 {
   static PARTS = {
@@ -35,9 +52,36 @@ export class NpcSheetV2 extends BaseActorSheetV2 {
     const sheetToken = this.getSheetTokenDocument?.() ?? null;
 
     context.layout = await LayoutRegistry.get("npc");
+    if (Number(context.layout?.version ?? 0) <= 0) {
+      throw new Error("MWD NPC sheet layout failed to load.");
+    }
+
+    context.conditionMonitors = buildPersonalConditionMonitors(actor, {
+      editable: this.isEditable,
+    });
+
+    const combatSnapshot = PersonalCombatTracker.getSnapshot(actor, { token: sheetToken });
+    context.combatDashboard = buildPersonalCombatDashboardContext(combatSnapshot);
+    context.combatActions = this._buildCombatActionsContext(
+      PersonalCombatTracker.buildActionModel(actor, combatSnapshot)
+    );
     context.combatAwarenessPreview = buildCombatAwarenessPreview(actor, {
       sourceToken: sheetToken,
     });
+    context.skillsDisplay = filterVisibleNpcSkills(context.skillsDisplay, {
+      editing: this.editing,
+    });
+
+    context.personalInventory = buildPersonalInventoryContext(actor, {
+      items: context.items,
+      isEditable: this.isEditable,
+      isExpanded: accordionId => this._isInventoryRowExpanded(accordionId),
+      inventoryAccordionId: (section, itemId) => this._inventoryAccordionId(section, itemId),
+      armorModifierLabels: ARMOR_MODIFIER_LABELS,
+      gearCategoryLabels: GEAR_CATEGORY_LABELS,
+      consumableCategoryLabels: CONSUMABLE_CATEGORY_LABELS,
+    });
+
     context.actorSheet = {
       profileFields: [
         textField(actor, "system.role", "Role / Archetype")
@@ -50,37 +94,6 @@ export class NpcSheetV2 extends BaseActorSheetV2 {
         { key: "charisma", label: "Charisma" },
         { key: "edge", label: "Edge" },
       ]),
-      monitorFields: [
-        numberField(actor, "system.monitors.physical.value", "Physical"),
-        numberField(actor, "system.monitors.physical.max", "Physical Max"),
-        numberField(actor, "system.monitors.fatigue.value", "Fatigue"),
-        numberField(actor, "system.monitors.fatigue.max", "Fatigue Max"),
-        numberField(actor, "system.monitors.armor.value", "Armor"),
-        textField(actor, "system.monitors.armor.effect", "Armor Effect"),
-      ],
-      itemCollections: {
-        traits: collectActorItemRecords(actor, {
-          types: ["quality"],
-          describe: item => item.system?.category ?? "",
-        }),
-        weapons: collectActorItemRecords(actor, {
-          types: ["personalWeapon"],
-          supportsEquip: true,
-          supportsPrimary: true,
-          describe: item => `${item.system?.category ?? "ranged"} | DV ${Number(item.system?.damage ?? 0)}`,
-        }),
-        assetModules: collectActorItemRecords(actor, {
-          types: ["assetModule"],
-          describe: item => `Level ${Number(item.system?.level ?? 1)}`,
-        }),
-        inventory: collectActorItemRecords(actor, {
-          // Consumables share the same quantity-driven row contract as gear on
-          // lightweight actor sheets, so we present them in one inventory list.
-          types: ["gear", "consumable"],
-          describe: item => `Qty ${Number(item.system?.quantity ?? 1)} | Rating ${Number(item.system?.rating ?? 0)}`,
-        }),
-      },
-      notesField: textareaField(actor, "system.biography", "Notes", { rows: 12 }),
     };
 
     return context;

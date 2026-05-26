@@ -753,7 +753,7 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
       purpose: "Defensive reaction: degrade an attacker's detection state.",
       targetMode: "anyOptional",
       execution: "skill",
-      mechanics: "Roll only; detection-state degradation is not automated yet.",
+      mechanics: "Automated on success: selected observer's detection state on this machine degrades one step.",
     }),
     buildEwAction({
       id: "suppressBeacon",

@@ -5,6 +5,7 @@ import {
   resolveDocumentTypeCreateDefaults,
   resolveDocumentTypeBlock,
 } from "../src/modules/document-type-defaults.js";
+import { ensureCoreSkillRatings } from "../src/modules/mwd/skills.js";
 
 test("character defaults keep prototype token at the root", () => {
   const defaults = resolveDocumentTypeCreateDefaults("Actor", "character");
@@ -12,6 +13,28 @@ test("character defaults keep prototype token at the root", () => {
   assert.equal(defaults.prototypeToken.actorLink, true);
   assert.equal(defaults.system.attributes.reflexes.value, 1);
   assert.equal(defaults.system.description, "");
+});
+
+test("npc defaults are character-like without character edge pools", () => {
+  const defaults = resolveDocumentTypeCreateDefaults("Actor", "npc");
+
+  assert.equal(defaults.system.attributes.strength.value, 1);
+  assert.equal(defaults.system.attributes.reflexes.value, 1);
+  assert.equal(defaults.system.attributes.intelligence.value, 1);
+  assert.equal(defaults.system.attributes.willpower.value, 1);
+  assert.equal(defaults.system.attributes.charisma.value, 1);
+  assert.equal(defaults.system.attributes.edge.value, 1);
+  assert.equal(defaults.system.counters?.edgePools, undefined);
+  assert.equal(defaults.system.counters?.xp, undefined);
+});
+
+test("npc systems can receive the core character skill scaffold", () => {
+  const defaults = resolveDocumentTypeCreateDefaults("Actor", "npc");
+  ensureCoreSkillRatings(defaults.system);
+
+  assert.equal(defaults.system.skills.firearms.rating, 0);
+  assert.equal(defaults.system.skills.gunnery.rating, 0);
+  assert.equal(defaults.system.skills.perception.rating, 0);
 });
 
 test("battlemech defaults resolve nested templates before local fields", () => {

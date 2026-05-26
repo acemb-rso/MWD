@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import { resolveAcquire } from "../src/modules/roll/intent/resolve-acquire.js";
 import { resolveTargeting } from "../src/modules/roll/intent/resolve-targeting.js";
-import { resolveAcquireExecution } from "../src/modules/roll/ew-execution.js";
+import { resolveAcquireExecution, resolveBreakLockExecution } from "../src/modules/roll/ew-execution.js";
 import { getDetectionState } from "../src/modules/mwd/machine-ew-state.js";
 
 function createMachineActor(name = "Mauler") {
@@ -359,6 +359,139 @@ test("acquire can bypass ecmShrouded only through matching asset module effect",
     assert.deepEqual(bypassed.dn.parts, [
       { id: "difficulty.base", label: "Base DN", value: 1, tags: ["base"] },
     ]);
+  } finally {
+    clearScene();
+  }
+});
+
+test("successful Break Lock degrades the selected observer's state on the acting mech", async () => {
+  ensureFoundryStub();
+
+  const actingActor = createMachineActor("Defender");
+  const actingTokenUuid = "Scene.scene.Token.defender";
+  const actingToken = {
+    id: "defender-token",
+    actor: actingActor,
+    document: {
+      id: "defender-token",
+      uuid: actingTokenUuid,
+    },
+  };
+  const observerToken = {
+    id: "observer-token",
+    actor: createMachineActor("Observer"),
+    document: {
+      id: "observer-token",
+      uuid: "Scene.scene.Token.observer",
+    },
+  };
+  const defenderCombatant = createCombatant({
+    tokenId: actingToken.id,
+    targetTokenUuid: observerToken.document.uuid,
+    detectionState: "lock",
+  });
+  const observerCombatant = createCombatant({
+    tokenId: observerToken.id,
+    targetTokenUuid: actingTokenUuid,
+    detectionState: "lock",
+  });
+
+  globalThis.game = {
+    combat: {
+      combatants: [defenderCombatant, observerCombatant],
+    },
+  };
+  globalThis.canvas = {
+    tokens: {
+      get: id => id === actingToken.id ? actingToken : id === observerToken.id ? observerToken : null,
+      placeables: [actingToken, observerToken],
+    },
+  };
+
+  try {
+    const result = await resolveBreakLockExecution({
+      attacker: actingActor,
+      payload: {
+        intent: "skill",
+        machineActionKey: "breakLock",
+        sourceTokenId: actingToken.id,
+        targetTokenId: observerToken.id,
+      },
+      ctx: {
+        intent: "skill",
+        difficulty: { dn: 1 },
+      },
+      outcomeModel: { successes: 1 },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.previousState, "lock");
+    assert.equal(result.newState, "track");
+    assert.equal(getDetectionState(observerCombatant, actingTokenUuid), "track");
+    assert.equal(getDetectionState(defenderCombatant, observerToken.document.uuid), "lock");
+  } finally {
+    clearScene();
+  }
+});
+
+test("failed Break Lock leaves observer detection state unchanged", async () => {
+  ensureFoundryStub();
+
+  const actingActor = createMachineActor("Defender");
+  const actingTokenUuid = "Scene.scene.Token.defender";
+  const actingToken = {
+    id: "defender-token",
+    actor: actingActor,
+    document: {
+      id: "defender-token",
+      uuid: actingTokenUuid,
+    },
+  };
+  const observerToken = {
+    id: "observer-token",
+    actor: createMachineActor("Observer"),
+    document: {
+      id: "observer-token",
+      uuid: "Scene.scene.Token.observer",
+    },
+  };
+  const observerCombatant = createCombatant({
+    tokenId: observerToken.id,
+    targetTokenUuid: actingTokenUuid,
+    detectionState: "track",
+  });
+
+  globalThis.game = {
+    combat: {
+      combatants: [observerCombatant],
+    },
+  };
+  globalThis.canvas = {
+    tokens: {
+      get: id => id === actingToken.id ? actingToken : id === observerToken.id ? observerToken : null,
+      placeables: [actingToken, observerToken],
+    },
+  };
+
+  try {
+    const result = await resolveBreakLockExecution({
+      attacker: actingActor,
+      payload: {
+        intent: "skill",
+        machineActionKey: "breakLock",
+        sourceTokenId: actingToken.id,
+        targetTokenId: observerToken.id,
+      },
+      ctx: {
+        intent: "skill",
+        difficulty: { dn: 2 },
+      },
+      outcomeModel: { successes: 1 },
+    });
+
+    assert.equal(result.ok, false);
+    assert.match(result.reason, /failed/i);
+    assert.equal(getDetectionState(observerCombatant, actingTokenUuid), "track");
   } finally {
     clearScene();
   }

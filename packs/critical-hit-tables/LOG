@@ -1,6 +1,0 @@
-2026/05/21-13:20:17.663 1fd4 Recovering log #174
-2026/05/21-13:20:17.664 1fd4 Level-0 table #176: started
-2026/05/21-13:20:17.668 1fd4 Level-0 table #176: 19192 bytes OK
-2026/05/21-13:20:17.671 1fd4 Delete type=0 #174
-2026/05/21-13:20:17.672 1fd4 Delete type=3 #173
-2026/05/21-13:20:17.701 bbbc Moved #176 to level-1 19192 bytes OK: files[ 0 1 1 0 0 0 0 ]

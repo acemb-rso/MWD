@@ -42,6 +42,11 @@ import {
   getOwnedWeaponAttackDragData,
   launchOwnedWeaponAttack,
 } from "../roll/weapon-attack-actions.js";
+import {
+  buildPersonalCombatDashboardContext,
+  buildPersonalConditionMonitors,
+  buildPersonalInventoryContext,
+} from "./actor-sheet-support.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -94,94 +99,6 @@ function buildDetailRows(rows = []) {
 const ARMOR_MODIFIER_LABELS = MWD.mwd.armorMitigationType;
 const GEAR_CATEGORY_LABELS = MWD.item.gear.categoryLabels;
 const CONSUMABLE_CATEGORY_LABELS = MWD.item.consumable.categoryLabels;
-
-function formatSignedValue(value) {
-  const numeric = Number(value ?? 0) || 0;
-  return numeric > 0 ? `+${numeric}` : `${numeric}`;
-}
-
-function buildQuantityTrackedInventoryRecord({
-  item,
-  accordionId,
-  itemType,
-  defaultSubtitle,
-  categoryLabels = {},
-  ratingLabel = "Rating",
-  typeLabel = "",
-  isEditable = false,
-  isExpanded = false,
-} = {}) {
-  const quantity = Math.max(0, Math.trunc(toNumber(item?.system?.quantity ?? 1, 1)));
-  const rating = Math.max(0, Math.trunc(toNumber(item?.system?.rating ?? 0, 0)));
-  const tags = compactList(item?.system?.tags ?? []);
-  const category = String(item?.system?.category ?? "").trim();
-  const categoryLabel = categoryLabels[category] ?? category;
-
-  return {
-    id: item.id,
-    itemType,
-    isGear: itemType === "gear",
-    isConsumable: itemType === "consumable",
-    accordionId,
-    isExpanded,
-    name: item.name,
-    img: item.img,
-    subtitle: categoryLabel || defaultSubtitle,
-    summaryStats: buildSummaryStats([
-      { label: "Qty", value: quantity, emphasis: "strong" },
-      { label: ratingLabel, value: rating }
-    ]),
-    detailTags: buildDetailTags([
-      typeLabel,
-      ...tags,
-      item?.system?.inactive ? "Inactive" : ""
-    ]),
-    detailRows: buildDetailRows([
-      { label: "Quantity", value: quantity },
-      { label: ratingLabel, value: rating },
-      { label: "Source", value: item?.system?.sourceReference ?? "" },
-      { label: "Category", value: categoryLabel },
-      { label: "Tags", value: tags.join(", ") }
-    ]),
-    detailText: toSnippet(item?.system?.description),
-    quantity,
-    canAdjustQuantity: isEditable
-  };
-}
-
-function buildArmorModifierSummary({ defenseBonus = 0, mitigationByType = {} } = {}) {
-  const summary = [];
-  const defense = Number(defenseBonus ?? 0) || 0;
-  if (defense !== 0) summary.push(`Defense ${formatSignedValue(defense)}`);
-
-  for (const [key, label] of Object.entries(ARMOR_MODIFIER_LABELS)) {
-    const value = Number(mitigationByType?.[key] ?? 0) || 0;
-    if (value !== 0) summary.push(`${label} ${formatSignedValue(value)}`);
-  }
-
-  return summary.join(" | ");
-}
-
-function formatBandValues(bands = {}, order = ["close", "near", "far", "extreme"]) {
-  return order
-    .map(key => {
-      const value = toNumber(bands?.[key], 0);
-      return `${key.charAt(0).toUpperCase() + key.slice(1)} ${value}`;
-    })
-    .join(" | ");
-}
-
-function formatCompactBandValues(bands = {}) {
-  return ["close", "near", "far", "extreme"]
-    .map(key => `${key.charAt(0).toUpperCase()}${toNumber(bands?.[key], 0)}`)
-    .join(" ");
-}
-
-function formatRangeBandLabel(rangeKey = "") {
-  const value = String(rangeKey ?? "").trim().toLowerCase();
-  if (!value) return "";
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -462,40 +379,8 @@ ctx.edgeConsole.poolsOrdered = order
     /* Condition Monitors (character)               */
     /* -------------------------------------------- */
     const sys = this.actor.system ?? {};
-    const monitors = sys.monitors ?? {};
-
-    const TRACKS = [
-      { id: "physical", label: "Physical", kind: "wound", status: { label: "Penalty", path: "derived.penalty" } },
-      { id: "fatigue",  label: "Fatigue",  kind: "fatigue", status: { label: "Penalty", path: "derived.penalty" } },
-      { id: "armor",    label: "Armor",    kind: "armor-personal", status: { label: "Resist", path: "derived.resistance" } }
-    ];
-
-    const getNum = (obj, path, d = 0) => {
-      const v = foundry.utils.getProperty(obj, path);
-      const n = Number(v);
-      return Number.isFinite(n) ? n : d;
-    };
-
-    ctx.conditionMonitors = TRACKS.map(t => {
-      const m = monitors?.[t.id] ?? {};
-      const max = Math.max(0, getNum(m, "max", 0));
-      const value = Math.min(Math.max(0, getNum(m, "value", 0)), max);
-
-      return {
-        id: t.id,
-        label: t.label,
-        kind: t.kind,
-        editable: !!this.isEditable,
-        value,
-        max,
-        segments: Array.from({ length: max }, (_, i) => {
-          const n = i + 1;
-          return { value: n, filled: n <= value };
-        }),
-        status: t.status
-          ? { label: t.status.label, value: getNum(m, t.status.path, 0) }
-          : null
-      };
+    ctx.conditionMonitors = buildPersonalConditionMonitors(this.actor, {
+      editable: this.isEditable,
     });
     const burn = Number(this.actor.system?.burn?.value ?? 0);
     const burnDisplayMax = 10;
@@ -529,14 +414,7 @@ ctx.edgeConsole.poolsOrdered = order
     };
 
     const combatSnapshot = PersonalCombatTracker.getSnapshot(this.actor, { token: sheetToken });
-    ctx.combatDashboard = {
-      targeting: combatSnapshot.targeting,
-      rollImpact: combatSnapshot.rollImpact,
-      states: combatSnapshot.states,
-      effects: combatSnapshot.effects,
-      activation: combatSnapshot.activation,
-      inactiveReason: combatSnapshot.inactiveReason
-    };
+    ctx.combatDashboard = buildPersonalCombatDashboardContext(combatSnapshot);
     ctx.combatAwarenessPreview = buildCombatAwarenessPreview(this.actor, {
       sourceToken: sheetToken,
     });
@@ -555,139 +433,15 @@ ctx.edgeConsole.poolsOrdered = order
       }))
     };
 
-    const loadout = this.actor.getPersonalCombatLoadout();
-    ctx.personalInventory = {
-      warnings: [...(loadout?.warnings ?? [])],
-      weapons: (loadout?.weapons ?? []).map(weapon => {
-        const accordionId = this.#inventoryAccordionId("weapons", weapon.id);
-        const usesPayloads = String(weapon?.category ?? "").trim().toLowerCase() !== "melee";
-        const payloadTracked = Boolean(weapon?.sourceState?.isTracked);
-        const payloadName = String(weapon?.payloadLabel ?? "").trim() || "Unloaded";
-        const payloadCount = usesPayloads && payloadTracked
-          ? `${toNumber(weapon?.sourceState?.current, 0)}/${toNumber(weapon?.sourceState?.max, 0)}`
-          : "";
-        const payloadDetail = usesPayloads
-          ? (payloadTracked ? `${payloadName} ${payloadCount}` : payloadName)
-          : "";
-        const payloadTag = usesPayloads
-          ? (payloadTracked ? `Payload ${payloadCount}` : `Payload ${payloadName}`)
-          : "";
-        const cqBands = formatBandValues(weapon.attackRatingBand);
-        const cqBandsCompact = formatCompactBandValues(weapon.attackRatingBand);
-        const detailRows = buildDetailRows([
-          { label: "Skill", value: weapon.skillDef?.label ?? weapon.skill ?? "" },
-          { label: "Category", value: weapon.category ?? "" },
-          { label: "Damage Type", value: weapon.damageTypeLabel ?? weapon.damageType ?? "" },
-          { label: "Max Range", value: formatRangeBandLabel(weapon.range?.max ?? weapon.defaultRangeBand ?? "") },
-          { label: "CQ Bands", value: cqBands },
-          { label: "Payload", value: payloadDetail },
-          { label: "Traits", value: compactList(weapon.traits ?? []).join(", ") }
-        ]);
-
-        return {
-          id: weapon.id,
-          accordionId,
-          isExpanded: this.#expandedInventoryRows.has(accordionId),
-          name: weapon.name,
-          img: weapon.img,
-          subtitle: weapon.skillDef?.label ?? weapon.category ?? "",
-          summaryStats: buildSummaryStats([
-            { label: "DV", value: toNumber(weapon.damage, 0), emphasis: "strong" },
-            { label: "AP", value: toNumber(weapon.ap, 0) },
-            { label: "Type", value: weapon.damageTypeLabel ?? weapon.damageType ?? "" },
-            { label: "CQ", value: cqBandsCompact }
-          ]),
-          detailTags: buildDetailTags([
-            weapon.equipped ? "Equipped" : "",
-            weapon.isPrimary ? "Primary" : "",
-            payloadTag,
-            ...compactList(weapon.traits ?? [])
-          ]),
-          detailRows,
-            detailText: toSnippet(weapon.notes),
-            equipped: !!weapon.equipped,
-            isPrimary: !!weapon.isPrimary,
-            attackUuid: weapon.uuid ?? "",
-            attackRoll: JSON.stringify({
-              intent: "attack",
-              weaponId: weapon.id,
-            payloadId: weapon?.payloadState?.activePayloadId ?? "",
-            edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-            tags: ["combat", "attack"]
-          })
-        };
-      }),
-      armor: (loadout?.armor ?? []).map(armor => {
-        const activeArmor = loadout?.activeArmor?.id === armor.id ? loadout.activeArmor : null;
-        const accordionId = this.#inventoryAccordionId("armor", armor.id);
-        const reinforcedMax = toNumber(activeArmor?.traitState?.reinforced?.max ?? armor?.traitState?.reinforced?.max, 0);
-        const reinforcedLabel = reinforcedMax > 0
-          ? `${toNumber(activeArmor?.traitState?.reinforced?.current ?? armor?.traitState?.reinforced?.current, 0)}/${reinforcedMax}`
-          : "";
-        const modifierSummary = buildArmorModifierSummary({
-          defenseBonus: armor.defenseBonus,
-          mitigationByType: activeArmor?.mitigationByType ?? activeArmor?.typedMitigation ?? armor.mitigationByType ?? {}
-        });
-
-        return {
-          id: armor.id,
-          accordionId,
-          isExpanded: this.#expandedInventoryRows.has(accordionId),
-          name: armor.name,
-          img: armor.img,
-          subtitle: armor.tags?.length ? armor.tags.join(", ") : "Armor",
-          summaryStats: buildSummaryStats([
-            { label: "Rating", value: toNumber(activeArmor?.ratingCurrent ?? armor.rating, 0), emphasis: "strong" },
-            { label: "Res", value: toNumber(activeArmor?.baseMitigation ?? activeArmor?.baseResistance, 0) },
-            { label: "Def", value: toNumber(armor.defenseBonus, 0) },
-            { label: "Dur", value: `${toNumber(activeArmor?.durability?.current ?? armor.durability?.current, 0)}/${toNumber(activeArmor?.durability?.max ?? armor.durability?.max, 0)}` }
-          ]),
-          detailTags: buildDetailTags([
-            armor.equipped ? "Equipped" : "",
-            armor.isPrimary ? "Primary" : "",
-            reinforcedLabel ? `Reinforced ${reinforcedLabel}` : "",
-            ...compactList(armor.traits ?? [])
-          ]),
-          detailRows: buildDetailRows([
-            { label: "Modifiers", value: modifierSummary },
-            { label: "Traits", value: compactList(armor.traits ?? []).join(", ") },
-            { label: "Tags", value: compactList(armor.tags ?? []).join(", ") }
-          ]),
-          detailText: toSnippet(armor.notes),
-          equipped: !!armor.equipped,
-          isPrimary: !!armor.isPrimary,
-        };
-      }),
-      gear: (ctx.items?.gear ?? []).map(item => {
-        const accordionId = this.#inventoryAccordionId("gear", item.id);
-        return buildQuantityTrackedInventoryRecord({
-          item,
-          accordionId,
-          itemType: "gear",
-          defaultSubtitle: "Gear",
-          categoryLabels: GEAR_CATEGORY_LABELS,
-          ratingLabel: "Rating",
-          isEditable: this.isEditable,
-          isExpanded: this.#expandedInventoryRows.has(accordionId),
-        });
-      }),
-      // Consumables deliberately share the same quantity-tracked record model as
-      // gear so stock editing and linked-source authoring stay transferable.
-      consumables: (ctx.items?.consumable ?? []).map(item => {
-        const accordionId = this.#inventoryAccordionId("consumables", item.id);
-        return buildQuantityTrackedInventoryRecord({
-          item,
-          accordionId,
-          itemType: "consumable",
-          defaultSubtitle: "Consumable",
-          categoryLabels: CONSUMABLE_CATEGORY_LABELS,
-          ratingLabel: "Potency",
-          typeLabel: "Consumable",
-          isEditable: this.isEditable,
-          isExpanded: this.#expandedInventoryRows.has(accordionId),
-        });
-      })
-    };
+    ctx.personalInventory = buildPersonalInventoryContext(this.actor, {
+      items: ctx.items,
+      isEditable: this.isEditable,
+      isExpanded: accordionId => this.#expandedInventoryRows.has(accordionId),
+      inventoryAccordionId: (section, itemId) => this.#inventoryAccordionId(section, itemId),
+      armorModifierLabels: ARMOR_MODIFIER_LABELS,
+      gearCategoryLabels: GEAR_CATEGORY_LABELS,
+      consumableCategoryLabels: CONSUMABLE_CATEGORY_LABELS,
+    });
 
     /* -------------------------------------------- */
     /* Bio                                          */

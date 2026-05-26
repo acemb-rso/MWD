@@ -5,6 +5,8 @@
 import { DETECTION_STATE_ORDER, upgradeDetectionState } from "../mwd/machine-ew.js";
 import {
   getAttackerCombatant,
+  getDetectionState,
+  getTargetCombatant,
   setDetectionState,
   setTargetingPacket,
   buildTargetingPacket,
@@ -48,6 +50,43 @@ function resolveAttackerCombatant(context = {}) {
   return getCombatantById(context?.attackerCombatantId)
     ?? getAttackerCombatant(getAttackerTokenFromUuid(context?.attackerTokenUuid))
     ?? getAttackerCombatant(getAttackerTokenFromId(context?.attackerTokenId));
+}
+
+function getTokenUuid(token = null) {
+  return String(token?.document?.uuid ?? token?.uuid ?? "").trim();
+}
+
+function downgradeDetectionState(state = "blind") {
+  const index = DETECTION_STATE_ORDER.indexOf(state);
+  if (index <= 0) return "blind";
+  return DETECTION_STATE_ORDER[index - 1] ?? "blind";
+}
+
+function resolveBreakLockObserverCombatant(payload = {}) {
+  const combatantId = String(payload?.targetCombatantId ?? "").trim();
+  if (combatantId) return getCombatantById(combatantId);
+
+  const targetTokenId = String(payload?.targetTokenId ?? "").trim();
+  if (targetTokenId) {
+    return getTargetCombatant(targetTokenId)
+      ?? getAttackerCombatant(getAttackerTokenFromId(targetTokenId));
+  }
+
+  const targetTokenUuid = String(payload?.targetTokenUuid ?? "").trim();
+  if (targetTokenUuid) {
+    return getAttackerCombatant(getAttackerTokenFromUuid(targetTokenUuid));
+  }
+
+  return null;
+}
+
+function resolveBreakLockSourceToken(actor = null, payload = {}) {
+  return getAttackerTokenFromUuid(payload?.sourceTokenUuid)
+    ?? getAttackerTokenFromId(payload?.sourceTokenId)
+    ?? actor?.getActiveTokens?.(true, true)?.[0]
+    ?? actor?.token?.object
+    ?? actor?.token
+    ?? null;
 }
 
 /**
@@ -172,5 +211,89 @@ export async function resolveTargetingExecution({ attacker, ctx, outcomeModel } 
     dn,
     packetId:    packet.id,
     hitCap:      capped < rawValue,
+  };
+}
+
+/**
+ * Apply Break Lock: a successful defensive EW roll downgrades the selected
+ * observer/attacker combatant's detection state for the machine taking action.
+ */
+export async function resolveBreakLockExecution({ attacker, payload = {}, ctx = {}, outcomeModel } = {}) {
+  const actionKey = String(payload?.machineActionKey ?? "").trim();
+  if (actionKey !== "breakLock") return null;
+
+  const hits = Number(outcomeModel?.successes ?? outcomeModel?.hits ?? 0);
+  const dn = Number(ctx?.difficulty?.dn ?? 1);
+  const passed = hits >= dn;
+
+  const sourceToken = resolveBreakLockSourceToken(attacker, payload);
+  const targetTokenUuid = String(payload?.breakLockTargetTokenUuid ?? "").trim() || getTokenUuid(sourceToken);
+  const observerCombatant = resolveBreakLockObserverCombatant(payload);
+
+  if (!passed) {
+    return {
+      ok: false,
+      reason: "Break Lock roll failed.",
+      hits,
+      dn,
+      targetTokenUuid,
+    };
+  }
+
+  if (!targetTokenUuid) {
+    return {
+      ok: false,
+      reason: "Break Lock succeeded, but no acting machine token was found.",
+      persistenceFailed: true,
+      hits,
+      dn,
+    };
+  }
+
+  if (!observerCombatant) {
+    return {
+      ok: false,
+      reason: "Break Lock succeeded, but no observing combatant was found; detection state was not persisted.",
+      persistenceFailed: true,
+      hits,
+      dn,
+      targetTokenUuid,
+    };
+  }
+
+  const previousState = getDetectionState(observerCombatant, targetTokenUuid);
+  const newState = downgradeDetectionState(previousState);
+  if (newState === previousState) {
+    return {
+      ok: false,
+      reason: "Observer has no detection state to reduce.",
+      previousState,
+      newState,
+      hits,
+      dn,
+      targetTokenUuid,
+      observerCombatantId: observerCombatant.id ?? "",
+    };
+  }
+
+  Hooks.callAll("mwd.beforeBreakLockStateChange", {
+    attacker,
+    observerCombatant,
+    targetTokenUuid,
+    previousState,
+    newState,
+    ctx,
+  });
+
+  await setDetectionState(observerCombatant, targetTokenUuid, newState);
+
+  return {
+    ok: true,
+    previousState,
+    newState,
+    hits,
+    dn,
+    targetTokenUuid,
+    observerCombatantId: observerCombatant.id ?? "",
   };
 }

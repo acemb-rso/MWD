@@ -31,7 +31,7 @@ import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { getMachineActionDefinition } from "../mwd/machine-action-catalog.js";
 import { findAssetModuleActionOverride, getAssetModuleActionCosts } from "../mwd/asset-module-effects.js";
 import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
-import { resolveAcquireExecution, resolveTargetingExecution } from "./ew-execution.js";
+import { resolveAcquireExecution, resolveBreakLockExecution, resolveTargetingExecution } from "./ew-execution.js";
 import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-state.js";
 
 /**
@@ -126,6 +126,13 @@ async function recomputeResolvedOutcomeAndAttack(resolved = {}, actor = null) {
   } else if (ctx.intent === "targeting" && actor && ctx.targeting) {
     resolved.ewTargetingResult = await resolveTargetingExecution({
       attacker: actor,
+      ctx,
+      outcomeModel: resolved.outcomeModel,
+    });
+  } else if (ctx.intent === "skill" && resolved.originPayload?.machineActionKey === "breakLock" && actor) {
+    resolved.ewBreakLockResult = await resolveBreakLockExecution({
+      attacker: actor,
+      payload: resolved.originPayload,
       ctx,
       outcomeModel: resolved.outcomeModel,
     });
@@ -1033,11 +1040,15 @@ async function execute({ actor, payload, event } = {}) {
 
   let ewAcquireResult = null;
   let ewTargetingResult = null;
+  let ewBreakLockResult = null;
   if (ctx.intent === "acquire") {
     ewAcquireResult = await resolveAcquireExecution({ attacker: actor, ctx, outcomeModel });
   }
   if (ctx.intent === "targeting") {
     ewTargetingResult = await resolveTargetingExecution({ attacker: actor, ctx, outcomeModel });
+  }
+  if (ctx.intent === "skill" && payload.machineActionKey === "breakLock") {
+    ewBreakLockResult = await resolveBreakLockExecution({ attacker: actor, payload, ctx, outcomeModel });
   }
   if (ctx.intent === "attack" && ctx.attack?.ewContext?.activePacketId) {
     const attackerToken = getMachineAttackToken(actor, payload);
@@ -1094,6 +1105,7 @@ async function execute({ actor, payload, event } = {}) {
   }
   if (ewAcquireResult)   resolved.ewAcquireResult  = ewAcquireResult;
   if (ewTargetingResult) resolved.ewTargetingResult = ewTargetingResult;
+  if (ewBreakLockResult) resolved.ewBreakLockResult = ewBreakLockResult;
   if (ctx.acquire)   resolved.acquire   = ctx.acquire;
   if (ctx.targeting) resolved.targeting = ctx.targeting;
 

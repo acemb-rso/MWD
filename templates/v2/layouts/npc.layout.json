@@ -3,85 +3,151 @@
   "version": 1,
   "root": {
     "type": "stack",
-    "classes": ["csb-layout"],
+    "classes": ["csb-layout", "npc-lite-layout"],
     "children": [
       {
-        "type": "tabs",
-        "group": "primary",
-        "default": "overview",
-        "classes": ["csb-body", "mwd-body"],
-        "tabs": [
+        "type": "stack",
+        "classes": ["mwd-fixed-top", "npc-lite-topband"],
+        "children": [
           {
-            "id": "overview",
-            "label": "NPC",
+            "type": "panel",
+            "title": "Identity",
+            "classes": ["npc-lite-topband__identity"],
             "children": [
               {
-                "type": "panel",
-                "title": "Profile",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 1, "fieldsKey": "profileFields" } }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Attributes",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "attributeFields" } }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Condition",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.field-grid", "context": { "columns": 3, "fieldsKey": "monitorFields" } }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Traits",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "traits", "itemType": "quality", "addLabel": "Trait", "emptyLabel": "No traits assigned." } }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Weapons",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "weapons", "itemType": "personalWeapon", "addLabel": "Weapon", "emptyLabel": "No weapons assigned." } }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Combat Awareness",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.combat-awareness-preview" }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Asset Modules",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "assetModules", "itemType": "assetModule", "addLabel": "Module", "emptyLabel": "No asset modules assigned." } }
-                ]
-              },
-              {
-                "type": "panel",
-                "title": "Inventory",
-                "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.owned-item-list", "context": { "collectionKey": "inventory", "itemType": "gear", "addLabel": "Gear", "emptyLabel": "No gear assigned." } }
-                ]
+                "type": "include",
+                "partial": "mwd.v2.ui.actor.field-grid",
+                "context": { "columns": 1, "fieldsKey": "profileFields" }
               }
             ]
           },
           {
-            "id": "notes",
-            "label": "Notes",
+            "type": "panel",
+            "title": "Attributes",
+            "classes": ["npc-lite-topband__attributes"],
             "children": [
               {
-                "type": "panel",
-                "title": "Notes",
+                "type": "include",
+                "partial": "mwd.v2.ui.actor.field-grid",
+                "context": { "columns": 6, "fieldsKey": "attributeFields" }
+              }
+            ]
+          },
+          {
+            "type": "panel",
+            "title": "Condition",
+            "classes": ["npc-lite-topband__monitors"],
+            "children": [
+              { "type": "include", "partial": "mwd.v2.ui.condition-monitors" }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "stack",
+        "classes": ["mwd-scroll-area"],
+        "children": [
+          {
+            "type": "tabs",
+            "group": "primary",
+            "default": "combat",
+            "renderMode": "stack",
+            "classes": ["csb-body", "mwd-body"],
+            "tabs": [
+              {
+                "id": "combat",
+                "label": "Combat",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.actor.notes-editor" }
+                  {
+                    "type": "panel",
+                    "title": "Combat Dashboard",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.character.status-dashboard" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Combat Actions",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.character.combat-actions" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Combat Awareness",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.combat-awareness-preview" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Personal Weapons",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-weapons" }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "skills",
+                "label": "Skills",
+                "children": [
+                  {
+                    "type": "stack",
+                    "classes": ["mwd-skills-grid"],
+                    "children": [
+                      {
+                        "type": "include",
+                        "partial": "mwd.v2.ui.character.skills-column",
+                        "context": { "skills": "left" }
+                      },
+                      {
+                        "type": "include",
+                        "partial": "mwd.v2.ui.character.skills-column",
+                        "context": { "skills": "right" }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "equipment",
+                "label": "Equipment",
+                "children": [
+                  {
+                    "type": "stack",
+                    "classes": ["mwd-inventory-layout"],
+                    "children": [
+                      {
+                        "type": "panel",
+                        "title": "Weapons",
+                        "children": [
+                          { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-weapons" }
+                        ]
+                      },
+                      {
+                        "type": "panel",
+                        "title": "Armor",
+                        "children": [
+                          { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-armor" }
+                        ]
+                      },
+                      {
+                        "type": "panel",
+                        "title": "Gear",
+                        "children": [
+                          { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-gear" }
+                        ]
+                      },
+                      {
+                        "type": "panel",
+                        "title": "Consumables",
+                        "children": [
+                          { "type": "include", "partial": "mwd.v2.ui.placeholders.inventory-consumables" }
+                        ]
+                      }
+                    ]
+                  }
                 ]
               }
             ]
