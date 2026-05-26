@@ -4,7 +4,7 @@ Purpose: Renders chassis config fields (tonnage, weight class) in edit mode; sta
 How it fits: Included in the Systems tab of the BattleMech V2 sheet.
 --}}
 
-{{#if editing}}
+{{#if @root.editing}}
   <div class="mwd-gmgadget__grid">
     {{#each battlemechSheet.chassisFields as |field|}}
       <label class="mwd-gmgadget__field">

@@ -3,7 +3,7 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { toInt, computeEdgeEarned, getEdgeEarnConfig, getEdgePoolKey } from "./_outcome-helpers.js";
+import { toInt, getEdgePoolKey, isCriticalFailureOnes } from "./_outcome-helpers.js";
 
 /**
  * Opposed roll:
@@ -12,9 +12,8 @@ import { toInt, computeEdgeEarned, getEdgeEarnConfig, getEdgePoolKey } from "./_
  *   - if ctx.opposed.net === true: netHits = atk - def; passed if netHits > 0 (ties policy optional)
  *   - else: passed is still based on comparison, but we don't expose netHits unless requested
  *
- * Edge earn rule:
- * - if ctx.opposed.net === true and edge earn enabled:
- *   - earn Edge if netHits >= rate (default 4), capped (default 1)
+ * Edge earn: netHits > 4 (critical success) or 0 attacker hits with half+ dice as 1s (critical failure).
+ * Only applies when no edge was spent on the roll (enforced by caller).
  */
 export function interpretOpposedOutcome(ctx, primary, opposition) {
   const atk = toInt(primary?.successes, 0);
@@ -48,21 +47,21 @@ export function interpretOpposedOutcome(ctx, primary, opposition) {
     }
   }
 
-  const earnCfg = getEdgeEarnConfig(ctx);
-  const maxPerRoll = earnCfg.maxPerRoll ?? 1;
+  const criticalFailure = isCriticalFailureOnes(atk, primary?.raw);
 
-  const edge = (earnCfg.enabled && netEnabled && typeof netHits === "number" && netHits >= earnCfg.rate)
-    ? (() => {
-        const { amount, rate } = computeEdgeEarned(netHits, { rate: earnCfg.rate, maxPerRoll });
-        const pool = getEdgePoolKey(ctx);
-        return amount > 0 ? { amount, pool, reason: "net4", details: { netHits, rate } } : null;
-      })()
-    : null;
+  const pool = getEdgePoolKey(ctx);
+  let edgeEarned = null;
+  if (netEnabled && typeof netHits === "number" && netHits > 4) {
+    edgeEarned = { amount: 1, pool, reason: "criticalSuccess", details: { netHits } };
+  } else if (criticalFailure) {
+    edgeEarned = { amount: 1, pool, reason: "criticalFailure", details: {} };
+  }
 
   return {
     rollType: "opposed",
     passed,
     successes: atk,
+    criticalFailure,
     opposed: {
       attacker: atk,
       defender: def,
@@ -70,6 +69,6 @@ export function interpretOpposedOutcome(ctx, primary, opposition) {
       netHits: netEnabled ? netHits : undefined,
       tiePolicy: ties,
     },
-    edgeEarned: edge,
+    edgeEarned,
   };
 }

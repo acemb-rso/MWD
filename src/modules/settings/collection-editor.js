@@ -78,24 +78,23 @@ function getSettingsCollectionMenuClass(definitionId) {
   return SettingsCollectionMenu;
 }
 
-export class SettingsCollectionEditor extends FormApplication {
+export class SettingsCollectionEditor extends foundry.applications.api.HandlebarsApplicationMixin(
+  foundry.applications.api.ApplicationV2
+) {
   static definitionId = "";
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      id: `${SYSTEM_NAME}-${this.definitionId}-editor`,
-      classes: ["mwd", "mwd-settings-editor"],
-      template: TEMPLATE_PATH,
-      width: 880,
-      height: 760,
-      resizable: true,
-      submitOnChange: false,
-      closeOnSubmit: false
-    }, { inplace: false });
-  }
+  static DEFAULT_OPTIONS = {
+    classes: ["mwd", "mwd-settings-editor"],
+    window: { resizable: true },
+    position: { width: 880, height: 760 },
+  };
 
-  constructor(object = {}, options = {}) {
-    super(object, options);
+  static PARTS = {
+    main: { template: TEMPLATE_PATH }
+  };
+
+  constructor(options = {}) {
+    super(options);
 
     const savedValue = this.#readSavedValue();
     this.editorState = {
@@ -104,6 +103,10 @@ export class SettingsCollectionEditor extends FormApplication {
       bulkText: this.definition.serializeBulk(savedValue),
       errors: []
     };
+  }
+
+  get id() {
+    return `${SYSTEM_NAME}-${this.constructor.definitionId}-editor`;
   }
 
   get definition() {
@@ -118,7 +121,7 @@ export class SettingsCollectionEditor extends FormApplication {
     return this.definition.title ?? this.definition.menu?.name ?? "Settings Editor";
   }
 
-  getData(options = {}) {
+  async _prepareContext(_options = {}) {
     const schema = this.#resolveRowSchema();
     const rows = this.editorState.rows.map((row, index, allRows) => ({
       index,
@@ -127,7 +130,7 @@ export class SettingsCollectionEditor extends FormApplication {
       canMoveDown: index < (allRows.length - 1)
     }));
 
-    return foundry.utils.mergeObject(super.getData(options), {
+    return {
       definitionId: this.definition.id,
       title: this.title,
       description: this.definition.description ?? "",
@@ -147,13 +150,11 @@ export class SettingsCollectionEditor extends FormApplication {
       resetLabel: this.definition.resetLabel ?? "Reset to Saved",
       defaultsLabel: this.definition.defaultsLabel ?? "Restore Defaults",
       emptyStateText: this.definition.emptyStateText ?? "No rows yet. Add one to start this collection."
-    }, { inplace: false, overwrite: true });
+    };
   }
 
-  activateListeners(html) {
-    super.activateListeners(html);
-
-    html.find("[data-action]").each((_, element) => {
+  _onRender(_context, _options) {
+    this.element.querySelectorAll("[data-action]").forEach(element => {
       element.addEventListener("click", event => {
         const target = event.currentTarget;
         const action = String(target?.dataset?.action ?? "").trim();
@@ -161,13 +162,17 @@ export class SettingsCollectionEditor extends FormApplication {
         void this.#handleAction(action, event, target);
       });
     });
+
+    const form = this.element.querySelector("form");
+    if (form) {
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+        void this.#onFormSubmit();
+      });
+    }
   }
 
-  async _onSubmit(event, { updateData = null, preventClose = true, preventRender = true } = {}) {
-    return super._onSubmit(event, { updateData, preventClose, preventRender });
-  }
-
-  async _updateObject(_event, _formData) {
+  async #onFormSubmit() {
     this.#setErrors([]);
 
     try {
@@ -185,7 +190,7 @@ export class SettingsCollectionEditor extends FormApplication {
       if (this.editorState.errors.length) {
         ui.notifications?.error(this.editorState.errors[0]);
       }
-      this.render(false);
+      this.render();
     }
   }
 
@@ -198,7 +203,7 @@ export class SettingsCollectionEditor extends FormApplication {
         this.#readBulkTextFromDom();
         this.editorState.tab = "rows";
         this.#setErrors([]);
-        this.render(false);
+        this.render();
         return;
 
       case "switchBulk":
@@ -214,35 +219,35 @@ export class SettingsCollectionEditor extends FormApplication {
             ui.notifications?.warn(this.editorState.errors[0]);
           }
         }
-        this.render(false);
+        this.render();
         return;
 
       case "addRow":
         this.#captureRowsFromDom();
         this.editorState.rows.push(this.definition.createEmptyRow?.() ?? {});
         this.#setErrors([]);
-        this.render(false);
+        this.render();
         return;
 
       case "removeRow":
         this.#captureRowsFromDom();
         this.editorState.rows.splice(Number(target?.dataset?.index ?? -1), 1);
         this.#setErrors([]);
-        this.render(false);
+        this.render();
         return;
 
       case "moveRowUp":
         this.#captureRowsFromDom();
         this.#moveRow(Number(target?.dataset?.index ?? -1), -1);
         this.#setErrors([]);
-        this.render(false);
+        this.render();
         return;
 
       case "moveRowDown":
         this.#captureRowsFromDom();
         this.#moveRow(Number(target?.dataset?.index ?? -1), 1);
         this.#setErrors([]);
-        this.render(false);
+        this.render();
         return;
 
       case "loadBulk":
@@ -258,7 +263,7 @@ export class SettingsCollectionEditor extends FormApplication {
             ui.notifications?.warn(this.editorState.errors[0]);
           }
         }
-        this.render(false);
+        this.render();
         return;
 
       case "formatBulk":
@@ -272,17 +277,17 @@ export class SettingsCollectionEditor extends FormApplication {
             ui.notifications?.warn(this.editorState.errors[0]);
           }
         }
-        this.render(false);
+        this.render();
         return;
 
       case "resetSetting":
         this.#loadValue(this.#readSavedValue());
-        this.render(false);
+        this.render();
         return;
 
       case "restoreDefaults":
         this.#loadValue(this.definition.defaultData());
-        this.render(false);
+        this.render();
         return;
 
       case "cancel":
@@ -322,7 +327,9 @@ export class SettingsCollectionEditor extends FormApplication {
   }
 
   #readRowsFromDom() {
-    const expanded = foundry.utils.expandObject(this._getSubmitData());
+    const form = this.element?.querySelector("form");
+    const formData = form ? new FormDataExtended(form) : { object: {} };
+    const expanded = foundry.utils.expandObject(formData.object);
     const source = expanded?.rows ?? {};
 
     return Object.keys(source)
@@ -339,8 +346,8 @@ export class SettingsCollectionEditor extends FormApplication {
   }
 
   #readBulkTextFromDom() {
-    const form = this.form;
-    const textarea = form?.querySelector?.('textarea[name="bulkText"]');
+    const form = this.element?.querySelector("form");
+    const textarea = form?.querySelector('textarea[name="bulkText"]');
     if (textarea instanceof HTMLTextAreaElement) {
       this.editorState.bulkText = textarea.value;
     }

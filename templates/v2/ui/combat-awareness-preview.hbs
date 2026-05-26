@@ -1,0 +1,135 @@
+{{!--
+templates/v2/ui/combat-awareness-preview.hbs
+Purpose: Renders the display-only combat awareness read model.
+How it fits: Shows known AR/DR, target, DN, tracking, and EW context without
+running attack resolution.
+--}}
+
+<div class="mwd-combat-awareness">
+  {{#if combatAwarenessPreview.warnings.length}}
+    <div class="mwd-combat-awareness__notice">
+      {{#each combatAwarenessPreview.warnings as |warning|}}
+        <div>{{warning}}</div>
+      {{/each}}
+    </div>
+  {{/if}}
+
+  <div class="mwd-combat-awareness__self-strip">
+    <div class="mwd-combat-awareness__self-item">
+      <span class="mwd-combat-awareness__self-label">Self AR Mod</span>
+      <strong>{{combatAwarenessPreview.self.arTotalLabel}}</strong>
+      {{#if combatAwarenessPreview.self.arMods.length}}
+        <span class="mwd-combat-awareness__self-detail">
+          {{#each combatAwarenessPreview.self.arMods as |part|}}{{part.label}} {{part.valueLabel}}{{#unless @last}} | {{/unless}}{{/each}}
+        </span>
+      {{else}}
+        <span class="mwd-combat-awareness__self-detail">No AR modifiers</span>
+      {{/if}}
+    </div>
+    <div class="mwd-combat-awareness__self-item">
+      <span class="mwd-combat-awareness__self-label">Self DR</span>
+      <strong>{{combatAwarenessPreview.self.drKnownTotalLabel}}</strong>
+      <span class="mwd-combat-awareness__self-detail">
+        {{#each combatAwarenessPreview.self.drBase as |part|}}{{part.label}} {{part.valueLabel}}{{#unless @last}} | {{/unless}}{{/each}}
+        {{#each combatAwarenessPreview.self.armorDefense as |part|}} | {{part.label}} {{part.valueLabel}}{{/each}}
+        {{#each combatAwarenessPreview.self.drMods as |part|}} | {{part.label}} {{part.valueLabel}}{{/each}}
+      </span>
+    </div>
+  </div>
+
+  {{#if combatAwarenessPreview.target}}
+    <div class="mwd-combat-awareness__section mwd-combat-awareness__section--tracking">
+      <div class="mwd-combat-awareness__section-title">Target Tracking</div>
+      <div class="mwd-combat-awareness__target-row">
+        <div class="mwd-combat-awareness__target-id">
+          <strong>{{combatAwarenessPreview.target.name}}</strong>
+          <span>{{combatAwarenessPreview.target.actorTypeLabel}}</span>
+        </div>
+        {{#if combatAwarenessPreview.machineContext}}
+          <div class="mwd-combat-awareness__metric">
+            <span>Attack DN</span>
+            <strong>{{combatAwarenessPreview.machineContext.dnTotalLabel}}</strong>
+            <small>
+              {{#each combatAwarenessPreview.machineContext.rangeDn as |part|}}{{part.label}} {{part.valueLabel}}{{#unless @last}} | {{/unless}}{{/each}}
+              {{#each combatAwarenessPreview.machineContext.motionDn as |part|}} | {{part.label}} {{part.valueLabel}}{{/each}}
+            </small>
+          </div>
+          <div class="mwd-combat-awareness__metric">
+            <span>Tracking Dice</span>
+            <strong>{{combatAwarenessPreview.machineContext.trackingPenaltyTotalLabel}}</strong>
+            <small>
+              {{#if combatAwarenessPreview.machineContext.trackingPenalty.length}}
+                {{#each combatAwarenessPreview.machineContext.trackingPenalty as |part|}}{{part.label}} {{part.valueLabel}}{{#unless @last}} | {{/unless}}{{/each}}
+              {{else}}
+                No tracking penalty
+              {{/if}}
+            </small>
+          </div>
+        {{/if}}
+        <div class="mwd-combat-awareness__metric">
+          <span>Defense</span>
+          <strong>{{combatAwarenessPreview.target.drTotalKnownLabel}}</strong>
+          <small>
+            {{#each combatAwarenessPreview.target.defenseBase as |part|}}{{part.label}} {{part.valueLabel}}{{#unless @last}} | {{/unless}}{{/each}}
+            {{#each combatAwarenessPreview.target.armorDefense as |part|}} | {{part.label}} {{part.valueLabel}}{{/each}}
+            {{#each combatAwarenessPreview.target.drMods as |part|}} | {{part.label}} {{part.valueLabel}}{{/each}}
+          </small>
+        </div>
+      </div>
+
+      {{#if combatAwarenessPreview.machineContext}}
+        <div class="mwd-combat-awareness__chips">
+          {{#each combatAwarenessPreview.machineContext.motionLabels as |label|}}
+            <span class="chip mwd-combat-awareness__chip">{{label}}</span>
+          {{/each}}
+          {{#if combatAwarenessPreview.machineContext.detectionStateLabel}}
+            <span class="chip mwd-combat-awareness__chip">Detection: {{combatAwarenessPreview.machineContext.detectionStateLabel}}</span>
+          {{/if}}
+          <span class="chip mwd-combat-awareness__chip">TargetingData: {{combatAwarenessPreview.machineContext.targetingDataSummary}}</span>
+        </div>
+      {{/if}}
+    </div>
+  {{/if}}
+
+  {{#if vehicleSheet.ewPanel}}
+    <div class="mwd-combat-awareness__section mwd-combat-awareness__section--ew">
+      <div class="mwd-combat-awareness__section-title">EW Actions</div>
+
+      {{#if vehicleSheet.ewPanel.rows.length}}
+        <div class="mwd-combat-awareness__ew-list">
+          {{#each vehicleSheet.ewPanel.rows as |row|}}
+            <article class="mwd-combat-awareness__ew-row">
+              <div class="mwd-combat-awareness__ew-main">
+                <strong>{{row.tokenName}}</strong>
+                <span>State {{row.detectionStateLabel}}</span>
+                {{#if row.hasRange}}<span>{{row.rangeBandLabel}} {{row.distanceLabel}}</span>{{/if}}
+                {{#if row.hasPacket}}<span>Packet +{{row.packetValue}}</span>{{/if}}
+                {{#if row.hasPacketCap}}<span>Cap +{{row.packetCap}}</span>{{/if}}
+                {{#if row.hasTrackingPenalty}}<span>Track -{{row.trackingPenalty}}</span>{{/if}}
+              </div>
+              <div class="mwd-combat-awareness__ew-actions">
+                {{#each row.compactActions as |action|}}
+                  <button
+                    type="button"
+                    class="mwd-combat-awareness__ew-btn{{#unless action.enabled}} is-disabled{{/unless}}"
+                    data-action="{{action.action}}"
+                    data-action-id="{{action.actionId}}"
+                    data-target-token-id="{{action.targetTokenId}}"
+                    data-target-token-uuid="{{action.targetTokenUuid}}"
+                    title="{{action.title}}"
+                    {{#unless action.enabled}}disabled{{/unless}}>
+                    <i class="fas {{action.icon}}"></i>
+                    <span>{{action.label}}</span>
+                    <b>DN {{action.dn}}</b>
+                  </button>
+                {{/each}}
+              </div>
+            </article>
+          {{/each}}
+        </div>
+      {{else}}
+        <div class="mwd-inv__empty">{{vehicleSheet.ewPanel.emptyState}}</div>
+      {{/if}}
+    </div>
+  {{/if}}
+</div>

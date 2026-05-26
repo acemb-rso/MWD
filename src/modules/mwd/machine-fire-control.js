@@ -4,7 +4,11 @@
 // without hardcoding Artemis-style behavior into sheets.
 
 import { TEMPLATE } from "../constants.js";
-import { getAssetModuleClusteringProfile } from "./asset-module-rules.js";
+import {
+  getAssetModuleClusteringProfile as getLegacyAssetModuleClusteringProfile,
+  getAssetModuleState,
+} from "./asset-module-rules.js";
+import { getAssetModuleClusteringProfile as getEffectAssetModuleClusteringProfile } from "./asset-module-effects.js";
 
 function toCollectionArray(value) {
   if (Array.isArray(value)) return value;
@@ -33,7 +37,7 @@ function buildDisabledClusteringState() {
   };
 }
 
-export function buildMachineFireControlModel(source = {}) {
+export function buildMachineFireControlModel(source = {}, context = {}) {
   const actorType = getActorType(source);
   if (
     actorType
@@ -46,14 +50,20 @@ export function buildMachineFireControlModel(source = {}) {
   const modules = getAssetModules(source)
     .map(item => ({
       item,
-      profile: getAssetModuleClusteringProfile(item),
+      state: getAssetModuleState(item, { installed: true }),
+      profile: getLegacyAssetModuleClusteringProfile(item),
     }))
     .filter(entry =>
-      Number(entry.profile?.diceModifier ?? 0) !== 0
-      || Number(entry.profile?.targetNumberModifier ?? 0) !== 0
+      entry.state.active
+      && (
+        Number(entry.profile?.diceModifier ?? 0) !== 0
+        || Number(entry.profile?.targetNumberModifier ?? 0) !== 0
+      )
     );
 
-  if (!modules.length) {
+  const effectProfile = getEffectAssetModuleClusteringProfile(source?.actor ?? source, context);
+
+  if (!modules.length && !effectProfile.diceModifier && !effectProfile.targetNumberModifier) {
     return { clustering: buildDisabledClusteringState() };
   }
 
@@ -65,14 +75,22 @@ export function buildMachineFireControlModel(source = {}) {
     sourceNames: entry.item?.name ? state.sourceNames.concat([entry.item.name]) : state.sourceNames,
   }), buildDisabledClusteringState());
 
+  const combined = {
+    active: true,
+    diceModifier: aggregated.diceModifier + Number(effectProfile.diceModifier ?? 0),
+    targetNumberModifier: aggregated.targetNumberModifier + Number(effectProfile.targetNumberModifier ?? 0),
+    sourceIds: aggregated.sourceIds.concat(effectProfile.sourceIds ?? []),
+    sourceNames: aggregated.sourceNames.concat(effectProfile.sourceNames ?? []),
+  };
+
   return {
     clustering: {
-      ...aggregated,
-      sourceLabel: aggregated.sourceNames.join(", "),
+      ...combined,
+      sourceLabel: combined.sourceNames.join(", "),
     },
   };
 }
 
-export function getMachineFireControlProfile(source = {}) {
-  return buildMachineFireControlModel(source).clustering;
+export function getMachineFireControlProfile(source = {}, context = {}) {
+  return buildMachineFireControlModel(source, context).clustering;
 }

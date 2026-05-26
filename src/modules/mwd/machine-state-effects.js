@@ -14,6 +14,11 @@ import {
   normalizeMachineCritId,
   normalizeMachineMountLocationFamily,
 } from "./machine-crit-consequences.js";
+import { computeHeatPenalties } from "./heat-effects.js";
+import { normalizeMachineHeatThresholds } from "./heat-state.js";
+import { movementPenaltyStepsToMeters } from "./machine-movement.js";
+import { getAssetModuleDerivedStatuses, getAssetModuleMovementBonus } from "./asset-module-effects.js";
+import { getVehicleStrainStateEffects } from "./vehicle-strain.js";
 
 const DETECTION_CAP_RANKS = Object.freeze({
   contact: 1,
@@ -31,7 +36,7 @@ function getActorType(actor = null) {
 }
 
 function hasStatus(actor = null, statusId = "") {
-  return actor?.statuses?.has?.(statusId) ?? false;
+  return (actor?.statuses?.has?.(statusId) ?? false) || getAssetModuleDerivedStatuses(actor).has(statusId);
 }
 
 
@@ -82,6 +87,10 @@ function pushEffect(state, text = "") {
   if (!state.effectTexts.includes(value)) state.effectTexts.push(value);
 }
 
+function addMovementPenalty(state, steps = 1) {
+  state.movementPenalty += movementPenaltyStepsToMeters(steps);
+}
+
 function applyMachineCritDerivedState(state, actor = null) {
   for (const crit of getActiveMachineCrits(actor)) {
     const statusId = String(crit?.statusId ?? "").trim();
@@ -101,10 +110,15 @@ function applyMachineCritDerivedState(state, actor = null) {
       state.noSprint = true;
       state.noJump = true;
     } else if (statusId === "limping") {
-      state.movementPenalty += 1;
+      addMovementPenalty(state, 1);
       state.pilotingDn += 1;
     } else if (statusId === "jumpJetFailure") {
       state.noJump = true;
+    }
+
+    if (String(crit?.key ?? "").trim() === "opticsCoolantFog") {
+      state.rangeCapClose = true;
+      pushEffect(state, "Optics Coolant Fog: attacks beyond Close are blocked.");
     }
   }
 }
@@ -134,6 +148,9 @@ function applyExplicitStatuses(state, actor = null) {
   }
   if (hasStatus(actor, "shutdown")) {
     state.cannotAct = true;
+    state.rangeCapClose = true;
+    state.noTargetingDataGeneration = true;
+    state.noTargetingDataUse = true;
     pushEffect(state, "Shutdown: the machine cannot act until it is power-cycled.");
   }
   if (hasStatus(actor, "proneMechFall")) {
@@ -168,11 +185,41 @@ function applyExplicitStatuses(state, actor = null) {
     state.targetFocused = true;
   }
   if (hasStatus(actor, "entrenchedHullDown")) {
-    state.defenseDr += 5;
+    state.defenseDr += actor?.type === TEMPLATE.actorTypes.vehicle ? 7 : 5;
+    if (actor?.type === TEMPLATE.actorTypes.vehicle) {
+      pushEffect(state, "Hull Down: vehicle gains a strong prepared-position defense bonus.");
+    }
   }
   if (hasStatus(actor, "exposed")) {
     state.defenseDr += -2;
   }
+}
+
+function applyVehicleStrain(state, actor = null) {
+  if (getActorType(actor) !== TEMPLATE.actorTypes.vehicle) return;
+  const strainEffects = getVehicleStrainStateEffects(actor);
+  state.handling += strainEffects.handling;
+  state.system += strainEffects.system;
+  state.pilotingDice += strainEffects.pilotingDice;
+  state.pilotingDn += strainEffects.pilotingDn;
+  state.movementPenalty += strainEffects.movementPenalty;
+  state.redlineBlocked = Boolean(strainEffects.redlineBlocked);
+  for (const text of strainEffects.effectTexts ?? []) pushEffect(state, text);
+}
+
+function applyBattlemechHeatMovementPenalty(state, actor = null) {
+  if (getActorType(actor) !== TEMPLATE.actorTypes.battlemech) return;
+  const system = actor?.system ?? {};
+  const heatMonitor = system?.monitors?.heat ?? {};
+  const heatConfig = system?.mwd?.heat ?? {};
+  const currentHeat = Math.max(0, toNumber(heatMonitor.value ?? heatConfig.current, 0));
+  const trackLength = Math.max(0, toNumber(heatMonitor.max ?? heatConfig.max ?? heatConfig.hardMax, 0));
+  const thresholds = normalizeMachineHeatThresholds(heatConfig.thresholds ?? {}, trackLength);
+  const heatMovementPenalty = computeHeatPenalties(currentHeat, thresholds).movementPenalty;
+  if (heatMovementPenalty <= 0) return;
+
+  state.movementPenalty += heatMovementPenalty;
+  pushEffect(state, `Heat: -${heatMovementPenalty} m movement speed.`);
 }
 
 function applyBattlemechDegradation(state, actor = null) {
@@ -231,8 +278,8 @@ function applyBattlemechDegradation(state, actor = null) {
 
   const legsCondition = getCondition(legs);
   if (legsCondition >= 1) {
-    state.movementPenalty += 1;
-    pushEffect(state, "Legs impaired: -1 movement.");
+    addMovementPenalty(state, 1);
+    pushEffect(state, "Legs impaired: -30 m movement.");
   }
   if (legsCondition >= 2) {
     state.noSprint = true;
@@ -304,8 +351,8 @@ function applyVehicleDegradation(state, actor = null) {
     getCondition(mobility),
     getCondition(getLocationState(actor, "rotor")),
   );
-  if (mobilityCondition >= 1) state.movementPenalty += 1;
-  if (mobilityCondition >= 2) state.movementPenalty += 1;
+  if (mobilityCondition >= 1) addMovementPenalty(state, 1);
+  if (mobilityCondition >= 2) addMovementPenalty(state, 1);
   if (mobilityCondition >= 3) {
     state.noSprint = true;
     pushEffect(state, "Mobility crippled: cannot Sprint.");
@@ -330,6 +377,7 @@ export function getMachineRuleState(actor = null) {
     turretAttackDice: 0,
     attackAr: 0,
     defenseDr: 0,
+    movementBonus: 0,
     movementPenalty: 0,
     trackingPenaltyAsTarget: 0,
     ecmSpikeDefenseDice: 0,
@@ -354,9 +402,13 @@ export function getMachineRuleState(actor = null) {
     reactorBreach: false,
     forcedProne: false,
     prone: false,
+    redlineBlocked: false,
     effectTexts: [],
   };
 
+  applyVehicleStrain(state, actor);
+  applyBattlemechHeatMovementPenalty(state, actor);
+  state.movementBonus += getAssetModuleMovementBonus(actor);
   applyMachineCritDerivedState(state, actor);
   applyExplicitStatuses(state, actor);
   if (getActorType(actor) === TEMPLATE.actorTypes.battlemech) applyBattlemechDegradation(state, actor);
@@ -473,6 +525,7 @@ export function getMachineMovementEffects(actor = null) {
   const state = getMachineRuleState(actor);
   return {
     movementPenalty: state.movementPenalty,
+    movementBonus: state.movementBonus,
     noSprint: state.noSprint,
     noJump: state.noJump,
     immobile: state.immobile,
@@ -511,7 +564,7 @@ export function buildMachineDegradationEffectSummary(actorType = "", locationKey
       if (condition >= 4) return "Immobile.";
       if (condition >= 3) return "Actuator Failure; cannot run.";
       if (condition >= 2) return "Cannot Sprint.";
-      if (condition >= 1) return "-1 movement.";
+      if (condition >= 1) return "-30 m movement.";
     }
   } else {
     if (["front", "side", "rear", "core"].includes(locationKey)) {
@@ -532,8 +585,8 @@ export function buildMachineDegradationEffectSummary(actorType = "", locationKey
       if (destroyed) return "Immobile; advance body condition by 1.";
       if (condition >= 4) return "Immobile.";
       if (condition >= 3) return "Cannot Sprint.";
-      if (condition >= 2) return "-2 movement.";
-      if (condition >= 1) return "-1 movement.";
+      if (condition >= 2) return "-60 m movement.";
+      if (condition >= 1) return "-30 m movement.";
     }
   }
   return "";
@@ -550,6 +603,15 @@ export function getMachineDerivedStatusIds(actor = null) {
     if (getCondition(getLocationState(actor, "legs")) >= 3) statuses.add("actuatorFailure");
     if (getLocationState(actor, "arms")?.destroyed) statuses.add("armDestroyed");
     if (getCondition(getLocationState(actor, "legs")) >= 4 || getLocationState(actor, "legs")?.destroyed) statuses.add("legDestroyed");
+  }
+  if (actorType === TEMPLATE.actorTypes.vehicle) {
+    if (getCondition(getLocationState(actor, "turret")) >= 4) statuses.add("weaponFailure");
+    if (
+      getCondition(getLocationState(actor, "rear")) >= 4
+      || getCondition(getLocationState(actor, "rotor")) >= 4
+    ) statuses.add("stalled");
+    if (getCondition(getLocationState(actor, "core")) >= 2) statuses.add("sensorDegraded");
+    if (getCondition(getLocationState(actor, "core")) >= 4) statuses.add("shutdown");
   }
   return Array.from(statuses);
 }

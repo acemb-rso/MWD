@@ -31,7 +31,7 @@ Shutdown|Cannot act; must restart|powerCycle|2 SA|2|
 # MOBILITY / STRUCTURE
 Status|Mechanical Impact|Remediation|SA Cost|DN|
 |-|-|-|-|-|
-Limping|-1 movement; +1 Piloting DN|stabalize|1 SA|2|
+Limping|-30 m movement; +1 Piloting DN|stabalize|1 SA|2|
 Jump Jet Failure|Cannot Jump|emergencyRepair|2 SA|2|
 Actuator Failure|-1 Handling|major repair|.|.|
 Gyro Damage|+1 Piloting DN|major repair|.|.|

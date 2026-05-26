@@ -9,7 +9,23 @@ import {
   getSkillSpecializationLabel,
 } from "../mwd/skills.js";
 import { getPersonalRangeBandName } from "../mwd/personal-range-bands.js";
+import {
+  getIndirectAttackPenalty,
+  isMachineActor,
+  normalizeTargetMotion,
+  TARGET_MOTION_LABELS,
+} from "../mwd/machine-attack-motion.js";
+import { normalizeMachineMotionPayload } from "../mwd/machine-attack-motion.js";
+import { getTargetCombatant } from "../mwd/machine-ew-state.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
+const ATTACK_OPTION_MODIFIERS = Object.freeze([
+  Object.freeze({ id: "attackOption.lightObscuring", label: "Light obscuring terrain", value: -1 }),
+  Object.freeze({ id: "attackOption.heavyObscuring", label: "Heavy obscuring terrain", value: -2 }),
+  Object.freeze({ id: "attackOption.multipleObscurants", label: "Multiple/intervening obscurants", value: -3 }),
+  Object.freeze({ id: "attackOption.sensorHaze", label: "Smoke / ECM / sensor haze", value: -1 }),
+  Object.freeze({ id: "attackOption.advantageousPosition", label: "Advantageous Position", value: 1 }),
+]);
 
 /**
  * Build display steps for a horizontal modifier stepper.
@@ -47,6 +63,127 @@ function normalizeManualRows(rows) {
     label: typeof r?.label === "string" ? r.label : "Manual",
     value: Number(r?.value ?? 0)
   }));
+}
+
+function normalizeAttackOptions(payload = {}) {
+  return payload.attackOptions && typeof payload.attackOptions === "object"
+    ? payload.attackOptions
+    : {};
+}
+
+function writeAttackOptions(payload = {}, next = {}) {
+  payload.attackOptions = {
+    ...normalizeAttackOptions(payload),
+    ...next,
+  };
+}
+
+function writeMachineMotion(payload = {}, next = {}) {
+  payload.machineMotion = {
+    ...(payload.machineMotion && typeof payload.machineMotion === "object" ? payload.machineMotion : {}),
+    ...next,
+  };
+}
+
+function hasMachineMotionValue(payload = {}, key = "") {
+  const motion = payload.machineMotion && typeof payload.machineMotion === "object"
+    ? payload.machineMotion
+    : {};
+  return Object.prototype.hasOwnProperty.call(motion, key);
+}
+
+function seedMachineMotionPayloadFromResolved(payload = {}, resolved = null) {
+  // Prefer explicit resolved machineMotion, but fall back to deriving
+  // the known motion from the target combatant when missing.
+  const explicit = resolved?.attack?.machineMotion;
+  const tokenId = resolved?.attack?.targets?.[0]?.tokenId ?? null;
+
+  let declaration = null;
+  if (explicit && typeof explicit === "object") {
+    declaration = {
+      targetMotion: normalizeTargetMotion(explicit.targetMotion),
+      jumped: Boolean(explicit.jumped),
+    };
+  } else {
+    const targetCombatant = getTargetCombatant(tokenId);
+    declaration = normalizeMachineMotionPayload(payload, { targetCombatant });
+  }
+
+  if (!declaration || typeof declaration !== "object") return payload;
+
+  const next = {};
+  if (!hasMachineMotionValue(payload, "targetMotion")) {
+    next.targetMotion = normalizeTargetMotion(declaration.targetMotion);
+  }
+  if (!hasMachineMotionValue(payload, "jumped")) {
+    next.jumped = Boolean(declaration.jumped);
+  }
+  if (Object.keys(next).length) writeMachineMotion(payload, next);
+  return payload;
+}
+
+function hasManualRow(rows = [], id = "") {
+  return rows.some(row => row?.id === id);
+}
+
+function addOrUpdateManualRow(rows = [], row = {}) {
+  const id = String(row?.id ?? "").trim();
+  if (!id) return rows;
+  const index = rows.findIndex(entry => entry?.id === id);
+  const nextRow = {
+    id,
+    label: String(row?.label ?? "Manual").trim() || "Manual",
+    value: Number(row?.value ?? 0),
+  };
+  if (index >= 0) {
+    rows[index] = nextRow;
+  } else {
+    rows.push(nextRow);
+  }
+  return rows;
+}
+
+function removeManualRow(rows = [], id = "") {
+  return rows.filter(row => row?.id !== id);
+}
+
+function buildAttackOptionControls({ manual = [], attack = null, payload = {} } = {}) {
+  if (!attack) return null;
+
+  const attackOptions = normalizeAttackOptions(payload);
+  const indirectValue = getIndirectAttackPenalty(attack.rangeBand);
+  const indirectActive = Boolean(attackOptions.indirectAttack) || hasManualRow(manual, "attackOption.indirectAttack");
+  if (indirectActive) {
+    addOrUpdateManualRow(manual, {
+      id: "attackOption.indirectAttack",
+      label: "Indirect Attack",
+      value: indirectValue,
+    });
+    writeAttackOptions(payload, { indirectAttack: true });
+  }
+  const options = [
+    ...ATTACK_OPTION_MODIFIERS,
+    { id: "attackOption.indirectAttack", label: "Indirect Attack", value: indirectValue, flag: "indirectAttack" },
+  ].map(option => ({
+    ...option,
+    valueLabel: option.value >= 0 ? `+${option.value}` : String(option.value),
+    active: option.id === "attackOption.indirectAttack"
+      ? indirectActive
+      : hasManualRow(manual, option.id),
+  }));
+
+  const motion = payload.machineMotion && typeof payload.machineMotion === "object" ? payload.machineMotion : {};
+  const selectedMotion = normalizeTargetMotion(motion.targetMotion);
+  return {
+    motionChoices: Object.entries(TARGET_MOTION_LABELS).map(([key, label]) => ({
+      key,
+      label,
+      selected: key === selectedMotion,
+    })),
+    jumped: Boolean(motion.jumped),
+    options,
+    losBlocked: Boolean(attackOptions.losBlocked),
+  };
 }
 
 function readToggle(payload, key) {
@@ -120,6 +257,10 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         setManualStepper: MWDRollDialog.prototype._onSetManualStepper,
         setEdgePrePool: MWDRollDialog.prototype._onSetEdgePrePool,
         toggleCheckbox: MWDRollDialog.prototype._onToggleCheckbox,
+        setMachineTargetMotion: MWDRollDialog.prototype._onSetMachineTargetMotion,
+        toggleMachineTargetJumped: MWDRollDialog.prototype._onToggleMachineTargetJumped,
+        toggleAttackOption: MWDRollDialog.prototype._onToggleAttackOption,
+        toggleAttackFlag: MWDRollDialog.prototype._onToggleAttackFlag,
         setDn: MWDRollDialog.prototype._onSetDn,
         setPayload: MWDRollDialog.prototype._onSetPayload,
         setSpecialization: MWDRollDialog.prototype._onSetSpecialization
@@ -137,9 +278,10 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
   /** @type {{ baseContext: any, state: any }} */
   _mwd = { baseContext: null, state: null };
 
-  constructor({ actor, baseContext, initialState = null, options = {} }) {
+  constructor({ actor, rollActor = null, baseContext, initialState = null, options = {} }) {
     super(options);
     this.actor = actor;
+    this.rollActor = rollActor ?? actor;
 
     this._mwd.baseContext = baseContext ?? {};
     const payload = foundry.utils.deepClone(this._mwd.baseContext.payload ?? {});
@@ -227,9 +369,13 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       // Skill roll (existing behavior)
       dice = {
         attribute: Number(bc?.dice?.attribute ?? 0),
+        attributeLabel: String(bc?.dice?.attributeLabel ?? "Attribute").trim() || "Attribute",
         skill: Number(bc?.dice?.skill ?? 0),
+        skillLabel: String(bc?.dice?.skillLabel ?? "Skill").trim() || "Skill",
         bonus: Number(bc?.dice?.bonus ?? 0),
+        bonusLabel: String(bc?.dice?.bonusLabel ?? "Bonus").trim() || "Bonus",
         specialization: Number(bc?.dice?.specialization ?? 0),
+        specializationLabel: String(bc?.dice?.specializationLabel ?? "Specialization").trim() || "Specialization",
         modifiers: Number(bc?.dice?.modifiers ?? 0)
       };
 
@@ -252,7 +398,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const edgeChoices = pair.map(k => ({
       key: k,
       label: k.charAt(0).toUpperCase() + k.slice(1),
-      available: Number(this.actor?.getEdgePool?.(k)?.effectiveValue ?? 0),
+      available: Number(this.rollActor?.getEdgePool?.(k)?.effectiveValue ?? 0),
       selected: k === (st.edge?.prePoolKey ?? null)
     }));
 
@@ -267,7 +413,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       ?? ""
     ).trim();
     const specializationOptions = specializationSkillCode
-      ? getOwnedSkillSpecializations(this.actor?.system ?? {}, specializationSkillCode)
+      ? getOwnedSkillSpecializations(this.rollActor?.system ?? {}, specializationSkillCode)
       : [];
     const selectedSpecializationKey = String(st?.payload?.specializationKey ?? "").trim();
     const selectedSpecialization = specializationOptions.find(option => option.key === selectedSpecializationKey) ?? null;
@@ -285,6 +431,10 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const usesPayloads = String(attack?.weapon?.category ?? "").trim().toLowerCase() !== "melee" && payloads.length > 0;
     const selectedPayloadId = String(st?.payload?.payloadId ?? attack?.payloadState?.activePayloadId ?? "").trim();
     const selectedPayload = payloads.find(type => type.id === selectedPayloadId) ?? null;
+    const machineActor = bc?.machineActor ?? this.actor;
+    const machineAttackOptions = intent === "attack" && attack && isMachineActor(machineActor)
+      ? buildAttackOptionControls({ manual: st.manual ?? [], attack, payload: st.payload ?? {} })
+      : null;
 
 
     return {
@@ -299,7 +449,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
       manual: (st.manual ?? []).map((r) => ({
         ...r,
-        steps: buildStepperSteps(Number(r.value ?? 0), -3, 3)
+        steps: buildStepperSteps(Number(r.value ?? 0), Math.min(-4, Number(r.value ?? 0), -3), 3)
       })),
       
       edge: {
@@ -341,7 +491,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         selectedPayloadId,
         selectedPayloadLabel: selectedPayload?.label ?? attack?.payload?.label ?? attack?.weapon?.payloadLabel ?? "",
         selectedSourceLabel: attack?.sourceState?.label ?? "",
-      } : null
+      } : null,
+      machineAttackOptions,
     };
   }
 
@@ -475,6 +626,47 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     return this.render(false);
   }
 
+  async _onSetMachineTargetMotion(event, target) {
+    event?.preventDefault();
+    const motion = normalizeTargetMotion(target?.dataset?.motion);
+    writeMachineMotion(this._mwd.state.payload, { targetMotion: motion });
+    return this.render(false);
+  }
+
+  async _onToggleMachineTargetJumped(event, target) {
+    event?.preventDefault();
+    writeMachineMotion(this._mwd.state.payload, { jumped: Boolean(target?.checked) });
+    return this.render(false);
+  }
+
+  async _onToggleAttackOption(event, target) {
+    event?.preventDefault();
+    const id = String(target?.dataset?.optionId ?? "").trim();
+    if (!id) return;
+
+    const manual = this._mwd.state.manual ?? [];
+    const active = hasManualRow(manual, id);
+    this._mwd.state.manual = active
+      ? removeManualRow(manual, id)
+      : addOrUpdateManualRow(manual, {
+        id,
+        label: target?.dataset?.label ?? "Attack Option",
+        value: Number(target?.dataset?.value ?? 0),
+      });
+
+    const flag = String(target?.dataset?.flag ?? "").trim();
+    if (flag) writeAttackOptions(this._mwd.state.payload, { [flag]: !active });
+    return this.render(false);
+  }
+
+  async _onToggleAttackFlag(event, target) {
+    event?.preventDefault();
+    const flag = String(target?.dataset?.flag ?? "").trim();
+    if (!flag) return;
+    writeAttackOptions(this._mwd.state.payload, { [flag]: Boolean(target?.checked) });
+    return this.render(false);
+  }
+
   async _onSetDn(event, target) {
     event?.preventDefault();
 
@@ -526,6 +718,18 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         void this._onSetDn(event, event.currentTarget);
       });
     });
+
+    root.querySelectorAll("[data-action='toggleMachineTargetJumped']").forEach(input => {
+      input.addEventListener("change", event => {
+        void this._onToggleMachineTargetJumped(event, event.currentTarget);
+      });
+    });
+
+    root.querySelectorAll("[data-action='toggleAttackFlag']").forEach(input => {
+      input.addEventListener("change", event => {
+        void this._onToggleAttackFlag(event, event.currentTarget);
+      });
+    });
   }
 
   /**
@@ -536,8 +740,9 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
    *  - Prefer passing explicit dice parts via args.diceParts (attribute/skill/bonus).
    *  - This avoids scraping resolved.breakdown.
    */
-  static async prompt({ actor, basePayload, resolved, diceParts = null, mods = [], modTotal = 0 } = {}) {
+  static async prompt({ actor, rollActor = null, basePayload, resolved, diceParts = null, mods = [], modTotal = 0 } = {}) {
     const payload = foundry.utils.deepClone(basePayload ?? {});
+    seedMachineMotionPayloadFromResolved(payload, resolved);
 
     // ------------------------------
     // Default DN (hits needed) from GM Gadget for SIMPLE tests
@@ -569,9 +774,13 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const dice = {
       attribute: Number(parts?.attribute ?? 0),
+      attributeLabel: resolved?.breakdown?.find?.(row => row?.id === "attribute")?.label ?? "Attribute",
       skill: Number(parts?.skill ?? 0),
+      skillLabel: resolved?.breakdown?.find?.(row => row?.id === "skill")?.label ?? "Skill",
       bonus: Number(parts?.bonus ?? 0),
+      bonusLabel: resolved?.breakdown?.find?.(row => row?.id === "bonus")?.label ?? "Bonus",
       specialization: Number(parts?.specialization ?? 0),
+      specializationLabel: resolved?.breakdown?.find?.(row => row?.id === "specialization")?.label ?? "Specialization",
       modifiers: Number(modTotal ?? 0)
     };
 
@@ -586,6 +795,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const dlg = new MWDRollDialog({
       actor,
+      rollActor,
       baseContext: {
         intent: resolved?.intent ?? "skill",
         header,
@@ -594,6 +804,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         modifiers,
         payload,
         resolved, // keep full resolved for edge display
+        rollActor,
+        machineActor: actor,
         dn: Number(payload?.dn ?? resolved?.dn?.total ?? resolved?.difficulty?.dn ?? 1)
       }
     });

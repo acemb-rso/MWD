@@ -8,8 +8,13 @@ import { TEMPLATE } from "../constants.js";
 import {
   doesHardpointAcceptItem,
   getMachineHardpointByItemId,
+  getMountedMachineItems,
   normalizeMachineWeaponSize,
 } from "./machine-hardpoints.js";
+import {
+  normalizeMachineHardpointType,
+  normalizeMachineWeaponDamageType,
+} from "./machine-weapon-types.js";
 import { formatString } from "../strings.js";
 
 const MOUNT_POINTS = {
@@ -19,7 +24,6 @@ const MOUNT_POINTS = {
   assault: 7,
 };
 
-const DEFAULT_PRIMARY_SLOT = { mode: "normal", allowedWeaponIds: [], typeRestriction: "" };
 const DEFAULT_MELEE = {
   baseProfile: { name: "Unarmed", damage: "", notes: "" },
   maxWeapons: 0,
@@ -45,19 +49,11 @@ export class BattlemechLoadout {
     const mountPointTotal = MOUNT_POINTS[weightClass] ?? MOUNT_POINTS.medium;
     const hardpoints = this._normalizeHardpoints();
     const groups = this._normalizeWeaponGroups();
-    const primaryGroup = groups.find(it => it.isPrimary);
-    const primaryGroups = groups.filter(it => it.isPrimary);
-    const primarySlot = this._primarySlot();
     const errors = [];
     const warnings = [];
 
-    if (primaryGroups.length > 1) {
-      errors.push(ANARCHY.mwd.loadout.errors.multiplePrimary);
-    }
-
-    const maxGroupCount = primaryGroup ? mountPointTotal - 1 : mountPointTotal;
-    const usedMountPoints = groups.length + (primaryGroup ? 1 : 0);
-    if (groups.length > maxGroupCount) {
+    const usedMountPoints = groups.length;
+    if (usedMountPoints > mountPointTotal) {
       errors.push(formatString(ANARCHY.mwd.loadout.errors.mountPointsExceeded, {
         used: usedMountPoints,
         total: mountPointTotal,
@@ -77,17 +73,13 @@ export class BattlemechLoadout {
           warnings.push(formatString(ANARCHY.mwd.loadout.warnings.weaponMissing, { weapon: weaponId }));
           continue;
         }
-        const weaponType = weapon.system.damageType ?? "energy";
+        const weaponType = normalizeMachineWeaponDamageType(weapon.system.damageType ?? "energy", "energy");
         const weaponSize = normalizeMachineWeaponSize(weapon.system.size ?? "small");
         if (usedWeapons.has(weaponId)) {
           errors.push(formatString(ANARCHY.mwd.loadout.errors.weaponAlreadyGrouped, { weapon: weapon.name }));
           continue;
         }
         usedWeapons.add(weaponId);
-
-        if (group.isPrimary) {
-          this._validatePrimaryWeapon(weapon, weaponType, weaponSize, primarySlot, errors);
-        }
 
         if ((weapon.system.weaponCategory ?? "ranged") === "melee") {
           continue;
@@ -116,10 +108,6 @@ export class BattlemechLoadout {
       }
     }
 
-    if (primaryGroup && (!primaryGroup.weaponIds || primaryGroup.weaponIds.length === 0)) {
-      errors.push(ANARCHY.mwd.loadout.errors.primaryWithoutWeapon);
-    }
-
     const meleeState = this._computeMeleeState(errors);
 
     return {
@@ -131,7 +119,6 @@ export class BattlemechLoadout {
       weightClass,
       hardpoints: hardpointState,
       weaponGroups: groups,
-      primaryGroupId: primaryGroup?.id,
       errors,
       warnings,
       meleeProfiles: meleeState.profiles,
@@ -140,28 +127,21 @@ export class BattlemechLoadout {
   }
 
   _normalizeWeaponGroups() {
-    return (this.mwd.weaponGroups ?? []).map((group, index) => ({
+    return this._toCollection(this.mwd.weaponGroups).map((group, index) => ({
       id: group.id ?? `group-${index + 1}`,
       name: group.name || formatString(ANARCHY.common.newName, { type: ANARCHY.itemType.singular.weapon }),
       weaponIds: this._asArray(group.weaponIds),
-      isPrimary: group.isPrimary ?? false,
     }));
   }
 
   _normalizeHardpoints() {
-    return (this.mwd.hardpoints ?? []).map((hp, index) => ({
+    return this._toCollection(this.mwd.hardpoints).map((hp, index) => ({
       id: hp.id ?? `hardpoint-${index + 1}`,
-      type: hp.type ?? "energy",
+      type: normalizeMachineHardpointType(hp.type ?? "energy", "energy"),
       size: normalizeMachineWeaponSize(hp.size ?? "small"),
       location: hp.location ?? "arms",
       itemId: String(hp.itemId ?? "").trim(),
     }));
-  }
-
-  _primarySlot() {
-    const slot = foundry.utils.mergeObject(foundry.utils.duplicate(DEFAULT_PRIMARY_SLOT), this.mwd.primarySlot ?? {});
-    slot.allowedWeaponIds = this._asArray(slot.allowedWeaponIds);
-    return slot;
   }
 
   _computeMeleeState(errors) {
@@ -202,36 +182,25 @@ export class BattlemechLoadout {
     return { profiles, limit };
   }
 
-  _validatePrimaryWeapon(weapon, weaponType, weaponSize, primarySlot, errors) {
-    if (primarySlot.mode === "converted") {
-      if (primarySlot.allowedWeaponIds?.length > 0 && !primarySlot.allowedWeaponIds.includes(weapon.id)) {
-        errors.push(formatString(ANARCHY.mwd.loadout.errors.primaryNotAllowedWeapon, { weapon: weapon.name }));
-      }
-      if (primarySlot.typeRestriction && weaponType !== primarySlot.typeRestriction) {
-        errors.push(formatString(ANARCHY.mwd.loadout.errors.primaryTypeRestriction, {
-          weapon: weapon.name,
-          type: getHardpointTypeLabels()[primarySlot.typeRestriction] ?? primarySlot.typeRestriction,
-        }));
-      }
-    }
-    else if (weaponSize !== "large") {
-      errors.push(formatString(ANARCHY.mwd.loadout.errors.primaryNeedsLarge, { weapon: weapon.name }));
-    }
-  }
-
   _getWeapons(filter) {
-    return this.actor.items
-      .filter(it => it.type === TEMPLATE.itemType.mechWeapon)
+    return getMountedMachineItems(this.actor, { canonicalType: TEMPLATE.itemType.mechWeapon })
       .filter(it => it.isActive?.())
       .filter(filter);
   }
 
   _asArray(value) {
+    return this._toCollection(value);
+  }
+
+  _toCollection(value) {
     if (Array.isArray(value)) {
       return value;
     }
     if (value === undefined || value === null || value === "") {
       return [];
+    }
+    if (typeof value === "object") {
+      return Object.values(value);
     }
     return [value];
   }

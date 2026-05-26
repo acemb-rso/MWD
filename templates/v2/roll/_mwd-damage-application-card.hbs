@@ -32,7 +32,7 @@ How it fits: Used by chat-actions when queued attack damage is applied.
   {{#if rows.length}}
     <div class="mwd-damage-card__details">
       {{#each rows as |row|}}
-        <div class="mwd-damage-card__detail">
+        <div class="mwd-damage-card__detail {{row.class}}">
           <span class="mwd-damage-card__detail-label">{{row.label}}</span>
           <span class="mwd-damage-card__detail-value">{{row.value}}</span>
         </div>

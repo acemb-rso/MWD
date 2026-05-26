@@ -4,6 +4,7 @@
 
 import { startCase } from "../../constants.js";
 import { buildMachineCriticalChatSummary } from "../../mwd/machine-crit-effects.js";
+import { enhancePostEdge } from "./render-edge-post.js";
 
 export function enhanceAttack(resolved, vm) {
   const r = resolved ?? {};
@@ -71,42 +72,7 @@ export function enhanceAttack(resolved, vm) {
     });
   }
 
-  const edge = r?.edge ?? null;
-  const failureRefs = Array.isArray(r?.roll?.failureDiceRefs) ? r.roll.failureDiceRefs : [];
-  const canPost = Boolean(edge?.availableActions?.canPostRerollFailures) && !hasAppliedMutation;
-  const postPools = Array.isArray(edge?.allowed?.postPools) ? edge.allowed.postPools : [];
-
-  if (edge?.domain) {
-    vm.edge = {
-      domain: edge.domain,
-      earned: r?.outcomeModel?.edgeEarned ?? null,
-      preSpent: Number(edge?.pre?.spent ?? 0),
-      postSpent: Number(edge?.post?.spent ?? 0),
-      canPost: canPost && failureRefs.length > 0 && postPools.length > 0,
-      failureCount: failureRefs.length,
-      postPools
-    };
-
-    vm.metaRows.push({
-      text: `Edge: ${edge.domain} | pre ${vm.edge.preSpent} | post ${vm.edge.postSpent}`,
-      title: ""
-    });
-  }
-
-  if (vm.edge?.canPost) {
-    vm.footerRows.push({
-      text: `Post-spend: Reroll ${vm.edge.failureCount} failure${vm.edge.failureCount === 1 ? "" : "s"}`
-    });
-
-    for (const poolKey of vm.edge.postPools) {
-      vm.actions.push({
-        action: "edgePostReroll",
-        label: `Spend ${poolKey}`,
-        dataset: { "pool-key": poolKey },
-        cssClass: "mwd-edge-post"
-      });
-    }
-  }
+  enhancePostEdge(r, vm, { canPost: !hasAppliedMutation });
 
   const outcome = String(summary?.overallOutcome ?? "").trim();
   vm.outcomeText = targetResults.length > 1
@@ -207,8 +173,9 @@ export function enhanceAttack(resolved, vm) {
       const damage = result?.damage ?? null;
       if (damage && result?.outcome !== "miss") {
         const clusterHits = Number(damage?.clustering?.damageBonus ?? damage?.clustering?.hits ?? 0);
+        const netDamageBonus = Number(damage?.netDamageBonus ?? damage?.netHits ?? 0);
         vm.footerRows.push({
-          text: `${result?.target?.name ?? "Target"}: ${damage.damageTypeLabel} ${fmt(damage.effectiveWeaponDamage)} weapon${clusterHits ? ` + ${clusterHits} cluster` : ""}${damage.netHits ? ` + ${damage.netHits} net` : ""}`,
+          text: `${result?.target?.name ?? "Target"}: ${damage.damageTypeLabel} ${fmt(damage.effectiveWeaponDamage)} weapon${clusterHits ? ` + ${clusterHits} cluster` : ""}${netDamageBonus ? ` + ${netDamageBonus} net` : ""}`,
           title: ""
         });
         if (Number(damage?.clustering?.dice ?? 0) > 0) {
@@ -227,8 +194,11 @@ export function enhanceAttack(resolved, vm) {
           const machine = damageResult.machine ?? {};
           const hitLocation = damageResult.hitLocation ?? {};
           const degradation = damageResult.degradation ?? null;
+          const criticalState = damageResult.critical ?? {};
+          const impactLabel = hitLocation.impactLabel ?? hitLocation.locationLabel ?? "Location";
+          const rulesLocation = hitLocation.rulesLocationLabel ?? hitLocation.rulesLocation ?? "";
           vm.footerRows.push({
-            text: `${result?.target?.name ?? "Target"}: Location ${hitLocation.locationLabel ?? "Location"}${hitLocation.rollTotal ? ` (${hitLocation.rollTotal})` : ""} | Armor ${Number(machine.armorBefore ?? 0)} -> ${Number(machine.armorAfter ?? 0)} | Structure ${Number(machine.structureBefore ?? 0)} -> ${Number(machine.structureAfter ?? 0)}`,
+            text: `${result?.target?.name ?? "Target"}: Impact ${impactLabel}${rulesLocation && rulesLocation !== impactLabel ? ` | Rules ${rulesLocation}` : ""}${hitLocation.rollTotal ? ` (${hitLocation.rollTotal})` : ""} | Armor ${Number(machine.armorBefore ?? 0)} -> ${Number(machine.armorAfter ?? 0)} | Structure ${Number(machine.structureBefore ?? 0)} -> ${Number(machine.structureAfter ?? 0)}`,
             title: ""
           });
           if (degradation?.summary) {
@@ -237,19 +207,19 @@ export function enhanceAttack(resolved, vm) {
               title: ""
             });
           }
-          if (damageResult.critical?.automatic) {
+          if (criticalState.mode === "automatic" || damageResult.critical?.automatic) {
             vm.footerRows.push({
               text: `${result?.target?.name ?? "Target"}: Automatic critical pending`,
               title: ""
             });
-          } else if (damageResult.critical?.optional) {
+          } else if (criticalState.mode === "chaosSelected") {
             vm.footerRows.push({
-              text: `${result?.target?.name ?? "Target"}: Chaos Edge can convert this location hit to a critical`,
+              text: `${result?.target?.name ?? "Target"}: Chaos critical selected`,
               title: ""
             });
-          } else {
+          } else if (criticalState.mode === "chaosOptional" || damageResult.critical?.optional) {
             vm.footerRows.push({
-              text: `${result?.target?.name ?? "Target"}: Location hit is descriptive only`,
+              text: `${result?.target?.name ?? "Target"}: Chaos Edge can convert this location hit to a critical`,
               title: ""
             });
           }
@@ -289,12 +259,19 @@ export function enhanceAttack(resolved, vm) {
             }
           }
         }
-        if (queuedMutation && !isApplied && damageResult?.critical?.optional) {
+        if (queuedMutation && !isApplied && damageResult?.critical?.mode === "chaosOptional") {
           vm.actions.push({
             action: "toggleMachineChaosCrit",
-            label: queuedMutation.payload?.chaosCriticalSelected ? `Clear Chaos Critical: ${damageResult.actorName ?? result?.target?.name ?? "Target"}` : `Spend Chaos Edge: ${damageResult.actorName ?? result?.target?.name ?? "Target"}`,
+            label: `Spend Chaos Edge: ${damageResult.actorName ?? result?.target?.name ?? "Target"}`,
             dataset: { "result-index": String(index) },
-            cssClass: `mwd-toggle-machine-chaos ${queuedMutation.payload?.chaosCriticalSelected ? "is-active" : ""}`
+            cssClass: "mwd-toggle-machine-chaos"
+          });
+        } else if (queuedMutation && !isApplied && damageResult?.critical?.mode === "chaosSelected") {
+          vm.actions.push({
+            action: "toggleMachineChaosCrit",
+            label: `Clear Chaos Critical: ${damageResult.actorName ?? result?.target?.name ?? "Target"}`,
+            dataset: { "result-index": String(index) },
+            cssClass: "mwd-toggle-machine-chaos is-active"
           });
         }
         if (queuedMutation && !isApplied) {

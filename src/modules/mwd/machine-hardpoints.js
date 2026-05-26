@@ -4,9 +4,18 @@
 // loadout validation can all resolve the same mounted-item state.
 
 import { TEMPLATE, startCase } from "../constants.js";
+import {
+  normalizeMachineHardpointType,
+  normalizeMachineWeaponDamageType,
+} from "./machine-weapon-types.js";
 
 const MACHINE_HARDPOINT_SIZES = Object.freeze(["small", "medium", "large"]);
-const ENERGY_HARDPOINT_FAMILY = Object.freeze(new Set(["energy", "thermal", "electrical", "electric"]));
+const DEFAULT_MACHINE_HARDPOINT = Object.freeze({
+  type: "energy",
+  size: "small",
+  location: "",
+  itemId: "",
+});
 
 
 export function normalizeMachineWeaponSize(value, fallback = "small") {
@@ -21,14 +30,117 @@ export function rawHardpointsArray(actor = null) {
   return Array.isArray(raw) ? [...raw] : Object.values(raw);
 }
 
-export function getConfiguredMachineHardpoints(actor = null) {
-  return rawHardpointsArray(actor).map((hardpoint, index) => ({
+export function normalizeMachineHardpoints(rawHardpoints = [], { defaultLocation = "", idFactory = null } = {}) {
+  const raw = Array.isArray(rawHardpoints) ? rawHardpoints : Object.values(rawHardpoints && typeof rawHardpoints === "object" ? rawHardpoints : {});
+  return raw.map((hardpoint, index) => ({
     id: String(hardpoint?.id ?? `hardpoint-${index + 1}`).trim(),
-    type: String(hardpoint?.type ?? "energy").trim() || "energy",
-    size: normalizeMachineWeaponSize(hardpoint?.size ?? "small"),
-    location: String(hardpoint?.location ?? "").trim(),
-    itemId: String(hardpoint?.itemId ?? "").trim(),
+    type: normalizeMachineHardpointType(hardpoint?.type ?? DEFAULT_MACHINE_HARDPOINT.type, DEFAULT_MACHINE_HARDPOINT.type),
+    size: normalizeMachineWeaponSize(hardpoint?.size ?? DEFAULT_MACHINE_HARDPOINT.size),
+    location: String(hardpoint?.location ?? defaultLocation ?? DEFAULT_MACHINE_HARDPOINT.location).trim(),
+    itemId: String(hardpoint?.itemId ?? DEFAULT_MACHINE_HARDPOINT.itemId).trim(),
+  })).map((hardpoint, index) => ({
+    ...hardpoint,
+    id: hardpoint.id || (typeof idFactory === "function" ? idFactory(index) : `hardpoint-${index + 1}`),
   }));
+}
+
+export function getConfiguredMachineHardpoints(actor = null) {
+  return normalizeMachineHardpoints(rawHardpointsArray(actor));
+}
+
+export function reconcileMachineHardpoints(currentRaw = [], stagedRaw = [], { defaultLocation = "" } = {}) {
+  const current = normalizeMachineHardpoints(currentRaw, { defaultLocation });
+  const stagedById = new Map(
+    normalizeMachineHardpoints(stagedRaw, { defaultLocation })
+      .map(hardpoint => [hardpoint.id, hardpoint])
+      .filter(([id]) => id)
+  );
+
+  return current.map(hardpoint => {
+    const staged = stagedById.get(hardpoint.id);
+    if (!staged) return hardpoint;
+    return {
+      ...hardpoint,
+      type: normalizeMachineHardpointType(staged.type, hardpoint.type),
+      size: staged.size,
+      location: staged.location || defaultLocation,
+      itemId: hardpoint.itemId,
+    };
+  });
+}
+
+export function appendMachineHardpoint(currentRaw = [], hardpoint = {}, { defaultLocation = "", idFactory = null } = {}) {
+  const current = normalizeMachineHardpoints(currentRaw, { defaultLocation });
+  const nextId = String(hardpoint?.id ?? "").trim()
+    || (typeof idFactory === "function" ? idFactory(current.length) : `hardpoint-${current.length + 1}`);
+
+  return [
+    ...current,
+    ...normalizeMachineHardpoints([{
+      ...DEFAULT_MACHINE_HARDPOINT,
+      location: defaultLocation,
+      ...hardpoint,
+      id: nextId,
+    }], { defaultLocation }),
+  ];
+}
+
+export function removeMachineHardpointById(currentRaw = [], hardpointId = "", { defaultLocation = "" } = {}) {
+  const normalizedId = String(hardpointId ?? "").trim();
+  const current = normalizeMachineHardpoints(currentRaw, { defaultLocation });
+  let removed = null;
+  const hardpoints = current.filter(hardpoint => {
+    if (hardpoint.id !== normalizedId) return true;
+    removed = hardpoint;
+    return false;
+  });
+  return { hardpoints, removed };
+}
+
+export function assignMachineHardpointOccupant(currentRaw = [], hardpointId = "", itemId = "", { defaultLocation = "" } = {}) {
+  const normalizedHardpointId = String(hardpointId ?? "").trim();
+  const normalizedItemId = String(itemId ?? "").trim();
+  const current = normalizeMachineHardpoints(currentRaw, { defaultLocation });
+  let changed = false;
+
+  const hardpoints = current.map(hardpoint => {
+    let nextItemId = hardpoint.itemId;
+    if (normalizedItemId && hardpoint.id !== normalizedHardpointId && hardpoint.itemId === normalizedItemId) {
+      nextItemId = "";
+    }
+    if (hardpoint.id === normalizedHardpointId) {
+      nextItemId = normalizedItemId;
+    }
+    if (nextItemId !== hardpoint.itemId) changed = true;
+    return {
+      ...hardpoint,
+      itemId: nextItemId,
+    };
+  });
+
+  return { hardpoints, changed };
+}
+
+export function updateMachineHardpointSettings(currentRaw = [], hardpointId = "", settings = {}, { defaultLocation = "" } = {}) {
+  const normalizedId = String(hardpointId ?? "").trim();
+  const current = normalizeMachineHardpoints(currentRaw, { defaultLocation });
+  let changed = false;
+
+  const hardpoints = current.map(hardpoint => {
+    if (hardpoint.id !== normalizedId) return hardpoint;
+
+    const next = {
+      ...hardpoint,
+      type: normalizeMachineHardpointType(settings?.type ?? hardpoint.type, hardpoint.type),
+      size: normalizeMachineWeaponSize(settings?.size ?? hardpoint.size, hardpoint.size),
+      location: String(settings?.location ?? hardpoint.location ?? defaultLocation).trim() || defaultLocation,
+      itemId: hardpoint.itemId,
+    };
+    changed ||= JSON.stringify(next) !== JSON.stringify(hardpoint);
+    return next;
+  });
+
+  return { hardpoints, changed };
 }
 
 export function getMachineHardpointById(actor = null, hardpointId = "") {
@@ -51,14 +163,31 @@ export function getAssignedMachineItemIds(actor = null) {
   );
 }
 
-export function getMachineWeaponRequiredType(item = null) {
-  return String(item?.system?.damageType ?? "").trim() || "energy";
+export function getMountedMachineItems(actor = null, { canonicalType = "" } = {}) {
+  const normalizedType = String(canonicalType ?? "").trim();
+  const itemMap = new Map(
+    Array.from(actor?.items ?? [])
+      .map(item => [String(item?.id ?? "").trim(), item])
+      .filter(([id, item]) => id && item)
+  );
+  const seenIds = new Set();
+
+  return getConfiguredMachineHardpoints(actor)
+    .map(hardpoint => {
+      const itemId = String(hardpoint?.itemId ?? "").trim();
+      if (!itemId || seenIds.has(itemId)) return null;
+      seenIds.add(itemId);
+      return itemMap.get(itemId) ?? null;
+    })
+    .filter(item => {
+      if (!item) return false;
+      if (!normalizedType) return true;
+      return String(item?.canonicalType ?? item?.type ?? "").trim() === normalizedType;
+    });
 }
 
-function getMachineHardpointTypeFamily(value = "") {
-  const normalized = String(value ?? "").trim().toLowerCase();
-  if (ENERGY_HARDPOINT_FAMILY.has(normalized)) return "energy";
-  return normalized || "energy";
+export function getMachineWeaponRequiredType(item = null) {
+  return normalizeMachineWeaponDamageType(item?.system?.damageType ?? "energy", "energy");
 }
 
 export function getMachineWeaponRequiredSize(item = null) {
@@ -69,12 +198,12 @@ export function doesHardpointAcceptItem(hardpoint = {}, item = null) {
   const canonicalType = String(item?.canonicalType ?? item?.type ?? "").trim();
   if (canonicalType !== TEMPLATE.itemType.mechWeapon) return false;
 
-  const hardpointType = String(hardpoint?.type ?? "").trim() || "energy";
+  const hardpointType = normalizeMachineHardpointType(hardpoint?.type ?? "energy", "energy");
   const hardpointSize = normalizeMachineWeaponSize(hardpoint?.size ?? "small");
   const requiredType = getMachineWeaponRequiredType(item);
   const requiredSize = getMachineWeaponRequiredSize(item);
   const typeMatches = hardpointType === "omni"
-    || getMachineHardpointTypeFamily(hardpointType) === getMachineHardpointTypeFamily(requiredType);
+    || hardpointType === requiredType;
 
   return typeMatches && hardpointSize === requiredSize;
 }
@@ -85,12 +214,12 @@ export function getHardpointCompatibilityError(hardpoint = {}, item = null) {
     return "Only mech weapons can be mounted in hardpoint slots.";
   }
 
-  const hardpointType = String(hardpoint?.type ?? "").trim() || "energy";
+  const hardpointType = normalizeMachineHardpointType(hardpoint?.type ?? "energy", "energy");
   const hardpointSize = normalizeMachineWeaponSize(hardpoint?.size ?? "small");
   const requiredType = getMachineWeaponRequiredType(item);
   const requiredSize = getMachineWeaponRequiredSize(item);
   const typeMatches = hardpointType === "omni"
-    || getMachineHardpointTypeFamily(hardpointType) === getMachineHardpointTypeFamily(requiredType);
+    || hardpointType === requiredType;
 
   if (!typeMatches) {
     return `${item?.name ?? "That weapon"} is ${startCase(requiredType)} and cannot fit a ${startCase(hardpointType)} slot.`;

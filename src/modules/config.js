@@ -331,12 +331,10 @@ export const MWD = {
         "rangedAttack": "Ranged Attack",
         "meleeAttack": "Melee Attack",
         "pilotingCheck": "Piloting Check",
-        "sensorSweep": "Sensor Sweep",
-        "emergencyRepair": "Emergency Repair",
+        "sensorSweep": "EW",
+        "emergencyRepair": "Critical Repair",
 
-        "primaryWeapons": "Primary Weapons",
         "allWeapons": "All Weapons",
-        "primaryLabel": "Primary",
 
         "unarmed": "Unarmed (Punch/Kick)",
         "unarmedNotes": "Basic unarmed strike.",
@@ -352,17 +350,17 @@ export const MWD = {
         "skillUsed": "Skill",
 
         "tooltips": {
-          "ranged": "Roll an attack using any Weapon Group or Primary Weapon",
+          "ranged": "Roll an attack using a Weapon Group",
           "melee": "Roll a melee attack using fists, kicks, or installed melee weapons",
           "piloting": "Piloting roll for movement, jumping, stability, or hazard checks",
-          "sensorSweep": "Perception/Tech roll using sensors or Active Probe",
-          "emergencyRepair": "Technician roll to stabilize or fix a system during battle"
+          "sensorSweep": "Acquire contact or generate targeting data using the machine sensor suite",
+          "emergencyRepair": "Choose a critical or repairable status and attempt the matching remedy"
         },
 
         "errors": {
           "noRanged": "No weapon groups available for ranged attack.",
           "noMelee": "No melee attacks available.",
-          "noSensorSweep": "Sensor sweep requires Perception or Technician."
+          "noSensorSweep": "EW actions require an eligible targeted token and an available sensor action."
         }
       }
     },
@@ -768,8 +766,6 @@ export const MWD = {
         "penetrating": "Penetrating",
         "concussive": "Concussive",
         "energy": "Energy",
-        "thermal": "Thermal",
-        "electrical": "Electrical",
         "support": "Support",
         "omni": "Omni"
       },
@@ -782,6 +778,9 @@ export const MWD = {
         "head": "Head",
         "torso": "Torso",
         "arms": "Arms",
+        "front": "Front",
+        "side": "Side",
+        "rear": "Rear",
         "turret": "Turret"
       }
     },
@@ -789,8 +788,6 @@ export const MWD = {
       "penetrating": "Penetrating",
       "concussive": "Concussive",
       "energy": "Energy",
-      "thermal": "Thermal",
-      "electrical": "Electrical",
       "support": "Support",
       "omni": "Omni"
     },
@@ -803,14 +800,10 @@ export const MWD = {
       "head": "Head",
       "torso": "Torso",
       "arms": "Arms",
+      "front": "Front",
+      "side": "Side",
+      "rear": "Rear",
       "turret": "Turret"
-    },
-
-    "primarySlot": {
-      "mode": {
-        "normal": "Large hardpoint",
-        "converted": "Converted slot"
-      }
     },
 
     "weaponCategory": {
@@ -839,26 +832,15 @@ export const MWD = {
     "loadout": {
       "title": "Weapon loadout",
       "mountPoints": "Mount points used",
-      "primarySlot": {
-        "label": "Primary weapon slot",
-        "noRestriction": "No type restriction",
-        "allowedWeapons": "Allowed primary weapons"
-      },
       "hardpoints": "Hardpoints",
       "weaponGroups": "Weapon groups",
-      "primaryTag": "Primary",
       "occupied": "{{weaponGroup}} assigned",
       "emptyHardpoint": "Empty",
       "errors": {
         "label": "Errors",
-        "multiplePrimary": "Only one primary weapon group is allowed.",
         "mountPointsExceeded": "Loadout uses {used} mount points but only {total} are available.",
         "hardpointUnavailable": "No matching hardpoint for {weapon} ({type}, {size}).",
-        "primaryNeedsLarge": "{weapon} must use a large hardpoint to be primary.",
-        "primaryWithoutWeapon": "Primary group needs at least one weapon.",
         "weaponAlreadyGrouped": "{weapon} is already assigned to another group.",
-        "primaryNotAllowedWeapon": "{weapon} is not allowed in the converted primary slot.",
-        "primaryTypeRestriction": "{weapon} does not match the converted primary slot restriction ({type}).",
         "meleeLimitExceeded": "Equipped melee weapons {equipped} exceed limit {limit}.",
         "meleeLocationRestricted": "{weapon} cannot be mounted at that location."
       },

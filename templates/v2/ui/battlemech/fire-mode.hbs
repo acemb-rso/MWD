@@ -1,0 +1,28 @@
+{{!--
+templates/v2/ui/battlemech/fire-mode.hbs
+Purpose: Renders BattleMech fire-mode intent controls.
+How it fits: Emits mode-change intent only; the machine action service validates and pays costs.
+--}}
+
+<div class="mwd-fire-mode">
+  <div class="mwd-fire-mode__current" title="{{battlemechSheet.fireMode.activeMode.hint}}">
+    <span class="mwd-fire-mode__current-label">Current fire mode</span>
+    <strong>{{battlemechSheet.fireMode.activeMode.label}}</strong>
+    <span>{{#if battlemechSheet.fireMode.activeMode.implemented}}{{battlemechSheet.fireMode.activeMode.saCost}} SA - {{battlemechSheet.fireMode.activeMode.coverageHint}}{{else}}Not implemented{{/if}}</span>
+  </div>
+
+  <div class="mwd-fire-mode-selector">
+    {{#each battlemechSheet.fireMode.modes as |mode|}}
+      <button type="button"
+        class="mwd-fire-mode-btn{{#if mode.isActive}} is-active{{/if}}{{#unless mode.implemented}} is-placeholder{{/unless}}"
+        data-action="setFireMode"
+        data-fire-mode-id="{{mode.id}}"
+        title="{{mode.hint}}{{#unless mode.implemented}} - Not yet implemented{{/unless}}"
+        aria-pressed="{{#if mode.isActive}}true{{else}}false{{/if}}"
+        {{#if mode.disabled}}disabled{{/if}}>
+        <span>{{mode.label}}</span>
+        <small>{{#if mode.implemented}}{{mode.saCost}} SA - {{mode.coverageHint}}{{else}}-{{/if}}</small>
+      </button>
+    {{/each}}
+  </div>
+</div>

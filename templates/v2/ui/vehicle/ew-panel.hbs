@@ -5,23 +5,6 @@ How it fits: Renders a dumb view model from vehicleSheet.ewPanel and launches sh
 --}}
 
 <div class="mwd-inv mwd-ew-panel">
-  <div class="mwd-inv__toolbar">
-    <button
-      type="button"
-      class="mwd-inv__add-btn{{#unless vehicleSheet.ewPanel.canAcquireAny}} is-disabled{{/unless}}"
-      data-action="ewAcquire"
-      {{#unless vehicleSheet.ewPanel.canAcquireAny}}disabled{{/unless}}>
-      <i class="fas fa-satellite-dish"></i> Acquire
-    </button>
-    <button
-      type="button"
-      class="mwd-inv__add-btn{{#unless vehicleSheet.ewPanel.canTargetAny}} is-disabled{{/unless}}"
-      data-action="ewTarget"
-      {{#unless vehicleSheet.ewPanel.canTargetAny}}disabled{{/unless}}>
-      <i class="fas fa-crosshairs"></i> Target
-    </button>
-  </div>
-
   <p class="mwd-hint">{{vehicleSheet.ewPanel.helpText}}</p>
 
   {{#if vehicleSheet.ewPanel.rows.length}}
@@ -37,6 +20,16 @@ How it fits: Renders a dumb view model from vehicleSheet.ewPanel and launches sh
                     <span class="mwd-record__stat-label">State</span>
                     <span class="mwd-record__stat-value">{{row.detectionStateLabel}}</span>
                   </span>
+                  {{#if row.hasRange}}
+                    <span class="mwd-record__stat">
+                      <span class="mwd-record__stat-label">Range</span>
+                      <span class="mwd-record__stat-value">{{row.rangeBandLabel}}</span>
+                    </span>
+                    <span class="mwd-record__stat">
+                      <span class="mwd-record__stat-label">Dist</span>
+                      <span class="mwd-record__stat-value">{{row.distanceLabel}}</span>
+                    </span>
+                  {{/if}}
                   {{#if row.hasPacket}}
                     <span class="mwd-record__stat">
                       <span class="mwd-record__stat-label">Packet</span>
@@ -65,6 +58,29 @@ How it fits: Renders a dumb view model from vehicleSheet.ewPanel and launches sh
                 <span class="mwd-record__tag{{#if row.canAcquire}} is-on{{/if}}">Acquire {{#if row.canAcquire}}Ready{{else}}Locked{{/if}}</span>
                 <span class="mwd-record__tag{{#if row.canTarget}} is-on{{/if}}">Target {{#if row.canTarget}}Ready{{else}}Waiting{{/if}}</span>
               </div>
+            </div>
+
+            <div class="mwd-record__actions">
+              <button
+                type="button"
+                class="mwd-inv__add-btn{{#unless row.acquireAction.enabled}} is-disabled{{/unless}}"
+                data-action="ewAcquire"
+                data-target-token-id="{{row.targetTokenId}}"
+                data-target-token-uuid="{{row.targetTokenUuid}}"
+                title="{{row.acquireAction.title}}"
+                {{#unless row.acquireAction.enabled}}disabled{{/unless}}>
+                <i class="fas fa-satellite-dish"></i> {{row.acquireAction.label}}
+              </button>
+              <button
+                type="button"
+                class="mwd-inv__add-btn{{#unless row.targetAction.enabled}} is-disabled{{/unless}}"
+                data-action="ewTarget"
+                data-target-token-id="{{row.targetTokenId}}"
+                data-target-token-uuid="{{row.targetTokenUuid}}"
+                title="{{row.targetAction.title}}"
+                {{#unless row.targetAction.enabled}}disabled{{/unless}}>
+                <i class="fas fa-crosshairs"></i> {{row.targetAction.label}}
+              </button>
             </div>
           </div>
         </article>

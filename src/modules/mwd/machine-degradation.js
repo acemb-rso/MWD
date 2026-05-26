@@ -207,8 +207,7 @@ function getStructureRemaining(systemData = {}) {
   const structure = systemData?.monitors?.structure ?? {};
   const max = Math.max(0, toNumber(structure?.max, 0));
   if (max <= 0) return null;
-  const applied = clamp(toNumber(structure?.value, 0), 0, max);
-  return Math.max(0, max - applied);
+  return clamp(toNumber(structure?.value, 0), 0, max);
 }
 
 function applyVehicleStructureZeroLocationDisable(systemData = {}, actorType = TEMPLATE.actorTypes.vehicle) {
@@ -240,7 +239,7 @@ function addStressDelta(result, locationKey, delta) {
   result.stressDelta[locationKey] = Number(result.stressDelta[locationKey] ?? 0) + delta;
 }
 
-function computeShockGain(attackQuality = "") {
+export function getMachineAttackQualityShockGain(attackQuality = "") {
   const quality = String(attackQuality ?? "").trim();
   if (quality === "highMargin") return 3;
   if (quality === "hit") return 2;
@@ -248,11 +247,18 @@ function computeShockGain(attackQuality = "") {
   return 0;
 }
 
-function compareLocationCandidates(left, right, actorType) {
+function compareLocationCandidates(left, right, actorType, preferredLocationKey = "") {
   if (right.stress !== left.stress) return right.stress - left.stress;
   if (right.condition !== left.condition) return right.condition - left.condition;
   if (left.condition >= MACHINE_CONDITION_STAGES.disabled && right.condition < MACHINE_CONDITION_STAGES.disabled) return 1;
   if (right.condition >= MACHINE_CONDITION_STAGES.disabled && left.condition < MACHINE_CONDITION_STAGES.disabled) return -1;
+
+  const preferred = String(preferredLocationKey ?? "").trim();
+  if (preferred) {
+    const leftPreferred = left.key === preferred;
+    const rightPreferred = right.key === preferred;
+    if (leftPreferred !== rightPreferred) return leftPreferred ? -1 : 1;
+  }
 
   const priority = getLocationOrder(actorType);
   const leftIndex = priority.indexOf(left.key);
@@ -266,7 +272,7 @@ function compareLocationCandidates(left, right, actorType) {
   return String(left.key).localeCompare(String(right.key));
 }
 
-function collectLocationCandidates(locations = {}, actorType = TEMPLATE.actorTypes.vehicle) {
+function collectLocationCandidates(locations = {}, actorType = TEMPLATE.actorTypes.vehicle, preferredLocationKey = "") {
   return Object.entries(locations)
     .filter(([, location]) => location && location.enabled === true && location.destroyed !== true)
     .map(([key, location]) => ({
@@ -274,16 +280,16 @@ function collectLocationCandidates(locations = {}, actorType = TEMPLATE.actorTyp
       stress: Math.max(0, toNumber(location?.stress, 0)),
       condition: getConditionStage(location?.condition),
     }))
-    .sort((left, right) => compareLocationCandidates(left, right, actorType));
+    .sort((left, right) => compareLocationCandidates(left, right, actorType, preferredLocationKey));
 }
 
-function resolveLocationSelection(locations = {}, actorType = TEMPLATE.actorTypes.vehicle, preferredLocationKey = "") {
+function resolveLocationSelection(locations = {}, actorType = TEMPLATE.actorTypes.vehicle, preferredLocationKey = "", { forcePreferred = true } = {}) {
   const preferred = String(preferredLocationKey ?? "").trim();
-  if (preferred) {
+  if (preferred && forcePreferred) {
     const location = locations?.[preferred];
     if (location && location.enabled === true && location.destroyed !== true) return preferred;
   }
-  return collectLocationCandidates(locations, actorType)[0]?.key ?? "";
+  return collectLocationCandidates(locations, actorType, preferred)[0]?.key ?? "";
 }
 
 function registerFallbackMutations(result, event, locationKey, locations) {
@@ -439,6 +445,8 @@ export function resolveMachineDegradation({
   locationKey = "",
   machineDamageDealt = 0,
   attackQuality = "",
+  shockGainOverride = null,
+  extraShockGain = 0,
   allowReliabilitySpend = false,
   reliabilitySpendSelections = [],
   directConditionLocations = [],
@@ -453,7 +461,10 @@ export function resolveMachineDegradation({
   const threshold = getMachineReliabilityThreshold(reliability);
   const stressGain = Math.max(0, toNumber(machineDamageDealt, 0));
   const initialShock = Math.max(0, toNumber(systemData.mwd?.shock?.value, 0));
-  const shockGain = computeShockGain(attackQuality);
+  const baseShockGain = shockGainOverride !== null && shockGainOverride !== undefined && Number.isFinite(Number(shockGainOverride))
+    ? Math.max(0, toNumber(shockGainOverride, 0))
+    : (stressGain > 0 ? getMachineAttackQualityShockGain(attackQuality) : 0);
+  const shockGain = Math.max(0, baseShockGain + Math.max(0, toNumber(extraShockGain, 0)));
   let workingShock = Math.max(0, initialShock + shockGain);
   const result = createResultSkeleton({
     locations,
@@ -480,7 +491,9 @@ export function resolveMachineDegradation({
     applyReductions = true,
     allowSpendForThisAdvancement = true,
   } = {}) => {
-    const chosenLocation = resolveLocationSelection(locations, actorType, forcedLocationKey);
+    const chosenLocation = resolveLocationSelection(locations, actorType, forcedLocationKey || selectedLocationKey, {
+      forcePreferred: Boolean(forcedLocationKey),
+    });
     if (!chosenLocation) return false;
 
     const location = locations[chosenLocation];

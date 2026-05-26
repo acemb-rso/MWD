@@ -11,9 +11,6 @@ import { RemoteCall } from './remotecall.js';
 import { Styles } from './styles.js';
 import { HooksManager } from './hooks-manager.js';
 import { MWDItem } from './item/anarchy-base-item.js';
-import { CharacterActor } from './actor/character-actor.js';
-import { VehicleActor } from './actor/vehicle-actor.js';
-import { BattlemechActor } from './actor/battlemech-actor.js';
 import { SystemSettings } from './system-settings.js';
 import { registerActorSheetsV2 } from "./sheets/register-actor-sheets-v2.js";
 import { registerItemSheetsV2 } from "./sheets/register-item-sheets-v2.js";
@@ -34,6 +31,7 @@ import { MachineCriticalsProvider } from "../modules/modifiers/providers/machine
 import { MachineStateEffectsProvider } from "../modules/modifiers/providers/machine-state-effects.js";
 import { EwTrackingPenaltyProvider } from "../modules/modifiers/providers/ew-tracking-penalty.js";
 import { EwTargetingDataProvider } from "../modules/modifiers/providers/ew-targeting-data.js";
+import { AssetModuleEffectsProvider } from "../modules/modifiers/providers/asset-module-effects.js";
 import { Modifiers } from "./modifiers/anarchy-modifiers.js";
 import { PersonalCombatTracker } from "./combat/personal-combat-tracker.js";
 import { registerMWDChatActions } from "./chat/chat-actions.js";
@@ -49,9 +47,10 @@ import {
 } from "./mwd/life-modules.js";
 import { getSkillDef, listSkillDefs } from "./mwd/skills.js";
 import { HarmEngine } from "./harm/harm-engine.js";
+import { QueuedAttackDamageActions } from "./harm/queued-attack-damage.js";
 import { registerTokenStatusHudFilter } from "./dialog/token-status-dialog.js";
 import { HeatFxController } from "./token/heat-fx-controller.js";
-import { configureMWDStatusEffects } from "./status/status-condition-catalog.js";
+import { configureMWDStatusEffects, ensureStatusConditionCatalogDefaults } from "./status/status-condition-catalog.js";
 import { AttributeActions } from "./attribute-actions.js";
 import {
   applyTraitMutations,
@@ -73,6 +72,24 @@ import {
   resolveBattlemechPendingHeat,
   setBattlemechPendingHeat,
 } from "./mwd/machine-heat.js";
+import { registerMachineIntentGmOperations } from "./mwd/machine-intents.js";
+import { MachineActions, registerMachineActionGmOperations } from "./mwd/machine-quick-actions.js";
+import { registerMachinePilotVisionSync, syncAllMachinePilotVision } from "./mwd/machine-pilot-vision.js";
+import { registerAssetModuleRuntimeHandlers } from "./mwd/asset-module-runtime-handlers.js";
+import {
+  canDetect as canMachineSensorDetect,
+  getDetectionState as getMachineSensorDetectionState,
+  registerMwdSensorDetectionMode,
+  syncTokenDetectionModes,
+} from "./canvas/machine-sensor-detection.js";
+import {
+  clearSensorOverlays,
+  refreshSensorOverlays,
+  registerMachineSensorOverlayHooks,
+  renderContactOverlay,
+  renderLockOverlay,
+  renderTrackOverlay,
+} from "./canvas/machine-sensor-overlays.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT AnarchySystem Initialization    */
@@ -210,6 +227,8 @@ export class AnarchySystem {
     game.mwd ??= {};
 
     configureMWDFonts();
+    registerMwdSensorDetectionMode();
+    registerMachineSensorOverlayHooks();
     registerMWDChatActions();
     registerMWDGMGadgetSettings("mwd");
     
@@ -217,7 +236,24 @@ export class AnarchySystem {
     game.mwd.roll = MWDRoll;
     game.mwd.attacks = WeaponAttackActions;
     game.mwd.personalCombat = PersonalCombatTracker;
-    game.mwd.harm = HarmEngine;
+    game.mwd.combat = {
+      resolveActivationUnit: (...args) => PersonalCombatTracker.resolveActivationUnit(...args),
+      resolveCombatantForActor: (...args) => PersonalCombatTracker.resolveCombatantForActor(...args),
+      getActionEconomyActorForCombatant: (...args) => PersonalCombatTracker.getActionEconomyActorForCombatant(...args),
+      getPlatformActorForCombatant: (...args) => PersonalCombatTracker.getPlatformActorForCombatant(...args),
+    };
+    game.mwd.machineActions = MachineActions;
+    game.mwd.machineSensors = {
+      canDetect: canMachineSensorDetect,
+      getDetectionState: getMachineSensorDetectionState,
+      syncTokenDetectionModes,
+      refreshSensorOverlays,
+      renderContactOverlay,
+      renderTrackOverlay,
+      renderLockOverlay,
+      clearSensorOverlays,
+    };
+    game.mwd.harm = Object.assign(HarmEngine, QueuedAttackDamageActions);
     game.mwd.machineHeat = {
       adjustPendingHeat: adjustBattlemechPendingHeat,
       buildModel: buildBattlemechHeatModel,
@@ -232,7 +268,9 @@ export class AnarchySystem {
       this.roll = MWDRoll;
       this.attacks = WeaponAttackActions;
       this.personalCombat = PersonalCombatTracker;
-      this.harm = HarmEngine;
+      this.combat = game.mwd.combat;
+      this.machineActions = MachineActions;
+      this.harm = game.mwd.harm;
       this.machineHeat = game.mwd.machineHeat;
       this.tokenHeatFx = game.mwd.tokenHeatFx;
     this.skills = createMWDSkillsService();
@@ -241,6 +279,10 @@ export class AnarchySystem {
 
     // initialize remote calls registry first: used by other singleton managers
     this.remoteCall = new RemoteCall();
+    registerMachineActionGmOperations();
+    registerMachineIntentGmOperations();
+    registerMachinePilotVisionSync();
+    registerAssetModuleRuntimeHandlers();
     game.system.mwd.skills = this.skills;
     game.system.mwd.lifeModules = this.lifeModules;
     game.system.mwd.traits = this.traits;
@@ -259,6 +301,7 @@ export class AnarchySystem {
     modifierProviders.register(new TraitModifiersProvider());
     modifierProviders.register(new MachineCriticalsProvider());
     modifierProviders.register(new MachineStateEffectsProvider());
+    modifierProviders.register(new AssetModuleEffectsProvider());
     modifierProviders.register(new EwTrackingPenaltyProvider());
     modifierProviders.register(new EwTargetingDataProvider());
     modifierProviders.register(new SceneModifiersProvider());
@@ -272,12 +315,6 @@ export class AnarchySystem {
       return "";
     });
 
-    this.actorClasses = {
-      character: CharacterActor,
-      npc: CharacterActor,
-      vehicle: VehicleActor,
-      battlemech: BattlemechActor
-    }
     //Required for proper loading of sheets
     this.hooks = new HooksManager();
     this.styles = new Styles();
@@ -319,6 +356,9 @@ export class AnarchySystem {
     if (!game.user.isGM) return;
 
     await ensureLifeModuleCatalogDefaults();
+    await ensureStatusConditionCatalogDefaults();
+    await syncAllMachinePilotVision();
+    await syncTokenDetectionModes();
 
     const enabled = game.settings.get(SYSTEM_NAME, "enableGMGadget");
 

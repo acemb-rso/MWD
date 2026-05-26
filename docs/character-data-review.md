@@ -4,12 +4,12 @@
 
 ## Current character registration
 
-- `AnarchySystem` registers both `character` and `npc` actor types to the same `CharacterActor` class. This is intentional: NPCs share the same mechanical framework as characters but use a smaller sheet layout (`NpcSheetV2`). The shared class does not cause data leakage because sheet layouts are type-scoped. 【F:src/modules/anarchy-system.js†L74-L110】
+- `AnarchySystem` sets `CONFIG.Actor.documentClass = MWDActor`. All actors — character, npc, vehicle, battlemech — are `MWDActor` instances. There is no per-type class routing. `MWDActor` handles all four types with internal type-specific branches. 【F:src/modules/actor/mwd-actor.js】
 
 ## Actor template definitions
 
-- The `character` template in `template.json` declares the correct MWD attribute set: **reflexes, strength, willpower, intelligence, charisma, edge**. The former Anarchy values (`agility`, `logic`) have been replaced. 【F:template.json†L203-L262】
-- Condition monitors are defined for character actors: **physical** (STR-derived max), **fatigue** (WIL-derived max), **armor** (9-box track). These are prepared as derived data in `CharacterActor` and `MWDActor`. 【F:src/modules/actor/character-actor.js†L1-L80】
+- The `character` type in `src/modules/document-type-defaults.js` declares the correct MWD attribute set: **reflexes, strength, willpower, intelligence, charisma, edge**. The former Anarchy values (`agility`, `logic`) have been replaced.
+- Condition monitors are defined for character actors: **physical** (max = 8 + STR), **fatigue** (max = 8 + WIL), **armor** (9-box track). These are prepared as derived data in `MWDActor._prepareMonitors()`. 【F:src/modules/actor/mwd-actor.js】
 - Edge pools are structured with both a **rating** (advancement ceiling) and **value** (current spendable tokens): `grit`, `chaos` (physical), `insight`, `rumor` (mental), `legend`, `credibility` (social). Pool hygiene (clamping values to rating, zeroing depleted pools) runs in `MWDActor.prepareBaseData()`. 【F:src/modules/actor/mwd-actor.js†L1-L60】
 - The `npc` template mirrors the character attribute and monitor structure, which is correct given the shared class. The NPC sheet simply exposes a smaller subset of those fields.
 
@@ -29,7 +29,7 @@ The following fields documented in `character_sheet.txt` exist as **item types**
 | Personal weapons | `personalWeapon` item type registered; rendered in combat section |
 | Asset modules | `assetModule` item type registered; rendered as embedded list |
 | Gear / Inventory | `gear` item type registered; rendered as embedded list |
-| XP tracker | No dedicated field in template.json; not yet implemented |
+| XP tracker | No dedicated field in document-type-defaults.js; not yet implemented |
 | Words / Keywords | No structured field; stored in free text if at all |
 
 The `MWDActor` base class prepares `mwd.items` groupings (skills, traits, gear, weapons, etc.) for use by V2 sheets. Character-specific preparation runs in `CharacterActor.prepareDerivedData()`.
@@ -38,4 +38,4 @@ The `MWDActor` base class prepares `mwd.items` groupings (skills, traits, gear, 
 
 - Character and NPC sheets can render correctly because the data model is now aligned with MWD attribute requirements.
 - The primary outstanding gap is cues/dispositions and XP tracker, which have no template field yet.
-- Cues/dispositions should be added to `template.json` as structured arrays when the character sheet tab is being wired up, rather than as free-text fields.
+- Cues/dispositions should be added to the `character` block in `src/modules/document-type-defaults.js` as structured arrays when the character sheet tab is being wired up, rather than as free-text fields.

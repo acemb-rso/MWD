@@ -2,8 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  applyMachineMovementPenalty,
   buildMachineMovementFields,
   buildMachineMovementSummaryParts,
+  movementPenaltyStepsToMeters,
   normalizeMachineMovement,
 } from "../src/modules/mwd/machine-movement.js";
 
@@ -74,4 +76,35 @@ test("movement summary includes flight only when capable", () => {
       { label: "Ground", value: "10" },
     ]
   );
+});
+
+test("machine movement penalties convert legacy steps to meters and floor at 10 m", () => {
+  assert.equal(movementPenaltyStepsToMeters(1), 30);
+  assert.equal(movementPenaltyStepsToMeters(2), 60);
+
+  assert.equal(applyMachineMovementPenalty(90, 30), 60);
+  assert.equal(applyMachineMovementPenalty(60, 60), 10);
+  assert.equal(applyMachineMovementPenalty(5, 30), 5);
+  assert.equal(applyMachineMovementPenalty(90, 30, { immobile: true }), 0);
+});
+
+test("movement summaries show adjusted meter speeds without changing edit values", () => {
+  const viewFields = buildMachineMovementFields({
+    actorType: "vehicle",
+    movement: { ground: 60, flight: 90 },
+    movementEffects: { movementPenalty: 60 },
+  });
+
+  assert.deepEqual(viewFields.map(field => field.displayValue), ["10", "30"]);
+  assert.deepEqual(viewFields.map(field => field.detail), ["-60 m", "-60 m"]);
+
+  const editFields = buildMachineMovementFields({
+    actorType: "vehicle",
+    movement: { ground: 60, flight: 90 },
+    movementEffects: { movementPenalty: 60 },
+    editing: true,
+  });
+
+  assert.deepEqual(editFields.map(field => field.value), [60, 90]);
+  assert.deepEqual(editFields.map(field => field.displayValue), ["60", "90"]);
 });

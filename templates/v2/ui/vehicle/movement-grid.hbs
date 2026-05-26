@@ -4,7 +4,7 @@ Purpose: Renders machine movement speeds in view mode and staged numeric inputs 
 How it fits: Shared by vehicle-scale V2 sheets; vehicles expose Ground/Flight, BattleMechs also expose Jump.
 --}}
 
-{{#if editing}}
+{{#if @root.editing}}
   <div class="mwd-gmgadget__grid">
     {{#each vehicleSheet.movement as |movement|}}
       {{#if movement.editable}}

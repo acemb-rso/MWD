@@ -152,6 +152,21 @@
         },
         "mwd": {
           "hardpoints": [],
+          "strain": {
+            "value": 0,
+            "pendingGenerated": 0,
+            "max": 6,
+            "thresholds": {
+              "strained": 2,
+              "overstressed": 4,
+              "critical": 6
+            }
+          },
+          "movementProfile": "tracked",
+          "flightSubtype": "",
+          "favoredTerrain": ["open", "rough", "urban"],
+          "adverseTerrain": ["water"],
+          "affordances": ["stabilizedFire", "hullDown"],
           "locations": {
             "front": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "motiveSystem"], "destroyed": false },
             "side": { "enabled": true, "stress": 0, "condition": 0, "tags": ["weaponGroup", "motiveSystem"], "destroyed": false },
@@ -192,6 +207,7 @@
           },
           "heat": {
             "current": 0,
+            "profileCode": "",
             "max": 10,
             "thresholds": {
               "runningHot": 2,
@@ -202,13 +218,9 @@
           "chassis": "",
           "tonnage": 0,
           "weightClass": "medium",
+          "fireMode": "alphaStrike",
           "hardpoints": [],
           "weaponGroups": [],
-          "primarySlot": {
-            "mode": "normal",
-            "allowedWeaponIds": [],
-            "typeRestriction": ""
-          },
           "melee": {
             "baseProfile": {
               "name": "Unarmed",
@@ -342,7 +354,7 @@
       "attributes": {},
       "monitors": {
         "structure": {
-          "value": 0,
+          "value": 15,
           "max": 15,
           "resistance": {
             "default": 2,
@@ -350,7 +362,7 @@
           }
         },
         "armor": {
-          "value": 0,
+          "value": 12,
           "max": 12,
           "resistance": {
             "default": 1,
@@ -380,7 +392,7 @@
       "attributes": {},
       "monitors": {
         "structure": {
-          "value": 0,
+          "value": 18,
           "max": 18,
           "resistance": {
             "default": 1,
@@ -388,7 +400,7 @@
           }
         },
         "armor": {
-          "value": 0,
+          "value": 15,
           "max": 15,
           "resistance": {
             "default": 1,
@@ -442,12 +454,14 @@
       "consumable",
       "quality",
       "assetModule",
-        "skill",
-        "lifeModule",
-        "mechWeapon",
-        "personalWeapon",
-        "armor"
-      ],
+      "skill",
+      "lifeModule",
+      "mechWeapon",
+      "personalWeapon",
+      "armor",
+      "mechEquipment",
+      "vehicleUpgrade"
+    ],
     "templates": {
       "modifiers": {
         "modifiers": []
@@ -498,8 +512,23 @@
         "inactive",
         "references"
       ],
+      "installClass": "module",
       "category": "special",
       "level": 1,
+      "enabled": true,
+      "state": {
+        "suppressed": false,
+        "offline": false,
+        "destroyed": false,
+        "reason": ""
+      },
+      "activation": {
+        "mode": "passive",
+        "active": false,
+        "selectedMode": "",
+        "cooldownUntilRound": 0
+      },
+      "effects": [],
       "mobility": {
         "jumping": {
           "enabled": false,
@@ -525,8 +554,10 @@
       "skill": "gunnery",
       "size": "small",
       "damage": 0,
+      "clusteringDice": 0,
+      "clusteringTargetNumber": 5,
       "ap": 0,
-      "damageType": "penetrating",
+      "damageType": "energy",
       "attackRatingBand": {
         "close": 0,
         "near": 0,
@@ -536,6 +567,9 @@
       "payloads": [],
       "selectedPayloadId": "",
       "consumptionSources": [],
+      "fireControl": {
+        "usesPerActivation": 1
+      },
       "heat": 0,
       "volatile": false,
       "area": "none",
@@ -634,6 +668,21 @@
         "inactive",
         "references"
       ]
+    },
+    "mechEquipment": {
+      "templates": ["modifiers", "inactive", "references"],
+      "category": "",
+      "ammo": { "current": 0, "max": 0 },
+      "state": { "suppressed": false, "offline": false, "destroyed": false, "reason": "" },
+      "effects": [],
+      "notes": ""
+    },
+    "vehicleUpgrade": {
+      "templates": ["modifiers", "inactive", "references"],
+      "category": "",
+      "state": { "suppressed": false, "offline": false, "destroyed": false, "reason": "" },
+      "effects": [],
+      "notes": ""
     }
   }
 }

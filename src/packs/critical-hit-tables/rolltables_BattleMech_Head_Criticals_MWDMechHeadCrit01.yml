@@ -89,7 +89,7 @@
         "mwd": {
           "crit": {
             "key": "neuralFeedback",
-            "remedyKey": "systemReset",
+            "remedyKey": "coolantDump",
             "gates": [],
             "mods": [],
             "resourceEffects": {},
@@ -128,7 +128,9 @@
             ],
             "resourceEffects": {},
             "pilotDamage": {},
-            "escalationKey": "feed"
+            "escalationKey": "feed",
+            "effectText": "No attacks beyond Close until repaired.",
+            "automationMode": "engine"
           }
         }
       }

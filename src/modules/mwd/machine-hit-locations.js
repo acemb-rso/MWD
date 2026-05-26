@@ -12,6 +12,8 @@ const LOCATION_LABELS = Object.freeze({
   torso: "Torso",
   arms: "Arms",
   legs: "Legs",
+  body: "Body",
+  mobility: "Mobility",
   core: "Core",
   front: "Front",
   side: "Side",
@@ -50,6 +52,19 @@ function familyForLocation(locationKey = "") {
   if (locationKey === "turret") return "weapon";
   if (locationKey === "torso") return "torso";
   return "core";
+}
+
+function rulesLocationFor(actorType = "", locationKey = "", family = "") {
+  const normalizedFamily = String(family ?? "").trim();
+  const normalizedKey = String(locationKey ?? "").trim();
+  if (actorType === TEMPLATE.actorTypes.battlemech) {
+    if (["head", "torso", "arms", "legs"].includes(normalizedKey)) return normalizedKey;
+    if (["head", "torso", "arms", "legs"].includes(normalizedFamily)) return normalizedFamily;
+    return "torso";
+  }
+  if (normalizedFamily === "weapon" || normalizedKey === "turret") return "turret";
+  if (normalizedFamily === "motive" || ["front", "side", "rear", "rotor"].includes(normalizedKey)) return "mobility";
+  return "body";
 }
 
 function baseMechLocation(actor, rollTotal) {
@@ -95,7 +110,7 @@ export function rollMachineHitLocationTotal() {
   if (typeof Roll === "function") {
     try {
       const roll = new Roll("3d6");
-      const evaluated = roll.evaluate({ async: false });
+      const evaluated = roll.evaluateSync();
       return Number(evaluated?.total ?? roll.total ?? 10) || 10;
     } catch (_error) {
       // Foundry versions differ on synchronous Roll support; the location helper
@@ -127,12 +142,17 @@ export function resolveMachineHitLocation({
     ? chooseEnabled(actor, ["torso", "head"])
     : base.locationKey;
   const locationFamily = base.family || familyForLocation(base.locationKey);
+  const rulesLocation = rulesLocationFor(type, base.locationKey, locationFamily);
+  const chaosRulesLocation = rulesLocationFor(type, chaosTargetLocationKey, familyForLocation(chaosTargetLocationKey));
 
   return {
     rollTotal: total,
     actorType: type,
     locationKey: base.locationKey,
     locationLabel: getMachineLocationLabel(base.locationKey),
+    impactLabel: getMachineLocationLabel(base.locationKey),
+    rulesLocation,
+    rulesLocationLabel: getMachineLocationLabel(rulesLocation),
     locationFamily,
     isForcedCritical: forcedCritical,
     isStructureCritical: structureCritical,
@@ -140,6 +160,8 @@ export function resolveMachineHitLocation({
     chaosCriticalOption,
     chaosTargetLocationKey,
     chaosTargetLocationLabel: getMachineLocationLabel(chaosTargetLocationKey),
+    chaosRulesLocation,
+    chaosRulesLocationLabel: getMachineLocationLabel(chaosRulesLocation),
     descriptiveOnly: !automaticCritical,
     pureStructureHit,
     armorBefore: Math.max(0, Number(armorBefore ?? 0) || 0),

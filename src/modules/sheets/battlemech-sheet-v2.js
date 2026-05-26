@@ -4,18 +4,33 @@
 
 import { MWD } from "../config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../constants.js";
+import { Misc } from "../misc.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { buildCombatAwarenessPreview } from "../combat/combat-awareness-preview.js";
 import { buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
+import { buildBattlemechMovementActionChoices } from "../mwd/battlemech-movement-actions.js";
+import { getMachineMovementEffects } from "../mwd/machine-state-effects.js";
 import { buildCriticalStatusSummary, buildIntegritySummary, buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import {
   buildBattlemechHeatModel,
-  resolveBattlemechPendingHeat,
   setBattlemechPendingHeat,
 } from "../mwd/machine-heat.js";
+import {
+  BATTLEMECH_HEAT_PROFILES,
+  getBattlemechHeatProfile,
+} from "../mwd/battlemech-heat-profiles.js";
+import { resolveBattlemechJumpProfile } from "../mwd/battlemech-mobility.js";
+import { DEFAULT_FIRE_MODE, FIRE_MODES } from "../mwd/battlemech-fire-modes.js";
 import { getConfiguredMachineHardpoints } from "../mwd/machine-hardpoints.js";
+import { buildBattlemechMeleeProfiles } from "../mwd/battlemech-melee-actions.js";
+import { buildBattlemechRangedAttackGroups } from "../mwd/battlemech-ranged-actions.js";
+import {
+  buildMachineCriticalRepairIssues,
+  buildMachineEwActionChoices,
+} from "../mwd/machine-quick-actions.js";
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
-import { prepareBattlemechWeaponGroups } from "../mwd/battlemech-weapon-groups.js";
+import { normalizeMachineWeaponGroups } from "../mwd/machine-weapon-group-state.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
 
 function toNumber(value, fallback = 0) {
@@ -27,7 +42,7 @@ function toNumber(value, fallback = 0) {
 // first save. Always coerce to a real array before mutating.
 function readWeaponGroups(actor) {
   const raw = foundry.utils.deepClone(actor?.system?.mwd?.weaponGroups);
-  return Array.isArray(raw) ? raw : Object.values(raw ?? {});
+  return normalizeMachineWeaponGroups(raw);
 }
 
 function compactList(values = []) {
@@ -69,6 +84,22 @@ function buildSummaryStats(stats = []) {
 
 function buildDetailTags(tags = []) {
   return compactList(tags).map(label => ({ label }));
+}
+
+function getMovementActionChoices(actor) {
+  const preparedChoices = actor?.system?.quickActions?.movement;
+  if (Array.isArray(preparedChoices) && preparedChoices.length) return preparedChoices;
+  return buildBattlemechMovementActionChoices(actor);
+}
+
+function getMachineActionService() {
+  return game.mwd?.machineActions ?? game.system?.mwd?.machineActions ?? null;
+}
+
+async function executeMachineAction(actor, request = {}) {
+  const service = getMachineActionService();
+  if (!service?.execute) throw new Error("MWD machine action service not initialized.");
+  return service.execute(actor, request);
 }
 
 function buildDetailRows(rows = []) {
@@ -114,19 +145,28 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     actions: {
       ...super.DEFAULT_OPTIONS.actions,
       mechAttack: BattlemechSheetV2.prototype._onMechAttack,
+      mechMovement: BattlemechSheetV2.prototype._onMechMovement,
       mechRoll: BattlemechSheetV2.prototype._onMechRoll,
+      heatDangerCheck: BattlemechSheetV2.prototype._onHeatDangerCheck,
       openHeatDialog: BattlemechSheetV2.prototype._onOpenHeatDialog,
       addWeaponGroup: BattlemechSheetV2.prototype._onAddWeaponGroup,
       deleteWeaponGroup: BattlemechSheetV2.prototype._onDeleteWeaponGroup,
-      togglePrimaryWeaponGroup: BattlemechSheetV2.prototype._onTogglePrimaryWeaponGroup,
       toggleWeaponGroupHardpoint: BattlemechSheetV2.prototype._onToggleWeaponGroupHardpoint,
+      setFireMode: BattlemechSheetV2.prototype._onSetFireMode,
     }
   }, { inplace: false });
 
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
+    const actor = this.getPersistentActor() ?? this.actor;
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+    ctx.combatAwarenessPreview = buildCombatAwarenessPreview(actor, {
+      sourceToken: token,
+    });
     ctx.battlemechSheet = {
       heat: this._buildHeatModel(),
+      fireMode: this._buildFireModeSection(actor, snapshot),
       quickActions: this._buildQuickActions(),
       weaponGroupSummary: this._buildWeaponGroupSummary(),
       weaponGroups: this._buildWeaponGroups(),
@@ -142,6 +182,9 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     if (!root) return;
     root.querySelectorAll(".mwd-battlemech-groups__name-input").forEach(input => {
       input.addEventListener("change", e => this.#onWeaponGroupNameChange(e));
+    });
+    root.querySelectorAll("[data-heat-profile-select]").forEach(select => {
+      select.addEventListener("change", e => this.#onHeatProfileChange(e));
     });
   }
 
@@ -161,6 +204,32 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     if (!group || group.name === newName) return;
     group.name = newName;
     await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
+  }
+
+  #onHeatProfileChange(event) {
+    if (!this.isEditable) return;
+
+    const select = event?.target;
+    if (!(select instanceof HTMLSelectElement)) return;
+
+    const profile = getBattlemechHeatProfile(select.value);
+    if (!profile) return;
+
+    const root = this._getRootElement();
+    if (!root) return;
+
+    const setNumberField = (name, value) => {
+      const field = root.querySelector(`[name="${name}"]`);
+      if (!(field instanceof HTMLInputElement)) return;
+      field.value = String(value);
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+
+    setNumberField("system.monitors.heat.max", profile.trackLength);
+    setNumberField("system.mwd.heat.thresholds.runningHot", profile.thresholds.runningHot);
+    setNumberField("system.mwd.heat.thresholds.overheated", profile.thresholds.overheated);
+    setNumberField("system.mwd.heat.thresholds.shutdown", profile.thresholds.shutdown);
   }
 
   _buildChassisFields() {
@@ -210,7 +279,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       actorType: this.actor.type,
       movement: this.actor.system?.movement,
       legacyMoves: this.actor.system?.moves,
-      jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
+      jumpProfile: resolveBattlemechJumpProfile(this.actor),
+      movementEffects: getMachineMovementEffects(this.actor),
     });
 
     return buildSummaryStats([
@@ -237,7 +307,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   }
 
   _buildVehicleSections() {
-    const buckets = this.actor.system?.mwd?.items ?? {};
+    const buckets = Misc.classify(this.actor.items);
     return {
       slots: this._buildHardpointSlotSection(),
       equipment: this._buildRecordSection({
@@ -252,7 +322,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         itemType: "assetModule",
         addLabel: "Add Module",
         emptyLabel: "No asset modules installed.",
-        items: buckets.assetModules ?? [],
+        items: buckets.assetModule ?? [],
       }),
       gear: this._buildRecordSection({
         sectionId: "gear",
@@ -267,6 +337,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   _buildHeatModel() {
     const heat = buildBattlemechHeatModel(this.actor);
     const thresholds = heat.thresholds ?? {};
+    const profileCode = String(this.actor.system?.mwd?.heat?.profileCode ?? "").trim();
 
     return {
       label: "Heat",
@@ -278,6 +349,14 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       coolingImpaired: heat.coolingImpaired,
       pendingGenerated: heat.pendingGenerated,
       editable: Boolean(this.isEditable),
+      profileCode,
+      profileOptions: BATTLEMECH_HEAT_PROFILES.map(profile => ({
+        value: profile.code,
+        label: profile.tier,
+        selected: profile.code === profileCode,
+        trackLength: profile.trackLength,
+        thresholds: profile.thresholds,
+      })),
       status: heat.status,
       thresholds: {
         runningHot: toNumber(thresholds.runningHot, 0),
@@ -293,6 +372,24 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         dangerLevel: heat.penalties.dangerLevel,
       },
       dangerChecks: heat.dangerChecks,
+      dangerActions: heat.inDanger && heat.dangerChecks ? [
+        {
+          label: "Shutdown Check",
+          hint: `Roll ${toNumber(heat.dangerChecks.shutdownPool, 0)}d6 vs DN ${toNumber(heat.dangerChecks.shutdownDN, 0)}`,
+          dataset: {
+            checkKind: "shutdown",
+            dn: toNumber(heat.dangerChecks.shutdownDN, 0),
+          },
+        },
+        {
+          label: "Explosion Check",
+          hint: `Roll ${toNumber(heat.dangerChecks.explosionPool, 0)}d6 vs DN ${toNumber(heat.dangerChecks.explosionDN, 0)}`,
+          dataset: {
+            checkKind: "explosion",
+            dn: toNumber(heat.dangerChecks.explosionDN, 0),
+          },
+        },
+      ] : [],
       volatile: heat.volatile,
       inDanger: heat.inDanger,
       segments: Array.from({ length: heat.displayMax }, (_, index) => {
@@ -319,6 +416,30 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     };
   }
 
+  _buildFireModeSection(actor, snapshot = null) {
+    const activeModeId = String(actor.system?.mwd?.fireMode ?? DEFAULT_FIRE_MODE).trim() || DEFAULT_FIRE_MODE;
+    const changedThisActivation = Boolean(
+      snapshot?.isCurrentTurn
+      && snapshot.state?.actionState?.fireModeChangedThisActivation
+    );
+    let activeMode = null;
+    const modes = Object.values(FIRE_MODES).map(mode => {
+      const isActive = mode.id === activeModeId;
+      if (isActive) activeMode = mode;
+      return {
+        ...mode,
+        isActive,
+        disabled: !mode.implemented || (changedThisActivation && !isActive),
+      };
+    });
+
+    return {
+      activeModeId,
+      activeMode: activeMode ?? FIRE_MODES[DEFAULT_FIRE_MODE],
+      modes,
+    };
+  }
+
   async _onOpenHeatDialog(event, _target) {
     event?.preventDefault?.();
     if (!this.isEditable) return;
@@ -330,21 +451,24 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   _buildQuickActions() {
     const actor = this.getPersistentActor() ?? this.actor;
     const preparedGroups = this._getPreparedRangedWeaponGroups(actor);
-    const quickActions = actor.system?.quickActions ?? {};
-    const primaryGroup = preparedGroups.find(group => group.isPrimary) ?? null;
     const availableRangedGroups = preparedGroups.filter(group => group.isAttackLegal && group.isAvailableThisActivation);
-    const hasMeleeProfiles = Array.isArray(this.actor.system?.meleeProfiles) && this.actor.system.meleeProfiles.length > 0;
-    const primaryHint = primaryGroup?.isAttackLegal && primaryGroup?.isAvailableThisActivation
-      ? primaryGroup.name
-      : (primaryGroup?.disableReason || "No ready primary ranged group");
+    const hasMeleeProfiles = actor.type === "battlemech"
+      || (Array.isArray(actor.system?.meleeProfiles) && actor.system.meleeProfiles.length > 0);
+    const movementChoices = getMovementActionChoices(actor);
+    const enabledMovementChoices = movementChoices.filter(choice => !choice.disabled);
+    const enabledEwActions = buildMachineEwActionChoices(actor, {
+      token: this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor),
+    });
 
     return [
       {
-        label: getQuickActionLabel("primaryWeapons"),
-        hint: primaryHint,
-        handler: "mechAttack",
-        disabled: !(primaryGroup?.isAttackLegal && primaryGroup?.isAvailableThisActivation),
-        dataset: { attackKind: "primary" }
+        label: "Movement",
+        hint: enabledMovementChoices.length
+          ? enabledMovementChoices.map(choice => choice.label).join(" / ")
+          : "No movement actions available",
+        handler: "mechMovement",
+        disabled: enabledMovementChoices.length === 0,
+        dataset: {}
       },
       {
         label: getQuickActionLabel("rangedAttack"),
@@ -370,15 +494,15 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         dataset: { rollKind: "piloting" }
       },
       {
-        label: getQuickActionLabel("sensorSweep"),
-        hint: "Perception or technician",
+        label: "EW",
+        hint: enabledEwActions.length ? "Choose an EW action" : "No EW actions available",
         handler: "mechRoll",
-        disabled: !Boolean(quickActions.hasSensorSweep),
+        disabled: enabledEwActions.length === 0,
         dataset: { rollKind: "sensor" }
       },
       {
         label: getQuickActionLabel("emergencyRepair"),
-        hint: "Technician quick check",
+        hint: "Choose a crit or repairable status",
         handler: "mechRoll",
         disabled: false,
         dataset: { rollKind: "repair" }
@@ -431,6 +555,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   _buildWeaponGroups() {
     const actor = this.getPersistentActor() ?? this.actor;
     const groups = this._getPreparedRangedWeaponGroups(actor);
+    const activeFireMode = String(actor.system?.mwd?.fireMode ?? DEFAULT_FIRE_MODE).trim() || DEFAULT_FIRE_MODE;
     const loadedHardpoints = this._buildLoadedHardpointChoices(actor);
     const groupNameById = new Map(groups.map(group => [group.id, group.name]));
     const owningGroupByItemId = new Map();
@@ -446,10 +571,6 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     return groups.map(group => {
       const groupWeaponIds = Array.from(group.weaponIds ?? []).map(weaponId => String(weaponId ?? "").trim()).filter(Boolean);
       const bundledHardpoints = loadedHardpoints.filter(choice => groupWeaponIds.includes(choice.itemId));
-      const unloadedMembers = groupWeaponIds
-        .filter(weaponId => !bundledHardpoints.some(choice => choice.itemId === weaponId))
-        .map(weaponId => actor.items?.get?.(weaponId)?.name ?? weaponId)
-        .filter(Boolean);
       const bundleChoices = loadedHardpoints.map(choice => {
         const selected = groupWeaponIds.includes(choice.itemId);
         const ownerGroupId = owningGroupByItemId.get(choice.itemId) ?? "";
@@ -457,6 +578,7 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         return {
           ...choice,
           selected,
+          assignedElsewhere,
           disabled: assignedElsewhere,
           title: selected
             ? `Remove ${choice.itemName} from ${group.name}`
@@ -469,7 +591,6 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       return {
         id: group.id,
         index: group.index,
-        isPrimary: Boolean(group.isPrimary),
         name: group.name,
         subtitle: bundledHardpoints.length
           ? bundledHardpoints.map(choice => choice.itemName).join(", ")
@@ -481,30 +602,32 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
           { label: "Heat", value: toNumber(group.attackSummary?.heat, 0) },
         ]),
         detailTags: buildDetailTags([
-          group.isPrimary ? "Primary" : "",
           group.attackSummary?.damageTypeLabel ?? "",
           group.isAttackLegal
             ? (group.isAvailableThisActivation ? "Ready" : "Used")
             : "Blocked",
         ]),
+        rapidFire: group.rapidFire,
         detailRows: buildDetailRows([
           { label: "Weapon Names", value: (group.memberWeapons ?? []).map(weapon => weapon.name).join(", ") },
           { label: "Bundled Hardpoints", value: bundledHardpoints.map(choice => choice.detailLabel).join(" | ") },
-          { label: "Unloaded Members", value: unloadedMembers.join(", ") },
           { label: "Range Cap", value: formatRangeBandLabel(group.attackSummary?.rangeCap ?? "") },
           { label: "Attack Ratings", value: formatAttackRatings(group.attackSummary?.attackRatings ?? {}) },
           { label: "Missing IDs", value: (group.missingWeaponIds ?? []).join(", ") },
           { label: "Warnings", value: (group.compatibilityWarnings ?? []).join(" | ") },
+          { label: "Rapid Fire", value: group.rapidFire?.reason ?? "" },
           { label: "Status", value: group.disableReason || (group.isAvailableThisActivation ? "Ready to fire" : "Already fired this activation") },
         ]),
         bundleChoices,
         bundleHelp: loadedHardpoints.length
-          ? "Select the loaded hardpoints that should fire together in this group."
-          : "Load weapons into hardpoints on the Loadout tab before bundling them here.",
+          ? "Bundle mounted slot weapons here. Only attached slot weapons appear."
+          : "Mount weapons into loadout slots first, then bundle the mounted slot weapons here.",
         action: {
           label: group.isAttackLegal && group.isAvailableThisActivation ? "Attack Group" : "Unavailable",
           disabled: !(group.isAttackLegal && group.isAvailableThisActivation),
-          title: group.disableReason || "Attack Group",
+          title: activeFireMode === "rapidFire" && !group.rapidFire?.eligible
+            ? (group.rapidFire?.reason || "Not rapid-fire capable.")
+            : group.disableReason || "Attack Group",
           dataset: {
             attackKind: "group",
             groupId: group.id,
@@ -545,28 +668,46 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const actor = this.getPersistentActor() ?? this.actor;
     const attackKind = String(target?.dataset?.attackKind ?? "").trim();
     const groupId = String(target?.dataset?.groupId ?? "").trim();
-    const preparedGroups = this._getPreparedRangedWeaponGroups(actor);
 
     try {
       if (attackKind === "group" && groupId) {
         await this.#rollWeaponGroup(actor, groupId);
-      } else if (attackKind === "primary") {
-        const primaryGroup = preparedGroups.find(group => group?.isPrimary) ?? null;
-        if (primaryGroup?.id) await this.#rollWeaponGroup(actor, primaryGroup.id);
-        else await actor.rollRangedAttack?.();
       } else if (attackKind === "ranged") {
+        const activeFireMode = String(actor.system?.mwd?.fireMode ?? DEFAULT_FIRE_MODE).trim() || DEFAULT_FIRE_MODE;
+        if (activeFireMode === "alphaStrike") {
+          await this.#rollWeaponGroup(actor, "");
+          return;
+        }
+        const preparedGroups = this._getPreparedRangedWeaponGroups(actor);
         const selectedGroup = await this.#promptWeaponGroup(actor, preparedGroups);
         if (selectedGroup?.id) await this.#rollWeaponGroup(actor, selectedGroup.id);
       } else if (attackKind === "melee") {
-        const selectedProfile = await this.#promptMeleeProfile(actor);
-        if (selectedProfile?.weaponId) await this.#rollWeapon(actor, selectedProfile.weaponId);
-        else await actor.rollMeleeAttack?.();
+        await this.#rollMeleeAttack(actor);
       } else {
-        await actor.rollRangedAttack?.();
+        throw new Error(`MWD | Unrecognised attackKind: "${attackKind}"`);
       }
     } catch (error) {
       console.error("MWD | Failed to launch BattleMech attack", error);
       notifyRollError(error, "Unable to launch that BattleMech attack.");
+    }
+  }
+
+  async _onMechMovement(event, _target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const selectedAction = await this.#promptMovementAction(actor);
+    if (!selectedAction) return;
+
+    try {
+      await executeMachineAction(actor, {
+        kind: "movement",
+        movementKind: selectedAction.id,
+      });
+    } catch (error) {
+      console.error("MWD | Failed to record BattleMech movement", error);
+      notifyRollError(error, "Unable to record that BattleMech movement.");
     }
   }
 
@@ -578,12 +719,75 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const rollKind = String(target?.dataset?.rollKind ?? "").trim();
 
     try {
-      if (rollKind === "piloting") await actor.rollPilotingCheck?.();
-      else if (rollKind === "sensor") await actor.rollSensorSweep?.();
-      else if (rollKind === "repair") await actor.rollEmergencyRepair?.();
+      if (rollKind === "piloting") {
+        await executeMachineAction(actor, { kind: "piloting" });
+      } else if (rollKind === "sensor") {
+        const selectedAction = await this.#promptMachineEwAction(actor);
+        if (selectedAction) await executeMachineAction(actor, {
+          kind: "ew",
+          action: selectedAction,
+        });
+      } else if (rollKind === "repair") {
+        const selectedIssue = await this.#promptMachineCriticalRepairIssue(actor);
+        if (selectedIssue) await executeMachineAction(actor, {
+          kind: "repair",
+          issue: selectedIssue,
+        });
+      }
     } catch (error) {
       console.error("MWD | Failed to launch BattleMech check", error);
       notifyRollError(error, "Unable to launch that BattleMech check.");
+    }
+  }
+
+  async _onHeatDangerCheck(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const checkKind = String(target?.dataset?.checkKind ?? "").trim();
+    if (!["shutdown", "explosion"].includes(checkKind)) {
+      ui.notifications?.warn("Unknown heat danger check.");
+      return;
+    }
+
+    const heat = buildBattlemechHeatModel(actor);
+    if (!heat.inDanger || !heat.dangerChecks) {
+      ui.notifications?.warn("Heat danger checks are only available while the BattleMech is in Danger heat.");
+      return;
+    }
+
+    try {
+      await executeMachineAction(actor, {
+        kind: "heatDangerCheck",
+        event,
+        checkKind,
+        token: this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor),
+      });
+    } catch (error) {
+      console.error("MWD | Failed to launch BattleMech heat danger check", error);
+      notifyRollError(error, "Unable to launch that heat danger check.");
+    }
+  }
+
+  async _onSetFireMode(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const newMode = String(target?.dataset?.fireModeId ?? "").trim();
+    if (!newMode) return;
+
+    try {
+      const result = await executeMachineAction(actor, {
+        kind: "changeFireMode",
+        newMode,
+        token: this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor),
+      });
+      if (!result?.ok) ui.notifications?.warn(result?.reason ?? "Could not change fire mode.");
+    } catch (error) {
+      console.error("MWD | Failed to change BattleMech fire mode", error);
+      notifyRollError(error, "Could not change fire mode.");
     }
   }
 
@@ -598,7 +802,6 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       id: foundry.utils.randomID?.() ?? `group-${weaponGroups.length + 1}`,
       name: MWD?.mwd?.loadout?.newGroup ?? `Weapon Group ${weaponGroups.length + 1}`,
       weaponIds: [],
-      isPrimary: weaponGroups.length === 0,
     });
 
     await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
@@ -624,36 +827,6 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     if (groupIndex < 0) return;
 
     weaponGroups.splice(groupIndex, 1);
-    await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
-    this.render({ force: true });
-  }
-
-  async _onTogglePrimaryWeaponGroup(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-    if (!this.isEditable) return;
-
-    const groupId = String(
-      target?.dataset?.groupId
-      ?? target?.closest?.("[data-group-id]")?.dataset?.groupId
-      ?? event?.target?.closest?.("[data-group-id]")?.dataset?.groupId
-      ?? ""
-    ).trim();
-    if (!groupId) return;
-
-    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const weaponGroups = readWeaponGroups(actorWriteTarget);
-    let changed = false;
-
-    for (const group of weaponGroups) {
-      const nextPrimary = String(group?.id ?? "").trim() === groupId;
-      if (Boolean(group?.isPrimary) !== nextPrimary) {
-        group.isPrimary = nextPrimary;
-        changed = true;
-      }
-    }
-
-    if (!changed) return;
     await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
     this.render({ force: true });
   }
@@ -710,73 +883,67 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       ? group.weaponIds.filter(id => id !== itemId)
       : [...group.weaponIds, itemId];
 
+    this._captureScrollPosition();
     await actorWriteTarget.update({ "system.mwd.weaponGroups": weaponGroups });
-    this.render({ force: true });
+    target?.closest?.(".mwd-weapon-group-editor__choice")?.classList?.toggle("is-selected", !selected);
+    this.render({ force: false });
   }
 
   async #rollWeaponGroup(actor, groupId) {
-    const group = this._getPreparedRangedWeaponGroups(actor)
-      .find(entry => String(entry?.id ?? "").trim() === String(groupId ?? "").trim()) ?? null;
-    if (!group) {
-      ui.notifications?.warn("That weapon group is no longer available.");
-      return;
-    }
-    if (!group.isAttackLegal || !group.isAvailableThisActivation) {
-      ui.notifications?.warn(group.disableReason || "That weapon group cannot attack right now.");
-      return;
-    }
-
-    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
-    if (!rollApi?.execute) {
-      await actor.rollRangedAttack?.();
-      return;
-    }
-
-    const token = this._resolveStatusToken(actor);
-    const result = await rollApi.execute({
-      actor,
-      payload: {
-        intent: "attack",
-        weaponGroupId: group.id,
-        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-        tags: ["combat", "attack", "machine", "groupFire"],
-        sourceTokenId: token?.id ?? null,
-      }
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    return executeMachineAction(actor, {
+      kind: "attack",
+      attackKind: "group",
+      groupId,
+      token,
     });
-
-    if (result) {
-      return true;
-    }
   }
 
-  async #rollWeapon(actor, weaponId) {
-    const item = weaponId ? actor.items?.get?.(weaponId) : null;
-    if (!item) {
-      ui.notifications?.warn("That weapon is no longer available.");
+  async #rollMeleeAttack(actor) {
+    const profiles = buildBattlemechMeleeProfiles(actor);
+    if (!profiles.length) {
+      ui.notifications?.warn(MWD.actor.vehicle.quickActions.errors.noMelee);
       return;
     }
 
-    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
-    if (!rollApi?.execute) {
-      await actor.rollRangedAttack?.();
-      return;
-    }
+    const selectedProfile = await this.#promptMeleeProfile(profiles);
+    if (!selectedProfile) return;
 
-    const token = this._resolveStatusToken(actor);
-    const result = await rollApi.execute({
-      actor,
-      payload: {
-        intent: "attack",
-        weaponId: item.id,
-        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-        tags: ["combat", "attack", "machine"],
-        sourceTokenId: token?.id ?? null,
-      }
+    await executeMachineAction(actor, {
+      kind: "attack",
+      attackKind: "melee",
+      profile: selectedProfile,
+    });
+  }
+
+  async #promptMeleeProfile(profiles) {
+    const selectableProfiles = Array.isArray(profiles) ? profiles : [];
+    if (!selectableProfiles.length) return null;
+    if (selectableProfiles.length === 1) return selectableProfiles[0];
+
+    const defaultProfile = selectableProfiles[0];
+    const content = `<form class="mwd-quick-select">${selectableProfiles.map(profile => `
+      <label class="quick-select-option">
+        <input type="radio" name="melee-profile" value="${foundry.utils.escapeHTML(String(profile.id ?? ""))}" ${profile.id === defaultProfile.id ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(profile.name ?? ""))}</span>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.selectMeleeProfile },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["melee-profile"]?.value ?? defaultProfile.id,
+        },
+      ],
     });
 
-    if (result) {
-      return true;
-    }
+    return selectableProfiles.find(profile => profile.id === selectedId) ?? defaultProfile;
   }
 
   async #promptWeaponGroup(actor, preparedGroups = null) {
@@ -792,11 +959,11 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     if (!selectableGroups.length) return null;
     if (selectableGroups.length === 1) return selectableGroups[0];
 
-    const defaultGroup = selectableGroups.find(group => group?.isPrimary) ?? selectableGroups[0];
+    const defaultGroup = selectableGroups[0];
     const content = `<form class="mwd-quick-select">${selectableGroups.map(group => `
       <label class="quick-select-option">
         <input type="radio" name="weapon-group" value="${group.id}" ${group.id === defaultGroup.id ? "checked" : ""}>
-        <span>${group.name}${group.isPrimary ? ` (${MWD.actor.vehicle.quickActions.primaryLabel})` : ""}</span>
+        <span>${group.name}</span>
       </label>`).join("")}</form>`;
 
     const selectedId = await foundry.applications.api.DialogV2.wait({
@@ -817,30 +984,59 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     return selectableGroups.find(group => group.id === selectedId) ?? defaultGroup;
   }
 
-  _getPreparedRangedWeaponGroups(actor) {
-    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
-    const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
-    const usedWeaponGroupIds = snapshot?.isCurrentTurn
-      ? PersonalCombatTracker.getUsedWeaponGroupIds?.(actor, { token, snapshot }) ?? []
-      : [];
+  async #promptMovementAction(actor) {
+    const choices = getMovementActionChoices(actor);
+    const selectableChoices = choices.filter(choice => !choice.disabled);
+    if (!selectableChoices.length) {
+      ui.notifications?.warn("No movement actions are currently available.");
+      return null;
+    }
 
-    return prepareBattlemechWeaponGroups(actor, { usedWeaponGroupIds });
-  }
-
-  async #promptMeleeProfile(actor) {
-    const profiles = Array.from(actor.system?.meleeProfiles ?? []);
-    if (!profiles.length) return null;
-    if (profiles.length === 1) return profiles[0];
-
-    const defaultProfile = profiles[0];
-    const content = `<form class="mwd-quick-select">${profiles.map(profile => `
-      <label class="quick-select-option">
-        <input type="radio" name="melee-profile" value="${profile.id}" ${profile.id === defaultProfile.id ? "checked" : ""}>
-        <span>${profile.name}</span>
+    const defaultChoice = selectableChoices[0];
+    const content = `<form class="mwd-quick-select">${choices.map(choice => `
+      <label class="quick-select-option${choice.disabled ? " is-disabled" : ""}" title="${foundry.utils.escapeHTML(choice.reason || choice.hint || "")}">
+        <input type="radio" name="movement-action" value="${choice.id}" ${choice.id === defaultChoice.id ? "checked" : ""} ${choice.disabled ? "disabled" : ""}>
+        <span>${foundry.utils.escapeHTML(choice.label)}</span>
+        <small>${foundry.utils.escapeHTML(`${choice.cost} SA${choice.heat > 0 ? ` | +${choice.heat} Heat` : ""}${choice.hint ? ` | ${choice.hint}` : ""}`)}</small>
       </label>`).join("")}</form>`;
 
     const selectedId = await foundry.applications.api.DialogV2.wait({
-      window: { title: MWD.actor.vehicle.quickActions.selectMeleeProfile },
+      window: { title: "Movement" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: "Move",
+          icon: "fa-solid fa-person-running",
+          default: true,
+          callback: (_event, button) => button.form?.elements["movement-action"]?.value ?? defaultChoice.id,
+        },
+      ],
+    });
+
+    return selectableChoices.find(choice => choice.id === selectedId) ?? defaultChoice;
+  }
+
+  async #promptMachineEwAction(actor) {
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    const actions = buildMachineEwActionChoices(actor, { token, includeDisabled: true });
+    const selectableActions = actions.filter(action => !action.disabled);
+    if (!selectableActions.length) {
+      ui.notifications?.warn(MWD.actor.vehicle.quickActions.errors.noSensorSweep);
+      return null;
+    }
+
+    const defaultAction = selectableActions[0];
+    const content = `<form class="mwd-quick-select">${actions.map(action => `
+      <label class="quick-select-option${action.disabled ? " is-disabled" : ""}" title="${foundry.utils.escapeHTML(String(action.reason ?? ""))}">
+        <input type="radio" name="ew-action" value="${foundry.utils.escapeHTML(String(action.id ?? ""))}" ${action.id === defaultAction.id ? "checked" : ""} ${action.disabled ? "disabled" : ""}>
+        <span>${foundry.utils.escapeHTML(String(action.label ?? ""))}</span>
+        <small>${foundry.utils.escapeHTML(String(action.disabled ? action.reason : action.hint ?? ""))}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Electronic Warfare" },
       content,
       rejectClose: false,
       buttons: [
@@ -849,12 +1045,51 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
           label: MWD.common.roll.button,
           icon: "fa-solid fa-dice",
           default: true,
-          callback: (_event, button) => button.form?.elements["melee-profile"]?.value ?? defaultProfile.id,
+          callback: (_event, button) => button.form?.elements["ew-action"]?.value ?? defaultAction.id,
         },
       ],
     });
 
-    return profiles.find(profile => profile.id === selectedId) ?? defaultProfile;
+    return selectableActions.find(action => action.id === selectedId) ?? defaultAction;
+  }
+
+  async #promptMachineCriticalRepairIssue(actor) {
+    const issues = buildMachineCriticalRepairIssues(actor);
+    if (!issues.length) {
+      ui.notifications?.warn("No active criticals or repairable statuses are available.");
+      return null;
+    }
+    if (issues.length === 1) return issues[0];
+
+    const defaultIssue = issues[0];
+    const content = `<form class="mwd-quick-select">${issues.map(issue => `
+      <label class="quick-select-option">
+        <input type="radio" name="repair-issue" value="${foundry.utils.escapeHTML(`${issue.issueKind}:${issue.issueId}`)}" ${issue.issueKind === defaultIssue.issueKind && issue.issueId === defaultIssue.issueId ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(issue.label ?? ""))}</span>
+        <small>${foundry.utils.escapeHTML(`${issue.remedyLabel ?? ""} | ${issue.remedySummary || `DN ${issue.totalDn}`}`)}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedKey = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.emergencyRepair },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["repair-issue"]?.value ?? `${defaultIssue.issueKind}:${defaultIssue.issueId}`,
+        },
+      ],
+    });
+
+    return issues.find(issue => `${issue.issueKind}:${issue.issueId}` === selectedKey) ?? defaultIssue;
+  }
+
+  _getPreparedRangedWeaponGroups(actor) {
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    return buildBattlemechRangedAttackGroups(actor, { token });
   }
 
   async #openHeatDialog(actor) {
@@ -940,7 +1175,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
     const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
     const activation = snapshot?.hasCombatant && snapshot?.isCurrentTurn ? snapshot.activation : null;
 
-    await resolveBattlemechPendingHeat(actor, {
+    await executeMachineAction(actor, {
+      kind: "resolvePendingHeat",
       source,
       activation,
       postDangerCard: true,

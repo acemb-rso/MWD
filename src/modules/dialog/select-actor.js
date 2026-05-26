@@ -52,13 +52,10 @@ export class SelectActor extends HandlebarsApplicationMixin(ApplicationV2) {
     return { actors: this.actors };
   }
 
-  async activateListeners(html) {
-    const element = html instanceof HTMLElement ? html : html[0];
-    await super.activateListeners(element);
-    const jqHtml = $(element);
-
-    jqHtml.find(".click-select-actor").click((event) => this.onSelectActor(event));
-    jqHtml.find('[data-action="cancel"]').on('click', async () => await this.close());
+  _onRender(context, options) {
+    super._onRender?.(context, options);
+    $(this.element).find(".click-select-actor").on("click", (event) => this.onSelectActor(event));
+    $(this.element).find('[data-action="cancel"]').on("click", async () => await this.close());
   }
 
   async onSelectActor(event) {

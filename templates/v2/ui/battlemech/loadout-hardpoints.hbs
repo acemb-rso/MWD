@@ -8,13 +8,13 @@ How it fits: Keeps the full hardpoint workflow inside the loadout tab.
   <section class="mwd-hardpoint-workspace__panel">
     <div class="mwd-hardpoint-workspace__header">
       <div>
-        <div class="mwd-hardpoint-workspace__title">Hardpoint Configuration</div>
-        <div class="mwd-hardpoint-workspace__copy">Define the slot type, size, and location for each BattleMech mount.</div>
+        <div class="mwd-hardpoint-workspace__title">Loadout Slots</div>
+        <div class="mwd-hardpoint-workspace__copy">Create each slot here, then mount mech weapons into those slots below. Slot changes save back to the actor sheet.</div>
       </div>
 
       {{#if @root.editing}}
         <button type="button" class="mwd-inv__add-btn" data-action="addHardpoint">
-          <i class="fas fa-plus"></i> Add Hardpoint
+          <i class="fas fa-plus"></i> Create Loadout Slot
         </button>
       {{/if}}
     </div>
@@ -22,18 +22,13 @@ How it fits: Keeps the full hardpoint workflow inside the loadout tab.
     {{#if @root.vehicleSheet.hardpoints.length}}
       <div class="mwd-actor-items__list">
         {{#each @root.vehicleSheet.hardpoints as |hardpoint|}}
-          <article class="mwd-actor-item">
+          <article class="mwd-actor-item" data-hardpoint-config data-hardpoint-id="{{hardpoint.id}}">
             <div class="mwd-actor-item__main">
-              {{#if @root.editing}}
-                <input type="hidden" name="system.mwd.hardpoints.{{hardpoint.index}}.id" value="{{hardpoint.id}}" data-edit-field="staged">
-                <input type="hidden" name="system.mwd.hardpoints.{{hardpoint.index}}.itemId" value="{{hardpoint.itemId}}" data-edit-field="staged">
-              {{/if}}
-
               <div class="mwd-actor-field-grid" style="display:grid; gap:0.75rem; grid-template-columns:repeat(4, minmax(0, 1fr));">
                 <div class="mwd-field-cluster">
                   <label>Type</label>
                   {{#if @root.editing}}
-                    <select name="system.mwd.hardpoints.{{hardpoint.index}}.type" data-edit-field="staged">
+                    <select data-hardpoint-field="type">
                       {{selectOptions hardpoint.typeOptions selected=hardpoint.type valueAttr="value" labelAttr="label" localize=false}}
                     </select>
                   {{else}}
@@ -44,7 +39,7 @@ How it fits: Keeps the full hardpoint workflow inside the loadout tab.
                 <div class="mwd-field-cluster">
                   <label>Size</label>
                   {{#if @root.editing}}
-                    <select name="system.mwd.hardpoints.{{hardpoint.index}}.size" data-edit-field="staged">
+                    <select data-hardpoint-field="size">
                       {{selectOptions hardpoint.sizeOptions selected=hardpoint.size valueAttr="value" labelAttr="label" localize=false}}
                     </select>
                   {{else}}
@@ -55,7 +50,7 @@ How it fits: Keeps the full hardpoint workflow inside the loadout tab.
                 <div class="mwd-field-cluster">
                   <label>Location</label>
                   {{#if @root.editing}}
-                    <select name="system.mwd.hardpoints.{{hardpoint.index}}.location" data-edit-field="staged">
+                    <select data-hardpoint-field="location">
                       {{selectOptions hardpoint.locationOptions selected=hardpoint.location valueAttr="value" labelAttr="label" localize=false}}
                     </select>
                   {{else}}
@@ -72,7 +67,7 @@ How it fits: Keeps the full hardpoint workflow inside the loadout tab.
 
             {{#if @root.editing}}
               <div class="mwd-actor-item__actions">
-                <button type="button" data-action="deleteHardpoint" data-hardpoint-index="{{hardpoint.index}}">Delete</button>
+                <button type="button" data-action="deleteHardpoint" data-hardpoint-id="{{hardpoint.id}}">Delete</button>
               </div>
             {{/if}}
           </article>
@@ -87,7 +82,7 @@ How it fits: Keeps the full hardpoint workflow inside the loadout tab.
     <div class="mwd-hardpoint-workspace__header">
       <div>
         <div class="mwd-hardpoint-workspace__title">Mounted Slots</div>
-        <div class="mwd-hardpoint-workspace__copy">Load or unload compatible weapons here. Drag-and-drop still works on open slots.</div>
+        <div class="mwd-hardpoint-workspace__copy">Weapons only exist here as mounted slot equipment. Drag a mech weapon item onto an open slot or create one directly for that slot.</div>
       </div>
     </div>
 

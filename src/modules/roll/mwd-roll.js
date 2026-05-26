@@ -25,9 +25,11 @@ import {
   commitMachineRemedyCost,
   resolveMachineCritIntentContext,
 } from "../mwd/machine-intents.js";
-import { recordBattlemechAttackHeat } from "../mwd/machine-heat.js";
+import { adjustBattlemechPendingHeat, recordBattlemechAttackHeat } from "../mwd/machine-heat.js";
+import { applyHeatDangerCheckOutcome } from "../mwd/heat-danger-outcomes.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { getMachineActionDefinition } from "../mwd/machine-action-catalog.js";
+import { findAssetModuleActionOverride, getAssetModuleActionCosts } from "../mwd/asset-module-effects.js";
 import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
 import { resolveAcquireExecution, resolveTargetingExecution } from "./ew-execution.js";
 import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-state.js";
@@ -36,7 +38,7 @@ import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-
  * Public roll API.
  * Sheets call: game.mwd.roll.execute({ actor, payload, event })
  */
-export const MWDRoll = { execute };
+export const MWDRoll = { execute, recomputeResolvedOutcomeAndAttack, applyPostRerollFailures };
 
 const EDGE_DOMAIN_POOLS = {
   physical: ["grit","chaos"],
@@ -44,18 +46,331 @@ const EDGE_DOMAIN_POOLS = {
   social: ["legend","credibility"],
 };
 
+const CRITICAL_EDGE_REASONS = new Set(["criticalSuccess", "criticalFailure", "critFail"]);
+const MACHINE_PLATFORM_ROLL_INTENTS = new Set([
+  "acquire",
+  "acquireTarget",
+  "generateFireSolution",
+  "heatDangerCheck",
+  "machineRemedy",
+  "targeting",
+]);
+
+function uniqueStrings(values = []) {
+  return Array.from(new Set(values.map(value => String(value ?? "").trim()).filter(Boolean)));
+}
+
+function getEdgeAwardComponents(earned) {
+  if (earned?.reason === "multiple" && Array.isArray(earned?.details?.awards)) {
+    return earned.details.awards.filter(award => Number(award?.amount ?? 0) > 0);
+  }
+  return Number(earned?.amount ?? 0) > 0 ? [earned] : [];
+}
+
+function buildOutcomeContext(resolved = {}) {
+  const snapshot = resolved?.ctxSnapshot ?? {};
+  const dnTotal = Number(resolved?.dn?.total ?? snapshot?.dn?.total ?? snapshot?.difficulty?.dn ?? 1);
+
+  return {
+    intent: resolved?.intent ?? "unknown",
+    rollType: snapshot?.rollType ?? "simple",
+    difficulty: {
+      ...((snapshot?.difficulty && typeof snapshot.difficulty === "object") ? snapshot.difficulty : {}),
+      dn: Number.isFinite(dnTotal) ? dnTotal : 1
+    },
+    dn: resolved?.dn ?? snapshot?.dn ?? null,
+    opposed: snapshot?.opposed ?? null,
+    net: snapshot?.net ?? null,
+    edge: snapshot?.edge ?? null,
+    domains: Array.isArray(resolved?.domains) ? resolved.domains : [],
+    attack: resolved?.attack ?? null,
+    machineRemedy: resolved?.machineRemedy ?? null,
+    acquire: resolved?.acquire ?? null,
+    targeting: resolved?.targeting ?? null,
+  };
+}
+
+async function recomputeResolvedOutcomeAndAttack(resolved = {}, actor = null) {
+  const ctx = buildOutcomeContext(resolved);
+  const successes = Number(resolved?.outcome?.hits ?? 0) || 0;
+  const edgeEarned = resolved?.outcomeModel?.edgeEarned ?? null;
+  resolved.outcomeModel = interpretOutcome(ctx, { successes, raw: resolved?.roll?.json }, null);
+  const edgeSpent =
+    Number(resolved?.edge?.pre?.spent ?? 0) > 0 ||
+    Number(resolved?.edge?.post?.spent ?? 0) > 0;
+  resolved.outcomeModel.edgeEarned = edgeSpent ? null : edgeEarned;
+
+  if (ctx.intent === "attack" && actor && ctx.attack) {
+    resolved.attackResult = await resolveAttackExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: resolved.outcomeModel,
+      previewState: resolved.areaEffectPreviewState ?? {},
+      existingAttackResult: resolved.attackResult ?? null,
+    });
+  } else if (ctx.intent === "machineRemedy") {
+    resolved.machineRemedyResult = {
+      ...(await applyMachineRemedyOutcome(resolved.originPayload ?? {}, {
+        gmOverride: Boolean(resolved?.originPayload?.gmOverride),
+        passed: Boolean(resolved.outcomeModel?.passed),
+      })),
+      spend: resolved.machineRemedyResult?.spend ?? null,
+      context: resolved.machineRemedyResult?.context ?? null,
+    };
+  } else if (ctx.intent === "acquire" && actor && ctx.acquire) {
+    resolved.ewAcquireResult = await resolveAcquireExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: resolved.outcomeModel,
+    });
+  } else if (ctx.intent === "targeting" && actor && ctx.targeting) {
+    resolved.ewTargetingResult = await resolveTargetingExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: resolved.outcomeModel,
+    });
+  }
+
+  return resolved;
+}
+
+function hasAppliedAttackMutation(resolved = {}) {
+  const results = Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [];
+  return results.some(result => Boolean(result?.queuedMutation?.applied));
+}
+
+function getAppliedEdgeAwards(edgeEarned = null) {
+  if (Array.isArray(edgeEarned?.appliedAwards)) {
+    return edgeEarned.appliedAwards
+      .map(award => ({
+        pool: String(award?.pool ?? "").trim(),
+        amount: Math.max(0, Number(award?.amount ?? 0)),
+      }))
+      .filter(award => award.pool && award.amount > 0);
+  }
+
+  const pool = String(edgeEarned?.pool ?? "").trim();
+  const amount = Math.max(0, Number(edgeEarned?.amount ?? 0));
+  return edgeEarned?.applied && pool && amount > 0 ? [{ pool, amount }] : [];
+}
+
+function getSpendableEdgeAfterRevokingEarned(actor, resolved = {}, poolKey = "") {
+  const current = Number(actor?.getEdgePoolValue?.(poolKey) ?? actor?.getRemainingEdge?.(poolKey) ?? 0);
+  const revokedFromPool = getAppliedEdgeAwards(resolved?.outcomeModel?.edgeEarned)
+    .filter(award => award.pool === poolKey)
+    .reduce((sum, award) => sum + Number(award.amount ?? 0), 0);
+
+  return Math.max(0, current - revokedFromPool);
+}
+
+async function revokeAppliedEdgeEarned(actor, resolved = {}) {
+  const awards = getAppliedEdgeAwards(resolved?.outcomeModel?.edgeEarned);
+  if (!awards.length) return;
+
+  for (const award of awards) {
+    await actor.spendEdge?.(award.pool, award.amount, {
+      skipTraitHooks: true,
+      source: "postEdgeRevokesEarnedEdge",
+    });
+  }
+
+  if (resolved?.outcomeModel) resolved.outcomeModel.edgeEarned = null;
+}
+
+async function applyPostRerollFailures({ message = null, poolKey = "" } = {}) {
+  const normalizedPoolKey = String(poolKey ?? "").trim();
+  if (!message) throw new Error("Post-reroll requires a chat message.");
+  if (!normalizedPoolKey) throw new Error("Post-reroll requires poolKey.");
+
+  const resolved = foundry.utils.deepClone(message?.flags?.mwd?.resolved);
+  if (!resolved) return { ok: false, reason: "missing-resolved", userMessage: "Roll data is no longer available." };
+
+  if (hasAppliedAttackMutation(resolved)) {
+    return {
+      ok: false,
+      reason: "attack-damage-applied",
+      userMessage: "Post-roll Edge is disabled after attack damage has been applied.",
+    };
+  }
+
+  if (Number(resolved?.edge?.post?.spent ?? 0) === 1) {
+    return { ok: false, reason: "already-spent", userMessage: "Post-roll Edge has already been spent." };
+  }
+
+  const allowed = Array.isArray(resolved?.edge?.allowed?.postPools)
+    ? resolved.edge.allowed.postPools
+    : [];
+
+  if (!allowed.includes(normalizedPoolKey)) {
+    return {
+      ok: false,
+      reason: "pool-not-allowed",
+      userMessage: `Post-spend pool not allowed: ${normalizedPoolKey}`,
+    };
+  }
+
+  const failureRefs = Array.isArray(resolved?.roll?.failureDiceRefs)
+    ? resolved.roll.failureDiceRefs
+    : [];
+
+  if (failureRefs.length <= 0) {
+    return { ok: false, reason: "no-failures", userMessage: "No failures to reroll." };
+  }
+
+  const rollActor = await fromUuid(resolved.rollActorUuid ?? resolved.actorUuid);
+  if (!rollActor) return { ok: false, reason: "actor-not-found", userMessage: "Actor not found for this roll." };
+  const contextActor = await fromUuid(resolved.actorUuid) ?? rollActor;
+
+  if (getSpendableEdgeAfterRevokingEarned(rollActor, resolved, normalizedPoolKey) <= 0) {
+    return {
+      ok: false,
+      reason: "edge-unavailable",
+      userMessage: `No ${normalizedPoolKey} Edge available for post-spend.`,
+    };
+  }
+
+  await revokeAppliedEdgeEarned(rollActor, resolved);
+  await rollActor.spendEdge?.(normalizedPoolKey, 1);
+
+  const tn = Number(resolved?.roll?.target ?? 5);
+  const reroll = await new Roll(`${failureRefs.length}d6cs>=${tn}`).evaluate();
+  const term = reroll.dice?.[0];
+  const results = Array.isArray(term?.results) ? term.results : [];
+  const addHits = results.filter(r => r.success).length;
+
+  resolved.outcome = resolved.outcome ?? {};
+  resolved.outcome.hits = Number(resolved.outcome.hits ?? 0) + addHits;
+
+  resolved.edge = resolved.edge ?? {};
+  resolved.edge.post = { poolKey: normalizedPoolKey, spent: 1 };
+
+  resolved.edge.availableActions = {
+    ...(resolved.edge.availableActions ?? {}),
+    canSpendPost: false,
+    canPostRerollFailures: false
+  };
+
+  resolved.roll = resolved.roll ?? {};
+  resolved.roll.diceGroups = Array.isArray(resolved.roll.diceGroups) ? resolved.roll.diceGroups : [];
+  resolved.roll.diceGroups.push({
+    id: "post",
+    label: "Post Reroll",
+    faces: 6,
+    termIndex: null,
+    dice: results.map((r, i) => {
+      const face = Number(r.result);
+      const isSuccess = Boolean(r.success);
+      return {
+        ref: `post:${i}`,
+        face,
+        isSuccess,
+        isFailure: !isSuccess,
+        tooltip: isSuccess
+          ? `Post die ${i + 1}: ${face} (Success vs TN ${tn})`
+          : `Post die ${i + 1}: ${face} (Failure vs TN ${tn})`
+      };
+    })
+  });
+
+  await recomputeResolvedOutcomeAndAttack(resolved, contextActor);
+  const content = await renderChat({ resolved });
+
+  return {
+    ok: true,
+    resolved,
+    content,
+    updateData: {
+      content,
+      "flags.mwd.resolved": resolved,
+      "flags.mwd.payload.edge.post": { poolKey: normalizedPoolKey, spent: 1 },
+    },
+  };
+}
+
+function isCriticalEdgeAward(award) {
+  return CRITICAL_EDGE_REASONS.has(String(award?.reason ?? ""));
+}
+
 function pickMostMissingEdgePool(actor, domain) {
   const keys = EDGE_DOMAIN_POOLS[domain] ?? [];
-  let best = null, bestMissing = -1;
+  let best = null;
+  let bestMissing = -1;
 
-  for (const k of keys) {
-    const p = actor.getEdgePool?.(k);
-    const rating = Number(p?.rating ?? 0);
-    const value  = Number(p?.value ?? 0);
-    const missing = Math.max(0, rating - value);
-    if (missing > bestMissing) { bestMissing = missing; best = k; }
+  for (const key of keys) {
+    const pool = actor.getEdgePool?.(key);
+    const max = Number(pool?.effectiveMax ?? pool?.rating ?? 0);
+    const value = Number(pool?.effectiveValue ?? pool?.value ?? 0);
+    const missing = Math.max(0, max - value);
+    if (missing > bestMissing) {
+      bestMissing = missing;
+      best = key;
+    }
   }
+
   return best ?? keys[0] ?? null;
+}
+
+function getCriticalEdgeDomain(ctx, edgeInfo) {
+  return edgeInfo?.domain ?? pickEdgeDomain(ctx?.domains);
+}
+
+function getAwardPoolKeys(actor, award, domain) {
+  if (isCriticalEdgeAward(award)) {
+    const poolKey = pickMostMissingEdgePool(actor, domain);
+    return poolKey ? [poolKey] : [];
+  }
+  return award?.pool ? [String(award.pool)] : [];
+}
+
+async function applyEarnedEdgeAwards({ actor, ctx, edgeInfo, earned } = {}) {
+  if (!actor?.gainEdge || !earned?.amount) return null;
+
+  // Critical outcome Edge restores one pool in the roll's domain: whichever
+  // domain pool is currently missing the most Edge.
+  const domain = getCriticalEdgeDomain(ctx, edgeInfo);
+  const components = getEdgeAwardComponents(earned);
+  const appliedAwards = [];
+  const targetPools = [];
+
+  for (const award of components) {
+    const amount = Math.max(0, Number(award?.amount ?? 0));
+    if (!amount) continue;
+
+    const poolKeys = getAwardPoolKeys(actor, award, domain);
+    for (const poolKey of poolKeys) {
+      const beforeState = actor.getEdgePool?.(poolKey) ?? {};
+      const before = Number(beforeState.effectiveValue ?? beforeState.value ?? 0);
+      const max = Number(beforeState.effectiveMax ?? beforeState.rating ?? 0);
+      const expectedApplied = Number.isFinite(max)
+        ? Math.max(0, Math.min(amount, max - before))
+        : amount;
+
+      if (expectedApplied <= 0) continue;
+
+      await actor.gainEdge(poolKey, amount, {
+        source: isCriticalEdgeAward(award) ? "criticalOutcome" : "rollOutcome",
+      });
+
+      targetPools.push(poolKey);
+      appliedAwards.push({
+        pool: poolKey,
+        amount: expectedApplied,
+        reason: String(award?.reason ?? earned.reason ?? "rollOutcome"),
+      });
+    }
+  }
+
+  if (!appliedAwards.length) return null;
+
+  const pools = uniqueStrings(targetPools);
+  return {
+    ...earned,
+    pool: pools.length === 1 ? pools[0] : null,
+    pools,
+    targetLabel: pools.join(", "),
+    applied: true,
+    appliedAwards,
+  };
 }
 
 function normalizeManualMods(payload) {
@@ -71,6 +386,17 @@ function normalizeManualMods(payload) {
 
   const total = mods.reduce((a, m) => a + m.value, 0);
   return { mods, total };
+}
+
+function uniqueActors(...actors) {
+  const seen = new Set();
+  return actors.filter(actor => {
+    if (!actor) return false;
+    const key = actor.uuid ?? actor.id ?? actor;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function normalizePayload(payload = {}) {
@@ -89,11 +415,35 @@ function normalizePayload(payload = {}) {
   };
 }
 
+function shouldRouteToOperatedPlatform(payload = {}) {
+  const intent = String(payload?.intent ?? "").trim();
+  if (MACHINE_PLATFORM_ROLL_INTENTS.has(intent)) return true;
+  if (intent === "initiative") return true;
+  if (intent === "skill" && payload?.machineActionKey) return true;
+  if (intent !== "attack") return false;
+
+  const sourceType = String(payload?.sourceType ?? "").trim();
+  return sourceType === "weaponGroup"
+    || sourceType === "mechWeapon"
+    || sourceType === "vehicleWeapon"
+    || Boolean(payload?.weaponGroupId)
+    || Boolean(payload?.machineWeaponGroup?.id);
+}
+
+function resolveOperatedPlatformRollActor(actor, payload = {}) {
+  if (!actor || isMachineActor(actor) || !shouldRouteToOperatedPlatform(payload)) return actor;
+  const unit = PersonalCombatTracker.resolveActivationUnit?.({ actor }) ?? null;
+  return unit?.platformActor && unit?.operatorActor ? unit.platformActor : actor;
+}
+
 async function normalizeAttackPayload({ actor, payload } = {}) {
   if (payload?.intent !== "attack") return payload;
 
   const normalized = foundry.utils.deepClone(payload ?? {});
   const loadout = actor.getPersonalCombatLoadout?.({ refresh: true }) ?? null;
+  const isMachine = isMachineActor(actor);
+  const explicitSourceType = String(normalized?.sourceType ?? "").trim();
+  const explicitSourceId = String(normalized?.sourceId ?? "").trim();
 
   const resolveWeaponProfile = (weaponId) => {
     const item = actor.items?.get?.(weaponId) ?? null;
@@ -102,12 +452,49 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     return item.getCombatProfile?.({ payloadId: normalized?.payloadId }) ?? null;
   };
 
+  if (!explicitSourceType || !explicitSourceId) {
+    const legacyGroupId = String(normalized?.weaponGroupId ?? normalized?.machineWeaponGroup?.id ?? "").trim();
+    const legacyWeaponId = String(normalized?.weaponId ?? "").trim();
+
+    if (legacyGroupId) {
+      normalized.sourceType = "weaponGroup";
+      normalized.sourceId = legacyGroupId;
+    } else if (legacyWeaponId) {
+      normalized.sourceType = isMachine ? "mechWeapon" : "personalWeapon";
+      normalized.sourceId = legacyWeaponId;
+    }
+  }
+
+  if (String(normalized?.sourceType ?? "").trim() === "weaponGroup") {
+    normalized.weaponGroupId = String(normalized?.sourceId ?? normalized?.weaponGroupId ?? "").trim();
+    normalized.sourceId = normalized.weaponGroupId;
+    if (!normalized.weaponGroupId) {
+      throw new Error("Attack requires a valid weapon group source.");
+    }
+    return normalized;
+  }
+
+  if (String(normalized?.sourceType ?? "").trim() === "mechWeapon") {
+    normalized.weaponId = String(normalized?.sourceId ?? normalized?.weaponId ?? "").trim();
+    normalized.sourceId = normalized.weaponId;
+    if (!normalized.weaponId) {
+      throw new Error("Attack requires a valid machine weapon source.");
+    }
+    return normalized;
+  }
+
+  if (String(normalized?.sourceType ?? "").trim() === "personalWeapon" && explicitSourceId) {
+    normalized.weaponId = explicitSourceId;
+  }
+
   if (normalized.weaponId) {
     const profile = resolveWeaponProfile(normalized.weaponId);
     if (!profile) {
       throw new Error("Attack requires an owned equipped personal weapon.");
     }
 
+    normalized.sourceType = "personalWeapon";
+    normalized.sourceId = normalized.weaponId;
     normalized.payloadId = normalized.payloadId ?? profile?.payloadState?.activePayloadId ?? "";
     return normalized;
   }
@@ -121,6 +508,8 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
       if (!selected) return null;
 
       normalized.weaponId = selected.id;
+      normalized.sourceType = "personalWeapon";
+      normalized.sourceId = selected.id;
       normalized.payloadId = normalized.payloadId ?? selected?.payloadState?.activePayloadId ?? "";
       delete normalized.mode;
       return normalized;
@@ -129,6 +518,8 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     if (loadout?.defaultWeapon?.isSynthetic || loadout?.defaultWeapon?.id === "unarmed") {
       normalized.syntheticWeapon = foundry.utils.deepClone(loadout.defaultWeapon ?? WeaponItem.buildDefaultUnarmedProfile(actor));
       normalized.weaponId = normalized.syntheticWeapon.id;
+      normalized.sourceType = "personalWeapon";
+      normalized.sourceId = normalized.syntheticWeapon.id;
       normalized.payloadId = normalized.payloadId ?? normalized.syntheticWeapon?.payloadState?.activePayloadId ?? "";
       delete normalized.mode;
       return normalized;
@@ -136,6 +527,8 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
 
     if (loadout?.defaultWeapon?.id) {
       normalized.weaponId = loadout.defaultWeapon.id;
+      normalized.sourceType = "personalWeapon";
+      normalized.sourceId = loadout.defaultWeapon.id;
       normalized.payloadId = normalized.payloadId ?? loadout.defaultWeapon?.payloadState?.activePayloadId ?? "";
       delete normalized.mode;
       return normalized;
@@ -145,6 +538,8 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
   if (normalized.fallback === "unarmed") {
     normalized.syntheticWeapon = foundry.utils.deepClone(WeaponItem.buildDefaultUnarmedProfile(actor));
     normalized.weaponId = normalized.syntheticWeapon.id;
+    normalized.sourceType = "personalWeapon";
+    normalized.sourceId = normalized.syntheticWeapon.id;
     normalized.payloadId = normalized.payloadId ?? normalized.syntheticWeapon?.payloadState?.activePayloadId ?? "";
     delete normalized.mode;
     return normalized;
@@ -202,20 +597,23 @@ function getMachineAttackToken(actor, payload = {}) {
     ?? null;
 }
 
-async function commitMachineAttackAction(actor, payload = {}) {
+async function commitMachineAttackAction(actor, payload = {}, { rollActor = null } = {}) {
   if (!isMachineActor(actor)) return;
+  if (Boolean(payload?.machineActionPrecommitted)) return;
 
   const token = getMachineAttackToken(actor, payload);
-  const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
+  const spendActor = rollActor ?? actor;
+  const snapshot = PersonalCombatTracker.getSnapshot?.(spendActor, { token }) ?? null;
   if (!snapshot?.hasCombatant) return;
 
   const cost = getMachineAttackActionCost(actor);
   const isBattlemechGroupAttack = actor?.type === TEMPLATE.actorTypes.battlemech
-    && String(payload?.weaponGroupId ?? "").trim();
+    && String(payload?.sourceType ?? "").trim() === "weaponGroup"
+    && String(payload?.sourceId ?? payload?.weaponGroupId ?? "").trim();
   const totalCost = isBattlemechGroupAttack
     ? (1 + Number(cost?.extraCost ?? 0))
     : Number(cost?.totalCost ?? 0);
-  const spend = await PersonalCombatTracker.spendResource(actor, {
+  const spend = await PersonalCombatTracker.spendResource(spendActor, {
     token,
     resource: "sa",
     cost: totalCost,
@@ -232,7 +630,7 @@ async function commitMachineAttackAction(actor, payload = {}) {
   if (isBattlemechGroupAttack) {
     const markUsed = await PersonalCombatTracker.markWeaponGroupUsed?.(actor, {
       token,
-      groupId: payload.weaponGroupId,
+      groupId: String(payload?.sourceId ?? payload?.weaponGroupId ?? "").trim(),
     });
     if (!markUsed?.ok) {
       ui.notifications?.warn(markUsed?.reason ?? "Unable to record BattleMech weapon-group usage.");
@@ -240,27 +638,70 @@ async function commitMachineAttackAction(actor, payload = {}) {
   }
 }
 
-async function commitMachineAction(actor, actionKey = "", payload = {}) {
+function applyAssetModuleActionOverride(action = {}, override = null) {
+  if (!override) return action;
+  return {
+    ...action,
+    cost: Number.isFinite(Number(override.cost)) ? Math.max(0, Number(override.cost)) : action.cost,
+    resource: String(override.resource ?? action.resource ?? "sa").trim() || "sa",
+    category: String(override.category ?? action.category ?? "simple").trim() || "simple",
+  };
+}
+
+async function commitMachineAction(actor, actionKey = "", payload = {}, { rollActor = null, resolved = null } = {}) {
   if (!isMachineActor(actor)) return;
 
-  const action = getMachineActionDefinition(actionKey);
-  if (!action?.cost || action?.resource !== "sa") return;
+  const baseAction = getMachineActionDefinition(actionKey);
+  const override = findAssetModuleActionOverride(actor, baseAction.key, {
+    payload,
+    resolved,
+    context: {
+      targetState: resolved?.acquire?.currentState ?? "",
+      detectionState: resolved?.targeting?.detectionState ?? resolved?.acquire?.currentState ?? "",
+    },
+  });
+  const action = applyAssetModuleActionOverride(baseAction, override);
 
   const token = getMachineAttackToken(actor, payload);
-  const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token }) ?? null;
-  if (!snapshot?.hasCombatant) return;
+  const spendActor = rollActor ?? actor;
+  const snapshot = PersonalCombatTracker.getSnapshot?.(spendActor, { token }) ?? null;
+  if (action?.cost && action?.resource && snapshot?.hasCombatant) {
+    const spend = await PersonalCombatTracker.spendResource(spendActor, {
+      token,
+      resource: action.resource,
+      cost: action.cost,
+      actionId: action.key,
+      actionLabel: action.label,
+      actionCostLabel: `${action.cost} ${String(action.resource).toUpperCase()}`,
+      actionCategory: action.category,
+    });
+    if (!spend?.ok) {
+      ui.notifications?.warn(spend?.reason ?? `Unable to record ${action.label}.`);
+      return;
+    }
+  }
 
-  const spend = await PersonalCombatTracker.spendResource(actor, {
-    token,
-    resource: action.resource,
-    cost: action.cost,
-    actionId: action.key,
-    actionLabel: action.label,
-    actionCostLabel: `${action.cost} SA`,
-    actionCategory: action.category,
+  const costs = getAssetModuleActionCosts(actor, action.key, {
+    payload,
+    resolved,
+    context: {
+      targetState: resolved?.acquire?.currentState ?? "",
+      detectionState: resolved?.targeting?.detectionState ?? resolved?.acquire?.currentState ?? "",
+    },
   });
-  if (!spend?.ok) {
-    ui.notifications?.warn(spend?.reason ?? `Unable to record ${action.label}.`);
+  if (costs.heat && actor?.type === TEMPLATE.actorTypes.battlemech) {
+    await adjustBattlemechPendingHeat(actor, costs.heat, { reason: `${action.label} module cost` });
+  }
+  if (costs.stress?.length) {
+    const updates = {};
+    for (const stress of costs.stress) {
+      const location = String(stress.location ?? "").trim();
+      if (!location) continue;
+      const path = `system.mwd.locations.${location}.stress`;
+      const current = Number(foundry.utils.getProperty(actor, path) ?? 0) || 0;
+      updates[path] = Math.max(0, current + (Number(stress.value ?? 0) || 0));
+    }
+    if (Object.keys(updates).length) await actor.update(updates);
   }
 }
 
@@ -272,6 +713,7 @@ async function execute({ actor, payload, event } = {}) {
   if (!actor) throw new Error("MWD.roll.execute requires actor");
   if (!payload?.intent) throw new Error("MWD.roll.execute requires payload.intent");
   payload = normalizePayload(payload);
+  actor = resolveOperatedPlatformRollActor(actor, payload);
   payload = await normalizeAttackPayload({ actor, payload });
   if (!payload) return null;
 
@@ -280,6 +722,7 @@ async function execute({ actor, payload, event } = {}) {
   /* -------------------------------- */
 
   let ctx = await resolveIntent({ actor, payload, event });
+  let rollActor = ctx?.rollActor ?? actor;
 
   if (payload.intent === "attack" && ctx?.attack?.capabilityReport?.isTemplated) {
     const placementResult = await placeTemplatedAttack({
@@ -313,6 +756,7 @@ async function execute({ actor, payload, event } = {}) {
     payload.templateGeometry = placementResult.templateGeometry ?? null;
     payload.templatePlacement = placementResult.placement;
     ctx = await resolveIntent({ actor, payload, event });
+    rollActor = ctx?.rollActor ?? actor;
   } else if (payload.intent === "attack") {
     delete payload.targetSnapshots;
     delete payload.templatePlacement;
@@ -325,6 +769,8 @@ async function execute({ actor, payload, event } = {}) {
 
   let collected = await collectModifiers({
     actor,
+    rollActor,
+    machineActor: ctx?.machineActor ?? null,
     rollType: payload.intent,
     skillId: payload.key,
     domains: ctx.domains,
@@ -339,6 +785,7 @@ async function execute({ actor, payload, event } = {}) {
 
   const updatedPayload = await MWDRollDialog.prompt({
     actor,
+    rollActor,
     basePayload: payload,
     resolved: ctx,
     diceParts: {
@@ -358,6 +805,7 @@ async function execute({ actor, payload, event } = {}) {
 
   payload = normalizePayload(updatedPayload);
   ctx = await resolveIntent({ actor, payload, event });
+  rollActor = ctx?.rollActor ?? actor;
 
   if (payload.intent === "attack" && !ctx?.attack?.capabilityReport?.isTemplated) {
     delete payload.targetSnapshots;
@@ -389,6 +837,8 @@ async function execute({ actor, payload, event } = {}) {
 
   collected = await collectModifiers({
     actor,
+    rollActor,
+    machineActor: ctx?.machineActor ?? null,
     rollType: payload.intent,
     skillId: payload.key,
     domains: ctx.domains,
@@ -428,7 +878,7 @@ async function execute({ actor, payload, event } = {}) {
   // Edge may *later* be used to gain actions, but that's not "roll spend".
   const edgeAllowed = payload.intent !== "initiative";
 
-  const edgeInfo = edgeAllowed ? computeEdgeInfo({ actor, ctx, payload }) : null;
+  const edgeInfo = edgeAllowed ? computeEdgeInfo({ actor: rollActor, ctx, payload }) : null;
   const diceTarget = edgeInfo?.pre?.spent ? 4 : Number(ctx.diceTarget ?? ctx.target ?? 5);
 
   const runtime = {
@@ -453,18 +903,23 @@ async function execute({ actor, payload, event } = {}) {
     }
   }
 
-  const traitBuildResult = evaluateTraitPhase({
-    actor,
-    phase: "onBuildRoll",
-    facts: buildRollTraitFacts({ actor, resolved: ctx, payload, runtime }),
-    packet: {},
-    options: { runtime, consumeUsage: true },
-  });
-  await applyTraitMutations({ actor, mutations: traitBuildResult.mutations, runtime });
+  for (const traitActor of uniqueActors(rollActor, actor)) {
+    const traitRuntime = {
+      snapshot: game.mwd?.personalCombat?.getSnapshot?.(traitActor) ?? null,
+    };
+    const traitBuildResult = evaluateTraitPhase({
+      actor: traitActor,
+      phase: "onBuildRoll",
+      facts: buildRollTraitFacts({ actor: traitActor, resolved: ctx, payload, runtime: traitRuntime }),
+      packet: {},
+      options: { runtime: traitRuntime, consumeUsage: true },
+    });
+    await applyTraitMutations({ actor: traitActor, mutations: traitBuildResult.mutations, runtime: traitRuntime });
+  }
 
   // Spend pre-edge (once) before rolling
   if (edgeAllowed && edgeInfo?.pre?.spent && edgeInfo?.pre?.poolKey) {
-    await actor.spendEdge?.(edgeInfo.pre.poolKey, 1);
+    await rollActor.spendEdge?.(edgeInfo.pre.poolKey, 1);
   }
 
 
@@ -538,22 +993,27 @@ async function execute({ actor, payload, event } = {}) {
   );
 
   const earned = outcomeModel?.edgeEarned;
-  if (earned?.amount > 0) {
-    const domain =
-      ctx?.domains?.includes("physical") ? "physical" :
-      ctx?.domains?.includes("mental") ? "mental" :
-      ctx?.domains?.includes("social") ? "social" : null;
-
-    const poolKey = pickMostMissingEdgePool(actor, domain);
-
-    await actor.gainEdge?.(poolKey, earned.amount);
-
-    // so chat shows where it went
-    outcomeModel.edgeEarned.pool = poolKey;
+  // Post-roll Edge can still be chosen from the chat card, so any awarded Edge
+  // is recorded with enough detail for the chat action to revoke it first.
+  const noEdgeSpent = !edgeInfo?.pre?.spent && !edgeInfo?.post?.spent;
+  if (noEdgeSpent && earned?.amount > 0) {
+    outcomeModel.edgeEarned = await applyEarnedEdgeAwards({
+      actor: rollActor,
+      ctx,
+      edgeInfo,
+      earned,
+    });
+  } else if (earned?.amount > 0) {
+    outcomeModel.edgeEarned = null;
   }
 
   if (ctx.intent === "overload") {
     await applyOverloadResult({ actor, passed: outcomeModel.passed });
+  }
+
+  let heatDangerResult = null;
+  if (ctx.intent === "heatDangerCheck") {
+    heatDangerResult = await applyHeatDangerCheckOutcome({ actor, ctx, outcomeModel });
   }
 
   let attackExecution = null;
@@ -612,8 +1072,17 @@ async function execute({ actor, payload, event } = {}) {
     outcomeModel
   });
 
+  // For mech attacks the roll actor is the pilot, not the machine.
+  // Store the pilot's UUID separately so edge operations target the correct actor.
+  if (rollActor && rollActor.uuid !== actor.uuid) {
+    resolved.rollActorUuid = rollActor.uuid;
+  }
+
   if (attackExecution) {
     resolved.attackResult = attackExecution;
+  }
+  if (heatDangerResult) {
+    resolved.heatDangerResult = heatDangerResult;
   }
   if (ctx.intent === "machineRemedy") {
     resolved.machineRemedy = ctx.machineRemedy ?? null;
@@ -649,24 +1118,25 @@ async function execute({ actor, payload, event } = {}) {
       ...((ctx?.attack?.weapon?.machineWeaponGroup?.weaponIds ?? []).map(id => String(id ?? "").trim()).filter(Boolean)),
       ...(payload?.weaponId ? [String(payload.weaponId).trim()] : []),
     ]));
-    if (weaponIds.length) {
-      try {
-        await recordBattlemechAttackHeat(actor, {
-          weaponIds,
-          reason: "attack resolution",
-        });
-      } catch (error) {
-        console.warn("MWD | Unable to record BattleMech attack heat", error);
-      }
+    try {
+      await recordBattlemechAttackHeat(actor, {
+        weaponIds,
+        attackProfile: ctx?.attack?.weapon ?? null,
+        reason: "attack resolution",
+      });
+    } catch (error) {
+      console.warn("MWD | Unable to record BattleMech attack heat", error);
     }
   }
 
   if (ctx.intent === "attack") {
-    await commitMachineAttackAction(actor, payload);
+    await commitMachineAttackAction(actor, payload, { rollActor });
   } else if (ctx.intent === "acquire") {
-    await commitMachineAction(actor, "acquireTarget", payload);
+    await commitMachineAction(actor, "acquireTarget", payload, { rollActor, resolved: ctx });
   } else if (ctx.intent === "targeting") {
-    await commitMachineAction(actor, "generateFireSolution", payload);
+    await commitMachineAction(actor, "generateFireSolution", payload, { rollActor, resolved: ctx });
+  } else if (ctx.intent === "skill" && payload.machineActionKey) {
+    await commitMachineAction(actor, payload.machineActionKey, payload, { rollActor, resolved: ctx });
   }
 
   return ChatMessage.create({
@@ -741,6 +1211,11 @@ const EDGE_POOLS_BY_DOMAIN = {
 };
 
 async function applyInitiativeToCombat({ actor, total }) {
+  const unit = PersonalCombatTracker.resolveActivationUnit?.({ actor }) ?? null;
+  if (unit?.combatant) {
+    await unit.combatant.update({ initiative: Number(total) });
+    return;
+  }
 
   // Require token (Option 3A)
   const controlled = canvas?.tokens?.controlled?.find(t => t.actor?.id === actor.id);

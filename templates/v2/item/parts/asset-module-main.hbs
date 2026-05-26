@@ -18,6 +18,39 @@ can be derived from installed modules instead of from sheet-side logic.
     <input class="type-numeric" type="number" name="system.level" value="{{system.level}}" min="1" step="1" data-dtype="Number" />
   </div>
 
+  <div class="form-group">
+    <label for="system.installClass">Install Class</label>
+    <select name="system.installClass" data-dtype="String">
+      <option value="module" {{#if (eq system.installClass "module")}}selected{{/if}}>Module</option>
+      <option value="equipment" {{#if (eq system.installClass "equipment")}}selected{{/if}}>Equipment</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="system.activation.mode">Activation</label>
+    <select name="system.activation.mode" data-dtype="String">
+      <option value="passive" {{#if (eq system.activation.mode "passive")}}selected{{/if}}>Passive</option>
+      <option value="toggle" {{#if (eq system.activation.mode "toggle")}}selected{{/if}}>Toggle</option>
+      <option value="mode" {{#if (eq system.activation.mode "mode")}}selected{{/if}}>Mode</option>
+      <option value="triggered" {{#if (eq system.activation.mode "triggered")}}selected{{/if}}>Triggered</option>
+    </select>
+  </div>
+
+  <label class="checkbox">
+    <input type="checkbox" name="system.activation.active" {{checked system.activation.active}} />
+    Active
+  </label>
+
+  <div class="form-group">
+    <label for="system.activation.selectedMode">Selected Mode</label>
+    <input type="text" name="system.activation.selectedMode" value="{{system.activation.selectedMode}}" data-dtype="String" />
+  </div>
+
+  <div class="form-group">
+    <label for="system.activation.cooldownUntilRound">Cooldown Until Round</label>
+    <input class="type-numeric" type="number" name="system.activation.cooldownUntilRound" value="{{system.activation.cooldownUntilRound}}" min="0" step="1" data-dtype="Number" />
+  </div>
+
   <label class="checkbox">
     <input type="checkbox" name="system.mobility.jumping.enabled" {{checked system.mobility.jumping.enabled}} />
     {{MWD.item.assetModule.jumping.enabled}}
@@ -63,4 +96,23 @@ can be derived from installed modules instead of from sheet-side logic.
   <div class="mwd-item-note">
     These modifiers apply only to attacks that already have clustering dice. Negative TN mods make clustering hits easier, so an Artemis-style system would usually use <code>-1</code>.
   </div>
+
+  <div class="mwd-form-section-label">Structured Effects JSON</div>
+
+  <div class="form-group stacked">
+    <label for="system.effects">Effects</label>
+    <textarea name="system.effects" rows="12" spellcheck="false">{{itemSheet.assetModuleEffectsJson}}</textarea>
+  </div>
+
+  {{#if itemSheet.assetModuleSummary}}
+    <div class="mwd-item-note">{{itemSheet.assetModuleSummary}}</div>
+  {{/if}}
+
+  {{#if itemSheet.assetModuleErrors.length}}
+    <div class="mwd-item-note is-danger">
+      {{#each itemSheet.assetModuleErrors as |error|}}
+        <div>{{error}}</div>
+      {{/each}}
+    </div>
+  {{/if}}
 </div>

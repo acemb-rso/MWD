@@ -25,11 +25,18 @@ import {
 import { createHazardRegionFromAttack } from "../area-effects/hazard-regions.js";
 import { getMachineAttackDamageModifier } from "../mwd/machine-crit-effects.js";
 import { getMachineAttackCqAdjustments, getMachineHeatAdjustments } from "../mwd/machine-state-effects.js";
+import { getAssetModuleCqEffects } from "../mwd/asset-module-effects.js";
+import { getMachineJumpProfile, getMachineJumpedThisActivation } from "../mwd/battlemech-mobility.js";
 import { rollClusteringDamage } from "../mwd/machine-clustering.js";
+import { isMachineEnergyDamageFamily } from "../mwd/machine-weapon-types.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+export function doesAttackAddNetHitsToDamage(weapon = null) {
+  return Boolean(weapon?.type === TEMPLATE.itemType.personalWeapon || weapon?.isSynthetic);
 }
 
 function getTargetSnapshots(ctx = {}) {
@@ -147,6 +154,21 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
         value: attackerAdjustments.ar,
       });
     }
+    for (const effect of getAssetModuleCqEffects(attacker, { resolved: ctx, payload: ctx?.attack?.payload ?? {} })) {
+      const ar = toNumber(effect.modifies?.ar, 0);
+      if (!ar) continue;
+      arParts.push({
+        id: `assetModule.${effect.sourceId}.${effect.id}.ar`,
+        label: effect.label,
+        value: ar,
+      });
+    }
+    if (getMachineJumpedThisActivation(attacker)) {
+      const jumpAr = toNumber(getMachineJumpProfile(attacker)?.attackRatingBonus, 0);
+      if (jumpAr) {
+        arParts.push({ id: "jumping.attackRatingBonus", label: "Jump Maneuver", value: jumpAr });
+      }
+    }
   }
 
   if (targetIsMachine) {
@@ -161,6 +183,21 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
         label: "Machine State",
         value: targetAdjustments.dr,
       });
+    }
+    for (const effect of getAssetModuleCqEffects(targetActor, { resolved: ctx, payload: ctx?.attack?.payload ?? {} })) {
+      const dr = toNumber(effect.modifies?.dr, 0);
+      if (!dr) continue;
+      drParts.push({
+        id: `assetModule.${effect.sourceId}.${effect.id}.dr`,
+        label: effect.label,
+        value: dr,
+      });
+    }
+    if (getMachineJumpedThisActivation(targetActor)) {
+      const jumpDr = toNumber(getMachineJumpProfile(targetActor)?.defenseRatingBonus, 0);
+      if (jumpDr) {
+        drParts.push({ id: "jumping.defenseRatingBonus", label: "Jump Maneuver", value: jumpDr });
+      }
     }
   }
 
@@ -200,7 +237,7 @@ async function buildDamageSnapshot(ctx = {}, outcome = {}) {
     weapon: attack?.weapon,
   });
   const stateHeat = getMachineHeatAdjustments(ctx?.attacker);
-  const isEnergyAttack = String(attack?.weapon?.damageType ?? "").trim().toLowerCase() === "energy";
+  const isEnergyAttack = isMachineEnergyDamageFamily(attack?.weapon?.baseDamageType ?? attack?.weapon?.damageType);
   const baseDamage = Math.max(0, (Number(attack?.weapon?.damage ?? 0) || 0) + critDamageDelta + (isEnergyAttack ? Number(stateHeat.energyAttackDamage ?? 0) : 0));
   const clusterDice = Math.max(0, Number(attack?.weapon?.clusteringDice ?? 0) || 0);
   const clusterTargetNumber = Number(attack?.weapon?.clusteringTargetNumber ?? 5) || 5;
@@ -226,7 +263,10 @@ async function buildDamageSnapshot(ctx = {}, outcome = {}) {
     : normalizePersonalDamageType(rawDamageType, "concussive");
   const ap = Math.max(0, Number(attack?.totalAp ?? attack?.weapon?.ap ?? 0) || 0);
   const effectiveWeaponDamage = outcome.outcome === "graze" ? (baseDamage / 2) : (outcome.outcome === "hit" ? baseDamage : 0);
-  const incoming = effectiveWeaponDamage + clusteringDamage + Number(outcome.netHits ?? 0);
+  const netDamageBonus = doesAttackAddNetHitsToDamage(attack?.weapon)
+    ? Number(outcome.netHits ?? 0)
+    : 0;
+  const incoming = effectiveWeaponDamage + clusteringDamage + netDamageBonus;
   const exposure = applyEvadeToExposure(attack?.currentExposure ?? createExposureData({
     tier: attack?.currentExposure?.initialTier ?? attack?.currentExposure?.tier ?? "none",
   }), {
@@ -246,6 +286,7 @@ async function buildDamageSnapshot(ctx = {}, outcome = {}) {
       damageBonus: clusteringDamage,
     },
     netHits: Number(outcome.netHits ?? 0),
+    netDamageBonus,
     attackQuality: outcome.outcome === "graze"
       ? "graze"
       : (outcome.outcome === "hit" && Number(outcome.netHits ?? 0) >= 4 ? "highMargin" : outcome.outcome === "hit" ? "hit" : ""),
@@ -267,14 +308,14 @@ function getMonitorRemaining(actor, monitorKey) {
   const monitor = actor?.system?.monitors?.[monitorKey] ?? {};
   const max = Math.max(0, Number(monitor.max ?? 0) || 0);
   const value = Math.min(max, Math.max(0, Number(monitor.value ?? 0) || 0));
-  return Math.max(0, max - value);
+  return value;
 }
 
 function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, hitLocation = null } = {}) {
   if (isMachineActor(targetActor)) {
     return {
       mode: "machineAttackDamage",
-      damage: damage?.scaledIncoming ?? 0,
+      damage: damage?.incoming ?? 0,
       attackQuality: damage?.attackQuality ?? "",
       outcome: damage?.attackQuality === "highMargin" ? "hit" : (damage?.attackQuality ?? ""),
       netHits: damage?.netHits ?? 0,
@@ -283,11 +324,19 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
       hitLocation,
       chaosCriticalSelected: false,
       reliabilitySpendSelections: [],
+      previewRevision: 0,
+      requirePreparedCriticalRecords: true,
       source: `${attacker?.name ?? "Attacker"}: ${ctx?.attack?.weapon?.name ?? "Attack"}`,
       sourceData: {
         attackerUuid: attacker?.uuid ?? "",
         weaponName: ctx?.attack?.weapon?.name ?? "Attack",
         weaponUuid: ctx?.attack?.weapon?.uuid ?? "",
+      },
+      attackDamage: {
+        effectiveWeaponDamage: damage?.effectiveWeaponDamage ?? 0,
+        clustering: damage?.clustering ?? null,
+        netDamageBonus: damage?.netDamageBonus ?? 0,
+        incoming: damage?.incoming ?? 0,
       },
       notes: "",
     };
@@ -302,9 +351,56 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
     ap: damage?.ap ?? 0,
     effects: ctx?.attack?.weapon?.effects ?? {},
     source: `${attacker?.name ?? "Attacker"}: ${ctx?.attack?.weapon?.name ?? "Attack"}`,
+    attackDamage: {
+      effectiveWeaponDamage: damage?.effectiveWeaponDamage ?? 0,
+      clustering: damage?.clustering ?? null,
+      netDamageBonus: damage?.netDamageBonus ?? 0,
+      incoming: damage?.incoming ?? 0,
+      scaledIncoming: damage?.scaledIncoming ?? damage?.incoming ?? 0,
+    },
     notes: damage?.exposure?.initialTier
       ? `Exposure ${getExposureLabel(damage.exposure.initialTier)}${damage.exposure.evadeUsed ? ` -> ${getExposureLabel(damage.exposure.finalTier)}` : ""}`
       : "",
+  };
+}
+
+function clone(value) {
+  return typeof foundry !== "undefined" && foundry?.utils?.deepClone
+    ? foundry.utils.deepClone(value)
+    : JSON.parse(JSON.stringify(value ?? null));
+}
+
+function buildCanonicalMachineMutation({ target = {}, payload = {}, hitLocation = null, preview = {} } = {}) {
+  const preparedCriticalRecords = Array.isArray(preview?.critical?.records)
+    ? clone(preview.critical.records)
+    : [];
+  const previewRevision = Math.max(0, Math.trunc(Number(payload?.previewRevision ?? 0) || 0));
+  if (preparedCriticalRecords.length) {
+    payload.preparedCriticalRecords = preparedCriticalRecords.map(record => ({
+      ...record,
+      previewRevision,
+    }));
+  }
+
+  return {
+    id: foundry.utils.randomID(),
+    type: "machineAttackDamage",
+    targetActorUuid: target?.actorUuid ?? null,
+    targetTokenUuid: target?.tokenUuid ?? null,
+    target: {
+      name: target?.name ?? "Target",
+      actorUuid: target?.actorUuid ?? null,
+      tokenUuid: target?.tokenUuid ?? null
+    },
+    hitLocation: preview?.hitLocation ?? hitLocation,
+    damagePreview: preview?.damagePreview ?? null,
+    critical: preview?.critical ?? null,
+    preparedCriticalRecords: payload.preparedCriticalRecords ?? [],
+    reliabilityOptions: preview?.reliabilityOptions ?? null,
+    previewRevision,
+    applied: false,
+    payload,
+    preview,
   };
 }
 
@@ -336,6 +432,9 @@ export function summarizeAttackDamageResult(result, target = {}, damage = {}, { 
       effectiveAp: Number(result.effectiveAp ?? damage?.ap ?? 0),
       hitLocation: result.hitLocation ?? null,
       critical: result.critical ?? null,
+      damagePreview: result.damagePreview ?? null,
+      reliabilityOptions: result.reliabilityOptions ?? null,
+      previewRevision: Number(result.previewRevision ?? 0) || 0,
       machine: result.machine ?? null,
       degradation: result.degradation ?? null,
       mitigation: result.mitigation ? {
@@ -351,6 +450,13 @@ export function summarizeAttackDamageResult(result, target = {}, damage = {}, { 
       damageIncoming: Number(result.damageIncoming ?? 0),
       adjustedIncoming: Number(result.adjustedIncoming ?? 0),
       finalDamage: Number(result.finalDamage ?? 0),
+      attackDamage: result.attackDamage ?? damage?.attackDamage ?? {
+        effectiveWeaponDamage: damage?.effectiveWeaponDamage ?? 0,
+        clustering: damage?.clustering ?? null,
+        netDamageBonus: damage?.netDamageBonus ?? 0,
+        incoming: damage?.incoming ?? result.damageIncoming ?? 0,
+        scaledIncoming: damage?.scaledIncoming ?? result.adjustedIncoming ?? result.damageIncoming ?? 0,
+      },
       beforeLabel: String(result.beforeLabel ?? "").trim(),
       afterLabel: String(result.afterLabel ?? "").trim(),
       source: String(result.source ?? "").trim(),
@@ -418,12 +524,9 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
   if (result?.ok) {
     const preview = summarizeAttackDamageResult(result, target, damage, { queued: true, applied: false });
     const queuedPayload = buildQueuedDamagePayload({ attacker, ctx, damage, targetActor: actor, hitLocation });
-    if (queuedPayload.mode === "machineAttackDamage" && Array.isArray(preview?.critical?.records) && preview.critical.records.length) {
-      queuedPayload.preparedCriticalRecords = foundry.utils.deepClone(preview.critical.records);
-    }
-    return {
-      ...preview,
-      queuedMutation: {
+    const queuedMutation = queuedPayload.mode === "machineAttackDamage"
+      ? buildCanonicalMachineMutation({ target, payload: queuedPayload, hitLocation, preview })
+      : {
         id: foundry.utils.randomID(),
         type: "attackDamage",
         applied: false,
@@ -435,7 +538,10 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
         payload: queuedPayload,
         hitLocation,
         preview
-      }
+      };
+    return {
+      ...preview,
+      queuedMutation
     };
   }
 

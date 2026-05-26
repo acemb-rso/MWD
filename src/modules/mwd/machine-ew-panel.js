@@ -2,7 +2,9 @@
 // Purpose: Build a shared sheet view model for machine EW status and actions.
 // How it fits: Keeps EW state derivation in one place so vehicle and BattleMech sheets stay thin.
 
-import { getDetectionStateLabel, getTargetingDataCap } from "./machine-ew.js";
+import { getAcquireBaseDn, getDetectionStateLabel, getTargetingDataCap } from "./machine-ew.js";
+import { getMechRangeBandName, selectMechRangeBand } from "./personal-range-bands.js";
+import { formatDistanceLabel, measureTokenDistance } from "./token-measurement.js";
 import {
   getAcquireCeiling,
   getAttackerCombatant,
@@ -37,8 +39,113 @@ function buildTargetHint({ detectionState = "blind", lockGated = false } = {}) {
   return "Targeting solution available.";
 }
 
+function buildAcquireAction({ canAcquire = false, detectionState = "blind", acquireHint = "" } = {}) {
+  if (canAcquire) {
+    return {
+      enabled: true,
+      label: "Acquire",
+      title: acquireHint,
+    };
+  }
+
+  if (detectionState === "lock") {
+    return {
+      enabled: false,
+      label: "Acquire",
+      title: "Target is already at Lock.",
+    };
+  }
+
+  return {
+    enabled: false,
+    label: "Acquire",
+    title: "Acquire is not available for this target right now.",
+  };
+}
+
+function buildTargetAction({ canTarget = false, targetHint = "" } = {}) {
+  return {
+    enabled: canTarget,
+    label: "Target",
+    title: canTarget
+      ? targetHint
+      : "Track or Lock is required before generating targeting data.",
+  };
+}
+
+function buildCompactActions({ row = {}, detectionState = "blind", canAcquire = false, canTarget = false, acquireHint = "", targetHint = "" } = {}) {
+  return [
+    {
+      id: "acquire",
+      action: "ewAcquire",
+      label: "Acquire",
+      icon: "fa-satellite-dish",
+      dn: getAcquireBaseDn(detectionState),
+      enabled: canAcquire,
+      title: canAcquire ? acquireHint : "Acquire is not available for this target right now.",
+    },
+    {
+      id: "target",
+      action: "ewTarget",
+      label: "Target",
+      icon: "fa-crosshairs",
+      dn: 2,
+      enabled: canTarget,
+      title: canTarget ? targetHint : "Track or Lock is required before generating targeting data.",
+    },
+    {
+      id: "ecmSpike",
+      action: "machineEwAction",
+      actionId: "ecmSpike",
+      label: "Spike",
+      icon: "fa-bolt",
+      dn: 1,
+      enabled: true,
+      title: "Launch an ECM Spike roll against this target.",
+    },
+    {
+      id: "tagTarget",
+      action: "machineEwAction",
+      actionId: "tagTarget",
+      label: "TAG",
+      icon: "fa-location-crosshairs",
+      dn: 1,
+      enabled: true,
+      title: "Launch a TAG roll against this target.",
+    },
+  ].map(action => ({
+    ...action,
+    targetTokenId: row.targetTokenId,
+    targetTokenUuid: row.targetTokenUuid,
+  }));
+}
+
+function buildMeasuredRange(sourceToken = null, targetToken = null) {
+  const distance = measureTokenDistance(sourceToken, targetToken);
+  if (!Number.isFinite(distance)) {
+    return {
+      distance: null,
+      distanceLabel: "",
+      band: "",
+      bandLabel: "",
+      hasRange: false,
+    };
+  }
+
+  const units = String(globalThis.canvas?.scene?.grid?.units ?? globalThis.game?.system?.grid?.units ?? "").trim();
+  const band = selectMechRangeBand(distance, "close");
+  return {
+    distance,
+    distanceLabel: formatDistanceLabel(distance, units),
+    band,
+    bandLabel: getMechRangeBandName(band),
+    hasRange: true,
+  };
+}
+
 export function buildMachineEwRow({
   targetToken,
+  sourceToken = null,
   combatant,
   systemAttr = 0,
   currentRound = null,
@@ -61,8 +168,11 @@ export function buildMachineEwRow({
   const canAcquire = detectionState === "blind" || detectionState === "contact" || (detectionState === "track" && ceiling === "lock");
   const canTarget = detectionState === "track" || detectionState === "lock";
   const lockGated = detectionState === "lock";
+  const acquireHint = buildAcquireHint({ detectionState, canAcquire, ceiling });
+  const targetHint = buildTargetHint({ detectionState, lockGated });
+  const measuredRange = buildMeasuredRange(sourceToken, targetToken);
 
-  return {
+  const row = {
     tokenName: targetToken.name ?? "Target",
     targetTokenId,
     targetTokenUuid,
@@ -74,16 +184,28 @@ export function buildMachineEwRow({
     hasPacketCap: packetCap !== null,
     trackingPenalty,
     hasTrackingPenalty: trackingPenalty > 0,
+    rangeBand: measuredRange.band,
+    rangeBandLabel: measuredRange.bandLabel,
+    distance: measuredRange.distance,
+    distanceLabel: measuredRange.distanceLabel,
+    hasRange: measuredRange.hasRange,
     canAcquire,
     canTarget,
-    acquireHint: buildAcquireHint({ detectionState, canAcquire, ceiling }),
-    targetHint: buildTargetHint({ detectionState, lockGated }),
+    acquireHint,
+    targetHint,
+    acquireAction: buildAcquireAction({ canAcquire, detectionState, acquireHint }),
+    targetAction: buildTargetAction({ canTarget, targetHint }),
   };
+  row.compactActions = buildCompactActions({ row, detectionState, canAcquire, canTarget, acquireHint, targetHint });
+  return row;
 }
 
 export function resolveMachineEwActionTarget(panel, intent = "") {
   const rows = Array.isArray(panel?.rows) ? panel.rows : [];
-  const key = String(intent ?? "").trim() === "targeting" ? "canTarget" : "canAcquire";
+  const normalized = String(intent ?? "").trim();
+  const key = normalized === "targeting" || normalized === "generateFireSolution"
+    ? "canTarget"
+    : "canAcquire";
   return rows.find(row => Boolean(row?.[key])) ?? null;
 }
 
@@ -99,6 +221,7 @@ export function buildMachineEwPanel({
   const rows = toTargets(targets)
     .map(targetToken => buildMachineEwRow({
       targetToken,
+      sourceToken: token,
       combatant,
       systemAttr,
       currentRound: round,
@@ -114,7 +237,7 @@ export function buildMachineEwPanel({
     canTargetAny: rows.some(row => row.canTarget),
     emptyState: "Target one or more tokens on the canvas to review EW status.",
     helpText: hasTargets
-      ? "EW actions use your current token targets on the canvas. Global actions apply to the first eligible targeted token."
-      : "Select targets on the canvas, then use Acquire or Target from this panel.",
+      ? "Detection state is tracked per targeted machine. Use row buttons for the automated Acquire and Fire Solution actions."
+      : "Select targets on the canvas to review EW state and launch target-specific EW actions.",
   };
 }

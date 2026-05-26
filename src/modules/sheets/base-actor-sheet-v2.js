@@ -7,6 +7,7 @@
 import { LOG_HEAD, SYSTEM_NAME } from "../constants.js";
 import { Misc } from "../misc.js";
 import { buildSkillDisplay } from "../mwd/skills.js";
+import { getDepletingMachineMonitorClickValue, isMachineActorType } from "../mwd/machine-monitors.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { collectDocumentFormUpdates } from "./document-sheet-form.js";
 
@@ -42,6 +43,8 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
   #activeTabsByGroup = new Map(); // group -> tabId
   #activeAccordionSectionsByGroup = new Map(); // group -> sectionId|null
   #pendingScrollRestore = null;
+  #combatAwarenessHookIds = [];
+  #combatAwarenessRefreshId = null;
 
   /** @override */
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
@@ -510,6 +513,7 @@ _initializeApplicationOptions(options) {
    */
   _onRender(context, options) {
     super._onRender?.(context, options);
+    this.#bindCombatAwarenessHooks();
 
     const root = this._getRootElement();
     if (!root) return;
@@ -550,6 +554,144 @@ _initializeApplicationOptions(options) {
     }
 
     this._restoreScrollPosition();
+  }
+
+  async close(options = {}) {
+    this.#teardownCombatAwarenessHooks();
+    return super.close(options);
+  }
+
+  #bindCombatAwarenessHooks() {
+    if (this.#combatAwarenessHookIds.length || !globalThis.Hooks?.on) return;
+
+    this.#combatAwarenessHookIds = [
+      ["targetToken", Hooks.on("targetToken", user => {
+        if (user?.id !== game.user?.id) return;
+        this.#queueCombatAwarenessRefresh();
+      })],
+      ["updateToken", Hooks.on("updateToken", (tokenDocument, changed) => {
+        if (!this.#didTokenAwarenessChange(changed)) return;
+        if (!this.#isRelevantCombatAwarenessToken(tokenDocument)) return;
+        this.#queueCombatAwarenessRefresh();
+      })],
+      ["updateActor", Hooks.on("updateActor", actor => {
+        if (!this.#isRelevantCombatAwarenessActor(actor)) return;
+        this.#queueCombatAwarenessRefresh();
+      })],
+      ["createActiveEffect", Hooks.on("createActiveEffect", effect => {
+        if (!this.#isRelevantCombatAwarenessActor(effect?.parent)) return;
+        this.#queueCombatAwarenessRefresh();
+      })],
+      ["updateActiveEffect", Hooks.on("updateActiveEffect", effect => {
+        if (!this.#isRelevantCombatAwarenessActor(effect?.parent)) return;
+        this.#queueCombatAwarenessRefresh();
+      })],
+      ["deleteActiveEffect", Hooks.on("deleteActiveEffect", effect => {
+        if (!this.#isRelevantCombatAwarenessActor(effect?.parent)) return;
+        this.#queueCombatAwarenessRefresh();
+      })],
+      ["createItem", Hooks.on("createItem", item => {
+        if (!this.#isRelevantCombatAwarenessActor(item?.parent)) return;
+        this.#queueCombatAwarenessRefresh();
+      })],
+      ["updateItem", Hooks.on("updateItem", item => {
+        if (!this.#isRelevantCombatAwarenessActor(item?.parent)) return;
+        this.#queueCombatAwarenessRefresh();
+      })],
+      ["deleteItem", Hooks.on("deleteItem", item => {
+        if (!this.#isRelevantCombatAwarenessActor(item?.parent)) return;
+        this.#queueCombatAwarenessRefresh();
+      })],
+      ["updateCombatant", Hooks.on("updateCombatant", combatant => {
+        if (!this.#isRelevantCombatAwarenessCombatant(combatant)) return;
+        this.#queueCombatAwarenessRefresh();
+      })],
+      ["createCombatant", Hooks.on("createCombatant", combatant => {
+        if (!this.#isRelevantCombatAwarenessCombatant(combatant)) return;
+        this.#queueCombatAwarenessRefresh();
+      })],
+      ["deleteCombatant", Hooks.on("deleteCombatant", combatant => {
+        if (!this.#isRelevantCombatAwarenessCombatant(combatant)) return;
+        this.#queueCombatAwarenessRefresh();
+      })],
+      ["updateCombat", Hooks.on("updateCombat", () => {
+        this.#queueCombatAwarenessRefresh();
+      })],
+    ];
+  }
+
+  #teardownCombatAwarenessHooks() {
+    for (const [hookName, hookId] of this.#combatAwarenessHookIds) {
+      Hooks.off(hookName, hookId);
+    }
+    this.#combatAwarenessHookIds = [];
+
+    if (this.#combatAwarenessRefreshId !== null) {
+      clearTimeout(this.#combatAwarenessRefreshId);
+      this.#combatAwarenessRefreshId = null;
+    }
+  }
+
+  #queueCombatAwarenessRefresh() {
+    if (!this.rendered) return;
+    if (this.#combatAwarenessRefreshId !== null) clearTimeout(this.#combatAwarenessRefreshId);
+    this.#combatAwarenessRefreshId = setTimeout(() => {
+      this.#combatAwarenessRefreshId = null;
+      if (!this.rendered) return;
+      this._captureScrollPosition();
+      this.render({ force: false });
+    }, 75);
+  }
+
+  #isRelevantCombatAwarenessToken(token) {
+    const tokenId = String(token?.id ?? token?.document?.id ?? "").trim();
+    if (!tokenId) return false;
+
+    const sheetToken = this.getSheetTokenDocument?.() ?? this.actor?.getActiveTokens?.(true, true)?.[0] ?? null;
+    const sheetTokenId = String(sheetToken?.id ?? sheetToken?.document?.id ?? "").trim();
+    if (sheetTokenId && tokenId === sheetTokenId) return true;
+
+    const targetedTokenIds = new Set(
+      Array.from(game.user?.targets ?? [])
+        .map(targetToken => String(targetToken?.id ?? targetToken?.document?.id ?? "").trim())
+        .filter(Boolean)
+    );
+    return targetedTokenIds.has(tokenId);
+  }
+
+  #isRelevantCombatAwarenessActor(actor) {
+    const resolvedActor = this.#resolveCombatAwarenessActor(actor);
+    const actorId = String(resolvedActor?.id ?? "").trim();
+    if (!actorId) return false;
+    if (actorId === String(this.actor?.id ?? "").trim()) return true;
+
+    return Array.from(game.user?.targets ?? []).some(targetToken => {
+      const targetActorId = String(targetToken?.actor?.id ?? targetToken?.document?.actor?.id ?? "").trim();
+      return targetActorId && targetActorId === actorId;
+    });
+  }
+
+  #resolveCombatAwarenessActor(document) {
+    if (!document) return null;
+    if (document.documentName === "Actor" || document.type === "character" || document.type === "npc" || document.type === "vehicle" || document.type === "battlemech") {
+      return document;
+    }
+    if (document.actor) return document.actor;
+    if (document.parent && document.parent !== document) return this.#resolveCombatAwarenessActor(document.parent);
+    return null;
+  }
+
+  #isRelevantCombatAwarenessCombatant(combatant) {
+    const tokenId = String(combatant?.tokenId ?? combatant?.token?.id ?? combatant?.token?.document?.id ?? "").trim();
+    if (!tokenId) return false;
+    return this.#isRelevantCombatAwarenessToken({ id: tokenId });
+  }
+
+  #didTokenAwarenessChange(changed) {
+    return foundry.utils.hasProperty(changed, "x")
+      || foundry.utils.hasProperty(changed, "y")
+      || foundry.utils.hasProperty(changed, "elevation")
+      || foundry.utils.hasProperty(changed, "actorId");
   }
 
   async _updateRichTextHistory(editor) {
@@ -785,13 +927,15 @@ async _prepareContext(options) {
     // the current tab scroll so deep systems panels do not snap back to top.
     this._captureScrollPosition();
 
-    // Toggle: clicking the already-active pip clears the monitor to 0
+    // Toggle: clicking the currently filled edge pip clears that pip.
     const currentPath = monitorId === "burn"
       ? "system.burn.value"
       : `system.monitors.${monitorId}.value`;
     const current = Number(foundry.utils.getProperty(this.actor, currentPath) ?? 0);
-    const next = monitorId === "armor"
-      ? raw
+    const depletingMachineMonitor = isMachineActorType(this.actor)
+      && (monitorId === "armor" || monitorId === "structure");
+    const next = depletingMachineMonitor
+      ? getDepletingMachineMonitorClickValue(current, raw)
       : (current === raw ? 0 : raw);
 
     // Prefer actor-owned semantics

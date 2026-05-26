@@ -5,6 +5,7 @@
 
 import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
 import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
+import { ASSET_MODULE_HOOKS, dispatchAssetModuleHook } from "./asset-module-hooks.js";
 import {
   getMachineLocationLabel,
   resolveMachineHitLocation,
@@ -19,6 +20,7 @@ import {
 import {
   buildVehicleStructureZeroDisableUpdates,
   buildMachineDegradationUpdates,
+  getMachineAttackQualityShockGain,
   resolveMachineDegradation,
 } from "./machine-degradation.js";
 import { getMachineDerivedStatusIds } from "./machine-state-effects.js";
@@ -26,6 +28,7 @@ import {
   buildMachineCriticalConsequenceData,
   normalizeMachineCriticalRecord,
 } from "./machine-crit-consequences.js";
+import { getMachineMonitorState } from "./machine-monitors.js";
 
 export const MACHINE_CRITICAL_STATUS_ID = "machineCritical";
 export const SETTING_MACHINE_CRIT_TABLE_GENERAL = "machineCriticalTableGeneralUuid";
@@ -74,7 +77,7 @@ export const LOCATION_CRITICAL_RESULTS = Object.freeze({
       2: critRow("cockpitShock", "Cockpit Shock", "none", ["sensor"], ["sensorBlind"], {}, { track: "physical", amount: 3 }, "cascade", "sensorBlind"),
       3: critRow("targetingProcessorLock", "Targeting Processor Lock", "reboot", ["attack"], [], { extraAttackCost: 1 }, { track: "physical", amount: 2 }, "lockout", "", "All fire modes require +1 SA to attack.", "engine"),
       4: critRow("neuralFeedback", "Neural Feedback", "systemReset", [], [], {}, { track: "fatigue", amount: 1 }, "surge", "staggeredMechanical"),
-      5: critRow("opticsCoolantFog", "Optics Coolant Fog / View Obstruction", "systemReset", ["attack"], ["rangeLimitClose"], {}, {}, "feed", "sensorDegraded"),
+      5: critRow("opticsCoolantFog", "Optics Coolant Fog / View Obstruction", "coolantDump", ["attack"], ["rangeLimitClose"], {}, {}, "feed", "", "No attacks beyond Close until repaired.", "engine"),
       6: critRow("commandInputDelay", "Command Input Delay", "reboot", [], [], {}, { track: "fatigue", amount: 2 }, "control", "stalled"),
       7: critRow("fireControlDesyncHead", "Fire-Control Desync", "systemReset", ["attack"], ["noCqBonus"], {}, {}, "desync", "sensorDegraded"),
       8: critRow("cockpitImpact", "Cockpit Impact", "pilotRecovery", ["piloting"], ["stabilityCheck"], {}, { track: "physical", amount: 2 }, "shock", "unstable"),
@@ -318,17 +321,6 @@ export function getActiveMachineCrits(actor, filters = {}) {
     .filter(crit => !filters.mod || (Array.isArray(crit.mods) && crit.mods.includes(filters.mod)));
 }
 
-function getMonitorDamageState(actor, monitorKey) {
-  const monitor = actor?.system?.monitors?.[monitorKey] ?? {};
-  const max = Math.max(0, Number(monitor.max ?? 0) || 0);
-  const value = Math.min(max, Math.max(0, Number(monitor.value ?? 0) || 0));
-  return {
-    max,
-    value,
-    remaining: Math.max(0, max - value),
-  };
-}
-
 function isMachineActor(actor) {
   return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
 }
@@ -345,29 +337,105 @@ function normalizeHitLocationForDamage(actor, payload, armorRemainingBefore, str
 
   return {
     ...hitLocation,
+    impactLabel: String(hitLocation?.impactLabel ?? hitLocation?.locationLabel ?? getMachineLocationLabel(hitLocation?.locationKey)).trim(),
+    rulesLocation: String(hitLocation?.rulesLocation ?? hitLocation?.locationFamily ?? hitLocation?.locationKey ?? "").trim(),
+    rulesLocationLabel: String(hitLocation?.rulesLocationLabel ?? getMachineLocationLabel(hitLocation?.rulesLocation ?? hitLocation?.locationFamily ?? hitLocation?.locationKey)).trim(),
     armorBefore: armorRemainingBefore,
     structureBefore: structureRemainingBefore,
     pureStructureHit: armorRemainingBefore <= 0,
   };
 }
 
+function getPreviewRevision(payload = {}) {
+  return Math.max(0, Math.trunc(Number(payload?.previewRevision ?? 0) || 0));
+}
+
 function getCriticalLocation(hitLocation = {}, chaosCriticalSelected = false) {
   if (chaosCriticalSelected && hitLocation.chaosTargetLocationKey) {
     return {
       locationKey: hitLocation.chaosTargetLocationKey,
-      locationFamily: hitLocation.locationFamily === "head" ? "torso" : hitLocation.locationFamily,
+      rulesLocation: hitLocation.chaosRulesLocation ?? hitLocation.chaosTargetLocationKey,
+      locationFamily: hitLocation.chaosRulesLocation ?? (hitLocation.locationFamily === "head" ? "torso" : hitLocation.locationFamily),
       locationLabel: hitLocation.chaosTargetLocationLabel ?? getMachineLocationLabel(hitLocation.chaosTargetLocationKey),
     };
   }
   return {
     locationKey: hitLocation.locationKey,
-    locationFamily: hitLocation.locationFamily,
+    rulesLocation: hitLocation.rulesLocation ?? hitLocation.locationFamily ?? hitLocation.locationKey,
+    locationFamily: hitLocation.rulesLocation ?? hitLocation.locationFamily,
     locationLabel: hitLocation.locationLabel ?? getMachineLocationLabel(hitLocation.locationKey),
   };
 }
 
 function shouldCreateCritical(hitLocation = {}, chaosCriticalSelected = false) {
   return Boolean(hitLocation.isAutomaticCritical || (hitLocation.chaosCriticalOption && chaosCriticalSelected));
+}
+
+function buildCriticalState(hitLocation = {}, criticalLocation = {}, chaosCriticalSelected = false) {
+  const automatic = Boolean(hitLocation.isAutomaticCritical);
+  const optional = Boolean(hitLocation.chaosCriticalOption);
+  const selected = shouldCreateCritical(hitLocation, chaosCriticalSelected);
+  const mode = automatic
+    ? "automatic"
+    : (optional && chaosCriticalSelected ? "chaosSelected" : optional ? "chaosOptional" : "none");
+  const reason = automatic
+    ? "Hit location generated an automatic critical."
+    : (mode === "chaosSelected"
+      ? "Chaos Edge selected to convert this hit location into a critical."
+      : (mode === "chaosOptional" ? "Chaos Edge can convert this hit location into a critical." : "Location hit is descriptive only."));
+  return {
+    eligible: automatic || optional,
+    mode,
+    source: selected ? "hitLocation" : null,
+    selected,
+    reason,
+    automatic,
+    optional,
+    chaosCriticalSelected: Boolean(chaosCriticalSelected),
+    locationKey: criticalLocation.locationKey,
+    rulesLocation: criticalLocation.rulesLocation ?? criticalLocation.locationFamily ?? criticalLocation.locationKey,
+    locationFamily: criticalLocation.locationFamily,
+    locationLabel: criticalLocation.locationLabel,
+  };
+}
+
+function buildDamagePreview(preview = {}) {
+  return {
+    damageIncoming: Number(preview?.damageIncoming ?? 0),
+    adjustedIncoming: Number(preview?.adjustedIncoming ?? 0),
+    finalDamage: Number(preview?.finalDamage ?? 0),
+    appliedDelta: Number(preview?.appliedDelta ?? 0),
+    usedArmor: Boolean(preview?.usedArmor),
+    damageType: String(preview?.damageType ?? "").trim(),
+    effectiveAp: Number(preview?.effectiveAp ?? 0),
+    beforeLabel: String(preview?.beforeLabel ?? "").trim(),
+    afterLabel: String(preview?.afterLabel ?? "").trim(),
+    machine: clone(preview?.machine ?? {}),
+  };
+}
+
+function buildReliabilityOptionsFromDegradation(degradation = null) {
+  const opportunities = Array.isArray(degradation?.spendOpportunities) ? degradation.spendOpportunities : [];
+  const first = opportunities.find(entry => entry?.canSpend) ?? opportunities[0] ?? null;
+  return {
+    canSpend: opportunities.some(entry => entry?.canSpend),
+    selected: opportunities.some(entry => entry?.selected),
+    cost: 1,
+    prevents: ["conditionAdvance"],
+    pressureDeltaPreview: Number(degradation?.summary?.shockAfter ?? 0) - Number(degradation?.summary?.shockBefore ?? 0),
+    stressDeltaPreview: Object.values(degradation?.stressDelta ?? {}).reduce((sum, value) => sum + Number(value ?? 0), 0),
+    index: Number.isInteger(Number(first?.index)) ? Number(first.index) : null,
+    location: String(first?.location ?? "").trim(),
+    options: opportunities.map(entry => ({
+      index: Number(entry?.index ?? 0),
+      location: String(entry?.location ?? "").trim(),
+      source: String(entry?.source ?? "").trim(),
+      canSpend: Boolean(entry?.canSpend),
+      selected: Boolean(entry?.selected),
+      cost: 1,
+      prevents: ["conditionAdvance"],
+    })),
+  };
 }
 
 function resolveAttackQuality(payload = {}) {
@@ -391,56 +459,83 @@ export function previewMachineAttackDamage({
   if (!isMachineActor(actor)) return { ok: false, reason: "Machine damage requires a vehicle or BattleMech actor." };
 
   const incoming = Math.max(0, Math.ceil(Number(payload?.damage ?? payload?.amount ?? 0) || 0));
-  const armor = getMonitorDamageState(actor, TEMPLATE.monitors.armor);
-  const structure = getMonitorDamageState(actor, TEMPLATE.monitors.structure);
+  const damageContext = {
+    actor,
+    payload,
+    damageIncoming: incoming,
+    adjustedIncoming: incoming,
+    effectiveAp: Math.max(0, Number(payload?.ap ?? 0) || 0),
+    damageType: String(payload?.damageType ?? "kinetic").trim() || "kinetic",
+    contributions: [],
+  };
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.harm.beforeMachineDamagePreview, damageContext);
+  const adjustedIncoming = Math.max(0, Math.ceil(Number(damageContext.adjustedIncoming ?? damageContext.damageIncoming ?? incoming) || 0));
+  const armor = getMachineMonitorState(actor, TEMPLATE.monitors.armor);
+  const structure = getMachineMonitorState(actor, TEMPLATE.monitors.structure);
   const resolvedHitLocation = hitLocation
     ? { ...hitLocation, armorBefore: armor.remaining, structureBefore: structure.remaining, pureStructureHit: armor.remaining <= 0 }
     : normalizeHitLocationForDamage(actor, payload, armor.remaining, structure.remaining);
 
-  // Monitor values are damage-taken counters; armor remaining must be computed
-  // before this hit mutates armor or the pure-structure trigger becomes wrong.
-  const armorAbsorbed = Math.min(incoming, actor.type === TEMPLATE.actorTypes.vehicle && armor.max <= 0 ? 0 : armor.remaining);
-  const structureDamage = Math.min(structure.remaining, Math.max(0, incoming - armorAbsorbed));
-  const armorAfterValue = Math.min(armor.max, armor.value + armorAbsorbed);
-  const structureAfterValue = Math.min(structure.max, structure.value + structureDamage);
-  const criticalSelected = shouldCreateCritical(resolvedHitLocation, chaosCriticalSelected);
+  const armorAbsorbed = Math.min(adjustedIncoming, actor.type === TEMPLATE.actorTypes.vehicle && armor.max <= 0 ? 0 : armor.remaining);
+  const structureDamage = Math.min(structure.remaining, Math.max(0, adjustedIncoming - armorAbsorbed));
+  const armorAfterValue = Math.max(0, armor.remaining - armorAbsorbed);
+  const structureAfterValue = Math.max(0, structure.remaining - structureDamage);
+  const armorDamageAfter = Math.max(0, armor.max - armorAfterValue);
+  const structureDamageAfter = Math.max(0, structure.max - structureAfterValue);
   const criticalLocation = getCriticalLocation(resolvedHitLocation, chaosCriticalSelected);
+  const criticalState = buildCriticalState(resolvedHitLocation, criticalLocation, chaosCriticalSelected);
   const attackQuality = resolveAttackQuality(payload);
   const locationStressGain = structureDamage;
+  const previewRevision = getPreviewRevision(payload);
+  const preview = {
+    damageIncoming: incoming,
+    adjustedIncoming,
+    finalDamage: structureDamage,
+    appliedDelta: structureDamage,
+    usedArmor: armorAbsorbed > 0,
+    damageType: damageContext.damageType,
+    effectiveAp: damageContext.effectiveAp,
+    assetModuleContributions: damageContext.contributions,
+    beforeLabel: `Armor ${armor.remaining}/${armor.max}, Structure ${structure.remaining}/${structure.max}`,
+    afterLabel: `Armor ${armorAfterValue}/${armor.max}, Structure ${structureAfterValue}/${structure.max}`,
+  };
 
   return {
     ok: true,
     mode: "machineAttackDamage",
     actorName: actor.name ?? "Machine",
-    damageIncoming: incoming,
-    adjustedIncoming: incoming,
-    finalDamage: structureDamage,
+    previewRevision,
+    damageIncoming: preview.damageIncoming,
+    adjustedIncoming: preview.adjustedIncoming,
+    finalDamage: preview.finalDamage,
+    attackDamage: clone(payload?.attackDamage ?? null),
     requestedDelta: incoming,
-    appliedDelta: structureDamage,
-    usedArmor: armorAbsorbed > 0,
-    damageType: String(payload?.damageType ?? "kinetic").trim() || "kinetic",
-    effectiveAp: Math.max(0, Number(payload?.ap ?? 0) || 0),
+    appliedDelta: preview.appliedDelta,
+    usedArmor: preview.usedArmor,
+    damageType: preview.damageType,
+    effectiveAp: preview.effectiveAp,
+    assetModuleContributions: preview.assetModuleContributions,
     hitLocation: resolvedHitLocation,
-    critical: {
-      automatic: Boolean(resolvedHitLocation.isAutomaticCritical),
-      optional: Boolean(resolvedHitLocation.chaosCriticalOption),
-      selected: criticalSelected,
-      chaosCriticalSelected: Boolean(chaosCriticalSelected),
-      locationKey: criticalLocation.locationKey,
-      locationFamily: criticalLocation.locationFamily,
-      locationLabel: criticalLocation.locationLabel,
-    },
+    critical: criticalState,
     machine: {
+      armorRemainingBefore: armor.remaining,
+      armorRemainingAfter: armorAfterValue,
       armorBefore: armor.remaining,
-      armorAfter: Math.max(0, armor.max - armorAfterValue),
-      armorDamageBefore: armor.value,
-      armorDamageAfter: armorAfterValue,
+      armorAfter: armorAfterValue,
+      armorDamageTakenBefore: armor.damageTaken,
+      armorDamageTakenAfter: armorDamageAfter,
+      armorDamageBefore: armor.damageTaken,
+      armorDamageAfter,
       armorMax: armor.max,
       armorAbsorbed,
+      structureRemainingBefore: structure.remaining,
+      structureRemainingAfter: structureAfterValue,
       structureBefore: structure.remaining,
-      structureAfter: Math.max(0, structure.max - structureAfterValue),
-      structureDamageBefore: structure.value,
-      structureDamageAfter: structureAfterValue,
+      structureAfter: structureAfterValue,
+      structureDamageTakenBefore: structure.damageTaken,
+      structureDamageTakenAfter: structureDamageAfter,
+      structureDamageBefore: structure.damageTaken,
+      structureDamageAfter,
       structureMax: structure.max,
       structureDamage,
       pureStructureHit: armor.remaining <= 0,
@@ -451,8 +546,38 @@ export function previewMachineAttackDamage({
       attackQuality,
       locationStressGain,
     },
-    beforeLabel: `Armor ${armor.remaining}/${armor.max}, Structure ${structure.remaining}/${structure.max}`,
-    afterLabel: `Armor ${Math.max(0, armor.max - armorAfterValue)}/${armor.max}, Structure ${Math.max(0, structure.max - structureAfterValue)}/${structure.max}`,
+    damagePreview: {
+      ...preview,
+      machine: {
+        armorRemainingBefore: armor.remaining,
+        armorRemainingAfter: armorAfterValue,
+        armorBefore: armor.remaining,
+        armorAfter: armorAfterValue,
+        armorDamageTakenBefore: armor.damageTaken,
+        armorDamageTakenAfter: armorDamageAfter,
+        armorDamageBefore: armor.damageTaken,
+        armorDamageAfter,
+        armorMax: armor.max,
+        armorAbsorbed,
+        structureRemainingBefore: structure.remaining,
+        structureRemainingAfter: structureAfterValue,
+        structureBefore: structure.remaining,
+        structureAfter: structureAfterValue,
+        structureDamageTakenBefore: structure.damageTaken,
+        structureDamageTakenAfter: structureDamageAfter,
+        structureDamageBefore: structure.damageTaken,
+        structureDamageAfter,
+        structureMax: structure.max,
+        structureDamage,
+        pureStructureHit: armor.remaining <= 0,
+        locationStressGain,
+        locationTakesStress: locationStressGain > 0,
+      },
+      assetModuleContributions: preview.assetModuleContributions,
+    },
+    reliabilityOptions: buildReliabilityOptionsFromDegradation(null),
+    beforeLabel: preview.beforeLabel,
+    afterLabel: preview.afterLabel,
     source: String(payload?.source ?? "").trim(),
     notes: String(payload?.notes ?? "").trim(),
   };
@@ -482,7 +607,7 @@ async function resolveCriticalTable(actor = null, tableUuid = "") {
 }
 
 function normalizeCriticalLocationFamily(actor = null, hitLocation = {}) {
-  const family = String(hitLocation?.locationFamily ?? hitLocation?.locationKey ?? "").trim();
+  const family = String(hitLocation?.rulesLocation ?? hitLocation?.locationFamily ?? hitLocation?.locationKey ?? "").trim();
   if (actor?.type === TEMPLATE.actorTypes.battlemech) {
     if (family === "head") return "head";
     if (family === "arms" || family === "arm" || /arm/i.test(String(hitLocation?.locationKey ?? ""))) return "arms";
@@ -545,14 +670,50 @@ function findResultForRoll(table, rollTotal) {
   }) ?? null;
 }
 
+function hasTextField(data = {}, key = "") {
+  return String(data?.[key] ?? "").trim() !== "";
+}
+
+function hasArrayField(data = {}, key = "") {
+  if (Array.isArray(data?.[key])) return data[key].length > 0;
+  return String(data?.[key] ?? "").trim() !== "";
+}
+
+function hasObjectField(data = {}, key = "") {
+  const value = data?.[key];
+  return value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0;
+}
+
+function mergeLocationSignalWithFallback(resultOrData = {}, fallbackResult = {}) {
+  const tableSignal = normalizeCriticalSignal(resultOrData, { strict: true });
+  const fallbackSignal = normalizeCriticalSignal(fallbackResult, { strict: true });
+  if (tableSignal.key !== fallbackSignal.key) return tableSignal;
+
+  const data = getCritFlagData(resultOrData);
+  return normalizeCriticalSignal({
+    ...tableSignal,
+    remedyKey: hasTextField(data, "remedyKey") ? tableSignal.remedyKey : fallbackSignal.remedyKey,
+    gates: hasArrayField(data, "gates") ? tableSignal.gates : fallbackSignal.gates,
+    mods: hasArrayField(data, "mods") ? tableSignal.mods : fallbackSignal.mods,
+    resourceEffects: hasObjectField(data, "resourceEffects") ? tableSignal.resourceEffects : fallbackSignal.resourceEffects,
+    pilotDamage: hasObjectField(data, "pilotDamage") ? tableSignal.pilotDamage : fallbackSignal.pilotDamage,
+    escalationKey: hasTextField(data, "escalationKey") ? tableSignal.escalationKey : fallbackSignal.escalationKey,
+    statusId: hasTextField(data, "statusId") ? tableSignal.statusId : fallbackSignal.statusId,
+    effectText: hasTextField(data, "effectText") ? tableSignal.effectText : fallbackSignal.effectText,
+    automationMode: hasTextField(data, "automationMode") ? tableSignal.automationMode : fallbackSignal.automationMode,
+    statusLabel: hasTextField(data, "statusLabel") ? tableSignal.statusLabel : fallbackSignal.statusLabel,
+  }, { strict: true });
+}
+
 async function resolveLocationCriticalSignal({ actor = null, hitLocation = {}, rollTotal = 7, tableUuid = "" } = {}) {
   const fallback = getDefaultLocationCriticalResult(actor, hitLocation, rollTotal);
+  const fallbackSignal = normalizeCriticalSignal(fallback.signal, { strict: true });
   const uuid = String(tableUuid || getMachineLocationCriticalTableUuid(actor, hitLocation)).trim();
   if (!fallback) return { error: "No location critical table is defined for this hit location." };
 
   if (!uuid || typeof fromUuid !== "function") {
     return {
-      signal: normalizeCriticalSignal(fallback.signal, { strict: true }),
+      signal: fallbackSignal,
       label: fallback.label,
       tableUuid: uuid,
       resultId: "",
@@ -566,10 +727,10 @@ async function resolveLocationCriticalSignal({ actor = null, hitLocation = {}, r
   const result = findResultForRoll(table, rollTotal);
   if (!result) return { error: `Machine location critical table has no result for ${rollTotal}: ${uuid}` };
 
-  const signal = normalizeCriticalSignal(result, { strict: true });
+  const signal = mergeLocationSignalWithFallback(result, fallback.signal);
   return {
     signal,
-    label: String(result?.text ?? result?.name ?? signal.key).trim() || signal.key,
+    label: String(result?.name ?? signal.key).trim() || signal.key,
     tableUuid: table.uuid ?? uuid,
     resultId: result.id ?? result._id ?? "",
     rollTotal,
@@ -599,14 +760,14 @@ async function drawCriticalSignal({ actor = null, drawFn = null, tableUuid = "",
   const signal = normalizeCriticalSignal(result, { strict: true });
   return {
     signal,
-    label: String(result?.text ?? result?.name ?? signal.key).trim() || signal.key,
+    label: String(result?.name ?? signal.key).trim() || signal.key,
     tableUuid: table.uuid ?? tableUuid,
     resultId: result.id ?? result._id ?? "",
     rollTotal: Number(draw?.roll?.total ?? 0) || null,
   };
 }
 
-function buildCritRecord({ actor, drawn, hitLocation, source = {}, cascade = false } = {}) {
+function buildCritRecord({ actor, drawn, hitLocation, source = {}, cascade = false, previewRevision = 0 } = {}) {
   const signal = normalizeCriticalSignal(drawn?.signal ?? drawn, { strict: true });
   const remedy = getMachineCritRemedy(signal.remedyKey);
   const location = getCriticalLocation(hitLocation, false);
@@ -622,8 +783,13 @@ function buildCritRecord({ actor, drawn, hitLocation, source = {}, cascade = fal
   }, remedy);
   return {
     id: randomId(),
+    previewRevision: getPreviewRevision({ previewRevision }),
     key: signal.key,
+    resultKey: signal.key,
     label,
+    table: String(drawn?.tableUuid ?? "").trim(),
+    rollTotal: Number(drawn?.rollTotal ?? 0) || null,
+    rulesLocation: location.rulesLocation ?? location.locationFamily ?? location.locationKey,
     tableUuid: String(drawn?.tableUuid ?? "").trim(),
     resultId: String(drawn?.resultId ?? "").trim(),
     generalKey: String(drawn?.general?.key ?? "").trim(),
@@ -638,6 +804,28 @@ function buildCritRecord({ actor, drawn, hitLocation, source = {}, cascade = fal
     mods: signal.mods,
     resourceEffects: signal.resourceEffects,
     pilotDamage: signal.pilotDamage,
+    remedy: {
+      key: signal.remedyKey,
+      label: remedy.label,
+      skillKey: getMachineRemedySkillKey({
+        key: signal.key,
+        label,
+        locationLabel: location.locationLabel,
+        gates: signal.gates,
+        mods: signal.mods,
+        remedyKey: signal.remedyKey,
+      }, remedy),
+      baseDn: getMachineRemedyBaseDn({ remedyKey: signal.remedyKey }, remedy),
+    },
+    effects: {
+      gates: signal.gates,
+      mods: signal.mods,
+      resourceEffects: signal.resourceEffects,
+      pilotDamage: signal.pilotDamage,
+      statusId: signal.statusId,
+      effectText: consequence.effectText,
+      automationMode: consequence.automationMode,
+    },
     remedyKey: signal.remedyKey,
     remedyLabel: remedy.label,
     remedySkillKey,
@@ -666,6 +854,7 @@ export async function drawMachineCriticalRecords({
   source = {},
   drawFn = null,
   tableUuid = "",
+  previewRevision = 0,
 } = {}) {
   try {
     const first = await drawCriticalSignal({ actor, drawFn, tableUuid, recursiveCascade: false });
@@ -688,7 +877,7 @@ export async function drawMachineCriticalRecords({
     };
 
     if (!isCascadeGeneralResult(firstSignal, firstRollTotal)) {
-      return { ok: true, crits: [buildCritRecord({ actor, drawn: firstDrawn, hitLocation, source })], cascade: false };
+      return { ok: true, crits: [buildCritRecord({ actor, drawn: firstDrawn, hitLocation, source, previewRevision })], cascade: false };
     }
 
     // Cascade is deliberately protected in code: a second cascade result becomes
@@ -720,8 +909,8 @@ export async function drawMachineCriticalRecords({
       ok: true,
       cascade: true,
       crits: [
-        buildCritRecord({ actor, drawn: firstDrawn, hitLocation, source, cascade: true }),
-        buildCritRecord({ actor, drawn: secondDrawn, hitLocation, source }),
+        buildCritRecord({ actor, drawn: firstDrawn, hitLocation, source, cascade: true, previewRevision }),
+        buildCritRecord({ actor, drawn: secondDrawn, hitLocation, source, previewRevision }),
       ],
     };
   } catch (error) {
@@ -735,11 +924,31 @@ function getPreparedCriticalRecords(payload = {}, actor = null) {
     : [];
 }
 
+function validatePreparedCriticalRecords(payload = {}, records = []) {
+  if (!records.length) return { ok: true };
+  const revision = getPreviewRevision(payload);
+  const stale = records.find(record => Number(record?.previewRevision ?? revision) !== revision);
+  if (stale) {
+    return {
+      ok: false,
+      reason: "Critical preview is stale. Rebuild the attack damage preview before applying.",
+    };
+  }
+  return { ok: true };
+}
+
 function getDirectConditionLocations(crits = []) {
   return Array.from(crits ?? [])
     .filter(crit => String(crit?.escalationKey ?? "").trim() === "conditionAdvance")
     .map(crit => String(crit?.locationKey ?? "").trim())
     .filter(Boolean);
+}
+
+function getCriticalShockGain(crits = [], attackQuality = "") {
+  const hasShockCritical = Array.from(crits ?? [])
+    .some(crit => String(crit?.escalationKey ?? "").trim() === "shock");
+  if (!hasShockCritical) return 0;
+  return Math.max(1, getMachineAttackQualityShockGain(attackQuality));
 }
 
 function getAutomaticDegradationLocations(preview = {}) {
@@ -782,6 +991,22 @@ async function applyMachineCritStatusConditions(actor, newCritRecords) {
 }
 
 async function applyDegradationStatusConditions(actor, degradation) {
+  if (String(degradation?.statusState ?? "").trim() === "destroyed" && !(actor.statuses?.has?.("destroyed") ?? false)) {
+    try {
+      await applyManagedStatusUpdate({
+        actor,
+        statusId: "destroyed",
+        active: true,
+        metadata: {
+          scope: "Machine destroyed",
+          notes: "Applied by catastrophic machine degradation.",
+        },
+      });
+    } catch (error) {
+      console.warn("MWD | Unable to apply destroyed status", error);
+    }
+  }
+
   const derivedStatusIds = new Set(getMachineDerivedStatusIds(actor));
   for (const statusId of derivedStatusIds) {
     if (!statusId || (actor.statuses?.has?.(statusId) ?? false)) continue;
@@ -813,15 +1038,30 @@ export async function applyMachineAttackDamage({
   payload = {},
   options = {},
 } = {}) {
+  if (payload?.applied === true) {
+    return payload?.appliedResult?.ok
+      ? { ...payload.appliedResult, skipped: true, reason: "That machine attack damage has already been applied." }
+      : { ok: false, skipped: true, reason: "That machine attack damage has already been applied." };
+  }
+
   const preview = previewMachineAttackDamage({
     actor,
     payload,
     chaosCriticalSelected: Boolean(payload?.chaosCriticalSelected),
   });
   if (!preview.ok) return preview;
+  const applyContext = { actor, token, payload, options, preview };
+  if (dispatchAssetModuleHook(ASSET_MODULE_HOOKS.harm.beforeMachineDamageApply, applyContext) === false) {
+    return { ok: false, reason: "Machine damage application was cancelled by a module hook." };
+  }
 
   const dryRun = Boolean(options.dryRun);
   const preparedCrits = getPreparedCriticalRecords(payload, actor);
+  const preparedValidation = validatePreparedCriticalRecords(payload, preparedCrits);
+  if (!preparedValidation.ok) return preparedValidation;
+  if (!dryRun && payload?.requirePreparedCriticalRecords === true && preview.critical.selected && !preparedCrits.length) {
+    return { ok: false, reason: "Critical preview is missing. Rebuild the attack damage preview before applying." };
+  }
   let critDraw = preparedCrits.length
     ? { ok: true, crits: preparedCrits, cascade: preparedCrits.length > 1 }
     : { ok: true, crits: [] };
@@ -831,6 +1071,7 @@ export async function applyMachineAttackDamage({
       hitLocation: {
         ...preview.hitLocation,
         locationKey: preview.critical.locationKey,
+        rulesLocation: preview.critical.rulesLocation,
         locationFamily: preview.critical.locationFamily,
         locationLabel: preview.critical.locationLabel,
       },
@@ -841,6 +1082,7 @@ export async function applyMachineAttackDamage({
       },
       drawFn: options.drawCritical,
       tableUuid: payload?.criticalTableUuid ?? "",
+      previewRevision: preview.previewRevision,
     });
   }
 
@@ -848,7 +1090,10 @@ export async function applyMachineAttackDamage({
     actorSnapshot: actor,
     locationKey: preview.critical.locationKey || preview.hitLocation.locationKey,
     machineDamageDealt: preview.machine.structureDamage,
-    attackQuality: preview.degradation?.attackQuality ?? resolveAttackQuality(payload),
+    attackQuality: preview.machine.structureDamage > 0
+      ? (preview.degradation?.attackQuality ?? resolveAttackQuality(payload))
+      : "",
+    extraShockGain: getCriticalShockGain(critDraw.ok ? critDraw.crits : [], preview.degradation?.attackQuality ?? resolveAttackQuality(payload)),
     allowReliabilitySpend: true,
     reliabilitySpendSelections: Array.isArray(payload?.reliabilitySpendSelections) ? payload.reliabilitySpendSelections : [],
     directConditionLocations: [
@@ -871,8 +1116,8 @@ export async function applyMachineAttackDamage({
 
   if (!dryRun) {
     const update = {
-      "system.monitors.armor.value": preview.machine.armorDamageAfter,
-      "system.monitors.structure.value": preview.machine.structureDamageAfter,
+      "system.monitors.armor.value": preview.machine.armorRemainingAfter,
+      "system.monitors.structure.value": preview.machine.structureRemainingAfter,
       ...buildMachineDegradationUpdates(actor, degradation),
       ...buildVehicleStructureZeroDisableUpdates(actor, preview.machine.structureAfter),
     };
@@ -888,10 +1133,12 @@ export async function applyMachineAttackDamage({
     await applyDegradationStatusConditions(actor, degradation);
   }
 
-  return {
+  const result = {
     ...preview,
     dryRun,
     appliedDelta: preview.machine.structureDamage,
+    damagePreview: buildDamagePreview(preview),
+    reliabilityOptions: buildReliabilityOptionsFromDegradation(degradation),
     critical: {
       ...preview.critical,
       drawOk: Boolean(critDraw.ok),
@@ -901,4 +1148,13 @@ export async function applyMachineAttackDamage({
     },
     degradation,
   };
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.harm.afterMachineDamageApply, {
+    actor,
+    token,
+    payload,
+    options,
+    preview,
+    result,
+  });
+  return result;
 }

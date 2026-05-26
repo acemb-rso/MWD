@@ -4,7 +4,9 @@
 
 import { computeDangerCheckParams, computeHeatPenalties, hasVolatileComponents, resolveEndOfActivationHeat } from "./heat-effects.js";
 import { getMachineHeatStatusLabel, normalizeMachineHeatThresholds, resolveMachineHeatStatus } from "./heat-state.js";
+import { ASSET_MODULE_HOOKS, dispatchAssetModuleHook } from "./asset-module-hooks.js";
 import { getMachineHeatAdjustments } from "./machine-state-effects.js";
+import { isMachineEnergyDamageFamily } from "./machine-weapon-types.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -32,7 +34,7 @@ function getActiveHeatCrits(systemData = {}) {
 }
 
 export function getBattlemechPendingHeat(systemData = {}) {
-  return clampMin(systemData?.mwd?.heat?.pendingGenerated, 0);
+  return clampMin(getSystemData(systemData)?.mwd?.heat?.pendingGenerated, 0);
 }
 
 export function getBattlemechHeatActivationKey(activation = null) {
@@ -49,6 +51,7 @@ export function getBattlemechHeatActivationKey(activation = null) {
 export function isEnergyMachineWeapon(weapon = {}) {
   const system = weapon?.system ?? weapon ?? {};
   const typeHints = [
+    system.baseDamageType,
     system.damageType,
     system.category,
     system.weaponCategory,
@@ -56,7 +59,7 @@ export function isEnergyMachineWeapon(weapon = {}) {
   ].map(value => String(value ?? "").trim().toLowerCase()).filter(Boolean);
   const traits = asArray(system.traits).map(value => String(value ?? "").trim().toLowerCase());
 
-  return typeHints.includes("energy") || traits.includes("energy");
+  return typeHints.some(isMachineEnergyDamageFamily) || traits.some(isMachineEnergyDamageFamily);
 }
 
 export function computeBattlemechAttackHeat({ weapons = [], crits = [] } = {}) {
@@ -92,15 +95,28 @@ export function buildBattlemechHeatModel(source = {}) {
   const current = clampMin(heatMonitor.value ?? heatConfig.current, 0);
   const trackLength = clampMin(heatMonitor.max ?? heatConfig.max ?? heatConfig.hardMax, 0);
   const thresholds = normalizeMachineHeatThresholds(heatConfig.thresholds ?? {}, trackLength);
+  const heatProfileContext = {
+    actor: source?.system ? source : null,
+    source,
+    systemData,
+    dissipationModifier: 0,
+    effectiveDissipationModifier: 0,
+    thresholds,
+  };
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.heat.collectHeatProfile, heatProfileContext);
   const displayMax = Math.max(
     trackLength,
     current,
     clampMin(thresholds.shutdown ?? thresholds.danger, 0)
   );
-  const dissipation = clampMin(hybridHeat.dissipation ?? heatConfig.ventPerTurn, 1);
+  const dissipation = clampMin((hybridHeat.dissipation ?? heatConfig.ventPerTurn) + toNumber(heatProfileContext.dissipationModifier, 0), 1);
   const critImpaired = activeCrits.some(crit => crit?.escalationKey === "heat");
   const coolingImpaired = Boolean(heatConfig.coolingImpaired || critImpaired || stateHeat.coolingImpaired);
-  const effectiveDissipation = coolingImpaired ? Math.max(1, dissipation - 2) : dissipation;
+  const effectiveDissipation = Math.max(
+    1,
+    (coolingImpaired ? Math.max(1, dissipation - 2) : dissipation)
+      + toNumber(heatProfileContext.effectiveDissipationModifier, 0)
+  );
   const pendingGenerated = getBattlemechPendingHeat(systemData);
   const lastResolvedActivationKey = String(heatConfig.lastResolvedActivationKey ?? "").trim();
   const statusCode = resolveMachineHeatStatus(current, thresholds, trackLength);
@@ -137,7 +153,17 @@ export function resolveBattlemechHeatActivation(source = {}, { pendingGenerated 
   const systemData = getSystemData(source);
   const heat = buildBattlemechHeatModel(systemData);
   const generated = pendingGenerated === null ? heat.pendingGenerated : clampMin(pendingGenerated, 0);
-  const newHeat = resolveEndOfActivationHeat(heat.current, generated, heat.effectiveDissipation, heat.trackLength);
+  const dissipationContext = {
+    source,
+    systemData,
+    heat,
+    generated,
+    effectiveDissipation: heat.effectiveDissipation,
+  };
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.heat.beforeHeatDissipation, dissipationContext);
+  const resolvedGenerated = clampMin(dissipationContext.generated, 0);
+  const resolvedDissipation = clampMin(dissipationContext.effectiveDissipation, 1);
+  const newHeat = resolveEndOfActivationHeat(heat.current, resolvedGenerated, resolvedDissipation, heat.trackLength);
   const statusCode = resolveMachineHeatStatus(newHeat, heat.thresholds, heat.trackLength);
   const penalties = computeHeatPenalties(newHeat, heat.thresholds);
   const inDanger = penalties.dangerLevel > 0;
@@ -147,7 +173,8 @@ export function resolveBattlemechHeatActivation(source = {}, { pendingGenerated 
   return {
     ...heat,
     previousHeat: heat.current,
-    generated,
+    generated: resolvedGenerated,
+    effectiveDissipation: resolvedDissipation,
     newHeat,
     statusCode,
     status: getMachineHeatStatusLabel(statusCode),
@@ -182,27 +209,36 @@ export async function adjustBattlemechPendingHeat(actor, delta, { reason = "" } 
   return setBattlemechPendingHeat(actor, current + toNumber(delta, 0), { reason });
 }
 
-export async function recordBattlemechAttackHeat(actor, { weaponIds = [], reason = "" } = {}) {
+export async function recordBattlemechAttackHeat(actor, { weaponIds = [], attackProfile = null, reason = "" } = {}) {
   if (!actor || actor.type !== "battlemech") return { ok: false, reason: "BattleMech actor required." };
 
   const resolvedWeaponIds = Array.from(new Set(asArray(weaponIds).map(id => String(id ?? "").trim()).filter(Boolean)));
-  if (!resolvedWeaponIds.length) {
-    return { ok: true, actor, pendingGenerated: getBattlemechPendingHeat(actor), contribution: { total: 0 } };
-  }
-
   const weapons = resolvedWeaponIds
     .map(id => actor.items?.get?.(id))
     .filter(Boolean);
+  const profileHeat = clampMin(attackProfile?.heat ?? attackProfile?.attackSummary?.heat, 0);
   const contribution = computeBattlemechAttackHeat({
     weapons,
     crits: getActiveHeatCrits(actor.system),
   });
+  contribution.weaponCount = Math.max(contribution.weaponCount, resolvedWeaponIds.length, profileHeat > 0 ? 1 : 0);
+  contribution.baseHeat = Math.max(contribution.baseHeat, profileHeat);
   const stateHeat = getMachineHeatAdjustments(actor);
+  const hasEnergyHeatSource = weapons.some(isEnergyMachineWeapon) || isEnergyMachineWeapon(attackProfile);
   contribution.extraAttackHeat += Math.max(0, Number(stateHeat.attackHeat ?? 0));
-  contribution.extraEnergyHeat += weapons.some(isEnergyMachineWeapon)
+  contribution.extraEnergyHeat += hasEnergyHeatSource
     ? Math.max(0, Number(stateHeat.energyAttackHeat ?? 0))
     : 0;
   contribution.total = contribution.baseHeat + contribution.extraAttackHeat + contribution.extraEnergyHeat;
+  const heatGeneratedContext = {
+    actor,
+    reason,
+    weaponIds: resolvedWeaponIds,
+    attackProfile,
+    contribution,
+  };
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.heat.beforeHeatGenerated, heatGeneratedContext);
+  contribution.total = clampMin(heatGeneratedContext.contribution?.total ?? contribution.total, 0);
   if (contribution.total <= 0) {
     return { ok: true, actor, pendingGenerated: getBattlemechPendingHeat(actor), contribution };
   }
@@ -212,6 +248,10 @@ export async function recordBattlemechAttackHeat(actor, { weaponIds = [], reason
   await actor.update({
     "system.mwd.heat.pendingGenerated": nextPending,
     "system.mwd.heat.lastResolvedActivationKey": "",
+  });
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.heat.afterHeatGenerated, {
+    ...heatGeneratedContext,
+    pendingGenerated: nextPending,
   });
 
   return {
@@ -264,8 +304,20 @@ export async function resolveBattlemechPendingHeat(actor, { source = "", postDan
     "system.mwd.heat.pendingGenerated": resolution.pendingGeneratedAfter,
     "system.mwd.heat.lastResolvedActivationKey": activationKey,
   });
+  dispatchAssetModuleHook(ASSET_MODULE_HOOKS.heat.afterHeatDissipation, {
+    actor,
+    source,
+    activation,
+    resolution,
+  });
 
   if (postDangerCard && resolution.inDanger) {
+    dispatchAssetModuleHook(ASSET_MODULE_HOOKS.heat.beforeDangerCheck, {
+      actor,
+      source,
+      activation,
+      resolution,
+    });
     await postBattlemechDangerChecksToChat(actor, resolution, { source });
   }
 

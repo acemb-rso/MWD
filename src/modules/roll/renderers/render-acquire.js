@@ -2,6 +2,7 @@
 // Enhances acquire roll card with EW detection-state transition details.
 
 import { getDetectionStateLabel } from "../../mwd/machine-ew.js";
+import { enhancePostEdge } from "./render-edge-post.js";
 
 export function enhanceAcquire(resolved, vm) {
   const result = resolved?.ewAcquireResult ?? null;
@@ -13,6 +14,8 @@ export function enhanceAcquire(resolved, vm) {
       title: "",
     });
   }
+
+  enhancePostEdge(resolved, vm);
 
   if (!result) return;
 

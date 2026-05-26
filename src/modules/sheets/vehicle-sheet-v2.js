@@ -4,18 +4,20 @@
 
 import { MWD } from "../config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../constants.js";
-import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
+import { buildCombatAwarenessPreview } from "../combat/combat-awareness-preview.js";
+import { getActiveStatusSummaries, openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import { getActiveMachineCrits } from "../mwd/critical-hits.js";
 import { getMachineCritRemedy } from "../mwd/machine-crit-remedies.js";
 import { buildMachineEwPanel, resolveMachineEwActionTarget } from "../mwd/machine-ew-panel.js";
-import { prepareMachineRemedyRoll } from "../mwd/machine-intents.js";
 import { describeMachineCriticalEffect } from "../mwd/machine-crit-effects.js";
 import {
   getMachineConditionLabel,
   getMachineConditionModifier,
   getMachineDegradationLocationPriority,
   getMachineReliabilityThreshold,
+  MACHINE_CONDITION_LABELS,
+  MACHINE_CONDITION_STAGES,
   normalizeMachineDegradationState,
 } from "../mwd/machine-degradation.js";
 import {
@@ -24,19 +26,39 @@ import {
   getMachineRuleState,
 } from "../mwd/machine-state-effects.js";
 import {
+  appendMachineHardpoint,
+  assignMachineHardpointOccupant,
   doesHardpointAcceptItem,
   getAssignedMachineItemIds,
   getHardpointCompatibilityError,
   getConfiguredMachineHardpoints,
+  normalizeMachineHardpoints,
   rawHardpointsArray,
+  reconcileMachineHardpoints,
+  removeMachineHardpointById,
+  updateMachineHardpointSettings,
 } from "../mwd/machine-hardpoints.js";
 import { getMachineLocationLabel } from "../mwd/machine-hit-locations.js";
 import { buildRemainingMonitorTrack } from "../mwd/machine-summary.js";
 import { buildMachineMovementFields, buildMachineMovementSummaryParts } from "../mwd/machine-movement.js";
+import { buildVehicleMovementActionChoices } from "../mwd/vehicle-movement-actions.js";
+import {
+  buildMachineCriticalRepairIssues,
+  buildMachineEwActionChoices,
+} from "../mwd/machine-quick-actions.js";
+import { buildVehicleProfileSummary, VEHICLE_FLIGHT_SUBTYPES, VEHICLE_MOVEMENT_PROFILES, VEHICLE_TERRAIN_CLASSES } from "../mwd/vehicle-profiles.js";
+import { buildVehicleStrainModel } from "../mwd/vehicle-strain.js";
+import { resolveBattlemechJumpProfile } from "../mwd/battlemech-mobility.js";
 import { getSkillDef } from "../mwd/skills.js";
+import { cachePendingTokenPosition } from "../mwd/token-measurement.js";
+import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
+import { normalizeMachineWeaponGroups, pruneWeaponGroupsToMountedItems } from "../mwd/machine-weapon-group-state.js";
 import { notifyRollError } from "../roll/roll-errors.js";
+import { Misc } from "../misc.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { SelectActor } from "../dialog/select-actor.js";
+import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { buildAssetModuleSummary } from "../mwd/asset-module-effects.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -63,6 +85,15 @@ function toSnippet(value, max = 180) {
   return `${plain.slice(0, Math.max(0, max - 3)).trim()}...`;
 }
 
+function getMachineActionService() {
+  return game.mwd?.machineActions ?? game.system?.mwd?.machineActions ?? null;
+}
+
+async function executeMachineAction(actor, request = {}) {
+  const service = getMachineActionService();
+  if (!service?.execute) throw new Error("MWD machine action service not initialized.");
+  return service.execute(actor, request);
+}
 
 const HARDPOINT_TYPE_CODES = Object.freeze({
   energy: "ENG",
@@ -151,6 +182,12 @@ const ITEM_TYPE_LABELS = Object.freeze({
   skill: "Skill",
 });
 
+function getActorJumpProfile(actor = null) {
+  return actor?.type === "battlemech"
+    ? resolveBattlemechJumpProfile(actor)
+    : actor?.system?.mwd?.mobility?.jumping ?? null;
+}
+
 const DEGRADATION_LAYOUTS = Object.freeze({
   battlemech: Object.freeze({
     artPath: "systems/mwd/img/mek/misc/repair/location_mek.png",
@@ -212,10 +249,16 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       assignHardpointItem: VehicleSheetV2.prototype._onAssignHardpointItem,
       clearHardpointItem: VehicleSheetV2.prototype._onClearHardpointItem,
       machineWeaponAttack: VehicleSheetV2.prototype._onMachineWeaponAttack,
+      vehicleAttack: VehicleSheetV2.prototype._onVehicleAttack,
+      vehicleMovement: VehicleSheetV2.prototype._onVehicleMovement,
+      vehicleRoll: VehicleSheetV2.prototype._onVehicleRoll,
+      openStrainDialog: VehicleSheetV2.prototype._onOpenStrainDialog,
       ewAcquire: VehicleSheetV2.prototype._onEwAcquire,
       ewTarget: VehicleSheetV2.prototype._onEwTarget,
+      machineEwAction: VehicleSheetV2.prototype._onMachineEwAction,
       toggleStatuses: VehicleSheetV2.prototype._onToggleStatuses,
       machineCritRemedy: VehicleSheetV2.prototype._onMachineCritRemedy,
+      toggleAssetModuleActive: VehicleSheetV2.prototype._onToggleAssetModuleActive,
       assignPilot: VehicleSheetV2.prototype._onAssignPilot,
       removePilot: VehicleSheetV2.prototype._onRemovePilot,
       openPilot: VehicleSheetV2.prototype._onOpenPilot,
@@ -224,18 +267,40 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
   #expandedInventoryRows = new Set();
   #hardpointDragController = null;
+  #hardpointConfigController = null;
+  #ewHookIds = [];
+
+  async close(options = {}) {
+    this.#teardownEwHooks();
+    this.#hardpointConfigController?.abort();
+    this.#hardpointDragController?.abort();
+    return super.close(options);
+  }
 
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
     ctx._mwdThemeClass = game.system?.mwd?.styles?.selectCssClass?.() ?? "";
     ctx.layout = await LayoutRegistry.get(this.constructor.LAYOUT_ID ?? VehicleSheetV2.LAYOUT_ID);
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    const activeStatuses = getActiveStatusSummaries(actor);
+    ctx.combatAwarenessPreview = buildCombatAwarenessPreview(actor, {
+      sourceToken: token,
+    });
+
     ctx.vehicleSheet = {
       summaryStats: this._buildSummaryStats(),
       summaryActions: this._buildSummaryActions(),
       alerts: this._buildAlerts(),
+      quickActions: this._buildQuickActions(),
+      strain: this._buildStrainModel(),
+      movementProfile: this._buildMovementProfilePanel(),
+      crewPanel: this._buildCrewPanel(),
       statusAction: {
         label: "Statuses",
-        disabled: !this._resolveStatusToken(this.getPersistentActor() ?? this.actor),
+        activeStatuses,
+        summaryTitle: activeStatuses.map(status => status.label).join(", "),
+        disabled: !this._resolveStatusToken(actor),
         reason: "Statuses require a token for this actor on the current scene.",
       },
       ewPanel: this._buildEwPanel(),
@@ -318,6 +383,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   _onRender(context, options) {
     super._onRender?.(context, options);
     this.#bindHardpointDragDrop();
+    this.#bindHardpointConfigChanges();
+    this.#bindEwHooks();
   }
 
   _buildSummaryStats() {
@@ -327,7 +394,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       actorType: this.actor.type,
       movement: this.actor.system?.movement,
       legacyMoves: this.actor.system?.moves,
-      jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
+      jumpProfile: getActorJumpProfile(this.actor),
+      movementEffects: getMachineMovementEffects(this.actor),
     });
 
     return buildSummaryStats([
@@ -346,6 +414,137 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
   _buildSummaryActions() {
     return [];
+  }
+
+  _buildQuickActions() {
+    if (this.actor.type !== "vehicle") return [];
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const mountedWeapons = this._getHardpointSlottableItems().filter(item =>
+      getConfiguredMachineHardpoints(actor).some(hardpoint => String(hardpoint?.itemId ?? "").trim() === String(item?.id ?? "").trim())
+    );
+    const movementChoices = buildVehicleMovementActionChoices(actor);
+    const enabledMovementChoices = movementChoices.filter(choice => !choice.disabled);
+    const enabledEwActions = buildMachineEwActionChoices(actor, {
+      token: this._resolveStatusToken(actor),
+    });
+
+    return [
+      {
+        label: "Movement",
+        hint: enabledMovementChoices.length
+          ? enabledMovementChoices.map(choice => choice.label).join(" / ")
+          : "No movement actions available",
+        handler: "vehicleMovement",
+        disabled: enabledMovementChoices.length === 0,
+        dataset: {},
+      },
+      {
+        label: "Mounted Fire",
+        hint: mountedWeapons.length ? "Attack with a mounted weapon" : "No mounted weapons",
+        handler: "vehicleAttack",
+        disabled: mountedWeapons.length === 0,
+        dataset: {},
+      },
+      {
+        label: "Piloting",
+        hint: "Vehicle handling, terrain, or stability check",
+        handler: "vehicleRoll",
+        disabled: false,
+        dataset: { rollKind: "piloting" },
+      },
+      {
+        label: "EW",
+        hint: enabledEwActions.length ? "Choose an EW action" : "No EW actions available",
+        handler: "vehicleRoll",
+        disabled: enabledEwActions.length === 0,
+        dataset: { rollKind: "sensor" },
+      },
+      {
+        label: "Repair",
+        hint: "Choose a crit or repairable status",
+        handler: "vehicleRoll",
+        disabled: false,
+        dataset: { rollKind: "repair" },
+      },
+    ];
+  }
+
+  _buildStrainModel() {
+    if (this.actor.type !== "vehicle") return null;
+    const strain = buildVehicleStrainModel(this.actor);
+    const thresholds = strain.thresholds ?? {};
+    return {
+      ...strain,
+      editable: Boolean(this.isEditable),
+      segments: Array.from({ length: strain.max }, (_, index) => {
+        const value = index + 1;
+        const band = value >= thresholds.critical
+          ? "critical"
+          : value >= thresholds.overstressed
+            ? "overstressed"
+            : value >= thresholds.strained
+              ? "strained"
+              : "normal";
+        return {
+          value,
+          filled: value <= strain.value,
+          current: value === strain.value,
+          band,
+          bandLabel: startCase(band),
+        };
+      }),
+    };
+  }
+
+  _buildMovementProfilePanel() {
+    if (this.actor.type !== "vehicle") return null;
+    const profile = buildVehicleProfileSummary(this.actor.system ?? {});
+    const profileOptions = Object.values(VEHICLE_MOVEMENT_PROFILES).map(definition => ({
+      value: definition.key,
+      label: definition.label,
+      selected: definition.key === profile.key,
+    }));
+    const flightSubtypeOptions = Object.entries(VEHICLE_FLIGHT_SUBTYPES).map(([value, label]) => ({
+      value,
+      label,
+      selected: value === profile.flightSubtype,
+    }));
+    const terrainOptions = VEHICLE_TERRAIN_CLASSES.map(value => ({
+      value,
+      label: startCase(value),
+    }));
+    return {
+      ...profile,
+      profileOptions,
+      flightSubtypeOptions,
+      terrainOptions,
+      favoredTerrainText: profile.favoredTerrain.map(startCase).join(", "),
+      adverseTerrainText: profile.adverseTerrain.map(startCase).join(", "),
+      affordanceText: profile.affordances.map(startCase).join(", "),
+      profilePath: "system.mwd.movementProfile",
+      flightSubtypePath: "system.mwd.flightSubtype",
+      favoredTerrainPath: "system.mwd.favoredTerrain",
+      adverseTerrainPath: "system.mwd.adverseTerrain",
+    };
+  }
+
+  _buildCrewPanel() {
+    const crew = this.actor.system?.mwd?.crew ?? {};
+    return {
+      count: toNumber(crew.count, 1),
+      effectiveCount: toNumber(crew.effectiveCount ?? crew.count, 1),
+      injuryLevel: toNumber(crew.injuryLevel, 0),
+      bailedOut: Boolean(crew.bailedOut),
+      countPath: "system.mwd.crew.count",
+      effectiveCountPath: "system.mwd.crew.effectiveCount",
+      injuryLevelPath: "system.mwd.crew.injuryLevel",
+      bailedOutPath: "system.mwd.crew.bailedOut",
+      summary: compactList([
+        `${toNumber(crew.effectiveCount ?? crew.count, 1)} / ${toNumber(crew.count, 1)} effective`,
+        toNumber(crew.injuryLevel, 0) > 0 ? `Injury ${toNumber(crew.injuryLevel, 0)}` : "",
+        crew.bailedOut ? "Bailed Out" : "",
+      ]).join(" | "),
+    };
   }
 
   _buildEwPanel() {
@@ -370,7 +569,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       movement: this.actor.system?.movement,
       legacyMoves: this.actor.system?.moves,
       editing: this.editing,
-      jumpProfile: this.actor.system?.mwd?.mobility?.jumping ?? null,
+      jumpProfile: getActorJumpProfile(this.actor),
+      movementEffects: getMachineMovementEffects(this.actor),
     });
   }
 
@@ -397,6 +597,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       if (safeLeft !== safeRight) return safeLeft - safeRight;
       return String(leftKey).localeCompare(String(rightKey));
     });
+    const conditionOptions = Object.entries(MACHINE_CONDITION_LABELS).map(([value, label]) => ({
+      value: Number(value),
+      label,
+    }));
+
     const locations = entries.map(([key, location]) => {
       const conditionValue = toNumber(location?.condition, 0);
       const stress = toNumber(location?.stress, 0);
@@ -407,9 +612,12 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         key,
         label: getMachineLocationLabel(key),
         stress,
+        stressPath: `system.mwd.locations.${key}.stress`,
         conditionValue,
+        conditionPath: `system.mwd.locations.${key}.condition`,
         conditionLabel: getMachineConditionLabel(conditionValue),
         conditionModifier: getMachineConditionModifier(conditionValue),
+        conditionOptions: conditionOptions.map(opt => ({ ...opt, selected: opt.value === conditionValue })),
         destroyed,
         effectSummary: buildMachineDegradationEffectSummary(this.actor.type, key, location),
         enabled: location?.enabled !== false,
@@ -426,6 +634,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       spendable,
       shock,
       threshold,
+      shockPath: "system.mwd.shock.value",
+      spendablePath: "system.mwd.reliabilitySpendable.value",
       summaryEffects: machineState.effectTexts ?? [],
       movementEffects,
       locations,
@@ -434,13 +644,15 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
   _buildConditionMonitors() {
     const structure = this.actor.system?.monitors?.structure ?? this.actor.system?.mwd?.monitors?.structure ?? {};
+    const armor = this.actor.system?.monitors?.armor ?? {};
     return [
       buildRemainingMonitorTrack({ id: "structure", label: "Structure", kind: "structure", monitor: structure, editable: this.isEditable }),
+      buildRemainingMonitorTrack({ id: "armor", label: "Armor", kind: "armor", monitor: armor, editable: this.isEditable }),
     ];
   }
 
   _buildVehicleSections() {
-    const buckets = this.actor.system?.mwd?.items ?? {};
+    const buckets = Misc.classify(this.actor.items);
     return {
       slots: this._buildHardpointSlotSection(),
       upgrades: this._buildRecordSection({
@@ -448,14 +660,14 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         itemType: "vehicleUpgrade",
         addLabel: "Add Upgrade",
         emptyLabel: "No vehicle upgrades installed.",
-        items: buckets.vehicleUpgrades ?? [],
+        items: buckets.vehicleUpgrade ?? [],
       }),
       modules: this._buildRecordSection({
         sectionId: "modules",
         itemType: "assetModule",
         addLabel: "Add Module",
         emptyLabel: "No asset modules assigned.",
-        items: buckets.assetModules ?? [],
+        items: buckets.assetModule ?? [],
       }),
       gear: this._buildRecordSection({
         sectionId: "gear",
@@ -557,7 +769,12 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   _getAvailableHardpointLocations() {
     return this.actor?.type === "battlemech"
       ? ["arms", "head", "torso"]
-      : ["turret"];
+      : ["front", "side", "rear", "turret"];
+  }
+
+  async _commitEditsToActor() {
+    await super._commitEditsToActor();
+    await this._persistStagedHardpointFields();
   }
 
   _getCompatibleHardpointItems(hardpoint, { includeAssignedItem = false } = {}) {
@@ -607,6 +824,43 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     }, { signal: controller.signal });
   }
 
+  #bindHardpointConfigChanges() {
+    const root = this._getRootElement?.();
+    if (!root) return;
+
+    this.#hardpointConfigController?.abort();
+    const controller = new AbortController();
+    this.#hardpointConfigController = controller;
+
+    root.addEventListener("change", event => {
+      const field = event.target?.closest?.("[data-hardpoint-field]");
+      if (!field || !root.contains(field)) return;
+      void this.#onHardpointConfigChange(field);
+    }, { signal: controller.signal });
+  }
+
+  async #onHardpointConfigChange(field) {
+    if (!this.isEditable) return;
+
+    const row = field?.closest?.("[data-hardpoint-config][data-hardpoint-id]");
+    const hardpointId = String(row?.dataset?.hardpointId ?? "").trim();
+    if (!row || !hardpointId) return;
+
+    const settings = this._collectHardpointRowSettings(row);
+    if (!settings) return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const result = updateMachineHardpointSettings(
+      rawHardpointsArray(actorWriteTarget),
+      hardpointId,
+      settings,
+      { defaultLocation: this._getDefaultHardpointLocation() },
+    );
+    if (!result.changed) return;
+
+    await actorWriteTarget.update({ "system.mwd.hardpoints": result.hardpoints });
+  }
+
   async _handleHardpointItemDrop(event, data = null) {
     const hardpointSlot = event?.target?.closest?.(".mwd-record[data-hardpoint-id]");
     if (!hardpointSlot) return false;
@@ -614,8 +868,10 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const hardpointId = String(hardpointSlot.dataset?.hardpointId ?? "").trim();
     if (!hardpointId) return false;
 
+    const persistedHardpoints = await this._persistStagedHardpointFields();
+
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const hardpoint = getConfiguredMachineHardpoints(actorWriteTarget).find(entry => entry.id === hardpointId);
+    const hardpoint = persistedHardpoints.find(entry => entry.id === hardpointId);
     if (!hardpoint) return false;
 
     if (String(hardpoint?.itemId ?? "").trim()) {
@@ -653,7 +909,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       return true;
     }
 
-    await this._setHardpointOccupant(hardpointId, targetItemId);
+    await this._setHardpointOccupant(hardpointId, targetItemId, { hardpoints: persistedHardpoints });
     this.render({ force: true });
     return true;
   }
@@ -706,33 +962,23 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     });
   }
 
-  async _setHardpointOccupant(hardpointId = "", itemId = "") {
+  async _setHardpointOccupant(hardpointId = "", itemId = "", { hardpoints = null } = {}) {
     const normalizedHardpointId = String(hardpointId ?? "").trim();
     if (!normalizedHardpointId) return;
 
-    const normalizedItemId = String(itemId ?? "").trim();
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const hardpoints = foundry.utils.deepClone(rawHardpointsArray(actorWriteTarget));
-    let changed = false;
+    const result = assignMachineHardpointOccupant(
+      hardpoints ?? rawHardpointsArray(actorWriteTarget),
+      normalizedHardpointId,
+      itemId,
+      { defaultLocation: this._getDefaultHardpointLocation() },
+    );
 
-    for (const hardpoint of hardpoints) {
-      const currentId = String(hardpoint?.itemId ?? "").trim();
-      if (normalizedItemId && currentId === normalizedItemId && String(hardpoint?.id ?? "").trim() !== normalizedHardpointId) {
-        hardpoint.itemId = "";
-        changed = true;
-      }
-      if (String(hardpoint?.id ?? "").trim() === normalizedHardpointId) {
-        const nextValue = normalizedItemId || "";
-        if (currentId !== nextValue) {
-          hardpoint.itemId = nextValue;
-          changed = true;
-        }
-      }
+    if (result.changed) {
+      await actorWriteTarget.update({ "system.mwd.hardpoints": result.hardpoints });
     }
 
-    if (changed) {
-      await actorWriteTarget.update({ "system.mwd.hardpoints": hardpoints });
-    }
+    await this._sanitizeMountedWeaponGroups(actorWriteTarget);
   }
 
   async _deleteMountedHardpointItem(hardpointId = "") {
@@ -771,7 +1017,6 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const item = itemId ? actor?.items?.get?.(itemId) ?? null : null;
     const profile = typeof item?.getCombatProfile === "function" ? item.getCombatProfile() : null;
     const accordionId = `slot:${slotId}`;
-    const compatibleItems = this._getCompatibleHardpointItems(hardpoint);
     const typeLabel = typeLabels[type] ?? startCase(type);
     const sizeLabel = sizeLabels[size] ?? startCase(size);
     const locationLabel = locationLabels[location] ?? startCase(location);
@@ -793,29 +1038,20 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         subtitle: `${locationLabel} mount available`,
         summaryStats: buildSummaryStats([
           { label: "Mount", value: `${typeLabel} ${sizeLabel}`, emphasis: "strong" },
-          { label: "Compatible", value: compatibleItems.length ? String(compatibleItems.length) : "0", tone: compatibleItems.length ? "green" : "orange" },
+          { label: "Status", value: "Open", tone: "green" },
         ]),
         detailTags: buildDetailTags(["Open Hardpoint", typeLabel, sizeLabel]),
         detailRows: buildDetailRows([
           { label: "Location", value: locationLabel },
           { label: "Accepts", value: `${sizeLabel} ${typeLabel} weapons` },
-          { label: "Assigned Item", value: "Empty" },
-          { label: "Compatible Items", value: compatibleItems.length ? String(compatibleItems.length) : "None" },
+          { label: "Assigned Weapon", value: "Empty" },
         ]),
-        detailText: compatibleItems.length
-          ? "Drag a compatible weapon here, create a new weapon for this slot, or mount an existing item."
-          : "This mount is open, but there are no compatible weapons currently available to assign.",
+        detailText: "Drag a matching mech weapon item onto this slot, or create one directly for this slot.",
         createHardpointItem: {
           hardpointId: slotId,
           itemType: "mechWeapon",
           label: "Create Weapon for Slot",
         },
-        assignHardpointItem: compatibleItems.length
-          ? {
-              hardpointId: slotId,
-              label: compatibleItems.length === 1 ? "Mount Existing Weapon" : "Choose Existing Weapon",
-            }
-          : null,
       };
     }
 
@@ -853,9 +1089,14 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         { label: "Assigned Item", value: item.name ?? itemTypeLabel },
       ]),
       detailText: toSnippet(notes),
+      suppressDeleteButton: true,
       clearHardpointItem: {
         hardpointId: slotId,
-        label: "Unmount Item",
+        label: "Empty Slot",
+        hint: "Delete the attached weapon and leave this slot open.",
+        icon: "fa-trash-can",
+        buttonClassName: "is-danger",
+        inlineLabel: "Empty Slot",
       },
       machineAttack: canonicalType === "mechWeapon"
         ? { label: "Attack", itemId: item.id ?? "" }
@@ -877,6 +1118,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const system = item?.system ?? {};
     const canonicalType = item?.canonicalType ?? item?.type ?? "";
     const profile = typeof item?.getCombatProfile === "function" ? item.getCombatProfile() : null;
+    const assetModuleSummary = canonicalType === "assetModule" ? buildAssetModuleSummary(item) : null;
+    const activationMode = String(system.activation?.mode ?? "passive").trim() || "passive";
+    const supportsModuleActivation = canonicalType === "assetModule" && ["toggle", "mode"].includes(activationMode);
+    const moduleActive = Boolean(system.activation?.active);
+    const moduleReady = canonicalType === "assetModule" && !system.inactive;
     const accordionId = `${String(sectionId ?? "").trim()}:${String(item?.id ?? "").trim()}`;
     const itemTypeLabel = ITEM_TYPE_LABELS[canonicalType] ?? startCase(canonicalType || "item");
     const notes = system.notes ?? system.description ?? system.references?.description ?? "";
@@ -906,10 +1152,18 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       : canonicalType === "assetModule" && system?.mobility?.jumping?.enabled
         ? buildDetailRows([
           { label: "Category", value: system.category ?? itemTypeLabel },
+          { label: "Activation", value: startCase(activationMode) },
           { label: "Heat", value: toNumber(system.mobility.jumping.heat, 0) },
           { label: "AR Bonus", value: toNumber(system.mobility.jumping.attackRatingBonus, 0) },
           { label: "DR Bonus", value: toNumber(system.mobility.jumping.defenseRatingBonus, 0) },
           { label: "DFA", value: system.mobility.jumping.dfaEnabled ? "Enabled" : "Disabled" },
+          { label: "Effects", value: assetModuleSummary?.summary ?? "" },
+        ])
+      : canonicalType === "assetModule"
+        ? buildDetailRows([
+          { label: "Category", value: system.category ?? itemTypeLabel },
+          { label: "Activation", value: startCase(activationMode) },
+          { label: "Effects", value: assetModuleSummary?.summary ?? "" },
         ])
       : buildDetailRows([
         { label: "Category", value: system.category ?? itemTypeLabel },
@@ -927,13 +1181,18 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       detailTags: buildDetailTags([
         system.equipped ? "Equipped" : "",
         system.isPrimary ? "Primary" : "",
+        canonicalType === "assetModule" ? (moduleReady ? "Ready" : "Inactive") : "",
+        supportsModuleActivation ? (moduleActive ? "Active" : "Standby") : "",
         system.mobility?.jumping?.enabled ? "Jumping" : "",
         system.weaponCategory ?? system.category ?? "",
       ]),
       detailRows,
-      detailText: toSnippet(notes),
+      detailText: toSnippet(assetModuleSummary?.summary || notes),
       equipped: Boolean(system.equipped),
       isPrimary: Boolean(system.isPrimary),
+      supportsModuleActivation,
+      moduleActive,
+      moduleReady,
       canAdjustQuantity: false,
       machineAttack: ["mechWeapon", "vehicleWeapon"].includes(canonicalType)
         ? {
@@ -990,6 +1249,44 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     this.render({ force: true });
   }
 
+  async _onToggleAssetModuleActive(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const item = this.#getOwnedItemFromTarget(target, event);
+    if (!item || (item.canonicalType ?? item.type) !== "assetModule") return;
+    if (item.system?.inactive) {
+      ui.notifications?.warn("Inactive modules cannot be activated.");
+      return;
+    }
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const token = resolveMachineSceneToken(actorWriteTarget);
+    const snapshot = PersonalCombatTracker.getSnapshot?.(actorWriteTarget, { token }) ?? null;
+    if (snapshot?.hasCombatant) {
+      const spend = await PersonalCombatTracker.spendResource(actorWriteTarget, {
+        token,
+        resource: "fa",
+        cost: 1,
+        actionId: "assetModuleToggle",
+        actionLabel: `Toggle ${item.name}`,
+        actionCostLabel: "1 FA",
+        actionCategory: "free",
+      });
+      if (!spend?.ok) {
+        ui.notifications?.warn(spend?.reason ?? `Unable to toggle ${item.name}.`);
+        return;
+      }
+    }
+
+    const ownedItem = actorWriteTarget.items?.get?.(item.id) ?? item;
+    await ownedItem.update({
+      "system.activation.active": !Boolean(item.system?.activation?.active),
+    });
+    this.render({ force: true });
+  }
+
   async _onToggleInventoryAccordion(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
@@ -1016,15 +1313,18 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     event?.stopPropagation?.();
     if (!this.isEditable) return;
 
+    const persistedHardpoints = await this._persistStagedHardpointFields();
+
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const hardpoints = foundry.utils.deepClone(rawHardpointsArray(actorWriteTarget));
     const options = this._buildHardpointOptions();
-    hardpoints.push({
-      id: foundry.utils.randomID?.() ?? `hardpoint-${hardpoints.length + 1}`,
+    const hardpoints = appendMachineHardpoint(persistedHardpoints, {
+      id: foundry.utils.randomID?.(),
       type: options.types[0]?.value ?? "energy",
       size: options.sizes[0]?.value ?? "small",
       location: this._getDefaultHardpointLocation(),
-      itemId: "",
+    }, {
+      defaultLocation: this._getDefaultHardpointLocation(),
+      idFactory: index => foundry.utils.randomID?.() ?? `hardpoint-${index + 1}`,
     });
 
     await actorWriteTarget.update({ "system.mwd.hardpoints": hardpoints });
@@ -1036,23 +1336,28 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     event?.stopPropagation?.();
     if (!this.isEditable) return;
 
-    const index = Number(
-      target?.dataset?.hardpointIndex
-      ?? target?.closest?.("[data-hardpoint-index]")?.dataset?.hardpointIndex
-      ?? event?.target?.closest?.("[data-hardpoint-index]")?.dataset?.hardpointIndex
-    );
-    if (!Number.isInteger(index) || index < 0) return;
+    const hardpointId = String(
+      target?.dataset?.hardpointId
+      ?? target?.closest?.("[data-hardpoint-id]")?.dataset?.hardpointId
+      ?? event?.target?.closest?.("[data-hardpoint-id]")?.dataset?.hardpointId
+      ?? ""
+    ).trim();
+    if (!hardpointId) return;
+
+    const persistedHardpoints = await this._persistStagedHardpointFields();
 
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const hardpoints = foundry.utils.deepClone(rawHardpointsArray(actorWriteTarget));
-    const removed = hardpoints[index] ?? null;
-    hardpoints.splice(index, 1);
+    const { hardpoints, removed } = removeMachineHardpointById(persistedHardpoints, hardpointId, {
+      defaultLocation: this._getDefaultHardpointLocation(),
+    });
+    if (!removed) return;
 
     const removedItemId = String(removed?.itemId ?? "").trim();
     if (removedItemId) {
       await actorWriteTarget.deleteEmbeddedDocuments("Item", [removedItemId]);
     }
     await actorWriteTarget.update({ "system.mwd.hardpoints": hardpoints });
+    await this._sanitizeMountedWeaponGroups(actorWriteTarget);
     this.render({ force: true });
   }
 
@@ -1068,16 +1373,18 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     ).trim();
     if (!hardpointId) return;
 
+    const persistedHardpoints = await this._persistStagedHardpointFields();
+
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const hardpoint = rawHardpointsArray(actorWriteTarget).find(entry =>
+    const hardpoint = persistedHardpoints.find(entry =>
       String(entry?.id ?? "").trim() === hardpointId
     );
     if (!hardpoint) return;
 
     const existingCount = actorWriteTarget.items.filter(item => (item.canonicalType ?? item.type) === "mechWeapon").length;
-    const defaultDamageType = ["penetrating", "concussive", "energy", "thermal", "electrical"].includes(String(hardpoint?.type ?? "").trim())
+    const defaultDamageType = ["penetrating", "concussive", "energy"].includes(String(hardpoint?.type ?? "").trim())
       ? String(hardpoint.type).trim()
-      : "penetrating";
+      : "energy";
     const created = await actorWriteTarget.createEmbeddedDocuments("Item", [{
       name: `Mech Weapon ${existingCount + 1}`,
       type: "mechWeapon",
@@ -1087,7 +1394,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       },
     }]);
 
-    await this._setHardpointOccupant(hardpointId, created?.[0]?.id ?? "");
+    await this._setHardpointOccupant(hardpointId, created?.[0]?.id ?? "", { hardpoints: persistedHardpoints });
     created?.[0]?.sheet?.render?.(true);
     this.render({ force: true });
   }
@@ -1104,14 +1411,16 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     ).trim();
     if (!hardpointId) return;
 
+    const persistedHardpoints = await this._persistStagedHardpointFields();
+
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const hardpoint = getConfiguredMachineHardpoints(actorWriteTarget).find(entry => entry.id === hardpointId);
+    const hardpoint = persistedHardpoints.find(entry => entry.id === hardpointId);
     if (!hardpoint) return;
 
     const itemId = await this._promptHardpointAssignment(hardpoint);
     if (!itemId) return;
 
-    await this._setHardpointOccupant(hardpointId, itemId);
+    await this._setHardpointOccupant(hardpointId, itemId, { hardpoints: persistedHardpoints });
     this.render({ force: true });
   }
 
@@ -1127,9 +1436,70 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     ).trim();
     if (!hardpointId) return;
 
+    const persistedHardpoints = await this._persistStagedHardpointFields();
+
     await this._deleteMountedHardpointItem(hardpointId);
-    await this._setHardpointOccupant(hardpointId, "");
+    await this._setHardpointOccupant(hardpointId, "", { hardpoints: persistedHardpoints });
     this.render({ force: true });
+  }
+
+  _collectStagedHardpointFields() {
+    const root = this._getRootElement?.();
+    if (!(root instanceof HTMLElement)) return [];
+
+    return Array.from(root.querySelectorAll("[data-hardpoint-config][data-hardpoint-id]"))
+      .map(row => {
+        const id = String(row.dataset?.hardpointId ?? "").trim();
+        if (!id) return null;
+
+        const settings = this._collectHardpointRowSettings(row);
+        return settings ? { id, ...settings } : null;
+      })
+      .filter(Boolean);
+  }
+
+  _collectHardpointRowSettings(row = null) {
+    if (!(row instanceof HTMLElement)) return null;
+
+    const settings = {};
+    for (const field of row.querySelectorAll("[data-hardpoint-field]")) {
+      if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement)) continue;
+      if (field.disabled) continue;
+
+      const fieldName = String(field.dataset?.hardpointField ?? "").trim();
+      if (!["type", "size", "location"].includes(fieldName)) continue;
+      settings[fieldName] = field.value;
+    }
+
+    return Object.keys(settings).length ? settings : null;
+  }
+
+  async _persistStagedHardpointFields() {
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const current = rawHardpointsArray(actorWriteTarget);
+    const defaultLocation = this._getDefaultHardpointLocation();
+    const normalizedCurrent = normalizeMachineHardpoints(current, { defaultLocation });
+    if (!this.isEditable) return normalizedCurrent;
+
+    const stagedHardpoints = this._collectStagedHardpointFields();
+    if (!stagedHardpoints.length) return normalizedCurrent;
+
+    const next = reconcileMachineHardpoints(current, stagedHardpoints, { defaultLocation });
+
+    if (JSON.stringify(next) === JSON.stringify(normalizedCurrent)) return normalizedCurrent;
+    await actorWriteTarget.update({ "system.mwd.hardpoints": next });
+    return next;
+  }
+
+  async _sanitizeMountedWeaponGroups(actor = this.getPersistentActor() ?? this.actor) {
+    const actorWriteTarget = actor ?? this.actor;
+    const mountedItemIds = getConfiguredMachineHardpoints(actorWriteTarget)
+      .map(hardpoint => String(hardpoint?.itemId ?? "").trim())
+      .filter(Boolean);
+    const currentGroups = normalizeMachineWeaponGroups(foundry.utils.deepClone(actorWriteTarget?.system?.mwd?.weaponGroups));
+    const pruned = pruneWeaponGroupsToMountedItems(currentGroups, mountedItemIds);
+    if (!pruned.changed) return;
+    await actorWriteTarget.update({ "system.mwd.weaponGroups": pruned.groups });
   }
 
   _buildActiveCrits() {
@@ -1199,30 +1569,21 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       return false;
     }
 
-    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
-    if (!rollApi?.execute) {
-      ui.notifications?.error("MWD roll system not initialized.");
-      return false;
-    }
-
     const token = this._resolveStatusToken(actor);
-    const result = await rollApi.execute({
-      actor,
-      payload: {
-        intent: "attack",
-        weaponId: item.id,
-        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-        tags: ["combat", "attack", "machine"],
-        sourceTokenId: token?.id ?? null,
-      },
+    const result = await executeMachineAction(actor, {
+      kind: "attack",
+      sourceType: "mechWeapon",
+      sourceId: item.id,
+      token,
       event,
     });
 
-    if (result) {
+    if (result?.ok) {
       return true;
     }
 
-    return Boolean(result);
+    if (result?.userMessage || result?.reason) ui.notifications?.warn(result.userMessage ?? result.reason);
+    return false;
   }
 
   async _onMachineCritRemedy(event, target) {
@@ -1230,54 +1591,291 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     event?.stopPropagation?.();
 
     const machineActor = this.getPersistentActor() ?? this.actor;
-    const request = await prepareMachineRemedyRoll({
-      machineActorUuid: target?.dataset?.machineActorUuid ?? machineActor.uuid,
+    const result = await executeMachineAction(machineActor, {
+      kind: "repair",
+      issueKind: target?.dataset?.issueKind ?? "crit",
+      issueId: target?.dataset?.critId ?? "",
       critId: target?.dataset?.critId ?? "",
       remedyKey: target?.dataset?.remedyKey ?? "",
-    }, {
-      gmOverride: Boolean(game.user?.isGM),
-    });
-
-    if (!request.ok) {
-      ui.notifications?.warn(request.reason ?? "Unable to launch that machine remedy.");
-      return false;
-    }
-
-    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
-    if (!rollApi?.execute) {
-      ui.notifications?.error("MWD roll system not initialized.");
-      return false;
-    }
-
-    await rollApi.execute({
-      actor: request.actor,
-      payload: request.payload,
       event,
     });
-    return true;
+    if (!result?.ok) ui.notifications?.warn(result?.userMessage ?? result?.reason ?? "Unable to launch that machine remedy.");
+    return Boolean(result?.ok);
   }
 
-  async _onEwAcquire(event, _target) {
+  async _onEwAcquire(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
-    return this.#launchMachineEwIntent("acquire", event);
+    return this.#launchMachineEwIntent("acquire", event, target);
   }
 
-  async _onEwTarget(event, _target) {
+  async _onVehicleAttack(event, target) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
-    return this.#launchMachineEwIntent("targeting", event);
+    const actor = this.getPersistentActor() ?? this.actor;
+    try {
+      throw new Error("MWD | Vehicle ranged attack is not yet implemented.");
+    } catch (error) {
+      console.error("MWD | Failed to launch vehicle mounted attack", error);
+      notifyRollError(error, "Unable to launch that vehicle attack.");
+    }
+  }
+
+  async _onVehicleMovement(event, _target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const choices = buildVehicleMovementActionChoices(actor);
+    const selectableChoices = choices.filter(choice => !choice.disabled);
+    if (!selectableChoices.length) {
+      ui.notifications?.warn("No vehicle movement actions are currently available.");
+      return;
+    }
+
+    const defaultChoice = selectableChoices[0];
+    const content = `<form class="mwd-quick-select">${choices.map(choice => `
+      <label class="quick-select-option${choice.disabled ? " is-disabled" : ""}" title="${foundry.utils.escapeHTML(choice.reason || choice.hint || "")}">
+        <input type="radio" name="vehicle-movement-action" value="${choice.id}" ${choice.id === defaultChoice.id ? "checked" : ""} ${choice.disabled ? "disabled" : ""}>
+        <span>${foundry.utils.escapeHTML(choice.label)}</span>
+        <small>${foundry.utils.escapeHTML(`${choice.cost} SA${choice.strain > 0 ? ` | +${choice.strain} Strain` : ""}${choice.hint ? ` | ${choice.hint}` : ""}`)}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Vehicle Movement" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: "Move",
+          icon: "fa-solid fa-gauge-high",
+          default: true,
+          callback: (_event, button) => button.form?.elements["vehicle-movement-action"]?.value ?? defaultChoice.id,
+        },
+      ],
+    });
+
+    const selectedAction = selectableChoices.find(choice => choice.id === selectedId) ?? defaultChoice;
+    try {
+      await executeMachineAction(actor, {
+        kind: "movement",
+        movementKind: selectedAction.id,
+      });
+    } catch (error) {
+      console.error("MWD | Failed to record vehicle movement", error);
+      notifyRollError(error, "Unable to record that vehicle movement.");
+    }
+  }
+
+  async _onVehicleRoll(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const rollKind = String(target?.dataset?.rollKind ?? "").trim();
+    try {
+      if (rollKind === "piloting") await executeMachineAction(actor, { kind: "piloting" });
+      else if (rollKind === "sensor") {
+        const token = this._resolveStatusToken(actor);
+        const selectedAction = await this.#promptVehicleEwAction(actor, { token });
+        if (selectedAction) await executeMachineAction(actor, {
+          kind: "ew",
+          action: selectedAction,
+          token,
+        });
+      } else if (rollKind === "repair") {
+        const selectedIssue = await this.#promptVehicleCriticalRepairIssue(actor);
+        if (selectedIssue) await executeMachineAction(actor, {
+          kind: "repair",
+          issue: selectedIssue,
+        });
+      }
+    } catch (error) {
+      console.error("MWD | Failed to launch vehicle check", error);
+      notifyRollError(error, "Unable to launch that vehicle check.");
+    }
+  }
+
+  async #promptVehicleEwAction(actor, { token = null } = {}) {
+    const actions = buildMachineEwActionChoices(actor, { token, includeDisabled: true });
+    const selectableActions = actions.filter(action => !action.disabled);
+    if (!selectableActions.length) {
+      ui.notifications?.warn(MWD.actor.vehicle.quickActions.errors.noSensorSweep);
+      return null;
+    }
+
+    const defaultAction = selectableActions[0];
+    const content = `<form class="mwd-quick-select">${actions.map(action => `
+      <label class="quick-select-option${action.disabled ? " is-disabled" : ""}" title="${foundry.utils.escapeHTML(String(action.reason ?? ""))}">
+        <input type="radio" name="ew-action" value="${foundry.utils.escapeHTML(String(action.id ?? ""))}" ${action.id === defaultAction.id ? "checked" : ""} ${action.disabled ? "disabled" : ""}>
+        <span>${foundry.utils.escapeHTML(String(action.label ?? ""))}</span>
+        <small>${foundry.utils.escapeHTML(String(action.disabled ? action.reason : action.hint ?? ""))}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Electronic Warfare" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["ew-action"]?.value ?? defaultAction.id,
+        },
+      ],
+    });
+
+    return selectableActions.find(action => action.id === selectedId) ?? defaultAction;
+  }
+
+  async #promptVehicleCriticalRepairIssue(actor) {
+    const issues = buildMachineCriticalRepairIssues(actor);
+    if (!issues.length) {
+      ui.notifications?.warn("No active criticals or repairable statuses are available.");
+      return null;
+    }
+    if (issues.length === 1) return issues[0];
+
+    const defaultIssue = issues[0];
+    const content = `<form class="mwd-quick-select">${issues.map(issue => `
+      <label class="quick-select-option">
+        <input type="radio" name="repair-issue" value="${foundry.utils.escapeHTML(`${issue.issueKind}:${issue.issueId}`)}" ${issue.issueKind === defaultIssue.issueKind && issue.issueId === defaultIssue.issueId ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(issue.label ?? ""))}</span>
+        <small>${foundry.utils.escapeHTML(`${issue.remedyLabel ?? ""} | ${issue.remedySummary || `DN ${issue.totalDn}`}`)}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedKey = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.emergencyRepair },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["repair-issue"]?.value ?? `${defaultIssue.issueKind}:${defaultIssue.issueId}`,
+        },
+      ],
+    });
+
+    return issues.find(issue => `${issue.issueKind}:${issue.issueId}` === selectedKey) ?? defaultIssue;
+  }
+
+  async _onOpenStrainDialog(event, _target) {
+    event?.preventDefault?.();
+    if (!this.isEditable) return;
+
+    const actor = this.getPersistentActor() ?? this.actor;
+    const strain = buildVehicleStrainModel(actor);
+    const content = `
+      <form class="mwd-heat-dialog" style="display:grid; gap:0.75rem;">
+        <label style="display:grid; gap:0.25rem;">
+          <span style="font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Current Strain</span>
+          <input type="number" name="currentStrain" value="${strain.value}" min="0" max="${strain.max}" step="1" />
+        </label>
+        <label style="display:grid; gap:0.25rem;">
+          <span style="font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Pending Strain</span>
+          <input type="number" name="pendingStrain" value="${strain.pendingGenerated}" min="0" step="1" />
+        </label>
+        <p style="margin:0; opacity:0.8;">Redline adds pending strain. Resolve it here when the vehicle's operational stress should take effect.</p>
+      </form>
+    `;
+
+    await foundry.applications.api.DialogV2.wait({
+      window: { title: `${actor.name ?? "Vehicle"} Strain` },
+      position: { width: 420 },
+      content,
+      buttons: [
+        {
+          action: "apply",
+          label: "Apply",
+          icon: "fa-solid fa-check",
+          default: true,
+          callback: async (_event, button) => {
+            const currentInput = button?.form?.elements?.namedItem?.("currentStrain");
+            const pendingInput = button?.form?.elements?.namedItem?.("pendingStrain");
+            const currentStrain = Math.max(0, Number(currentInput?.value ?? strain.value) || 0);
+            const pendingStrain = Math.max(0, Number(pendingInput?.value ?? strain.pendingGenerated) || 0);
+            await actor.update({
+              "system.mwd.strain.value": currentStrain,
+              "system.mwd.strain.pendingGenerated": pendingStrain,
+            });
+            return true;
+          },
+        },
+        {
+          action: "resolve",
+          label: "Resolve Pending",
+          icon: "fa-solid fa-gauge-high",
+          callback: async (_event, button) => {
+            const currentInput = button?.form?.elements?.namedItem?.("currentStrain");
+            const pendingInput = button?.form?.elements?.namedItem?.("pendingStrain");
+            await actor.update({
+              "system.mwd.strain.value": Math.max(0, Number(currentInput?.value ?? strain.value) || 0),
+              "system.mwd.strain.pendingGenerated": Math.max(0, Number(pendingInput?.value ?? strain.pendingGenerated) || 0),
+            });
+            await executeMachineAction(actor, {
+              kind: "resolvePendingStrain",
+              reason: "strain dialog",
+            });
+            return true;
+          },
+        },
+        {
+          action: "cancel",
+          label: "Cancel",
+          icon: "fa-solid fa-xmark",
+          callback: () => false,
+        },
+      ],
+      close: () => false,
+    });
+  }
+
+  async _onEwTarget(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    return this.#launchMachineEwIntent("targeting", event, target);
+  }
+
+  async _onMachineEwAction(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const actionId = String(target?.dataset?.actionId ?? "").trim();
+    if (!actionId) return false;
+
+    try {
+      const result = await executeMachineAction(actor, {
+        kind: "ew",
+        actionId,
+        token: this._resolveStatusToken(actor),
+        targetTokenId: String(target?.dataset?.targetTokenId ?? "").trim(),
+        targetTokenUuid: String(target?.dataset?.targetTokenUuid ?? "").trim(),
+        event,
+      });
+      if (!result?.ok) {
+        ui.notifications?.warn(result?.userMessage ?? result?.reason ?? "Unable to launch that EW action.");
+        return false;
+      }
+      this.#renderEwState();
+      return true;
+    } catch (error) {
+      console.error("MWD | Failed to launch machine EW action", error);
+      notifyRollError(error, "Unable to launch that EW action.");
+      return false;
+    }
   }
 
   _resolveStatusToken(actor = this.actor) {
-    return this.getSheetTokenDocument?.()
-      ?? actor?.token?.document
-      ?? actor?.token
-      ?? actor?.getActiveTokens?.(true, true)?.[0]?.document
-      ?? actor?.getActiveTokens?.(true, true)?.[0]
-      ?? Array.from(canvas?.tokens?.placeables ?? [])
-        .find(token => token?.actor?.id && token.actor.id === actor?.id)?.document
-      ?? null;
+    return resolveMachineSceneToken(actor, {
+      sheetToken: this.getSheetTokenDocument?.() ?? null,
+    });
   }
 
   _getDefaultHardpointLocation() {
@@ -1296,31 +1894,47 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     return this.actor.items.get(itemId) ?? null;
   }
 
-  async #launchMachineEwIntent(intent, event) {
+  async #launchMachineEwIntent(intent, event, target) {
     const actor = this.getPersistentActor?.() ?? this.actor;
     const token = this._resolveStatusToken(actor);
-    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
-    if (!rollApi?.execute) return false;
 
     const panel = buildMachineEwPanel({ actor, token });
-    const targetRow = resolveMachineEwActionTarget(panel, intent);
+    const explicitTargetTokenUuid = String(target?.dataset?.targetTokenUuid ?? "").trim();
+    const explicitTargetTokenId = String(target?.dataset?.targetTokenId ?? "").trim();
+    const targetRow = explicitTargetTokenUuid || explicitTargetTokenId
+      ? (panel.rows ?? []).find(row =>
+        (explicitTargetTokenUuid && row?.targetTokenUuid === explicitTargetTokenUuid)
+        || (explicitTargetTokenId && row?.targetTokenId === explicitTargetTokenId)
+      ) ?? null
+      : resolveMachineEwActionTarget(panel, intent);
     if (!targetRow) {
       const verb = intent === "targeting" ? "generate targeting data" : "acquire";
       ui.notifications?.warn(`No targeted token is ready to ${verb}.`);
       return false;
     }
 
+    const isEligible = intent === "targeting" ? targetRow.canTarget : targetRow.canAcquire;
+    if (!isEligible) {
+      ui.notifications?.warn(intent === "targeting"
+        ? "That target is not ready for targeting data yet."
+        : "That target cannot advance its detection state right now.");
+      return false;
+    }
+
     try {
-      await rollApi.execute({
-        actor,
-        payload: {
-          intent,
-          sourceTokenId: token?.id ?? null,
-          targetTokenId: targetRow.targetTokenId,
-          targetTokenUuid: targetRow.targetTokenUuid,
-        },
+      const result = await executeMachineAction(actor, {
+        kind: "ew",
+        intent,
+        token,
+        targetTokenId: targetRow.targetTokenId,
+        targetTokenUuid: targetRow.targetTokenUuid,
         event,
       });
+      if (!result?.ok) {
+        ui.notifications?.warn(result?.userMessage ?? result?.reason ?? "Unable to launch that EW action.");
+        return false;
+      }
+      this.#renderEwState();
       return true;
     } catch (error) {
       console.error(`MWD | Failed to launch EW ${intent}`, error);
@@ -1328,5 +1942,112 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       notifyRollError(error, `Unable to launch ${label} roll.`);
       return false;
     }
+  }
+
+  #bindEwHooks() {
+    if (this.#ewHookIds.length) return;
+
+    this.#ewHookIds = [
+      ["targetToken", Hooks.on("targetToken", user => {
+        if (user?.id !== game.user?.id) return;
+        this.#renderEwState();
+      })],
+      ["updateToken", Hooks.on("updateToken", (tokenDocument, changed) => {
+        if (!this.#didTokenPositionChange(changed)) return;
+        if (!this.#isRelevantEwToken(tokenDocument)) return;
+        cachePendingTokenPosition(tokenDocument, changed);
+        this.#renderEwState();
+      })],
+      ["updateCombatant", Hooks.on("updateCombatant", (combatant, changed) => {
+        if (!this.#isRelevantEwCombatant(combatant)) return;
+        if (!this.#didCombatantEwStateChange(changed)) return;
+        this.#renderEwState();
+      })],
+      ["createCombatant", Hooks.on("createCombatant", combatant => {
+        if (!this.#isRelevantEwCombatant(combatant)) return;
+        this.#renderEwState();
+      })],
+      ["deleteCombatant", Hooks.on("deleteCombatant", combatant => {
+        if (!this.#isRelevantEwCombatant(combatant)) return;
+        this.#renderEwState();
+      })],
+      ["updateCombat", Hooks.on("updateCombat", combat => {
+        if (!this.#isTrackedCombat(combat)) return;
+        this.#renderEwState();
+      })],
+      ["deleteCombat", Hooks.on("deleteCombat", combat => {
+        if (!this.#isTrackedCombat(combat)) return;
+        this.#renderEwState();
+      })],
+    ];
+  }
+
+  #teardownEwHooks() {
+    for (const [hookName, hookId] of this.#ewHookIds) {
+      Hooks.off(hookName, hookId);
+    }
+    this.#ewHookIds = [];
+  }
+
+  #renderEwState() {
+    if (!this.rendered) return;
+    this._captureScrollPosition();
+    this.render({ force: false });
+  }
+
+  #isTrackedCombat(combat) {
+    return Boolean(combat?.id && combat.id === game.combat?.id);
+  }
+
+  #isRelevantEwToken(token) {
+    const tokenId = String(token?.id ?? token?.document?.id ?? "").trim();
+    if (!tokenId) return false;
+
+    const sheetToken = this._resolveStatusToken(this.getPersistentActor?.() ?? this.actor);
+    const sheetTokenId = String(sheetToken?.id ?? sheetToken?.document?.id ?? "").trim();
+    if (sheetTokenId && tokenId === sheetTokenId) return true;
+
+    const targetedTokenIds = new Set(
+      Array.from(game.user?.targets ?? [])
+        .map(targetToken => String(targetToken?.id ?? targetToken?.document?.id ?? "").trim())
+        .filter(Boolean)
+    );
+    return targetedTokenIds.has(tokenId);
+  }
+
+  #isRelevantEwCombatant(combatant) {
+    if (!combatant) return false;
+
+    const sheetToken = this._resolveStatusToken(this.getPersistentActor?.() ?? this.actor);
+    const sheetTokenId = String(sheetToken?.id ?? sheetToken?.document?.id ?? "").trim();
+    const combatantTokenId = String(combatant?.tokenId ?? combatant?.token?.id ?? combatant?.token?.document?.id ?? "").trim();
+    if (!combatantTokenId) return false;
+    if (sheetTokenId && combatantTokenId === sheetTokenId) return true;
+
+    const targetedTokenIds = new Set(
+      Array.from(game.user?.targets ?? [])
+        .map(targetToken => String(targetToken?.id ?? targetToken?.document?.id ?? "").trim())
+        .filter(Boolean)
+    );
+    return targetedTokenIds.has(combatantTokenId);
+  }
+
+  #didCombatantEwStateChange(changed) {
+    return this.#didChangedPathTouch(changed, "flags.mwd.targeting")
+      || this.#didChangedPathTouch(changed, "flags.mwd.ewState")
+      || this.#didChangedPathTouch(changed, "flags.mwd.personalCombat")
+      || this.#didChangedPathTouch(changed, "tokenId");
+  }
+
+  #didChangedPathTouch(changed, path) {
+    if (foundry.utils.hasProperty(changed, path)) return true;
+    const prefix = `${path}.`;
+    return Object.keys(changed ?? {}).some(key => key === path || key.startsWith(prefix));
+  }
+
+  #didTokenPositionChange(changed) {
+    return foundry.utils.hasProperty(changed, "x")
+      || foundry.utils.hasProperty(changed, "y")
+      || foundry.utils.hasProperty(changed, "elevation");
   }
 }

@@ -21,15 +21,15 @@ test("integrity tones follow remaining percentage thresholds", () => {
   assert.equal(getIntegrityToneForPercent(0), "dark-red");
 });
 
-test("integrity parts convert damage-taken monitors to remaining display values", () => {
-  const armor = buildIntegrityPart("A", { value: 2, max: 10 });
+test("integrity parts display remaining monitor values directly", () => {
+  const armor = buildIntegrityPart("A", { value: 8, max: 10 });
   assert.equal(armor.value, "8");
   assert.equal(armor.title, "8/10");
   assert.equal(armor.remaining, 8);
   assert.equal(armor.tone, "yellow");
 
   const summary = buildIntegritySummary({
-    armor: { value: 0, max: 15 },
+    armor: { value: 15, max: 15 },
     structure: { value: 9, max: 18 },
   });
   assert.deepEqual(summary.parts.map(part => part.value), ["15", "9"]);

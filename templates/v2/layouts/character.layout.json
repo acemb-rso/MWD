@@ -83,6 +83,13 @@
                     "children": [
                       { "type": "include", "partial": "mwd.v2.ui.character.status-dashboard" }
                     ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Combat Awareness",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.combat-awareness-preview" }
+                    ]
                   }
                 ]
               },

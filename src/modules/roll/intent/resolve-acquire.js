@@ -43,6 +43,16 @@ function resolveAttackerToken(actor, payload) {
     ?? null;
 }
 
+function getTokenDisplayName(token, fallback = "Target") {
+  return String(token?.name ?? token?.actor?.name ?? fallback).trim() || fallback;
+}
+
+function withOwner(label = "", actor = null) {
+  const base = String(label ?? "").trim();
+  const owner = String(actor?.name ?? "").trim();
+  return owner ? `${base} (${owner})` : base;
+}
+
 export async function resolveAcquire({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveAcquire requires actor");
   if (!isMachineActor(actor)) {
@@ -58,6 +68,7 @@ export async function resolveAcquire({ actor, payload } = {}) {
   }
   const targetActor = targetToken.actor;
   const targetTokenUuid = targetToken.document?.uuid ?? targetToken.uuid ?? "";
+  const targetName = getTokenDisplayName(targetToken);
 
   const attackerToken = resolveAttackerToken(actor, payload);
   const combatant = getAttackerCombatant(attackerToken);
@@ -79,21 +90,31 @@ export async function resolveAcquire({ actor, payload } = {}) {
   });
   const roller = operator.actor ?? actor;
 
-  const systemAttr  = Math.max(0, Number(actor?.system?.attributes?.system?.value ?? 0) || 0);
+  const attrKey     = "system";
+  const skillKey    = "perception";
+  const systemAttr  = Math.max(0, Number(actor?.system?.attributes?.[attrKey]?.value ?? 0) || 0);
   const skillDef    = getSkillDef("perception");
-  const perceptionRating = Number(roller?.system?.skills?.perception?.rating ?? 0) || 0;
-  const perceptionBonus  = Number(roller?.system?.skills?.perception?.bonus  ?? 0) || 0;
+  const perceptionRating = Number(roller?.system?.skills?.[skillKey]?.rating ?? 0) || 0;
+  const perceptionBonus  = Number(roller?.system?.skills?.[skillKey]?.bonus  ?? 0) || 0;
 
   const dnBase     = getAcquireBaseDn(currentState);
-  const dnModifier = getAcquireDnModifier(targetActor);
+  const dnModifier = getAcquireDnModifier(targetActor, {
+    attacker: actor,
+    payload,
+    resolved: {
+      intent: "acquire",
+      acquire: { currentState },
+    },
+  });
   const dn         = dnBase + dnModifier;
 
   return {
     intent:    "acquire",
     rollType:  "simple",
     title:     "Acquire Target",
-    subtitle:  actor.name ?? "Machine",
+    subtitle:  targetName,
     domains:   ["mental"],
+    domainTags: ["sensor", "sensor.acquire", "skill.perception"],
     diceTarget: 5,
     difficulty: { dn },
     dn: {
@@ -103,7 +124,7 @@ export async function resolveAcquire({ actor, payload } = {}) {
       ],
       total: dn
     },
-    edge: { earn: { enabled: true, rate: 4, maxPerRoll: 1 } },
+    edge: { allowed: ["pre", "post"], earn: { enabled: true, rate: 4, maxPerRoll: 1 } },
     pool: {
       attribute:    systemAttr,
       skill:        perceptionRating,
@@ -111,19 +132,33 @@ export async function resolveAcquire({ actor, payload } = {}) {
       specialization: 0,
     },
     breakdown: [
-      { id: "system",     label: "System",                          value: systemAttr },
-      { id: "perception", label: skillDef?.label ?? "Perception",   value: perceptionRating },
-      ...(perceptionBonus ? [{ id: "perceptionBonus", label: "Perception Bonus", value: perceptionBonus }] : []),
+      { id: "attribute", label: withOwner("System", actor), value: systemAttr },
+      { id: "skill", label: withOwner(skillDef?.label ?? "Perception", operator.actor), value: perceptionRating },
+      ...(perceptionBonus ? [{ id: "bonus", label: "Perception Bonus", value: perceptionBonus }] : []),
     ],
+    specialization: null,
+    data: {
+      skillKey,
+      attrKey,
+      machineActorUuid: actor.uuid ?? "",
+      operatorActorUuid: operator.actor?.uuid ?? "",
+      label: `${attrKey}+${skillDef?.label ?? "Perception"}`,
+    },
     acquire: {
       machineActorUuid:   actor.uuid ?? "",
       operatorActorUuid:  operator.actor?.uuid ?? "",
+      operatorName:       operator.actor?.name ?? "",
+      attackerTokenId:    attackerToken?.id ?? attackerToken?.document?.id ?? "",
       attackerTokenUuid:  attackerToken?.document?.uuid ?? attackerToken?.uuid ?? "",
+      attackerCombatantId: combatant?.id ?? "",
       targetTokenUuid,
       targetTokenId:      targetToken?.id ?? "",
+      targetName,
       currentState,
       currentStateLabel:  getDetectionStateLabel(currentState),
       ceiling,
     },
+    rollActor: roller,
+    machineActor: actor,
   };
 }

@@ -1,6 +1,4 @@
 // src/modules/sheets/character-sheet-v2.js
-// Purpose: Defines helper or exported constant `getNum`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
 
 
 import { TEMPLATES_PATH, SYSTEM_NAME, EDGE_POOL_GROUPS } from "../constants.js";
@@ -9,6 +7,7 @@ import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { buildCombatAwarenessPreview } from "../combat/combat-awareness-preview.js";
 import {
   evaluateActorLifeModules,
   getLifeModuleCatalogEntry,
@@ -26,6 +25,13 @@ import {
 } from "../mwd/skills.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { buildCriticalStatusSummary } from "../mwd/machine-summary.js";
+import { buildBattlemechMovementActionChoices } from "../mwd/battlemech-movement-actions.js";
+import { buildBattlemechMeleeProfiles } from "../mwd/battlemech-melee-actions.js";
+import { buildBattlemechRangedAttackGroups } from "../mwd/battlemech-ranged-actions.js";
+import {
+  buildMachineCriticalRepairIssues,
+  buildMachineEwActionChoices,
+} from "../mwd/machine-quick-actions.js";
 import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
 import {
   getQualityCategoryLabel,
@@ -186,6 +192,22 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+function getBattlemechMovementChoices(actor) {
+  const preparedChoices = actor?.system?.quickActions?.movement;
+  if (Array.isArray(preparedChoices) && preparedChoices.length) return preparedChoices;
+  return buildBattlemechMovementActionChoices(actor);
+}
+
+function getMachineActionService() {
+  return game.mwd?.machineActions ?? game.system?.mwd?.machineActions ?? null;
+}
+
+async function executeMachineAction(actor, request = {}) {
+  const service = getMachineActionService();
+  if (!service?.execute) throw new Error("MWD machine action service not initialized.");
+  return service.execute(actor, request);
+}
+
 function getActorIdentityKeys(actor = null) {
   const keys = new Set();
   if (!actor) return keys;
@@ -331,6 +353,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       combatReduceBurn: CharacterSheetV2.prototype._onCombatReduceBurn,
       combatOverloadCheck: CharacterSheetV2.prototype._onCombatOverloadCheck,
       combatAttack: CharacterSheetV2.prototype._onCombatAttack,
+      removeActivationAction: CharacterSheetV2.prototype._onRemoveActivationAction,
       createOwnedItem: CharacterSheetV2.prototype._onCreateOwnedItem,
       addSkillSpecialization: CharacterSheetV2.prototype._onAddSkillSpecialization,
       removeSkillSpecialization: CharacterSheetV2.prototype._onRemoveSkillSpecialization,
@@ -344,6 +367,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       attackWeapon: CharacterSheetV2.prototype._onAttackWeapon,
       openAssignedMech: CharacterSheetV2.prototype._onOpenAssignedMech,
       mechAttack: CharacterSheetV2.prototype._onMechAttack,
+      mechMovement: CharacterSheetV2.prototype._onMechMovement,
       mechRoll: CharacterSheetV2.prototype._onMechRoll,
     }
   }, { inplace: false });
@@ -356,7 +380,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
     ctx.layout = await LayoutRegistry.get("character");
 
     // Character-only Edge console context
-    const cap = this.actor.getEdgeCap?.() ?? Number(this.actor.system?.attributes?.edge?.value ?? 0);
+    const cap = this.actor.getEdgeCap();
     const editable = !!this.isEditable;
 
     const GROUP_LABELS = { physical: "Physical", mental: "Mental", social: "Social" };
@@ -513,6 +537,9 @@ ctx.edgeConsole.poolsOrdered = order
       activation: combatSnapshot.activation,
       inactiveReason: combatSnapshot.inactiveReason
     };
+    ctx.combatAwarenessPreview = buildCombatAwarenessPreview(this.actor, {
+      sourceToken: sheetToken,
+    });
 
     const combatActions = PersonalCombatTracker.buildActionModel(this.actor, combatSnapshot);
     const menuIds = new Set((combatActions.menus ?? []).map(menu => menu.id));
@@ -528,7 +555,7 @@ ctx.edgeConsole.poolsOrdered = order
       }))
     };
 
-    const loadout = this.actor.getPersonalCombatLoadout?.() ?? null;
+    const loadout = this.actor.getPersonalCombatLoadout();
     ctx.personalInventory = {
       warnings: [...(loadout?.warnings ?? [])],
       weapons: (loadout?.weapons ?? []).map(weapon => {
@@ -781,8 +808,6 @@ ctx.edgeConsole.poolsOrdered = order
         const heat = a.system?.mwd?.heat ?? {};
         const heatStatus = a.system?.mwd?.heatStatus ?? {};
         const crits = a.system?.mwd?.crits ?? [];
-        const quickActions = a.system?.quickActions ?? {};
-
         const buildReadOnlyTrack = (id, label, kind, data) => {
           const value = Math.max(0, toNumber(data.value, 0));
           const max = Math.max(0, toNumber(data.max, 0));
@@ -829,23 +854,32 @@ ctx.edgeConsole.poolsOrdered = order
           ? [buildReadOnlyTrack("structure", "Structure", "wound", structure), buildReadOnlyTrack("armor", "Armor", "armor", armor)]
           : [buildReadOnlyTrack("structure", "Structure", "wound", structure)];
 
-        const hasRangedGroups = Array.isArray(a.system?.weaponGroups) && a.system.weaponGroups.length > 0;
-        const hasMeleeProfiles = Array.isArray(a.system?.meleeProfiles) && a.system.meleeProfiles.length > 0;
-        const primaryGroup = quickActions.primaryWeaponGroup ?? null;
+        const hasRangedGroups = buildBattlemechRangedAttackGroups(a)
+          .some(group => group.isAttackLegal && group.isAvailableThisActivation);
+        const hasMeleeProfiles = isMech && buildBattlemechMeleeProfiles(a).length > 0;
+        const movementChoices = getBattlemechMovementChoices(a);
+        const enabledMovementChoices = movementChoices.filter(choice => !choice.disabled);
+        const enabledEwActions = isMech ? buildMachineEwActionChoices(a) : [];
 
         const mechQuickActions = isMech ? [
-          { label: "Primary", hint: primaryGroup?.name ?? "Primary weapon group", handler: "mechAttack", disabled: !primaryGroup, dataset: { attackKind: "primary", mechUuid: uuid, mechId: a.id } },
+          {
+            label: "Movement",
+            hint: enabledMovementChoices.length ? enabledMovementChoices.map(choice => choice.label).join(" / ") : "No movement actions available",
+            handler: "mechMovement",
+            disabled: enabledMovementChoices.length === 0,
+            dataset: { mechUuid: uuid, mechId: a.id },
+          },
           { label: "Ranged", hint: "Prompt for a weapon group", handler: "mechAttack", disabled: !hasRangedGroups, dataset: { attackKind: "ranged", mechUuid: uuid, mechId: a.id } },
           { label: "Melee", hint: "Prompt for a melee profile", handler: "mechAttack", disabled: !hasMeleeProfiles, dataset: { attackKind: "melee", mechUuid: uuid, mechId: a.id } },
           { label: "Piloting", hint: "Vehicle handling test", handler: "mechRoll", disabled: false, dataset: { rollKind: "piloting", mechUuid: uuid, mechId: a.id } },
-          { label: "Sensors", hint: "Perception or technician", handler: "mechRoll", disabled: !Boolean(quickActions.hasSensorSweep), dataset: { rollKind: "sensor", mechUuid: uuid, mechId: a.id } },
-          { label: "Repair", hint: "Technician quick check", handler: "mechRoll", disabled: false, dataset: { rollKind: "repair", mechUuid: uuid, mechId: a.id } },
+          { label: "EW", hint: enabledEwActions.length ? "Choose an EW action" : "No EW actions available", handler: "mechRoll", disabled: enabledEwActions.length === 0, dataset: { rollKind: "sensor", mechUuid: uuid, mechId: a.id } },
+          { label: "Repair", hint: "Choose a crit or repairable status", handler: "mechRoll", disabled: false, dataset: { rollKind: "repair", mechUuid: uuid, mechId: a.id } },
         ] : [];
 
         const armorMax = Math.max(0, toNumber(armor.max, 0));
-        const armorRemaining = Math.max(0, armorMax - toNumber(armor.value, 0));
+        const armorRemaining = Math.min(armorMax, Math.max(0, toNumber(armor.value, 0)));
         const structureMax = Math.max(0, toNumber(structure.max, 0));
-        const structureRemaining = Math.max(0, structureMax - toNumber(structure.value, 0));
+        const structureRemaining = Math.min(structureMax, Math.max(0, toNumber(structure.value, 0)));
 
         return {
           id: a.id,
@@ -881,11 +915,50 @@ ctx.edgeConsole.poolsOrdered = order
     const mech = await resolveAssignedMachineFromTarget(target);
     if (!mech) return;
     const attackKind = String(target?.dataset?.attackKind ?? "").trim();
+    const groupId = String(target?.dataset?.groupId ?? "").trim();
+    const operatorActorUuid = this.actor?.uuid ?? "";
     try {
-      if (attackKind === "melee") await mech.rollMeleeAttack?.();
-      else await mech.rollRangedAttack?.();
+      if (attackKind === "melee") {
+        const selectedProfile = await this.#promptAssignedMechMeleeProfile(mech);
+        if (selectedProfile) await executeMachineAction(mech, {
+          kind: "attack",
+          attackKind: "melee",
+          profile: selectedProfile,
+          operatorActorUuid,
+        });
+      } else {
+        const selectedGroup = groupId
+          ? { id: groupId }
+          : await this.#promptAssignedMechRangedGroup(mech);
+        if (selectedGroup?.id) await executeMachineAction(mech, {
+          kind: "attack",
+          attackKind: "ranged",
+          groupId: selectedGroup.id,
+          operatorActorUuid,
+        });
+      }
     } catch (error) {
       notifyRollError(error, "Unable to launch BattleMech attack.");
+    }
+  }
+
+  async _onMechMovement(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const mech = await resolveAssignedMachineFromTarget(target);
+    if (!mech) return;
+
+    const selectedAction = await this.#promptAssignedMechMovementAction(mech);
+    if (!selectedAction) return;
+
+    try {
+      await executeMachineAction(mech, {
+        kind: "movement",
+        movementKind: selectedAction.id,
+        operatorActorUuid: this.actor?.uuid ?? "",
+      });
+    } catch (error) {
+      notifyRollError(error, "Unable to record BattleMech movement.");
     }
   }
 
@@ -895,13 +968,202 @@ ctx.edgeConsole.poolsOrdered = order
     const mech = await resolveAssignedMachineFromTarget(target);
     if (!mech) return;
     const rollKind = String(target?.dataset?.rollKind ?? "").trim();
+    const operatorActorUuid = this.actor?.uuid ?? "";
     try {
-      if (rollKind === "piloting") await mech.rollPilotingCheck?.();
-      else if (rollKind === "sensor") await mech.rollSensorSweep?.();
-      else if (rollKind === "repair") await mech.rollEmergencyRepair?.();
+      if (rollKind === "piloting") {
+        await executeMachineAction(mech, { kind: "piloting", operatorActorUuid });
+      } else if (rollKind === "sensor") {
+        const selectedAction = await this.#promptAssignedMechEwAction(mech);
+        if (selectedAction) await executeMachineAction(mech, {
+          kind: "ew",
+          action: selectedAction,
+          operatorActorUuid,
+        });
+      } else if (rollKind === "repair") {
+        const selectedIssue = await this.#promptAssignedMechCriticalRepairIssue(mech);
+        if (selectedIssue) await executeMachineAction(mech, {
+          kind: "repair",
+          issue: selectedIssue,
+          operatorActorUuid,
+        });
+      }
     } catch (error) {
       notifyRollError(error, "Unable to launch BattleMech check.");
     }
+  }
+
+  async #promptAssignedMechMovementAction(mech) {
+    const choices = getBattlemechMovementChoices(mech);
+    const selectableChoices = choices.filter(choice => !choice.disabled);
+    if (!selectableChoices.length) {
+      ui.notifications?.warn("No movement actions are currently available.");
+      return null;
+    }
+
+    const defaultChoice = selectableChoices[0];
+    const content = `<form class="mwd-quick-select">${choices.map(choice => `
+      <label class="quick-select-option${choice.disabled ? " is-disabled" : ""}" title="${foundry.utils.escapeHTML(choice.reason || choice.hint || "")}">
+        <input type="radio" name="movement-action" value="${choice.id}" ${choice.id === defaultChoice.id ? "checked" : ""} ${choice.disabled ? "disabled" : ""}>
+        <span>${foundry.utils.escapeHTML(choice.label)}</span>
+        <small>${foundry.utils.escapeHTML(`${choice.cost} SA${choice.heat > 0 ? ` | +${choice.heat} Heat` : ""}${choice.hint ? ` | ${choice.hint}` : ""}`)}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Movement" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: "Move",
+          icon: "fa-solid fa-person-running",
+          default: true,
+          callback: (_event, button) => button.form?.elements["movement-action"]?.value ?? defaultChoice.id,
+        },
+      ],
+    });
+
+    return selectableChoices.find(choice => choice.id === selectedId) ?? defaultChoice;
+  }
+
+  async #promptAssignedMechRangedGroup(mech) {
+    const groups = buildBattlemechRangedAttackGroups(mech);
+    const selectableGroups = groups.filter(group =>
+      Array.isArray(group?.weaponIds)
+      && group.weaponIds.length > 0
+      && group.isAttackLegal
+      && group.isAvailableThisActivation
+    );
+    if (!selectableGroups.length) {
+      ui.notifications?.warn(MWD.actor.vehicle.quickActions.errors.noRanged);
+      return null;
+    }
+    if (selectableGroups.length === 1) return selectableGroups[0];
+
+    const defaultGroup = selectableGroups[0];
+    const content = `<form class="mwd-quick-select">${selectableGroups.map(group => `
+      <label class="quick-select-option">
+        <input type="radio" name="weapon-group" value="${foundry.utils.escapeHTML(String(group.id ?? ""))}" ${group.id === defaultGroup.id ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(group.name ?? ""))}</span>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.selectWeaponGroup },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["weapon-group"]?.value ?? defaultGroup.id,
+        },
+      ],
+    });
+
+    return selectableGroups.find(group => group.id === selectedId) ?? defaultGroup;
+  }
+
+  async #promptAssignedMechEwAction(mech) {
+    const actions = buildMachineEwActionChoices(mech, { includeDisabled: true });
+    const selectableActions = actions.filter(action => !action.disabled);
+    if (!selectableActions.length) {
+      ui.notifications?.warn(MWD.actor.vehicle.quickActions.errors.noSensorSweep);
+      return null;
+    }
+
+    const defaultAction = selectableActions[0];
+    const content = `<form class="mwd-quick-select">${actions.map(action => `
+      <label class="quick-select-option${action.disabled ? " is-disabled" : ""}" title="${foundry.utils.escapeHTML(String(action.reason ?? ""))}">
+        <input type="radio" name="ew-action" value="${foundry.utils.escapeHTML(String(action.id ?? ""))}" ${action.id === defaultAction.id ? "checked" : ""} ${action.disabled ? "disabled" : ""}>
+        <span>${foundry.utils.escapeHTML(String(action.label ?? ""))}</span>
+        <small>${foundry.utils.escapeHTML(String(action.disabled ? action.reason : action.hint ?? ""))}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Electronic Warfare" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["ew-action"]?.value ?? defaultAction.id,
+        },
+      ],
+    });
+
+    return selectableActions.find(action => action.id === selectedId) ?? defaultAction;
+  }
+
+  async #promptAssignedMechCriticalRepairIssue(mech) {
+    const issues = buildMachineCriticalRepairIssues(mech);
+    if (!issues.length) {
+      ui.notifications?.warn("No active criticals or repairable statuses are available.");
+      return null;
+    }
+    if (issues.length === 1) return issues[0];
+
+    const defaultIssue = issues[0];
+    const content = `<form class="mwd-quick-select">${issues.map(issue => `
+      <label class="quick-select-option">
+        <input type="radio" name="repair-issue" value="${foundry.utils.escapeHTML(`${issue.issueKind}:${issue.issueId}`)}" ${issue.issueKind === defaultIssue.issueKind && issue.issueId === defaultIssue.issueId ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(issue.label ?? ""))}</span>
+        <small>${foundry.utils.escapeHTML(`${issue.remedyLabel ?? ""} | ${issue.remedySummary || `DN ${issue.totalDn}`}`)}</small>
+      </label>`).join("")}</form>`;
+
+    const selectedKey = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.emergencyRepair },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["repair-issue"]?.value ?? `${defaultIssue.issueKind}:${defaultIssue.issueId}`,
+        },
+      ],
+    });
+
+    return issues.find(issue => `${issue.issueKind}:${issue.issueId}` === selectedKey) ?? defaultIssue;
+  }
+
+  async #promptAssignedMechMeleeProfile(mech) {
+    const profiles = buildBattlemechMeleeProfiles(mech);
+    if (!profiles.length) {
+      ui.notifications?.warn(MWD.actor.vehicle.quickActions.errors.noMelee);
+      return null;
+    }
+    if (profiles.length === 1) return profiles[0];
+
+    const defaultProfile = profiles[0];
+    const content = `<form class="mwd-quick-select">${profiles.map(profile => `
+      <label class="quick-select-option">
+        <input type="radio" name="melee-profile" value="${foundry.utils.escapeHTML(String(profile.id ?? ""))}" ${profile.id === defaultProfile.id ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(profile.name ?? ""))}</span>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.selectMeleeProfile },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["melee-profile"]?.value ?? defaultProfile.id,
+        },
+      ],
+    });
+
+    return profiles.find(profile => profile.id === selectedId) ?? defaultProfile;
   }
 
   _onRender(context, options) {
@@ -1177,6 +1439,36 @@ ctx.edgeConsole.poolsOrdered = order
   } catch (error) {
     console.error("MWD | Failed to perform combat action", error);
     ui.notifications?.error("Unable to perform action.");
+  }
+ }
+
+ async _onRemoveActivationAction(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!this.isEditable) return;
+
+  const logIndex = Number(target?.dataset?.logIndex ?? -1);
+  if (!Number.isInteger(logIndex) || logIndex < 0) return;
+
+  try {
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const result = await PersonalCombatTracker.removeActivationLogEntry(actorWriteTarget, {
+      token: this.getSheetTokenDocument?.()
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
+      index: logIndex
+    });
+
+    if (!result?.ok) {
+      ui.notifications?.warn(result?.reason ?? "Unable to remove action.");
+      return;
+    }
+
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to remove activation action", error);
+    ui.notifications?.error("Unable to remove action.");
   }
  }
 

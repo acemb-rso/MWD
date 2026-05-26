@@ -23,6 +23,13 @@ How it fits: Used by rendering code to produce UI fragments.
     </button>
     <button
       type="button"
+      class="mwd-gmgadget__tab {{#if (eq currentTab 'targeting')}}is-active{{/if}}"
+      data-action="switchTab"
+      data-tab="targeting">
+      Targeting
+    </button>
+    <button
+      type="button"
       class="mwd-gmgadget__tab {{#if (eq currentTab 'hazard')}}is-active{{/if}}"
       data-action="switchTab"
       data-tab="hazard">
@@ -213,6 +220,96 @@ How it fits: Used by rendering code to produce UI fragments.
             Apply Harm
           </button>
         </footer>
+      </section>
+    {{/if}}
+
+    {{#if (eq currentTab "targeting")}}
+      <section class="mwd-gmgadget__section mwd-gmgadget__section--targeting">
+        <header class="mwd-gmgadget__header">
+          <div><b>Targeting Overrides</b></div>
+          <div class="mwd-gmgadget__sub">GM override/admin edits for directional attacker → target state</div>
+        </header>
+
+        <div class="mwd-gmgadget__target-block">
+          <div class="mwd-gmgadget__target-row">
+            <div>
+              <div class="mwd-gmgadget__field-label">Attacker</div>
+              <div class="mwd-gmgadget__target-value">
+                {{#if targeting.hasAttacker}}{{targeting.attackerLabel}}{{else}}No machine combatant selected{{/if}}
+              </div>
+              <div class="mwd-gmgadget__hint">Administrative override only. This does not generate packets or advance detection automatically.</div>
+            </div>
+            <button type="button" class="mwd-gmgadget__mini-btn" data-action="refreshTargeting">Refresh</button>
+          </div>
+
+          <label class="mwd-gmgadget__field">
+            <span class="mwd-gmgadget__field-label">Machine Attacker</span>
+            <select name="targeting-attackerTokenId" data-action="targetingInputChange">
+              <option value="">Select machine combatant...</option>
+              {{#each targeting.attackerOptions as |option|}}
+                <option value="{{option.tokenId}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+              {{/each}}
+            </select>
+          </label>
+        </div>
+
+        {{#unless targeting.hasAttackerOptions}}
+          <div class="mwd-gmgadget__hint">No machine combatants are available on the current combat/scene.</div>
+        {{else}}
+          {{#unless targeting.hasTargets}}
+            <div class="mwd-gmgadget__hint">{{targeting.emptyState}}</div>
+          {{else}}
+            <div class="mwd-gmgadget__scene-add-block">
+              <div class="mwd-gmgadget__field-label">Bulk Override</div>
+              <div class="mwd-gmgadget__scene-preset-row">
+                <select name="targeting-bulkDetectionState" data-action="targetingInputChange">
+                  {{#each targeting.bulkStateOptions as |option|}}
+                    <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+                  {{/each}}
+                </select>
+                <button type="button" class="mwd-gmgadget__mini-btn" data-action="bulkSetTargetingState">Set Checked</button>
+                <button type="button" class="mwd-gmgadget__mini-btn" data-action="bulkClearTargetingPackets">Clear Packets</button>
+              </div>
+            </div>
+
+            <div class="mwd-gmgadget__scene-list">
+              {{#each targeting.rows as |row|}}
+                <div class="mwd-gmgadget__scene-row">
+                  <input type="checkbox" name="targeting-selected" value="{{row.targetTokenUuid}}" />
+                  <span class="mwd-gmgadget__scene-label">{{row.tokenName}}</span>
+                  <span class="mwd-gmgadget__pill">{{row.detectionStateLabel}}</span>
+                  {{#if row.hasPacket}}
+                    <span class="mwd-gmgadget__pill">Packet {{row.packetValue}}</span>
+                  {{else}}
+                    <span class="mwd-gmgadget__pill mwd-gmgadget__pill--source">No Packet</span>
+                  {{/if}}
+                </div>
+                <div class="mwd-gmgadget__scene-preset-row" style="margin:0 0 0.5rem 1.75rem;">
+                  <select name="targeting-row-state-{{row.targetTokenId}}">
+                    {{#each row.stateOptions as |option|}}
+                      <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+                    {{/each}}
+                  </select>
+                  <button
+                    type="button"
+                    class="mwd-gmgadget__mini-btn"
+                    data-action="setTargetingState"
+                    data-target-token-id="{{row.targetTokenId}}"
+                    data-target-token-uuid="{{row.targetTokenUuid}}">
+                    Set State
+                  </button>
+                  <button
+                    type="button"
+                    class="mwd-gmgadget__mini-btn"
+                    data-action="clearTargetingPacket"
+                    data-target-token-uuid="{{row.targetTokenUuid}}">
+                    Clear Packet
+                  </button>
+                </div>
+              {{/each}}
+            </div>
+          {{/unless}}
+        {{/unless}}
       </section>
     {{/if}}
 

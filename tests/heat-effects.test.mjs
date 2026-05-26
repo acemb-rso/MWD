@@ -79,21 +79,21 @@ test("penalties: safe heat has no penalties", () => {
 
 test("penalties: heat 4 imposes movement penalty only", () => {
   const p = computeHeatPenalties(4, T);
-  assert.equal(p.movementPenalty, 2);
+  assert.equal(p.movementPenalty, 60);
   assert.equal(p.rangedDicePenalty, 0);
   assert.equal(p.dangerLevel, 0);
 });
 
 test("penalties: heat 6 imposes both movement and ranged penalties", () => {
   const p = computeHeatPenalties(6, T);
-  assert.equal(p.movementPenalty, 2);
+  assert.equal(p.movementPenalty, 60);
   assert.equal(p.rangedDicePenalty, 2);
   assert.equal(p.dangerLevel, 0);
 });
 
 test("penalties: heat 8 is 2 levels of danger", () => {
   const p = computeHeatPenalties(8, T);
-  assert.equal(p.movementPenalty, 2);
+  assert.equal(p.movementPenalty, 60);
   assert.equal(p.rangedDicePenalty, 2);
   assert.equal(p.dangerLevel, 2);
 });

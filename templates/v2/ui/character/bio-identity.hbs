@@ -9,9 +9,9 @@ How it fits: Included by the Bio tab Identity panel in the character sheet.
   <div class="mwd-bio-pills">
 
     {{!-- Faction --}}
-    <span class="mwd-pill {{#if editing}}is-editable{{/if}}" title="Faction">
+    <span class="mwd-pill {{#if @root.editing}}is-editable{{/if}}" title="Faction">
       <span class="mwd-pill__tag">Faction</span>
-      {{#if editing}}
+      {{#if @root.editing}}
         <input class="mwd-pill__input mwd-pill__input--wide"
                type="text"
                name="system.biography.faction"
@@ -24,9 +24,9 @@ How it fits: Included by the Bio tab Identity panel in the character sheet.
     </span>
 
     {{!-- Rank --}}
-    <span class="mwd-pill {{#if editing}}is-editable{{/if}}" title="Rank">
+    <span class="mwd-pill {{#if @root.editing}}is-editable{{/if}}" title="Rank">
       <span class="mwd-pill__tag">Rank</span>
-      {{#if editing}}
+      {{#if @root.editing}}
         <input class="mwd-pill__input mwd-pill__input--wide"
                type="text"
                name="system.biography.rank"
@@ -39,9 +39,9 @@ How it fits: Included by the Bio tab Identity panel in the character sheet.
     </span>
 
     {{!-- Age --}}
-    <span class="mwd-pill {{#if editing}}is-editable{{/if}}" title="Age">
+    <span class="mwd-pill {{#if @root.editing}}is-editable{{/if}}" title="Age">
       <span class="mwd-pill__tag">Age</span>
-      {{#if editing}}
+      {{#if @root.editing}}
         <input class="mwd-pill__input"
                type="number"
                name="system.biography.age"
@@ -54,9 +54,9 @@ How it fits: Included by the Bio tab Identity panel in the character sheet.
     </span>
 
     {{!-- Height --}}
-    <span class="mwd-pill {{#if editing}}is-editable{{/if}}" title="Height (m)">
+    <span class="mwd-pill {{#if @root.editing}}is-editable{{/if}}" title="Height (m)">
       <span class="mwd-pill__tag">Height</span>
-      {{#if editing}}
+      {{#if @root.editing}}
         <input class="mwd-pill__input"
                type="number"
                name="system.biography.height"
@@ -70,9 +70,9 @@ How it fits: Included by the Bio tab Identity panel in the character sheet.
     </span>
 
     {{!-- Weight --}}
-    <span class="mwd-pill {{#if editing}}is-editable{{/if}}" title="Weight (kg)">
+    <span class="mwd-pill {{#if @root.editing}}is-editable{{/if}}" title="Weight (kg)">
       <span class="mwd-pill__tag">Weight</span>
-      {{#if editing}}
+      {{#if @root.editing}}
         <input class="mwd-pill__input"
                type="number"
                name="system.biography.weight"
@@ -86,9 +86,9 @@ How it fits: Included by the Bio tab Identity panel in the character sheet.
     </span>
 
     {{!-- XP --}}
-    <span class="mwd-pill {{#if editing}}is-editable{{/if}}" title="XP Earned / Spent">
+    <span class="mwd-pill {{#if @root.editing}}is-editable{{/if}}" title="XP Earned / Spent">
       <span class="mwd-pill__tag">XP</span>
-      {{#if editing}}
+      {{#if @root.editing}}
         <input class="mwd-pill__input"
                type="number"
                name="system.counters.xp.total"
@@ -119,28 +119,28 @@ How it fits: Included by the Bio tab Identity panel in the character sheet.
         <input type="radio" name="system.biography.experienceLevel" value="green"
                data-edit-field="staged"
                {{#if (eq bio.experienceLevel "green")}}checked{{/if}}
-               {{#unless editing}}disabled{{/unless}} />
+               {{#unless @root.editing}}disabled{{/unless}} />
       {{/ "mwd.v2.components.radio"}}
 
       {{#> "mwd.v2.components.radio" label="Regular" controlFirst=true classes="mwd-radio--inline"}}
         <input type="radio" name="system.biography.experienceLevel" value="regular"
                data-edit-field="staged"
                {{#if (eq bio.experienceLevel "regular")}}checked{{/if}}
-               {{#unless editing}}disabled{{/unless}} />
+               {{#unless @root.editing}}disabled{{/unless}} />
       {{/ "mwd.v2.components.radio"}}
 
       {{#> "mwd.v2.components.radio" label="Veteran" controlFirst=true classes="mwd-radio--inline"}}
         <input type="radio" name="system.biography.experienceLevel" value="veteran"
                data-edit-field="staged"
                {{#if (eq bio.experienceLevel "veteran")}}checked{{/if}}
-               {{#unless editing}}disabled{{/unless}} />
+               {{#unless @root.editing}}disabled{{/unless}} />
       {{/ "mwd.v2.components.radio"}}
 
       {{#> "mwd.v2.components.radio" label="Elite" controlFirst=true classes="mwd-radio--inline"}}
         <input type="radio" name="system.biography.experienceLevel" value="elite"
                data-edit-field="staged"
                {{#if (eq bio.experienceLevel "elite")}}checked{{/if}}
-               {{#unless editing}}disabled{{/unless}} />
+               {{#unless @root.editing}}disabled{{/unless}} />
       {{/ "mwd.v2.components.radio"}}
     </div>
   </div>

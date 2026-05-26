@@ -13,7 +13,7 @@ That payload is what lets you click:
 
 * an Attribute → attribute roll
 * a Skill name → skill test roll
-* “Attack (P)” → attack workflow using primary weapon, fallback unarmed
+* “Attack” → attack workflow using an equipped/default weapon, fallback unarmed
 * “Initiative” → common roll workflow for REF+INT
 * an Edge pool name → “edge roll/spend” workflow
 
@@ -69,7 +69,7 @@ So something like:
 ```json
 {
   "intent": "attack",
-  "mode": "primary",
+  "mode": "equipped",
   "fallback": "unarmed",
   "edge": { "pool": "physical.grit", "allowed": ["pre","post"] },
   "source": { "actorUuid": "Actor.abc123" },
@@ -159,7 +159,7 @@ Inside that, you do:
 2. resolve references:
 
    * skill id → actor.system.skills[...]
-   * weapon mode primary → find equipped/primary weapon else unarmed
+   * weapon mode equipped → find equipped/default weapon else unarmed
    * attribute keys → actor.system.attributes[...]
 3. assemble a **RollContext** for your existing roll UI/dialog
 4. enforce guardrails:

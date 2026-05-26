@@ -35,6 +35,15 @@ import {
   normalizeMachineDegradationState,
 } from "./mwd/machine-degradation.js";
 import { normalizeMachineWeaponSize } from "./mwd/machine-hardpoints.js";
+import {
+  buildMachineEnergyPayloadModel,
+  normalizeMachineHardpointType,
+} from "./mwd/machine-weapon-types.js";
+import {
+  migrateMachineMonitorStorageOnce,
+} from "./mwd/machine-monitors.js";
+import { normalizeVehicleMovementProfile } from "./mwd/vehicle-profiles.js";
+import { normalizeVehicleStrainState } from "./mwd/vehicle-strain.js";
 
 function forcedDeletion() {
   return foundry.data.operators.ForcedDeletion;
@@ -44,13 +53,8 @@ function normalizeLegacyHardpointType(value, fallback = "energy") {
   const normalized = String(value ?? "").trim().toLowerCase();
   if (!normalized) return fallback;
 
-  if (["penetrating", "concussive", "energy", "thermal", "electrical", "support", "omni"].includes(normalized)) {
-    return normalized;
-  }
-  if (normalized === "ballistic") return "penetrating";
-  if (normalized === "missile") return "concussive";
   if (normalized === "special") return "support";
-  return fallback;
+  return normalizeMachineHardpointType(normalized, fallback);
 }
 
 function normalizeLegacyHardpointLocation(value, { actorType = "", fallback = "" } = {}) {
@@ -58,6 +62,7 @@ function normalizeLegacyHardpointLocation(value, { actorType = "", fallback = ""
   const defaultLocation = actorType === TEMPLATE.actorTypes.vehicle ? "turret" : (fallback || "arms");
   if (!normalized) return defaultLocation;
   if (normalized === "turret") return "turret";
+  if (actorType === TEMPLATE.actorTypes.vehicle && ["front", "side", "rear"].includes(normalized)) return normalized;
   if (["head", "cockpit"].includes(normalized)) return "head";
   if (["torso", "body", "core", "center"].includes(normalized)) return "torso";
   if (normalized === "arm" || normalized === "arms" || normalized.includes("arm")) return "arms";
@@ -75,6 +80,7 @@ function normalizeMachineHardpointData(hardpoint, { actorType = "" } = {}) {
 
 export const DECLARE_MIGRATIONS = 'anarchy-declareMigration';
 const SYSTEM_MIGRATION_CURRENT_VERSION = "systemMigrationVersion";
+const MACHINE_MONITOR_STORAGE_WORLD_MIGRATION = "machineMonitorStorageMigration";
 
 export class Migration {
   get code() { return "sample"; }
@@ -405,11 +411,6 @@ class _13_2_2_AddMwdVehicleModel extends Migration {
       locations: {},
       hardpoints: [],
       weaponGroups: [],
-      primarySlot: {
-        mode: 'normal',
-        allowedWeaponIds: [],
-        typeRestriction: '',
-      },
       melee: {
         baseProfile: {
           name: 'Unarmed',
@@ -468,9 +469,6 @@ class _13_2_3_AddBattlemechLoadout extends Migration {
       if (actor.type === TEMPLATE.actorTypes.battlemech) {
         this._ensure(actor, updates, 'system.mwd.weightClass', 'medium');
         this._ensure(actor, updates, 'system.mwd.weaponGroups', []);
-        this._ensure(actor, updates, 'system.mwd.primarySlot.mode', 'normal');
-        this._ensure(actor, updates, 'system.mwd.primarySlot.allowedWeaponIds', []);
-        this._ensure(actor, updates, 'system.mwd.primarySlot.typeRestriction', '');
         this._ensure(actor, updates, 'system.mwd.melee.baseProfile.name', 'Unarmed');
         this._ensure(actor, updates, 'system.mwd.melee.baseProfile.damage', '');
         this._ensure(actor, updates, 'system.mwd.melee.baseProfile.notes', '');
@@ -1133,6 +1131,70 @@ class _13_10_0_PersonalWeaponCapabilityModelV1 extends Migration {
   }
 }
 
+class _13_14_0_AddVehicleMovementProfileAndStrain extends Migration {
+  get version() { return "13.14.0"; }
+  get code() { return "add-vehicle-movement-profile-and-strain"; }
+
+  async migrate() {
+    const vehicles = game.actors.filter(actor => actor.type === TEMPLATE.actorTypes.vehicle);
+    for (const actor of vehicles) {
+      const nextSystem = foundry.utils.deepClone(actor.system ?? {});
+      normalizeVehicleMovementProfile(nextSystem);
+      normalizeVehicleStrainState(nextSystem, actor.type);
+
+      const crew = nextSystem.mwd?.crew ?? {};
+      const crewCount = Math.max(0, Number(crew.count ?? 1) || 0);
+      const updates = {
+        "system.mwd.movementProfile": nextSystem.mwd?.movementProfile ?? "tracked",
+        "system.mwd.flightSubtype": nextSystem.mwd?.flightSubtype ?? "",
+        "system.mwd.favoredTerrain": nextSystem.mwd?.favoredTerrain ?? [],
+        "system.mwd.adverseTerrain": nextSystem.mwd?.adverseTerrain ?? [],
+        "system.mwd.affordances": nextSystem.mwd?.affordances ?? [],
+        "system.mwd.strain": nextSystem.mwd?.strain ?? {},
+        "system.mwd.crew.count": crewCount,
+        "system.mwd.crew.effectiveCount": Math.max(0, Number(crew.effectiveCount ?? crewCount) || 0),
+        "system.mwd.crew.injuryLevel": Math.max(0, Number(crew.injuryLevel ?? 0) || 0),
+        "system.mwd.crew.bailedOut": Boolean(crew.bailedOut),
+      };
+
+      await actor.update(updates);
+    }
+  }
+}
+
+class _13_15_0_MachineEnergyPayloads extends Migration {
+  get version() { return "13.15.0"; }
+  get code() { return "machine-energy-payloads"; }
+
+  async migrate() {
+    await this.applyItemsUpdates(items => items
+      .filter(item => String(item?.canonicalType ?? item?.type ?? "").trim() === TEMPLATE.itemType.mechWeapon)
+      .map(item => this._collectWeaponUpdate(item))
+      .filter(Boolean));
+  }
+
+  _collectWeaponUpdate(item) {
+    const payloadModel = buildMachineEnergyPayloadModel(item.system ?? {}, {
+      idFactory: () => foundry.utils.randomID(),
+    });
+    const currentDamageType = String(item.system?.damageType ?? "").trim();
+    const updates = {
+      _id: item.id,
+    };
+
+    if (currentDamageType !== payloadModel.damageType) {
+      updates["system.damageType"] = payloadModel.damageType;
+    }
+
+    if (payloadModel.payloadDamageType) {
+      updates["system.payloads"] = payloadModel.payloads;
+      updates["system.selectedPayloadId"] = payloadModel.selectedPayloadId;
+    }
+
+    return Object.keys(updates).length > 1 ? updates : null;
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -1163,6 +1225,8 @@ export class Migrations {
       new _13_11_0_MachineReliabilityAndShock(),
       new _13_12_0_NormalizeMachineHardpointVocabulary(),
       new _13_13_0_MoveMachineMountStateToHardpoints(),
+      new _13_14_0_AddVehicleMovementProfileAndStrain(),
+      new _13_15_0_MachineEnergyPayloads(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {
@@ -1171,6 +1235,14 @@ export class Migrations {
       config: false,
       type: String,
       default: "0.0.0"
+    });
+
+    game.settings.register(SYSTEM_NAME, MACHINE_MONITOR_STORAGE_WORLD_MIGRATION, {
+      name: "Machine Monitor Storage Migration",
+      scope: "world",
+      config: false,
+      type: String,
+      default: ""
     });
   }
 
@@ -1201,6 +1273,16 @@ export class Migrations {
     else {
       console.log(LOG_HEAD + `No system version changed`);
     }
+    void this.migrateMachineMonitorStorage();
+  }
+
+  async migrateMachineMonitorStorage() {
+    const current = game.settings.get(SYSTEM_NAME, MACHINE_MONITOR_STORAGE_WORLD_MIGRATION);
+    return migrateMachineMonitorStorageOnce({
+      actors: game.actors ?? [],
+      currentMigration: current,
+      setMigration: value => game.settings.set(SYSTEM_NAME, MACHINE_MONITOR_STORAGE_WORLD_MIGRATION, value),
+    });
   }
 
 }

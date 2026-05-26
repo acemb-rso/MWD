@@ -1,14 +1,103 @@
 Below is a **canonical Asset Module item schema** plus a **controlled tag taxonomy** for quirk-style modules in MWD.
 
-**Live implementation note:** the shipped `assetModule` schema is currently much
-smaller than the long-form design described below. The live engine currently
-derives module behavior primarily from:
+## AE-first authority model
+
+Asset-module mechanics use one authoritative representation per mechanical
+effect:
+
+* **AE-native** effects are authored as embedded item ActiveEffects on the
+  asset-module item. When the module contributes, the item AE is mirrored onto
+  the owning actor. Actor-side ActiveEffects created by this sync are mirrors;
+  manually created actor ActiveEffects are direct actor effects and are not
+  touched by asset-module sync.
+* **Provider-contextual** effects stay in `system.effects` when they need roll
+  context: intent, action id, skill id, weapon tags, target state, status
+  prerequisites, heat band, or selected module mode.
+* **Runtime-event** effects are authored as runtime packets when they
+  participate in events: targeting/EW state, network sharing/suppression,
+  damage interception, charges, auras, heat lifecycle, or start/end activation
+  timing.
+
+Do not duplicate the same mechanic in more than one rail. For example,
+`ecmShrouded` should be either an embedded AE status or a provider-derived
+contextual status, not both. The existing structured `system.effects` rail is
+therefore provider-contextual/runtime-compatibility data, not the home for
+stable actor-state changes that ActiveEffects can represent.
+
+## Readiness model
+
+Every subsystem must use the same readiness model before an asset module can
+contribute AE mirrors, provider effects, or runtime packets.
+
+```js
+ready = installed && enabled && !suppressed && !offline && !destroyed && !coolingDown
+```
+
+Field authority:
+
+* `installed`: derived from the module being an owned item on the actor.
+* `enabled`: stored at `system.enabled`; defaults true unless
+  `system.inactive === true`. The legacy `system.inactive` flag still disables
+  contribution.
+* `active`: stored at `system.activation.active`. Passive modules count as
+  active for contribution; toggle/mode modules contribute active-timed effects
+  only while this value is true.
+* `coolingDown`: derived from `system.activation.cooldownUntilRound` compared
+  to the current combat round.
+* `suppressed`: stored at `system.state.suppressed`. Used for EW/network
+  suppression or temporary rule suppression.
+* `offline`: stored at `system.state.offline`. Used for disabled/offline module
+  state that is not destruction.
+* `destroyed`: stored at `system.state.destroyed`. It may be set by damage
+  automation, but it is a module-level state and is not guessed from item name.
+
+`system.state.reason` may hold one of `suppressed`, `offline`, `destroyed`,
+`disabled`, or `cooldown` for UI/debugging. It is descriptive; the booleans
+above remain authoritative.
+
+**Live implementation note:** the shipped `assetModule` schema now supports the
+structured v1 effect rail in addition to the older compatibility fields. The
+live engine normalizes and validates:
 
 ```json
 {
   "system": {
+    "installClass": "module",
     "category": "special",
     "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "state": {
+      "suppressed": false,
+      "offline": false,
+      "destroyed": false,
+      "reason": ""
+    },
+    "effects": [
+      {
+        "id": "sensor-suite.acquire",
+        "label": "Active Probe",
+        "timing": "active",
+        "scope": "self",
+        "requires": {
+          "actionIds": ["acquireTarget"]
+        },
+        "grants": {
+          "statuses": [],
+          "actionOverrides": []
+        },
+        "modifies": {
+          "dice": 2,
+          "bypassStatuses": ["ecmShrouded"]
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
     "mobility": {
       "jumping": {
         "enabled": false,
@@ -29,11 +118,19 @@ derives module behavior primarily from:
 }
 ```
 
+Validation is intentionally fail-loud. Invalid effect schema blocks item saves
+from the item sheet, and invalid installed module data raises an
+`AssetModuleValidationError` during runtime lookup instead of silently dropping
+mechanics. Use `epmBoosted`; `ecmBoosted` is invalid. `bypassStatuses` is
+currently intentionally narrow and may only include `ecmShrouded`.
+
 For clustering attacks, `targeting.clustering.diceModifier` adds cluster dice
 to weapons or weapon groups that already have clustering, and
 `targeting.clustering.targetNumberModifier` shifts the cluster success target
 number. Negative target-number modifiers make clustering hits easier, which is
-the intended hook for Artemis-style fire-control upgrades.
+the intended hook for Artemis-style fire-control upgrades. New module-authored
+effects can also use `modifies.clusteringDice` and
+`modifies.clusteringTarget`, gated by effect requirements.
 
 **Design intent:** quirks become **data-driven item records** that feed the existing **intent → resolver → RollContext** pipeline, with effects expressed as **dice parts, CQ parts, action injections, constraints, and rare rule hooks**, rather than sheet-side logic or bespoke one-off systems. That matches your locked resolver doctrine, especially “DN = Range + Motion only,” “CQ = AR – DR,” provider-based collection, and the requirement that the sheet emit intent while the engine does the work.    
 
@@ -58,12 +155,18 @@ This aligns with the existing sheet direction where mechs/NPCs already have an `
   "name": "Fire Control Suite",
   "type": "assetModule",
   "img": "systems/mwd/icons/modules/fire-control.webp",
-  "system": {
-    "moduleType": "system",
-    "subtype": "quirk",
-    "tier": 1,
-    "enabled": true,
-    "source": {
+    "system": {
+      "moduleType": "system",
+      "subtype": "quirk",
+      "tier": 1,
+      "enabled": true,
+      "state": {
+        "suppressed": false,
+        "offline": false,
+        "destroyed": false,
+        "reason": ""
+      },
+      "source": {
       "origin": "design",
       "family": "fire-control",
       "canonicalId": "fireControlSuite"
@@ -667,7 +770,6 @@ attack.direct
 attack.area
 attack.split
 attack.reaction
-attack.primary
 attack.secondary
 ```
 
@@ -729,7 +831,6 @@ weapon.missile
 weapon.support
 weapon.melee
 weapon.usesAmmo
-weapon.primaryEligible
 weapon.stabilized
 weapon.modular
 weapon.jettisonCapable

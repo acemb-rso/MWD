@@ -4,11 +4,23 @@
 
 import { collectLifeModuleSkillRollModifiers } from "../../mwd/life-modules.js";
 
+function uniqueActors(...actors) {
+  const seen = new Set();
+  return actors.filter(actor => {
+    if (!actor) return false;
+    const key = actor.uuid ?? actor.id ?? actor;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export class LifeModuleModifiersProvider {
   id = "mwd.lifeModules";
   label = "Life Modules";
 
-  collect({ actor, resolved } = {}) {
-    return collectLifeModuleSkillRollModifiers({ actor, resolved });
+  collect({ actor, rollActor, resolved } = {}) {
+    return uniqueActors(rollActor, actor)
+      .flatMap(sourceActor => collectLifeModuleSkillRollModifiers({ actor: sourceActor, resolved }));
   }
 }

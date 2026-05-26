@@ -31,9 +31,16 @@
               },
               {
                 "type": "panel",
-                "title": "Electronic Warfare",
+                "title": "Combat Awareness",
                 "children": [
-                  { "type": "include", "partial": "mwd.v2.ui.vehicle.ew-panel" }
+                  { "type": "include", "partial": "mwd.v2.ui.combat-awareness-preview" }
+                ]
+              },
+              {
+                "type": "panel",
+                "title": "Fire Mode",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.battlemech.fire-mode" }
                 ]
               },
               {

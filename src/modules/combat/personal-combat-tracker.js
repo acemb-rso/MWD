@@ -43,6 +43,7 @@ const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
 const PREPARED_INTERRUPT_STATUS_ID = "preparedInterrupt";
 const PREPARED_INTERRUPT_ICON = "systems/mwd/img/icons/status/readied_action.svg";
+const DESTROYED_STATUS_ID = "destroyed";
 
 const BASE_SA = 3;
 const BASE_FA = 1;
@@ -73,7 +74,8 @@ function defaultState(activation = null) {
       aim: null,
       move: null,
       preparedInterrupt: null,
-      usedWeaponGroupIds: []
+      usedWeaponGroupIds: [],
+      fireModeChangedThisActivation: false
     },
     hazards: {},
     pendingReaction: null,
@@ -145,13 +147,98 @@ function normalizeActionLog(entries) {
       const label = String(entry?.label ?? "").trim();
       if (!label) return null;
 
-      return {
+      const normalized = {
         id: String(entry?.id ?? "").trim(),
         label,
         costLabel: String(entry?.costLabel ?? "").trim()
       };
+
+      const resource = normalizeLoggedResource(entry?.resource);
+      if (resource) normalized.resource = resource;
+      for (const [key, value] of Object.entries({
+        cost: entry?.cost,
+        saSpentDelta: entry?.saSpentDelta,
+        attackDelta: entry?.attackDelta,
+        burnThisActivationDelta: entry?.burnThisActivationDelta,
+        reactionBurnDelta: entry?.reactionBurnDelta,
+        actorBurnDelta: entry?.actorBurnDelta,
+        actorEdgeDelta: entry?.actorEdgeDelta
+      })) {
+        const number = Number(value);
+        if (Number.isFinite(number) && number !== 0) normalized[key] = number;
+      }
+
+      const edgePoolKey = String(entry?.edgePoolKey ?? "").trim();
+      if (edgePoolKey) normalized.edgePoolKey = edgePoolKey;
+
+      return normalized;
     })
     .filter(Boolean);
+}
+
+function normalizeLoggedResource(value) {
+  const resource = String(value ?? "").trim().toLowerCase();
+  return ["sa", "fa", "ra", "burn", "edge"].includes(resource) ? resource : "";
+}
+
+function parseLoggedCostLabel(costLabel = "") {
+  const label = String(costLabel ?? "").trim();
+  if (!label) return {};
+  if (/^free$/i.test(label)) return { resource: "fa", cost: 1 };
+
+  const burnMatch = label.match(/^\+?\s*(\d+)\s*burn\b/i);
+  if (burnMatch) return { resource: "burn", cost: Math.max(0, Number(burnMatch[1]) || 0) };
+
+  const edgeMatch = label.match(/^(\d+)\s*edge(?:\s*\(([^)]+)\))?/i);
+  if (edgeMatch) {
+    return {
+      resource: "edge",
+      cost: Math.max(0, Number(edgeMatch[1]) || 0),
+      edgePoolKey: String(edgeMatch[2] ?? "").trim()
+    };
+  }
+
+  const resourceMatch = label.match(/^(\d+)\s*(sa|fa|ra)\b/i);
+  if (resourceMatch) {
+    return {
+      resource: resourceMatch[2].toLowerCase(),
+      cost: Math.max(0, Number(resourceMatch[1]) || 0)
+    };
+  }
+
+  return {};
+}
+
+function getActionLogRemovalDeltas(entry = {}) {
+  const parsed = parseLoggedCostLabel(entry.costLabel);
+  const resource = normalizeLoggedResource(entry.resource) || parsed.resource || "";
+  const cost = Math.max(0, Number(entry.cost ?? parsed.cost ?? 0) || 0);
+  const action = getPersonalAction(entry.id);
+  const fallbackAttackDelta = entry.id === "attack" ? 1 : 0;
+  const fallbackSaSpentDelta = resource === "sa" ? cost : 0;
+  const fallbackReactionBurnDelta = resource === "burn" && action?.category === PERSONAL_ACTION_CATEGORIES.reaction
+    ? cost
+    : 0;
+  const burnThisActivationDelta = Math.max(0, Number(
+    entry.burnThisActivationDelta ?? entry.burnDelta ?? 0
+  ) || 0);
+  const actorBurnDelta = Number.isFinite(Number(entry.actorBurnDelta))
+    ? Number(entry.actorBurnDelta)
+    : (entry.id === "reduceBurn"
+      ? -1
+      : Math.max(0, burnThisActivationDelta + (resource === "burn" ? cost : 0)));
+
+  return {
+    resource,
+    cost,
+    saSpentDelta: Math.max(0, Number(entry.saSpentDelta ?? fallbackSaSpentDelta) || 0),
+    attackDelta: Math.max(0, Number(entry.attackDelta ?? fallbackAttackDelta) || 0),
+    burnThisActivationDelta,
+    reactionBurnDelta: Math.max(0, Number(entry.reactionBurnDelta ?? fallbackReactionBurnDelta) || 0),
+    actorBurnDelta,
+    actorEdgeDelta: Number(entry.actorEdgeDelta ?? (resource === "edge" ? -cost : 0)) || 0,
+    edgePoolKey: String(entry.edgePoolKey ?? parsed.edgePoolKey ?? "").trim()
+  };
 }
 
 function filterReactionActionLog(entries = []) {
@@ -209,6 +296,10 @@ function mergeActionState(state = {}, actionId = "", { snapshot = null, metadata
       condition: String(metadata?.condition ?? "").trim(),
       scope: String(metadata?.scope ?? "").trim()
     };
+  }
+
+  if (actionId === "changeFireMode") {
+    nextState.actionState.fireModeChangedThisActivation = true;
   }
 
   return nextState;
@@ -294,15 +385,62 @@ function formatDistanceLabel(distance, units = "") {
 }
 
 function applyChatVisibility(chatData) {
-  const rollMode = game.settings?.get?.("core", "rollMode");
-  if (typeof ChatMessage.applyRollMode === "function") {
-    ChatMessage.applyRollMode(chatData, rollMode);
+  const rollMode = game.settings?.get?.("core", "messageMode");
+  if (typeof ChatMessage.applyMode === "function") {
+    ChatMessage.applyMode(chatData, rollMode);
   }
   return chatData;
 }
 
 function isHazardRegionDocument(region) {
   return Boolean(getHazardRegionFlag(region));
+}
+
+function collectionEntries(collection = null) {
+  if (!collection) return [];
+  if (Array.isArray(collection)) return collection;
+  if (collection.contents && Array.isArray(collection.contents)) return collection.contents;
+  if (typeof collection.values === "function") return Array.from(collection.values());
+  if (typeof collection[Symbol.iterator] === "function") return Array.from(collection);
+  return [];
+}
+
+function getEffectStatusIds(effect = null) {
+  const ids = new Set();
+  const add = value => {
+    const id = String(value ?? "").trim();
+    if (id) ids.add(id);
+  };
+
+  const statuses = effect?.statuses;
+  if (statuses?.forEach) statuses.forEach(add);
+  else if (Array.isArray(statuses)) statuses.forEach(add);
+
+  add(effect?.getFlag?.(FLAG_SCOPE, "status")?.id);
+  add(effect?.flags?.[FLAG_SCOPE]?.status?.id);
+  add(effect?.statusId);
+  return ids;
+}
+
+function actorHasStatusId(actor = null, statusId = "") {
+  const id = String(statusId ?? "").trim();
+  if (!actor || !id) return false;
+
+  const statuses = actor.statuses;
+  if (statuses?.has?.(id)) return true;
+  if (Array.isArray(statuses) && statuses.includes(id)) return true;
+
+  const effects = [
+    ...collectionEntries(actor.effects),
+    ...collectionEntries(actor.appliedEffects),
+  ];
+  return effects.some(effect => getEffectStatusIds(effect).has(id));
+}
+
+function isMachineDestroyedForCombat(actor = null) {
+  if (!isMachineActor(actor)) return false;
+  if (actorHasStatusId(actor, DESTROYED_STATUS_ID)) return true;
+  return String(actor?.system?.mwd?.status?.state ?? "").trim().toLowerCase() === DESTROYED_STATUS_ID;
 }
 
 function buildHazardOverlayText(hazards = []) {
@@ -318,6 +456,78 @@ function buildHazardOverlayText(hazards = []) {
   return highest.evadeLocked ? `${label} LOCK` : label;
 }
 
+function getActorIdentityKeys(actor = null) {
+  const keys = new Set();
+  const add = (value) => {
+    const normalized = String(value ?? "").trim();
+    if (normalized) keys.add(normalized);
+  };
+
+  add(actor?.id);
+  add(actor?._id);
+  add(actor?.uuid);
+  add(actor?.actor?.id);
+  add(actor?.actor?.uuid);
+  add(actor?.baseActor?.id);
+  add(actor?.baseActor?.uuid);
+  return keys;
+}
+
+function resolveActorUuidSync(uuid = "") {
+  const value = String(uuid ?? "").trim();
+  if (!value) return null;
+
+  if (typeof fromUuidSync === "function") {
+    try {
+      const resolved = fromUuidSync(value);
+      if (resolved) return resolved?.actor ?? resolved?.baseActor ?? resolved;
+    } catch (_error) {
+      // Fall through to actor collection lookup.
+    }
+  }
+
+  const actorId = value.startsWith("Actor.") ? value.slice("Actor.".length).split(".")[0] : value;
+  return game?.actors?.get?.(actorId)
+    ?? (game?.actors?.contents ?? []).find(actor => getActorIdentityKeys(actor).has(value))
+    ?? null;
+}
+
+function getMachinePilotActorSync(machineActor = null) {
+  if (!isMachineActor(machineActor)) return null;
+
+  const pilotUuid = String(
+    machineActor?.system?.pilot?.uuid
+    ?? machineActor?.system?.mwd?.pilot?.uuid
+    ?? machineActor?.system?.mwd?.crew?.operatorActorUuid
+    ?? machineActor?.system?.mwd?.crew?.pilotActorUuid
+    ?? ""
+  ).trim();
+
+  return resolveActorUuidSync(pilotUuid);
+}
+
+function isMachineAssignedToOperator(machineActor = null, operatorActor = null) {
+  if (!isMachineActor(machineActor) || !operatorActor) return false;
+
+  const pilotUuid = String(
+    machineActor?.system?.pilot?.uuid
+    ?? machineActor?.system?.mwd?.pilot?.uuid
+    ?? machineActor?.system?.mwd?.crew?.operatorActorUuid
+    ?? machineActor?.system?.mwd?.crew?.pilotActorUuid
+    ?? ""
+  ).trim();
+  const operatorKeys = getActorIdentityKeys(operatorActor);
+  if (operatorKeys.has(pilotUuid)) return true;
+
+  const pilotActor = getMachinePilotActorSync(machineActor);
+  if (!pilotActor) return false;
+
+  for (const key of getActorIdentityKeys(pilotActor)) {
+    if (operatorKeys.has(key)) return true;
+  }
+  return false;
+}
+
 export class PersonalCombatTracker {
   static _targetRefreshTimeout = null;
   static _pendingTokenPositions = new Map();
@@ -326,11 +536,15 @@ export class PersonalCombatTracker {
   static init() {
     Hooks.on("updateCombat", (combat, changed) => this._onUpdateCombat(combat, changed));
     Hooks.on("updateCombatant", (combatant, changed) => this._onUpdateCombatant(combatant, changed));
+    Hooks.on("updateActor", (actor, changed) => this._onUpdateActor(actor, changed));
     Hooks.on("updateToken", (tokenDocument, changed) => this._onUpdateToken(tokenDocument, changed));
     Hooks.on("refreshToken", token => this._onRefreshToken(token));
     Hooks.on("createCombatant", combatant => this._onCreateCombatant(combatant));
     Hooks.on("deleteCombatant", combatant => this._onDeleteCombatant(combatant));
     Hooks.on("deleteCombat", combat => this._onDeleteCombat(combat));
+    Hooks.on("createActiveEffect", effect => this._onActiveEffectChange(effect));
+    Hooks.on("updateActiveEffect", effect => this._onActiveEffectChange(effect));
+    Hooks.on("deleteActiveEffect", effect => this._onActiveEffectChange(effect));
     Hooks.on("createRegion", region => this._onCreateRegion(region));
     Hooks.on("updateRegion", region => this._onUpdateRegion(region));
     Hooks.on("deleteRegion", region => this._onDeleteRegion(region));
@@ -344,6 +558,8 @@ export class PersonalCombatTracker {
   }
 
   static async onReady() {
+    await this.reconcileOperatedCombatants(game.combat);
+    await this.syncDestroyedMachineDefeatedCombatants(game.combat);
     await this.ensureCurrentCombatantState();
     await this.syncPreparedIndicators();
     await this._syncAllSceneHazards();
@@ -415,6 +631,89 @@ export class PersonalCombatTracker {
     if (!combat?.combatants) return [];
     if (typeof combat.combatants.values === "function") return Array.from(combat.combatants.values());
     return Array.from(combat.combatants ?? []);
+  }
+
+  static _getCombatantActor(combatant, sceneId = canvas?.scene?.id) {
+    const tokenDoc = this._getCombatantTokenDocument(combatant, sceneId);
+    return tokenDoc?.actor ?? combatant?.actor ?? null;
+  }
+
+  static _actorsMatch(left = null, right = null) {
+    if (!left || !right) return false;
+    const rightKeys = getActorIdentityKeys(right);
+    return Array.from(getActorIdentityKeys(left)).some(key => rightKeys.has(key));
+  }
+
+  static _findMachineCombatantForPilot(pilotActor, combat = game?.combat) {
+    if (!pilotActor || !combat) return null;
+    const sceneId = this._getCombatSceneId(combat) || canvas?.scene?.id;
+
+    return this._getCombatants(combat).find(combatant => {
+      const combatantActor = this._getCombatantActor(combatant, sceneId);
+      return isMachineAssignedToOperator(combatantActor, pilotActor);
+    }) ?? null;
+  }
+
+  static _isDuplicatePilotCombatant(combatant, combat = combatant?.combat ?? game?.combat) {
+    const sceneId = this._getCombatSceneId(combat) || this._getCombatantSceneId(combatant) || canvas?.scene?.id;
+    const actor = this._getCombatantActor(combatant, sceneId);
+    if (!actor || isMachineActor(actor)) return false;
+    const machineCombatant = this._findMachineCombatantForPilot(actor, combat);
+    return Boolean(machineCombatant && machineCombatant.id !== combatant?.id);
+  }
+
+  static getPlatformActorForCombatant(combatant, sceneId = canvas?.scene?.id) {
+    const actor = this._getCombatantActor(combatant, sceneId);
+    return isMachineActor(actor) ? actor : null;
+  }
+
+  static getActionEconomyActorForCombatant(combatant, sceneId = canvas?.scene?.id) {
+    const actor = this._getCombatantActor(combatant, sceneId);
+    if (!isMachineActor(actor)) return actor;
+    return getMachinePilotActorSync(actor) ?? actor;
+  }
+
+  static resolveCombatantForActor(actor, { combat = game?.combat, token = null } = {}) {
+    return this.resolveActivationUnit({ actor, combat, token })?.combatant ?? null;
+  }
+
+  static resolveActivationUnit({ actor = null, combat = game?.combat, token = null, combatant = null } = {}) {
+    const sceneId = this._getCombatSceneId(combat) || canvas?.scene?.id;
+    const requestedActor = actor?.actor ?? actor?.document?.actor ?? actor ?? null;
+    let resolvedCombatant = combatant ?? null;
+
+    if (!resolvedCombatant && requestedActor && !isMachineActor(requestedActor)) {
+      resolvedCombatant = this._findMachineCombatantForPilot(requestedActor, combat);
+    }
+
+    if (!resolvedCombatant && requestedActor) {
+      const combatResult = this.getCombat(requestedActor, token);
+      resolvedCombatant = combatResult?.combatant ?? null;
+      combat = combatResult?.combat ?? combat;
+    }
+
+    const combatantActor = this._getCombatantActor(resolvedCombatant, sceneId);
+    const platformActor = isMachineActor(combatantActor)
+      ? combatantActor
+      : (isMachineActor(requestedActor) ? requestedActor : null);
+    const operatorActor = platformActor ? getMachinePilotActorSync(platformActor) : null;
+    const actingActor = operatorActor ?? requestedActor ?? combatantActor ?? platformActor ?? null;
+
+    return {
+      kind: platformActor && operatorActor ? "operatedMachine" : "actor",
+      combat,
+      combatant: resolvedCombatant,
+      actor: requestedActor,
+      actingActor,
+      operatorActor: operatorActor ?? null,
+      platformActor: platformActor ?? null,
+      combatStateCombatant: resolvedCombatant,
+    };
+  }
+
+  static rememberActivation(combat, combatant) {
+    if (!combat?.id || !combatant?.id) return;
+    this._lastActivationByCombat.set(combat.id, this.getActivationIdentity(combat, combatant));
   }
 
   static _getCombatSceneId(combat) {
@@ -703,7 +1002,19 @@ export class PersonalCombatTracker {
       };
     }
 
-    let combatant = this._findCombatantForToken(combat, preferredSceneTokenDoc, sceneId);
+    const operatedMachineCombatant = !isMachineActor(actor)
+      ? this._findMachineCombatantForPilot(actor, combat)
+      : null;
+
+    let combatant = operatedMachineCombatant
+      ?? this._findCombatantForToken(combat, preferredSceneTokenDoc, sceneId);
+    if (!hasExplicitToken) {
+      const currentCombatant = combat?.combatant ?? null;
+      const currentActor = this._getCombatantActor(currentCombatant, sceneId);
+      if (isMachineAssignedToOperator(currentActor, actor)) {
+        combatant = currentCombatant;
+      }
+    }
 
     const combatants = this._getCombatants(combat);
     if (!combatant) {
@@ -716,7 +1027,9 @@ export class PersonalCombatTracker {
         if (hasExplicitToken && preferredSceneTokenId) return combatantTokenId === preferredSceneTokenId;
         if (actorIds.has(this._getCombatantActorId(it))) return true;
 
-        return this._tokenDocumentMatchesActor(combatantTokenDoc, actor, actorIds);
+        const combatantActor = combatantTokenDoc?.actor ?? it?.actor ?? null;
+        return this._tokenDocumentMatchesActor(combatantTokenDoc, actor, actorIds)
+          || (!hasExplicitToken && isMachineAssignedToOperator(combatantActor, actor));
       });
 
       const activeMatchingCombatant = matchingCombatants.find(it => it.id === combat?.combatant?.id) ?? null;
@@ -756,8 +1069,14 @@ export class PersonalCombatTracker {
       token: resolvedToken,
       tokenDocument
     } = this.getCombat(actor, token);
+    const unit = this.resolveActivationUnit({ actor, combat, token: tokenDocument ?? resolvedToken ?? token, combatant });
+    const actionActor = unit?.actingActor ?? actor;
+    const platformActor = unit?.platformActor ?? null;
     const isCurrentTurn = !!combatant && combat?.combatant?.id === combatant.id;
     const activation = combatant ? this.getActivationIdentity(combat, combatant) : null;
+    if (isCurrentTurn && combat?.id && !this._lastActivationByCombat.has(combat.id)) {
+      this.rememberActivation(combat, combatant);
+    }
     const stored = combatant ? combatant.getFlag(FLAG_SCOPE, FLAG_KEY) : null;
     const state = combatant
       ? (isCurrentTurn
@@ -766,16 +1085,16 @@ export class PersonalCombatTracker {
       : defaultState(activation);
     state.actionLog = normalizeActionLog(state.actionLog);
 
-    const burnValue = Math.max(0, Number(actor?.system?.burn?.value ?? 0));
+    const burnValue = Math.max(0, Number(actionActor?.system?.burn?.value ?? actor?.system?.burn?.value ?? 0));
     const burnPenalty = Math.floor(burnValue / 2);
-    const overloaded = !!actor?.system?.burn?.overloaded;
+    const overloaded = !!(actionActor?.system?.burn?.overloaded ?? actor?.system?.burn?.overloaded);
     const preparedInterrupt = getPreparedInterrupt(state);
-    const statuses = this.getActiveStatuses(actor);
+    const statuses = this.getActiveStatuses(actionActor);
     const effects = statuses.filter(status =>
       !(overloaded && status.id === "overloaded")
       && status.id !== PREPARED_INTERRUPT_STATUS_ID
     );
-    const modifierSummary = this.getModifierSummary(actor, burnPenalty);
+    const modifierSummary = this.getModifierSummary(actionActor, burnPenalty);
     const rollImpact = this.getRollImpact(modifierSummary);
     const burnThisActivation = Math.max(0, Number(state.burnThisActivation ?? 0));
     const reason = !combatant
@@ -813,6 +1132,11 @@ export class PersonalCombatTracker {
       tokenDocument,
       combat,
       combatant,
+      actionEconomyActor: actionActor,
+      actingActor: actionActor,
+      operatorActor: unit?.operatorActor ?? null,
+      platformActor,
+      activationUnit: unit,
       hasCombatant: !!combatant,
       isCurrentTurn,
       overloaded,
@@ -948,7 +1272,13 @@ export class PersonalCombatTracker {
     this._appendActionLog(nextState, {
       id: actionId,
       label: logLabel || actionLabel,
-      costLabel: preview.costLabel
+      costLabel: preview.costLabel,
+      resource: preview.usesReaction ? "ra" : (preview.edgePoolKey ? "edge" : "burn"),
+      cost: preview.usesReaction ? 1 : (preview.edgePoolKey ? 1 : burnDelta),
+      reactionBurnDelta: burnDelta,
+      actorBurnDelta: burnDelta,
+      actorEdgeDelta: preview.edgePoolKey ? -1 : 0,
+      edgePoolKey: preview.edgePoolKey ?? ""
     });
 
     if (runtime.pendingMutations?.length) {
@@ -995,6 +1325,23 @@ export class PersonalCombatTracker {
     return this.updateCombatantState(actor, {
       token,
       mutate: state => markBattlemechWeaponGroupUsed(state, normalizedId),
+    });
+  }
+
+  static async markWeaponGroupsUsed(actor, { token = null, groupIds = [] } = {}) {
+    const normalizedIds = Array.from(groupIds ?? [])
+      .map(id => String(id ?? "").trim())
+      .filter(Boolean);
+    if (!normalizedIds.length) return { ok: true, skipped: true };
+
+    return this.updateCombatantState(actor, {
+      token,
+      mutate: state => {
+        for (const groupId of normalizedIds) {
+          markBattlemechWeaponGroupUsed(state, groupId);
+        }
+        return state;
+      },
     });
   }
 
@@ -1156,7 +1503,9 @@ export class PersonalCombatTracker {
       ],
       activationLog: normalizeActionLog(snapshot.state?.actionLog).map((entry, index) => ({
         ...entry,
-        index: index + 1
+        index: index + 1,
+        logIndex: index,
+        canRemove: Boolean(snapshot.hasCombatant && snapshot.isCurrentTurn)
       })),
       menus: [
         {
@@ -1553,18 +1902,125 @@ export class PersonalCombatTracker {
     return `${cost} ${String(resource).toUpperCase()}`;
   }
 
-  static _appendActionLog(state, { id = "", label = "", costLabel = "" } = {}) {
+  static _appendActionLog(state, {
+    id = "",
+    label = "",
+    costLabel = "",
+    resource = "",
+    cost = 0,
+    saSpentDelta = 0,
+    attackDelta = 0,
+    burnThisActivationDelta = 0,
+    reactionBurnDelta = 0,
+    actorBurnDelta = 0,
+    actorEdgeDelta = 0,
+    edgePoolKey = ""
+  } = {}) {
     const normalizedLabel = String(label ?? "").trim();
     if (!normalizedLabel) return;
 
     const nextLog = normalizeActionLog(state?.actionLog);
-    nextLog.push({
+    const entry = {
       id: String(id ?? "").trim(),
       label: normalizedLabel,
       costLabel: String(costLabel ?? "").trim()
-    });
+    };
+
+    const loggedResource = normalizeLoggedResource(resource);
+    if (loggedResource) entry.resource = loggedResource;
+    for (const [key, value] of Object.entries({
+      cost,
+      saSpentDelta,
+      attackDelta,
+      burnThisActivationDelta,
+      reactionBurnDelta,
+      actorBurnDelta,
+      actorEdgeDelta
+    })) {
+      const number = Number(value);
+      if (Number.isFinite(number) && number !== 0) entry[key] = number;
+    }
+
+    const normalizedEdgePoolKey = String(edgePoolKey ?? "").trim();
+    if (normalizedEdgePoolKey) entry.edgePoolKey = normalizedEdgePoolKey;
+
+    nextLog.push(entry);
 
     state.actionLog = nextLog;
+  }
+
+  static async removeActivationLogEntry(actor, { token = null, index = null } = {}) {
+    const snapshot = this.getSnapshot(actor, { token });
+    if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
+    if (!snapshot.isCurrentTurn) return { ok: false, reason: "Only available during your activation." };
+
+    const log = normalizeActionLog(snapshot.state?.actionLog);
+    const entryIndex = Number(index);
+    if (!Number.isInteger(entryIndex) || entryIndex < 0 || entryIndex >= log.length) {
+      return { ok: false, reason: "That action is no longer in this activation log." };
+    }
+
+    const [removed] = log.splice(entryIndex, 1);
+    const deltas = getActionLogRemovalDeltas(removed);
+    const nextState = cloneWritableSnapshotState(snapshot);
+    nextState.actionLog = log;
+
+    if (deltas.resource === "sa") {
+      nextState.saSpentThisActivation = Math.max(
+        0,
+        Number(nextState.saSpentThisActivation ?? 0) - deltas.saSpentDelta
+      );
+      nextState.saRemaining = Math.max(0, BASE_SA - Number(nextState.saSpentThisActivation ?? 0));
+    } else if (deltas.resource === "fa") {
+      nextState.faRemaining = Math.min(
+        BASE_FA,
+        Math.max(0, Number(nextState.faRemaining ?? 0) + deltas.cost)
+      );
+    } else if (deltas.resource === "ra") {
+      nextState.raRemaining = Math.min(
+        BASE_RA,
+        Math.max(0, Number(nextState.raRemaining ?? 0) + deltas.cost)
+      );
+    }
+
+    nextState.attacksThisActivation = Math.max(
+      0,
+      Number(nextState.attacksThisActivation ?? 0) - deltas.attackDelta
+    );
+    nextState.burnThisActivation = Math.max(
+      0,
+      Number(nextState.burnThisActivation ?? 0) - deltas.burnThisActivationDelta
+    );
+    nextState.reactionBurnSinceLastActivation = Math.max(
+      0,
+      Number(nextState.reactionBurnSinceLastActivation ?? 0) - deltas.reactionBurnDelta
+    );
+
+    nextState.actionState ??= {};
+    if (removed.id === "aim" && !log.some(entry => entry.id === "aim")) nextState.actionState.aim = null;
+    if (removed.id === "move" && !log.some(entry => entry.id === "move")) nextState.actionState.move = null;
+    if (removed.id === "prepare" && !log.some(entry => entry.id === "prepare")) {
+      nextState.actionState.preparedInterrupt = null;
+    }
+
+    await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextState);
+
+    if (deltas.actorBurnDelta !== 0) {
+      await actor.update({
+        "system.burn.value": Math.max(
+          0,
+          Number(actor.system?.burn?.value ?? 0) - deltas.actorBurnDelta
+        )
+      });
+    }
+
+    if (deltas.actorEdgeDelta < 0 && deltas.edgePoolKey && actor.gainEdge) {
+      await actor.gainEdge(deltas.edgePoolKey, Math.abs(deltas.actorEdgeDelta), { source: "removeActivationLogEntry" });
+    } else if (deltas.actorEdgeDelta > 0 && deltas.edgePoolKey && actor.spendEdge) {
+      await actor.spendEdge(deltas.edgePoolKey, deltas.actorEdgeDelta, { source: "removeActivationLogEntry" });
+    }
+
+    return { ok: true, snapshot: this.getSnapshot(actor, { token: snapshot.token }), removed };
   }
 
   static getActivationIdentity(combat, combatant) {
@@ -1582,12 +2038,102 @@ export class PersonalCombatTracker {
     const combat = game.combat;
     const combatant = combat?.combatant;
     if (!combat || !combatant || combat.scene?.id !== canvas?.scene?.id) return;
+    this.rememberActivation(combat, combatant);
 
     const activation = this.getActivationIdentity(combat, combatant);
     const stored = combatant.getFlag(FLAG_SCOPE, FLAG_KEY);
     if (sameActivation(stored, activation)) return;
 
     await combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextActivationState(stored, activation));
+  }
+
+  static async reconcileOperatedCombatants(combat = game?.combat) {
+    if (!game.user?.isGM || !combat) return { ok: true, removed: [] };
+
+    const sceneId = this._getCombatSceneId(combat) || canvas?.scene?.id;
+    const combatants = this._getCombatants(combat);
+    const removeIds = [];
+
+    for (const machineCombatant of combatants) {
+      const machineActor = this._getCombatantActor(machineCombatant, sceneId);
+      if (!isMachineActor(machineActor)) continue;
+      const operator = getMachinePilotActorSync(machineActor);
+      if (!operator) continue;
+
+      for (const candidate of combatants) {
+        if (candidate?.id === machineCombatant.id) continue;
+        const candidateActor = this._getCombatantActor(candidate, sceneId);
+        if (!this._actorsMatch(candidateActor, operator)) continue;
+
+        const machineState = machineCombatant.getFlag?.(FLAG_SCOPE, FLAG_KEY);
+        const candidateState = candidate.getFlag?.(FLAG_SCOPE, FLAG_KEY);
+        if (!machineState && candidateState && typeof machineCombatant.setFlag === "function") {
+          await machineCombatant.setFlag(FLAG_SCOPE, FLAG_KEY, candidateState);
+        }
+        removeIds.push(candidate.id);
+      }
+    }
+
+    const ids = Array.from(new Set(removeIds.filter(Boolean)));
+    if (!ids.length) return { ok: true, removed: [] };
+
+    if (typeof combat.deleteEmbeddedDocuments === "function") {
+      await combat.deleteEmbeddedDocuments("Combatant", ids);
+    } else {
+      for (const id of ids) {
+        const combatant = combat.combatants?.get?.(id);
+        await combatant?.delete?.();
+      }
+    }
+
+    return { ok: true, removed: ids };
+  }
+
+  static async syncDestroyedMachineDefeatedCombatants(combat = game?.combat, actorFilter = null) {
+    if (!game.user?.isGM || !combat) return { ok: true, updated: [] };
+
+    const sceneId = this._getCombatSceneId(combat) || canvas?.scene?.id;
+    const updates = [];
+
+    for (const combatant of this._getCombatants(combat)) {
+      const actor = this._getCombatantActor(combatant, sceneId);
+      if (!isMachineActor(actor)) continue;
+      if (actorFilter && !this._actorsMatch(actor, actorFilter)) continue;
+
+      const shouldBeDefeated = isMachineDestroyedForCombat(actor);
+      const isDefeated = Boolean(combatant?.defeated);
+      if (isDefeated === shouldBeDefeated) continue;
+      updates.push({ _id: combatant.id, defeated: shouldBeDefeated });
+    }
+
+    if (!updates.length) return { ok: true, updated: [] };
+
+    if (typeof combat.updateEmbeddedDocuments === "function") {
+      await combat.updateEmbeddedDocuments("Combatant", updates);
+    } else {
+      for (const update of updates) {
+        const combatant = combat.combatants?.get?.(update._id);
+        if (typeof combatant?.update === "function") await combatant.update({ defeated: update.defeated });
+        else if (combatant) combatant.defeated = update.defeated;
+      }
+    }
+
+    return { ok: true, updated: updates };
+  }
+
+  static async _skipDuplicatePilotTurn(combat) {
+    if (!game.user?.isGM || !combat?.combatant) return false;
+    if (!this._isDuplicatePilotCombatant(combat.combatant, combat)) return false;
+
+    if (combat?.id) {
+      this._lastActivationByCombat.set(combat.id, this.getActivationIdentity(combat, combat.combatant));
+    }
+
+    if (typeof combat.nextTurn === "function") {
+      await combat.nextTurn();
+    }
+    await this.reconcileOperatedCombatants(combat);
+    return true;
   }
 
   static async spendResource(actor, {
@@ -1600,12 +2146,14 @@ export class PersonalCombatTracker {
     actionCategory = ""
   } = {}) {
     const snapshot = this.getSnapshot(actor, { token });
+    const actingActor = snapshot.actionEconomyActor ?? actor;
     if (!snapshot.hasCombatant) {
       return { ok: false, reason: "No combatant on the current scene." };
     }
     if (!snapshot.isCurrentTurn) {
       return { ok: false, reason: "Only available during your activation." };
     }
+    this.rememberActivation(snapshot.combat, snapshot.combatant);
 
     const runtime = {
       combat: snapshot.combat,
@@ -1617,10 +2165,10 @@ export class PersonalCombatTracker {
 
     let finalCost = Math.max(0, Number(cost ?? 0) || 0);
     const costPhase = evaluateTraitPhase({
-      actor,
+      actor: actingActor,
       phase: "onBeforeActionCostFinalized",
       facts: buildActionCostTraitFacts({
-        actor,
+        actor: actingActor,
         packet: { actionId, category: actionCategory, resource, cost: finalCost, effectiveCost: finalCost },
         runtime,
       }),
@@ -1637,7 +2185,7 @@ export class PersonalCombatTracker {
     }
 
     const nextState = runtime.state;
-    const activationCap = resource === "sa" ? getActivationMaxSA(actor) : 0;
+    const activationCap = resource === "sa" ? getActivationMaxSA(actingActor) : 0;
     const spentBefore = Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0) || 0);
 
     if (resource === "sa" && (spentBefore + finalCost) > activationCap) {
@@ -1653,12 +2201,6 @@ export class PersonalCombatTracker {
       }
     }
 
-    this._appendActionLog(nextState, {
-      id: actionId,
-      label: actionLabel,
-      costLabel: actionCostLabel || this._formatCostLabel(resource, finalCost)
-    });
-
     let burnDelta = 0;
     if (resource === "sa") {
       const extraBefore = Math.max(0, spentBefore - BASE_SA);
@@ -1668,10 +2210,10 @@ export class PersonalCombatTracker {
 
       for (let index = extraBefore + 1; index <= extraAfter; index += 1) {
         const burnPhase = evaluateTraitPhase({
-          actor,
+          actor: actingActor,
           phase: "onBeforeBurnApplied",
           facts: buildBurnTraitFacts({
-            actor,
+            actor: actingActor,
             packet: {
               actionId,
               category: actionCategory,
@@ -1699,10 +2241,10 @@ export class PersonalCombatTracker {
       for (let index = attackCountBefore + 1; index <= attackCountAfter; index += 1) {
         if (index <= 1) continue;
         const burnPhase = evaluateTraitPhase({
-          actor,
+          actor: actingActor,
           phase: "onBeforeBurnApplied",
           facts: buildBurnTraitFacts({
-            actor,
+            actor: actingActor,
             packet: {
               actionId,
               category: actionCategory,
@@ -1730,9 +2272,21 @@ export class PersonalCombatTracker {
       nextState.burnThisActivation = Math.max(0, Number(nextState.burnThisActivation ?? 0) + burnDelta);
     }
 
+    this._appendActionLog(nextState, {
+      id: actionId,
+      label: actionLabel,
+      costLabel: actionCostLabel || this._formatCostLabel(resource, finalCost),
+      resource,
+      cost: finalCost,
+      saSpentDelta: resource === "sa" ? finalCost : 0,
+      attackDelta: resource === "sa" && actionId === "attack" ? 1 : 0,
+      burnThisActivationDelta: burnDelta,
+      actorBurnDelta: burnDelta
+    });
+
     if (runtime.pendingMutations?.length) {
       await applyTraitMutations({
-        actor,
+        actor: actingActor,
         mutations: runtime.pendingMutations,
         runtime: {
           ...runtime,
@@ -1744,20 +2298,27 @@ export class PersonalCombatTracker {
     }
 
     if (burnDelta > 0) {
-      await actor.update({ "system.burn.value": Math.max(0, Number(actor.system?.burn?.value ?? 0) + burnDelta) });
+      await actingActor.update({ "system.burn.value": Math.max(0, Number(actingActor.system?.burn?.value ?? 0) + burnDelta) });
     }
 
-    return { ok: true, snapshot: this.getSnapshot(actor, { token: snapshot.token }) };
+    return {
+      ok: true,
+      snapshot: this.getSnapshot(actor, { token: snapshot.token }),
+      burnDelta,
+      finalCost,
+      costLabel: actionCostLabel || this._formatCostLabel(resource, finalCost)
+    };
   }
 
   static async reduceBurn(actor, { token = null } = {}) {
     const snapshot = this.getSnapshot(actor, { token });
+    const actingActor = snapshot.actionEconomyActor ?? actor;
     if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
     if (!snapshot.isCurrentTurn) return { ok: false, reason: "Only available during your activation." };
-    if (getSaCapacityRemaining(actor, snapshot) <= 0) return { ok: false, reason: "Activation SA cap reached." };
+    if (getSaCapacityRemaining(actingActor, snapshot) <= 0) return { ok: false, reason: "Activation SA cap reached." };
     if (snapshot.burn.value <= 0) return { ok: false, reason: "Burn is already at 0." };
 
-    const spend = await this.spendResource(actor, {
+    const spend = await this.spendResource(actingActor, {
       token: snapshot.token,
       resource: "sa",
       cost: 1,
@@ -1768,14 +2329,35 @@ export class PersonalCombatTracker {
     });
     if (!spend.ok) return spend;
 
-    const nextBurn = Math.max(0, Number(actor.system?.burn?.value ?? 0) - 1);
+    const nextBurn = Math.max(0, Number(actingActor.system?.burn?.value ?? 0) - 1);
     const update = { "system.burn.value": nextBurn };
-    if (nextBurn === 0 && actor.system?.burn?.overloaded) {
+    if (nextBurn === 0 && actingActor.system?.burn?.overloaded) {
       update["system.burn.overloaded"] = false;
     }
 
-    await actor.update(update);
-    return { ok: true, snapshot: this.getSnapshot(actor, { token: snapshot.token }) };
+    await actingActor.update(update);
+    await this.updateCombatantState(actingActor, {
+      token: snapshot.token,
+      mutate: state => {
+        const log = normalizeActionLog(state.actionLog);
+        const lastReduceBurnIndex = log.findLastIndex?.(entry => entry.id === "reduceBurn")
+          ?? (() => {
+            for (let index = log.length - 1; index >= 0; index -= 1) {
+              if (log[index]?.id === "reduceBurn") return index;
+            }
+            return -1;
+          })();
+        if (lastReduceBurnIndex >= 0) {
+          log[lastReduceBurnIndex] = {
+            ...log[lastReduceBurnIndex],
+            actorBurnDelta: Math.max(0, Number(spend.burnDelta ?? 0) || 0) - 1
+          };
+          state.actionLog = log;
+        }
+        return state;
+      }
+    });
+    return { ok: true, snapshot: this.getSnapshot(actingActor, { token: snapshot.token }) };
   }
 
   static async finalizeActivation(combat, combatantId) {
@@ -1783,8 +2365,17 @@ export class PersonalCombatTracker {
     if (!combatantId || !combat) return;
 
     const combatant = combat.combatants?.get?.(combatantId) ?? null;
-    const actor = combatant?.actor ?? null;
-    if (!combatant || !actor) return;
+    const machineActor = this._getCombatantActor(combatant, combat?.scene?.id ?? canvas?.scene?.id);
+    if (!combatant || !machineActor) return;
+    if (!isMachineActor(machineActor)) {
+      const operatedCombatant = this._findMachineCombatantForPilot(machineActor, combat);
+      if (operatedCombatant && operatedCombatant.id !== combatant.id) return;
+    }
+
+    const unit = this.resolveActivationUnit({ actor: machineActor, combat, combatant });
+    const actor = unit?.actingActor ?? this.getActionEconomyActorForCombatant(combatant, combat?.scene?.id ?? canvas?.scene?.id);
+    const platformActor = unit?.platformActor ?? (isMachineActor(machineActor) ? machineActor : null);
+    if (!actor) return;
 
     const stored = combatant.getFlag(FLAG_SCOPE, FLAG_KEY);
     const state = sameActivation(stored, this.getActivationIdentity(combat, combatant))
@@ -1837,8 +2428,8 @@ export class PersonalCombatTracker {
       }
     }
 
-    if (actor.type === "battlemech") {
-      await resolveBattlemechPendingHeat(actor, {
+    if (platformActor?.type === "battlemech") {
+      await resolveBattlemechPendingHeat(platformActor, {
         source: "combat turn advance",
         postDangerCard: true,
         activation: this.getActivationIdentity(combat, combatant),
@@ -1863,6 +2454,12 @@ export class PersonalCombatTracker {
       if (previousCombatantId && advancedActivation) {
         await this.finalizeActivation(combat, previousCombatantId);
       }
+      if (await this._skipDuplicatePilotTurn(combat)) {
+        this.renderOpenActorSheets();
+        return;
+      }
+      await this.reconcileOperatedCombatants(combat);
+      await this.syncDestroyedMachineDefeatedCombatants(combat);
       await this.ensureCurrentCombatantState();
       await this._processCurrentCombatantHazards(combat);
       await this._processCurrentCombatantMachineCrits(combat);
@@ -1876,6 +2473,11 @@ export class PersonalCombatTracker {
 
   static async _onCreateCombatant(combatant) {
     const combat = combatant?.combat;
+    if (this._isDuplicatePilotCombatant(combatant, combat)) {
+      ui.notifications?.warn?.("Linked pilots act through their machine combatant and are not added as separate turns.");
+    }
+    await this.reconcileOperatedCombatants(combat);
+    await this.syncDestroyedMachineDefeatedCombatants(combat);
     if (combat?.combatant?.id === combatant?.id) {
       await this.ensureCurrentCombatantState();
     }
@@ -1889,6 +2491,7 @@ export class PersonalCombatTracker {
 
   static async _onDeleteCombatant(combatant) {
     await this.clearPreparedIndicatorForCombatant(combatant);
+    await this.reconcileOperatedCombatants(combatant?.combat);
     this.renderOpenActorSheets();
   }
 
@@ -1902,12 +2505,54 @@ export class PersonalCombatTracker {
     this.renderOpenActorSheets();
   }
 
+  static _onUpdateActor(actor, changed) {
+    const touchesPilotLink = foundry.utils.hasProperty(changed, "system.pilot.uuid")
+      || foundry.utils.hasProperty(changed, "system.mwd.pilot.uuid")
+      || foundry.utils.hasProperty(changed, "system.mwd.crew.operatorActorUuid")
+      || foundry.utils.hasProperty(changed, "system.mwd.crew.pilotActorUuid");
+    const touchesDestroyedState = foundry.utils.hasProperty(changed, "system.mwd.status.state");
+    if (!touchesPilotLink && !touchesDestroyedState) return;
+    if (touchesPilotLink) void this.reconcileOperatedCombatants(game.combat);
+    if (touchesDestroyedState) void this.syncDestroyedMachineDefeatedCombatants(game.combat, actor);
+    this.renderOpenActorSheets();
+  }
+
+  static _onActiveEffectChange(effect) {
+    const actor = effect?.parent ?? null;
+    if (!isMachineActor(actor)) return;
+    if (!getEffectStatusIds(effect).has(DESTROYED_STATUS_ID)) return;
+    this._queueDestroyedMachineDefeatedSync(actor);
+  }
+
+  static _queueDestroyedMachineDefeatedSync(actor) {
+    const sync = () => {
+      void this.syncDestroyedMachineDefeatedCombatants(game.combat, actor);
+      this.renderOpenActorSheets(actor?.id);
+    };
+    if (typeof queueMicrotask === "function") queueMicrotask(sync);
+    else Promise.resolve().then(sync);
+  }
+
   static _onUpdateCombatant(combatant, changed) {
-    if (foundry.utils.hasProperty(changed, `flags.${FLAG_SCOPE}.${FLAG_KEY}`)) {
+    const touchedPersonalCombat = foundry.utils.hasProperty(changed, `flags.${FLAG_SCOPE}.${FLAG_KEY}`);
+    const touchedTargeting = foundry.utils.hasProperty(changed, `flags.${FLAG_SCOPE}.targeting`)
+      || foundry.utils.hasProperty(changed, `flags.${FLAG_SCOPE}.ewState`);
+
+    if (touchedPersonalCombat) {
       void this._syncPreparedIndicatorForCombatant(combatant);
       const tokenDoc = this._getCombatantTokenDocument(combatant, this._getCombatantSceneId(combatant) || canvas?.scene?.id);
       if (tokenDoc) this._queueHazardOverlayRefresh(tokenDoc);
+    }
+
+    if (touchedPersonalCombat || touchedTargeting) {
       this.renderOpenActorSheets(combatant?.actor?.id);
+      const actionEconomyActor = this.getActionEconomyActorForCombatant(
+        combatant,
+        this._getCombatantSceneId(combatant) || canvas?.scene?.id
+      );
+      if (actionEconomyActor?.id && actionEconomyActor.id !== combatant?.actor?.id) {
+        this.renderOpenActorSheets(actionEconomyActor.id);
+      }
     }
   }
 

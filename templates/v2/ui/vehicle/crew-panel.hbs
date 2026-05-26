@@ -1,0 +1,43 @@
+{{!--
+templates/v2/ui/vehicle/crew-panel.hbs
+Purpose: Displays role-abstracted vehicle crew state.
+How it fits: Crew remains a compact gameplay abstraction, not actor-per-seat simulation.
+--}}
+
+<div class="mwd-pilot-panel">
+  {{#if @root.editing}}
+    <div class="mwd-gmgadget__grid">
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Crew</span>
+        <input type="number" min="0" step="1" name="{{vehicleSheet.crewPanel.countPath}}" value="{{vehicleSheet.crewPanel.count}}" data-edit-field="staged" />
+      </label>
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Effective</span>
+        <input type="number" min="0" step="1" name="{{vehicleSheet.crewPanel.effectiveCountPath}}" value="{{vehicleSheet.crewPanel.effectiveCount}}" data-edit-field="staged" />
+      </label>
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Injury</span>
+        <input type="number" min="0" step="1" name="{{vehicleSheet.crewPanel.injuryLevelPath}}" value="{{vehicleSheet.crewPanel.injuryLevel}}" data-edit-field="staged" />
+      </label>
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Bailed Out</span>
+        <input type="checkbox" name="{{vehicleSheet.crewPanel.bailedOutPath}}" {{#if vehicleSheet.crewPanel.bailedOut}}checked{{/if}} data-edit-field="staged" />
+      </label>
+    </div>
+  {{else}}
+    <section class="mwd-item-hero">
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Crew</span>
+        <span class="mwd-item-hero__value">{{vehicleSheet.crewPanel.effectiveCount}} / {{vehicleSheet.crewPanel.count}}</span>
+      </div>
+      <div class="mwd-item-hero__stat{{#if vehicleSheet.crewPanel.injuryLevel}} is-orange{{/if}}">
+        <span class="mwd-item-hero__label">Injury</span>
+        <span class="mwd-item-hero__value">{{vehicleSheet.crewPanel.injuryLevel}}</span>
+      </div>
+      <div class="mwd-item-hero__stat{{#if vehicleSheet.crewPanel.bailedOut}} is-red{{/if}}">
+        <span class="mwd-item-hero__label">Bailout</span>
+        <span class="mwd-item-hero__value">{{#if vehicleSheet.crewPanel.bailedOut}}Bailed Out{{else}}Crewed{{/if}}</span>
+      </div>
+    </section>
+  {{/if}}
+</div>

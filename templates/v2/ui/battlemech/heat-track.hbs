@@ -28,8 +28,28 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
     {{/each}}
   </div>
 
-  {{#if editing}}
+  {{#if @root.editing}}
     <div class="mwd-gmgadget__grid" style="margin-top:0.5rem;">
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Tier</span>
+        <select
+          name="system.mwd.heat.profileCode"
+          data-edit-field="staged"
+          data-heat-profile-select>
+          <option value="">Manual</option>
+          {{#each battlemechSheet.heat.profileOptions as |profile|}}
+            <option
+              value="{{profile.value}}"
+              data-track-length="{{profile.trackLength}}"
+              data-running-hot="{{profile.thresholds.runningHot}}"
+              data-overheated="{{profile.thresholds.overheated}}"
+              data-shutdown="{{profile.thresholds.shutdown}}"
+              {{#if profile.selected}}selected{{/if}}>
+              {{profile.label}}
+            </option>
+          {{/each}}
+        </select>
+      </label>
       <label class="mwd-gmgadget__field">
         <span class="mwd-gmgadget__field-label">Track Length</span>
         <input
@@ -107,6 +127,19 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
           {{/if}}
         </span>
       </div>
+      {{#if battlemechSheet.heat.dangerActions.length}}
+        {{#each battlemechSheet.heat.dangerActions as |action|}}
+          <button
+            type="button"
+            class="mwd-item-hero__stat mwd-item-hero__stat--button mwd-heat-checks__stat is-action"
+            data-action="heatDangerCheck"
+            {{{mwd-dataset action.dataset}}}
+            title="{{action.hint}}">
+            <span class="mwd-item-hero__label">{{action.label}}</span>
+            <span class="mwd-item-hero__value">{{action.hint}}</span>
+          </button>
+        {{/each}}
+      {{/if}}
     </section>
 
     {{#if battlemechSheet.heat.inDanger}}
@@ -120,7 +153,7 @@ How it fits: Specific to the BattleMech V2 sheet systems tab.
       <div class="mwd-heat-penalty">
         <span class="mwd-heat-penalty__label">Movement</span>
         <span class="mwd-heat-penalty__value">-{{battlemechSheet.heat.penalties.movementPenalty}}</span>
-        <span class="mwd-heat-penalty__note">ground speed (Hot)</span>
+        <span class="mwd-heat-penalty__note">movement speed (Hot)</span>
       </div>
     {{/if}}
 

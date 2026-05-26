@@ -37,7 +37,7 @@ How it fits: Kept as an aggregate partial while the CSB layout now composes smal
 
             <div class="form-group mwd-weapon-compact__field">
               <label for="system.range.max">{{MWD.item.mechWeapon.range.max}}</label>
-              <select name="system.range.max" data-dtype="String" {{#if itemSheet.mechIsMelee}}disabled{{/if}}>
+              <select name="system.range.max" data-dtype="String">
                 {{selectOptions weaponEditor.ranges selected=system.range.max valueAttr="value" labelAttr="label" localize=false}}
               </select>
             </div>
@@ -115,7 +115,7 @@ How it fits: Kept as an aggregate partial while the CSB layout now composes smal
         </header>
         <div class="mwd-panel__body">
           {{#if itemSheet.mechIsMelee}}
-            <div class="mwd-item-note">Melee mech weapons stay in close range and do not use ranged bands.</div>
+            <div class="mwd-item-note">Melee mech weapons use Max Range for reach. Damage is added to floor(tonnage / 10), and Attack Rating bands are Pilot REF modifiers.</div>
           {{else}}
             <div class="mwd-weapon-compact__band-grid">
               <div class="form-group mwd-weapon-compact__field">

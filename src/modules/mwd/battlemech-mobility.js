@@ -4,7 +4,7 @@
 // the sheet or on a permanently authored movement field.
 
 import { TEMPLATE } from "../constants.js";
-import { getAssetModuleJumpingProfile } from "./asset-module-rules.js";
+import { getAssetModuleJumpingProfile, getAssetModuleState, normalizeAssetModuleJumping } from "./asset-module-rules.js";
 
 function toNonNegativeInteger(value, fallback = 0) {
   const numeric = Number(value);
@@ -96,9 +96,10 @@ export function buildBattlemechMobilityModel(source = {}) {
   const jumpModules = getAssetModules(source)
     .map(item => ({
       item,
+      state: getAssetModuleState(item, { installed: true }),
       profile: getAssetModuleJumpingProfile(item),
     }))
-    .filter(entry => entry.profile.enabled);
+    .filter(entry => entry.state.active && entry.profile.enabled);
 
   const legacyMovement = getLegacyJumpMovement(source);
   const legacyEnabled = jumpModules.length === 0 && legacyMovement > 0;
@@ -157,4 +158,28 @@ export function buildBattlemechMobilityModel(source = {}) {
 
 export function getBattlemechJumpProfile(source = {}) {
   return buildBattlemechMobilityModel(source).jumping;
+}
+
+export function resolveBattlemechJumpProfile(source = {}) {
+  const derived = getBattlemechJumpProfile(source);
+  if (derived?.enabled) return derived;
+
+  const cached = getActorSystem(source)?.mwd?.mobility?.jumping ?? null;
+  return cached?.enabled ? cached : derived;
+}
+
+export function getMachineJumpProfile(actor = null) {
+  if (!actor) return null;
+  if (getActorType(actor) === TEMPLATE.actorTypes.battlemech) return resolveBattlemechJumpProfile(actor);
+  return normalizeAssetModuleJumping(getActorSystem(actor)?.mwd?.mobility?.jumping ?? {});
+}
+
+export function getMachineJumpedThisActivation(actor = null) {
+  if (!actor) return false;
+  const combat = globalThis.game?.combat;
+  if (!combat) return false;
+  const combatant = Array.from(combat.combatants?.values?.() ?? []).find(c => c.actorId === actor.id);
+  if (!combatant) return false;
+  const move = combatant.getFlag?.("mwd", "personalCombat")?.actionState?.move ?? null;
+  return move?.movementKind === "jump";
 }

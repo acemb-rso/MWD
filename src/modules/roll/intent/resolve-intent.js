@@ -16,6 +16,7 @@ import { resolveOverload } from "./resolve-overload.js";
 import { resolveMachineRemedy } from "./resolve-machine-remedy.js";
 import { resolveAcquire } from "./resolve-acquire.js";
 import { resolveTargeting } from "./resolve-targeting.js";
+import { resolveHeatDangerCheck } from "./resolve-heat-danger-check.js";
 
 // Registry: adding a roll is "data entry"
 const RESOLVERS = {
@@ -29,6 +30,7 @@ const RESOLVERS = {
   initiative: resolveInitiative,
   overload: resolveOverload,
   machineRemedy: resolveMachineRemedy,
+  heatDangerCheck: resolveHeatDangerCheck,
   acquire: resolveAcquire,
   acquireTarget: resolveAcquire,
   targeting: resolveTargeting,

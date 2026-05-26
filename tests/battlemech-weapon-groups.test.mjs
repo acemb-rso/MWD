@@ -24,7 +24,21 @@ function createWeapon({
   area = "none",
   active = true,
   clusteringDice = 0,
+  payloadDamageType = "",
+  usesPerActivation = 1,
 } = {}) {
+  const effectiveDamageType = payloadDamageType || damageType;
+  const labelFor = (type) => type === "energy"
+    ? "Energy"
+    : type === "penetrating" || type === "ballistic"
+      ? "Penetrating"
+      : type === "concussive" || type === "explosive"
+        ? "Concussive"
+        : type === "thermal"
+          ? "Thermal"
+          : type === "electrical"
+            ? "Electrical"
+            : type;
   return {
     id,
     name,
@@ -42,13 +56,14 @@ function createWeapon({
       range: { max: rangeCap },
       attackRatingBand: attackRatings,
       resolution: { resolverKey },
+      fireControl: { usesPerActivation },
       area,
     },
     isActive() {
       return active;
     },
     getDamageTypeLabel() {
-      return damageType === "energy" ? "Energy" : damageType === "ballistic" ? "Ballistic" : damageType;
+      return labelFor(effectiveDamageType);
     },
     getCombatProfile() {
       return {
@@ -60,7 +75,9 @@ function createWeapon({
         damage,
         clusteringDice,
         ap,
-        damageType,
+        baseDamageType: damageType,
+        baseDamageTypeLabel: labelFor(damageType),
+        damageType: effectiveDamageType,
         damageTypeLabel: this.getDamageTypeLabel(),
         attackRatingBand: {
           close: Number(attackRatings.close ?? 0) || 0,
@@ -77,6 +94,7 @@ function createWeapon({
         },
         areaEffect: { kind: "discrete" },
         resolverKey,
+        fireControl: { usesPerActivation },
         notes: "",
       };
     },
@@ -105,7 +123,7 @@ function createActor({ groups = [], weapons = [] } = {}) {
   };
 }
 
-test("BattleMech ranged groups aggregate homogeneous ranged weapons and respect worst range cap", () => {
+test("BattleMech ranged groups aggregate homogeneous ranged weapons and use the worst attack ratings at the worst range cap", () => {
   const laserA = createWeapon({
     id: "laser-a",
     name: "Medium Laser A",
@@ -128,7 +146,7 @@ test("BattleMech ranged groups aggregate homogeneous ranged weapons and respect 
     clusteringDice: 2,
   });
   const actor = createActor({
-    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser-a", "laser-b"], isPrimary: true }],
+    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser-a", "laser-b"] }],
     weapons: [laserA, laserB],
   });
 
@@ -141,8 +159,8 @@ test("BattleMech ranged groups aggregate homogeneous ranged weapons and respect 
   assert.equal(group.attackSummary.heat, 5);
   assert.equal(group.attackSummary.rangeCap, "near");
   assert.deepEqual(group.attackSummary.attackRatings, {
-    close: 3,
-    near: 6,
+    close: 1,
+    near: 2,
     far: 0,
     extreme: 0,
   });
@@ -192,6 +210,36 @@ test("BattleMech ranged groups block mixed damage types and special-case profile
   assert.match(special.disableReason, /special attack mode/i);
 });
 
+test("BattleMech energy weapons with thermal and electrical payload effects group as Energy", () => {
+  const flamer = createWeapon({
+    id: "flamer",
+    name: "Flamer",
+    damageType: "energy",
+    payloadDamageType: "thermal",
+    rangeCap: "near",
+    attackRatings: { close: 2, near: 2, far: 0, extreme: 0 },
+  });
+  const taser = createWeapon({
+    id: "taser",
+    name: "Taser",
+    damageType: "energy",
+    payloadDamageType: "electrical",
+    rangeCap: "near",
+    attackRatings: { close: 1, near: 2, far: 0, extreme: 0 },
+  });
+  const actor = createActor({
+    groups: [{ id: "specialized-energy", name: "Specialized Energy", weaponIds: ["flamer", "taser"] }],
+    weapons: [flamer, taser],
+  });
+
+  const [group] = prepareBattlemechWeaponGroups(actor);
+
+  assert.equal(group.isAttackLegal, true);
+  assert.equal(group.attackSummary.baseDamageType, "energy");
+  assert.equal(group.attackSummary.damageType, "energy");
+  assert.equal(group.attackSummary.damageTypeLabel, "Energy");
+});
+
 test("BattleMech standard direct-fire profiles remain groupable when their area effect is discrete", () => {
   const laser = createWeapon({
     id: "laser",
@@ -203,7 +251,7 @@ test("BattleMech standard direct-fire profiles remain groupable when their area 
     attackRatings: { close: 2, near: 3, far: 0, extreme: 0 },
   });
   const actor = createActor({
-    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"], isPrimary: true }],
+    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"] }],
     weapons: [laser],
   });
 
@@ -225,7 +273,7 @@ test("BattleMech ranged groups become unavailable once marked used this activati
     attackRatings: { close: 2, near: 3, far: 0, extreme: 0 },
   });
   const actor = createActor({
-    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"], isPrimary: true }],
+    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"] }],
     weapons: [laser],
   });
 
@@ -244,6 +292,64 @@ test("BattleMech ranged groups become unavailable once marked used this activati
   assert.match(profile.reason, /already fired this activation/i);
 });
 
+test("BattleMech ranged groups expose rapid-fire metadata from fire-control uses", () => {
+  const laser = createWeapon({
+    id: "laser",
+    name: "Pulse Laser",
+    damage: 4,
+    damageType: "energy",
+    rangeCap: "near",
+    attackRatings: { close: 2, near: 3, far: 0, extreme: 0 },
+    usesPerActivation: 3,
+  });
+  const flamer = createWeapon({
+    id: "flamer",
+    name: "Flamer",
+    damage: 2,
+    damageType: "energy",
+    rangeCap: "near",
+    attackRatings: { close: 1, near: 2, far: 0, extreme: 0 },
+    usesPerActivation: 2,
+  });
+  const actor = createActor({
+    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser", "flamer"] }],
+    weapons: [laser, flamer],
+  });
+
+  const [group] = prepareBattlemechWeaponGroups(actor, { fireMode: "rapidFire" });
+
+  assert.equal(group.rapidFire.eligible, true);
+  assert.equal(group.rapidFire.repeatCount, 2);
+  assert.match(group.rapidFire.reason, /2 uses\/activation/i);
+  assert.equal(group.fireMode, "rapidFire");
+});
+
+test("BattleMech rapid fire does not unlock a group already used this activation", () => {
+  const laser = createWeapon({
+    id: "laser",
+    name: "Pulse Laser",
+    damage: 4,
+    damageType: "energy",
+    rangeCap: "near",
+    attackRatings: { close: 2, near: 3, far: 0, extreme: 0 },
+    usesPerActivation: 2,
+  });
+  const actor = createActor({
+    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"] }],
+    weapons: [laser],
+  });
+  const usedState = markBattlemechWeaponGroupUsed({ actionState: {} }, "alpha");
+
+  const [group] = prepareBattlemechWeaponGroups(actor, {
+    usedWeaponGroupIds: usedState.actionState.usedWeaponGroupIds,
+    fireMode: "rapidFire",
+  });
+
+  assert.equal(group.rapidFire.eligible, true);
+  assert.equal(group.isAvailableThisActivation, false);
+  assert.match(group.disableReason, /already fired this activation/i);
+});
+
 test("BattleMech ranged groups require mounted hardpoints to stay actionable", () => {
   const laser = createWeapon({
     id: "laser",
@@ -259,7 +365,7 @@ test("BattleMech ranged groups require mounted hardpoints to stay actionable", (
     system: {
       mwd: {
         hardpoints: [],
-        weaponGroups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"], isPrimary: true }],
+        weaponGroups: [{ id: "alpha", name: "Alpha", weaponIds: ["laser"] }],
       },
     },
     items: new Map([[laser.id, laser]]),
@@ -297,7 +403,7 @@ test("attack card enhancement surfaces BattleMech group members and aggregate pr
           damageType: "energy",
           damageTypeLabel: "Energy",
           rangeCap: "near",
-          attackRatings: { close: 3, near: 6, far: 0, extreme: 0 },
+          attackRatings: { close: 1, near: 2, far: 0, extreme: 0 },
         },
       },
       capabilityReport: { isTemplated: false },
@@ -322,6 +428,7 @@ test("attack card enhancement surfaces BattleMech group members and aggregate pr
             damageBonus: 1,
           },
           netHits: 2,
+          netDamageBonus: 0,
         },
         damageResult: {
           ok: false,
@@ -336,7 +443,7 @@ test("attack card enhancement surfaces BattleMech group members and aggregate pr
   assert(vm.metaRows.some(row => /Members: Medium Laser A, Medium Laser B/i.test(row.text)));
   assert(vm.metaRows.some(row => /Clustering: 2d6 @ 4\+/i.test(row.text)));
   assert(vm.metaRows.some(row => /Profile: 9 damage \| 2d6 cluster @ 4\+ \| AP 2 \| Heat 5/i.test(row.text)));
-  assert(vm.footerRows.some(row => /Attack Ratings: Close 3 \| Near 6 \| Far 0 \| Extreme 0/i.test(row.text)));
-  assert(vm.footerRows.some(row => /Target: Energy \+9 weapon \+ ?1 cluster \+ ?2 net/i.test(row.text)));
+  assert(vm.footerRows.some(row => /Attack Ratings: Close 1 \| Near 2 \| Far 0 \| Extreme 0/i.test(row.text)));
+  assert(vm.footerRows.some(row => /Target: Energy \+9 weapon \+ ?1 cluster$/i.test(row.text)));
   assert(vm.footerRows.some(row => /Target: Cluster 2d6 @ 4\+ -> 1 hit/i.test(row.text)));
 });

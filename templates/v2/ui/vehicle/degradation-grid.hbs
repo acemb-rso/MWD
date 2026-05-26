@@ -6,20 +6,33 @@ GM edit raw state directly on the sheet.
 --}}
 
 <section class="mwd-degradation mwd-degradation--{{vehicleSheet.degradation.mode}}">
-  <div class="mwd-degradation__summary mwd-item-hero">
-    <div class="mwd-item-hero__stat{{#if vehicleSheet.degradation.shock}} is-orange{{/if}}">
-      <span class="mwd-item-hero__label">Shock</span>
-      <span class="mwd-item-hero__value">{{vehicleSheet.degradation.shock}} / {{vehicleSheet.degradation.threshold}}</span>
+  {{#if @root.editing}}
+    <div class="mwd-gmgadget__grid">
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Shock</span>
+        <input type="number" min="0" name="{{vehicleSheet.degradation.shockPath}}" value="{{vehicleSheet.degradation.shock}}" data-edit-field="staged" />
+      </label>
+      <label class="mwd-gmgadget__field">
+        <span class="mwd-gmgadget__field-label">Spendable</span>
+        <input type="number" min="0" name="{{vehicleSheet.degradation.spendablePath}}" value="{{vehicleSheet.degradation.spendable}}" data-edit-field="staged" />
+      </label>
     </div>
-    <div class="mwd-item-hero__stat">
-      <span class="mwd-item-hero__label">Reliability</span>
-      <span class="mwd-item-hero__value">{{vehicleSheet.degradation.reliability}}</span>
+  {{else}}
+    <div class="mwd-degradation__summary mwd-item-hero">
+      <div class="mwd-item-hero__stat{{#if vehicleSheet.degradation.shock}} is-orange{{/if}}">
+        <span class="mwd-item-hero__label">Shock</span>
+        <span class="mwd-item-hero__value">{{vehicleSheet.degradation.shock}} / {{vehicleSheet.degradation.threshold}}</span>
+      </div>
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Reliability</span>
+        <span class="mwd-item-hero__value">{{vehicleSheet.degradation.reliability}}</span>
+      </div>
+      <div class="mwd-item-hero__stat">
+        <span class="mwd-item-hero__label">Spendable</span>
+        <span class="mwd-item-hero__value">{{vehicleSheet.degradation.spendable}}</span>
+      </div>
     </div>
-    <div class="mwd-item-hero__stat">
-      <span class="mwd-item-hero__label">Spendable</span>
-      <span class="mwd-item-hero__value">{{vehicleSheet.degradation.spendable}}</span>
-    </div>
-  </div>
+  {{/if}}
 
   {{#if vehicleSheet.degradation.summaryEffects.length}}
     <div class="mwd-record__tags">
@@ -61,12 +74,29 @@ GM edit raw state directly on the sheet.
         <article class="mwd-degradation__legend-row{{#if location.tone}} is-{{location.tone}}{{/if}}{{#if location.destroyed}} is-destroyed{{/if}}">
           <div class="mwd-degradation__legend-main">
             <div class="mwd-degradation__legend-name">{{location.label}}</div>
-            <div class="mwd-degradation__legend-meta">
-              <span>{{location.conditionLabel}}</span>
-              <span>Stress {{location.stress}}</span>
-            </div>
-            {{#if location.effectSummary}}
-              <div class="mwd-record__subtitle">{{location.effectSummary}}</div>
+            {{#if @root.editing}}
+              <div class="mwd-gmgadget__grid">
+                <label class="mwd-gmgadget__field">
+                  <span class="mwd-gmgadget__field-label">Stress</span>
+                  <input type="number" min="0" name="{{location.stressPath}}" value="{{location.stress}}" data-edit-field="staged" />
+                </label>
+                <label class="mwd-gmgadget__field">
+                  <span class="mwd-gmgadget__field-label">Condition</span>
+                  <select name="{{location.conditionPath}}" data-edit-field="staged">
+                    {{#each location.conditionOptions as |opt|}}
+                      <option value="{{opt.value}}" {{#if opt.selected}}selected{{/if}}>{{opt.label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+              </div>
+            {{else}}
+              <div class="mwd-degradation__legend-meta">
+                <span>{{location.conditionLabel}}</span>
+                <span>Stress {{location.stress}}</span>
+              </div>
+              {{#if location.effectSummary}}
+                <div class="mwd-record__subtitle">{{location.effectSummary}}</div>
+              {{/if}}
             {{/if}}
           </div>
           {{#unless location.enabled}}

@@ -52,18 +52,19 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("prone", "Prone", "person", "physical", ["movement", "posture"], "prone.svg", { modifierKey: "prone", order: 10 }),
   status("blinded", "Blinded", "person", "sensory", ["vision"], "blinded.svg", { modifierKey: "blinded", order: 20 }),
   status("frightened", "Frightened", "person", "mental", ["morale"], "brain_injury.svg", { modifierKey: "frightened", order: 30 }),
-  status("deafened", "Deafened", "person", "sensory", ["hearing"], "deafened.svg", { order: 40 }),
-  status("hidden", "Hidden", "person", "tactical", ["stealth"], "hidden.svg", { order: 50 }),
-  status("suppressed", "Suppressed", "person", "tactical", ["offense"], "suppressed.svg", { order: 60 }),
-  status("grappled", "Grappled", "person", "physical", ["movement"], "grappled.svg", { order: 70 }),
-  status("stunned", "Stunned", "person", "physical", ["action"], "concussion.svg", { order: 80 }),
+  status("deafened", "Deafened", "person", "sensory", ["hearing"], "deafened.svg", { modifierKey: "deafened", order: 40 }),
+  status("hidden", "Hidden", "person", "tactical", ["stealth"], "hidden.svg", { modifierKey: "hidden", order: 50 }),
+  status("suppressed", "Suppressed", "person", "tactical", ["offense"], "suppressed.svg", { modifierKey: "suppressed", order: 60 }),
+  status("grappled", "Grappled", "person", "physical", ["movement"], "grappled.svg", { modifierKey: "grappled", order: 70 }),
+  status("stunned", "Stunned", "person", "physical", ["action"], "concussion.svg", { modifierKey: "stunned", order: 80 }),
   status("knockedOut", "Knocked Out", "person", "physical", ["unconscious"], "knockout.svg", { order: 90 }),
-  status("onFire", "On Fire", "all", "hazard", ["fire", "heat", "escalating"], "on_fire.svg", { order: 100 }),
-  status("drugged", "Drugged", "person", "chemical", ["impairment"], "drugged.svg", { order: 110 }),
-  status("radiation", "Radiation", "person", "hazard", ["radiation"], "radiation_low.svg", { order: 120 }),
+  status("onFire", "On Fire", "all", "hazard", ["fire", "heat", "escalating"], "on_fire.svg", { modifierKey: "onFire", order: 100 }),
+  status("drugged", "Drugged", "person", "chemical", ["impairment"], "drugged.svg", { modifierKey: "drugged", order: 110 }),
+  status("radiation", "Radiation", "person", "hazard", ["radiation"], "radiation_low.svg", { modifierKey: "radiation", order: 120 }),
   status("overloaded", "Overloaded", "all", "reactor", ["heat", "actionRestriction"], "surge.svg", { managed: true, modifierKey: "overloaded", order: 130 }),
   status("preparedInterrupt", "Prepared", "person", "tactical", ["reaction", "prepared"], "readied_action.svg", { manual: false, managed: true, order: 140 }),
   status("machineCritical", "Machine Critical", "machine", "damage", ["critical", "system"], "surge.svg", { manual: false, managed: true, order: 150 }),
+  status("destroyed", "Destroyed", "machine", "damage", ["catastrophic", "destroyed", "ruined"], "on_fire.svg", { order: 160 }),
 
   // Machine stability and movement.
   status("unstable", "Unstable", "machine", "stability", ["movement", "piloting", "knockdown"], "falling.svg", { order: 1000 }),
@@ -290,12 +291,46 @@ export function normalizeStatusConditionCatalog(value = [], { strict = false } =
 export function getStatusConditionCatalog(value = undefined) {
   if (value !== undefined) return normalizeStatusConditionCatalog(value, { strict: false });
 
+  return readStatusConditionCatalogSetting();
+}
+
+function mergeCatalogWithDefaults(value = []) {
+  const defaultsById = new Map(getDefaultStatusConditionCatalog().map(entry => [entry.id, entry]));
+  const existing = normalizeStatusConditionCatalog(value, { strict: false });
+  const merged = [...existing];
+  const existingIds = new Set(existing.map(entry => entry.id));
+
+  for (const [id, entry] of defaultsById.entries()) {
+    if (existingIds.has(id)) continue;
+    merged.push(clone(entry));
+  }
+
+  return normalizeStatusConditionCatalog(merged, { strict: false });
+}
+
+export async function ensureStatusConditionCatalogDefaults() {
+  try {
+    if (!globalThis.game?.settings?.settings?.has?.(`${SYSTEM_NAME}.${SETTING_STATUS_CONDITION_CATALOG}`)) return;
+    const current = game.settings.get(SYSTEM_NAME, SETTING_STATUS_CONDITION_CATALOG);
+    const merged = mergeCatalogWithDefaults(current);
+    if (JSON.stringify(current) !== JSON.stringify(merged)) {
+      await game.settings.set(SYSTEM_NAME, SETTING_STATUS_CONDITION_CATALOG, merged);
+    }
+  } catch (_) {
+    // Ignore bootstrap-time setting failures.
+  }
+}
+
+function readStatusConditionCatalogSetting() {
   const settings = globalThis.game?.settings;
-  const current = settings?.get?.(SYSTEM_NAME, SETTING_STATUS_CONDITION_CATALOG);
-  return normalizeStatusConditionCatalog(
-    Array.isArray(current) ? current : getDefaultStatusConditionCatalog(),
-    { strict: false }
-  );
+  try {
+    if (settings?.settings?.has?.(`${SYSTEM_NAME}.${SETTING_STATUS_CONDITION_CATALOG}`)) {
+      return mergeCatalogWithDefaults(settings.get(SYSTEM_NAME, SETTING_STATUS_CONDITION_CATALOG));
+    }
+  } catch (_) {
+    // Fall through to shipped defaults during early boot.
+  }
+  return getDefaultStatusConditionCatalog();
 }
 
 export function getStatusConditionDefinition(statusId, catalog = getStatusConditionCatalog()) {

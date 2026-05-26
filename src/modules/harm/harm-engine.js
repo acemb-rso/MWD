@@ -165,9 +165,9 @@ function buildChatContent(result) {
 }
 
 function applyChatVisibility(chatData) {
-  const rollMode = game.settings?.get?.("core", "rollMode");
-  if (typeof ChatMessage.applyRollMode === "function") {
-    ChatMessage.applyRollMode(chatData, rollMode);
+  const rollMode = game.settings?.get?.("core", "messageMode");
+  if (typeof ChatMessage.applyMode === "function") {
+    ChatMessage.applyMode(chatData, rollMode);
   }
   return chatData;
 }
@@ -562,6 +562,7 @@ export class HarmEngine {
       adjustedIncoming: damageIncoming,
       finalDamage,
       tagEffectResult,
+      attackDamage: payload?.attackDamage ?? null,
       beforeLabel: `${getHarmTrackLabel(track)} ${beforeTrack}`,
       afterLabel: `${getHarmTrackLabel(track)} ${afterTrack}`,
       source: String(payload?.source ?? "").trim(),

@@ -3,13 +3,12 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { TEMPLATE, TEMPLATES_PATH } from "../constants.js";
+import { TEMPLATE, TEMPLATES_PATH, ROLL_PARAMETER_CATEGORY } from "../constants.js";
 import { MWD } from "../config.js";
 import { Enums } from "../enums.js";
 import { MWDItem } from "./anarchy-base-item.js";
 import { Checkbars } from "../common/checkbars.js";
 import { AnarchyUsers } from "../users.js";
-import { ROLL_PARAMETER_CATEGORY } from "../roll/roll-parameters.js";
 import { ANARCHY_HOOKS } from "../hooks-manager.js";
 import { AttributeActions } from "../attribute-actions.js";
 import { ErrorManager } from "../error-manager.js";
@@ -21,6 +20,10 @@ import {
   normalizePersonalDamageType,
   normalizeWeaponTraits,
 } from "../mwd/personal-damage.js";
+import {
+  getMachineWeaponDamageTypeLabel,
+  normalizeMachineWeaponDamageType,
+} from "../mwd/machine-weapon-types.js";
 import {
   getPersonalRangeBandLabel,
   normalizePersonalRangeData,
@@ -236,6 +239,9 @@ export class WeaponItem extends MWDItem {
     const ap = Number(system.ap ?? system.armorPiercing ?? 0) || 0;
     const category = String(system.category ?? system.weaponCategory ?? "ranged").trim() || "ranged";
     const traits = WeaponItem.normalizeTraits(system.traits);
+    const baseDamageType = canonicalType === TEMPLATE.itemType.personalWeapon
+      ? normalizePersonalDamageType(system.damageType)
+      : normalizeMachineWeaponDamageType(system.damageType, "energy");
 
     return {
       id: this.id ?? "weapon",
@@ -251,9 +257,14 @@ export class WeaponItem extends MWDItem {
       skillDef,
       damage,
       ap,
-      damageType: canonicalType === TEMPLATE.itemType.personalWeapon
-        ? normalizePersonalDamageType(system.damageType)
-        : String(system.damageType ?? "kinetic").trim() || "kinetic",
+      baseDamageType,
+      baseDamageTypeLabel: canonicalType === TEMPLATE.itemType.personalWeapon
+        ? getPersonalDamageTypeLabel(baseDamageType)
+        : getMachineWeaponDamageTypeLabel(baseDamageType),
+      damageType: baseDamageType,
+      damageTypeLabel: canonicalType === TEMPLATE.itemType.personalWeapon
+        ? getPersonalDamageTypeLabel(baseDamageType)
+        : getMachineWeaponDamageTypeLabel(baseDamageType),
       attackRatingBand: WeaponItem.normalizeAttackRatingBand(system.attackRatingBand),
       range,
       defaultRangeBand: this.getDefaultRangeBand(range),
@@ -365,9 +376,8 @@ export class WeaponItem extends MWDItem {
     if ((this.canonicalType ?? this.type) === TEMPLATE.itemType.personalWeapon) {
       return getPersonalDamageTypeLabel(this.system.damageType);
     }
-    const labelKey = MWD.mwd.weaponDamageType[this.system.damageType]
-      ?? MWD.mwd.personalDamageType[this.system.damageType];
-    return labelKey ? labelKey : this.system.damageType;
+    const normalized = normalizeMachineWeaponDamageType(this.system.damageType, "energy");
+    return getMachineWeaponDamageTypeLabel(normalized);
   }
 
   getRanges() {

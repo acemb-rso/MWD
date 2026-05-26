@@ -97,6 +97,6 @@ export function interpretNetOutcome(ctx, primary) {
       rate,
       canConvert: remainder >= rate
     },
-    edgeEarned: edge,
+    edgeEarned,
   };
 }
