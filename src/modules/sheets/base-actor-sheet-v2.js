@@ -11,6 +11,7 @@ import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
 import { buildSkillDisplay } from "../mwd/skills.js";
 import { getDepletingMachineMonitorClickValue, isMachineActorType } from "../mwd/machine-monitors.js";
+import { executeFirstAidCombatAction } from "../mwd/first-aid.js";
 import { launchOwnedWeaponAttack } from "../roll/weapon-attack-actions.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { collectDocumentFormUpdates } from "./document-sheet-form.js";
@@ -89,6 +90,7 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
       combatAssist: BaseActorSheetV2.prototype._onCombatAssist,
       combatEvade: BaseActorSheetV2.prototype._onCombatEvade,
       combatInterrupt: BaseActorSheetV2.prototype._onCombatInterrupt,
+      combatFirstAid: BaseActorSheetV2.prototype._onCombatFirstAid,
       combatReduceBurn: BaseActorSheetV2.prototype._onCombatReduceBurn,
       combatOverloadCheck: BaseActorSheetV2.prototype._onCombatOverloadCheck,
       combatAttack: BaseActorSheetV2.prototype._onCombatAttack,
@@ -1068,6 +1070,37 @@ _initializeApplicationOptions(options) {
     } catch (error) {
       console.error(`MWD | Failed to launch ${actionLabel}`, error);
       notifyRollError(error, `Unable to launch ${actionLabel}.`);
+    }
+  }
+
+  async _onCombatFirstAid(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (this._notifyUnavailableAction(target, event, "First Aid is not available right now.")) return;
+    if (!this.isEditable) return;
+
+    try {
+      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+      const result = await executeFirstAidCombatAction(actorWriteTarget, {
+        token: this.getSheetTokenDocument?.()
+          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
+        event,
+      });
+      this.#closeCombatMenu({ rerender: false });
+      if (result?.cancelled) {
+        this._renderPreservingScroll(false);
+        return;
+      }
+      if (!result?.ok) {
+        ui.notifications?.warn(result?.reason ?? "Unable to spend First Aid action.");
+      }
+
+      this._renderPreservingScroll({ force: true });
+    } catch (error) {
+      console.error("MWD | Failed to launch First Aid", error);
+      notifyRollError(error, "Unable to launch First Aid.");
     }
   }
 

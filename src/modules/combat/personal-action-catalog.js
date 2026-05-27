@@ -29,6 +29,7 @@ export const PERSONAL_ACTION_HANDLER_OPTIONS = Object.freeze([
   { value: "combatEvade", label: "Evade" },
   { value: "combatAssist", label: "Assist" },
   { value: "combatInterrupt", label: "Interrupt" },
+  { value: "combatFirstAid", label: "First Aid" },
   { value: "combatReduceBurn", label: "Reduce Burn" },
   { value: "combatOverloadCheck", label: "Overload Check" }
 ]);
@@ -43,7 +44,7 @@ const DEFAULT_ACTIONS = Object.freeze([
   { id: "assess", label: "Assess", category: "standard", cost: 1, handler: "combatAction", description: "Read the situation and gather useful tactical information." },
 
   { id: "attack", label: "Attack", category: "complex", cost: 2, handler: "combatAttack", prominent: true, description: "Make an offensive action and resolve it through the attack pipeline." },
-  { id: "firstAid", label: "First Aid", category: "complex", cost: 2, handler: "", reason: "Recovery resolver not yet implemented.", description: "Stabilize or recover harm through a focused treatment action." },
+  { id: "firstAid", label: "First Aid", category: "complex", cost: 2, handler: "combatFirstAid", description: "Stabilize or recover harm through a focused treatment action." },
 
   { id: "readyItem", label: "Ready Item", category: "free", cost: 0, handler: "combatAction", description: "Draw, stow, or ready a piece of gear for use." },
   { id: "prepare", label: "Prepare", category: "free", cost: 0, handler: "combatAction", state: "preparedInterrupt", description: "Declare a trigger now so you can interrupt later." },
@@ -171,6 +172,21 @@ function normalizeActionEntry(entry, { strict = false, index = 0 } = {}) {
     normalized.id === "interrupt"
     && normalized.handler === "combatInterrupt"
     && normalized.reason === "Prepared interrupt resolution is not yet implemented."
+  ) {
+    normalized.reason = "";
+  }
+
+  if (
+    normalized.id === "firstAid"
+    && !normalized.handler
+  ) {
+    normalized.handler = "combatFirstAid";
+    normalized.reason = "";
+  }
+  if (
+    normalized.id === "firstAid"
+    && normalized.handler === "combatFirstAid"
+    && normalized.reason === "Recovery resolver not yet implemented."
   ) {
     normalized.reason = "";
   }

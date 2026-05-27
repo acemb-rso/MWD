@@ -199,6 +199,13 @@ async function applyPostRerollFailures({ message = null, poolKey = "" } = {}) {
       userMessage: "Post-roll Edge is disabled after attack damage has been applied.",
     };
   }
+  if (resolved?.firstAidResult?.applied) {
+    return {
+      ok: false,
+      reason: "first-aid-applied",
+      userMessage: "Post-roll Edge is disabled after First Aid has been applied.",
+    };
+  }
 
   if (Number(resolved?.edge?.post?.spent ?? 0) === 1) {
     return { ok: false, reason: "already-spent", userMessage: "Post-roll Edge has already been spent." };

@@ -113,11 +113,27 @@
 
 ### **First Aid**
 
-* Execute recovery via the resolver
+* Costs 2 SA as a Complex Action.
+* Launches a MedTech simple roll against a condition DN:
+
+  * DN 1: Excellent Conditions
+  * DN 2: Normal Conditions
+  * DN 3: Poor Conditions
+
+* Applies roll-time pool adjustments:
+
+  * -2 dice when the acting character treats themself
+  * medical gear adds its rating to the dice pool
+
 * Produces:
 
-  * healing or stabilization
-  * track adjustments via HarmEngine
+  * a chat card with an Apply First Aid action
+  * Fatigue recovery: each net hit recovers 1 point
+  * Physical recovery: every 2 net hits after the first recovers 1 point
+  * track adjustment through the shared HarmEngine `trackDelta` path
+
+* Recovery is applied from the chat card so post-roll Edge can be used before the target monitor changes.
+* Once First Aid recovery is applied, post-roll Edge is disabled for that roll card.
 
 ---
 

@@ -15,6 +15,7 @@ import {
 } from "../../mwd/machine-state-effects.js";
 import { TEMPLATE } from "../../constants.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
+import { getFirstAidRollConfig } from "../../mwd/first-aid.js";
 
 function isMachineActor(actor = null) {
   return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
@@ -82,7 +83,10 @@ export async function resolveSkill({ actor, payload } = {}) {
     ? Number(payload.diceTarget)
     : (Number.isFinite(Number(payload?.target)) ? Number(payload.target) : 5);
 
-  const baseDnHits = Number.isFinite(Number(payload?.dn))
+  const firstAidRoll = getFirstAidRollConfig(payload);
+  const baseDnHits = firstAidRoll
+    ? firstAidRoll.dn
+    : Number.isFinite(Number(payload?.dn))
     ? Number(payload.dn)
     : 1;
   const pilotingDnMod = machineRoll && code === "piloting" ? getMachinePilotingDnModifier(actor) : 0;
@@ -95,7 +99,7 @@ export async function resolveSkill({ actor, payload } = {}) {
     intent: "skill",
     rollType: "simple",
 
-    title: `${def.label} (${attrLabel})`,
+    title: firstAidRoll?.title ?? `${def.label} (${attrLabel})`,
     subtitle: actor.name ?? "Actor",
     domains,
 
@@ -106,7 +110,7 @@ export async function resolveSkill({ actor, payload } = {}) {
     difficulty: { dn: dnHits },
     dn: {
       parts: [
-        { id: "difficulty.base", label: "Base DN", value: baseDnHits, tags: ["base"] },
+        firstAidRoll?.dnPart ?? { id: "difficulty.base", label: "Base DN", value: baseDnHits, tags: ["base"] },
         ...(pilotingDnMod ? [{ id: "machineCrit.unstable", label: "Unstable", value: pilotingDnMod, tags: ["machineCrit"] }] : []),
       ],
       total: dnHits

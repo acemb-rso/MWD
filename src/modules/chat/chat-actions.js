@@ -17,6 +17,7 @@ import {
   renderHazardCard,
 } from "../area-effects/hazard-chat.js";
 import { buildMachineCriticalChatSummary } from "../mwd/machine-crit-effects.js";
+import { applyFirstAidRecovery } from "../mwd/first-aid.js";
 
 export function registerMWDChatActions() {
   Hooks.on("renderChatMessageHTML", (message, htmlElement) => {
@@ -39,6 +40,7 @@ export function registerMWDChatActions() {
       if (action === "machineCritRemedy") void onMachineCritRemedy(ev, message);
       if (action === "applyAttackDamage") void onApplyAttackDamage(ev, message);
       if (action === "applyAllAttackDamage") void onApplyAllAttackDamage(ev, message);
+      if (action === "applyFirstAid") void onApplyFirstAid(ev, message);
     });
   });
 }
@@ -1014,4 +1016,35 @@ async function onEdgePostReroll(ev, message) {
   }
 
   await message.update(result.updateData);
+}
+
+async function onApplyFirstAid(ev, message) {
+  ev.preventDefault();
+
+  const resolved = foundry.utils.deepClone(message?.flags?.mwd?.resolved);
+  if (!resolved) {
+    ui.notifications?.warn("Roll data is no longer available.");
+    return;
+  }
+
+  const result = await applyFirstAidRecovery(resolved);
+  if (!result?.ok) {
+    const notify = result?.reason === "First Aid has already been applied." ? "info" : "warn";
+    ui.notifications?.[notify]?.(result?.reason ?? "Unable to apply First Aid.");
+    return;
+  }
+
+  resolved.firstAidResult = result;
+  if (resolved.edge?.availableActions) {
+    resolved.edge.availableActions.canSpendPost = false;
+    resolved.edge.availableActions.canPostRerollFailures = false;
+  }
+
+  const content = await renderChat({ resolved });
+  await message.update({
+    content,
+    "flags.mwd.resolved": resolved,
+  });
+
+  ui.notifications?.info?.(`Recovered ${Number(result.recovered ?? 0)} ${result.trackLabel ?? "damage"} for ${result.targetName ?? "target"}.`);
 }

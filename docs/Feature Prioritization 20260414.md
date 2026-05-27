@@ -107,9 +107,32 @@ Still useful but less blocking than machine combat:
 
 ## Tier 3 - Polish And Completeness
 
-### 7. First Aid Combat Action Handler
+### 7. First Aid Combat Action Handler - Implemented
 
-The personal combat tracker still has a first-aid action slot that needs a concrete resolver.
+The personal combat tracker action slot is wired through `combatFirstAid`.
+
+Implemented behavior:
+
+- First Aid costs 2 SA as a Complex Action.
+- The launcher prompts for target, recovery track, condition DN, and medical gear.
+- The roll uses MedTech with DN 1/2/3 for Excellent/Normal/Poor conditions.
+- Self-treatment applies -2 dice.
+- Medical gear adds its rating to the dice pool.
+- Chat card recovery is applied after the roll:
+  - Fatigue: 1 recovered point per net hit.
+  - Physical: 1 recovered point per 2 net hits after the first.
+- Post-roll Edge remains available until recovery is applied, then is blocked for that card.
+
+Relevant files:
+
+- `src/modules/mwd/first-aid.js`
+- `src/modules/modifiers/providers/first-aid.js`
+- `src/modules/combat/personal-action-catalog.js`
+- `src/modules/roll/intent/resolve-skill.js`
+- `src/modules/sheets/base-actor-sheet-v2.js`
+- `src/modules/sheets/character-sheet-v2.js`
+- `src/modules/roll/renderers/render-skill.js`
+- `src/modules/chat/chat-actions.js`
 
 ### 8. Weapon Mounting Validation
 

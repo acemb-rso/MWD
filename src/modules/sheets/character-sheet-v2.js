@@ -33,6 +33,7 @@ import {
   buildMachineEwActionChoices,
 } from "../mwd/machine-quick-actions.js";
 import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
+import { executeFirstAidCombatAction } from "../mwd/first-aid.js";
 import {
   getQualityCategoryLabel,
   getQualityTierLabel,
@@ -267,6 +268,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       combatAssist: CharacterSheetV2.prototype._onCombatAssist,
       combatEvade: CharacterSheetV2.prototype._onCombatEvade,
       combatInterrupt: CharacterSheetV2.prototype._onCombatInterrupt,
+      combatFirstAid: CharacterSheetV2.prototype._onCombatFirstAid,
       combatReduceBurn: CharacterSheetV2.prototype._onCombatReduceBurn,
       combatOverloadCheck: CharacterSheetV2.prototype._onCombatOverloadCheck,
       combatAttack: CharacterSheetV2.prototype._onCombatAttack,
@@ -1520,6 +1522,38 @@ ctx.edgeConsole.poolsOrdered = order
   } catch (error) {
     console.error(`MWD | Failed to launch ${actionLabel}`, error);
     notifyRollError(error, `Unable to launch ${actionLabel}.`);
+  }
+}
+
+ async _onCombatFirstAid(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (this.#notifyUnavailableAction(target, event, "First Aid is not available right now.")) return;
+
+  if (!this.isEditable) return;
+
+  try {
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const result = await executeFirstAidCombatAction(actorWriteTarget, {
+      token: this.getSheetTokenDocument?.()
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
+      event,
+    });
+    this.#closeCombatMenu({ rerender: false });
+    if (result?.cancelled) {
+      this.#renderPreservingScroll(false);
+      return;
+    }
+    if (!result?.ok) {
+      ui.notifications?.warn(result?.reason ?? "Unable to spend First Aid action.");
+    }
+
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to launch First Aid", error);
+    notifyRollError(error, "Unable to launch First Aid.");
   }
 }
 
