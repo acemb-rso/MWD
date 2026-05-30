@@ -1,0 +1,32 @@
+{
+  "_id": "36e0f4f31410a799",
+  "name": "Fusion Recharger",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/systems/gear/ammo/battery.png",
+  "effects": [],
+  "folder": null,
+  "sort": 3400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Recharges power systems</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "power",
+    "relatedSkill": "technician",
+    "availability": "Rare",
+    "rulesHook": "Recharges power systems",
+    "tags": [
+      "power",
+      "recharge",
+      "fusion",
+      "equipmentSupport"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!36e0f4f31410a799"
+}

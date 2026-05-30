@@ -1,0 +1,33 @@
+{
+  "_id": "7eef6809aa1f07e8",
+  "name": "Verigraph Scanner",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/dna1.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1000000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Identity / biometric verification</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "computing",
+    "relatedSkill": "computers",
+    "availability": "Rare",
+    "rulesHook": "Identity / biometric verification",
+    "tags": [
+      "computing",
+      "identity",
+      "biometric",
+      "verification",
+      "security"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!7eef6809aa1f07e8"
+}

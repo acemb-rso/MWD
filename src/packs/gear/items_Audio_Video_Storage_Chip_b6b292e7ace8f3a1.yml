@@ -1,0 +1,32 @@
+{
+  "_id": "b6b292e7ace8f3a1",
+  "name": "Audio / Video Storage Chip",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/RFID_Chip.png",
+  "effects": [],
+  "folder": null,
+  "sort": 600000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Data storage</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 1,
+    "category": "computing",
+    "relatedSkill": "computers",
+    "availability": "Common",
+    "rulesHook": "Data storage",
+    "tags": [
+      "computing",
+      "dataStorage",
+      "media",
+      "portable"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!b6b292e7ace8f3a1"
+}

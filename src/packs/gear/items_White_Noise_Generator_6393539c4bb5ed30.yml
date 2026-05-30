@@ -1,0 +1,33 @@
+{
+  "_id": "6393539c4bb5ed30",
+  "name": "White Noise Generator",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/psychic-waves.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 5500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Blocks eavesdropping</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "surveillance",
+    "relatedSkill": "stealth",
+    "availability": "Rare",
+    "rulesHook": "Blocks eavesdropping",
+    "tags": [
+      "surveillance",
+      "counterSurveillance",
+      "privacy",
+      "audioMasking",
+      "electronics"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!6393539c4bb5ed30"
+}

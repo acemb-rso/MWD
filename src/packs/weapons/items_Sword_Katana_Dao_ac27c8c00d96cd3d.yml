@@ -1,0 +1,67 @@
+{
+  "_id": "ac27c8c00d96cd3d",
+  "name": "Sword/Katana/Dao",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/katana.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "<p>Damage: 3 + STR</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "melee",
+    "skill": "meleeCombat",
+    "damage": 3,
+    "damageAttribute": "strength",
+    "damageAttributeScale": 1,
+    "ap": 0,
+    "damageType": "penetrating",
+    "attackRatingBand": {
+      "close": 8,
+      "near": 0,
+      "far": 0,
+      "extreme": 0
+    },
+    "range": {
+      "max": "close",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [],
+    "availability": "Uncommon",
+    "payloads": [],
+    "selectedPayloadId": "",
+    "consumptionSources": [],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": "<p>Damage: 3 + STR</p>"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!ac27c8c00d96cd3d"
+}

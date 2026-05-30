@@ -12,6 +12,8 @@ import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
 import { buildSkillDisplay } from "../mwd/skills.js";
 import { getDepletingMachineMonitorClickValue, isMachineActorType } from "../mwd/machine-monitors.js";
 import { executeFirstAidCombatAction } from "../mwd/first-aid.js";
+import { getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
+import { resolvePersonalCritRemedyIntent } from "../mwd/personal-crit-intents.js";
 import { launchOwnedWeaponAttack } from "../roll/weapon-attack-actions.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { collectDocumentFormUpdates } from "./document-sheet-form.js";
@@ -94,6 +96,7 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
       combatReduceBurn: BaseActorSheetV2.prototype._onCombatReduceBurn,
       combatOverloadCheck: BaseActorSheetV2.prototype._onCombatOverloadCheck,
       combatAttack: BaseActorSheetV2.prototype._onCombatAttack,
+      personalCritRemedy: BaseActorSheetV2.prototype._onPersonalCritRemedy,
       removeActivationAction: BaseActorSheetV2.prototype._onRemoveActivationAction
     }
   }, { inplace: false });
@@ -135,22 +138,20 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
     return this.#editing;
   }
 
-  toggleEditing() {
+  async toggleEditing() {
     // Permissions gate: if you can't edit, you can't enter edit mode or commit.
     if (!this.isEditable) return;
 
     // If we are currently editing and about to exit edit mode, commit changes first.
     if (this.#editing) {
-      // Fire and forget is tempting, but don't: we want commit to finish before re-render.
-      this._commitEditsToActor().finally(() => {
-        this.#editing = !this.#editing;
-        this.render({ force: true });
-      });
+      await this._commitEditsToActor();
+      this.#editing = false;
+      this.render({ force: true });
       return;
     }
 
     // Entering edit mode: just flip and re-render.
-    this.#editing = !this.#editing;
+    this.#editing = true;
     this.render({ force: true });
   }
 
@@ -357,7 +358,7 @@ _initializeApplicationOptions(options) {
    */
   async _onToggleViewMode(event) {
     event?.preventDefault?.();
-    this.toggleEditing();
+    await this.toggleEditing();
   }
 
   /**
@@ -1001,8 +1002,17 @@ _initializeApplicationOptions(options) {
 
     const snapshot = PersonalCombatTracker.getSnapshot(actorWriteTarget, { token });
     const hasAim = Boolean(snapshot.state?.actionState?.aim);
+    const gateState = getPersonalCriticalGateState(actorWriteTarget);
     if (!snapshot.hasCombatant) {
       ui.notifications?.warn("No combatant on the current scene.");
+      return;
+    }
+    if (isOpportunity && gateState.cannotReact) {
+      ui.notifications?.warn(`Disabled (${gateState.reactionReason})`);
+      return;
+    }
+    if (!isOpportunity && gateState.cannotComplex) {
+      ui.notifications?.warn(`Disabled (${gateState.complexReason})`);
       return;
     }
     if (isOpportunity && snapshot.isCurrentTurn) {
@@ -1101,6 +1111,36 @@ _initializeApplicationOptions(options) {
     } catch (error) {
       console.error("MWD | Failed to launch First Aid", error);
       notifyRollError(error, "Unable to launch First Aid.");
+    }
+  }
+
+  async _onPersonalCritRemedy(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!this.isEditable) return;
+
+    const critId = String(target?.dataset?.critId ?? "").trim();
+    const remedyKey = String(target?.dataset?.remedyKey ?? "").trim();
+    if (!critId) return;
+
+    try {
+      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+      const result = await resolvePersonalCritRemedyIntent({
+        actor: actorWriteTarget,
+        token: this.getSheetTokenDocument?.()
+          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
+        critId,
+        remedyKey,
+      });
+      if (!result?.ok) {
+        ui.notifications?.warn(result?.reason ?? "Unable to remedy personal critical.");
+        return;
+      }
+      this._renderPreservingScroll({ force: true });
+    } catch (error) {
+      console.error("MWD | Failed to remedy personal critical", error);
+      ui.notifications?.error("Unable to remedy personal critical.");
     }
   }
 
@@ -1487,7 +1527,7 @@ _initializeApplicationOptions(options) {
 
   async _commitEditsToActor() {
     // If the sheet isn't rendered yet, nothing to commit.
-    const root = this.element;
+    const root = this._getRootElement();
     if (!root) return;
 
     const updates = collectDocumentFormUpdates({

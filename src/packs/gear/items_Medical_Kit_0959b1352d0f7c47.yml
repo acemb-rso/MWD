@@ -1,0 +1,33 @@
+{
+  "_id": "0959b1352d0f7c47",
+  "name": "Medical Kit",
+  "type": "gear",
+  "img": "systems/mwd/img/mek/misc/medical.png",
+  "effects": [],
+  "folder": null,
+  "sort": 2600000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>First aid / treatment support</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "category": "medical",
+    "relatedSkill": "medTech",
+    "availability": "Common",
+    "rulesHook": "First aid / treatment support",
+    "tags": [
+      "medical",
+      "firstAid",
+      "treatment",
+      "kit",
+      "fieldCare"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!0959b1352d0f7c47"
+}

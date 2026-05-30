@@ -1,0 +1,33 @@
+{
+  "_id": "305f84c27d8973cb",
+  "name": "Sedative Patch",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/systems/gear/drugs/rapidetox.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3000000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Sedation consumable</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 1,
+    "category": "medical",
+    "relatedSkill": "medTech",
+    "availability": "Restricted",
+    "rulesHook": "Sedation consumable",
+    "tags": [
+      "medical",
+      "sedation",
+      "drug",
+      "patch",
+      "consumable"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!305f84c27d8973cb"
+}

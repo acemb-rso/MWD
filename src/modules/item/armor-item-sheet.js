@@ -128,6 +128,9 @@ export class ArmorItemSheet extends BaseItemSheet {
       }
     ];
 
+    const availability = String(system.availability ?? "").trim();
+    if (availability) chips.push({ label: "Avail", value: availability });
+
     const reinforcedMax = Number(activeArmorState?.traitState?.reinforced?.max ?? system?.traitState?.reinforced?.max ?? 0);
     if (reinforcedMax > 0) {
       chips.push({

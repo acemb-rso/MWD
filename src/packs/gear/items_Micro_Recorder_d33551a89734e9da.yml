@@ -1,0 +1,33 @@
+{
+  "_id": "d33551a89734e9da",
+  "name": "Micro-Recorder",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/AUDIO.png",
+  "effects": [],
+  "folder": null,
+  "sort": 200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Records audio</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 1,
+    "category": "audiovisual",
+    "relatedSkill": "perception",
+    "availability": "Common",
+    "rulesHook": "Records audio",
+    "tags": [
+      "audiovisual",
+      "recording",
+      "audio",
+      "evidence",
+      "portable"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!d33551a89734e9da"
+}

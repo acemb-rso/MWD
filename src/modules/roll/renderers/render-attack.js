@@ -4,6 +4,7 @@
 
 import { startCase } from "../../constants.js";
 import { buildMachineCriticalChatSummary } from "../../mwd/machine-crit-effects.js";
+import { buildPersonalCriticalChatSummary } from "../../mwd/personal-criticals.js";
 import { enhancePostEdge } from "./render-edge-post.js";
 
 export function enhanceAttack(resolved, vm) {
@@ -98,11 +99,15 @@ export function enhanceAttack(resolved, vm) {
       const rowActions = [];
 
       if (!isApplied && initialExposure !== "NONE" && result?.damageResult?.ok && !result?.damageResult?.skipped) {
+        const reactionBlocked = Boolean(reactionPreview?.disabled);
         rowActions.push({
           action: "toggleEvade",
-          label: result?.evadeActive ? "Clear Evade" : "Use Reaction",
+          label: reactionBlocked
+            ? (reactionPreview?.reason || "Reaction Disabled")
+            : (result?.evadeActive ? "Clear Evade" : "Use Reaction"),
           dataset: { "preview-key": result.previewKey },
-          cssClass: `mwd-target-row__action ${result?.evadeActive ? "is-active" : ""}`
+          cssClass: `mwd-target-row__action ${result?.evadeActive ? "is-active" : ""}`,
+          disabled: reactionBlocked
         });
       }
 
@@ -257,6 +262,24 @@ export function enhanceAttack(resolved, vm) {
                 cssClass: `mwd-toggle-machine-reliability ${opportunity.selected ? "is-active" : ""}`
               });
             }
+          }
+        } else {
+          const criticalState = damageResult.critical ?? {};
+          if (criticalState.selected || criticalState.band) {
+            const severity = Number(criticalState.severity ?? 0);
+            const outcomeLabel = criticalState.selected
+              ? `${criticalState.bandLabel ?? startCase(criticalState.band ?? "")} ${criticalState.familyLabel ?? ""}`.trim()
+              : "No Critical";
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Critical Threat (severity ${severity}) -> ${outcomeLabel}`,
+              title: ""
+            });
+          }
+          for (const crit of criticalState.records ?? []) {
+            vm.footerRows.push({
+              text: `${result?.target?.name ?? "Target"}: Critical - ${crit.label} | ${buildPersonalCriticalChatSummary(crit)}`,
+              title: ""
+            });
           }
         }
         if (queuedMutation && !isApplied && damageResult?.critical?.mode === "chaosOptional") {

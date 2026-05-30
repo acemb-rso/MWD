@@ -140,7 +140,7 @@ MP budget enforcement and hardpoint availability are designed but should be enfo
 
 Likely files:
 
-- `src/modules/actor/battlemech-actor.js`
+- `src/modules/actor/mwd-actor.js`
 - `docs/weapon-mounting-system.md`
 
 ### 9. Legacy Cleanup

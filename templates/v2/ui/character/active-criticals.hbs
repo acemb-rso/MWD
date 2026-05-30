@@ -1,0 +1,52 @@
+{{!--
+templates/v2/ui/character/active-criticals.hbs
+Purpose: Renders active Personal Critical Hit records and their remedies.
+--}}
+
+{{#if activePersonalCriticals.length}}
+  <div class="mwd-records mwd-records--inventory">
+    {{#each activePersonalCriticals as |crit|}}
+      <article class="mwd-record mwd-record--crit">
+        <div class="mwd-record__header">
+          <div class="mwd-record__main">
+            <div class="mwd-record__topline">
+              <div class="mwd-record__title">{{crit.label}}</div>
+              <div class="mwd-record__stats">
+                <span class="mwd-record__stat is-strong">
+                  <span class="mwd-record__stat-label">Band</span>
+                  <span class="mwd-record__stat-value">{{crit.bandLabel}}</span>
+                </span>
+              </div>
+            </div>
+            <div class="mwd-record__subtitle">{{crit.effectText}}</div>
+            {{#if crit.restrictions.length}}
+              <div class="mwd-combat-dashboard__chips">
+                {{#each crit.restrictions as |restriction|}}
+                  <span class="chip mwd-combat-dashboard__chip mwd-combat-dashboard__chip--state">{{restriction.label}}</span>
+                {{/each}}
+              </div>
+            {{/if}}
+            {{#if crit.summary}}
+              <div class="mwd-record__subtitle">{{crit.summary}}</div>
+            {{/if}}
+          </div>
+          {{#if crit.remediable}}
+            <div class="mwd-record__actions">
+              <button
+                type="button"
+                class="mwd-record__icon-btn"
+                data-action="personalCritRemedy"
+                data-crit-id="{{crit.id}}"
+                data-remedy-key="{{crit.remedyKey}}"
+                title="{{crit.remedyLabel}}">
+                <i class="fas fa-wrench"></i>
+              </button>
+            </div>
+          {{/if}}
+        </div>
+      </article>
+    {{/each}}
+  </div>
+{{else}}
+  <div class="mwd-inv__empty">No active personal criticals.</div>
+{{/if}}

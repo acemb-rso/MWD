@@ -1,0 +1,78 @@
+{
+  "_id": "2cce4fe861e513fb",
+  "name": "Blackjack / Sap",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/baton.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "<p>Damage: 4 + STR</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "melee",
+    "skill": "meleeCombat",
+    "damage": 4,
+    "damageAttribute": "strength",
+    "damageAttributeScale": 1,
+    "ap": 0,
+    "damageType": "concussive",
+    "attackRatingBand": {
+      "close": 2,
+      "near": 0,
+      "far": 0,
+      "extreme": 0
+    },
+    "range": {
+      "max": "close",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [
+      {
+        "id": "774741ca831abbf1",
+        "key": "fatigue",
+        "rating": 0
+      },
+      {
+        "id": "e6d154446c1ec4b5",
+        "key": "concealable",
+        "rating": 0
+      }
+    ],
+    "availability": "Common",
+    "payloads": [],
+    "selectedPayloadId": "",
+    "consumptionSources": [],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": "<p>Damage: 4 + STR</p>"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!2cce4fe861e513fb"
+}

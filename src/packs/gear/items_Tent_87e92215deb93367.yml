@@ -1,0 +1,32 @@
+{
+  "_id": "87e92215deb93367",
+  "name": "Tent",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/SURVIVAL_GEAR.png",
+  "effects": [],
+  "folder": null,
+  "sort": 4900000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Shelter</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "survival",
+    "relatedSkill": "survival",
+    "availability": "Common",
+    "rulesHook": "Shelter",
+    "tags": [
+      "survival",
+      "shelter",
+      "camping",
+      "fieldSupport"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!87e92215deb93367"
+}

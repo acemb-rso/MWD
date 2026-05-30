@@ -14,6 +14,11 @@ export function isMachineDamageMutation(mutation = {}) {
   return mutation?.type === "machineAttackDamage" || mutation?.payload?.mode === "machineAttackDamage";
 }
 
+function isPersonalDamageMutation(mutation = {}) {
+  return !isMachineDamageMutation(mutation)
+    && (mutation?.type === "attackDamage" || mutation?.payload?.mode === "attackDamage");
+}
+
 export function getMutationTargetActorUuid(mutation = {}) {
   return mutation?.targetActorUuid ?? mutation?.target?.actorUuid ?? null;
 }
@@ -41,6 +46,26 @@ function syncMachineMutationPreview(mutation = {}, summary = {}) {
   mutation.payload ??= {};
   mutation.payload.previewRevision = previewRevision;
   mutation.payload.hitLocation = mutation.hitLocation;
+  mutation.payload.preparedCriticalRecords = preparedCriticalRecords;
+  return mutation;
+}
+
+function syncPersonalMutationPreview(mutation = {}, summary = {}) {
+  if (!isPersonalDamageMutation(mutation)) return mutation;
+  const previewRevision = Math.max(0, Math.trunc(Number(mutation?.payload?.previewRevision ?? mutation?.previewRevision ?? summary?.previewRevision ?? 0) || 0));
+  const preparedCriticalRecords = Array.isArray(summary?.critical?.records)
+    ? foundry.utils.deepClone(summary.critical.records).map(record => ({ ...record, previewRevision }))
+    : [];
+  mutation.type = "attackDamage";
+  mutation.targetActorUuid = getMutationTargetActorUuid(mutation);
+  mutation.targetTokenUuid = getMutationTargetTokenUuid(mutation);
+  mutation.critical = summary?.critical ?? null;
+  mutation.preparedCriticalRecords = preparedCriticalRecords;
+  mutation.previewRevision = previewRevision;
+  mutation.preview = summary;
+  mutation.payload ??= {};
+  mutation.payload.previewRevision = previewRevision;
+  mutation.payload.criticalPreview = summary?.critical ?? null;
   mutation.payload.preparedCriticalRecords = preparedCriticalRecords;
   return mutation;
 }
@@ -142,6 +167,14 @@ async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
       ? foundry.utils.deepClone(mutation.preparedCriticalRecords)
       : (Array.isArray(mutation.payload.preparedCriticalRecords) ? mutation.payload.preparedCriticalRecords : []);
   }
+  if (isPersonalDamageMutation(mutation)) {
+    mutation.payload ??= {};
+    mutation.payload.applied = Boolean(mutation.applied);
+    mutation.payload.previewRevision = Math.max(0, Math.trunc(Number(mutation.previewRevision ?? mutation.payload.previewRevision ?? 0) || 0));
+    mutation.payload.preparedCriticalRecords = Array.isArray(mutation.preparedCriticalRecords)
+      ? foundry.utils.deepClone(mutation.preparedCriticalRecords)
+      : (Array.isArray(mutation.payload.preparedCriticalRecords) ? mutation.payload.preparedCriticalRecords : []);
+  }
 
   const applyResult = await HarmEngine.apply({
     actor: targetActor,
@@ -170,6 +203,13 @@ async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
     mutation.payload.applied = true;
     mutation.payload.appliedResult = summary;
     syncMachineMutationPreview(mutation, summary);
+    mutation.applied = true;
+    mutation.appliedResult = summary;
+  }
+  if (isPersonalDamageMutation(mutation)) {
+    mutation.payload.applied = true;
+    mutation.payload.appliedResult = summary;
+    syncPersonalMutationPreview(mutation, summary);
     mutation.applied = true;
     mutation.appliedResult = summary;
   }

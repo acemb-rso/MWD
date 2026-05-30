@@ -1,0 +1,33 @@
+{
+  "_id": "c28d62224ea24459",
+  "name": "Communications Kit",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/systems/upgrades/communications_center.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Field communications support</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "category": "communication",
+    "relatedSkill": "systemOps",
+    "availability": "Uncommon",
+    "rulesHook": "Field communications support",
+    "tags": [
+      "communications",
+      "comms",
+      "fieldSupport",
+      "kit",
+      "coordination"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!c28d62224ea24459"
+}

@@ -9,6 +9,7 @@ import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import {
   attributeFields,
+  buildPersonalActiveCriticalsContext,
   buildPersonalCombatDashboardContext,
   buildPersonalConditionMonitors,
   buildPersonalInventoryContext,
@@ -61,7 +62,8 @@ export class NpcSheetV2 extends BaseActorSheetV2 {
     });
 
     const combatSnapshot = PersonalCombatTracker.getSnapshot(actor, { token: sheetToken });
-    context.combatDashboard = buildPersonalCombatDashboardContext(combatSnapshot);
+    context.combatDashboard = buildPersonalCombatDashboardContext(combatSnapshot, { actor });
+    context.activePersonalCriticals = buildPersonalActiveCriticalsContext(actor);
     context.combatActions = this._buildCombatActionsContext(
       PersonalCombatTracker.buildActionModel(actor, combatSnapshot)
     );

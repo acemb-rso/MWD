@@ -1195,6 +1195,21 @@ class _13_15_0_MachineEnergyPayloads extends Migration {
   }
 }
 
+class _13_16_0_AddPersonalCriticalStorage extends Migration {
+  get version() { return "13.16.0"; }
+  get code() { return "add-personal-critical-storage"; }
+
+  async migrate() {
+    const updates = [];
+    for (const actor of game.actors ?? []) {
+      if (![TEMPLATE.actorTypes.character, TEMPLATE.actorTypes.npc].includes(actor?.type)) continue;
+      if (Array.isArray(actor.system?.criticals)) continue;
+      updates.push(actor.update({ "system.criticals": [] }));
+    }
+    await Promise.all(updates);
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -1227,6 +1242,7 @@ export class Migrations {
       new _13_13_0_MoveMachineMountStateToHardpoints(),
       new _13_14_0_AddVehicleMovementProfileAndStrain(),
       new _13_15_0_MachineEnergyPayloads(),
+      new _13_16_0_AddPersonalCriticalStorage(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

@@ -1,0 +1,33 @@
+{
+  "_id": "76088aef123898ba",
+  "name": "Compass",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/SURVIVAL_GEAR.png",
+  "effects": [],
+  "folder": null,
+  "sort": 4300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Navigation</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 1,
+    "category": "survival",
+    "relatedSkill": "navigation",
+    "availability": "Common",
+    "rulesHook": "Navigation",
+    "tags": [
+      "survival",
+      "navigation",
+      "direction",
+      "manual",
+      "portable"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!76088aef123898ba"
+}

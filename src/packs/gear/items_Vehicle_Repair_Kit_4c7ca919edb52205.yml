@@ -1,0 +1,33 @@
+{
+  "_id": "4c7ca919edb52205",
+  "name": "Vehicle Repair Kit",
+  "type": "gear",
+  "img": "systems/mwd/img/mek/misc/repair/engine.png",
+  "effects": [],
+  "folder": null,
+  "sort": 4200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Vehicle repair support</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "category": "repairSalvage",
+    "relatedSkill": "technician",
+    "availability": "Uncommon",
+    "rulesHook": "Vehicle repair support",
+    "tags": [
+      "repairSalvage",
+      "vehicle",
+      "repair",
+      "kit",
+      "technical"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!4c7ca919edb52205"
+}

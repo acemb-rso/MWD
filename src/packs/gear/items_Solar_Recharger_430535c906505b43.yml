@@ -1,0 +1,32 @@
+{
+  "_id": "430535c906505b43",
+  "name": "Solar Recharger",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/systems/gear/ammo/battery.png",
+  "effects": [],
+  "folder": null,
+  "sort": 3600000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Solar power recovery</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "power",
+    "relatedSkill": "technician",
+    "availability": "Uncommon",
+    "rulesHook": "Solar power recovery",
+    "tags": [
+      "power",
+      "recharge",
+      "solar",
+      "fieldSupport"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!430535c906505b43"
+}

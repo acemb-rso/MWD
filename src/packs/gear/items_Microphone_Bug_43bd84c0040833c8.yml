@@ -1,0 +1,33 @@
+{
+  "_id": "43bd84c0040833c8",
+  "name": "Microphone Bug",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/AUDIO.png",
+  "effects": [],
+  "folder": null,
+  "sort": 5200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Hidden listening device</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 1,
+    "category": "surveillance",
+    "relatedSkill": "stealth",
+    "availability": "Restricted",
+    "rulesHook": "Hidden listening device",
+    "tags": [
+      "surveillance",
+      "audio",
+      "hidden",
+      "listening",
+      "device"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!43bd84c0040833c8"
+}

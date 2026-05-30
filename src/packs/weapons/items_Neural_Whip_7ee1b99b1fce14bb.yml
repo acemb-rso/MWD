@@ -1,0 +1,73 @@
+{
+  "_id": "7ee1b99b1fce14bb",
+  "name": "Neural Whip",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/shrieker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 700000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "melee",
+    "skill": "meleeCombat",
+    "damage": 7,
+    "damageAttribute": "",
+    "damageAttributeScale": 1,
+    "ap": 0,
+    "damageType": "energy",
+    "attackRatingBand": {
+      "close": 5,
+      "near": 0,
+      "far": 0,
+      "extreme": 0
+    },
+    "range": {
+      "max": "close",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [
+      {
+        "id": "cc344a6bf119fea9",
+        "key": "fatigue",
+        "rating": 0
+      }
+    ],
+    "availability": "Restricted",
+    "payloads": [],
+    "selectedPayloadId": "",
+    "consumptionSources": [],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": ""
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!7ee1b99b1fce14bb"
+}

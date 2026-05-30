@@ -1,0 +1,33 @@
+{
+  "_id": "d669fd38150e54cb",
+  "name": "Laser Torch",
+  "type": "gear",
+  "img": "systems/mwd/img/mek/misc/repair/laser.png",
+  "effects": [],
+  "folder": null,
+  "sort": 4100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Cutting / salvage tool</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 1,
+    "category": "repairSalvage",
+    "relatedSkill": "technician",
+    "availability": "Uncommon",
+    "rulesHook": "Cutting / salvage tool",
+    "tags": [
+      "repairSalvage",
+      "cutting",
+      "salvage",
+      "tool",
+      "powered"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!d669fd38150e54cb"
+}

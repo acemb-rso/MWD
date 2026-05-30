@@ -1,7 +1,11 @@
 ## Personal Damage Calculation
 [DamageApplied] = max(0, [DamageIncoming] - [NetResistance])
-[DamageIncoming] = [WeaponDamageEff] + [NetHits]
+[DamageIncoming] = [WeaponDamageEff]    // flat — NetHits no longer adds damage
 [NetResistance] = [BaseArmorResistance] + [DamageTypeMitigation] - [WeaponAP]
+
+> Personal (and synthetic / unarmed) damage is now **flat**, matching machines.
+> NetHits no longer adds to [DamageIncoming]; instead it drives the Personal
+> Critical Hit system. See `personal-critical-hit.md`.
 
 [Margin] = [AttackRollHits] - [DN]
 [CombatQuality] = [AttackRating] - [DefenseRating]
@@ -15,35 +19,30 @@
 [CombatQuality] < 0 AND [Margin] >= 2 => [Hit]
 Else => [Miss]
 
-** NetHits (Hit only)
+** NetHits (Hit only) — drives Critical Threat severity, NOT damage
 
 [Hit] => [NetHits] = max(0, [Margin])
 [Graze OR Miss] => [NetHits] = 0
+
+On a Hit, NetHits sets the Critical Threat Severity instead of adding damage:
+[1–2] => +0, [3–4] => +1, [5–6] => +2, [7+] => +3. Roll [2d6 + Severity]:
+[10] Minor, [11] Moderate, [12+] Severe, else No Critical. See
+`personal-critical-hit.md`.
 
 ** Graze damage
 
 [Graze] => [WeaponDamageEff] = [WeaponDamage] / 2
 [Hit] => [WeaponDamageEff] = [WeaponDamage]
 
-## Hit Location (3d6)
-Roll 3d6 (sum):
+## Critical Hits
 
-|Result|Location|
-|------|--------|
-|3–4| Critical Hit (location-agnostic; roll on the General Crit Table) |
-|5–8| Arms|
-|9–12| Torso
-|13–15| Legs
-|16| Arms (spend 1 Edge(Chaos) to make it a Critical Hit for the Arms)
-|17| Legs (spend 1 Edge(Chaos) to make it a Critical Hit for the Legs)
-|18| Head (spend 1 Edge(Chaos) to convert to Torso + Critical Hit instead of a Head critical hit)
+Personal combat does **not** use a 3d6 hit-location roll — that mechanic
+(location + location-agnostic Critical Hit on 3–4, with Chaos-Edge conversions
+on 16/17/18) belongs to **machine** combat only; see `critical-hit.md`.
 
-__Hit Distribution__  
-Head: 0.46%  
-Torso: 48.15%  
-Arms: 26.85%  
-Legs: 22.69%  
-Crit: 1.85%  
+Personal criticals are triggered by **attack margin** and resolved with
+**2d6 + Severity** (band), then **1d6** (effect family). See
+`personal-critical-hit.md`.
 
 ## Condition Penalty
 ### Physical or Fatigue

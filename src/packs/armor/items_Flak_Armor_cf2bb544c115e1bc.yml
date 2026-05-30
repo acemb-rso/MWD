@@ -1,0 +1,76 @@
+{
+  "_id": "cf2bb544c115e1bc",
+  "name": "Flak Armor",
+  "type": "armor",
+  "img": "systems/mwd/img/icons/systems/gear/armor/flak_body.svg",
+  "effects": [
+    {
+      "_id": "304e046c3bfa17ca",
+      "name": "-1 REF",
+      "img": "systems/mwd/img/icons/systems/gear/armor/flak_body.svg",
+      "disabled": false,
+      "transfer": false,
+      "changes": [
+        {
+          "key": "system.attributes.reflexes.value",
+          "type": "subtract",
+          "value": "1",
+          "phase": "final",
+          "priority": null
+        }
+      ],
+      "flags": {
+        "mwd": {
+          "source": "armor-trait",
+          "itemName": "Flak Armor"
+        }
+      },
+      "_key": "!items.effects!cf2bb544c115e1bc.304e046c3bfa17ca"
+    }
+  ],
+  "folder": null,
+  "sort": 600000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Armor",
+    "description": "<p>-1 REF</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "rating": 12,
+    "defenseBonus": 0,
+    "mitigationByType": {
+      "penetrating": 1,
+      "concussive": 2,
+      "energy": 0,
+      "thermal": 0,
+      "electrical": 0
+    },
+    "durability": {
+      "current": 12,
+      "max": 12
+    },
+    "standardTraits": [],
+    "traitState": {
+      "reinforced": {
+        "current": 0,
+        "max": 0
+      }
+    },
+    "availability": "Uncommon",
+    "tags": [
+      "armor",
+      "Uncommon",
+      "-1 REF"
+    ],
+    "traits": [
+      "-1 REF"
+    ],
+    "notes": "-1 REF"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!cf2bb544c115e1bc"
+}

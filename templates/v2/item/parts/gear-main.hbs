@@ -23,6 +23,21 @@ How it fits: Included by the layout-backed Gear sheet.
     </select>
   </div>
 
+  <div class="form-group">
+    <label for="system.relatedSkill">{{MWD.item.gear.relatedSkill}}</label>
+    <input type="text" name="system.relatedSkill" value="{{system.relatedSkill}}" placeholder="technician" />
+  </div>
+
+  <div class="form-group">
+    <label for="system.availability">{{MWD.item.gear.availability}}</label>
+    <input type="text" name="system.availability" value="{{system.availability}}" placeholder="Common" />
+  </div>
+
+  <div class="form-group mwd-item-field--wide">
+    <label for="system.rulesHook">{{MWD.item.gear.rulesHook}}</label>
+    <input type="text" name="system.rulesHook" value="{{system.rulesHook}}" placeholder="Brief rules hook or table note" />
+  </div>
+
   <div class="form-group mwd-item-field--wide">
     <label for="system.tags">{{MWD.item.gear.tags}}</label>
     <input type="text" name="system.tags" value="{{tagsText}}" placeholder="survival, consumable, medical" />

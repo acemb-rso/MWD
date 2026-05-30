@@ -1,0 +1,52 @@
+{
+  "_id": "99887f836fffb4cc",
+  "name": "Lined Coat",
+  "type": "armor",
+  "img": "systems/mwd/img/icons/systems/gear/clothing/generic_jacket.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1000000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Armor",
+    "description": "<p>Concealable</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "rating": 6,
+    "defenseBonus": 3,
+    "mitigationByType": {
+      "penetrating": 0,
+      "concussive": 0,
+      "energy": 0,
+      "thermal": 0,
+      "electrical": 0
+    },
+    "durability": {
+      "current": 6,
+      "max": 6
+    },
+    "standardTraits": [],
+    "traitState": {
+      "reinforced": {
+        "current": 0,
+        "max": 0
+      }
+    },
+    "availability": "Common",
+    "tags": [
+      "armor",
+      "Common",
+      "Concealable"
+    ],
+    "traits": [
+      "Concealable"
+    ],
+    "notes": "Concealable"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!99887f836fffb4cc"
+}

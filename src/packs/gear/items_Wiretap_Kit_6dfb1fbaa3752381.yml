@@ -1,0 +1,33 @@
+{
+  "_id": "6dfb1fbaa3752381",
+  "name": "Wiretap Kit",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/AUDIO.png",
+  "effects": [],
+  "folder": null,
+  "sort": 1800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Communications interception</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "espionage",
+    "relatedSkill": "computers",
+    "availability": "Restricted",
+    "rulesHook": "Communications interception",
+    "tags": [
+      "espionage",
+      "communications",
+      "interception",
+      "surveillance",
+      "kit"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!6dfb1fbaa3752381"
+}

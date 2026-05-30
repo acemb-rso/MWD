@@ -26,6 +26,10 @@ import {
 } from "../mwd/traits.js";
 import { applyMachineAttackDamage } from "../mwd/critical-hits.js";
 import {
+  applyPersonalCriticalToActor,
+  previewPersonalCritical,
+} from "../mwd/personal-criticals.js";
+import {
   getHarmTrackLabel,
   normalizeHarmDelta,
   resolveArmorWearStep,
@@ -296,7 +300,7 @@ export class HarmEngine {
     let result;
     switch (String(payload?.mode ?? "").trim()) {
       case "attackDamage":
-        result = await this._applyAttackDamage(target.actor, payload, options);
+        result = await this._applyAttackDamage(target.actor, target.token, payload, options);
         break;
       case "machineAttackDamage":
         result = await this._applyMachineAttackDamage(target.actor, target.token, payload, options);
@@ -438,18 +442,32 @@ export class HarmEngine {
     };
   }
 
-  static async _applyAttackDamage(actor, payload, options = {}) {
+  static async _applyAttackDamage(actor, token, payload, options = {}) {
+    if (payload?.applied === true) {
+      return payload?.appliedResult?.ok
+        ? { ...payload.appliedResult, skipped: true, reason: "That attack damage has already been applied." }
+        : { ok: false, skipped: true, reason: "That attack damage has already been applied." };
+    }
     return this._applyPersonalArmorAwareDamage(actor, {
       mode: "attackDamage",
       track: payload?.track ?? TEMPLATE.monitors.physical,
       damage: payload?.damage ?? 0,
       netHits: payload?.netHits ?? 0,
+      critNetHits: payload?.critNetHits ?? payload?.netHits ?? 0,
+      critSeverity: payload?.critSeverity,
+      outcome: payload?.outcome,
+      previewRevision: payload?.previewRevision ?? 0,
+      preparedCriticalRecords: payload?.preparedCriticalRecords ?? [],
+      requirePreparedCriticalRecords: payload?.requirePreparedCriticalRecords === true,
+      weaponUuid: payload?.weaponUuid ?? "",
+      weaponId: payload?.weaponId ?? "",
+      weaponName: payload?.weaponName ?? "",
       damageType: payload?.damageType,
       ap: payload?.ap ?? 0,
       effects: payload?.effects ?? {},
       source: payload?.source,
       notes: payload?.notes,
-    }, options);
+    }, { ...options, token });
   }
 
   static async _applyMachineAttackDamage(actor, token, payload, options = {}) {
@@ -472,7 +490,7 @@ export class HarmEngine {
     const normalizedDamageType = normalizePersonalDamageType(payload?.damageType, "concussive");
     const beforeTrack = getMonitorValue(actor, track);
 
-    let damageIncoming = baseDamage + netHits;
+    let damageIncoming = baseDamage;
     const tagEffectResult = armorCurrentRating > 0
       ? applyArmorTagEffects({
           damageIncoming,
@@ -527,12 +545,18 @@ export class HarmEngine {
       await Checkbars.addCounter(actor, track, finalDamage);
     }
 
+    // Any connecting attack wears armor, even when it deals 0 net damage after
+    // mitigation. Misses never reach this routine (they are skipped upstream),
+    // so an attackDamage packet with a hit/graze outcome always degrades armor.
+    const attackConnected = payload?.mode === "attackDamage"
+      && ["hit", "graze", "highMargin"].includes(String(payload?.outcome ?? "").trim());
     const armorWear = resolveArmorWearStep({
-      incomingDamage: baseDamage + netHits,
+      incomingDamage: baseDamage,
       armorBefore: activeArmor?.durability?.current ?? 0,
       reinforcedBefore: activeArmor?.traitState?.reinforced?.current ?? 0,
       reinforcedMax: activeArmor?.traitState?.reinforced?.max ?? 0,
       hasArmorItem: Boolean(activeArmor?.item?.id),
+      forceWear: attackConnected,
     });
 
     if (!dryRun && Object.keys(armorWear.update).length > 0) {
@@ -541,10 +565,40 @@ export class HarmEngine {
 
     const afterTrack = dryRun ? Math.max(0, beforeTrack + finalDamage) : getMonitorValue(actor, track);
 
+    const critical = payload?.mode === "attackDamage"
+      ? await previewPersonalCritical({
+        actor,
+        payload,
+        outcome: payload?.outcome,
+        netHits: payload?.critNetHits ?? netHits,
+        source: payload?.sourceData ?? { source: payload?.source ?? "" },
+        previewRevision: payload?.previewRevision ?? 0,
+        weaponUuid: payload?.weaponUuid ?? "",
+        weaponId: payload?.weaponId ?? "",
+        weaponName: payload?.weaponName ?? "",
+      })
+      : { ok: true, selected: false, records: [], severity: 0, band: "none" };
+
+    if (!critical.ok) return critical;
+    const preparedCriticalRecords = Array.isArray(payload?.preparedCriticalRecords) ? payload.preparedCriticalRecords : [];
+    if (!dryRun && payload?.requirePreparedCriticalRecords === true && critical.selected && preparedCriticalRecords.length <= 0) {
+      return { ok: false, reason: "Critical preview is missing. Rebuild the attack damage preview before applying." };
+    }
+    let criticalApply = { ok: true, records: [] };
+    if (!dryRun && critical.selected && Array.isArray(critical.records) && critical.records.length) {
+      criticalApply = await applyPersonalCriticalToActor({
+        actor,
+        token: options.token ?? null,
+        records: critical.records,
+        dryRun: false,
+      });
+      if (!criticalApply.ok) return criticalApply;
+    }
+
     return {
       mode: payload?.mode ?? "attackDamage",
       track,
-      requestedDelta: baseDamage + netHits,
+      requestedDelta: baseDamage,
       appliedDelta: afterTrack - beforeTrack,
       usedArmor: true,
       damageType: normalizedDamageType,
@@ -563,6 +617,11 @@ export class HarmEngine {
       finalDamage,
       tagEffectResult,
       attackDamage: payload?.attackDamage ?? null,
+      critical: {
+        ...critical,
+        drawOk: true,
+        records: criticalApply.records?.length ? criticalApply.records : (critical.records ?? []),
+      },
       beforeLabel: `${getHarmTrackLabel(track)} ${beforeTrack}`,
       afterLabel: `${getHarmTrackLabel(track)} ${afterTrack}`,
       source: String(payload?.source ?? "").trim(),

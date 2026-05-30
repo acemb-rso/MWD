@@ -50,9 +50,64 @@ export const ARMOR_MITIGATION_TYPE_KEYS = Object.freeze(
   PERSONAL_DAMAGE_TYPES.map(entry => entry.value)
 );
 
-// Weapon and payload standard traits are disabled until their rules are
-// explored and backed by concrete system behavior.
-const WEAPON_STANDARD_TRAIT_DEFS = Object.freeze({});
+const WEAPON_STANDARD_TRAIT_DEFS = Object.freeze({
+  fatigue: Object.freeze({
+    key: "fatigue",
+    label: "Fatigue",
+    rated: false,
+    aliases: ["fatigue", "stun", "nonlethal", "non-lethal"],
+    resolve: () => ({ damageTrack: "fatigue", flags: ["fatigue"] }),
+  }),
+  concealable: Object.freeze({
+    key: "concealable",
+    label: "Concealable",
+    rated: false,
+    aliases: ["concealable", "conceal", "concealed"],
+    resolve: () => ({ flags: ["concealable"] }),
+  }),
+  singleShot: Object.freeze({
+    key: "singleShot",
+    label: "Single Shot",
+    rated: false,
+    aliases: ["singleShot", "single-shot", "single shot", "normal"],
+    resolve: () => ({
+      fireModes: {
+        single: { enabled: true },
+        burst: { enabled: false },
+        fullAuto: { enabled: false },
+      },
+      flags: ["singleShot"],
+    }),
+  }),
+  automatic: Object.freeze({
+    key: "automatic",
+    label: "Automatic",
+    rated: false,
+    aliases: ["automatic", "auto", "burst", "fullAuto", "full-auto", "full auto"],
+    resolve: () => ({
+      fireModes: {
+        single: { enabled: true },
+        burst: { enabled: true },
+        fullAuto: { enabled: true },
+      },
+      flags: ["automatic"],
+    }),
+  }),
+  spread: Object.freeze({
+    key: "spread",
+    label: "Spread",
+    rated: false,
+    aliases: ["spread", "scatter", "shotgun"],
+    resolve: () => ({ flags: ["spread"] }),
+  }),
+  spaceCapable: Object.freeze({
+    key: "spaceCapable",
+    label: "Space Capable",
+    rated: false,
+    aliases: ["spaceCapable", "space-capable", "space capable", "vacuum", "vacuumCapable"],
+    resolve: () => ({ flags: ["spaceCapable"] }),
+  }),
+});
 
 const ARMOR_STANDARD_TRAIT_DEFS = Object.freeze({
   ablative: Object.freeze({
@@ -92,7 +147,13 @@ const ARMOR_STANDARD_TRAIT_DEFS = Object.freeze({
   }),
 });
 
-export const WEAPON_STANDARD_TRAITS = Object.freeze([]);
+export const WEAPON_STANDARD_TRAITS = Object.freeze(
+  Object.values(WEAPON_STANDARD_TRAIT_DEFS).map(entry => ({
+    value: entry.key,
+    label: entry.label,
+    rated: entry.rated,
+  }))
+);
 
 export const ARMOR_STANDARD_TRAITS = Object.freeze(
   Object.values(ARMOR_STANDARD_TRAIT_DEFS).map(entry => ({
@@ -326,6 +387,11 @@ export function mergeWeaponEffects(effects = []) {
   const flags = new Set();
 
   for (const effect of effects.filter(Boolean)) {
+    if (effect.damageTrack !== undefined) {
+      const track = String(effect.damageTrack ?? "").trim();
+      if (track) merged.damageTrack = track;
+    }
+
     if (effect.accuracyMod !== undefined) {
       merged.accuracyMod = (Number(merged.accuracyMod ?? 0) || 0) + (Number(effect.accuracyMod ?? 0) || 0);
     }
@@ -342,6 +408,10 @@ export function mergeWeaponEffects(effects = []) {
       merged.bonusVsArmorTag = mergeBonusVsArmorTag(merged.bonusVsArmorTag, effect.bonusVsArmorTag);
     }
 
+    if (effect.fireModes) {
+      merged.fireModes = mergeWeaponFireModes(merged.fireModes, effect.fireModes);
+    }
+
     for (const flag of effect.flags ?? []) {
       const normalized = String(flag ?? "").trim();
       if (normalized) flags.add(normalized);
@@ -353,6 +423,17 @@ export function mergeWeaponEffects(effects = []) {
   }
 
   return merged;
+}
+
+function mergeWeaponFireModes(base = {}, addition = {}) {
+  const normalizedBase = normalizeWeaponFireModes(base);
+  const normalizedAddition = normalizeWeaponFireModes(addition);
+
+  return {
+    single: { ...normalizedBase.single, ...normalizedAddition.single },
+    burst: { ...normalizedBase.burst, ...normalizedAddition.burst },
+    fullAuto: { ...normalizedBase.fullAuto, ...normalizedAddition.fullAuto },
+  };
 }
 
 export function deriveWeaponEffectsFromTraits(traitsOrConfig = [], standardTraits = []) {
@@ -935,6 +1016,7 @@ export function resolveEffectiveWeaponProfile({
 
   return {
     damageType: activePayload?.modifies?.damageType || normalizePersonalDamageType(damageType),
+    damageTrack: combinedEffects.damageTrack || "physical",
     ap: (Number(ap ?? 0) || 0) + (Number(activePayload?.modifies?.ap ?? 0) || 0),
     clusteringDice: Number(activePayload?.modifies?.clusteringDice ?? 0) || 0,
     attackRatingBand: mergeAttackRatingBands(
@@ -965,7 +1047,7 @@ export function resolveEffectiveWeaponProfile({
     areaEffect: normalizeAreaEffect(activePayload?.areaEffect ?? {}),
     resolution: foundry.utils.deepClone(effectiveResolution),
     resolverKey: String(effectiveResolution?.resolverKey ?? "standard").trim() || "standard",
-    fireModes: foundry.utils.deepClone(normalizedFireModes),
+    fireModes: foundry.utils.deepClone(mergeWeaponFireModes(normalizedFireModes, combinedEffects.fireModes)),
     capabilityReport: {
       ...capabilityReport,
       liveCapabilities: capabilityValidation.liveCapabilities,

@@ -77,6 +77,28 @@ test("default machine catalog includes mechanic-ready BattleMech statuses", () =
   assert.ok(sensorLocked.tags.includes("targeted"));
 });
 
+test("default person catalog includes personal critical marker and band statuses", () => {
+  const catalog = getDefaultStatusConditionCatalog();
+  const marker = getStatusConditionDefinition("personalCritical", catalog);
+  assert.equal(marker.actorGroup, "person");
+  assert.equal(marker.managed, true);
+  assert.equal(marker.manual, false);
+
+  for (const statusId of [
+    "windedMinor", "windedModerate", "windedSevere",
+    "concussionMinor", "concussionModerate", "concussionSevere",
+    "crippledMinor", "crippledModerate", "crippledSevere",
+    "hamperedMinor", "hamperedModerate", "hamperedSevere",
+    "offbalanceMinor", "offbalanceModerate", "offbalanceSevere",
+    "dizzyMinor", "dizzyModerate", "dizzySevere",
+  ]) {
+    const entry = getStatusConditionDefinition(statusId, catalog);
+    assert.equal(entry.actorGroup, "person", statusId);
+    assert.equal(entry.managed, true, statusId);
+    assert.ok(entry.tags.includes("personalCritical"), statusId);
+  }
+});
+
 test("default person hazard and tactical statuses link to mechanics-backed modifier keys", () => {
   const catalog = getDefaultStatusConditionCatalog();
   const expected = new Map([
@@ -236,6 +258,14 @@ test("status modifiers use granular domains without double-counting broad aliase
   assert.equal(blindedAcquire.length, 1);
   assert.equal(blindedAcquire[0].value, -3);
   assert.equal(blindedAcquire[0].domain, "sensor.acquire");
+
+  const dizzy = provider.collect({ actor: actor("character", ["dizzySevere"]), domains: ["physical"] });
+  assert.deepEqual(dizzy, []);
+
+  const offBalance = provider.collect({ actor: actor("character", ["offbalanceModerate"]), domains: ["physical", "attack"] });
+  assert.equal(offBalance.length, 1);
+  assert.equal(offBalance[0].label, "Off Balance II");
+  assert.equal(offBalance[0].value, -4);
 });
 
 test("applying catalog statuses stores future mechanics metadata", async () => {

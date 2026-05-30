@@ -1,0 +1,33 @@
+{
+  "_id": "bd1bb478328854cb",
+  "name": "Field Surgical Kit",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/caduceus.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Surgery / advanced treatment</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 6,
+    "category": "medical",
+    "relatedSkill": "medTech",
+    "availability": "Rare",
+    "rulesHook": "Surgery / advanced treatment",
+    "tags": [
+      "medical",
+      "surgery",
+      "advancedTreatment",
+      "kit",
+      "fieldCare"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!bd1bb478328854cb"
+}

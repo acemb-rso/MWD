@@ -225,6 +225,32 @@ function applyChatVisibility(chatData) {
   return chatData;
 }
 
+// Landed personal criticals deserve a prominent banner on the applied-damage
+// card (the attack card keeps only a faint threat line). Machine criticals are
+// already surfaced through their own detail row, so this stays personal-only.
+function buildPersonalCriticalCards(summary = {}) {
+  if (summary?.mode === "machineAttackDamage" || summary?.machine) return [];
+  const records = Array.isArray(summary?.critical?.records) ? summary.critical.records : [];
+  return records
+    .map(record => {
+      const label = String(
+        record?.label ?? `${record?.familyLabel ?? ""} ${record?.bandRoman ?? ""}`
+      ).trim();
+      if (!label) return null;
+      const remedyKey = String(record?.remedyKey ?? "").trim();
+      const remedyLabel = String(record?.remedyLabel ?? "").trim();
+      const remedyDn = Math.max(0, Number(record?.remedyBaseDn ?? 0) || 0);
+      return {
+        label,
+        effectText: String(record?.effectText ?? "").trim(),
+        remedy: remedyLabel && remedyKey !== "none"
+          ? `${remedyLabel}${remedyDn ? ` (DN ${remedyDn})` : ""}`
+          : ""
+      };
+    })
+    .filter(Boolean);
+}
+
 function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null } = {}) {
   const damageType = String(summary?.damageType ?? "").trim();
   const damageTypeLabel = getPersonalDamageTypeLabel(damageType || "concussive") || "Damage";
@@ -346,6 +372,7 @@ function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null
     severityLabel: severity.label,
     impactValue: appliedDamage.total,
     impactText: buildDamageImpactText({ damageTypeLabel, trackLabel, breakdown: appliedDamage }),
+    criticals: buildPersonalCriticalCards(summary),
     rows
   };
 }
@@ -440,6 +467,8 @@ async function setAttackPendingReaction(message, result, { active = false, edgeP
   const targetActor = result?.target?.actorUuid ? await fromUuid(result.target.actorUuid) : null;
   const targetToken = result?.target?.tokenUuid ? await fromUuid(result.target.tokenUuid) : null;
   if (!targetActor) return;
+  const preview = PersonalCombatTracker.getReactionSpendPreview(targetActor, { token: targetToken, edgePoolKey });
+  if (active && preview?.disabled) return;
 
   if (!active) {
     const snapshot = PersonalCombatTracker.getSnapshot(targetActor, { token: targetToken });
@@ -494,6 +523,8 @@ async function onToggleEvade(ev, message) {
       resolved.areaEffectPreviewState[previewKey].reactionPreview = {
         burnDelta: Number(reactionPreview.burnDelta ?? 0),
         canSpendEdge: Boolean(reactionPreview.canSpendEdge),
+        disabled: Boolean(reactionPreview.disabled),
+        reason: String(reactionPreview.reason ?? ""),
         edgePools: (reactionPreview.edgePools ?? []).map(pool => ({
           key: pool.key,
           label: pool.label,
@@ -538,6 +569,8 @@ async function onToggleEvadeEdge(ev, message) {
       resolved.areaEffectPreviewState[previewKey].reactionPreview = {
         burnDelta: Number(reactionPreview.burnDelta ?? 0),
         canSpendEdge: Boolean(reactionPreview.canSpendEdge),
+        disabled: Boolean(reactionPreview.disabled),
+        reason: String(reactionPreview.reason ?? ""),
         edgePools: (reactionPreview.edgePools ?? []).map(pool => ({
           key: pool.key,
           label: pool.label,
@@ -696,6 +729,8 @@ async function setHazardPendingReaction(message, card, { active = false, edgePoo
   const targetActor = card?.actorUuid ? await fromUuid(card.actorUuid) : null;
   const targetToken = card?.tokenUuid ? await fromUuid(card.tokenUuid) : null;
   if (!targetActor) return;
+  const preview = PersonalCombatTracker.getReactionSpendPreview(targetActor, { token: targetToken, edgePoolKey });
+  if (active && preview?.disabled) return;
 
   if (!active) {
     const snapshot = PersonalCombatTracker.getSnapshot(targetActor, { token: targetToken });
@@ -747,6 +782,8 @@ async function onToggleHazardEvade(ev, message) {
       current.preview.reactionPreview = reactionPreview ? {
         burnDelta: Number(reactionPreview.burnDelta ?? 0),
         canSpendEdge: Boolean(reactionPreview.canSpendEdge),
+        disabled: Boolean(reactionPreview.disabled),
+        reason: String(reactionPreview.reason ?? ""),
         edgePools: (reactionPreview.edgePools ?? []).map(pool => ({
           key: pool.key,
           label: pool.label,
@@ -784,6 +821,8 @@ async function onToggleHazardEvadeEdge(ev, message) {
     current.preview.reactionPreview = reactionPreview ? {
       burnDelta: Number(reactionPreview.burnDelta ?? 0),
       canSpendEdge: Boolean(reactionPreview.canSpendEdge),
+      disabled: Boolean(reactionPreview.disabled),
+      reason: String(reactionPreview.reason ?? ""),
       edgePools: (reactionPreview.edgePools ?? []).map(pool => ({
         key: pool.key,
         label: pool.label,
@@ -939,6 +978,8 @@ export async function activatePendingEvadeFromCombatMenu(actor, { token = null }
         nextResolved.areaEffectPreviewState[previewKey].reactionPreview = {
           burnDelta: Number(reactionPreview.burnDelta ?? 0),
           canSpendEdge: Boolean(reactionPreview.canSpendEdge),
+          disabled: Boolean(reactionPreview.disabled),
+          reason: String(reactionPreview.reason ?? ""),
           edgePools: (reactionPreview.edgePools ?? []).map(pool => ({
             key: pool.key,
             label: pool.label,

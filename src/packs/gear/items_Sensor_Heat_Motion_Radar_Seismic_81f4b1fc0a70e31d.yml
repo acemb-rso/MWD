@@ -1,0 +1,33 @@
+{
+  "_id": "81f4b1fc0a70e31d",
+  "name": "Sensor, Heat / Motion / Radar / Seismic",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/SENSOR.png",
+  "effects": [],
+  "folder": null,
+  "sort": 5300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Choose subtype as trait or note</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "category": "surveillance",
+    "relatedSkill": "perception",
+    "availability": "Rare",
+    "rulesHook": "Choose subtype as trait or note",
+    "tags": [
+      "surveillance",
+      "sensor",
+      "detection",
+      "chooseSubtype",
+      "electronics"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!81f4b1fc0a70e31d"
+}

@@ -1,0 +1,120 @@
+{
+  "_id": "2d47d3df07ce27a7",
+  "name": "Heavy Crossbow",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/crossbow.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "projectile",
+    "skill": "projectileWeapons",
+    "damage": 6,
+    "damageAttribute": "",
+    "damageAttributeScale": 1,
+    "ap": 1,
+    "damageType": "penetrating",
+    "attackRatingBand": {
+      "close": 2,
+      "near": 8,
+      "far": 6,
+      "extreme": 0
+    },
+    "range": {
+      "max": "far",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [
+      {
+        "id": "bfceb944d09d96d8",
+        "key": "singleShot",
+        "rating": 0
+      }
+    ],
+    "availability": "Uncommon",
+    "payloads": [
+      {
+        "id": "unloaded",
+        "label": "Unloaded",
+        "compatibleWith": [],
+        "modifies": {
+          "damageType": "",
+          "ap": 0,
+          "clusteringDice": 0,
+          "attackRatingBand": {
+            "close": 0,
+            "near": 0,
+            "far": 0,
+            "extreme": 0
+          }
+        },
+        "traits": [],
+        "keywords": [],
+        "template": null,
+        "areaEffect": {
+          "kind": "discrete"
+        },
+        "resolution": {
+          "resolverKey": "standard",
+          "damageModel": "",
+          "onHitEffect": null
+        },
+        "consumption": {
+          "amount": 1,
+          "sourceId": ""
+        }
+      }
+    ],
+    "selectedPayloadId": "unloaded",
+    "consumptionSources": [
+      {
+        "id": "untracked",
+        "label": "Untracked",
+        "kind": "untracked",
+        "tracking": {
+          "current": 0,
+          "max": 0
+        },
+        "link": {
+          "actorPath": "",
+          "itemId": "",
+          "itemPath": ""
+        }
+      }
+    ],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": ""
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!2d47d3df07ce27a7"
+}

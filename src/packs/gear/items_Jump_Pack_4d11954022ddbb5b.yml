@@ -1,0 +1,33 @@
+{
+  "_id": "4d11954022ddbb5b",
+  "name": "Jump Pack",
+  "type": "gear",
+  "img": "systems/mwd/img/mek/force/Pieces/Types/Alphanumeric/Type/JUMP.png",
+  "effects": [],
+  "folder": null,
+  "sort": 4700000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Personal mobility gear; may need special movement rules later</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "category": "survival",
+    "relatedSkill": "athletics",
+    "availability": "Rare",
+    "rulesHook": "Personal mobility gear; may need special movement rules later",
+    "tags": [
+      "survival",
+      "mobility",
+      "jump",
+      "powered",
+      "worn"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!4d11954022ddbb5b"
+}

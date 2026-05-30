@@ -4273,6 +4273,42 @@
   line-height: 1;
 }
 
+.mwd-damage-card__criticals {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.5rem 0;
+}
+
+.mwd-damage-card__critical {
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--mwd-damage-type-penetrating-border, #b5462e);
+  border-left-width: 4px;
+  background: var(--mwd-damage-card-row-bg);
+  box-shadow: var(--mwd-damage-glow-critical, 0 0 8px rgba(220, 80, 50, 0.45));
+}
+
+.mwd-damage-card__critical-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--mwd-damage-type-penetrating, #d8503a);
+}
+
+.mwd-damage-card__critical-effect {
+  margin-top: 0.25rem;
+  color: var(--mwd-damage-card-text);
+}
+
+.mwd-damage-card__critical-remedy {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+
 .mwd-damage-card__details {
   display: grid;
   gap: 0.4rem;
@@ -6953,5 +6989,3 @@
   opacity: 1 !important;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9)) contrast(1.24) saturate(0.95);
 }
-
-/*# sourceMappingURL=mwd.css.map */

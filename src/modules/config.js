@@ -493,6 +493,9 @@ export const MWD = {
       "quantityShort": "Qty",
       "rating": "Rating",
       "category": "Category",
+      "relatedSkill": "Related Skill",
+      "availability": "Availability",
+      "rulesHook": "Rules Hook / Notes",
       "tags": "Tags",
       "categoryLabels": {
         "audiovisual": "Audiovisual Gear",
@@ -514,6 +517,9 @@ export const MWD = {
       "quantityShort": "Qty",
       "rating": "Potency",
       "category": "Consumable Type",
+      "relatedSkill": "Related Skill",
+      "availability": "Availability",
+      "rulesHook": "Rules Hook / Notes",
       "tags": "Tags",
       "categoryLabels": {
         "ammo": "Ammunition",
@@ -583,6 +589,7 @@ export const MWD = {
       "mitigation": "Type Modifiers",
       "durability": "Durability",
       "tags": "Armor Tags",
+      "availability": "Availability",
       "traits": "Traits",
       "notes": "Notes"
     }

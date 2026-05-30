@@ -38,6 +38,7 @@ import { renderHazardCard } from "../area-effects/hazard-chat.js";
 import { resolveBattlemechPendingHeat } from "../mwd/machine-heat.js";
 import { buildMachineActivationStartReport, isMachineActor } from "../mwd/machine-crit-effects.js";
 import { getBattlemechUsedWeaponGroupIds, markBattlemechWeaponGroupUsed } from "../mwd/battlemech-weapon-groups.js";
+import { getPersonalActionGateReason, getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -1184,6 +1185,7 @@ export class PersonalCombatTracker {
 
   static getReactionSpendPreview(actor, { token = null, edgePoolKey = "" } = {}) {
     const snapshot = this.getSnapshot(actor, { token });
+    const gateState = getPersonalCriticalGateState(actor);
     const usesReaction = Number(snapshot.state?.raRemaining ?? 0) > 0;
     const edgePools = this.getAvailableReactionEdgePools(actor);
     const normalizedEdgePoolKey = String(edgePoolKey ?? "").trim();
@@ -1197,6 +1199,8 @@ export class PersonalCombatTracker {
       canSpendEdge: !usesReaction && edgePools.length > 0,
       edgePools,
       edgePoolKey: canSpendEdge ? normalizedEdgePoolKey : null,
+      disabled: gateState.cannotReact,
+      reason: gateState.cannotReact ? `Disabled (${gateState.reactionReason})` : "",
       costLabel: usesReaction
         ? "1 RA"
         : (canSpendEdge ? `1 Edge (${normalizedEdgePoolKey})` : "+2 Burn"),
@@ -1215,6 +1219,7 @@ export class PersonalCombatTracker {
     const preview = this.getReactionSpendPreview(actor, { token, edgePoolKey });
     const snapshot = preview.snapshot;
     if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
+    if (preview.disabled) return { ok: false, reason: preview.reason || "Reactions are disabled." };
     if (!allowCurrentTurn && snapshot.isCurrentTurn) return { ok: false, reason: "Only outside your activation." };
 
     const nextState = cloneWritableSnapshotState(snapshot);
@@ -1309,6 +1314,34 @@ export class PersonalCombatTracker {
     const mutated = typeof mutate === "function" ? mutate(nextState, snapshot) ?? nextState : nextState;
     await snapshot.combatant.setFlag(FLAG_SCOPE, FLAG_KEY, mutated);
     return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
+  }
+
+  // Move actions feed both the "Aim after moving" gate and the personal attack
+  // DN (attacker/target motion). Each Move action logs one entry, so the log
+  // count is the authoritative tally for this activation.
+  static getMoveActionCountFromState(state = {}) {
+    const log = Array.isArray(state?.actionLog) ? state.actionLog : [];
+    const count = log.filter(entry => String(entry?.id ?? "").trim() === "move").length;
+    if (count > 0) return count;
+    return state?.actionState?.move?.moved ? 1 : 0;
+  }
+
+  // Reading a combatant's stored flag lets us tally a target's movement without
+  // running their full activation snapshot. We only count moves from the current
+  // round so stale data from a prior activation does not affect the attack DN.
+  static getMoveActionCountForCombatant(combatant, { combat = game?.combat } = {}) {
+    if (!combatant) return 0;
+    const stored = combatant.getFlag?.(FLAG_SCOPE, FLAG_KEY)
+      ?? combatant.flags?.[FLAG_SCOPE]?.[FLAG_KEY]
+      ?? null;
+    if (!stored) return 0;
+
+    const move = stored?.actionState?.move ?? null;
+    const currentRound = Number(combat?.round ?? 0);
+    const moveRound = Number(move?.round ?? 0);
+    if (move && currentRound > 0 && moveRound > 0 && currentRound !== moveRound) return 0;
+
+    return this.getMoveActionCountFromState(stored);
   }
 
   static getUsedWeaponGroupIds(actor, { token = null, snapshot = null, currentTurnOnly = true } = {}) {
@@ -1488,7 +1521,8 @@ export class PersonalCombatTracker {
         buildCommonUtilityButton("judgeIntent"),
         buildCommonUtilityButton("memory"),
         buildCommonUtilityButton("lift"),
-        buildCommonUtilityButton("endure")
+        buildCommonUtilityButton("endure"),
+        buildCommonUtilityButton("steady")
       ].filter(Boolean),
       summaryPills: [
         { label: "SA", value: `${snapshot.state.saRemaining}/${BASE_SA}` },
@@ -1617,6 +1651,7 @@ export class PersonalCombatTracker {
     if (!action.handler) {
       reason = action.reason || "Not yet implemented.";
     }
+    reason = reason || getPersonalActionGateReason(actor, action);
 
     return {
       id: action.id,
@@ -1638,6 +1673,8 @@ export class PersonalCombatTracker {
     const action = getPersonalAction(actionId);
     if (!action) return { ok: false, reason: "Unknown combat action." };
     if (!action.handler) return { ok: false, reason: action.reason || "That action is not implemented yet." };
+    const gateReason = getPersonalActionGateReason(actor, action);
+    if (gateReason) return { ok: false, reason: gateReason };
 
     if (action.category === PERSONAL_ACTION_CATEGORIES.standard) {
       return this._executeStandardAction(actor, { token, action, metadata });
@@ -1656,9 +1693,14 @@ export class PersonalCombatTracker {
 
   static async _executeStandardAction(actor, { token = null, action, metadata = {} } = {}) {
     const snapshot = this.getSnapshot(actor, { token });
+    const gateReason = getPersonalActionGateReason(actor, action);
+    if (gateReason) return { ok: false, reason: gateReason };
     if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
     if (!snapshot.isCurrentTurn) return { ok: false, reason: "Only available during your activation." };
     if (snapshot.overloaded) return { ok: false, reason: "Overloaded actors can only recover Burn." };
+    if (action.id === "aim" && this.getMoveActionCountFromState(snapshot.state) > 0) {
+      return { ok: false, reason: "Cannot aim after taking a move action this activation." };
+    }
     if (getSaCapacityRemaining(actor, snapshot) < Number(action.cost ?? 1)) {
       return { ok: false, reason: "Activation SA cap reached." };
     }
@@ -1685,6 +1727,8 @@ export class PersonalCombatTracker {
 
   static async _executeFreeAction(actor, { token = null, action, metadata = {} } = {}) {
     const snapshot = this.getSnapshot(actor, { token });
+    const gateReason = getPersonalActionGateReason(actor, action);
+    if (gateReason) return { ok: false, reason: gateReason };
     if (!snapshot.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
     if (!snapshot.isCurrentTurn) return { ok: false, reason: "Only available during your activation." };
 

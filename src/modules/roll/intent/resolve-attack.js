@@ -302,6 +302,36 @@ function getWeaponProfile(actor, payload) {
   return item.getCombatProfile?.({ payloadId: payload?.payloadId }) ?? null;
 }
 
+// Personal attacks adjust DN by motion: the attacker moving costs accuracy
+// (+1 DN), while a target's own movement shifts how hard it is to hit -
+// stationary targets are easier (-1 DN) and heavily moving targets harder
+// (+1 DN at 2+ move actions). Only resolvable against a single target.
+function buildPersonalAttackMotionContext({ actor, payload, targets = [] } = {}) {
+  if (targets.length !== 1) return null;
+
+  const combat = game?.combat ?? null;
+  const sourceToken = getSourceToken(actor, payload);
+  const attackerCombatant = getAttackerCombatant(sourceToken);
+  const targetCombatant = getTargetCombatant(targets[0]?.tokenId);
+  const attackerMoves = PersonalCombatTracker.getMoveActionCountForCombatant(attackerCombatant, { combat });
+  const targetMoves = PersonalCombatTracker.getMoveActionCountForCombatant(targetCombatant, { combat });
+
+  const attackerMotionDn = attackerMoves > 0 ? 1 : 0;
+  const targetMotionDn = targetMoves === 0 ? -1 : (targetMoves >= 2 ? 1 : 0);
+
+  return {
+    attackerMoves,
+    targetMoves,
+    attackerMotionDn,
+    targetMotionDn,
+    attackerMotionLabel: attackerMoves > 0 ? "Attacker Moved" : "Attacker Stationary",
+    targetMotionLabel: targetMoves === 0
+      ? "Target Stationary"
+      : (targetMoves >= 2 ? "Target Moved 2+" : "Target Moved"),
+    dnModifier: attackerMotionDn + targetMotionDn,
+  };
+}
+
 export async function resolveAttack({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveAttack requires actor");
 
@@ -402,15 +432,24 @@ export async function resolveAttack({ actor, payload } = {}) {
     : getMechRangeBandName(rangeBand);
   const attackRating = Number(effectiveWeapon?.attackRatingBand?.[rangeBand] ?? 0) || 0;
   const requiresTemplatedWorkflow = Boolean(effectiveWeapon?.capabilityReport?.isTemplated);
+  const isPersonalAttack = effectiveWeapon?.type === "personalWeapon" || effectiveWeapon?.isSynthetic;
+  const personalMotion = isPersonalAttack
+    ? buildPersonalAttackMotionContext({ actor, payload, targets })
+    : null;
+  const attackerMovedThisActivation = (personalMotion?.attackerMoves ?? 0) > 0;
   const aim = payload?.aim?.active
     ? {
       active: true,
-      eligible: !requiresTemplatedWorkflow && targets.length === 1,
+      eligible: !requiresTemplatedWorkflow && targets.length === 1 && !attackerMovedThisActivation,
       ineligibleReason: requiresTemplatedWorkflow
         ? "Aim cannot apply to template attacks."
-        : (targets.length !== 1 ? "Aim cannot apply to multi-target attacks." : ""),
+        : (targets.length !== 1
+          ? "Aim cannot apply to multi-target attacks."
+          : (attackerMovedThisActivation ? "Aim is spoiled after moving this activation." : "")),
       skillCode: effectiveWeapon.skill,
-      skillLabel: skillDef.label ?? effectiveWeapon.skill ?? "Attack Skill"
+      skillLabel: skillDef.label ?? effectiveWeapon.skill ?? "Attack Skill",
+      bonusSkillCode: "perception",
+      bonusSkillLabel: "Perception"
     }
     : null;
   if (!requiresTemplatedWorkflow && targets.length === 0) {
@@ -465,6 +504,22 @@ export async function resolveAttack({ actor, payload } = {}) {
       label: "Target Jumped",
       value: machineMotion.jumpDn,
       tags: ["motion", "jump"],
+    });
+  }
+  if (personalMotion?.attackerMotionDn) {
+    dnParts.push({
+      id: "personalMotion.attacker",
+      label: personalMotion.attackerMotionLabel,
+      value: personalMotion.attackerMotionDn,
+      tags: ["motion"],
+    });
+  }
+  if (personalMotion?.targetMotionDn) {
+    dnParts.push({
+      id: "personalMotion.target",
+      label: personalMotion.targetMotionLabel,
+      value: personalMotion.targetMotionDn,
+      tags: ["motion"],
     });
   }
   const computedDn = dnParts.reduce((sum, part) => sum + Number(part.value ?? 0), 0);
@@ -579,6 +634,7 @@ export async function resolveAttack({ actor, payload } = {}) {
       totalAp,
       ewContext,
       machineMotion,
+      personalMotion,
       operator: operator ? {
         actorUuid: operator.actor?.uuid ?? "",
         name: operator.actor?.name ?? "",

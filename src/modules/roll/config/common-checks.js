@@ -55,6 +55,13 @@ export const COMMON_CHECKS = Object.freeze({
     formula: ["STR", "WIL"],
     tags: ["combat", "utility", "physical", "mental"],
     domains: ["physical", "mental"]
+  },
+  steady: {
+    id: "steady",
+    label: "Steady",
+    formula: ["REF", "WIL"],
+    tags: ["combat", "utility", "physical", "mental", "recovery"],
+    domains: ["physical", "mental"]
   }
 });
 

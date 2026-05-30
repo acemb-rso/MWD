@@ -1,0 +1,33 @@
+{
+  "_id": "d237c78a0f165dc5",
+  "name": "SCUBA Gear",
+  "type": "gear",
+  "img": "systems/mwd/img/mek/force/Pieces/Adjustments/NATO/Scuba.png",
+  "effects": [],
+  "folder": null,
+  "sort": 2100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Underwater breathing</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "hostileEnvironment",
+    "relatedSkill": "athletics",
+    "availability": "Uncommon",
+    "rulesHook": "Underwater breathing",
+    "tags": [
+      "hostileEnvironment",
+      "breathing",
+      "underwater",
+      "aquatic",
+      "worn"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!d237c78a0f165dc5"
+}

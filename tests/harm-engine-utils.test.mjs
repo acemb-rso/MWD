@@ -33,6 +33,35 @@ test("armor wear consumes reinforced charges before durability", () => {
   assert.equal(plain.armorAfter, 3);
 });
 
+test("forceWear degrades armor even when an attack deals no net damage", () => {
+  const skipped = resolveArmorWearStep({
+    incomingDamage: 0,
+    armorBefore: 4,
+    hasArmorItem: true,
+  });
+  const forced = resolveArmorWearStep({
+    incomingDamage: 0,
+    armorBefore: 4,
+    hasArmorItem: true,
+    forceWear: true,
+  });
+  const forcedReinforced = resolveArmorWearStep({
+    incomingDamage: 0,
+    armorBefore: 4,
+    reinforcedBefore: 2,
+    reinforcedMax: 2,
+    hasArmorItem: true,
+    forceWear: true,
+  });
+
+  assert.equal(skipped.armorAfter, 4);
+  assert.deepEqual(skipped.update, {});
+  assert.equal(forced.armorAfter, 3);
+  assert.equal(forced.update["system.durability.current"], 3);
+  assert.equal(forcedReinforced.reinforcedAfter, 1);
+  assert.equal(forcedReinforced.armorAfter, 4);
+});
+
 test("track labels prefer the canonical monitor names", () => {
   assert.equal(getHarmTrackLabel("physical"), "Physical");
   assert.equal(getHarmTrackLabel("fatigue"), "Fatigue");

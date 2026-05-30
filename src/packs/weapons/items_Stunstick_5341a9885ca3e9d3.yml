@@ -1,0 +1,73 @@
+{
+  "_id": "5341a9885ca3e9d3",
+  "name": "Stunstick",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/stun_gun.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "melee",
+    "skill": "meleeCombat",
+    "damage": 6,
+    "damageAttribute": "",
+    "damageAttributeScale": 1,
+    "ap": 0,
+    "damageType": "energy",
+    "attackRatingBand": {
+      "close": 6,
+      "near": 0,
+      "far": 0,
+      "extreme": 0
+    },
+    "range": {
+      "max": "close",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [
+      {
+        "id": "136c94cd827ca108",
+        "key": "fatigue",
+        "rating": 0
+      }
+    ],
+    "availability": "Uncommon",
+    "payloads": [],
+    "selectedPayloadId": "",
+    "consumptionSources": [],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": ""
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!5341a9885ca3e9d3"
+}

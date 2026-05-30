@@ -1,0 +1,33 @@
+{
+  "_id": "40b2468165813f33",
+  "name": "Computer Diagnostic Equipment",
+  "type": "gear",
+  "img": "systems/mwd/img/mek/misc/repair/electronics.png",
+  "effects": [],
+  "folder": null,
+  "sort": 700000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Computer / electronics diagnostic aid</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "computing",
+    "relatedSkill": "computers",
+    "availability": "Uncommon",
+    "rulesHook": "Computer / electronics diagnostic aid",
+    "tags": [
+      "computing",
+      "diagnostics",
+      "electronics",
+      "computer",
+      "kit"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!40b2468165813f33"
+}

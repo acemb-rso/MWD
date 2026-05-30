@@ -1,0 +1,33 @@
+{
+  "_id": "91c6bf7cfcb162cd",
+  "name": "Engineering Console",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/RIGGER_CONSOLE.png",
+  "effects": [],
+  "folder": null,
+  "sort": 800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Engineering tests / repair support</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 5,
+    "category": "computing",
+    "relatedSkill": "technician",
+    "availability": "Rare",
+    "rulesHook": "Engineering tests / repair support",
+    "tags": [
+      "computing",
+      "engineering",
+      "repair",
+      "diagnostics",
+      "console"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!91c6bf7cfcb162cd"
+}

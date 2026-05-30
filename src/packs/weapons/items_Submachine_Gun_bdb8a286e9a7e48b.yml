@@ -1,0 +1,120 @@
+{
+  "_id": "bdb8a286e9a7e48b",
+  "name": "Submachine Gun",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/SMG.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "smallArms",
+    "skill": "firearms",
+    "damage": 5,
+    "damageAttribute": "",
+    "damageAttributeScale": 1,
+    "ap": 0,
+    "damageType": "penetrating",
+    "attackRatingBand": {
+      "close": 10,
+      "near": 11,
+      "far": 8,
+      "extreme": 0
+    },
+    "range": {
+      "max": "far",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [
+      {
+        "id": "847c04f5bcd71431",
+        "key": "automatic",
+        "rating": 0
+      }
+    ],
+    "availability": "Rare",
+    "payloads": [
+      {
+        "id": "unloaded",
+        "label": "Unloaded",
+        "compatibleWith": [],
+        "modifies": {
+          "damageType": "",
+          "ap": 0,
+          "clusteringDice": 0,
+          "attackRatingBand": {
+            "close": 0,
+            "near": 0,
+            "far": 0,
+            "extreme": 0
+          }
+        },
+        "traits": [],
+        "keywords": [],
+        "template": null,
+        "areaEffect": {
+          "kind": "discrete"
+        },
+        "resolution": {
+          "resolverKey": "standard",
+          "damageModel": "",
+          "onHitEffect": null
+        },
+        "consumption": {
+          "amount": 1,
+          "sourceId": ""
+        }
+      }
+    ],
+    "selectedPayloadId": "unloaded",
+    "consumptionSources": [
+      {
+        "id": "untracked",
+        "label": "Untracked",
+        "kind": "untracked",
+        "tracking": {
+          "current": 0,
+          "max": 0
+        },
+        "link": {
+          "actorPath": "",
+          "itemId": "",
+          "itemPath": ""
+        }
+      }
+    ],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": ""
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!bdb8a286e9a7e48b"
+}

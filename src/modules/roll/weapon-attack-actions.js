@@ -3,6 +3,7 @@
 
 import { SYSTEM_NAME } from "../constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { getWeaponAttackGateReason } from "../mwd/personal-critical-gates.js";
 import { notifyRollError } from "./roll-errors.js";
 
 const HOTBAR_ATTACK_TYPE = `${SYSTEM_NAME}.ownedWeaponAttack`;
@@ -55,6 +56,11 @@ export async function launchOwnedWeaponAttack({ weapon, event = null, token = nu
     const actor = weapon.actor ?? null;
     if (!actor) {
       throw new Error("Attack requires an owned personal weapon.");
+    }
+    const gateReason = getWeaponAttackGateReason(actor, weapon);
+    if (gateReason) {
+      ui.notifications?.warn(gateReason);
+      return null;
     }
 
     const attackToken = getAttackToken(actor, token);

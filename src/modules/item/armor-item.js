@@ -30,6 +30,7 @@ export class ArmorItem extends MWDItem {
     system.defenseBonus = Number(system.defenseBonus ?? 0) || 0;
     system.mitigationByType = normalizeArmorMitigationByType(system.mitigationByType ?? system.mitigation);
     delete system.mitigation;
+    system.availability = String(system.availability ?? "").trim();
     system.durability ??= {};
     const rating = system.rating;
     const rawMax = Number(system.durability.max);
@@ -80,6 +81,7 @@ export class ArmorItem extends MWDItem {
       baseResistance: baseMitigation,
       mitigationByType,
       tags,
+      availability: String(system.availability ?? "").trim(),
       isDestroyed: currentDurability <= 0,
       durability: {
         current: currentDurability,

@@ -82,6 +82,12 @@ export function normalizeHazardCard(card = {}) {
       finalTier: exposure.finalTier,
       burnDelta: toNumber(reactionPreview?.burnDelta, 0),
       canSpendEdge: Boolean(reactionPreview?.canSpendEdge),
+      disabled: Boolean(reactionPreview?.disabled),
+      reason: String(reactionPreview?.reason ?? "").trim(),
+      reactionPreview: {
+        disabled: Boolean(reactionPreview?.disabled),
+        reason: String(reactionPreview?.reason ?? "").trim(),
+      },
       edgePools: normalizeEdgePools(reactionPreview?.edgePools),
     },
   };
@@ -139,10 +145,13 @@ function buildHazardCardActions(card = {}) {
   const actions = [];
 
   if (!card.exposure.evadeLocked && card.exposure.initialTier !== "none") {
+    const reactionBlocked = Boolean(card.preview?.reactionPreview?.disabled ?? card.preview?.disabled);
+    const reason = String(card.preview?.reactionPreview?.reason ?? card.preview?.reason ?? "").trim();
     actions.push({
       action: "toggleHazardEvade",
-      label: card.preview.evadeActive ? "Clear Evade" : "Use Reaction",
+      label: reactionBlocked ? (reason || "Reaction Disabled") : (card.preview.evadeActive ? "Clear Evade" : "Use Reaction"),
       cssClass: `mwd-target-row__action ${card.preview.evadeActive ? "is-active" : ""}`,
+      disabled: reactionBlocked,
     });
   }
 

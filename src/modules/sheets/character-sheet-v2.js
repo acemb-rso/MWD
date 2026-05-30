@@ -34,6 +34,8 @@ import {
 } from "../mwd/machine-quick-actions.js";
 import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
 import { executeFirstAidCombatAction } from "../mwd/first-aid.js";
+import { getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
+import { resolvePersonalCritRemedyIntent } from "../mwd/personal-crit-intents.js";
 import {
   getQualityCategoryLabel,
   getQualityTierLabel,
@@ -46,6 +48,7 @@ import {
 import {
   buildPersonalCombatDashboardContext,
   buildPersonalConditionMonitors,
+  buildPersonalActiveCriticalsContext,
   buildPersonalInventoryContext,
 } from "./actor-sheet-support.js";
 
@@ -272,6 +275,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       combatReduceBurn: CharacterSheetV2.prototype._onCombatReduceBurn,
       combatOverloadCheck: CharacterSheetV2.prototype._onCombatOverloadCheck,
       combatAttack: CharacterSheetV2.prototype._onCombatAttack,
+      personalCritRemedy: CharacterSheetV2.prototype._onPersonalCritRemedy,
       removeActivationAction: CharacterSheetV2.prototype._onRemoveActivationAction,
       createOwnedItem: CharacterSheetV2.prototype._onCreateOwnedItem,
       addSkillSpecialization: CharacterSheetV2.prototype._onAddSkillSpecialization,
@@ -416,7 +420,8 @@ ctx.edgeConsole.poolsOrdered = order
     };
 
     const combatSnapshot = PersonalCombatTracker.getSnapshot(this.actor, { token: sheetToken });
-    ctx.combatDashboard = buildPersonalCombatDashboardContext(combatSnapshot);
+    ctx.combatDashboard = buildPersonalCombatDashboardContext(combatSnapshot, { actor: this.actor });
+    ctx.activePersonalCriticals = buildPersonalActiveCriticalsContext(this.actor);
     ctx.combatAwarenessPreview = buildCombatAwarenessPreview(this.actor, {
       sourceToken: sheetToken,
     });
@@ -1448,12 +1453,21 @@ ctx.edgeConsole.poolsOrdered = order
   const actionLabel = String(target?.dataset?.combatLabel ?? (actionId === "opportunity" ? "Opportunity" : "Attack")).trim() || "Attack";
   const isOpportunity = actionId === "opportunity";
 
-  const snapshot = PersonalCombatTracker.getSnapshot(actorWriteTarget, { token });
-  const hasAim = Boolean(snapshot.state?.actionState?.aim);
-  if (!snapshot.hasCombatant) {
-    ui.notifications?.warn("No combatant on the current scene.");
-    return;
-  }
+    const snapshot = PersonalCombatTracker.getSnapshot(actorWriteTarget, { token });
+    const hasAim = Boolean(snapshot.state?.actionState?.aim);
+    const gateState = getPersonalCriticalGateState(actorWriteTarget);
+    if (!snapshot.hasCombatant) {
+      ui.notifications?.warn("No combatant on the current scene.");
+      return;
+    }
+    if (isOpportunity && gateState.cannotReact) {
+      ui.notifications?.warn(`Disabled (${gateState.reactionReason})`);
+      return;
+    }
+    if (!isOpportunity && gateState.cannotComplex) {
+      ui.notifications?.warn(`Disabled (${gateState.complexReason})`);
+      return;
+    }
   if (isOpportunity && snapshot.isCurrentTurn) {
     ui.notifications?.warn("Only outside your activation.");
     return;
@@ -1554,6 +1568,36 @@ ctx.edgeConsole.poolsOrdered = order
   } catch (error) {
     console.error("MWD | Failed to launch First Aid", error);
     notifyRollError(error, "Unable to launch First Aid.");
+  }
+}
+
+ async _onPersonalCritRemedy(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  if (!this.isEditable) return;
+
+  const critId = String(target?.dataset?.critId ?? "").trim();
+  const remedyKey = String(target?.dataset?.remedyKey ?? "").trim();
+  if (!critId) return;
+
+  try {
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    const result = await resolvePersonalCritRemedyIntent({
+      actor: actorWriteTarget,
+      token: this.getSheetTokenDocument?.()
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
+      critId,
+      remedyKey,
+    });
+    if (!result?.ok) {
+      ui.notifications?.warn(result?.reason ?? "Unable to remedy personal critical.");
+      return;
+    }
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Failed to remedy personal critical", error);
+    ui.notifications?.error("Unable to remedy personal critical.");
   }
 }
 

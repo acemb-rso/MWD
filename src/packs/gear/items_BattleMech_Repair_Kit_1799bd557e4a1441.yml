@@ -1,0 +1,33 @@
+{
+  "_id": "1799bd557e4a1441",
+  "name": "BattleMech Repair Kit",
+  "type": "gear",
+  "img": "systems/mwd/img/mek/misc/repair/equipment.png",
+  "effects": [],
+  "folder": null,
+  "sort": 3900000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>BattleMech repair support</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "category": "repairSalvage",
+    "relatedSkill": "technician",
+    "availability": "Rare",
+    "rulesHook": "BattleMech repair support",
+    "tags": [
+      "repairSalvage",
+      "battlemech",
+      "repair",
+      "kit",
+      "technical"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!1799bd557e4a1441"
+}

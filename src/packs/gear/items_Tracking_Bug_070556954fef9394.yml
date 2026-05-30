@@ -1,0 +1,33 @@
+{
+  "_id": "070556954fef9394",
+  "name": "Tracking Bug",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/digital-trace.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 5400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Tracking beacon</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 1,
+    "category": "surveillance",
+    "relatedSkill": "tracking",
+    "availability": "Restricted",
+    "rulesHook": "Tracking beacon",
+    "tags": [
+      "surveillance",
+      "tracking",
+      "beacon",
+      "hidden",
+      "device"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!070556954fef9394"
+}

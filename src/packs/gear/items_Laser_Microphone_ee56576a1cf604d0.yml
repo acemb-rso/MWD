@@ -1,0 +1,32 @@
+{
+  "_id": "ee56576a1cf604d0",
+  "name": "Laser Microphone",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/AUDIO.png",
+  "effects": [],
+  "folder": null,
+  "sort": 5100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Remote audio surveillance</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "surveillance",
+    "relatedSkill": "perception",
+    "availability": "Restricted",
+    "rulesHook": "Remote audio surveillance",
+    "tags": [
+      "surveillance",
+      "remoteAudio",
+      "listening",
+      "electronics"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!ee56576a1cf604d0"
+}

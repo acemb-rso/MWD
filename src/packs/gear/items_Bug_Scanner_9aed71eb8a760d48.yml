@@ -1,0 +1,33 @@
+{
+  "_id": "9aed71eb8a760d48",
+  "name": "Bug Scanner",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/SENSOR.png",
+  "effects": [],
+  "folder": null,
+  "sort": 5000000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Detects surveillance devices</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "surveillance",
+    "relatedSkill": "perception",
+    "availability": "Rare",
+    "rulesHook": "Detects surveillance devices",
+    "tags": [
+      "surveillance",
+      "counterSurveillance",
+      "scanner",
+      "detection",
+      "electronics"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!9aed71eb8a760d48"
+}

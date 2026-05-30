@@ -59,6 +59,9 @@ export class GearItemSheet extends BaseItemSheet {
       quantity: Math.max(0, Math.trunc(Number(system.quantity ?? 1) || 0)),
       rating: Math.max(0, Math.trunc(Number(system.rating ?? 0) || 0)),
       category: String(system.category ?? "").trim(),
+      relatedSkill: String(system.relatedSkill ?? "").trim(),
+      availability: String(system.availability ?? "").trim(),
+      rulesHook: String(system.rulesHook ?? "").trim(),
       tags: Array.isArray(system.tags)
         ? system.tags.map(tag => String(tag ?? "").trim()).filter(Boolean)
         : []
@@ -75,7 +78,9 @@ export class GearItemSheet extends BaseItemSheet {
         {
           label: "Category",
           value: categoryOptions.find(option => option.value === context.system.category)?.label ?? "Uncategorized"
-        }
+        },
+        { label: "Skill", value: context.system.relatedSkill || "None" },
+        { label: "Avail", value: context.system.availability || "Unlisted" }
       ]
     };
     context.layout = await LayoutRegistry.get(canonicalType === "consumable" ? "consumable" : "gear");

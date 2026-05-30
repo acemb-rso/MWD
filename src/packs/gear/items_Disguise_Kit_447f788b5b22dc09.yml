@@ -1,0 +1,33 @@
+{
+  "_id": "447f788b5b22dc09",
+  "name": "Disguise Kit",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/skills/disguise.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Disguise support</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "espionage",
+    "relatedSkill": "disguise",
+    "availability": "Uncommon",
+    "rulesHook": "Disguise support",
+    "tags": [
+      "espionage",
+      "disguise",
+      "infiltration",
+      "social",
+      "kit"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!447f788b5b22dc09"
+}

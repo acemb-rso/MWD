@@ -1,0 +1,33 @@
+{
+  "_id": "f6225f507e98f429",
+  "name": "Lock Pick Set",
+  "type": "gear",
+  "img": "systems/mwd/img/default/padlock.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Mechanical lock bypass</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "espionage",
+    "relatedSkill": "stealth",
+    "availability": "Restricted",
+    "rulesHook": "Mechanical lock bypass",
+    "tags": [
+      "espionage",
+      "lockBypass",
+      "mechanical",
+      "infiltration",
+      "tools"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!f6225f507e98f429"
+}

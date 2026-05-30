@@ -1,0 +1,67 @@
+{
+  "_id": "2f4afd7096b02591",
+  "name": "Wakizashi/Short Sword",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/switchblade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "<p>Damage: 2 + STR</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "melee",
+    "skill": "meleeCombat",
+    "damage": 2,
+    "damageAttribute": "strength",
+    "damageAttributeScale": 1,
+    "ap": 0,
+    "damageType": "penetrating",
+    "attackRatingBand": {
+      "close": 10,
+      "near": 0,
+      "far": 0,
+      "extreme": 0
+    },
+    "range": {
+      "max": "close",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [],
+    "availability": "Common",
+    "payloads": [],
+    "selectedPayloadId": "",
+    "consumptionSources": [],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": "<p>Damage: 2 + STR</p>"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!2f4afd7096b02591"
+}

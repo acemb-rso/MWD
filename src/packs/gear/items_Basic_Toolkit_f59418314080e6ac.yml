@@ -1,0 +1,33 @@
+{
+  "_id": "f59418314080e6ac",
+  "name": "Basic Toolkit",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/TOOLS.png",
+  "effects": [],
+  "folder": null,
+  "sort": 3800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>General repair support</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "repairSalvage",
+    "relatedSkill": "technician",
+    "availability": "Common",
+    "rulesHook": "General repair support",
+    "tags": [
+      "repairSalvage",
+      "tools",
+      "repair",
+      "general",
+      "kit"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!f59418314080e6ac"
+}

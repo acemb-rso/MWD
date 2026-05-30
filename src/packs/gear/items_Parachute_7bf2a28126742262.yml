@@ -1,0 +1,33 @@
+{
+  "_id": "7bf2a28126742262",
+  "name": "Parachute",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/skills/free-fall.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 4800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Controlled descent</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "survival",
+    "relatedSkill": "athletics",
+    "availability": "Uncommon",
+    "rulesHook": "Controlled descent",
+    "tags": [
+      "survival",
+      "descent",
+      "fallProtection",
+      "emergency",
+      "worn"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!7bf2a28126742262"
+}

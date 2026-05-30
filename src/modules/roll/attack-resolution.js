@@ -29,6 +29,7 @@ import { getAssetModuleCqEffects } from "../mwd/asset-module-effects.js";
 import { getMachineJumpProfile, getMachineJumpedThisActivation } from "../mwd/battlemech-mobility.js";
 import { rollClusteringDamage } from "../mwd/machine-clustering.js";
 import { isMachineEnergyDamageFamily } from "../mwd/machine-weapon-types.js";
+import { severityFromMargin } from "../mwd/personal-criticals.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -36,7 +37,9 @@ function toNumber(value, fallback = 0) {
 }
 
 export function doesAttackAddNetHitsToDamage(weapon = null) {
-  return Boolean(weapon?.type === TEMPLATE.itemType.personalWeapon || weapon?.isSynthetic);
+  // Personal and synthetic attacks now deal flat damage; margin feeds the
+  // Personal Critical Hit engine instead of adding damage.
+  return false;
 }
 
 function getTargetSnapshots(ctx = {}) {
@@ -128,10 +131,16 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
   }
 
   if (ctx?.attack?.aim?.eligible) {
+    const aimSkillCode = String(ctx?.attack?.aim?.bonusSkillCode ?? "perception").trim() || "perception";
+    const aimSkillLabel = String(ctx?.attack?.aim?.bonusSkillLabel ?? "Perception").trim() || "Perception";
+    const aimBonus = Math.max(0, toNumber(
+      attacker?.getSkillRating?.(aimSkillCode) ?? attacker?.system?.skills?.[aimSkillCode]?.rating,
+      0
+    ));
     arParts.push({
       id: "state.aim",
-      label: `Aim (${attackSkillLabel})`,
-      value: attackerSkill
+      label: `Aim (${aimSkillLabel})`,
+      value: aimBonus
     });
   }
 
@@ -344,9 +353,19 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
 
   return {
     mode: "attackDamage",
-    track: TEMPLATE.monitors.physical,
+    track: ctx?.attack?.weapon?.damageTrack === TEMPLATE.monitors.fatigue
+      ? TEMPLATE.monitors.fatigue
+      : TEMPLATE.monitors.physical,
     damage: damage?.scaledIncoming ?? 0,
     netHits: 0,
+    critNetHits: damage?.netHits ?? 0,
+    critSeverity: severityFromMargin(damage?.netHits ?? 0),
+    outcome: ["hit", "highMargin"].includes(String(damage?.attackQuality ?? "")) ? "hit" : (damage?.attackQuality ?? ""),
+    previewRevision: 0,
+    requirePreparedCriticalRecords: true,
+    weaponUuid: ctx?.attack?.weapon?.uuid ?? "",
+    weaponId: ctx?.attack?.weapon?.id ?? ctx?.attack?.payload?.weaponId ?? "",
+    weaponName: ctx?.attack?.weapon?.name ?? "",
     damageType: damage?.damageType,
     ap: damage?.ap ?? 0,
     effects: ctx?.attack?.weapon?.effects ?? {},
@@ -529,13 +548,32 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
       : {
         id: foundry.utils.randomID(),
         type: "attackDamage",
+        targetActorUuid: target?.actorUuid ?? null,
+        targetTokenUuid: target?.tokenUuid ?? null,
         applied: false,
         target: {
           name: target?.name ?? "Target",
           actorUuid: target?.actorUuid ?? null,
           tokenUuid: target?.tokenUuid ?? null
         },
-        payload: queuedPayload,
+        critical: preview?.critical ?? null,
+        preparedCriticalRecords: Array.isArray(preview?.critical?.records)
+          ? clone(preview.critical.records).map(record => ({
+            ...record,
+            previewRevision: Math.max(0, Math.trunc(Number(queuedPayload.previewRevision ?? 0) || 0)),
+          }))
+          : [],
+        previewRevision: Math.max(0, Math.trunc(Number(queuedPayload.previewRevision ?? 0) || 0)),
+        payload: {
+          ...queuedPayload,
+          criticalPreview: preview?.critical ?? null,
+          preparedCriticalRecords: Array.isArray(preview?.critical?.records)
+            ? clone(preview.critical.records).map(record => ({
+              ...record,
+              previewRevision: Math.max(0, Math.trunc(Number(queuedPayload.previewRevision ?? 0) || 0)),
+            }))
+            : [],
+        },
         hitLocation,
         preview
       };

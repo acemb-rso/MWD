@@ -1,0 +1,33 @@
+{
+  "_id": "701bb9663853d92a",
+  "name": "Stimpatch",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/systems/gear/drugs/stim.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Stimulant consumable</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "medical",
+    "relatedSkill": "medTech",
+    "availability": "Restricted",
+    "rulesHook": "Stimulant consumable",
+    "tags": [
+      "medical",
+      "stimulant",
+      "drug",
+      "patch",
+      "consumable"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!701bb9663853d92a"
+}

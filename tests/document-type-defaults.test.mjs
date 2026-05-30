@@ -13,6 +13,7 @@ test("character defaults keep prototype token at the root", () => {
   assert.equal(defaults.prototypeToken.actorLink, true);
   assert.equal(defaults.system.attributes.reflexes.value, 1);
   assert.equal(defaults.system.description, "");
+  assert.deepEqual(defaults.system.criticals, []);
 });
 
 test("npc defaults are character-like without character edge pools", () => {
@@ -26,6 +27,7 @@ test("npc defaults are character-like without character edge pools", () => {
   assert.equal(defaults.system.attributes.edge.value, 1);
   assert.equal(defaults.system.counters?.edgePools, undefined);
   assert.equal(defaults.system.counters?.xp, undefined);
+  assert.deepEqual(defaults.system.criticals, []);
 });
 
 test("npc systems can receive the core character skill scaffold", () => {
@@ -73,6 +75,15 @@ test("item defaults compose shared reference templates into system data", () => 
   assert.equal(defaults.system.rating, 0);
   assert.equal(defaults.system.description, "");
   assert.equal(defaults.system.gmnotes, "");
+  assert.equal(defaults.system.availability, "");
+});
+
+test("personal weapon defaults include strength-scaling and availability fields", () => {
+  const defaults = resolveDocumentTypeCreateDefaults("Item", "personalWeapon");
+
+  assert.equal(defaults.system.damageAttribute, "");
+  assert.equal(defaults.system.damageAttributeScale, 1);
+  assert.equal(defaults.system.availability, "");
 });
 
 test("consumable defaults resolve through the same create-time graph as gear", () => {
@@ -81,7 +92,22 @@ test("consumable defaults resolve through the same create-time graph as gear", (
   assert.equal(defaults.system.quantity, 1);
   assert.equal(defaults.system.rating, 0);
   assert.equal(defaults.system.category, "ammo");
+  assert.equal(defaults.system.relatedSkill, "");
+  assert.equal(defaults.system.availability, "");
+  assert.equal(defaults.system.rulesHook, "");
   assert.equal(defaults.system.description, "");
+});
+
+test("gear defaults include inventory rule metadata", () => {
+  const defaults = resolveDocumentTypeCreateDefaults("Item", "gear");
+
+  assert.equal(defaults.system.quantity, 1);
+  assert.equal(defaults.system.rating, 0);
+  assert.equal(defaults.system.category, "");
+  assert.equal(defaults.system.relatedSkill, "");
+  assert.equal(defaults.system.availability, "");
+  assert.equal(defaults.system.rulesHook, "");
+  assert.deepEqual(defaults.system.tags, []);
 });
 
 test("asset module defaults include structured jumping payload fields", () => {

@@ -198,6 +198,30 @@ function normalizeGearRating(value, fallback = 0) {
 }
 
 function normalizeGearCategory(value) {
+  const normalized = String(value ?? "").trim();
+  return normalized === "communications" ? "communication" : normalized;
+}
+
+function normalizeGearText(value) {
+  return String(value ?? "").trim();
+}
+
+function normalizeWeaponCategory(value) {
+  const normalized = String(value ?? "").trim();
+  return normalized || "ranged";
+}
+
+function normalizeWeaponDamageAttribute(value) {
+  const normalized = String(value ?? "").trim();
+  return Object.values(TEMPLATE.actorAttributes ?? {}).includes(normalized) ? normalized : "";
+}
+
+function normalizeWeaponDamageAttributeScale(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : 1;
+}
+
+function normalizeArmorAvailability(value) {
   return String(value ?? "").trim();
 }
 
@@ -235,11 +259,11 @@ function getRangeList(range) {
   }));
 }
 
-function damageValue(monitor, damage, damageAttribute, actorAttribute) {
+function damageValue(monitor, damage, damageAttribute, actorAttribute, damageAttributeScale = 1) {
   let total = Number(damage);
   if (damageAttribute) {
     if (actorAttribute !== undefined) {
-      total += Math.ceil(Number(actorAttribute) / 2);
+      total += Math.ceil(Number(actorAttribute) * normalizeWeaponDamageAttributeScale(damageAttributeScale));
     } else {
       console.warn("Weapon not attached to an actor");
       return MWD.item.personalWeapon.weaponWithoutActor;
@@ -248,10 +272,14 @@ function damageValue(monitor, damage, damageAttribute, actorAttribute) {
   return total;
 }
 
-function damageCode(monitor, damage, damageAttribute) {
+function damageCode(monitor, damage, damageAttribute, damageAttributeScale = 1) {
   let code = "";
   if (damageAttribute && MWD.attributes[damageAttribute]) {
-    code += MWD.attributes[damageAttribute].substring(0, 3).toUpperCase() + "/2 + ";
+    const attributeLabel = MWD.attributes[damageAttribute].substring(0, 3).toUpperCase();
+    const scale = normalizeWeaponDamageAttributeScale(damageAttributeScale);
+    code += scale === 1
+      ? `${attributeLabel} + `
+      : `${attributeLabel}*${scale} + `;
   }
   code += String(damage);
   return code;
@@ -489,7 +517,8 @@ export class MWDItem extends Item {
       changed.system ??= {};
       const legacyAmmo = nextSystem.ammo;
       const capabilityFields = normalizePersonalWeaponCapabilityFields(nextSystem);
-      changed.system.standardTraits = [];
+      changed.system.category = normalizeWeaponCategory(nextSystem.category ?? nextSystem.weaponCategory);
+      changed.system.standardTraits = normalizeWeaponStandardTraits(nextSystem.standardTraits);
       changed.system.payloads = normalizeWeaponPayloads(nextSystem.payloads, { legacyAmmo, category: nextSystem.category });
       changed.system.consumptionSources = normalizeWeaponConsumptionSources(nextSystem.consumptionSources, { legacyAmmo });
       changed.system.selectedPayloadId = normalizeSelectedPayloadId(
@@ -504,6 +533,9 @@ export class MWDItem extends Item {
       changed.system.attackRatingBand = normalizeAttackRatingBand(nextSystem.attackRatingBand);
       changed.system.range = normalizeRangeData(nextSystem.range);
       changed.system.damageType = normalizePersonalDamageType(nextSystem.damageType);
+      changed.system.damageAttribute = normalizeWeaponDamageAttribute(nextSystem.damageAttribute);
+      changed.system.damageAttributeScale = normalizeWeaponDamageAttributeScale(nextSystem.damageAttributeScale);
+      changed.system.availability = normalizeGearText(nextSystem.availability);
       changed.system.ammo = forcedDeletion();
     }
 
@@ -544,6 +576,7 @@ export class MWDItem extends Item {
     if (nextSystem && this.isArmor()) {
       changed.system ??= {};
       changed.system.mitigationByType = normalizeArmorMitigationByType(nextSystem.mitigationByType ?? nextSystem.mitigation);
+      changed.system.availability = normalizeArmorAvailability(nextSystem.availability);
       changed.system.tags = normalizeArmorTags(nextSystem.tags);
       changed.system.traits = normalizeTraits(nextSystem.traits);
       changed.system.standardTraits = normalizeArmorStandardTraits(nextSystem.standardTraits);
@@ -581,6 +614,9 @@ export class MWDItem extends Item {
       changed.system.quantity = normalizeGearQuantity(nextSystem.quantity, 1);
       changed.system.rating = normalizeGearRating(nextSystem.rating, 0);
       changed.system.category = normalizeGearCategory(nextSystem.category);
+      changed.system.relatedSkill = normalizeGearText(nextSystem.relatedSkill);
+      changed.system.availability = normalizeGearText(nextSystem.availability);
+      changed.system.rulesHook = normalizeGearText(nextSystem.rulesHook);
       changed.system.tags = normalizeGearTags(nextSystem.tags);
       return;
     }
@@ -632,19 +668,22 @@ export class MWDItem extends Item {
     const legacyAmmo = system.ammo;
     system.equipped = Boolean(system.equipped);
     system.isPrimary = Boolean(system.isPrimary);
-    system.category = String(system.category ?? system.weaponCategory ?? "ranged").trim() || "ranged";
+    system.category = normalizeWeaponCategory(system.category ?? system.weaponCategory);
     system.skill = String(system.skill ?? "firearms").trim() || "firearms";
     system.ap = Number(system.ap ?? system.armorPiercing ?? 0) || 0;
     system.damage = Number(system.damage ?? 0) || 0;
+    system.damageAttribute = normalizeWeaponDamageAttribute(system.damageAttribute);
+    system.damageAttributeScale = normalizeWeaponDamageAttributeScale(system.damageAttributeScale);
     system.damageType = normalizePersonalDamageType(system.damageType);
     system.attackRatingBand = normalizeAttackRatingBand(system.attackRatingBand);
     system.range = normalizeRangeData(system.range);
     const capabilityFields = normalizePersonalWeaponCapabilityFields(system);
-    system.standardTraits = [];
+    system.standardTraits = normalizeWeaponStandardTraits(system.standardTraits);
     system.traits = capabilityFields.traits;
     system.keywords = capabilityFields.keywords;
     system.resolution = normalizeWeaponResolution(system.resolution, "standard");
     system.fireModes = normalizeWeaponFireModes(system.fireModes);
+    system.availability = normalizeGearText(system.availability);
     system.payloads = normalizeWeaponPayloads(system.payloads, { legacyAmmo, category: system.category });
     system.consumptionSources = normalizeWeaponConsumptionSources(system.consumptionSources, { legacyAmmo });
     system.selectedPayloadId = normalizeSelectedPayloadId(system.selectedPayloadId, system.payloads, { legacyAmmo, category: system.category });
@@ -695,6 +734,7 @@ export class MWDItem extends Item {
     system.defenseBonus = Number(system.defenseBonus ?? 0) || 0;
     system.mitigationByType = normalizeArmorMitigationByType(system.mitigationByType ?? system.mitigation);
     delete system.mitigation;
+    system.availability = normalizeArmorAvailability(system.availability);
     system.durability ??= {};
     system.durability.max = Math.max(0, Number(system.durability.max ?? system.rating ?? 0));
     system.durability.current = Math.min(
@@ -727,6 +767,9 @@ export class MWDItem extends Item {
     system.quantity = normalizeGearQuantity(system.quantity, 1);
     system.rating = normalizeGearRating(system.rating, 0);
     system.category = normalizeGearCategory(system.category);
+    system.relatedSkill = normalizeGearText(system.relatedSkill);
+    system.availability = normalizeGearText(system.availability);
+    system.rulesHook = normalizeGearText(system.rulesHook);
     system.tags = normalizeGearTags(system.tags);
   }
 
@@ -1132,7 +1175,7 @@ export class MWDItem extends Item {
   async createWeaponStandardTrait(entry = {}) {
     await this._mutateWeaponStandardTraits(traits => traits.concat([{
       id: entry.id ?? foundry.utils.randomID(),
-      key: entry.key ?? "armorPiercing",
+      key: entry.key ?? "fatigue",
       rating: Math.max(0, Number(entry.rating ?? 0) || 0),
     }]));
   }
@@ -1256,7 +1299,7 @@ export class MWDItem extends Item {
       payload.modifies ??= {};
       payload.modifies.standardTraits = normalizeWeaponStandardTraits(payload.modifies.standardTraits).concat([{
         id: entry.id ?? foundry.utils.randomID(),
-        key: entry.key ?? "armorPiercing",
+        key: entry.key ?? "fatigue",
         rating: Math.max(0, Number(entry.rating ?? 0) || 0),
       }]);
       return normalizePayloadProfile(payload);
@@ -1648,7 +1691,15 @@ export class MWDItem extends Item {
       ? normalizeMechWeaponSkill(category, system.skill)
       : (String(system.skill ?? "").trim() || "firearms");
     const skillDef = getSkillDef(skillCode);
-    const damage = Number(system.damage ?? 0) || 0;
+    const baseDamage = Number(system.damage ?? 0) || 0;
+    const damageAttribute = normalizeWeaponDamageAttribute(system.damageAttribute);
+    const ownerActor = this.actor ?? this.parent ?? null;
+    const damageAttributeValue = damageAttribute
+      ? Math.max(0, Number(ownerActor?.getAttributeValue?.(damageAttribute) ?? ownerActor?.system?.attributes?.[damageAttribute]?.value ?? 0) || 0)
+      : 0;
+    const damageAttributeScale = normalizeWeaponDamageAttributeScale(system.damageAttributeScale);
+    const damageAttributeBonus = damageAttribute ? Math.ceil(damageAttributeValue * damageAttributeScale) : 0;
+    const damage = Math.max(0, baseDamage + damageAttributeBonus);
     const baseClusteringDice = Math.max(0, Number(system.clusteringDice ?? system.clusterDice ?? 0) || 0);
     const clusteringTargetNumber = Number(system.clusteringTargetNumber ?? system.clusterTargetNumber ?? 5) || 5;
     const baseDamageType = this.isMechWeapon()
@@ -1660,7 +1711,7 @@ export class MWDItem extends Item {
       attackRatingBand: normalizeAttackRatingBand(system.attackRatingBand),
       traits: normalizeTraits(system.traits),
       keywords: normalizeWeaponKeywords(system.keywords),
-      standardTraits: [],
+      standardTraits: normalizeWeaponStandardTraits(system.standardTraits),
       resolution: normalizeWeaponResolution(system.resolution, "standard"),
       fireModes: normalizeWeaponFireModes(system.fireModes),
       payloads: normalizeWeaponPayloads(system.payloads, { legacyAmmo: system.ammo, category }),
@@ -1684,6 +1735,10 @@ export class MWDItem extends Item {
       skill: skillCode,
       skillDef,
       damage,
+      baseDamage,
+      damageAttribute,
+      damageAttributeScale,
+      damageAttributeBonus,
       clusteringDice: baseClusteringDice + Math.max(0, Number(effectiveProfile.clusteringDice ?? 0) || 0),
       clusteringTargetNumber,
       ap: effectiveProfile.ap,
@@ -1693,6 +1748,7 @@ export class MWDItem extends Item {
         : getPersonalDamageTypeLabel(baseDamageType),
       damageType: effectiveProfile.damageType,
       damageTypeLabel: getPersonalDamageTypeLabel(effectiveProfile.damageType),
+      damageTrack: effectiveProfile.damageTrack,
       attackRatingBand: effectiveProfile.attackRatingBand,
       range,
       defaultRangeBand: this.getDefaultRangeBand(range),
@@ -1710,6 +1766,7 @@ export class MWDItem extends Item {
       resolution: effectiveProfile.resolution,
       resolverKey: effectiveProfile.resolverKey,
       fireModes: effectiveProfile.fireModes,
+      availability: String(system.availability ?? "").trim(),
       capabilityReport: effectiveProfile.capabilityReport,
       ammoLabel: effectiveProfile.payloadLabel,
       ammoType: effectiveProfile.payload,
@@ -1833,7 +1890,8 @@ export class MWDItem extends Item {
         monitor,
         this.system.damage,
         this.system.damageAttribute,
-        damageAttributeValue
+        damageAttributeValue,
+        this.system.damageAttributeScale
       ),
       monitor,
       damageType: profile?.damageType ?? this.system.damageType,
@@ -1853,7 +1911,8 @@ export class MWDItem extends Item {
     return damageCode(
       this._getMonitor(),
       this.system.damage,
-      this.system.damageAttribute
+      this.system.damageAttribute,
+      this.system.damageAttributeScale
     );
   }
 

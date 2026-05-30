@@ -1,0 +1,33 @@
+{
+  "_id": "43029567aa18d872",
+  "name": "Environment Suit",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/Anzug.png",
+  "effects": [],
+  "folder": null,
+  "sort": 1900000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Environmental protection</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 5,
+    "category": "hostileEnvironment",
+    "relatedSkill": "survival",
+    "availability": "Uncommon",
+    "rulesHook": "Environmental protection",
+    "tags": [
+      "hostileEnvironment",
+      "protection",
+      "sealed",
+      "hazard",
+      "worn"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!43029567aa18d872"
+}

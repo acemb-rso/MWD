@@ -1,0 +1,33 @@
+{
+  "_id": "5162e943738c2565",
+  "name": "Demolition Kit",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/skills/demolition.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Enables demolitions work</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "espionage",
+    "relatedSkill": "demolitions",
+    "availability": "Restricted",
+    "rulesHook": "Enables demolitions work",
+    "tags": [
+      "espionage",
+      "demolition",
+      "explosives",
+      "sabotage",
+      "kit"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!5162e943738c2565"
+}

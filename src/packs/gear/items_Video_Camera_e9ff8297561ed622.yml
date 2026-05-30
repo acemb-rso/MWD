@@ -1,0 +1,33 @@
+{
+  "_id": "e9ff8297561ed622",
+  "name": "Video Camera",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/AUDIO.png",
+  "effects": [],
+  "folder": null,
+  "sort": 300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Records video</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 1,
+    "category": "audiovisual",
+    "relatedSkill": "perception",
+    "availability": "Common",
+    "rulesHook": "Records video",
+    "tags": [
+      "audiovisual",
+      "recording",
+      "video",
+      "evidence",
+      "portable"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!e9ff8297561ed622"
+}

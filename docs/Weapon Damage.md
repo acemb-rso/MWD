@@ -110,7 +110,7 @@ armor = {
 ```ts
 DamageApplied = max(0, DamageIncoming - NetResistance)
 
-DamageIncoming = WeaponDamageEff + NetHits
+DamageIncoming = WeaponDamageEff        // flat — net hits do NOT add damage
 
 NetResistance =
   BaseArmorResistance
@@ -119,7 +119,16 @@ NetResistance =
   - WeaponAP
 ```
 
-
+> **Net hits no longer add to damage.** Personal weapons — and synthetic /
+> unarmed attacks — now deal **flat** damage, matching machine weapons. The
+> margin of success (net hits) instead drives the **Personal Critical Hit**
+> system: a high-margin hit inflicts a persistent combat *problem* rather than
+> extra damage, because the Physical / Fatigue tracks already represent injury.
+> See `personal-critical-hit.md`.
+>
+> `WeaponDamageEff` still reflects graze (half) vs. hit (full) and any
+> clustering dice; only the former `+ NetHits` term is removed. Machine damage
+> was already flat and is unchanged.
 
 ---
 

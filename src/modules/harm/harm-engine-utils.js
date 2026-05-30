@@ -19,12 +19,16 @@ export function getHarmTrackLabel(track) {
 // Armor wear is intentionally resolved in one place because the reinforced
 // charge takes priority over durability loss. That ordering is easy to break
 // when the branching lives inline inside a larger damage routine.
+//
+// `forceWear` lets a connecting attack degrade armor even when it dealt no net
+// damage (e.g. fully mitigated or grazing for 0). Any hit should wear armor.
 export function resolveArmorWearStep({
   incomingDamage = 0,
   armorBefore = 0,
   reinforcedBefore = 0,
   reinforcedMax = 0,
   hasArmorItem = false,
+  forceWear = false,
 } = {}) {
   const resolved = {
     armorBefore: Math.max(0, Number(armorBefore ?? 0) || 0),
@@ -35,7 +39,7 @@ export function resolveArmorWearStep({
     update: {},
   };
 
-  if (!hasArmorItem || Math.max(0, Number(incomingDamage ?? 0) || 0) <= 0) {
+  if (!hasArmorItem || (Math.max(0, Number(incomingDamage ?? 0) || 0) <= 0 && !forceWear)) {
     return resolved;
   }
 

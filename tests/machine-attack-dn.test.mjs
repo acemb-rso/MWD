@@ -476,13 +476,13 @@ test("standard machine melee uses floor tonnage over ten and pilot REF", async (
   }
 });
 
-test("machine weapons do not add net hits to damage", async () => {
+test("attacks do not add net hits to damage", async () => {
   const { doesAttackAddNetHitsToDamage } = await getAttackResolution();
   assert.equal(doesAttackAddNetHitsToDamage({ type: "mechWeapon" }), false);
   assert.equal(doesAttackAddNetHitsToDamage({ type: "mechWeaponGroup" }), false);
   assert.equal(doesAttackAddNetHitsToDamage({ type: "vehicleWeapon" }), false);
-  assert.equal(doesAttackAddNetHitsToDamage({ type: "personalWeapon" }), true);
-  assert.equal(doesAttackAddNetHitsToDamage({ isSynthetic: true }), true);
+  assert.equal(doesAttackAddNetHitsToDamage({ type: "personalWeapon" }), false);
+  assert.equal(doesAttackAddNetHitsToDamage({ isSynthetic: true }), false);
 });
 
 test("machine attack DN follows explicit machine range band", async () => {

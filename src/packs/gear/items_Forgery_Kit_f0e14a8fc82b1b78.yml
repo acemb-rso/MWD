@@ -1,0 +1,33 @@
+{
+  "_id": "f0e14a8fc82b1b78",
+  "name": "Forgery Kit",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/skills/art.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Forgery support</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "espionage",
+    "relatedSkill": "art",
+    "availability": "Restricted",
+    "rulesHook": "Forgery support",
+    "tags": [
+      "espionage",
+      "forgery",
+      "documents",
+      "deception",
+      "kit"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!f0e14a8fc82b1b78"
+}

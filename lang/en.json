@@ -430,6 +430,9 @@
         "quantityShort": "Qty",
         "rating": "Rating",
         "category": "Category",
+        "relatedSkill": "Related Skill",
+        "availability": "Availability",
+        "rulesHook": "Rules Hook / Notes",
         "tags": "Tags"
       },
       "lifeModule": {

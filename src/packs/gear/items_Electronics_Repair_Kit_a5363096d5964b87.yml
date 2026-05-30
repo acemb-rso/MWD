@@ -1,0 +1,33 @@
+{
+  "_id": "a5363096d5964b87",
+  "name": "Electronics Repair Kit",
+  "type": "gear",
+  "img": "systems/mwd/img/mek/misc/repair/electronics.png",
+  "effects": [],
+  "folder": null,
+  "sort": 4000000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Electronics repair support</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "category": "repairSalvage",
+    "relatedSkill": "technician",
+    "availability": "Uncommon",
+    "rulesHook": "Electronics repair support",
+    "tags": [
+      "repairSalvage",
+      "electronics",
+      "repair",
+      "kit",
+      "technical"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!a5363096d5964b87"
+}

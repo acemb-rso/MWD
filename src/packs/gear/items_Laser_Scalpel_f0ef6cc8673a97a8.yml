@@ -1,0 +1,33 @@
+{
+  "_id": "f0ef6cc8673a97a8",
+  "name": "Laser Scalpel",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/rod-of-asclepius.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Surgical tool</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 1,
+    "category": "medical",
+    "relatedSkill": "medTech",
+    "availability": "Rare",
+    "rulesHook": "Surgical tool",
+    "tags": [
+      "medical",
+      "surgery",
+      "tool",
+      "precision",
+      "powered"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!f0ef6cc8673a97a8"
+}

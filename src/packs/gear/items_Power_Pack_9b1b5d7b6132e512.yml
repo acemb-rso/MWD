@@ -1,0 +1,32 @@
+{
+  "_id": "9b1b5d7b6132e512",
+  "name": "Power Pack",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/systems/gear/ammo/battery.png",
+  "effects": [],
+  "folder": null,
+  "sort": 3500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Portable power source</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "power",
+    "relatedSkill": "technician",
+    "availability": "Common",
+    "rulesHook": "Portable power source",
+    "tags": [
+      "power",
+      "battery",
+      "portablePower",
+      "consumable"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!9b1b5d7b6132e512"
+}

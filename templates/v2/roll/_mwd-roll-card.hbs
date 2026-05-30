@@ -131,6 +131,7 @@ How it fits: Used by rendering code to produce UI fragments.
                   type="button"
                   class="{{a.cssClass}}"
                   data-mwd-action="{{a.action}}"
+                  {{#if a.title}}title="{{a.title}}"{{/if}}
                   {{#if a.disabled}}disabled{{/if}}
                   {{#if a.dataset}}
                     {{#each a.dataset}}

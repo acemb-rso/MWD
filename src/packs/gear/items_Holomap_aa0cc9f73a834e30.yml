@@ -1,0 +1,33 @@
+{
+  "_id": "aa0cc9f73a834e30",
+  "name": "Holomap",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/SENSOR.png",
+  "effects": [],
+  "folder": null,
+  "sort": 100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Mapping / briefing aid</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 1,
+    "category": "audiovisual",
+    "relatedSkill": "navigation",
+    "availability": "Common",
+    "rulesHook": "Mapping / briefing aid",
+    "tags": [
+      "audiovisual",
+      "map",
+      "briefing",
+      "navigation",
+      "planning"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!aa0cc9f73a834e30"
+}

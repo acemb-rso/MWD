@@ -1,0 +1,32 @@
+{
+  "_id": "d9bfb82a215ff0d8",
+  "name": "Medipack",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/Biotech.png",
+  "effects": [],
+  "folder": null,
+  "sort": 2700000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Portable treatment supply</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "medical",
+    "relatedSkill": "medTech",
+    "availability": "Uncommon",
+    "rulesHook": "Portable treatment supply",
+    "tags": [
+      "medical",
+      "treatment",
+      "portable",
+      "consumable"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!d9bfb82a215ff0d8"
+}

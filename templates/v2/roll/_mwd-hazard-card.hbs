@@ -37,6 +37,7 @@ How it fits: Used by combat hazard tracking and chat action updates.
           type="button"
           class="{{action.cssClass}}"
           data-mwd-action="{{action.action}}"
+          {{#if action.disabled}}disabled{{/if}}
           {{#if action.dataset}}
             {{#each action.dataset}}
               data-{{@key}}="{{this}}"

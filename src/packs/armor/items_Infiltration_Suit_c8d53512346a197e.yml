@@ -1,0 +1,52 @@
+{
+  "_id": "c8d53512346a197e",
+  "name": "Infiltration Suit",
+  "type": "armor",
+  "img": "systems/mwd/img/icons/systems/gear/armor/bodyweight_suit.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 700000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Armor",
+    "description": "<p>Stealth</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "rating": 8,
+    "defenseBonus": 0,
+    "mitigationByType": {
+      "penetrating": 0,
+      "concussive": 0,
+      "energy": 0,
+      "thermal": 0,
+      "electrical": 0
+    },
+    "durability": {
+      "current": 8,
+      "max": 8
+    },
+    "standardTraits": [],
+    "traitState": {
+      "reinforced": {
+        "current": 0,
+        "max": 0
+      }
+    },
+    "availability": "Very Rare",
+    "tags": [
+      "armor",
+      "Very Rare",
+      "Stealth"
+    ],
+    "traits": [
+      "Stealth"
+    ],
+    "notes": "Stealth"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!c8d53512346a197e"
+}

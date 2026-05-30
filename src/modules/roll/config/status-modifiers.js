@@ -92,5 +92,82 @@ export const STATUS_MAP = {
     mods: [
       { domains: ["mental", "heat", "reactor"], value: -2 }
     ]
+  },
+
+  concussionMinor: {
+    label: "Concussion I",
+    mods: [
+      { domains: ["physical", "mental", "combat", "initiative", "action"], value: -1 }
+    ]
+  },
+
+  concussionModerate: {
+    label: "Concussion II",
+    mods: [
+      { domains: ["physical", "mental", "combat", "initiative", "action"], value: -2 }
+    ]
+  },
+
+  concussionSevere: {
+    label: "Concussion III",
+    mods: [
+      { domains: ["physical", "mental", "combat", "initiative", "action"], value: -3 }
+    ]
+  },
+
+  crippledMinor: {
+    label: "Crippled I",
+    mods: [
+      { domains: ["movement", "movement.ground"], value: -2 }
+    ]
+  },
+
+  crippledModerate: {
+    label: "Crippled II",
+    mods: [
+      { domains: ["movement", "movement.ground"], value: -4 }
+    ]
+  },
+
+  crippledSevere: {
+    label: "Crippled III",
+    mods: [
+      { domains: ["movement", "movement.ground"], value: -6 }
+    ]
+  },
+
+  hamperedModerate: {
+    label: "Hampered II",
+    mods: [
+      { domains: ["physical"], value: -1 }
+    ]
+  },
+
+  hamperedSevere: {
+    label: "Hampered III",
+    mods: [
+      { domains: ["physical"], value: -1 }
+    ]
+  },
+
+  offbalanceMinor: {
+    label: "Off Balance I",
+    mods: [
+      { domains: ["physical", "combat", "attack", "defense"], value: -2 }
+    ]
+  },
+
+  offbalanceModerate: {
+    label: "Off Balance II",
+    mods: [
+      { domains: ["physical", "combat", "attack", "defense"], value: -4 }
+    ]
+  },
+
+  offbalanceSevere: {
+    label: "Off Balance III",
+    mods: [
+      { domains: ["physical", "combat", "attack", "defense"], value: -6 }
+    ]
   }
 };

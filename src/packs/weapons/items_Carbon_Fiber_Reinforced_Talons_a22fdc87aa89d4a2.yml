@@ -1,0 +1,73 @@
+{
+  "_id": "a22fdc87aa89d4a2",
+  "name": "Carbon-Fiber Reinforced Talons",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/claws.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "<p>Damage: 2 + STR</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "melee",
+    "skill": "meleeCombat",
+    "damage": 2,
+    "damageAttribute": "strength",
+    "damageAttributeScale": 1,
+    "ap": 0,
+    "damageType": "penetrating",
+    "attackRatingBand": {
+      "close": 4,
+      "near": 0,
+      "far": 0,
+      "extreme": 0
+    },
+    "range": {
+      "max": "close",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [
+      {
+        "id": "a787e164d7e9ca40",
+        "key": "concealable",
+        "rating": 0
+      }
+    ],
+    "availability": "Rare",
+    "payloads": [],
+    "selectedPayloadId": "",
+    "consumptionSources": [],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": "<p>Damage: 2 + STR</p>"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!a22fdc87aa89d4a2"
+}

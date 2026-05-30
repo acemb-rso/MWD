@@ -186,6 +186,7 @@ const templateData = {
       dispositions: [],
       cues: [],
       burn: { value: 0, overloaded: false },
+      criticals: [],
       biography: {
         faction: "",
         age: 0,
@@ -213,6 +214,8 @@ const templateData = {
       },
       role: "",
       biography: "",
+      burn: { value: 0, overloaded: false },
+      criticals: [],
       style: "sra-enhanced"
     },
     vehicle: {
@@ -349,11 +352,14 @@ const templateData = {
       category: "ranged",
       skill: "firearms",
       damage: 0,
+      damageAttribute: "",
+      damageAttributeScale: 1,
       ap: 0,
       damageType: "penetrating",
       attackRatingBand: { close: 0, near: 0, far: 0, extreme: 0 },
       range: { max: "extreme", close: 5, near: 26, far: 62, extreme: 120 },
       standardTraits: [],
+      availability: "",
       ammo: {
         current: 0,
         max: 0,
@@ -380,6 +386,7 @@ const templateData = {
       durability: { current: 0, max: 0 },
       standardTraits: [],
       traitState: { reinforced: { current: 0, max: 0 } },
+      availability: "",
       tags: [],
       traits: [],
       notes: ""
@@ -389,6 +396,9 @@ const templateData = {
       quantity: 1,
       rating: 0,
       category: "",
+      relatedSkill: "",
+      availability: "",
+      rulesHook: "",
       tags: []
     },
     consumable: {
@@ -396,6 +406,9 @@ const templateData = {
       quantity: 1,
       rating: 0,
       category: "ammo",
+      relatedSkill: "",
+      availability: "",
+      rulesHook: "",
       tags: []
     },
     contact: {

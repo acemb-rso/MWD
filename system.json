@@ -71,6 +71,36 @@
       }
     },
     {
+      "name": "gear",
+      "label": "Gear",
+      "type": "Item",
+      "system": "mwd",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "armor",
+      "label": "Armor",
+      "type": "Item",
+      "system": "mwd",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "weapons",
+      "label": "Weapons",
+      "type": "Item",
+      "system": "mwd",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
       "name": "critical-hit-tables",
       "label": "Machine Critical Hit Tables",
       "type": "RollTable",

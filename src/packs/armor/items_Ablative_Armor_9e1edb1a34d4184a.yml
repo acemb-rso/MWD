@@ -1,0 +1,49 @@
+{
+  "_id": "9e1edb1a34d4184a",
+  "name": "Ablative Armor",
+  "type": "armor",
+  "img": "systems/mwd/img/icons/systems/gear/armor/kevlar_body.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Armor",
+    "description": "",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "rating": 10,
+    "defenseBonus": 0,
+    "mitigationByType": {
+      "penetrating": 0,
+      "concussive": 0,
+      "energy": 2,
+      "thermal": 0,
+      "electrical": 0
+    },
+    "durability": {
+      "current": 10,
+      "max": 10
+    },
+    "standardTraits": [],
+    "traitState": {
+      "reinforced": {
+        "current": 0,
+        "max": 0
+      }
+    },
+    "availability": "Uncommon",
+    "tags": [
+      "armor",
+      "Uncommon"
+    ],
+    "traits": [],
+    "notes": ""
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!9e1edb1a34d4184a"
+}

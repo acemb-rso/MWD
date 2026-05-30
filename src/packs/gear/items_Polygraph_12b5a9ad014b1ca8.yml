@@ -1,0 +1,33 @@
+{
+  "_id": "12b5a9ad014b1ca8",
+  "name": "Polygraph",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/all-seeing-eye.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1700000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Interrogation / lie detection aid</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "espionage",
+    "relatedSkill": "intimidation",
+    "availability": "Rare",
+    "rulesHook": "Interrogation / lie detection aid",
+    "tags": [
+      "espionage",
+      "interrogation",
+      "lieDetection",
+      "social",
+      "evidence"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!12b5a9ad014b1ca8"
+}

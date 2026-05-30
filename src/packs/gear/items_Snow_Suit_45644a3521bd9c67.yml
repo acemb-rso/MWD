@@ -1,0 +1,32 @@
+{
+  "_id": "45644a3521bd9c67",
+  "name": "Snow Suit",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/SURVIVAL_GEAR.png",
+  "effects": [],
+  "folder": null,
+  "sort": 2200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Cold-weather protection</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "hostileEnvironment",
+    "relatedSkill": "survival",
+    "availability": "Common",
+    "rulesHook": "Cold-weather protection",
+    "tags": [
+      "hostileEnvironment",
+      "coldWeather",
+      "protection",
+      "worn"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!45644a3521bd9c67"
+}

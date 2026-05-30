@@ -98,7 +98,8 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 - `src/modules/roll/mwd-roll.js` - Primary MWD roll orchestration pipeline. **The canonical roll entry point.**
 - `src/modules/roll/mwd-roll-dialog.js` - AppV2 roll dialog.
 - `src/modules/roll/intent/` - Intent resolvers for skill, defense, attack, edge, initiative, and related flows.
-- `src/modules/combat/combat-manager.js` - Attack/defend/apply-damage flow.
+- `src/modules/combat/personal-combat-tracker.js` - Personal-combat activation, action-economy, and action routing for personal-scale engagements.
+- `src/modules/anarchy-combat.js` - System-level combat hooks and integration points used during combat lifecycle and activation.
 - `src/modules/harm/harm-engine.js` - Harm application service for GM harm, chat-card damage apply, and queued machine attack consequences.
 - `src/modules/harm/harm-engine-utils.js` - Pure harm helpers extracted for testing and easier debugging.
 

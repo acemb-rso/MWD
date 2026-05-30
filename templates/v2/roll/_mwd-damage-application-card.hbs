@@ -29,6 +29,25 @@ How it fits: Used by chat-actions when queued attack damage is applied.
     </div>
   </div>
 
+  {{#if criticals.length}}
+    <div class="mwd-damage-card__criticals">
+      {{#each criticals as |crit|}}
+        <div class="mwd-damage-card__critical">
+          <div class="mwd-damage-card__critical-title">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Critical: {{crit.label}}</span>
+          </div>
+          {{#if crit.effectText}}
+            <div class="mwd-damage-card__critical-effect">{{crit.effectText}}</div>
+          {{/if}}
+          {{#if crit.remedy}}
+            <div class="mwd-damage-card__critical-remedy">Remedy: {{crit.remedy}}</div>
+          {{/if}}
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+
   {{#if rows.length}}
     <div class="mwd-damage-card__details">
       {{#each rows as |row|}}

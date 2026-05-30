@@ -1,0 +1,120 @@
+{
+  "_id": "665fc00044b370b1",
+  "name": "Pump Shotgun",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/shotgun.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 4000000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "smallArms",
+    "skill": "firearms",
+    "damage": 6,
+    "damageAttribute": "",
+    "damageAttributeScale": 1,
+    "ap": 0,
+    "damageType": "penetrating",
+    "attackRatingBand": {
+      "close": 7,
+      "near": 10,
+      "far": 6,
+      "extreme": 0
+    },
+    "range": {
+      "max": "far",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [
+      {
+        "id": "e76ea537ba71577e",
+        "key": "spread",
+        "rating": 0
+      }
+    ],
+    "availability": "Common",
+    "payloads": [
+      {
+        "id": "unloaded",
+        "label": "Unloaded",
+        "compatibleWith": [],
+        "modifies": {
+          "damageType": "",
+          "ap": 0,
+          "clusteringDice": 0,
+          "attackRatingBand": {
+            "close": 0,
+            "near": 0,
+            "far": 0,
+            "extreme": 0
+          }
+        },
+        "traits": [],
+        "keywords": [],
+        "template": null,
+        "areaEffect": {
+          "kind": "discrete"
+        },
+        "resolution": {
+          "resolverKey": "standard",
+          "damageModel": "",
+          "onHitEffect": null
+        },
+        "consumption": {
+          "amount": 1,
+          "sourceId": ""
+        }
+      }
+    ],
+    "selectedPayloadId": "unloaded",
+    "consumptionSources": [
+      {
+        "id": "untracked",
+        "label": "Untracked",
+        "kind": "untracked",
+        "tracking": {
+          "current": 0,
+          "max": 0
+        },
+        "link": {
+          "actorPath": "",
+          "itemId": "",
+          "itemPath": ""
+        }
+      }
+    ],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": ""
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!665fc00044b370b1"
+}

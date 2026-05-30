@@ -95,6 +95,7 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
       { label: "DV", value: String(Number(profile.damage ?? 0)) },
       { label: "AP", value: String(Number(profile.ap ?? 0)) },
       { label: "Type", value: getPersonalDamageTypeLabel(profile.damageType) || "Penetrating" },
+      { label: "Track", value: profile.damageTrack === "fatigue" ? "Fatigue" : "Physical" },
       { label: "Range", value: String(profile.range?.max ?? "near").trim() || "Near" },
     ];
 
@@ -102,6 +103,10 @@ export class PersonalWeaponItemSheet extends WeaponItemSheet {
       chips.push(profile?.sourceState?.isTracked
         ? { label: "Payload", value: `${profile?.payloadLabel || "Unloaded"} (${Number(profile.sourceState.current ?? 0)}/${Number(profile.sourceState.max ?? 0)})` }
         : { label: "Payload", value: profile?.payloadLabel || "Unloaded" });
+    }
+
+    if (String(profile.availability ?? "").trim()) {
+      chips.push({ label: "Avail", value: String(profile.availability).trim() });
     }
 
     return chips;

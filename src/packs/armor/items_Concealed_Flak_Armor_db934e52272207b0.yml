@@ -1,0 +1,52 @@
+{
+  "_id": "db934e52272207b0",
+  "name": "Concealed Flak Armor",
+  "type": "armor",
+  "img": "systems/mwd/img/icons/systems/gear/armor/flak_body.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Armor",
+    "description": "<p>Concealable</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "rating": 8,
+    "defenseBonus": 0,
+    "mitigationByType": {
+      "penetrating": 1,
+      "concussive": 1,
+      "energy": 0,
+      "thermal": 0,
+      "electrical": 0
+    },
+    "durability": {
+      "current": 8,
+      "max": 8
+    },
+    "standardTraits": [],
+    "traitState": {
+      "reinforced": {
+        "current": 0,
+        "max": 0
+      }
+    },
+    "availability": "Rare",
+    "tags": [
+      "armor",
+      "Rare",
+      "Concealable"
+    ],
+    "traits": [
+      "Concealable"
+    ],
+    "notes": "Concealable"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!db934e52272207b0"
+}

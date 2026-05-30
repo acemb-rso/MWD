@@ -1,0 +1,33 @@
+{
+  "_id": "255f53d3e349cd59",
+  "name": "Neurohelmet Codebreaker",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/systems/CodeBuddy.webp",
+  "effects": [],
+  "folder": null,
+  "sort": 1600000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Specialized neurohelmet intrusion / decoding</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "espionage",
+    "relatedSkill": "computers",
+    "availability": "Restricted",
+    "rulesHook": "Specialized neurohelmet intrusion / decoding",
+    "tags": [
+      "espionage",
+      "codebreaking",
+      "neurohelmet",
+      "intrusion",
+      "electronics"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!255f53d3e349cd59"
+}

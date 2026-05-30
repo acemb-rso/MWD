@@ -1,0 +1,33 @@
+{
+  "_id": "c222599ce6f8d948",
+  "name": "Night Vision Goggles",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/systems/upgrades/infrared_nightvision_scope.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Low-light vision</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "optical",
+    "relatedSkill": "perception",
+    "availability": "Rare",
+    "rulesHook": "Low-light vision",
+    "tags": [
+      "optical",
+      "nightVision",
+      "lowLight",
+      "visual",
+      "worn"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!c222599ce6f8d948"
+}

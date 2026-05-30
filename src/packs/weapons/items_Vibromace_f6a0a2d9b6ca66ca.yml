@@ -1,0 +1,67 @@
+{
+  "_id": "f6a0a2d9b6ca66ca",
+  "name": "Vibromace",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/hammer.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1600000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "<p>Damage: 6 + STR</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "melee",
+    "skill": "meleeCombat",
+    "damage": 6,
+    "damageAttribute": "strength",
+    "damageAttributeScale": 1,
+    "ap": 1,
+    "damageType": "penetrating",
+    "attackRatingBand": {
+      "close": 4,
+      "near": 0,
+      "far": 0,
+      "extreme": 0
+    },
+    "range": {
+      "max": "close",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [],
+    "availability": "Very Rare",
+    "payloads": [],
+    "selectedPayloadId": "",
+    "consumptionSources": [],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": "<p>Damage: 6 + STR</p>"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!f6a0a2d9b6ca66ca"
+}

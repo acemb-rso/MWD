@@ -1,0 +1,32 @@
+{
+  "_id": "e6e5ddb63e7ddfd4",
+  "name": "Noteputer",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/Software.png",
+  "effects": [],
+  "folder": null,
+  "sort": 900000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Portable computer</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "computing",
+    "relatedSkill": "computers",
+    "availability": "Common",
+    "rulesHook": "Portable computer",
+    "tags": [
+      "computing",
+      "portableComputer",
+      "data",
+      "electronics"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!e6e5ddb63e7ddfd4"
+}

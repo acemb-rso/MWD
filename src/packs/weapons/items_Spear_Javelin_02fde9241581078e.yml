@@ -1,0 +1,120 @@
+{
+  "_id": "02fde9241581078e",
+  "name": "Spear/Javelin",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/thrown_weapon.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "<p>Damage: 3 + STR</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "thrown",
+    "skill": "projectileWeapons",
+    "damage": 3,
+    "damageAttribute": "strength",
+    "damageAttributeScale": 1,
+    "ap": 0,
+    "damageType": "penetrating",
+    "attackRatingBand": {
+      "close": 8,
+      "near": 4,
+      "far": 0,
+      "extreme": 0
+    },
+    "range": {
+      "max": "far",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [
+      {
+        "id": "3232b97a870c1fbe",
+        "key": "singleShot",
+        "rating": 0
+      }
+    ],
+    "availability": "Common",
+    "payloads": [
+      {
+        "id": "unloaded",
+        "label": "Unloaded",
+        "compatibleWith": [],
+        "modifies": {
+          "damageType": "",
+          "ap": 0,
+          "clusteringDice": 0,
+          "attackRatingBand": {
+            "close": 0,
+            "near": 0,
+            "far": 0,
+            "extreme": 0
+          }
+        },
+        "traits": [],
+        "keywords": [],
+        "template": null,
+        "areaEffect": {
+          "kind": "discrete"
+        },
+        "resolution": {
+          "resolverKey": "standard",
+          "damageModel": "",
+          "onHitEffect": null
+        },
+        "consumption": {
+          "amount": 1,
+          "sourceId": ""
+        }
+      }
+    ],
+    "selectedPayloadId": "unloaded",
+    "consumptionSources": [
+      {
+        "id": "untracked",
+        "label": "Untracked",
+        "kind": "untracked",
+        "tracking": {
+          "current": 0,
+          "max": 0
+        },
+        "link": {
+          "actorPath": "",
+          "itemId": "",
+          "itemPath": ""
+        }
+      }
+    ],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": "<p>Damage: 3 + STR</p>"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!02fde9241581078e"
+}

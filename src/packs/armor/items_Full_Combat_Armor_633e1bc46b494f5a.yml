@@ -1,0 +1,52 @@
+{
+  "_id": "633e1bc46b494f5a",
+  "name": "Full Combat Armor",
+  "type": "armor",
+  "img": "systems/mwd/img/icons/systems/gear/armor/metalgear_body.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Armor",
+    "description": "<p>Sealed</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "rating": 10,
+    "defenseBonus": 2,
+    "mitigationByType": {
+      "penetrating": 1,
+      "concussive": 1,
+      "energy": 1,
+      "thermal": 0,
+      "electrical": 0
+    },
+    "durability": {
+      "current": 10,
+      "max": 10
+    },
+    "standardTraits": [],
+    "traitState": {
+      "reinforced": {
+        "current": 0,
+        "max": 0
+      }
+    },
+    "availability": "Restricted",
+    "tags": [
+      "armor",
+      "Restricted",
+      "Sealed"
+    ],
+    "traits": [
+      "Sealed"
+    ],
+    "notes": "Sealed"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!633e1bc46b494f5a"
+}

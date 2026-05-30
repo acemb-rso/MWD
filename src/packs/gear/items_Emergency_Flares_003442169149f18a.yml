@@ -1,0 +1,33 @@
+{
+  "_id": "003442169149f18a",
+  "name": "Emergency Flares",
+  "type": "gear",
+  "img": "systems/mwd/img/mek/misc/flare.png",
+  "effects": [],
+  "folder": null,
+  "sort": 4400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Signaling / illumination</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "survival",
+    "relatedSkill": "survival",
+    "availability": "Common",
+    "rulesHook": "Signaling / illumination",
+    "tags": [
+      "survival",
+      "signaling",
+      "illumination",
+      "emergency",
+      "consumable"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!003442169149f18a"
+}

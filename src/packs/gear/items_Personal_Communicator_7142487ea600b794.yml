@@ -1,0 +1,32 @@
+{
+  "_id": "7142487ea600b794",
+  "name": "Personal Communicator",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/COMMLINK.png",
+  "effects": [],
+  "folder": null,
+  "sort": 500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Personal comms</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "communication",
+    "relatedSkill": "systemOps",
+    "availability": "Common",
+    "rulesHook": "Personal comms",
+    "tags": [
+      "communications",
+      "comms",
+      "personal",
+      "portable"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!7142487ea600b794"
+}

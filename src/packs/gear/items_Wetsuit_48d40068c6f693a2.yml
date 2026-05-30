@@ -1,0 +1,33 @@
+{
+  "_id": "48d40068c6f693a2",
+  "name": "Wetsuit",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/Anzug.png",
+  "effects": [],
+  "folder": null,
+  "sort": 2300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Aquatic environment gear</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "hostileEnvironment",
+    "relatedSkill": "athletics",
+    "availability": "Common",
+    "rulesHook": "Aquatic environment gear",
+    "tags": [
+      "hostileEnvironment",
+      "aquatic",
+      "underwater",
+      "protection",
+      "worn"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!48d40068c6f693a2"
+}

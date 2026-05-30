@@ -10,6 +10,7 @@ import { BaseItemSheet } from "./base-item-sheet.js";
 import { WeaponItem } from "./weapon-item.js";
 import {
   PERSONAL_DAMAGE_TYPES,
+  WEAPON_STANDARD_TRAITS,
   getPersonalDamageTypeLabel,
   normalizeConsumptionSource,
   resolveConsumptionSourceState,
@@ -23,7 +24,6 @@ import {
   PERSONAL_WEAPON_PAYLOAD_CAPABILITY_OPTIONS,
   PERSONAL_WEAPON_TEMPLATE_PLACEMENTS,
   PERSONAL_WEAPON_TEMPLATE_SHAPES,
-  PERSONAL_WEAPON_WEAPON_CAPABILITY_OPTIONS,
 } from "../mwd/personal-weapon-capabilities.js";
 import {
   AREA_EFFECT_KINDS,
@@ -205,7 +205,10 @@ export class WeaponItemSheet extends BaseItemSheet {
         ? [...MECH_WEAPON_CATEGORY_OPTIONS]
         : [
             { value: "melee", label: "Melee" },
+            { value: "projectile", label: "Projectile" },
             { value: "ranged", label: "Ranged" },
+            { value: "smallArms", label: "Small Arms" },
+            { value: "support", label: "Support" },
             { value: "thrown", label: "Thrown" },
             { value: "other", label: "Other" }
           ],
@@ -226,7 +229,7 @@ export class WeaponItemSheet extends BaseItemSheet {
           ? getPersonalRangeBandLabel(value)
           : value.charAt(0).toUpperCase() + value.slice(1)
       ])),
-      weaponCapabilityOptions: PERSONAL_WEAPON_WEAPON_CAPABILITY_OPTIONS,
+      standardTraits: [...WEAPON_STANDARD_TRAITS],
       payloadCapabilityOptions: PERSONAL_WEAPON_PAYLOAD_CAPABILITY_OPTIONS,
       ammoDamageTypes: [{ value: "", label: "Use Weapon Default" }, ...PERSONAL_DAMAGE_TYPES],
       payloadTemplateShapes: PERSONAL_WEAPON_TEMPLATE_SHAPES,
@@ -281,6 +284,42 @@ export class WeaponItemSheet extends BaseItemSheet {
   _onRender(context, options) {
     super._onRender?.(context, options);
     this._bindPayloadEditorControls();
+    this._bindWeaponStandardTraitControls();
+  }
+
+  _bindWeaponStandardTraitControls() {
+    const root = this._getRootElement?.();
+    if (!root) return;
+
+    const preserveScroll = (work) => {
+      this._captureScrollPositions?.();
+      return work();
+    };
+
+    root.querySelectorAll(".mwd-weapon-standard-trait-add").forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        void preserveScroll(() => this.item.createWeaponStandardTrait?.());
+      });
+    });
+
+    root.querySelectorAll(".mwd-weapon-standard-trait-delete").forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        void preserveScroll(() => this.item.deleteWeaponStandardTrait?.(button.dataset.traitId));
+      });
+    });
+
+    root.querySelectorAll(".mwd-weapon-standard-trait-field").forEach(field => {
+      field.addEventListener("change", event => {
+        event.preventDefault();
+        void preserveScroll(() => this.item.updateWeaponStandardTrait?.(
+          field.dataset.traitId,
+          field.dataset.field,
+          field.value
+        ));
+      });
+    });
   }
 
   _bindPayloadEditorControls() {

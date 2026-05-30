@@ -1,0 +1,33 @@
+{
+  "_id": "6693e62e3d3be15f",
+  "name": "Forensics Kit",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/digital-trace.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Evidence analysis</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "category": "espionage",
+    "relatedSkill": "science",
+    "availability": "Rare",
+    "rulesHook": "Evidence analysis",
+    "tags": [
+      "espionage",
+      "forensics",
+      "evidence",
+      "investigation",
+      "kit"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!6693e62e3d3be15f"
+}

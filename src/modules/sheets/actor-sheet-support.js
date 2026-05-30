@@ -2,6 +2,9 @@
 // Purpose: Shared field and record builders for layout-driven actor sheets.
 // How it fits: Keeps NPC, vehicle, and battlemech sheets on the same data-shaping contract.
 
+import { buildPersonalCriticalRestrictionChips, getWeaponAttackGateReason } from "../mwd/personal-critical-gates.js";
+import { buildPersonalCriticalChatSummary, getActivePersonalCrits } from "../mwd/personal-criticals.js";
+
 function readPathValue(document, path, fallback = "") {
   const value = foundry.utils.getProperty(document, path);
   return value === undefined ? fallback : value;
@@ -157,15 +160,40 @@ export function buildPersonalConditionMonitors(actor, {
   });
 }
 
-export function buildPersonalCombatDashboardContext(combatSnapshot = {}) {
+export function buildPersonalCombatDashboardContext(combatSnapshot = {}, { actor = null } = {}) {
+  const criticalRestrictions = actor ? buildPersonalCriticalRestrictionChips(actor) : [];
   return {
     targeting: combatSnapshot.targeting,
     rollImpact: combatSnapshot.rollImpact,
     states: combatSnapshot.states,
-    effects: combatSnapshot.effects,
+    effects: [
+      ...(combatSnapshot.effects ?? []),
+      ...criticalRestrictions.map(entry => ({
+        id: `critical.${entry.id}`,
+        label: `${entry.label} (${entry.reason})`,
+      })),
+    ],
+    criticalRestrictions,
     activation: combatSnapshot.activation,
     inactiveReason: combatSnapshot.inactiveReason
   };
+}
+
+export function buildPersonalActiveCriticalsContext(actor) {
+  return getActivePersonalCrits(actor).map(crit => {
+    const restrictions = [];
+    const payload = crit.effectPayload ?? {};
+    if (payload.cannotAim) restrictions.push("Cannot Aim");
+    if (payload.cannotReact) restrictions.push("Cannot React");
+    if (payload.cannotComplex) restrictions.push("Cannot Complex Action");
+    if (payload.weaponUnequipped) restrictions.push(`Weapon Unequipped${crit.weaponName ? `: ${crit.weaponName}` : ""}`);
+    return {
+      ...crit,
+      summary: buildPersonalCriticalChatSummary(crit),
+      restrictions: restrictions.map(label => ({ label })),
+      remediable: crit.remedyKey && crit.remedyKey !== "none",
+    };
+  });
 }
 
 function buildArmorModifierSummary({ defenseBonus = 0, mitigationByType = {}, armorModifierLabels = {} } = {}) {
@@ -223,6 +251,9 @@ export function buildQuantityTrackedInventoryRecord({
   const tags = compactList(item?.system?.tags ?? []);
   const category = String(item?.system?.category ?? "").trim();
   const categoryLabel = categoryLabels[category] ?? category;
+  const relatedSkill = String(item?.system?.relatedSkill ?? "").trim();
+  const availability = String(item?.system?.availability ?? "").trim();
+  const rulesHook = String(item?.system?.rulesHook ?? "").trim();
 
   return {
     id: item.id,
@@ -236,7 +267,8 @@ export function buildQuantityTrackedInventoryRecord({
     subtitle: categoryLabel || defaultSubtitle,
     summaryStats: buildSummaryStats([
       { label: "Qty", value: quantity, emphasis: "strong" },
-      { label: ratingLabel, value: rating }
+      { label: ratingLabel, value: rating },
+      { label: "Avail", value: availability }
     ]),
     detailTags: buildDetailTags([
       typeLabel,
@@ -246,11 +278,14 @@ export function buildQuantityTrackedInventoryRecord({
     detailRows: buildDetailRows([
       { label: "Quantity", value: quantity },
       { label: ratingLabel, value: rating },
+      { label: "Related Skill", value: relatedSkill },
+      { label: "Availability", value: availability },
+      { label: "Rules Hook", value: rulesHook },
       { label: "Source", value: item?.system?.sourceReference ?? "" },
       { label: "Category", value: categoryLabel },
       { label: "Tags", value: tags.join(", ") }
     ]),
-    detailText: toSnippet(item?.system?.description),
+    detailText: toSnippet(item?.system?.description || rulesHook),
     quantity,
     canAdjustQuantity: isEditable
   };
@@ -285,6 +320,10 @@ export function buildPersonalInventoryContext(actor, {
         : "";
       const cqBands = formatBandValues(weapon.attackRatingBand);
       const cqBandsCompact = formatCompactBandValues(weapon.attackRatingBand);
+      const attackGateReason = getWeaponAttackGateReason(actor, weapon);
+      const attackDisabledReason = !weapon.equipped
+        ? "Equip to attack"
+        : attackGateReason;
 
       return {
         id: weapon.id,
@@ -316,6 +355,8 @@ export function buildPersonalInventoryContext(actor, {
         ]),
         detailText: toSnippet(weapon.notes),
         equipped: Boolean(weapon.equipped),
+        attackDisabled: Boolean(attackDisabledReason),
+        attackDisabledReason,
         isPrimary: Boolean(weapon.isPrimary),
         attackUuid: weapon.uuid ?? "",
         attackRoll: JSON.stringify({
@@ -331,6 +372,7 @@ export function buildPersonalInventoryContext(actor, {
       const activeArmor = loadout?.activeArmor?.id === armor.id ? loadout.activeArmor : null;
       const accordionId = inventoryAccordionId("armor", armor.id);
       const reinforcedMax = toNumber(activeArmor?.traitState?.reinforced?.max ?? armor?.traitState?.reinforced?.max, 0);
+      const availability = String(armor?.availability ?? armor?.system?.availability ?? "").trim();
       const reinforcedLabel = reinforcedMax > 0
         ? `${toNumber(activeArmor?.traitState?.reinforced?.current ?? armor?.traitState?.reinforced?.current, 0)}/${reinforcedMax}`
         : "";
@@ -356,10 +398,12 @@ export function buildPersonalInventoryContext(actor, {
         detailTags: buildDetailTags([
           armor.equipped ? "Equipped" : "",
           armor.isPrimary ? "Primary" : "",
+          availability,
           reinforcedLabel ? `Reinforced ${reinforcedLabel}` : "",
           ...compactList(armor.traits ?? [])
         ]),
         detailRows: buildDetailRows([
+          { label: "Availability", value: availability },
           { label: "Modifiers", value: modifierSummary },
           { label: "Traits", value: compactList(armor.traits ?? []).join(", ") },
           { label: "Tags", value: compactList(armor.tags ?? []).join(", ") }

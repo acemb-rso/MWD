@@ -1,0 +1,67 @@
+{
+  "_id": "2c5a238a248b72ed",
+  "name": "Vibroaxe",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/axe.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "<p>Damage: 5 + STR</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "melee",
+    "skill": "meleeCombat",
+    "damage": 5,
+    "damageAttribute": "strength",
+    "damageAttributeScale": 1,
+    "ap": 1,
+    "damageType": "penetrating",
+    "attackRatingBand": {
+      "close": 7,
+      "near": 0,
+      "far": 0,
+      "extreme": 0
+    },
+    "range": {
+      "max": "close",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [],
+    "availability": "Very Rare",
+    "payloads": [],
+    "selectedPayloadId": "",
+    "consumptionSources": [],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": "<p>Damage: 5 + STR</p>"
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!2c5a238a248b72ed"
+}

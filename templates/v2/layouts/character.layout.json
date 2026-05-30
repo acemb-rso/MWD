@@ -86,6 +86,13 @@
                   },
                   {
                     "type": "panel",
+                    "title": "Active Criticals",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.character.active-criticals" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
                     "title": "Combat Awareness",
                     "children": [
                       { "type": "include", "partial": "mwd.v2.ui.combat-awareness-preview" }

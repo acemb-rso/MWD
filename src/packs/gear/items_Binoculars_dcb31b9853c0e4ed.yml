@@ -1,0 +1,33 @@
+{
+  "_id": "dcb31b9853c0e4ed",
+  "name": "Binoculars",
+  "type": "gear",
+  "img": "systems/mwd/img/icons/_uncategorized/OPTICAL.png",
+  "effects": [],
+  "folder": null,
+  "sort": 3200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Visual observation</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "optical",
+    "relatedSkill": "perception",
+    "availability": "Common",
+    "rulesHook": "Visual observation",
+    "tags": [
+      "optical",
+      "observation",
+      "visual",
+      "magnification",
+      "portable"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!dcb31b9853c0e4ed"
+}

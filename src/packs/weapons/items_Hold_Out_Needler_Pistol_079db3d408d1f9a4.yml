@@ -1,0 +1,114 @@
+{
+  "_id": "079db3d408d1f9a4",
+  "name": "Hold-Out Needler Pistol",
+  "type": "personalWeapon",
+  "img": "systems/mwd/img/icons/systems/weapons/dartgun.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Weapons",
+    "description": "",
+    "gmnotes": "",
+    "inactive": false,
+    "equipped": false,
+    "isPrimary": false,
+    "category": "smallArms",
+    "skill": "firearms",
+    "damage": 3,
+    "damageAttribute": "",
+    "damageAttributeScale": 1,
+    "ap": 2,
+    "damageType": "penetrating",
+    "attackRatingBand": {
+      "close": 12,
+      "near": 4,
+      "far": 0,
+      "extreme": 0
+    },
+    "range": {
+      "max": "far",
+      "close": 5,
+      "near": 26,
+      "far": 62,
+      "extreme": 120
+    },
+    "standardTraits": [],
+    "availability": "Restricted",
+    "payloads": [
+      {
+        "id": "unloaded",
+        "label": "Unloaded",
+        "compatibleWith": [],
+        "modifies": {
+          "damageType": "",
+          "ap": 0,
+          "clusteringDice": 0,
+          "attackRatingBand": {
+            "close": 0,
+            "near": 0,
+            "far": 0,
+            "extreme": 0
+          }
+        },
+        "traits": [],
+        "keywords": [],
+        "template": null,
+        "areaEffect": {
+          "kind": "discrete"
+        },
+        "resolution": {
+          "resolverKey": "standard",
+          "damageModel": "",
+          "onHitEffect": null
+        },
+        "consumption": {
+          "amount": 1,
+          "sourceId": ""
+        }
+      }
+    ],
+    "selectedPayloadId": "unloaded",
+    "consumptionSources": [
+      {
+        "id": "untracked",
+        "label": "Untracked",
+        "kind": "untracked",
+        "tracking": {
+          "current": 0,
+          "max": 0
+        },
+        "link": {
+          "actorPath": "",
+          "itemId": "",
+          "itemPath": ""
+        }
+      }
+    ],
+    "fireModes": {
+      "single": {
+        "enabled": false
+      },
+      "burst": {
+        "enabled": false,
+        "shots": 3,
+        "accuracyMod": 0,
+        "addHeat": 0
+      },
+      "fullAuto": {
+        "enabled": false,
+        "shots": 10,
+        "accuracyMod": 0,
+        "addHeat": 0
+      }
+    },
+    "traits": [],
+    "keywords": [],
+    "notes": ""
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!079db3d408d1f9a4"
+}
