@@ -1,5 +1,0 @@
-2026/05/30-21:22:46.509 4068 Delete type=3 #1
-2026/05/30-21:22:46.511 4d5c Level-0 table #5: started
-2026/05/30-21:22:46.511 4d5c Level-0 table #5: 11902 bytes OK
-2026/05/30-21:22:46.513 4d5c Delete type=0 #3
-2026/05/30-21:22:46.513 4d5c Manual compaction at level-0 from '!tables!MWDGeneralCrit01' @ 72057594037927935 : 1 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at (end)

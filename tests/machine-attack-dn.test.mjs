@@ -98,7 +98,9 @@ function createActor({ weaponProfile = {} } = {}) {
         range: { max: "extreme" },
         defaultRangeBand: "near",
         effects: {},
-        capabilityReport: { isTemplated: false, errors: [] },
+        template: weaponProfile.template ?? null,
+        areaEffect: weaponProfile.areaEffect ?? undefined,
+        capabilityReport: weaponProfile.capabilityReport ?? { isTemplated: false, errors: [] },
       };
     },
   };
@@ -745,6 +747,338 @@ test("machine clustered attacks roll cluster dice and add hits to queued damage"
   } finally {
     globalThis.fromUuid = previousFromUuid;
     globalThis.Roll = previousRoll;
+    clearScene();
+  }
+});
+
+test("direct clustered attacks do not scale damage to zero when exposure is none", async () => {
+  const resolveAttack = await getResolveAttack();
+  const { resolveAttackExecution } = await getAttackResolution();
+  const actor = createActor({ weaponProfile: { clusteringDice: 4, clusteringTargetNumber: 5 } });
+  const { targetSnapshot } = setScene();
+  const targetActor = {
+    id: "target-character",
+    uuid: "Actor.target-character",
+    type: "character",
+    name: "Barracuda",
+    statuses: new Set(),
+    getAttributeValue(key) {
+      return key === "reflexes" ? 1 : 0;
+    },
+    getSkillRating(key) {
+      return key === "tactics" ? 0 : 0;
+    },
+    getPersonalCombatLoadout() {
+      return {
+        activeArmor: {
+          currentArmorRating: 8,
+          tags: [],
+          mitigationByType: { energy: 2 },
+          durability: { current: 8 },
+          traitState: { reinforced: { current: 0, max: 0 } },
+          item: { id: "armor", update: async () => {} },
+        },
+      };
+    },
+    system: {
+      monitors: {
+        physical: { value: 0, max: 10 },
+        fatigue: { value: 0, max: 10 },
+      },
+      attributes: {
+        reflexes: { value: 1 },
+      },
+      skills: {
+        tactics: { rating: 0 },
+      },
+      criticals: [],
+    },
+  };
+  const personalTargetSnapshot = {
+    ...targetSnapshot,
+    actorId: targetActor.id,
+    actorUuid: targetActor.uuid,
+    name: targetActor.name,
+    attributes: { reflexes: 1 },
+    skills: { tactics: { rating: 0 } },
+    activeArmor: { defenseBonus: 0 },
+  };
+  const targetToken = { uuid: targetSnapshot.tokenUuid, actor: targetActor };
+  const previousFromUuid = globalThis.fromUuid;
+  const previousRoll = globalThis.Roll;
+  globalThis.fromUuid = async uuid => {
+    if (uuid === targetActor.uuid) return targetActor;
+    if (uuid === targetToken.uuid) return targetToken;
+    return null;
+  };
+  globalThis.Roll = class {
+    constructor(formula) {
+      this.formula = formula;
+      this.total = formula.includes("cs>=") ? 17 : 2;
+      this.dice = [{
+        results: formula.includes("cs>=")
+          ? [
+            { result: 3, success: false },
+            { result: 6, success: true },
+            { result: 5, success: true },
+            { result: 6, success: true },
+          ]
+          : [
+            { result: 1, success: false },
+            { result: 1, success: false },
+          ],
+      }];
+    }
+
+    async evaluate() {
+      return this;
+    }
+
+    evaluateSync() {
+      return this;
+    }
+
+    toJSON() {
+      return { formula: this.formula };
+    }
+  };
+
+  try {
+    const ctx = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        rangeBand: "near",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [personalTargetSnapshot],
+      },
+    });
+    const execution = await resolveAttackExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: { margin: 1 },
+    });
+    const result = execution.results[0];
+    const mutation = result.queuedMutation;
+
+    assert.equal(ctx.attack.areaEffect.kind, "none");
+    assert.equal(ctx.attack.damageScaling, "direct");
+    assert.equal(result.damage.effectiveWeaponDamage, 4);
+    assert.equal(result.damage.clustering.hits, 3);
+    assert.equal(result.damage.incoming, 7);
+    assert.equal(result.damage.scaledIncoming, 7);
+    assert.equal(result.damage.usesExposureScaling, false);
+    assert.equal(mutation.payload.damage, 7);
+    assert.equal(result.damageResult.damageIncoming, 7);
+    assert.equal(result.damageResult.mitigation.netResistance, 4);
+    assert.equal(result.damageResult.finalDamage, 3);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
+    globalThis.Roll = previousRoll;
+    clearScene();
+  }
+});
+
+test("grazes halve the total clustered incoming damage", async () => {
+  const resolveAttack = await getResolveAttack();
+  const { resolveAttackExecution } = await getAttackResolution();
+  const actor = createActor({ weaponProfile: { clusteringDice: 4, clusteringTargetNumber: 5 } });
+  const { targetSnapshot } = setScene();
+  const targetActor = {
+    id: "target-character",
+    uuid: "Actor.target-character",
+    type: "character",
+    name: "Barracuda",
+    statuses: new Set(),
+    getAttributeValue(key) {
+      return key === "reflexes" ? 1 : 0;
+    },
+    getSkillRating() {
+      return 0;
+    },
+    getPersonalCombatLoadout() {
+      return {
+        activeArmor: {
+          currentArmorRating: 0,
+          tags: [],
+          mitigationByType: {},
+          durability: { current: 0 },
+          traitState: { reinforced: { current: 0, max: 0 } },
+          item: { id: "armor", update: async () => {} },
+        },
+      };
+    },
+    system: {
+      monitors: {
+        physical: { value: 0, max: 10 },
+        fatigue: { value: 0, max: 10 },
+      },
+      attributes: {
+        reflexes: { value: 1 },
+      },
+      skills: {
+        tactics: { rating: 0 },
+      },
+      criticals: [],
+    },
+  };
+  const personalTargetSnapshot = {
+    ...targetSnapshot,
+    actorId: targetActor.id,
+    actorUuid: targetActor.uuid,
+    name: targetActor.name,
+    attributes: { reflexes: 1 },
+    skills: { tactics: { rating: 0 } },
+    activeArmor: { defenseBonus: 0 },
+  };
+  const targetToken = { uuid: targetSnapshot.tokenUuid, actor: targetActor };
+  const previousFromUuid = globalThis.fromUuid;
+  const previousRoll = globalThis.Roll;
+  globalThis.fromUuid = async uuid => {
+    if (uuid === targetActor.uuid) return targetActor;
+    if (uuid === targetToken.uuid) return targetToken;
+    return null;
+  };
+  globalThis.Roll = class {
+    constructor(formula) {
+      this.formula = formula;
+      this.total = formula.includes("cs>=") ? 17 : 2;
+      this.dice = [{
+        results: formula.includes("cs>=")
+          ? [
+            { result: 3, success: false },
+            { result: 6, success: true },
+            { result: 5, success: true },
+            { result: 6, success: true },
+          ]
+          : [
+            { result: 1, success: false },
+            { result: 1, success: false },
+          ],
+      }];
+    }
+
+    async evaluate() {
+      return this;
+    }
+
+    evaluateSync() {
+      return this;
+    }
+
+    toJSON() {
+      return { formula: this.formula };
+    }
+  };
+
+  try {
+    const ctx = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        rangeBand: "near",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [personalTargetSnapshot],
+      },
+    });
+    const execution = await resolveAttackExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: { margin: 0 },
+    });
+    const result = execution.results[0];
+    const mutation = result.queuedMutation;
+
+    assert.equal(result.outcome, "graze");
+    assert.equal(result.damage.effectiveWeaponDamage, 2);
+    assert.equal(result.damage.clustering.hits, 3);
+    assert.equal(result.damage.clustering.damageBonus, 1.5);
+    assert.equal(result.damage.incoming, 3.5);
+    assert.equal(result.damage.scaledIncoming, 3.5);
+    assert.equal(mutation.payload.damage, 3.5);
+    assert.equal(result.damageResult.damageIncoming, 3.5);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
+    globalThis.Roll = previousRoll;
+    clearScene();
+  }
+});
+
+test("attack resolver declares damage scaling from the resolved workflow", async () => {
+  const resolveAttack = await getResolveAttack();
+  setScene();
+
+  try {
+    const directActor = createActor();
+    const directCtx = await resolveAttack({
+      actor: directActor,
+      payload: {
+        intent: "attack",
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        rangeBand: "near",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [{
+          actorUuid: "Actor.target",
+          tokenId: "target-token",
+          tokenUuid: "Scene.scene.Token.target-token",
+          name: "Target",
+        }],
+      },
+    });
+
+    const templatedActor = createActor({
+      weaponProfile: {
+        template: { shape: "blast", placement: "target", size: 6 },
+        areaEffect: { kind: "discrete" },
+        capabilityReport: { isTemplated: true, errors: [] },
+      },
+    });
+    const templatedCtx = await resolveAttack({
+      actor: templatedActor,
+      payload: {
+        intent: "attack",
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        rangeBand: "near",
+        sourceTokenId: "attacker-token",
+      },
+    });
+
+    const persistentActor = createActor({
+      weaponProfile: {
+        template: { shape: "blast", placement: "target", size: 6 },
+        areaEffect: { kind: "persistent", hazard: { startExposure: "minor" } },
+        capabilityReport: { isTemplated: true, errors: [] },
+      },
+    });
+    const persistentCtx = await resolveAttack({
+      actor: persistentActor,
+      payload: {
+        intent: "attack",
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        rangeBand: "near",
+        sourceTokenId: "attacker-token",
+      },
+    });
+
+    assert.equal(directCtx.attack.areaEffect.kind, "none");
+    assert.equal(directCtx.attack.damageScaling, "direct");
+    assert.equal(templatedCtx.attack.areaEffect.kind, "discrete");
+    assert.equal(templatedCtx.attack.damageScaling, "exposure");
+    assert.equal(persistentCtx.attack.areaEffect.kind, "persistent");
+    assert.equal(persistentCtx.attack.damageScaling, "direct");
+  } finally {
     clearScene();
   }
 });

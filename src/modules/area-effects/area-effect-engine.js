@@ -33,6 +33,7 @@ export const EXPOSURE_MULTIPLIERS = Object.freeze({
 });
 
 export const AREA_EFFECT_KINDS = Object.freeze({
+  none: "none",
   discrete: "discrete",
   persistent: "persistent",
 });
@@ -107,9 +108,10 @@ export function normalizeHazardDefinition(value = {}) {
 
 export function normalizeAreaEffect(value = {}) {
   const source = value ?? {};
-  const kind = String(source.kind ?? AREA_EFFECT_KINDS.discrete).trim().toLowerCase() === AREA_EFFECT_KINDS.persistent
+  const normalizedKind = String(source.kind ?? AREA_EFFECT_KINDS.none).trim().toLowerCase();
+  const kind = normalizedKind === AREA_EFFECT_KINDS.persistent
     ? AREA_EFFECT_KINDS.persistent
-    : AREA_EFFECT_KINDS.discrete;
+    : (normalizedKind === AREA_EFFECT_KINDS.discrete ? AREA_EFFECT_KINDS.discrete : AREA_EFFECT_KINDS.none);
 
   return {
     kind,

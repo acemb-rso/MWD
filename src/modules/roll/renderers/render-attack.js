@@ -178,7 +178,7 @@ export function enhanceAttack(resolved, vm) {
       const damage = result?.damage ?? null;
       if (damage && result?.outcome !== "miss") {
         const clusterHits = Number(damage?.clustering?.damageBonus ?? damage?.clustering?.hits ?? 0);
-        const netDamageBonus = Number(damage?.netDamageBonus ?? damage?.netHits ?? 0);
+        const netDamageBonus = Number(damage?.netDamageBonus ?? 0);
         vm.footerRows.push({
           text: `${result?.target?.name ?? "Target"}: ${damage.damageTypeLabel} ${fmt(damage.effectiveWeaponDamage)} weapon${clusterHits ? ` + ${clusterHits} cluster` : ""}${netDamageBonus ? ` + ${netDamageBonus} net` : ""}`,
           title: ""

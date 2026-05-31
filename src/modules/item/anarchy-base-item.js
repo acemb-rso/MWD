@@ -68,6 +68,7 @@ import {
   getDefaultItemIcon,
   isLegacyItemType,
 } from "./item-type-utils.js";
+import { AREA_EFFECT_KINDS } from "../area-effects/area-effect-engine.js";
 
 const RANGE_ORDER = Object.freeze(["close", "near", "far", "extreme"]);
 
@@ -1266,7 +1267,7 @@ export class MWDItem extends Item {
       traits: entry.traits ?? [],
       keywords: entry.keywords ?? [],
       template: entry.template ?? null,
-      areaEffect: entry.areaEffect ?? { kind: "discrete" },
+      areaEffect: entry.areaEffect ?? { kind: AREA_EFFECT_KINDS.none },
       resolution: entry.resolution ?? { resolverKey: "standard" },
       consumption: entry.consumption ?? { amount: 1, sourceId: "" },
     })]));

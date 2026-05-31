@@ -235,6 +235,7 @@ export class WeaponItemSheet extends BaseItemSheet {
       payloadTemplateShapes: PERSONAL_WEAPON_TEMPLATE_SHAPES,
       payloadTemplatePlacements: PERSONAL_WEAPON_TEMPLATE_PLACEMENTS,
       areaEffectKinds: [
+        { value: AREA_EFFECT_KINDS.none, label: "None" },
         { value: AREA_EFFECT_KINDS.discrete, label: "Discrete" },
         { value: AREA_EFFECT_KINDS.persistent, label: "Persistent Hazard" },
       ],

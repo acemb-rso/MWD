@@ -13,6 +13,7 @@ import {
   validateTemplatedCapability,
 } from "./personal-weapon-capabilities.js";
 import {
+  AREA_EFFECT_KINDS,
   normalizeAreaEffect,
 } from "../area-effects/area-effect-engine.js";
 
@@ -569,7 +570,7 @@ export function normalizePayloadProfile(entry, { report = null, path = "system.p
       traits: [],
       keywords: [],
       template: null,
-      areaEffect: normalizeAreaEffect({ kind: "discrete" }),
+      areaEffect: normalizeAreaEffect({ kind: AREA_EFFECT_KINDS.none }),
       resolution: normalizePayloadResolution({ resolverKey: "standard" }),
       consumption: normalizePayloadConsumption({ amount: 1, sourceId: "" }),
     };

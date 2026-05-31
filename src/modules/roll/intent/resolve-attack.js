@@ -48,6 +48,21 @@ import {
   MACHINE_STANDARD_MELEE_ID,
   resolveMachineMeleeCombatProfile,
 } from "../../mwd/machine-melee-weapons.js";
+import {
+  AREA_EFFECT_KINDS,
+  normalizeAreaEffect,
+} from "../../area-effects/area-effect-engine.js";
+
+const DAMAGE_SCALING_MODES = Object.freeze({
+  direct: "direct",
+  exposure: "exposure",
+});
+
+function resolveAttackDamageScaling({ areaEffect = null, requiresTemplatedWorkflow = false } = {}) {
+  if (!requiresTemplatedWorkflow) return DAMAGE_SCALING_MODES.direct;
+  if (areaEffect?.kind === AREA_EFFECT_KINDS.persistent) return DAMAGE_SCALING_MODES.direct;
+  return DAMAGE_SCALING_MODES.exposure;
+}
 
 function getTargets(payload = {}) {
   if (Array.isArray(payload?.targetSnapshots)) {
@@ -432,24 +447,33 @@ export async function resolveAttack({ actor, payload } = {}) {
     : getMechRangeBandName(rangeBand);
   const attackRating = Number(effectiveWeapon?.attackRatingBand?.[rangeBand] ?? 0) || 0;
   const requiresTemplatedWorkflow = Boolean(effectiveWeapon?.capabilityReport?.isTemplated);
+  const areaEffect = normalizeAreaEffect(effectiveWeapon?.areaEffect ?? {});
+  const damageScaling = resolveAttackDamageScaling({ areaEffect, requiresTemplatedWorkflow });
   const isPersonalAttack = effectiveWeapon?.type === "personalWeapon" || effectiveWeapon?.isSynthetic;
   const personalMotion = isPersonalAttack
     ? buildPersonalAttackMotionContext({ actor, payload, targets })
     : null;
   const attackerMovedThisActivation = (personalMotion?.attackerMoves ?? 0) > 0;
+  const aimEligible = Boolean(payload?.aim?.active) && !requiresTemplatedWorkflow && targets.length === 1 && !attackerMovedThisActivation && effectiveWeapon.category !== "melee";
+  const aimPerceptionBonus = aimEligible
+    ? Math.max(0, rollActor.getSkillRating?.("perception") ?? Number(rollActor.system?.skills?.perception?.rating ?? 0))
+    : 0;
   const aim = payload?.aim?.active
     ? {
       active: true,
-      eligible: !requiresTemplatedWorkflow && targets.length === 1 && !attackerMovedThisActivation,
+      eligible: aimEligible,
       ineligibleReason: requiresTemplatedWorkflow
         ? "Aim cannot apply to template attacks."
         : (targets.length !== 1
           ? "Aim cannot apply to multi-target attacks."
-          : (attackerMovedThisActivation ? "Aim is spoiled after moving this activation." : "")),
+          : (attackerMovedThisActivation
+            ? "Aim is spoiled after moving this activation."
+            : (effectiveWeapon.category === "melee" ? "Aim does not apply to melee attacks." : ""))),
       skillCode: effectiveWeapon.skill,
       skillLabel: skillDef.label ?? effectiveWeapon.skill ?? "Attack Skill",
       bonusSkillCode: "perception",
-      bonusSkillLabel: "Perception"
+      bonusSkillLabel: "Perception",
+      bonusValue: aimPerceptionBonus,
     }
     : null;
   if (!requiresTemplatedWorkflow && targets.length === 0) {
@@ -580,7 +604,7 @@ export async function resolveAttack({ actor, payload } = {}) {
     edge: {
       earn: { enabled: true, rate: 4, maxPerRoll: 1 }
     },
-    pool: { attribute, skill, bonus, specialization: specializationBonus },
+    pool: { attribute, skill, bonus: bonus + aimPerceptionBonus, specialization: specializationBonus },
     breakdown: [
       {
         id: "attribute",
@@ -595,6 +619,7 @@ export async function resolveAttack({ actor, payload } = {}) {
         value: specializationBonus
       }] : []),
       { id: "weaponAccuracy", label: "Weapon Accuracy", value: accuracyBonus },
+      ...(aimPerceptionBonus ? [{ id: "aim.perception", label: "Aim (Perception)", value: aimPerceptionBonus }] : []),
       { id: "damage", label: "Damage", value: Number(effectiveWeapon.damage ?? 0) || 0 },
       ...(clusteringProfile.active ? [
         { id: "clusterDice", label: "Cluster Dice", value: clusteringProfile.dice },
@@ -611,7 +636,8 @@ export async function resolveAttack({ actor, payload } = {}) {
       source: effectiveWeapon?.source ?? null,
       sourceState: effectiveWeapon?.sourceState ?? null,
       template: effectiveWeapon?.template ?? null,
-      areaEffect: effectiveWeapon?.areaEffect ?? null,
+      areaEffect,
+      damageScaling,
       templateGeometry: payload?.templateGeometry ?? null,
       templatePlacement: payload?.templatePlacement ?? null,
       resolution: effectiveWeapon?.resolution ?? null,

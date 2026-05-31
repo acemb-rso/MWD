@@ -42,6 +42,10 @@ export function doesAttackAddNetHitsToDamage(weapon = null) {
   return false;
 }
 
+function usesExposureDamageScaling(attack = {}) {
+  return String(attack?.damageScaling ?? "direct").trim().toLowerCase() === "exposure";
+}
+
 function getTargetSnapshots(ctx = {}) {
   const targets = Array.isArray(ctx?.attack?.targets) ? ctx.attack.targets : [];
   const areaEffect = normalizeAreaEffect(ctx?.attack?.areaEffect ?? ctx?.attack?.payload?.areaEffect ?? {});
@@ -264,17 +268,21 @@ async function buildDamageSnapshot(ctx = {}, outcome = {}) {
       results: [],
       roll: null,
     };
-  const clusteringDamage = outcome.outcome === "miss" ? 0 : Number(clustering.hits ?? 0);
+  const rawClusteringDamage = outcome.outcome === "miss" ? 0 : Number(clustering.hits ?? 0);
   const targetIsMachine = Boolean(ctx?.targetIsMachine);
   const rawDamageType = payloadDamageType || attack?.weapon?.damageType;
   const damageType = targetIsMachine
     ? (String(rawDamageType ?? "kinetic").trim() || "kinetic")
     : normalizePersonalDamageType(rawDamageType, "concussive");
   const ap = Math.max(0, Number(attack?.totalAp ?? attack?.weapon?.ap ?? 0) || 0);
-  const effectiveWeaponDamage = outcome.outcome === "graze" ? (baseDamage / 2) : (outcome.outcome === "hit" ? baseDamage : 0);
-  const netDamageBonus = doesAttackAddNetHitsToDamage(attack?.weapon)
+  const grazeMultiplier = outcome.outcome === "graze" ? 0.5 : 1;
+  const rawWeaponDamage = outcome.outcome === "miss" ? 0 : baseDamage;
+  const rawNetDamageBonus = doesAttackAddNetHitsToDamage(attack?.weapon)
     ? Number(outcome.netHits ?? 0)
     : 0;
+  const effectiveWeaponDamage = rawWeaponDamage * grazeMultiplier;
+  const clusteringDamage = rawClusteringDamage * grazeMultiplier;
+  const netDamageBonus = rawNetDamageBonus * grazeMultiplier;
   const incoming = effectiveWeaponDamage + clusteringDamage + netDamageBonus;
   const exposure = applyEvadeToExposure(attack?.currentExposure ?? createExposureData({
     tier: attack?.currentExposure?.initialTier ?? attack?.currentExposure?.tier ?? "none",
@@ -283,9 +291,10 @@ async function buildDamageSnapshot(ctx = {}, outcome = {}) {
     locked: Boolean(attack?.evadeLocked),
   });
   const areaEffect = normalizeAreaEffect(attack?.areaEffect ?? attack?.payload?.areaEffect ?? {});
-  const scaledIncoming = areaEffect.kind === AREA_EFFECT_KINDS.persistent
-    ? incoming
-    : scaleDamageByExposure(incoming, exposure.finalTier);
+  const usesExposureScaling = usesExposureDamageScaling(attack);
+  const scaledIncoming = usesExposureScaling
+    ? scaleDamageByExposure(incoming, exposure.finalTier)
+    : incoming;
 
   return {
     baseDamage,
@@ -305,6 +314,7 @@ async function buildDamageSnapshot(ctx = {}, outcome = {}) {
     damageType,
     damageTypeLabel: targetIsMachine ? damageType : getPersonalDamageTypeLabel(damageType),
     exposure,
+    usesExposureScaling,
     areaEffect,
   };
 }
@@ -377,7 +387,7 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
       incoming: damage?.incoming ?? 0,
       scaledIncoming: damage?.scaledIncoming ?? damage?.incoming ?? 0,
     },
-    notes: damage?.exposure?.initialTier
+    notes: damage?.usesExposureScaling && damage?.exposure?.initialTier
       ? `Exposure ${getExposureLabel(damage.exposure.initialTier)}${damage.exposure.evadeUsed ? ` -> ${getExposureLabel(damage.exposure.finalTier)}` : ""}`
       : "",
   };
