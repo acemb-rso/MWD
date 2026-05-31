@@ -22,7 +22,7 @@ test("npc defaults are character-like without character edge pools", () => {
   assert.equal(defaults.system.attributes.strength.value, 1);
   assert.equal(defaults.system.attributes.reflexes.value, 1);
   assert.equal(defaults.system.attributes.intelligence.value, 1);
-  assert.equal(defaults.system.attributes.willpower.value, 1);
+  assert.equal(defaults.system.attributes.guts.value, 1);
   assert.equal(defaults.system.attributes.charisma.value, 1);
   assert.equal(defaults.system.attributes.edge.value, 1);
   assert.equal(defaults.system.counters?.edgePools, undefined);

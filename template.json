@@ -46,9 +46,9 @@
           }
         }
       },
-      "attribute-willpower": {
+      "attribute-guts": {
         "attributes": {
-          "willpower": {
+          "guts": {
             "value": 1
           }
         }
@@ -246,7 +246,7 @@
         "ownership",
         "attribute-reflexes",
         "attribute-strength",
-        "attribute-willpower",
+        "attribute-guts",
         "attribute-intelligence",
         "attribute-charisma",
         "attribute-edge"
@@ -319,7 +319,7 @@
         "strength": { "value": 1 },
         "reflexes": { "value": 1 },
         "intelligence": { "value": 1 },
-        "willpower": { "value": 1 },
+        "guts": { "value": 1 },
         "charisma": { "value": 1 },
         "edge": { "value": 1 }
       },

@@ -13,7 +13,7 @@ export async function resolveOverload({ actor }) {
     ui.notifications.warn("Overload check is only required at Burn 6+.");
   }
 
-  const will = Number(actor.system?.attributes?.willpower?.value ?? 0);
+  const guts = Number(actor.system?.attributes?.guts?.value ?? 0);
 
   return {
     intent: "overload",
@@ -22,8 +22,8 @@ export async function resolveOverload({ actor }) {
     domains: ["mental"],
 
     pool: {
-      attribute: will,
-      skill: will,
+      attribute: guts,
+      skill: guts,
       bonus: 0
     },
 
@@ -32,8 +32,8 @@ export async function resolveOverload({ actor }) {
     },
 
     breakdown: [
-      { id: "will1", label: "Will", value: will },
-      { id: "will2", label: "Will", value: will }
+      { id: "guts1", label: "Guts", value: guts },
+      { id: "guts2", label: "Guts", value: guts }
     ]
   };
 }

@@ -1210,6 +1210,34 @@ class _13_16_0_AddPersonalCriticalStorage extends Migration {
   }
 }
 
+class _13_17_0_RenameWillpowerToGuts extends Migration {
+  get version() { return "13.17.0"; }
+  get code() { return "rename-willpower-to-guts"; }
+
+  async migrate() {
+    for (const actor of game.actors ?? []) {
+      if (![TEMPLATE.actorTypes.character, TEMPLATE.actorTypes.npc].includes(actor?.type)) continue;
+      const update = this._actorUpdate(actor);
+      if (update) await actor.update(update);
+    }
+
+    await this.applyItemsUpdates(items => items
+      .filter(it => it.type === TEMPLATE.itemType.skill && it.system?.attribute === "willpower")
+      .map(it => ({ _id: it.id, "system.attribute": "guts" })));
+  }
+
+  _actorUpdate(actor) {
+    const attributes = actor.system?.attributes;
+    if (!attributes || !Object.prototype.hasOwnProperty.call(attributes, "willpower")) return null;
+    const update = { "system.attributes.willpower": forcedDeletion() };
+    // Don't clobber a value already present under the new key.
+    if (!Object.prototype.hasOwnProperty.call(attributes, "guts")) {
+      update["system.attributes.guts"] = foundry.utils.deepClone(attributes.willpower);
+    }
+    return update;
+  }
+}
+
 export class Migrations {
   constructor() {
     HooksManager.register(ANARCHY_HOOKS.DECLARE_MIGRATIONS);
@@ -1243,6 +1271,7 @@ export class Migrations {
       new _13_14_0_AddVehicleMovementProfileAndStrain(),
       new _13_15_0_MachineEnergyPayloads(),
       new _13_16_0_AddPersonalCriticalStorage(),
+      new _13_17_0_RenameWillpowerToGuts(),
     ));
 
     game.settings.register(SYSTEM_NAME, SYSTEM_MIGRATION_CURRENT_VERSION, {

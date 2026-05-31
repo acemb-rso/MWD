@@ -79,8 +79,8 @@ test("personal critical preview builds prepared records and reuses them", async 
 
   assert.equal(preview.selected, true);
   assert.equal(preview.band, "minor");
-  assert.equal(preview.records[0].familyId, "dizzy");
-  assert.equal(preview.records[0].statusId, "dizzyMinor");
+  assert.equal(preview.records[0].familyId, "shaken");
+  assert.equal(preview.records[0].statusId, "shakenMinor");
   assert.equal(preview.records[0].previewRevision, 2);
 
   const reused = await previewPersonalCritical({
@@ -95,14 +95,14 @@ test("personal critical preview builds prepared records and reuses them", async 
 
 test("personal critical apply stores records, statuses, burn, and gates", async () => {
   const target = actor();
-  const dizzy = buildPersonalCritRecord({ actor: target, familyId: "dizzy", band: "severe" });
+  const shaken = buildPersonalCritRecord({ actor: target, familyId: "shaken", band: "severe" });
   const winded = buildPersonalCritRecord({ actor: target, familyId: "winded", band: "moderate" });
 
-  const result = await applyPersonalCriticalToActor({ actor: target, records: [dizzy, winded] });
+  const result = await applyPersonalCriticalToActor({ actor: target, records: [shaken, winded] });
   assert.equal(result.ok, true);
   assert.equal(target.system.criticals.length, 2);
   assert.equal(target.statuses.has("personalCritical"), true);
-  assert.equal(target.statuses.has("dizzySevere"), true);
+  assert.equal(target.statuses.has("shakenSevere"), true);
   assert.equal(target.statuses.has("windedModerate"), true);
   assert.equal(target.system.burn.value, 2);
 
@@ -111,8 +111,8 @@ test("personal critical apply stores records, statuses, burn, and gates", async 
   assert.equal(gates.cannotReact, true);
   assert.equal(gates.cannotComplex, true);
 
-  const removed = await removePersonalCrit({ actor: target, critId: dizzy.id });
+  const removed = await removePersonalCrit({ actor: target, critId: shaken.id });
   assert.equal(removed.ok, true);
-  assert.equal(target.statuses.has("dizzySevere"), false);
+  assert.equal(target.statuses.has("shakenSevere"), false);
   assert.equal(getActivePersonalCrits(target).length, 1);
 });

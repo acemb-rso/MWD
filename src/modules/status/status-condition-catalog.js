@@ -83,9 +83,9 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("offbalanceMinor", "Off Balance I", "person", "critical", ["personalCritical", "attack", "defense"], "falling.svg", { manual: false, managed: true, modifierKey: "offbalanceMinor", order: 240 }),
   status("offbalanceModerate", "Off Balance II", "person", "critical", ["personalCritical", "attack", "defense"], "falling.svg", { manual: false, managed: true, modifierKey: "offbalanceModerate", order: 241 }),
   status("offbalanceSevere", "Off Balance III", "person", "critical", ["personalCritical", "attack", "defense"], "falling.svg", { manual: false, managed: true, modifierKey: "offbalanceSevere", order: 242 }),
-  status("dizzyMinor", "Dizzy I", "person", "critical", ["personalCritical", "actionRestriction"], "brain_injury.svg", { manual: false, managed: true, order: 250 }),
-  status("dizzyModerate", "Dizzy II", "person", "critical", ["personalCritical", "actionRestriction", "reaction"], "brain_injury.svg", { manual: false, managed: true, order: 251 }),
-  status("dizzySevere", "Dizzy III", "person", "critical", ["personalCritical", "actionRestriction", "reaction"], "brain_injury.svg", { manual: false, managed: true, order: 252 }),
+  status("shakenMinor", "Shaken I", "person", "critical", ["personalCritical", "actionRestriction"], "brain_injury.svg", { manual: false, managed: true, order: 250 }),
+  status("shakenModerate", "Shaken II", "person", "critical", ["personalCritical", "actionRestriction", "reaction"], "brain_injury.svg", { manual: false, managed: true, order: 251 }),
+  status("shakenSevere", "Shaken III", "person", "critical", ["personalCritical", "actionRestriction", "reaction"], "brain_injury.svg", { manual: false, managed: true, order: 252 }),
 
   // Machine stability and movement.
   status("unstable", "Unstable", "machine", "stability", ["movement", "piloting", "knockdown"], "falling.svg", { order: 1000 }),

@@ -92,7 +92,7 @@ export class NpcSheetV2 extends BaseActorSheetV2 {
         { key: "strength", label: "Strength" },
         { key: "reflexes", label: "Reflexes" },
         { key: "intelligence", label: "Intelligence" },
-        { key: "willpower", label: "Willpower" },
+        { key: "guts", label: "Guts" },
         { key: "charisma", label: "Charisma" },
         { key: "edge", label: "Edge" },
       ]),

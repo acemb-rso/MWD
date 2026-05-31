@@ -18,7 +18,7 @@ const templateData = {
       },
       "attribute-reflexes": { attributes: { reflexes: { value: 1 } } },
       "attribute-strength": { attributes: { strength: { value: 1 } } },
-      "attribute-willpower": { attributes: { willpower: { value: 1 } } },
+      "attribute-guts": { attributes: { guts: { value: 1 } } },
       "attribute-charisma": { attributes: { charisma: { value: 1 } } },
       "attribute-intelligence": { attributes: { intelligence: { value: 1 } } },
       "attribute-edge": {
@@ -153,7 +153,7 @@ const templateData = {
         "ownership",
         "attribute-reflexes",
         "attribute-strength",
-        "attribute-willpower",
+        "attribute-guts",
         "attribute-intelligence",
         "attribute-charisma",
         "attribute-edge"
@@ -203,7 +203,7 @@ const templateData = {
         strength:     { value: 1 },
         reflexes:     { value: 1 },
         intelligence: { value: 1 },
-        willpower:    { value: 1 },
+        guts:         { value: 1 },
         charisma:     { value: 1 },
         edge:         { value: 1 }
       },

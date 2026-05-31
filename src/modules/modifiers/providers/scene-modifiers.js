@@ -8,7 +8,7 @@ export const SCENE_MODIFIER_ATTRIBUTE_OPTIONS = [
   { value: "", label: "All Attributes" },
   { value: "reflexes", label: "Reflexes" },
   { value: "strength", label: "Strength" },
-  { value: "willpower", label: "Willpower" },
+  { value: "guts", label: "Guts" },
   { value: "charisma", label: "Charisma" },
   { value: "intelligence", label: "Intelligence" },
   { value: "edge", label: "Edge" }

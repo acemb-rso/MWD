@@ -763,15 +763,15 @@ export class MWDActor extends Actor {
   _prepareMonitors() {
     const monitors = this.system.monitors ?? {};
 
-    // For character-like actors, physical.max derives from STR and fatigue.max from WIL.
+    // For character-like actors, physical.max derives from STR and fatigue.max from GUTS.
     // This must run before deriveMonitors so penalties reflect the correct track length.
     if (this.isCharacterLike()) {
       const str = Math.max(0, Number(this.system?.attributes?.strength?.value ?? 0));
-      const wil = Math.max(0, Number(this.system?.attributes?.willpower?.value ?? 0));
+      const guts = Math.max(0, Number(this.system?.attributes?.guts?.value ?? 0));
       monitors.physical ??= {};
       monitors.fatigue  ??= {};
       monitors.physical.max = str === 0 ? 0 : BASE_MONITOR + str;
-      monitors.fatigue.max  = wil === 0 ? 0 : BASE_MONITOR + wil;
+      monitors.fatigue.max  = guts === 0 ? 0 : BASE_MONITOR + guts;
     }
 
     const derived = deriveMonitors(monitors);

@@ -7,7 +7,7 @@ import { ACTOR_ATTRIBUTES } from "../../constants.js";
 const ATTRIBUTE_CODE_MAP = Object.freeze({
   STR: ACTOR_ATTRIBUTES.strength,
   REF: ACTOR_ATTRIBUTES.reflexes,
-  WIL: ACTOR_ATTRIBUTES.willpower,
+  GUTS: ACTOR_ATTRIBUTES.guts,
   INT: ACTOR_ATTRIBUTES.intelligence,
   CHA: ACTOR_ATTRIBUTES.charisma
 });
@@ -15,7 +15,7 @@ const ATTRIBUTE_CODE_MAP = Object.freeze({
 const ATTRIBUTE_LABEL_MAP = Object.freeze({
   STR: "Strength",
   REF: "Reflexes",
-  WIL: "Willpower",
+  GUTS: "Guts",
   INT: "Intelligence",
   CHA: "Charisma"
 });
@@ -24,7 +24,7 @@ export const COMMON_CHECKS = Object.freeze({
   composure: {
     id: "composure",
     label: "Composure",
-    formula: ["WIL", "CHA"],
+    formula: ["GUTS", "CHA"],
     tags: ["combat", "utility", "mental"],
     domains: ["mental"]
   },
@@ -52,14 +52,14 @@ export const COMMON_CHECKS = Object.freeze({
   endure: {
     id: "endure",
     label: "Endure",
-    formula: ["STR", "WIL"],
+    formula: ["STR", "GUTS"],
     tags: ["combat", "utility", "physical", "mental"],
     domains: ["physical", "mental"]
   },
   steady: {
     id: "steady",
     label: "Steady",
-    formula: ["REF", "WIL"],
+    formula: ["REF", "GUTS"],
     tags: ["combat", "utility", "physical", "mental", "recovery"],
     domains: ["physical", "mental"]
   }

@@ -135,7 +135,7 @@ test("pilot action economy follows the assigned machine combatant during mech ac
       burn: { value: 1, overloaded: false },
       attributes: {
         reflexes: { value: 3 },
-        willpower: { value: 3 },
+        guts: { value: 3 },
       },
     },
     getActiveTokens: () => [],
@@ -274,7 +274,7 @@ test("operated pilot lookups use the machine combatant when a duplicate pilot co
     items: [],
     system: {
       burn: { value: 2, overloaded: false },
-      attributes: { reflexes: { value: 3 }, willpower: { value: 3 } },
+      attributes: { reflexes: { value: 3 }, guts: { value: 3 } },
     },
     getActiveTokens: () => [],
     async update() {},
@@ -535,7 +535,7 @@ test("duplicate pilot finalization and turn fallback do not cool burn", async ()
     type: "character",
     flags: {},
     items: [],
-    system: { burn: { value: 5, overloaded: false }, attributes: { reflexes: { value: 3 }, willpower: { value: 3 } } },
+    system: { burn: { value: 5, overloaded: false }, attributes: { reflexes: { value: 3 }, guts: { value: 3 } } },
     getActiveTokens: () => [],
     async update(update) { burnUpdate = update; },
   };
@@ -624,7 +624,7 @@ test("removeActivationLogEntry refunds tracked activation costs and burn", async
       burn: { value: 4, overloaded: false },
       attributes: {
         reflexes: { value: 3 },
-        willpower: { value: 3 },
+        guts: { value: 3 },
       },
     },
     async update(update) {
@@ -789,7 +789,7 @@ test("ending a tracked mech activation applies pending heat to the mech", async 
       burn: { value: 0, overloaded: false },
       attributes: {
         reflexes: { value: 3 },
-        willpower: { value: 3 },
+        guts: { value: 3 },
       },
     },
     getActiveTokens: () => [],

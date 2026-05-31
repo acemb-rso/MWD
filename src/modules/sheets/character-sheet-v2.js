@@ -1483,7 +1483,7 @@ ctx.edgeConsole.poolsOrdered = order
   if (!isOpportunity) {
     const activationCap = 3 + Math.floor((
       Math.max(0, Number(actorWriteTarget.system?.attributes?.reflexes?.value ?? 0))
-      + Math.max(0, Number(actorWriteTarget.system?.attributes?.willpower?.value ?? 0))
+      + Math.max(0, Number(actorWriteTarget.system?.attributes?.guts?.value ?? 0))
     ) / 2);
     const saCapacityRemaining = Math.max(0, activationCap - Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0)));
     if (saCapacityRemaining < 2) {

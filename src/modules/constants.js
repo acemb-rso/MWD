@@ -31,7 +31,7 @@ export const BASE_MONITOR = 8;
 export const ACTOR_ATTRIBUTES = {
   reflexes: 'reflexes',
   strength: 'strength',
-  willpower: 'willpower',
+  guts: 'guts',
   intelligence: 'intelligence',
   charisma: 'charisma',
   edge: 'edge',
@@ -184,7 +184,7 @@ export const ACTOR_ATTRIBUTE_SETS = {
   [TEMPLATE.actorTypes.character]: [
     TEMPLATE.actorAttributes.strength,
     TEMPLATE.actorAttributes.reflexes,
-    TEMPLATE.actorAttributes.willpower,
+    TEMPLATE.actorAttributes.guts,
     TEMPLATE.actorAttributes.intelligence,
     TEMPLATE.actorAttributes.charisma,
     TEMPLATE.actorAttributes.edge,
@@ -192,7 +192,7 @@ export const ACTOR_ATTRIBUTE_SETS = {
   [TEMPLATE.actorTypes.npc]: [
     TEMPLATE.actorAttributes.strength,
     TEMPLATE.actorAttributes.reflexes,
-    TEMPLATE.actorAttributes.willpower,
+    TEMPLATE.actorAttributes.guts,
     TEMPLATE.actorAttributes.intelligence,
     TEMPLATE.actorAttributes.charisma,
     TEMPLATE.actorAttributes.edge,

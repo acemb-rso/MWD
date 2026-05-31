@@ -648,12 +648,13 @@ export const MWD = {
   "attributes": {
     "strength": "Strength",
     "reflexes": "Reflexes",
-    "willpower": "Guts",
+    "guts": "Guts",
     "intelligence": "Intelligence",
     "charisma": "Charisma",
     "edge": "Edge",
 
     // Legacy synonyms retained for migration safety:
+    "willpower": "Guts",
     "agility": "Reflexes",
     "logic": "Intelligence",
 

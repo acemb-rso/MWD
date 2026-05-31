@@ -90,7 +90,7 @@ test("default person catalog includes personal critical marker and band statuses
     "crippledMinor", "crippledModerate", "crippledSevere",
     "hamperedMinor", "hamperedModerate", "hamperedSevere",
     "offbalanceMinor", "offbalanceModerate", "offbalanceSevere",
-    "dizzyMinor", "dizzyModerate", "dizzySevere",
+    "shakenMinor", "shakenModerate", "shakenSevere",
   ]) {
     const entry = getStatusConditionDefinition(statusId, catalog);
     assert.equal(entry.actorGroup, "person", statusId);
@@ -259,8 +259,8 @@ test("status modifiers use granular domains without double-counting broad aliase
   assert.equal(blindedAcquire[0].value, -3);
   assert.equal(blindedAcquire[0].domain, "sensor.acquire");
 
-  const dizzy = provider.collect({ actor: actor("character", ["dizzySevere"]), domains: ["physical"] });
-  assert.deepEqual(dizzy, []);
+  const shaken = provider.collect({ actor: actor("character", ["shakenSevere"]), domains: ["physical"] });
+  assert.deepEqual(shaken, []);
 
   const offBalance = provider.collect({ actor: actor("character", ["offbalanceModerate"]), domains: ["physical", "attack"] });
   assert.equal(offBalance.length, 1);

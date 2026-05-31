@@ -19,8 +19,8 @@ test("personal critical family remedies resolve to known actions or checks", () 
   }
 });
 
-test("steady is REF + WIL for Off Balance remedies", () => {
+test("steady is REF + GUTS for Off Balance remedies", () => {
   const steady = getCommonCheckDefinition("steady");
-  assert.deepEqual(steady.formula, ["REF", "WIL"]);
+  assert.deepEqual(steady.formula, ["REF", "GUTS"]);
   assert.equal(getPersonalCritRemedy("steady").baseDn, 2);
 });

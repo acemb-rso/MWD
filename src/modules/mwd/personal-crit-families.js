@@ -186,10 +186,10 @@ export const PERSONAL_CRITICAL_FAMILIES = Object.freeze({
       remedyBaseDn: 2,
     }),
   }),
-  dizzy: family("dizzy", 6, "Dizzy", {
+  shaken: family("shaken", 6, "Shaken", {
     minor: band({
-      statusId: "dizzyMinor",
-      statusLabel: "Dizzy I",
+      statusId: "shakenMinor",
+      statusLabel: "Shaken I",
       effectText: "Cannot Aim. Endure DN 3 clears it.",
       effectKind: "gate",
       effectPayload: { cannotAim: true },
@@ -198,8 +198,8 @@ export const PERSONAL_CRITICAL_FAMILIES = Object.freeze({
       remedyBaseDn: 3,
     }),
     moderate: band({
-      statusId: "dizzyModerate",
-      statusLabel: "Dizzy II",
+      statusId: "shakenModerate",
+      statusLabel: "Shaken II",
       effectText: "Cannot Aim or take reactions. Endure DN 3 clears it.",
       effectKind: "gate",
       effectPayload: { cannotAim: true, cannotReact: true },
@@ -208,8 +208,8 @@ export const PERSONAL_CRITICAL_FAMILIES = Object.freeze({
       remedyBaseDn: 3,
     }),
     severe: band({
-      statusId: "dizzySevere",
-      statusLabel: "Dizzy III",
+      statusId: "shakenSevere",
+      statusLabel: "Shaken III",
       effectText: "Cannot Aim, take reactions, or perform complex actions. Endure DN 3 clears it.",
       effectKind: "gate",
       effectPayload: { cannotAim: true, cannotReact: true, cannotComplex: true },

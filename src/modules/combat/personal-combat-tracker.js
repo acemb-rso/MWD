@@ -3118,8 +3118,8 @@ export class PersonalCombatTracker {
 
 function getActivationMaxSA(actor) {
   const reflexes = Math.max(0, Number(actor?.system?.attributes?.reflexes?.value ?? 0) || 0);
-  const willpower = Math.max(0, Number(actor?.system?.attributes?.willpower?.value ?? 0) || 0);
-  return BASE_SA + Math.floor((reflexes + willpower) / 2);
+  const guts = Math.max(0, Number(actor?.system?.attributes?.guts?.value ?? 0) || 0);
+  return BASE_SA + Math.floor((reflexes + guts) / 2);
 }
 
 function getSaCapacityRemaining(actor, snapshot) {
