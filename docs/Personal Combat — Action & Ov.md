@@ -9,7 +9,7 @@
 
 ### Hard Action Cap
 
-You may take additional SA beyond 3, but: *Maximum SA per activation = 3 + floor((REF + WIL)/2)*
+You may take additional SA beyond 3, but: *Maximum SA per activation = 3 + floor((REF + GUTS)/2)*
 This cap cannot be exceeded by Edge, augments, or qualities unless explicitly stated.
 
 __Each SA may be used to (not comprehensive)__
@@ -20,7 +20,7 @@ __Each SA may be used to (not comprehensive)__
 * Reload
 * Observe in detail
 * Assist a combatant
-* Aim
+* Aim (adds Perception to your next ranged attack; spoiled by moving first)
 * Stand up
 
 Some tasks cost 2 or 3 SA instead of one:
@@ -86,7 +86,7 @@ Penalties apply immediately when Burn changes.
 At end of your activation:
 
 If Burn ≥ 6, make a Control Test:
-* Dice pool: WIL + WIL (2 × WIL) minus Burn and Injury modifiers
+* Dice pool: GUTS + GUTS (2 × GUTS) minus Burn and Injury modifiers
 * DN: Burn − 5 (minimum 0)
 
 On failure → you become **Overloaded**.

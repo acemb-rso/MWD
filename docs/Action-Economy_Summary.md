@@ -64,8 +64,11 @@
 
 ### **Aim**
 
-* Prepare an attack or targeting solution
-* Enables bonuses, targeting states, or CQ modifiers on future actions
+* Spend 1 SA to line up a ranged attack
+* Your next ranged attack adds your **Perception** skill rating to its dice pool
+* Aim is **spoiled** if you move before attacking
+* Aim cannot be used with melee attacks or area-effect (template) attacks
+* Aim cannot be taken while affected by **Shaken** (personal critical)
 
 ---
 
