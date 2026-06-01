@@ -24,6 +24,7 @@ export const DEFAULT_ITEM_ICONS = Object.freeze({
   lifeModule: "systems/mwd/img/default/book.svg",
   mechWeapon: "systems/mwd/img/icons/systems/upgrades/grenade_launcher_underbarrel.svg",
   personalWeapon: "systems/mwd/img/colt-m1911.svg",
+  weaponPayload: "systems/mwd/img/default/Default_Gear.svg",
   armor: "systems/mwd/img/default/Default_Armor.svg",
   mechEquipment: "systems/mwd/img/default/upgrade.svg",
   vehicleUpgrade: "systems/mwd/img/default/upgrade.svg",

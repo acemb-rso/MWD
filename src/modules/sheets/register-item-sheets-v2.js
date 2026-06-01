@@ -16,6 +16,7 @@ import { LifeModuleItemSheet } from "../item/lifemodule-item-sheet.js";
 import { SkillItemSheet } from "../item/skill-item-sheet.js";
 import { PersonalWeaponItemSheet } from "../item/personal-weapon-item-sheet.js";
 import { MechWeaponItemSheet } from "../item/mech-weapon-item-sheet.js";
+import { WeaponPayloadItemSheet } from "../item/weapon-payload-item-sheet.js";
 import { ArmorItemSheet } from "../item/armor-item-sheet.js";
 
 /**
@@ -36,5 +37,6 @@ export function registerItemSheetsV2() {
   Items.registerSheet(SYSTEM_NAME, SkillItemSheet, { types: ["skill"], makeDefault: true, label: "Skill (V2)" });
   Items.registerSheet(SYSTEM_NAME, PersonalWeaponItemSheet, { types: ["personalWeapon", "weapon"], makeDefault: true, label: "Personal Weapon (V2)" });
   Items.registerSheet(SYSTEM_NAME, MechWeaponItemSheet, { types: ["mechWeapon"], makeDefault: true, label: "Mech Weapon (V2)" });
+  Items.registerSheet(SYSTEM_NAME, WeaponPayloadItemSheet, { types: ["weaponPayload"], makeDefault: true, label: "Weapon Payload (V2)" });
   Items.registerSheet(SYSTEM_NAME, ArmorItemSheet, { types: ["armor"], makeDefault: true, label: "Armor (V2)" });
 }

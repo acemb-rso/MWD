@@ -101,6 +101,7 @@ export const TEMPLATE = {
     assetModule: 'assetModule',
     mechWeapon: 'mechWeapon',
     personalWeapon: 'personalWeapon',
+    weaponPayload: 'weaponPayload',
     armor: 'armor',
     gear: 'gear',
     consumable: 'consumable',

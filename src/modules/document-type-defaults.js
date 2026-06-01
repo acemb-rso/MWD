@@ -266,7 +266,7 @@ const templateData = {
   Item: {
     types: [
       "contact", "gear", "consumable", "quality", "assetModule",
-      "skill", "lifeModule", "mechWeapon", "personalWeapon", "armor",
+      "skill", "lifeModule", "mechWeapon", "personalWeapon", "weaponPayload", "armor",
       "mechEquipment", "vehicleUpgrade"
     ],
     templates: {
@@ -360,6 +360,11 @@ const templateData = {
       range: { max: "extreme", close: 5, near: 26, far: 62, extreme: 120 },
       standardTraits: [],
       availability: "",
+      payloadCompatibility: {
+        families: [],
+        tagsAll: []
+      },
+      selectedPayloadUuid: "",
       ammo: {
         current: 0,
         max: 0,
@@ -369,6 +374,30 @@ const templateData = {
       },
       traits: [],
       notes: ""
+    },
+    weaponPayload: {
+      templates: ["inactive", "references"],
+      families: [],
+      tags: [],
+      quantity: 1,
+      profile: {
+        id: "profile",
+        label: "Payload",
+        compatibleWith: [],
+        modifies: {
+          damage: 0,
+          damageType: "",
+          ap: 0,
+          clusteringDice: 0,
+          attackRatingBand: { close: 0, near: 0, far: 0, extreme: 0 }
+        },
+        traits: [],
+        keywords: [],
+        template: null,
+        areaEffect: { kind: "none" },
+        resolution: { resolverKey: "standard", damageModel: "", onHitEffect: null },
+        consumption: { amount: 1, sourceId: "" }
+      }
     },
     armor: {
       templates: ["modifiers", "inactive", "references"],

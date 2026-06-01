@@ -98,6 +98,19 @@ test("consumable defaults resolve through the same create-time graph as gear", (
   assert.equal(defaults.system.description, "");
 });
 
+test("weapon payload defaults include reusable profile and inventory fields", () => {
+  const defaults = resolveDocumentTypeCreateDefaults("Item", "weaponPayload");
+
+  assert.equal(defaults.system.quantity, 1);
+  assert.deepEqual(defaults.system.families, []);
+  assert.deepEqual(defaults.system.tags, []);
+  assert.equal(defaults.system.profile.label, "Payload");
+  assert.equal(defaults.system.profile.modifies.damage, 0);
+  assert.equal(defaults.system.profile.modifies.ap, 0);
+  assert.equal(defaults.system.profile.consumption.amount, 1);
+  assert.equal(defaults.system.description, "");
+});
+
 test("gear defaults include inventory rule metadata", () => {
   const defaults = resolveDocumentTypeCreateDefaults("Item", "gear");
 

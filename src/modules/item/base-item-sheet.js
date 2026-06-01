@@ -13,7 +13,6 @@ import { Misc } from "../misc.js";
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { HTMLField, StringField } = foundry.data.fields;
 const RICH_TEXT_ITEM_FIELDS = new Set(["system.notes", "system.description"]);
-const DEFERRED_TEXT_SYNC_FIELDS = new Set(["name"]);
 const ITEM_ROOT_TEMPLATES = Object.freeze({
   [TEMPLATE.itemType.personalWeapon]: `${TEMPLATES_PATH}/v2/item/personal-weapon-root.hbs`,
   [TEMPLATE.itemType.mechWeapon]: `${TEMPLATES_PATH}/v2/item/mech-weapon-root.hbs`,
@@ -56,7 +55,6 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
   #activeTabsByGroup = new Map();
   #activeAccordionSectionsByGroup = new Map();
   #pendingScrollRestore = null;
-  #pendingFieldSync = new Map();
 
   static LAYOUT_ID = null;
 
@@ -424,10 +422,15 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     const root = this._getRootElement();
     if (!root) return;
 
-    // Some Foundry/browser/theme combinations still infer RTL behavior for the
-    // item name field even when the stylesheet says otherwise. Reassert the
-    // canonical document-name direction on every render so item naming stays
-    // stable across sheets and rebuilds.
+    // Some Foundry/browser/theme combinations still infer RTL behavior for
+    // item sheet content even when the stylesheet says otherwise. Reassert the
+    // canonical sheet text direction on every render so free-text tags,
+    // families, summaries, and names stay stable across sheets and rebuilds.
+    root.setAttribute("dir", "ltr");
+    root.style.direction = "ltr";
+    root.style.unicodeBidi = "isolate";
+    root.style.writingMode = "horizontal-tb";
+
     const itemNameInput = root.querySelector('.item-name input[name="name"]');
     if (itemNameInput instanceof HTMLInputElement) {
       itemNameInput.setAttribute("dir", "ltr");
@@ -493,31 +496,41 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     }
 
     if (this.isEditable) {
+      root.querySelectorAll(".mwd-list-picker[data-target-name]").forEach(picker => {
+        picker.addEventListener("change", event => {
+          event.preventDefault();
+          const selected = String(picker.value ?? "").trim();
+          if (!selected) return;
+
+          const targetName = String(picker.dataset.targetName ?? "").trim();
+          const target = targetName
+            ? Array.from(root.querySelectorAll("input[name], textarea[name]"))
+                .find(element => element.getAttribute("name") === targetName)
+            : null;
+          if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
+            picker.value = "";
+            return;
+          }
+
+          const current = String(target.value ?? "")
+            .split(",")
+            .map(entry => entry.trim())
+            .filter(Boolean);
+          target.value = Array.from(new Set([...current, selected])).join(", ");
+          picker.value = "";
+          void this._syncNamedField(target);
+        });
+      });
+
       for (const field of root.querySelectorAll("input[name], select[name], textarea[name]")) {
         if (field.closest("prose-mirror")) continue;
         if (field.hasAttribute("data-action")) continue;
+        if (field.classList?.contains("mwd-list-picker")) continue;
         if (!(field instanceof HTMLElement)) continue;
-        const fieldName = String(field.getAttribute("name") ?? "").trim();
 
-        if (
-          field instanceof HTMLInputElement
-          && !DEFERRED_TEXT_SYNC_FIELDS.has(fieldName)
-          && !["checkbox", "radio"].includes(field.type)
-        ) {
-          field.addEventListener("input", event => {
-            event.preventDefault();
-            this._queueNamedFieldSync(event.currentTarget ?? field);
-          });
-        } else if (field instanceof HTMLTextAreaElement) {
-          field.addEventListener("input", event => {
-            event.preventDefault();
-            this._queueNamedFieldSync(event.currentTarget ?? field);
-          });
-        }
-
-        // Document names are especially sensitive to rerender churn because the
-        // sheet title and header both react to them. Let them save on change
-        // instead of on every keystroke so the caret position stays stable.
+        // Item updates trigger a sheet rerender. Saving while the user is still
+        // typing can reset the caret and insert later characters at the start
+        // of the field, so ordinary controls save when committed instead.
         field.addEventListener("change", event => {
           event.preventDefault();
           void this._syncNamedField(event.currentTarget ?? field);
@@ -541,24 +554,6 @@ export class BaseItemSheet extends HandlebarsApplicationMixin(foundry.applicatio
     } catch (err) {
       console.warn("MWD | Rich text item update failed:", err);
     }
-  }
-
-  _queueNamedFieldSync(field, updateData = {}) {
-    if (!this.isEditable) return;
-
-    const name = String(field?.getAttribute?.("name") ?? "").trim() || foundry.utils.randomID();
-    const pending = this.#pendingFieldSync.get(name);
-    if (pending) clearTimeout(pending);
-
-    // Debounced field writes keep AppV2 text inputs responsive without waiting
-    // for full form submission, but we still collapse rapid edits into one item
-    // update to avoid render churn.
-    const timeoutId = setTimeout(() => {
-      this.#pendingFieldSync.delete(name);
-      void this._syncNamedField(field, updateData);
-    }, 180);
-
-    this.#pendingFieldSync.set(name, timeoutId);
   }
 
   _getNamedFieldUpdate(field) {

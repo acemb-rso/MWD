@@ -103,6 +103,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/item/quality.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/personal-weapon-root.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/mech-weapon-root.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/weapon-payload.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/armor-root.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/itemname.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/inactive.hbs`,

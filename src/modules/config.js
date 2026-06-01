@@ -27,6 +27,7 @@ export const MWD = {
       "skill": "Skill",
       "mechWeapon": "Mech-Scale Weapon",
       "personalWeapon": "Personal Weapon",
+      "weaponPayload": "Weapon Payload",
       "armor": "Armor"
     }
   },
@@ -606,6 +607,7 @@ export const MWD = {
       "lifeModule": "Life Module",
       "mechWeapon": "Mech-Scale Weapon",
       "personalWeapon": "Personal Weapon",
+      "weaponPayload": "Weapon Payload",
       "armor": "Armor"
     },
     "plural": {
@@ -620,6 +622,7 @@ export const MWD = {
       "monitor": "Monitors",
       "mechWeapon": "Mech-Scale Weapons",
       "personalWeapon": "Personal Weapons",
+      "weaponPayload": "Weapon Payloads",
       "armor": "Armor"
     }
   },

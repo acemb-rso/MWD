@@ -12,7 +12,8 @@
       "assetModule": "Asset Module",
       "skill": "Skill",
       "mechWeapon": "Mech-Scale Weapon",
-      "personalWeapon": "Personal Weapon"
+      "personalWeapon": "Personal Weapon",
+      "weaponPayload": "Weapon Payload"
     }
   },
   "ANARCHY": {
@@ -484,7 +485,8 @@
         "contact": "Contact",
         "lifeModule": "Life Module",
         "mechWeapon": "Mech-Scale Weapon",
-        "personalWeapon": "Personal Weapon"
+        "personalWeapon": "Personal Weapon",
+        "weaponPayload": "Weapon Payload"
       },
       "plural": {
         "skill": "Skills",
@@ -496,7 +498,8 @@
         "action": "Actions",
         "monitor": "Monitors",
         "mechWeapon": "Mech-Scale Weapons",
-        "personalWeapon": "Personal Weapons"
+        "personalWeapon": "Personal Weapons",
+        "weaponPayload": "Weapon Payloads"
       }
     },
     "monitor": {

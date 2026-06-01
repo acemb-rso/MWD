@@ -164,6 +164,9 @@
       "personalWeapon": {
         "htmlFields": ["description", "notes"]
       },
+      "weaponPayload": {
+        "htmlFields": ["description"]
+      },
       "armor": {
         "htmlFields": ["description", "notes"]
       }

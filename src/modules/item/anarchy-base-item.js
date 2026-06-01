@@ -62,6 +62,11 @@ import {
   createCapabilityMigrationReport,
   normalizeWeaponCapabilityState,
 } from "../mwd/personal-weapon-capabilities.js";
+import {
+  buildWeaponPayloadItemModel,
+  normalizePayloadCompatibility,
+  normalizeWeaponPayloadItemSystem,
+} from "../mwd/weapon-payload-items.js";
 import { getDocumentTypeCreateDefaults } from "../document-type-defaults.js";
 import {
   canonicalizeItemType,
@@ -71,15 +76,6 @@ import {
 import { AREA_EFFECT_KINDS } from "../area-effects/area-effect-engine.js";
 
 const RANGE_ORDER = Object.freeze(["close", "near", "far", "extreme"]);
-
-const AREA_TARGETS = Object.freeze({
-  none: { targets: 1, adjust: [0] },
-  shotgun: { targets: 2, adjust: [0, -2] },
-  circle: { targets: undefined },
-  cone: { targets: undefined },
-  rect: { targets: undefined },
-  ray: { targets: undefined },
-});
 
 function forcedDeletion() {
   return foundry.data.operators.ForcedDeletion;
@@ -519,6 +515,8 @@ export class MWDItem extends Item {
       const legacyAmmo = nextSystem.ammo;
       const capabilityFields = normalizePersonalWeaponCapabilityFields(nextSystem);
       changed.system.category = normalizeWeaponCategory(nextSystem.category ?? nextSystem.weaponCategory);
+      changed.system.payloadCompatibility = normalizePayloadCompatibility(nextSystem.payloadCompatibility);
+      changed.system.selectedPayloadUuid = String(nextSystem.selectedPayloadUuid ?? "").trim();
       changed.system.standardTraits = normalizeWeaponStandardTraits(nextSystem.standardTraits);
       changed.system.payloads = normalizeWeaponPayloads(nextSystem.payloads, { legacyAmmo, category: nextSystem.category });
       changed.system.consumptionSources = normalizeWeaponConsumptionSources(nextSystem.consumptionSources, { legacyAmmo });
@@ -538,6 +536,15 @@ export class MWDItem extends Item {
       changed.system.damageAttributeScale = normalizeWeaponDamageAttributeScale(nextSystem.damageAttributeScale);
       changed.system.availability = normalizeGearText(nextSystem.availability);
       changed.system.ammo = forcedDeletion();
+    }
+
+    if (nextSystem && this.isWeaponPayload()) {
+      changed.system ??= {};
+      const normalized = normalizeWeaponPayloadItemSystem(nextSystem, { name: this.name });
+      changed.system.families = normalized.families;
+      changed.system.tags = normalized.tags;
+      changed.system.quantity = normalized.quantity;
+      changed.system.profile = normalized.profile;
     }
 
     if (nextSystem && this.isMechWeapon()) {
@@ -643,6 +650,8 @@ export class MWDItem extends Item {
     const canonicalType = this.canonicalType;
     if (canonicalType === TEMPLATE.itemType.personalWeapon) {
       this._preparePersonalWeaponBaseData();
+    } else if (canonicalType === TEMPLATE.itemType.weaponPayload) {
+      this._prepareWeaponPayloadBaseData();
     } else if (canonicalType === TEMPLATE.itemType.mechWeapon) {
       this._prepareMechWeaponBaseData();
     } else if (canonicalType === TEMPLATE.itemType.armor) {
@@ -685,11 +694,22 @@ export class MWDItem extends Item {
     system.resolution = normalizeWeaponResolution(system.resolution, "standard");
     system.fireModes = normalizeWeaponFireModes(system.fireModes);
     system.availability = normalizeGearText(system.availability);
+    system.payloadCompatibility = normalizePayloadCompatibility(system.payloadCompatibility);
+    system.selectedPayloadUuid = String(system.selectedPayloadUuid ?? "").trim();
     system.payloads = normalizeWeaponPayloads(system.payloads, { legacyAmmo, category: system.category });
     system.consumptionSources = normalizeWeaponConsumptionSources(system.consumptionSources, { legacyAmmo });
     system.selectedPayloadId = normalizeSelectedPayloadId(system.selectedPayloadId, system.payloads, { legacyAmmo, category: system.category });
     delete system.ammo;
     system.notes = String(system.notes ?? "").trim();
+  }
+
+  _prepareWeaponPayloadBaseData() {
+    const system = this.system ?? {};
+    const normalized = normalizeWeaponPayloadItemSystem(system, { name: this.name });
+    system.families = normalized.families;
+    system.tags = normalized.tags;
+    system.quantity = normalized.quantity;
+    system.profile = normalized.profile;
   }
 
   _prepareMechWeaponBaseData() {
@@ -830,8 +850,12 @@ export class MWDItem extends Item {
     return this.canonicalType === TEMPLATE.itemType.consumable;
   }
 
+  isWeaponPayload() {
+    return this.canonicalType === TEMPLATE.itemType.weaponPayload;
+  }
+
   isQuantityTrackedInventoryItem() {
-    return this.isGear() || this.isConsumable();
+    return this.isGear() || this.isConsumable() || this.isWeaponPayload();
   }
 
   supportsEquippedEffectSync() {
@@ -1387,12 +1411,23 @@ export class MWDItem extends Item {
   }
 
   getPayloadState({ payloadId = "", ammoTypeId = "" } = {}) {
-    return resolveWeaponPayloadState({
-      payloads: this.system?.payloads,
-      selectedPayloadId: this.system?.selectedPayloadId,
-      consumptionSources: this.system?.consumptionSources,
+    const itemPayloadModel = buildWeaponPayloadItemModel({
       actor: this.actor ?? null,
-      payloadId: payloadId || ammoTypeId,
+      weaponCompatibility: this.system?.payloadCompatibility ?? {},
+    });
+    const selectedPayloadId = String(payloadId || ammoTypeId || this.system?.selectedPayloadUuid || this.system?.selectedPayloadId || "").trim();
+    return resolveWeaponPayloadState({
+      payloads: [
+        ...(Array.isArray(this.system?.payloads) ? this.system.payloads : []),
+        ...itemPayloadModel.payloads,
+      ],
+      selectedPayloadId,
+      consumptionSources: [
+        ...(Array.isArray(this.system?.consumptionSources) ? this.system.consumptionSources : []),
+        ...itemPayloadModel.consumptionSources,
+      ],
+      actor: this.actor ?? null,
+      payloadId: selectedPayloadId,
       category: this.system?.category ?? this.system?.weaponCategory,
     });
   }
@@ -1568,18 +1603,12 @@ export class MWDItem extends Item {
   }
 
   async setActivePayload(payloadId) {
-    const normalizedId = normalizeSelectedPayloadId(
-      payloadId,
-      normalizeWeaponPayloads(this.system?.payloads, {
-        legacyAmmo: this.system?.ammo,
-        category: this.system?.category ?? this.system?.weaponCategory,
-      }),
-      {
-        category: this.system?.category ?? this.system?.weaponCategory,
-      }
-    );
+    const state = this.getPayloadState({ payloadId });
+    const normalizedId = String(state?.activePayloadId ?? "").trim();
+    const isItemPayload = String(state?.activePayload?.sourceType ?? "").trim() === TEMPLATE.itemType.weaponPayload;
     await this.update({
-      "system.selectedPayloadId": normalizedId,
+      "system.selectedPayloadId": isItemPayload ? "unloaded" : normalizedId,
+      "system.selectedPayloadUuid": isItemPayload ? normalizedId : "",
       "system.ammo": forcedDeletion(),
     });
   }
@@ -1616,8 +1645,10 @@ export class MWDItem extends Item {
     }
 
     if (payloadState.sourceState.kind === "itemRef" && payloadState.sourceState.sourceItem && payloadState.sourceState.currentPath) {
+      const currentPath = String(payloadState.sourceState.currentPath ?? "").trim();
+      const updatePath = currentPath.startsWith("system.") ? currentPath : `system.${currentPath}`;
       await payloadState.sourceState.sourceItem.update({
-        [payloadState.sourceState.currentPath]: Math.max(0, current - consumePerUse),
+        [updatePath]: Math.max(0, current - consumePerUse),
       });
       return true;
     }
@@ -1706,7 +1737,15 @@ export class MWDItem extends Item {
     const baseDamageType = this.isMechWeapon()
       ? normalizeMachineWeaponDamageType(system.damageType, "energy")
       : normalizePersonalDamageType(system.damageType);
+    const itemPayloadModel = this.isPersonalWeapon()
+      ? buildWeaponPayloadItemModel({
+          actor: this.actor ?? null,
+          weaponCompatibility: system.payloadCompatibility ?? {},
+        })
+      : { payloads: [], consumptionSources: [] };
+    const selectedPayloadId = String(payloadId || ammoTypeId || system.selectedPayloadUuid || system.selectedPayloadId || "").trim();
     const effectiveProfile = resolveEffectiveWeaponProfile({
+      damage,
       damageType: baseDamageType,
       ap: Number(system.ap ?? system.armorPiercing ?? 0) || 0,
       attackRatingBand: normalizeAttackRatingBand(system.attackRatingBand),
@@ -1715,10 +1754,16 @@ export class MWDItem extends Item {
       standardTraits: normalizeWeaponStandardTraits(system.standardTraits),
       resolution: normalizeWeaponResolution(system.resolution, "standard"),
       fireModes: normalizeWeaponFireModes(system.fireModes),
-      payloads: normalizeWeaponPayloads(system.payloads, { legacyAmmo: system.ammo, category }),
-      selectedPayloadId: normalizeSelectedPayloadId(system.selectedPayloadId, system.payloads, { legacyAmmo: system.ammo, category }),
-      consumptionSources: normalizeWeaponConsumptionSources(system.consumptionSources, { legacyAmmo: system.ammo }),
-      payloadId: payloadId || ammoTypeId,
+      payloads: [
+        ...normalizeWeaponPayloads(system.payloads, { legacyAmmo: system.ammo, category }),
+        ...itemPayloadModel.payloads,
+      ],
+      selectedPayloadId,
+      consumptionSources: [
+        ...normalizeWeaponConsumptionSources(system.consumptionSources, { legacyAmmo: system.ammo }),
+        ...itemPayloadModel.consumptionSources,
+      ],
+      payloadId: selectedPayloadId,
       actor: this.actor ?? null,
       category,
     });
@@ -1735,7 +1780,7 @@ export class MWDItem extends Item {
       category,
       skill: skillCode,
       skillDef,
-      damage,
+      damage: effectiveProfile.damage ?? damage,
       baseDamage,
       damageAttribute,
       damageAttributeScale,
@@ -1962,27 +2007,6 @@ export class MWDItem extends Item {
     return validTargets;
   }
 
-  checkWeaponTargetsCount(targets) {
-    const area = this.system.area;
-    const areaTargets = AREA_TARGETS[area] ?? {};
-    ErrorManager.checkTargetsCount(areaTargets.targets ?? 0, targets, area);
-  }
-
-  getAreaModifier(countTargets) {
-    const area = this.getArea();
-    const areaTargets = AREA_TARGETS[area] ?? {};
-    if (areaTargets.targets && areaTargets.adjust && countTargets <= areaTargets.targets) {
-      return areaTargets.adjust[countTargets - 1] ?? 0;
-    }
-    return 0;
-  }
-
-  getArea() {
-    if (this.system.area === "") {
-      return TEMPLATE.area.none;
-    }
-    return this.system.area ?? TEMPLATE.area.none;
-  }
 
   _getMonitor() {
     if (this.isWeapon()) {

@@ -11,6 +11,7 @@ import { registerPersonalActionCatalogSettingsEditor } from "./settings/personal
 import { registerSkillSpecializationSettingsEditor } from "./settings/skill-specialization-settings.js";
 import { registerSceneModifierTemplateSettingsEditor } from "./settings/scene-modifier-template-settings.js";
 import { registerStatusConditionCatalogSettingsEditor } from "./settings/status-condition-catalog-settings.js";
+import { registerWeaponPayloadCatalogSettingsEditors } from "./settings/weapon-payload-catalog-settings.js";
 import {
   DEFAULT_MACHINE_CRIT_TABLE_UUIDS,
   SETTING_MACHINE_CRIT_TABLE_GENERAL,
@@ -33,6 +34,7 @@ export class SystemSettings {
     registerSkillSpecializationSettingsEditor();
     registerSceneModifierTemplateSettingsEditor();
     registerStatusConditionCatalogSettingsEditor();
+    registerWeaponPayloadCatalogSettingsEditors();
 
     game.settings.register(SYSTEM_NAME, "useDestinyMechanics", {
       name: ANARCHY.settings.useDestinyMechanics.name,

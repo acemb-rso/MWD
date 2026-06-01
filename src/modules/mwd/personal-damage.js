@@ -534,6 +534,7 @@ function normalizePayloadConsumption(value = {}) {
 function normalizePayloadModifies(value = {}) {
   const source = value ?? {};
   return {
+    damage: Number(source.damage ?? source.damageMod ?? source.damageModifier ?? 0) || 0,
     damageType: normalizeOptionalPersonalDamageType(source.damageType),
     ap: Number(source.ap ?? source.apMod ?? 0) || 0,
     clusteringDice: Math.max(0, Number(source.clusteringDice ?? source.clusterDice ?? 0) || 0),
@@ -942,6 +943,7 @@ export function resolveWeaponAmmo(ammo = {}, ammoTypeId = "") {
 }
 
 export function resolveEffectiveWeaponProfile({
+  damage = 0,
   damageType = "penetrating",
   ap = 0,
   attackRatingBand = {},
@@ -1016,6 +1018,7 @@ export function resolveEffectiveWeaponProfile({
   delete publicSourceState.sourceItem;
 
   return {
+    damage: Math.max(0, (Number(damage ?? 0) || 0) + (Number(activePayload?.modifies?.damage ?? 0) || 0)),
     damageType: activePayload?.modifies?.damageType || normalizePersonalDamageType(damageType),
     damageTrack: combinedEffects.damageTrack || "physical",
     ap: (Number(ap ?? 0) || 0) + (Number(activePayload?.modifies?.ap ?? 0) || 0),

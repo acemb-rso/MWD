@@ -831,7 +831,7 @@ async function execute({ actor, payload, event } = {}) {
     const weaponItem = actor.items?.get?.(payload.weaponId) ?? null;
     if (weaponItem?.isPersonalWeapon?.()) {
       const selectedPayloadId = String(payload.payloadId ?? "").trim();
-      const activePayloadId = String(weaponItem.system?.selectedPayloadId ?? "").trim();
+      const activePayloadId = String(weaponItem.system?.selectedPayloadUuid || weaponItem.system?.selectedPayloadId || "").trim();
       if (selectedPayloadId && selectedPayloadId !== activePayloadId) {
         await weaponItem.setActivePayload?.(selectedPayloadId);
       }

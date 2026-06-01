@@ -1,0 +1,154 @@
+{{!--
+templates/v2/item/weapon-payload.hbs
+Purpose: Editor for reusable weapon payload items.
+--}}
+
+{{#> "mwd.v2.item.item-sheet-root"}}
+  <div class="mwd-weapon-compact">
+    <section class="mwd-combat-sheet__subsection">
+      <header class="mwd-combat-sheet__subheader">
+        <h4 class="mwd-combat-sheet__subtitle">Payload</h4>
+      </header>
+
+      <div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Quantity</label>
+          <input type="number" name="system.quantity" value="{{system.quantity}}" />
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+          <label>Families</label>
+          <input type="text" name="system.families" value="{{payloadEditor.familiesText}}" />
+          <select class="mwd-list-picker" data-target-name="system.families">
+            <option value="">Add family...</option>
+            {{selectOptions payloadEditor.familyOptions selected="" valueAttr="value" labelAttr="label" localize=false}}
+          </select>
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+          <label>Tags</label>
+          <input type="text" name="system.tags" value="{{payloadEditor.tagsText}}" />
+          <select class="mwd-list-picker" data-target-name="system.tags">
+            <option value="">Add tag...</option>
+            {{selectOptions payloadEditor.tagOptions selected="" valueAttr="value" labelAttr="label" localize=false}}
+          </select>
+        </div>
+      </div>
+
+      <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Label</label>
+          <input type="text" name="system.profile.label" value="{{system.profile.label}}" />
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Damage Mod</label>
+          <input type="number" name="system.profile.modifies.damage" value="{{system.profile.modifies.damage}}" />
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Damage Type</label>
+          <select name="system.profile.modifies.damageType">
+            {{selectOptions payloadEditor.damageTypes selected=system.profile.modifies.damageType valueAttr="value" labelAttr="label" localize=false}}
+          </select>
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>AP Mod</label>
+          <input type="number" name="system.profile.modifies.ap" value="{{system.profile.modifies.ap}}" />
+        </div>
+      </div>
+
+      <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Cluster Dice</label>
+          <input type="number" name="system.profile.modifies.clusteringDice" value="{{system.profile.modifies.clusteringDice}}" />
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Use / Attack</label>
+          <input type="number" name="system.profile.consumption.amount" value="{{system.profile.consumption.amount}}" />
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Resolver</label>
+          <select name="system.profile.resolution.resolverKey">
+            {{selectOptions payloadEditor.resolverKeys selected=system.profile.resolution.resolverKey valueAttr="value" labelAttr="label" localize=false}}
+          </select>
+        </div>
+      </div>
+
+      <div class="mwd-weapon-compact__band-grid">
+        <div class="form-group mwd-weapon-compact__field">
+          <label>AR Close</label>
+          <input type="number" name="system.profile.modifies.attackRatingBand.close" value="{{system.profile.modifies.attackRatingBand.close}}" />
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>AR Near</label>
+          <input type="number" name="system.profile.modifies.attackRatingBand.near" value="{{system.profile.modifies.attackRatingBand.near}}" />
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>AR Far</label>
+          <input type="number" name="system.profile.modifies.attackRatingBand.far" value="{{system.profile.modifies.attackRatingBand.far}}" />
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>AR Extreme</label>
+          <input type="number" name="system.profile.modifies.attackRatingBand.extreme" value="{{system.profile.modifies.attackRatingBand.extreme}}" />
+        </div>
+      </div>
+
+      <div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
+        <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+          <label>Traits</label>
+          <input type="text" name="system.profile.traits" value="{{payloadEditor.traitsText}}" />
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+          <label>Keywords</label>
+          <input type="text" name="system.profile.keywords" value="{{payloadEditor.keywordsText}}" />
+        </div>
+      </div>
+    </section>
+
+    <section class="mwd-combat-sheet__subsection">
+      <header class="mwd-combat-sheet__subheader">
+        <h4 class="mwd-combat-sheet__subtitle">Template</h4>
+      </header>
+
+      <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Shape</label>
+          <select name="system.profile.template.shape">
+            <option value=""></option>
+            {{selectOptions payloadEditor.templateShapes selected=system.profile.template.shape valueAttr="value" labelAttr="label" localize=false}}
+          </select>
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Size (m)</label>
+          <input type="number" name="system.profile.template.size" value="{{system.profile.template.size}}" />
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Placement</label>
+          <select name="system.profile.template.placement">
+            <option value=""></option>
+            {{selectOptions payloadEditor.templatePlacements selected=system.profile.template.placement valueAttr="value" labelAttr="label" localize=false}}
+          </select>
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Area Effect</label>
+          <select name="system.profile.areaEffect.kind">
+            {{selectOptions payloadEditor.areaEffectKinds selected=system.profile.areaEffect.kind valueAttr="value" labelAttr="label" localize=false}}
+          </select>
+        </div>
+      </div>
+    </section>
+
+    {{> "mwd.v2.item.parts.references"}}
+  </div>
+{{/ "mwd.v2.item.item-sheet-root"}}

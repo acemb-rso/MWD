@@ -15,18 +15,71 @@ How it fits: Used by the CSB-driven personal weapon details layout.
 
   {{#if (eq system.category "melee")}}
     <div class="mwd-item-note">Melee weapons do not use payloads.</div>
+  {{else}}
+    <div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
+      <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+        <label>Accepted Families</label>
+        <input type="text" name="system.payloadCompatibility.families" value="{{weaponEditor.payloadCompatibilityText.families}}" />
+        <select class="mwd-list-picker" data-target-name="system.payloadCompatibility.families">
+          <option value="">Add family...</option>
+          {{selectOptions weaponEditor.payloadFamilyOptions selected="" valueAttr="value" labelAttr="label" localize=false}}
+        </select>
+      </div>
+
+      <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+        <label>Required Tags</label>
+        <input type="text" name="system.payloadCompatibility.tagsAll" value="{{weaponEditor.payloadCompatibilityText.tagsAll}}" />
+        <select class="mwd-list-picker" data-target-name="system.payloadCompatibility.tagsAll">
+          <option value="">Add tag...</option>
+          {{selectOptions weaponEditor.payloadTagOptions selected="" valueAttr="value" labelAttr="label" localize=false}}
+        </select>
+      </div>
+    </div>
+
+    <div class="mwd-ammo-profiles">
+      <div class="mwd-ammo-profile">
+        <div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
+          <div class="form-group mwd-weapon-compact__field">
+            <label>Selected Payload</label>
+            <div class="mwd-field-cluster__value">{{weaponEditor.activePayloadLabel}}</div>
+          </div>
+
+          <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+            <label>Compatible Payload Items</label>
+            {{#if weaponEditor.hasActorPayloads}}
+              <div class="mwd-item-note">Use the buttons below, drag a payload item here, or click Add to choose from compatible payload items.</div>
+            {{else}}
+              <div class="mwd-item-note">No compatible actor-owned payload items found.</div>
+            {{/if}}
+          </div>
+        </div>
+
+        {{#if weaponEditor.hasActorPayloads}}
+          {{#each weaponEditor.actorPayloads as |payload|}}
+            <div class="mwd-weapon-compact__row mwd-weapon-compact__row--actions" data-payload-id="{{payload.id}}">
+              <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+                <label>{{#if payload.selected}}Selected{{else}}Payload{{/if}}</label>
+                <div class="mwd-field-cluster__value">
+                  {{payload.label}} | Qty {{payload.quantity}}{{#if payload.stackLabel}} | {{payload.stackLabel}}{{/if}}{{#if payload.tags}} | {{payload.tags}}{{/if}}
+                </div>
+              </div>
+
+              <button type="button" class="mwd-record__icon-btn mwd-payload-select" data-payload-id="{{payload.id}}" title="Select">
+                <i class="fas fa-check"></i>
+              </button>
+            </div>
+          {{/each}}
+        {{/if}}
+      </div>
+    </div>
+  {{/if}}
+
+  {{#if (eq system.category "melee")}}
   {{else if system.payloads.length}}
     <div class="mwd-ammo-profiles">
       {{#each system.payloads as |payload|}}
-        <div class="mwd-ammo-profile define-payload" data-payload-id="{{payload.id}}">
-          {{#if (eq payload.id "unloaded")}}
-            <div class="mwd-weapon-compact__row">
-              <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
-                <label>Built-In State</label>
-                <div class="mwd-item-note">Unloaded is the default empty state for ranged weapons. It does not apply modifiers or consume sources.</div>
-              </div>
-            </div>
-          {{else}}
+        {{#unless (eq payload.id "unloaded")}}
+          <div class="mwd-ammo-profile define-payload" data-payload-id="{{payload.id}}">
             <div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
               <div class="form-group mwd-weapon-compact__field">
                 <label>Label</label>
@@ -216,11 +269,9 @@ How it fits: Used by the CSB-driven personal weapon details layout.
                 </div>
               {{/if}}
             {{/if}}
-          {{/if}}
-        </div>
+          </div>
+        {{/unless}}
       {{/each}}
     </div>
-  {{else}}
-    <div class="mwd-item-note">No payloads defined.</div>
   {{/if}}
 </section>

@@ -431,6 +431,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const usesPayloads = String(attack?.weapon?.category ?? "").trim().toLowerCase() !== "melee" && payloads.length > 0;
     const selectedPayloadId = String(st?.payload?.payloadId ?? attack?.payloadState?.activePayloadId ?? "").trim();
     const selectedPayload = payloads.find(type => type.id === selectedPayloadId) ?? null;
+    const selectedPayloadState = attack?.weapon?.item?.getPayloadState?.({ payloadId: selectedPayloadId }) ?? null;
     const machineActor = bc?.machineActor ?? this.actor;
     const machineAttackOptions = intent === "attack" && attack && isMachineActor(machineActor)
       ? buildAttackOptionControls({ manual: st.manual ?? [], attack, payload: st.payload ?? {} })
@@ -481,7 +482,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
           : (attack?.rangeBand ?? ""),
         damageType: selectedPayload?.modifies?.damageType || attack?.weapon?.damageTypeLabel || attack?.weapon?.damageType || "",
         usesPayloads,
-        source: attack?.sourceState ?? null,
+        source: selectedPayloadState?.sourceState ?? attack?.sourceState ?? null,
         payloads: payloads.map(type => ({
           id: type.id,
           name: type.label,
@@ -489,8 +490,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
           selected: type.id === selectedPayloadId,
         })),
         selectedPayloadId,
-        selectedPayloadLabel: selectedPayload?.label ?? attack?.payload?.label ?? attack?.weapon?.payloadLabel ?? "",
-        selectedSourceLabel: attack?.sourceState?.label ?? "",
+        selectedPayloadLabel: selectedPayloadState?.payloadLabel ?? selectedPayload?.label ?? attack?.payload?.label ?? attack?.weapon?.payloadLabel ?? "",
+        selectedSourceLabel: selectedPayloadState?.sourceState?.label ?? attack?.sourceState?.label ?? "",
       } : null,
       machineAttackOptions,
     };
