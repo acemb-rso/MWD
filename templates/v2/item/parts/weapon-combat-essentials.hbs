@@ -48,10 +48,10 @@ How it fits: Used by the CSB-driven personal weapon details layout.
 
   {{#unless (eq system.category "melee")}}
     <div class="form-group mwd-weapon-compact__field">
-      <label for="system.selectedPayloadId">Selected Payload</label>
-      <select name="system.selectedPayloadId" data-dtype="String">
-        {{#each system.payloads as |payload|}}
-          <option value="{{payload.id}}" {{#if (eq payload.id ../system.selectedPayloadId)}}selected{{/if}}>{{payload.label}}</option>
+      <label>Selected Payload</label>
+      <select class="mwd-active-payload-select" data-action="setActivePayload">
+        {{#each weaponEditor.payloadOptions as |payload|}}
+          <option value="{{payload.value}}" {{#if payload.selected}}selected{{/if}}>{{payload.label}}</option>
         {{/each}}
       </select>
     </div>

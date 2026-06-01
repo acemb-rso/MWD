@@ -5,28 +5,29 @@ How it fits: Used by the CSB-driven personal weapon details layout.
 --}}
 
 
-<section class="mwd-combat-sheet__subsection">
-  <header class="mwd-combat-sheet__subheader">
-    <h4 class="mwd-combat-sheet__subtitle">Standard Traits</h4>
-    <button type="button" class="mwd-weapon-standard-trait-add"><i class="fas fa-plus"></i> Add</button>
-  </header>
+<div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--full mwd-weapon-traits-compact">
+  <div class="mwd-weapon-traits-compact__header">
+    <label>Standard Traits</label>
+    <button type="button" class="mwd-record__icon-btn mwd-weapon-standard-trait-add" title="Add Trait">
+      <i class="fas fa-plus"></i>
+    </button>
+  </div>
 
   {{#if system.standardTraits.length}}
-    {{#each system.standardTraits as |trait|}}
-      <div class="mwd-weapon-compact__row mwd-weapon-compact__row--actions" data-trait-id="{{trait.id}}">
-        <div class="form-group mwd-weapon-compact__field">
-          <label>Trait</label>
+    <div class="mwd-weapon-traits-compact__list">
+      {{#each system.standardTraits as |trait|}}
+        <div class="mwd-weapon-traits-compact__row" data-trait-id="{{trait.id}}">
           <select class="mwd-weapon-standard-trait-field" data-trait-id="{{trait.id}}" data-field="key">
             {{selectOptions ../weaponEditor.standardTraits selected=trait.key valueAttr="value" labelAttr="label" localize=false}}
           </select>
-        </div>
 
-        <button type="button" class="mwd-record__icon-btn is-danger mwd-weapon-standard-trait-delete" data-trait-id="{{trait.id}}" title="Remove">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-    {{/each}}
+          <button type="button" class="mwd-record__icon-btn is-danger mwd-weapon-standard-trait-delete" data-trait-id="{{trait.id}}" title="Remove">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      {{/each}}
+    </div>
   {{else}}
-    <div class="mwd-item-note">No standard weapon traits defined.</div>
+    <div class="mwd-weapon-traits-compact__empty">None</div>
   {{/if}}
-</section>
+</div>

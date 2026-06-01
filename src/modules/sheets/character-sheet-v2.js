@@ -50,6 +50,7 @@ import {
   buildPersonalConditionMonitors,
   buildPersonalActiveCriticalsContext,
   buildPersonalInventoryContext,
+  buildPersonalSpeedContext,
 } from "./actor-sheet-support.js";
 
 function toNumber(value, fallback = 0) {
@@ -422,6 +423,7 @@ ctx.edgeConsole.poolsOrdered = order
     const combatSnapshot = PersonalCombatTracker.getSnapshot(this.actor, { token: sheetToken });
     ctx.combatDashboard = buildPersonalCombatDashboardContext(combatSnapshot, { actor: this.actor });
     ctx.activePersonalCriticals = buildPersonalActiveCriticalsContext(this.actor);
+    ctx.personalSpeed = buildPersonalSpeedContext(this.actor);
     ctx.combatAwarenessPreview = buildCombatAwarenessPreview(this.actor, {
       sourceToken: sheetToken,
     });

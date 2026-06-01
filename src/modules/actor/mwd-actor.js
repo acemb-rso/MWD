@@ -26,6 +26,7 @@ import {
   MACHINE_MONITOR_STORAGE_REMAINING_V1,
   isMachineActorType,
 } from "../mwd/machine-monitors.js";
+import { getPersonalSpeedState } from "../mwd/personal-criticals.js";
 
 function mitigationLabel(mitigation = {}) {
   return Object.entries(normalizeArmorMitigationByType(mitigation))
@@ -811,6 +812,10 @@ export class MWDActor extends Actor {
   _preparePersonalCombatDerived() {
     if (!this.isCharacterLike()) return;
 
+    this.system.derived ??= {};
+    this.system.derived.personalCombat ??= {};
+    this.system.derived.personalCombat.speed = getPersonalSpeedState(this);
+
     const loadout = this.getPersonalCombatLoadout({ refresh: true });
     const armorMonitor = this.system?.monitors?.armor;
     if (!armorMonitor) return;
@@ -829,8 +834,8 @@ export class MWDActor extends Actor {
     armorMonitor.derived.resistance = Number(activeArmor?.baseMitigation ?? activeArmor?.baseResistance ?? 0);
     armorMonitor.effect = activeArmor?.isDestroyed ? "Destroyed" : (activeArmor ? mitigationLabel(activeArmor.mitigationByType ?? activeArmor.typedMitigation) : "");
 
-    this.system.derived ??= {};
     this.system.derived.personalCombat = {
+      ...(this.system.derived.personalCombat ?? {}),
       defaultWeaponId: loadout.defaultWeapon?.id ?? null,
       activeArmorId: activeArmor?.id ?? null,
       warnings: [...(loadout.warnings ?? [])]

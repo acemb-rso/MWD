@@ -144,6 +144,9 @@ test("compatible owned payload items compile into selectable payload profiles", 
 
   assert.equal(state.activePayloadId, payloadItem.uuid);
   assert.equal(state.payloadLabel, "Frag");
+  assert.equal(state.activePayload.sourceType, "weaponPayload");
+  assert.equal(state.activePayload.itemId, payloadItem.id);
+  assert.equal(state.activePayload.itemUuid, payloadItem.uuid);
   assert.equal(state.sourceState.kind, "itemRef");
   assert.equal(state.sourceState.current, 2);
   assert.equal(state.sourceState.consumePerUse, 1);

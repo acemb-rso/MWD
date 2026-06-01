@@ -580,6 +580,11 @@ export function normalizePayloadProfile(entry, { report = null, path = "system.p
   return {
     id,
     label: String(source.label ?? source.name ?? "").trim() || "Payload",
+    sourceType: String(source.sourceType ?? "").trim(),
+    itemId: String(source.itemId ?? "").trim(),
+    itemUuid: String(source.itemUuid ?? "").trim(),
+    families: normalizeStringList(source.families),
+    tags: normalizeStringList(source.tags),
     compatibleWith,
     modifies: normalizePayloadModifies(source.modifies ?? source),
     traits: capabilityState.traits,

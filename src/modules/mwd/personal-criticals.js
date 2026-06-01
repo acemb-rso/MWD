@@ -53,6 +53,12 @@ function getBandFromTotal(total) {
   return "severe";
 }
 
+function getRollOverrideTotal(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const total = Number(value);
+  return Number.isFinite(total) ? total : null;
+}
+
 async function rollFormula(formula) {
   if (typeof Roll !== "function") {
     const dice = String(formula).trim() === "1d6" ? 1 : 2;
@@ -79,8 +85,9 @@ export function severityFromMargin(netHits) {
 
 export async function rollPersonalCriticalBand({ severity = 0, rollTotal = null } = {}) {
   const sev = Math.max(0, Math.trunc(Number(severity ?? 0) || 0));
-  const roll = Number.isFinite(Number(rollTotal))
-    ? { total: Number(rollTotal), formula: "2d6", results: [] }
+  const overrideTotal = getRollOverrideTotal(rollTotal);
+  const roll = overrideTotal !== null
+    ? { total: overrideTotal, formula: "2d6", results: [] }
     : await rollFormula("2d6");
   const total = Number(roll.total ?? 0) + sev;
   return {
@@ -92,8 +99,9 @@ export async function rollPersonalCriticalBand({ severity = 0, rollTotal = null 
 }
 
 export async function rollPersonalCriticalFamily({ rollTotal = null } = {}) {
-  const roll = Number.isFinite(Number(rollTotal))
-    ? { total: Number(rollTotal), formula: "1d6", results: [] }
+  const overrideTotal = getRollOverrideTotal(rollTotal);
+  const roll = overrideTotal !== null
+    ? { total: overrideTotal, formula: "1d6", results: [] }
     : await rollFormula("1d6");
   const family = getPersonalCriticalFamilyByRoll(roll.total);
   return {
@@ -181,6 +189,25 @@ export function getActivePersonalCrits(actor, filters = {}) {
     .filter(crit => !filters.familyId || crit.familyId === filters.familyId)
     .filter(crit => !filters.band || crit.band === filters.band)
     .filter(crit => !filters.statusId || crit.statusId === filters.statusId);
+}
+
+export function getPersonalCriticalSpeedModifier(actor) {
+  return getActivePersonalCrits(actor).reduce((total, crit) => {
+    const speed = Number(crit?.effectPayload?.speed ?? 0);
+    return total + (Number.isFinite(speed) ? speed : 0);
+  }, 0);
+}
+
+export function getPersonalSpeedState(actor) {
+  const base = Math.max(0, Math.trunc(Number(actor?.system?.speed ?? 0) || 0));
+  const modifier = Math.trunc(getPersonalCriticalSpeedModifier(actor));
+  const effective = Math.max(0, base + modifier);
+  return {
+    base,
+    modifier,
+    effective,
+    adjusted: modifier !== 0,
+  };
 }
 
 function getPreparedCriticalRecords(payload = {}, actor = null) {

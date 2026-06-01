@@ -13,6 +13,7 @@ import {
   buildPersonalCombatDashboardContext,
   buildPersonalConditionMonitors,
   buildPersonalInventoryContext,
+  buildPersonalSpeedContext,
   textField,
 } from "./actor-sheet-support.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
@@ -64,6 +65,7 @@ export class NpcSheetV2 extends BaseActorSheetV2 {
     const combatSnapshot = PersonalCombatTracker.getSnapshot(actor, { token: sheetToken });
     context.combatDashboard = buildPersonalCombatDashboardContext(combatSnapshot, { actor });
     context.activePersonalCriticals = buildPersonalActiveCriticalsContext(actor);
+    context.personalSpeed = buildPersonalSpeedContext(actor);
     context.combatActions = this._buildCombatActionsContext(
       PersonalCombatTracker.buildActionModel(actor, combatSnapshot)
     );

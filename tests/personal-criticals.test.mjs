@@ -21,6 +21,7 @@ function actor(overrides = {}) {
     items,
     statuses: new Set(overrides.statuses ?? []),
     system: {
+      speed: overrides.speed ?? 12,
       burn: { value: 0, overloaded: false },
       criticals: overrides.criticals ?? [],
     },
@@ -43,12 +44,16 @@ const {
   applyPersonalCriticalToActor,
   buildPersonalCritRecord,
   getActivePersonalCrits,
+  getPersonalSpeedState,
   previewPersonalCritical,
   removePersonalCrit,
   rollPersonalCriticalBand,
+  rollPersonalCriticalFamily,
   severityFromMargin,
 } = await import("../src/modules/mwd/personal-criticals.js");
+const { buildPersonalActiveCriticalsContext, buildPersonalSpeedContext } = await import("../src/modules/sheets/actor-sheet-support.js");
 const { getPersonalCriticalGateState } = await import("../src/modules/mwd/personal-critical-gates.js");
+const { resolvePersonalCritRemedyIntent } = await import("../src/modules/mwd/personal-crit-intents.js");
 
 test("personal critical severity follows net-hit margin bands", () => {
   assert.equal(severityFromMargin(0), 0);
@@ -64,6 +69,17 @@ test("personal critical band thresholds use 2d6 plus severity", async () => {
   assert.equal((await rollPersonalCriticalBand({ severity: 0, rollTotal: 11 })).band, "moderate");
   assert.equal((await rollPersonalCriticalBand({ severity: 0, rollTotal: 12 })).band, "severe");
   assert.equal((await rollPersonalCriticalBand({ severity: 1, rollTotal: 9 })).band, "minor");
+});
+
+test("personal critical roll helpers treat null as no override", async () => {
+  const band = await rollPersonalCriticalBand({ severity: 2, rollTotal: null });
+  assert.equal(band.roll.total, 2);
+  assert.deepEqual(band.roll.results, [1, 1]);
+  assert.equal(band.total, 4);
+
+  const family = await rollPersonalCriticalFamily({ rollTotal: null });
+  assert.equal(family.roll.total, 1);
+  assert.deepEqual(family.roll.results, [1]);
 });
 
 test("personal critical preview builds prepared records and reuses them", async () => {
@@ -115,4 +131,87 @@ test("personal critical apply stores records, statuses, burn, and gates", async 
   assert.equal(removed.ok, true);
   assert.equal(target.statuses.has("shakenSevere"), false);
   assert.equal(getActivePersonalCrits(target).length, 1);
+});
+
+test("personal critical speed effects produce effective speed without duplicate summary text", () => {
+  const target = actor({ speed: 12 });
+  const crippled = buildPersonalCritRecord({ actor: target, familyId: "crippled", band: "minor" });
+  target.system.criticals = [crippled];
+
+  assert.deepEqual(getPersonalSpeedState(target), {
+    base: 12,
+    modifier: -2,
+    effective: 10,
+    adjusted: true,
+  });
+
+  const speedContext = buildPersonalSpeedContext(target);
+  assert.equal(speedContext.displayValue, "10 m");
+  assert.equal(speedContext.modifierLabel, "-2 m");
+
+  const [criticalContext] = buildPersonalActiveCriticalsContext(target);
+  assert.equal(criticalContext.effectText, "-2 m movement.");
+  assert.equal(criticalContext.summary, "Remedy: First Aid");
+});
+
+test("failed personal critical common-check remedies leave the critical active", async () => {
+  const target = actor();
+  const shaken = buildPersonalCritRecord({ actor: target, familyId: "shaken", band: "minor" });
+  target.system.criticals = [shaken];
+
+  const originalGame = globalThis.game;
+  globalThis.game = {
+    mwd: {
+      roll: {
+        execute: async () => ({
+          flags: { mwd: { resolved: { outcomeModel: { passed: false } } } },
+        }),
+      },
+    },
+  };
+
+  try {
+    const result = await resolvePersonalCritRemedyIntent({
+      actor: target,
+      critId: shaken.id,
+      remedyKey: "endure",
+    });
+
+    assert.equal(result.ok, false);
+    assert.match(result.reason, /did not clear/i);
+    assert.equal(target.system.criticals.length, 1);
+    assert.equal(target.system.criticals[0].id, shaken.id);
+  } finally {
+    globalThis.game = originalGame;
+  }
+});
+
+test("successful personal critical common-check remedies remove the critical", async () => {
+  const target = actor();
+  const shaken = buildPersonalCritRecord({ actor: target, familyId: "shaken", band: "minor" });
+  target.system.criticals = [shaken];
+
+  const originalGame = globalThis.game;
+  globalThis.game = {
+    mwd: {
+      roll: {
+        execute: async () => ({
+          flags: { mwd: { resolved: { outcomeModel: { passed: true } } } },
+        }),
+      },
+    },
+  };
+
+  try {
+    const result = await resolvePersonalCritRemedyIntent({
+      actor: target,
+      critId: shaken.id,
+      remedyKey: "endure",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(target.system.criticals.length, 0);
+  } finally {
+    globalThis.game = originalGame;
+  }
 });

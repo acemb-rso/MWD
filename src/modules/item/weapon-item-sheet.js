@@ -369,6 +369,11 @@ export class WeaponItemSheet extends BaseItemSheet {
         families: Array.isArray(payloadCompatibility.families) ? payloadCompatibility.families.join(", ") : String(payloadCompatibility.families ?? ""),
         tagsAll: Array.isArray(payloadCompatibility.tagsAll) ? payloadCompatibility.tagsAll.join(", ") : String(payloadCompatibility.tagsAll ?? ""),
       },
+      payloadOptions: (Array.isArray(payloadState?.payloads) ? payloadState.payloads : []).map(payload => ({
+        value: payload.id,
+        label: payload.label || "Payload",
+        selected: payload.id === activePayloadId,
+      })),
       payloadFamilyOptions: payloadCatalogToOptions(getWeaponPayloadFamilyCatalog()),
       payloadTagOptions: payloadCatalogToOptions(getWeaponPayloadTagCatalog()),
       actorPayloads: groupedActorPayloads.map(group => {
@@ -644,6 +649,15 @@ export class WeaponItemSheet extends BaseItemSheet {
       button.addEventListener("click", event => {
         event.preventDefault();
         void preserveScroll(() => this._promptReusablePayloadSelection());
+      });
+    });
+
+    root.querySelectorAll(".mwd-active-payload-select").forEach(select => {
+      select.addEventListener("change", event => {
+        event.preventDefault();
+        const payloadId = String(event.currentTarget?.value ?? "").trim();
+        if (!payloadId) return;
+        void preserveScroll(() => this.item.setActivePayload?.(payloadId));
       });
     });
 

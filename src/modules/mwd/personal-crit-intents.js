@@ -11,7 +11,10 @@ function isPassedRoll(result) {
   if (typeof result?.outcomeModel?.passed === "boolean") return result.outcomeModel.passed;
   if (typeof result?.passed === "boolean") return result.passed;
   if (typeof result?.resolved?.outcomeModel?.passed === "boolean") return result.resolved.outcomeModel.passed;
-  return true;
+  if (typeof result?.flags?.mwd?.resolved?.outcomeModel?.passed === "boolean") {
+    return result.flags.mwd.resolved.outcomeModel.passed;
+  }
+  return false;
 }
 
 async function spendPersonalRemedyCost(actor, token, remedy, crit) {

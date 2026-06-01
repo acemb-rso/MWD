@@ -3,7 +3,7 @@
 // How it fits: Keeps NPC, vehicle, and battlemech sheets on the same data-shaping contract.
 
 import { buildPersonalCriticalRestrictionChips, getWeaponAttackGateReason } from "../mwd/personal-critical-gates.js";
-import { buildPersonalCriticalChatSummary, getActivePersonalCrits } from "../mwd/personal-criticals.js";
+import { getActivePersonalCrits, getPersonalSpeedState } from "../mwd/personal-criticals.js";
 
 function readPathValue(document, path, fallback = "") {
   const value = foundry.utils.getProperty(document, path);
@@ -179,6 +179,32 @@ export function buildPersonalCombatDashboardContext(combatSnapshot = {}, { actor
   };
 }
 
+function formatSignedMeters(value) {
+  const numeric = Math.trunc(Number(value ?? 0) || 0);
+  return `${numeric > 0 ? "+" : ""}${numeric} m`;
+}
+
+export function buildPersonalSpeedContext(actor) {
+  const speed = actor?.system?.derived?.personalCombat?.speed ?? getPersonalSpeedState(actor);
+  const base = Math.max(0, Math.trunc(Number(speed?.base ?? actor?.system?.speed ?? 0) || 0));
+  const modifier = Math.trunc(Number(speed?.modifier ?? 0) || 0);
+  const effective = Math.max(0, Math.trunc(Number(speed?.effective ?? base + modifier) || 0));
+  return {
+    base,
+    modifier,
+    effective,
+    adjusted: modifier !== 0,
+    displayValue: `${effective} m`,
+    modifierLabel: modifier !== 0 ? formatSignedMeters(modifier) : "",
+    title: modifier !== 0 ? `Base ${base} m, criticals ${formatSignedMeters(modifier)}` : `${base} m`,
+  };
+}
+
+function buildPersonalCriticalRemedySummary(crit = {}) {
+  if (!crit.remedyLabel || crit.remedyKey === "none") return "";
+  return `Remedy: ${crit.remedyLabel}${crit.remedyBaseDn ? ` DN ${crit.remedyBaseDn}` : ""}`;
+}
+
 export function buildPersonalActiveCriticalsContext(actor) {
   return getActivePersonalCrits(actor).map(crit => {
     const restrictions = [];
@@ -189,7 +215,7 @@ export function buildPersonalActiveCriticalsContext(actor) {
     if (payload.weaponUnequipped) restrictions.push(`Weapon Unequipped${crit.weaponName ? `: ${crit.weaponName}` : ""}`);
     return {
       ...crit,
-      summary: buildPersonalCriticalChatSummary(crit),
+      summary: buildPersonalCriticalRemedySummary(crit),
       restrictions: restrictions.map(label => ({ label })),
       remediable: crit.remedyKey && crit.remedyKey !== "none",
     };
