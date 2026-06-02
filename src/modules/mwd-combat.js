@@ -16,4 +16,32 @@ export class MWDCombat extends Combat {
     }
     return this;
   }
+
+  _sortCombatants(a, b) {
+    const ia = Number.isNumeric(a.initiative) ? a.initiative : -Infinity;
+    const ib = Number.isNumeric(b.initiative) ? b.initiative : -Infinity;
+    if (ia !== ib) return ib - ia;
+
+    // PCs act before NPCs when tied
+    const aIsPC = !a.isNPC;
+    const bIsPC = !b.isNPC;
+    if (aIsPC !== bIsPC) return aIsPC ? -1 : 1;
+
+    // Among tied PCs: higher EDGE first
+    if (aIsPC) {
+      const aEdge = Number(a.actor?.system?.attributes?.edge?.value ?? 0);
+      const bEdge = Number(b.actor?.system?.attributes?.edge?.value ?? 0);
+      if (aEdge !== bEdge) return bEdge - aEdge;
+    }
+
+    // Players or GM decide remaining ties — preserve current order
+    return 0;
+  }
+
+  async nextRound() {
+    await this.resetAll();
+    const result = await super.nextRound();
+    await this.rollAll();
+    return result;
+  }
 }
