@@ -52,7 +52,6 @@ Common Complex Actions include:
 * Use Untrained Complex Skill
 * Ready Heavy Weapon
 * Extinguish Fire
-* Recover Burn
 
 Suppression Fire is listed as a visible stub until the suppression resolver is
 implemented.
@@ -67,9 +66,8 @@ Free Actions are not zero-cost actions. A normal Free Action spends FA:
 
 Common Free Actions include:
 
-* Speak / Signal
+* Communicate
 * Drop Object
-* Gesture / Signal
 * Observe Quickly
 * Select Fire Mode
 * Select Ammunition / Payload
@@ -77,6 +75,7 @@ Common Free Actions include:
 * Ready Small Item
 * Prepare
 * Activate Item
+* Dodge
 
 True no-cost actions use:
 
@@ -99,8 +98,7 @@ Current reaction actions:
 * Assist Ally
 * Interrupt from Prepare
 
-Direct Dodge / Defensive Response and Break Grapple / Melee Defense are visible
-stubs until those resolver paths exist.
+Break Grapple / Melee Defense is a visible stub until that resolver path exists.
 
 ## Burn
 
@@ -120,7 +118,6 @@ Burn penalties apply immediately when Burn changes.
 During your activation:
 
 * Reduce Burn spends 1 SA and reduces Burn by 1.
-* Recover Burn is the Complex Action path for stronger Burn recovery where supported.
 
 ## Passive Cool-Off
 

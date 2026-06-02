@@ -110,6 +110,7 @@ const VALID_RESOLVERS = new Set(PERSONAL_ACTION_RESOLVER_OPTIONS.map(option => o
 const VALID_COST_RESOURCES = new Set(PERSONAL_ACTION_COST_RESOURCE_OPTIONS.map(option => option.value));
 const VALID_PROMPTS = new Set(PERSONAL_ACTION_PROMPT_OPTIONS.map(option => option.value));
 const VALID_IMPLEMENTATION_STATES = new Set(PERSONAL_ACTION_IMPLEMENTATION_OPTIONS.map(option => option.value));
+const RETIRED_ACTION_IDS = new Set(["recoverBurn", "gesture"]);
 
 const LEGACY_HANDLER_TO_RESOLVER = Object.freeze({
   combatAction: PERSONAL_ACTION_RESOLVERS.action,
@@ -219,11 +220,8 @@ const DEFAULT_ACTIONS = Object.freeze([
   action({ id: "useUntrainedComplexSkill", label: "Use Untrained Complex Skill", category: "complex", cost: cost("sa", 2), resolver: "action", prompt: prompt("skill", true), roll: { intent: "skill" }, tags: ["combat", "skill", "complex", "untrained"], description: "Make an untrained complex skill attempt. V1 adds the tag only." }),
   action({ id: "readyHeavyItem", label: "Ready Heavy Weapon", category: "complex", cost: cost("sa", 2), resolver: "interaction", prompt: prompt("weapon", false), tags: ["combat", "interaction", "weapon", "ready", "heavy"], description: "Ready a large or crew-served weapon." }),
   action({ id: "extinguish", label: "Extinguish Fire", category: "complex", cost: cost("sa", 2), resolver: "recovery", tags: ["combat", "recovery", "hazard", "fire"], resolves: ["onFire"], description: "Extinguish yourself or an eligible nearby fire status." }),
-  action({ id: "recoverBurn", label: "Recover Burn", category: "complex", cost: cost("sa", 2), resolver: "recovery", tags: ["combat", "recovery", "burn"], prominentWhenBurning: true, description: "Take a complex recovery action to reduce Burn." }),
-
-  action({ id: "communicate", label: "Speak / Signal", category: "free", resolver: "action", tags: ["combat", "communication"], description: "Speak, signal, or coordinate without changing the mechanics." }),
+  action({ id: "communicate", label: "Communicate", category: "free", resolver: "action", tags: ["combat", "communication"], description: "Speak, signal, gesture, or coordinate without changing the mechanics." }),
   action({ id: "drop", label: "Drop Object", category: "free", resolver: "interaction", tags: ["combat", "interaction", "drop"], description: "Release or discard something you are holding." }),
-  action({ id: "gesture", label: "Gesture / Signal", category: "free", resolver: "action", tags: ["combat", "communication"], description: "Send a quick visible signal." }),
   action({ id: "observeQuickly", label: "Observe Quickly", category: "free", resolver: "action", tags: ["combat", "assessment"], description: "Make a surface-level observation." }),
   action({ id: "changeFireMode", label: "Select Fire Mode", category: "free", resolver: "interaction", prompt: prompt("weapon", false), tags: ["combat", "weapon", "fireMode"], description: "Select a supported fire mode." }),
   action({ id: "selectPayload", label: "Select Ammunition / Payload", category: "free", resolver: "interaction", prompt: prompt("payload", true), tags: ["combat", "weapon", "payload"], description: "Select an owned compatible payload for a weapon." }),
@@ -231,10 +229,10 @@ const DEFAULT_ACTIONS = Object.freeze([
   action({ id: "readyItem", label: "Ready Small Item", category: "free", resolver: "interaction", prompt: prompt("item", false), tags: ["combat", "interaction", "ready"], description: "Draw, stow, or ready a small item." }),
   action({ id: "prepare", label: "Prepare", category: "free", resolver: "action", prompt: prompt("confirm", true), tags: ["combat", "prepare", "interrupt"], description: "Declare a trigger now so you can interrupt later." }),
   action({ id: "activateItem", label: "Activate Item", category: "free", resolver: "interaction", prompt: prompt("item", false), tags: ["combat", "interaction", "activate"], description: "Switch on or initialize an item without resolving its full effect." }),
+  action({ id: "defend", label: "Dodge", category: "free", resolver: "recovery", tags: ["combat", "defense", "dodge"], implementation: implementation("stub", "Dodge mechanics are not implemented yet."), description: "Dodge when supported by the direct-defense resolver." }),
 
   action({ id: "react", label: "React", category: "reaction", resolver: "action", tags: ["combat", "reaction"], implementation: implementation("stub", "Use a specific reaction action when available."), description: "Take a generic response to an outside trigger." }),
   action({ id: "evade", label: "Evade", category: "reaction", resolver: "recovery", tags: ["combat", "reaction", "evade"], description: "Avoid or soften incoming non-direct danger." }),
-  action({ id: "defend", label: "Dodge / Defensive Response", category: "reaction", resolver: "recovery", tags: ["combat", "reaction", "defense"], implementation: implementation("stub", "Direct defense reactions are not implemented yet."), description: "Respond defensively to a direct attack once supported." }),
   action({ id: "opportunity", label: "Opportunity Attack", category: "reaction", resolver: "attack", tags: ["combat", "reaction", "attack", "opportunity"], description: "Exploit an opening and make a reactive attack." }),
   action({ id: "assist", label: "Assist Ally", category: "reaction", resolver: "action", prompt: prompt("target", true), tags: ["combat", "reaction", "assist"], description: "Support another combatant when their moment comes." }),
   action({ id: "interrupt", label: "Interrupt from Prepare", category: "reaction", resolver: "action", tags: ["combat", "reaction", "interrupt"], description: "Resolve a prepared response when its trigger is met." }),
@@ -337,22 +335,46 @@ function inferResolver(entry, fallback) {
 }
 
 export function normalizeActionEntry(entry, { strict = false, index = 0 } = {}) {
-  const id = String(entry?.id ?? "").trim();
+  let working = entry;
+  const id = String(working?.id ?? "").trim();
   const fallback = DEFAULT_ACTIONS_BY_ID.get(id) ?? {};
   const prefix = `Row ${index + 1}`;
   const errors = [];
 
   if (!id) errors.push(`${prefix}: id cannot be blank.`);
+  if (RETIRED_ACTION_IDS.has(id)) {
+    errors.push(`${prefix}: action id "${id}" has been retired.`);
+  }
 
-  const category = String(entry?.category ?? fallback.category ?? "").trim();
+  if (id === "defend" && String(working?.label ?? "").trim() === "Dodge / Defensive Response") {
+    working = {
+      ...working,
+      label: fallback.label,
+      category: fallback.category,
+      cost: cloneJson(fallback.cost),
+      tags: cloneJson(fallback.tags),
+      description: fallback.description,
+      implementation: cloneJson(fallback.implementation),
+    };
+  }
+  if (id === "communicate" && String(working?.label ?? "").trim() === "Speak / Signal") {
+    working = {
+      ...working,
+      label: fallback.label,
+      tags: cloneJson(fallback.tags),
+      description: fallback.description,
+    };
+  }
+
+  const category = String(working?.category ?? fallback.category ?? "").trim();
   if (!VALID_CATEGORIES.has(category)) {
     errors.push(`${prefix}: category must be one of ${Array.from(VALID_CATEGORIES).join(", ")}.`);
   }
 
-  const label = String(entry?.label ?? fallback.label ?? "").trim();
+  const label = String(working?.label ?? fallback.label ?? "").trim();
   if (!label) errors.push(`${prefix}: label cannot be blank.`);
 
-  const resolver = inferResolver(entry, fallback);
+  const resolver = inferResolver(working, fallback);
   if (!VALID_RESOLVERS.has(resolver)) {
     errors.push(`${prefix}: resolver must be one of ${Array.from(VALID_RESOLVERS).join(", ")}.`);
   }
@@ -370,9 +392,9 @@ export function normalizeActionEntry(entry, { strict = false, index = 0 } = {}) 
   let normalizedPrompt;
   let normalizedImplementation;
   try {
-    normalizedCost = normalizeCost(entry, fallback, { strict, prefix });
-    normalizedPrompt = normalizePrompt(entry, fallback, { strict, prefix });
-    normalizedImplementation = normalizeImplementation(entry, fallback, { strict, prefix });
+    normalizedCost = normalizeCost(working, fallback, { strict, prefix });
+    normalizedPrompt = normalizePrompt(working, fallback, { strict, prefix });
+    normalizedImplementation = normalizeImplementation(working, fallback, { strict, prefix });
   } catch (error) {
     if (strict) throw error;
     return null;
@@ -384,17 +406,17 @@ export function normalizeActionEntry(entry, { strict = false, index = 0 } = {}) 
     label,
     category,
     cost: normalizedCost,
-    scale: distinctStrings(entry?.scale ?? fallback.scale ?? ["personal"]),
+    scale: distinctStrings(working?.scale ?? fallback.scale ?? ["personal"]),
     resolver,
-    roll: normalizeRoll(entry, fallback.roll ?? null),
+    roll: normalizeRoll(working, fallback.roll ?? null),
     prompt: normalizedPrompt,
-    tags: distinctStrings(entry?.tags ?? fallback.tags ?? ["combat"]),
-    resolves: distinctStrings(entry?.resolves ?? fallback.resolves ?? []),
-    payload: normalizePayload(entry, fallback, id),
+    tags: distinctStrings(working?.tags ?? fallback.tags ?? ["combat"]),
+    resolves: distinctStrings(working?.resolves ?? fallback.resolves ?? []),
+    payload: normalizePayload(working, fallback, id),
     implementation: normalizedImplementation,
-    description: String(entry?.description ?? fallback.description ?? "").trim(),
-    prominent: toBoolean(entry?.prominent, Boolean(fallback.prominent)),
-    prominentWhenBurning: toBoolean(entry?.prominentWhenBurning, Boolean(fallback.prominentWhenBurning))
+    description: String(working?.description ?? fallback.description ?? "").trim(),
+    prominent: toBoolean(working?.prominent, Boolean(fallback.prominent)),
+    prominentWhenBurning: toBoolean(working?.prominentWhenBurning, Boolean(fallback.prominentWhenBurning))
   };
 
   normalized.handler = "combatIntent";

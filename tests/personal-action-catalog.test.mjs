@@ -88,3 +88,60 @@ test("personal action catalog backfill appends missing defaults without duplicat
   assert.deepEqual(twice.map(action => action.id), once.map(action => action.id));
   assert.ok(once.some(action => action.id === "selectPayload"));
 });
+
+test("personal action catalog retires removed defaults and migrates renamed actions", async () => {
+  const {
+    mergePersonalActionCatalogDefaults,
+    normalizePersonalActionCatalog,
+  } = await import("../src/modules/combat/personal-action-catalog.js");
+
+  const legacy = [
+    {
+      id: "recoverBurn",
+      label: "Recover Burn",
+      category: "complex",
+      cost: { resource: "sa", value: 2 },
+      resolver: "recovery",
+    },
+    {
+      id: "gesture",
+      label: "Gesture / Signal",
+      category: "free",
+      cost: { resource: "fa", value: 1 },
+      resolver: "action",
+    },
+    {
+      id: "communicate",
+      label: "Speak / Signal",
+      category: "free",
+      cost: { resource: "fa", value: 1 },
+      resolver: "action",
+    },
+    {
+      id: "defend",
+      label: "Dodge / Defensive Response",
+      category: "reaction",
+      cost: { resource: "ra", value: 1 },
+      resolver: "recovery",
+      implementation: { state: "stub", reason: "Old reason" },
+    },
+  ];
+
+  const normalized = normalizePersonalActionCatalog(legacy, { strict: false, includeDefaults: true });
+  assert.equal(normalized.some(action => action.id === "recoverBurn"), false);
+  assert.equal(normalized.some(action => action.id === "gesture"), false);
+
+  const communicate = normalized.find(action => action.id === "communicate");
+  assert.equal(communicate?.label, "Communicate");
+  assert.deepEqual(communicate?.cost, { resource: "fa", value: 1 });
+
+  const dodge = normalized.find(action => action.id === "defend");
+  assert.equal(dodge?.label, "Dodge");
+  assert.equal(dodge?.category, "free");
+  assert.deepEqual(dodge?.cost, { resource: "fa", value: 1 });
+
+  const merged = mergePersonalActionCatalogDefaults(legacy);
+  assert.equal(merged.some(action => action.id === "recoverBurn"), false);
+  assert.equal(merged.some(action => action.id === "gesture"), false);
+  assert.equal(merged.filter(action => action.id === "communicate").length, 1);
+});

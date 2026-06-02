@@ -20,6 +20,15 @@ export const PERSONAL_CRIT_REMEDIES = Object.freeze({
     baseDn: 1,
     remediable: true,
   }),
+  composure: Object.freeze({
+    key: "composure",
+    label: "Composure",
+    actionId: "composure",
+    actionKind: "commonCheck",
+    skillKey: "composure",
+    baseDn: 2,
+    remediable: true,
+  }),
   firstAid: Object.freeze({
     key: "firstAid",
     label: "First Aid",

@@ -391,17 +391,71 @@ export async function applyPersonalCriticalToActor({ actor = null, token = null,
   if (!normalized.length) return { ok: true, records: [], activeCrits: getActivePersonalCrits(actor) };
 
   const existing = Array.isArray(actor?.system?.criticals) ? clone(actor.system.criticals) : [];
-  const next = existing.concat(normalized);
+  const toAdd = [];
+  const escalations = [];
+
+  for (const incoming of normalized) {
+    const existingIndex = existing.findIndex(
+      r => String(r?.familyId ?? "").trim() === incoming.familyId && r?.active !== false
+    );
+
+    if (existingIndex >= 0) {
+      const existingBand = String(existing[existingIndex]?.band ?? "").trim();
+      const existingBandIndex = BAND_ORDER.indexOf(existingBand);
+      const incomingBandIndex = BAND_ORDER.indexOf(incoming.band);
+      const escalatedBandId = BAND_ORDER[Math.max(0, Math.max(existingBandIndex, incomingBandIndex))];
+      const bandChanged = escalatedBandId !== existingBand;
+      const oldStatusId = String(existing[existingIndex]?.statusId ?? "").trim();
+
+      const updatedRecord = normalizePersonalCriticalRecord({
+        ...existing[existingIndex],
+        band: escalatedBandId,
+        statusId: undefined,
+        statusLabel: undefined,
+        effectText: undefined,
+        effectKind: undefined,
+        effectPayload: undefined,
+        remedyKey: undefined,
+        remedyLabel: undefined,
+        remedySkillKey: undefined,
+        remedyBaseDn: undefined,
+        label: undefined,
+      }, actor);
+
+      existing[existingIndex] = updatedRecord;
+      escalations.push({ oldStatusId, updatedRecord, bandChanged });
+    } else {
+      toAdd.push(incoming);
+      existing.push(incoming);
+    }
+  }
+
+  const next = existing;
 
   if (!dryRun) {
     await actor.update({ "system.criticals": next });
     await syncPersonalCriticalMarker(actor, next.some(crit => crit?.active !== false));
-    await applyRecordSideEffects(actor, token, normalized);
+
+    for (const { oldStatusId, updatedRecord, bandChanged } of escalations) {
+      if (bandChanged) {
+        if (oldStatusId && oldStatusId !== updatedRecord.statusId) {
+          try {
+            await applyManagedStatusUpdate({ actor, statusId: oldStatusId, active: false });
+          } catch (error) {
+            console.warn(`MWD | Unable to deactivate old personal crit status "${oldStatusId}"`, error);
+          }
+        }
+        await applyRecordSideEffects(actor, token, [updatedRecord]);
+      }
+    }
+
+    await applyRecordSideEffects(actor, token, toAdd);
   }
 
+  const appliedRecords = [...toAdd, ...escalations.map(e => e.updatedRecord)];
   return {
     ok: true,
-    records: normalized,
+    records: appliedRecords,
     activeCrits: dryRun ? next.map(record => normalizePersonalCriticalRecord(record, actor)).filter(Boolean) : getActivePersonalCrits(actor),
   };
 }

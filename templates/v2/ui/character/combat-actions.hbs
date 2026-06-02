@@ -7,6 +7,12 @@ How it fits: Used by rendering code to produce UI fragments.
 
 <div class="mwd-combat-actions-panel">
   <div class="mwd-combat-actions-panel__utility-row">
+    <button
+      type="button"
+      class="mwd-combat-actions-panel__utility-button"
+      data-action="openCombatGadget">
+      Open Combat Gadget
+    </button>
     {{#each combatActions.utilityButtons as |action|}}
       <button
         type="button"

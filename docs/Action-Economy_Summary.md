@@ -87,13 +87,11 @@ existing Burn/Edge reaction fallback rules.
 * Use Untrained Complex Skill, tag-only in V1
 * Ready Heavy Weapon
 * Extinguish Fire
-* Recover Burn
 
 ### Free Actions
 
-* Speak / Signal
+* Communicate
 * Drop Object
-* Gesture / Signal
 * Observe Quickly
 * Select Fire Mode
 * Select Ammunition / Payload
@@ -101,6 +99,7 @@ existing Burn/Edge reaction fallback rules.
 * Ready Small Item
 * Prepare
 * Activate Item
+* Dodge
 
 ### Reactions
 
@@ -108,7 +107,6 @@ existing Burn/Edge reaction fallback rules.
 * Opportunity Attack
 * Assist Ally
 * Interrupt from Prepare
-* Dodge / Defensive Response, visible stub until direct defense exists
 * Break Grapple / Melee Defense, visible stub until close-defense support exists
 
 ## Declarative Action Architecture
@@ -195,7 +193,6 @@ Action intents own cost, prompts, state, and logging. Roll intents own dice.
 * Complex Actions count as their SA cost for Burn thresholds.
 * Additional reactions can generate Burn through reaction fallback rules.
 * Reduce Burn spends 1 SA and reduces Burn by 1.
-* Recover Burn is a Complex Action path for stronger recovery behavior where supported.
 
 ## One-Line Summary
 

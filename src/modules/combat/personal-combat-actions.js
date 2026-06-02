@@ -38,7 +38,51 @@ function getRollApi() {
   return game?.mwd?.roll ?? game?.system?.mwd?.roll ?? null;
 }
 
+function getActivationMaxSA(actor) {
+  const reflexes = Math.max(0, Number(actor?.system?.attributes?.reflexes?.value ?? 0) || 0);
+  const guts = Math.max(0, Number(actor?.system?.attributes?.guts?.value ?? 0) || 0);
+  return 3 + Math.floor((reflexes + guts) / 2);
+}
+
+function getSaCapacityRemaining(actor, snapshot) {
+  return Math.max(0, getActivationMaxSA(actor) - Math.max(0, Number(snapshot?.state?.saSpentThisActivation ?? 0) || 0));
+}
+
+function parseJson(value, fallback = null) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    console.warn("MWD | Invalid personal combat payload", raw, error);
+    return fallback;
+  }
+}
+
 function normalizePayload(payload = {}) {
+  if (payload?.intent === "combatSpend") {
+    return {
+      actionId: String(payload.actionId ?? payload.combatAction ?? payload.id ?? "").trim(),
+      action: null,
+      metadata: payload.metadata ?? {},
+      spend: {
+        resource: String(payload.resource ?? "").trim(),
+        cost: Math.max(0, Number(payload.cost ?? 0) || 0),
+        actionLabel: String(payload.actionLabel ?? payload.label ?? "").trim(),
+        actionCostLabel: String(payload.actionCostLabel ?? payload.costLabel ?? "").trim(),
+      },
+    };
+  }
+
+  if (payload?.intent && payload.intent !== "combatAction") {
+    return {
+      actionId: "",
+      action: null,
+      metadata: {},
+      roll: payload,
+    };
+  }
+
   if (payload?.action && typeof payload.action === "object") {
     return {
       actionId: String(payload.action.id ?? payload.actionId ?? "").trim(),
@@ -51,6 +95,53 @@ function normalizePayload(payload = {}) {
     action: payload?.action ?? null,
     metadata: payload?.metadata ?? {},
   };
+}
+
+export function buildCombatActionPayloadFromDataset({ handler = "combatIntent", target = null, event = null } = {}) {
+  const source = target ?? event?.target?.closest?.("[data-action]") ?? null;
+  const dataset = source?.dataset ?? {};
+  const actionId = String(dataset.combatAction ?? "").trim();
+  const rawPayload = String(dataset.combatPayload ?? "").trim();
+  if (rawPayload) {
+    const payload = parseJson(rawPayload);
+    if (payload) return payload;
+  }
+
+  if (handler === "combatSpend") {
+    return {
+      intent: "combatSpend",
+      actionId,
+      resource: String(dataset.resource ?? "").trim(),
+      cost: Math.max(0, Number(dataset.cost ?? 0) || 0),
+      actionLabel: String(dataset.combatLabel ?? "").trim(),
+      actionCostLabel: String(dataset.combatCostLabel ?? "").trim(),
+    };
+  }
+
+  if (handler === "combatOverloadCheck") {
+    const rollPayload = parseJson(
+      dataset.roll ?? event?.target?.closest?.("[data-roll]")?.dataset?.roll,
+      null
+    );
+    return rollPayload ?? { intent: "combatAction", actionId: actionId || "overloadCheck" };
+  }
+
+  const legacyActionIds = {
+    combatAction: actionId,
+    combatAttack: actionId || "attack",
+    combatEvade: actionId || "evade",
+    combatAssist: actionId || "assist",
+    combatInterrupt: actionId || "interrupt",
+    combatFirstAid: actionId || "firstAid",
+    combatReduceBurn: actionId || "reduceBurn",
+  };
+  const resolvedActionId = handler === "combatIntent"
+    ? actionId
+    : legacyActionIds[handler];
+
+  return resolvedActionId
+    ? { intent: "combatAction", actionId: resolvedActionId }
+    : null;
 }
 
 function actionCostLabel(action = {}, effective = {}) {
@@ -259,9 +350,89 @@ async function promptTarget(action, snapshot) {
   return selected ? { targetTokenUuid: selected.tokenUuid, targetName: selected.name } : { ok: false, reason: "Selected target could not be found." };
 }
 
+function combatantsToArray(combatants = null) {
+  if (!combatants) return [];
+  if (typeof combatants.values === "function") return Array.from(combatants.values());
+  return Array.from(combatants ?? []);
+}
+
+function getAssistTargetChoices(snapshot) {
+  const currentCombatantId = String(snapshot?.combatant?.id ?? "").trim();
+  return combatantsToArray(snapshot?.combat?.combatants)
+    .filter(combatant => combatant && String(combatant.id ?? "").trim() !== currentCombatantId)
+    .map(combatant => {
+      const tokenDoc = combatant.token?.document ?? combatant.token ?? null;
+      const actor = combatant.actor ?? tokenDoc?.actor ?? null;
+      const name = String(combatant.name ?? tokenDoc?.name ?? actor?.name ?? "Combatant").trim() || "Combatant";
+      return {
+        combatantId: String(combatant.id ?? "").trim(),
+        actorUuid: actor?.uuid ?? null,
+        tokenUuid: tokenDoc?.uuid ?? null,
+        name
+      };
+    })
+    .filter(choice => choice.combatantId && choice.name)
+    .sort((left, right) => left.name.localeCompare(right.name));
+}
+
+async function promptAssistTarget(action, snapshot) {
+  if (!snapshot?.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
+  if (snapshot?.isCurrentTurn) return { ok: false, reason: "Only outside your activation." };
+
+  const choices = getAssistTargetChoices(snapshot);
+  if (!choices.length) return { ok: false, reason: "No other combatants are available to assist." };
+
+  const options = choices
+    .map(choice => `<option value="${escapeHtml(choice.combatantId)}">${escapeHtml(choice.name)}</option>`)
+    .join("");
+  const content = `<form class="mwd-quick-select"><div class="mwd-field"><label>Assist</label><select name="combatant">${options}</select></div></form>`;
+
+  const selectedId = await promptWithHtml({
+    title: action.label,
+    content,
+    submitLabel: "Assist",
+    callback: form => readFormValue(form, "combatant") || choices[0]?.combatantId || ""
+  });
+
+  if (!selectedId) return null;
+  const target = choices.find(choice => choice.combatantId === selectedId) ?? null;
+  if (!target) return { ok: false, reason: "Selected combatant could not be found." };
+  return {
+    targetCombatantId: target.combatantId,
+    targetActorUuid: target.actorUuid,
+    targetTokenUuid: target.tokenUuid,
+    targetName: target.name,
+  };
+}
+
+async function confirmInterrupt(action, snapshot) {
+  const preparedInterrupt = PersonalCombatTracker.getPreparedInterrupt(snapshot);
+  if (!snapshot?.hasCombatant) return { ok: false, reason: "No combatant on the current scene." };
+  if (snapshot?.isCurrentTurn) return { ok: false, reason: "Only outside your activation." };
+  if (!preparedInterrupt) return { ok: false, reason: "Prepare an interrupt first." };
+
+  const condition = String(preparedInterrupt?.condition ?? "").trim();
+  const scope = String(preparedInterrupt?.scope ?? "").trim();
+  const content = `
+    <div class="mwd-quick-select">
+      <p><strong>Trigger:</strong> ${escapeHtml(condition || "Unspecified trigger")}</p>
+      <p><strong>Scope:</strong> ${escapeHtml(scope || "Unspecified response")}</p>
+    </div>`;
+  const confirmed = await promptWithHtml({
+    title: action.label,
+    content,
+    submitLabel: "Interrupt",
+    callback: () => true
+  });
+
+  return confirmed ? preparedInterrupt : null;
+}
+
 async function resolvePrompt(action, actor, snapshot) {
   if (["firstAid", "evade", "reduceBurn", "recoverBurn"].includes(action.id)) return {};
   if (action.id === "prepare") return promptPrepare(action);
+  if (action.id === "assist") return promptAssistTarget(action, snapshot);
+  if (action.id === "interrupt") return confirmInterrupt(action, snapshot);
   if (action.prompt?.type === "skill") return promptSkill(action);
   if (action.prompt?.type === "weapon") return promptWeapon(action, actor);
   if (action.prompt?.type === "payload") return promptPayload(action, actor);
@@ -293,6 +464,15 @@ function getCommonGateReason(action, actor, snapshot, effectiveCost) {
   if (action.implementation?.state === PERSONAL_ACTION_IMPLEMENTATION_STATES.stub) {
     return action.implementation?.reason || "That action is not implemented yet.";
   }
+  if (action.id === "overloadCheck") {
+    return !snapshot?.hasCombatant
+      ? "No combatant on the current scene."
+      : !snapshot?.isCurrentTurn
+        ? "Only during your activation."
+        : !snapshot?.burn?.canOverloadCheck
+          ? (snapshot?.overloaded ? "Already Overloaded." : "Burn below 6.")
+          : "";
+  }
   if (effectiveCost.resource === "none" || effectiveCost.value <= 0) return "";
   if (!snapshot?.hasCombatant) return "No combatant on the current scene.";
   if (action.category === PERSONAL_ACTION_CATEGORIES.reaction) {
@@ -305,6 +485,9 @@ function getCommonGateReason(action, actor, snapshot, effectiveCost) {
   }
   if (action.id === "aim" && PersonalCombatTracker.getMoveActionCountFromState?.(snapshot.state) > 0) {
     return "Cannot aim after taking a move action this activation.";
+  }
+  if (effectiveCost.resource === "sa" && getSaCapacityRemaining(actor, snapshot) < effectiveCost.value) {
+    return "Activation SA cap reached.";
   }
   return "";
 }
@@ -437,7 +620,7 @@ async function executeMovementResolver(actor, { action } = {}) {
 
 async function executeResolver(actor, context) {
   const { action } = context;
-  if (action.roll && action.resolver === PERSONAL_ACTION_RESOLVERS.action) {
+  if (action.roll && (action.resolver === PERSONAL_ACTION_RESOLVERS.action || action.id === "overloadCheck")) {
     return executeRollAction(actor, context);
   }
   switch (action.resolver) {
@@ -454,9 +637,76 @@ async function executeResolver(actor, context) {
   }
 }
 
+async function createAssistChatCard({ actor, token = null, targetName = "", costLabel = "" } = {}) {
+  const actorName = String(actor?.name ?? "Ally").trim() || "Ally";
+  const target = String(targetName ?? "an ally").trim() || "an ally";
+  const cost = String(costLabel ?? "").trim();
+  const content = `
+    <div class="mwd-chat-card mwd-chat-card--assist">
+      <h3>Assist</h3>
+      <p><strong>${escapeHtml(actorName)}</strong> assists <strong>${escapeHtml(target)}</strong>.</p>
+      ${cost ? `<p><small>Cost: ${escapeHtml(cost)}</small></p>` : ""}
+    </div>`;
+
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor, token: token?.object ?? token }),
+    content
+  });
+}
+
+async function createInterruptChatCard({ actor, token = null, preparedInterrupt = null, costLabel = "" } = {}) {
+  const actorName = String(actor?.name ?? "Combatant").trim() || "Combatant";
+  const condition = String(preparedInterrupt?.condition ?? "").trim();
+  const scope = String(preparedInterrupt?.scope ?? "").trim();
+  const cost = String(costLabel ?? "").trim();
+  const content = `
+    <div class="mwd-chat-card mwd-chat-card--interrupt">
+      <h3>Interrupt</h3>
+      <p><strong>${escapeHtml(actorName)}</strong> resolves a prepared interrupt.</p>
+      ${condition ? `<p><strong>Trigger:</strong> ${escapeHtml(condition)}</p>` : ""}
+      ${scope ? `<p><strong>Scope:</strong> ${escapeHtml(scope)}</p>` : ""}
+      ${cost ? `<p><small>Cost: ${escapeHtml(cost)}</small></p>` : ""}
+    </div>`;
+
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor, token: token?.object ?? token }),
+    content
+  });
+}
+
+export async function removeActivationLogEntryIntent({ actor, token = null, index = null } = {}) {
+  return PersonalCombatTracker.removeActivationLogEntry(actor, { token, index });
+}
+
+export async function executeOwnedWeaponAttackIntent({ weapon, event = null, token = null } = {}) {
+  const value = await launchOwnedWeaponAttack({ weapon, event, token });
+  return { ok: Boolean(value), rolled: Boolean(value), cancelled: !value, value };
+}
+
 export async function executeCombatActionIntent({ actor, token = null, payload = {}, event = null } = {}) {
   if (!actor) return { ok: false, reason: "Combat action requires an actor." };
   const normalizedPayload = normalizePayload(payload);
+
+  if (normalizedPayload.roll) {
+    const rollApi = getRollApi();
+    if (!rollApi?.execute) return { ok: false, reason: "MWD roll system not initialized." };
+    const value = await rollApi.execute({ actor, payload: normalizedPayload.roll, event });
+    return { ok: Boolean(value), rolled: Boolean(value), cancelled: !value, value };
+  }
+
+  if (normalizedPayload.spend) {
+    const { resource, cost, actionLabel, actionCostLabel } = normalizedPayload.spend;
+    if (!normalizedPayload.actionId || !resource || !cost) return { ok: false, reason: "Invalid combat spend intent." };
+    return PersonalCombatTracker.spendResource(actor, {
+      token,
+      resource,
+      cost,
+      actionId: normalizedPayload.actionId,
+      actionLabel,
+      actionCostLabel,
+    });
+  }
+
   const rawAction = normalizedPayload.action ?? getPersonalAction(normalizedPayload.actionId);
   if (!rawAction) return { ok: false, reason: "Unknown combat action." };
 
@@ -529,6 +779,23 @@ export async function executeCombatActionIntent({ actor, token = null, payload =
   const resolved = await executeResolver(actor, { action, token, metadata, event, spend });
   if (!resolved?.ok) return { ...resolved, actionId: action.id, costPaid: true, rolled: Boolean(resolved?.rolled), stateChanges: resolved?.stateChanges ?? [] };
 
+  if (action.id === "interrupt") {
+    await PersonalCombatTracker.clearPreparedInterrupt(actor, { token });
+    await createInterruptChatCard({
+      actor,
+      token,
+      preparedInterrupt: metadata,
+      costLabel: spend.costLabel,
+    });
+  } else if (action.id === "assist") {
+    await createAssistChatCard({
+      actor,
+      token,
+      targetName: metadata.targetName,
+      costLabel: spend.costLabel,
+    });
+  }
+
   return {
     ok: true,
     actionId: action.id,
@@ -549,4 +816,7 @@ export async function executeCombatActionIntent({ actor, token = null, payload =
 
 export const PersonalCombatActions = Object.freeze({
   execute: executeCombatActionIntent,
+  buildPayloadFromDataset: buildCombatActionPayloadFromDataset,
+  executeOwnedWeaponAttack: executeOwnedWeaponAttackIntent,
+  removeActivationLogEntry: removeActivationLogEntryIntent,
 });

@@ -1,0 +1,231 @@
+/* MWD Player Gadget */
+
+.mwd-player-gadget {
+  --pg-bg: var(--mwd-panel-bg, rgba(28, 29, 31, 0.96));
+  --pg-border: var(--mwd-border, #5a4b3a);
+  --pg-accent: var(--mwd-accent-gold, #c7a94a);
+  --pg-text: var(--mwd-text-primary, #e6dccb);
+  --pg-muted: var(--mwd-text-muted, #a89982);
+  --pg-button: rgba(255, 255, 255, 0.05);
+
+  min-width: 320px;
+  color: var(--pg-text);
+
+  .window-content {
+    padding: 0;
+    background: var(--pg-bg);
+  }
+}
+
+.mwd-player-gadget__root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  padding: 0.75rem;
+  overflow: hidden;
+}
+
+.mwd-player-gadget__top,
+.mwd-player-gadget__panel,
+.mwd-player-gadget__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mwd-player-gadget__panel {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.15rem;
+}
+
+.mwd-player-gadget__subject {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mwd-player-gadget__portrait,
+.mwd-player-gadget__weapon-img {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--pg-border);
+  object-fit: cover;
+}
+
+.mwd-player-gadget__subject-main,
+.mwd-player-gadget__weapon-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.mwd-player-gadget__subject-name,
+.mwd-player-gadget__section-title {
+  font-weight: 700;
+}
+
+.mwd-player-gadget__subject-sub,
+.mwd-player-gadget__hint,
+.mwd-player-gadget__subtle,
+.mwd-player-gadget__weapon-main small,
+.mwd-player-gadget__status-row small {
+  color: var(--pg-muted);
+  font-size: 0.78rem;
+}
+
+.mwd-player-gadget__handoff,
+.mwd-player-gadget__summary,
+.mwd-player-gadget__monitors,
+.mwd-player-gadget__utility-row,
+.mwd-player-gadget__chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.mwd-player-gadget__subject-picker,
+.mwd-player-gadget__manual-add {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.mwd-player-gadget__manual-add {
+  grid-template-columns: minmax(0, 1fr) 4rem auto auto;
+}
+
+.mwd-player-gadget__tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.25rem;
+}
+
+.mwd-player-gadget__tab,
+.mwd-player-gadget__btn,
+.mwd-player-gadget__mini-btn,
+.mwd-player-gadget__icon-btn,
+.mwd-player-gadget__action,
+.mwd-player-gadget__weapon,
+.mwd-player-gadget__chip {
+  border: 1px solid var(--pg-border);
+  border-radius: 4px;
+  background: var(--pg-button);
+  color: var(--pg-text);
+}
+
+.mwd-player-gadget__tab,
+.mwd-player-gadget__btn,
+.mwd-player-gadget__mini-btn,
+.mwd-player-gadget__chip {
+  padding: 0.35rem 0.5rem;
+}
+
+.mwd-player-gadget__tab.is-active,
+.mwd-player-gadget__action.is-prominent {
+  border-color: var(--pg-accent);
+  color: var(--pg-accent);
+}
+
+.mwd-player-gadget__btn--wide {
+  width: 100%;
+}
+
+.mwd-player-gadget__icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+}
+
+.mwd-player-gadget__pill,
+.mwd-player-gadget__monitor {
+  border: 1px solid var(--pg-border);
+  border-radius: 999px;
+  padding: 0.15rem 0.4rem;
+  color: var(--pg-accent);
+  font-size: 0.78rem;
+}
+
+.mwd-player-gadget__pill.is-alert {
+  color: #f29b68;
+}
+
+.mwd-player-gadget__action-list {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.mwd-player-gadget__action,
+.mwd-player-gadget__weapon,
+.mwd-player-gadget__log-row,
+.mwd-player-gadget__preset-row,
+.mwd-player-gadget__status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem;
+}
+
+.mwd-player-gadget__action {
+  justify-content: space-between;
+}
+
+.mwd-player-gadget__action small,
+.mwd-player-gadget__preset-value {
+  color: var(--pg-muted);
+}
+
+.mwd-player-gadget__weapon {
+  width: 100%;
+  text-align: left;
+}
+
+.mwd-player-gadget__weapon-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  color: var(--pg-muted);
+  font-size: 0.72rem;
+}
+
+.mwd-player-gadget__log,
+.mwd-player-gadget__action-group,
+.mwd-player-gadget__preset-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.mwd-player-gadget__log-row,
+.mwd-player-gadget__preset-row,
+.mwd-player-gadget__status-row {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
+.mwd-player-gadget__preset-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.mwd-player-gadget__preset-row.is-disabled {
+  opacity: 0.55;
+}
+
+.mwd-player-gadget__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.mwd-player-gadget input,
+.mwd-player-gadget select {
+  min-width: 0;
+  border: 1px solid var(--pg-border);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--pg-text);
+}

@@ -28,6 +28,11 @@ import {
 import { adjustBattlemechPendingHeat, recordBattlemechAttackHeat } from "../mwd/machine-heat.js";
 import { applyHeatDangerCheckOutcome } from "../mwd/heat-danger-outcomes.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import {
+  applyPlayerModifierPresetsToPayload,
+  consumeOncePlayerModifierPresets,
+  shouldApplyPlayerModifierPresets,
+} from "../player/player-modifier-presets.js";
 import { getMachineActionDefinition } from "../mwd/machine-action-catalog.js";
 import { findAssetModuleActionOverride, getAssetModuleActionCosts } from "../mwd/asset-module-effects.js";
 import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
@@ -719,13 +724,17 @@ async function commitMachineAction(actor, actionKey = "", payload = {}, { rollAc
   }
 }
 
-async function execute({ actor, payload, event } = {}) {
+async function execute({ actor, payload, event, uiState = null } = {}) {
   // Allow token docs/objects to be passed accidentally
   if (actor?.actor) actor = actor.actor;
   if (actor?.document?.actor) actor = actor.document.actor;
 
   if (!actor) throw new Error("MWD.roll.execute requires actor");
   if (!payload?.intent) throw new Error("MWD.roll.execute requires payload.intent");
+  const applyPlayerPresets = shouldApplyPlayerModifierPresets(uiState);
+  if (applyPlayerPresets) {
+    payload = applyPlayerModifierPresetsToPayload(payload, { subject: uiState?.subject ?? null });
+  }
   payload = normalizePayload(payload);
   actor = resolveOperatedPlatformRollActor(actor, payload);
   payload = await normalizeAttackPayload({ actor, payload });
@@ -816,6 +825,9 @@ async function execute({ actor, payload, event } = {}) {
   });
 
   if (!updatedPayload) return null;
+  if (applyPlayerPresets && uiState?.subject) {
+    await consumeOncePlayerModifierPresets(uiState.subject);
+  }
 
   payload = normalizePayload(updatedPayload);
   ctx = await resolveIntent({ actor, payload, event });

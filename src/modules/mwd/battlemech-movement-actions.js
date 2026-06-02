@@ -15,8 +15,8 @@ import { resolveBattlemechJumpProfile } from "./battlemech-mobility.js";
 
 export const BATTLEMECH_MOVEMENT_ACTIONS = Object.freeze({
   walk: Object.freeze({ id: "walk", label: "Walk", cost: 1, heat: 0, mode: "ground" }),
-  run: Object.freeze({ id: "run", label: "Run", cost: 2, heat: 1, mode: "ground" }),
-  sprint: Object.freeze({ id: "sprint", label: "Sprint", cost: 3, heat: 2, mode: "ground" }),
+  run: Object.freeze({ id: "run", label: "Run", cost: 1, heat: 1, mode: "ground" }),
+  sprint: Object.freeze({ id: "sprint", label: "Sprint", cost: 2, heat: 2, mode: "ground" }),
   prone: Object.freeze({ id: "prone", label: "Prone", cost: 1, heat: 0, mode: "posture", statusId: "proneMechFall" }),
   fly: Object.freeze({ id: "fly", label: "Fly", cost: 1, heat: 0, mode: "flight" }),
   jump: Object.freeze({ id: "jump", label: "Jump", cost: 1, heat: 0, mode: "jump" }),

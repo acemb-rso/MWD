@@ -98,7 +98,8 @@ export async function syncMachinePilotVision(actor = null) {
   const ownership = { ...(actor.ownership ?? {}) };
   const autoGrants = getAutoGrantMap(actor);
   const nextAutoGrants = { ...autoGrants };
-  const updates = {};
+  const nextOwnership = { ...ownership };
+  let ownershipChanged = false;
 
   const pilotActor = await resolvePilotActor(actor);
   const desiredUserIds = new Set(
@@ -114,18 +115,23 @@ export async function syncMachinePilotVision(actor = null) {
     const current = Number(ownership[userId] ?? none) || none;
     if (current >= observer) continue;
 
-    updates[`ownership.${userId}`] = observer;
+    nextOwnership[userId] = observer;
     nextAutoGrants[userId] = current;
+    ownershipChanged = true;
   }
 
   for (const [userId, previousLevel] of Object.entries(autoGrants)) {
     if (desiredUserIds.has(userId)) continue;
 
     const restored = Math.max(none, Number(previousLevel ?? none) || none);
-    if (restored > none) updates[`ownership.${userId}`] = restored;
-    else updates[`ownership.-=${userId}`] = null;
+    if (restored > none) nextOwnership[userId] = restored;
+    else delete nextOwnership[userId];
     delete nextAutoGrants[userId];
+    ownershipChanged = true;
   }
+
+  const updates = {};
+  if (ownershipChanged) updates.ownership = nextOwnership;
 
   const currentFlagJson = JSON.stringify(autoGrants);
   const nextFlagJson = JSON.stringify(nextAutoGrants);

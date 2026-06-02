@@ -15,9 +15,9 @@ test("battlemech movement actions always include baseline ground choices", () =>
     ["walk", "run", "sprint", "prone"],
   );
   assert.equal(choices.find(choice => choice.id === "walk")?.cost, 1);
-  assert.equal(choices.find(choice => choice.id === "run")?.cost, 2);
+  assert.equal(choices.find(choice => choice.id === "run")?.cost, 1);
   assert.equal(choices.find(choice => choice.id === "run")?.heat, 1);
-  assert.equal(choices.find(choice => choice.id === "sprint")?.cost, 3);
+  assert.equal(choices.find(choice => choice.id === "sprint")?.cost, 2);
   assert.equal(choices.find(choice => choice.id === "sprint")?.heat, 2);
 });
 

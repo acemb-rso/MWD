@@ -6,7 +6,7 @@ import { getPersonalCritRemedy } from "../src/modules/mwd/personal-crit-remedies
 import { PERSONAL_CRITICAL_FAMILIES } from "../src/modules/mwd/personal-crit-families.js";
 
 test("personal critical family remedies resolve to known actions or checks", () => {
-  const expected = new Set(["reduceBurn", "endure", "firstAid", "readyItem", "steady"]);
+  const expected = new Set(["reduceBurn", "endure", "composure", "firstAid", "readyItem", "steady"]);
   for (const family of Object.values(PERSONAL_CRITICAL_FAMILIES)) {
     for (const band of Object.values(family.bands)) {
       assert.ok(expected.has(band.remedyKey), `${family.id} ${band.statusId}`);
@@ -16,6 +16,19 @@ test("personal critical family remedies resolve to known actions or checks", () 
         assert.ok(getCommonCheckDefinition(remedy.actionId), `${remedy.actionId} common check exists`);
       }
     }
+  }
+});
+
+test("composure is GUTS + CHA for Shaken remedies", () => {
+  const composure = getCommonCheckDefinition("composure");
+  assert.deepEqual(composure.formula, ["GUTS", "CHA"]);
+  assert.equal(getPersonalCritRemedy("composure").baseDn, 2);
+
+  const shakenBands = Object.values(PERSONAL_CRITICAL_FAMILIES.shaken.bands);
+  for (const band of shakenBands) {
+    assert.equal(band.remedyKey, "composure");
+    assert.equal(band.remedyLabel, "Composure");
+    assert.equal(band.remedyBaseDn, 2);
   }
 });
 

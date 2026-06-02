@@ -41,7 +41,7 @@ Net hits no longer add to damage; they feed this system instead.
 
 | Margin (net hits) | Severity |
 |-------------------|----------|
-| 1–2 | +0 |
+| 0–2 | +0 |
 | 3–4 | +1 |
 | 5–6 | +2 |
 | 7+  | +3 |
@@ -78,13 +78,13 @@ declaratively.
 | 3 | **Crippled** | First Aid | speed −2m | −4m | −6m |
 | 4 | **Hampered** | Ready Item | weapon becomes *unequipped* (must be re-readied) | …and −1 die to physical actions | …and fall `prone` |
 | 5 | **Off Balance** | Steady (DN 2) | attack rating & defense rating −2 | −4 | −6 |
-| 6 | **Shaken** | Endure (DN 3) | cannot `aim` | cannot `aim` or take reactions | cannot `aim`, take reactions, or perform complex actions |
+| 6 | **Shaken** | Composure (DN 2) | cannot `aim` | cannot `aim` or take reactions | cannot `aim`, take reactions, or perform complex actions |
 
 **Notes:**
 - **Winded** is a one-time resource spike: it raises Burn immediately; the
   lingering problem is the elevated Burn, cleared by **Reduce Burn**.
 - **Hampered** escalates by band — each higher band *adds* to the prior effect.
-- **Off Balance** and **Shaken** carry explicit Recovery DNs (2 and 3); other
+- **Off Balance** and **Shaken** carry explicit Recovery DNs (both DN 2); other
   families use their remedy action's default DN.
 
 ---
@@ -100,7 +100,8 @@ only by its **remedy verb** — an existing action (or, for *Steady*, a new one)
 | Reduce Burn | Personal action | Winded (lower raised Burn) |
 | First Aid | Personal action | Crippled |
 | Ready Item | Personal action | Hampered (re-ready the weapon) |
-| Endure | Common-check utility | Concussion, Shaken (DN 3) |
+| Endure | Common-check utility | Concussion |
+| Composure | Common-check utility (rolls **GUTS + CHA**) | Shaken (DN 2) |
 | Steady | Common-check utility (**new** — like Endure, rolls **REF + GUTS**) | Off Balance (DN 2) |
 
 Criticals persist, so they create real action-economy pressure and tactical

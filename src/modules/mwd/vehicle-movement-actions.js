@@ -15,8 +15,8 @@ import { buildVehicleProfileSummary } from "./vehicle-profiles.js";
 
 export const VEHICLE_MOVEMENT_ACTIONS = Object.freeze({
   move: Object.freeze({ id: "move", label: "Move", cost: 1, strain: 0, mode: "ground" }),
-  reposition: Object.freeze({ id: "reposition", label: "Tactical Reposition", cost: 2, strain: 0, mode: "ground" }),
-  redline: Object.freeze({ id: "redline", label: "Redline", cost: 3, strain: 1, mode: "ground" }),
+  reposition: Object.freeze({ id: "reposition", label: "Tactical Reposition", cost: 1, strain: 0, mode: "ground" }),
+  redline: Object.freeze({ id: "redline", label: "Redline", cost: 2, strain: 1, mode: "ground" }),
   fly: Object.freeze({ id: "fly", label: "Flight Move", cost: 1, strain: 0, mode: "flight" }),
   hullDown: Object.freeze({ id: "hullDown", label: "Hull Down", cost: 1, strain: 0, mode: "posture", statusId: "entrenchedHullDown" }),
   brace: Object.freeze({ id: "brace", label: "Brace", cost: 1, strain: 0, mode: "posture", statusId: "braced" }),

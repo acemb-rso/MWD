@@ -7,8 +7,8 @@ These are the rules the resolver and application flow enforce:
 1. DN = Range + Motion only.
 2. Dice pool mods = execution friction: environment, heat, system damage, sensors, and tracking penalty.
 3. CQ = AR - DR from tactical packages and state.
-4. NetHits saturates via `min(CQ, Margin)`.
-5. Graze floor: if `Margin >= 1` but `NetHitsRaw <= 0`, the outcome is Graze.
+4. Outcome is determined by a four-tier CQ table: CQ > 0 hits at Margin ≥ 0; CQ = 0 grazes at Margin 0 and hits at Margin ≥ 1; CQ −1 to −3 grazes at Margin 1 and hits at Margin ≥ 2; CQ ≤ −4 grazes at Margin 1–2 and hits at Margin ≥ 3; else Miss.
+5. NetHits = max(0, Margin) on a Hit; 0 on a Graze or Miss.
 6. Speed is tiered state; motion difficulty saturates and then becomes tracking pool penalty.
 7. Handling affects piloting and offsets eligible AR/DR penalties only, via tags.
 8. Actor writes happen through queued apply actions, not during attack resolution.
@@ -161,7 +161,7 @@ Apply Handling after CQ parts are collected and before CQ totals are finalized.
 5. Finalize AR/DR totals and CQ.
 6. Roll dice and count hits.
 7. Compute Margin = Hits - DN.
-8. Compute outcome with the graze floor.
+8. Compute outcome from the CQ/Margin tier table.
 9. Compute NetHits for hits.
 10. Compute damage and resistance preview.
 11. Emit queued mutations for damage, heat, states, or other consequences that require deliberate apply.

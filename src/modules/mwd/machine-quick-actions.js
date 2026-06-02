@@ -46,7 +46,8 @@ function normalizeMachineActionRequest(request = {}) {
   if (!request || typeof request !== "object") {
     throw new Error("MWD machine action request must be an object.");
   }
-  const kind = String(request.kind ?? "").trim();
+  const intent = String(request.intent ?? request.payload?.intent ?? "").trim();
+  const kind = String(request.kind ?? (intent === "machineAction" ? "action" : "")).trim();
   if (!kind) throw new Error("MWD machine action request requires kind.");
   return { ...request, kind };
 }
@@ -529,6 +530,193 @@ async function executeMachineHeatDangerCheck(actor, request) {
   }, request.event);
 }
 
+const BATTLEMECH_ACTION_MOVEMENT = Object.freeze({
+  walk: "walk",
+  safeThrust: "walk",
+  run: "run",
+  jumpMove: "jump",
+  sprint: "sprint",
+  dropProne: "prone",
+});
+
+const VEHICLE_ACTION_MOVEMENT = Object.freeze({
+  walk: "move",
+  safeThrust: "move",
+  run: "reposition",
+  sprint: "redline",
+  brace: "brace",
+  hullDown: "hullDown",
+});
+
+function machineMovementKindForAction(actor, actionKey = "") {
+  const key = String(actionKey ?? "").trim();
+  if (actor?.type === TEMPLATE.actorTypes.vehicle) return VEHICLE_ACTION_MOVEMENT[key] ?? "";
+  if (actor?.type === TEMPLATE.actorTypes.battlemech) return BATTLEMECH_ACTION_MOVEMENT[key] ?? "";
+  return "";
+}
+
+function disabledMachineActionResult(action, fallbackReason = "") {
+  const reason = String(action?.implementation?.reason ?? fallbackReason ?? "").trim()
+    || `${action?.label ?? "That machine action"} is not implemented yet.`;
+  ui.notifications?.warn(reason);
+  return { ok: false, reason, userMessage: reason, actionId: action?.key ?? "" };
+}
+
+async function executeMachineNarrativeAction(actor, action, request = {}) {
+  const token = resolveRequestToken(actor, request);
+  const spend = await recordMachineActionCost(actor, action, {
+    token,
+    operatorActorUuid: String(request.operatorActorUuid ?? "").trim(),
+  });
+  if (spend && spend.ok === false) return spend;
+
+  const message = action.notes || "Action recorded.";
+  ui.notifications?.info(`${action.label}: ${message}`);
+  return {
+    ok: true,
+    actionId: action.key,
+    costPaid: Boolean(spend && spend.ok && !spend.skipped),
+    rolled: false,
+    stateChanges: [],
+    log: { title: action.label, message },
+  };
+}
+
+async function executeMachineSkillAction(actor, action, request = {}) {
+  const skillKey = String(request.skillKey ?? action.skillKey ?? "").trim();
+  const attributeKey = String(request.attributeKey ?? request.attrKey ?? action.attributeKey ?? "").trim();
+  if (!skillKey || !attributeKey) {
+    const reason = `${action.label} needs a skill and machine attribute before it can be rolled.`;
+    ui.notifications?.warn(reason);
+    return { ok: false, reason, userMessage: reason, actionId: action.key };
+  }
+
+  const token = resolveRequestToken(actor, request);
+  return executeRollPayload(actor, {
+    intent: "skill",
+    key: skillKey,
+    attrKey: attributeKey,
+    machineAttributeKey: attributeKey,
+    operatorActorUuid: String(request.operatorActorUuid ?? "").trim(),
+    sourceTokenId: token?.id ?? null,
+    targetTokenId: String(request.targetTokenId ?? "").trim() || null,
+    targetTokenUuid: String(request.targetTokenUuid ?? "").trim() || null,
+    machineActionKey: action.key,
+    quickAction: { title: action.label },
+    edge: { allowed: ["pre", "post"] },
+    tags: ["machine", action.resolver, ...(action.tags ?? [])],
+  }, request.event);
+}
+
+async function executeMachineHeatReactionAction(actor, action, request = {}) {
+  const token = resolveRequestToken(actor, request);
+  const spend = await recordMachineActionCost(actor, action, {
+    token,
+    operatorActorUuid: String(request.operatorActorUuid ?? "").trim(),
+  });
+  if (spend && spend.ok === false) return spend;
+
+  const result = await executeMachineHeatDangerCheck(actor, { ...request, checkKind: "shutdown" });
+  return {
+    ...result,
+    actionId: action.key,
+    costPaid: Boolean(spend && spend.ok && !spend.skipped),
+  };
+}
+
+async function executeMachineTargetingAction(actor, action, request = {}) {
+  const actionKey = action.key;
+  if (actionKey === "acquireTarget" || actionKey === "sensorLock") {
+    const result = await executeMachineEwIntent(actor, { ...request, intent: "acquire", actionId: "acquireTarget" });
+    return result ?? performMachineElectronicWarfare(actor, {
+      actionId: "acquireTarget",
+      token: request.token ?? null,
+      operatorActorUuid: request.operatorActorUuid,
+    });
+  }
+  if (actionKey === "generateFireSolution") {
+    const result = await executeMachineEwIntent(actor, { ...request, intent: "targeting", actionId: "generateFireSolution" });
+    return result ?? performMachineElectronicWarfare(actor, {
+      actionId: "generateFireSolution",
+      token: request.token ?? null,
+      operatorActorUuid: request.operatorActorUuid,
+    });
+  }
+  if (actionKey === "sensorSweep" || actionKey === "assess" || actionKey === "epmFilter" || actionKey === "swat" || actionKey === "tagTarget" || actionKey === "shareTargetingData" || actionKey === "ecmSpike" || actionKey === "suppressBeacon") {
+    const routedActionId = actionKey === "assess" ? "sensorSweep" : actionKey;
+    return performMachineElectronicWarfare(actor, {
+      actionId: routedActionId,
+      token: request.token ?? null,
+      operatorActorUuid: request.operatorActorUuid,
+    });
+  }
+  return executeMachineSkillAction(actor, action, request);
+}
+
+async function executeMachineCatalogAction(actor, request = {}) {
+  const requestedActionId = String(request.actionId ?? request.payload?.actionId ?? request.action?.id ?? "").trim();
+  const action = getMachineActionDefinition(requestedActionId);
+  if (action.key === "none" && requestedActionId && requestedActionId !== "none") {
+    const reason = `Unknown machine action: ${requestedActionId}.`;
+    ui.notifications?.warn(reason);
+    return { ok: false, reason, userMessage: reason, actionId: requestedActionId };
+  }
+
+  const implementationState = String(action.implementation?.state ?? "ready").trim() || "ready";
+  if (implementationState === "disabled" || implementationState === "stub") {
+    return disabledMachineActionResult(action);
+  }
+
+  switch (action.resolver) {
+    case "movement": {
+      if (action.key === "pilotingCheck") {
+        return performMachinePilotingCheck(actor, {
+          operatorActorUuid: String(request.operatorActorUuid ?? "").trim(),
+        });
+      }
+      const movementKind = String(request.movementKind ?? "").trim() || machineMovementKindForAction(actor, action.key);
+      if (movementKind) return executeMachineMovement(actor, { ...request, movementKind });
+      return executeMachineNarrativeAction(actor, action, request);
+    }
+    case "attack":
+      if (action.key === "rangedAttack") return executeMachineAttack(actor, { ...request, attackKind: "ranged" });
+      if (action.key === "physicalAttack") return executeMachineAttack(actor, { ...request, attackKind: "melee" });
+      return executeMachineSkillAction(actor, action, request);
+    case "targeting":
+      return executeMachineTargetingAction(actor, action, request);
+    case "remediation":
+      if (action.key === "emergencyRepair" && (request.issue || request.issueKind || request.issueId || request.critId || request.statusId || request.remedyKey)) {
+        return performMachineCriticalRepair(actor, {
+          issue: request.issue ?? null,
+          issueKind: request.issueKind ?? "",
+          issueId: request.issueId ?? "",
+          remedyKey: request.remedyKey ?? "",
+          operatorActorUuid: request.operatorActorUuid ?? "",
+        });
+      }
+      if (action.key === "swat") return executeMachineTargetingAction(actor, action, request);
+      return executeMachineSkillAction(actor, action, request);
+    case "recovery":
+      if (action.key === "avoidShutdown") return executeMachineHeatReactionAction(actor, action, request);
+      return executeMachineSkillAction(actor, action, request);
+    case "interaction":
+      if (action.key === "selectFireMode") {
+        const mode = String(request.newMode ?? request.fireMode ?? "").trim();
+        if (!mode) {
+          const reason = "Select Fire Mode needs a fire mode value.";
+          ui.notifications?.warn(reason);
+          return { ok: false, reason, userMessage: reason, actionId: action.key };
+        }
+        return executeMachineFireModeChange(actor, { ...request, newMode: mode });
+      }
+      return executeMachineNarrativeAction(actor, action, request);
+    case "action":
+    default:
+      if (action.roll || action.skillKey || action.attributeKey) return executeMachineSkillAction(actor, action, request);
+      return executeMachineNarrativeAction(actor, action, request);
+  }
+}
+
 export async function executeMachineQuickAction(actor, request = {}) {
   assertMachineActionActor(actor);
   const normalized = normalizeMachineActionRequest(request);
@@ -538,6 +726,9 @@ export async function executeMachineQuickAction(actor, request = {}) {
   let result;
 
   switch (normalized.kind) {
+    case "action":
+      result = await executeMachineCatalogAction(actor, normalized);
+      break;
     case "attack":
       result = await executeMachineAttack(actor, normalized);
       break;

@@ -24,7 +24,7 @@ EPM Boosted|-2 dice to ECM Spike|toggle|2 SA||Free Action Sustained
 # HEAT / POWER
 Status|Mechanical Impact|Remediation|SA Cost|DN|
 |-|-|-|-|-|
-Thermal Surge|+2 Heat at start of turn|coolantDump|1 SA|1|
+Thermal Surge|+2 Heat at start of turn|coolantDump|2 SA|1|
 Reactor Instability|+1 Heat (energy weapons); -1 dmg"|powerReroute|1 SA|2|
 Cooling Failure|-2 heat dissipation|emergencyRepair|2 SA|2|
 Shutdown|Cannot act; must restart|powerCycle|2 SA|2|
@@ -53,7 +53,7 @@ Exposed|-2 DR|reposition|1 SA|.|
 # FIRE / CATASTROPHIC
 Status|Mechanical Impact|Remediation|SA Cost|DN|
 |-|-|-|-|-|
-On Fire|+1 Heat/turn; explosion risk|Extinquish|2 SA|2|
+On Fire|+1 Heat/turn; explosion risk|extinguish|2 SA|2|
 Reactor Breach|*see below* |jettisonCore|2 SA|3|
 
 ## Reactor Breach Mechanic

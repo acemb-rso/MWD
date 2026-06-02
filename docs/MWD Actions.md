@@ -88,10 +88,8 @@ Tags can overlap. Resolver ownership should not.
 | Use Untrained Complex Skill | Complex | 2 SA | action | ready, tag-only |
 | Ready Heavy Weapon | Complex | 2 SA | interaction | ready |
 | Extinguish Fire | Complex | 2 SA | recovery | ready |
-| Recover Burn | Complex | 2 SA | recovery | ready |
-| Speak / Signal | Free | 1 FA | action | ready |
+| Communicate | Free | 1 FA | action | ready |
 | Drop Object | Free | 1 FA | interaction | ready |
-| Gesture / Signal | Free | 1 FA | action | ready |
 | Observe Quickly | Free | 1 FA | action | ready |
 | Select Fire Mode | Free | 1 FA | interaction | ready |
 | Select Ammunition / Payload | Free | 1 FA | interaction | ready |
@@ -99,11 +97,11 @@ Tags can overlap. Resolver ownership should not.
 | Ready Small Item | Free | 1 FA | interaction | ready |
 | Prepare | Free | 1 FA | action | ready |
 | Activate Item | Free | 1 FA | interaction | ready |
+| Dodge | Free | 1 FA | recovery | stub |
 | Evade | Reaction | 1 RA | recovery | ready |
 | Opportunity Attack | Reaction | 1 RA | attack | ready |
 | Assist Ally | Reaction | 1 RA | action | ready |
 | Interrupt from Prepare | Reaction | 1 RA | action | ready |
-| Dodge / Defensive Response | Reaction | 1 RA | recovery | stub |
 | Break Grapple / Melee Defense | Reaction | 1 RA | recovery | stub |
 
 ## Personal Execution Boundary
@@ -131,31 +129,61 @@ action-executor state changes or logs.
 ## Machine Actions and Remediations
 
 Machine action definitions live in `src/modules/mwd/machine-action-catalog.js`.
+They now use the same declarative shape as personal combat actions while keeping
+legacy compatibility fields (`resource`, numeric `cost`, `category`) for the
+existing remedy, EW, and roll-commit paths.
 
-| Name | Attribute | Skill | Action | Use |
+Each catalog entry owns:
+
+```js
+{
+  key: "generateFireSolution",
+  actionCost: { resource: "sa", value: 1 },
+  resolver: "targeting",
+  prompt: { type: "target", required: true },
+  payload: { intent: "machineAction", actionId: "generateFireSolution" },
+  implementation: { state: "ready", reason: "" }
+}
+```
+
+Machine action payloads can route through `game.mwd.machineActions.execute`
+with `kind: "action"`, or by using `intent: "machineAction"` with an
+`actionId`. The executor rejects `stub` and `disabled` actions before cost is
+spent, maps ready catalog actions onto the existing movement, attack, EW,
+remediation, recovery, and interaction services, and relies on the roll engine
+to commit costs for rolled machine skill actions that carry `machineActionKey`.
+Non-roll narrative actions are paid/logged directly by the machine action
+service.
+
+| Name | Cost | Resolver | Implementation | Use |
 | --- | --- | --- | --- | --- |
-| emergencyRepair | Reliability | Technician | Standard | Critical repair |
-| systemReset | Reliability | SystemOps | Standard | Reset a system problem |
-| reboot | Reliability | Computer | Standard | Reboot a computer/system issue |
-| feedReset | Reliability | Gunnery | Standard | Reset a weapon feed |
-| pilotRecovery | Reliability | Piloting | Standard | Pilot recovery |
-| coolantDump | Reliability | SystemOps | Complex | Restore heat management system |
-| stand | Handling | Piloting | Standard | Machine stand/recovery |
-| stabalize | Handling | Piloting | Complex | Legacy spelling for Stabilize |
-| stabilize | Handling | Piloting | Complex | Stabilize |
-| powerReroute | System | Technician | Standard | Reroute power |
-| sensorSweep | System | Perception | Standard | General battlefield scan; reveal hidden units, detect signatures, identify contacts |
-| epmFilter | System | Perception | Complex | Remove ECM Jamming |
-| powerCycle | System | Computer | Complex | Recover from Shutdown |
-| acquireTarget | System | Perception | Standard | Improve Detection State on target |
-| emergencyJettison | System | Gunnery | Reaction | Dump volatile equipment before it explodes |
-| jettisonCore | System | Technician | Complex | Dump reactor core before it explodes |
-| breakLock | Handling | SystemOps | Reaction | Degrade Detection State from attacker |
-| sprint | Handling | Piloting | Complex | Fast movement; generates heat |
-| ecmSpike | System | SystemOps | Standard | Applies ECM Jamming |
-| suppressBeacon | System | SystemOps | Standard | Suppress beacon-based targeting support such as NARC or TAG |
-| extinguish | System | Piloting | Complex | Extinguish |
-| swat | Handling | Piloting | Complex | Remove BattleArmor or NARC |
-| generateFireSolution | System | Gunnery | Standard | Create targeting data |
-| tagTarget | Handling | Gunnery | Standard | Apply TAG enabler flag for guided systems |
-| shareTargetingData | System | - | Free Action | C3/network provider action; share best state and best eligible packet |
+| communicate | 1 FA | action | ready | Communicate |
+| activateElectronics | 1 FA | interaction | ready | Simple electronics toggle |
+| toggleHeatSinks | 1 FA | interaction | ready | Heat-sink state toggle |
+| activateMasc | 1 FA | movement | ready | MASC state toggle; risk hooks belong in movement |
+| selectFireMode | 1 FA | interaction | ready | Change active machine fire mode |
+| selectAmmoType | 1 FA | interaction | ready | Select preloaded ammo/payload type |
+| torsoTwist | 1 FA | movement | ready | Arc/facing adjustment |
+| dropProne | 1 SA | movement | ready | Deliberate BattleMech prone posture |
+| avoidShutdown | 1 RA | recovery | ready | Danger heat shutdown check |
+| walk / safeThrust | 1 SA | movement | ready | Safe machine movement |
+| run | 1 SA | movement | ready | Fast move; BattleMechs add 1 Heat |
+| jumpMove | 1 SA | movement | ready | Jump movement when available |
+| rangedAttack | 1 SA | attack | ready | Machine ranged attack resolver |
+| physicalAttack | 1 SA | attack | ready | Machine melee/physical attack resolver |
+| sensorSweep / assess | 1 SA | targeting | ready | Battlefield scan / detailed observation |
+| acquireTarget | 1 SA | targeting | ready | Improve detection state |
+| generateFireSolution | 1 SA | targeting | ready | Create targeting data |
+| sensorLock | 1 SA | targeting | ready | Acquire-target upgrade toward lock |
+| brace | 1 SA | movement | ready | Defensive posture |
+| hullDown | 1 SA | movement | ready | Vehicle prepared position |
+| sprint | 2 SA | movement | ready | Complex move; BattleMechs add 2 Heat, vehicles Redline for Strain |
+| powerCycle | 2 SA | remediation | ready | Recover from Shutdown |
+| coolantDump | 2 SA | remediation | ready | Restore heat-management system |
+| epmFilter | 2 SA | targeting | ready | Remove or reduce ECM Jamming |
+| swat | 2 SA | remediation | ready | Remove BattleArmor or NARC |
+| chargeAttack | 2 SA | attack | stub | Charge / ram / DFA collision package |
+| evasiveManeuver | 2 SA | movement | stub | Machine evasive posture bonuses |
+| shield | 2 SA | movement | stub | Physical defense / shielding state |
+| spotIndirect | 2 SA | targeting | stub | Indirect-fire network effect |
+| eject | 1 SA | interaction | stub | Manual ejection state changes |

@@ -12,11 +12,13 @@
 
 ** Outcome
 
-[CombatQuality] > 0 AND [Margin] = 0 => [Graze]
-[CombatQuality] > 0 AND [Margin] >= 1 => [Hit]
-[CombatQuality] = 0 AND [Margin] >= 1 => [Hit]
-[CombatQuality] < 0 AND [Margin] = 1 => [Graze]
-[CombatQuality] < 0 AND [Margin] >= 2 => [Hit]
+[CombatQuality] > 0  AND [Margin] >= 0 => [Hit]
+[CombatQuality] = 0  AND [Margin] = 0  => [Graze]
+[CombatQuality] = 0  AND [Margin] >= 1 => [Hit]
+[CombatQuality] -1 to -3 AND [Margin] = 1  => [Graze]
+[CombatQuality] -1 to -3 AND [Margin] >= 2 => [Hit]
+[CombatQuality] <= -4 AND [Margin] IN [1, 2] => [Graze]
+[CombatQuality] <= -4 AND [Margin] >= 3 => [Hit]
 Else => [Miss]
 
 ** NetHits (Hit only) — drives Critical Threat severity, NOT damage
@@ -25,7 +27,7 @@ Else => [Miss]
 [Graze OR Miss] => [NetHits] = 0
 
 On a Hit, NetHits sets the Critical Threat Severity instead of adding damage:
-[1–2] => +0, [3–4] => +1, [5–6] => +2, [7+] => +3. Roll [2d6 + Severity]:
+[0–2] => +0, [3–4] => +1, [5–6] => +2, [7+] => +3. Roll [2d6 + Severity]:
 [10] Minor, [11] Moderate, [12+] Severe, else No Critical. See
 `personal-critical-hit.md`.
 

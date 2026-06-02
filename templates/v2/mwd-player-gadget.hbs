@@ -1,0 +1,208 @@
+{{!--
+templates/v2/mwd-player-gadget.hbs
+Purpose: Compact player-facing combat cockpit.
+How it fits: Emits intents to existing personal combat, roll, attack, and status services.
+--}}
+
+<section class="mwd-player-gadget__root">
+  <header class="mwd-player-gadget__top">
+    {{#if hasSubject}}
+      <div class="mwd-player-gadget__subject">
+        <img src="{{subject.img}}" alt="" class="mwd-player-gadget__portrait">
+        <div class="mwd-player-gadget__subject-main">
+          <div class="mwd-player-gadget__subject-name">{{subject.name}}</div>
+          <div class="mwd-player-gadget__subject-sub">Player combat cockpit</div>
+        </div>
+      </div>
+
+      <div class="mwd-player-gadget__handoff">
+        <button type="button" class="mwd-player-gadget__mini-btn" data-action="openFullSheet">Open Full Sheet</button>
+        <button type="button" class="mwd-player-gadget__mini-btn" data-action="refreshSubject" title="Refresh">Refresh</button>
+      </div>
+
+      {{#if subjects.length}}
+        <div class="mwd-player-gadget__subject-picker">
+          <select name="subject-token">
+            {{#each subjects as |option|}}
+              <option value="{{option.tokenUuid}}" {{#if option.selected}}selected{{/if}}>{{option.name}}</option>
+            {{/each}}
+          </select>
+          <button type="button" class="mwd-player-gadget__icon-btn" data-action="selectSubject" title="Select token">
+            <i class="fa-solid fa-check"></i>
+          </button>
+        </div>
+      {{/if}}
+
+      <div class="mwd-player-gadget__summary">
+        {{#each combatActions.summaryPills as |pill|}}
+          <span class="mwd-player-gadget__pill">{{pill.label}} {{pill.value}}</span>
+        {{/each}}
+        {{#with summary.burn as |burn|}}
+          <span class="mwd-player-gadget__pill{{#if burn.overloaded}} is-alert{{/if}}">Burn {{burn.value}}</span>
+        {{/with}}
+        {{#with summary.speed as |speed|}}
+          <span class="mwd-player-gadget__pill">Move {{speed.displayValue}}</span>
+        {{/with}}
+      </div>
+
+      <div class="mwd-player-gadget__monitors">
+        {{#each summary.monitors as |monitor|}}
+          <span class="mwd-player-gadget__monitor">{{monitor.label}} {{monitor.value}}/{{monitor.max}}</span>
+        {{/each}}
+      </div>
+    {{else}}
+      <div class="mwd-player-gadget__empty">
+        <div class="mwd-player-gadget__empty-title">No Combat Token</div>
+        <div class="mwd-player-gadget__hint">{{emptyReason}}</div>
+        <button type="button" class="mwd-player-gadget__mini-btn" data-action="refreshSubject">Refresh</button>
+      </div>
+    {{/if}}
+  </header>
+
+  <nav class="mwd-player-gadget__tabs" aria-label="Player Gadget">
+    <button type="button" class="mwd-player-gadget__tab {{#if (eq currentTab 'actions')}}is-active{{/if}}" data-action="switchTab" data-tab="actions">Actions</button>
+    <button type="button" class="mwd-player-gadget__tab {{#if (eq currentTab 'attacks')}}is-active{{/if}}" data-action="switchTab" data-tab="attacks">Attacks</button>
+    <button type="button" class="mwd-player-gadget__tab {{#if (eq currentTab 'presets')}}is-active{{/if}}" data-action="switchTab" data-tab="presets">Presets</button>
+    <button type="button" class="mwd-player-gadget__tab {{#if (eq currentTab 'status')}}is-active{{/if}}" data-action="switchTab" data-tab="status">Status</button>
+  </nav>
+
+  <div class="mwd-player-gadget__panel">
+    {{#unless hasSubject}}
+      <div class="mwd-player-gadget__hint">Select or control an owned character/NPC token on the current scene.</div>
+    {{else if (eq currentTab "actions")}}
+      <section class="mwd-player-gadget__section">
+        <div class="mwd-player-gadget__utility-row">
+          {{#each combatActions.utilityButtons as |action|}}
+            {{#if (eq action.handler "roll")}}
+              <button type="button" class="mwd-player-gadget__btn" data-action="roll" data-roll='{{action.roll}}'>{{action.label}}</button>
+            {{else}}
+              <button type="button" class="mwd-player-gadget__btn" data-action="openStatus" {{#if action.disabled}}disabled title="{{action.reason}}"{{/if}}>{{action.label}}</button>
+            {{/if}}
+          {{/each}}
+        </div>
+
+        {{#if combatActions.activationLog.length}}
+          <div class="mwd-player-gadget__log">
+            <div class="mwd-player-gadget__section-title">This Activation</div>
+            {{#each combatActions.activationLog as |entry|}}
+              <div class="mwd-player-gadget__log-row">
+                <span>{{entry.label}}</span>
+                {{#if entry.costLabel}}<span class="mwd-player-gadget__subtle">{{entry.costLabel}}</span>{{/if}}
+                {{#if entry.canRemove}}
+                  <button type="button" class="mwd-player-gadget__icon-btn" data-action="removeActivationAction" data-log-index="{{entry.logIndex}}" title="Remove action">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                {{/if}}
+              </div>
+            {{/each}}
+          </div>
+        {{/if}}
+
+        {{#each combatActions.menus as |menu|}}
+          <div class="mwd-player-gadget__action-group">
+            <div class="mwd-player-gadget__section-title">{{menu.label}}</div>
+            <div class="mwd-player-gadget__action-list">
+              {{#each menu.actions as |action|}}
+                <button
+                  type="button"
+                  class="mwd-player-gadget__action {{#if action.prominent}}is-prominent{{/if}}"
+                  data-action="combatIntent"
+                  data-combat-action="{{action.id}}"
+                  data-combat-payload='{{action.actionPayload}}'
+                  {{#if action.reason}}title="{{action.reason}}"{{/if}}
+                  {{#if action.disabled}}disabled{{/if}}>
+                  <span>{{action.label}}</span>
+                  <small>{{action.costLabel}}</small>
+                </button>
+              {{/each}}
+            </div>
+          </div>
+        {{/each}}
+      </section>
+    {{else if (eq currentTab "attacks")}}
+      <section class="mwd-player-gadget__section">
+        {{#if attacks.length}}
+          {{#each attacks as |attack|}}
+            <button type="button" class="mwd-player-gadget__weapon" data-action="attackWeapon" data-item-id="{{attack.id}}" {{#if attack.disabled}}disabled title="{{attack.reason}}"{{/if}}>
+              <img src="{{attack.img}}" alt="" class="mwd-player-gadget__weapon-img">
+              <span class="mwd-player-gadget__weapon-main">
+                <strong>{{attack.name}}</strong>
+                <small>{{attack.subtitle}}</small>
+              </span>
+              <span class="mwd-player-gadget__weapon-stats">
+                {{#each attack.stats as |stat|}}
+                  <span>{{stat.label}} {{stat.value}}</span>
+                {{/each}}
+              </span>
+            </button>
+          {{/each}}
+        {{else}}
+          <div class="mwd-player-gadget__hint">No equipped personal weapons are ready to attack.</div>
+        {{/if}}
+      </section>
+    {{else if (eq currentTab "presets")}}
+      <section class="mwd-player-gadget__section">
+        <div class="mwd-player-gadget__section-title">Built-In Situational Presets</div>
+        {{#each situationalPresetGroups as |group|}}
+          <div class="mwd-player-gadget__preset-group">
+            <div class="mwd-player-gadget__subtle">{{group.label}}</div>
+            <div class="mwd-player-gadget__chip-row">
+              {{#each group.presets as |preset|}}
+                <button type="button" class="mwd-player-gadget__chip" data-action="addSituationalPreset" data-preset-id="{{preset.id}}">
+                  {{preset.label}} {{preset.valueLabel}}
+                </button>
+              {{/each}}
+            </div>
+          </div>
+        {{/each}}
+
+        <div class="mwd-player-gadget__section-title">My Presets</div>
+        {{#if presets.length}}
+          {{#each presets as |preset|}}
+            <div class="mwd-player-gadget__preset-row {{#unless preset.enabled}}is-disabled{{/unless}}">
+              <button type="button" class="mwd-player-gadget__icon-btn" data-action="togglePlayerPreset" data-preset-id="{{preset.id}}" title="Toggle">
+                <i class="fa-solid {{#if preset.enabled}}fa-check-square{{else}}fa-square{{/if}}"></i>
+              </button>
+              <span class="mwd-player-gadget__preset-name">{{preset.label}}</span>
+              <span class="mwd-player-gadget__preset-value">{{preset.valueLabel}}</span>
+              <button type="button" class="mwd-player-gadget__mini-btn" data-action="togglePlayerPresetOnce" data-preset-id="{{preset.id}}">
+                {{#if preset.consumeOnce}}Once{{else}}Keep{{/if}}
+              </button>
+              <button type="button" class="mwd-player-gadget__icon-btn" data-action="removePlayerPreset" data-preset-id="{{preset.id}}" title="Remove">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          {{/each}}
+        {{else}}
+          <div class="mwd-player-gadget__hint">No personal presets yet.</div>
+        {{/if}}
+
+        <div class="mwd-player-gadget__manual-add">
+          <input type="text" name="preset-label" placeholder="Label">
+          <input type="number" name="preset-value" value="1" step="1">
+          <label><input type="checkbox" name="preset-once" checked> Once</label>
+          <button type="button" class="mwd-player-gadget__mini-btn" data-action="addPlayerPreset">Add</button>
+        </div>
+      </section>
+    {{else if (eq currentTab "status")}}
+      <section class="mwd-player-gadget__section">
+        <button type="button" class="mwd-player-gadget__btn mwd-player-gadget__btn--wide" data-action="openStatus">Open Token Statuses</button>
+        {{#if summary.activeCriticals.length}}
+          <div class="mwd-player-gadget__section-title">Active Criticals</div>
+          {{#each summary.activeCriticals as |crit|}}
+            <div class="mwd-player-gadget__status-row">
+              <strong>{{crit.label}}</strong>
+              {{#if crit.summary}}<small>{{crit.summary}}</small>{{/if}}
+            </div>
+          {{/each}}
+        {{/if}}
+        {{#if summary.combatDashboard.effects.length}}
+          <div class="mwd-player-gadget__section-title">Combat Effects</div>
+          {{#each summary.combatDashboard.effects as |effect|}}
+            <div class="mwd-player-gadget__status-row">{{effect.label}}</div>
+          {{/each}}
+        {{/if}}
+      </section>
+    {{/unless}}
+  </div>
+</section>

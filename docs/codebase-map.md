@@ -101,6 +101,8 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 - `src/modules/combat/personal-action-catalog.js` - Declarative personal combat action catalog. Normalizes legacy rows into the canonical `cost` / `resolver` / `prompt` / `implementation` shape and backfills newly shipped defaults into customized worlds.
 - `src/modules/combat/personal-combat-actions.js` - Central personal combat action executor. Sheets emit `combatIntent`; this layer resolves prompts, spends/logs action cost, dispatches to resolver families, and hands off to the roll engine only when dice are required.
 - `src/modules/combat/personal-combat-tracker.js` - Personal-combat activation and action-economy state: SA/FA/RA, Burn integration, activation log, reaction fallback, and tracker state used by the action executor.
+- `src/modules/mwd/machine-action-catalog.js` - Declarative Vehicle/BattleMech action catalog. Machine actions carry canonical `actionCost`, resolver ownership, prompts, payload ids, and implementation state while preserving legacy cost fields used by remedies and EW.
+- `src/modules/mwd/machine-quick-actions.js` - Central machine action executor. Existing sheet quick actions and catalog-driven `kind: "action"` payloads route through movement, attack, targeting/EW, remediation, recovery, interaction, heat danger, and pending heat/strain services.
 - `src/modules/anarchy-combat.js` - System-level combat hooks and integration points used during combat lifecycle and activation.
 - `src/modules/harm/harm-engine.js` - Harm application service for GM harm, chat-card damage apply, and queued machine attack consequences.
 - `src/modules/harm/harm-engine-utils.js` - Pure harm helpers extracted for testing and easier debugging.
@@ -130,5 +132,6 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 
 - `tests/` - Minimal Node-based tests for pure and near-pure modules such as layout normalization, default resolution, item type normalization, form coercion, and harm helpers.
 - `tests/personal-action-catalog.test.mjs` - Declarative personal action catalog normalization, validation, and default-backfill coverage.
+- `tests/machine-action-catalog.test.mjs` - Declarative machine action catalog coverage for resolver ownership, canonical cost shape, aliases, action anchors, and explicit stubs.
 - `tools/` - Compendium maintenance and JSON validation scripts.
 - `src/packs/` - Source data for the packaged compendiums.

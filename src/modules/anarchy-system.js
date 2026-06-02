@@ -16,6 +16,7 @@ import { registerActorSheetsV2 } from "./sheets/register-actor-sheets-v2.js";
 import { registerItemSheetsV2 } from "./sheets/register-item-sheets-v2.js";
 import { preloadTemplatesV2 } from "./sheets/preload-templates.js";
 import { MWDActor } from "./actor/mwd-actor.js";
+import { MWDCombat } from "./mwd-combat.js";
 import { MWDRoll } from "./roll/mwd-roll.js";
 import { WeaponAttackActions, registerWeaponAttackHotbarHook } from "./roll/weapon-attack-actions.js";
 import { modifierProviders } from "../modules/modifiers/index.js";
@@ -40,6 +41,11 @@ import { backfillPersonalActionCatalogSetting } from "./combat/personal-action-c
 import { registerMWDChatActions } from "./chat/chat-actions.js";
 import { registerMWDGMGadgetSettings } from "./gm/mwd-gmgadget.js";
 import { getMWDGMGadget } from "./gm/mwd-gmgadget.js";
+import {
+  createMWDPlayerGadgetApi,
+  maybeAutoOpenPlayerGadget,
+  registerMWDPlayerGadgetSettings,
+} from "./player/mwd-player-gadget.js";
 import {
   ensureLifeModuleCatalogDefaults,
   evaluateActorLifeModules,
@@ -234,12 +240,14 @@ export class AnarchySystem {
     registerMachineSensorOverlayHooks();
     registerMWDChatActions();
     registerMWDGMGadgetSettings("mwd");
+    registerMWDPlayerGadgetSettings("mwd");
     
     // Roll API (new AppV2 path)
     game.mwd.roll = MWDRoll;
     game.mwd.attacks = WeaponAttackActions;
     game.mwd.personalCombat = PersonalCombatTracker;
     game.mwd.personalCombatActions = PersonalCombatActions;
+    game.mwd.playerGadget = createMWDPlayerGadgetApi({ systemId: SYSTEM_NAME });
     game.mwd.combat = {
       resolveActivationUnit: (...args) => PersonalCombatTracker.resolveActivationUnit(...args),
       resolveCombatantForActor: (...args) => PersonalCombatTracker.resolveCombatantForActor(...args),
@@ -332,7 +340,7 @@ export class AnarchySystem {
 
     console.log(LOG_HEAD + 'AnarchySystem.onInit | loading system');
     CONFIG.ANARCHY = MWD;
-    //CONFIG.Combat.documentClass = AnarchyCombat;
+    CONFIG.Combat.documentClass = MWDCombat;
     CONFIG.Combat.initiative = { formula: "2d6" }
 
     configureMWDStatusEffects();
@@ -358,7 +366,10 @@ export class AnarchySystem {
     await PersonalCombatTracker.onReady();
     game.mwd?.tokenHeatFx?.refreshAll?.();
 
-    if (!game.user.isGM) return;
+    if (!game.user.isGM) {
+      maybeAutoOpenPlayerGadget({ systemId: SYSTEM_NAME });
+      return;
+    }
 
     await ensureLifeModuleCatalogDefaults();
     await ensureStatusConditionCatalogDefaults();

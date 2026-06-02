@@ -894,7 +894,7 @@ test("grazes halve the total clustered incoming damage", async () => {
     name: "Barracuda",
     statuses: new Set(),
     getAttributeValue(key) {
-      return key === "reflexes" ? 1 : 0;
+      return key === "reflexes" ? 3 : 0;
     },
     getSkillRating() {
       return 0;
@@ -917,7 +917,7 @@ test("grazes halve the total clustered incoming damage", async () => {
         fatigue: { value: 0, max: 10 },
       },
       attributes: {
-        reflexes: { value: 1 },
+        reflexes: { value: 3 },
       },
       skills: {
         tactics: { rating: 0 },
@@ -930,7 +930,7 @@ test("grazes halve the total clustered incoming damage", async () => {
     actorId: targetActor.id,
     actorUuid: targetActor.uuid,
     name: targetActor.name,
-    attributes: { reflexes: 1 },
+    attributes: { reflexes: 3 },
     skills: { tactics: { rating: 0 } },
     activeArmor: { defenseBonus: 0 },
   };

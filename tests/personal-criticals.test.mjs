@@ -154,18 +154,87 @@ test("personal critical speed effects produce effective speed without duplicate 
   assert.equal(criticalContext.summary, "Remedy: First Aid");
 });
 
+test("applying a crit to the same family escalates the band instead of adding a new entry", async () => {
+  const target = actor();
+  const minor = buildPersonalCritRecord({ actor: target, familyId: "concussion", band: "minor" });
+  await applyPersonalCriticalToActor({ actor: target, records: [minor] });
+  assert.equal(target.system.criticals.length, 1);
+  assert.equal(target.system.criticals[0].band, "minor");
+  assert.equal(target.statuses.has("concussionMinor"), true);
+
+  const moderate = buildPersonalCritRecord({ actor: target, familyId: "concussion", band: "moderate" });
+  await applyPersonalCriticalToActor({ actor: target, records: [moderate] });
+  assert.equal(target.system.criticals.length, 1, "no second record added");
+  assert.equal(target.system.criticals[0].band, "moderate", "band escalated");
+  assert.equal(target.system.criticals[0].id, minor.id, "existing record id preserved");
+  assert.equal(target.statuses.has("concussionMinor"), false, "old status removed");
+  assert.equal(target.statuses.has("concussionModerate"), true, "new status applied");
+});
+
+test("escalation does not downgrade an existing crit band", async () => {
+  const target = actor();
+  const severe = buildPersonalCritRecord({ actor: target, familyId: "concussion", band: "severe" });
+  await applyPersonalCriticalToActor({ actor: target, records: [severe] });
+  assert.equal(target.statuses.has("concussionSevere"), true);
+
+  const minor = buildPersonalCritRecord({ actor: target, familyId: "concussion", band: "minor" });
+  await applyPersonalCriticalToActor({ actor: target, records: [minor] });
+  assert.equal(target.system.criticals.length, 1, "still one entry");
+  assert.equal(target.system.criticals[0].band, "severe", "band not downgraded");
+  assert.equal(target.statuses.has("concussionSevere"), true, "status unchanged");
+});
+
+test("escalation to hampered severe applies prone", async () => {
+  const target = actor();
+  const minor = buildPersonalCritRecord({ actor: target, familyId: "hampered", band: "minor" });
+  await applyPersonalCriticalToActor({ actor: target, records: [minor] });
+  assert.equal(target.statuses.has("prone"), false, "no prone at minor");
+
+  const severe = buildPersonalCritRecord({ actor: target, familyId: "hampered", band: "severe" });
+  await applyPersonalCriticalToActor({ actor: target, records: [severe] });
+  assert.equal(target.system.criticals.length, 1);
+  assert.equal(target.system.criticals[0].band, "severe");
+  assert.equal(target.statuses.has("hamperedSevere"), true);
+  assert.equal(target.statuses.has("prone"), true, "prone applied on escalation to severe");
+});
+
+test("winded escalation adds the escalated band burn", async () => {
+  const target = actor();
+  const minor = buildPersonalCritRecord({ actor: target, familyId: "winded", band: "minor" });
+  await applyPersonalCriticalToActor({ actor: target, records: [minor] });
+  assert.equal(target.system.burn.value, 1, "minor adds 1 burn");
+
+  const moderate = buildPersonalCritRecord({ actor: target, familyId: "winded", band: "moderate" });
+  await applyPersonalCriticalToActor({ actor: target, records: [moderate] });
+  assert.equal(target.system.burn.value, 3, "escalation to moderate adds 2 more burn");
+  assert.equal(target.statuses.has("windedModerate"), true);
+  assert.equal(target.statuses.has("windedMinor"), false);
+});
+
+test("crits from different families each create their own entry", async () => {
+  const target = actor();
+  const concussion = buildPersonalCritRecord({ actor: target, familyId: "concussion", band: "minor" });
+  const shaken = buildPersonalCritRecord({ actor: target, familyId: "shaken", band: "minor" });
+  await applyPersonalCriticalToActor({ actor: target, records: [concussion, shaken] });
+  assert.equal(target.system.criticals.length, 2, "two different families = two records");
+});
+
 test("failed personal critical common-check remedies leave the critical active", async () => {
   const target = actor();
   const shaken = buildPersonalCritRecord({ actor: target, familyId: "shaken", band: "minor" });
   target.system.criticals = [shaken];
 
   const originalGame = globalThis.game;
+  let executedPayload = null;
   globalThis.game = {
     mwd: {
       roll: {
-        execute: async () => ({
-          flags: { mwd: { resolved: { outcomeModel: { passed: false } } } },
-        }),
+        execute: async ({ payload }) => {
+          executedPayload = payload;
+          return {
+            flags: { mwd: { resolved: { outcomeModel: { passed: false } } } },
+          };
+        },
       },
     },
   };
@@ -174,11 +243,13 @@ test("failed personal critical common-check remedies leave the critical active",
     const result = await resolvePersonalCritRemedyIntent({
       actor: target,
       critId: shaken.id,
-      remedyKey: "endure",
     });
 
     assert.equal(result.ok, false);
     assert.match(result.reason, /did not clear/i);
+    assert.equal(executedPayload.id, "composure");
+    assert.equal(executedPayload.dn, 2);
+    assert.equal(executedPayload.personalCritRemedy.remedyKey, "composure");
     assert.equal(target.system.criticals.length, 1);
     assert.equal(target.system.criticals[0].id, shaken.id);
   } finally {
@@ -192,12 +263,16 @@ test("successful personal critical common-check remedies remove the critical", a
   target.system.criticals = [shaken];
 
   const originalGame = globalThis.game;
+  let executedPayload = null;
   globalThis.game = {
     mwd: {
       roll: {
-        execute: async () => ({
-          flags: { mwd: { resolved: { outcomeModel: { passed: true } } } },
-        }),
+        execute: async ({ payload }) => {
+          executedPayload = payload;
+          return {
+            flags: { mwd: { resolved: { outcomeModel: { passed: true } } } },
+          };
+        },
       },
     },
   };
@@ -206,10 +281,11 @@ test("successful personal critical common-check remedies remove the critical", a
     const result = await resolvePersonalCritRemedyIntent({
       actor: target,
       critId: shaken.id,
-      remedyKey: "endure",
     });
 
     assert.equal(result.ok, true);
+    assert.equal(executedPayload.id, "composure");
+    assert.equal(executedPayload.dn, 2);
     assert.equal(target.system.criticals.length, 0);
   } finally {
     globalThis.game = originalGame;

@@ -8,14 +8,15 @@ import { LOG_HEAD, SYSTEM_NAME } from "../constants.js";
 import { Misc } from "../misc.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
-import { executeCombatActionIntent } from "../combat/personal-combat-actions.js";
-import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
+import {
+  buildCombatActionPayloadFromDataset,
+  executeCombatActionIntent,
+  executeOwnedWeaponAttackIntent,
+  removeActivationLogEntryIntent,
+} from "../combat/personal-combat-actions.js";
 import { buildSkillDisplay } from "../mwd/skills.js";
 import { getDepletingMachineMonitorClickValue, isMachineActorType } from "../mwd/machine-monitors.js";
-import { executeFirstAidCombatAction } from "../mwd/first-aid.js";
-import { getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
 import { resolvePersonalCritRemedyIntent } from "../mwd/personal-crit-intents.js";
-import { launchOwnedWeaponAttack } from "../roll/weapon-attack-actions.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { collectDocumentFormUpdates } from "./document-sheet-form.js";
 
@@ -35,15 +36,6 @@ function createActorHTMLField(name) {
   const field = new HTMLField({ required: false, blank: true, initial: "" });
   field.name = name;
   return field;
-}
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 
 export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2) {
@@ -99,7 +91,8 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
       combatOverloadCheck: BaseActorSheetV2.prototype._onCombatOverloadCheck,
       combatAttack: BaseActorSheetV2.prototype._onCombatAttack,
       personalCritRemedy: BaseActorSheetV2.prototype._onPersonalCritRemedy,
-      removeActivationAction: BaseActorSheetV2.prototype._onRemoveActivationAction
+      removeActivationAction: BaseActorSheetV2.prototype._onRemoveActivationAction,
+      openCombatGadget: BaseActorSheetV2.prototype._onOpenCombatGadget
     }
   }, { inplace: false });
 
@@ -626,8 +619,8 @@ _initializeApplicationOptions(options) {
     const token = this.getSheetTokenDocument?.()
       ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
       ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
-    const result = await launchOwnedWeaponAttack({ weapon: item, event, token });
-    if (!result) return;
+    const result = await executeOwnedWeaponAttackIntent({ weapon: item, event, token });
+    if (!result?.ok) return;
 
     this._renderPreservingScroll({ force: true });
   }
@@ -679,111 +672,27 @@ _initializeApplicationOptions(options) {
     return openTokenStatusDialog({ actor: actorWriteTarget, token });
   }
 
-  async _onCombatSpend(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (this._notifyUnavailableAction(target, event, "That combat action is not available right now.")) return;
-    if (!this.isEditable) return;
-
-    const resource = String(target?.dataset?.resource ?? "").trim();
-    const cost = Math.max(0, Number(target?.dataset?.cost ?? 0));
-    const actionId = String(target?.dataset?.combatAction ?? "").trim();
-    const actionLabel = String(target?.dataset?.combatLabel ?? "").trim();
-    const actionCostLabel = String(target?.dataset?.combatCostLabel ?? "").trim();
-    if (!resource || !cost || !actionId) return;
-
-    try {
-      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-      const result = await PersonalCombatTracker.spendResource(actorWriteTarget, {
-        token: this.getSheetTokenDocument?.()
-          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
-          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
-        resource,
-        cost,
-        actionId,
-        actionLabel,
-        actionCostLabel
-      });
-
-      if (!result?.ok) {
-        ui.notifications?.warn(result?.reason ?? "Unable to spend action.");
-        return;
-      }
-
-      this.#closeCombatMenu({ rerender: false });
-      this._renderPreservingScroll({ force: true });
-    } catch (error) {
-      console.error("MWD | Failed to spend combat action", error);
-      ui.notifications?.error("Unable to spend action.");
-    }
+  _getCombatActionToken(actorWriteTarget = this.getPersistentActor?.() ?? this.actor) {
+    return this.getSheetTokenDocument?.()
+      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
   }
 
-  async _onCombatAction(event, target) {
+  async #executePersonalCombatIntent(event, target, handler, failureMessage = "Unable to perform action.") {
     event?.preventDefault?.();
     event?.stopPropagation?.();
 
     if (this._notifyUnavailableAction(target, event, "That combat action is not available right now.")) return;
     if (!this.isEditable) return;
 
-    const actionId = String(target?.dataset?.combatAction ?? "").trim();
-    if (!actionId) return;
-
-    try {
-      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-      const metadata = await this.#getCombatActionMetadata(actionId);
-      if (!metadata) return;
-
-      const result = await PersonalCombatTracker.executeAction(actorWriteTarget, {
-        token: this.getSheetTokenDocument?.()
-          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
-          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
-        actionId,
-        metadata
-      });
-
-      if (!result?.ok) {
-        ui.notifications?.warn(result?.reason ?? "Unable to perform action.");
-        return;
-      }
-
-      this.#closeCombatMenu({ rerender: false });
-      this._renderPreservingScroll({ force: true });
-    } catch (error) {
-      console.error("MWD | Failed to perform combat action", error);
-      ui.notifications?.error("Unable to perform action.");
-    }
-  }
-
-  async _onCombatIntent(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (this._notifyUnavailableAction(target, event, "That combat action is not available right now.")) return;
-    if (!this.isEditable) return;
-
-    let payload = null;
-    const rawPayload = String(target?.dataset?.combatPayload ?? "").trim();
-    if (rawPayload) {
-      try {
-        payload = JSON.parse(rawPayload);
-      } catch (error) {
-        console.warn("MWD | Invalid combat action payload", rawPayload, error);
-      }
-    }
-    if (!payload) {
-      const actionId = String(target?.dataset?.combatAction ?? "").trim();
-      if (!actionId) return;
-      payload = { intent: "combatAction", actionId };
-    }
+    const payload = buildCombatActionPayloadFromDataset({ handler, target, event });
+    if (!payload) return;
 
     try {
       const actorWriteTarget = this.getPersistentActor() ?? this.actor;
       const result = await executeCombatActionIntent({
         actor: actorWriteTarget,
-        token: this.getSheetTokenDocument?.()
-          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
-          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
+        token: this._getCombatActionToken(actorWriteTarget),
         payload,
         event,
       });
@@ -793,7 +702,7 @@ _initializeApplicationOptions(options) {
         return;
       }
       if (!result?.ok) {
-        ui.notifications?.warn(result?.reason ?? "Unable to perform action.");
+        ui.notifications?.warn(result?.reason ?? failureMessage);
         return;
       }
 
@@ -801,8 +710,20 @@ _initializeApplicationOptions(options) {
       this._renderPreservingScroll({ force: true });
     } catch (error) {
       console.error("MWD | Failed to execute combat intent", error);
-      ui.notifications?.error("Unable to perform action.");
+      notifyRollError(error, failureMessage);
     }
+  }
+
+  async _onCombatSpend(event, target) {
+    return this.#executePersonalCombatIntent(event, target, "combatSpend", "Unable to spend action.");
+  }
+
+  async _onCombatAction(event, target) {
+    return this.#executePersonalCombatIntent(event, target, "combatAction", "Unable to perform action.");
+  }
+
+  async _onCombatIntent(event, target) {
+    return this.#executePersonalCombatIntent(event, target, "combatIntent", "Unable to perform action.");
   }
 
   async _onRemoveActivationAction(event, target) {
@@ -816,7 +737,8 @@ _initializeApplicationOptions(options) {
 
     try {
       const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-      const result = await PersonalCombatTracker.removeActivationLogEntry(actorWriteTarget, {
+      const result = await removeActivationLogEntryIntent({
+        actor: actorWriteTarget,
         token: this.getSheetTokenDocument?.()
           ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
           ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
@@ -836,334 +758,51 @@ _initializeApplicationOptions(options) {
   }
 
   async _onCombatReduceBurn(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (this._notifyUnavailableAction(target, event, "Burn recovery is not available right now.")) return;
-    if (!this.isEditable) return;
-
-    try {
-      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-      const result = await PersonalCombatTracker.reduceBurn(actorWriteTarget, {
-        token: this.getSheetTokenDocument?.()
-          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
-          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor)
-      });
-
-      if (!result?.ok) {
-        ui.notifications?.warn(result?.reason ?? "Unable to reduce Burn.");
-        return;
-      }
-
-      this.#closeCombatMenu({ rerender: false });
-      this._renderPreservingScroll({ force: true });
-    } catch (error) {
-      console.error("MWD | Failed to reduce Burn", error);
-      ui.notifications?.error("Unable to reduce Burn.");
-    }
+    return this.#executePersonalCombatIntent(event, target, "combatReduceBurn", "Unable to reduce Burn.");
   }
 
   async _onCombatAssist(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (this._notifyUnavailableAction(target, event, "Assist is not available right now.")) return;
-    if (!this.isEditable) return;
-
-    try {
-      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-      const token = this.getSheetTokenDocument?.()
-        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
-        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
-      const snapshot = PersonalCombatTracker.getSnapshot(actorWriteTarget, { token });
-
-      if (!snapshot.hasCombatant) {
-        ui.notifications?.warn("No combatant on the current scene.");
-        return;
-      }
-      if (snapshot.isCurrentTurn) {
-        ui.notifications?.warn("Only outside your activation.");
-        return;
-      }
-
-      const assistTarget = await this.#promptAssistTarget(snapshot);
-      if (!assistTarget) return;
-
-      const result = await PersonalCombatTracker.executeAction(actorWriteTarget, {
-        token,
-        actionId: "assist",
-        metadata: {
-          targetCombatantId: assistTarget.combatantId,
-          targetActorUuid: assistTarget.actorUuid,
-          targetTokenUuid: assistTarget.tokenUuid,
-          targetName: assistTarget.name
-        }
-      });
-
-      if (!result?.ok) {
-        ui.notifications?.warn(result?.reason ?? "Unable to assist.");
-        return;
-      }
-
-      await this.#createAssistChatCard({
-        actor: actorWriteTarget,
-        token,
-        target: assistTarget,
-        costLabel: result.costLabel
-      });
-
-      this.#closeCombatMenu({ rerender: false });
-      this._renderPreservingScroll({ force: true });
-    } catch (error) {
-      console.error("MWD | Failed to assist", error);
-      ui.notifications?.error("Unable to assist.");
-    }
+    return this.#executePersonalCombatIntent(event, target, "combatAssist", "Unable to assist.");
   }
 
   async _onCombatEvade(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (this._notifyUnavailableAction(target, event, "Evade is not available right now.")) return;
-    if (!this.isEditable) return;
-
-    try {
-      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-      const token = this.getSheetTokenDocument?.()
-        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
-        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
-      const result = await activatePendingEvadeFromCombatMenu(actorWriteTarget, { token });
-      if (!result?.ok) {
-        ui.notifications?.warn(result?.reason ?? "Unable to activate Evade.");
-        return;
-      }
-
-      this.#closeCombatMenu({ rerender: false });
-      this._renderPreservingScroll({ force: true });
-    } catch (error) {
-      console.error("MWD | Failed to activate Evade", error);
-      ui.notifications?.error("Unable to activate Evade.");
-    }
+    return this.#executePersonalCombatIntent(event, target, "combatEvade", "Unable to activate Evade.");
   }
 
   async _onCombatInterrupt(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (this._notifyUnavailableAction(target, event, "Interrupt is not available right now.")) return;
-    if (!this.isEditable) return;
-
-    try {
-      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-      const token = this.getSheetTokenDocument?.()
-        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
-        ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
-      const snapshot = PersonalCombatTracker.getSnapshot(actorWriteTarget, { token });
-      const preparedInterrupt = PersonalCombatTracker.getPreparedInterrupt(snapshot);
-
-      if (!snapshot.hasCombatant) {
-        ui.notifications?.warn("No combatant on the current scene.");
-        return;
-      }
-      if (snapshot.isCurrentTurn) {
-        ui.notifications?.warn("Only outside your activation.");
-        return;
-      }
-      if (!preparedInterrupt) {
-        ui.notifications?.warn("Prepare an interrupt first.");
-        return;
-      }
-
-      const confirmed = await this.#confirmInterrupt(preparedInterrupt);
-      if (!confirmed) return;
-
-      const result = await PersonalCombatTracker.executeAction(actorWriteTarget, {
-        token,
-        actionId: "interrupt",
-        metadata: preparedInterrupt
-      });
-
-      if (!result?.ok) {
-        ui.notifications?.warn(result?.reason ?? "Unable to interrupt.");
-        return;
-      }
-
-      await PersonalCombatTracker.clearPreparedInterrupt(actorWriteTarget, { token });
-      await this.#createInterruptChatCard({
-        actor: actorWriteTarget,
-        token,
-        preparedInterrupt,
-        costLabel: result.costLabel
-      });
-
-      this.#closeCombatMenu({ rerender: false });
-      this._renderPreservingScroll({ force: true });
-    } catch (error) {
-      console.error("MWD | Failed to interrupt", error);
-      ui.notifications?.error("Unable to interrupt.");
-    }
+    return this.#executePersonalCombatIntent(event, target, "combatInterrupt", "Unable to interrupt.");
   }
 
   async _onCombatOverloadCheck(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (this._notifyUnavailableAction(target, event, "Overload check is not available right now.")) return;
-    if (!this.isEditable) return;
-
-    const raw = target?.dataset?.roll ?? event?.target?.closest?.("[data-roll]")?.dataset?.roll;
-    if (!raw) return;
-
-    let payload;
-    try {
-      payload = JSON.parse(raw);
-    } catch (error) {
-      console.warn("MWD | Invalid overload payload", raw, error);
-      return;
-    }
-
-    try {
-      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-      const result = await game.mwd?.roll?.execute?.({ actor: actorWriteTarget, payload, event });
-      this.#closeCombatMenu({ rerender: false });
-      if (!result) {
-        this._renderPreservingScroll(false);
-        return;
-      }
-      this._renderPreservingScroll({ force: true });
-    } catch (error) {
-      console.error("MWD | Failed to launch overload check", error);
-      ui.notifications?.error("Unable to launch overload check.");
-    }
+    return this.#executePersonalCombatIntent(event, target, "combatOverloadCheck", "Unable to launch overload check.");
   }
 
   async _onCombatAttack(event, target) {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-
-    if (this._notifyUnavailableAction(target, event, "Attack is not available right now.")) return;
-    if (!this.isEditable) return;
-
-    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-    const token = this.getSheetTokenDocument?.()
-      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
-      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
-    const actionId = String(target?.dataset?.combatAction ?? "attack").trim() || "attack";
-    const actionLabel = String(target?.dataset?.combatLabel ?? (actionId === "opportunity" ? "Opportunity" : "Attack")).trim() || "Attack";
-    const isOpportunity = actionId === "opportunity";
-
-    const snapshot = PersonalCombatTracker.getSnapshot(actorWriteTarget, { token });
-    const hasAim = Boolean(snapshot.state?.actionState?.aim);
-    const gateState = getPersonalCriticalGateState(actorWriteTarget);
-    if (!snapshot.hasCombatant) {
-      ui.notifications?.warn("No combatant on the current scene.");
-      return;
-    }
-    if (isOpportunity && gateState.cannotReact) {
-      ui.notifications?.warn(`Disabled (${gateState.reactionReason})`);
-      return;
-    }
-    if (!isOpportunity && gateState.cannotComplex) {
-      ui.notifications?.warn(`Disabled (${gateState.complexReason})`);
-      return;
-    }
-    if (isOpportunity && snapshot.isCurrentTurn) {
-      ui.notifications?.warn("Only outside your activation.");
-      return;
-    }
-    if (!isOpportunity && !snapshot.isCurrentTurn) {
-      ui.notifications?.warn("Only available during your activation.");
-      return;
-    }
-    if (!isOpportunity && snapshot.overloaded) {
-      ui.notifications?.warn("Overloaded actors can only recover Burn.");
-      return;
-    }
-    if (!isOpportunity) {
-      const activationCap = 3 + Math.floor((
-        Math.max(0, Number(actorWriteTarget.system?.attributes?.reflexes?.value ?? 0))
-        + Math.max(0, Number(actorWriteTarget.system?.attributes?.guts?.value ?? 0))
-      ) / 2);
-      const saCapacityRemaining = Math.max(0, activationCap - Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0)));
-      if (saCapacityRemaining < 2) {
-        ui.notifications?.warn("Activation SA cap reached.");
-        return;
-      }
-    }
-
-    const payload = {
-      intent: "attack",
-      mode: "auto",
-      fallback: "unarmed",
-      edge: { pool: "physical.grit", allowed: ["pre", "post"] },
-      tags: isOpportunity ? ["combat", "attack", "reaction", "opportunity"] : ["combat", "attack"],
-      aim: hasAim ? { active: true } : null,
-      sourceTokenId: token?.id ?? null
-    };
-
-    try {
-      const result = await game.mwd?.roll?.execute?.({ actor: actorWriteTarget, payload, event });
-      this.#closeCombatMenu({ rerender: false });
-      if (!result) {
-        this._renderPreservingScroll(false);
-        return;
-      }
-      if (hasAim) {
-        await PersonalCombatTracker.clearAim(actorWriteTarget, { token });
-      }
-
-      const spend = isOpportunity
-        ? await PersonalCombatTracker.executeAction(actorWriteTarget, { token, actionId: "opportunity" })
-        : await PersonalCombatTracker.spendResource(actorWriteTarget, {
-          token,
-          resource: "sa",
-          cost: 2,
-          actionId: "attack",
-          actionLabel: "Attack",
-          actionCostLabel: "2 SA",
-          actionCategory: "complex"
-        });
-
-      if (!spend?.ok) {
-        ui.notifications?.warn(spend?.reason ?? `Unable to spend ${actionLabel} action.`);
-      }
-
-      this._renderPreservingScroll({ force: true });
-    } catch (error) {
-      console.error(`MWD | Failed to launch ${actionLabel}`, error);
-      notifyRollError(error, `Unable to launch ${actionLabel}.`);
-    }
+    return this.#executePersonalCombatIntent(event, target, "combatAttack", "Unable to launch attack.");
   }
 
   async _onCombatFirstAid(event, target) {
+    return this.#executePersonalCombatIntent(event, target, "combatFirstAid", "Unable to launch First Aid.");
+  }
+
+  async _onOpenCombatGadget(event) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
 
-    if (this._notifyUnavailableAction(target, event, "First Aid is not available right now.")) return;
-    if (!this.isEditable) return;
-
-    try {
-      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
-      const result = await executeFirstAidCombatAction(actorWriteTarget, {
-        token: this.getSheetTokenDocument?.()
-          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
-          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
-        event,
-      });
-      this.#closeCombatMenu({ rerender: false });
-      if (result?.cancelled) {
-        this._renderPreservingScroll(false);
-        return;
-      }
-      if (!result?.ok) {
-        ui.notifications?.warn(result?.reason ?? "Unable to spend First Aid action.");
-      }
-
-      this._renderPreservingScroll({ force: true });
-    } catch (error) {
-      console.error("MWD | Failed to launch First Aid", error);
-      notifyRollError(error, "Unable to launch First Aid.");
+    const actorWriteTarget = this.getPersistentActor?.() ?? this.actor;
+    const token = this.getSheetTokenDocument?.()
+      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+      ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor);
+    const tokenUuid = String(token?.uuid ?? "").trim();
+    const api = game.mwd?.playerGadget;
+    if (!api?.render) {
+      ui.notifications?.warn("Player Gadget is not available.");
+      return;
     }
+
+    if (tokenUuid && api.selectSubject) await api.selectSubject(tokenUuid);
+    await api.render({ force: true });
+    await this.close();
   }
 
   async _onPersonalCritRemedy(event, target) {
@@ -1194,143 +833,6 @@ _initializeApplicationOptions(options) {
       console.error("MWD | Failed to remedy personal critical", error);
       ui.notifications?.error("Unable to remedy personal critical.");
     }
-  }
-
-  async #getCombatActionMetadata(actionId) {
-    if (actionId !== "prepare") return {};
-
-    const content = `
-      <form class="mwd-quick-select">
-        <div class="mwd-field">
-          <label>Trigger</label>
-          <input type="text" name="condition" placeholder="When..." />
-        </div>
-        <div class="mwd-field">
-          <label>Scope</label>
-          <input type="text" name="scope" placeholder="What you will do" />
-        </div>
-      </form>`;
-
-    const result = await Dialog.prompt({
-      title: "Prepare Interrupt",
-      content,
-      label: "Prepare",
-      callback: html => ({
-        condition: String(html.find('input[name="condition"]').val() ?? "").trim(),
-        scope: String(html.find('input[name="scope"]').val() ?? "").trim()
-      })
-    });
-
-    return result ? result : null;
-  }
-
-  async #confirmInterrupt(preparedInterrupt = {}) {
-    const condition = String(preparedInterrupt?.condition ?? "").trim();
-    const scope = String(preparedInterrupt?.scope ?? "").trim();
-    const content = `
-      <div class="mwd-quick-select">
-        <p><strong>Trigger:</strong> ${escapeHtml(condition || "Unspecified trigger")}</p>
-        <p><strong>Scope:</strong> ${escapeHtml(scope || "Unspecified response")}</p>
-      </div>`;
-
-    const result = await Dialog.confirm({
-      title: "Resolve Interrupt",
-      content,
-      yes: () => true,
-      no: () => false
-    });
-
-    return Boolean(result);
-  }
-
-  #getCombatants(combat) {
-    if (!combat?.combatants) return [];
-    if (typeof combat.combatants.values === "function") return Array.from(combat.combatants.values());
-    return Array.from(combat.combatants ?? []);
-  }
-
-  #getAssistTargetChoices(snapshot) {
-    const currentCombatantId = String(snapshot?.combatant?.id ?? "").trim();
-    return this.#getCombatants(snapshot?.combat)
-      .filter(combatant => combatant && String(combatant.id ?? "").trim() !== currentCombatantId)
-      .map(combatant => {
-        const tokenDoc = combatant.token?.document ?? combatant.token ?? null;
-        const actor = combatant.actor ?? tokenDoc?.actor ?? null;
-        const name = String(combatant.name ?? tokenDoc?.name ?? actor?.name ?? "Combatant").trim() || "Combatant";
-        return {
-          combatantId: String(combatant.id ?? "").trim(),
-          actorUuid: actor?.uuid ?? null,
-          tokenUuid: tokenDoc?.uuid ?? null,
-          name
-        };
-      })
-      .filter(choice => choice.combatantId && choice.name)
-      .sort((left, right) => left.name.localeCompare(right.name));
-  }
-
-  async #promptAssistTarget(snapshot) {
-    const choices = this.#getAssistTargetChoices(snapshot);
-    if (!choices.length) {
-      ui.notifications?.warn("No other combatants are available to assist.");
-      return null;
-    }
-
-    const content = `
-      <form class="mwd-quick-select">
-        <div class="mwd-field">
-          <label>Assist</label>
-          <select name="combatant">
-            ${choices.map(choice => `<option value="${escapeHtml(choice.combatantId)}">${escapeHtml(choice.name)}</option>`).join("")}
-          </select>
-        </div>
-      </form>`;
-
-    const selectedId = await Dialog.prompt({
-      title: "Assist Combatant",
-      content,
-      label: "Assist",
-      callback: html => String(html.find('select[name="combatant"]').val() ?? choices[0]?.combatantId ?? "").trim()
-    });
-
-    if (!selectedId) return null;
-    return choices.find(choice => choice.combatantId === selectedId) ?? null;
-  }
-
-  async #createAssistChatCard({ actor, token = null, target = null, costLabel = "" } = {}) {
-    const actorName = String(actor?.name ?? "Ally").trim() || "Ally";
-    const targetName = String(target?.name ?? "an ally").trim() || "an ally";
-    const cost = String(costLabel ?? "").trim();
-    const content = `
-      <div class="mwd-chat-card mwd-chat-card--assist">
-        <h3>Assist</h3>
-        <p><strong>${escapeHtml(actorName)}</strong> assists <strong>${escapeHtml(targetName)}</strong>.</p>
-        ${cost ? `<p><small>Cost: ${escapeHtml(cost)}</small></p>` : ""}
-      </div>`;
-
-    await ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor, token: token?.object ?? token }),
-      content
-    });
-  }
-
-  async #createInterruptChatCard({ actor, token = null, preparedInterrupt = null, costLabel = "" } = {}) {
-    const actorName = String(actor?.name ?? "Combatant").trim() || "Combatant";
-    const condition = String(preparedInterrupt?.condition ?? "").trim();
-    const scope = String(preparedInterrupt?.scope ?? "").trim();
-    const cost = String(costLabel ?? "").trim();
-    const content = `
-      <div class="mwd-chat-card mwd-chat-card--interrupt">
-        <h3>Interrupt</h3>
-        <p><strong>${escapeHtml(actorName)}</strong> resolves a prepared interrupt.</p>
-        ${condition ? `<p><strong>Trigger:</strong> ${escapeHtml(condition)}</p>` : ""}
-        ${scope ? `<p><strong>Scope:</strong> ${escapeHtml(scope)}</p>` : ""}
-        ${cost ? `<p><small>Cost: ${escapeHtml(cost)}</small></p>` : ""}
-      </div>`;
-
-    await ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor, token: token?.object ?? token }),
-      content
-    });
   }
 
   #closeCombatMenu({ rerender = true } = {}) {

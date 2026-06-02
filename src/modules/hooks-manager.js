@@ -4,6 +4,7 @@
 
 
 import { LOG_HEAD, SYSTEM_NAME } from "./constants.js";
+import { SETTING_ENABLE_PLAYER_GADGET } from "./player/mwd-player-gadget.js";
 
 export const ANARCHY_HOOKS = {
   /**
@@ -43,8 +44,6 @@ export class HooksManager {
   constructor() {
     this.hooks = [];
     Hooks.on("getSceneControlButtons", (controls) => {
-      if (!game.user?.isGM) return;
-
       // Foundry v13: controls often arrives as an Array of SceneControl,
       // and each SceneControl.tools is a Record<string, SceneControlTool>.
       const token = Array.isArray(controls) ? controls.find(c => c.name === "notes") : controls?.notes;
@@ -57,16 +56,32 @@ export class HooksManager {
 
       token.tools = token.tools ?? {};
 
-      if (token.tools["mwd-gm-gadget"]) return;
+      if (game.user?.isGM) {
+        if (token.tools["mwd-gm-gadget"]) return;
 
-      token.tools["mwd-gm-gadget"] = {
-        name: "mwd-gm-gadget",
-        title: "Open GM Gadget",
-        icon: "fa-solid fa-sliders",
-        order: 990,
+        token.tools["mwd-gm-gadget"] = {
+          name: "mwd-gm-gadget",
+          title: "Open GM Gadget",
+          icon: "fa-solid fa-sliders",
+          order: 990,
+          button: true,
+          visible: true,
+          onChange: () => game.mwd?.gmGadget?.()
+        };
+        return;
+      }
+
+      if (!game.settings?.get?.(SYSTEM_NAME, SETTING_ENABLE_PLAYER_GADGET)) return;
+      if (token.tools["mwd-player-gadget"]) return;
+
+      token.tools["mwd-player-gadget"] = {
+        name: "mwd-player-gadget",
+        title: "Open Player Gadget",
+        icon: "fa-solid fa-gamepad",
+        order: 991,
         button: true,
         visible: true,
-        onChange: () => game.mwd?.gmGadget?.()
+        onChange: () => game.mwd?.playerGadget?.toggle?.()
       };
     });
   }

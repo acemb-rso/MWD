@@ -10,7 +10,7 @@ NPCs, vehicles, and BattleMechs are present and registered, but they are not all
 - Foundry compatibility: **minimum v11**, **verified through v13**
 - Actor types: `character`, `npc`, `vehicle`, `battlemech`
 - Item types: `contact`, `gear`, `quality`, `assetModule`, `skill`, `lifeModule`, `personalWeapon`, `mechWeapon`, `weaponPayload`, `armor`
-- Active modernized systems: AppV2 actor sheets, AppV2 item sheets, MWD roll engine, GM Gadget, declarative personal combat actions, personal combat tracker, personal weapon and armor data models, reusable weapon payload items, queued machine hit-location and critical-hit resolution
+- Active modernized systems: AppV2 actor sheets, AppV2 item sheets, MWD roll engine, GM Gadget, declarative personal and machine combat actions, personal combat tracker, personal weapon and armor data models, reusable weapon payload items, queued machine hit-location and critical-hit resolution
 - Main transition areas: broader mech/vehicle combat automation, broad weapon trait automation, and older Anarchy naming that still appears in some code and templates
 
 ## What Works Today
@@ -99,7 +99,7 @@ Machine targets use the same deliberate chat-apply doctrine. Successful vehicle 
 - Area support is limited to the currently executable template shapes
 - Multi-target attacks use one roll result with per-target CQ/resistance/damage previews
 - Attack damage application is queued from chat, not automatically pushed to targets on roll
-- Mech and vehicle combat systems exist but still need broader automation beyond the implemented queued hit-location, critical preview, and machine damage application path
+- Mech and vehicle combat systems now have declarative action anchors and central routing, but some high-impact verbs such as charge/DFA, shielding, indirect spotting, and ejection remain explicit stubs until their mechanics are implemented
 - Some code, settings, docs, and templates still use older Anarchy terminology while the migration continues
 - No licensed MechWarrior: Destiny rulebook content is distributed
 

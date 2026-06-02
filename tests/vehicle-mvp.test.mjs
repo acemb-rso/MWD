@@ -97,9 +97,9 @@ test("vehicle movement choices only generate strain on Redline", () => {
 
   assert.equal(byId.get("move")?.cost, 1);
   assert.equal(byId.get("move")?.strain, 0);
-  assert.equal(byId.get("reposition")?.cost, 2);
+  assert.equal(byId.get("reposition")?.cost, 1);
   assert.equal(byId.get("reposition")?.strain, 0);
-  assert.equal(byId.get("redline")?.cost, 3);
+  assert.equal(byId.get("redline")?.cost, 2);
   assert.equal(byId.get("redline")?.strain, 1);
 });
 

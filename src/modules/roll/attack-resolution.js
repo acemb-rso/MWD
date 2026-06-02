@@ -603,10 +603,12 @@ async function resolveTargetAttack({ attacker, ctx, outcomeModel, target, previe
   const cqValue = Number(cq.value ?? 0);
   const rawNetHits = margin;
   let outcome = cqValue > 0
-    ? (margin >= 1 ? "hit" : (margin === 0 ? "graze" : "miss"))
-    : cqValue < 0
-      ? (margin >= 2 ? "hit" : (margin === 1 ? "graze" : "miss"))
-      : (margin >= 1 ? "hit" : "miss");
+    ? (margin >= 0 ? "hit" : "miss")
+    : cqValue === 0
+      ? (margin >= 1 ? "hit" : (margin === 0 ? "graze" : "miss"))
+      : cqValue >= -3
+        ? (margin >= 2 ? "hit" : (margin === 1 ? "graze" : "miss"))
+        : (margin >= 3 ? "hit" : (margin >= 1 ? "graze" : "miss"));
   if (String(ctx?.attack?.rangeBand ?? "").trim().toLowerCase() === "outofrange" && outcome === "hit") {
     outcome = "graze";
   }
