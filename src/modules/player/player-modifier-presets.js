@@ -17,7 +17,6 @@ export const SITUATIONAL_PRESET_GROUPS = Object.freeze([
       Object.freeze({ id: "cover.moderate", label: "Moderate Cover", value: -2 }),
       Object.freeze({ id: "cover.heavy", label: "Heavy Cover", value: -3 }),
       Object.freeze({ id: "cover.full", label: "Full Cover", value: -4 }),
-      Object.freeze({ id: "visibility.poor", label: "Poor Visibility", value: -1 }),
       Object.freeze({ id: "visibility.obscured", label: "Obscured", value: -2 }),
     ]),
   }),
@@ -28,7 +27,8 @@ export const SITUATIONAL_PRESET_GROUPS = Object.freeze([
       Object.freeze({ id: "target.surprised", label: "Target Stunned / Surprised", value: 2 }),
       Object.freeze({ id: "target.immobile", label: "Target Immobile", value: 4 }),
       Object.freeze({ id: "target.proneMelee", label: "Prone Target in Melee", value: 2 }),
-      Object.freeze({ id: "target.proneRanged", label: "Prone / Crawling Target at Range", value: -1 }),
+      Object.freeze({ id: "target.proneRanged", label: "Prone Target at Range", value: -1 }),
+      Object.freeze({ id: "target.overloaded", label: "Target Overloaded", value: 1 }),
     ]),
   }),
   Object.freeze({
@@ -36,18 +36,12 @@ export const SITUATIONAL_PRESET_GROUPS = Object.freeze([
     label: "Attacker State",
     presets: Object.freeze([
       Object.freeze({ id: "attacker.encumbered", label: "Attacker Encumbered", value: -1 }),
-      Object.freeze({ id: "attacker.veryEncumbered", label: "Attacker Very Encumbered", value: -2 }),
-      Object.freeze({ id: "attacker.overloaded", label: "Attacker Overloaded", value: -3 }),
     ]),
   }),
   Object.freeze({
     id: "attack",
     label: "Attack Behavior",
     presets: Object.freeze([
-      Object.freeze({ id: "attack.offHand", label: "Off-Hand", value: -1 }),
-      Object.freeze({ id: "attack.secondaryTarget", label: "Secondary Target", value: -1 }),
-      Object.freeze({ id: "attack.carefulAim", label: "Careful Aim", value: 1 }),
-      Object.freeze({ id: "attack.suppression", label: "Suppression Fire", value: -1 }),
       Object.freeze({ id: "attack.areaSplash", label: "Area / Splash Attack", value: 2 }),
     ]),
   }),

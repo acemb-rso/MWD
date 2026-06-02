@@ -531,7 +531,7 @@ async function executeRollAction(actor, { action, metadata = {}, event = null } 
   const payload = {
     ...(clone(action.roll) ?? { intent: "skill" }),
     key: metadata.skillKey ?? action.roll?.key ?? undefined,
-    tags: Array.from(new Set([...(action.tags ?? []), ...(action.id === "useUntrainedComplexSkill" ? ["untrained"] : [])])),
+    tags: Array.from(new Set(action.tags ?? [])),
   };
   if (!payload.key && payload.intent === "skill") {
     return { ok: false, reason: "Choose a skill before rolling." };

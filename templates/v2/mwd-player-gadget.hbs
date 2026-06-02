@@ -17,7 +17,6 @@ How it fits: Emits intents to existing personal combat, roll, attack, and status
 
       <div class="mwd-player-gadget__handoff">
         <button type="button" class="mwd-player-gadget__mini-btn" data-action="openFullSheet">Open Full Sheet</button>
-        <button type="button" class="mwd-player-gadget__mini-btn" data-action="refreshSubject" title="Refresh">Refresh</button>
       </div>
 
       {{#if subjects.length}}
@@ -54,7 +53,6 @@ How it fits: Emits intents to existing personal combat, roll, attack, and status
       <div class="mwd-player-gadget__empty">
         <div class="mwd-player-gadget__empty-title">No Combat Token</div>
         <div class="mwd-player-gadget__hint">{{emptyReason}}</div>
-        <button type="button" class="mwd-player-gadget__mini-btn" data-action="refreshSubject">Refresh</button>
       </div>
     {{/if}}
   </header>
@@ -112,7 +110,6 @@ How it fits: Emits intents to existing personal combat, roll, attack, and status
                   {{#if action.reason}}title="{{action.reason}}"{{/if}}
                   {{#if action.disabled}}disabled{{/if}}>
                   <span>{{action.label}}</span>
-                  <small>{{action.costLabel}}</small>
                 </button>
               {{/each}}
             </div>

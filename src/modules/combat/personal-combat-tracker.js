@@ -1496,6 +1496,7 @@ export class PersonalCombatTracker {
     const buildCategory = category => {
       const actions = getPersonalActionsByCategory(category)
         .filter(action => action.id !== "overloadCheck")
+        .filter(action => !action.hideFromMenus)
         .filter(action => !(category === PERSONAL_ACTION_CATEGORIES.recovery && action.id === "reduceBurn"));
 
       if (category === PERSONAL_ACTION_CATEGORIES.standard) {

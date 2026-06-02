@@ -196,7 +196,8 @@ function action(config) {
     implementation: config.implementation ?? implementation(),
     description: String(config.description ?? "").trim(),
     prominent: Boolean(config.prominent),
-    prominentWhenBurning: Boolean(config.prominentWhenBurning)
+    prominentWhenBurning: Boolean(config.prominentWhenBurning),
+    hideFromMenus: Boolean(config.hideFromMenus)
   });
 }
 
@@ -217,7 +218,6 @@ const DEFAULT_ACTIONS = Object.freeze([
   action({ id: "suppressionFire", label: "Suppression Fire", category: "complex", cost: cost("sa", 2), resolver: "attack", tags: ["combat", "attack", "suppression"], implementation: implementation("stub", "Suppression resolver not implemented yet."), description: "Lay down suppressive fire once the suppression resolver exists." }),
   action({ id: "firstAid", label: "First Aid", category: "complex", cost: cost("sa", 2), resolver: "recovery", prompt: prompt("target", true), roll: { intent: "skill", key: "medicine" }, tags: ["combat", "recovery", "medical"], description: "Stabilize or recover harm through focused treatment." }),
   action({ id: "useComplexSkill", label: "Use Complex Skill", category: "complex", cost: cost("sa", 2), resolver: "action", prompt: prompt("skill", true), roll: { intent: "skill" }, tags: ["combat", "skill", "complex"], description: "Make an extended or higher-risk skill check." }),
-  action({ id: "useUntrainedComplexSkill", label: "Use Untrained Complex Skill", category: "complex", cost: cost("sa", 2), resolver: "action", prompt: prompt("skill", true), roll: { intent: "skill" }, tags: ["combat", "skill", "complex", "untrained"], description: "Make an untrained complex skill attempt. V1 adds the tag only." }),
   action({ id: "readyHeavyItem", label: "Ready Heavy Weapon", category: "complex", cost: cost("sa", 2), resolver: "interaction", prompt: prompt("weapon", false), tags: ["combat", "interaction", "weapon", "ready", "heavy"], description: "Ready a large or crew-served weapon." }),
   action({ id: "extinguish", label: "Extinguish Fire", category: "complex", cost: cost("sa", 2), resolver: "recovery", tags: ["combat", "recovery", "hazard", "fire"], resolves: ["onFire"], description: "Extinguish yourself or an eligible nearby fire status." }),
   action({ id: "communicate", label: "Communicate", category: "free", resolver: "action", tags: ["combat", "communication"], description: "Speak, signal, gesture, or coordinate without changing the mechanics." }),
@@ -225,8 +225,7 @@ const DEFAULT_ACTIONS = Object.freeze([
   action({ id: "observeQuickly", label: "Observe Quickly", category: "free", resolver: "action", tags: ["combat", "assessment"], description: "Make a surface-level observation." }),
   action({ id: "changeFireMode", label: "Select Fire Mode", category: "free", resolver: "interaction", prompt: prompt("weapon", false), tags: ["combat", "weapon", "fireMode"], description: "Select a supported fire mode." }),
   action({ id: "selectPayload", label: "Select Ammunition / Payload", category: "free", resolver: "interaction", prompt: prompt("payload", true), tags: ["combat", "weapon", "payload"], description: "Select an owned compatible payload for a weapon." }),
-  action({ id: "minorPosture", label: "Minor Posture", category: "free", resolver: "movement", tags: ["combat", "movement", "posture"], description: "Stand from seated, crouch, or make a minor posture change." }),
-  action({ id: "readyItem", label: "Ready Small Item", category: "free", resolver: "interaction", prompt: prompt("item", false), tags: ["combat", "interaction", "ready"], description: "Draw, stow, or ready a small item." }),
+  action({ id: "readyItem", label: "Ready Item", category: "free", resolver: "interaction", prompt: prompt("item", false), tags: ["combat", "interaction", "ready"], hideFromMenus: true, description: "Ready an item as a personal critical remedy." }),
   action({ id: "prepare", label: "Prepare", category: "free", resolver: "action", prompt: prompt("confirm", true), tags: ["combat", "prepare", "interrupt"], description: "Declare a trigger now so you can interrupt later." }),
   action({ id: "activateItem", label: "Activate Item", category: "free", resolver: "interaction", prompt: prompt("item", false), tags: ["combat", "interaction", "activate"], description: "Switch on or initialize an item without resolving its full effect." }),
   action({ id: "defend", label: "Dodge", category: "free", resolver: "recovery", tags: ["combat", "defense", "dodge"], implementation: implementation("stub", "Dodge mechanics are not implemented yet."), description: "Dodge when supported by the direct-defense resolver." }),

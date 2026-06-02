@@ -153,7 +153,6 @@ export class MWDPlayerGadget extends HandlebarsApplicationMixin(ApplicationV2) {
     actions: {
       switchTab: MWDPlayerGadget.prototype._onSwitchTab,
       selectSubject: MWDPlayerGadget.prototype._onSelectSubject,
-      refreshSubject: MWDPlayerGadget.prototype._onRefreshSubject,
       roll: MWDPlayerGadget.prototype._onRoll,
       combatIntent: MWDPlayerGadget.prototype._onCombatIntent,
       removeActivationAction: MWDPlayerGadget.prototype._onRemoveActivationAction,
@@ -262,11 +261,6 @@ export class MWDPlayerGadget extends HandlebarsApplicationMixin(ApplicationV2) {
       ?? root?.querySelector?.("[name='subject-token']")?.value
       ?? "";
     await this.selectSubject(tokenUuid);
-  }
-
-  async _onRefreshSubject(event) {
-    event?.preventDefault?.();
-    this.render({ force: true });
   }
 
   async _onRoll(event, target) {
