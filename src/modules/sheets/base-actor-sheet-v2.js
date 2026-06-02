@@ -8,6 +8,7 @@ import { LOG_HEAD, SYSTEM_NAME } from "../constants.js";
 import { Misc } from "../misc.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
+import { executeCombatActionIntent } from "../combat/personal-combat-actions.js";
 import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
 import { buildSkillDisplay } from "../mwd/skills.js";
 import { getDepletingMachineMonitorClickValue, isMachineActorType } from "../mwd/machine-monitors.js";
@@ -87,6 +88,7 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
       attackWeapon: BaseActorSheetV2.prototype._onAttackWeapon,
       toggleCombatMenu: BaseActorSheetV2.prototype._onToggleCombatMenu,
       toggleStatuses: BaseActorSheetV2.prototype._onToggleStatuses,
+      combatIntent: BaseActorSheetV2.prototype._onCombatIntent,
       combatSpend: BaseActorSheetV2.prototype._onCombatSpend,
       combatAction: BaseActorSheetV2.prototype._onCombatAction,
       combatAssist: BaseActorSheetV2.prototype._onCombatAssist,
@@ -749,6 +751,56 @@ _initializeApplicationOptions(options) {
       this._renderPreservingScroll({ force: true });
     } catch (error) {
       console.error("MWD | Failed to perform combat action", error);
+      ui.notifications?.error("Unable to perform action.");
+    }
+  }
+
+  async _onCombatIntent(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (this._notifyUnavailableAction(target, event, "That combat action is not available right now.")) return;
+    if (!this.isEditable) return;
+
+    let payload = null;
+    const rawPayload = String(target?.dataset?.combatPayload ?? "").trim();
+    if (rawPayload) {
+      try {
+        payload = JSON.parse(rawPayload);
+      } catch (error) {
+        console.warn("MWD | Invalid combat action payload", rawPayload, error);
+      }
+    }
+    if (!payload) {
+      const actionId = String(target?.dataset?.combatAction ?? "").trim();
+      if (!actionId) return;
+      payload = { intent: "combatAction", actionId };
+    }
+
+    try {
+      const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+      const result = await executeCombatActionIntent({
+        actor: actorWriteTarget,
+        token: this.getSheetTokenDocument?.()
+          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actorWriteTarget)
+          ?? PersonalCombatTracker.getCurrentSceneTokenDocument(this.actor),
+        payload,
+        event,
+      });
+
+      if (result?.cancelled) {
+        this._renderPreservingScroll(false);
+        return;
+      }
+      if (!result?.ok) {
+        ui.notifications?.warn(result?.reason ?? "Unable to perform action.");
+        return;
+      }
+
+      this.#closeCombatMenu({ rerender: false });
+      this._renderPreservingScroll({ force: true });
+    } catch (error) {
+      console.error("MWD | Failed to execute combat intent", error);
       ui.notifications?.error("Unable to perform action.");
     }
   }

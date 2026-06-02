@@ -27,11 +27,12 @@ How it fits: Used by rendering code to produce UI fragments.
         <button
           type="button"
           class="mwd-combat-actions-panel__threat-button"
-          data-action="{{pill.action.handler}}"
+          data-action="combatIntent"
           {{#if pill.action.resource}}data-resource="{{pill.action.resource}}"{{/if}}
           {{#if pill.action.cost}}data-cost="{{pill.action.cost}}"{{/if}}
           {{#if pill.action.category}}data-action-category="{{pill.action.category}}"{{/if}}
           data-combat-action="{{pill.action.id}}"
+          data-combat-payload='{{pill.action.actionPayload}}'
           data-combat-label="{{pill.action.label}}"
           data-combat-cost-label="{{pill.action.costLabel}}"
           {{#if pill.action.roll}}data-roll='{{pill.action.roll}}'{{/if}}>
@@ -88,18 +89,18 @@ How it fits: Used by rendering code to produce UI fragments.
               {{#each menu.actions as |action|}}
                 <button
                   type="button"
-                  class="mwd-combat-action {{#if action.prominent}}is-prominent{{/if}} {{#if action.disabled}}is-disabled{{/if}} {{#if action.handler}}{{else}}is-stub{{/if}}"
-                  {{#if action.handler}}data-action="{{action.handler}}"{{/if}}
+                  class="mwd-combat-action {{#if action.prominent}}is-prominent{{/if}} {{#if action.disabled}}is-disabled{{/if}}"
+                  data-action="combatIntent"
                   {{#if action.resource}}data-resource="{{action.resource}}"{{/if}}
                   {{#if action.cost}}data-cost="{{action.cost}}"{{/if}}
                   {{#if action.category}}data-action-category="{{action.category}}"{{/if}}
                   data-combat-action="{{action.id}}"
+                  data-combat-payload='{{action.actionPayload}}'
                   data-combat-label="{{action.label}}"
                   data-combat-cost-label="{{action.costLabel}}"
                   {{#if action.roll}}data-roll='{{action.roll}}'{{/if}}
                   {{#if action.reason}}title="{{action.reason}}"{{/if}}
-                  {{#if action.disabled}}data-action-disabled="true" data-action-reason="{{action.reason}}" aria-disabled="true"{{/if}}
-                  {{#if action.disabled}}{{#unless action.handler}}disabled{{/unless}}{{/if}}>
+                  {{#if action.disabled}}data-action-disabled="true" data-action-reason="{{action.reason}}" aria-disabled="true" disabled{{/if}}>
                   <span class="mwd-combat-action__label">{{action.label}}{{#if action.disabled}} - Disabled{{/if}}</span>
                   {{#if action.description}}
                     <span class="mwd-combat-action__description">{{action.description}}</span>

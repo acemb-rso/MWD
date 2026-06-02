@@ -9,8 +9,8 @@ NPCs, vehicles, and BattleMechs are present and registered, but they are not all
 - System version: **0.4.8**
 - Foundry compatibility: **minimum v11**, **verified through v13**
 - Actor types: `character`, `npc`, `vehicle`, `battlemech`
-- Item types: `contact`, `gear`, `quality`, `assetModule`, `skill`, `lifeModule`, `personalWeapon`, `mechWeapon`, `armor`
-- Active modernized systems: AppV2 actor sheets, AppV2 item sheets, MWD roll engine, GM Gadget, personal combat tracker, personal weapon and armor data models, queued machine hit-location and critical-hit resolution
+- Item types: `contact`, `gear`, `quality`, `assetModule`, `skill`, `lifeModule`, `personalWeapon`, `mechWeapon`, `weaponPayload`, `armor`
+- Active modernized systems: AppV2 actor sheets, AppV2 item sheets, MWD roll engine, GM Gadget, declarative personal combat actions, personal combat tracker, personal weapon and armor data models, reusable weapon payload items, queued machine hit-location and critical-hit resolution
 - Main transition areas: broader mech/vehicle combat automation, broad weapon trait automation, and older Anarchy naming that still appears in some code and templates
 
 ## What Works Today
@@ -26,6 +26,7 @@ NPCs, vehicles, and BattleMechs are present and registered, but they are not all
 ### Personal Combat
 
 - The personal combat dashboard tracks **SA / FA / RA**, activation action logs, Burn pressure, overload readiness, active statuses, and common combat checks
+- Personal combat buttons are declarative catalog entries: sheets emit `combatIntent`, and the central executor owns prompts, cost, logs, state changes, and roll handoff
 - Combat-panel attacks spend and log **2 SA** after a successful attack roll is created
 - If no equipped personal weapon is available, the combat attack path can fall back to unarmed:
   - DV = `ceil(Strength / 2)`
@@ -38,7 +39,7 @@ NPCs, vehicles, and BattleMechs are present and registered, but they are not all
 
 The first end-to-end personal attack loop is implemented:
 
-- attack payload from an item or combat-panel action
+- attack payload from an item or declarative combat action
 - resolver derives weapon, skill, range, payload/ammo, target snapshots, and target armor
 - roll dialog and roll execution
 - per-target CQ and outcome resolution

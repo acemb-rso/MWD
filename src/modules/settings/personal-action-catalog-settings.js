@@ -6,7 +6,10 @@ import {
   getDefaultPersonalActionCatalog,
   normalizePersonalActionCatalog,
   PERSONAL_ACTION_CATEGORY_OPTIONS,
-  PERSONAL_ACTION_HANDLER_OPTIONS,
+  PERSONAL_ACTION_COST_RESOURCE_OPTIONS,
+  PERSONAL_ACTION_IMPLEMENTATION_OPTIONS,
+  PERSONAL_ACTION_PROMPT_OPTIONS,
+  PERSONAL_ACTION_RESOLVER_OPTIONS,
   SETTING_PERSONAL_ACTION_CATALOG,
 } from "../combat/personal-action-catalog.js";
 import { createSettingsCollectionValidationError, registerSettingsCollectionEditor } from "./collection-editor.js";
@@ -24,10 +27,22 @@ function rowsToCatalog(rows = []) {
       id: String(row?.id ?? ""),
       label: String(row?.label ?? ""),
       category: String(row?.category ?? ""),
-      cost: String(row?.cost ?? "0"),
-      handler: String(row?.handler ?? ""),
-      reason: String(row?.reason ?? ""),
+      cost: {
+        resource: String(row?.costResource ?? "sa"),
+        value: String(row?.costValue ?? "1"),
+      },
+      resolver: String(row?.resolver ?? "action"),
+      prompt: {
+        type: String(row?.promptType ?? "none"),
+        required: String(row?.promptRequired ?? "false"),
+      },
+      implementation: {
+        state: String(row?.implementationState ?? "ready"),
+        reason: String(row?.implementationReason ?? row?.reason ?? ""),
+      },
       rollIntent: String(row?.rollIntent ?? ""),
+      tags: String(row?.tags ?? ""),
+      resolves: String(row?.resolves ?? ""),
       prominent: String(row?.prominent ?? "false"),
       prominentWhenBurning: String(row?.prominentWhenBurning ?? "false")
     })), { strict: true });
@@ -43,10 +58,16 @@ function catalogToRows(value = []) {
     id: String(entry.id ?? ""),
     label: String(entry.label ?? ""),
     category: String(entry.category ?? ""),
-    cost: String(entry.cost ?? "0"),
-    handler: String(entry.handler ?? ""),
-    reason: String(entry.reason ?? ""),
+    costResource: String(entry.cost?.resource ?? "sa"),
+    costValue: String(entry.cost?.value ?? "0"),
+    resolver: String(entry.resolver ?? "action"),
+    promptType: String(entry.prompt?.type ?? "none"),
+    promptRequired: entry.prompt?.required ? "true" : "false",
+    implementationState: String(entry.implementation?.state ?? "ready"),
+    implementationReason: String(entry.implementation?.reason ?? ""),
     rollIntent: String(entry.roll?.intent ?? ""),
+    tags: Array.isArray(entry.tags) ? entry.tags.join(", ") : String(entry.tags ?? ""),
+    resolves: Array.isArray(entry.resolves) ? entry.resolves.join(", ") : String(entry.resolves ?? ""),
     prominent: entry.prominent ? "true" : "false",
     prominentWhenBurning: entry.prominentWhenBurning ? "true" : "false"
   }));
@@ -89,8 +110,8 @@ const PERSONAL_ACTION_CATALOG_EDITOR_DEFINITION = {
   settingType: Array,
   title: "Personal Action Catalog",
   description: "Edit the action buttons shown in the personal combat action menu.",
-  helpText: "Rows are shown in menu order within their category. Handler controls what the button does; leave it as a placeholder for actions whose mechanics are not implemented yet.",
-  bulkHelpText: 'JSON shape: [{ "id": "move", "label": "Move", "category": "standard", "cost": 1, "handler": "combatAction" }]',
+  helpText: "Rows are shown in menu order within their category. Resolver controls which central action executor owns the action.",
+  bulkHelpText: 'JSON shape: [{ "id": "move", "label": "Move", "category": "standard", "cost": { "resource": "sa", "value": 1 }, "resolver": "movement" }]',
   emptyStateText: "No actions configured. Restore defaults to rebuild the standard action catalog.",
   addRowLabel: "Add Action",
   rowSchema: [
@@ -113,7 +134,13 @@ const PERSONAL_ACTION_CATALOG_EDITOR_DEFINITION = {
       options: () => PERSONAL_ACTION_CATEGORY_OPTIONS
     },
     {
-      key: "cost",
+      key: "costResource",
+      label: "Cost Resource",
+      type: "select",
+      options: () => PERSONAL_ACTION_COST_RESOURCE_OPTIONS
+    },
+    {
+      key: "costValue",
       label: "Cost",
       type: "number",
       min: 0,
@@ -121,14 +148,32 @@ const PERSONAL_ACTION_CATALOG_EDITOR_DEFINITION = {
       placeholder: "1"
     },
     {
-      key: "handler",
-      label: "Handler",
+      key: "resolver",
+      label: "Resolver",
       type: "select",
-      options: () => PERSONAL_ACTION_HANDLER_OPTIONS
+      options: () => PERSONAL_ACTION_RESOLVER_OPTIONS
     },
     {
-      key: "reason",
-      label: "Disabled Reason",
+      key: "promptType",
+      label: "Prompt",
+      type: "select",
+      options: () => PERSONAL_ACTION_PROMPT_OPTIONS
+    },
+    {
+      key: "promptRequired",
+      label: "Prompt Required",
+      type: "select",
+      options: () => BOOLEAN_OPTIONS
+    },
+    {
+      key: "implementationState",
+      label: "State",
+      type: "select",
+      options: () => PERSONAL_ACTION_IMPLEMENTATION_OPTIONS
+    },
+    {
+      key: "implementationReason",
+      label: "State Reason",
       type: "text",
       placeholder: "Not yet implemented."
     },
@@ -137,6 +182,18 @@ const PERSONAL_ACTION_CATALOG_EDITOR_DEFINITION = {
       label: "Roll Intent",
       type: "text",
       placeholder: "overload"
+    },
+    {
+      key: "tags",
+      label: "Tags",
+      type: "text",
+      placeholder: "combat, movement"
+    },
+    {
+      key: "resolves",
+      label: "Resolves",
+      type: "text",
+      placeholder: "prone, stunned"
     },
     {
       key: "prominent",
@@ -154,7 +211,7 @@ const PERSONAL_ACTION_CATALOG_EDITOR_DEFINITION = {
   menu: {
     name: "Personal Action Catalog",
     label: "Configure",
-    hint: "Edit the personal combat action menus and first-pass action handlers.",
+    hint: "Edit the personal combat action menus and declarative intent routing.",
     icon: "fas fa-list-check",
     restricted: true
   },
@@ -163,10 +220,16 @@ const PERSONAL_ACTION_CATALOG_EDITOR_DEFINITION = {
     id: "",
     label: "",
     category: PERSONAL_ACTION_CATEGORY_OPTIONS[0]?.value ?? "standard",
-    cost: "1",
-    handler: "combatAction",
-    reason: "",
+    costResource: "sa",
+    costValue: "1",
+    resolver: "action",
+    promptType: "none",
+    promptRequired: "false",
+    implementationState: "ready",
+    implementationReason: "",
     rollIntent: "",
+    tags: "combat",
+    resolves: "",
     prominent: "false",
     prominentWhenBurning: "false"
   }),

@@ -35,6 +35,8 @@ import { AssetModuleEffectsProvider } from "../modules/modifiers/providers/asset
 import { FirstAidModifiersProvider } from "../modules/modifiers/providers/first-aid.js";
 import { Modifiers } from "./modifiers/anarchy-modifiers.js";
 import { PersonalCombatTracker } from "./combat/personal-combat-tracker.js";
+import { PersonalCombatActions } from "./combat/personal-combat-actions.js";
+import { backfillPersonalActionCatalogSetting } from "./combat/personal-action-catalog.js";
 import { registerMWDChatActions } from "./chat/chat-actions.js";
 import { registerMWDGMGadgetSettings } from "./gm/mwd-gmgadget.js";
 import { getMWDGMGadget } from "./gm/mwd-gmgadget.js";
@@ -237,6 +239,7 @@ export class AnarchySystem {
     game.mwd.roll = MWDRoll;
     game.mwd.attacks = WeaponAttackActions;
     game.mwd.personalCombat = PersonalCombatTracker;
+    game.mwd.personalCombatActions = PersonalCombatActions;
     game.mwd.combat = {
       resolveActivationUnit: (...args) => PersonalCombatTracker.resolveActivationUnit(...args),
       resolveCombatantForActor: (...args) => PersonalCombatTracker.resolveCombatantForActor(...args),
@@ -359,6 +362,7 @@ export class AnarchySystem {
 
     await ensureLifeModuleCatalogDefaults();
     await ensureStatusConditionCatalogDefaults();
+    await backfillPersonalActionCatalogSetting();
     await syncAllMachinePilotVision();
     await syncTokenDetectionModes();
 

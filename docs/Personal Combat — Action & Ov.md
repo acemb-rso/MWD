@@ -1,104 +1,162 @@
-# MWD Personal Combat — Action & Burn Rules
-**
+# MWD Personal Combat - Action and Burn Rules
 
-## 1. Activations & Simple Actions (SA)
- - Start of Your Activation
- - Regain 3 Simple Actions (SA), 1 Free Action (FA), 1 Reaction (RA)
- - Apply the current Burn penalty to all rolls this activation.
- - Spending actions
+## Activations
 
-### Hard Action Cap
+At the start of a normal personal-scale activation, a character regains:
 
-You may take additional SA beyond 3, but: *Maximum SA per activation = 3 + floor((REF + GUTS)/2)*
-This cap cannot be exceeded by Edge, augments, or qualities unless explicitly stated.
+* 3 Standard Actions
+* 1 Free Action
+* 1 Reaction
 
-__Each SA may be used to (not comprehensive)__
-* Move your speed
-* Make one simple attack
-* Reduce Burn rating (See #4)
-* Use device/Operate technology
-* Reload
-* Observe in detail
-* Assist a combatant
-* Aim (adds Perception to your next ranged attack; spoiled by moving first)
-* Stand up
+Burn penalties apply to rolls immediately and remain part of the roll modifier
+pipeline for the activation.
 
-Some tasks cost 2 or 3 SA instead of one:
+## Standard Actions
 
-__2 SA may be used to (not comprehensive)__
-* Make a "Complex Attack"
-* Provide First Aid
-* Emergency Repair
-* Use Advanced options of Technology 
-* Take "Combat Quality" action
+Standard Actions are represented as:
 
-**SA do not exist outside your activation.**
-**SA cannot be held or reserved for reactions.**
+```js
+{ resource: "sa", value: 1 }
+```
 
-## 2. Reactions
+Common Standard Actions include:
 
-- Reactions occur outside your activation.
-- Do not cost SA.
-- Do not reduce your next activation’s SA.
-- May trigger in response to defined events (attack, disengage, etc.).
+* Move
+* Careful Move / Crawl
+* Aim
+* Interact / Use Object
+* Ready Weapon
+* Reload / Load Weapon
+* Observe in Detail
+* Simple Skill Use
+* Recover from Stun
+* Stand Up from Prone
+* Assist / Lead Team
+* Reduce Burn
 
-__Reaction Burn__
-1. Spending available reaction (RA): +0 Burn
-2. Each additional reaction: +2 Burn each
+SA do not exist outside your activation and cannot be reserved for reactions.
 
-**Burn from reactions is applied immediately.**
+## Complex Actions
 
-## 3. Burn
+Complex Actions are still paid in SA. Most cost:
 
-Burn is the personal-scale analog to BattleMech Heat: accumulated strain from pushing performance past a safe limit. 
-Burn increases immediately, and penalties apply immediately.
+```js
+{ resource: "sa", value: 2 }
+```
 
-__Burn Generation__
-* For each SA spent beyond 3 in a single activation: +1 Burn.
-* For each attack after the first in a single activation: +1 Burn
-* Additional RA (see #2): +2 Burn
+Common Complex Actions include:
 
+* Attack
+* First Aid
+* Use Complex Skill
+* Use Untrained Complex Skill
+* Ready Heavy Weapon
+* Extinguish Fire
+* Recover Burn
 
-## 4. Recovering from Burn
-During your activation: Spend 1 SA → reduce Burn by 1 immediately.
+Suppression Fire is listed as a visible stub until the suppression resolver is
+implemented.
 
-## 5. Passive Cool-Off
+## Free Actions
 
-At the end of your activation, reduce Burn by 2 if **all** are true:
-1. Total SA spent this activation ≤ 3, AND
-2. No Burn was generated during this activation, AND
-3. No Burn was generated from reactions since your last activation.
-*If any of the above are false, you do not cool off passively.*
+Free Actions are not zero-cost actions. A normal Free Action spends FA:
 
-## 6. Burn Penalty Bands
+```js
+{ resource: "fa", value: 1 }
+```
 
-__Apply penalty to all dice pools__
-Burn 0 → No penalty
-Burn 1–2 → −1 die
-Burn 3–4 → −2 dice
-Burn 5–6 → −3 dice
-*Continue scaling by −1 die per 2 Burn*
+Common Free Actions include:
 
-Penalties apply immediately when Burn changes.
+* Speak / Signal
+* Drop Object
+* Gesture / Signal
+* Observe Quickly
+* Select Fire Mode
+* Select Ammunition / Payload
+* Minor Posture
+* Ready Small Item
+* Prepare
+* Activate Item
 
-## 7. Overload Check
+True no-cost actions use:
 
-At end of your activation:
+```js
+{ resource: "none", value: 0 }
+```
 
-If Burn ≥ 6, make a Control Test:
-* Dice pool: GUTS + GUTS (2 × GUTS) minus Burn and Injury modifiers
-* DN: Burn − 5 (minimum 0)
+## Reactions
 
-On failure → you become **Overloaded**.
+Reactions occur outside your activation. A normal reaction spends RA:
+
+```js
+{ resource: "ra", value: 1 }
+```
+
+Current reaction actions:
+
+* Evade
+* Opportunity Attack
+* Assist Ally
+* Interrupt from Prepare
+
+Direct Dodge / Defensive Response and Break Grapple / Melee Defense are visible
+stubs until those resolver paths exist.
+
+## Burn
+
+Burn is the personal-scale analog to BattleMech Heat: accumulated strain from
+pushing performance past a safe limit.
+
+Burn generation:
+
+* Each SA spent beyond the safe baseline can generate Burn.
+* Each attack after the first in a single activation can generate Burn.
+* Additional reactions can generate Burn through reaction fallback rules.
+
+Burn penalties apply immediately when Burn changes.
+
+## Recovering From Burn
+
+During your activation:
+
+* Reduce Burn spends 1 SA and reduces Burn by 1.
+* Recover Burn is the Complex Action path for stronger Burn recovery where supported.
+
+## Passive Cool-Off
+
+At the end of activation, reduce Burn by 2 if all are true:
+
+1. Total SA spent this activation is 3 or less.
+2. No Burn was generated during this activation.
+3. No Burn was generated from reactions since the actor's last activation.
+
+If any condition is false, passive cool-off does not occur.
+
+## Overload Check
+
+At the end of activation, if Burn is 6 or higher, make the Overload check.
 
 While Overloaded:
-* You still gain 3 SA at the start of activation.
-* You may only spend SA on Venting.
-* You retain 1 FA and 1 RA per round.
+
+* The actor still gains activation resources.
 * Burn penalties still apply.
+* Action availability is restricted to recovery behavior.
 
-**The Overloaded condition is lost when Burn = 0.**
+The Overloaded condition is lost when Burn reaches 0.
 
-## 8. Edge Interaction (Reactions)
+## Declarative Action Execution
 
-Spend 1 Edge when taking a reaction → Ignore the Burn generated by that reaction.
+Personal combat action buttons are declarative catalog entries. Sheets emit one
+`combatIntent`; they do not run action-specific mechanics.
+
+Execution flow:
+
+1. Normalize and validate the action.
+2. Reject disabled/stub actions.
+3. Resolve prompts.
+4. Cancel without cost/log/state if the prompt is cancelled.
+5. Spend and log cost.
+6. Dispatch to the action's resolver.
+7. Call the roll engine only when dice are required.
+
+Action intent owns action economy and state. Roll intent owns dice resolution.

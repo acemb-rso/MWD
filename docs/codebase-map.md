@@ -98,7 +98,9 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 - `src/modules/roll/mwd-roll.js` - Primary MWD roll orchestration pipeline. **The canonical roll entry point.**
 - `src/modules/roll/mwd-roll-dialog.js` - AppV2 roll dialog.
 - `src/modules/roll/intent/` - Intent resolvers for skill, defense, attack, edge, initiative, and related flows.
-- `src/modules/combat/personal-combat-tracker.js` - Personal-combat activation, action-economy, and action routing for personal-scale engagements.
+- `src/modules/combat/personal-action-catalog.js` - Declarative personal combat action catalog. Normalizes legacy rows into the canonical `cost` / `resolver` / `prompt` / `implementation` shape and backfills newly shipped defaults into customized worlds.
+- `src/modules/combat/personal-combat-actions.js` - Central personal combat action executor. Sheets emit `combatIntent`; this layer resolves prompts, spends/logs action cost, dispatches to resolver families, and hands off to the roll engine only when dice are required.
+- `src/modules/combat/personal-combat-tracker.js` - Personal-combat activation and action-economy state: SA/FA/RA, Burn integration, activation log, reaction fallback, and tracker state used by the action executor.
 - `src/modules/anarchy-combat.js` - System-level combat hooks and integration points used during combat lifecycle and activation.
 - `src/modules/harm/harm-engine.js` - Harm application service for GM harm, chat-card damage apply, and queued machine attack consequences.
 - `src/modules/harm/harm-engine-utils.js` - Pure harm helpers extracted for testing and easier debugging.
@@ -127,5 +129,6 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 ## Tests and supporting tools
 
 - `tests/` - Minimal Node-based tests for pure and near-pure modules such as layout normalization, default resolution, item type normalization, form coercion, and harm helpers.
+- `tests/personal-action-catalog.test.mjs` - Declarative personal action catalog normalization, validation, and default-backfill coverage.
 - `tools/` - Compendium maintenance and JSON validation scripts.
 - `src/packs/` - Source data for the packaged compendiums.

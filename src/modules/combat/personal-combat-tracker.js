@@ -262,9 +262,29 @@ function cloneWritableSnapshotState(snapshot = null) {
 }
 
 function actionCostLabel(resource, cost) {
+  if (resource === "none") return "No Cost";
   if (resource === "free") return "Free";
   if (resource === "burn") return `+${cost} Burn`;
   return `${cost} ${String(resource).toUpperCase()}`;
+}
+
+function getActionCostValue(action = {}, fallback = 0) {
+  const raw = action?.cost;
+  if (raw && typeof raw === "object") return Math.max(0, Number(raw.value ?? fallback) || 0);
+  return Math.max(0, Number(raw ?? fallback) || 0);
+}
+
+function getActionCostResource(action = {}, fallback = "sa") {
+  const raw = action?.cost;
+  if (raw && typeof raw === "object") return String(raw.resource ?? fallback).trim() || fallback;
+  return fallback;
+}
+
+function getActionImplementationReason(action = {}) {
+  const state = String(action?.implementation?.state ?? "ready").trim() || "ready";
+  if (state === "ready" || state === "legacy") return "";
+  return String(action?.implementation?.reason ?? action?.reason ?? "That action is not implemented yet.").trim()
+    || "That action is not implemented yet.";
 }
 
 function mergeActionState(state = {}, actionId = "", { snapshot = null, metadata = {} } = {}) {
@@ -1578,8 +1598,8 @@ export class PersonalCombatTracker {
     const saCapacityRemaining = getSaCapacityRemaining(actor, snapshot);
     const state = snapshot.state ?? {};
     const category = action.category;
-    let resource = "sa";
-    let cost = Number(action.cost ?? 0) || 0;
+    let resource = getActionCostResource(action, "sa");
+    let cost = getActionCostValue(action, 0);
     let costLabel = actionCostLabel(resource, cost);
     let reason = "";
 
@@ -1648,16 +1668,14 @@ export class PersonalCombatTracker {
         || notTurnReason;
     }
 
-    if (!action.handler) {
-      reason = action.reason || "Not yet implemented.";
-    }
+    reason = getActionImplementationReason(action) || reason;
     reason = reason || getPersonalActionGateReason(actor, action);
 
     return {
       id: action.id,
       label: action.label,
       category,
-      handler: action.handler,
+      handler: action.handler || "combatIntent",
       description: String(action.description ?? "").trim(),
       resource,
       cost,
@@ -1665,6 +1683,7 @@ export class PersonalCombatTracker {
       disabled: Boolean(reason),
       reason,
       roll: action.roll ? JSON.stringify(action.roll) : "",
+      actionPayload: JSON.stringify({ intent: "combatAction", actionId: action.id }),
       prominent: Boolean(action.prominent || (action.prominentWhenBurning && snapshot.burn.value >= 6))
     };
   }
@@ -1672,7 +1691,8 @@ export class PersonalCombatTracker {
   static async executeAction(actor, { token = null, actionId = "", metadata = {} } = {}) {
     const action = getPersonalAction(actionId);
     if (!action) return { ok: false, reason: "Unknown combat action." };
-    if (!action.handler) return { ok: false, reason: action.reason || "That action is not implemented yet." };
+    const implementationReason = getActionImplementationReason(action);
+    if (implementationReason) return { ok: false, reason: implementationReason };
     const gateReason = getPersonalActionGateReason(actor, action);
     if (gateReason) return { ok: false, reason: gateReason };
 
@@ -1701,17 +1721,18 @@ export class PersonalCombatTracker {
     if (action.id === "aim" && this.getMoveActionCountFromState(snapshot.state) > 0) {
       return { ok: false, reason: "Cannot aim after taking a move action this activation." };
     }
-    if (getSaCapacityRemaining(actor, snapshot) < Number(action.cost ?? 1)) {
+    if (getSaCapacityRemaining(actor, snapshot) < getActionCostValue(action, 1)) {
       return { ok: false, reason: "Activation SA cap reached." };
     }
 
+    const cost = getActionCostValue(action, 1) || 1;
     const spend = await this.spendResource(actor, {
       token,
       resource: "sa",
-      cost: Number(action.cost ?? 1) || 1,
+      cost,
       actionId: action.id,
       actionLabel: action.label,
-      actionCostLabel: `${Number(action.cost ?? 1) || 1} SA`,
+      actionCostLabel: `${cost} SA`,
       actionCategory: action.category
     });
     if (!spend?.ok) return spend;

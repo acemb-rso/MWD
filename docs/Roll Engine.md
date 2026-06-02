@@ -206,6 +206,27 @@ Chat cards never “know” how to roll.
 
 Buttons on chat cards simply emit **new payloads** referencing this resolved data.
 
+## 7.1 Combat Action Intent vs Roll Intent
+
+Personal combat action buttons do not all call the roll engine directly.
+Combat action execution sits one layer above roll execution:
+
+```js
+executeCombatActionIntent(...)
+  -> validate action catalog entry
+  -> resolve prompts
+  -> spend/log FA, SA, RA, or none
+  -> dispatch to the action resolver
+  -> call game.mwd.roll.execute(...) only if dice are required
+```
+
+Non-roll combat actions include communication, dropping an object, selecting
+fire mode, selecting a payload, reload placeholders, Prepare, and simple posture
+changes.
+
+Roll intents still own dice resolution and RollContext construction. Combat
+action intents own action economy, prompts, state changes, and logging.
+
 Examples:
 
 * “Reroll Failures”

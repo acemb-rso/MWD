@@ -107,9 +107,11 @@ Still useful but less blocking than machine combat:
 
 ## Tier 3 - Polish And Completeness
 
-### 7. First Aid Combat Action Handler - Implemented
+### 7. First Aid Combat Action - Implemented
 
-The personal combat tracker action slot is wired through `combatFirstAid`.
+The personal combat action catalog routes First Aid through `combatIntent`.
+The central executor dispatches to the existing First Aid resolver path, so the
+sheet stays declarative while the mature First Aid flow remains intact.
 
 Implemented behavior:
 
