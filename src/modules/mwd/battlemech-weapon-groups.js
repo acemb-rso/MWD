@@ -402,6 +402,18 @@ export function buildBattlemechWeaponGroupAttackProfile(actor = null, groupId = 
 
   const firstMember = group._memberProfiles?.[0] ?? null;
   const summary = group.attackSummary ?? {};
+  const memberProfiles = Array.isArray(group._memberProfiles) ? group._memberProfiles : [];
+  const groupFlags = [];
+  if (memberProfiles.some(member => {
+    const kw = member.item?.system?.keywords ?? member.keywords ?? [];
+    const kwList = Array.isArray(kw)
+      ? kw.map(k => String(k ?? "").trim()).filter(Boolean)
+      : String(kw ?? "").split(",").map(k => k.trim()).filter(Boolean);
+    return kwList.includes("armorBypass");
+  })) {
+    groupFlags.push("armorBypass");
+  }
+  const groupEffects = groupFlags.length > 0 ? { flags: groupFlags } : {};
   const notes = [
     ...asArray(group.compatibilityWarnings),
     ...asArray(group._memberProfiles).map(weapon => weapon.notes).filter(Boolean),
@@ -434,7 +446,7 @@ export function buildBattlemechWeaponGroupAttackProfile(actor = null, groupId = 
       range: normalizeRangeData(summary.range ?? { max: summary.rangeCap ?? "near" }),
       defaultRangeBand: String(summary.defaultRangeBand ?? "near").trim() || "near",
       traits: [],
-      effects: {},
+      effects: groupEffects,
       notes,
       resolverKey: "standard",
       capabilityReport: {

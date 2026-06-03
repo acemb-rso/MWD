@@ -76,6 +76,11 @@ Purpose: Editor for reusable weapon payload items.
             {{selectOptions payloadEditor.resolverKeys selected=system.profile.resolution.resolverKey valueAttr="value" labelAttr="label" localize=false}}
           </select>
         </div>
+
+        <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+          <label data-tooltip="Applied to target on hit or graze. Format: burn+N (personal), heat+N (machine), or onFire (any)">On-Hit Effect</label>
+          <input type="text" name="system.profile.resolution.onHitEffect" value="{{system.profile.resolution.onHitEffect}}" placeholder="e.g. burn+2, heat+3, onFire" />
+        </div>
       </div>
 
       <div class="mwd-weapon-compact__band-grid">

@@ -806,25 +806,26 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   /* 3) Dialog (BEFORE rolling)             */
   /* -------------------------------------- */
 
-  const updatedPayload = await MWDRollDialog.prompt({
-    actor,
-    rollActor,
-    basePayload: payload,
-    resolved: ctx,
-    diceParts: {
-      attribute: ctx?.pool?.attribute ?? 0,
-      skill: ctx?.pool?.skill ?? 0,
-      bonus: ctx?.pool?.bonus ?? 0,
-      specialization: ctx?.pool?.specialization ?? 0
-    },
-    mods: collected.mods,
-    modTotal: collected.total,
-    options: {
-      allowEdge: payload.intent !== "initiative"
-    }
-  });
-
-  if (!updatedPayload) return null;
+  let updatedPayload;
+  if (payload.intent === "initiative") {
+    updatedPayload = payload;
+  } else {
+    updatedPayload = await MWDRollDialog.prompt({
+      actor,
+      rollActor,
+      basePayload: payload,
+      resolved: ctx,
+      diceParts: {
+        attribute: ctx?.pool?.attribute ?? 0,
+        skill: ctx?.pool?.skill ?? 0,
+        bonus: ctx?.pool?.bonus ?? 0,
+        specialization: ctx?.pool?.specialization ?? 0
+      },
+      mods: collected.mods,
+      modTotal: collected.total,
+    });
+    if (!updatedPayload) return null;
+  }
   if (applyPlayerPresets && uiState?.subject) {
     await consumeOncePlayerModifierPresets(uiState.subject);
   }
@@ -1173,6 +1174,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   return ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content: html,
+    rolls: roll ? [roll] : [],
     flags: {
       mwd: {
         payload,

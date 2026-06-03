@@ -505,11 +505,11 @@ export class HarmEngine {
       mitigationByType: activeArmor?.mitigationByType ?? {},
       damageType: normalizedDamageType,
     });
-    const effectiveAp = Math.max(
-      0,
-      (Number(payload?.ap ?? 0) || 0) + (Number(effects?.ap ?? 0) || 0)
-    );
-    const netResistance = armorMitigation.isDestroyed
+    const hasArmorBypass = Array.isArray(effects?.flags) && effects.flags.includes("armorBypass");
+    const effectiveAp = hasArmorBypass
+      ? 0
+      : Math.max(0, (Number(payload?.ap ?? 0) || 0) + (Number(effects?.ap ?? 0) || 0));
+    const netResistance = hasArmorBypass || armorMitigation.isDestroyed
       ? 0
       : Math.max(0, armorMitigation.baseMitigation + armorMitigation.typeMitigationMod - effectiveAp);
     let finalDamage = Math.max(0, Math.ceil(damageIncoming - netResistance));
@@ -548,7 +548,8 @@ export class HarmEngine {
     // Any connecting attack wears armor, even when it deals 0 net damage after
     // mitigation. Misses never reach this routine (they are skipped upstream),
     // so an attackDamage packet with a hit/graze outcome always degrades armor.
-    const attackConnected = payload?.mode === "attackDamage"
+    const attackConnected = !hasArmorBypass
+      && payload?.mode === "attackDamage"
       && ["hit", "graze", "highMargin"].includes(String(payload?.outcome ?? "").trim());
     const armorWear = resolveArmorWearStep({
       incomingDamage: baseDamage,

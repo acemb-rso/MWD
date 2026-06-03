@@ -108,6 +108,13 @@ const WEAPON_STANDARD_TRAIT_DEFS = Object.freeze({
     aliases: ["spaceCapable", "space-capable", "space capable", "vacuum", "vacuumCapable"],
     resolve: () => ({ flags: ["spaceCapable"] }),
   }),
+  armorBypass: Object.freeze({
+    key: "armorBypass",
+    label: "Armor Bypass",
+    rated: false,
+    aliases: ["armorBypass", "armor-bypass", "armor bypass", "bypass"],
+    resolve: () => ({ flags: ["armorBypass"] }),
+  }),
 });
 
 const ARMOR_STANDARD_TRAIT_DEFS = Object.freeze({
@@ -155,6 +162,11 @@ export const WEAPON_STANDARD_TRAITS = Object.freeze(
     rated: entry.rated,
   }))
 );
+
+// Payload capability traits that map directly to effects.flags.
+// When a payload carries one of these as a capability trait, it is merged into
+// the effective weapon's effects at profile-resolution time.
+const PAYLOAD_EFFECT_FLAG_TRAITS = Object.freeze(new Set(["armorBypass"]));
 
 export const ARMOR_STANDARD_TRAITS = Object.freeze(
   Object.values(ARMOR_STANDARD_TRAIT_DEFS).map(entry => ({
@@ -1017,6 +1029,15 @@ export function resolveEffectiveWeaponProfile({
     traits: [],
     standardTraits: combinedStandardTraits,
   });
+
+  // Payload capability traits (e.g. armorBypass) that map directly to effect
+  // flags are not routed through the standard-trait resolver, so merge them
+  // manually from the active payload's traits here.
+  const payloadFlagTraits = normalizeWeaponTraits(activePayload?.traits ?? [])
+    .filter(trait => PAYLOAD_EFFECT_FLAG_TRAITS.has(trait));
+  if (payloadFlagTraits.length > 0) {
+    combinedEffects.flags = Array.from(new Set([...(combinedEffects.flags ?? []), ...payloadFlagTraits]));
+  }
   const publicSourceState = {
     ...effectivePayloadState.sourceState,
   };

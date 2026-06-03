@@ -476,7 +476,10 @@ export function previewMachineAttackDamage({
     ? { ...hitLocation, armorBefore: armor.remaining, structureBefore: structure.remaining, pureStructureHit: armor.remaining <= 0 }
     : normalizeHitLocationForDamage(actor, payload, armor.remaining, structure.remaining);
 
-  const armorAbsorbed = Math.min(adjustedIncoming, actor.type === TEMPLATE.actorTypes.vehicle && armor.max <= 0 ? 0 : armor.remaining);
+  const hasArmorBypass = Array.isArray(payload?.effects?.flags) && payload.effects.flags.includes("armorBypass");
+  const armorAbsorbed = hasArmorBypass
+    ? 0
+    : Math.min(adjustedIncoming, actor.type === TEMPLATE.actorTypes.vehicle && armor.max <= 0 ? 0 : armor.remaining);
   const structureDamage = Math.min(structure.remaining, Math.max(0, adjustedIncoming - armorAbsorbed));
   const armorAfterValue = Math.max(0, armor.remaining - armorAbsorbed);
   const structureAfterValue = Math.max(0, structure.remaining - structureDamage);

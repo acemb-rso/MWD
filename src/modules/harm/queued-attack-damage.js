@@ -6,8 +6,9 @@
 import { TEMPLATE } from "../constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { resolveMachineOperator } from "../mwd/machine-operator.js";
-import { summarizeAttackDamageResult } from "../roll/attack-resolution.js";
+import { parseOnHitEffect, summarizeAttackDamageResult } from "../roll/attack-resolution.js";
 import { renderChat } from "../roll/renderers/render-chat.js";
+import { adjustBattlemechPendingHeat } from "../mwd/machine-heat.js";
 import { HarmEngine } from "./harm-engine.js";
 
 export function isMachineDamageMutation(mutation = {}) {
@@ -121,6 +122,41 @@ async function spendMachineChaosCriticalEdge({ machineActor = null, operatorActo
   return { ok: true, operatorActor: operator.actor };
 }
 
+function isPersonalActor(actor) {
+  return actor?.type === TEMPLATE.actorTypes.character || actor?.type === TEMPLATE.actorTypes.npc;
+}
+
+function isMachineActorType(actor) {
+  return actor?.type === TEMPLATE.actorTypes.battlemech || actor?.type === TEMPLATE.actorTypes.vehicle;
+}
+
+async function applyOnHitEffect({ targetActor, targetToken, onHitEffect, source = "" } = {}) {
+  if (!onHitEffect || !targetActor) return;
+  const effect = parseOnHitEffect(onHitEffect);
+  if (!effect) return;
+
+  if (effect.kind === "onFire") {
+    await HarmEngine.apply({
+      actor: targetActor,
+      token: targetToken,
+      payload: { mode: "status", statusId: "onFire", active: true, source },
+      options: { logToChat: false },
+    });
+    return;
+  }
+
+  if (effect.kind === "burn" && isPersonalActor(targetActor)) {
+    await HarmEngine.apply({
+      actor: targetActor,
+      token: targetToken,
+      payload: { mode: "burnDelta", delta: effect.amount, source },
+      options: { logToChat: false },
+    });
+  } else if (effect.kind === "heat" && isMachineActorType(targetActor)) {
+    await adjustBattlemechPendingHeat(targetActor, effect.amount, { reason: source || "weapon hit effect" });
+  }
+}
+
 async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
   const result = resolved?.attackResult?.results?.[resultIndex] ?? null;
   const mutation = result?.queuedMutation ?? null;
@@ -195,6 +231,20 @@ async function applyQueuedAttackDamageAtIndex(resolved, resultIndex) {
 
   if (!applyResult?.ok) {
     return { ok: false, reason: "harm-apply-failed", userMessage: summary.reason ?? "Unable to apply attack damage." };
+  }
+
+  const onHitEffect = mutation.payload?.onHitEffect ?? null;
+  if (onHitEffect) {
+    try {
+      await applyOnHitEffect({
+        targetActor,
+        targetToken,
+        onHitEffect,
+        source: mutation.payload?.source ?? "",
+      });
+    } catch (error) {
+      console.warn("MWD | Failed to apply on-hit effect", onHitEffect, error);
+    }
   }
 
   mutation.applied = true;

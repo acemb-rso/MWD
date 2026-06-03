@@ -51,6 +51,7 @@ export const PERSONAL_WEAPON_RESERVED_PAYLOAD_CAPABILITIES = Object.freeze([
   "smoke",
   "incendiary",
   "emp",
+  "armorBypass",
 ]);
 
 export const PERSONAL_WEAPON_WEAPON_CAPABILITY_OPTIONS = Object.freeze([
@@ -66,6 +67,7 @@ export const PERSONAL_WEAPON_PAYLOAD_CAPABILITY_OPTIONS = Object.freeze([
   { value: "smoke", label: "Smoke" },
   { value: "incendiary", label: "Incendiary" },
   { value: "emp", label: "EMP" },
+  { value: "armorBypass", label: "Armor Bypass" },
 ]);
 
 export const PERSONAL_WEAPON_TEMPLATE_SHAPES = Object.freeze([

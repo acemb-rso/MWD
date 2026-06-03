@@ -36,6 +36,15 @@ function toNumber(value, fallback = 0) {
   return Number.isFinite(numeric) ? numeric : fallback;
 }
 
+export function parseOnHitEffect(value) {
+  const str = String(value ?? "").trim().toLowerCase();
+  if (str === "onfire") return { kind: "onFire" };
+  const match = str.match(/^(burn|heat)\+(\d+(?:\.\d+)?)$/);
+  if (!match) return null;
+  const amount = Math.max(0, Number(match[2]) || 0);
+  return amount > 0 ? { kind: match[1], amount } : null;
+}
+
 export function doesAttackAddNetHitsToDamage(weapon = null) {
   // Personal and synthetic attacks now deal flat damage; margin feeds the
   // Personal Critical Hit engine instead of adding damage.
@@ -331,6 +340,7 @@ function getMonitorRemaining(actor, monitorKey) {
 }
 
 function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, hitLocation = null } = {}) {
+  const onHitEffect = ctx?.attack?.weapon?.resolution?.onHitEffect ?? null;
   if (isMachineActor(targetActor)) {
     return {
       mode: "machineAttackDamage",
@@ -341,6 +351,8 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
       damageType: damage?.damageType,
       ap: damage?.ap ?? 0,
       hitLocation,
+      onHitEffect,
+      effects: ctx?.attack?.weapon?.effects ?? {},
       chaosCriticalSelected: false,
       reliabilitySpendSelections: [],
       previewRevision: 0,
@@ -379,6 +391,7 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
     damageType: damage?.damageType,
     ap: damage?.ap ?? 0,
     effects: ctx?.attack?.weapon?.effects ?? {},
+    onHitEffect,
     source: `${attacker?.name ?? "Attacker"}: ${ctx?.attack?.weapon?.name ?? "Attack"}`,
     attackDamage: {
       effectiveWeaponDamage: damage?.effectiveWeaponDamage ?? 0,
