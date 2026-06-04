@@ -48,6 +48,8 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/inventory-record.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/bio-identity.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/bio-history.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/advancement.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/knowledge-skills.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/summary-bar.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/quick-actions.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/vehicle/attributes-grid.hbs`,

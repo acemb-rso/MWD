@@ -19,6 +19,7 @@ import {
   buildEdgeTraitFacts,
   evaluateTraitPhase,
 } from "../mwd/traits.js";
+import { normalizeCharacterAdvancementState } from "../advancement/character-advancement.js";
 import { getDocumentTypeCreateDefaults } from "../document-type-defaults.js";
 import { getAttackerCombatant, resetAllSensorTargetingStatesToBlind } from "../mwd/machine-ew-state.js";
 import {
@@ -83,6 +84,7 @@ export class MWDActor extends Actor {
     if (this.isCharacterLike()) {
       const system = this.system ?? {};
       ensureCoreSkillRatings(system);
+      if (this.type === "character") normalizeCharacterAdvancementState(system);
       system.speed = Math.max(0, Math.trunc(Number(system.speed ?? 12) || 12));
 
       // Cleanup if any bad nesting already happened in-memory

@@ -195,6 +195,20 @@
                   },
                   {
                     "type": "panel",
+                    "title": "Advancement",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.character.advancement" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
+                    "title": "Knowledge Skills",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.character.knowledge-skills" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
                     "title": "Traits",
                     "children": [
                       { "type": "include", "partial": "mwd.v2.ui.placeholders.bio-traits" }

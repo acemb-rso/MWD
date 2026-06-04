@@ -18,11 +18,22 @@ import {
 } from "../mwd/life-modules.js";
 import {
   buildSkillDisplay,
+  MWD_SKILLS,
   getOwnedSkillSpecializationKeys,
   getStoredSkillSpecializationKeys,
   getSkillSpecializationDefs,
   normalizeStoredSkillSpecializationKeys,
 } from "../mwd/skills.js";
+import {
+  ATTRIBUTE_KEYS,
+  EDGE_POOL_KEYS,
+  PURCHASE_TYPES,
+  commitPurchase,
+  evaluateBuild,
+  getCharacterXpState,
+  getExperienceTiers,
+  previewPurchase,
+} from "../advancement/character-advancement.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { buildCriticalStatusSummary } from "../mwd/machine-summary.js";
 import { buildBattlemechMovementActionChoices } from "../mwd/battlemech-movement-actions.js";
@@ -72,6 +83,15 @@ function compactList(values = []) {
     .filter(Boolean);
 }
 
+function getActorItems(actor = null) {
+  const items = actor?.items;
+  if (!items) return [];
+  if (Array.isArray(items)) return items;
+  if (Array.isArray(items.contents)) return items.contents;
+  if (typeof items[Symbol.iterator] === "function") return Array.from(items);
+  return [];
+}
+
 function buildSummaryStats(stats = []) {
   return stats
     .filter(stat => stat && stat.value !== undefined && stat.value !== null && String(stat.value).trim() !== "")
@@ -98,6 +118,22 @@ function buildDetailRows(rows = []) {
 const ARMOR_MODIFIER_LABELS = MWD.mwd.armorMitigationType;
 const GEAR_CATEGORY_LABELS = MWD.item.gear.categoryLabels;
 const CONSUMABLE_CATEGORY_LABELS = MWD.item.consumable.categoryLabels;
+const ATTRIBUTE_LABELS = {
+  strength: "Strength",
+  reflexes: "Reflexes",
+  guts: "Guts",
+  intelligence: "Intelligence",
+  charisma: "Charisma",
+  edge: "Edge",
+};
+const EDGE_POOL_LABELS = {
+  grit: "Grit",
+  chaos: "Chaos",
+  insight: "Insight",
+  rumor: "Rumor",
+  legend: "Legend",
+  credibility: "Credibility",
+};
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -242,6 +278,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
   #expandedInventoryRows = new Set();
   #inventoryAttackDragController = null;
   #linkedMechHookId = null;
+  #advancementOpen = false;
 
   static PARTS = {
     sheet: {
@@ -274,6 +311,11 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       mechAttack: CharacterSheetV2.prototype._onMechAttack,
       mechMovement: CharacterSheetV2.prototype._onMechMovement,
       mechRoll: CharacterSheetV2.prototype._onMechRoll,
+      openAdvancementMode: CharacterSheetV2.prototype._onOpenAdvancementMode,
+      closeAdvancementMode: CharacterSheetV2.prototype._onCloseAdvancementMode,
+      commitAdvancementPurchase: CharacterSheetV2.prototype._onCommitAdvancementPurchase,
+      addKnowledgeSkill: CharacterSheetV2.prototype._onAddKnowledgeSkill,
+      removeKnowledgeSkill: CharacterSheetV2.prototype._onRemoveKnowledgeSkill,
     }
   }, { inplace: false });
 
@@ -436,6 +478,7 @@ ctx.edgeConsole.poolsOrdered = order
       weight:          sys.biography?.weight          ?? "",
       xpTotal:         sys.counters?.xp?.total        ?? 0,
       xpSpent:         sys.counters?.xp?.value        ?? 0,
+      xpAvailable:     Math.max(0, Number(sys.counters?.xp?.total ?? 0) - Number(sys.counters?.xp?.value ?? 0)),
       experienceLevel: sys.biography?.experienceLevel ?? "green",
       enrichedHistory: await foundry.applications.ux.TextEditor.implementation.enrichHTML(
         sys.biography?.history ?? "",
@@ -519,9 +562,126 @@ ctx.edgeConsole.poolsOrdered = order
         }),
     }));
 
+    ctx.knowledgeSkills = (Array.isArray(sys.knowledgeSkills) ? sys.knowledgeSkills : [])
+      .map(label => String(label ?? "").trim())
+      .filter(Boolean)
+      .map(label => ({ label }));
+    ctx.advancement = this.#buildAdvancementContext(ctx);
+
     ctx.assignedMech = await this._buildAssignedMech();
 
     return ctx;
+  }
+
+  #buildAdvancementContext(ctx = {}) {
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const system = actor?.system ?? {};
+    const xp = getCharacterXpState(actor);
+    const build = evaluateBuild(actor, {
+      tier: system?.biography?.experienceLevel ?? "green",
+    });
+    const previewFor = intent => previewPurchase(actor, intent);
+    const canSpend = preview => this.isEditable && preview?.legal;
+
+    const attributes = ATTRIBUTE_KEYS.map(key => {
+      const current = Math.max(0, Number(system?.attributes?.[key]?.value ?? 1) || 0);
+      const preview = previewFor({ type: PURCHASE_TYPES.attribute, target: key, to: current + 1 });
+      return {
+        key,
+        label: ATTRIBUTE_LABELS[key] ?? key,
+        current,
+        next: current + 1,
+        cost: preview.cost,
+        legal: preview.legal,
+        reason: preview.errors.join(" "),
+        dataset: { type: PURCHASE_TYPES.attribute, target: key, to: current + 1 },
+        disabled: !canSpend(preview),
+      };
+    });
+
+    const skills = MWD_SKILLS.map(skill => {
+      const current = Math.max(0, Number(system?.skills?.[skill.code]?.rating ?? 0) || 0);
+      const preview = previewFor({ type: PURCHASE_TYPES.skill, target: skill.code, to: current + 1 });
+      const ownedSpecializations = getOwnedSkillSpecializationKeys(system, skill.code);
+      const specializationChoices = getSkillSpecializationDefs(skill.code)
+        .filter(entry => !ownedSpecializations.includes(entry.key))
+        .map(entry => ({ ...entry }));
+      const specializationPreview = specializationChoices.length
+        ? previewFor({
+            type: ownedSpecializations.length ? PURCHASE_TYPES.specializationChange : PURCHASE_TYPES.specializationAdd,
+            target: skill.code,
+            specializationKey: specializationChoices[0].key,
+          })
+        : null;
+      return {
+        key: skill.code,
+        label: skill.label,
+        current,
+        next: current + 1,
+        cost: preview.cost,
+        legal: preview.legal,
+        reason: preview.errors.join(" "),
+        dataset: { type: PURCHASE_TYPES.skill, target: skill.code, to: current + 1 },
+        disabled: !canSpend(preview),
+        ownedSpecialization: ownedSpecializations[0] ?? "",
+        canSpecialize: Boolean(specializationPreview?.legal && specializationChoices.length),
+        specializationCost: specializationPreview?.cost ?? 0,
+        specializationAction: ownedSpecializations.length ? "Change Spec" : "Add Spec",
+        specializationDataset: {
+          type: ownedSpecializations.length ? PURCHASE_TYPES.specializationChange : PURCHASE_TYPES.specializationAdd,
+          target: skill.code,
+        },
+        specializationReason: specializationPreview?.errors?.join(" ") ?? "",
+      };
+    });
+
+    const edgePools = EDGE_POOL_KEYS.map(key => {
+      const pool = system?.counters?.edgePools?.[key] ?? {};
+      const current = Math.max(0, Number(pool.rating ?? 1) || 0);
+      const preview = previewFor({ type: PURCHASE_TYPES.edgePool, target: key, to: current + 1 });
+      return {
+        key,
+        label: EDGE_POOL_LABELS[key] ?? key,
+        current,
+        value: Math.max(0, Number(pool.value ?? 0) || 0),
+        next: current + 1,
+        cost: preview.cost,
+        legal: preview.legal,
+        reason: preview.errors.join(" "),
+        dataset: { type: PURCHASE_TYPES.edgePool, target: key, to: current + 1 },
+        disabled: !canSpend(preview),
+      };
+    });
+
+    const negativeTraits = getActorItems(actor)
+      .filter(item => (item?.canonicalType ?? item?.type) === "quality")
+      .filter(item => normalizeQualityTraitSystem(item.system ?? {}).category === "negative")
+      .map(item => {
+        const preview = previewFor({ type: PURCHASE_TYPES.traitRemove, target: item.uuid ?? item.id });
+        return {
+          id: item.id,
+          uuid: item.uuid ?? item.id,
+          name: item.name,
+          cost: preview.cost,
+          disabled: !canSpend(preview),
+          reason: preview.errors.join(" "),
+          dataset: { type: PURCHASE_TYPES.traitRemove, target: item.uuid ?? item.id },
+        };
+      });
+
+    return {
+      open: this.#advancementOpen,
+      editable: this.isEditable,
+      xp,
+      tiers: getExperienceTiers(),
+      build,
+      attributes,
+      skills,
+      edgePools,
+      negativeTraits,
+      knowledgeSkills: ctx.knowledgeSkills ?? [],
+      addTraitCost: previewFor({ type: PURCHASE_TYPES.traitAdd, target: "Positive Trait" }).cost,
+    };
   }
 
   async _buildAssignedMech() {
@@ -1075,6 +1235,132 @@ ctx.edgeConsole.poolsOrdered = order
   }
 }
 
+ _onOpenAdvancementMode(event) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  this.#advancementOpen = true;
+  this.#renderPreservingScroll({ force: true });
+ }
+
+ _onCloseAdvancementMode(event) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  this.#advancementOpen = false;
+  this.#renderPreservingScroll({ force: true });
+ }
+
+ #advancementIntentFromTarget(target = null) {
+  return {
+    type: String(target?.dataset?.purchaseType ?? "").trim(),
+    target: String(target?.dataset?.purchaseTarget ?? "").trim(),
+    to: target?.dataset?.purchaseTo,
+    label: String(target?.dataset?.purchaseLabel ?? "").trim(),
+    specializationKey: String(target?.dataset?.specializationKey ?? "").trim(),
+    specializationLabel: String(target?.dataset?.specializationLabel ?? "").trim(),
+  };
+ }
+
+ async #promptSpecializationIntent(intent) {
+  if (intent.type !== PURCHASE_TYPES.specializationAdd && intent.type !== PURCHASE_TYPES.specializationChange) return intent;
+
+  const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+  const ownedKeys = getOwnedSkillSpecializationKeys(actorWriteTarget.system ?? {}, intent.target);
+  const choices = getSkillSpecializationDefs(intent.target)
+    .filter(choice => !ownedKeys.includes(choice.key));
+  if (!choices.length) return intent;
+
+  const content = `<form class="mwd-quick-select"><div class="mwd-field"><label>Specialization</label><select name="specialization">${choices.map(choice => `<option value="${escapeHtml(choice.key)}">${escapeHtml(choice.label)}</option>`).join("")}</select></div></form>`;
+  const selectedKey = await foundry.applications.api.DialogV2.prompt({
+    window: { title: intent.type === PURCHASE_TYPES.specializationChange ? "Change Specialization" : "Add Specialization" },
+    content,
+    ok: {
+      label: "Select",
+      callback: (_event, button) => String(button.form.elements.specialization?.value ?? choices[0]?.key ?? "").trim()
+    }
+  });
+  const selected = choices.find(choice => choice.key === selectedKey) ?? choices[0];
+  return {
+    ...intent,
+    specializationKey: selected?.key ?? "",
+    specializationLabel: selected?.label ?? "",
+  };
+ }
+
+ async _onCommitAdvancementPurchase(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  if (!this.isEditable) return;
+
+  const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+  let intent = this.#advancementIntentFromTarget(target);
+  if (!intent.type) return;
+  if (intent.type === PURCHASE_TYPES.traitAdd) {
+    const root = target?.closest?.(".mwd-advancement") ?? event?.target?.closest?.(".mwd-advancement");
+    const input = root?.querySelector?.("input[name='mwdTraitName']");
+    const label = String(input?.value ?? "").trim();
+    if (label) {
+      intent.target = label;
+      intent.label = label;
+    }
+  }
+
+  try {
+    intent = await this.#promptSpecializationIntent(intent);
+    await commitPurchase(actorWriteTarget, intent);
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Advancement purchase failed", error);
+    ui.notifications?.warn(error?.message ?? "Unable to commit advancement purchase.");
+  }
+ }
+
+ async _onAddKnowledgeSkill(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  if (!this.isEditable) return;
+
+  const root = target?.closest?.(".mwd-advancement") ?? event?.target?.closest?.(".mwd-advancement");
+  const input = root?.querySelector?.("input[name='mwdKnowledgeSkill']");
+  const label = String(input?.value ?? "").trim();
+  if (!label) return;
+
+  try {
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    await commitPurchase(actorWriteTarget, {
+      type: PURCHASE_TYPES.knowledgeSkillAdd,
+      target: label,
+      label,
+    });
+    if (input) input.value = "";
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Add Knowledge Skill failed", error);
+    ui.notifications?.warn(error?.message ?? "Unable to add Knowledge Skill.");
+  }
+ }
+
+ async _onRemoveKnowledgeSkill(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  if (!this.isEditable) return;
+
+  const label = String(target?.dataset?.knowledgeSkill ?? "").trim();
+  if (!label) return;
+
+  try {
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    await commitPurchase(actorWriteTarget, {
+      type: PURCHASE_TYPES.knowledgeSkillRemove,
+      target: label,
+      label,
+    });
+    this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+    console.error("MWD | Remove Knowledge Skill failed", error);
+    ui.notifications?.warn(error?.message ?? "Unable to remove Knowledge Skill.");
+  }
+}
+
  async _onAddSkillSpecialization(event, target) {
   event?.preventDefault?.();
   event?.stopPropagation?.();
@@ -1087,8 +1373,15 @@ ctx.edgeConsole.poolsOrdered = order
   const actorWriteTarget = this.getPersistentActor() ?? this.actor;
   const rawKeys = getStoredSkillSpecializationKeys(actorWriteTarget.system ?? {}, skillKey);
   const ownedKeys = getOwnedSkillSpecializationKeys(actorWriteTarget.system ?? {}, skillKey);
-  const choices = getSkillSpecializationDefs(skillKey)
-    .filter(entry => !ownedKeys.includes(entry.key));
+  if (ownedKeys.length > 0) {
+    ui.notifications?.warn("A skill can only have one specialization.");
+    return;
+  }
+  if (Number(actorWriteTarget.system?.skills?.[skillKey]?.rating ?? 0) < 2) {
+    ui.notifications?.warn("Specializations require skill rating 2+.");
+    return;
+  }
+  const choices = getSkillSpecializationDefs(skillKey);
 
   if (choices.length === 0) return;
 

@@ -1,0 +1,36 @@
+{{!--
+templates/v2/ui/character/knowledge-skills.hbs
+Purpose: Renders unrated character Knowledge Skills.
+--}}
+
+<div class="mwd-knowledge-skills">
+  {{#if @root.knowledgeSkills.length}}
+    <div class="mwd-knowledge-skills__list">
+      {{#each @root.knowledgeSkills as |skill|}}
+        <span class="mwd-knowledge-chip">
+          <span>{{skill.label}}</span>
+          {{#if @root.advancement.editable}}
+            <button type="button"
+                    class="mwd-knowledge-chip__remove"
+                    data-action="removeKnowledgeSkill"
+                    data-knowledge-skill="{{skill.label}}"
+                    title="Remove {{skill.label}}">
+              <i class="fas fa-times"></i>
+            </button>
+          {{/if}}
+        </span>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="mwd-inv__empty">No Knowledge Skills assigned.</div>
+  {{/if}}
+
+  {{#if @root.advancement.editable}}
+    <div class="mwd-knowledge-skills__add">
+      <input type="text" name="mwdKnowledgeSkill" placeholder="Add Knowledge Skill" />
+      <button type="button" data-action="addKnowledgeSkill" title="Add Knowledge Skill">
+        <i class="fas fa-plus"></i> Add
+      </button>
+    </div>
+  {{/if}}
+</div>

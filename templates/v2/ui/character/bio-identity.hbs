@@ -86,7 +86,8 @@ How it fits: Included by the Bio tab Identity panel in the character sheet.
     </span>
 
     {{!-- XP --}}
-    <span class="mwd-pill {{#if @root.editing}}is-editable{{/if}}" title="XP Earned / Spent">
+    <span class="mwd-pill mwd-pill--xp {{#if @root.editing}}is-editable{{/if}}" title="XP Earned / Spent{{#unless @root.editing}} - Open Advancement{{/unless}}"
+          {{#unless @root.editing}}data-action="openAdvancementMode"{{/unless}}>
       <span class="mwd-pill__tag">XP</span>
       {{#if @root.editing}}
         <input class="mwd-pill__input"
@@ -107,7 +108,7 @@ How it fits: Included by the Bio tab Identity panel in the character sheet.
         <span class="mwd-pill__sep">/</span>
         <span class="mwd-pill__val">{{bio.xpSpent}}</span>
       {{/if}}
-      <span class="mwd-pill__suffix">earned/spent</span>
+      <span class="mwd-pill__suffix">earned/spent{{#unless @root.editing}} ({{bio.xpAvailable}} avail){{/unless}}</span>
     </span>
 
   </div>

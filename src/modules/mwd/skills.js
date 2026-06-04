@@ -191,8 +191,9 @@ function getResolvedSpecializationCatalog(rawCatalog, { strict = false } = {}) {
 
 function readSpecializationCatalogSetting() {
   try {
-    if (game?.settings?.settings?.has?.(`${SYSTEM_NAME}.${SETTING_SKILL_SPECIALIZATION_CATALOG}`)) {
-      return game.settings.get(SYSTEM_NAME, SETTING_SKILL_SPECIALIZATION_CATALOG);
+    const gameApi = globalThis.game;
+    if (gameApi?.settings?.settings?.has?.(`${SYSTEM_NAME}.${SETTING_SKILL_SPECIALIZATION_CATALOG}`)) {
+      return gameApi.settings.get(SYSTEM_NAME, SETTING_SKILL_SPECIALIZATION_CATALOG);
     }
   } catch (_) {
     // Fall through to shipped defaults during early boot or if settings are unavailable.
@@ -266,7 +267,9 @@ export function getSkillSpecializationLabel(skillCode, specializationKey) {
 }
 
 export function getDefaultSkillSpecializationCatalog() {
-  return foundry.utils.deepClone(DEFAULT_SKILL_SPECIALIZATION_CATALOG);
+  const clone = globalThis.foundry?.utils?.deepClone
+    ?? (value => JSON.parse(JSON.stringify(value ?? null)));
+  return clone(DEFAULT_SKILL_SPECIALIZATION_CATALOG);
 }
 
 export function normalizeSkillSpecializationCatalog(value, { strict = false } = {}) {
@@ -348,8 +351,9 @@ export function buildSkillDisplay(systemData, { bonusBySkill = null } = {}) {
     const derivedBonus = Number(bonusBySkill?.[code] ?? 0);
     const bonus = baseBonus + derivedBonus;
     const ownedSpecializations = getOwnedSkillSpecializations(systemData, code);
-    const remainingSpecializations = getSkillSpecializationDefs(code)
-      .filter(entry => !ownedSpecializations.some(owned => owned.key === entry.key));
+    const remainingSpecializations = ownedSpecializations.length > 0
+      ? []
+      : getSkillSpecializationDefs(code);
 
     const total = base + rating + bonus;
 
@@ -364,7 +368,7 @@ export function buildSkillDisplay(systemData, { bonusBySkill = null } = {}) {
       bonus,
       total,
       rollPayload: JSON.stringify({ intent: "skill", key: code }),
-      canAddSpecialization: remainingSpecializations.length > 0,
+      canAddSpecialization: rating >= 2 && remainingSpecializations.length > 0,
       specializations: ownedSpecializations.map(entry => ({
         ...entry,
         bonus: SKILL_SPECIALIZATION_BONUS,

@@ -185,6 +185,7 @@ const templateData = {
       keywords: [],
       dispositions: [],
       cues: [],
+      knowledgeSkills: [],
       burn: { value: 0, overloaded: false },
       criticals: [],
       biography: {

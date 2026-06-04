@@ -13,7 +13,7 @@ test("standard personal weapon traits expose the curated prebuilt list", async (
 
   assert.deepEqual(
     WEAPON_STANDARD_TRAITS.map(entry => entry.label),
-    ["Fatigue", "Concealable", "Single Shot", "Automatic", "Spread", "Space Capable"]
+    ["Fatigue", "Concealable", "Single Shot", "Automatic", "Spread", "Space Capable", "Armor Bypass"]
   );
   assert.deepEqual(
     normalizeWeaponStandardTraits(["Fatigue", "Space Capable"]).map(entry => entry.key),
