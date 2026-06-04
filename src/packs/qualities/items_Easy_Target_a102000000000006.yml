@@ -1,0 +1,37 @@
+{
+  "_id": "a102000000000006",
+  "name": "Easy Target",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2900000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Negative Traits",
+    "description": "<p><b>Minor Negative Trait.</b> Defense Rating -2.</p><p><b>Automation:</b> Applies an always-on Defense Rating modifier through the quality trait engine.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": false,
+    "category": "negative",
+    "tier": "minor",
+    "tags": ["negative", "minor", "defense"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "easy-target-dr",
+        "type": "defenseRatingMod",
+        "phase": "onDefenseRatingResolved",
+        "selector": "defenseRating",
+        "label": "Easy Target",
+        "value": -2,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a102000000000006"
+}

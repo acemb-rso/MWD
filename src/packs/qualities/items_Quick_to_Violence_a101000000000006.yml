@@ -1,0 +1,37 @@
+{
+  "_id": "a101000000000006",
+  "name": "Quick to Violence",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 600000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Minor Positive Trait.</b> Initiative +2.</p><p><b>Automation:</b> Adds +2 to resolved initiative.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "minor",
+    "tags": ["positive", "minor", "initiative"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "quick-to-violence-init",
+        "type": "initiativeMod",
+        "phase": "onInitiativeResolved",
+        "selector": "intent.initiative",
+        "label": "Quick to Violence",
+        "value": 2,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a101000000000006"
+}

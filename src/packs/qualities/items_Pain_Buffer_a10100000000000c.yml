@@ -1,0 +1,48 @@
+{
+  "_id": "a10100000000000c",
+  "name": "Pain Buffer",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Major Positive Trait.</b> Ignore one Physical/Fatigue pip when calculating dice penalty.</p><p><b>Automation:</b> Reduces each condition monitor value by 1 for penalty calculation, minimum 0.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "major",
+    "tags": ["positive", "major", "condition"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "pain-buffer-physical",
+        "type": "conditionPenaltyMod",
+        "phase": "onConditionPenaltyResolved",
+        "selector": "condition.physical",
+        "label": "Pain Buffer (Physical)",
+        "value": -1,
+        "min": 0,
+        "application": "automatic"
+      },
+      {
+        "id": "pain-buffer-fatigue",
+        "type": "conditionPenaltyMod",
+        "phase": "onConditionPenaltyResolved",
+        "selector": "condition.fatigue",
+        "label": "Pain Buffer (Fatigue)",
+        "value": -1,
+        "min": 0,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a10100000000000c"
+}

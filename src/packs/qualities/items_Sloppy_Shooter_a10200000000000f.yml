@@ -1,0 +1,37 @@
+{
+  "_id": "a10200000000000f",
+  "name": "Sloppy Shooter",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Negative Traits",
+    "description": "<p><b>Minor Negative Trait.</b> -1 die to Generate Fire Solution and Aim bonus reduced by 1 die.</p><p><b>Automation:</b> Applies -1 die to Generate Fire Solution rolls. Aim bonus reduction is recorded here for manual accounting.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": false,
+    "category": "negative",
+    "tier": "minor",
+    "tags": ["negative", "minor", "targeting", "aim"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "sloppy-shooter-targeting",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.targeting",
+        "label": "Sloppy Shooter",
+        "value": -1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a10200000000000f"
+}

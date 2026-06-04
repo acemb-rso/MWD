@@ -104,11 +104,20 @@ function toNumber(value, fallback = 0) {
   return Number.isFinite(numeric) ? numeric : fallback;
 }
 
+function getProperty(source, path = "") {
+  const normalized = toTrimmedString(path);
+  if (!source || !normalized) return undefined;
+  if (typeof foundry?.utils?.getProperty === "function") {
+    return foundry.utils.getProperty(source, normalized);
+  }
+  return normalized.split(".").reduce((current, segment) => current?.[segment], source);
+}
+
 export function getTraitActiveEffectModifier(actor, key = "") {
   const path = TRAIT_ACTIVE_EFFECT_PATHS[key] ?? "";
   if (!actor || !path) return 0;
   const systemPath = path.startsWith("system.") ? path.slice(7) : path;
-  return toNumber(foundry.utils.getProperty(actor.system ?? {}, systemPath), 0);
+  return toNumber(getProperty(actor.system ?? {}, systemPath), 0);
 }
 
 function clone(value) {
@@ -581,6 +590,7 @@ function baseFacts(actor, runtime = {}) {
       saSpent: Math.max(0, Math.trunc(toNumber(state?.saSpentThisActivation, 0))),
       attacksThisActivation: Math.max(0, Math.trunc(toNumber(state?.attacksThisActivation, 0))),
       burnThisActivation: Math.max(0, Math.trunc(toNumber(state?.burnThisActivation, 0))),
+      actions: actionIds,
     },
     actionState: {
       aim: actionState?.aim ?? null,
@@ -605,6 +615,11 @@ export function buildRollTraitFacts({ actor, resolved, payload, runtime = {} } =
   const domains = Array.isArray(resolved?.domains) ? resolved.domains : [];
   const rangeBand = toTrimmedString(resolved?.attack?.rangeBand ?? payload?.rangeBand);
   const prePoolKey = toTrimmedString(payload?.edge?.pre?.poolKey ?? payload?.edge?.poolKey ?? "");
+  const commonCheckId = toTrimmedString(resolved?.data?.commonCheckId ?? payload?.id);
+  const tags = [
+    ...(Array.isArray(resolved?.tags) ? resolved.tags : []),
+    ...(Array.isArray(resolved?.domainTags) ? resolved.domainTags : []),
+  ].map(entry => toTrimmedString(entry)).filter(Boolean);
   const skillKey = toTrimmedString(
     resolved?.data?.skillKey
     ?? resolved?.specialization?.skillKey
@@ -622,6 +637,10 @@ export function buildRollTraitFacts({ actor, resolved, payload, runtime = {} } =
     key: skillKey,
     label: skillLabel,
   };
+  facts.common = {
+    id: intent === "common" ? commonCheckId : "",
+  };
+  facts.tags = tags;
   facts.edge = {
     stage: payload?.toggles?.useEdge ? "pre" : "",
     pool: prePoolKey,
@@ -631,6 +650,8 @@ export function buildRollTraitFacts({ actor, resolved, payload, runtime = {} } =
   domains.forEach(domain => facts.selectors.push(`domain.${domain}`));
   if (rangeBand) facts.selectors.push(`range.${rangeBand}`);
   if (intent === "skill" && skillKey) facts.selectors.push(`skill.${skillKey}`);
+  if (intent === "common" && commonCheckId) facts.selectors.push(`common.${commonCheckId}`);
+  tags.forEach(tag => facts.selectors.push(`tag.${tag}`));
   if (payload?.toggles?.useEdge) facts.selectors.push("edge.pre");
   return facts;
 }
@@ -691,6 +712,8 @@ export function buildDamageTraitFacts({ actor, packet = {}, runtime = {} } = {})
     damageType: toTrimmedString(packet.damageType),
   };
   facts.selectors.push("incoming");
+  if (facts.damage.track) facts.selectors.push(`incoming.${facts.damage.track}`);
+  if (facts.damage.damageType) facts.selectors.push(`damageType.${facts.damage.damageType}`);
   return facts;
 }
 

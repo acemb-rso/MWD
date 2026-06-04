@@ -1,0 +1,39 @@
+{
+  "_id": "a102000000000010",
+  "name": "Animal Antipathy",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3900000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Negative Traits",
+    "description": "<p><b>Minor Negative Trait.</b> -1 die when dealing with animals.</p><p><b>Automation:</b> Presents an optional -1 die toggle on Animal Handling rolls.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": false,
+    "category": "negative",
+    "tier": "minor",
+    "tags": ["negative", "minor", "animals"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "animal-antipathy",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": ["animalHandling"],
+        "label": "Animal Antipathy",
+        "value": -1,
+        "application": "optional",
+        "defaultEnabled": false
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a102000000000010"
+}

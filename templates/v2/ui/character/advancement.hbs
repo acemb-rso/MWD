@@ -45,102 +45,29 @@ Purpose: Presents character build validation and XP purchase intents.
     </section>
 
     <section class="mwd-advancement__section">
-      <h4>Attributes</h4>
-      <div class="mwd-advancement-list">
-        {{#each advancement.attributes as |purchase|}}
-          <button type="button"
-                  class="mwd-advancement-buy"
-                  data-action="commitAdvancementPurchase"
-                  data-purchase-type="{{purchase.dataset.type}}"
-                  data-purchase-target="{{purchase.dataset.target}}"
-                  data-purchase-to="{{purchase.dataset.to}}"
-                  title="{{purchase.reason}}"
-                  {{#if purchase.disabled}}disabled{{/if}}>
-            <span>{{purchase.label}} {{purchase.current}} -> {{purchase.next}}</span>
-            <strong>{{purchase.cost}} XP</strong>
-          </button>
-        {{/each}}
-      </div>
-    </section>
-
-    <section class="mwd-advancement__section">
-      <h4>Skills</h4>
-      <div class="mwd-advancement-list">
-        {{#each advancement.skills as |purchase|}}
-          <div class="mwd-advancement-skill">
-            <button type="button"
-                    class="mwd-advancement-buy"
-                    data-action="commitAdvancementPurchase"
-                    data-purchase-type="{{purchase.dataset.type}}"
-                    data-purchase-target="{{purchase.dataset.target}}"
-                    data-purchase-to="{{purchase.dataset.to}}"
-                    title="{{purchase.reason}}"
-                    {{#if purchase.disabled}}disabled{{/if}}>
-              <span>{{purchase.label}} {{purchase.current}} -> {{purchase.next}}</span>
-              <strong>{{purchase.cost}} XP</strong>
-            </button>
-            <button type="button"
-                    class="mwd-advancement-buy mwd-advancement-buy--secondary"
-                    data-action="commitAdvancementPurchase"
-                    data-purchase-type="{{purchase.specializationDataset.type}}"
-                    data-purchase-target="{{purchase.specializationDataset.target}}"
-                    title="{{purchase.specializationReason}}"
-                    {{#unless purchase.canSpecialize}}disabled{{/unless}}>
-              <span>{{purchase.specializationAction}}</span>
-              <strong>{{purchase.specializationCost}} XP</strong>
-            </button>
-          </div>
-        {{/each}}
-      </div>
-    </section>
-
-    <section class="mwd-advancement__section">
-      <h4>Edge Pools</h4>
-      <div class="mwd-advancement-list">
-        {{#each advancement.edgePools as |purchase|}}
-          <button type="button"
-                  class="mwd-advancement-buy"
-                  data-action="commitAdvancementPurchase"
-                  data-purchase-type="{{purchase.dataset.type}}"
-                  data-purchase-target="{{purchase.dataset.target}}"
-                  data-purchase-to="{{purchase.dataset.to}}"
-                  title="{{purchase.reason}}"
-                  {{#if purchase.disabled}}disabled{{/if}}>
-            <span>{{purchase.label}} {{purchase.current}} -> {{purchase.next}}</span>
-            <strong>{{purchase.cost}} XP</strong>
-          </button>
-        {{/each}}
-      </div>
-    </section>
-
-    <section class="mwd-advancement__section">
-      <h4>Traits</h4>
-      <div class="mwd-knowledge-skills__add">
-        <input type="text" name="mwdTraitName" placeholder="Positive trait name" />
-        <button type="button"
-                data-action="commitAdvancementPurchase"
-                data-purchase-type="traitAdd"
-                data-purchase-target="Positive Trait"
-                data-purchase-label="Positive Trait">
-          <i class="fas fa-plus"></i> Buy Positive Trait ({{advancement.addTraitCost}} XP)
+      <h4>Purchase</h4>
+      <div class="mwd-advancement__actions">
+        <button type="button" data-action="openAdvancementDialog" data-dialog="attribute">
+          <i class="fas fa-fist-raised"></i> Raise Attribute
         </button>
+        <button type="button" data-action="openAdvancementDialog" data-dialog="skill">
+          <i class="fas fa-book-open"></i> Raise Skill
+        </button>
+        <button type="button" data-action="openAdvancementDialog" data-dialog="edgePool">
+          <i class="fas fa-bolt"></i> Raise Edge Pool
+        </button>
+        <button type="button" data-action="openAdvancementDialog" data-dialog="specialization">
+          <i class="fas fa-star"></i> Manage Specialization
+        </button>
+        <button type="button" data-action="openAdvancementDialog" data-dialog="traitAdd">
+          <i class="fas fa-plus"></i> Buy Positive Trait
+        </button>
+        {{#if advancement.negativeTraits.length}}
+          <button type="button" data-action="openAdvancementDialog" data-dialog="traitRemove">
+            <i class="fas fa-minus-circle"></i> Remove Negative Trait
+          </button>
+        {{/if}}
       </div>
-      {{#if advancement.negativeTraits.length}}
-        <div class="mwd-advancement-list">
-          {{#each advancement.negativeTraits as |trait|}}
-            <button type="button"
-                    class="mwd-advancement-buy"
-                    data-action="commitAdvancementPurchase"
-                    data-purchase-type="{{trait.dataset.type}}"
-                    data-purchase-target="{{trait.dataset.target}}"
-                    title="{{trait.reason}}"
-                    {{#if trait.disabled}}disabled{{/if}}>
-              <span>Remove {{trait.name}}</span>
-              <strong>{{trait.cost}} XP</strong>
-            </button>
-          {{/each}}
-        </div>
-      {{/if}}
     </section>
   {{/unless}}
 </div>

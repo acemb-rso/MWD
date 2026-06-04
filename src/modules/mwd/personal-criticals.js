@@ -217,13 +217,14 @@ export function getPersonalSpeedState(actor) {
   });
   const modifier = Math.trunc(Number(traitPhase.packet.modifier ?? criticalModifier) || 0);
   const effective = Math.max(0, base + modifier);
-  return {
+  const state = {
     base,
     modifier,
     effective,
     adjusted: modifier !== 0,
-    modifiers: traitPhase.modifiers,
   };
+  if (traitPhase.modifiers.length) state.modifiers = traitPhase.modifiers;
+  return state;
 }
 
 function getPreparedCriticalRecords(payload = {}, actor = null) {

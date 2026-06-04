@@ -1,0 +1,37 @@
+{
+  "_id": "a102000000000007",
+  "name": "Overexertion",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3000000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Negative Traits",
+    "description": "<p><b>Minor Negative Trait.</b> First SA beyond the safe baseline generates +1 additional Burn.</p><p><b>Automation:</b> Adds +1 Burn to the first extra-SA Burn event each activation.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": false,
+    "category": "negative",
+    "tier": "minor",
+    "tags": ["negative", "minor", "burn"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "overexertion-extra-sa",
+        "type": "burnAdjust",
+        "phase": "onBeforeBurnApplied",
+        "selector": "activation.extraSA:first",
+        "label": "Overexertion",
+        "value": 1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a102000000000007"
+}

@@ -1,0 +1,37 @@
+{
+  "_id": "a101000000000007",
+  "name": "Efficient",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 700000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Major Positive Trait.</b> Passive Burn recovery increased by 1.</p><p><b>Automation:</b> When passive end-of-activation Burn recovery is available, increases the recovery by 1.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "major",
+    "tags": ["positive", "major", "burn"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "efficient-burn-recovery",
+        "type": "burnAdjust",
+        "phase": "onEndOfActivation",
+        "selector": "burn.adjust",
+        "label": "Efficient",
+        "value": -1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a101000000000007"
+}

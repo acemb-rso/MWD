@@ -1,0 +1,38 @@
+{
+  "_id": "a10200000000000c",
+  "name": "Glass Jaw",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Negative Traits",
+    "description": "<p><b>Major Negative Trait.</b> First time you take Fatigue damage each round, +1 damage.</p><p><b>Automation:</b> Adds +1 Fatigue damage once per round while combat tracking is available.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": false,
+    "category": "negative",
+    "tier": "major",
+    "tags": ["negative", "major", "damage", "fatigue"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "glass-jaw-fatigue",
+        "type": "damageMod",
+        "phase": "onDamageResolved",
+        "selector": "incoming.fatigue",
+        "label": "Glass Jaw",
+        "value": 1,
+        "application": "automatic",
+        "limit": { "perActivation": 0, "perRound": 1, "perScene": 0 }
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a10200000000000c"
+}

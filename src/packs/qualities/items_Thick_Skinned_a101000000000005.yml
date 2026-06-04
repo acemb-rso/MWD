@@ -1,0 +1,38 @@
+{
+  "_id": "a101000000000005",
+  "name": "Thick Skinned",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Minor Positive Trait.</b> Thermal resistance 1 and +1 die when resisting temperature extremes.</p><p><b>Automation:</b> Presents an optional +1 die toggle on Endure checks. Thermal resistance 1 is recorded here for manual accounting.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "minor",
+    "tags": ["positive", "minor", "thermal", "endure"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "thick-skinned-endure",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "common.endure",
+        "label": "Thick Skinned",
+        "value": 1,
+        "application": "optional",
+        "defaultEnabled": false
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a101000000000005"
+}

@@ -2863,6 +2863,85 @@
   background: rgba(80, 180, 120, 0.08);
 }
 
+.mwd-advancement__actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    color: inherit;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-align: left;
+    transition: background 0.15s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+.mwd-adv-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.mwd-adv-dialog__xp-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.85rem;
+}
+
+.mwd-adv-dialog__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.mwd-adv-dialog__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+
+  &:hover:not(.mwd-adv-dialog__row--disabled) {
+    background: rgba(255, 255, 255, 0.09);
+  }
+}
+
+.mwd-adv-dialog__row--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mwd-adv-dialog__cost {
+  font-weight: bold;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
 /* View/edit lock toggle visibility */
 .mwd-sheet.actor-sheet-v2 .view-mode-control {
   display: inline-flex;

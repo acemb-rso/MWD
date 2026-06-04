@@ -1,0 +1,37 @@
+{
+  "_id": "a101000000000002",
+  "name": "Hard Target",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Minor Positive Trait.</b> Defense Rating +2.</p><p><b>Automation:</b> Applies an always-on Defense Rating modifier through the quality trait engine.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "minor",
+    "tags": ["positive", "minor", "defense"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "hard-target-dr",
+        "type": "defenseRatingMod",
+        "phase": "onDefenseRatingResolved",
+        "selector": "defenseRating",
+        "label": "Hard Target",
+        "value": 2,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a101000000000002"
+}

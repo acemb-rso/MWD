@@ -1,0 +1,40 @@
+{
+  "_id": "a102000000000002",
+  "name": "Shaky",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Negative Traits",
+    "description": "<p><b>Minor Negative Trait.</b> -1 die on your first attack each activation.</p><p><b>Automation:</b> Applies -1 die to attack rolls while the activation attack count is still in its first-attack window.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": false,
+    "category": "negative",
+    "tier": "minor",
+    "tags": ["negative", "minor", "attack"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "shaky-first-attack",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.attack",
+        "label": "Shaky",
+        "value": -1,
+        "application": "automatic",
+        "conditions": [
+          { "id": "shaky-attack-count", "fact": "activation.attacksThisActivation", "comparator": "lt", "value": 2 }
+        ]
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a102000000000002"
+}

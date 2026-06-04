@@ -1,0 +1,37 @@
+{
+  "_id": "a101000000000012",
+  "name": "Tenacity",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Minor Positive Trait.</b> +1 die on Endure tests.</p><p><b>Automation:</b> Adds +1 die to Endure common checks.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "minor",
+    "tags": ["positive", "minor", "endure"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "tenacity-endure",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "common.endure",
+        "label": "Tenacity",
+        "value": 1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a101000000000012"
+}

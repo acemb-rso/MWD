@@ -1,0 +1,61 @@
+{
+  "_id": "a101000000000016",
+  "name": "Salvage Rat",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Minor Positive Trait.</b> +1 die to scrounge, jury-rig, or assess poor-quality gear.</p><p><b>Automation:</b> Presents optional +1 die toggles on Technician, Survival, and Streetwise skill rolls.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "minor",
+    "tags": ["positive", "minor", "salvage"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "salvage-rat-technician",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": ["technician"],
+        "label": "Salvage Rat",
+        "value": 1,
+        "application": "optional",
+        "defaultEnabled": false
+      },
+      {
+        "id": "salvage-rat-survival",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": ["survival"],
+        "label": "Salvage Rat",
+        "value": 1,
+        "application": "optional",
+        "defaultEnabled": false
+      },
+      {
+        "id": "salvage-rat-streetwise",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": ["streetwise"],
+        "label": "Salvage Rat",
+        "value": 1,
+        "application": "optional",
+        "defaultEnabled": false
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a101000000000016"
+}

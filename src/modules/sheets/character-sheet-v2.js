@@ -30,8 +30,8 @@ import {
   PURCHASE_TYPES,
   commitPurchase,
   evaluateBuild,
+  getAvailablePurchases,
   getCharacterXpState,
-  getExperienceTiers,
   previewPurchase,
 } from "../advancement/character-advancement.js";
 import { notifyRollError } from "../roll/roll-errors.js";
@@ -118,22 +118,6 @@ function buildDetailRows(rows = []) {
 const ARMOR_MODIFIER_LABELS = MWD.mwd.armorMitigationType;
 const GEAR_CATEGORY_LABELS = MWD.item.gear.categoryLabels;
 const CONSUMABLE_CATEGORY_LABELS = MWD.item.consumable.categoryLabels;
-const ATTRIBUTE_LABELS = {
-  strength: "Strength",
-  reflexes: "Reflexes",
-  guts: "Guts",
-  intelligence: "Intelligence",
-  charisma: "Charisma",
-  edge: "Edge",
-};
-const EDGE_POOL_LABELS = {
-  grit: "Grit",
-  chaos: "Chaos",
-  insight: "Insight",
-  rumor: "Rumor",
-  legend: "Legend",
-  credibility: "Credibility",
-};
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -314,6 +298,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       openAdvancementMode: CharacterSheetV2.prototype._onOpenAdvancementMode,
       closeAdvancementMode: CharacterSheetV2.prototype._onCloseAdvancementMode,
       commitAdvancementPurchase: CharacterSheetV2.prototype._onCommitAdvancementPurchase,
+      openAdvancementDialog: CharacterSheetV2.prototype._onOpenAdvancementDialog,
       addKnowledgeSkill: CharacterSheetV2.prototype._onAddKnowledgeSkill,
       removeKnowledgeSkill: CharacterSheetV2.prototype._onRemoveKnowledgeSkill,
     }
@@ -566,121 +551,28 @@ ctx.edgeConsole.poolsOrdered = order
       .map(label => String(label ?? "").trim())
       .filter(Boolean)
       .map(label => ({ label }));
-    ctx.advancement = this.#buildAdvancementContext(ctx);
+    ctx.advancement = this.#buildAdvancementContext();
 
     ctx.assignedMech = await this._buildAssignedMech();
 
     return ctx;
   }
 
-  #buildAdvancementContext(ctx = {}) {
+  #buildAdvancementContext() {
     const actor = this.getPersistentActor?.() ?? this.actor;
     const system = actor?.system ?? {};
     const xp = getCharacterXpState(actor);
     const build = evaluateBuild(actor, {
       tier: system?.biography?.experienceLevel ?? "green",
     });
-    const previewFor = intent => previewPurchase(actor, intent);
-    const canSpend = preview => this.isEditable && preview?.legal;
-
-    const attributes = ATTRIBUTE_KEYS.map(key => {
-      const current = Math.max(0, Number(system?.attributes?.[key]?.value ?? 1) || 0);
-      const preview = previewFor({ type: PURCHASE_TYPES.attribute, target: key, to: current + 1 });
-      return {
-        key,
-        label: ATTRIBUTE_LABELS[key] ?? key,
-        current,
-        next: current + 1,
-        cost: preview.cost,
-        legal: preview.legal,
-        reason: preview.errors.join(" "),
-        dataset: { type: PURCHASE_TYPES.attribute, target: key, to: current + 1 },
-        disabled: !canSpend(preview),
-      };
-    });
-
-    const skills = MWD_SKILLS.map(skill => {
-      const current = Math.max(0, Number(system?.skills?.[skill.code]?.rating ?? 0) || 0);
-      const preview = previewFor({ type: PURCHASE_TYPES.skill, target: skill.code, to: current + 1 });
-      const ownedSpecializations = getOwnedSkillSpecializationKeys(system, skill.code);
-      const specializationChoices = getSkillSpecializationDefs(skill.code)
-        .filter(entry => !ownedSpecializations.includes(entry.key))
-        .map(entry => ({ ...entry }));
-      const specializationPreview = specializationChoices.length
-        ? previewFor({
-            type: ownedSpecializations.length ? PURCHASE_TYPES.specializationChange : PURCHASE_TYPES.specializationAdd,
-            target: skill.code,
-            specializationKey: specializationChoices[0].key,
-          })
-        : null;
-      return {
-        key: skill.code,
-        label: skill.label,
-        current,
-        next: current + 1,
-        cost: preview.cost,
-        legal: preview.legal,
-        reason: preview.errors.join(" "),
-        dataset: { type: PURCHASE_TYPES.skill, target: skill.code, to: current + 1 },
-        disabled: !canSpend(preview),
-        ownedSpecialization: ownedSpecializations[0] ?? "",
-        canSpecialize: Boolean(specializationPreview?.legal && specializationChoices.length),
-        specializationCost: specializationPreview?.cost ?? 0,
-        specializationAction: ownedSpecializations.length ? "Change Spec" : "Add Spec",
-        specializationDataset: {
-          type: ownedSpecializations.length ? PURCHASE_TYPES.specializationChange : PURCHASE_TYPES.specializationAdd,
-          target: skill.code,
-        },
-        specializationReason: specializationPreview?.errors?.join(" ") ?? "",
-      };
-    });
-
-    const edgePools = EDGE_POOL_KEYS.map(key => {
-      const pool = system?.counters?.edgePools?.[key] ?? {};
-      const current = Math.max(0, Number(pool.rating ?? 1) || 0);
-      const preview = previewFor({ type: PURCHASE_TYPES.edgePool, target: key, to: current + 1 });
-      return {
-        key,
-        label: EDGE_POOL_LABELS[key] ?? key,
-        current,
-        value: Math.max(0, Number(pool.value ?? 0) || 0),
-        next: current + 1,
-        cost: preview.cost,
-        legal: preview.legal,
-        reason: preview.errors.join(" "),
-        dataset: { type: PURCHASE_TYPES.edgePool, target: key, to: current + 1 },
-        disabled: !canSpend(preview),
-      };
-    });
-
     const negativeTraits = getActorItems(actor)
       .filter(item => (item?.canonicalType ?? item?.type) === "quality")
-      .filter(item => normalizeQualityTraitSystem(item.system ?? {}).category === "negative")
-      .map(item => {
-        const preview = previewFor({ type: PURCHASE_TYPES.traitRemove, target: item.uuid ?? item.id });
-        return {
-          id: item.id,
-          uuid: item.uuid ?? item.id,
-          name: item.name,
-          cost: preview.cost,
-          disabled: !canSpend(preview),
-          reason: preview.errors.join(" "),
-          dataset: { type: PURCHASE_TYPES.traitRemove, target: item.uuid ?? item.id },
-        };
-      });
-
+      .filter(item => normalizeQualityTraitSystem(item.system ?? {}).category === "negative");
     return {
       open: this.#advancementOpen,
-      editable: this.isEditable,
       xp,
-      tiers: getExperienceTiers(),
       build,
-      attributes,
-      skills,
-      edgePools,
       negativeTraits,
-      knowledgeSkills: ctx.knowledgeSkills ?? [],
-      addTraitCost: previewFor({ type: PURCHASE_TYPES.traitAdd, target: "Positive Trait" }).cost,
     };
   }
 
@@ -1258,6 +1150,219 @@ ctx.edgeConsole.poolsOrdered = order
     specializationKey: String(target?.dataset?.specializationKey ?? "").trim(),
     specializationLabel: String(target?.dataset?.specializationLabel ?? "").trim(),
   };
+ }
+
+ async _onOpenAdvancementDialog(event, target) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  if (!this.isEditable) return;
+  const dialogType = String(target?.dataset?.dialog ?? "").trim();
+  if (!dialogType) return;
+  const actor = this.getPersistentActor?.() ?? this.actor;
+  const allPurchases = getAvailablePurchases(actor);
+  switch (dialogType) {
+    case "attribute": return this.#openAdvancementCheckboxDialog(actor, "Raise Attribute", allPurchases.filter(p => p.intent.type === PURCHASE_TYPES.attribute));
+    case "skill": return this.#openAdvancementCheckboxDialog(actor, "Raise Skill", allPurchases.filter(p => p.intent.type === PURCHASE_TYPES.skill));
+    case "edgePool": return this.#openAdvancementCheckboxDialog(actor, "Raise Edge Pool", allPurchases.filter(p => p.intent.type === PURCHASE_TYPES.edgePool));
+    case "specialization": return this.#openSpecializationPickerDialog(actor);
+    case "traitAdd": return this.#openTraitAddDialog(actor);
+    case "traitRemove": return this.#openTraitRemoveDialog(actor);
+  }
+ }
+
+ async #openAdvancementCheckboxDialog(actor, title, previews) {
+  if (!previews.length) {
+   ui.notifications?.info(`No available purchases for ${title}.`);
+   return;
+  }
+  const xp = getCharacterXpState(actor);
+  const rows = previews.map(p => {
+   const cls = p.legal ? "" : " mwd-adv-dialog__row--disabled";
+   const disabledAttr = p.legal ? "" : " data-initially-disabled disabled";
+   return `<label class="mwd-adv-dialog__row${cls}" title="${escapeHtml(p.errors.join(" "))}">
+    <input type="checkbox" name="sel" value="${escapeHtml(p.intent.target)}" data-cost="${p.cost}" data-to="${p.intent.to}" data-type="${escapeHtml(p.intent.type)}"${disabledAttr}>
+    <span class="mwd-adv-dialog__name">${escapeHtml(p.label)}</span>
+    <span class="mwd-adv-dialog__cost">${p.cost} XP</span>
+   </label>`;
+  }).join("");
+  const content = `<div class="mwd-adv-dialog">
+   <div class="mwd-adv-dialog__xp-bar">
+    <span><strong>${xp.available}</strong> XP available</span>
+   </div>
+   <div class="mwd-adv-dialog__rows">${rows}</div>
+  </div>`;
+
+  let intents;
+  try {
+   intents = await foundry.applications.api.DialogV2.prompt({
+    window: { title },
+    position: { width: 480 },
+    content,
+    ok: {
+     label: "Purchase",
+     callback: (_event, button) => {
+      const checked = Array.from(button.form.querySelectorAll("input[type=checkbox]:checked"));
+      return checked.map(inp => ({ type: inp.dataset.type, target: inp.value, to: Number(inp.dataset.to) }));
+     },
+    },
+   });
+  } catch { return; }
+
+  if (!Array.isArray(intents) || !intents.length) return;
+  for (const intent of intents) {
+   try {
+    await commitPurchase(actor, intent);
+   } catch (error) {
+    console.error("MWD | Advancement purchase failed", error);
+    ui.notifications?.warn(error?.message ?? "Unable to commit advancement purchase.");
+    break;
+   }
+  }
+  this.#renderPreservingScroll({ force: true });
+ }
+
+ async #openSpecializationPickerDialog(actor) {
+  const system = actor?.system ?? {};
+  const eligible = MWD_SKILLS.flatMap(skill => {
+   const rating = Math.max(0, Number(system?.skills?.[skill.code]?.rating ?? 0) || 0);
+   if (rating < 2) return [];
+   const ownedKeys = getOwnedSkillSpecializationKeys(system, skill.code);
+   const available = getSkillSpecializationDefs(skill.code).filter(c => !ownedKeys.includes(c.key));
+   if (!available.length) return [];
+   const hasSpec = ownedKeys.length > 0;
+   const type = hasSpec ? PURCHASE_TYPES.specializationChange : PURCHASE_TYPES.specializationAdd;
+   const cost = hasSpec ? 2 : 4;
+   return [{ code: skill.code, label: skill.label, type, cost, action: hasSpec ? "Change" : "Add" }];
+  });
+
+  if (!eligible.length) {
+   ui.notifications?.info("No skills eligible for specialization. Skills need rating 2+ and available specialization choices.");
+   return;
+  }
+
+  const optionHtml = eligible.map(s =>
+   `<option value="${escapeHtml(s.code)}" data-type="${escapeHtml(s.type)}">${escapeHtml(s.label)} — ${s.action} (${s.cost} XP)</option>`
+  ).join("");
+  const content = `<div class="mwd-adv-dialog"><div class="mwd-field"><label>Skill</label><select name="skillCode">${optionHtml}</select></div></div>`;
+
+  let picked;
+  try {
+   picked = await foundry.applications.api.DialogV2.prompt({
+    window: { title: "Manage Specialization" },
+    position: { width: 360 },
+    content,
+    ok: {
+     label: "Continue",
+     callback: (_event, button) => {
+      const sel = button.form.elements.skillCode;
+      const opt = sel?.options?.[sel.selectedIndex];
+      return { code: String(sel?.value ?? "").trim(), type: String(opt?.dataset?.type ?? PURCHASE_TYPES.specializationAdd).trim() };
+     },
+    },
+   });
+  } catch { return; }
+
+  if (!picked?.code) return;
+  let intent = { type: picked.type, target: picked.code };
+  try {
+   intent = await this.#promptSpecializationIntent(intent);
+   if (!intent?.specializationKey) return;
+   const actorWriteTarget = this.getPersistentActor?.() ?? this.actor;
+   await commitPurchase(actorWriteTarget, intent);
+   this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+   console.error("MWD | Specialization purchase failed", error);
+   ui.notifications?.warn(error?.message ?? "Unable to commit specialization.");
+  }
+ }
+
+ async #openTraitAddDialog(actor) {
+  const xp = getCharacterXpState(actor);
+  const cost = previewPurchase(actor, { type: PURCHASE_TYPES.traitAdd, target: "Positive Trait" }).cost;
+  const content = `<div class="mwd-adv-dialog">
+   <div class="mwd-adv-dialog__xp-bar">
+    <span>Cost: <strong>${cost} XP</strong></span>
+    <span><strong>${xp.available}</strong> XP available</span>
+   </div>
+   <div class="mwd-field"><label>Trait Name</label><input type="text" name="traitName" placeholder="e.g., Quick Reflexes" autofocus></div>
+  </div>`;
+
+  let traitName;
+  try {
+   traitName = await foundry.applications.api.DialogV2.prompt({
+    window: { title: "Buy Positive Trait" },
+    position: { width: 360 },
+    content,
+    ok: {
+     label: "Purchase",
+     callback: (_event, button) => String(button.form.elements.traitName?.value ?? "").trim(),
+    },
+   });
+  } catch { return; }
+
+  if (!traitName) return;
+  try {
+   await commitPurchase(actor, { type: PURCHASE_TYPES.traitAdd, target: traitName, label: traitName });
+   this.#renderPreservingScroll({ force: true });
+  } catch (error) {
+   console.error("MWD | Trait add failed", error);
+   ui.notifications?.warn(error?.message ?? "Unable to buy positive trait.");
+  }
+ }
+
+ async #openTraitRemoveDialog(actor) {
+  const negTraits = getActorItems(actor)
+   .filter(item => (item?.canonicalType ?? item?.type) === "quality")
+   .filter(item => normalizeQualityTraitSystem(item.system ?? {}).category === "negative");
+
+  if (!negTraits.length) {
+   ui.notifications?.info("No negative traits to remove.");
+   return;
+  }
+
+  const xp = getCharacterXpState(actor);
+  const rows = negTraits.map(item => {
+   const preview = previewPurchase(actor, { type: PURCHASE_TYPES.traitRemove, target: item.uuid ?? item.id });
+   const cls = preview.legal ? "" : " mwd-adv-dialog__row--disabled";
+   const disabledAttr = preview.legal ? "" : " data-initially-disabled disabled";
+   return `<label class="mwd-adv-dialog__row${cls}" title="${escapeHtml(preview.errors.join(" "))}">
+    <input type="checkbox" name="sel" value="${escapeHtml(item.uuid ?? item.id)}" data-cost="${preview.cost}"${disabledAttr}>
+    <span class="mwd-adv-dialog__name">${escapeHtml(item.name ?? "Trait")}</span>
+    <span class="mwd-adv-dialog__cost">${preview.cost} XP</span>
+   </label>`;
+  }).join("");
+
+  const content = `<div class="mwd-adv-dialog">
+   <div class="mwd-adv-dialog__xp-bar">
+    <span><strong>${xp.available}</strong> XP available</span>
+   </div>
+   <div class="mwd-adv-dialog__rows">${rows}</div>
+  </div>`;
+
+  let targets;
+  try {
+   targets = await foundry.applications.api.DialogV2.prompt({
+    window: { title: "Remove Negative Trait" },
+    position: { width: 420 },
+    content,
+    ok: {
+     label: "Remove Selected",
+     callback: (_event, button) => Array.from(button.form.querySelectorAll("input[type=checkbox]:checked")).map(inp => inp.value),
+    },
+   });
+  } catch { return; }
+
+  if (!Array.isArray(targets) || !targets.length) return;
+  for (const target of targets) {
+   try {
+    await commitPurchase(actor, { type: PURCHASE_TYPES.traitRemove, target });
+   } catch (error) {
+    console.error("MWD | Trait remove failed", error);
+    ui.notifications?.warn(error?.message ?? "Unable to remove negative trait.");
+    break;
+   }
+  }
+  this.#renderPreservingScroll({ force: true });
  }
 
  async #promptSpecializationIntent(intent) {

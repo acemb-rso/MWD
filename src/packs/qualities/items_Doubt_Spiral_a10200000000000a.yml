@@ -1,0 +1,38 @@
+{
+  "_id": "a10200000000000a",
+  "name": "Doubt Spiral",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Negative Traits",
+    "description": "<p><b>Major Negative Trait.</b> When you fail a skill check under pressure, the GM may apply Doubt (-1 die on skill checks). Doubt clears when you succeed on a check that was Assisted by an ally.</p><p><b>Automation:</b> Presents an optional -1 die toggle on skill rolls. Applying and clearing the Doubt state is GM/player managed.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": false,
+    "category": "negative",
+    "tier": "major",
+    "tags": ["negative", "major", "doubt"],
+    "activation": "triggered",
+    "effects": [
+      {
+        "id": "doubt-spiral-skill",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "label": "Doubt",
+        "value": -1,
+        "application": "optional",
+        "defaultEnabled": false
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a10200000000000a"
+}

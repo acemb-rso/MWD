@@ -1,0 +1,37 @@
+{
+  "_id": "a101000000000008",
+  "name": "Overclocked",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Major Positive Trait.</b> Overload Check +2 dice pool.</p><p><b>Automation:</b> Adds +2 dice to Overload checks.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "major",
+    "tags": ["positive", "major", "overload"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "overclocked-overload",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.overload",
+        "label": "Overclocked",
+        "value": 2,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a101000000000008"
+}

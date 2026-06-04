@@ -71,6 +71,16 @@
       }
     },
     {
+      "name": "qualities",
+      "label": "Qualities",
+      "type": "Item",
+      "system": "mwd",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
       "name": "gear",
       "label": "Gear",
       "type": "Item",

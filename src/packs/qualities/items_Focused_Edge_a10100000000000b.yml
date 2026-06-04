@@ -1,0 +1,37 @@
+{
+  "_id": "a10100000000000b",
+  "name": "Focused Edge",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Major Positive Trait.</b> When you spend Edge pre-roll, gain +1 additional die, once per roll.</p><p><b>Automation:</b> Adds +1 die when the roll is built with pre-roll Edge enabled.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "major",
+    "tags": ["positive", "major", "edge"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "focused-edge-preroll",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "edge.pre",
+        "label": "Focused Edge",
+        "value": 1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a10100000000000b"
+}

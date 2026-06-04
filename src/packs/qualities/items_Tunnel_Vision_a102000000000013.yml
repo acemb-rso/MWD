@@ -1,0 +1,39 @@
+{
+  "_id": "a102000000000013",
+  "name": "Tunnel Vision",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 4200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Negative Traits",
+    "description": "<p><b>Minor Negative Trait.</b> After you attack, Aim, or Generate Fire Solution against a target, that target becomes your Focus until the end of your next activation. While focused, suffer -1 die on Perception skill checks and on Reactions against anyone other than your Focus.</p><p><b>Automation:</b> Presents an optional -1 die toggle on Perception rolls. Focus target tracking and reaction penalties are GM/player managed.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": false,
+    "category": "negative",
+    "tier": "minor",
+    "tags": ["negative", "minor", "focus", "perception"],
+    "activation": "triggered",
+    "effects": [
+      {
+        "id": "tunnel-vision-perception",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": ["perception"],
+        "label": "Tunnel Vision",
+        "value": -1,
+        "application": "optional",
+        "defaultEnabled": false
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a102000000000013"
+}

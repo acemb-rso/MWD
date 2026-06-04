@@ -514,8 +514,13 @@ export class HarmEngine {
       : Math.max(0, armorMitigation.baseMitigation + armorMitigation.typeMitigationMod - effectiveAp);
     let finalDamage = Math.max(0, Math.ceil(damageIncoming - netResistance));
 
+    const snapshot = PersonalCombatTracker.getSnapshot?.(actor) ?? null;
     const runtime = {
-      snapshot: PersonalCombatTracker.getSnapshot?.(actor) ?? null,
+      snapshot,
+      combat: snapshot?.combat ?? game.combat ?? null,
+      combatant: snapshot?.combatant ?? null,
+      state: snapshot?.state ?? null,
+      sceneId: canvas?.scene?.id ?? "",
     };
     const damagePhase = evaluateTraitPhase({
       actor,

@@ -1,0 +1,40 @@
+{
+  "_id": "a10200000000000e",
+  "name": "Unfit",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3700000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Negative Traits",
+    "description": "<p><b>Major Negative Trait.</b> First Reduce Burn action each activation costs +1 SA.</p><p><b>Automation:</b> Increases the first Reduce Burn action cost by 1 SA each activation.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": false,
+    "category": "negative",
+    "tier": "major",
+    "tags": ["negative", "major", "burn", "action-economy"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "unfit-reduce-burn",
+        "type": "actionCostMod",
+        "phase": "onBeforeActionCostFinalized",
+        "selector": "action.reduceBurn",
+        "label": "Unfit",
+        "value": 1,
+        "application": "automatic",
+        "conditions": [
+          { "id": "unfit-first-reduce-burn", "fact": "activation.actions", "comparator": "notIncludes", "value": "reduceBurn" }
+        ]
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a10200000000000e"
+}

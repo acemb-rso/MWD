@@ -1,0 +1,37 @@
+{
+  "_id": "a101000000000009",
+  "name": "Spirited",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 900000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Major Positive Trait.</b> SA cap is increased by 1.</p><p><b>Automation:</b> Raises the actor's SA cap by 1.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "major",
+    "tags": ["positive", "major", "action-economy"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "spirited-sa",
+        "type": "saCapMod",
+        "phase": "onActivationBudgetResolved",
+        "selector": "activationBudget.sa",
+        "label": "Spirited",
+        "value": 1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a101000000000009"
+}

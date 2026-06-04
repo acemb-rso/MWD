@@ -1,0 +1,42 @@
+{
+  "_id": "a10100000000000a",
+  "name": "Disciplined Cycle",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1000000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Major Positive Trait.</b> If you spent fewer than 3 SA this activation, gain +1 Grit at end of activation.</p><p><b>Automation:</b> Grants +1 Grit during the end-of-activation trait phase when the SA-spent condition is met.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "major",
+    "tags": ["positive", "major", "edge", "grit"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "disciplined-cycle-grit",
+        "type": "edgeEvent",
+        "phase": "onEndOfActivation",
+        "selector": "endOfActivation",
+        "label": "Disciplined Cycle",
+        "value": 1,
+        "pool": "grit",
+        "operation": "grantPool",
+        "application": "automatic",
+        "conditions": [
+          { "id": "disciplined-cycle-sa", "fact": "activation.saSpent", "comparator": "lt", "value": 3 }
+        ]
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a10100000000000a"
+}

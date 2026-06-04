@@ -1,0 +1,39 @@
+{
+  "_id": "a101000000000003",
+  "name": "Field Technician",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Minor Positive Trait.</b> Non-combat Technician checks gain +1 die.</p><p><b>Automation:</b> Presents an optional +1 die toggle on Technician skill rolls so the player can apply it only to non-combat checks.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "minor",
+    "tags": ["positive", "minor", "technician"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "field-technician-roll",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": ["technician"],
+        "label": "Field Technician",
+        "value": 1,
+        "application": "optional",
+        "defaultEnabled": false
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a101000000000003"
+}

@@ -1,0 +1,27 @@
+{
+  "_id": "a101000000000017",
+  "name": "Equipped",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Minor Positive Trait.</b> Start with 2 extra inventory points during character creation.</p><p><b>Automation:</b> Descriptive only; character-creation inventory point accounting is not currently automated.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "minor",
+    "tags": ["positive", "minor", "character-creation", "inventory"],
+    "activation": "passive",
+    "effects": [],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a101000000000017"
+}

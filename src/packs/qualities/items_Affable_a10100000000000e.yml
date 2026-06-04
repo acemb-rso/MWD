@@ -1,0 +1,39 @@
+{
+  "_id": "a10100000000000e",
+  "name": "Affable",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Major Positive Trait.</b> +1 die to persuasion, etiquette, and delicate social checks.</p><p><b>Automation:</b> Presents an optional +1 die toggle on Negotiation and Etiquette skill rolls.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "major",
+    "tags": ["positive", "major", "social"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "affable-social",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": ["negotiation", "etiquette"],
+        "label": "Affable",
+        "value": 1,
+        "application": "optional",
+        "defaultEnabled": false
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a10100000000000e"
+}

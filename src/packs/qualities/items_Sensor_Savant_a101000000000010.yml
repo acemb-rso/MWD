@@ -1,0 +1,37 @@
+{
+  "_id": "a101000000000010",
+  "name": "Sensor Savant",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1600000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Major Positive Trait.</b> +1 die to Acquire/Sensor Sweep checks.</p><p><b>Automation:</b> Adds +1 die to Acquire Target rolls. Sensor Sweep is represented by the current acquire/sensor roll flow.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "major",
+    "tags": ["positive", "major", "sensor"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "sensor-savant-acquire",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.acquire",
+        "label": "Sensor Savant",
+        "value": 1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a101000000000010"
+}

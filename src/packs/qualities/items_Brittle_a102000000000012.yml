@@ -1,0 +1,27 @@
+{
+  "_id": "a102000000000012",
+  "name": "Brittle",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 4100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Negative Traits",
+    "description": "<p><b>Major Negative Trait.</b> When you spend Edge and the roll still fails, gain +1 Burn. Limit once per round.</p><p><b>Automation:</b> Descriptive only; current trait hooks do not know the post-roll failure state for Edge-spent rolls.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": false,
+    "category": "negative",
+    "tier": "major",
+    "tags": ["negative", "major", "edge", "burn"],
+    "activation": "triggered",
+    "effects": [],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 1, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a102000000000012"
+}

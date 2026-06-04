@@ -1,0 +1,37 @@
+{
+  "_id": "a101000000000004",
+  "name": "Quick Minded",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Positive Traits",
+    "description": "<p><b>Minor Positive Trait.</b> Gain an additional FA per activation.</p><p><b>Automation:</b> Raises the actor's FA cap by 1 and grants the extra FA at the start of new activations.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": true,
+    "category": "positive",
+    "tier": "minor",
+    "tags": ["positive", "minor", "action-economy"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "quick-minded-fa",
+        "type": "faCapMod",
+        "phase": "onActivationBudgetResolved",
+        "selector": "activationBudget.fa",
+        "label": "Quick Minded",
+        "value": 1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a101000000000004"
+}

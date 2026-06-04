@@ -1,0 +1,37 @@
+{
+  "_id": "a102000000000001",
+  "name": "Slow",
+  "type": "quality",
+  "img": "systems/mwd/img/default/card-joker.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Negative Traits",
+    "description": "<p><b>Minor Negative Trait.</b> Speed -2m.</p><p><b>Automation:</b> Applies an always-on Speed modifier through the quality trait engine.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "modifiers": [],
+    "positive": false,
+    "category": "negative",
+    "tier": "minor",
+    "tags": ["negative", "minor", "movement"],
+    "activation": "passive",
+    "effects": [
+      {
+        "id": "slow-speed",
+        "type": "speedMod",
+        "phase": "onDerivedPersonalCombat",
+        "selector": "derived.personalCombat.speed",
+        "label": "Slow",
+        "value": -2,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+  },
+  "ownership": { "default": 0 },
+  "_key": "!items!a102000000000001"
+}
