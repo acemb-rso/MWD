@@ -122,7 +122,9 @@ export class QualityItemSheet extends BaseItemSheet {
         void preserveScroll(() => this.item.updateQualityEffect?.(
           field.dataset.effectId,
           field.dataset.field,
-          field instanceof HTMLSelectElement && field.multiple
+          field instanceof HTMLInputElement && field.type === "checkbox"
+            ? field.checked
+            : field instanceof HTMLSelectElement && field.multiple
             ? Array.from(field.selectedOptions).map(option => option.value)
             : field.value
         ));

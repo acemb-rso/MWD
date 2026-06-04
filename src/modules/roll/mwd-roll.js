@@ -15,6 +15,7 @@ import { resolveAttackExecution } from "./attack-resolution.js";
 import { createAttackTemplateIndicator, placeTemplatedAttack } from "./template-placement.js";
 import {
   applyTraitMutations,
+  buildOptionalTraitManualModifiers,
   buildInitiativeTraitFacts,
   buildRollTraitFacts,
   evaluateTraitPhase,
@@ -395,11 +396,12 @@ async function applyEarnedEdgeAwards({ actor, ctx, edgeInfo, earned } = {}) {
 function normalizeManualMods(payload) {
   const rows = Array.isArray(payload?.manualModifiers) ? payload.manualModifiers : [];
   const mods = rows
+    .filter(r => r?.enabled !== false)
     .map(r => ({
       id: r.id ?? foundry.utils.randomID(),
       label: (r.label ?? "Manual").trim() || "Manual",
       value: Number(r.value ?? 0),
-      source: "Manual"
+      source: String(r.source ?? "Manual").trim() || "Manual"
     }))
     .filter(m => Number.isFinite(m.value) && m.value !== 0);
 
@@ -572,8 +574,39 @@ function normalizeManualModifierRows(rows) {
   return rows.map(r => ({
     id: r?.id ?? foundry.utils.randomID(),
     label: typeof r?.label === "string" ? r.label : "Manual",
-    value: Number(r?.value ?? 0)
+    value: Number(r?.value ?? 0),
+    enabled: r?.enabled !== false,
+    source: String(r?.source ?? "Manual").trim() || "Manual",
+    optional: r?.optional === true,
+    traitItemId: String(r?.traitItemId ?? "").trim(),
+    traitEffectId: String(r?.traitEffectId ?? "").trim(),
   }));
+}
+
+function mergeOptionalTraitManualModifiers(payload = {}, rows = []) {
+  const existing = normalizeManualModifierRows(payload.manualModifiers);
+  if (!Array.isArray(rows) || !rows.length) {
+    return { ...payload, manualModifiers: existing };
+  }
+
+  const existingIds = new Set(existing.map(row => String(row.id ?? "").trim()).filter(Boolean));
+  const additions = rows
+    .map(row => ({
+      id: String(row?.id ?? foundry.utils.randomID()).trim() || foundry.utils.randomID(),
+      label: String(row?.label ?? "Trait").trim() || "Trait",
+      value: Number(row?.value ?? 0),
+      enabled: row?.enabled === true,
+      source: String(row?.source ?? "Trait").trim() || "Trait",
+      optional: true,
+      traitItemId: String(row?.traitItemId ?? "").trim(),
+      traitEffectId: String(row?.traitEffectId ?? "").trim(),
+    }))
+    .filter(row => Number.isFinite(row.value) && row.value !== 0 && !existingIds.has(row.id));
+
+  return {
+    ...payload,
+    manualModifiers: [...existing, ...additions],
+  };
 }
 
 async function updateUserTargets(tokenIds = []) {
@@ -785,6 +818,11 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
     delete payload.templatePlacement;
     delete payload.templateGeometry;
   }
+
+  payload = mergeOptionalTraitManualModifiers(
+    payload,
+    buildOptionalTraitManualModifiers({ actor, rollActor, resolved: ctx, payload })
+  );
 
   /* --------------------------------------------------- */
   /* 2) Collect modifiers (items, status, etc — no UI)  */

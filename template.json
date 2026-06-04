@@ -7,6 +7,17 @@
         "description": "",
         "gmnotes": "",
         "favorites": [],
+        "traitMods": {
+          "speedMod": 0,
+          "defenseRatingMod": 0,
+          "saCapMod": 0,
+          "faCapMod": 0,
+          "raCapMod": 0,
+          "conditionPhysicalValueMod": 0,
+          "conditionFatigueValueMod": 0,
+          "conditionPhysicalPenaltyMod": 0,
+          "conditionFatiguePenaltyMod": 0
+        },
         "state":{
           "physical":{
             "value": 0,

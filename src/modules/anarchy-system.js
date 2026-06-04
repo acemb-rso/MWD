@@ -64,13 +64,19 @@ import { AttributeActions } from "./attribute-actions.js";
 import {
   applyTraitMutations,
   buildActionCostTraitFacts,
+  buildActivationBudgetTraitFacts,
   buildBurnTraitFacts,
+  buildConditionPenaltyTraitFacts,
   buildDamageTraitFacts,
+  buildDefenseRatingTraitFacts,
+  buildDerivedPersonalCombatTraitFacts,
   buildEdgeTraitFacts,
   buildEndOfActivationTraitFacts,
   buildInitiativeTraitFacts,
+  buildOptionalTraitManualModifiers,
   buildRollTraitFacts,
   evaluateTraitPhase,
+  getTraitActiveEffectModifier,
   getTraitEditorConfig,
   normalizeQualityTraitSystem,
 } from "./mwd/traits.js";
@@ -203,8 +209,14 @@ function createMWDTraitsService() {
     buildActionCostFacts(args) {
       return buildActionCostTraitFacts(args);
     },
+    buildActivationBudgetFacts(args) {
+      return buildActivationBudgetTraitFacts(args);
+    },
     buildBurnFacts(args) {
       return buildBurnTraitFacts(args);
+    },
+    buildConditionPenaltyFacts(args) {
+      return buildConditionPenaltyTraitFacts(args);
     },
     buildInitiativeFacts(args) {
       return buildInitiativeTraitFacts(args);
@@ -212,11 +224,23 @@ function createMWDTraitsService() {
     buildDamageFacts(args) {
       return buildDamageTraitFacts(args);
     },
+    buildDefenseRatingFacts(args) {
+      return buildDefenseRatingTraitFacts(args);
+    },
+    buildDerivedPersonalCombatFacts(args) {
+      return buildDerivedPersonalCombatTraitFacts(args);
+    },
     buildEdgeFacts(args) {
       return buildEdgeTraitFacts(args);
     },
     buildEndOfActivationFacts(args) {
       return buildEndOfActivationTraitFacts(args);
+    },
+    buildOptionalManualModifiers(args) {
+      return buildOptionalTraitManualModifiers(args);
+    },
+    getActiveEffectModifier(actor, key) {
+      return getTraitActiveEffectModifier(actor, key);
     }
   };
 }

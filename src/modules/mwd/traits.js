@@ -26,6 +26,12 @@ export const TRAIT_EFFECT_TYPES = Object.freeze([
   { value: "actionCostMod", label: "Action Cost Mod" },
   { value: "initiativeMod", label: "Initiative Mod" },
   { value: "damageMod", label: "Damage Intake Mod" },
+  { value: "speedMod", label: "Speed Modifier" },
+  { value: "defenseRatingMod", label: "Defense Rating Mod" },
+  { value: "saCapMod", label: "SA Cap Modifier" },
+  { value: "faCapMod", label: "FA Cap Modifier" },
+  { value: "raCapMod", label: "RA Cap Modifier" },
+  { value: "conditionPenaltyMod", label: "Condition Penalty Mod" },
   { value: "edgeEvent", label: "Edge Event" },
 ]);
 
@@ -35,9 +41,18 @@ export const TRAIT_PHASES = Object.freeze([
   { value: "onBeforeActionCostFinalized", label: "Before Action Cost Finalized" },
   { value: "onInitiativeResolved", label: "Initiative Resolved" },
   { value: "onDamageResolved", label: "Damage Resolved" },
+  { value: "onDerivedPersonalCombat", label: "Derived Personal Combat" },
+  { value: "onDefenseRatingResolved", label: "Defense Rating Resolved" },
+  { value: "onActivationBudgetResolved", label: "Activation Budget Resolved" },
+  { value: "onConditionPenaltyResolved", label: "Condition Penalty Resolved" },
   { value: "onEndOfActivation", label: "End of Activation" },
   { value: "onEdgeSpend", label: "Edge Spend" },
   { value: "onEdgeGain", label: "Edge Gain" },
+]);
+
+export const TRAIT_EFFECT_APPLICATIONS = Object.freeze([
+  { value: "automatic", label: "Automatic" },
+  { value: "optional", label: "Prompted Optional" },
 ]);
 
 export const TRAIT_COMPARATORS = Object.freeze([
@@ -65,6 +80,19 @@ const EFFECT_TYPE_VALUES = new Set(TRAIT_EFFECT_TYPES.map(entry => entry.value))
 const PHASE_VALUES = new Set(TRAIT_PHASES.map(entry => entry.value));
 const COMPARATOR_VALUES = new Set(TRAIT_COMPARATORS.map(entry => entry.value));
 const EDGE_OPERATION_VALUES = new Set(TRAIT_EDGE_OPERATIONS.map(entry => entry.value));
+const APPLICATION_VALUES = new Set(TRAIT_EFFECT_APPLICATIONS.map(entry => entry.value));
+
+export const TRAIT_ACTIVE_EFFECT_PATHS = Object.freeze({
+  speedMod: "system.traitMods.speedMod",
+  defenseRatingMod: "system.traitMods.defenseRatingMod",
+  saCapMod: "system.traitMods.saCapMod",
+  faCapMod: "system.traitMods.faCapMod",
+  raCapMod: "system.traitMods.raCapMod",
+  conditionPhysicalValueMod: "system.traitMods.conditionPhysicalValueMod",
+  conditionFatigueValueMod: "system.traitMods.conditionFatigueValueMod",
+  conditionPhysicalPenaltyMod: "system.traitMods.conditionPhysicalPenaltyMod",
+  conditionFatiguePenaltyMod: "system.traitMods.conditionFatiguePenaltyMod",
+});
 
 function toTrimmedString(value, fallback = "") {
   const normalized = String(value ?? "").trim();
@@ -74,6 +102,13 @@ function toTrimmedString(value, fallback = "") {
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+export function getTraitActiveEffectModifier(actor, key = "") {
+  const path = TRAIT_ACTIVE_EFFECT_PATHS[key] ?? "";
+  if (!actor || !path) return 0;
+  const systemPath = path.startsWith("system.") ? path.slice(7) : path;
+  return toNumber(foundry.utils.getProperty(actor.system ?? {}, systemPath), 0);
 }
 
 function clone(value) {
@@ -186,6 +221,10 @@ function normalizeTraitEffect(entry = {}) {
       : toNumber(source.max, 0),
     pool: toTrimmedString(source.pool),
     operation,
+    application: APPLICATION_VALUES.has(String(source.application ?? "").trim())
+      ? String(source.application).trim()
+      : "automatic",
+    defaultEnabled: source.defaultEnabled === true,
     conditions: normalizeTraitPrerequisites(source.conditions),
     limit: normalizeTraitLimits(source.limit),
   };
@@ -238,6 +277,7 @@ export function getTraitEditorConfig() {
     phases: [...TRAIT_PHASES],
     comparators: [...TRAIT_COMPARATORS],
     edgeOperations: [...TRAIT_EDGE_OPERATIONS],
+    applications: [...TRAIT_EFFECT_APPLICATIONS],
   };
 }
 
@@ -255,6 +295,12 @@ function defaultPhaseForEffect(type = "") {
     case "actionCostMod": return "onBeforeActionCostFinalized";
     case "initiativeMod": return "onInitiativeResolved";
     case "damageMod": return "onDamageResolved";
+    case "speedMod": return "onDerivedPersonalCombat";
+    case "defenseRatingMod": return "onDefenseRatingResolved";
+    case "saCapMod": return "onActivationBudgetResolved";
+    case "faCapMod": return "onActivationBudgetResolved";
+    case "raCapMod": return "onActivationBudgetResolved";
+    case "conditionPenaltyMod": return "onConditionPenaltyResolved";
     case "edgeEvent": return "onEdgeGain";
     default: return "onBuildRoll";
   }
@@ -408,6 +454,8 @@ function pushModifier(target, item, effect, delta, phase) {
     source: item.name,
     traitItemId: item.id,
     traitEffectId: effect.id,
+    application: effect.application,
+    defaultEnabled: effect.defaultEnabled === true,
   });
 }
 
@@ -440,6 +488,45 @@ function applyTraitEffect({ item, effect, phase, packet, result }) {
     }
     case "damageMod": {
       const delta = clampPacketNumber(packet, "amount", effect);
+      pushModifier(result.modifiers, item, effect, delta, phase);
+      return delta;
+    }
+    case "speedMod": {
+      const delta = clampPacketNumber(packet, "modifier", effect);
+      pushModifier(result.modifiers, item, effect, delta, phase);
+      return delta;
+    }
+    case "defenseRatingMod": {
+      const delta = clampPacketNumber(packet, "total", effect);
+      pushModifier(result.modifiers, item, effect, delta, phase);
+      return delta;
+    }
+    case "saCapMod": {
+      if (toTrimmedString(packet.resource) !== "sa") return 0;
+      const delta = clampPacketNumber(packet, "max", effect);
+      pushModifier(result.modifiers, item, effect, delta, phase);
+      return delta;
+    }
+    case "faCapMod": {
+      if (toTrimmedString(packet.resource) !== "fa") return 0;
+      const delta = clampPacketNumber(packet, "max", effect);
+      pushModifier(result.modifiers, item, effect, delta, phase);
+      return delta;
+    }
+    case "raCapMod": {
+      if (toTrimmedString(packet.resource) !== "ra") return 0;
+      const delta = clampPacketNumber(packet, "max", effect);
+      pushModifier(result.modifiers, item, effect, delta, phase);
+      return delta;
+    }
+    case "conditionPenaltyMod": {
+      const track = toTrimmedString(effect.selector).startsWith("condition.fatigue")
+        ? (Object.prototype.hasOwnProperty.call(packet, "fatigueValue") ? "fatigueValue" : "fatiguePenalty")
+        : toTrimmedString(effect.selector).startsWith("condition.physical")
+          ? (Object.prototype.hasOwnProperty.call(packet, "physicalValue") ? "physicalValue" : "physicalPenalty")
+          : "totalPenalty";
+      const field = track === "totalPenalty" ? "totalPenalty" : track;
+      const delta = clampPacketNumber(packet, field, effect);
       pushModifier(result.modifiers, item, effect, delta, phase);
       return delta;
     }
@@ -607,6 +694,62 @@ export function buildDamageTraitFacts({ actor, packet = {}, runtime = {} } = {})
   return facts;
 }
 
+export function buildDerivedPersonalCombatTraitFacts({ actor, packet = {}, runtime = {} } = {}) {
+  const facts = baseFacts(actor, runtime);
+  facts.personalCombat = {
+    speed: {
+      base: toNumber(packet.base, 0),
+      modifier: toNumber(packet.modifier, 0),
+    },
+  };
+  facts.selectors.push("derived.personalCombat", "derived.personalCombat.speed");
+  return facts;
+}
+
+export function buildDefenseRatingTraitFacts({ actor, packet = {}, runtime = {} } = {}) {
+  const facts = baseFacts(actor, runtime);
+  facts.defenseRating = {
+    total: toNumber(packet.total, 0),
+  };
+  facts.intent = "attack";
+  facts.domains = ["combat", "attack", "defense"];
+  facts.selectors.push("defenseRating", "intent.attack", "domain.defense");
+  return facts;
+}
+
+export function buildActivationBudgetTraitFacts({ actor, packet = {}, runtime = {} } = {}) {
+  const facts = baseFacts(actor, runtime);
+  facts.activationBudget = {
+    max: toNumber(packet.max, 0),
+    resource: toTrimmedString(packet.resource),
+  };
+  facts.selectors.push("activationBudget");
+  if (facts.activationBudget.resource) facts.selectors.push(`activationBudget.${facts.activationBudget.resource}`);
+  return facts;
+}
+
+export function buildConditionPenaltyTraitFacts({ actor, packet = {}, runtime = {} } = {}) {
+  const facts = baseFacts(actor, runtime);
+  facts.condition = {
+    physicalValue: toNumber(packet.physicalValue, 0),
+    fatigueValue: toNumber(packet.fatigueValue, 0),
+    physicalPenalty: toNumber(packet.physicalPenalty, 0),
+    fatiguePenalty: toNumber(packet.fatiguePenalty, 0),
+    totalPenalty: toNumber(packet.totalPenalty, 0),
+  };
+  facts.selectors.push("condition");
+  if (facts.condition.physicalPenalty !== 0 || facts.condition.physicalValue !== 0) facts.selectors.push("condition.physical");
+  if (facts.condition.fatiguePenalty !== 0 || facts.condition.fatigueValue !== 0) facts.selectors.push("condition.fatigue");
+  if (facts.condition.totalPenalty !== 0) facts.selectors.push("condition.total");
+  return facts;
+}
+
+function applicationMatches(effect, application) {
+  const desired = String(application ?? "automatic").trim() || "automatic";
+  if (desired === "all") return true;
+  return String(effect?.application ?? "automatic").trim() === desired;
+}
+
 export function buildEdgeTraitFacts({ actor, packet = {}, phase = "onEdgeGain", runtime = {} } = {}) {
   const facts = baseFacts(actor, runtime);
   facts.edge = {
@@ -673,6 +816,10 @@ export function evaluateTraitPhase({ actor, phase, facts = {}, packet = {}, opti
     }
 
     for (const effect of system.effects.filter(entry => entry.phase === phase)) {
+      if (!applicationMatches(effect, options.application)) {
+        continue;
+      }
+
       if (!selectorMatches(effect.selector, facts)) {
         result.skipped.push({
           traitItemId: item.id,
@@ -746,6 +893,42 @@ export function evaluateTraitPhase({ actor, phase, facts = {}, packet = {}, opti
   }
 
   return result;
+}
+
+export function buildOptionalTraitManualModifiers({ actor, rollActor = null, resolved = {}, payload = {} } = {}) {
+  return uniqueActors(rollActor, actor).flatMap(sourceActor => {
+    const runtime = {
+      snapshot: game.mwd?.personalCombat?.getSnapshot?.(sourceActor) ?? null,
+    };
+    const result = evaluateTraitPhase({
+      actor: sourceActor,
+      phase: "onBuildRoll",
+      facts: buildRollTraitFacts({ actor: sourceActor, resolved, payload, runtime }),
+      packet: {},
+      options: { runtime, consumeUsage: false, application: "optional" },
+    });
+    return result.modifiers.map(modifier => ({
+      id: modifier.id,
+      label: modifier.label,
+      value: Number(modifier.value ?? 0),
+      enabled: modifier.defaultEnabled === true,
+      source: "Trait",
+      traitItemId: modifier.traitItemId,
+      traitEffectId: modifier.traitEffectId,
+      optional: true,
+    }));
+  });
+}
+
+function uniqueActors(...actors) {
+  const seen = new Set();
+  return actors.filter(actor => {
+    if (!actor) return false;
+    const key = actor.uuid ?? actor.id ?? actor;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export async function applyTraitMutations({ actor, mutations = [], runtime = {} } = {}) {

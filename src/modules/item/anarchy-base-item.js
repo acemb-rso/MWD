@@ -1101,6 +1101,8 @@ export class MWDItem extends Item {
         max: entry.max ?? null,
         pool: entry.pool ?? "",
         operation: entry.operation ?? "adjustAmount",
+        application: entry.application ?? "automatic",
+        defaultEnabled: entry.defaultEnabled === true,
         conditions: normalizeTraitPrerequisites(entry.conditions ?? []),
         limit: normalizeTraitLimits(entry.limit ?? {}),
       }]);
@@ -1131,6 +1133,8 @@ export class MWDItem extends Item {
           if (field === "max") entry.max = value === "" ? null : Number(value ?? 0);
           if (field === "pool") entry.pool = value;
           if (field === "operation") entry.operation = value;
+          if (field === "application") entry.application = value;
+          if (field === "defaultEnabled") entry.defaultEnabled = value === true;
           if (field === "limit.perActivation") {
             entry.limit = normalizeTraitLimits({ ...(entry.limit ?? {}), perActivation: value });
           }

@@ -32,6 +32,7 @@ is ready.
 | `game.mwd.tokenHeatFx` | Object | Token heat visual effects controller |
 | `game.mwd.skills` | Object | Skill catalog service |
 | `game.mwd.lifeModules` | Object | Life module catalog service |
+| `game.mwd.traits` | Object | Character quality trait packet helpers |
 
 ---
 
@@ -291,6 +292,11 @@ const snap = game.mwd.personalCombat.getSnapshot(actor, { token });
 // snap.state.burnValue — current Burn
 ```
 
+`sa`, `fa`, and `ra` maximums are derived at read time. Character quality trait
+packets and actor-side ActiveEffects on `system.traitMods.*` can raise or lower
+those caps; the tracker also uses the adjusted FA/RA caps when starting a new
+activation.
+
 ### Spending resources
 
 ```js
@@ -441,6 +447,142 @@ overrides (mapped to `energy` for armor purposes).
 | `padded` | +1 mitigation vs `concussive` |
 | `insulated` | +2 mitigation vs `thermal` |
 | `reinforced` | Rated — adds a Reinforced buffer that absorbs hits before rating degrades |
+
+---
+
+### 6.7 Character Quality Trait Packets (`quality.system.effects`)
+
+Quality items can carry structured trait packets in `system.effects`. The trait
+engine evaluates those packets in named phases and either mutates a resolved
+value automatically or presents an optional manual modifier in the roll dialog.
+
+| Effect type | Typical use |
+|---|---|
+| `rollMod` | Adds or subtracts dice for matching roll selectors/skills |
+| `burnAdjust` | Adjusts generated Burn or Burn recovery |
+| `actionCostMod` | Adjusts action costs such as First Aid cost |
+| `initiativeMod` | Adjusts initiative dice or initiative total |
+| `damageMod` | Adjusts personal damage after matching damage facts |
+| `speedMod` | Adjusts derived personal speed |
+| `defenseRatingMod` | Adjusts personal defense rating |
+| `saCapMod` | Adjusts the Standard Action cap |
+| `faCapMod` | Adjusts the Free Action cap |
+| `raCapMod` | Adjusts the Reaction cap |
+| `conditionPenaltyMod` | Adjusts physical/fatigue condition penalty math |
+| `edgeEvent` | Reserved for Edge-triggered events such as spend/reroll hooks |
+
+Common packet fields:
+
+| Field | Description |
+|---|---|
+| `type` | One of the effect types above |
+| `value` | Numeric adjustment, usually positive for bonuses and negative for penalties |
+| `selector` | Roll/action/combat selector, such as `skill`, `attack`, `overloadCheck`, `firstAid`, `physical`, or `fatigue` |
+| `skillKeys` | Optional skill-code whitelist for roll effects |
+| `application` | `automatic` for engine-applied facts, `optional` for player-facing roll dialog toggles |
+| `defaultEnabled` | Whether an optional roll modifier starts checked |
+| `min` / `max` | Optional clamp values for derived numeric results |
+| `conditions` | Optional structured conditions shown to authors and evaluated by supported phases |
+| `limits` | Optional usage notes/limits shown to authors; only supported phases enforce them |
+
+Optional `rollMod` packets are surfaced as manual roll-modifier rows. They use
+the same enabled/disabled dialog handling as stored player-gadget modifiers, so
+the player can choose when a situational trait applies.
+
+Example optional penalty:
+
+```js
+{
+  type: "rollMod",
+  label: "Distractible",
+  selector: "skill",
+  value: -1,
+  application: "optional",
+  defaultEnabled: false,
+  conditions: [{ text: "Non-combat attention-based tasks" }]
+}
+```
+
+Example always-on FA cap bonus:
+
+```js
+{
+  type: "faCapMod",
+  label: "Quick Minded",
+  value: 1,
+  application: "automatic"
+}
+```
+
+Example condition penalty reduction:
+
+```js
+{
+  type: "conditionPenaltyMod",
+  label: "Pain Buffer",
+  selector: "physical",
+  value: -1,
+  min: 0,
+  application: "automatic"
+}
+```
+
+Trait helpers exposed on `game.mwd.traits`:
+
+| Helper | Purpose |
+|---|---|
+| `normalizeQualitySystem(system)` | Normalize a quality item's trait packet data |
+| `getEditorConfig()` | Return editor options for effect types, selectors, phases, and applications |
+| `evaluatePhase(args)` | Evaluate trait packets for a named phase |
+| `applyMutations(args)` | Apply evaluated mutations to a facts object |
+| `buildRollFacts(args)` | Build roll-phase facts |
+| `buildOptionalManualModifiers(args)` | Build optional roll-dialog rows from matching trait packets |
+| `buildActionCostFacts(args)` | Build action-cost facts |
+| `buildActivationBudgetFacts(args)` | Build SA/FA/RA cap facts |
+| `buildBurnFacts(args)` | Build Burn-adjustment facts |
+| `buildConditionPenaltyFacts(args)` | Build physical/fatigue penalty facts |
+| `buildInitiativeFacts(args)` | Build initiative facts |
+| `buildDamageFacts(args)` | Build personal damage facts |
+| `buildDefenseRatingFacts(args)` | Build defense-rating facts |
+| `buildDerivedPersonalCombatFacts(args)` | Build derived personal combat facts such as speed |
+| `buildEdgeFacts(args)` | Build Edge event facts |
+| `buildEndOfActivationFacts(args)` | Build end-of-activation facts |
+| `getActiveEffectModifier(actor, key)` | Sum actor ActiveEffect changes for a supported `system.traitMods.*` key |
+
+---
+
+### 6.8 Trait-Compatible ActiveEffect Keys (`system.traitMods.*`)
+
+ActiveEffects can provide simple always-on numeric modifiers for derived trait
+surfaces. These are useful for gear, armor, cybernetics, and other item effects
+that should not need a full quality packet.
+
+Supported keys:
+
+| ActiveEffect key | Effect |
+|---|---|
+| `system.traitMods.speedMod` | Modifies personal speed |
+| `system.traitMods.defenseRatingMod` | Modifies personal defense rating |
+| `system.traitMods.saCapMod` | Modifies SA cap |
+| `system.traitMods.faCapMod` | Modifies FA cap |
+| `system.traitMods.raCapMod` | Modifies RA cap |
+| `system.traitMods.conditionPhysicalValueMod` | Modifies physical monitor value before penalty lookup |
+| `system.traitMods.conditionFatigueValueMod` | Modifies fatigue monitor value before penalty lookup |
+| `system.traitMods.conditionPhysicalPenaltyMod` | Modifies physical condition penalty after lookup |
+| `system.traitMods.conditionFatiguePenaltyMod` | Modifies fatigue condition penalty after lookup |
+
+Example item ActiveEffect changes:
+
+```js
+[
+  { key: "system.traitMods.faCapMod", mode: CONST.ACTIVE_EFFECT_MODES.ADD, value: 1 },
+  { key: "system.traitMods.raCapMod", mode: CONST.ACTIVE_EFFECT_MODES.ADD, value: 1 }
+]
+```
+
+Use ActiveEffects for always-on numeric changes. Use quality trait packets when
+the rule needs selectors, optional roll-dialog presentation, phase-specific
+logic, conditions, or limits.
 
 ---
 

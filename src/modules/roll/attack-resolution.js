@@ -30,6 +30,11 @@ import { getMachineJumpProfile, getMachineJumpedThisActivation } from "../mwd/ba
 import { rollClusteringDamage } from "../mwd/machine-clustering.js";
 import { isMachineEnergyDamageFamily } from "../mwd/machine-weapon-types.js";
 import { severityFromMargin } from "../mwd/personal-criticals.js";
+import {
+  buildDefenseRatingTraitFacts,
+  evaluateTraitPhase,
+  getTraitActiveEffectModifier,
+} from "../mwd/traits.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -224,7 +229,34 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
   }
 
   const arTotal = sumParts(arParts);
-  const drTotal = sumParts(drParts);
+  const activeEffectDr = getTraitActiveEffectModifier(targetActor, "defenseRatingMod");
+  if (activeEffectDr) {
+    drParts.push({
+      id: "activeEffect.defenseRatingMod",
+      label: "Active Effect DR",
+      value: activeEffectDr,
+    });
+  }
+  const drPacket = { total: sumParts(drParts) };
+  const drTraitPhase = evaluateTraitPhase({
+    actor: targetActor,
+    phase: "onDefenseRatingResolved",
+    facts: buildDefenseRatingTraitFacts({
+      actor: targetActor,
+      packet: drPacket,
+      runtime: {},
+    }),
+    packet: drPacket,
+    options: { consumeUsage: false },
+  });
+  for (const modifier of drTraitPhase.modifiers) {
+    drParts.push({
+      id: modifier.id,
+      label: modifier.label,
+      value: Number(modifier.value ?? 0),
+    });
+  }
+  const drTotal = Number(drTraitPhase.packet.total ?? sumParts(drParts)) || 0;
 
   return {
     ar: {

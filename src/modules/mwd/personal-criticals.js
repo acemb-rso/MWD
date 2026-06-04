@@ -10,6 +10,11 @@ import {
   PERSONAL_CRITICAL_BANDS,
 } from "./personal-crit-families.js";
 import { getPersonalCritRemedy } from "./personal-crit-remedies.js";
+import {
+  buildDerivedPersonalCombatTraitFacts,
+  evaluateTraitPhase,
+  getTraitActiveEffectModifier,
+} from "./traits.js";
 
 export const PERSONAL_CRITICAL_STATUS_ID = "personalCritical";
 
@@ -200,13 +205,24 @@ export function getPersonalCriticalSpeedModifier(actor) {
 
 export function getPersonalSpeedState(actor) {
   const base = Math.max(0, Math.trunc(Number(actor?.system?.speed ?? 0) || 0));
-  const modifier = Math.trunc(getPersonalCriticalSpeedModifier(actor));
+  const criticalModifier = Math.trunc(getPersonalCriticalSpeedModifier(actor));
+  const activeEffectModifier = Math.trunc(getTraitActiveEffectModifier(actor, "speedMod"));
+  const packet = { base, modifier: criticalModifier + activeEffectModifier };
+  const traitPhase = evaluateTraitPhase({
+    actor,
+    phase: "onDerivedPersonalCombat",
+    facts: buildDerivedPersonalCombatTraitFacts({ actor, packet, runtime: {} }),
+    packet,
+    options: { consumeUsage: false },
+  });
+  const modifier = Math.trunc(Number(traitPhase.packet.modifier ?? criticalModifier) || 0);
   const effective = Math.max(0, base + modifier);
   return {
     base,
     modifier,
     effective,
     adjusted: modifier !== 0,
+    modifiers: traitPhase.modifiers,
   };
 }
 

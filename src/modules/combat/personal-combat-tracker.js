@@ -11,9 +11,11 @@ import {
 import {
   applyTraitMutations,
   buildActionCostTraitFacts,
+  buildActivationBudgetTraitFacts,
   buildBurnTraitFacts,
   buildEndOfActivationTraitFacts,
   evaluateTraitPhase,
+  getTraitActiveEffectModifier,
 } from "../mwd/traits.js";
 import {
   getPersonalAction,
@@ -58,11 +60,13 @@ function sameActivation(state, activation) {
     && state.activation.combatantId === activation.combatantId;
 }
 
-function defaultState(activation = null) {
+function defaultState(activation = null, budgets = {}) {
+  const faMax = Math.max(0, Number(budgets.fa ?? BASE_FA) || 0);
+  const raMax = Math.max(0, Number(budgets.ra ?? BASE_RA) || 0);
   return {
     saRemaining: BASE_SA,
-    faRemaining: BASE_FA,
-    raRemaining: BASE_RA,
+    faRemaining: faMax,
+    raRemaining: raMax,
     saSpentThisActivation: 0,
     burnThisActivation: 0,
     attacksThisActivation: 0,
@@ -86,16 +90,16 @@ function defaultState(activation = null) {
   };
 }
 
-function cloneState(state, activation = null) {
+function cloneState(state, activation = null, budgets = {}) {
   return foundry.utils.mergeObject(
-    defaultState(activation),
+    defaultState(activation, budgets),
     foundry.utils.deepClone(state ?? {}),
     { inplace: false, overwrite: true }
   );
 }
 
-function cloneStoredState(stored, fallbackActivation = null) {
-  const state = cloneState(stored ?? {}, stored?.activation ?? fallbackActivation);
+function cloneStoredState(stored, fallbackActivation = null, budgets = {}) {
+  const state = cloneState(stored ?? {}, stored?.activation ?? fallbackActivation, budgets);
   state.actionLog = normalizeActionLog(state.actionLog);
   state.hazards = normalizeHazardStates(state.hazards);
   state.pendingReaction = normalizePendingReaction(state.pendingReaction);
@@ -249,8 +253,9 @@ function filterReactionActionLog(entries = []) {
   });
 }
 
-function nextActivationState(stored = null, activation = null) {
-  const state = defaultState(activation);
+function nextActivationState(stored = null, activation = null, actor = null, runtime = {}) {
+  const budgets = getActivationBudgets(actor, runtime);
+  const state = defaultState(activation, budgets);
   state.reactionBurnSinceLastActivation = Math.max(0, Number(stored?.reactionBurnSinceLastActivation ?? 0) || 0);
   state.actionLog = filterReactionActionLog(stored?.actionLog);
   state.hazards = normalizeHazardStates(stored?.hazards);
@@ -258,7 +263,12 @@ function nextActivationState(stored = null, activation = null) {
 }
 
 function cloneWritableSnapshotState(snapshot = null) {
-  return cloneStoredState(snapshot?.state, snapshot?.state?.activation ?? null);
+  const actor = snapshot?.actionEconomyActor ?? snapshot?.actor ?? null;
+  return cloneStoredState(
+    snapshot?.state,
+    snapshot?.state?.activation ?? null,
+    getActivationBudgets(actor, snapshot ?? {})
+  );
 }
 
 function actionCostLabel(resource, cost) {
@@ -1099,11 +1109,12 @@ export class PersonalCombatTracker {
       this.rememberActivation(combat, combatant);
     }
     const stored = combatant ? combatant.getFlag(FLAG_SCOPE, FLAG_KEY) : null;
+    const budgets = getActivationBudgets(actionActor, { combat, combatant, sceneId: combat?.scene?.id ?? canvas?.scene?.id ?? "" });
     const state = combatant
       ? (isCurrentTurn
-        ? (sameActivation(stored, activation) ? cloneStoredState(stored, activation) : nextActivationState(stored, activation))
-        : cloneStoredState(stored, activation))
-      : defaultState(activation);
+        ? (sameActivation(stored, activation) ? cloneStoredState(stored, activation, budgets) : nextActivationState(stored, activation, actionActor, { combat, combatant }))
+        : cloneStoredState(stored, activation, budgets))
+      : defaultState(activation, budgets);
     state.actionLog = normalizeActionLog(state.actionLog);
 
     const burnValue = Math.max(0, Number(actionActor?.system?.burn?.value ?? actor?.system?.burn?.value ?? 0));
@@ -1547,7 +1558,7 @@ export class PersonalCombatTracker {
       ].filter(Boolean),
       summaryPills: [
         { label: "SA", value: `${snapshot.state.saRemaining}/${BASE_SA}` },
-        { label: "Cap", value: `${Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0))}/${getActivationMaxSA(actor)}` },
+        { label: "Cap", value: `${Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0))}/${getActivationMaxSA(actor, { snapshot })}` },
         { label: "FA", value: `${snapshot.state.faRemaining}` },
         { label: "RA", value: `${snapshot.state.raRemaining}` },
         {
@@ -2039,12 +2050,12 @@ export class PersonalCombatTracker {
       nextState.saRemaining = Math.max(0, BASE_SA - Number(nextState.saSpentThisActivation ?? 0));
     } else if (deltas.resource === "fa") {
       nextState.faRemaining = Math.min(
-        BASE_FA,
+        getActivationMaxResource(actor, "fa", { snapshot }),
         Math.max(0, Number(nextState.faRemaining ?? 0) + deltas.cost)
       );
     } else if (deltas.resource === "ra") {
       nextState.raRemaining = Math.min(
-        BASE_RA,
+        getActivationMaxResource(actor, "ra", { snapshot }),
         Math.max(0, Number(nextState.raRemaining ?? 0) + deltas.cost)
       );
     }
@@ -2110,7 +2121,12 @@ export class PersonalCombatTracker {
     const stored = combatant.getFlag(FLAG_SCOPE, FLAG_KEY);
     if (sameActivation(stored, activation)) return;
 
-    await combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextActivationState(stored, activation));
+    const sceneId = combat.scene?.id ?? canvas?.scene?.id ?? "";
+    const combatantActor = this._getCombatantActor(combatant, sceneId);
+    const unit = this.resolveActivationUnit({ actor: combatantActor, combat, combatant });
+    const actionActor = unit?.actingActor ?? combatantActor;
+
+    await combatant.setFlag(FLAG_SCOPE, FLAG_KEY, nextActivationState(stored, activation, actionActor, { combat, combatant, sceneId }));
   }
 
   static async reconcileOperatedCombatants(combat = game?.combat) {
@@ -2224,7 +2240,11 @@ export class PersonalCombatTracker {
     const runtime = {
       combat: snapshot.combat,
       combatant: snapshot.combatant,
-      state: cloneState(snapshot.state, this.getActivationIdentity(snapshot.combat, snapshot.combatant)),
+      state: cloneState(
+        snapshot.state,
+        this.getActivationIdentity(snapshot.combat, snapshot.combatant),
+        getActivationBudgets(actingActor, { snapshot })
+      ),
       sceneId: canvas?.scene?.id ?? "",
       snapshot,
     };
@@ -2251,7 +2271,7 @@ export class PersonalCombatTracker {
     }
 
     const nextState = runtime.state;
-    const activationCap = resource === "sa" ? getActivationMaxSA(actingActor) : 0;
+    const activationCap = resource === "sa" ? getActivationMaxSA(actingActor, { snapshot }) : 0;
     const spentBefore = Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0) || 0);
 
     if (resource === "sa" && (spentBefore + finalCost) > activationCap) {
@@ -2444,9 +2464,10 @@ export class PersonalCombatTracker {
     if (!actor) return;
 
     const stored = combatant.getFlag(FLAG_SCOPE, FLAG_KEY);
+    const budgets = getActivationBudgets(actor, { combat, combatant, sceneId: combat.scene?.id ?? canvas?.scene?.id ?? "" });
     const state = sameActivation(stored, this.getActivationIdentity(combat, combatant))
-      ? cloneState(stored, this.getActivationIdentity(combat, combatant))
-      : cloneState(stored);
+      ? cloneState(stored, this.getActivationIdentity(combat, combatant), budgets)
+      : cloneState(stored, null, budgets);
 
     const passiveCoolOffEligible = Number(state.saSpentThisActivation ?? 0) <= BASE_SA
       && Number(state.burnThisActivation ?? 0) <= 0
@@ -3138,12 +3159,46 @@ export class PersonalCombatTracker {
   }
 }
 
-function getActivationMaxSA(actor) {
+function getBaseActivationMax(actor, resource = "sa") {
+  if (resource === "fa") return BASE_FA;
+  if (resource === "ra") return BASE_RA;
+
   const reflexes = Math.max(0, Number(actor?.system?.attributes?.reflexes?.value ?? 0) || 0);
   const guts = Math.max(0, Number(actor?.system?.attributes?.guts?.value ?? 0) || 0);
   return BASE_SA + Math.floor((reflexes + guts) / 2);
 }
 
+function getActivationMaxResource(actor, resource = "sa", runtime = {}) {
+  const normalizedResource = String(resource ?? "sa").trim().toLowerCase() || "sa";
+  const activeEffectKey = `${normalizedResource}CapMod`;
+  const baseMax = getBaseActivationMax(actor, normalizedResource) + getTraitActiveEffectModifier(actor, activeEffectKey);
+  const packet = { resource: normalizedResource, max: baseMax };
+  const phase = evaluateTraitPhase({
+    actor,
+    phase: "onActivationBudgetResolved",
+    facts: buildActivationBudgetTraitFacts({ actor, packet, runtime }),
+    packet,
+    options: { runtime, consumeUsage: false },
+  });
+  return Math.max(0, Math.trunc(Number(phase.packet.max ?? baseMax) || 0));
+}
+
+function getActivationBudgets(actor, runtime = {}) {
+  return {
+    sa: getActivationMaxResource(actor, "sa", runtime),
+    fa: getActivationMaxResource(actor, "fa", runtime),
+    ra: getActivationMaxResource(actor, "ra", runtime),
+  };
+}
+
+function getActivationMaxSA(actor, runtime = {}) {
+  return getActivationMaxResource(actor, "sa", runtime);
+}
+
 function getSaCapacityRemaining(actor, snapshot) {
-  return Math.max(0, getActivationMaxSA(actor) - Math.max(0, Number(snapshot?.state?.saSpentThisActivation ?? 0) || 0));
+  return Math.max(
+    0,
+    getActivationMaxSA(actor, { snapshot })
+      - Math.max(0, Number(snapshot?.state?.saSpentThisActivation ?? 0) || 0)
+  );
 }

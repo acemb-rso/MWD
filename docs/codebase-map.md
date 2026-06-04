@@ -113,7 +113,7 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 
 - `src/modules/mwd/skills.js` - Skill definitions and lookup helpers.
 - `src/modules/mwd/battlemech-loadout.js` - Mech mount/loadout computation.
-- `src/modules/mwd/traits.js` - Trait normalization, trait facts, and trait mutation hooks.
+- `src/modules/mwd/traits.js` - Trait normalization, trait facts, optional roll-dialog trait modifiers, derived personal-combat hooks, and the `system.traitMods.*` ActiveEffect bridge.
 - `src/modules/modifiers/provider-registry.js` - Modifier provider aggregation.
 - `src/modules/modifiers/providers/` - Individual modifier providers.
 

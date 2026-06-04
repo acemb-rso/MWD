@@ -148,9 +148,19 @@
 
 .mwd-roll-dialog__manual-row {
   display: grid;
-  grid-template-columns: 1fr 90px 34px;
+  grid-template-columns: 20px 1fr 90px 34px;
   gap: 8px;
   align-items: center;
+}
+
+.mwd-roll-dialog__manual-row.is-disabled {
+  opacity: 0.72;
+}
+
+.mwd-roll-dialog__manual-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mwd-roll-dialog__manual-label,

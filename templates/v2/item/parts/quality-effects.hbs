@@ -51,7 +51,7 @@ How it fits: Included by the layout-backed quality sheet.
             <div class="mwd-record__body">
               <div class="mwd-two-col">
                 <div class="form-group">
-                  <label data-tooltip="Roll Modifier: adds dice to a roll pool. Burn Adjust: modifies burn cost or amount. Action Cost Mod: modifies action point cost. Initiative Mod: modifies initiative total. Damage Intake Mod: modifies damage received. Edge Event: adjusts edge gained/spent, or grants an edge pool at end of activation.">Type</label>
+                  <label data-tooltip="Roll Modifier: adds dice to a roll pool. Burn Adjust: modifies burn cost or amount. Action Cost Mod: modifies action point cost. Initiative Mod: modifies initiative total. Damage Intake Mod: modifies damage received. Speed/DR/SA/FA/RA/Condition effects adjust derived combat values. Edge Event adjusts edge gained/spent, or grants an edge pool at end of activation.">Type</label>
                   <select class="mwd-quality-effect-field" data-effect-id="{{effect.id}}" data-field="type">
                     {{selectOptions ../traitEditor.effectTypes selected=effect.type valueAttr="value" labelAttr="label" localize=false}}
                   </select>
@@ -70,6 +70,16 @@ How it fits: Included by the layout-backed quality sheet.
                   <label data-tooltip="Restricts this effect to specific roll intents or domains. Leave blank to match all rolls in this phase. Examples: intent.attack; intent.skill; domain.combat; range.close; range.near; edge.pre. Uses prefix matching; 'intent' matches intent.attack, intent.skill, etc.">Selector</label>
                   <input class="mwd-quality-effect-field" type="text" value="{{effect.selector}}" data-effect-id="{{effect.id}}" data-field="selector" placeholder="intent.attack" />
                 </div>
+                <div class="form-group">
+                  <label data-tooltip="Automatic effects apply during their engine phase. Prompted Optional roll effects appear in the roll dialog as player-controlled manual modifiers.">Application</label>
+                  <select class="mwd-quality-effect-field" data-effect-id="{{effect.id}}" data-field="application">
+                    {{selectOptions ../traitEditor.applications selected=effect.application valueAttr="value" labelAttr="label" localize=false}}
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label data-tooltip="For Prompted Optional effects, controls whether the roll-dialog checkbox starts checked.">Default On</label>
+                  <input class="mwd-quality-effect-field" type="checkbox" {{checked effect.defaultEnabled}} data-effect-id="{{effect.id}}" data-field="defaultEnabled" />
+                </div>
               </div>
               <div class="mwd-item-note">
                 <strong>Phase guide:</strong>
@@ -78,6 +88,11 @@ How it fits: Included by the layout-backed quality sheet.
                 Action Cost -> Before Action Cost Finalized &nbsp;&middot;&nbsp;
                 Initiative -> Initiative Resolved &nbsp;&middot;&nbsp;
                 Damage Intake -> Damage Resolved &nbsp;&middot;&nbsp;
+                Speed -> Derived Personal Combat &nbsp;&middot;&nbsp;
+                DR -> Defense Rating Resolved &nbsp;&middot;&nbsp;
+                SA Cap -> Activation Budget Resolved &nbsp;&middot;&nbsp;
+                FA/RA Cap -> Activation Budget Resolved &nbsp;&middot;&nbsp;
+                Condition Penalty -> Condition Penalty Resolved &nbsp;&middot;&nbsp;
                 Edge Event -> Edge Spend / Edge Gain
               </div>
 

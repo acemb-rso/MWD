@@ -231,7 +231,14 @@ How it fits: Used by rendering code to produce UI fragments.
 
     <div class="mwd-roll-dialog__manual">
       {{#each manual}}
-        <div class="mwd-roll-dialog__manual-row">
+        <div class="mwd-roll-dialog__manual-row {{#if optional}}is-optional{{/if}} {{#unless enabled}}is-disabled{{/unless}}">
+          <label class="mwd-roll-dialog__manual-toggle" title="Apply modifier">
+            <input
+              type="checkbox"
+              {{checked enabled}}
+              data-action="toggleManual"
+              data-id="{{id}}" />
+          </label>
           <input
             type="text"
             class="mwd-roll-dialog__manual-label"
@@ -239,6 +246,7 @@ How it fits: Used by rendering code to produce UI fragments.
             data-action="setManualValue"
             data-id="{{id}}"
             data-field="label"
+            title="{{sourceLabel}}"
           />
             <div class="mwd-roll-dialog__manual-stepper">
               {{> "mwd.v2.ui.mod-stepper" id=id action="setManualStepper" steps=steps}}

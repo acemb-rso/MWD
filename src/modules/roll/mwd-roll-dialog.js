@@ -61,7 +61,12 @@ function normalizeManualRows(rows) {
   return arr.map((r) => ({
     id: r?.id ?? foundry.utils.randomID(),
     label: typeof r?.label === "string" ? r.label : "Manual",
-    value: Number(r?.value ?? 0)
+    value: Number(r?.value ?? 0),
+    enabled: r?.enabled !== false,
+    source: String(r?.source ?? "Manual").trim() || "Manual",
+    optional: r?.optional === true,
+    traitItemId: String(r?.traitItemId ?? "").trim(),
+    traitEffectId: String(r?.traitEffectId ?? "").trim(),
   }));
 }
 
@@ -255,6 +260,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         removeManual: MWDRollDialog.prototype._onRemoveManual,
         setManualValue: MWDRollDialog.prototype._onSetManualValue,
         setManualStepper: MWDRollDialog.prototype._onSetManualStepper,
+        toggleManual: MWDRollDialog.prototype._onToggleManual,
         setEdgePrePool: MWDRollDialog.prototype._onSetEdgePrePool,
         toggleCheckbox: MWDRollDialog.prototype._onToggleCheckbox,
         setMachineTargetMotion: MWDRollDialog.prototype._onSetMachineTargetMotion,
@@ -346,7 +352,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     let totalPool;
 
     const manualTotal = Array.isArray(st.manual)
-      ? st.manual.reduce((a, r) => a + Number(r?.value || 0), 0)
+      ? st.manual.reduce((a, r) => a + (r?.enabled === false ? 0 : Number(r?.value || 0)), 0)
       : 0;
 
     if (intent === "edge") {
@@ -450,6 +456,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
       manual: (st.manual ?? []).map((r) => ({
         ...r,
+        sourceLabel: String(r.source ?? "Manual").trim() || "Manual",
         steps: buildStepperSteps(Number(r.value ?? 0), Math.min(-4, Number(r.value ?? 0), -3), 3)
       })),
       
@@ -522,7 +529,12 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       .map((r) => ({
         id: r.id,
         label: r.label?.trim() || "Manual",
-        value: Number(r.value ?? 0)
+        value: Number(r.value ?? 0),
+        enabled: r.enabled !== false,
+        source: String(r.source ?? "Manual").trim() || "Manual",
+        optional: r.optional === true,
+        traitItemId: String(r.traitItemId ?? "").trim(),
+        traitEffectId: String(r.traitEffectId ?? "").trim(),
       }));
 
     // Apply toggles back onto payload (flat + nested for compatibility).
@@ -561,7 +573,9 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     this._mwd.state.manual.push({
       id: foundry.utils.randomID(),
       label: "Manual",
-      value: 0
+      value: 0,
+      enabled: true,
+      source: "Manual",
     });
     return this.render(false);
   }
@@ -600,6 +614,18 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!row) return;
 
     row.value = value;
+    return this.render(false);
+  }
+
+  async _onToggleManual(event, target) {
+    event?.preventDefault();
+    const id = target?.dataset?.id;
+    if (!id) return;
+
+    const row = this._mwd.state.manual.find((r) => r.id === id);
+    if (!row) return;
+
+    row.enabled = Boolean(target.checked);
     return this.render(false);
   }
 

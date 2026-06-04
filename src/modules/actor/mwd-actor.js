@@ -16,8 +16,10 @@ import {
 import { evaluateActorLifeModules } from "../mwd/life-modules.js";
 import {
   applyTraitMutations,
+  buildConditionPenaltyTraitFacts,
   buildEdgeTraitFacts,
   evaluateTraitPhase,
+  getTraitActiveEffectModifier,
 } from "../mwd/traits.js";
 import { normalizeCharacterAdvancementState } from "../advancement/character-advancement.js";
 import { getDocumentTypeCreateDefaults } from "../document-type-defaults.js";
@@ -777,13 +779,48 @@ export class MWDActor extends Actor {
       monitors.fatigue.max  = guts === 0 ? 0 : BASE_MONITOR + guts;
     }
 
-    const derived = deriveMonitors(monitors);
+    const baseDerived = deriveMonitors(monitors);
+    const basePhysicalPenalty = Number(baseDerived?.physical?.penalty ?? 0);
+    const baseFatiguePenalty = Number(baseDerived?.fatigue?.penalty ?? 0);
+    const conditionPacket = {
+      physicalValue: Math.max(
+        0,
+        (Number(monitors.physical?.value ?? 0) || 0) + getTraitActiveEffectModifier(this, "conditionPhysicalValueMod")
+      ),
+      fatigueValue: Math.max(
+        0,
+        (Number(monitors.fatigue?.value ?? 0) || 0) + getTraitActiveEffectModifier(this, "conditionFatigueValueMod")
+      ),
+      physicalPenalty: basePhysicalPenalty,
+      fatiguePenalty: baseFatiguePenalty,
+      totalPenalty: basePhysicalPenalty + baseFatiguePenalty,
+    };
+    conditionPacket.physicalPenalty += getTraitActiveEffectModifier(this, "conditionPhysicalPenaltyMod");
+    conditionPacket.fatiguePenalty += getTraitActiveEffectModifier(this, "conditionFatiguePenaltyMod");
+    const conditionPhase = evaluateTraitPhase({
+      actor: this,
+      phase: "onConditionPenaltyResolved",
+      facts: buildConditionPenaltyTraitFacts({ actor: this, packet: conditionPacket, runtime: {} }),
+      packet: conditionPacket,
+      options: { consumeUsage: false },
+    });
+    const adjustedMonitors = foundry.utils.deepClone(monitors);
+    adjustedMonitors.physical ??= {};
+    adjustedMonitors.fatigue ??= {};
+    adjustedMonitors.physical.value = Math.max(0, Number(conditionPhase.packet.physicalValue ?? conditionPacket.physicalValue) || 0);
+    adjustedMonitors.fatigue.value = Math.max(0, Number(conditionPhase.packet.fatigueValue ?? conditionPacket.fatigueValue) || 0);
+
+    const derived = deriveMonitors(adjustedMonitors);
 
     this.system.derived ??= {};
     this.system.derived.monitors = derived;
 
-    const phys = Number(derived?.physical?.penalty ?? 0);
-    const fat  = Number(derived?.fatigue?.penalty ?? 0);
+    const phys = Number(conditionPhase.packet.physicalPenalty) !== basePhysicalPenalty
+      ? Number(conditionPhase.packet.physicalPenalty ?? 0)
+      : Number(derived?.physical?.penalty ?? 0);
+    const fat = Number(conditionPhase.packet.fatiguePenalty) !== baseFatiguePenalty
+      ? Number(conditionPhase.packet.fatiguePenalty ?? 0)
+      : Number(derived?.fatigue?.penalty ?? 0);
     const armorResistance = Number(derived?.armor?.resistance ?? 0);
 
     // Both apply (stack)

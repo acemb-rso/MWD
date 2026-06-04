@@ -299,6 +299,23 @@ Behavior:
 Synced actor effects are marked with MWD metadata so they can be reconciled
 safely back to the source item/effect pair.
 
+Trait-compatible ActiveEffect keys:
+
+- `system.traitMods.speedMod`
+- `system.traitMods.defenseRatingMod`
+- `system.traitMods.saCapMod`
+- `system.traitMods.faCapMod`
+- `system.traitMods.raCapMod`
+- `system.traitMods.conditionPhysicalValueMod`
+- `system.traitMods.conditionFatigueValueMod`
+- `system.traitMods.conditionPhysicalPenaltyMod`
+- `system.traitMods.conditionFatiguePenaltyMod`
+
+These keys are a narrow bridge for always-on numeric modifiers from item
+effects into derived personal combat state. They do not replace quality trait
+packets, which own selectors, optional roll-dialog presentation, phase logic,
+conditions, and limits.
+
 
 7. Combat-Relevant Conventions
 ------------------------------
@@ -345,6 +362,8 @@ The following should not be treated as current source of truth for new work:
   `vehicleUpgrade`, `mechEquipment`, `vehicleWeapon`, or `weaponGroup`
 - older `personalWeapon` field names such as `armorPiercing` as the canonical
   AP field
-- assumptions that `traits`, `modifiers`, and `ActiveEffect`s are one system
+- assumptions that `traits`, `modifiers`, and `ActiveEffect`s are one system.
+  `system.traitMods.*` ActiveEffects are supported as an explicit numeric
+  bridge, not as full trait packet behavior
 
 Use the canonical types and structures documented above instead.

@@ -182,6 +182,17 @@ const templateData = {
       },
       style: "",
       speed: 12,
+      traitMods: {
+        speedMod: 0,
+        defenseRatingMod: 0,
+        saCapMod: 0,
+        faCapMod: 0,
+        raCapMod: 0,
+        conditionPhysicalValueMod: 0,
+        conditionFatigueValueMod: 0,
+        conditionPhysicalPenaltyMod: 0,
+        conditionFatiguePenaltyMod: 0
+      },
       keywords: [],
       dispositions: [],
       cues: [],
@@ -217,6 +228,17 @@ const templateData = {
       biography: "",
       burn: { value: 0, overloaded: false },
       criticals: [],
+      traitMods: {
+        speedMod: 0,
+        defenseRatingMod: 0,
+        saCapMod: 0,
+        faCapMod: 0,
+        raCapMod: 0,
+        conditionPhysicalValueMod: 0,
+        conditionFatigueValueMod: 0,
+        conditionPhysicalPenaltyMod: 0,
+        conditionFatiguePenaltyMod: 0
+      },
       style: "sra-enhanced"
     },
     vehicle: {

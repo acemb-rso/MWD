@@ -16,6 +16,12 @@ Baseline personal-scale activation state:
 SA spent beyond the safe baseline can generate Burn, subject to the personal
 combat tracker and trait hooks.
 
+The SA, FA, and RA caps are derived values. Character quality trait packets and
+actor-side ActiveEffects on `system.traitMods.saCapMod`,
+`system.traitMods.faCapMod`, and `system.traitMods.raCapMod` can adjust those
+caps. FA/RA cap changes also affect the resources granted at the start of a new
+activation.
+
 ### Complex Actions
 
 Complex Actions are high-commitment actions that dominate an activation.
