@@ -5,15 +5,20 @@
 
 // modules/roll/intents/resolve-overload.js
 
+import { getTraitActiveEffectModifier } from "../../mwd/traits.js";
+
 export async function resolveOverload({ actor }) {
 
   const burn = Number(actor.system?.burn?.value ?? 0);
 
-  if (burn < 6) {
-    ui.notifications.warn("Overload check is only required at Burn 6+.");
+  const threshold = actor.overloadThreshold;
+
+  if (burn < threshold) {
+    ui.notifications.warn(`Overload check is only required at Burn ${threshold}+.`);
   }
 
   const guts = Number(actor.system?.attributes?.guts?.value ?? 0);
+  const dnMod = getTraitActiveEffectModifier(actor, "overloadDNMod");
 
   return {
     intent: "overload",
@@ -28,7 +33,7 @@ export async function resolveOverload({ actor }) {
     },
 
     difficulty: {
-      dn: Math.max(0, burn - 5)
+      dn: Math.max(0, burn - (threshold - 1) + dnMod)
     },
 
     breakdown: [

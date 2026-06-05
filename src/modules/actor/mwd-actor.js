@@ -674,6 +674,10 @@ export class MWDActor extends Actor {
     }
   }
 
+  get overloadThreshold() {
+    return 6 + getTraitActiveEffectModifier(this, "overloadThresholdMod");
+  }
+
   async _syncOverloadedEffect(overloaded) {
     const STATUS_ID = "overloaded";
     await this.toggleStatusEffect(STATUS_ID, { active: overloaded, overlay: false });

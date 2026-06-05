@@ -191,7 +191,9 @@ const templateData = {
         conditionPhysicalValueMod: 0,
         conditionFatigueValueMod: 0,
         conditionPhysicalPenaltyMod: 0,
-        conditionFatiguePenaltyMod: 0
+        conditionFatiguePenaltyMod: 0,
+        overloadDNMod: 0,
+        overloadThresholdMod: 0
       },
       keywords: [],
       dispositions: [],
@@ -237,7 +239,9 @@ const templateData = {
         conditionPhysicalValueMod: 0,
         conditionFatigueValueMod: 0,
         conditionPhysicalPenaltyMod: 0,
-        conditionFatiguePenaltyMod: 0
+        conditionFatiguePenaltyMod: 0,
+        overloadDNMod: 0,
+        overloadThresholdMod: 0
       },
       style: "sra-enhanced"
     },

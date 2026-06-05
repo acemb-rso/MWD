@@ -1175,7 +1175,8 @@ export class PersonalCombatTracker {
       burn: {
         value: burnValue,
         penalty: burnPenalty,
-        canOverloadCheck: burnValue >= 6 && !overloaded
+        threshold: actionActor.overloadThreshold,
+        canOverloadCheck: burnValue >= actionActor.overloadThreshold && !overloaded
       },
       state,
       hazards: state.hazards ?? {},
@@ -1696,7 +1697,7 @@ export class PersonalCombatTracker {
       reason,
       roll: action.roll ? JSON.stringify(action.roll) : "",
       actionPayload: JSON.stringify({ intent: "combatAction", actionId: action.id }),
-      prominent: Boolean(action.prominent || (action.prominentWhenBurning && snapshot.burn.value >= 6))
+      prominent: Boolean(action.prominent || (action.prominentWhenBurning && snapshot.burn.value >= snapshot.burn.threshold))
     };
   }
 

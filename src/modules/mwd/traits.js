@@ -32,6 +32,8 @@ export const TRAIT_EFFECT_TYPES = Object.freeze([
   { value: "faCapMod", label: "FA Cap Modifier" },
   { value: "raCapMod", label: "RA Cap Modifier" },
   { value: "conditionPenaltyMod", label: "Condition Penalty Mod" },
+  { value: "overloadDNMod", label: "Overload DN Mod" },
+  { value: "overloadThresholdMod", label: "Overload Threshold Mod" },
   { value: "edgeEvent", label: "Edge Event" },
 ]);
 
@@ -92,6 +94,8 @@ export const TRAIT_ACTIVE_EFFECT_PATHS = Object.freeze({
   conditionFatigueValueMod: "system.traitMods.conditionFatigueValueMod",
   conditionPhysicalPenaltyMod: "system.traitMods.conditionPhysicalPenaltyMod",
   conditionFatiguePenaltyMod: "system.traitMods.conditionFatiguePenaltyMod",
+  overloadDNMod: "system.traitMods.overloadDNMod",
+  overloadThresholdMod: "system.traitMods.overloadThresholdMod",
 });
 
 function toTrimmedString(value, fallback = "") {
