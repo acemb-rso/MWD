@@ -67,6 +67,11 @@ import {
   normalizePayloadCompatibility,
   normalizeWeaponPayloadItemSystem,
 } from "../mwd/weapon-payload-items.js";
+import {
+  normalizeBattleArmorProfile,
+  normalizeDamageSourceScale,
+  normalizeMountProfile,
+} from "../mwd/battle-armor.js";
 import { getDocumentTypeCreateDefaults } from "../document-type-defaults.js";
 import {
   canonicalizeItemType,
@@ -232,6 +237,10 @@ function normalizeGearTags(value) {
   return raw
     .map(entry => String(entry ?? "").trim())
     .filter(Boolean);
+}
+
+function normalizeItemMount(value) {
+  return normalizeMountProfile(value);
 }
 
 function maxRangeIndex(maxKey) {
@@ -534,6 +543,8 @@ export class MWDItem extends Item {
       changed.system.damageType = normalizePersonalDamageType(nextSystem.damageType);
       changed.system.damageAttribute = normalizeWeaponDamageAttribute(nextSystem.damageAttribute);
       changed.system.damageAttributeScale = normalizeWeaponDamageAttributeScale(nextSystem.damageAttributeScale);
+      changed.system.scale = normalizeDamageSourceScale(nextSystem.scale, "personal");
+      changed.system.mount = normalizeItemMount(nextSystem.mount);
       changed.system.availability = normalizeGearText(nextSystem.availability);
       changed.system.ammo = forcedDeletion();
     }
@@ -588,6 +599,7 @@ export class MWDItem extends Item {
       changed.system.tags = normalizeArmorTags(nextSystem.tags);
       changed.system.traits = normalizeTraits(nextSystem.traits);
       changed.system.standardTraits = normalizeArmorStandardTraits(nextSystem.standardTraits);
+      changed.system.battleArmor = normalizeBattleArmorProfile(nextSystem.battleArmor);
       changed.system.traitState = resolveArmorTraitEffects({
         standardTraits: changed.system.standardTraits,
         traits: changed.system.traits,
@@ -625,6 +637,7 @@ export class MWDItem extends Item {
       changed.system.relatedSkill = normalizeGearText(nextSystem.relatedSkill);
       changed.system.availability = normalizeGearText(nextSystem.availability);
       changed.system.rulesHook = normalizeGearText(nextSystem.rulesHook);
+      if (this.isGear()) changed.system.mount = normalizeItemMount(nextSystem.mount);
       changed.system.tags = normalizeGearTags(nextSystem.tags);
       return;
     }
@@ -691,6 +704,8 @@ export class MWDItem extends Item {
     system.standardTraits = normalizeWeaponStandardTraits(system.standardTraits);
     system.traits = capabilityFields.traits;
     system.keywords = capabilityFields.keywords;
+    system.scale = normalizeDamageSourceScale(system.scale, "personal");
+    system.mount = normalizeItemMount(system.mount);
     system.resolution = normalizeWeaponResolution(system.resolution, "standard");
     system.fireModes = normalizeWeaponFireModes(system.fireModes);
     system.availability = normalizeGearText(system.availability);
@@ -763,6 +778,7 @@ export class MWDItem extends Item {
       Math.max(0, Number(system.durability.current ?? system.durability.max ?? system.rating ?? 0))
     );
     system.standardTraits = normalizeArmorStandardTraits(system.standardTraits);
+    system.battleArmor = normalizeBattleArmorProfile(system.battleArmor);
     system.tags = normalizeArmorTags(system.tags);
     system.traits = normalizeTraits(system.traits);
     system.traitState = resolveArmorTraitEffects({
@@ -791,6 +807,7 @@ export class MWDItem extends Item {
     system.relatedSkill = normalizeGearText(system.relatedSkill);
     system.availability = normalizeGearText(system.availability);
     system.rulesHook = normalizeGearText(system.rulesHook);
+    if (this.isGear()) system.mount = normalizeItemMount(system.mount);
     system.tags = normalizeGearTags(system.tags);
   }
 
@@ -1781,6 +1798,8 @@ export class MWDItem extends Item {
       type: this.canonicalType,
       equipped: Boolean(system.equipped),
       isPrimary: Boolean(system.isPrimary),
+      scale: normalizeDamageSourceScale(system.scale, "personal"),
+      mount: normalizeItemMount(system.mount),
       category,
       skill: skillCode,
       skillDef,
@@ -1874,6 +1893,7 @@ export class MWDItem extends Item {
       },
       traitState: armorTraitEffects.traitState,
       standardTraits: normalizeArmorStandardTraits(system.standardTraits),
+      battleArmor: normalizeBattleArmorProfile(system.battleArmor),
       traits: getArmorTraitLabels({
         traits: normalizeTraits(system.traits),
         standardTraits: normalizeArmorStandardTraits(system.standardTraits),

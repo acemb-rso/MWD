@@ -74,6 +74,13 @@
                   },
                   {
                     "type": "panel",
+                    "title": "Battle Armor",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.character.battle-armor-panel" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
                     "title": "Active Criticals",
                     "children": [
                       { "type": "include", "partial": "mwd.v2.ui.character.active-criticals" }

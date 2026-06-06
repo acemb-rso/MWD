@@ -18,7 +18,7 @@ const gear = [
   ["Noteputer", "computing", "Portable computer", "computers", 2, "computing, portableComputer, data, electronics", "Common", "img/icons/_uncategorized/Software.png"],
   ["Verigraph Scanner", "computing", "Identity / biometric verification", "computers", 3, "computing, identity, biometric, verification, security", "Rare", "img/icons/_uncategorized/dna1.svg"],
   ["Demolition Kit", "espionage", "Enables demolitions work", "demolitions", 3, "espionage, demolition, explosives, sabotage, kit", "Restricted", "img/icons/skills/demolition.svg"],
-  ["Disguise Kit", "espionage", "Disguise support", "disguise", 3, "espionage, disguise, infiltration, social, kit", "Uncommon", "img/icons/skills/disguise.svg"],
+  ["Disguise Kit", "espionage", "Disguise support", "deception", 3, "espionage, disguise, deception, infiltration, social, kit", "Uncommon", "img/icons/skills/disguise.svg"],
   ["Forensics Kit", "espionage", "Evidence analysis", "science", 3, "espionage, forensics, evidence, investigation, kit", "Rare", "img/icons/_uncategorized/digital-trace.svg"],
   ["Forgery Kit", "espionage", "Forgery support", "art", 3, "espionage, forgery, documents, deception, kit", "Restricted", "img/icons/skills/art.svg"],
   ["Lock Pick Set", "espionage", "Mechanical lock bypass", "stealth", 3, "espionage, lockBypass, mechanical, infiltration, tools", "Restricted", "img/default/padlock.svg"],

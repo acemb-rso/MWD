@@ -601,13 +601,18 @@
         "extreme": 0
       }
     },
-    "personalWeapon": {
-      "templates": ["modifiers", "inactive", "references"],
-      "equipped": false,
-      "isPrimary": false,
-      "category": "ranged",
-      "skill": "firearms",
-      "damage": 0,
+      "personalWeapon": {
+        "templates": ["modifiers", "inactive", "references"],
+        "equipped": false,
+        "isPrimary": false,
+        "scale": "personal",
+        "mount": {
+          "mountedOnItemId": "",
+          "mountType": ""
+        },
+        "category": "ranged",
+        "skill": "firearms",
+        "damage": 0,
       "ap": 0,
       "damageType": "penetrating",
       "attackRatingBand": {
@@ -675,10 +680,10 @@
         }
       }
     },
-    "armor": {
-      "templates": ["modifiers", "inactive", "references"],
-      "equipped": false,
-      "isPrimary": false,
+      "armor": {
+        "templates": ["modifiers", "inactive", "references"],
+        "equipped": false,
+        "isPrimary": false,
       "rating": 0,
       "defenseBonus": 0,
       "mitigationByType": {
@@ -699,20 +704,62 @@
           "max": 0
         }
       },
+      "battleArmor": {
+        "enabled": false,
+        "armorPool": { "value": 0, "max": 0 },
+        "structure": { "value": 0, "max": 0 },
+        "state": "wrecked",
+        "scale": "personal",
+        "machineDamageMultiplier": 10,
+        "systems": {
+          "stealth": {
+            "enabled": false,
+            "trackingPenalty": 2,
+            "detectionStateCap": "track",
+            "revealedOnAttack": true,
+            "revealedOnJump": true,
+            "revealedOnHit": true,
+            "counteredBy": ["activeProbe", "tag", "narc", "pointblank", "revealed"]
+          },
+          "jump": false,
+          "enhancedStrength": false,
+          "sealed": false,
+          "basicSensors": false,
+          "medicalSuppression": false,
+          "attachedEligible": false
+        },
+        "machineTargetProfile": {
+          "machineTargetable": true,
+          "targetClass": "battleArmor",
+          "sizePenalty": 1,
+          "signature": "low",
+          "stealthTrackingPenalty": 0,
+          "detectionStateCap": null,
+          "counteredBy": []
+        },
+        "attachedToTokenUuid": null,
+        "attachedLocationHint": "",
+        "revealedUntil": null,
+        "medicalSuppressionDisabled": false
+      },
       "tags": [],
       "traits": [],
       "notes": ""
-    },
-    "gear": {
-      "templates": [
-        "inactive",
-        "references"
-      ],
-      "quantity": 1,
-      "rating": 0,
-      "category": "",
-      "tags": []
-    },
+      },
+      "gear": {
+        "templates": [
+          "inactive",
+          "references"
+        ],
+        "quantity": 1,
+        "rating": 0,
+        "category": "",
+        "mount": {
+          "mountedOnItemId": "",
+          "mountType": ""
+        },
+        "tags": []
+      },
     "consumable": {
       "templates": [
         "inactive",

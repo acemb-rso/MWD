@@ -1,0 +1,102 @@
+{{!--
+templates/v2/ui/character/battle-armor-panel.hbs
+Purpose: Shows the active battle armor suit and mounted payloads on personal sheets.
+How it fits: Reads prepared battleArmor context from character/NPC sheets.
+--}}
+
+{{#if battleArmor.hasSuit}}
+  <div class="mwd-record mwd-battle-armor-panel is-equipped">
+    <div class="mwd-record__header">
+      <button type="button"
+              class="mwd-record__media"
+              data-action="editOwnedItem"
+              data-item-id="{{battleArmor.suit.id}}"
+              title="Open {{battleArmor.suit.name}}">
+        <img class="mwd-record__thumb" src="{{battleArmor.suit.img}}" alt="">
+      </button>
+
+      <div class="mwd-record__main">
+        <div class="mwd-record__topline">
+          <button type="button"
+                  class="mwd-record__title-btn"
+                  data-action="editOwnedItem"
+                  data-item-id="{{battleArmor.suit.id}}">
+            {{battleArmor.suit.name}}
+          </button>
+          <div class="mwd-record__stats">
+            <span class="mwd-record__stat is-strong">
+              <span class="mwd-record__stat-label">State</span>
+              <span class="mwd-record__stat-value">{{battleArmor.state}}</span>
+            </span>
+            <span class="mwd-record__stat">
+              <span class="mwd-record__stat-label">Armor</span>
+              <span class="mwd-record__stat-value">{{battleArmor.armorPool.value}}/{{battleArmor.armorPool.max}}</span>
+            </span>
+            <span class="mwd-record__stat">
+              <span class="mwd-record__stat-label">Structure</span>
+              <span class="mwd-record__stat-value">{{battleArmor.structure.value}}/{{battleArmor.structure.max}}</span>
+            </span>
+            <span class="mwd-record__stat">
+              <span class="mwd-record__stat-label">Resist</span>
+              <span class="mwd-record__stat-value">{{battleArmor.structureResistance}}</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="mwd-record__tags">
+          {{#if battleArmor.systems.stealth.enabled}}<span class="mwd-record__tag">Stealth</span>{{/if}}
+          {{#if battleArmor.systems.medicalSuppression}}<span class="mwd-record__tag">Pain Suppression</span>{{/if}}
+          {{#if battleArmor.systems.attachedEligible}}<span class="mwd-record__tag">Attach</span>{{/if}}
+          {{#if battleArmor.attachedToTokenUuid}}<span class="mwd-record__tag">Attached</span>{{/if}}
+          {{#if battleArmor.revealedUntil}}<span class="mwd-record__tag">Revealed</span>{{/if}}
+        </div>
+      </div>
+    </div>
+
+    <div class="mwd-record__body">
+      <div class="mwd-record__details">
+        <div class="mwd-record__detail">
+          <span class="mwd-record__detail-label">Machine Profile</span>
+          <span class="mwd-record__detail-value">Track +{{battleArmor.machineTargetProfile.trackingPenalty}}, cap {{battleArmor.machineTargetProfile.acquireCeiling}}</span>
+        </div>
+        <div class="mwd-record__detail">
+          <span class="mwd-record__detail-label">Machine Damage</span>
+          <span class="mwd-record__detail-value">x{{battleArmor.machineDamageMultiplier}}</span>
+        </div>
+        {{#if battleArmor.attachedLocationHint}}
+          <div class="mwd-record__detail">
+            <span class="mwd-record__detail-label">Location</span>
+            <span class="mwd-record__detail-value">{{battleArmor.attachedLocationHint}}</span>
+          </div>
+        {{/if}}
+      </div>
+
+      {{#if battleArmor.mountedItems.length}}
+        <div class="mwd-record__body-actions">
+          {{#each battleArmor.mountedItems as |item|}}
+            {{#if item.supportsAttack}}
+              <button type="button"
+                      class="mwd-record__body-btn"
+                      data-action="attackWeapon"
+                      data-weapon-attack-uuid="{{item.attackUuid}}"
+                      data-roll='{{item.attackRoll}}'
+                      title="Attack with {{item.name}}">
+                <i class="fas fa-crosshairs"></i>
+                <span>{{item.name}}</span>
+              </button>
+            {{else}}
+              <button type="button"
+                      class="mwd-record__body-btn"
+                      data-action="editOwnedItem"
+                      data-item-id="{{item.id}}"
+                      title="Open {{item.name}}">
+                <i class="fas fa-toolbox"></i>
+                <span>{{item.name}}</span>
+              </button>
+            {{/if}}
+          {{/each}}
+        </div>
+      {{/if}}
+    </div>
+  </div>
+{{/if}}

@@ -13,6 +13,7 @@ import {
   getTrackingPenalty,
   getUsableTargetingPacket,
 } from "./machine-ew-state.js";
+import { getBattleArmorMachineTargetProfile } from "./battle-armor.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -154,10 +155,17 @@ export function buildMachineEwRow({
 
   const targetTokenUuid = targetToken.document?.uuid ?? targetToken.uuid ?? "";
   const targetTokenId = String(targetToken.id ?? targetToken.document?.id ?? "").trim();
+  const sourceTokenUuid = String(sourceToken?.document?.uuid ?? sourceToken?.uuid ?? "").trim();
+  const measuredRange = buildMeasuredRange(sourceToken, targetToken);
+  const battleArmorTargetOptions = {
+    rangeBand: measuredRange.band,
+    friendlyMachineTokenUuid: sourceTokenUuid,
+  };
   const detectionState = getDetectionState(combatant, targetTokenUuid);
-  const ceiling = getAcquireCeiling(targetToken.actor);
+  const ceiling = getAcquireCeiling(targetToken.actor, battleArmorTargetOptions);
   const targetCombatant = getTargetCombatant(targetTokenId);
-  const trackingPenalty = getTrackingPenalty(targetToken.actor, targetCombatant);
+  const trackingPenalty = getTrackingPenalty(targetToken.actor, targetCombatant, battleArmorTargetOptions);
+  const battleArmorTargetProfile = getBattleArmorMachineTargetProfile(targetToken.actor, battleArmorTargetOptions);
   const packetCap = (detectionState === "track" || detectionState === "lock")
     ? getTargetingDataCap(systemAttr, detectionState)
     : null;
@@ -170,8 +178,6 @@ export function buildMachineEwRow({
   const lockGated = detectionState === "lock";
   const acquireHint = buildAcquireHint({ detectionState, canAcquire, ceiling });
   const targetHint = buildTargetHint({ detectionState, lockGated });
-  const measuredRange = buildMeasuredRange(sourceToken, targetToken);
-
   const row = {
     tokenName: targetToken.name ?? "Target",
     targetTokenId,
@@ -184,6 +190,8 @@ export function buildMachineEwRow({
     hasPacketCap: packetCap !== null,
     trackingPenalty,
     hasTrackingPenalty: trackingPenalty > 0,
+    battleArmorTargetProfile,
+    battleArmorFriendlyFireRisk: Boolean(battleArmorTargetProfile?.friendlyFireRisk),
     rangeBand: measuredRange.band,
     rangeBandLabel: measuredRange.bandLabel,
     distance: measuredRange.distance,

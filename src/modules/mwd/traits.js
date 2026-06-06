@@ -27,6 +27,8 @@ export const TRAIT_EFFECT_TYPES = Object.freeze([
   { value: "initiativeMod", label: "Initiative Mod" },
   { value: "damageMod", label: "Damage Intake Mod" },
   { value: "speedMod", label: "Speed Modifier" },
+  { value: "attackRatingMod", label: "Attack Rating Mod" },
+  { value: "suppressAttackerMotionDN", label: "Suppress Attacker Motion DN" },
   { value: "defenseRatingMod", label: "Defense Rating Mod" },
   { value: "saCapMod", label: "SA Cap Modifier" },
   { value: "faCapMod", label: "FA Cap Modifier" },
@@ -44,6 +46,7 @@ export const TRAIT_PHASES = Object.freeze([
   { value: "onInitiativeResolved", label: "Initiative Resolved" },
   { value: "onDamageResolved", label: "Damage Resolved" },
   { value: "onDerivedPersonalCombat", label: "Derived Personal Combat" },
+  { value: "onAttackRatingResolved", label: "Attack Rating Resolved" },
   { value: "onDefenseRatingResolved", label: "Defense Rating Resolved" },
   { value: "onActivationBudgetResolved", label: "Activation Budget Resolved" },
   { value: "onConditionPenaltyResolved", label: "Condition Penalty Resolved" },
@@ -86,6 +89,8 @@ const APPLICATION_VALUES = new Set(TRAIT_EFFECT_APPLICATIONS.map(entry => entry.
 
 export const TRAIT_ACTIVE_EFFECT_PATHS = Object.freeze({
   speedMod: "system.traitMods.speedMod",
+  attackRatingMod: "system.traitMods.attackRatingMod",
+  suppressAttackerMotionDN: "system.traitMods.suppressAttackerMotionDN",
   defenseRatingMod: "system.traitMods.defenseRatingMod",
   saCapMod: "system.traitMods.saCapMod",
   faCapMod: "system.traitMods.faCapMod",
@@ -309,6 +314,7 @@ function defaultPhaseForEffect(type = "") {
     case "initiativeMod": return "onInitiativeResolved";
     case "damageMod": return "onDamageResolved";
     case "speedMod": return "onDerivedPersonalCombat";
+    case "attackRatingMod": return "onAttackRatingResolved";
     case "defenseRatingMod": return "onDefenseRatingResolved";
     case "saCapMod": return "onActivationBudgetResolved";
     case "faCapMod": return "onActivationBudgetResolved";
@@ -506,6 +512,11 @@ function applyTraitEffect({ item, effect, phase, packet, result }) {
     }
     case "speedMod": {
       const delta = clampPacketNumber(packet, "modifier", effect);
+      pushModifier(result.modifiers, item, effect, delta, phase);
+      return delta;
+    }
+    case "attackRatingMod": {
+      const delta = clampPacketNumber(packet, "total", effect);
       pushModifier(result.modifiers, item, effect, delta, phase);
       return delta;
     }
@@ -730,6 +741,17 @@ export function buildDerivedPersonalCombatTraitFacts({ actor, packet = {}, runti
     },
   };
   facts.selectors.push("derived.personalCombat", "derived.personalCombat.speed");
+  return facts;
+}
+
+export function buildAttackRatingTraitFacts({ actor, packet = {}, runtime = {} } = {}) {
+  const facts = baseFacts(actor, runtime);
+  facts.attackRating = {
+    total: toNumber(packet.total, 0),
+  };
+  facts.intent = "attack";
+  facts.domains = ["combat", "attack"];
+  facts.selectors.push("attackRating", "intent.attack", "domain.attack");
   return facts;
 }
 

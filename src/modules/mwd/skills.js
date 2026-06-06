@@ -68,7 +68,7 @@ export const MWD_SKILLS = [
 
   // Charisma
   { code: "acting",       label: "Acting",       attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/con-art.svg`, domains: ["social"] },
-  { code: "disguise",     label: "Disguise",     attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/disguise.svg`, domains: ["social", "mental"] },
+  { code: "deception",    label: "Deception",    attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/disguise.svg`, domains: ["social", "mental"] },
   { code: "leadership",   label: "Leadership",   attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/psychology.svg`, domains: ["social"] },
   { code: "negotiation",  label: "Negotiation",  attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/negotiation.svg`, domains: ["social"] },
   { code: "etiquette",    label: "Etiquette",    attribute: "charisma", icon: `${ICONS_SKILLS_PATH}/etiquette.svg`, domains: ["social"] },
@@ -326,6 +326,9 @@ export function splitSkillsTwoColumns(skills) {
  */
 export function ensureCoreSkillRatings(systemData) {
   systemData.skills ??= {};
+  if (systemData.skills.disguise && !systemData.skills.deception) {
+    systemData.skills.deception = { ...systemData.skills.disguise };
+  }
   for (const s of MWD_SKILLS) {
     const entry = (systemData.skills[s.code] ??= {});
     if (entry.rating == null) entry.rating = 0;

@@ -34,6 +34,9 @@ const GRANT_TYPE_LABELS = Object.freeze({
   edgePool: "Edge Pool"
 });
 
+const LEGACY_SKILL_ALIASES = Object.freeze({
+  disguise: "deception"
+});
 const SKILL_LOOKUP = Object.freeze(buildSkillLookup());
 const EDGE_POOL_LOOKUP = Object.freeze(buildEdgePoolLookup());
 const VAGABOND_SKILL_EXCLUSIONS = new Set(["artillery", "gunnery", "piloting", "heavyWeapons"]);
@@ -56,7 +59,7 @@ const DEFAULT_LIFE_MODULE_CATALOG = Object.freeze(normalizeLifeModuleCatalog([
     label: "Capellan Confederation",
     moduleType: "faction",
     grants: [
-      { id: "skill", choices: [{ type: "skill", value: "disguise" }] },
+      { id: "skill", choices: [{ type: "skill", value: "deception" }] },
       { id: "edge-pool", choices: [{ type: "edgePool", value: "rumor" }] }
     ]
   },
@@ -167,7 +170,7 @@ const DEFAULT_LIFE_MODULE_CATALOG = Object.freeze(normalizeLifeModuleCatalog([
   { id: "childhood-blue-collar", label: "Blue Collar", moduleType: "childhood", skillChoices: ["art", "technician", "zeroGOps"] },
   { id: "childhood-mercenary-brat", label: "Mercenary Brat", moduleType: "childhood", skillChoices: ["firearms"] },
   { id: "childhood-farm", label: "Farm", moduleType: "childhood", skillChoices: ["animalHandling"] },
-  { id: "childhood-fugitives", label: "Fugitives", moduleType: "childhood", skillChoices: ["escapeArtist", "disguise"] },
+  { id: "childhood-fugitives", label: "Fugitives", moduleType: "childhood", skillChoices: ["escapeArtist", "deception"] },
   { id: "childhood-nobility", label: "Nobility", moduleType: "childhood", skillChoices: ["etiquette"] },
   { id: "childhood-slave", label: "Slave", moduleType: "childhood", skillChoices: ["athletics"] },
   { id: "childhood-spacer-family", label: "Spacer Family", moduleType: "childhood", skillChoices: ["zeroGOps"] },
@@ -241,6 +244,11 @@ function buildSkillLookup() {
     if (!code) continue;
     lookup.set(code.toLowerCase(), code);
     if (label) lookup.set(label.toLowerCase(), code);
+  }
+  for (const [legacyCode, currentCode] of Object.entries(LEGACY_SKILL_ALIASES)) {
+    if (MWD_SKILLS.some(skill => skill.code === currentCode)) {
+      lookup.set(legacyCode.toLowerCase(), currentCode);
+    }
   }
   return lookup;
 }

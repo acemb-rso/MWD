@@ -73,6 +73,7 @@ test("npc layout uses only registered shared partial aliases", () => {
     [
       "mwd.v2.ui.actor.field-grid",
       "mwd.v2.ui.character.active-criticals",
+      "mwd.v2.ui.character.battle-armor-panel",
       "mwd.v2.ui.character.combat-actions",
       "mwd.v2.ui.character.skills-column",
       "mwd.v2.ui.character.status-dashboard",

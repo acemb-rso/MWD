@@ -34,6 +34,13 @@ import {
   normalizeHarmDelta,
   resolveArmorWearStep,
 } from "./harm-engine-utils.js";
+import {
+  buildBattleArmorItemUpdate,
+  getEquippedBattleArmor,
+  normalizeDamageSourceScale,
+  previewBattleArmorDamage,
+  shouldRouteBattleArmorHarm,
+} from "../mwd/battle-armor.js";
 
 // The harm tool can target either a live Token object or its TokenDocument.
 // Normalizing that boundary early keeps the rest of the engine actor-first.
@@ -486,6 +493,14 @@ export class HarmEngine {
     const effects = payload?.effects ?? {};
     const loadout = actor.getPersonalCombatLoadout?.({ refresh: true }) ?? null;
     const activeArmor = loadout?.activeArmor ?? null;
+    if (!options.skipBattleArmor && shouldRouteBattleArmorHarm(actor, { ...payload, mode: payload?.mode ?? "attackDamage" })) {
+      return this._applyBattleArmorDamage(actor, {
+        ...payload,
+        track,
+        damage: baseDamage,
+        effects,
+      }, { ...options, activeArmor });
+    }
     const armorCurrentRating = Math.max(0, Number(activeArmor?.currentArmorRating ?? activeArmor?.durability?.current ?? 0) || 0);
     const normalizedDamageType = normalizePersonalDamageType(payload?.damageType, "concussive");
     const beforeTrack = getMonitorValue(actor, track);
@@ -622,6 +637,108 @@ export class HarmEngine {
       adjustedIncoming: damageIncoming,
       finalDamage,
       tagEffectResult,
+      attackDamage: payload?.attackDamage ?? null,
+      critical: {
+        ...critical,
+        drawOk: true,
+        records: criticalApply.records?.length ? criticalApply.records : (critical.records ?? []),
+      },
+      beforeLabel: `${getHarmTrackLabel(track)} ${beforeTrack}`,
+      afterLabel: `${getHarmTrackLabel(track)} ${afterTrack}`,
+      source: String(payload?.source ?? "").trim(),
+      notes: String(payload?.notes ?? "").trim(),
+    };
+  }
+
+  static async _applyBattleArmorDamage(actor, payload, options = {}) {
+    const dryRun = Boolean(options.dryRun);
+    const track = TEMPLATE.monitors.physical;
+    const activeArmor = options.activeArmor ?? getEquippedBattleArmor(actor);
+    const battleArmor = activeArmor?.battleArmor ?? null;
+    if (!activeArmor?.item?.id || !battleArmor?.enabled) {
+      return this._applyPersonalArmorAwareDamage(actor, {
+        ...payload,
+        mode: payload?.mode ?? "attackDamage",
+      }, { ...options, activeArmor: null, skipBattleArmor: true });
+    }
+
+    const baseDamage = Math.max(0, Number(payload?.damage ?? 0) || 0);
+    const beforeTrack = getMonitorValue(actor, track);
+    const sourceScale = normalizeDamageSourceScale(payload?.sourceScale ?? payload?.scale, "personal");
+    const battleArmorPreview = previewBattleArmorDamage(battleArmor, {
+      damage: baseDamage,
+      sourceScale,
+    });
+    const finalDamage = Math.max(0, Number(battleArmorPreview.wearerDamage ?? 0) || 0);
+
+    if (!dryRun) {
+      await activeArmor.item.update(buildBattleArmorItemUpdate(battleArmorPreview));
+      if (finalDamage > 0) await Checkbars.addCounter(actor, track, finalDamage);
+    }
+
+    const afterTrack = dryRun ? Math.max(0, beforeTrack + finalDamage) : getMonitorValue(actor, track);
+    const criticalEligible = payload?.mode === "attackDamage"
+      && (sourceScale === "machine" || !battleArmorPreview.hadArmorShellAtStart);
+    const critical = criticalEligible
+      ? await previewPersonalCritical({
+        actor,
+        payload,
+        outcome: payload?.outcome,
+        netHits: payload?.critNetHits ?? payload?.netHits ?? 0,
+        source: payload?.sourceData ?? { source: payload?.source ?? "" },
+        previewRevision: payload?.previewRevision ?? 0,
+        weaponUuid: payload?.weaponUuid ?? "",
+        weaponId: payload?.weaponId ?? "",
+        weaponName: payload?.weaponName ?? "",
+      })
+      : {
+        ok: true,
+        selected: false,
+        records: [],
+        severity: 0,
+        band: "none",
+        reason: battleArmorPreview.hadArmorShellAtStart
+          ? "Battle Armor shell suppressed personal critical trauma."
+          : "",
+      };
+
+    if (!critical.ok) return critical;
+    const preparedCriticalRecords = Array.isArray(payload?.preparedCriticalRecords) ? payload.preparedCriticalRecords : [];
+    if (!dryRun && payload?.requirePreparedCriticalRecords === true && critical.selected && preparedCriticalRecords.length <= 0) {
+      return { ok: false, reason: "Critical preview is missing. Rebuild the attack damage preview before applying." };
+    }
+
+    let criticalApply = { ok: true, records: [] };
+    if (!dryRun && critical.selected && Array.isArray(critical.records) && critical.records.length) {
+      criticalApply = await applyPersonalCriticalToActor({
+        actor,
+        token: options.token ?? null,
+        records: critical.records,
+        dryRun: false,
+      });
+      if (!criticalApply.ok) return criticalApply;
+    }
+
+    return {
+      mode: payload?.mode ?? "attackDamage",
+      track,
+      requestedDelta: baseDamage,
+      appliedDelta: afterTrack - beforeTrack,
+      usedArmor: true,
+      usedBattleArmor: true,
+      sourceScale,
+      damageType: normalizePersonalDamageType(payload?.damageType, "concussive"),
+      effectiveAp: 0,
+      mitigation: null,
+      battleArmor: {
+        armorId: activeArmor.id ?? activeArmor.armorId ?? "",
+        armorName: activeArmor.name ?? "Battle Armor",
+        ...battleArmorPreview,
+        profile: undefined,
+      },
+      damageIncoming: battleArmorPreview.incomingOriginal,
+      adjustedIncoming: battleArmorPreview.incomingScaled,
+      finalDamage,
       attackDamage: payload?.attackDamage ?? null,
       critical: {
         ...critical,

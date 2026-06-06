@@ -58,3 +58,22 @@ How it fits: Used by the CSB-driven personal weapon details layout.
   {{/unless}}
 </div>
 
+<div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
+  <div class="form-group mwd-weapon-compact__field">
+    <label for="system.scale">Damage Scale</label>
+    <select name="system.scale" data-dtype="String">
+      <option value="personal" {{#if (eq system.scale "personal")}}selected{{/if}}>Personal</option>
+      <option value="machine" {{#if (eq system.scale "machine")}}selected{{/if}}>Machine</option>
+    </select>
+  </div>
+
+  <div class="form-group mwd-weapon-compact__field">
+    <label for="system.mount.mountedOnItemId">Battle Armor Mount</label>
+    <input type="text" name="system.mount.mountedOnItemId" value="{{system.mount.mountedOnItemId}}" placeholder="Armor item id" />
+  </div>
+
+  <div class="form-group mwd-weapon-compact__field">
+    <label for="system.mount.mountType">Mount Type</label>
+    <input type="text" name="system.mount.mountType" value="{{system.mount.mountType}}" placeholder="weapon, tag, narc" />
+  </div>
+</div>

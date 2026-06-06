@@ -470,7 +470,7 @@ function getCommonGateReason(action, actor, snapshot, effectiveCost) {
       : !snapshot?.isCurrentTurn
         ? "Only during your activation."
         : !snapshot?.burn?.canOverloadCheck
-          ? (snapshot?.overloaded ? "Already Overloaded." : "Burn below 6.")
+          ? (snapshot?.overloaded ? "Already Overloaded." : `Burn below ${snapshot?.burn?.threshold ?? 6}.`)
           : "";
   }
   if (effectiveCost.resource === "none" || effectiveCost.value <= 0) return "";

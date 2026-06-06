@@ -7,6 +7,7 @@ import { MWD } from "../config.js";
 import { buildCombatAwarenessPreview } from "../combat/combat-awareness-preview.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
+import { buildBattleArmorSheetContext } from "../mwd/battle-armor.js";
 import {
   attributeFields,
   buildPersonalActiveCriticalsContext,
@@ -66,6 +67,7 @@ export class NpcSheetV2 extends BaseActorSheetV2 {
     context.combatDashboard = buildPersonalCombatDashboardContext(combatSnapshot, { actor });
     context.activePersonalCriticals = buildPersonalActiveCriticalsContext(actor);
     context.personalSpeed = buildPersonalSpeedContext(actor);
+    context.battleArmor = buildBattleArmorSheetContext(actor);
     context.combatActions = this._buildCombatActionsContext(
       PersonalCombatTracker.buildActionModel(actor, combatSnapshot)
     );

@@ -64,6 +64,10 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("overloaded", "Overloaded", "all", "reactor", ["heat", "actionRestriction"], "surge.svg", { managed: true, modifierKey: "overloaded", order: 130 }),
   status("preparedInterrupt", "Prepared", "person", "tactical", ["reaction", "prepared"], "readied_action.svg", { manual: false, managed: true, order: 140 }),
   status("personalCritical", "Personal Critical", "person", "damage", ["critical", "personal"], "surge.svg", { manual: false, managed: true, order: 145 }),
+  status("battleArmorWorn", "Battle Armor Worn", "person", "battleArmor", ["battleArmor", "worn"], "cover.svg", { manual: false, managed: true, order: 146 }),
+  status("battleArmorBreached", "Battle Armor Breached", "person", "battleArmor", ["battleArmor", "breached"], "surge.svg", { manual: false, managed: true, order: 147 }),
+  status("battleArmorWrecked", "Battle Armor Wrecked", "person", "battleArmor", ["battleArmor", "wrecked"], "broken_weapon.svg", { manual: false, managed: true, order: 148 }),
+  status("battleArmorRevealed", "Battle Armor Revealed", "person", "battleArmor", ["battleArmor", "revealed", "targeting"], "target.svg", { order: 149 }),
   status("machineCritical", "Machine Critical", "machine", "damage", ["critical", "system"], "surge.svg", { manual: false, managed: true, order: 150 }),
   status("destroyed", "Destroyed", "machine", "damage", ["catastrophic", "destroyed", "ruined"], "on_fire.svg", { order: 160 }),
 
@@ -134,6 +138,9 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("overextended", "Overextended", "machine", "tactical", ["attack", "defensePenalty"], "surge.svg", { order: 1520 }),
   status("targetFocused", "Target Focused", "machine", "tactical", ["targeted", "attack"], "all-seeing-eye.webp", { order: 1530 }),
   status("suppressedMechanical", "Suppressed", "machine", "tactical", ["offense", "suppressed"], "suppressed.svg", { order: 1540 }),
+  status("attachedToMachine", "Attached to Machine", "person", "battleArmor", ["battleArmor", "attached"], "grappled.svg", { order: 1600 }),
+  status("tagged", "TAGed", "all", "targeting", ["tag", "designated", "targeting"], "target.svg", { order: 1610 }),
+  status("narced", "NARCed", "all", "targeting", ["narc", "beacon", "targeting"], "target.svg", { order: 1620 }),
 ]);
 
 function status(id, label, actorGroup, category, tags, icon, options = {}) {

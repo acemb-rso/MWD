@@ -14,6 +14,10 @@ import {
   getAssetModuleBypassStatuses,
   getAssetModuleDerivedStatuses,
 } from "./asset-module-effects.js";
+import {
+  getBattleArmorMachineTargetProfile,
+  lowerDetectionCap,
+} from "./battle-armor.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "targeting";
@@ -223,7 +227,7 @@ export function getDetectionState(combatant, targetTokenUuid) {
   return getTargetingState(combatant, targetTokenUuid).detectionState;
 }
 
-export function getTrackingPenalty(targetActor, targetCombatant) {
+export function getTrackingPenalty(targetActor, targetCombatant, options = {}) {
   let penalty = 0;
   const statuses = targetActor?.statuses ?? new Set();
   const derivedStatuses = getAssetModuleDerivedStatuses(targetActor);
@@ -245,6 +249,7 @@ export function getTrackingPenalty(targetActor, targetCombatant) {
   }
 
   penalty += getMachineTrackingPenaltyAdjustment(targetActor);
+  penalty += getBattleArmorMachineTargetProfile(targetActor, options)?.trackingPenalty ?? 0;
   return Math.max(0, penalty);
 }
 
@@ -261,13 +266,15 @@ export function getAcquireDnModifier(targetActor, { attacker = null, payload = {
   return bypasses.has("ecmShrouded") ? 0 : 1;
 }
 
-export function getAcquireCeiling(targetActor) {
+export function getAcquireCeiling(targetActor, options = {}) {
   const statuses = targetActor?.statuses ?? new Set();
   const baseCap = statuses.has("ecmJamming") ? "track" : "lock";
   const derivedCap = getMachineDetectionStateCap(targetActor);
+  const battleArmorCap = getBattleArmorMachineTargetProfile(targetActor, options)?.detectionStateCap ?? "lock";
   const baseIndex = DETECTION_STATE_ORDER.indexOf(baseCap);
   const derivedIndex = DETECTION_STATE_ORDER.indexOf(derivedCap);
-  return derivedIndex >= 0 && derivedIndex < baseIndex ? derivedCap : baseCap;
+  const capped = derivedIndex >= 0 && derivedIndex < baseIndex ? derivedCap : baseCap;
+  return lowerDetectionCap(capped, battleArmorCap);
 }
 
 export function getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, detectionState, currentRound) {

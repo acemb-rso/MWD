@@ -30,6 +30,14 @@ import {
   isMachineActorType,
 } from "../mwd/machine-monitors.js";
 import { getPersonalSpeedState } from "../mwd/personal-criticals.js";
+import {
+  buildBattleArmorSheetContext,
+  getBattleArmorStructureResistance,
+  getEquippedBattleArmor,
+  isBattleArmorFunctional,
+  isBattleArmorProfileEnabled,
+  normalizeBattleArmorProfile,
+} from "../mwd/battle-armor.js";
 
 function mitigationLabel(mitigation = {}) {
   return Object.entries(normalizeArmorMitigationByType(mitigation))
@@ -319,22 +327,25 @@ export class MWDActor extends Actor {
     const currentArmorRating = Math.min(rating, durabilityCurrent);
     const mitigationByType = normalizeArmorMitigationByType(armorProfile?.mitigationByType);
     const baseMitigation = computeArmorBaseMitigation(currentArmorRating);
+    const battleArmor = normalizeBattleArmorProfile(armorProfile?.battleArmor);
+    const battleArmorEnabled = isBattleArmorProfileEnabled(battleArmor);
 
     return {
       ...armorProfile,
       armorId: armorProfile.id,
       remainingDurability: durabilityCurrent,
-      currentArmorRating,
-      baseMitigation,
-      baseResistance: baseMitigation,
-      mitigationByType,
-      typedMitigation: mitigationByType,
-      ratingCurrent: currentArmorRating,
-      isDestroyed: durabilityCurrent <= 0,
+      currentArmorRating: battleArmorEnabled ? 0 : currentArmorRating,
+      baseMitigation: battleArmorEnabled ? 0 : baseMitigation,
+      baseResistance: battleArmorEnabled ? 0 : baseMitigation,
+      mitigationByType: battleArmorEnabled ? normalizeArmorMitigationByType({}) : mitigationByType,
+      typedMitigation: battleArmorEnabled ? normalizeArmorMitigationByType({}) : mitigationByType,
+      ratingCurrent: battleArmorEnabled ? 0 : currentArmorRating,
+      isDestroyed: battleArmorEnabled ? battleArmor.state === "wrecked" : durabilityCurrent <= 0,
       durability: {
         current: durabilityCurrent,
         max
-      }
+      },
+      battleArmor
     };
   }
 
@@ -819,12 +830,21 @@ export class MWDActor extends Actor {
     this.system.derived ??= {};
     this.system.derived.monitors = derived;
 
-    const phys = Number(conditionPhase.packet.physicalPenalty) !== basePhysicalPenalty
+    let phys = Number(conditionPhase.packet.physicalPenalty) !== basePhysicalPenalty
       ? Number(conditionPhase.packet.physicalPenalty ?? 0)
       : Number(derived?.physical?.penalty ?? 0);
-    const fat = Number(conditionPhase.packet.fatiguePenalty) !== baseFatiguePenalty
+    let fat = Number(conditionPhase.packet.fatiguePenalty) !== baseFatiguePenalty
       ? Number(conditionPhase.packet.fatiguePenalty ?? 0)
       : Number(derived?.fatigue?.penalty ?? 0);
+    const activeBattleArmor = getEquippedBattleArmor(this);
+    if (
+      isBattleArmorFunctional(activeBattleArmor?.battleArmor)
+      && activeBattleArmor?.battleArmor?.systems?.medicalSuppression
+      && !activeBattleArmor?.battleArmor?.medicalSuppressionDisabled
+    ) {
+      phys = 0;
+      fat = 0;
+    }
     const armorResistance = Number(derived?.armor?.resistance ?? 0);
 
     // Both apply (stack)
@@ -864,23 +884,35 @@ export class MWDActor extends Actor {
     if (!armorMonitor) return;
 
     const activeArmor = loadout.activeArmor;
-    const max = Math.max(0, Number(activeArmor?.durability?.max ?? 0));
-    const remainingDurability = Math.max(0, Number(activeArmor?.remainingDurability ?? activeArmor?.durability?.current ?? 0));
+    const activeBattleArmor = isBattleArmorProfileEnabled(activeArmor?.battleArmor) ? activeArmor.battleArmor : null;
+    const max = activeBattleArmor
+      ? Math.max(0, Number(activeBattleArmor.armorPool?.max ?? 0))
+      : Math.max(0, Number(activeArmor?.durability?.max ?? 0));
+    const remainingDurability = activeBattleArmor
+      ? Math.max(0, Number(activeBattleArmor.armorPool?.value ?? 0))
+      : Math.max(0, Number(activeArmor?.remainingDurability ?? activeArmor?.durability?.current ?? 0));
     armorMonitor.max = max;
     armorMonitor.value = Math.min(max, remainingDurability);
     armorMonitor.resistance = {
-      default: Number(activeArmor?.baseMitigation ?? activeArmor?.baseResistance ?? 0),
+      default: activeBattleArmor
+        ? getBattleArmorStructureResistance(activeBattleArmor)
+        : Number(activeArmor?.baseMitigation ?? activeArmor?.baseResistance ?? 0),
       byType: {}
     };
-    armorMonitor.resistanceBonusByType = activeArmor?.isDestroyed ? {} : (activeArmor?.mitigationByType ?? activeArmor?.typedMitigation ?? {});
+    armorMonitor.resistanceBonusByType = activeBattleArmor || activeArmor?.isDestroyed ? {} : (activeArmor?.mitigationByType ?? activeArmor?.typedMitigation ?? {});
     armorMonitor.derived ??= {};
-    armorMonitor.derived.resistance = Number(activeArmor?.baseMitigation ?? activeArmor?.baseResistance ?? 0);
-    armorMonitor.effect = activeArmor?.isDestroyed ? "Destroyed" : (activeArmor ? mitigationLabel(activeArmor.mitigationByType ?? activeArmor.typedMitigation) : "");
+    armorMonitor.derived.resistance = activeBattleArmor
+      ? getBattleArmorStructureResistance(activeBattleArmor)
+      : Number(activeArmor?.baseMitigation ?? activeArmor?.baseResistance ?? 0);
+    armorMonitor.effect = activeBattleArmor
+      ? `Battle Armor ${activeBattleArmor.state}`
+      : (activeArmor?.isDestroyed ? "Destroyed" : (activeArmor ? mitigationLabel(activeArmor.mitigationByType ?? activeArmor.typedMitigation) : ""));
 
     this.system.derived.personalCombat = {
       ...(this.system.derived.personalCombat ?? {}),
       defaultWeaponId: loadout.defaultWeapon?.id ?? null,
       activeArmorId: activeArmor?.id ?? null,
+      battleArmor: buildBattleArmorSheetContext(this),
       warnings: [...(loadout.warnings ?? [])]
     };
   }

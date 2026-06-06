@@ -145,6 +145,16 @@ async function applyOnHitEffect({ targetActor, targetToken, onHitEffect, source 
     return;
   }
 
+  if (effect.kind === "status" && effect.statusId) {
+    await HarmEngine.apply({
+      actor: targetActor,
+      token: targetToken,
+      payload: { mode: "status", statusId: effect.statusId, active: true, source },
+      options: { logToChat: false },
+    });
+    return;
+  }
+
   if (effect.kind === "burn" && isPersonalActor(targetActor)) {
     await HarmEngine.apply({
       actor: targetActor,

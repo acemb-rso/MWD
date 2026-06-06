@@ -21,6 +21,7 @@ import { resolveMachineSceneToken } from "./machine-token-resolution.js";
 import { getMachineRepairIssues } from "./machine-repair-issues.js";
 import { performVehicleMovementAction } from "./vehicle-movement-actions.js";
 import { resolveVehiclePendingStrain } from "./vehicle-strain.js";
+import { findAttachedBattleArmorTargets } from "./battle-armor.js";
 
 const GM_MACHINE_ACTION_REQUEST = "MachineActions.gmMachineActionRequest";
 const GM_MACHINE_ACTION_RESPONSE = "MachineActions.gmMachineActionResponse";
@@ -626,6 +627,7 @@ async function executeMachineHeatReactionAction(actor, action, request = {}) {
 
 async function executeMachineTargetingAction(actor, action, request = {}) {
   const actionKey = action.key;
+  if (actionKey === "swat") return executeMachineSwat(actor, action, request);
   if (actionKey === "acquireTarget" || actionKey === "sensorLock") {
     const result = await executeMachineEwIntent(actor, { ...request, intent: "acquire", actionId: "acquireTarget" });
     return result ?? performMachineElectronicWarfare(actor, {
@@ -642,7 +644,7 @@ async function executeMachineTargetingAction(actor, action, request = {}) {
       operatorActorUuid: request.operatorActorUuid,
     });
   }
-  if (actionKey === "sensorSweep" || actionKey === "assess" || actionKey === "epmFilter" || actionKey === "swat" || actionKey === "tagTarget" || actionKey === "shareTargetingData" || actionKey === "ecmSpike" || actionKey === "suppressBeacon") {
+  if (actionKey === "sensorSweep" || actionKey === "assess" || actionKey === "epmFilter" || actionKey === "tagTarget" || actionKey === "shareTargetingData" || actionKey === "ecmSpike" || actionKey === "suppressBeacon") {
     const routedActionId = actionKey === "assess" ? "sensorSweep" : actionKey;
     return performMachineElectronicWarfare(actor, {
       actionId: routedActionId,
@@ -651,6 +653,77 @@ async function executeMachineTargetingAction(actor, action, request = {}) {
     });
   }
   return executeMachineSkillAction(actor, action, request);
+}
+
+function getSwatSelectedTokens(request = {}) {
+  if (Array.isArray(request.selectedTokens)) return request.selectedTokens;
+  if (Array.isArray(globalThis.canvas?.tokens?.controlled)) return globalThis.canvas.tokens.controlled;
+  return [];
+}
+
+function selectSwatTarget(candidates = [], request = {}) {
+  const targetTokenUuid = String(request.targetTokenUuid ?? "").trim();
+  const targetTokenId = String(request.targetTokenId ?? "").trim();
+  const targetActorUuid = String(request.targetActorUuid ?? request.actorUuid ?? "").trim();
+  if (targetTokenUuid || targetTokenId || targetActorUuid) {
+    return candidates.find(candidate =>
+      (targetTokenUuid && candidate.tokenUuid === targetTokenUuid)
+      || (targetTokenId && candidate.tokenId === targetTokenId)
+      || (targetActorUuid && candidate.actor?.uuid === targetActorUuid)
+    ) ?? null;
+  }
+  return candidates.find(candidate => candidate.source === "targeted")
+    ?? candidates.find(candidate => candidate.source === "selected")
+    ?? candidates[0]
+    ?? null;
+}
+
+async function executeMachineSwat(actor, action, request = {}) {
+  const token = resolveRequestToken(actor, request);
+  const candidates = findAttachedBattleArmorTargets(actor, {
+    machineToken: token,
+    targetTokens: request.targetTokens ?? globalThis.game?.user?.targets ?? null,
+    selectedTokens: getSwatSelectedTokens(request),
+  });
+  const target = selectSwatTarget(candidates, request);
+  if (!target) {
+    const reason = "No attached battle armor is eligible for Swat.";
+    ui.notifications?.warn(reason);
+    return { ok: false, reason, userMessage: reason, actionId: action.key };
+  }
+
+  return executeRollPayload(actor, {
+    intent: "skill",
+    key: action.skillKey,
+    attrKey: action.attributeKey,
+    machineAttributeKey: action.attributeKey,
+    operatorActorUuid: String(request.operatorActorUuid ?? "").trim(),
+    sourceTokenId: token?.id ?? null,
+    targetTokenId: target.tokenId || null,
+    targetTokenUuid: target.tokenUuid || null,
+    targetActorUuid: target.actor?.uuid ?? "",
+    machineActionKey: action.key,
+    quickAction: {
+      title: action.label,
+      battleArmorSwat: {
+        armorItemId: target.armor?.id ?? target.armor?.armorId ?? "",
+        armorItemUuid: target.armor?.uuid ?? "",
+        attachedToTokenUuid: target.attachedToTokenUuid,
+        source: target.source,
+        defender: {
+          actorUuid: target.actor?.uuid ?? "",
+          attrKey: "reflexes",
+          skillKey: "athletics",
+        },
+        success: {
+          detach: true,
+          marginTwoPlus: ["prone", "collisionDamage"],
+        },
+      },
+    },
+    edge: { allowed: ["pre", "post"] },
+    tags: ["machine", "physical", "swat", "battleArmor", "opposed"],
+  }, request.event);
 }
 
 async function executeMachineCatalogAction(actor, request = {}) {

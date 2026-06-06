@@ -10,6 +10,7 @@ import {
   normalizeArmorTags,
   normalizeWeaponTraits,
 } from "../mwd/personal-damage.js";
+import { normalizeBattleArmorProfile } from "../mwd/battle-armor.js";
 
 function normalizeTraits(value) {
   return normalizeWeaponTraits(value);
@@ -44,6 +45,7 @@ export class ArmorItem extends MWDItem {
     system.durability.current = currentLooksUninitialized
       ? system.durability.max
       : Math.min(system.durability.max, Math.max(0, rawCurrent));
+    system.battleArmor = normalizeBattleArmorProfile(system.battleArmor);
     system.tags = normalizeArmorTags(system.tags);
     system.traits = normalizeTraits(system.traits);
     system.notes = String(system.notes ?? "").trim();
@@ -87,6 +89,7 @@ export class ArmorItem extends MWDItem {
         current: currentDurability,
         max: maxDurability,
       },
+      battleArmor: normalizeBattleArmorProfile(system.battleArmor),
       traits: normalizeTraits(system.traits),
       notes: String(system.notes ?? "").trim(),
     };

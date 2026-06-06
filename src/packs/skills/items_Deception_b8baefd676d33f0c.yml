@@ -1,6 +1,6 @@
 {
   "_id": "b8baefd676d33f0c",
-  "name": "Disguise",
+  "name": "Deception",
   "type": "skill",
   "img": "systems/mwd/icons/skills/disguise.svg",
   "effects": [],
@@ -11,7 +11,7 @@
     "sourceReference": "",
     "description": "",
     "gmnotes": "",
-    "code": "disguise",
+    "code": "deception",
     "attribute": "charisma",
     "value": 0,
     "specialization": "",

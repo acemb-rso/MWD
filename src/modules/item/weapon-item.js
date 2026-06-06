@@ -21,6 +21,10 @@ import {
   normalizeWeaponTraits,
 } from "../mwd/personal-damage.js";
 import {
+  normalizeDamageSourceScale,
+  normalizeMountProfile,
+} from "../mwd/battle-armor.js";
+import {
   getMachineWeaponDamageTypeLabel,
   normalizeMachineWeaponDamageType,
 } from "../mwd/machine-weapon-types.js";
@@ -145,6 +149,8 @@ export class WeaponItem extends MWDItem {
     system.damageType = normalizePersonalDamageType(system.damageType);
     system.attackRatingBand = WeaponItem.normalizeAttackRatingBand(system.attackRatingBand);
     system.range = WeaponItem.normalizePersonalRangeData(system.range);
+    system.scale = normalizeDamageSourceScale(system.scale, "personal");
+    system.mount = normalizeMountProfile(system.mount);
     system.traits = WeaponItem.normalizeTraits(system.traits);
     system.notes = String(system.notes ?? "").trim();
   }
@@ -252,6 +258,8 @@ export class WeaponItem extends MWDItem {
       type: canonicalType,
       equipped: Boolean(system.equipped),
       isPrimary: Boolean(system.isPrimary),
+      scale: canonicalType === TEMPLATE.itemType.personalWeapon ? normalizeDamageSourceScale(system.scale, "personal") : "machine",
+      mount: normalizeMountProfile(system.mount),
       category,
       skill: skillCode || "firearms",
       skillDef,

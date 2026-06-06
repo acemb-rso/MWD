@@ -331,7 +331,7 @@ function buildPersonalAttackMotionContext({ actor, payload, targets = [] } = {})
   const attackerMoves = PersonalCombatTracker.getMoveActionCountForCombatant(attackerCombatant, { combat });
   const targetMoves = PersonalCombatTracker.getMoveActionCountForCombatant(targetCombatant, { combat });
 
-  const attackerMotionDn = attackerMoves > 0 ? 1 : 0;
+  const attackerMotionDn = (attackerMoves > 0 && !getTraitActiveEffectModifier(actor, "suppressAttackerMotionDN")) ? 1 : 0;
   const targetMotionDn = targetMoves === 0 ? -1 : (targetMoves >= 2 ? 1 : 0);
 
   return {

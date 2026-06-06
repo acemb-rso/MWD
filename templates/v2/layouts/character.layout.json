@@ -79,6 +79,13 @@
                   },
                   {
                     "type": "panel",
+                    "title": "Battle Armor",
+                    "children": [
+                      { "type": "include", "partial": "mwd.v2.ui.character.battle-armor-panel" }
+                    ]
+                  },
+                  {
+                    "type": "panel",
                     "title": "Status Dashboard",
                     "children": [
                       { "type": "include", "partial": "mwd.v2.ui.character.status-dashboard" }

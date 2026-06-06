@@ -31,6 +31,7 @@ import { rollClusteringDamage } from "../mwd/machine-clustering.js";
 import { isMachineEnergyDamageFamily } from "../mwd/machine-weapon-types.js";
 import { severityFromMargin } from "../mwd/personal-criticals.js";
 import {
+  buildAttackRatingTraitFacts,
   buildDefenseRatingTraitFacts,
   evaluateTraitPhase,
   getTraitActiveEffectModifier,
@@ -44,6 +45,8 @@ function toNumber(value, fallback = 0) {
 export function parseOnHitEffect(value) {
   const str = String(value ?? "").trim().toLowerCase();
   if (str === "onfire") return { kind: "onFire" };
+  if (str === "tagged" || str === "tag") return { kind: "status", statusId: "tagged" };
+  if (str === "narced" || str === "narc") return { kind: "status", statusId: "narced" };
   const match = str.match(/^(burn|heat)\+(\d+(?:\.\d+)?)$/);
   if (!match) return null;
   const amount = Math.max(0, Number(match[2]) || 0);
@@ -228,7 +231,31 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
     }
   }
 
-  const arTotal = sumParts(arParts);
+  const activeEffectAr = getTraitActiveEffectModifier(attacker, "attackRatingMod");
+  if (activeEffectAr) {
+    arParts.push({
+      id: "activeEffect.attackRatingMod",
+      label: "Active Effect AR",
+      value: activeEffectAr,
+    });
+  }
+  const arPacket = { total: sumParts(arParts) };
+  const arTraitPhase = evaluateTraitPhase({
+    actor: attacker,
+    phase: "onAttackRatingResolved",
+    facts: buildAttackRatingTraitFacts({ actor: attacker, packet: arPacket, runtime: {} }),
+    packet: arPacket,
+    options: { consumeUsage: false },
+  });
+  for (const modifier of arTraitPhase.modifiers) {
+    arParts.push({
+      id: modifier.id,
+      label: modifier.label,
+      value: Number(modifier.value ?? 0),
+    });
+  }
+  const arTotal = Number(arTraitPhase.packet.total ?? sumParts(arParts)) || 0;
+
   const activeEffectDr = getTraitActiveEffectModifier(targetActor, "defenseRatingMod");
   if (activeEffectDr) {
     drParts.push({
@@ -373,6 +400,9 @@ function getMonitorRemaining(actor, monitorKey) {
 
 function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, hitLocation = null } = {}) {
   const onHitEffect = ctx?.attack?.weapon?.resolution?.onHitEffect ?? null;
+  const sourceScale = isMachineActor(attacker)
+    ? "machine"
+    : (String(ctx?.attack?.weapon?.scale ?? "").trim() || "personal");
   if (isMachineActor(targetActor)) {
     return {
       mode: "machineAttackDamage",
@@ -385,6 +415,7 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
       hitLocation,
       onHitEffect,
       effects: ctx?.attack?.weapon?.effects ?? {},
+      sourceScale,
       chaosCriticalSelected: false,
       reliabilitySpendSelections: [],
       previewRevision: 0,
@@ -411,6 +442,7 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
       ? TEMPLATE.monitors.fatigue
       : TEMPLATE.monitors.physical,
     damage: damage?.scaledIncoming ?? 0,
+    sourceScale,
     netHits: 0,
     critNetHits: damage?.netHits ?? 0,
     critSeverity: severityFromMargin(damage?.netHits ?? 0),
@@ -510,6 +542,7 @@ export function summarizeAttackDamageResult(result, target = {}, damage = {}, { 
       reliabilityOptions: result.reliabilityOptions ?? null,
       previewRevision: Number(result.previewRevision ?? 0) || 0,
       machine: result.machine ?? null,
+      battleArmor: result.battleArmor ?? null,
       degradation: result.degradation ?? null,
       mitigation: result.mitigation ? {
         baseMitigation: Number(result.mitigation.baseMitigation ?? 0),

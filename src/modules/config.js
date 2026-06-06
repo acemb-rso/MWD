@@ -721,7 +721,7 @@ export const MWD = {
     "animalHandling": "Animal Handling",
     "survival": "Survival",
     "acting": "Acting",
-    "disguise": "Disguise",
+    "deception": "Deception",
     "leadership": "Leadership",
     "negotiation": "Negotiation",
     "etiquette": "Etiquette",

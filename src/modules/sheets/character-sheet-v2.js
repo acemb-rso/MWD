@@ -43,6 +43,7 @@ import {
   buildMachineCriticalRepairIssues,
   buildMachineEwActionChoices,
 } from "../mwd/machine-quick-actions.js";
+import { buildBattleArmorSheetContext } from "../mwd/battle-armor.js";
 import { resolvePersonalCritRemedyIntent } from "../mwd/personal-crit-intents.js";
 import {
   getQualityCategoryLabel,
@@ -397,9 +398,11 @@ ctx.edgeConsole.poolsOrdered = order
     ctx.conditionMonitors = buildPersonalConditionMonitors(this.actor, {
       editable: this.isEditable,
     });
+    const combatSnapshot = PersonalCombatTracker.getSnapshot(this.actor, { token: sheetToken });
+
     const burn = Number(this.actor.system?.burn?.value ?? 0);
     const burnDisplayMax = 10;
-    const burnThreshold = 6;
+    const burnThreshold = combatSnapshot.burn?.threshold ?? this.actor.overloadThreshold;
     const burnFilled = Math.min(burn, burnDisplayMax);
 
     ctx.burnOverflow = Math.max(0, burn - burnDisplayMax);
@@ -424,14 +427,13 @@ ctx.edgeConsole.poolsOrdered = order
       value: burn,
       penalty: Math.floor(burn / 2),
       overflow: Math.max(0, burn - 10),
-      canOverloadCheck: burn >= 6,
+      canOverloadCheck: combatSnapshot.burn?.canOverloadCheck ?? false,
       overloaded: !!this.actor.system?.burn?.overloaded
     };
-
-    const combatSnapshot = PersonalCombatTracker.getSnapshot(this.actor, { token: sheetToken });
     ctx.combatDashboard = buildPersonalCombatDashboardContext(combatSnapshot, { actor: this.actor });
     ctx.activePersonalCriticals = buildPersonalActiveCriticalsContext(this.actor);
     ctx.personalSpeed = buildPersonalSpeedContext(this.actor);
+    ctx.battleArmor = buildBattleArmorSheetContext(this.actor);
     ctx.combatAwarenessPreview = buildCombatAwarenessPreview(this.actor, {
       sourceToken: sheetToken,
     });

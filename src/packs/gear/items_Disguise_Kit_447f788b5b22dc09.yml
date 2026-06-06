@@ -15,12 +15,13 @@
     "quantity": 1,
     "rating": 3,
     "category": "espionage",
-    "relatedSkill": "disguise",
+    "relatedSkill": "deception",
     "availability": "Uncommon",
     "rulesHook": "Disguise support",
     "tags": [
       "espionage",
       "disguise",
+      "deception",
       "infiltration",
       "social",
       "kit"

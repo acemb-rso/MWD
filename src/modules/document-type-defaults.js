@@ -192,6 +192,8 @@ const templateData = {
         conditionFatigueValueMod: 0,
         conditionPhysicalPenaltyMod: 0,
         conditionFatiguePenaltyMod: 0,
+        attackRatingMod: 0,
+        suppressAttackerMotionDN: 0,
         overloadDNMod: 0,
         overloadThresholdMod: 0
       },
@@ -240,6 +242,8 @@ const templateData = {
         conditionFatigueValueMod: 0,
         conditionPhysicalPenaltyMod: 0,
         conditionFatiguePenaltyMod: 0,
+        attackRatingMod: 0,
+        suppressAttackerMotionDN: 0,
         overloadDNMod: 0,
         overloadThresholdMod: 0
       },
@@ -376,6 +380,8 @@ const templateData = {
       templates: ["modifiers", "inactive", "references"],
       equipped: false,
       isPrimary: false,
+      scale: "personal",
+      mount: { mountedOnItemId: "", mountType: "" },
       category: "ranged",
       skill: "firearms",
       damage: 0,
@@ -442,6 +448,44 @@ const templateData = {
       durability: { current: 0, max: 0 },
       standardTraits: [],
       traitState: { reinforced: { current: 0, max: 0 } },
+      battleArmor: {
+        enabled: false,
+        armorPool: { value: 0, max: 0 },
+        structure: { value: 0, max: 0 },
+        state: "wrecked",
+        scale: "personal",
+        machineDamageMultiplier: 10,
+        systems: {
+          stealth: {
+            enabled: false,
+            trackingPenalty: 2,
+            detectionStateCap: "track",
+            revealedOnAttack: true,
+            revealedOnJump: true,
+            revealedOnHit: true,
+            counteredBy: ["activeProbe", "tag", "narc", "pointblank", "revealed"]
+          },
+          jump: false,
+          enhancedStrength: false,
+          sealed: false,
+          basicSensors: false,
+          medicalSuppression: false,
+          attachedEligible: false
+        },
+        machineTargetProfile: {
+          machineTargetable: true,
+          targetClass: "battleArmor",
+          sizePenalty: 1,
+          signature: "low",
+          stealthTrackingPenalty: 0,
+          detectionStateCap: null,
+          counteredBy: []
+        },
+        attachedToTokenUuid: null,
+        attachedLocationHint: "",
+        revealedUntil: null,
+        medicalSuppressionDisabled: false
+      },
       availability: "",
       tags: [],
       traits: [],
@@ -455,6 +499,7 @@ const templateData = {
       relatedSkill: "",
       availability: "",
       rulesHook: "",
+      mount: { mountedOnItemId: "", mountType: "" },
       tags: []
     },
     consumable: {

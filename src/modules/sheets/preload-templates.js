@@ -38,6 +38,7 @@ const PARTIALS = [
   // Character UI
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/attributes.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/combat-actions.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/ui/character/battle-armor-panel.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/skills-column.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/skill-row.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/character/edge-console.hbs`,
