@@ -175,7 +175,11 @@ function applyExplicitStatuses(state, actor = null) {
   }
   if (hasStatus(actor, "evasiveWeave")) {
     state.attackAr += -2;
-    state.defenseDr += 2;
+    state.defenseDr += 3;
+  }
+  if (hasStatus(actor, "shielded")) {
+    state.attackAr += -1;
+    state.defenseDr += 4;
   }
   if (hasStatus(actor, "braced")) {
     state.attackAr += 1;

@@ -20,7 +20,12 @@ export const BATTLEMECH_MOVEMENT_ACTIONS = Object.freeze({
   prone: Object.freeze({ id: "prone", label: "Prone", cost: 1, heat: 0, mode: "posture", statusId: "proneMechFall" }),
   fly: Object.freeze({ id: "fly", label: "Fly", cost: 1, heat: 0, mode: "flight" }),
   jump: Object.freeze({ id: "jump", label: "Jump", cost: 1, heat: 0, mode: "jump" }),
+  evasiveManeuver: Object.freeze({ id: "evasiveManeuver", label: "Evasive Maneuver", cost: 2, heat: 0, mode: "posture", statusId: "evasiveWeave", includesMovement: true }),
+  shield: Object.freeze({ id: "shield", label: "Shield", cost: 2, heat: 0, mode: "posture", statusId: "shielded" }),
 });
+
+// Posture statuses that are mutually exclusive — applying one clears the others.
+const MACHINE_POSTURE_STATUS_IDS = Object.freeze(["braced", "entrenchedHullDown", "evasiveWeave", "shielded"]);
 
 function movementNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -75,6 +80,19 @@ export function buildBattlemechMovementActionChoices(actor = null) {
       hint: isProne ? "Already prone" : "Apply Prone status",
       disabled: isProne,
       reason: isProne ? "Already prone." : "",
+    },
+    {
+      ...BATTLEMECH_MOVEMENT_ACTIONS.evasiveManeuver,
+      distance: groundSpeed,
+      hint: groundSpeed > 0 ? `Withdraw safely — move up to ${groundSpeed} m, gain Evasive (+3 DR / −2 AR)` : "Withdraw and gain Evasive (+3 DR / −2 AR)",
+      disabled: Boolean(disabledForImmobile),
+      reason: disabledForImmobile,
+    },
+    {
+      ...BATTLEMECH_MOVEMENT_ACTIONS.shield,
+      hint: "Guarded stance: +4 DR / −1 AR. First hit absorbed (−2 damage), then Shield ends.",
+      disabled: false,
+      reason: "",
     },
   ];
 
@@ -149,7 +167,7 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
         actionId: "move",
         movementKind: action.id,
         label: action.label,
-        moved: action.id !== "prone",
+        moved: !["prone", "shield"].includes(action.id),
         round: Number(snapshot?.combat?.round ?? 0),
         turn: Number(snapshot?.combat?.turn ?? 0),
         combatantId: snapshot?.combatant?.id ?? null,
@@ -163,6 +181,12 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
   }
 
   if (action.statusId) {
+    // Clear all other mutually-exclusive posture statuses first.
+    for (const otherId of MACHINE_POSTURE_STATUS_IDS) {
+      if (otherId !== action.statusId) {
+        await applyManagedStatusUpdate({ actor, statusId: otherId, active: false });
+      }
+    }
     await applyManagedStatusUpdate({
       actor,
       statusId: action.statusId,
@@ -171,6 +195,21 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
     });
   }
 
-  ui.notifications?.info(`${actor?.name ?? "BattleMech"}: ${action.label} recorded (${action.cost} SA${action.heat > 0 ? `, +${action.heat} Heat` : ""}).`);
+  if (action.id === "evasiveManeuver") {
+    await ChatMessage.create({
+      content: `<div class="mwd-chat-message"><p><strong>${actor?.name ?? "BattleMech"}</strong> takes an <strong>Evasive Maneuver</strong>. May move up to normal distance — movement does not trigger opportunity or parting attacks from adjacent enemies. Gains <strong>Evasive</strong> (+3 DR / −2 AR) until the start of next activation. Clear the <em>Evasive Weave</em> status at the start of the next turn.</p></div>`,
+      speaker: ChatMessage.getSpeaker({ actor }),
+      flags: { mwd: { messageType: "postureAction", actionId: "evasiveManeuver" } },
+    });
+  } else if (action.id === "shield") {
+    await ChatMessage.create({
+      content: `<div class="mwd-chat-message"><p><strong>${actor?.name ?? "BattleMech"}</strong> takes a <strong>Shield</strong> posture. Gains <strong>Shielded</strong> (+4 DR / −1 AR) until the start of next activation. The first hit or graze reduces incoming damage by 2, then Shield ends — apply this manually and clear the <em>Shielded</em> status. Clear at the start of the next turn if unused.</p></div>`,
+      speaker: ChatMessage.getSpeaker({ actor }),
+      flags: { mwd: { messageType: "postureAction", actionId: "shield" } },
+    });
+  } else {
+    ui.notifications?.info(`${actor?.name ?? "BattleMech"}: ${action.label} recorded (${action.cost} SA${action.heat > 0 ? `, +${action.heat} Heat` : ""}).`);
+  }
+
   return { ok: true, action, spend };
 }

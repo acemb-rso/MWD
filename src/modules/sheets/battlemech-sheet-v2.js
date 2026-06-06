@@ -24,6 +24,11 @@ import { resolveBattlemechJumpProfile } from "../mwd/battlemech-mobility.js";
 import { DEFAULT_FIRE_MODE, FIRE_MODES } from "../mwd/battlemech-fire-modes.js";
 import { getConfiguredMachineHardpoints } from "../mwd/machine-hardpoints.js";
 import { buildBattlemechMeleeProfiles } from "../mwd/battlemech-melee-actions.js";
+import {
+  buildChargeActionChoices,
+  buildControlChargeIntentChoices,
+  performChargeAttack,
+} from "../mwd/charge-attack-actions.js";
 import { buildBattlemechRangedAttackGroups } from "../mwd/battlemech-ranged-actions.js";
 import {
   buildMachineCriticalRepairIssues,
@@ -487,6 +492,13 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         dataset: { attackKind: "melee" }
       },
       {
+        label: "Charge",
+        hint: "Impact, Control, or DFA collision attack",
+        handler: "mechAttack",
+        disabled: false,
+        dataset: { attackKind: "charge" }
+      },
+      {
         label: getQuickActionLabel("pilotingCheck"),
         hint: "Vehicle handling test",
         handler: "mechRoll",
@@ -683,6 +695,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         if (selectedGroup?.id) await this.#rollWeaponGroup(actor, selectedGroup.id);
       } else if (attackKind === "melee") {
         await this.#rollMeleeAttack(actor);
+      } else if (attackKind === "charge") {
+        await this.#rollChargeAttack(actor);
       } else {
         throw new Error(`MWD | Unrecognised attackKind: "${attackKind}"`);
       }
@@ -913,6 +927,81 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       kind: "attack",
       attackKind: "melee",
       profile: selectedProfile,
+    });
+  }
+
+  async #rollChargeAttack(actor) {
+    const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    const choices = buildChargeActionChoices(actor, { token });
+    const enabledChoices = choices.filter(c => !c.disabled);
+    if (!enabledChoices.length) {
+      ui.notifications?.warn("No charge modes available. Move with Run, Sprint, or Jump before charging.");
+      return;
+    }
+
+    const mode = await this.#promptChargeMode(choices);
+    if (!mode) return;
+
+    let controlIntent = "prone";
+    if (mode === "control") {
+      controlIntent = await this.#promptControlIntent();
+      if (!controlIntent) return;
+    }
+
+    const token_ = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
+    await performChargeAttack(actor, { mode, controlIntent, token: token_ });
+  }
+
+  async #promptChargeMode(choices) {
+    const enabledChoices = choices.filter(c => !c.disabled);
+    if (!enabledChoices.length) return null;
+    if (enabledChoices.length === 1) return enabledChoices[0].id;
+
+    const content = `<form class="mwd-quick-select">${choices.map((choice, i) => `
+      <label class="quick-select-option ${choice.disabled ? "is-disabled" : ""}" title="${foundry.utils.escapeHTML(choice.reason ?? "")}">
+        <input type="radio" name="charge-mode" value="${foundry.utils.escapeHTML(choice.id)}" ${i === 0 && !choice.disabled ? "checked" : ""} ${choice.disabled ? "disabled" : ""}>
+        <span>${foundry.utils.escapeHTML(choice.label)}</span>
+        ${choice.disabled ? `<em style="opacity:0.6; font-size:0.85em;">${foundry.utils.escapeHTML(choice.reason ?? "")}</em>` : ""}
+      </label>`).join("")}</form>`;
+
+    const firstEnabled = choices.find(c => !c.disabled);
+    return foundry.applications.api.DialogV2.wait({
+      window: { title: "Choose Charge Mode" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: "Confirm",
+          icon: "fa-solid fa-bolt",
+          default: true,
+          callback: (_event, button) => button.form?.elements["charge-mode"]?.value ?? firstEnabled?.id ?? null,
+        },
+      ],
+    });
+  }
+
+  async #promptControlIntent() {
+    const choices = buildControlChargeIntentChoices();
+    const content = `<form class="mwd-quick-select">${choices.map((choice, i) => `
+      <label class="quick-select-option">
+        <input type="radio" name="control-intent" value="${foundry.utils.escapeHTML(choice.id)}" ${i === 0 ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(choice.label)}</span>
+      </label>`).join("")}</form>`;
+
+    return foundry.applications.api.DialogV2.wait({
+      window: { title: "Control Charge — Intended Outcome" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: "Confirm",
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["control-intent"]?.value ?? choices[0]?.id ?? null,
+        },
+      ],
     });
   }
 

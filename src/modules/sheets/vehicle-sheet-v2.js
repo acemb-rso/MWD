@@ -47,6 +47,13 @@ import {
   buildMachineEwActionChoices,
 } from "../mwd/machine-quick-actions.js";
 import { buildVehicleProfileSummary, VEHICLE_FLIGHT_SUBTYPES, VEHICLE_MOVEMENT_PROFILES, VEHICLE_TERRAIN_CLASSES } from "../mwd/vehicle-profiles.js";
+import { buildVehicleRangedWeapons, performVehicleRangedAttack } from "../mwd/vehicle-ranged-actions.js";
+import { buildMachineMeleeProfiles, performMachineMeleeAttack } from "../mwd/battlemech-melee-actions.js";
+import {
+  buildChargeActionChoices,
+  buildControlChargeIntentChoices,
+  performChargeAttack,
+} from "../mwd/charge-attack-actions.js";
 import { buildVehicleStrainModel } from "../mwd/vehicle-strain.js";
 import { resolveBattlemechJumpProfile } from "../mwd/battlemech-mobility.js";
 import { getSkillDef } from "../mwd/skills.js";
@@ -250,6 +257,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       clearHardpointItem: VehicleSheetV2.prototype._onClearHardpointItem,
       machineWeaponAttack: VehicleSheetV2.prototype._onMachineWeaponAttack,
       vehicleAttack: VehicleSheetV2.prototype._onVehicleAttack,
+      vehicleMeleeAttack: VehicleSheetV2.prototype._onVehicleMeleeAttack,
+      vehicleChargeAttack: VehicleSheetV2.prototype._onVehicleChargeAttack,
       vehicleMovement: VehicleSheetV2.prototype._onVehicleMovement,
       vehicleRoll: VehicleSheetV2.prototype._onVehicleRoll,
       openStrainDialog: VehicleSheetV2.prototype._onOpenStrainDialog,
@@ -419,9 +428,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
   _buildQuickActions() {
     if (this.actor.type !== "vehicle") return [];
     const actor = this.getPersistentActor?.() ?? this.actor;
-    const mountedWeapons = this._getHardpointSlottableItems().filter(item =>
-      getConfiguredMachineHardpoints(actor).some(hardpoint => String(hardpoint?.itemId ?? "").trim() === String(item?.id ?? "").trim())
-    );
+    const rangedWeapons = buildVehicleRangedWeapons(actor);
+    const meleeProfiles = buildMachineMeleeProfiles(actor);
     const movementChoices = buildVehicleMovementActionChoices(actor);
     const enabledMovementChoices = movementChoices.filter(choice => !choice.disabled);
     const enabledEwActions = buildMachineEwActionChoices(actor, {
@@ -440,9 +448,27 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       },
       {
         label: "Mounted Fire",
-        hint: mountedWeapons.length ? "Attack with a mounted weapon" : "No mounted weapons",
+        hint: rangedWeapons.length
+          ? rangedWeapons.map(w => w.name).join(" / ")
+          : "No mounted ranged weapons",
         handler: "vehicleAttack",
-        disabled: mountedWeapons.length === 0,
+        disabled: rangedWeapons.length === 0,
+        dataset: {},
+      },
+      {
+        label: "Melee",
+        hint: meleeProfiles.length
+          ? meleeProfiles.map(p => p.name).join(" / ")
+          : "No melee options",
+        handler: "vehicleMeleeAttack",
+        disabled: meleeProfiles.length === 0,
+        dataset: {},
+      },
+      {
+        label: "Charge",
+        hint: "Impact or Control collision attack (Ram)",
+        handler: "vehicleChargeAttack",
+        disabled: false,
         dataset: {},
       },
       {
@@ -1613,12 +1639,191 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     event?.preventDefault?.();
     event?.stopPropagation?.();
     const actor = this.getPersistentActor() ?? this.actor;
+    const token = this._resolveStatusToken(actor);
     try {
-      throw new Error("MWD | Vehicle ranged attack is not yet implemented.");
+      const weapons = buildVehicleRangedWeapons(actor);
+      if (!weapons.length) {
+        ui.notifications?.warn("No mounted ranged weapons available.");
+        return;
+      }
+
+      const selectedWeapon = weapons.length === 1
+        ? weapons[0]
+        : await this.#promptVehicleRangedWeapon(weapons);
+      if (!selectedWeapon) return;
+
+      await performVehicleRangedAttack(actor, {
+        weaponId: selectedWeapon.id,
+        token,
+      });
     } catch (error) {
       console.error("MWD | Failed to launch vehicle mounted attack", error);
       notifyRollError(error, "Unable to launch that vehicle attack.");
     }
+  }
+
+  async _onVehicleMeleeAttack(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const actor = this.getPersistentActor() ?? this.actor;
+    try {
+      const profiles = buildMachineMeleeProfiles(actor);
+      if (!profiles.length) {
+        ui.notifications?.warn(MWD.actor.vehicle.quickActions.errors.noMelee);
+        return;
+      }
+
+      const selectedProfile = profiles.length === 1
+        ? profiles[0]
+        : await this.#promptMeleeProfile(profiles);
+      if (!selectedProfile) return;
+
+      await performMachineMeleeAttack(actor, { profile: selectedProfile });
+    } catch (error) {
+      console.error("MWD | Failed to launch vehicle melee attack", error);
+      notifyRollError(error, "Unable to launch that vehicle melee attack.");
+    }
+  }
+
+  async _onVehicleChargeAttack(event, _target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const actor = this.getPersistentActor() ?? this.actor;
+    try {
+      const token = this._resolveStatusToken(actor);
+      const choices = buildChargeActionChoices(actor, { token });
+      const enabledChoices = choices.filter(c => !c.disabled);
+      if (!enabledChoices.length) {
+        ui.notifications?.warn("No charge modes available. Move with Reposition or Redline before charging.");
+        return;
+      }
+
+      const mode = await this.#promptVehicleChargeMode(choices);
+      if (!mode) return;
+
+      let controlIntent = "prone";
+      if (mode === "control") {
+        controlIntent = await this.#promptVehicleControlIntent();
+        if (!controlIntent) return;
+      }
+
+      await performChargeAttack(actor, { mode, controlIntent, token });
+    } catch (error) {
+      console.error("MWD | Failed to launch vehicle charge attack", error);
+      notifyRollError(error, "Unable to launch that charge attack.");
+    }
+  }
+
+  async #promptVehicleChargeMode(choices) {
+    const enabledChoices = choices.filter(c => !c.disabled);
+    if (!enabledChoices.length) return null;
+    if (enabledChoices.length === 1) return enabledChoices[0].id;
+
+    const firstEnabled = enabledChoices[0];
+    const content = `<form class="mwd-quick-select">${choices.map((choice, i) => `
+      <label class="quick-select-option ${choice.disabled ? "is-disabled" : ""}" title="${foundry.utils.escapeHTML(choice.reason ?? "")}">
+        <input type="radio" name="charge-mode" value="${foundry.utils.escapeHTML(choice.id)}" ${choice.id === firstEnabled.id ? "checked" : ""} ${choice.disabled ? "disabled" : ""}>
+        <span>${foundry.utils.escapeHTML(choice.label)}</span>
+        ${choice.disabled ? `<em style="opacity:0.6; font-size:0.85em;">${foundry.utils.escapeHTML(choice.reason ?? "")}</em>` : ""}
+      </label>`).join("")}</form>`;
+
+    return foundry.applications.api.DialogV2.wait({
+      window: { title: "Choose Charge Mode" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: "Confirm",
+          icon: "fa-solid fa-bolt",
+          default: true,
+          callback: (_event, button) => button.form?.elements["charge-mode"]?.value ?? firstEnabled.id,
+        },
+      ],
+    });
+  }
+
+  async #promptVehicleControlIntent() {
+    const choices = buildControlChargeIntentChoices();
+    const content = `<form class="mwd-quick-select">${choices.map((choice, i) => `
+      <label class="quick-select-option">
+        <input type="radio" name="control-intent" value="${foundry.utils.escapeHTML(choice.id)}" ${i === 0 ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(choice.label)}</span>
+      </label>`).join("")}</form>`;
+
+    return foundry.applications.api.DialogV2.wait({
+      window: { title: "Control Charge — Intended Outcome" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: "Confirm",
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["control-intent"]?.value ?? choices[0]?.id ?? null,
+        },
+      ],
+    });
+  }
+
+  async #promptVehicleRangedWeapon(weapons = []) {
+    if (!weapons.length) return null;
+    if (weapons.length === 1) return weapons[0];
+
+    const defaultWeapon = weapons[0];
+    const content = `<form class="mwd-quick-select">${weapons.map(weapon => `
+      <label class="quick-select-option">
+        <input type="radio" name="ranged-weapon" value="${foundry.utils.escapeHTML(String(weapon.id ?? ""))}" ${weapon.id === defaultWeapon.id ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(weapon.name ?? ""))}</span>
+        ${weapon.hint ? `<small>${foundry.utils.escapeHTML(weapon.hint)}</small>` : ""}
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Mounted Fire" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["ranged-weapon"]?.value ?? defaultWeapon.id,
+        },
+      ],
+    });
+
+    return weapons.find(w => w.id === selectedId) ?? defaultWeapon;
+  }
+
+  async #promptMeleeProfile(profiles = []) {
+    if (!profiles.length) return null;
+    if (profiles.length === 1) return profiles[0];
+
+    const defaultProfile = profiles[0];
+    const content = `<form class="mwd-quick-select">${profiles.map(profile => `
+      <label class="quick-select-option">
+        <input type="radio" name="melee-profile" value="${foundry.utils.escapeHTML(String(profile.id ?? ""))}" ${profile.id === defaultProfile.id ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(profile.name ?? ""))}</span>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.selectMeleeProfile },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => button.form?.elements["melee-profile"]?.value ?? defaultProfile.id,
+        },
+      ],
+    });
+
+    return profiles.find(p => p.id === selectedId) ?? defaultProfile;
   }
 
   async _onVehicleMovement(event, _target) {

@@ -52,6 +52,7 @@ import {
   AREA_EFFECT_KINDS,
   normalizeAreaEffect,
 } from "../../area-effects/area-effect-engine.js";
+import { MACHINE_CHARGE_ATTACK_ID } from "../../mwd/charge-attack-actions.js";
 
 const DAMAGE_SCALING_MODES = Object.freeze({
   direct: "direct",
@@ -262,6 +263,11 @@ function getWeaponProfile(actor, payload) {
       isSynthetic: true,
       defaultRangeBand: "close",
     };
+  }
+
+  if (isMachineActor(actor) && payload?.syntheticWeapon?.id === MACHINE_CHARGE_ATTACK_ID) {
+    // Pass the charge synthetic weapon through exactly as built — damage must not be zeroed.
+    return { ...payload.syntheticWeapon, isSynthetic: true };
   }
 
   if (payload?.syntheticWeapon?.id === "unarmed") {

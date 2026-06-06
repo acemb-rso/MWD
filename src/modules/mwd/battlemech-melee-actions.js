@@ -119,3 +119,6 @@ export async function performBattlemechMeleeAttack(actor, {
   });
   return { ok: true, profile: selectedProfile };
 }
+
+export const buildMachineMeleeProfiles = buildBattlemechMeleeProfiles;
+export const performMachineMeleeAttack = performBattlemechMeleeAttack;

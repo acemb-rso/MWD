@@ -182,8 +182,8 @@ service.
 | coolantDump | 2 SA | remediation | ready | Restore heat-management system |
 | epmFilter | 2 SA | targeting | ready | Remove or reduce ECM Jamming |
 | swat | 2 SA | remediation | ready | Remove BattleArmor or NARC |
-| chargeAttack | 2 SA | attack | stub | Charge / ram / DFA collision package |
-| evasiveManeuver | 2 SA | movement | stub | Machine evasive posture bonuses |
-| shield | 2 SA | movement | stub | Physical defense / shielding state |
+| chargeAttack | 2 SA | attack | ready | Impact / Control / DFA collision attack; piloting+handling vs target; knockdown check auto-fires |
+| evasiveManeuver | 2 SA | movement | ready | Withdraw without provoking parting attacks; gain Evasive (+3 DR / −2 AR) until next activation |
+| shield | 2 SA | movement | ready | Guarded stance; gain Shielded (+4 DR / −1 AR) until next activation; first hit absorbed −2 damage then ends |
 | spotIndirect | 2 SA | targeting | stub | Indirect-fire network effect |
 | eject | 1 SA | interaction | stub | Manual ejection state changes |

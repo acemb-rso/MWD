@@ -8,9 +8,11 @@ import { SYSTEM_SOCKET, TEMPLATE } from "../constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { RemoteCall } from "../remotecall.js";
 import { DEFAULT_FIRE_MODE, FIRE_MODE_IDS, getFireModeDefinition } from "./battlemech-fire-modes.js";
-import { performBattlemechMeleeAttack } from "./battlemech-melee-actions.js";
+import { performMachineMeleeAttack } from "./battlemech-melee-actions.js";
+import { performChargeAttack } from "./charge-attack-actions.js";
 import { performBattlemechMovementAction } from "./battlemech-movement-actions.js";
 import { performBattlemechRangedAttack } from "./battlemech-ranged-actions.js";
+import { performVehicleRangedAttack } from "./vehicle-ranged-actions.js";
 import { buildMachineEwPanel, resolveMachineEwActionTarget } from "./machine-ew-panel.js";
 import { getMachineActionDefinition } from "./machine-action-catalog.js";
 import { findAssetModuleActionOverride } from "./asset-module-effects.js";
@@ -359,7 +361,7 @@ async function executeMachineAttack(actor, request) {
       const value = await actor.rollMeleeAttack({ operatorActorUuid });
       return { ok: true, value };
     }
-    return performBattlemechMeleeAttack(actor, {
+    return performMachineMeleeAttack(actor, {
       profile: request.profile ?? null,
       profileId: request.profileId ?? "",
       operatorActorUuid,
@@ -372,6 +374,13 @@ async function executeMachineAttack(actor, request) {
       return performBattlemechRangedAttack(actor, {
         group: request.group ?? null,
         groupId,
+        token,
+        operatorActorUuid,
+      });
+    }
+    if (actor?.type === TEMPLATE.actorTypes.vehicle) {
+      return performVehicleRangedAttack(actor, {
+        weaponId: groupId,
         token,
         operatorActorUuid,
       });
@@ -538,6 +547,8 @@ const BATTLEMECH_ACTION_MOVEMENT = Object.freeze({
   jumpMove: "jump",
   sprint: "sprint",
   dropProne: "prone",
+  evasiveManeuver: "evasiveManeuver",
+  shield: "shield",
 });
 
 const VEHICLE_ACTION_MOVEMENT = Object.freeze({
@@ -547,6 +558,8 @@ const VEHICLE_ACTION_MOVEMENT = Object.freeze({
   sprint: "redline",
   brace: "brace",
   hullDown: "hullDown",
+  evasiveManeuver: "evasiveManeuver",
+  shield: "shield",
 });
 
 function machineMovementKindForAction(actor, actionKey = "") {
@@ -754,6 +767,7 @@ async function executeMachineCatalogAction(actor, request = {}) {
     case "attack":
       if (action.key === "rangedAttack") return executeMachineAttack(actor, { ...request, attackKind: "ranged" });
       if (action.key === "physicalAttack") return executeMachineAttack(actor, { ...request, attackKind: "melee" });
+      if (action.key === "chargeAttack") return performChargeAttack(actor, { ...request });
       return executeMachineSkillAction(actor, action, request);
     case "targeting":
       return executeMachineTargetingAction(actor, action, request);
