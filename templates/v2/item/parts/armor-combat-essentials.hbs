@@ -42,100 +42,197 @@ How it fits: Used by the CSB-driven armor details layout.
              name="system.battleArmor.enabled"
              {{checked system.battleArmor.enabled}} />
     </div>
+  </div>
 
-    <div class="form-group">
-      <label for="system.battleArmor.machineDamageMultiplier">Machine Damage Multiplier</label>
-      <input class="type-numeric" type="number" name="system.battleArmor.machineDamageMultiplier" value="{{system.battleArmor.machineDamageMultiplier}}" min="1" step="1" data-dtype="Number" />
-    </div>
+  {{#if system.battleArmor.enabled}}
+    <div class="mwd-item-form-grid mwd-armor-profile-grid">
+      <div class="form-group">
+        <label>Armor Pool</label>
+        <div class="mwd-field-cluster">
+          <input class="type-numeric" type="number" name="system.battleArmor.armorPool.value" value="{{system.battleArmor.armorPool.value}}" min="0" step="1" data-dtype="Number" />
+          <span>/</span>
+          <input class="type-numeric" type="number" name="system.battleArmor.armorPool.max" value="{{system.battleArmor.armorPool.max}}" min="0" step="1" data-dtype="Number" />
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label>Armor Pool</label>
-      <div class="mwd-field-cluster">
-        <input class="type-numeric" type="number" name="system.battleArmor.armorPool.value" value="{{system.battleArmor.armorPool.value}}" min="0" step="1" data-dtype="Number" />
-        <span>/</span>
-        <input class="type-numeric" type="number" name="system.battleArmor.armorPool.max" value="{{system.battleArmor.armorPool.max}}" min="0" step="1" data-dtype="Number" />
+      <div class="form-group">
+        <label>Structure</label>
+        <div class="mwd-field-cluster">
+          <input class="type-numeric" type="number" name="system.battleArmor.structure.value" value="{{system.battleArmor.structure.value}}" min="0" step="1" data-dtype="Number" />
+          <span>/</span>
+          <input class="type-numeric" type="number" name="system.battleArmor.structure.max" value="{{system.battleArmor.structure.max}}" min="0" step="1" data-dtype="Number" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.machineDamageMultiplier">Machine Damage Multiplier</label>
+        <input class="type-numeric" type="number" name="system.battleArmor.machineDamageMultiplier" value="{{system.battleArmor.machineDamageMultiplier}}" min="1" step="1" data-dtype="Number" />
       </div>
     </div>
 
-    <div class="form-group">
-      <label>Structure</label>
-      <div class="mwd-field-cluster">
-        <input class="type-numeric" type="number" name="system.battleArmor.structure.value" value="{{system.battleArmor.structure.value}}" min="0" step="1" data-dtype="Number" />
-        <span>/</span>
-        <input class="type-numeric" type="number" name="system.battleArmor.structure.max" value="{{system.battleArmor.structure.max}}" min="0" step="1" data-dtype="Number" />
+    <h5>Systems</h5>
+    <div class="mwd-item-form-grid mwd-armor-profile-grid">
+      <div class="form-group">
+        <label for="system.battleArmor.systems.jump">Jump Capable</label>
+        <input type="checkbox"
+               name="system.battleArmor.systems.jump"
+               {{checked system.battleArmor.systems.jump}} />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.systems.enhancedStrength">Enhanced Strength</label>
+        <input type="checkbox"
+               name="system.battleArmor.systems.enhancedStrength"
+               {{checked system.battleArmor.systems.enhancedStrength}} />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.systems.sealed">Sealed</label>
+        <input type="checkbox"
+               name="system.battleArmor.systems.sealed"
+               {{checked system.battleArmor.systems.sealed}} />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.systems.basicSensors">Basic Sensors</label>
+        <input type="checkbox"
+               name="system.battleArmor.systems.basicSensors"
+               {{checked system.battleArmor.systems.basicSensors}} />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.systems.medicalSuppression">Pain Suppression</label>
+        <input type="checkbox"
+               name="system.battleArmor.systems.medicalSuppression"
+               {{checked system.battleArmor.systems.medicalSuppression}} />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.medicalSuppressionDisabled">Suppression Disabled</label>
+        <input type="checkbox"
+               name="system.battleArmor.medicalSuppressionDisabled"
+               {{checked system.battleArmor.medicalSuppressionDisabled}} />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.systems.attachedEligible">Attach Eligible</label>
+        <input type="checkbox"
+               name="system.battleArmor.systems.attachedEligible"
+               {{checked system.battleArmor.systems.attachedEligible}} />
       </div>
     </div>
-  </div>
 
-  <div class="mwd-item-form-grid mwd-armor-profile-grid">
-    <div class="form-group">
-      <label for="system.battleArmor.systems.stealth.enabled">Stealth</label>
-      <input type="checkbox"
-             name="system.battleArmor.systems.stealth.enabled"
-             {{checked system.battleArmor.systems.stealth.enabled}} />
+    <h5>Stealth</h5>
+    <div class="mwd-item-form-grid mwd-armor-profile-grid">
+      <div class="form-group">
+        <label for="system.battleArmor.systems.stealth.enabled">Stealth Armor</label>
+        <input type="checkbox"
+               name="system.battleArmor.systems.stealth.enabled"
+               {{checked system.battleArmor.systems.stealth.enabled}} />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.systems.stealth.trackingPenalty">Tracking Penalty</label>
+        <input class="type-numeric" type="number" name="system.battleArmor.systems.stealth.trackingPenalty" value="{{system.battleArmor.systems.stealth.trackingPenalty}}" min="0" step="1" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.systems.stealth.detectionStateCap">Passive Acquire Cap</label>
+        <select name="system.battleArmor.systems.stealth.detectionStateCap" data-dtype="String">
+          <option value="" {{#unless system.battleArmor.systems.stealth.detectionStateCap}}selected{{/unless}}>None</option>
+          <option value="contact" {{#if (eq system.battleArmor.systems.stealth.detectionStateCap "contact")}}selected{{/if}}>Contact</option>
+          <option value="track" {{#if (eq system.battleArmor.systems.stealth.detectionStateCap "track")}}selected{{/if}}>Track</option>
+          <option value="lock" {{#if (eq system.battleArmor.systems.stealth.detectionStateCap "lock")}}selected{{/if}}>Lock</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.systems.stealth.revealedOnAttack">Revealed on Attack</label>
+        <input type="checkbox"
+               name="system.battleArmor.systems.stealth.revealedOnAttack"
+               {{checked system.battleArmor.systems.stealth.revealedOnAttack}} />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.systems.stealth.revealedOnJump">Revealed on Jump</label>
+        <input type="checkbox"
+               name="system.battleArmor.systems.stealth.revealedOnJump"
+               {{checked system.battleArmor.systems.stealth.revealedOnJump}} />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.systems.stealth.revealedOnHit">Revealed on Hit</label>
+        <input type="checkbox"
+               name="system.battleArmor.systems.stealth.revealedOnHit"
+               {{checked system.battleArmor.systems.stealth.revealedOnHit}} />
+      </div>
+
+      <div class="form-group mwd-item-field--wide">
+        <label for="system.battleArmor.systems.stealth.counteredBy">Countered By</label>
+        <input type="text" name="system.battleArmor.systems.stealth.counteredBy" value="{{join system.battleArmor.systems.stealth.counteredBy ', '}}" placeholder="activeProbe, tag, narc, pointblank, revealed" />
+      </div>
     </div>
 
-    <div class="form-group">
-      <label for="system.battleArmor.systems.stealth.trackingPenalty">Stealth Track Penalty</label>
-      <input class="type-numeric" type="number" name="system.battleArmor.systems.stealth.trackingPenalty" value="{{system.battleArmor.systems.stealth.trackingPenalty}}" min="0" step="1" data-dtype="Number" />
+    <h5>Machine Target Profile</h5>
+    <div class="mwd-item-form-grid mwd-armor-profile-grid">
+      <div class="form-group">
+        <label for="system.battleArmor.machineTargetProfile.machineTargetable">Machine Targetable</label>
+        <input type="checkbox"
+               name="system.battleArmor.machineTargetProfile.machineTargetable"
+               {{checked system.battleArmor.machineTargetProfile.machineTargetable}} />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.machineTargetProfile.sizePenalty">Size Penalty</label>
+        <input class="type-numeric" type="number" name="system.battleArmor.machineTargetProfile.sizePenalty" value="{{system.battleArmor.machineTargetProfile.sizePenalty}}" min="0" step="1" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.machineTargetProfile.signature">Signature</label>
+        <select name="system.battleArmor.machineTargetProfile.signature" data-dtype="String">
+          <option value="low" {{#if (eq system.battleArmor.machineTargetProfile.signature "low")}}selected{{/if}}>Low</option>
+          <option value="medium" {{#if (eq system.battleArmor.machineTargetProfile.signature "medium")}}selected{{/if}}>Medium</option>
+          <option value="high" {{#if (eq system.battleArmor.machineTargetProfile.signature "high")}}selected{{/if}}>High</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.machineTargetProfile.stealthTrackingPenalty">Stealth Track Penalty</label>
+        <input class="type-numeric" type="number" name="system.battleArmor.machineTargetProfile.stealthTrackingPenalty" value="{{system.battleArmor.machineTargetProfile.stealthTrackingPenalty}}" min="0" step="1" data-dtype="Number" />
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.machineTargetProfile.detectionStateCap">Acquire Ceiling</label>
+        <select name="system.battleArmor.machineTargetProfile.detectionStateCap" data-dtype="String">
+          <option value="" {{#unless system.battleArmor.machineTargetProfile.detectionStateCap}}selected{{/unless}}>None</option>
+          <option value="contact" {{#if (eq system.battleArmor.machineTargetProfile.detectionStateCap "contact")}}selected{{/if}}>Contact</option>
+          <option value="track" {{#if (eq system.battleArmor.machineTargetProfile.detectionStateCap "track")}}selected{{/if}}>Track</option>
+          <option value="lock" {{#if (eq system.battleArmor.machineTargetProfile.detectionStateCap "lock")}}selected{{/if}}>Lock</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="system.battleArmor.machineTargetProfile.targetClass">Target Class</label>
+        <input type="text" name="system.battleArmor.machineTargetProfile.targetClass" value="{{system.battleArmor.machineTargetProfile.targetClass}}" placeholder="battleArmor" />
+      </div>
+
+      <div class="form-group mwd-item-field--wide">
+        <label for="system.battleArmor.machineTargetProfile.counteredBy">Countered By</label>
+        <input type="text" name="system.battleArmor.machineTargetProfile.counteredBy" value="{{join system.battleArmor.machineTargetProfile.counteredBy ', '}}" placeholder="activeProbe, tag, narc, pointblank, revealed" />
+      </div>
     </div>
 
-    <div class="form-group">
-      <label for="system.battleArmor.systems.stealth.detectionStateCap">Passive Acquire Cap</label>
-      <select name="system.battleArmor.systems.stealth.detectionStateCap" data-dtype="String">
-        <option value="" {{#unless system.battleArmor.systems.stealth.detectionStateCap}}selected{{/unless}}>None</option>
-        <option value="contact" {{#if (eq system.battleArmor.systems.stealth.detectionStateCap "contact")}}selected{{/if}}>Contact</option>
-        <option value="track" {{#if (eq system.battleArmor.systems.stealth.detectionStateCap "track")}}selected{{/if}}>Track</option>
-        <option value="lock" {{#if (eq system.battleArmor.systems.stealth.detectionStateCap "lock")}}selected{{/if}}>Lock</option>
-      </select>
-    </div>
+    <h5>Attachment</h5>
+    <div class="mwd-item-form-grid mwd-armor-profile-grid">
+      <div class="form-group mwd-item-field--wide">
+        <label for="system.battleArmor.attachedLocationHint">Location Hint</label>
+        <input type="text" name="system.battleArmor.attachedLocationHint" value="{{system.battleArmor.attachedLocationHint}}" />
+      </div>
 
-    <div class="form-group">
-      <label for="system.battleArmor.systems.medicalSuppression">Pain Suppression</label>
-      <input type="checkbox"
-             name="system.battleArmor.systems.medicalSuppression"
-             {{checked system.battleArmor.systems.medicalSuppression}} />
+      <div class="form-group mwd-item-field--wide">
+        <label for="system.battleArmor.attachedToTokenUuid">Attached Token UUID</label>
+        <input type="text" name="system.battleArmor.attachedToTokenUuid" value="{{system.battleArmor.attachedToTokenUuid}}" />
+      </div>
     </div>
-
-    <div class="form-group">
-      <label for="system.battleArmor.systems.attachedEligible">Attach Eligible</label>
-      <input type="checkbox"
-             name="system.battleArmor.systems.attachedEligible"
-             {{checked system.battleArmor.systems.attachedEligible}} />
-    </div>
-
-    <div class="form-group">
-      <label for="system.battleArmor.medicalSuppressionDisabled">Suppression Disabled</label>
-      <input type="checkbox"
-             name="system.battleArmor.medicalSuppressionDisabled"
-             {{checked system.battleArmor.medicalSuppressionDisabled}} />
-    </div>
-  </div>
-
-  <div class="mwd-item-form-grid mwd-armor-profile-grid">
-    <div class="form-group">
-      <label for="system.battleArmor.machineTargetProfile.sizePenalty">Tracking Penalty</label>
-      <input class="type-numeric" type="number" name="system.battleArmor.machineTargetProfile.sizePenalty" value="{{system.battleArmor.machineTargetProfile.sizePenalty}}" min="0" step="1" data-dtype="Number" />
-    </div>
-
-    <div class="form-group">
-      <label for="system.battleArmor.machineTargetProfile.detectionStateCap">Acquire Ceiling</label>
-      <select name="system.battleArmor.machineTargetProfile.detectionStateCap" data-dtype="String">
-        <option value="" {{#unless system.battleArmor.machineTargetProfile.detectionStateCap}}selected{{/unless}}>None</option>
-        <option value="contact" {{#if (eq system.battleArmor.machineTargetProfile.detectionStateCap "contact")}}selected{{/if}}>Contact</option>
-        <option value="track" {{#if (eq system.battleArmor.machineTargetProfile.detectionStateCap "track")}}selected{{/if}}>Track</option>
-        <option value="lock" {{#if (eq system.battleArmor.machineTargetProfile.detectionStateCap "lock")}}selected{{/if}}>Lock</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="system.battleArmor.attachedLocationHint">Attached Location</label>
-      <input type="text" name="system.battleArmor.attachedLocationHint" value="{{system.battleArmor.attachedLocationHint}}" />
-    </div>
-
-    <div class="form-group">
-      <label for="system.battleArmor.attachedToTokenUuid">Attached Token UUID</label>
-      <input type="text" name="system.battleArmor.attachedToTokenUuid" value="{{system.battleArmor.attachedToTokenUuid}}" />
-    </div>
-  </div>
+  {{/if}}
 </div>
