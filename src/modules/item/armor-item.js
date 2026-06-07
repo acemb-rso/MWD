@@ -6,9 +6,13 @@
 import { MWDItem } from "./anarchy-base-item.js";
 import {
   computeArmorBaseMitigation,
+  getArmorTraitLabels,
+  normalizeArmorDurabilityForRating,
   normalizeArmorMitigationByType,
+  normalizeArmorStandardTraits,
   normalizeArmorTags,
   normalizeWeaponTraits,
+  resolveArmorTraitEffects,
 } from "../mwd/personal-damage.js";
 import { normalizeBattleArmorProfile } from "../mwd/battle-armor.js";
 
@@ -32,35 +36,33 @@ export class ArmorItem extends MWDItem {
     system.mitigationByType = normalizeArmorMitigationByType(system.mitigationByType ?? system.mitigation);
     delete system.mitigation;
     system.availability = String(system.availability ?? "").trim();
-    system.durability ??= {};
-    const rating = system.rating;
-    const rawMax = Number(system.durability.max);
-    const maxWasUninitialized = !Number.isFinite(rawMax) || (rawMax <= 0 && rating > 0);
-    system.durability.max = maxWasUninitialized
-      ? rating
-      : Math.max(0, rawMax);
-
-    const rawCurrent = Number(system.durability.current);
-    const currentLooksUninitialized = !Number.isFinite(rawCurrent) || (rawCurrent <= 0 && maxWasUninitialized && rating > 0);
-    system.durability.current = currentLooksUninitialized
-      ? system.durability.max
-      : Math.min(system.durability.max, Math.max(0, rawCurrent));
+    system.durability = normalizeArmorDurabilityForRating(system.rating, system.durability);
     system.battleArmor = normalizeBattleArmorProfile(system.battleArmor);
     system.tags = normalizeArmorTags(system.tags);
     system.traits = normalizeTraits(system.traits);
+    system.standardTraits = normalizeArmorStandardTraits(system.standardTraits);
+    system.traitState = resolveArmorTraitEffects({
+      standardTraits: system.standardTraits,
+      traitState: system.traitState,
+    }).traitState;
     system.notes = String(system.notes ?? "").trim();
   }
 
   getArmorProfile({ actor = this.actor } = {}) {
     const system = this.system ?? {};
     const rating = Math.max(0, Number(system.rating ?? 0));
-    const maxDurability = Math.max(0, Number(system?.durability?.max ?? rating));
+    const durability = normalizeArmorDurabilityForRating(rating, system?.durability);
+    const maxDurability = durability.max;
     const currentDurability = Math.min(
       maxDurability,
-      Math.max(0, Number(system?.durability?.current ?? maxDurability))
+      Math.max(0, Number(durability.current ?? maxDurability))
     );
     const currentArmorRating = Math.min(rating, currentDurability);
     const mitigationByType = normalizeArmorMitigationByType(system?.mitigationByType ?? system?.mitigation);
+    const armorTraitEffects = resolveArmorTraitEffects({
+      standardTraits: normalizeArmorStandardTraits(system?.standardTraits),
+      traitState: system?.traitState,
+    });
     const tags = normalizeArmorTags(system?.tags);
     const baseMitigation = computeArmorBaseMitigation(currentArmorRating);
 
@@ -90,7 +92,13 @@ export class ArmorItem extends MWDItem {
         max: maxDurability,
       },
       battleArmor: normalizeBattleArmorProfile(system.battleArmor),
-      traits: normalizeTraits(system.traits),
+      traitState: armorTraitEffects.traitState,
+      traitEffects: armorTraitEffects.traitEffects,
+      effects: armorTraitEffects.effects,
+      standardTraits: normalizeArmorStandardTraits(system.standardTraits),
+      traits: getArmorTraitLabels({
+        standardTraits: normalizeArmorStandardTraits(system.standardTraits),
+      }),
       notes: String(system.notes ?? "").trim(),
     };
   }

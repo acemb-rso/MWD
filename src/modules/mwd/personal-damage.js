@@ -118,40 +118,46 @@ const WEAPON_STANDARD_TRAIT_DEFS = Object.freeze({
 });
 
 const ARMOR_STANDARD_TRAIT_DEFS = Object.freeze({
-  ablative: Object.freeze({
-    key: "ablative",
-    label: "Ablative",
+  bulky: Object.freeze({
+    key: "bulky",
+    label: "Bulky",
     rated: false,
-    aliases: ["ablative"],
-    resolve: () => ({ mitigationByType: { energy: 2 } }),
+    aliases: ["bulky"],
+    resolve: () => ({
+      attributeModifiers: { reflexes: -1 },
+      flags: ["bulky"],
+    }),
   }),
-  flak: Object.freeze({
-    key: "flak",
-    label: "Flak",
+  stealth: Object.freeze({
+    key: "stealth",
+    label: "Stealth",
     rated: false,
-    aliases: ["flak"],
-    resolve: () => ({ mitigationByType: { penetrating: 1 } }),
+    aliases: ["stealth", "sneak"],
+    resolve: () => ({
+      noticeDn: 1,
+      sensorTrackingPenalty: 1,
+      flags: ["stealth"],
+    }),
   }),
-  reinforced: Object.freeze({
-    key: "reinforced",
-    label: "Reinforced",
-    rated: true,
-    aliases: ["reinforced"],
-    resolve: (entry) => ({ reinforced: Math.max(0, Number(entry?.rating ?? 0) || 0) }),
-  }),
-  padded: Object.freeze({
-    key: "padded",
-    label: "Padded",
+  sealed: Object.freeze({
+    key: "sealed",
+    label: "Sealed",
     rated: false,
-    aliases: ["padded"],
-    resolve: () => ({ mitigationByType: { concussive: 1 } }),
+    aliases: ["sealed", "environmental"],
+    resolve: () => ({
+      resistanceDice: { gas: 1, chemical: 1 },
+      flags: ["sealed"],
+    }),
   }),
-  insulated: Object.freeze({
-    key: "insulated",
-    label: "Insulated",
+  concealable: Object.freeze({
+    key: "concealable",
+    label: "Concealable",
     rated: false,
-    aliases: ["insulated"],
-    resolve: () => ({ mitigationByType: { thermal: 2 } }),
+    aliases: ["concealable", "conceal", "concealed"],
+    resolve: () => ({
+      concealArmorDn: 1,
+      flags: ["concealable"],
+    }),
   }),
 });
 
@@ -1118,62 +1124,131 @@ export function mergeArmorMitigationByType(base = {}, addition = {}) {
   };
 }
 
-export function resolveArmorTraitEffects({ standardTraits = [], traits = [], traitState = {} } = {}) {
-  const structuredTraits = normalizeArmorStandardTraits(standardTraits);
-  const legacyTraits = normalizeWeaponTraits(traits);
-  const legacyEntries = legacyTraits
-    .map(trait => {
-      const key = ARMOR_STANDARD_TRAIT_ALIAS_MAP[normalizeTraitAlias(trait)];
-      if (!key) return null;
-      return { id: randomId("trait"), key, rating: key === "reinforced" ? 1 : 0 };
-    })
-    .filter(Boolean);
+export function normalizeArmorTraitEffects(effects = {}) {
+  return {
+    attributeModifiers: {
+      reflexes: Number(effects?.attributeModifiers?.reflexes ?? 0) || 0,
+    },
+    noticeDn: Number(effects?.noticeDn ?? 0) || 0,
+    sensorTrackingPenalty: Number(effects?.sensorTrackingPenalty ?? 0) || 0,
+    resistanceDice: {
+      gas: Number(effects?.resistanceDice?.gas ?? 0) || 0,
+      chemical: Number(effects?.resistanceDice?.chemical ?? 0) || 0,
+    },
+    concealArmorDn: Number(effects?.concealArmorDn ?? 0) || 0,
+    flags: Array.from(new Set(normalizeStringList(effects?.flags))),
+  };
+}
 
+function mergeArmorTraitEffects(base = {}, addition = {}) {
+  const normalizedBase = normalizeArmorTraitEffects(base);
+  const normalizedAddition = normalizeArmorTraitEffects(addition);
+  return normalizeArmorTraitEffects({
+    attributeModifiers: {
+      reflexes: normalizedBase.attributeModifiers.reflexes + normalizedAddition.attributeModifiers.reflexes,
+    },
+    noticeDn: normalizedBase.noticeDn + normalizedAddition.noticeDn,
+    sensorTrackingPenalty: normalizedBase.sensorTrackingPenalty + normalizedAddition.sensorTrackingPenalty,
+    resistanceDice: {
+      gas: normalizedBase.resistanceDice.gas + normalizedAddition.resistanceDice.gas,
+      chemical: normalizedBase.resistanceDice.chemical + normalizedAddition.resistanceDice.chemical,
+    },
+    concealArmorDn: normalizedBase.concealArmorDn + normalizedAddition.concealArmorDn,
+    flags: [...normalizedBase.flags, ...normalizedAddition.flags],
+  });
+}
+
+export function resolveArmorTraitEffects({ standardTraits = [] } = {}) {
+  const structuredTraits = normalizeArmorStandardTraits(standardTraits);
   const resolvedEntries = resolveStandardTraitEffects(
-    [...structuredTraits, ...legacyEntries],
+    structuredTraits,
     ARMOR_STANDARD_TRAIT_DEFS
   );
 
-  const mitigationByType = resolvedEntries.reduce((acc, entry) => {
-    return mergeArmorMitigationByType(acc, entry.effect?.mitigationByType ?? {});
-  }, normalizeArmorMitigationByType({}));
-
-  const reinforcedMax = resolvedEntries.reduce(
-    (total, entry) => total + Math.max(0, Number(entry.effect?.reinforced ?? 0) || 0),
-    0
-  );
-
-  const existingCurrent = Number(traitState?.reinforced?.current);
-  const existingMax = Number(traitState?.reinforced?.max);
-  const initializedCurrent = Number.isFinite(existingCurrent)
-    ? existingCurrent
-    : (Number.isFinite(existingMax) ? existingMax : reinforcedMax);
+  const traitEffects = resolvedEntries.reduce((acc, entry) => {
+    return mergeArmorTraitEffects(acc, entry.effect ?? {});
+  }, normalizeArmorTraitEffects({}));
 
   return {
-    mitigationByType,
-    reinforcedMax,
+    mitigationByType: normalizeArmorMitigationByType({}),
+    reinforcedMax: 0,
     traitState: {
       reinforced: {
-        current: Math.min(reinforcedMax, Math.max(0, initializedCurrent || 0)),
-        max: reinforcedMax,
+        current: 0,
+        max: 0,
       },
     },
+    effects: traitEffects,
+    traitEffects,
     labels: resolvedEntries.map(entry => entry.label),
     standardTraits: structuredTraits,
   };
 }
 
-export function getArmorTraitLabels({ traits = [], standardTraits = [] } = {}) {
+export function getArmorTraitLabels({ standardTraits = [] } = {}) {
   const labels = [
-    ...normalizeWeaponTraits(traits),
     ...normalizeArmorStandardTraits(standardTraits).map(entry => entryLabel(entry, ARMOR_STANDARD_TRAIT_DEFS)),
   ];
   return labels.filter(Boolean);
 }
 
+export function getActiveArmorTraitEffects(actor = null) {
+  const cachedArmor = actor?._mwdDerived?.personalCombat?.activeArmor ?? null;
+  if (cachedArmor) return normalizeArmorTraitEffects(cachedArmor.traitEffects ?? cachedArmor.effects);
+
+  const itemCollection = actor?.items;
+  const items = typeof itemCollection?.filter === "function"
+    ? itemCollection.filter(() => true)
+    : typeof itemCollection?.values === "function"
+      ? Array.from(itemCollection.values())
+    : Array.from(itemCollection ?? []);
+  const armorItems = items.filter(item => {
+    const itemType = item?.canonicalType ?? item?.type;
+    return (item?.isArmor?.() ?? itemType === "armor") && item?.system?.equipped;
+  });
+  const activeItem = armorItems.find(item => item?.system?.isPrimary) ?? armorItems[0] ?? null;
+  const profile = activeItem?.getArmorProfile?.({ actor }) ?? null;
+  return normalizeArmorTraitEffects(profile?.traitEffects ?? profile?.effects);
+}
+
 export function computeArmorBaseMitigation(currentArmorRating) {
   const rating = Math.max(0, Number(currentArmorRating ?? 0) || 0);
   return rating <= 0 ? 0 : Math.ceil(rating / 4);
+}
+
+export function normalizeArmorDurabilityForRating(
+  ratingValue = 0,
+  durability = {},
+  {
+    previousRating = null,
+    previousDurability = null,
+    ratingChanged = false,
+    currentChanged = false,
+  } = {}
+) {
+  const rating = Math.max(0, Number(ratingValue ?? 0) || 0);
+  const rawCurrent = Number(durability?.current);
+  const rawMax = Number(durability?.max);
+  const previousMax = Math.max(0, Number(previousDurability?.max ?? previousRating ?? 0) || 0);
+  const previousCurrent = Number(previousDurability?.current);
+  const hasCurrent = Number.isFinite(rawCurrent);
+  const hasPreviousCurrent = Number.isFinite(previousCurrent);
+  const maxWasUninitialized = !Number.isFinite(rawMax) || rawMax <= 0;
+  const currentWasUninitialized = !hasCurrent || rawCurrent <= 0;
+  const looksUninitialized = rating > 0 && maxWasUninitialized && currentWasUninitialized;
+  const previousWasFull = !hasPreviousCurrent || previousCurrent >= previousMax || previousMax <= 0;
+
+  const nextCurrent = (
+    looksUninitialized
+    || (ratingChanged && !currentChanged && previousWasFull)
+  )
+    ? rating
+    : (hasCurrent ? rawCurrent : (hasPreviousCurrent ? previousCurrent : rating));
+
+  return {
+    current: Math.min(rating, Math.max(0, Number(nextCurrent ?? 0) || 0)),
+    max: rating,
+  };
 }
 
 export function computePersonalArmorMitigation({

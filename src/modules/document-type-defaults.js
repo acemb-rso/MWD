@@ -454,7 +454,6 @@ const templateData = {
         structure: { value: 0, max: 0 },
         state: "wrecked",
         scale: "personal",
-        machineDamageMultiplier: 10,
         systems: {
           stealth: {
             enabled: false,
@@ -475,7 +474,6 @@ const templateData = {
         machineTargetProfile: {
           machineTargetable: true,
           targetClass: "battleArmor",
-          sizePenalty: 1,
           signature: "low",
           stealthTrackingPenalty: 0,
           detectionStateCap: null,
@@ -484,7 +482,6 @@ const templateData = {
         attachedToTokenUuid: null,
         attachedLocationHint: "",
         revealedUntil: null,
-        medicalSuppressionDisabled: false
       },
       availability: "",
       tags: [],

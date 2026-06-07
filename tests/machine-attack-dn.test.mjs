@@ -751,7 +751,7 @@ test("machine clustered attacks roll cluster dice and add hits to queued damage"
   }
 });
 
-test("direct clustered attacks do not scale damage to zero when exposure is none", async () => {
+test("direct clustered machine attacks convert damage for personal targets", async () => {
   const resolveAttack = await getResolveAttack();
   const { resolveAttackExecution } = await getAttackResolution();
   const actor = createActor({ weaponProfile: { clusteringDice: 4, clusteringTargetNumber: 5 } });
@@ -872,9 +872,13 @@ test("direct clustered attacks do not scale damage to zero when exposure is none
     assert.equal(result.damage.scaledIncoming, 7);
     assert.equal(result.damage.usesExposureScaling, false);
     assert.equal(mutation.payload.damage, 7);
-    assert.equal(result.damageResult.damageIncoming, 7);
+    assert.equal(result.damageResult.sourceScale, "machine");
+    assert.equal(result.damageResult.targetScale, "personal");
+    assert.equal(result.damageResult.damageIncoming, 70);
+    assert.equal(result.damageResult.scaleConversion.original, 7);
+    assert.equal(result.damageResult.scaleConversion.converted, 70);
     assert.equal(result.damageResult.mitigation.netResistance, 4);
-    assert.equal(result.damageResult.finalDamage, 3);
+    assert.equal(result.damageResult.finalDamage, 66);
   } finally {
     globalThis.fromUuid = previousFromUuid;
     globalThis.Roll = previousRoll;
@@ -1002,7 +1006,11 @@ test("grazes halve the total clustered incoming damage", async () => {
     assert.equal(result.damage.incoming, 3.5);
     assert.equal(result.damage.scaledIncoming, 3.5);
     assert.equal(mutation.payload.damage, 3.5);
-    assert.equal(result.damageResult.damageIncoming, 3.5);
+    assert.equal(result.damageResult.sourceScale, "machine");
+    assert.equal(result.damageResult.targetScale, "personal");
+    assert.equal(result.damageResult.damageIncoming, 35);
+    assert.equal(result.damageResult.scaleConversion.original, 3.5);
+    assert.equal(result.damageResult.scaleConversion.converted, 35);
   } finally {
     globalThis.fromUuid = previousFromUuid;
     globalThis.Roll = previousRoll;

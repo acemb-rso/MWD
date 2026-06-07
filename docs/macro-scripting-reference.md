@@ -427,8 +427,9 @@ Example: an incendiary payload item would set `system.profile.resolution.onHitEf
 | `thermal` | Heat, burning, plasma |
 | `electrical` | Electrical / EM disruption |
 
-Armor standard traits (`ablative`, `flak`, `padded`, `insulated`) add
-`mitigationByType` bonuses for specific damage types.
+Armor damage-type modifiers live in `system.mitigationByType`. Armor standard
+traits describe equipment-table quirks such as bulky, sealed, stealth, and
+concealable armor.
 
 #### Machine scale
 
@@ -442,11 +443,10 @@ overrides (mapped to `energy` for armor purposes).
 
 | Trait key | Effect |
 |---|---|
-| `ablative` | +2 mitigation vs `energy` |
-| `flak` | +1 mitigation vs `penetrating` |
-| `padded` | +1 mitigation vs `concussive` |
-| `insulated` | +2 mitigation vs `thermal` |
-| `reinforced` | Rated — adds a Reinforced buffer that absorbs hits before rating degrades |
+| `bulky` | Wearer suffers -1 Reflexes while the armor is active |
+| `stealth` | +1 DN to notice the wearer; also adds +1 sensor tracking penalty |
+| `sealed` | +1 bonus die when resisting gas or chemical hazards |
+| `concealable` | +1 DN to notice that the wearer is armored |
 
 ---
 

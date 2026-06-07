@@ -5,6 +5,7 @@ import { BASE_MONITOR, MONITOR_DEFS, TEMPLATE } from "../constants.js";
 import { WeaponItem } from "../item/weapon-item.js";
 import {
   computeArmorBaseMitigation,
+  getActiveArmorTraitEffects,
   normalizeArmorMitigationByType,
 } from "../mwd/personal-damage.js";
 import { ensureCoreSkillRatings } from "../mwd/skills.js";
@@ -222,7 +223,11 @@ export class MWDActor extends Actor {
   }
 
   getAttributeValue(attributeKey) {
-    return Math.max(0, Number(this.system?.attributes?.[attributeKey]?.value ?? 0));
+    const base = Number(this.system?.attributes?.[attributeKey]?.value ?? 0) || 0;
+    const armorModifier = this.isCharacterLike()
+      ? Number(getActiveArmorTraitEffects(this).attributeModifiers?.[attributeKey] ?? 0) || 0
+      : 0;
+    return Math.max(0, base + armorModifier);
   }
 
   getSkillRating(skillKey) {
@@ -345,6 +350,8 @@ export class MWDActor extends Actor {
         current: durabilityCurrent,
         max
       },
+      traitEffects: armorProfile.traitEffects,
+      effects: armorProfile.effects,
       battleArmor
     };
   }
@@ -744,8 +751,7 @@ export class MWDActor extends Actor {
       if (!activeArmorItem?.id) return null;
 
       const rating = Math.max(0, Number(activeArmorItem.system?.rating ?? 0) || 0);
-      const configuredMax = Math.max(0, Number(activeArmorItem.system?.durability?.max ?? 0) || 0);
-      const max = configuredMax > 0 ? configuredMax : rating;
+      const max = rating;
       const nextValue = Math.min(Math.max(0, Number(rawValue) || 0), max);
 
       return this.updateEmbeddedDocuments("Item", [{
@@ -840,7 +846,6 @@ export class MWDActor extends Actor {
     if (
       isBattleArmorFunctional(activeBattleArmor?.battleArmor)
       && activeBattleArmor?.battleArmor?.systems?.medicalSuppression
-      && !activeBattleArmor?.battleArmor?.medicalSuppressionDisabled
     ) {
       phys = 0;
       fat = 0;

@@ -18,6 +18,7 @@ import {
   getBattleArmorMachineTargetProfile,
   lowerDetectionCap,
 } from "./battle-armor.js";
+import { getActiveArmorTraitEffects } from "./personal-damage.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "targeting";
@@ -242,6 +243,7 @@ export function getTrackingPenalty(targetActor, targetCombatant, options = {}) {
     resolved: { intent: "attack" },
   }).effects.reduce((sum, effect) => sum + (Number(effect.modifies?.trackingPenalty ?? 0) || 0), 0);
   penalty += moduleTrackingPenalty;
+  penalty += Number(getActiveArmorTraitEffects(targetActor).sensorTrackingPenalty ?? 0) || 0;
 
   if (targetCombatant) {
     const actionState = targetCombatant.getFlag(FLAG_SCOPE, "personalCombat")?.actionState ?? {};

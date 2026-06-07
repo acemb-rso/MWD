@@ -3,6 +3,11 @@
 // How it fits: Keeps character-worn powered armor rules out of sheets and
 // machine actors while exposing one small API for HarmEngine, EW, and UI code.
 
+import {
+  buildDamageScaleConversion,
+  normalizeDamageScale,
+} from "./damage-scale.js";
+
 export const BATTLE_ARMOR_STATES = Object.freeze({
   intact: "intact",
   breached: "breached",
@@ -19,7 +24,7 @@ export const BATTLE_ARMOR_STATUSES = Object.freeze({
   narced: "narced",
 });
 
-const SOURCE_SCALES = new Set(["personal", "machine"]);
+const BATTLE_ARMOR_MACHINE_TARGET_BASE_PENALTY = 1;
 
 function clone(value) {
   if (typeof foundry !== "undefined" && foundry?.utils?.deepClone) return foundry.utils.deepClone(value);
@@ -63,6 +68,40 @@ function normalizePool(raw = {}, fallbackMax = 0) {
   };
 }
 
+export function normalizeBattleArmorStructureForRating(
+  ratingMax = 0,
+  structure = {},
+  {
+    previousStructure = null,
+    maxChanged = false,
+    valueChanged = false,
+  } = {}
+) {
+  const rating = nonNegativeInteger(ratingMax, 0);
+  const rawValue = Number(structure?.value);
+  const rawMax = Number(structure?.max);
+  const prevMax = nonNegativeInteger(previousStructure?.max ?? 0, 0);
+  const prevValue = Number(previousStructure?.value);
+  const hasValue = Number.isFinite(rawValue);
+  const hasPrevValue = Number.isFinite(prevValue);
+  const maxWasUninitialized = !Number.isFinite(rawMax) || rawMax <= 0;
+  const valueWasUninitialized = !hasValue || rawValue <= 0;
+  const looksUninitialized = rating > 0 && maxWasUninitialized && valueWasUninitialized;
+  const previousWasFull = !hasPrevValue || prevValue >= prevMax || prevMax <= 0;
+
+  const nextValue = (
+    looksUninitialized
+    || (maxChanged && !valueChanged && previousWasFull)
+  )
+    ? rating
+    : (hasValue ? rawValue : (hasPrevValue ? prevValue : rating));
+
+  return {
+    value: Math.min(rating, Math.max(0, nextValue || 0)),
+    max: rating,
+  };
+}
+
 export function deriveBattleArmorState(profile = {}) {
   const armorValue = nonNegativeInteger(profile?.armorPool?.value, 0);
   const structureValue = nonNegativeInteger(profile?.structure?.value, 0);
@@ -102,7 +141,7 @@ export function normalizeBattleArmorTargetProfile(raw = {}, systems = normalizeB
   return {
     machineTargetable: raw.machineTargetable !== false,
     targetClass: String(raw.targetClass ?? "battleArmor").trim() || "battleArmor",
-    sizePenalty: nonNegativeInteger(raw.sizePenalty ?? raw.trackingPenalty, 1),
+    sizePenalty: BATTLE_ARMOR_MACHINE_TARGET_BASE_PENALTY,
     signature: String(raw.signature ?? "low").trim() || "low",
     stealthTrackingPenalty: nonNegativeInteger(raw.stealthTrackingPenalty, stealth.enabled ? stealth.trackingPenalty : 0),
     detectionStateCap: raw.detectionStateCap === null || raw.acquireCeiling === null
@@ -118,16 +157,14 @@ export function normalizeBattleArmorProfile(raw = {}) {
   const normalized = {
     enabled: bool(source.enabled, false),
     armorPool: normalizePool(source.armorPool, 0),
-    structure: normalizePool(source.structure, 0),
+    structure: normalizeBattleArmorStructureForRating(source.structure?.max, source.structure),
     state: "",
     scale: "personal",
-    machineDamageMultiplier: Math.max(1, number(source.machineDamageMultiplier, 10)),
     systems,
     machineTargetProfile: normalizeBattleArmorTargetProfile(source.machineTargetProfile, systems),
     attachedToTokenUuid: String(source.attachedToTokenUuid ?? "").trim() || null,
     attachedLocationHint: String(source.attachedLocationHint ?? "").trim(),
     revealedUntil: source.revealedUntil ?? null,
-    medicalSuppressionDisabled: bool(source.medicalSuppressionDisabled, false),
   };
   normalized.state = deriveBattleArmorState(normalized);
   return normalized;
@@ -142,8 +179,7 @@ export function normalizeMountProfile(raw = {}) {
 }
 
 export function normalizeDamageSourceScale(value = "", fallback = "personal") {
-  const normalized = String(value ?? "").trim().toLowerCase();
-  return SOURCE_SCALES.has(normalized) ? normalized : fallback;
+  return normalizeDamageScale(value, fallback);
 }
 
 export function isBattleArmorProfileEnabled(profile = null) {
@@ -342,7 +378,7 @@ export function getBattleArmorMachineTargetProfile(actor = null, options = {}) {
     Boolean(options.attachedToFriendlyMachine)
     || (friendlyMachineTokenUuid && profile.attachedToTokenUuid === friendlyMachineTokenUuid)
   );
-  const normalPenalty = nonNegativeInteger(profile.machineTargetProfile?.sizePenalty, 1);
+  const normalPenalty = BATTLE_ARMOR_MACHINE_TARGET_BASE_PENALTY;
   const stealthPenalty = stealthEnabled && !stealthCountered
     ? nonNegativeInteger(profile.machineTargetProfile?.stealthTrackingPenalty, profile.systems.stealth.trackingPenalty)
     : 0;
@@ -387,8 +423,13 @@ export function shouldRouteBattleArmorHarm(actor = null, payload = {}) {
 export function previewBattleArmorDamage(profileInput = {}, { damage = 0, sourceScale = "personal" } = {}) {
   const profile = normalizeBattleArmorProfile(profileInput);
   const scale = normalizeDamageSourceScale(sourceScale);
-  const multiplier = scale === "machine" ? Math.max(1, number(profile.machineDamageMultiplier, 10)) : 1;
-  let remaining = Math.max(0, Math.ceil(number(damage, 0) * multiplier));
+  const scaleConversion = buildDamageScaleConversion({
+    damage: number(damage, 0),
+    sourceScale: scale,
+    targetScale: "personal",
+  });
+  const multiplier = scaleConversion.factor;
+  let remaining = Math.max(0, Math.ceil(scaleConversion.converted));
   const armorBefore = profile.armorPool.value;
   const structureBefore = profile.structure.value;
   const hadArmorShellAtStart = armorBefore > 0;
@@ -416,9 +457,11 @@ export function previewBattleArmorDamage(profileInput = {}, { damage = 0, source
 
   return {
     sourceScale: scale,
+    targetScale: "personal",
     multiplier,
-    incomingOriginal: Math.max(0, Math.ceil(number(damage, 0))),
-    incomingScaled: Math.max(0, Math.ceil(number(damage, 0) * multiplier)),
+    scaleConversion,
+    incomingOriginal: Math.max(0, Math.ceil(scaleConversion.original)),
+    incomingScaled: Math.max(0, Math.ceil(scaleConversion.converted)),
     hadArmorShellAtStart,
     armorBefore,
     armorAfter: profile.armorPool.value,
@@ -466,7 +509,6 @@ export function buildBattleArmorSheetContext(actor = null) {
     armorPool: clone(profile.armorPool),
     structure: clone(profile.structure),
     structureResistance: getBattleArmorStructureResistance(profile),
-    machineDamageMultiplier: Math.max(1, number(profile.machineDamageMultiplier, 10)),
     systems: {
       stealth: normalizeBattleArmorStealth(profile.systems?.stealth),
       jump: Boolean(profile.systems?.jump),

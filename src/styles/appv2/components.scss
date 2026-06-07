@@ -1175,6 +1175,112 @@
   gap: var(--csb-space-1);
 }
 
+.mwd-battle-armor-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csb-space-2);
+}
+
+.mwd-battle-armor-editor__headline,
+.mwd-battle-armor-editor__title {
+  display: flex;
+  align-items: center;
+  gap: var(--csb-space-2);
+  min-width: 0;
+}
+
+.mwd-battle-armor-editor__headline {
+  justify-content: space-between;
+}
+
+.mwd-battle-armor-editor__title {
+  flex-wrap: wrap;
+}
+
+.mwd-battle-armor-editor h4 {
+  margin: 0;
+}
+
+.mwd-battle-armor-editor__state {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.55rem;
+  padding: 2px 8px;
+  border: 1px solid rgba(72, 58, 38, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 248, 228, 0.62);
+  color: rgba(55, 45, 30, 0.84);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.78);
+}
+
+.mwd-battle-armor-editor__enabled {
+  flex: 0 0 auto;
+  min-width: 9rem;
+}
+
+.mwd-battle-armor-editor__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csb-space-3);
+}
+
+.mwd-battle-armor-editor__metrics {
+  padding-bottom: var(--csb-space-1);
+}
+
+.mwd-battle-armor-editor .form-group {
+  min-width: 0;
+  margin: 0;
+}
+
+.mwd-battle-armor-editor__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csb-space-2);
+  min-width: 0;
+  padding-top: var(--csb-space-2);
+  border-top: 1px solid rgba(79, 62, 38, 0.16);
+}
+
+.mwd-battle-armor-editor__toggles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: var(--csb-space-2);
+}
+
+.mwd-battle-armor-editor__toggles--compact {
+  grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
+}
+
+.mwd-battle-armor-editor__split {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.7fr) minmax(0, 1fr);
+  gap: var(--csb-space-2);
+  align-items: stretch;
+  min-width: 0;
+}
+
+.mwd-battle-armor-editor__split .mwd-item-form-grid {
+  align-items: start;
+}
+
+.mwd-battle-armor-editor__toggle {
+  align-self: stretch;
+}
+
+.mwd-battle-armor-editor .mwd-checkbox--card {
+  min-height: 2.55rem;
+}
+
+.mwd-battle-armor-editor .mwd-checkbox__label {
+  overflow-wrap: anywhere;
+  line-height: 1.18;
+}
+
 .mwd-sheet.item-sheet.mwd-item-sheet--armor-fixed .mwd-armor-main-grid__notes textarea {
   width: 100%;
   min-height: 6.5rem;
@@ -2329,6 +2435,19 @@
 }
 
 @media (max-width: 720px) {
+  .mwd-battle-armor-editor__headline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mwd-battle-armor-editor__split {
+    grid-template-columns: 1fr;
+  }
+
+  .mwd-battle-armor-editor__enabled {
+    width: 100%;
+  }
+
   .mwd-sheet.item-sheet .sheet-header {
     flex-direction: column;
   }

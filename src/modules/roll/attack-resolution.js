@@ -557,6 +557,9 @@ export function summarizeAttackDamageResult(result, target = {}, damage = {}, { 
       damageIncoming: Number(result.damageIncoming ?? 0),
       adjustedIncoming: Number(result.adjustedIncoming ?? 0),
       finalDamage: Number(result.finalDamage ?? 0),
+      sourceScale: String(result.sourceScale ?? "").trim(),
+      targetScale: String(result.targetScale ?? "").trim(),
+      scaleConversion: result.scaleConversion ?? null,
       attackDamage: result.attackDamage ?? damage?.attackDamage ?? {
         effectiveWeaponDamage: damage?.effectiveWeaponDamage ?? 0,
         clustering: damage?.clustering ?? null,

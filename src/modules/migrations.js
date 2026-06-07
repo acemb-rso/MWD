@@ -954,7 +954,6 @@ class _13_8_0_StandardGearTraitsAndAmmo extends Migration {
       const standardTraits = normalizeArmorStandardTraits(item.system?.standardTraits);
       const traitState = resolveArmorTraitEffects({
         standardTraits,
-        traits: item.system?.traits,
         traitState: item.system?.traitState,
       }).traitState;
 

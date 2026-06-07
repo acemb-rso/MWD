@@ -134,6 +134,25 @@ test("machine damage preview splits armor before structure and preserves pure-st
   assert.equal(preview.previewRevision, 0);
 });
 
+test("machine damage preview converts personal-scale damage to machine-scale chunks", () => {
+  const actor = machineActor();
+  const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 10, armorBefore: 6 });
+  const preview = previewMachineAttackDamage({
+    actor,
+    payload: { damage: 12, sourceScale: "personal", hitLocation },
+  });
+
+  assert.equal(preview.ok, true);
+  assert.equal(preview.sourceScale, "personal");
+  assert.equal(preview.targetScale, "machine");
+  assert.equal(preview.damageIncoming, 1);
+  assert.equal(preview.adjustedIncoming, 1);
+  assert.equal(preview.scaleConversion.original, 12);
+  assert.equal(preview.scaleConversion.converted, 1);
+  assert.equal(preview.machine.armorBefore, 6);
+  assert.equal(preview.machine.armorAfter, 5);
+});
+
 test("armor-only machine hits strip armor without shock, stress, or degradation", async () => {
   const actor = machineActor();
   const hitLocation = resolveMachineHitLocation({ actor, rollTotal: 10, armorBefore: 6 });

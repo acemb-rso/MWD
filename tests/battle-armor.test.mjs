@@ -67,6 +67,45 @@ test("battle armor normalization derives cached state and accepts draft cap alia
   assert.equal(profile.systems.attachedEligible, true);
 });
 
+test("battle armor structure behaves like rating when authored max changes", async () => {
+  const {
+    normalizeBattleArmorProfile,
+    normalizeBattleArmorStructureForRating,
+    getBattleArmorStructureResistance,
+  } = await import("../src/modules/mwd/battle-armor.js");
+
+  const authored = normalizeBattleArmorProfile({
+    enabled: true,
+    armorPool: { value: 30, max: 30 },
+    structure: { max: 10 },
+  });
+  assert.equal(authored.structure.value, 10);
+  assert.equal(authored.structure.max, 10);
+  assert.equal(getBattleArmorStructureResistance(authored), 3);
+
+  const raisedFromEmpty = normalizeBattleArmorStructureForRating(
+    10,
+    { value: 0, max: 10 },
+    {
+      previousStructure: { value: 0, max: 0 },
+      maxChanged: true,
+      valueChanged: false,
+    }
+  );
+  assert.deepEqual(raisedFromEmpty, { value: 10, max: 10 });
+
+  const damagedThenRaised = normalizeBattleArmorStructureForRating(
+    12,
+    { value: 4, max: 12 },
+    {
+      previousStructure: { value: 4, max: 10 },
+      maxChanged: true,
+      valueChanged: false,
+    }
+  );
+  assert.deepEqual(damagedThenRaised, { value: 4, max: 12 });
+});
+
 test("battle armor preview applies armor pool, machine scale, structure resistance, and degradation", async () => {
   const { previewBattleArmorDamage } = await import("../src/modules/mwd/battle-armor.js");
 
@@ -74,7 +113,6 @@ test("battle armor preview applies armor pool, machine scale, structure resistan
     enabled: true,
     armorPool: { value: 2, max: 2 },
     structure: { value: 5, max: 5 },
-    machineDamageMultiplier: 10,
   }, {
     damage: 1,
     sourceScale: "machine",
@@ -122,7 +160,7 @@ test("battle armor machine target profile applies stealth, counters, and friendl
     systems: {
       stealth: { enabled: true, trackingPenalty: 2, detectionStateCap: "track" },
     },
-    machineTargetProfile: { sizePenalty: 1 },
+    machineTargetProfile: { sizePenalty: 9 },
   };
   const actor = makeActor([makeArmorItem(profile)], { statuses: new Set() });
 
@@ -130,6 +168,7 @@ test("battle armor machine target profile applies stealth, counters, and friendl
     friendlyMachineTokenUuid: "Scene.scene.Token.machine-1",
   });
   assert.equal(stealthy.trackingPenalty, 5);
+  assert.equal(stealthy.normalPenalty, 1);
   assert.equal(stealthy.detectionStateCap, "track");
   assert.equal(stealthy.friendlyFireRisk, true);
 

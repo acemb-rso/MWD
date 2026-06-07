@@ -1,6 +1,6 @@
 {{!--
 templates/v2/item/parts/armor-identity-fields.hbs
-Purpose: Renders freeform armor tags and legacy traits.
+Purpose: Renders freeform armor tags and availability.
 How it fits: Used by the CSB-driven armor details layout.
 --}}
 
@@ -14,10 +14,5 @@ How it fits: Used by the CSB-driven armor details layout.
   <div class="form-group mwd-item-field--wide">
     <label for="system.availability">{{MWD.item.armor.availability}}</label>
     <input type="text" name="system.availability" value="{{system.availability}}" placeholder="Common" />
-  </div>
-
-  <div class="form-group mwd-item-field--wide mwd-armor-profile-grid__traits">
-    <label for="system.traits">Legacy Traits</label>
-    <input type="text" name="system.traits" value="{{join system.traits ', '}}" />
   </div>
 </div>

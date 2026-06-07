@@ -38,8 +38,8 @@ import {
   computeArmorBaseMitigation,
   getArmorTraitLabels,
   getPersonalDamageTypeLabel,
-  mergeArmorMitigationByType,
   normalizeConsumptionSource,
+  normalizeArmorDurabilityForRating,
   normalizeArmorMitigationByType,
   normalizeArmorStandardTraits,
   normalizeArmorTags,
@@ -69,6 +69,7 @@ import {
 } from "../mwd/weapon-payload-items.js";
 import {
   normalizeBattleArmorProfile,
+  normalizeBattleArmorStructureForRating,
   normalizeDamageSourceScale,
   normalizeMountProfile,
 } from "../mwd/battle-armor.js";
@@ -594,15 +595,37 @@ export class MWDItem extends Item {
 
     if (nextSystem && this.isArmor()) {
       changed.system ??= {};
+      const ratingChanged = Object.prototype.hasOwnProperty.call(changed.system, "rating");
+      const currentChanged = Object.prototype.hasOwnProperty.call(changed.system?.durability ?? {}, "current");
+      const nextRating = Math.max(0, Number(nextSystem.rating ?? 0) || 0);
+      changed.system.rating = nextRating;
+      changed.system.durability = normalizeArmorDurabilityForRating(nextRating, nextSystem.durability, {
+        previousRating: this.system?.rating,
+        previousDurability: this.system?.durability,
+        ratingChanged,
+        currentChanged,
+      });
       changed.system.mitigationByType = normalizeArmorMitigationByType(nextSystem.mitigationByType ?? nextSystem.mitigation);
       changed.system.availability = normalizeArmorAvailability(nextSystem.availability);
       changed.system.tags = normalizeArmorTags(nextSystem.tags);
       changed.system.traits = normalizeTraits(nextSystem.traits);
       changed.system.standardTraits = normalizeArmorStandardTraits(nextSystem.standardTraits);
-      changed.system.battleArmor = normalizeBattleArmorProfile(nextSystem.battleArmor);
+      const changedBA = changed.system?.battleArmor ?? {};
+      const structureMaxChanged = Object.prototype.hasOwnProperty.call(changedBA.structure ?? {}, "max");
+      const structureValueChanged = Object.prototype.hasOwnProperty.call(changedBA.structure ?? {}, "value");
+      const normalizedBA = normalizeBattleArmorProfile(nextSystem.battleArmor);
+      normalizedBA.structure = normalizeBattleArmorStructureForRating(
+        nextSystem.battleArmor?.structure?.max,
+        nextSystem.battleArmor?.structure,
+        {
+          previousStructure: this.system?.battleArmor?.structure,
+          maxChanged: structureMaxChanged,
+          valueChanged: structureValueChanged,
+        }
+      );
+      changed.system.battleArmor = normalizedBA;
       changed.system.traitState = resolveArmorTraitEffects({
         standardTraits: changed.system.standardTraits,
-        traits: changed.system.traits,
         traitState: nextSystem.traitState,
       }).traitState;
     }
@@ -771,19 +794,13 @@ export class MWDItem extends Item {
     system.mitigationByType = normalizeArmorMitigationByType(system.mitigationByType ?? system.mitigation);
     delete system.mitigation;
     system.availability = normalizeArmorAvailability(system.availability);
-    system.durability ??= {};
-    system.durability.max = Math.max(0, Number(system.durability.max ?? system.rating ?? 0));
-    system.durability.current = Math.min(
-      system.durability.max,
-      Math.max(0, Number(system.durability.current ?? system.durability.max ?? system.rating ?? 0))
-    );
+    system.durability = normalizeArmorDurabilityForRating(system.rating, system.durability);
     system.standardTraits = normalizeArmorStandardTraits(system.standardTraits);
     system.battleArmor = normalizeBattleArmorProfile(system.battleArmor);
     system.tags = normalizeArmorTags(system.tags);
     system.traits = normalizeTraits(system.traits);
     system.traitState = resolveArmorTraitEffects({
       standardTraits: system.standardTraits,
-      traits: system.traits,
       traitState: system.traitState,
     }).traitState;
     system.notes = String(system.notes ?? "").trim();
@@ -1247,7 +1264,7 @@ export class MWDItem extends Item {
   async createArmorStandardTrait(entry = {}) {
     await this._mutateArmorStandardTraits(traits => traits.concat([{
       id: entry.id ?? foundry.utils.randomID(),
-      key: entry.key ?? "ablative",
+      key: entry.key ?? "bulky",
       rating: Math.max(0, Number(entry.rating ?? 0) || 0),
     }]));
   }
@@ -1852,10 +1869,11 @@ export class MWDItem extends Item {
 
     const system = this.system ?? {};
     const rating = Math.max(0, Number(system.rating ?? 0));
-    const maxDurability = Math.max(0, Number(system?.durability?.max ?? rating));
+    const durability = normalizeArmorDurabilityForRating(rating, system?.durability);
+    const maxDurability = durability.max;
     const currentDurability = Math.min(
       maxDurability,
-      Math.max(0, Number(system?.durability?.current ?? maxDurability))
+      Math.max(0, Number(durability.current ?? maxDurability))
     );
     const currentArmorRating = Math.min(rating, currentDurability);
     const mitigationByType = normalizeArmorMitigationByType(system?.mitigationByType ?? system?.mitigation);
@@ -1884,7 +1902,7 @@ export class MWDItem extends Item {
       remainingDurability: currentDurability,
       baseMitigation,
       baseResistance: baseMitigation,
-      mitigationByType: mergeArmorMitigationByType(mitigationByType, armorTraitEffects.mitigationByType),
+      mitigationByType,
       tags,
       isDestroyed: currentDurability <= 0,
       durability: {
@@ -1892,10 +1910,11 @@ export class MWDItem extends Item {
         max: maxDurability,
       },
       traitState: armorTraitEffects.traitState,
+      traitEffects: armorTraitEffects.traitEffects,
+      effects: armorTraitEffects.effects,
       standardTraits: normalizeArmorStandardTraits(system.standardTraits),
       battleArmor: normalizeBattleArmorProfile(system.battleArmor),
       traits: getArmorTraitLabels({
-        traits: normalizeTraits(system.traits),
         standardTraits: normalizeArmorStandardTraits(system.standardTraits),
       }),
       notes: String(system.notes ?? "").trim(),

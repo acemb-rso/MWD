@@ -9,6 +9,11 @@ import {
   ARMOR_STANDARD_TRAITS,
   normalizeArmorMitigationByType,
 } from "../mwd/personal-damage.js";
+import {
+  getBattleArmorStructureResistance,
+  isBattleArmorProfileEnabled,
+  normalizeBattleArmorProfile,
+} from "../mwd/battle-armor.js";
 
 const ARMOR_MODIFIER_LABELS = {
   penetrating: "Penetrating",
@@ -35,6 +40,16 @@ function buildArmorModifierSummary({ defenseBonus = 0, mitigationByType = {} } =
   }
 
   return summary.join(" | ");
+}
+
+function formatPool(value = 0, max = 0) {
+  return `${Number(value ?? 0)}/${Number(max ?? 0)}`;
+}
+
+function formatBattleArmorState(value = "") {
+  const normalized = String(value ?? "").trim();
+  if (!normalized) return "";
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
 export class ArmorItemSheet extends BaseItemSheet {
@@ -70,13 +85,20 @@ export class ArmorItemSheet extends BaseItemSheet {
     const armorState = loadout?.activeArmor?.id === item.id
       ? loadout.activeArmor
       : item.getArmorProfile?.({ actor });
+    const battleArmor = normalizeBattleArmorProfile(armorState?.battleArmor ?? item.system?.battleArmor);
 
     context.armorState = armorState;
     context.isActiveArmor = activeArmorId === item.id;
+    context.battleArmorEnabled = isBattleArmorProfileEnabled(battleArmor);
     context.effectiveDurabilityCurrent = Number(
       armorState?.durability?.current
       ?? item.system?.durability?.current
       ?? item.system?.durability?.max
+      ?? item.system?.rating
+      ?? 0
+    );
+    context.effectiveDurabilityMax = Number(
+      armorState?.durability?.max
       ?? item.system?.rating
       ?? 0
     );
@@ -94,8 +116,9 @@ export class ArmorItemSheet extends BaseItemSheet {
       ?? 0
     );
     context.armorModifierSummary = this._getArmorModifierSummary(armorState);
+    context.armorHeroStats = this._getHeroStats(armorState, battleArmor);
     context.itemSheet = { ...(context.itemSheet ?? {}) };
-    context.itemSheet.summaryChips = this._getSummaryChips(armorState);
+    context.itemSheet.summaryChips = this._getSummaryChips(armorState, battleArmor);
     context.armorEditor = {
       standardTraits: [...ARMOR_STANDARD_TRAITS]
     };
@@ -103,9 +126,34 @@ export class ArmorItemSheet extends BaseItemSheet {
     return context;
   }
 
-  _getSummaryChips(activeArmorState = null) {
+  _getBattleArmorStats(profile = {}) {
+    const battleArmor = normalizeBattleArmorProfile(profile);
+    return [
+      {
+        label: "Structure",
+        value: formatPool(battleArmor.structure?.value, battleArmor.structure?.max)
+      },
+      {
+        label: "Resist",
+        value: String(getBattleArmorStructureResistance(battleArmor))
+      },
+      {
+        label: "Armor Pool",
+        value: formatPool(battleArmor.armorPool?.value, battleArmor.armorPool?.max)
+      },
+      {
+        label: "State",
+        value: formatBattleArmorState(battleArmor.state)
+      }
+    ];
+  }
+
+  _getHeroStats(activeArmorState = null, battleArmorProfile = null) {
     const system = this.item.system ?? {};
-    const chips = [
+    const battleArmor = normalizeBattleArmorProfile(battleArmorProfile ?? activeArmorState?.battleArmor ?? system.battleArmor);
+    if (isBattleArmorProfileEnabled(battleArmor)) return this._getBattleArmorStats(battleArmor);
+
+    return [
       {
         label: "Rating",
         value: String(Number(
@@ -117,27 +165,27 @@ export class ArmorItemSheet extends BaseItemSheet {
           )
         ))
       },
-      { label: "Defense", value: String(Number(system.defenseBonus ?? 0)) },
-      {
-        label: "Durability",
-        value: `${Number(activeArmorState?.durability?.current ?? system.durability?.current ?? system.durability?.max ?? 0)}/${Number(activeArmorState?.durability?.max ?? system.durability?.max ?? system.rating ?? 0)}`
-      },
       {
         label: "Resist",
         value: String(Number(activeArmorState?.baseMitigation ?? activeArmorState?.baseResistance ?? 0))
+      },
+      { label: "Defense", value: String(Number(system.defenseBonus ?? 0)) },
+      {
+        label: "Durability",
+        value: formatPool(
+          activeArmorState?.durability?.current ?? system.durability?.current ?? system.rating ?? 0,
+          activeArmorState?.durability?.max ?? system.rating ?? 0
+        )
       }
     ];
+  }
+
+  _getSummaryChips(activeArmorState = null, battleArmorProfile = null) {
+    const system = this.item.system ?? {};
+    const chips = this._getHeroStats(activeArmorState, battleArmorProfile);
 
     const availability = String(system.availability ?? "").trim();
     if (availability) chips.push({ label: "Avail", value: availability });
-
-    const reinforcedMax = Number(activeArmorState?.traitState?.reinforced?.max ?? system?.traitState?.reinforced?.max ?? 0);
-    if (reinforcedMax > 0) {
-      chips.push({
-        label: "Reinforced",
-        value: `${Number(activeArmorState?.traitState?.reinforced?.current ?? system?.traitState?.reinforced?.current ?? 0)}/${reinforcedMax}`
-      });
-    }
 
     return chips;
   }

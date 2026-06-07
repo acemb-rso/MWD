@@ -29,6 +29,10 @@ import {
   normalizeMachineCriticalRecord,
 } from "./machine-crit-consequences.js";
 import { getMachineMonitorState } from "./machine-monitors.js";
+import {
+  buildDamageScaleConversion,
+  normalizeDamageScale,
+} from "./damage-scale.js";
 
 export const MACHINE_CRITICAL_STATUS_ID = "machineCritical";
 export const SETTING_MACHINE_CRIT_TABLE_GENERAL = "machineCriticalTableGeneralUuid";
@@ -411,6 +415,9 @@ function buildDamagePreview(preview = {}) {
     beforeLabel: String(preview?.beforeLabel ?? "").trim(),
     afterLabel: String(preview?.afterLabel ?? "").trim(),
     machine: clone(preview?.machine ?? {}),
+    sourceScale: String(preview?.sourceScale ?? "").trim(),
+    targetScale: String(preview?.targetScale ?? "").trim(),
+    scaleConversion: clone(preview?.scaleConversion ?? null),
   };
 }
 
@@ -458,7 +465,14 @@ export function previewMachineAttackDamage({
 } = {}) {
   if (!isMachineActor(actor)) return { ok: false, reason: "Machine damage requires a vehicle or BattleMech actor." };
 
-  const incoming = Math.max(0, Math.ceil(Number(payload?.damage ?? payload?.amount ?? 0) || 0));
+  const sourceScale = normalizeDamageScale(payload?.sourceScale ?? payload?.scale, "machine");
+  const targetScale = "machine";
+  const scaleConversion = buildDamageScaleConversion({
+    damage: payload?.damage ?? payload?.amount ?? 0,
+    sourceScale,
+    targetScale,
+  });
+  const incoming = Math.max(0, Math.ceil(Number(scaleConversion.converted ?? 0) || 0));
   const damageContext = {
     actor,
     payload,
@@ -501,6 +515,9 @@ export function previewMachineAttackDamage({
     assetModuleContributions: damageContext.contributions,
     beforeLabel: `Armor ${armor.remaining}/${armor.max}, Structure ${structure.remaining}/${structure.max}`,
     afterLabel: `Armor ${armorAfterValue}/${armor.max}, Structure ${structureAfterValue}/${structure.max}`,
+    sourceScale,
+    targetScale,
+    scaleConversion,
   };
 
   return {
@@ -511,6 +528,9 @@ export function previewMachineAttackDamage({
     damageIncoming: preview.damageIncoming,
     adjustedIncoming: preview.adjustedIncoming,
     finalDamage: preview.finalDamage,
+    sourceScale,
+    targetScale,
+    scaleConversion,
     attackDamage: clone(payload?.attackDamage ?? null),
     requestedDelta: incoming,
     appliedDelta: preview.appliedDelta,

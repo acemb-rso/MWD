@@ -37,10 +37,13 @@ import {
 import {
   buildBattleArmorItemUpdate,
   getEquippedBattleArmor,
-  normalizeDamageSourceScale,
   previewBattleArmorDamage,
   shouldRouteBattleArmorHarm,
 } from "../mwd/battle-armor.js";
+import {
+  buildDamageScaleConversion,
+  normalizeDamageScale,
+} from "../mwd/damage-scale.js";
 
 // The harm tool can target either a live Token object or its TokenDocument.
 // Normalizing that boundary early keeps the rest of the engine actor-first.
@@ -364,6 +367,8 @@ export class HarmEngine {
         mode: "trackDelta",
         track,
         damage: delta,
+        sourceScale: payload?.sourceScale ?? payload?.scale,
+        scale: payload?.scale,
         damageType: payload?.damageType,
         ap: payload?.ap ?? 0,
         effects: payload?.effects ?? {},
@@ -459,6 +464,8 @@ export class HarmEngine {
       mode: "attackDamage",
       track: payload?.track ?? TEMPLATE.monitors.physical,
       damage: payload?.damage ?? 0,
+      sourceScale: payload?.sourceScale ?? payload?.scale,
+      scale: payload?.scale,
       netHits: payload?.netHits ?? 0,
       critNetHits: payload?.critNetHits ?? payload?.netHits ?? 0,
       critSeverity: payload?.critSeverity,
@@ -488,7 +495,15 @@ export class HarmEngine {
     const track = payload?.track === TEMPLATE.monitors.fatigue
       ? TEMPLATE.monitors.fatigue
       : TEMPLATE.monitors.physical;
+    const sourceScale = normalizeDamageScale(payload?.sourceScale ?? payload?.scale, "personal");
+    const targetScale = "personal";
+    const scaleConversion = buildDamageScaleConversion({
+      damage: payload?.damage ?? 0,
+      sourceScale,
+      targetScale,
+    });
     const baseDamage = Math.max(0, Number(payload?.damage ?? 0) || 0);
+    const scaledBaseDamage = Math.max(0, Number(scaleConversion.converted ?? 0) || 0);
     const netHits = Math.max(0, Number(payload?.netHits ?? 0) || 0);
     const effects = payload?.effects ?? {};
     const loadout = actor.getPersonalCombatLoadout?.({ refresh: true }) ?? null;
@@ -505,7 +520,7 @@ export class HarmEngine {
     const normalizedDamageType = normalizePersonalDamageType(payload?.damageType, "concussive");
     const beforeTrack = getMonitorValue(actor, track);
 
-    let damageIncoming = baseDamage;
+    let damageIncoming = scaledBaseDamage;
     const tagEffectResult = armorCurrentRating > 0
       ? applyArmorTagEffects({
           damageIncoming,
@@ -572,7 +587,7 @@ export class HarmEngine {
       && payload?.mode === "attackDamage"
       && ["hit", "graze", "highMargin"].includes(String(payload?.outcome ?? "").trim());
     const armorWear = resolveArmorWearStep({
-      incomingDamage: baseDamage,
+      incomingDamage: scaledBaseDamage,
       armorBefore: activeArmor?.durability?.current ?? 0,
       reinforcedBefore: activeArmor?.traitState?.reinforced?.current ?? 0,
       reinforcedMax: activeArmor?.traitState?.reinforced?.max ?? 0,
@@ -619,9 +634,12 @@ export class HarmEngine {
     return {
       mode: payload?.mode ?? "attackDamage",
       track,
-      requestedDelta: baseDamage,
+      requestedDelta: scaledBaseDamage,
       appliedDelta: afterTrack - beforeTrack,
       usedArmor: true,
+      sourceScale,
+      targetScale,
+      scaleConversion,
       damageType: normalizedDamageType,
       effectiveAp,
       mitigation: {
@@ -664,7 +682,7 @@ export class HarmEngine {
 
     const baseDamage = Math.max(0, Number(payload?.damage ?? 0) || 0);
     const beforeTrack = getMonitorValue(actor, track);
-    const sourceScale = normalizeDamageSourceScale(payload?.sourceScale ?? payload?.scale, "personal");
+    const sourceScale = normalizeDamageScale(payload?.sourceScale ?? payload?.scale, "personal");
     const battleArmorPreview = previewBattleArmorDamage(battleArmor, {
       damage: baseDamage,
       sourceScale,
@@ -722,11 +740,13 @@ export class HarmEngine {
     return {
       mode: payload?.mode ?? "attackDamage",
       track,
-      requestedDelta: baseDamage,
+      requestedDelta: battleArmorPreview.incomingScaled,
       appliedDelta: afterTrack - beforeTrack,
       usedArmor: true,
       usedBattleArmor: true,
       sourceScale,
+      targetScale: "personal",
+      scaleConversion: battleArmorPreview.scaleConversion,
       damageType: normalizePersonalDamageType(payload?.damageType, "concussive"),
       effectiveAp: 0,
       mitigation: null,

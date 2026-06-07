@@ -397,11 +397,7 @@ export function buildPersonalInventoryContext(actor, {
     armor: (loadout?.armor ?? []).map(armor => {
       const activeArmor = loadout?.activeArmor?.id === armor.id ? loadout.activeArmor : null;
       const accordionId = inventoryAccordionId("armor", armor.id);
-      const reinforcedMax = toNumber(activeArmor?.traitState?.reinforced?.max ?? armor?.traitState?.reinforced?.max, 0);
       const availability = String(armor?.availability ?? armor?.system?.availability ?? "").trim();
-      const reinforcedLabel = reinforcedMax > 0
-        ? `${toNumber(activeArmor?.traitState?.reinforced?.current ?? armor?.traitState?.reinforced?.current, 0)}/${reinforcedMax}`
-        : "";
       const modifierSummary = buildArmorModifierSummary({
         defenseBonus: armor.defenseBonus,
         mitigationByType: activeArmor?.mitigationByType ?? activeArmor?.typedMitigation ?? armor.mitigationByType ?? {},
@@ -425,7 +421,6 @@ export function buildPersonalInventoryContext(actor, {
           armor.equipped ? "Equipped" : "",
           armor.isPrimary ? "Primary" : "",
           availability,
-          reinforcedLabel ? `Reinforced ${reinforcedLabel}` : "",
           ...compactList(armor.traits ?? [])
         ]),
         detailRows: buildDetailRows([
