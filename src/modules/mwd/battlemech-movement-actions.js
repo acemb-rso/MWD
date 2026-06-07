@@ -15,8 +15,8 @@ import { resolveBattlemechJumpProfile } from "./battlemech-mobility.js";
 
 export const BATTLEMECH_MOVEMENT_ACTIONS = Object.freeze({
   walk: Object.freeze({ id: "walk", label: "Walk", cost: 1, heat: 0, mode: "ground" }),
-  run: Object.freeze({ id: "run", label: "Run", cost: 1, heat: 1, mode: "ground" }),
-  sprint: Object.freeze({ id: "sprint", label: "Sprint", cost: 2, heat: 2, mode: "ground" }),
+  run: Object.freeze({ id: "run", label: "Run", cost: 2, heat: 1, mode: "ground" }),
+  sprint: Object.freeze({ id: "sprint", label: "Sprint", cost: 3, heat: 2, mode: "ground", requiresStabilityRoll: true }),
   prone: Object.freeze({ id: "prone", label: "Prone", cost: 1, heat: 0, mode: "posture", statusId: "proneMechFall" }),
   fly: Object.freeze({ id: "fly", label: "Fly", cost: 1, heat: 0, mode: "flight" }),
   jump: Object.freeze({ id: "jump", label: "Jump", cost: 1, heat: 0, mode: "jump" }),
@@ -26,11 +26,29 @@ export const BATTLEMECH_MOVEMENT_ACTIONS = Object.freeze({
 
 // Posture statuses that are mutually exclusive — applying one clears the others.
 const MACHINE_POSTURE_STATUS_IDS = Object.freeze(["braced", "entrenchedHullDown", "evasiveWeave", "shielded"]);
+const BATTLEMECH_GROUND_MOVEMENT_MULTIPLIERS = Object.freeze({
+  walk: 1,
+  run: 2,
+  sprint: 3,
+});
+const AIRBORNE_STATUS_IDS = Object.freeze(["airborne", "flying", "inFlight", "hovering"]);
 
 function movementNumber(value, fallback = 0) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return fallback;
   return Math.max(0, Math.trunc(numeric));
+}
+
+function hasStatus(actor = null, statusId = "") {
+  return Boolean(actor?.statuses?.has?.(statusId));
+}
+
+function isAirborneMachine(actor = null, movement = {}) {
+  if (AIRBORNE_STATUS_IDS.some(statusId => hasStatus(actor, statusId))) return true;
+  if (actor?.system?.mwd?.airborne === true || actor?.system?.airborne === true) return true;
+  const movementMode = String(actor?.system?.mwd?.movementMode ?? actor?.system?.movementMode ?? "").trim().toLowerCase();
+  if (["air", "airborne", "flight", "flying"].includes(movementMode)) return true;
+  return movementNumber(movement.flight, 0) > 0 && movementNumber(movement.ground, 0) <= 0;
 }
 
 export function buildBattlemechMovementActionChoices(actor = null) {
@@ -44,9 +62,17 @@ export function buildBattlemechMovementActionChoices(actor = null) {
   const flightSpeed = applyMachineMovementPenalty(movementNumber(movement.flight, 0) + movementBonus, movementEffects.movementPenalty, {
     immobile: movementEffects.immobile,
   });
-  const groundSpeed = applyMachineMovementPenalty(movementNumber(movement.ground, 0) + movementBonus, movementEffects.movementPenalty, {
+  const airborne = isAirborneMachine(actor, movement);
+  const selectedBaseSpeed = airborne && movementNumber(movement.flight, 0) > 0
+    ? movementNumber(movement.flight, 0)
+    : movementNumber(movement.ground, 0);
+  const movementBaseSpeed = applyMachineMovementPenalty(selectedBaseSpeed + movementBonus, movementEffects.movementPenalty, {
     immobile: movementEffects.immobile,
   });
+  const movementDistance = kind => movementBaseSpeed * movementNumber(BATTLEMECH_GROUND_MOVEMENT_MULTIPLIERS[kind], 1);
+  const walkDistance = movementDistance("walk");
+  const runDistance = movementDistance("run");
+  const sprintDistance = movementDistance("sprint");
   const isProne = actor?.statuses?.has?.("proneMechFall") ?? false;
 
   const disabledForImmobile = movementEffects.immobile ? "Machine is immobilized." : "";
@@ -54,24 +80,24 @@ export function buildBattlemechMovementActionChoices(actor = null) {
     {
       ...BATTLEMECH_MOVEMENT_ACTIONS.walk,
       heat: 0,
-      distance: groundSpeed,
-      hint: groundSpeed > 0 ? `${groundSpeed} m movement` : "Ground movement",
+      distance: walkDistance,
+      hint: walkDistance > 0 ? `${walkDistance} m movement` : "Ground movement",
       disabled: Boolean(disabledForImmobile),
       reason: disabledForImmobile,
     },
     {
       ...BATTLEMECH_MOVEMENT_ACTIONS.run,
       heat: 1,
-      distance: groundSpeed,
-      hint: groundSpeed > 0 ? `${groundSpeed} m movement | +1 Heat` : "+1 Heat",
+      distance: runDistance,
+      hint: runDistance > 0 ? `${runDistance} m movement` : "Ground movement",
       disabled: Boolean(disabledForImmobile),
       reason: disabledForImmobile,
     },
     {
       ...BATTLEMECH_MOVEMENT_ACTIONS.sprint,
       heat: 2,
-      distance: groundSpeed,
-      hint: groundSpeed > 0 ? `${groundSpeed} m movement | +2 Heat` : "+2 Heat",
+      distance: sprintDistance,
+      hint: sprintDistance > 0 ? `${sprintDistance} m movement | Stability roll` : "Stability roll",
       disabled: Boolean(disabledForImmobile || movementEffects.noSprint),
       reason: disabledForImmobile || (movementEffects.noSprint ? "Sprint is blocked by current damage or status effects." : ""),
     },
@@ -83,8 +109,8 @@ export function buildBattlemechMovementActionChoices(actor = null) {
     },
     {
       ...BATTLEMECH_MOVEMENT_ACTIONS.evasiveManeuver,
-      distance: groundSpeed,
-      hint: groundSpeed > 0 ? `Withdraw safely — move up to ${groundSpeed} m, gain Evasive (+3 DR / −2 AR)` : "Withdraw and gain Evasive (+3 DR / −2 AR)",
+      distance: walkDistance,
+      hint: walkDistance > 0 ? `Withdraw safely — move up to ${walkDistance} m, gain Evasive (+3 DR / -2 AR)` : "Withdraw and gain Evasive (+3 DR / -2 AR)",
       disabled: Boolean(disabledForImmobile),
       reason: disabledForImmobile,
     },
@@ -208,7 +234,7 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
       flags: { mwd: { messageType: "postureAction", actionId: "shield" } },
     });
   } else {
-    ui.notifications?.info(`${actor?.name ?? "BattleMech"}: ${action.label} recorded (${action.cost} SA${action.heat > 0 ? `, +${action.heat} Heat` : ""}).`);
+    ui.notifications?.info(`${actor?.name ?? "BattleMech"}: ${action.label} recorded (${action.cost} SA${action.heat > 0 ? `, +${action.heat} Heat` : ""}${action.requiresStabilityRoll ? ", stability roll required" : ""}).`);
   }
 
   return { ok: true, action, spend };

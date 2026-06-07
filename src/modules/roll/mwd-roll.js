@@ -465,6 +465,7 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
   const isMachine = isMachineActor(actor);
   const explicitSourceType = String(normalized?.sourceType ?? "").trim();
   const explicitSourceId = String(normalized?.sourceId ?? "").trim();
+  const syntheticWeaponId = String(normalized?.syntheticWeapon?.id ?? "").trim();
 
   const resolveWeaponProfile = (weaponId) => {
     const item = actor.items?.get?.(weaponId) ?? null;
@@ -498,6 +499,10 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
   if (String(normalized?.sourceType ?? "").trim() === "mechWeapon") {
     normalized.weaponId = String(normalized?.sourceId ?? normalized?.weaponId ?? "").trim();
     normalized.sourceId = normalized.weaponId;
+    if (!normalized.weaponId && isMachine && syntheticWeaponId) {
+      normalized.weaponId = syntheticWeaponId;
+      normalized.sourceId = syntheticWeaponId;
+    }
     if (!normalized.weaponId) {
       throw new Error("Attack requires a valid machine weapon source.");
     }

@@ -2397,6 +2397,71 @@ export class PersonalCombatTracker {
     };
   }
 
+  static previewResourceSpend(actor, {
+    token = null,
+    resource = "sa",
+    cost = 1,
+    actionId = "",
+    actionLabel = "",
+    actionCostLabel = "",
+    actionCategory = ""
+  } = {}) {
+    const snapshot = this.getSnapshot(actor, { token });
+    const actingActor = snapshot.actionEconomyActor ?? actor;
+    if (!snapshot.hasCombatant) {
+      return { ok: false, reason: "No combatant on the current scene." };
+    }
+    if (!snapshot.isCurrentTurn) {
+      return { ok: false, reason: "Only available during your activation." };
+    }
+
+    const runtime = {
+      combat: snapshot.combat,
+      combatant: snapshot.combatant,
+      state: cloneState(
+        snapshot.state,
+        this.getActivationIdentity(snapshot.combat, snapshot.combatant),
+        getActivationBudgets(actingActor, { snapshot })
+      ),
+      sceneId: canvas?.scene?.id ?? "",
+      snapshot,
+    };
+
+    let finalCost = Math.max(0, Number(cost ?? 0) || 0);
+    const costPhase = evaluateTraitPhase({
+      actor: actingActor,
+      phase: "onBeforeActionCostFinalized",
+      facts: buildActionCostTraitFacts({
+        actor: actingActor,
+        packet: { actionId, category: actionCategory, resource, cost: finalCost, effectiveCost: finalCost },
+        runtime,
+      }),
+      packet: { actionId, category: actionCategory, resource, cost: finalCost, effectiveCost: finalCost },
+      options: { runtime, consumeUsage: false },
+    });
+    finalCost = Math.max(0, Number(costPhase.packet.cost ?? finalCost) || 0);
+
+    const remainingKey = `${resource}Remaining`;
+    const remaining = Number(snapshot.state?.[remainingKey] ?? 0);
+    if (resource !== "sa" && remaining < finalCost) {
+      return { ok: false, reason: `No ${String(resource).toUpperCase()} remaining.`, finalCost };
+    }
+
+    const activationCap = resource === "sa" ? getActivationMaxSA(actingActor, { snapshot }) : 0;
+    const spentBefore = Math.max(0, Number(snapshot.state?.saSpentThisActivation ?? 0) || 0);
+    if (resource === "sa" && (spentBefore + finalCost) > activationCap) {
+      return { ok: false, reason: "Activation SA cap reached.", finalCost };
+    }
+
+    return {
+      ok: true,
+      snapshot,
+      finalCost,
+      costLabel: actionCostLabel || this._formatCostLabel(resource, finalCost),
+      actionLabel,
+    };
+  }
+
   static async reduceBurn(actor, { token = null } = {}) {
     const snapshot = this.getSnapshot(actor, { token });
     const actingActor = snapshot.actionEconomyActor ?? actor;

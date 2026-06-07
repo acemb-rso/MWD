@@ -23,15 +23,18 @@ export async function resolveCommon({ actor, payload } = {}) {
     throw new Error(`Common check ${id} must define exactly two attributes.`);
   }
 
+  const enhancedStrengthBonus = Number(actor.system?.derived?.battleArmor?.enhancedStrengthBonus ?? 0);
   const attributes = formulaCodes.map(code => {
     const attrKey = getCommonCheckAttributeKey(code);
     if (!attrKey) throw new Error(`Common check ${id} uses unsupported attribute code: ${code}`);
+    const base = Number(actor.system?.attributes?.[attrKey]?.value ?? 0);
+    const bonus = attrKey === "strength" ? enhancedStrengthBonus : 0;
 
     return {
       code: String(code).trim().toUpperCase(),
       key: attrKey,
       label: getCommonCheckAttributeLabel(code),
-      value: Number(actor.system?.attributes?.[attrKey]?.value ?? 0)
+      value: base + bonus
     };
   });
 

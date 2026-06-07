@@ -195,6 +195,13 @@ export function getBattleArmorStructureResistance(profile = {}) {
   return structure > 0 ? Math.ceil(structure / 4) : 0;
 }
 
+export function getBattleArmorEnhancedStrengthBonus(profile = null) {
+  if (!isBattleArmorFunctional(profile)) return 0;
+  if (!profile?.systems?.enhancedStrength) return 0;
+  const ratingMax = nonNegativeInteger(profile?.structure?.max, 0);
+  return ratingMax > 0 ? Math.ceil(ratingMax / 4) : 0;
+}
+
 function itemArray(actor = null) {
   const items = actor?.items;
   if (!items) return [];

@@ -175,6 +175,8 @@ function serializeMachineActionRequest(actor, request = {}) {
     attackKind: String(request.attackKind ?? request.actionId ?? "").trim(),
     movementKind: String(request.movementKind ?? request.actionId ?? "").trim(),
     actionId: String(request.actionId ?? request.action?.id ?? request.action?.actionKey ?? "").trim(),
+    mode: String(request.mode ?? "").trim(),
+    controlIntent: String(request.controlIntent ?? "").trim(),
     intent: String(request.intent ?? "").trim(),
     sourceType: String(request.sourceType ?? "").trim(),
     sourceId: String(request.sourceId ?? request.itemId ?? request.weaponId ?? "").trim(),

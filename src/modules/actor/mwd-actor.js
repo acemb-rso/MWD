@@ -33,6 +33,7 @@ import {
 import { getPersonalSpeedState } from "../mwd/personal-criticals.js";
 import {
   buildBattleArmorSheetContext,
+  getBattleArmorEnhancedStrengthBonus,
   getBattleArmorStructureResistance,
   getEquippedBattleArmor,
   isBattleArmorFunctional,
@@ -789,14 +790,18 @@ export class MWDActor extends Actor {
   _prepareMonitors() {
     const monitors = this.system.monitors ?? {};
 
+    const activeBattleArmor = getEquippedBattleArmor(this);
+    const enhancedStrengthBonus = getBattleArmorEnhancedStrengthBonus(activeBattleArmor?.battleArmor);
+
     // For character-like actors, physical.max derives from STR and fatigue.max from GUTS.
     // This must run before deriveMonitors so penalties reflect the correct track length.
     if (this.isCharacterLike()) {
       const str = Math.max(0, Number(this.system?.attributes?.strength?.value ?? 0));
+      const effectiveStr = str + enhancedStrengthBonus;
       const guts = Math.max(0, Number(this.system?.attributes?.guts?.value ?? 0));
       monitors.physical ??= {};
       monitors.fatigue  ??= {};
-      monitors.physical.max = str === 0 ? 0 : BASE_MONITOR + str;
+      monitors.physical.max = effectiveStr === 0 ? 0 : BASE_MONITOR + effectiveStr;
       monitors.fatigue.max  = guts === 0 ? 0 : BASE_MONITOR + guts;
     }
 
@@ -842,7 +847,6 @@ export class MWDActor extends Actor {
     let fat = Number(conditionPhase.packet.fatiguePenalty) !== baseFatiguePenalty
       ? Number(conditionPhase.packet.fatiguePenalty ?? 0)
       : Number(derived?.fatigue?.penalty ?? 0);
-    const activeBattleArmor = getEquippedBattleArmor(this);
     if (
       isBattleArmorFunctional(activeBattleArmor?.battleArmor)
       && activeBattleArmor?.battleArmor?.systems?.medicalSuppression
@@ -851,6 +855,8 @@ export class MWDActor extends Actor {
       fat = 0;
     }
     const armorResistance = Number(derived?.armor?.resistance ?? 0);
+
+    this.system.derived.battleArmor = { enhancedStrengthBonus };
 
     // Both apply (stack)
     const total = phys + fat;

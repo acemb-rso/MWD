@@ -38,6 +38,10 @@ import { notifyRollError } from "../roll/roll-errors.js";
 import { buildCriticalStatusSummary } from "../mwd/machine-summary.js";
 import { buildBattlemechMovementActionChoices } from "../mwd/battlemech-movement-actions.js";
 import { buildBattlemechMeleeProfiles } from "../mwd/battlemech-melee-actions.js";
+import {
+  buildChargeActionChoices,
+  buildControlChargeIntentChoices,
+} from "../mwd/charge-attack-actions.js";
 import { buildBattlemechRangedAttackGroups } from "../mwd/battlemech-ranged-actions.js";
 import {
   buildMachineCriticalRepairIssues,
@@ -659,6 +663,7 @@ ctx.edgeConsole.poolsOrdered = order
           },
           { label: "Ranged", hint: "Prompt for a weapon group", handler: "mechAttack", disabled: !hasRangedGroups, dataset: { attackKind: "ranged", mechUuid: uuid, mechId: a.id } },
           { label: "Melee", hint: "Prompt for a melee profile", handler: "mechAttack", disabled: !hasMeleeProfiles, dataset: { attackKind: "melee", mechUuid: uuid, mechId: a.id } },
+          { label: "Charge", hint: "Impact, Control, or DFA collision attack", handler: "mechAttack", disabled: false, dataset: { attackKind: "charge", mechUuid: uuid, mechId: a.id } },
           { label: "Piloting", hint: "Vehicle handling test", handler: "mechRoll", disabled: false, dataset: { rollKind: "piloting", mechUuid: uuid, mechId: a.id } },
           { label: "EW", hint: enabledEwActions.length ? "Choose an EW action" : "No EW actions available", handler: "mechRoll", disabled: enabledEwActions.length === 0, dataset: { rollKind: "sensor", mechUuid: uuid, mechId: a.id } },
           { label: "Repair", hint: "Choose a crit or repairable status", handler: "mechRoll", disabled: false, dataset: { rollKind: "repair", mechUuid: uuid, mechId: a.id } },
@@ -714,6 +719,8 @@ ctx.edgeConsole.poolsOrdered = order
           profile: selectedProfile,
           operatorActorUuid,
         });
+      } else if (attackKind === "charge") {
+        await this.#rollAssignedMechChargeAttack(mech, { operatorActorUuid });
       } else {
         const selectedGroup = groupId
           ? { id: groupId }
@@ -812,6 +819,92 @@ ctx.edgeConsole.poolsOrdered = order
     });
 
     return selectableChoices.find(choice => choice.id === selectedId) ?? defaultChoice;
+  }
+
+  async #rollAssignedMechChargeAttack(mech, { operatorActorUuid = "" } = {}) {
+    const choices = buildChargeActionChoices(mech);
+    const enabledChoices = choices.filter(choice => !choice.disabled);
+    if (!enabledChoices.length) {
+      ui.notifications?.warn("No charge modes available. Move with Run, Sprint, or Jump before charging.");
+      return;
+    }
+
+    const mode = await this.#promptAssignedMechChargeMode(choices);
+    if (!mode) return;
+
+    let controlIntent = "prone";
+    if (mode === "control") {
+      controlIntent = await this.#promptAssignedMechControlChargeIntent();
+      if (!controlIntent) return;
+    }
+
+    await executeMachineAction(mech, {
+      kind: "action",
+      actionId: "chargeAttack",
+      mode,
+      controlIntent,
+      operatorActorUuid,
+    });
+  }
+
+  async #promptAssignedMechChargeMode(choices = []) {
+    const enabledChoices = choices.filter(choice => !choice.disabled);
+    if (!enabledChoices.length) return null;
+    if (enabledChoices.length === 1) return enabledChoices[0].id;
+
+    const defaultChoice = enabledChoices[0];
+    const content = `<form class="mwd-quick-select">${choices.map(choice => `
+      <label class="quick-select-option${choice.disabled ? " is-disabled" : ""}" title="${foundry.utils.escapeHTML(String(choice.reason ?? ""))}">
+        <input type="radio" name="charge-mode" value="${foundry.utils.escapeHTML(String(choice.id ?? ""))}" ${choice.id === defaultChoice.id ? "checked" : ""} ${choice.disabled ? "disabled" : ""}>
+        <span>${foundry.utils.escapeHTML(String(choice.label ?? ""))}</span>
+        ${choice.disabled ? `<small>${foundry.utils.escapeHTML(String(choice.reason ?? ""))}</small>` : ""}
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Choose Charge Mode" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: "Confirm",
+          icon: "fa-solid fa-bolt",
+          default: true,
+          callback: (_event, button) => button.form?.elements["charge-mode"]?.value ?? defaultChoice.id,
+        },
+      ],
+    });
+
+    return enabledChoices.find(choice => choice.id === selectedId)?.id ?? defaultChoice.id;
+  }
+
+  async #promptAssignedMechControlChargeIntent() {
+    const choices = buildControlChargeIntentChoices();
+    const defaultChoice = choices[0] ?? null;
+    if (!defaultChoice) return null;
+
+    const content = `<form class="mwd-quick-select">${choices.map(choice => `
+      <label class="quick-select-option">
+        <input type="radio" name="control-intent" value="${foundry.utils.escapeHTML(String(choice.id ?? ""))}" ${choice.id === defaultChoice.id ? "checked" : ""}>
+        <span>${foundry.utils.escapeHTML(String(choice.label ?? ""))}</span>
+      </label>`).join("")}</form>`;
+
+    const selectedId = await foundry.applications.api.DialogV2.wait({
+      window: { title: "Control Charge - Intended Outcome" },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "select",
+          label: "Confirm",
+          icon: "fa-solid fa-bullseye",
+          default: true,
+          callback: (_event, button) => button.form?.elements["control-intent"]?.value ?? defaultChoice.id,
+        },
+      ],
+    });
+
+    return choices.find(choice => choice.id === selectedId)?.id ?? defaultChoice.id;
   }
 
   async #promptAssignedMechRangedGroup(mech) {

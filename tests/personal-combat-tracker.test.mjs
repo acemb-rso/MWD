@@ -257,6 +257,102 @@ test("pilot action economy follows the assigned machine combatant during mech ac
   assert.deepEqual(pilotBurnUpdate, { "system.burn.value": 4 });
 });
 
+test("resource spend preview validates SA capacity without mutating combat state", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.getProperty ??= getProperty;
+  globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
+  globalThis.foundry.utils.deepClone ??= deepClone;
+  globalThis.foundry.utils.mergeObject ??= mergeObject;
+  globalThis.Hooks ??= { on() {} };
+  globalThis.CONFIG ??= { statusEffects: [] };
+  globalThis.canvas = { scene: { id: "scene-1" } };
+
+  const actor = {
+    id: "pilot-preview",
+    uuid: "Actor.pilot-preview",
+    type: "character",
+    flags: {},
+    items: [],
+    system: {
+      burn: { value: 0, overloaded: false },
+      attributes: {
+        reflexes: { value: 0 },
+        guts: { value: 0 },
+      },
+    },
+    getActiveTokens: () => [],
+    async update() {
+      throw new Error("previewResourceSpend must not update the actor");
+    },
+  };
+
+  let wroteCombatState = false;
+  const state = {
+    activation: { combatId: "combat-preview", combatantId: "combatant-preview", round: 1, turn: 0 },
+    actionState: { aim: null, move: null, preparedInterrupt: null, usedWeaponGroupIds: [] },
+    saRemaining: 1,
+    faRemaining: 1,
+    raRemaining: 1,
+    saSpentThisActivation: 2,
+    burnThisActivation: 0,
+    attacksThisActivation: 0,
+    reactionBurnSinceLastActivation: 0,
+    hazards: {},
+    pendingReaction: null,
+    machineCritsProcessed: false,
+    actionLog: [],
+    traitUsage: { activation: {}, round: {} },
+  };
+  const combatant = {
+    id: "combatant-preview",
+    actor,
+    getFlag: () => state,
+    async setFlag() {
+      wroteCombatState = true;
+    },
+  };
+  const combat = {
+    id: "combat-preview",
+    round: 1,
+    turn: 0,
+    scene: { id: "scene-1" },
+    combatant,
+    combatants: new Map([[combatant.id, combatant]]),
+  };
+  globalThis.game = {
+    user: { isGM: true, id: "gm-1" },
+    combat,
+    actors: new Map([[actor.id, actor]]),
+    scenes: new Map(),
+  };
+
+  const { PersonalCombatTracker } = await import("../src/modules/combat/personal-combat-tracker.js");
+
+  const allowed = PersonalCombatTracker.previewResourceSpend(actor, {
+    resource: "sa",
+    cost: 1,
+    actionId: "attack",
+    actionLabel: "Attack",
+    actionCostLabel: "1 SA",
+    actionCategory: "complex",
+  });
+  assert.equal(allowed.ok, true);
+  assert.equal(allowed.finalCost, 1);
+
+  const blocked = PersonalCombatTracker.previewResourceSpend(actor, {
+    resource: "sa",
+    cost: 2,
+    actionId: "attack",
+    actionLabel: "Attack",
+    actionCostLabel: "2 SA",
+    actionCategory: "complex",
+  });
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.reason, "Activation SA cap reached.");
+  assert.equal(state.saSpentThisActivation, 2);
+  assert.equal(wroteCombatState, false);
+});
+
 test("operated pilot lookups use the machine combatant when a duplicate pilot combatant exists", async () => {
   globalThis.foundry ??= { utils: {} };
   globalThis.foundry.utils.getProperty ??= getProperty;

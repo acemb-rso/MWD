@@ -323,8 +323,7 @@ export async function performChargeAttack(actor, {
   const spendActor = operator?.actor ?? actor;
   const actionCost = getMachineAttackActionCost(actor);
   const totalCost = Math.max(0, 2 + Number(actionCost?.extraCost ?? 0));
-
-  const spend = await PersonalCombatTracker.spendResource(spendActor, {
+  const spendRequest = {
     token: sourceToken,
     resource: "sa",
     cost: totalCost,
@@ -332,10 +331,13 @@ export async function performChargeAttack(actor, {
     actionLabel: CHARGE_MODE_LABELS[mode],
     actionCostLabel: `${totalCost} SA`,
     actionCategory: "complex",
-  });
-  if (!spend?.ok) {
-    ui.notifications?.warn(spend?.reason ?? "Unable to record charge attack action.");
-    return spend;
+  };
+
+  const spendPreview = PersonalCombatTracker.previewResourceSpend?.(spendActor, spendRequest)
+    ?? { ok: true };
+  if (!spendPreview?.ok) {
+    ui.notifications?.warn(spendPreview?.reason ?? "Unable to record charge attack action.");
+    return spendPreview;
   }
 
   const weaponProfile = buildChargeWeaponProfile(actor, {
@@ -369,6 +371,12 @@ export async function performChargeAttack(actor, {
   });
 
   if (attackResult?.aborted) return { ok: false, reason: "Charge attack was aborted." };
+
+  const spend = await PersonalCombatTracker.spendResource(spendActor, spendRequest);
+  if (!spend?.ok) {
+    ui.notifications?.warn(spend?.reason ?? "Unable to record charge attack action.");
+    return spend;
+  }
 
   // Recoil notification — attacker takes damage; amount depends on mode and hit/miss.
   // DFA recoil fires regardless; Impact and Control recoil fires on hit only.

@@ -40,7 +40,7 @@ test("machine action catalog includes vehicle and battlemech action anchors", ()
     dropProne: ["movement", "sa", 1],
     avoidShutdown: ["recovery", "ra", 1],
     walk: ["movement", "sa", 1],
-    run: ["movement", "sa", 1],
+    run: ["movement", "sa", 2],
     jumpMove: ["movement", "sa", 1],
     rangedAttack: ["attack", "sa", 1],
     physicalAttack: ["attack", "sa", 1],
@@ -49,7 +49,7 @@ test("machine action catalog includes vehicle and battlemech action anchors", ()
     sensorLock: ["targeting", "sa", 1],
     brace: ["movement", "sa", 1],
     hullDown: ["movement", "sa", 1],
-    sprint: ["movement", "sa", 2],
+    sprint: ["movement", "sa", 3],
     powerCycle: ["remediation", "sa", 2],
     coolantDump: ["remediation", "sa", 2],
     epmFilter: ["targeting", "sa", 2],
@@ -73,8 +73,12 @@ test("machine action aliases resolve legacy and table vocabulary to canonical an
   assert.equal(getMachineActionDefinition("prone").key, "dropProne");
 });
 
-test("machine catalog exposes unsupported complex actions as explicit stubs", () => {
-  for (const id of ["chargeAttack", "evasiveManeuver", "shield", "spotIndirect", "eject"]) {
+test("machine catalog exposes ready and unsupported complex action states explicitly", () => {
+  for (const id of ["chargeAttack", "evasiveManeuver", "shield"]) {
+    assert.equal(getMachineActionDefinition(id).implementation.state, "ready", `${id} is ready`);
+  }
+
+  for (const id of ["spotIndirect", "eject"]) {
     const action = getMachineActionDefinition(id);
     assert.equal(action.implementation.state, "stub", `${id} is a stub`);
     assert.match(action.implementation.reason, /not automated|not implemented/i);

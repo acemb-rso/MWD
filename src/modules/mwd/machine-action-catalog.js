@@ -212,11 +212,11 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     label: "Run / Flank / Max Thrust",
     attributeKey: "handling",
     skillKey: "piloting",
-    cost: 1,
-    category: "simple",
+    cost: 2,
+    category: "complex",
     resolver: "movement",
     tags: ["movement", "fast"],
-    notes: "Fast movement mode; may add heat or pending strain by scale.",
+    notes: "Fast movement up to 2x ground speed, or 2x flight speed while airborne; generates 1 Heat.",
   }),
   jumpMove: action("jumpMove", {
     label: "Jump Movement",
@@ -343,16 +343,16 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     resolves: ["standing"],
   }),
 
-  // Complex actions / 2 SA.
+  // Complex actions / 2+ SA.
   sprint: action("sprint", {
     label: "Sprint",
     attributeKey: "handling",
     skillKey: "piloting",
-    cost: 2,
+    cost: 3,
     category: "complex",
     resolver: "movement",
-    tags: ["movement", "sprint"],
-    notes: "High-commitment movement; BattleMechs generate 2 Heat and vehicles use Redline strain.",
+    tags: ["movement", "sprint", "stability"],
+    notes: "High-commitment movement up to 3x ground speed, or 3x flight speed while airborne; generates 2 Heat and requires a stability roll.",
   }),
   chargeAttack: action("chargeAttack", {
     label: "Charge / Ram / DFA",
