@@ -53,6 +53,7 @@ import {
   normalizeAreaEffect,
 } from "../../area-effects/area-effect-engine.js";
 import { MACHINE_CHARGE_ATTACK_ID } from "../../mwd/charge-attack-actions.js";
+import { getTraitActiveEffectModifier } from "../../mwd/traits.js";
 
 const DAMAGE_SCALING_MODES = Object.freeze({
   direct: "direct",
@@ -503,9 +504,12 @@ export async function resolveAttack({ actor, payload } = {}) {
 
   const machineMotion = isMachineActor(actor) && targets.length === 1
     ? buildMachineAttackMotionContext({
+      attackerCombatant: getAttackerCombatant(getSourceToken(actor, payload)),
       targetActor: getTargetActor(targets[0]),
       targetCombatant: getTargetCombatant(targets[0]?.tokenId),
       payload,
+      suppressAttackerMotion: Boolean(payload?.chargeAttack)
+        || String(payload?.syntheticWeapon?.id ?? "") === MACHINE_CHARGE_ATTACK_ID,
     })
     : null;
   const baseDn = (effectiveWeapon?.type === "personalWeapon" || effectiveWeapon?.isSynthetic)
@@ -520,6 +524,14 @@ export async function resolveAttack({ actor, payload } = {}) {
     value: baseDn,
     tags: ["base", "range"]
   }];
+  if (machineMotion?.attackerMotionDn) {
+    dnParts.push({
+      id: "machineMotion.attacker",
+      label: `Attacker Motion (${machineMotion.attackerMotionLabel})`,
+      value: machineMotion.attackerMotionDn,
+      tags: ["motion"],
+    });
+  }
   if (machineMotion?.motionDn) {
     dnParts.push({
       id: "machineMotion.actions",

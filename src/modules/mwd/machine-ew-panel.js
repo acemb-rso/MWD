@@ -14,6 +14,7 @@ import {
   getUsableTargetingPacket,
 } from "./machine-ew-state.js";
 import { getBattleArmorMachineTargetProfile } from "./battle-armor.js";
+import { hasAssetModuleCapability } from "./asset-module-effects.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -74,7 +75,23 @@ function buildTargetAction({ canTarget = false, targetHint = "" } = {}) {
   };
 }
 
-function buildCompactActions({ row = {}, detectionState = "blind", canAcquire = false, canTarget = false, acquireHint = "", targetHint = "" } = {}) {
+export function getMachineEwAssetCapabilities(actor = null) {
+  return {
+    tag: hasAssetModuleCapability(actor, "tag", ["tagTarget"]),
+    c3: hasAssetModuleCapability(actor, "c3", ["c3i", "network", "shareTargetingData"]),
+  };
+}
+
+function buildCompactActions({
+  row = {},
+  detectionState = "blind",
+  canAcquire = false,
+  canTarget = false,
+  acquireHint = "",
+  targetHint = "",
+  capabilities = {},
+} = {}) {
+  const hasTag = Boolean(capabilities.tag);
   return [
     {
       id: "acquire",
@@ -111,8 +128,8 @@ function buildCompactActions({ row = {}, detectionState = "blind", canAcquire = 
       label: "TAG",
       icon: "fa-location-crosshairs",
       dn: 1,
-      enabled: true,
-      title: "Launch a TAG roll against this target.",
+      enabled: hasTag,
+      title: hasTag ? "Launch a TAG roll against this target." : "Requires an installed TAG asset module.",
     },
   ].map(action => ({
     ...action,
@@ -145,11 +162,13 @@ function buildMeasuredRange(sourceToken = null, targetToken = null) {
 }
 
 export function buildMachineEwRow({
+  actor = null,
   targetToken,
   sourceToken = null,
   combatant,
   systemAttr = 0,
   currentRound = null,
+  capabilities = null,
 } = {}) {
   if (!targetToken?.actor) return null;
 
@@ -176,6 +195,7 @@ export function buildMachineEwRow({
   const canAcquire = detectionState === "blind" || detectionState === "contact" || (detectionState === "track" && ceiling === "lock");
   const canTarget = detectionState === "track" || detectionState === "lock";
   const lockGated = detectionState === "lock";
+  const ewCapabilities = capabilities ?? getMachineEwAssetCapabilities(actor);
   const acquireHint = buildAcquireHint({ detectionState, canAcquire, ceiling });
   const targetHint = buildTargetHint({ detectionState, lockGated });
   const row = {
@@ -204,7 +224,7 @@ export function buildMachineEwRow({
     acquireAction: buildAcquireAction({ canAcquire, detectionState, acquireHint }),
     targetAction: buildTargetAction({ canTarget, targetHint }),
   };
-  row.compactActions = buildCompactActions({ row, detectionState, canAcquire, canTarget, acquireHint, targetHint });
+  row.compactActions = buildCompactActions({ row, detectionState, canAcquire, canTarget, acquireHint, targetHint, capabilities: ewCapabilities });
   return row;
 }
 
@@ -226,13 +246,16 @@ export function buildMachineEwPanel({
   const combatant = getAttackerCombatant(token);
   const systemAttr = toNumber(actor?.system?.attributes?.system?.value, 0);
   const round = currentRound ?? globalThis.game?.combat?.round ?? null;
+  const capabilities = getMachineEwAssetCapabilities(actor);
   const rows = toTargets(targets)
     .map(targetToken => buildMachineEwRow({
+      actor,
       targetToken,
       sourceToken: token,
       combatant,
       systemAttr,
       currentRound: round,
+      capabilities,
     }))
     .filter(Boolean);
 
@@ -241,6 +264,7 @@ export function buildMachineEwPanel({
   return {
     hasTargets,
     rows,
+    capabilities,
     canAcquireAny: rows.some(row => row.canAcquire),
     canTargetAny: rows.some(row => row.canTarget),
     emptyState: "Target one or more tokens on the canvas to review EW status.",

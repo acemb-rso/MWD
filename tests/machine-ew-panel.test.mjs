@@ -55,10 +55,25 @@ function setSceneState({ targets = [], attackerCombatant = null, targetCombatant
   };
 }
 
-function buildPanel({ system = 3, targets = [], attackerCombatant, targetCombatants = [] } = {}) {
+function createAssetModule({ name = "Module", tags = [], effects = [], enabled = true, state = {} } = {}) {
+  return {
+    id: name.toLowerCase().replace(/\s+/g, "-"),
+    name,
+    type: "assetModule",
+    system: {
+      enabled,
+      tags,
+      state,
+      effects,
+    },
+  };
+}
+
+function buildPanel({ system = 3, targets = [], attackerCombatant, targetCombatants = [], items = [] } = {}) {
   setSceneState({ targets, attackerCombatant, targetCombatants });
   return buildMachineEwPanel({
     actor: {
+      items,
       system: {
         attributes: {
           system: { value: system },
@@ -110,6 +125,8 @@ test("EW panel exposes Contact targets as acquire-ready but not targeting-ready"
   assert.equal(row.acquireAction.enabled, true);
   assert.equal(row.targetAction.enabled, false);
   assert.deepEqual(row.compactActions.map(action => action.id), ["acquire", "target", "ecmSpike", "tagTarget"]);
+  assert.equal(row.compactActions.find(action => action.id === "tagTarget")?.enabled, false);
+  assert.match(row.compactActions.find(action => action.id === "tagTarget")?.title ?? "", /TAG asset module/i);
   assert.equal(row.compactActions.find(action => action.id === "acquire")?.dn, 2);
   assert.equal(row.compactActions.find(action => action.id === "target")?.dn, 2);
   assert.equal(row.compactActions.find(action => action.id === "ecmSpike")?.action, "machineEwAction");
@@ -390,6 +407,46 @@ test("EW quick action menu exposes canonical player-facing actions", () => {
   assert.equal(actions.find(action => action.id === "generateFireSolution")?.disabled, false);
 });
 
+test("EW TAG and C3 actions are enabled only by ready asset modules", () => {
+  const target = createTargetToken({
+    id: "target-1",
+    uuid: "Scene.scene.Token.target-1",
+    name: "Tracked Target",
+  });
+  const attackerCombatant = createCombatant({
+    tokenId: "attacker-token",
+    targeting: {
+      [target.document.uuid]: { detectionState: "track" },
+    },
+  });
+  setSceneState({ targets: [target], attackerCombatant });
+
+  const actionsWithoutModules = buildMachineEwActionChoices({
+    items: [],
+    system: { attributes: { system: { value: 3 } } },
+  }, {
+    token: { id: "attacker-token" },
+    includeDisabled: true,
+  });
+  assert.equal(actionsWithoutModules.find(action => action.id === "tagTarget")?.disabled, true);
+  assert.match(actionsWithoutModules.find(action => action.id === "tagTarget")?.reason ?? "", /TAG asset module/i);
+  assert.equal(actionsWithoutModules.find(action => action.id === "shareTargetingData")?.disabled, true);
+  assert.match(actionsWithoutModules.find(action => action.id === "shareTargetingData")?.reason ?? "", /C3 asset module/i);
+
+  const actionsWithModules = buildMachineEwActionChoices({
+    items: [
+      createAssetModule({ name: "TAG", tags: ["tag"] }),
+      createAssetModule({ name: "C3 Network", tags: ["c3"] }),
+    ],
+    system: { attributes: { system: { value: 3 } } },
+  }, {
+    token: { id: "attacker-token" },
+    includeDisabled: true,
+  });
+  assert.equal(actionsWithModules.find(action => action.id === "tagTarget")?.disabled, false);
+  assert.equal(actionsWithModules.find(action => action.id === "shareTargetingData")?.disabled, false);
+});
+
 test("EW quick action menu keeps unavailable target-gated actions visible with reasons", () => {
   setSceneState({ targets: [], attackerCombatant: createCombatant({ tokenId: "attacker-token" }) });
 
@@ -404,7 +461,7 @@ test("EW quick action menu keeps unavailable target-gated actions visible with r
   assert.equal(actions.find(action => action.id === "acquireTarget")?.disabled, true);
   assert.match(actions.find(action => action.id === "acquireTarget")?.reason ?? "", /detection state/i);
   assert.equal(actions.find(action => action.id === "tagTarget")?.disabled, true);
-  assert.match(actions.find(action => action.id === "tagTarget")?.reason ?? "", /Target a token/i);
+  assert.match(actions.find(action => action.id === "tagTarget")?.reason ?? "", /TAG asset module/i);
 });
 
 test("machine layouts surface EW controls through combat awareness on battlemech and vehicle sheets", async () => {

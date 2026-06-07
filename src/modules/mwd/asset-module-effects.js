@@ -316,6 +316,52 @@ export function findAssetModuleActionOverride(actor = null, actionId = "", conte
   return null;
 }
 
+function normalizeCapabilityKey(value = "") {
+  return String(value ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function collectModuleCapabilityKeys(item = null, system = {}) {
+  const keys = new Set();
+  const add = value => {
+    const normalized = normalizeCapabilityKey(value);
+    if (normalized) keys.add(normalized);
+  };
+  const addMany = values => normalizeStringArray(values).forEach(add);
+
+  add(item?.name);
+  add(system?.name);
+  add(system?.label);
+  add(system?.category);
+  addMany(system?.tags);
+  addMany(system?.keywords);
+
+  for (const effect of normalizeAssetModuleSystem(system).effects) {
+    add(effect.id);
+    add(effect.label);
+    addMany(effect.requires?.tags);
+    addMany(effect.grants?.actions);
+    for (const override of effect.grants?.actionOverrides ?? []) {
+      addMany(override?.actionIds ?? override?.actions ?? override?.actionId);
+    }
+  }
+
+  return keys;
+}
+
+export function hasAssetModuleCapability(actor = null, capability = "", aliases = []) {
+  const wanted = [capability, ...aliases].map(normalizeCapabilityKey).filter(Boolean);
+  if (!wanted.length) return false;
+
+  for (const item of getAssetModules(actor)) {
+    const moduleState = getAssetModuleState(item, { installed: true });
+    if (!moduleState.ready) continue;
+    const keys = Array.from(collectModuleCapabilityKeys(item, moduleState.system ?? item?.system ?? {}));
+    if (wanted.some(wantedKey => keys.some(key => key === wantedKey || key.includes(wantedKey)))) return true;
+  }
+
+  return false;
+}
+
 export function getAssetModuleActionCosts(actor = null, actionId = "", context = {}) {
   const actionKey = toTrimmedString(actionId, "");
   if (!actionKey) return { heat: 0, stress: [], charges: 0, effects: [] };

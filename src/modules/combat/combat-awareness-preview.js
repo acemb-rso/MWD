@@ -255,12 +255,13 @@ function buildMachineContext(actor = null, sourceToken = null, targetToken = nul
   const targetTokenId = getTokenId(targetToken);
   const targetTokenUuid = getTokenUuid(targetToken);
   const targetCombatant = getTargetCombatant(targetTokenId);
+  const attackerCombatant = getAttackerCombatant(sourceToken);
   const motion = buildMachineAttackMotionContext({
+    attackerCombatant,
     targetActor,
     targetCombatant,
     payload: {},
   });
-  const attackerCombatant = getAttackerCombatant(sourceToken);
   const detectionState = attackerCombatant && targetTokenUuid
     ? getDetectionState(attackerCombatant, targetTokenUuid)
     : "";
@@ -297,6 +298,7 @@ function buildMachineContext(actor = null, sourceToken = null, targetToken = nul
   }
 
   const motionLabels = [
+    motion.attackerMotionLabel && motion.attackerMotion !== "stationary" ? `Attacker: ${motion.attackerMotionLabel}` : "",
     motion.targetMotionLabel ? `Motion: ${motion.targetMotionLabel}` : "",
     Number.isFinite(distance) ? `Range: ${formatDistanceLabel(distance, units)}` : "",
     motion.trackingHexes ? `Tracking: ${motion.trackingHexes} hex` : "",
@@ -304,6 +306,7 @@ function buildMachineContext(actor = null, sourceToken = null, targetToken = nul
   ].filter(Boolean);
   const rangeDn = [buildPart({ id: "difficulty.current", label: `Base DN (${rangeBandLabel})`, value: rangeDnValue })];
   const motionDn = [
+    motion.attackerMotionDn ? buildPart({ id: "machineMotion.attacker", label: `Attacker Motion (${motion.attackerMotionLabel})`, value: motion.attackerMotionDn }) : null,
     motion.motionDn ? buildPart({ id: "machineMotion.actions", label: `Target Motion (${motion.targetMotionLabel})`, value: motion.motionDn }) : null,
     motion.jumpDn ? buildPart({ id: "machineMotion.jump", label: "Target Jumped", value: motion.jumpDn }) : null,
   ].filter(Boolean);

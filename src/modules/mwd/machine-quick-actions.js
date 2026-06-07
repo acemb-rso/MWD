@@ -13,7 +13,7 @@ import { performChargeAttack } from "./charge-attack-actions.js";
 import { performBattlemechMovementAction } from "./battlemech-movement-actions.js";
 import { performBattlemechRangedAttack } from "./battlemech-ranged-actions.js";
 import { performVehicleRangedAttack } from "./vehicle-ranged-actions.js";
-import { buildMachineEwPanel, resolveMachineEwActionTarget } from "./machine-ew-panel.js";
+import { buildMachineEwPanel, getMachineEwAssetCapabilities, resolveMachineEwActionTarget } from "./machine-ew-panel.js";
 import { getMachineActionDefinition } from "./machine-action-catalog.js";
 import { findAssetModuleActionOverride } from "./asset-module-effects.js";
 import { buildBattlemechHeatModel, resolveBattlemechPendingHeat } from "./machine-heat.js";
@@ -987,6 +987,9 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
   const sourceToken = token ?? resolveMachineSceneToken(actor);
   const panel = buildMachineEwPanel({ actor, token: sourceToken });
   const hasTargets = Boolean(panel.hasTargets);
+  const capabilities = panel.capabilities ?? getMachineEwAssetCapabilities(actor);
+  const hasTag = Boolean(capabilities.tag);
+  const hasC3 = Boolean(capabilities.c3);
   const actions = [
     buildEwAction({
       id: "sensorSweep",
@@ -1056,8 +1059,8 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
       purpose: "Apply a TAG enabler flag for guided systems.",
       targetMode: "any",
       execution: "skill",
-      enabled: hasTargets,
-      reason: "Target a token before using TAG.",
+      enabled: hasTargets && hasTag,
+      reason: !hasTag ? "Requires an installed TAG asset module." : "Target a token before using TAG.",
       mechanics: "Roll only; TAG flags are not automated yet.",
     }),
     buildEwAction({
@@ -1065,6 +1068,8 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
       purpose: "Share best detection state and best eligible packet through C3 or a similar network.",
       targetMode: "none",
       execution: "narrative",
+      enabled: hasC3,
+      reason: "Requires an installed C3 asset module.",
       mechanics: "Provider-driven; no roll required.",
     }),
   ];

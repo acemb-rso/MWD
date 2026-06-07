@@ -233,7 +233,12 @@ function createMeleeActor({ weapon = createMeleeWeapon(), tonnage = 90, pilotUui
   };
 }
 
-function setScene({ distance = 270, targetMovement = {}, targetPersonalCombat = null } = {}) {
+function setScene({
+  distance = 270,
+  targetMovement = {},
+  attackerPersonalCombat = null,
+  targetPersonalCombat = null,
+} = {}) {
   const targetTokenUuid = "Scene.scene.Token.target-token";
   const attackerToken = {
     id: "attacker-token",
@@ -268,7 +273,7 @@ function setScene({ distance = 270, targetMovement = {}, targetPersonalCombat = 
     combat: {
       round: 1,
       combatants: [
-        createCombatant({ tokenId: attackerToken.id, targetTokenUuid }),
+        createCombatant({ tokenId: attackerToken.id, targetTokenUuid, personalCombat: attackerPersonalCombat }),
         createCombatant({ tokenId: targetToken.id, personalCombat: targetPersonalCombat }),
       ],
     },
@@ -1158,6 +1163,81 @@ test("machine target motion uses action count for DN and movement speed for trac
     assert.equal(fast.difficulty.dn, 4);
     assert.equal(fast.attack.machineMotion.trackingHexes, 6);
     assert.equal(fastMods.find(mod => mod.id === "machineMotion.tracking")?.value, -3);
+  } finally {
+    clearScene();
+  }
+});
+
+test("machine attacker motion adds DN for non-charge attacks", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createActor();
+  const { targetSnapshot } = setScene({
+    distance: 100,
+    attackerPersonalCombat: {
+      actionState: {
+        move: {
+          movementKind: "run",
+          moved: true,
+          round: 1,
+        },
+      },
+    },
+  });
+
+  try {
+    const resolved = await resolveAttack({
+      actor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+
+    assert.equal(resolved.attack.machineMotion.attackerMotion, "moved2");
+    assert.equal(resolved.attack.machineMotion.attackerMotionDn, 1);
+    assert.equal(resolved.dn.parts.find(part => part.id === "machineMotion.attacker")?.value, 1);
+    assert.equal(resolved.difficulty.dn, 4);
+  } finally {
+    clearScene();
+  }
+});
+
+test("charge attacks suppress machine attacker motion DN", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createActor();
+  const { targetSnapshot } = setScene({
+    distance: 100,
+    attackerPersonalCombat: {
+      actionState: {
+        move: {
+          movementKind: "sprint",
+          moved: true,
+          round: 1,
+        },
+      },
+    },
+  });
+
+  try {
+    const resolved = await resolveAttack({
+      actor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+        chargeAttack: { mode: "impact" },
+      },
+    });
+
+    assert.equal(resolved.attack.machineMotion.attackerMotionSuppressed, true);
+    assert.equal(resolved.attack.machineMotion.attackerMotionDn, 0);
+    assert.equal(resolved.dn.parts.some(part => part.id === "machineMotion.attacker"), false);
+    assert.equal(resolved.difficulty.dn, 3);
   } finally {
     clearScene();
   }

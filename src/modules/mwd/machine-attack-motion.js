@@ -131,11 +131,26 @@ export function normalizeMachineMotionPayload(payload = {}, { targetCombatant = 
 }
 
 export function buildMachineAttackMotionContext({
+  attackerCombatant = null,
   targetActor = null,
   targetCombatant = null,
   payload = {},
+  suppressAttackerMotion = false,
 } = {}) {
   const declaration = normalizeMachineMotionPayload(payload, { targetCombatant });
+  const source = payload?.machineMotion && typeof payload.machineMotion === "object"
+    ? payload.machineMotion
+    : {};
+  const knownAttackerMotion = suppressAttackerMotion
+    ? null
+    : getKnownTargetMotionFromCombatant(attackerCombatant);
+  const hasExplicitAttackerMotion = !suppressAttackerMotion
+    && (hasOwnValue(source, "attackerMotion") || hasOwnValue(payload, "attackerMotion"));
+  const attackerMotion = suppressAttackerMotion
+    ? "stationary"
+    : normalizeTargetMotion(hasExplicitAttackerMotion
+      ? (source.attackerMotion ?? payload?.attackerMotion)
+      : knownAttackerMotion?.targetMotion);
   const targetMotion = declaration.targetMotion;
   const moved = targetMotion !== "stationary";
   const speedMeters = getHighestNonJumpMovementSpeed(targetActor);
@@ -144,8 +159,13 @@ export function buildMachineAttackMotionContext({
   const jumpDn = declaration.jumped ? 1 : 0;
   const jumpTrackingPenalty = declaration.jumped ? -1 : 0;
   const motionDn = getTargetMotionDn(targetMotion);
+  const attackerMotionDn = !suppressAttackerMotion && attackerMotion !== "stationary" ? 1 : 0;
 
   return {
+    attackerMotion,
+    attackerMotionLabel: TARGET_MOTION_LABELS[attackerMotion] ?? TARGET_MOTION_LABELS.stationary,
+    attackerMotionDn,
+    attackerMotionSuppressed: Boolean(suppressAttackerMotion),
     targetMotion,
     targetMotionLabel: TARGET_MOTION_LABELS[targetMotion] ?? TARGET_MOTION_LABELS.stationary,
     jumped: declaration.jumped,
@@ -153,7 +173,7 @@ export function buildMachineAttackMotionContext({
     trackingHexes,
     motionDn,
     jumpDn,
-    dnModifier: motionDn + jumpDn,
+    dnModifier: attackerMotionDn + motionDn + jumpDn,
     movementTrackingPenalty,
     jumpTrackingPenalty,
     trackingPenalty: movementTrackingPenalty + jumpTrackingPenalty,
