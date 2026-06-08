@@ -72,8 +72,7 @@ export async function performVehicleRangedAttack(actor, {
   const spendActor = operator?.actor ?? actor;
   const actionCost = getMachineAttackActionCost(actor);
   const totalCost = Math.max(0, 1 + Number(actionCost?.extraCost ?? 0));
-
-  const spend = await PersonalCombatTracker.spendResource(spendActor, {
+  const spendRequest = {
     token: sourceToken,
     resource: "sa",
     cost: totalCost,
@@ -81,14 +80,18 @@ export async function performVehicleRangedAttack(actor, {
     actionLabel: "Attack",
     actionCostLabel: `${totalCost} SA`,
     actionCategory: "complex",
-  });
-  if (!spend?.ok) {
-    ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
-    return spend;
+  };
+
+  const spendPreview = PersonalCombatTracker.previewResourceSpend?.(spendActor, spendRequest)
+    ?? { ok: true };
+  if (!spendPreview?.ok) {
+    ui.notifications?.warn(spendPreview?.reason ?? "Unable to record attack action.");
+    return spendPreview;
   }
 
+  let attackResult = null;
   try {
-    await rollApi.execute({
+    attackResult = await rollApi.execute({
       actor,
       payload: {
         intent: "attack",
@@ -103,10 +106,20 @@ export async function performVehicleRangedAttack(actor, {
       },
     });
   } catch (error) {
-    console.error("MWD | Vehicle ranged attack failed after action spend", { actor, weaponId: selectedWeapon.id, error });
-    ui.notifications?.error(error?.message ?? "Vehicle attack failed after spending the action.");
+    console.error("MWD | Vehicle ranged attack failed", { actor, weaponId: selectedWeapon.id, error });
+    ui.notifications?.error(error?.message ?? "Vehicle attack failed.");
     throw error;
   }
 
-  return { ok: true, weaponId: selectedWeapon.id };
+  if (!attackResult || attackResult?.aborted) {
+    return { ok: false, cancelled: true, reason: "Vehicle attack was cancelled.", weaponId: selectedWeapon.id };
+  }
+
+  const spend = await PersonalCombatTracker.spendResource(spendActor, spendRequest);
+  if (!spend?.ok) {
+    ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
+    return spend;
+  }
+
+  return { ok: true, weaponId: selectedWeapon.id, spend };
 }

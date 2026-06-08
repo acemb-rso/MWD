@@ -133,7 +133,7 @@ export async function performBattlemechRangedAttack(actor, {
   const spendActor = operator?.actor ?? actor;
   const actionCost = getMachineAttackActionCost(actor);
   const totalCost = Math.max(0, Number(fireModeDef.saCost ?? 0) + Number(actionCost?.extraCost ?? 0));
-  const spend = await PersonalCombatTracker.spendResource(spendActor, {
+  const spendRequest = {
     token: sourceToken,
     resource: "sa",
     cost: totalCost,
@@ -141,10 +141,13 @@ export async function performBattlemechRangedAttack(actor, {
     actionLabel: "Attack",
     actionCostLabel: `${totalCost} SA`,
     actionCategory: "complex",
-  });
-  if (!spend?.ok) {
-    ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
-    return spend;
+  };
+
+  const spendPreview = PersonalCombatTracker.previewResourceSpend?.(spendActor, spendRequest)
+    ?? { ok: true };
+  if (!spendPreview?.ok) {
+    ui.notifications?.warn(spendPreview?.reason ?? "Unable to record attack action.");
+    return spendPreview;
   }
 
   const completedGroupIds = new Set();
@@ -162,14 +165,24 @@ export async function performBattlemechRangedAttack(actor, {
       completedGroupIds.add(step.group.id);
     }
   } catch (error) {
-    console.error("MWD | BattleMech fire mode attack failed after action spend", {
+    console.error("MWD | BattleMech fire mode attack failed", {
       actor,
       fireMode: fireModeDef.id,
       completedGroupIds: Array.from(completedGroupIds),
       error,
     });
-    ui.notifications?.error(error?.message ?? "BattleMech attack failed after spending the action.");
+    ui.notifications?.error(error?.message ?? "BattleMech attack failed.");
     throw error;
+  }
+
+  if (completedGroupIds.size <= 0) {
+    return { ok: false, cancelled: true, reason: "BattleMech attack was cancelled.", fireMode: fireModeDef.id, completedGroupIds: [] };
+  }
+
+  const spend = await PersonalCombatTracker.spendResource(spendActor, spendRequest);
+  if (!spend?.ok) {
+    ui.notifications?.warn(spend?.reason ?? "Unable to record attack action.");
+    return spend;
   }
 
   const markUsed = await PersonalCombatTracker.markWeaponGroupsUsed?.(actor, {
@@ -180,5 +193,5 @@ export async function performBattlemechRangedAttack(actor, {
     ui.notifications?.warn(markUsed.reason ?? "Unable to record BattleMech weapon-group usage.");
   }
 
-  return { ok: true, fireMode: fireModeDef.id, completedGroupIds: Array.from(completedGroupIds) };
+  return { ok: true, fireMode: fireModeDef.id, completedGroupIds: Array.from(completedGroupIds), spend };
 }

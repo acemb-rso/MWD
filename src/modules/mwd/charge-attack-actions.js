@@ -370,7 +370,9 @@ export async function performChargeAttack(actor, {
     },
   });
 
-  if (attackResult?.aborted) return { ok: false, reason: "Charge attack was aborted." };
+  if (!attackResult || attackResult?.aborted) {
+    return { ok: false, cancelled: true, reason: "Charge attack was cancelled." };
+  }
 
   const spend = await PersonalCombatTracker.spendResource(spendActor, spendRequest);
   if (!spend?.ok) {

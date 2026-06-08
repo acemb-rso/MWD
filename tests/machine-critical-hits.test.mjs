@@ -104,9 +104,12 @@ test("machine hit locations distinguish armor hits, pure structure crits, and Ch
 
 test("vehicle hit locations separate descriptive impact from grouped rules location", () => {
   const actor = machineActor({ type: "vehicle" });
+  const front = resolveMachineHitLocation({ actor, rollTotal: 5, armorBefore: 4 });
   const side = resolveMachineHitLocation({ actor, rollTotal: 7, armorBefore: 4 });
   const turret = resolveMachineHitLocation({ actor, rollTotal: 11, armorBefore: 4 });
 
+  assert.equal(front.impactLabel, "Front");
+  assert.equal(front.rulesLocation, "body");
   assert.equal(side.impactLabel, "Side");
   assert.equal(side.rulesLocation, "mobility");
   assert.equal(turret.impactLabel, "Turret");
@@ -535,11 +538,9 @@ test("vehicle reduced to zero structure disables all enabled locations immediate
 
   assert.equal(result.ok, true);
   assert.equal(result.machine.structureAfter, 0);
-  assert.equal(actor.system.mwd.locations.front.condition, 4);
-  assert.equal(actor.system.mwd.locations.side.condition, 4);
-  assert.equal(actor.system.mwd.locations.rear.condition, 4);
-  assert.equal(actor.system.mwd.locations.core.condition, 4);
+  assert.equal(actor.system.mwd.locations.body.condition, 4);
   assert.equal(actor.system.mwd.locations.turret.condition, 4);
+  assert.equal(actor.system.mwd.locations.mobility.condition, 4);
 });
 
 test("cascade result draws one additional crit and recursive cascades become location breach", async () => {

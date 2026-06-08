@@ -18,11 +18,9 @@ function buildActorSnapshot(overrides = {}) {
         shock: { value: overrides.shock ?? 0 },
         reliabilitySpendable: { value: overrides.spendable ?? overrides.reliability ?? 3 },
         locations: {
-          front: { enabled: true, stress: 0, condition: 0, destroyed: false, tags: [] },
-          side: { enabled: true, stress: 0, condition: 0, destroyed: false, tags: [] },
-          rear: { enabled: true, stress: 0, condition: 0, destroyed: false, tags: [] },
+          body: { enabled: true, stress: 0, condition: 0, destroyed: false, tags: [] },
           turret: { enabled: true, stress: 0, condition: 0, destroyed: false, tags: [] },
-          core: { enabled: true, stress: 0, condition: 0, destroyed: false, tags: [] },
+          mobility: { enabled: true, stress: 0, condition: 0, destroyed: false, tags: [] },
         },
       },
     },
@@ -41,12 +39,12 @@ test("reliability threshold mapping matches the locked curve", () => {
 test("zero-structure hit does not add shock or stress by default", () => {
   const result = resolveMachineDegradation({
     actorSnapshot: buildActorSnapshot({ reliability: 3 }),
-    locationKey: "front",
+    locationKey: "body",
     machineDamageDealt: 0,
     attackQuality: "highMargin",
   });
 
-  assert.equal(result.stressDelta.front ?? 0, 0);
+  assert.equal(result.stressDelta.body ?? 0, 0);
   assert.equal(result.shockDelta, 0);
   assert.equal(result.summary.shockAfter, 0);
 });
@@ -54,12 +52,12 @@ test("zero-structure hit does not add shock or stress by default", () => {
 test("structure damage adds stress and shock", () => {
   const result = resolveMachineDegradation({
     actorSnapshot: buildActorSnapshot({ reliability: 3 }),
-    locationKey: "front",
+    locationKey: "body",
     machineDamageDealt: 2,
     attackQuality: "highMargin",
   });
 
-  assert.equal(result.stressDelta.front, 2);
+  assert.equal(result.stressDelta.body, 2);
   assert.equal(result.shockDelta, 3);
   assert.equal(result.summary.shockAfter, 3);
 });
@@ -67,44 +65,44 @@ test("structure damage adds stress and shock", () => {
 test("explicit critical shock can add pressure without structure damage", () => {
   const result = resolveMachineDegradation({
     actorSnapshot: buildActorSnapshot({ reliability: 3 }),
-    locationKey: "front",
+    locationKey: "body",
     machineDamageDealt: 0,
     attackQuality: "",
     extraShockGain: 2,
   });
 
-  assert.equal(result.stressDelta.front ?? 0, 0);
+  assert.equal(result.stressDelta.body ?? 0, 0);
   assert.equal(result.shockDelta, 2);
   assert.equal(result.summary.shockAfter, 2);
 });
 
 test("shock overflow advances the highest-stress location and reduces shock/stress", () => {
   const actor = buildActorSnapshot({ reliability: 2, shock: 1 });
-  actor.system.mwd.locations.front.stress = 4;
-  actor.system.mwd.locations.side.stress = 1;
+  actor.system.mwd.locations.body.stress = 4;
+  actor.system.mwd.locations.mobility.stress = 1;
 
   const result = resolveMachineDegradation({
     actorSnapshot: actor,
-    locationKey: "side",
+    locationKey: "mobility",
     machineDamageDealt: 2,
     attackQuality: "hit",
   });
 
   assert.equal(result.conditionAdvancements.length, 1);
-  assert.equal(result.conditionAdvancements[0].location, "front");
-  assert.equal(result.stressDelta.side, 2);
-  assert.equal(result.stressDelta.front, -2);
+  assert.equal(result.conditionAdvancements[0].location, "body");
+  assert.equal(result.stressDelta.mobility, 2);
+  assert.equal(result.stressDelta.body, -2);
   assert.equal(result.summary.shockAfter, 0);
 });
 
 test("reliability spend cancels one advancement but still consumes reduction steps", () => {
   const actor = buildActorSnapshot({ reliability: 1, spendable: 1, shock: 2 });
-  actor.system.mwd.locations.front.stress = 2;
-  actor.system.mwd.locations.side.stress = 2;
+  actor.system.mwd.locations.body.stress = 2;
+  actor.system.mwd.locations.mobility.stress = 2;
 
   const result = resolveMachineDegradation({
     actorSnapshot: actor,
-    locationKey: "front",
+    locationKey: "body",
     machineDamageDealt: 0,
     attackQuality: "",
     extraShockGain: 2,
@@ -114,46 +112,46 @@ test("reliability spend cancels one advancement but still consumes reduction ste
 
   assert.equal(result.reliabilitySpends.length, 1);
   assert.equal(result.conditionAdvancements.length, 1);
-  assert.equal(result.reliabilitySpends[0].location, "front");
-  assert.equal(result.conditionAdvancements[0].location, "side");
+  assert.equal(result.reliabilitySpends[0].location, "body");
+  assert.equal(result.conditionAdvancements[0].location, "mobility");
   assert.equal(result.summary.reliabilitySpendableAfter, 0);
   assert.equal(result.summary.shockAfter, 0);
 });
 
 test("disabled locations remain eligible and route to fallback", () => {
   const actor = buildActorSnapshot({ reliability: 1 });
-  actor.system.mwd.locations.front.stress = 3;
-  actor.system.mwd.locations.front.condition = 4;
-  actor.system.mwd.locations.side.stress = 1;
+  actor.system.mwd.locations.body.stress = 3;
+  actor.system.mwd.locations.body.condition = 4;
+  actor.system.mwd.locations.mobility.stress = 1;
 
   const result = resolveMachineDegradation({
     actorSnapshot: actor,
-    locationKey: "rear",
+    locationKey: "mobility",
     machineDamageDealt: 0,
     attackQuality: "",
     extraShockGain: 2,
   });
 
-  assert.equal(result.fallbackEvents[0].location, "front");
+  assert.equal(result.fallbackEvents[0].location, "body");
   assert.equal(result.summary.shockAfter, 0);
 });
 
 test("shock tie-breaks prefer the current hit location after stress and condition", () => {
   const actor = buildActorSnapshot({ reliability: 1, shock: 1 });
-  actor.system.mwd.locations.front.stress = 1;
-  actor.system.mwd.locations.side.stress = 1;
+  actor.system.mwd.locations.body.stress = 1;
+  actor.system.mwd.locations.mobility.stress = 1;
 
   const result = resolveMachineDegradation({
     actorSnapshot: actor,
-    locationKey: "side",
+    locationKey: "mobility",
     machineDamageDealt: 0,
     attackQuality: "",
     extraShockGain: 1,
   });
 
   assert.equal(result.conditionAdvancements.length, 1);
-  assert.equal(result.conditionAdvancements[0].location, "side");
-  assert.equal(result.stressDelta.side, -1);
+  assert.equal(result.conditionAdvancements[0].location, "mobility");
+  assert.equal(result.stressDelta.mobility, -1);
   assert.equal(result.summary.shockAfter, 0);
 });
 
@@ -186,6 +184,32 @@ test("legacy battlemech location keys normalize into grouped degradation buckets
   assert.equal(system.mwd.locations.legs.condition, 2);
 });
 
+test("legacy vehicle location keys normalize into grouped degradation buckets", () => {
+  const system = normalizeMachineDegradationState({
+    attributes: {
+      reliability: { value: 2 },
+    },
+    mwd: {
+      locations: {
+        front: { enabled: true, stress: 1, condition: 1, destroyed: false, tags: ["frontArmor"] },
+        side: { enabled: true, stress: 2, condition: 2, destroyed: false, tags: ["sideArmor"] },
+        rear: { enabled: true, stress: 1, condition: 1, destroyed: false, tags: ["rearArmor"] },
+        rotor: { enabled: false, stress: 1, condition: 3, destroyed: false, tags: ["rotor"] },
+        core: { enabled: true, stress: 2, condition: 2, destroyed: false, tags: ["engine"] },
+        turret: { enabled: true, stress: 1, condition: 1, destroyed: false, tags: ["turret"] },
+      },
+    },
+  }, "vehicle");
+
+  assert.deepEqual(Object.keys(system.mwd.locations), ["body", "turret", "mobility"]);
+  assert.equal(system.mwd.locations.body.stress, 3);
+  assert.equal(system.mwd.locations.body.condition, 2);
+  assert.deepEqual(system.mwd.locations.body.tags.sort(), ["engine", "frontArmor"]);
+  assert.equal(system.mwd.locations.mobility.stress, 4);
+  assert.equal(system.mwd.locations.mobility.condition, 3);
+  assert.deepEqual(system.mwd.locations.mobility.tags.sort(), ["rearArmor", "rotor", "sideArmor"]);
+});
+
 test("vehicle zero structure normalizes enabled locations to disabled", () => {
   const system = normalizeMachineDegradationState({
     monitors: {
@@ -202,10 +226,7 @@ test("vehicle zero structure normalizes enabled locations to disabled", () => {
     },
   }, "vehicle");
 
-  assert.equal(system.mwd.locations.front.condition, 4);
-  assert.equal(system.mwd.locations.side.condition, 4);
-  assert.equal(system.mwd.locations.rear.condition, 4);
-  assert.equal(system.mwd.locations.core.condition, 4);
+  assert.equal(system.mwd.locations.body.condition, 4);
   assert.equal(system.mwd.locations.turret.condition, 4);
-  assert.equal(system.mwd.locations.rotor.condition, 1);
+  assert.equal(system.mwd.locations.mobility.condition, 1);
 });

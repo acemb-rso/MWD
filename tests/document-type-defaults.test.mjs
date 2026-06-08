@@ -64,7 +64,9 @@ test("vehicle defaults include ground and flight movement only", () => {
   assert.equal(block.attributes.reliability.value, 3);
   assert.equal(block.mwd.shock.value, 0);
   assert.deepEqual(block.mwd.hardpoints, []);
-  assert.equal(block.mwd.locations.front.condition, 0);
+  assert.equal(block.mwd.locations.body.condition, 0);
+  assert.equal(block.mwd.locations.turret.condition, 0);
+  assert.equal(block.mwd.locations.mobility.condition, 0);
   assert.deepEqual(block.movement, { ground: 0, flight: 0 });
   assert.equal(block.movement.jump, undefined);
 });

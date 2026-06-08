@@ -33,8 +33,12 @@ function startCase(value = "") {
 export async function resolveSkill({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveSkill requires actor");
 
-  const code = String(payload?.key ?? "").trim();
-  const def = getSkillDef(code);
+  const rawCode = String(payload?.key ?? "").trim();
+  const noSkill = Boolean(payload?.noSkill) || rawCode === "none";
+  const code = noSkill ? "none" : rawCode;
+  const def = noSkill
+    ? { code: "none", label: "No Skill", attribute: "" }
+    : getSkillDef(code);
   if (!def) throw new Error(`Unknown skill: ${code}`);
 
   const machineRoll = isMachineActor(actor);
@@ -61,11 +65,11 @@ export async function resolveSkill({ actor, payload } = {}) {
     : rollActor;
   const attrSys = attrActor.system ?? {};
 
-  const attribute = Number(attrSys?.attributes?.[attrKey]?.value ?? 0);
-  const skill = Number(skillSys?.skills?.[code]?.rating ?? 0);
-  const bonus = Number(skillSys?.skills?.[code]?.bonus ?? 0);
-  const ownedSpecializations = new Set(getOwnedSkillSpecializationKeys(skillSys, code));
-  const requestedSpecialization = getSkillSpecializationDef(code, payload?.specializationKey);
+  const attribute = Number(attrActor.getAttributeValue?.(attrKey) ?? attrSys?.attributes?.[attrKey]?.value ?? 0);
+  const skill = noSkill ? 0 : Number(skillSys?.skills?.[code]?.rating ?? 0);
+  const bonus = noSkill ? 0 : Number(skillSys?.skills?.[code]?.bonus ?? 0);
+  const ownedSpecializations = noSkill ? new Set() : new Set(getOwnedSkillSpecializationKeys(skillSys, code));
+  const requestedSpecialization = noSkill ? null : getSkillSpecializationDef(code, payload?.specializationKey);
   const selectedSpecialization = requestedSpecialization && ownedSpecializations.has(requestedSpecialization.key)
     ? requestedSpecialization
     : null;

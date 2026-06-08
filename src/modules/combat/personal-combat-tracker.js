@@ -3229,7 +3229,7 @@ function getBaseActivationMax(actor, resource = "sa") {
   if (resource === "fa") return BASE_FA;
   if (resource === "ra") return BASE_RA;
 
-  const reflexes = Math.max(0, Number(actor?.system?.attributes?.reflexes?.value ?? 0) || 0);
+  const reflexes = Math.max(0, Number(actor?.getAttributeValue?.("reflexes") ?? actor?.system?.attributes?.reflexes?.value ?? 0) || 0);
   const guts = Math.max(0, Number(actor?.system?.attributes?.guts?.value ?? 0) || 0);
   return BASE_SA + Math.floor((reflexes + guts) / 2);
 }

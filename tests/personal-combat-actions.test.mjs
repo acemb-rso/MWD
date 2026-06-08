@@ -335,6 +335,57 @@ test("roll, attack, reduce burn, and remove-log intents route through the centra
   }
 });
 
+test("cancelling a personal skill roll does not spend action economy", async () => {
+  const {
+    executeCombatActionIntent,
+    PersonalCombatTracker,
+  } = await importModules();
+  const actor = makeActor();
+  const snapshot = makeSnapshot();
+  const original = {
+    rollExecute: game.mwd.roll.execute,
+    getSnapshot: PersonalCombatTracker.getSnapshot,
+    previewResourceSpend: PersonalCombatTracker.previewResourceSpend,
+    spendResource: PersonalCombatTracker.spendResource,
+    applyActionState: PersonalCombatTracker._applyActionState,
+  };
+  const previews = [];
+  const spends = [];
+  const states = [];
+
+  game.mwd.roll.execute = async () => null;
+  PersonalCombatTracker.getSnapshot = () => snapshot;
+  PersonalCombatTracker.previewResourceSpend = (_actor, request) => {
+    previews.push(request);
+    return { ok: true, snapshot, finalCost: request.cost };
+  };
+  PersonalCombatTracker.spendResource = async (_actor, request) => {
+    spends.push(request);
+    return { ok: true, costPaid: true, costLabel: request.actionCostLabel ?? "", snapshot };
+  };
+  PersonalCombatTracker._applyActionState = async (_actor, request) => {
+    states.push(request);
+    return { ok: true };
+  };
+  queueDialog({ skill: "piloting" });
+
+  try {
+    const result = await executeCombatActionIntent({ actor, payload: { intent: "combatAction", actionId: "useSkill" } });
+
+    assert.equal(result.cancelled, true);
+    assert.equal(result.costPaid, false);
+    assert.equal(previews[0]?.actionId, "useSkill");
+    assert.equal(spends.length, 0);
+    assert.equal(states.length, 0);
+  } finally {
+    game.mwd.roll.execute = original.rollExecute;
+    PersonalCombatTracker.getSnapshot = original.getSnapshot;
+    PersonalCombatTracker.previewResourceSpend = original.previewResourceSpend;
+    PersonalCombatTracker.spendResource = original.spendResource;
+    PersonalCombatTracker._applyActionState = original.applyActionState;
+  }
+});
+
 test("CharacterSheetV2 does not override inherited personal combat handlers", async () => {
   const source = await readFile(new URL("../src/modules/sheets/character-sheet-v2.js", import.meta.url), "utf8");
   for (const handler of [

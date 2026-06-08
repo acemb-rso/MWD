@@ -309,17 +309,11 @@ function applyBattlemechDegradation(state, actor = null) {
 }
 
 function applyVehicleDegradation(state, actor = null) {
-  const body = getLocationState(actor, "front");
+  const body = getLocationState(actor, "body");
   const turret = getLocationState(actor, "turret");
-  const mobility = getLocationState(actor, "rear");
-  const core = getLocationState(actor, "core");
+  const mobility = getLocationState(actor, "mobility");
 
-  const bodyCondition = Math.max(
-    getCondition(body),
-    getCondition(getLocationState(actor, "side")),
-    getCondition(getLocationState(actor, "rear")),
-    getCondition(core),
-  );
+  const bodyCondition = getCondition(body);
   if (bodyCondition >= 1) {
     state.system += -1;
     state.reliability += -1;
@@ -351,10 +345,7 @@ function applyVehicleDegradation(state, actor = null) {
     pushEffect(state, "Turret disabled: turret weapons are offline.");
   }
 
-  const mobilityCondition = Math.max(
-    getCondition(mobility),
-    getCondition(getLocationState(actor, "rotor")),
-  );
+  const mobilityCondition = getCondition(mobility);
   if (mobilityCondition >= 1) addMovementPenalty(state, 1);
   if (mobilityCondition >= 2) addMovementPenalty(state, 1);
   if (mobilityCondition >= 3) {
@@ -571,7 +562,7 @@ export function buildMachineDegradationEffectSummary(actorType = "", locationKey
       if (condition >= 1) return "-30 m movement.";
     }
   } else {
-    if (["front", "side", "rear", "core"].includes(locationKey)) {
+    if (locationKey === "body") {
       if (destroyed) return "Vehicle destroyed; crew dead.";
       if (condition >= 4) return "Vehicle disabled; crew incapacitation risk.";
       if (condition >= 3) return "-2 System and -2 Handling.";
@@ -585,8 +576,8 @@ export function buildMachineDegradationEffectSummary(actorType = "", locationKey
       if (condition >= 2) return "-2 dice on attacks.";
       if (condition >= 1) return "-1 die on attacks.";
     }
-    if (locationKey === "rotor") {
-      if (destroyed) return "Immobile; advance body condition by 1.";
+    if (locationKey === "mobility") {
+      if (destroyed) return "Immobile.";
       if (condition >= 4) return "Immobile.";
       if (condition >= 3) return "Cannot Sprint.";
       if (condition >= 2) return "-60 m movement.";
@@ -610,12 +601,9 @@ export function getMachineDerivedStatusIds(actor = null) {
   }
   if (actorType === TEMPLATE.actorTypes.vehicle) {
     if (getCondition(getLocationState(actor, "turret")) >= 4) statuses.add("weaponFailure");
-    if (
-      getCondition(getLocationState(actor, "rear")) >= 4
-      || getCondition(getLocationState(actor, "rotor")) >= 4
-    ) statuses.add("stalled");
-    if (getCondition(getLocationState(actor, "core")) >= 2) statuses.add("sensorDegraded");
-    if (getCondition(getLocationState(actor, "core")) >= 4) statuses.add("shutdown");
+    if (getCondition(getLocationState(actor, "mobility")) >= 4) statuses.add("stalled");
+    if (getCondition(getLocationState(actor, "body")) >= 2) statuses.add("sensorDegraded");
+    if (getCondition(getLocationState(actor, "body")) >= 4) statuses.add("shutdown");
   }
   return Array.from(statuses);
 }

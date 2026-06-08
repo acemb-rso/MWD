@@ -103,6 +103,52 @@ test("machine piloting checks use machine handling plus linked pilot piloting", 
   }
 });
 
+test("machine pilot checks can roll selected machine attribute with no trained skill", async () => {
+  globalThis.foundry = {
+    utils: {
+      deepClone: value => structuredClone(value),
+      duplicate: value => structuredClone(value),
+      mergeObject: (left, right) => ({ ...(left ?? {}), ...(right ?? {}) }),
+    },
+  };
+  const { resolveSkill } = await import("../src/modules/roll/intent/resolve-skill.js");
+  const actor = buildActor();
+  actor.uuid = "Actor.machine";
+  actor.system.pilot = { uuid: "Actor.pilot" };
+  actor.system.attributes.handling.value = 4;
+  actor.system.attributes.system.value = 3;
+
+  const pilot = {
+    id: "pilot",
+    uuid: "Actor.pilot",
+    type: "character",
+    name: "Linked Pilot",
+    system: {
+      attributes: { reflexes: { value: 1 } },
+      skills: {},
+    },
+  };
+  const previousFromUuid = globalThis.fromUuid;
+  globalThis.fromUuid = async uuid => uuid === pilot.uuid ? pilot : null;
+
+  try {
+    const resolved = await resolveSkill({
+      actor,
+      payload: { key: "none", noSkill: true, machineAttributeKey: "system", dn: 1 },
+    });
+
+    assert.equal(resolved.pool.attribute, 3);
+    assert.equal(resolved.pool.skill, 0);
+    assert.equal(resolved.pool.bonus, 0);
+    assert.equal(resolved.pool.attribute + resolved.pool.skill + resolved.pool.bonus + resolved.pool.specialization, 3);
+    assert.equal(resolved.data.skillKey, "none");
+    assert.equal(resolved.rollActor, pilot);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
+    delete globalThis.foundry;
+  }
+});
+
 test("machine roll modifiers include operator condition and burn penalties", async () => {
   const machine = buildActor();
   const pilot = {

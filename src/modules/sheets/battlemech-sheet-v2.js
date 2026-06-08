@@ -469,8 +469,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       {
         label: "Movement",
         hint: enabledMovementChoices.length
-          ? enabledMovementChoices.map(choice => choice.label).join(" / ")
-          : "No movement actions available",
+          ? "Move action"
+          : "No moves",
         handler: "mechMovement",
         disabled: enabledMovementChoices.length === 0,
         dataset: {}
@@ -478,43 +478,43 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
       {
         label: getQuickActionLabel("rangedAttack"),
         hint: availableRangedGroups.length > 0
-          ? "Prompt for a ready weapon group"
-          : "No ready ranged weapon groups",
+          ? "Ranged attack"
+          : "No weapons",
         handler: "mechAttack",
         disabled: availableRangedGroups.length === 0,
         dataset: { attackKind: "ranged" }
       },
       {
         label: getQuickActionLabel("meleeAttack"),
-        hint: "Prompt for a melee profile",
+        hint: hasMeleeProfiles ? "Melee attack" : "No profiles",
         handler: "mechAttack",
         disabled: !hasMeleeProfiles,
         dataset: { attackKind: "melee" }
       },
       {
-        label: "Charge",
-        hint: "Impact, Control, or DFA collision attack",
+        label: "Maneuvers",
+        hint: "Charge attack",
         handler: "mechAttack",
         disabled: false,
         dataset: { attackKind: "charge" }
       },
       {
         label: getQuickActionLabel("pilotingCheck"),
-        hint: "Vehicle handling test",
+        hint: "Piloting check",
         handler: "mechRoll",
         disabled: false,
         dataset: { rollKind: "piloting" }
       },
       {
-        label: "EW",
-        hint: enabledEwActions.length ? "Choose an EW action" : "No EW actions available",
+        label: "Electronic Warfare",
+        hint: enabledEwActions.length ? "EW action" : "No EW actions",
         handler: "mechRoll",
         disabled: enabledEwActions.length === 0,
         dataset: { rollKind: "sensor" }
       },
       {
         label: getQuickActionLabel("emergencyRepair"),
-        hint: "Choose a crit or repairable status",
+        hint: "Repair action",
         handler: "mechRoll",
         disabled: false,
         dataset: { rollKind: "repair" }
@@ -734,7 +734,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
 
     try {
       if (rollKind === "piloting") {
-        await executeMachineAction(actor, { kind: "piloting" });
+        const selection = await this._promptMachinePilotCheck(actor);
+        if (selection) await executeMachineAction(actor, { kind: "piloting", ...selection });
       } else if (rollKind === "sensor") {
         const selectedAction = await this.#promptMachineEwAction(actor);
         if (selectedAction) await executeMachineAction(actor, {

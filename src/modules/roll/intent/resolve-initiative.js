@@ -46,7 +46,7 @@ export async function resolveInitiative({ actor } = {}) {
     };
   }
 
-  const ref  = Number(actor.system?.attributes?.reflexes?.value ?? 0);
+  const ref  = Number(actor.getAttributeValue?.("reflexes") ?? actor.system?.attributes?.reflexes?.value ?? 0);
   const edge = Number(actor.system?.attributes?.edge?.value ?? 0);
 
   return {

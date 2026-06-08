@@ -63,7 +63,8 @@ function rulesLocationFor(actorType = "", locationKey = "", family = "") {
     return "torso";
   }
   if (normalizedFamily === "weapon" || normalizedKey === "turret") return "turret";
-  if (normalizedFamily === "motive" || ["front", "side", "rear", "rotor"].includes(normalizedKey)) return "mobility";
+  if (normalizedKey === "front") return "body";
+  if (normalizedFamily === "motive" || ["side", "rear", "rotor"].includes(normalizedKey)) return "mobility";
   return "body";
 }
 

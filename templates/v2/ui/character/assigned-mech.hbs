@@ -42,17 +42,17 @@ How it fits: Replaces the placeholder in the "Assigned Systems" tab of the chara
 
 {{!-- Quick combat actions --}}
         {{#if mech.quickActions.length}}
-          <section class="mwd-assigned-mech__actions mwd-item-hero">
+          <section class="mwd-assigned-mech__actions mwd-item-hero mwd-quick-actions">
             {{#each mech.quickActions as |action|}}
               <button
                 type="button"
                 class="mwd-item-hero__stat mwd-item-hero__stat--button{{#if action.disabled}} is-disabled{{else}} is-action{{/if}}"
                 data-action="{{action.handler}}"
                 {{{mwd-dataset action.dataset}}}
+                title="{{action.hint}}"
                 {{#if action.disabled}}disabled{{/if}}
               >
                 <span class="mwd-item-hero__label">{{action.label}}</span>
-                <span class="mwd-item-hero__value">{{action.hint}}</span>
               </button>
             {{/each}}
           </section>

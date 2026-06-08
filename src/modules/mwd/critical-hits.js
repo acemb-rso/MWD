@@ -638,6 +638,7 @@ function normalizeCriticalLocationFamily(actor = null, hitLocation = {}) {
     return "torso";
   }
   if (family === "turret" || family === "weapon" || /turret|weapon/i.test(String(hitLocation?.locationKey ?? ""))) return "turret";
+  if (family === "front" || /front/i.test(String(hitLocation?.locationKey ?? ""))) return "body";
   if (family === "mobility" || family === "motive" || /mobility|motive|drive|wheel|track/i.test(String(hitLocation?.locationKey ?? ""))) return "mobility";
   return "body";
 }

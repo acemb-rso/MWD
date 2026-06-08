@@ -33,12 +33,9 @@ function vehicle({
       mwd: {
         strain,
         locations: {
-          front: { enabled: true, stress: 0, condition: 0, destroyed: false, ...(locations.front ?? {}) },
-          side: { enabled: true, stress: 0, condition: 0, destroyed: false, ...(locations.side ?? {}) },
-          rear: { enabled: true, stress: 0, condition: 0, destroyed: false, ...(locations.rear ?? {}) },
-          core: { enabled: true, stress: 0, condition: 0, destroyed: false, ...(locations.core ?? {}) },
+          body: { enabled: true, stress: 0, condition: 0, destroyed: false, ...(locations.body ?? {}) },
           turret: { enabled: true, stress: 0, condition: 0, destroyed: false, ...(locations.turret ?? {}) },
-          rotor: { enabled: false, stress: 0, condition: 0, destroyed: false, ...(locations.rotor ?? {}) },
+          mobility: { enabled: true, stress: 0, condition: 0, destroyed: false, ...(locations.mobility ?? {}) },
         },
         crits: [],
         ...profile,
@@ -143,7 +140,7 @@ test("vehicle degradation distinguishes turret and mobility consequences", () =>
   const actor = vehicle({
     locations: {
       turret: { condition: 4 },
-      rotor: { enabled: true, condition: 4 },
+      mobility: { condition: 4 },
     },
   });
 
@@ -158,7 +155,7 @@ test("vehicle movement penalties are meters and clamp non-immobilized speed to 1
   const actor = vehicle({
     movement: { ground: 60, flight: 90 },
     locations: {
-      rear: { condition: 2 },
+      mobility: { condition: 2 },
     },
   });
   const choices = buildVehicleMovementActionChoices(actor);

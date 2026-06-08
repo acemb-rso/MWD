@@ -92,12 +92,9 @@ const templateData = {
           adverseTerrain: ["water"],
           affordances: ["stabilizedFire", "hullDown"],
           locations: {
-            front:  { enabled: true,  stress: 0, condition: 0, tags: ["weaponGroup", "motiveSystem"], destroyed: false },
-            side:   { enabled: true,  stress: 0, condition: 0, tags: ["weaponGroup", "motiveSystem"], destroyed: false },
-            rear:   { enabled: true,  stress: 0, condition: 0, tags: ["weaponGroup", "motiveSystem", "ammoStore"], destroyed: false },
+            body:   { enabled: true,  stress: 0, condition: 0, tags: ["crewCompartment", "engine", "ammoStore"], destroyed: false },
             turret: { enabled: true,  stress: 0, condition: 0, tags: ["turret", "weaponGroup"], destroyed: false },
-            rotor:  { enabled: false, stress: 0, condition: 0, tags: ["rotor"], destroyed: false },
-            core:   { enabled: true,  stress: 0, condition: 0, tags: ["crewCompartment", "engine", "ammoStore"], destroyed: false }
+            mobility: { enabled: true, stress: 0, condition: 0, tags: ["motiveSystem", "rotor"], destroyed: false }
           }
         },
         movement: { ground: 0, flight: 0 }

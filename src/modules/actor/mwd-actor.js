@@ -228,7 +228,10 @@ export class MWDActor extends Actor {
     const armorModifier = this.isCharacterLike()
       ? Number(getActiveArmorTraitEffects(this).attributeModifiers?.[attributeKey] ?? 0) || 0
       : 0;
-    return Math.max(0, base + armorModifier);
+    const baStrengthBonus = (this.isCharacterLike() && attributeKey === "strength")
+      ? getBattleArmorEnhancedStrengthBonus(getEquippedBattleArmor(this)?.battleArmor)
+      : 0;
+    return Math.max(0, base + armorModifier + baStrengthBonus);
   }
 
   getSkillRating(skillKey) {
@@ -791,17 +794,15 @@ export class MWDActor extends Actor {
     const monitors = this.system.monitors ?? {};
 
     const activeBattleArmor = getEquippedBattleArmor(this);
-    const enhancedStrengthBonus = getBattleArmorEnhancedStrengthBonus(activeBattleArmor?.battleArmor);
 
     // For character-like actors, physical.max derives from STR and fatigue.max from GUTS.
     // This must run before deriveMonitors so penalties reflect the correct track length.
     if (this.isCharacterLike()) {
-      const str = Math.max(0, Number(this.system?.attributes?.strength?.value ?? 0));
-      const effectiveStr = str + enhancedStrengthBonus;
+      const str = this.getAttributeValue("strength");
       const guts = Math.max(0, Number(this.system?.attributes?.guts?.value ?? 0));
       monitors.physical ??= {};
       monitors.fatigue  ??= {};
-      monitors.physical.max = effectiveStr === 0 ? 0 : BASE_MONITOR + effectiveStr;
+      monitors.physical.max = str === 0 ? 0 : BASE_MONITOR + str;
       monitors.fatigue.max  = guts === 0 ? 0 : BASE_MONITOR + guts;
     }
 
@@ -855,8 +856,6 @@ export class MWDActor extends Actor {
       fat = 0;
     }
     const armorResistance = Number(derived?.armor?.resistance ?? 0);
-
-    this.system.derived.battleArmor = { enhancedStrengthBonus };
 
     // Both apply (stack)
     const total = phys + fat;

@@ -759,6 +759,8 @@ async function executeMachineCatalogAction(actor, request = {}) {
     case "movement": {
       if (action.key === "pilotingCheck") {
         return performMachinePilotingCheck(actor, {
+          machineAttributeKey: String(request.machineAttributeKey ?? request.attributeKey ?? action.attributeKey ?? TEMPLATE.actorAttributes.handling).trim(),
+          skillKey: String(request.skillKey ?? action.skillKey ?? "piloting").trim(),
           operatorActorUuid: String(request.operatorActorUuid ?? "").trim(),
         });
       }
@@ -829,6 +831,15 @@ export async function executeMachineQuickAction(actor, request = {}) {
       break;
     case "piloting":
       result = await performMachinePilotingCheck(actor, {
+        machineAttributeKey: normalized.machineAttributeKey,
+        skillKey: normalized.skillKey,
+        operatorActorUuid: normalized.operatorActorUuid,
+      });
+      break;
+    case "skillCheck":
+      result = await performMachineAdHocSkillCheck(actor, {
+        machineAttributeKey: normalized.machineAttributeKey,
+        skillKey: normalized.skillKey,
         operatorActorUuid: normalized.operatorActorUuid,
       });
       break;
@@ -962,17 +973,24 @@ async function recordMachineActionCost(actor, action, { token = null, operatorAc
   return spend;
 }
 
-export async function performMachinePilotingCheck(actor, { operatorActorUuid = "" } = {}) {
+export async function performMachinePilotingCheck(actor, {
+  machineAttributeKey = TEMPLATE.actorAttributes.handling,
+  skillKey = "piloting",
+  operatorActorUuid = "",
+} = {}) {
   const rollApi = getMachineRollApi();
   if (!rollApi?.execute) return getRollUnavailableResult();
+  const normalizedMachineAttributeKey = String(machineAttributeKey ?? TEMPLATE.actorAttributes.handling).trim()
+    || TEMPLATE.actorAttributes.handling;
+  const normalizedSkillKey = String(skillKey ?? "piloting").trim() || "piloting";
 
   await rollApi.execute({
     actor,
     payload: {
       intent: "skill",
-      key: "piloting",
-      attrKey: "reflexes",
-      machineAttributeKey: TEMPLATE.actorAttributes.handling,
+      key: normalizedSkillKey,
+      noSkill: normalizedSkillKey === "none",
+      machineAttributeKey: normalizedMachineAttributeKey,
       operatorActorUuid: String(operatorActorUuid ?? "").trim(),
       quickAction: { title: MWD.actor.vehicle.quickActions.pilotingCheck },
       edge: { allowed: ["pre", "post"] },
@@ -981,6 +999,14 @@ export async function performMachinePilotingCheck(actor, { operatorActorUuid = "
   });
 
   return { ok: true };
+}
+
+export async function performMachineAdHocSkillCheck(actor, { machineAttributeKey = "", skillKey = "", operatorActorUuid = "" } = {}) {
+  return performMachinePilotingCheck(actor, {
+    machineAttributeKey,
+    skillKey,
+    operatorActorUuid,
+  });
 }
 
 export function buildMachineEwActionChoices(actor, { token = null, includeDisabled = false } = {}) {

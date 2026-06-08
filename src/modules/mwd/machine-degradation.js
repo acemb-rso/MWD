@@ -46,12 +46,9 @@ const MECH_LOCATION_PRIORITY = Object.freeze([
 ]);
 
 const VEHICLE_LOCATION_PRIORITY = Object.freeze([
-  "front",
-  "side",
-  "rear",
-  "core",
+  "body",
   "turret",
-  "rotor",
+  "mobility",
 ]);
 
 const DEFAULT_MECH_LOCATIONS = Object.freeze({
@@ -62,12 +59,9 @@ const DEFAULT_MECH_LOCATIONS = Object.freeze({
 });
 
 const DEFAULT_VEHICLE_LOCATIONS = Object.freeze({
-  front: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup", "motiveSystem"], destroyed: false }),
-  side: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup", "motiveSystem"], destroyed: false }),
-  rear: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["weaponGroup", "motiveSystem", "ammoStore"], destroyed: false }),
+  body: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["crewCompartment", "engine", "ammoStore"], destroyed: false }),
   turret: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["turret", "weaponGroup"], destroyed: false }),
-  rotor: Object.freeze({ enabled: false, stress: 0, condition: 0, tags: ["rotor"], destroyed: false }),
-  core: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["crewCompartment", "engine", "ammoStore"], destroyed: false }),
+  mobility: Object.freeze({ enabled: true, stress: 0, condition: 0, tags: ["motiveSystem", "rotor"], destroyed: false }),
 });
 
 const CATASTROPHIC_FALLBACKS = Object.freeze({
@@ -78,12 +72,9 @@ const CATASTROPHIC_FALLBACKS = Object.freeze({
     legs: Object.freeze({ type: "legCollapse", destroyed: true, statusState: "immobilized" }),
   }),
   [TEMPLATE.actorTypes.vehicle]: Object.freeze({
-    front: Object.freeze({ type: "hullCollapse", destroyed: true, statusState: "destroyed" }),
-    side: Object.freeze({ type: "hullCollapse", destroyed: true, statusState: "destroyed" }),
-    rear: Object.freeze({ type: "hullCollapse", destroyed: true, statusState: "destroyed" }),
-    core: Object.freeze({ type: "coreFailure", destroyed: true, statusState: "destroyed" }),
+    body: Object.freeze({ type: "hullCollapse", destroyed: true, statusState: "destroyed" }),
     turret: Object.freeze({ type: "turretDestroyed", destroyed: true, statusState: "" }),
-    rotor: Object.freeze({ type: "rotorFailure", destroyed: true, statusState: "destroyed" }),
+    mobility: Object.freeze({ type: "mobilityCollapse", destroyed: true, statusState: "immobilized" }),
   }),
 });
 
@@ -175,11 +166,49 @@ function mergeLegacyMechLocations(locations = {}) {
   return merged;
 }
 
+function mergeLegacyVehicleLocations(locations = {}) {
+  const groups = {
+    body: ["body", "core", "front"],
+    turret: ["turret"],
+    mobility: ["mobility", "side", "rear", "rotor"],
+  };
+
+  const merged = {};
+  for (const [targetKey, sourceKeys] of Object.entries(groups)) {
+    const sourceEntries = sourceKeys
+      .map(key => [key, locations?.[key]])
+      .filter(([, value]) => value && typeof value === "object");
+    if (!sourceEntries.length) continue;
+
+    const stress = sourceEntries.reduce((total, [, value]) => total + Math.max(0, toNumber(value?.stress, 0)), 0);
+    const condition = sourceEntries.reduce((max, [, value]) => Math.max(max, getConditionStage(value?.condition)), 0);
+    const enabled = sourceEntries.some(([, value]) => value?.enabled !== false);
+    const destroyed = sourceEntries.some(([, value]) => value?.destroyed === true);
+    const tags = Array.from(new Set(sourceEntries.flatMap(([, value]) => Array.isArray(value?.tags) ? value.tags : [])));
+
+    merged[targetKey] = {
+      enabled,
+      stress,
+      condition,
+      destroyed,
+      tags,
+    };
+  }
+
+  for (const [key, value] of Object.entries(locations ?? {})) {
+    if (Object.hasOwn(merged, key)) continue;
+    if (["core", "front", "side", "rear", "rotor"].includes(key)) continue;
+    merged[key] = value;
+  }
+
+  return merged;
+}
+
 function normalizeLocations(locations = {}, actorType = TEMPLATE.actorTypes.vehicle) {
   const defaults = getDefaultLocationConfig(actorType);
   const sourceLocations = actorType === TEMPLATE.actorTypes.battlemech
     ? mergeLegacyMechLocations(locations ?? {})
-    : (locations ?? {});
+    : mergeLegacyVehicleLocations(locations ?? {});
   const normalized = {};
 
   for (const [key, data] of Object.entries(defaults)) {

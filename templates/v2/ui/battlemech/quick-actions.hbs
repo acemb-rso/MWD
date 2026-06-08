@@ -4,7 +4,7 @@ Purpose: Renders prepared BattleMech quick-action buttons.
 How it fits: Provides the first-pass mech roll/attack wiring on the V2 sheet.
 --}}
 
-<section class="mwd-item-hero">
+<section class="mwd-item-hero mwd-quick-actions">
   {{#each battlemechSheet.quickActions as |action|}}
     <button
       type="button"
@@ -14,7 +14,6 @@ How it fits: Provides the first-pass mech roll/attack wiring on the V2 sheet.
       title="{{action.hint}}"
       {{#if action.disabled}}disabled{{/if}}>
       <span class="mwd-item-hero__label">{{action.label}}</span>
-      <span class="mwd-item-hero__value">{{action.hint}}</span>
     </button>
   {{/each}}
 </section>

@@ -46,6 +46,7 @@ import {
   buildMachineCriticalRepairIssues,
   buildMachineEwActionChoices,
 } from "../mwd/machine-quick-actions.js";
+import { MWD_SKILLS } from "../mwd/skills.js";
 import { buildVehicleProfileSummary, VEHICLE_FLIGHT_SUBTYPES, VEHICLE_MOVEMENT_PROFILES, VEHICLE_TERRAIN_CLASSES } from "../mwd/vehicle-profiles.js";
 import { buildVehicleRangedWeapons, performVehicleRangedAttack } from "../mwd/vehicle-ranged-actions.js";
 import { buildMachineMeleeProfiles, performMachineMeleeAttack } from "../mwd/battlemech-melee-actions.js";
@@ -59,6 +60,7 @@ import { resolveBattlemechJumpProfile } from "../mwd/battlemech-mobility.js";
 import { getSkillDef } from "../mwd/skills.js";
 import { cachePendingTokenPosition } from "../mwd/token-measurement.js";
 import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
+import { resolveMachineOperator } from "../mwd/machine-operator.js";
 import { normalizeMachineWeaponGroups, pruneWeaponGroupsToMountedItems } from "../mwd/machine-weapon-group-state.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { Misc } from "../misc.js";
@@ -76,6 +78,36 @@ function compactList(values = []) {
   return values
     .map(value => String(value ?? "").trim())
     .filter(Boolean);
+}
+
+function getPilotSkillRating(actor = null, skillKey = "") {
+  const key = String(skillKey ?? "").trim();
+  if (!actor || !key) return 0;
+  return Math.max(0, toNumber(
+    actor.getSkillRating?.(key)
+      ?? actor.system?.skills?.[key]?.rating,
+    0
+  ));
+}
+
+function buildTrainedPilotSkillGroups(pilotActor = null) {
+  const groups = new Map([
+    ["strength", { label: "Strength", skills: [] }],
+    ["reflexes", { label: "Reflexes", skills: [] }],
+    ["intelligence", { label: "Intelligence", skills: [] }],
+    ["guts", { label: "Guts", skills: [] }],
+    ["charisma", { label: "Charisma", skills: [] }],
+  ]);
+
+  for (const skill of MWD_SKILLS) {
+    const rating = getPilotSkillRating(pilotActor, skill.code);
+    if (rating <= 0) continue;
+    const group = groups.get(skill.attribute);
+    if (!group) continue;
+    group.skills.push({ ...skill, rating });
+  }
+
+  return Array.from(groups.values()).filter(group => group.skills.length);
 }
 
 function stripHtml(value) {
@@ -210,12 +242,9 @@ const DEGRADATION_LAYOUTS = Object.freeze({
     artPath: "",
     mode: "schematic",
     positions: Object.freeze({
-      front: Object.freeze({ top: "13%", left: "50%" }),
-      side: Object.freeze({ top: "40%", left: "18%" }),
-      turret: Object.freeze({ top: "33%", left: "50%" }),
-      core: Object.freeze({ top: "57%", left: "50%" }),
-      rear: Object.freeze({ top: "83%", left: "50%" }),
-      rotor: Object.freeze({ top: "17%", left: "79%" }),
+      body: Object.freeze({ top: "51%", left: "50%" }),
+      turret: Object.freeze({ top: "29%", left: "50%" }),
+      mobility: Object.freeze({ top: "77%", left: "50%" }),
     }),
   }),
 });
@@ -440,8 +469,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       {
         label: "Movement",
         hint: enabledMovementChoices.length
-          ? enabledMovementChoices.map(choice => choice.label).join(" / ")
-          : "No movement actions available",
+          ? "Move action"
+          : "No moves",
         handler: "vehicleMovement",
         disabled: enabledMovementChoices.length === 0,
         dataset: {},
@@ -449,8 +478,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       {
         label: "Mounted Fire",
         hint: rangedWeapons.length
-          ? rangedWeapons.map(w => w.name).join(" / ")
-          : "No mounted ranged weapons",
+          ? "Ranged attack"
+          : "No weapons",
         handler: "vehicleAttack",
         disabled: rangedWeapons.length === 0,
         dataset: {},
@@ -458,36 +487,36 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       {
         label: "Melee",
         hint: meleeProfiles.length
-          ? meleeProfiles.map(p => p.name).join(" / ")
-          : "No melee options",
+          ? "Melee attack"
+          : "No profiles",
         handler: "vehicleMeleeAttack",
         disabled: meleeProfiles.length === 0,
         dataset: {},
       },
       {
-        label: "Charge",
-        hint: "Impact or Control collision attack (Ram)",
+        label: "Maneuvers",
+        hint: "Charge attack",
         handler: "vehicleChargeAttack",
         disabled: false,
         dataset: {},
       },
       {
-        label: "Piloting",
-        hint: "Vehicle handling, terrain, or stability check",
+        label: "Piloting Check",
+        hint: "Piloting check",
         handler: "vehicleRoll",
         disabled: false,
         dataset: { rollKind: "piloting" },
       },
       {
-        label: "EW",
-        hint: enabledEwActions.length ? "Choose an EW action" : "No EW actions available",
+        label: "Electronic Warfare",
+        hint: enabledEwActions.length ? "EW action" : "No EW actions",
         handler: "vehicleRoll",
         disabled: enabledEwActions.length === 0,
         dataset: { rollKind: "sensor" },
       },
       {
         label: "Repair",
-        hint: "Choose a crit or repairable status",
+        hint: "Repair action",
         handler: "vehicleRoll",
         disabled: false,
         dataset: { rollKind: "repair" },
@@ -1861,6 +1890,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       ],
     });
 
+    if (!selectedId) return;
     const selectedAction = selectableChoices.find(choice => choice.id === selectedId) ?? defaultChoice;
     try {
       await executeMachineAction(actor, {
@@ -1880,7 +1910,10 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const actor = this.getPersistentActor() ?? this.actor;
     const rollKind = String(target?.dataset?.rollKind ?? "").trim();
     try {
-      if (rollKind === "piloting") await executeMachineAction(actor, { kind: "piloting" });
+      if (rollKind === "piloting") {
+        const selection = await this._promptMachinePilotCheck(actor);
+        if (selection) await executeMachineAction(actor, { kind: "piloting", ...selection });
+      }
       else if (rollKind === "sensor") {
         const token = this._resolveStatusToken(actor);
         const selectedAction = await this.#promptVehicleEwAction(actor, { token });
@@ -1900,6 +1933,84 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       console.error("MWD | Failed to launch vehicle check", error);
       notifyRollError(error, "Unable to launch that vehicle check.");
     }
+  }
+
+  async _promptMachinePilotCheck(actor) {
+    const MACHINE_ATTRS = [
+      { key: "handling",    label: "Handling" },
+      { key: "system",      label: "System" },
+      { key: "chassis",     label: "Chassis" },
+      { key: "reliability", label: "Reliability" },
+    ];
+    const operator = await resolveMachineOperator({ machineActor: actor });
+    const pilotActor = operator?.actor ?? null;
+    if (!pilotActor) {
+      ui.notifications?.warn(operator?.reason || "Machine checks require a linked pilot or operator.");
+      return null;
+    }
+
+    const skillGroups = buildTrainedPilotSkillGroups(pilotActor);
+    const defaultSkillKey = skillGroups
+      .flatMap(group => group.skills)
+      .find(skill => skill.code === "piloting")?.code
+      ?? "";
+    const attrOptions = MACHINE_ATTRS.map(a => {
+      const val = Number(actor.system?.attributes?.[a.key]?.value ?? 0);
+      return `<label class="mwd-pilot-check__attr">
+        <input type="radio" name="machineAttr" value="${foundry.utils.escapeHTML(a.key)}" ${a.key === "handling" ? "checked" : ""}>
+        <span class="mwd-pilot-check__attr-card">
+          <span class="mwd-pilot-check__attr-name">${foundry.utils.escapeHTML(a.label)}</span>
+          <span class="mwd-pilot-check__attr-value">${val}</span>
+        </span>
+      </label>`;
+    }).join("");
+    const skillOptions = skillGroups.map(group => {
+      const opts = group.skills.map(s => `<option value="${foundry.utils.escapeHTML(s.code)}" ${s.code === defaultSkillKey ? "selected" : ""}>${foundry.utils.escapeHTML(s.label)} (${s.rating})</option>`).join("");
+      return `<optgroup label="${foundry.utils.escapeHTML(group.label)}">${opts}</optgroup>`;
+    }).join("");
+    const noSkillOption = `<option value="" ${defaultSkillKey ? "" : "selected"}>No Skill (0)</option>`;
+    const content = `<form class="mwd-quick-select mwd-skill-check-form mwd-pilot-check">
+      <section class="mwd-pilot-check__section">
+        <div class="mwd-pilot-check__heading">
+          <span>Machine Attribute</span>
+          <small>${foundry.utils.escapeHTML(actor?.name ?? "Machine")}</small>
+        </div>
+        <div class="mwd-pilot-check__attr-grid">${attrOptions}</div>
+      </section>
+      <section class="mwd-pilot-check__section">
+        <div class="mwd-pilot-check__heading">
+          <span>Skill</span>
+          <small>${foundry.utils.escapeHTML(pilotActor?.name ?? "Pilot")}</small>
+        </div>
+        <label class="mwd-pilot-check__select">
+          <select name="skillKey">${noSkillOption}${skillOptions}</select>
+        </label>
+      </section>
+    </form>`;
+
+    const result = await foundry.applications.api.DialogV2.wait({
+      window: { title: MWD.actor.vehicle.quickActions.pilotingCheck },
+      content,
+      rejectClose: false,
+      buttons: [
+        {
+          action: "roll",
+          label: MWD.common.roll.button,
+          icon: "fa-solid fa-dice",
+          default: true,
+          callback: (_event, button) => ({
+            machineAttributeKey: button.form?.elements["machineAttr"]?.value ?? "handling",
+            skillKey: button.form?.elements["skillKey"]?.value ?? defaultSkillKey,
+            operatorActorUuid: pilotActor.uuid ?? operator?.uuid ?? "",
+          }),
+        },
+      ],
+    });
+
+    return result ? {
+      ...result,
+      skillKey: String(result.skillKey ?? "").trim() || "none",
+    } : null;
   }
 
   async #promptVehicleEwAction(actor, { token = null } = {}) {

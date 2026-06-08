@@ -39,7 +39,7 @@ function getRollApi() {
 }
 
 function getActivationMaxSA(actor) {
-  const reflexes = Math.max(0, Number(actor?.system?.attributes?.reflexes?.value ?? 0) || 0);
+  const reflexes = Math.max(0, Number(actor?.getAttributeValue?.("reflexes") ?? actor?.system?.attributes?.reflexes?.value ?? 0) || 0);
   const guts = Math.max(0, Number(actor?.system?.attributes?.guts?.value ?? 0) || 0);
   return 3 + Math.floor((reflexes + guts) / 2);
 }
@@ -537,7 +537,7 @@ async function executeRollAction(actor, { action, metadata = {}, event = null } 
     return { ok: false, reason: "Choose a skill before rolling." };
   }
   const value = await rollApi.execute({ actor, payload, event });
-  return { ok: Boolean(value), rolled: true, value, cancelled: !value };
+  return { ok: Boolean(value), rolled: Boolean(value), value, cancelled: !value };
 }
 
 async function executeAttackResolver(actor, { action, token = null, metadata = {}, event = null } = {}) {
@@ -763,6 +763,56 @@ export async function executeCombatActionIntent({ actor, token = null, payload =
       stateChanges: result?.stateChanges ?? [],
       log: result?.log ?? null,
       value: result?.value,
+    };
+  }
+
+  if (action.roll && (action.resolver === PERSONAL_ACTION_RESOLVERS.action || action.id === "overloadCheck")) {
+    const spendPreview = effectiveCost.resource === "none" || effectiveCost.value <= 0
+      ? { ok: true }
+      : PersonalCombatTracker.previewResourceSpend?.(actor, {
+        token,
+        resource: effectiveCost.resource,
+        cost: effectiveCost.value,
+        actionId: action.id,
+        actionLabel: getActionLabel(action, metadata),
+        actionCostLabel: effectiveCost.label,
+        actionCategory: action.category,
+      }) ?? { ok: true };
+    if (!spendPreview?.ok) return { ...spendPreview, actionId: action.id, costPaid: false, rolled: false, stateChanges: [] };
+
+    const resolved = await executeResolver(actor, { action, token, metadata, event });
+    if (resolved?.cancelled) {
+      return { ...resolved, ok: false, actionId: action.id, costPaid: false, rolled: Boolean(resolved?.rolled), stateChanges: [] };
+    }
+    if (!resolved?.ok) {
+      return { ...resolved, actionId: action.id, costPaid: false, rolled: Boolean(resolved?.rolled), stateChanges: resolved?.stateChanges ?? [] };
+    }
+
+    const spend = await spendActionCost(actor, { token, action, metadata, snapshot });
+    if (!spend?.ok) return { ...spend, actionId: action.id, costPaid: false, rolled: Boolean(resolved?.rolled), stateChanges: [] };
+
+    const stateResult = await PersonalCombatTracker._applyActionState?.(actor, {
+      token,
+      actionId: action.id,
+      metadata,
+      snapshot: spend.snapshot ?? snapshot,
+    });
+
+    return {
+      ok: true,
+      actionId: action.id,
+      costPaid: Boolean(spend.costPaid ?? action.cost?.resource !== "none"),
+      rolled: Boolean(resolved.rolled),
+      stateChanges: [
+        ...(stateResult?.ok ? [{ type: "combatState", actionId: action.id }] : []),
+        ...(resolved.stateChanges ?? []),
+      ],
+      log: resolved.log ?? {
+        title: action.label,
+        message: getActionLabel(action, metadata)
+      },
+      costLabel: spend.costLabel,
+      value: resolved.value,
     };
   }
 

@@ -20,7 +20,7 @@ export function isMachineActor(actor) {
 export function resolveMachineInitiativeComponents({ machineActor = null, pilotActor = null } = {}) {
   const handling = getAttributeValue(machineActor, TEMPLATE.actorAttributes.handling);
   const system = getAttributeValue(machineActor, TEMPLATE.actorAttributes.system);
-  const pilotReflexes = getAttributeValue(pilotActor, TEMPLATE.actorAttributes.reflexes);
+  const pilotReflexes = toNumber(pilotActor?.getAttributeValue?.(TEMPLATE.actorAttributes.reflexes), 0);
   const machineAttributeKey = system > handling
     ? TEMPLATE.actorAttributes.system
     : TEMPLATE.actorAttributes.handling;

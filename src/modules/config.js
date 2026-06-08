@@ -332,7 +332,7 @@ export const MWD = {
         "rangedAttack": "Ranged Attack",
         "meleeAttack": "Melee Attack",
         "pilotingCheck": "Piloting Check",
-        "sensorSweep": "EW",
+        "sensorSweep": "Electronic Warfare",
         "emergencyRepair": "Critical Repair",
 
         "allWeapons": "All Weapons",
