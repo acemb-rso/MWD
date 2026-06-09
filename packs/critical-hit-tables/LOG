@@ -1,11 +1,25 @@
-2026/06/09-03:39:13.485 10624 Recovering log #323
-2026/06/09-03:39:13.486 10624 Level-0 table #326: started
-2026/06/09-03:39:13.487 10624 Level-0 table #326: 18801 bytes OK
-2026/06/09-03:39:13.489 10624 Delete type=0 #323
-2026/06/09-03:39:13.489 10624 Delete type=3 #321
-2026/06/09-03:39:13.517 71a8 Compacting 1@0 + 1@1 files
-2026/06/09-03:39:13.519 71a8 Generated table #328@0: 309 keys, 20973 bytes
-2026/06/09-03:39:13.519 71a8 Compacted 1@0 + 1@1 files => 20973 bytes
-2026/06/09-03:39:13.520 71a8 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/06/09-03:39:13.520 71a8 Delete type=2 #324
-2026/06/09-03:39:13.520 71a8 Delete type=2 #326
+2026/06/09-17:55:56.258 bcc0 Recovering log #327
+2026/06/09-17:55:56.259 bcc0 Level-0 table #330: started
+2026/06/09-17:55:56.259 bcc0 Level-0 table #330: 18528 bytes OK
+2026/06/09-17:55:56.262 bcc0 Delete type=0 #327
+2026/06/09-17:55:56.262 bcc0 Delete type=3 #325
+2026/06/09-17:55:56.264 8838 Level-0 table #333: started
+2026/06/09-17:55:56.265 8838 Level-0 table #333: 13797 bytes OK
+2026/06/09-17:55:56.266 8838 Delete type=0 #331
+2026/06/09-17:55:56.266 8838 Manual compaction at level-0 from '!tables!MWDGeneralCrit01' @ 72057594037927935 : 1 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at '!tables.results!zs3FdB1EcqjS0tcv' @ 12418 : 0
+2026/06/09-17:55:56.266 8838 Compacting 2@0 + 1@1 files
+2026/06/09-17:55:56.267 8838 Generated table #334@0: 492 keys, 20908 bytes
+2026/06/09-17:55:56.267 8838 Compacted 2@0 + 1@1 files => 20908 bytes
+2026/06/09-17:55:56.268 8838 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/06/09-17:55:56.268 8838 Delete type=2 #328
+2026/06/09-17:55:56.268 8838 Delete type=2 #330
+2026/06/09-17:55:56.268 8838 Delete type=2 #333
+2026/06/09-17:55:56.268 8838 Manual compaction at level-0 from '!tables.results!zs3FdB1EcqjS0tcv' @ 12418 : 0 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at (end)
+2026/06/09-17:55:56.268 8838 Manual compaction at level-1 from '!tables!MWDGeneralCrit01' @ 72057594037927935 : 1 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at '!tables.results!zj0J5wK6FIX5mBtl' @ 11935 : 0
+2026/06/09-17:55:56.268 8838 Compacting 1@1 + 1@2 files
+2026/06/09-17:55:56.270 8838 Generated table #335@1: 96 keys, 11909 bytes
+2026/06/09-17:55:56.270 8838 Compacted 1@1 + 1@2 files => 11909 bytes
+2026/06/09-17:55:56.270 8838 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/06/09-17:55:56.270 8838 Delete type=2 #315
+2026/06/09-17:55:56.270 8838 Delete type=2 #334
+2026/06/09-17:55:56.270 8838 Manual compaction at level-1 from '!tables.results!zj0J5wK6FIX5mBtl' @ 11935 : 0 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at (end)

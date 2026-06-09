@@ -1,7 +1,7 @@
 {
   "id": "mwd",
   "type": "system",
-  "version": "0.5.2",
+  "version": "0.5.2.1",
   "title": "MechWarrior: Destiny",
   "description": "MechWarrior: Destiny RPG for FoundryVTT",
   "compatibility": {
@@ -85,6 +85,16 @@
     {
       "name": "gear",
       "label": "Gear",
+      "type": "Item",
+      "system": "mwd",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "consumables",
+      "label": "Consumables",
       "type": "Item",
       "system": "mwd",
       "ownership": {

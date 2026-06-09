@@ -1,0 +1,32 @@
+{
+  "_id": "7b1447213861aec4",
+  "name": "Medpatch",
+  "type": "consumable",
+  "img": "systems/mwd/img/icons/systems/gear/sticking-plaster.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Personal Equipment",
+    "description": "<p>Quick treatment consumable</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "category": "medical",
+    "relatedSkill": "medTech",
+    "availability": "Common",
+    "rulesHook": "Quick treatment consumable",
+    "tags": [
+      "medical",
+      "treatment",
+      "quickUse",
+      "consumable"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!7b1447213861aec4"
+}
