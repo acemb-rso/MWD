@@ -33632,11 +33632,12 @@ class cl extends bi {
       });
     }), e.querySelectorAll(".mwd-payload-item-remove").forEach((a) => {
       a.addEventListener("click", (r) => {
+        var l;
         r.preventDefault();
         const s = String(a.dataset.itemId ?? "").trim();
         if (!s) return;
         const o = this.item.actor ?? null;
-        o && n(() => o.deleteEmbeddedDocuments("Item", [s]));
+        o && ((l = this._captureScrollPositions) == null || l.call(this), (async () => (await o.deleteEmbeddedDocuments("Item", [s]), this.render({ force: !0 })))());
       });
     }), e.querySelectorAll(".mwd-payload-field").forEach((a) => {
       a.addEventListener("change", (r) => {

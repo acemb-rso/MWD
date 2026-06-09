@@ -676,7 +676,11 @@ export class WeaponItemSheet extends BaseItemSheet {
         if (!itemId) return;
         const actor = this.item.actor ?? null;
         if (!actor) return;
-        void preserveScroll(() => actor.deleteEmbeddedDocuments("Item", [itemId]));
+        this._captureScrollPositions?.();
+        void (async () => {
+          await actor.deleteEmbeddedDocuments("Item", [itemId]);
+          this.render({ force: true });
+        })();
       });
     });
 

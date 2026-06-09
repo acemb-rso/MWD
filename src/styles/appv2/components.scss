@@ -2213,6 +2213,54 @@
   background: rgba(255, 255, 255, 0.24);
 }
 
+.mwd-payload-compat-config {
+  border: 1px solid rgba(94, 76, 46, 0.16);
+  border-radius: 8px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.12);
+
+  &[open] {
+    padding-bottom: 10px;
+  }
+}
+
+.mwd-payload-compat-config__toggle {
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(69, 56, 34, 0.72);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+
+  &::marker,
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &::before {
+    content: '▶';
+    display: inline-block;
+    margin-right: 6px;
+    font-size: 0.6em;
+    transition: transform 0.15s ease;
+    vertical-align: middle;
+  }
+
+  details[open] > & {
+    &::before {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+.mwd-payload-compat-config .mwd-weapon-compact__row {
+  padding: 0 10px;
+  margin-top: 8px;
+}
+
 .mwd-records {
   display: flex;
   flex-direction: column;
