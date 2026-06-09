@@ -16,7 +16,12 @@
     "positive": true,
     "category": "positive",
     "tier": "major",
-    "tags": ["positive", "major", "edge", "grit"],
+    "tags": [
+      "positive",
+      "major",
+      "edge",
+      "grit"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,13 +35,65 @@
         "operation": "grantPool",
         "application": "automatic",
         "conditions": [
-          { "id": "disciplined-cycle-sa", "fact": "activation.saSpent", "comparator": "lt", "value": 3 }
+          {
+            "id": "disciplined-cycle-sa",
+            "fact": "activation.saSpent",
+            "comparator": "lt",
+            "value": 3
+          }
         ]
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "disciplined-cycle-grit",
+        "label": "Disciplined Cycle",
+        "sourceType": "quality",
+        "phase": "endOfActivation",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "endOfActivation"
+          ]
+        },
+        "requires": [],
+        "conditions": [
+          {
+            "id": "disciplined-cycle-sa",
+            "fact": "activation.saSpent",
+            "comparator": "lt",
+            "value": 3
+          }
+        ],
+        "outputs": [
+          {
+            "type": "edgeEventHook",
+            "id": "disciplined-cycle-grit.edgeEvent",
+            "label": "Disciplined Cycle",
+            "trigger": "endOfActivation",
+            "effect": {
+              "operation": "grantPool",
+              "pool": "grit",
+              "value": 1
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Disciplined Cycle"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a10100000000000a"
 }

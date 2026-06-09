@@ -16,7 +16,11 @@
     "positive": true,
     "category": "positive",
     "tier": "minor",
-    "tags": ["positive", "minor", "insight"],
+    "tags": [
+      "positive",
+      "minor",
+      "insight"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,43 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "insightful-judge-intent",
+        "label": "Insightful",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "common.judgeIntent"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "insightful-judge-intent.dice",
+            "label": "Insightful",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Insightful"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a101000000000014"
 }

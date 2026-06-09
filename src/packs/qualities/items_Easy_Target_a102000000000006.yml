@@ -16,7 +16,11 @@
     "positive": false,
     "category": "negative",
     "tier": "minor",
-    "tags": ["negative", "minor", "defense"],
+    "tags": [
+      "negative",
+      "minor",
+      "defense"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,44 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "easy-target-dr",
+        "label": "Easy Target",
+        "sourceType": "quality",
+        "phase": "personalDefenseRating",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "defenseRating"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "cqPart",
+            "id": "easy-target-dr.defenseRating",
+            "label": "Easy Target",
+            "ar": 0,
+            "dr": -2
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Easy Target"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a102000000000006"
 }

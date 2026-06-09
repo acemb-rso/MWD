@@ -16,7 +16,11 @@
     "positive": false,
     "category": "negative",
     "tier": "minor",
-    "tags": ["negative", "minor", "environment"],
+    "tags": [
+      "negative",
+      "minor",
+      "environment"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -31,8 +35,46 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "g-sickness-skill",
+        "label": "G-Sickness",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "optional",
+        "selector": {
+          "tags": [
+            "intent.skill"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "g-sickness-skill.dice",
+            "label": "G-Sickness",
+            "value": -1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {
+          "defaultEnabled": false,
+          "showInRollDialog": true
+        },
+        "summary": "G-Sickness"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a10200000000000d"
 }

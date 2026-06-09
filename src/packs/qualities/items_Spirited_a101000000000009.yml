@@ -16,7 +16,11 @@
     "positive": true,
     "category": "positive",
     "tier": "major",
-    "tags": ["positive", "major", "action-economy"],
+    "tags": [
+      "positive",
+      "major",
+      "action-economy"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,44 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "spirited-sa",
+        "label": "Spirited",
+        "sourceType": "quality",
+        "phase": "activationBudget",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "activationBudget.sa"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "activationBudgetAdjustment",
+            "id": "spirited-sa.sa",
+            "label": "Spirited",
+            "resource": "sa",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Spirited"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a101000000000009"
 }

@@ -16,7 +16,11 @@
     "positive": false,
     "category": "negative",
     "tier": "major",
-    "tags": ["negative", "major", "social"],
+    "tags": [
+      "negative",
+      "major",
+      "social"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -24,7 +28,10 @@
         "type": "rollMod",
         "phase": "onBuildRoll",
         "selector": "intent.skill",
-        "skillKeys": ["negotiation", "etiquette"],
+        "skillKeys": [
+          "negotiation",
+          "etiquette"
+        ],
         "label": "Blunt",
         "value": -1,
         "application": "optional",
@@ -32,8 +39,50 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "blunt-social",
+        "label": "Blunt",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "optional",
+        "selector": {
+          "tags": [
+            "intent.skill"
+          ],
+          "skillIds": [
+            "negotiation",
+            "etiquette"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "blunt-social.dice",
+            "label": "Blunt",
+            "value": -1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {
+          "defaultEnabled": false,
+          "showInRollDialog": true
+        },
+        "summary": "Blunt"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a102000000000005"
 }

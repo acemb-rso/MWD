@@ -16,7 +16,11 @@
     "positive": true,
     "category": "positive",
     "tier": "major",
-    "tags": ["positive", "major", "condition"],
+    "tags": [
+      "positive",
+      "major",
+      "condition"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -41,8 +45,73 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "pain-buffer-physical",
+        "label": "Pain Buffer (Physical)",
+        "sourceType": "quality",
+        "phase": "conditionPenalty",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "condition.physical"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "conditionPenaltyAdjustment",
+            "id": "pain-buffer-physical.conditionPenalty",
+            "label": "Pain Buffer (Physical)",
+            "track": "physical",
+            "value": -1,
+            "minPenalty": 0
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Pain Buffer (Physical)"
+      },
+      {
+        "id": "pain-buffer-fatigue",
+        "label": "Pain Buffer (Fatigue)",
+        "sourceType": "quality",
+        "phase": "conditionPenalty",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "condition.fatigue"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "conditionPenaltyAdjustment",
+            "id": "pain-buffer-fatigue.conditionPenalty",
+            "label": "Pain Buffer (Fatigue)",
+            "track": "fatigue",
+            "value": -1,
+            "minPenalty": 0
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Pain Buffer (Fatigue)"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a10100000000000c"
 }

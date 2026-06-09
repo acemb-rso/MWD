@@ -16,7 +16,11 @@
     "positive": true,
     "category": "positive",
     "tier": "major",
-    "tags": ["positive", "major", "sensor"],
+    "tags": [
+      "positive",
+      "major",
+      "sensor"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,43 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "sensor-savant-acquire",
+        "label": "Sensor Savant",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "intent.acquire"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "sensor-savant-acquire.dice",
+            "label": "Sensor Savant",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Sensor Savant"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a101000000000010"
 }

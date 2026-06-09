@@ -16,7 +16,11 @@
     "positive": true,
     "category": "positive",
     "tier": "major",
-    "tags": ["positive", "major", "burn"],
+    "tags": [
+      "positive",
+      "major",
+      "burn"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,44 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "efficient-burn-recovery",
+        "label": "Efficient",
+        "sourceType": "quality",
+        "phase": "endOfActivation",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "burn.adjust"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "burnRuleAdjustment",
+            "id": "efficient-burn-recovery.burn",
+            "label": "Efficient",
+            "trigger": "burn.adjust",
+            "value": -1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Efficient"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a101000000000007"
 }

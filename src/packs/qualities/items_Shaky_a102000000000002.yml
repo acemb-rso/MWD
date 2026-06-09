@@ -16,7 +16,11 @@
     "positive": false,
     "category": "negative",
     "tier": "minor",
-    "tags": ["negative", "minor", "attack"],
+    "tags": [
+      "negative",
+      "minor",
+      "attack"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -28,13 +32,60 @@
         "value": -1,
         "application": "automatic",
         "conditions": [
-          { "id": "shaky-attack-count", "fact": "activation.attacksThisActivation", "comparator": "lt", "value": 2 }
+          {
+            "id": "shaky-attack-count",
+            "fact": "activation.attacksThisActivation",
+            "comparator": "lt",
+            "value": 2
+          }
         ]
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "shaky-first-attack",
+        "label": "Shaky",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "intent.attack"
+          ]
+        },
+        "requires": [],
+        "conditions": [
+          {
+            "id": "shaky-attack-count",
+            "fact": "activation.attacksThisActivation",
+            "comparator": "lt",
+            "value": 2
+          }
+        ],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "shaky-first-attack.dice",
+            "label": "Shaky",
+            "value": -1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Shaky"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a102000000000002"
 }

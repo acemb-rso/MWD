@@ -16,7 +16,12 @@
     "positive": true,
     "category": "positive",
     "tier": "minor",
-    "tags": ["positive", "minor", "thermal", "endure"],
+    "tags": [
+      "positive",
+      "minor",
+      "thermal",
+      "endure"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -31,8 +36,46 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "thick-skinned-endure",
+        "label": "Thick Skinned",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "optional",
+        "selector": {
+          "tags": [
+            "common.endure"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "thick-skinned-endure.dice",
+            "label": "Thick Skinned",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {
+          "defaultEnabled": false,
+          "showInRollDialog": true
+        },
+        "summary": "Thick Skinned"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a101000000000005"
 }

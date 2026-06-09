@@ -16,7 +16,11 @@
     "positive": true,
     "category": "positive",
     "tier": "minor",
-    "tags": ["positive", "minor", "initiative"],
+    "tags": [
+      "positive",
+      "minor",
+      "initiative"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,43 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "quick-to-violence-init",
+        "label": "Quick to Violence",
+        "sourceType": "quality",
+        "phase": "initiative",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "intent.initiative"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "initiativeAdjustment",
+            "id": "quick-to-violence-init.initiative",
+            "label": "Quick to Violence",
+            "value": 2
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Quick to Violence"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a101000000000006"
 }

@@ -16,7 +16,11 @@
     "positive": true,
     "category": "positive",
     "tier": "major",
-    "tags": ["positive", "major", "social"],
+    "tags": [
+      "positive",
+      "major",
+      "social"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -24,7 +28,10 @@
         "type": "rollMod",
         "phase": "onBuildRoll",
         "selector": "intent.skill",
-        "skillKeys": ["negotiation", "etiquette"],
+        "skillKeys": [
+          "negotiation",
+          "etiquette"
+        ],
         "label": "Affable",
         "value": 1,
         "application": "optional",
@@ -32,8 +39,50 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "affable-social",
+        "label": "Affable",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "optional",
+        "selector": {
+          "tags": [
+            "intent.skill"
+          ],
+          "skillIds": [
+            "negotiation",
+            "etiquette"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "affable-social.dice",
+            "label": "Affable",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {
+          "defaultEnabled": false,
+          "showInRollDialog": true
+        },
+        "summary": "Affable"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a10100000000000e"
 }

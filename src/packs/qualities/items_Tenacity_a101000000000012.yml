@@ -16,7 +16,11 @@
     "positive": true,
     "category": "positive",
     "tier": "minor",
-    "tags": ["positive", "minor", "endure"],
+    "tags": [
+      "positive",
+      "minor",
+      "endure"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,43 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "tenacity-endure",
+        "label": "Tenacity",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "common.endure"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "tenacity-endure.dice",
+            "label": "Tenacity",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Tenacity"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a101000000000012"
 }

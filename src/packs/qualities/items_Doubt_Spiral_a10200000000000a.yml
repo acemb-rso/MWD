@@ -16,7 +16,11 @@
     "positive": false,
     "category": "negative",
     "tier": "major",
-    "tags": ["negative", "major", "doubt"],
+    "tags": [
+      "negative",
+      "major",
+      "doubt"
+    ],
     "activation": "triggered",
     "effects": [
       {
@@ -31,8 +35,46 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "doubt-spiral-skill",
+        "label": "Doubt",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "optional",
+        "selector": {
+          "tags": [
+            "intent.skill"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "doubt-spiral-skill.dice",
+            "label": "Doubt",
+            "value": -1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {
+          "defaultEnabled": false,
+          "showInRollDialog": true
+        },
+        "summary": "Doubt"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a10200000000000a"
 }

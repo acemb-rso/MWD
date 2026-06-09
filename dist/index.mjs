@@ -4577,7 +4577,8 @@ function lE(t = {}, e = {}, n = 0) {
         type: r,
         value: rt(i.value, 0),
         damageType: re(i.damageType),
-        appliesTo: Un(i.appliesTo)
+        appliesTo: Un(i.appliesTo),
+        track: re(i.track)
       };
     case "heatAdjustment":
       return {

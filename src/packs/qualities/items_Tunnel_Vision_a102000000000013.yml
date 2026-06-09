@@ -16,7 +16,12 @@
     "positive": false,
     "category": "negative",
     "tier": "minor",
-    "tags": ["negative", "minor", "focus", "perception"],
+    "tags": [
+      "negative",
+      "minor",
+      "focus",
+      "perception"
+    ],
     "activation": "triggered",
     "effects": [
       {
@@ -24,7 +29,9 @@
         "type": "rollMod",
         "phase": "onBuildRoll",
         "selector": "intent.skill",
-        "skillKeys": ["perception"],
+        "skillKeys": [
+          "perception"
+        ],
         "label": "Tunnel Vision",
         "value": -1,
         "application": "optional",
@@ -32,8 +39,49 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "tunnel-vision-perception",
+        "label": "Tunnel Vision",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "optional",
+        "selector": {
+          "tags": [
+            "intent.skill"
+          ],
+          "skillIds": [
+            "perception"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "tunnel-vision-perception.dice",
+            "label": "Tunnel Vision",
+            "value": -1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {
+          "defaultEnabled": false,
+          "showInRollDialog": true
+        },
+        "summary": "Tunnel Vision"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a102000000000013"
 }

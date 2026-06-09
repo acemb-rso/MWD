@@ -16,7 +16,11 @@
     "positive": false,
     "category": "negative",
     "tier": "major",
-    "tags": ["negative", "major", "action-economy"],
+    "tags": [
+      "negative",
+      "major",
+      "action-economy"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,44 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "half-hearted-sa",
+        "label": "Half-Hearted",
+        "sourceType": "quality",
+        "phase": "activationBudget",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "activationBudget.sa"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "activationBudgetAdjustment",
+            "id": "half-hearted-sa.sa",
+            "label": "Half-Hearted",
+            "resource": "sa",
+            "value": -1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Half-Hearted"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a102000000000011"
 }

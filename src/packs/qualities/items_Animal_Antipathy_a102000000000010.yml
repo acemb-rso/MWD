@@ -16,7 +16,11 @@
     "positive": false,
     "category": "negative",
     "tier": "minor",
-    "tags": ["negative", "minor", "animals"],
+    "tags": [
+      "negative",
+      "minor",
+      "animals"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -24,7 +28,9 @@
         "type": "rollMod",
         "phase": "onBuildRoll",
         "selector": "intent.skill",
-        "skillKeys": ["animalHandling"],
+        "skillKeys": [
+          "animalHandling"
+        ],
         "label": "Animal Antipathy",
         "value": -1,
         "application": "optional",
@@ -32,8 +38,49 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "animal-antipathy",
+        "label": "Animal Antipathy",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "optional",
+        "selector": {
+          "tags": [
+            "intent.skill"
+          ],
+          "skillIds": [
+            "animalHandling"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "animal-antipathy.dice",
+            "label": "Animal Antipathy",
+            "value": -1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {
+          "defaultEnabled": false,
+          "showInRollDialog": true
+        },
+        "summary": "Animal Antipathy"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a102000000000010"
 }

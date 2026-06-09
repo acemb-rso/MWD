@@ -16,7 +16,11 @@
     "positive": false,
     "category": "negative",
     "tier": "major",
-    "tags": ["negative", "major", "overload"],
+    "tags": [
+      "negative",
+      "major",
+      "overload"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,43 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "runs-hot-overload",
+        "label": "Runs Hot",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "intent.overload"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "runs-hot-overload.dice",
+            "label": "Runs Hot",
+            "value": -2
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Runs Hot"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a102000000000009"
 }

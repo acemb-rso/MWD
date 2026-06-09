@@ -16,7 +16,11 @@
     "positive": true,
     "category": "positive",
     "tier": "minor",
-    "tags": ["positive", "minor", "salvage"],
+    "tags": [
+      "positive",
+      "minor",
+      "salvage"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -24,7 +28,9 @@
         "type": "rollMod",
         "phase": "onBuildRoll",
         "selector": "intent.skill",
-        "skillKeys": ["technician"],
+        "skillKeys": [
+          "technician"
+        ],
         "label": "Salvage Rat",
         "value": 1,
         "application": "optional",
@@ -35,7 +41,9 @@
         "type": "rollMod",
         "phase": "onBuildRoll",
         "selector": "intent.skill",
-        "skillKeys": ["survival"],
+        "skillKeys": [
+          "survival"
+        ],
         "label": "Salvage Rat",
         "value": 1,
         "application": "optional",
@@ -46,7 +54,9 @@
         "type": "rollMod",
         "phase": "onBuildRoll",
         "selector": "intent.skill",
-        "skillKeys": ["streetwise"],
+        "skillKeys": [
+          "streetwise"
+        ],
         "label": "Salvage Rat",
         "value": 1,
         "application": "optional",
@@ -54,8 +64,113 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "salvage-rat-technician",
+        "label": "Salvage Rat",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "optional",
+        "selector": {
+          "tags": [
+            "intent.skill"
+          ],
+          "skillIds": [
+            "technician"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "salvage-rat-technician.dice",
+            "label": "Salvage Rat",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {
+          "defaultEnabled": false,
+          "showInRollDialog": true
+        },
+        "summary": "Salvage Rat"
+      },
+      {
+        "id": "salvage-rat-survival",
+        "label": "Salvage Rat",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "optional",
+        "selector": {
+          "tags": [
+            "intent.skill"
+          ],
+          "skillIds": [
+            "survival"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "salvage-rat-survival.dice",
+            "label": "Salvage Rat",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {
+          "defaultEnabled": false,
+          "showInRollDialog": true
+        },
+        "summary": "Salvage Rat"
+      },
+      {
+        "id": "salvage-rat-streetwise",
+        "label": "Salvage Rat",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "optional",
+        "selector": {
+          "tags": [
+            "intent.skill"
+          ],
+          "skillIds": [
+            "streetwise"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "salvage-rat-streetwise.dice",
+            "label": "Salvage Rat",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {
+          "defaultEnabled": false,
+          "showInRollDialog": true
+        },
+        "summary": "Salvage Rat"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a101000000000016"
 }

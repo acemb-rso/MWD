@@ -16,7 +16,12 @@
     "positive": false,
     "category": "negative",
     "tier": "major",
-    "tags": ["negative", "major", "burn", "action-economy"],
+    "tags": [
+      "negative",
+      "major",
+      "burn",
+      "action-economy"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -28,13 +33,61 @@
         "value": 1,
         "application": "automatic",
         "conditions": [
-          { "id": "unfit-first-reduce-burn", "fact": "activation.actions", "comparator": "notIncludes", "value": "reduceBurn" }
+          {
+            "id": "unfit-first-reduce-burn",
+            "fact": "activation.actions",
+            "comparator": "notIncludes",
+            "value": "reduceBurn"
+          }
         ]
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "unfit-reduce-burn",
+        "label": "Unfit",
+        "sourceType": "quality",
+        "phase": "actionCost",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "action.reduceBurn"
+          ]
+        },
+        "requires": [],
+        "conditions": [
+          {
+            "id": "unfit-first-reduce-burn",
+            "fact": "activation.actions",
+            "comparator": "notIncludes",
+            "value": "reduceBurn"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "actionCostAdjustment",
+            "id": "unfit-reduce-burn.actionCost",
+            "label": "Unfit",
+            "actionId": "reduceBurn",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Unfit"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a10200000000000e"
 }

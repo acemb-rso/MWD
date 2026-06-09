@@ -242,6 +242,7 @@ export function normalizeRuleOutput(output = {}, rule = {}, index = 0) {
         value: toNumber(source.value, 0),
         damageType: toTrimmedString(source.damageType),
         appliesTo: normalizeStringArray(source.appliesTo),
+        track: toTrimmedString(source.track),
       };
     case "heatAdjustment":
       return {

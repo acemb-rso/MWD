@@ -16,7 +16,11 @@
     "positive": true,
     "category": "positive",
     "tier": "minor",
-    "tags": ["positive", "minor", "movement"],
+    "tags": [
+      "positive",
+      "minor",
+      "movement"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,44 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "fast-speed",
+        "label": "Fast",
+        "sourceType": "quality",
+        "phase": "derivedPersonalCombat",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "derived.personalCombat.speed"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "personalSpeedAdjustment",
+            "id": "fast-speed.speed",
+            "label": "Fast",
+            "value": 2,
+            "unit": "meters"
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Fast"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a101000000000001"
 }

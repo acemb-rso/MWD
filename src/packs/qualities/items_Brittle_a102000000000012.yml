@@ -16,12 +16,57 @@
     "positive": false,
     "category": "negative",
     "tier": "major",
-    "tags": ["negative", "major", "edge", "burn"],
+    "tags": [
+      "negative",
+      "major",
+      "edge",
+      "burn"
+    ],
     "activation": "triggered",
     "effects": [],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 1, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 1,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "brittle-edge-failure-burn",
+        "label": "Brittle",
+        "sourceType": "quality",
+        "phase": "edgeEvent",
+        "mode": "triggered",
+        "selector": {
+          "tags": [
+            "edge.postFailure"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "edgeEventHook",
+            "id": "brittle-edge-failure-burn.edgeEvent",
+            "label": "Brittle",
+            "trigger": "edgeSpentRollFailed",
+            "effect": {
+              "operation": "burnDelta",
+              "value": 1
+            }
+          }
+        ],
+        "limits": {
+          "perRound": 1
+        },
+        "usage": null,
+        "summary": "Gain +1 Burn when Edge is spent and the roll still fails."
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a102000000000012"
 }

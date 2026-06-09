@@ -16,7 +16,12 @@
     "positive": false,
     "category": "negative",
     "tier": "minor",
-    "tags": ["negative", "minor", "targeting", "aim"],
+    "tags": [
+      "negative",
+      "minor",
+      "targeting",
+      "aim"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +35,43 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "sloppy-shooter-targeting",
+        "label": "Sloppy Shooter",
+        "sourceType": "quality",
+        "phase": "rollBuild",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "intent.targeting"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "sloppy-shooter-targeting.dice",
+            "label": "Sloppy Shooter",
+            "value": -1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Sloppy Shooter"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a10200000000000f"
 }

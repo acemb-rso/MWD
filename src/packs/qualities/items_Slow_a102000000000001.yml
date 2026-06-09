@@ -16,7 +16,11 @@
     "positive": false,
     "category": "negative",
     "tier": "minor",
-    "tags": ["negative", "minor", "movement"],
+    "tags": [
+      "negative",
+      "minor",
+      "movement"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,44 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "slow-speed",
+        "label": "Slow",
+        "sourceType": "quality",
+        "phase": "derivedPersonalCombat",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "derived.personalCombat.speed"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "personalSpeedAdjustment",
+            "id": "slow-speed.speed",
+            "label": "Slow",
+            "value": -2,
+            "unit": "meters"
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Slow"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a102000000000001"
 }

@@ -16,7 +16,12 @@
     "positive": false,
     "category": "negative",
     "tier": "major",
-    "tags": ["negative", "major", "damage", "fatigue"],
+    "tags": [
+      "negative",
+      "major",
+      "damage",
+      "fatigue"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -27,12 +32,55 @@
         "label": "Glass Jaw",
         "value": 1,
         "application": "automatic",
-        "limit": { "perActivation": 0, "perRound": 1, "perScene": 0 }
+        "limit": {
+          "perActivation": 0,
+          "perRound": 1,
+          "perScene": 0
+        }
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "glass-jaw-fatigue",
+        "label": "Glass Jaw",
+        "sourceType": "quality",
+        "phase": "personalDamage",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "incoming.fatigue"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "damageAdjustment",
+            "id": "glass-jaw-fatigue.damage",
+            "label": "Glass Jaw",
+            "value": 1,
+            "appliesTo": [
+              "fatigue"
+            ],
+            "track": "fatigue"
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Glass Jaw"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a10200000000000c"
 }

@@ -16,7 +16,12 @@
     "positive": true,
     "category": "positive",
     "tier": "major",
-    "tags": ["positive", "major", "reaction", "burn"],
+    "tags": [
+      "positive",
+      "major",
+      "reaction",
+      "burn"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -31,8 +36,45 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "quick-reflexes-reaction-burn",
+        "label": "Quick Reflexes",
+        "sourceType": "quality",
+        "phase": "burn",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "burn.reaction"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "burnRuleAdjustment",
+            "id": "quick-reflexes-reaction-burn.burn",
+            "label": "Quick Reflexes",
+            "trigger": "burn.reaction",
+            "value": -1,
+            "min": 0
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Quick Reflexes"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a10100000000000d"
 }

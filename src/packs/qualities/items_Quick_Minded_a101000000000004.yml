@@ -16,7 +16,11 @@
     "positive": true,
     "category": "positive",
     "tier": "minor",
-    "tags": ["positive", "minor", "action-economy"],
+    "tags": [
+      "positive",
+      "minor",
+      "action-economy"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,44 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "quick-minded-fa",
+        "label": "Quick Minded",
+        "sourceType": "quality",
+        "phase": "activationBudget",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "activationBudget.fa"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "activationBudgetAdjustment",
+            "id": "quick-minded-fa.fa",
+            "label": "Quick Minded",
+            "resource": "fa",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Quick Minded"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a101000000000004"
 }

@@ -16,12 +16,52 @@
     "positive": true,
     "category": "positive",
     "tier": "minor",
-    "tags": ["positive", "minor", "character-creation", "inventory"],
+    "tags": [
+      "positive",
+      "minor",
+      "character-creation",
+      "inventory"
+    ],
     "activation": "passive",
     "effects": [],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "equipped-inventory-points",
+        "label": "Equipped",
+        "sourceType": "quality",
+        "phase": "characterCreation",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "characterCreation.inventory"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "creationBudgetAdjustment",
+            "id": "equipped-inventory-points.creationBudget",
+            "label": "Equipped",
+            "budget": "inventoryPoints",
+            "value": 2
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Grants +2 inventory points at character creation."
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a101000000000017"
 }

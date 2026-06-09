@@ -16,7 +16,11 @@
     "positive": false,
     "category": "negative",
     "tier": "minor",
-    "tags": ["negative", "minor", "initiative"],
+    "tags": [
+      "negative",
+      "minor",
+      "initiative"
+    ],
     "activation": "passive",
     "effects": [
       {
@@ -30,8 +34,43 @@
       }
     ],
     "prerequisites": [],
-    "limits": { "perActivation": 0, "perRound": 0, "perScene": 0 }
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    },
+    "rules": [
+      {
+        "id": "slow-starter-init",
+        "label": "Slow Starter",
+        "sourceType": "quality",
+        "phase": "initiative",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "intent.initiative"
+          ]
+        },
+        "requires": [],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "initiativeAdjustment",
+            "id": "slow-starter-init.initiative",
+            "label": "Slow Starter",
+            "value": -2
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "presentation": {},
+        "summary": "Slow Starter"
+      }
+    ],
+    "narrativeOnly": false
   },
-  "ownership": { "default": 0 },
+  "ownership": {
+    "default": 0
+  },
   "_key": "!items!a102000000000008"
 }
