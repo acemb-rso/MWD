@@ -3,8 +3,10 @@ import assert from "node:assert/strict";
 
 import { resolveAcquire } from "../src/modules/roll/intent/resolve-acquire.js";
 import { resolveTargeting } from "../src/modules/roll/intent/resolve-targeting.js";
-import { resolveAcquireExecution, resolveBreakLockExecution } from "../src/modules/roll/ew-execution.js";
-import { getDetectionState } from "../src/modules/mwd/machine-ew-state.js";
+import { resolveBreakLock } from "../src/modules/roll/intent/resolve-break-lock.js";
+import { resolveDefensiveJink } from "../src/modules/roll/intent/resolve-defensive-jink.js";
+import { resolveAcquireExecution, resolveBreakLockExecution, resolveDefensiveJinkRollExecution } from "../src/modules/roll/ew-execution.js";
+import { getDetectionState, getTargetingState } from "../src/modules/mwd/machine-ew-state.js";
 
 function createMachineActor(name = "Mauler") {
   return {
@@ -16,10 +18,13 @@ function createMachineActor(name = "Mauler") {
     system: {
       attributes: {
         system: { value: 3 },
+        handling: { value: 4 },
       },
       skills: {
         perception: { rating: 2, bonus: 0 },
         gunnery: { rating: 3, bonus: 0 },
+        piloting: { rating: 2, bonus: 0 },
+        stealth: { rating: 2, bonus: 0 },
       },
     },
   };
@@ -39,11 +44,11 @@ function createAssetModule({ id = "module", name = "Module", tags = [], capabili
   };
 }
 
-function createCombatant({ tokenId, targetTokenUuid, detectionState = "blind" } = {}) {
+function createCombatant({ tokenId, targetTokenUuid, detectionState = "blind", packet = null } = {}) {
   let targeting = {
     [targetTokenUuid]: {
       detectionState,
-      packet: null,
+      packet,
     },
   };
   return {
@@ -431,6 +436,139 @@ test("machine stealth increases acquire DN and counters reduce only stealth", as
   }
 });
 
+test("Break Lock resolves as Handling plus Stealth with detection-state DN and situation dice", async () => {
+  ensureFoundryStub();
+
+  const defender = createMachineActor("Defender");
+  defender.statuses.add("tagged");
+  defender.system.mwd = {
+    stealth: {
+      enabled: true,
+      rating: 1,
+      mode: "passive",
+      signature: "high",
+      counteredBy: [],
+    },
+  };
+  const observer = createMachineActor("Observer");
+  observer.items = [
+    createAssetModule({ id: "probe", name: "Active Probe", tags: ["activeProbe"] }),
+  ];
+
+  const defenderToken = {
+    id: "defender-token",
+    actor: defender,
+    document: { id: "defender-token", uuid: "Scene.scene.Token.defender" },
+  };
+  const observerToken = {
+    id: "observer-token",
+    name: "Observer Token",
+    actor: observer,
+    document: { id: "observer-token", uuid: "Scene.scene.Token.observer" },
+  };
+
+  globalThis.canvas = {
+    tokens: {
+      get: id => id === defenderToken.id ? defenderToken : id === observerToken.id ? observerToken : null,
+      placeables: [defenderToken, observerToken],
+    },
+  };
+  globalThis.game = {
+    combat: {
+      combatants: [
+        createCombatant({
+          tokenId: observerToken.id,
+          targetTokenUuid: defenderToken.document.uuid,
+          detectionState: "lock",
+        }),
+      ],
+    },
+  };
+
+  try {
+    const resolved = await resolveBreakLock({
+      actor: defender,
+      payload: {
+        sourceTokenId: defenderToken.id,
+        targetTokenId: observerToken.id,
+        breakLockSituation: "woods",
+      },
+    });
+
+    assert.equal(resolved.data.attrKey, "handling");
+    assert.equal(resolved.data.skillKey, "stealth");
+    assert.equal(resolved.pool.attribute, 4);
+    assert.equal(resolved.pool.skill, 2);
+    assert.equal(resolved.pool.bonus, 1);
+    assert.equal(resolved.difficulty.dn, 6);
+    assert.equal(resolved.dn.parts.find(part => part.id === "breakLock.detectionState")?.value, 3);
+    assert.equal(resolved.dn.parts.find(part => part.id === "breakLock.detectionState")?.label, "Lock -> Track");
+    assert.equal(resolved.dn.parts.find(part => part.id === "breakLock.situation"), undefined);
+    assert.equal(resolved.breakdown.find(part => part.id === "breakLock.situation")?.value, 1);
+    assert.equal(resolved.dn.parts.find(part => part.id === "breakLock.beacon")?.value, 1);
+    assert.equal(resolved.dn.parts.find(part => part.id === "breakLock.highEmission")?.value, 1);
+    assert.equal(resolved.dn.parts.find(part => part.id === "breakLock.activeProbe")?.value, 1);
+  } finally {
+    clearScene();
+  }
+});
+
+test("Break Lock DN follows the detection ladder", async () => {
+  ensureFoundryStub();
+
+  const defender = createMachineActor("Defender");
+  const defenderToken = {
+    id: "defender-token",
+    actor: defender,
+    document: { id: "defender-token", uuid: "Scene.scene.Token.defender" },
+  };
+  const observerToken = {
+    id: "observer-token",
+    actor: createMachineActor("Observer"),
+    document: { id: "observer-token", uuid: "Scene.scene.Token.observer" },
+  };
+
+  globalThis.canvas = {
+    tokens: {
+      get: id => id === defenderToken.id ? defenderToken : id === observerToken.id ? observerToken : null,
+      placeables: [defenderToken, observerToken],
+    },
+  };
+
+  try {
+    for (const [state, dn, label] of [
+      ["contact", 1, "Contact -> Blind"],
+      ["track", 2, "Track -> Contact"],
+      ["lock", 3, "Lock -> Track"],
+    ]) {
+      globalThis.game = {
+        combat: {
+          combatants: [
+            createCombatant({
+              tokenId: observerToken.id,
+              targetTokenUuid: defenderToken.document.uuid,
+              detectionState: state,
+            }),
+          ],
+        },
+      };
+
+      const resolved = await resolveBreakLock({
+        actor: defender,
+        payload: {
+          sourceTokenId: defenderToken.id,
+          targetTokenId: observerToken.id,
+        },
+      });
+
+      assert.equal(resolved.difficulty.dn, dn);
+      assert.equal(resolved.dn.parts.find(part => part.id === "breakLock.detectionState")?.label, label);
+    }
+  } finally {
+    clearScene();
+  }
+});
+
 test("successful Break Lock degrades the selected observer's state on the acting mech", async () => {
   ensureFoundryStub();
 
@@ -496,6 +634,141 @@ test("successful Break Lock degrades the selected observer's state on the acting
     assert.equal(result.newState, "track");
     assert.equal(getDetectionState(observerCombatant, actingTokenUuid), "track");
     assert.equal(getDetectionState(defenderCombatant, observerToken.document.uuid), "lock");
+  } finally {
+    clearScene();
+  }
+});
+
+test("Defensive Jink resolves as Handling plus Piloting and reduces targetingData by one", async () => {
+  ensureFoundryStub();
+
+  const defender = createMachineActor("Defender");
+  const observer = createMachineActor("Observer");
+  const defenderTokenUuid = "Scene.scene.Token.defender";
+  const defenderToken = {
+    id: "defender-token",
+    actor: defender,
+    document: { id: "defender-token", uuid: defenderTokenUuid },
+  };
+  const observerToken = {
+    id: "observer-token",
+    name: "Observer Token",
+    actor: observer,
+    document: { id: "observer-token", uuid: "Scene.scene.Token.observer" },
+  };
+  const packet = {
+    id: "packet-1",
+    value: 3,
+    sourceTokenUuid: observerToken.document.uuid,
+    round: 1,
+  };
+  const observerCombatant = createCombatant({
+    tokenId: observerToken.id,
+    targetTokenUuid: defenderTokenUuid,
+    detectionState: "lock",
+    packet,
+  });
+
+  globalThis.game = {
+    combat: {
+      combatants: [observerCombatant],
+    },
+  };
+  globalThis.canvas = {
+    tokens: {
+      get: id => id === defenderToken.id ? defenderToken : id === observerToken.id ? observerToken : null,
+      placeables: [defenderToken, observerToken],
+    },
+  };
+
+  try {
+    const resolved = await resolveDefensiveJink({
+      actor: defender,
+      payload: {
+        sourceTokenId: defenderToken.id,
+        targetTokenId: observerToken.id,
+      },
+    });
+    assert.equal(resolved.data.attrKey, "handling");
+    assert.equal(resolved.data.skillKey, "piloting");
+    assert.equal(resolved.pool.attribute, 4);
+    assert.equal(resolved.pool.skill, 2);
+    assert.equal(resolved.difficulty.dn, 2);
+
+    const result = await resolveDefensiveJinkRollExecution({
+      defender,
+      payload: {
+        actionId: "defensiveJink",
+        sourceTokenId: defenderToken.id,
+        targetTokenId: observerToken.id,
+      },
+      ctx: resolved,
+      outcomeModel: { successes: 2 },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.previousValue, 3);
+    assert.equal(result.newValue, 2);
+    assert.equal(getTargetingState(observerCombatant, defenderTokenUuid).packet.value, 2);
+  } finally {
+    clearScene();
+  }
+});
+
+test("failed Defensive Jink leaves targetingData unchanged", async () => {
+  ensureFoundryStub();
+
+  const defender = createMachineActor("Defender");
+  const defenderTokenUuid = "Scene.scene.Token.defender";
+  const defenderToken = {
+    id: "defender-token",
+    actor: defender,
+    document: { id: "defender-token", uuid: defenderTokenUuid },
+  };
+  const observerToken = {
+    id: "observer-token",
+    actor: createMachineActor("Observer"),
+    document: { id: "observer-token", uuid: "Scene.scene.Token.observer" },
+  };
+  const observerCombatant = createCombatant({
+    tokenId: observerToken.id,
+    targetTokenUuid: defenderTokenUuid,
+    detectionState: "lock",
+    packet: {
+      id: "packet-1",
+      value: 1,
+      sourceTokenUuid: observerToken.document.uuid,
+      round: 1,
+    },
+  });
+
+  globalThis.game = {
+    combat: {
+      combatants: [observerCombatant],
+    },
+  };
+  globalThis.canvas = {
+    tokens: {
+      get: id => id === defenderToken.id ? defenderToken : id === observerToken.id ? observerToken : null,
+      placeables: [defenderToken, observerToken],
+    },
+  };
+
+  try {
+    const result = await resolveDefensiveJinkRollExecution({
+      defender,
+      payload: {
+        actionId: "defensiveJink",
+        sourceTokenId: defenderToken.id,
+        targetTokenId: observerToken.id,
+      },
+      ctx: { intent: "defensiveJink", difficulty: { dn: 2 } },
+      outcomeModel: { successes: 1 },
+    });
+
+    assert.equal(result.ok, false);
+    assert.match(result.reason, /failed/i);
+    assert.equal(getTargetingState(observerCombatant, defenderTokenUuid).packet.value, 1);
   } finally {
     clearScene();
   }

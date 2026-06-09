@@ -16,6 +16,8 @@ import { resolveOverload } from "./resolve-overload.js";
 import { resolveMachineRemedy } from "./resolve-machine-remedy.js";
 import { resolveAcquire } from "./resolve-acquire.js";
 import { resolveTargeting } from "./resolve-targeting.js";
+import { resolveBreakLock } from "./resolve-break-lock.js";
+import { resolveDefensiveJink } from "./resolve-defensive-jink.js";
 import { resolveHeatDangerCheck } from "./resolve-heat-danger-check.js";
 
 // Registry: adding a roll is "data entry"
@@ -35,6 +37,8 @@ const RESOLVERS = {
   acquireTarget: resolveAcquire,
   targeting: resolveTargeting,
   generateFireSolution: resolveTargeting,
+  breakLock: resolveBreakLock,
+  defensiveJink: resolveDefensiveJink,
 };
 
 export async function resolveIntent({ actor, payload, event } = {}) {

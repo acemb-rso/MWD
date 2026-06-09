@@ -12,6 +12,7 @@ import { resolveMachineSceneToken } from "./machine-token-resolution.js";
 import { applyMachineMovementPenalty, normalizeMachineMovement } from "./machine-movement.js";
 import { getMachineMovementEffects } from "./machine-state-effects.js";
 import { buildVehicleProfileSummary } from "./vehicle-profiles.js";
+import { revealMachineSignature } from "./machine-stealth.js";
 
 export const VEHICLE_MOVEMENT_ACTIONS = Object.freeze({
   move: Object.freeze({ id: "move", label: "Move", cost: 1, strain: 0, mode: "ground" }),
@@ -164,6 +165,15 @@ export async function performVehicleMovementAction(actor, { movementKind = "", o
 
   if (action.strain > 0) {
     await adjustVehiclePendingStrain(actor, action.strain, { reason: `${action.label} movement` });
+  }
+
+  if (action.id === "redline") {
+    await revealMachineSignature(actor, {
+      reason: "redlineMovement",
+      source: "movement",
+      duration: "untilNextActivation",
+      token,
+    });
   }
 
   if (action.statusId) {

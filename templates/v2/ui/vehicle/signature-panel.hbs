@@ -31,6 +31,15 @@ machine stealth model, not from this template.
         <option value="track" {{#if (eq vehicleSheet.signature.detectionCap "track")}}selected{{/if}}>Track</option>
       </select>
     </label>
+    <label class="mwd-gmgadget__field">
+      <span class="mwd-gmgadget__field-label">Signature</span>
+      <select name="system.mwd.stealth.signature">
+        <option value="" {{#unless vehicleSheet.signature.signature}}selected{{/unless}}>Medium</option>
+        <option value="low" {{#if (eq vehicleSheet.signature.signature "low")}}selected{{/if}}>Low</option>
+        <option value="medium" {{#if (eq vehicleSheet.signature.signature "medium")}}selected{{/if}}>Medium</option>
+        <option value="high" {{#if (eq vehicleSheet.signature.signature "high")}}selected{{/if}}>High</option>
+      </select>
+    </label>
   </div>
   <label class="mwd-gmgadget__field">
     <span class="mwd-gmgadget__field-label">Notes</span>
@@ -50,15 +59,25 @@ machine stealth model, not from this template.
       <span class="mwd-item-hero__label">Revealed</span>
       <span class="mwd-item-hero__value">{{vehicleSheet.signature.revealedLabel}}</span>
     </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Emission</span>
+      <span class="mwd-item-hero__value">{{vehicleSheet.signature.emissionRating}}</span>
+    </div>
     <div class="mwd-item-hero__stat" title="{{vehicleSheet.signature.counters}}">
       <span class="mwd-item-hero__label">Counters</span>
       <span class="mwd-item-hero__value">{{vehicleSheet.signature.counters}}</span>
     </div>
   </section>
+  <div class="mwd-item-actions" style="margin-top: 0.5rem;">
+    <button type="button" data-action="signatureGoDark">
+      <i class="fas fa-eye-slash"></i>
+      <span>Go Dark</span>
+    </button>
+  </div>
   {{#if vehicleSheet.signature.parts.length}}
     <div class="mwd-combat-awareness__list" style="margin-top: 0.5rem;">
       {{#each vehicleSheet.signature.parts as |part|}}
-        <span class="chip mwd-combat-awareness__chip">{{part.label}} +{{part.value}}</span>
+        <span class="chip mwd-combat-awareness__chip">{{part.label}} {{part.displayValue}}</span>
       {{/each}}
     </div>
   {{/if}}

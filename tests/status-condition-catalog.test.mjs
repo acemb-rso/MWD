@@ -62,6 +62,9 @@ test("default machine catalog includes mechanic-ready BattleMech statuses", () =
   const destroyed = getStatusConditionDefinition("destroyed", catalog);
   const armDestroyed = getStatusConditionDefinition("armDestroyed", catalog);
   const sensorLocked = getStatusConditionDefinition("sensorLocked", catalog);
+  const signatureRevealed = getStatusConditionDefinition("signatureRevealed", catalog);
+  const stealthActive = getStatusConditionDefinition("stealthActive", catalog);
+  const highEmission = getStatusConditionDefinition("highEmission", catalog);
 
   assert.equal(unstable.actorGroup, "machine");
   assert.equal(unstable.category, "stability");
@@ -75,6 +78,12 @@ test("default machine catalog includes mechanic-ready BattleMech statuses", () =
   assert.equal(armDestroyed.actorGroup, "battlemech");
   assert.equal(sensorLocked.category, "sensor");
   assert.ok(sensorLocked.tags.includes("targeted"));
+  assert.equal(signatureRevealed.actorGroup, "machine");
+  assert.ok(signatureRevealed.tags.includes("stealth"));
+  assert.equal(stealthActive.actorGroup, "machine");
+  assert.ok(stealthActive.tags.includes("active"));
+  assert.equal(highEmission.actorGroup, "machine");
+  assert.ok(highEmission.tags.includes("emission"));
 });
 
 test("default person catalog includes personal critical marker and band statuses", () => {

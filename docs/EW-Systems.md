@@ -250,35 +250,69 @@ EPM can:
 
 **The table loop**
 ```
-- ECM degrades
+- ECM interferes
 - EPM protects
 - Acquire advances
 - Break Lock regresses
+- Defensive Jink spoils targetingData
 ```
 That is the intended *tug-of-war*.
 
 ---
 ## Break Lock
 
-**Break Lock** is the primary defensive EW reaction.
+**Break Lock** is the primary defensive EW action against Detection State.
 
-**Trigger:** an enemy reaches Lock, or a locked enemy is about to capitalize on it
+**Cost:** 1 SA
 
-**Roll:** ```Handling + System Operations``` 
+**Roll:** ```Handling + Stealth```
 
-**Result:** on success, reduce the attacker’s Detection State by one step:
+**Result:** on success, reduce the attacker's Detection State by one step:
 ```
-Lock → Track
-Track → Contact
-Contact → Blind
+Lock -> Track
+Track -> Contact
+Contact -> Blind
 ```
-**Default table recommendation**
 
-For normal reactions, most of the time this should be used as:
+The DN comes from the step being broken, mirroring Acquire Target in reverse.
 
-Lock → Track
+| Current state | Success result | DN |
+| --- | --- | --- |
+| Contact | Contact -> Blind | 1 |
+| Track | Track -> Contact | 2 |
+| Lock | Lock -> Track | 3 |
 
-That keeps it disruptive without turning it into a total denial tool every time.
+Situation modifies the dice pool, not the DN.
+
+| Situation | Dice |
+| --- | --- |
+| Open ground / fully exposed | -1 |
+| Typical battlefield | 0 |
+| Woods, urban terrain, ridge line, ECM support | +1 |
+
+TAG, NARC, High Emission, and an active probe on the observer add DN pressure to the Break Lock attempt.
+
+---
+## Defensive Jink
+
+**Defensive Jink** is the reaction against targetingData.
+
+**Trigger:** an enemy successfully generates a Fire Solution against you
+
+**Cost:** 1 RA
+
+**Roll:** ```Handling + Piloting```
+
+**Result:** on success, reduce that targetingData packet by 1.
+
+Examples:
+
+```text
++3 targetingData -> +2 targetingData
++1 targetingData -> 0 targetingData
+```
+
+Failure has no effect.
 
 ---
 ## EPM Filter
@@ -783,9 +817,10 @@ This keeps the lane bounded even with networking/NARC.
 ECM should not usually destroy targetingData outright. It should:
 
 * increase trackingPenalty
-* suppress or reduce usable targetingData
+* apply temporary interference or packet suppression where a specific effect says so
 * make upgrades to `lock` harder
-* possibly downgrade state on strong effects
+
+ECM Spike should stay in the interference lane. In the core workflow it does not directly downgrade Detection State, and it is not the generic answer to a fresh targetingData packet. Use Break Lock for Detection State and Defensive Jink for targetingData.
 
 Suggested rule:
 
@@ -845,8 +880,7 @@ These mostly belong in the information-war layer and should use existing reactio
 Reactions may:
 
 * prevent `track -> lock`
-* downgrade `lock -> track`
-* suppress a targetingData packet for one resolution
+* apply Defensive Jink to a newly generated targetingData packet
 * preserve a shared network packet or state
 * generate an opportunistic `contact` or `track` state
 
@@ -862,6 +896,7 @@ This is enough for:
 
 * ECM Spike
 * Break Lock
+* Defensive Jink
 * Hold Link
 * Suppress Beacon
 * Snap Lock
@@ -893,8 +928,9 @@ This is the critical dev section.
 5. compare to DN 2
 6. convert hits into targetingData
 7. cap by current detectionState and System
-8. store packet
-9. emit chat/result
+8. offer/resolve Defensive Jink against the generated packet when applicable
+9. store the final packet
+10. emit chat/result
 
 ## 12.3 For attack resolution
 
@@ -902,7 +938,7 @@ This is the critical dev section.
 2. determine effective detectionState (including C3/network)
 3. collect trackingPenalty as dice parts
 4. collect eligible targetingData packets
-5. suppress/reduce targetingData from ECM/interference
+5. suppress targetingData only from explicit packet/network effects
 6. apply stacking rule to choose usableTargetingData
 7. build attack dice pool:
 
@@ -1008,8 +1044,13 @@ If you want the safest first implementation:
 * `blind/contact/track/lock`
 * `System + Perception` for state upgrades
 * `System + Gunnery` for targetingData
+* `Handling + Stealth` for Break Lock state downgrades
+* `Handling + Piloting` for Defensive Jink packet reduction
 * targetingData usable only at `track` or `lock`
 * lock gives `+1` cap and unlocks lock-gated systems
+* Break Lock DN is the state step being broken: Contact 1, Track 2, Lock 3
+* battlefield situation modifies Break Lock dice, not DN
+* Defensive Jink costs 1 RA and reduces the current targetingData packet by 1 on success
 * use **best packet only**
 * default packet duration = next attack
 * C3 shares best state and best packet

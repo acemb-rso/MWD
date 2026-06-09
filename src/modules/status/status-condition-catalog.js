@@ -116,6 +116,9 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("eccmBoosted", "EPM Boosted (Legacy)", "machine", "electronicWarfare", ["ecm", "sensor", "legacy"], "all-seeing-eye.webp", { order: 1241 }),
   status("sensorLocked", "Sensor Locked", "machine", "sensor", ["sensor", "targeted"], "all-seeing-eye.webp", { order: 1250 }),
   status("trackingLost", "Tracking Lost", "machine", "sensor", ["sensor", "targetingData"], "damaged_eye.svg", { order: 1260 }),
+  status("signatureRevealed", "Signature Revealed", "machine", "sensor", ["stealth", "signature", "revealed"], "target.svg", { order: 1270 }),
+  status("stealthActive", "Stealth Active", "machine", "sensor", ["stealth", "signature", "active"], "hidden.svg", { order: 1271 }),
+  status("highEmission", "High Emission", "machine", "sensor", ["stealth", "signature", "emission"], "surge.svg", { order: 1272 }),
 
   // Reactor and heat.
   status("reactorInstability", "Reactor Instability", "machine", "reactor", ["heat", "reactor", "escalating"], "surge.svg", { order: 1300 }),

@@ -10,6 +10,7 @@ import {
   setDetectionState,
   setTargetingPacket,
   buildTargetingPacket,
+  reduceTargetingPacket,
 } from "../mwd/machine-ew-state.js";
 
 function getAttackerTokenFromUuid(uuid) {
@@ -219,7 +220,7 @@ export async function resolveTargetingExecution({ attacker, ctx, outcomeModel } 
  * observer/attacker combatant's detection state for the machine taking action.
  */
 export async function resolveBreakLockExecution({ attacker, payload = {}, ctx = {}, outcomeModel } = {}) {
-  const actionKey = String(payload?.machineActionKey ?? "").trim();
+  const actionKey = String(payload?.machineActionKey ?? payload?.actionId ?? ctx?.data?.actionId ?? "").trim();
   if (actionKey !== "breakLock") return null;
 
   const hits = Number(outcomeModel?.successes ?? outcomeModel?.hits ?? 0);
@@ -295,5 +296,62 @@ export async function resolveBreakLockExecution({ attacker, payload = {}, ctx = 
     dn,
     targetTokenUuid,
     observerCombatantId: observerCombatant.id ?? "",
+  };
+}
+
+/**
+ * Apply Defensive Jink: reduce the selected observer's targetingData packet
+ * against the acting machine by 1. If the packet reaches 0, it is removed.
+ */
+export async function resolveDefensiveJinkExecution({ defender, payload = {} } = {}) {
+  const actionKey = String(payload?.machineActionKey ?? payload?.actionId ?? "").trim();
+  if (actionKey && actionKey !== "defensiveJink") return null;
+
+  const sourceToken = resolveBreakLockSourceToken(defender, payload);
+  const targetTokenUuid = String(payload?.jinkTargetTokenUuid ?? payload?.breakLockTargetTokenUuid ?? "").trim() || getTokenUuid(sourceToken);
+  const observerCombatant = resolveBreakLockObserverCombatant(payload);
+  if (!targetTokenUuid) {
+    return {
+      ok: false,
+      reason: "Defensive Jink could not find the defending machine token.",
+      persistenceFailed: true,
+    };
+  }
+  if (!observerCombatant) {
+    return {
+      ok: false,
+      reason: "Defensive Jink could not find the observing combatant.",
+      persistenceFailed: true,
+      targetTokenUuid,
+    };
+  }
+
+  return reduceTargetingPacket(observerCombatant, targetTokenUuid, 1, {
+    packetId: String(payload?.targetingPacketId ?? payload?.packetId ?? "").trim(),
+    source: "defensiveJink",
+  });
+}
+
+export async function resolveDefensiveJinkRollExecution({ defender, payload = {}, ctx = {}, outcomeModel } = {}) {
+  const actionKey = String(payload?.machineActionKey ?? payload?.actionId ?? ctx?.data?.actionId ?? "").trim();
+  if (actionKey !== "defensiveJink") return null;
+
+  const hits = Number(outcomeModel?.successes ?? outcomeModel?.hits ?? 0);
+  const dn = Number(ctx?.difficulty?.dn ?? 1);
+  const passed = hits >= dn;
+  if (!passed) {
+    return {
+      ok: false,
+      reason: "Defensive Jink roll failed.",
+      hits,
+      dn,
+    };
+  }
+
+  const result = await resolveDefensiveJinkExecution({ defender, payload });
+  return {
+    ...result,
+    hits,
+    dn,
   };
 }

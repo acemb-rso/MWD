@@ -63,6 +63,7 @@ const templateData = {
             mode: "passive",
             revealedUntil: null,
             detectionCap: "",
+            signature: "medium",
             counteredBy: ["activeProbe", "tag", "narc", "c3", "visualClose"],
             notes: ""
           },

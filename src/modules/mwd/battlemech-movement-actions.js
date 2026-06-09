@@ -12,6 +12,7 @@ import { resolveMachineSceneToken } from "./machine-token-resolution.js";
 import { applyMachineMovementPenalty, normalizeMachineMovement } from "./machine-movement.js";
 import { getMachineMovementEffects } from "./machine-state-effects.js";
 import { resolveBattlemechJumpProfile } from "./battlemech-mobility.js";
+import { revealMachineSignature } from "./machine-stealth.js";
 
 export const BATTLEMECH_MOVEMENT_ACTIONS = Object.freeze({
   walk: Object.freeze({ id: "walk", label: "Walk", cost: 1, heat: 0, mode: "ground" }),
@@ -204,6 +205,15 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
 
   if (action.heat > 0) {
     await adjustBattlemechPendingHeat(actor, action.heat, { reason: `${action.label} movement` });
+  }
+
+  if (["sprint", "jump"].includes(action.id)) {
+    await revealMachineSignature(actor, {
+      reason: `${action.id}Movement`,
+      source: "movement",
+      duration: "untilNextActivation",
+      token,
+    });
   }
 
   if (action.statusId) {

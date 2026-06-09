@@ -32,6 +32,7 @@ import { MachineCriticalsProvider } from "../modules/modifiers/providers/machine
 import { MachineStateEffectsProvider } from "../modules/modifiers/providers/machine-state-effects.js";
 import { EwTrackingPenaltyProvider } from "../modules/modifiers/providers/ew-tracking-penalty.js";
 import { EwTargetingDataProvider } from "../modules/modifiers/providers/ew-targeting-data.js";
+import { StealthEmissionAcquireProvider } from "../modules/modifiers/providers/stealth-emission-acquire.js";
 import { AssetModuleEffectsProvider } from "../modules/modifiers/providers/asset-module-effects.js";
 import { FirstAidModifiersProvider } from "../modules/modifiers/providers/first-aid.js";
 import { Modifiers } from "./modifiers/anarchy-modifiers.js";
@@ -371,6 +372,7 @@ export class AnarchySystem {
     modifierProviders.register(new FirstAidModifiersProvider());
     modifierProviders.register(new EwTrackingPenaltyProvider());
     modifierProviders.register(new EwTargetingDataProvider());
+    modifierProviders.register(new StealthEmissionAcquireProvider());
     modifierProviders.register(new SceneModifiersProvider());
 
     //register handlebars helpers early

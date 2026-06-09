@@ -175,6 +175,8 @@ service.
 | acquireTarget | 1 SA | targeting | ready | Improve detection state |
 | generateFireSolution | 1 SA | targeting | ready | Create targeting data |
 | sensorLock | 1 SA | targeting | ready | Acquire-target upgrade toward lock |
+| breakLock | 1 SA | targeting | ready | Handling + Stealth; reduce an observer's detection state one step |
+| defensiveJink | 1 RA | targeting | ready | Handling + Piloting reaction; reduce a targetingData packet by 1 |
 | brace | 1 SA | movement | ready | Defensive posture |
 | hullDown | 1 SA | movement | ready | Vehicle prepared position |
 | sprint | 2 SA | movement | ready | Complex move; BattleMechs add 2 Heat, vehicles Redline for Strain |

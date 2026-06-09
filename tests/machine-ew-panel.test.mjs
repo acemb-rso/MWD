@@ -397,6 +397,7 @@ test("EW quick action menu exposes canonical player-facing actions", () => {
     "ecmSpike",
     "epmFilter",
     "breakLock",
+    "defensiveJink",
     "suppressBeacon",
     "swat",
     "tagTarget",

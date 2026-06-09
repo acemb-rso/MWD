@@ -16,6 +16,7 @@ import {
 import { getMachineWeaponDamageTypeLabel } from "./machine-weapon-types.js";
 import { resolveMachineOperator } from "./machine-operator.js";
 import { resolveMachineSceneToken } from "./machine-token-resolution.js";
+import { revealMachineSignature } from "./machine-stealth.js";
 
 export const MACHINE_CHARGE_ATTACK_ID = "machineChargeAttack";
 
@@ -382,6 +383,13 @@ export async function performChargeAttack(actor, {
 
   // Recoil notification — attacker takes damage; amount depends on mode and hit/miss.
   // DFA recoil fires regardless; Impact and Control recoil fires on hit only.
+  await revealMachineSignature(actor, {
+    reason: "chargeAttack",
+    source: "attack",
+    duration: "untilNextActivation",
+    token: sourceToken,
+  });
+
   await emitRecoilNotification(actor, {
     mode,
     recoilDamage: formulas.recoilDamage,

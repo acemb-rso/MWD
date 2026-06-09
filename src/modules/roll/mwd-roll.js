@@ -37,8 +37,9 @@ import {
 import { getMachineActionDefinition } from "../mwd/machine-action-catalog.js";
 import { findAssetModuleActionOverride, getAssetModuleActionCosts } from "../mwd/asset-module-effects.js";
 import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
-import { resolveAcquireExecution, resolveBreakLockExecution, resolveTargetingExecution } from "./ew-execution.js";
+import { resolveAcquireExecution, resolveBreakLockExecution, resolveDefensiveJinkRollExecution, resolveTargetingExecution } from "./ew-execution.js";
 import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-state.js";
+import { revealMachineSignature } from "../mwd/machine-stealth.js";
 
 /**
  * Public roll API.
@@ -135,9 +136,16 @@ async function recomputeResolvedOutcomeAndAttack(resolved = {}, actor = null) {
       ctx,
       outcomeModel: resolved.outcomeModel,
     });
-  } else if (ctx.intent === "skill" && resolved.originPayload?.machineActionKey === "breakLock" && actor) {
+  } else if ((ctx.intent === "breakLock" || (ctx.intent === "skill" && resolved.originPayload?.machineActionKey === "breakLock")) && actor) {
     resolved.ewBreakLockResult = await resolveBreakLockExecution({
       attacker: actor,
+      payload: resolved.originPayload,
+      ctx,
+      outcomeModel: resolved.outcomeModel,
+    });
+  } else if (ctx.intent === "defensiveJink" && actor) {
+    resolved.ewJinkResult = await resolveDefensiveJinkRollExecution({
+      defender: actor,
       payload: resolved.originPayload,
       ctx,
       outcomeModel: resolved.outcomeModel,
@@ -1104,14 +1112,18 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   let ewAcquireResult = null;
   let ewTargetingResult = null;
   let ewBreakLockResult = null;
+  let ewJinkResult = null;
   if (ctx.intent === "acquire") {
     ewAcquireResult = await resolveAcquireExecution({ attacker: actor, ctx, outcomeModel });
   }
   if (ctx.intent === "targeting") {
     ewTargetingResult = await resolveTargetingExecution({ attacker: actor, ctx, outcomeModel });
   }
-  if (ctx.intent === "skill" && payload.machineActionKey === "breakLock") {
+  if (ctx.intent === "breakLock" || (ctx.intent === "skill" && payload.machineActionKey === "breakLock")) {
     ewBreakLockResult = await resolveBreakLockExecution({ attacker: actor, payload, ctx, outcomeModel });
+  }
+  if (ctx.intent === "defensiveJink") {
+    ewJinkResult = await resolveDefensiveJinkRollExecution({ defender: actor, payload, ctx, outcomeModel });
   }
   if (ctx.intent === "attack" && ctx.attack?.ewContext?.activePacketId) {
     const attackerToken = getMachineAttackToken(actor, payload);
@@ -1169,6 +1181,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   if (ewAcquireResult)   resolved.ewAcquireResult  = ewAcquireResult;
   if (ewTargetingResult) resolved.ewTargetingResult = ewTargetingResult;
   if (ewBreakLockResult) resolved.ewBreakLockResult = ewBreakLockResult;
+  if (ewJinkResult) resolved.ewJinkResult = ewJinkResult;
   if (ctx.acquire)   resolved.acquire   = ctx.acquire;
   if (ctx.targeting) resolved.targeting = ctx.targeting;
 
@@ -1206,10 +1219,19 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
 
   if (ctx.intent === "attack") {
     await commitMachineAttackAction(actor, payload, { rollActor });
+    await revealMachineSignature(actor, {
+      reason: "weaponAttack",
+      source: "attack",
+      duration: "untilNextActivation",
+    });
   } else if (ctx.intent === "acquire") {
     await commitMachineAction(actor, "acquireTarget", payload, { rollActor, resolved: ctx });
   } else if (ctx.intent === "targeting") {
     await commitMachineAction(actor, "generateFireSolution", payload, { rollActor, resolved: ctx });
+  } else if (ctx.intent === "breakLock") {
+    await commitMachineAction(actor, "breakLock", payload, { rollActor, resolved: ctx });
+  } else if (ctx.intent === "defensiveJink") {
+    await commitMachineAction(actor, "defensiveJink", payload, { rollActor, resolved: ctx });
   } else if (ctx.intent === "skill" && payload.machineActionKey) {
     await commitMachineAction(actor, payload.machineActionKey, payload, { rollActor, resolved: ctx });
   }

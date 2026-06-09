@@ -53,6 +53,8 @@ test("machine action catalog includes vehicle and battlemech action anchors", ()
     powerCycle: ["remediation", "sa", 2],
     coolantDump: ["remediation", "sa", 2],
     epmFilter: ["targeting", "sa", 2],
+    breakLock: ["targeting", "sa", 1],
+    defensiveJink: ["targeting", "ra", 1],
     swat: ["remediation", "sa", 2],
   };
 

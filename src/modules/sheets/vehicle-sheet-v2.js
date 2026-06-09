@@ -295,6 +295,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       ewAcquire: VehicleSheetV2.prototype._onEwAcquire,
       ewTarget: VehicleSheetV2.prototype._onEwTarget,
       machineEwAction: VehicleSheetV2.prototype._onMachineEwAction,
+      signatureGoDark: VehicleSheetV2.prototype._onSignatureGoDark,
       toggleStatuses: VehicleSheetV2.prototype._onToggleStatuses,
       machineCritRemedy: VehicleSheetV2.prototype._onMachineCritRemedy,
       toggleAssetModuleActive: VehicleSheetV2.prototype._onToggleAssetModuleActive,
@@ -389,15 +390,22 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         selected: model.mode === mode,
       })),
       detectionCap: String(stealth.detectionCap ?? ""),
+      signature: String(stealth.signature ?? ""),
       notes: String(stealth.notes ?? ""),
       effectiveRating: model.effectiveRating,
       baseRating: model.baseRating,
       contributionRating: model.contributionRating,
       revealedLabel: model.revealed ? "Yes" : "No",
+      revealPenalty: model.revealPenalty,
+      emissionRating: model.emission?.effectiveEmissionRating ?? 0,
+      authoredEmissionRating: model.emission?.authoredEmissionRating ?? 0,
+      transientEmissionRating: model.emission?.transientEmissionRating ?? 0,
+      statusEmissionRating: model.emission?.statusEmissionRating ?? 0,
       counters,
       parts: model.parts.map(part => ({
         label: part.label,
         value: Number(part.value ?? 0),
+        displayValue: `${Number(part.value ?? 0) >= 0 ? "+" : ""}${Number(part.value ?? 0) || 0}`,
       })),
     };
   }
@@ -2217,6 +2225,25 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       notifyRollError(error, "Unable to launch that EW action.");
       return false;
     }
+  }
+
+  async _onSignatureGoDark(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const actor = this.getPersistentActor?.() ?? this.actor;
+    const result = await executeMachineAction(actor, {
+      kind: "action",
+      actionId: "goDark",
+      token: this._resolveStatusToken(actor),
+      event,
+    });
+    if (!result?.ok) {
+      ui.notifications?.warn(result?.userMessage ?? result?.reason ?? "Unable to go dark.");
+      return false;
+    }
+    this.render(false);
+    return true;
   }
 
   _resolveStatusToken(actor = this.actor) {

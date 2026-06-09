@@ -378,6 +378,47 @@ export async function clearTargetingPacket(combatant, targetTokenUuid) {
   await writeRawTargetingState(combatant, all);
 }
 
+export async function reduceTargetingPacket(combatant, targetTokenUuid, amount = 1, { packetId = "", source = "defensiveJink" } = {}) {
+  const uuid = normalizeTargetUuid(targetTokenUuid);
+  if (!uuid || !combatant) return { ok: false, reason: "Missing targeting state target." };
+
+  const reduction = Math.max(0, Math.trunc(Number(amount) || 0));
+  if (reduction <= 0) return { ok: false, reason: "No targetingData reduction requested." };
+
+  const current = getTargetingState(combatant, uuid);
+  const packet = current.packet ? foundry.utils.deepClone(current.packet) : null;
+  if (!packet) return { ok: false, reason: "No targetingData packet is available." };
+  const expectedPacketId = String(packetId ?? "").trim();
+  if (expectedPacketId && packet.id !== expectedPacketId) {
+    return { ok: false, reason: "TargetingData packet no longer matches." };
+  }
+
+  const previousValue = Math.max(0, Number(packet.value ?? 0) || 0);
+  const newValue = Math.max(0, previousValue - reduction);
+  const all = cloneAllTargetingStates(combatant);
+  setObjectPath(all, uuid, {
+    detectionState: current.detectionState,
+    packet: newValue > 0
+      ? {
+        ...packet,
+        value: newValue,
+        reducedBy: source,
+      }
+      : null,
+  });
+  await writeRawTargetingState(combatant, all);
+
+  return {
+    ok: true,
+    previousValue,
+    newValue,
+    reduction: previousValue - newValue,
+    removed: newValue <= 0,
+    packetId: packet.id,
+    targetTokenUuid: uuid,
+  };
+}
+
 export async function consumeTargetingPacket(combatant, targetTokenUuid, packetId = "") {
   const uuid = normalizeTargetUuid(targetTokenUuid);
   const id = String(packetId ?? "").trim();

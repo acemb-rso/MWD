@@ -24,12 +24,14 @@ import { getMachineRepairIssues } from "./machine-repair-issues.js";
 import { performVehicleMovementAction } from "./vehicle-movement-actions.js";
 import { resolveVehiclePendingStrain } from "./vehicle-strain.js";
 import { findAttachedBattleArmorTargets } from "./battle-armor.js";
+import { goDarkMachineSignature, setMachineTransientEmission } from "./machine-stealth.js";
 
 const GM_MACHINE_ACTION_REQUEST = "MachineActions.gmMachineActionRequest";
 const GM_MACHINE_ACTION_RESPONSE = "MachineActions.gmMachineActionResponse";
 const GM_MACHINE_ACTION_TIMEOUT_MS = 10000;
 const pendingGmMachineActionRequests = new Map();
 let gmMachineActionSocketRegistered = false;
+const TRANSIENT_EMISSION_EW_ACTIONS = new Set(["sensorSweep", "acquireTarget", "sensorLock", "tagTarget", "ecmSpike"]);
 
 function getMachineRollApi() {
   return game.mwd?.roll ?? game.system?.mwd?.roll ?? null;
@@ -475,7 +477,7 @@ async function executeMachineMovement(actor, request) {
 
 async function executeMachineEwIntent(actor, request) {
   const intent = String(request.intent ?? "").trim();
-  if (intent !== "acquire" && intent !== "targeting") return null;
+  if (!["acquire", "targeting", "breakLock", "defensiveJink"].includes(intent)) return null;
 
   const token = resolveRequestToken(actor, request);
   const panel = buildMachineEwPanel({ actor, token });
@@ -486,13 +488,23 @@ async function executeMachineEwIntent(actor, request) {
       (explicitTargetTokenUuid && row?.targetTokenUuid === explicitTargetTokenUuid)
       || (explicitTargetTokenId && row?.targetTokenId === explicitTargetTokenId)
     ) ?? null
-    : resolveMachineEwActionTarget(panel, intent);
+    : (intent === "breakLock" || intent === "defensiveJink")
+      ? getAnyEwTarget(panel)
+      : resolveMachineEwActionTarget(panel, intent);
   if (!targetRow) {
-    const verb = intent === "targeting" ? "generate targeting data" : "acquire";
+    const verb = intent === "targeting"
+      ? "generate targeting data"
+      : intent === "breakLock"
+        ? "break lock"
+        : intent === "defensiveJink"
+          ? "jink"
+          : "acquire";
     return { ok: false, reason: "missing-target", userMessage: `No targeted token is ready to ${verb}.` };
   }
 
-  const isEligible = intent === "targeting" ? targetRow.canTarget : targetRow.canAcquire;
+  const isEligible = intent === "breakLock" || intent === "defensiveJink"
+    ? true
+    : intent === "targeting" ? targetRow.canTarget : targetRow.canAcquire;
   if (!isEligible) {
     return {
       ok: false,
@@ -505,6 +517,7 @@ async function executeMachineEwIntent(actor, request) {
 
   return executeRollPayload(actor, {
     intent,
+    actionId: intent,
     sourceTokenId: token?.id ?? null,
     targetTokenId: targetRow.targetTokenId,
     targetTokenUuid: targetRow.targetTokenUuid,
@@ -643,9 +656,45 @@ async function executeMachineHeatReactionAction(actor, action, request = {}) {
 async function executeMachineTargetingAction(actor, action, request = {}) {
   const actionKey = action.key;
   if (actionKey === "swat") return executeMachineSwat(actor, action, request);
+  if (actionKey === "goDark") {
+    const token = resolveRequestToken(actor, request);
+    const spend = await recordMachineActionCost(actor, action, {
+      token,
+      operatorActorUuid: String(request.operatorActorUuid ?? "").trim(),
+    });
+    if (spend && spend.ok === false) return spend;
+    const result = await goDarkMachineSignature(actor, {
+      reason: "goDark",
+      source: action.key,
+      token,
+    });
+    const message = result.suppressed
+      ? "Lifecycle emissions cleared, but suppressed stealth remains offline."
+      : "Signature posture reset.";
+    ui.notifications?.info(`${action.label}: ${message}`);
+    return {
+      ...result,
+      ok: true,
+      actionId: action.key,
+      costPaid: Boolean(spend && spend.ok && !spend.skipped),
+      rolled: false,
+      stateChanges: ["stealthLifecycle"],
+      log: { title: action.label, message },
+    };
+  }
   if (actionKey === "acquireTarget" || actionKey === "sensorLock") {
     const result = await executeMachineEwIntent(actor, { ...request, intent: "acquire", actionId: "acquireTarget" });
-    return result ?? performMachineElectronicWarfare(actor, {
+    if (result) {
+      await setMachineTransientEmission(actor, {
+        rating: 1,
+        reason: actionKey,
+        source: "system",
+        duration: "untilNextActivation",
+        token: resolveRequestToken(actor, request),
+      });
+      return result;
+    }
+    return performMachineElectronicWarfare(actor, {
       actionId: "acquireTarget",
       token: request.token ?? null,
       operatorActorUuid: request.operatorActorUuid,
@@ -658,6 +707,9 @@ async function executeMachineTargetingAction(actor, action, request = {}) {
       token: request.token ?? null,
       operatorActorUuid: request.operatorActorUuid,
     });
+  }
+  if (actionKey === "breakLock" || actionKey === "defensiveJink") {
+    return executeMachineEwIntent(actor, { ...request, intent: actionKey, actionId: actionKey });
   }
   if (actionKey === "sensorSweep" || actionKey === "assess" || actionKey === "epmFilter" || actionKey === "tagTarget" || actionKey === "shareTargetingData" || actionKey === "ecmSpike" || actionKey === "suppressBeacon") {
     const routedActionId = actionKey === "assess" ? "sensorSweep" : actionKey;
@@ -1059,10 +1111,17 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
     }),
     buildEwAction({
       id: "breakLock",
-      purpose: "Defensive reaction: degrade an attacker's detection state.",
+      purpose: "Defensive action: degrade an attacker's detection state.",
       targetMode: "anyOptional",
-      execution: "skill",
+      execution: "intent",
       mechanics: "Automated on success: selected observer's detection state on this machine degrades one step.",
+    }),
+    buildEwAction({
+      id: "defensiveJink",
+      purpose: "Defensive reaction: reduce an enemy fire-solution packet.",
+      targetMode: "anyOptional",
+      execution: "intent",
+      mechanics: "Automated: selected observer's targetingData packet against this machine is reduced by 1.",
     }),
     buildEwAction({
       id: "suppressBeacon",
@@ -1149,6 +1208,7 @@ export async function performMachineElectronicWarfare(actor, {
   const payload = selectedAction.execution === "intent"
     ? {
       intent: selectedAction.intent,
+      actionId: selectedAction.actionKey,
       sourceTokenId: sourceToken?.id ?? null,
       targetTokenId: targetRow?.targetTokenId ?? null,
       targetTokenUuid: targetRow?.targetTokenUuid ?? null,
@@ -1179,10 +1239,22 @@ export async function performMachineElectronicWarfare(actor, {
       tags: ["machine", "ew", selectedAction.id],
     };
 
-  await rollApi.execute({
+  const rollResult = await rollApi.execute({
     actor,
     payload,
   });
+
+  if (!rollResult) return { ok: false, cancelled: true, reason: "EW action was cancelled." };
+
+  if (TRANSIENT_EMISSION_EW_ACTIONS.has(selectedAction.id)) {
+    await setMachineTransientEmission(actor, {
+      rating: 1,
+      reason: selectedAction.id,
+      source: "system",
+      duration: "untilNextActivation",
+      token: sourceToken,
+    });
+  }
 
   return { ok: true, action: selectedAction, target: targetRow };
 }
