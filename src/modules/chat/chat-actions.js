@@ -106,11 +106,31 @@ function getAppliedDamageBreakdown(summary = {}) {
     };
   }
 
+  const battleArmor = summary?.battleArmor ?? null;
+  if (battleArmor) {
+    const armor = Math.max(0, Number(battleArmor.armorAbsorbed ?? 0) || 0);
+    const structure = Math.max(0, Number(
+      battleArmor.structureDamage
+      ?? (Number(battleArmor.structureBefore ?? 0) - Number(battleArmor.structureAfter ?? 0))
+    ) || 0);
+    const wearer = Math.max(0, Number(battleArmor.wearerDamage ?? summary?.finalDamage ?? summary?.appliedDelta ?? 0) || 0);
+    return {
+      isMachine: false,
+      isBattleArmor: true,
+      armor,
+      structure,
+      wearer,
+      total: armor + structure + wearer,
+    };
+  }
+
   const total = Math.max(0, Number(summary?.finalDamage ?? summary?.appliedDelta ?? 0) || 0);
   return {
     isMachine: false,
+    isBattleArmor: false,
     armor: 0,
     structure: total,
+    wearer: total,
     total,
   };
 }
@@ -128,6 +148,14 @@ function buildDamageImpactText({ damageTypeLabel = "Damage", trackLabel = "Track
     const parts = [];
     if (breakdown.armor > 0) parts.push(`${formatDamagePoints(breakdown.armor)} to armor`);
     if (breakdown.structure > 0) parts.push(`${formatDamagePoints(breakdown.structure)} to structure`);
+    if (parts.length) return `${damageTypeLabel} damage applied: ${parts.join(", ")}.`;
+  }
+
+  if (breakdown.isBattleArmor) {
+    const parts = [];
+    if (breakdown.armor > 0) parts.push(`${formatDamagePoints(breakdown.armor)} to battle armor`);
+    if (breakdown.structure > 0) parts.push(`${formatDamagePoints(breakdown.structure)} to battle armor structure`);
+    if (breakdown.wearer > 0) parts.push(`${formatDamagePoints(breakdown.wearer)} to ${trackLabel}`);
     if (parts.length) return `${damageTypeLabel} damage applied: ${parts.join(", ")}.`;
   }
 
@@ -149,6 +177,30 @@ function buildMachineMonitorRows(machine = null) {
     {
       label: "Structure",
       value: `${formatMonitorValue(machine.structureBefore, machine.structureMax)} -> ${formatMonitorValue(machine.structureAfter, machine.structureMax)}`,
+      class: "is-monitor"
+    }
+  ];
+}
+
+function buildBattleArmorMonitorRows(battleArmor = null) {
+  if (!battleArmor) return [];
+  const armorMax = Math.max(
+    0,
+    Number(battleArmor.armorPoolMax ?? battleArmor.armorMax ?? battleArmor.armorBefore ?? battleArmor.armorAfter ?? 0) || 0
+  );
+  const structureMax = Math.max(
+    0,
+    Number(battleArmor.structureMax ?? battleArmor.structureBefore ?? battleArmor.structureAfter ?? 0) || 0
+  );
+  return [
+    {
+      label: "Battle Armor",
+      value: `${formatMonitorValue(battleArmor.armorBefore, armorMax)} -> ${formatMonitorValue(battleArmor.armorAfter, armorMax)}`,
+      class: "is-monitor"
+    },
+    {
+      label: "BA Structure",
+      value: `${formatMonitorValue(battleArmor.structureBefore, structureMax)} -> ${formatMonitorValue(battleArmor.structureAfter, structureMax)}`,
       class: "is-monitor"
     }
   ];
@@ -261,10 +313,21 @@ function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null
   const targetName = String(summary?.actorName ?? actor?.name ?? "Target").trim() || "Target";
   const rows = [];
   const machine = summary?.machine ?? summary?.damagePreview?.machine ?? null;
+  const battleArmor = summary?.battleArmor ?? null;
 
   const machineMonitorRows = buildMachineMonitorRows(machine);
+  const battleArmorMonitorRows = buildBattleArmorMonitorRows(battleArmor);
   if (machineMonitorRows.length) {
     rows.push(...machineMonitorRows);
+  } else if (battleArmorMonitorRows.length) {
+    rows.push(...battleArmorMonitorRows);
+    if (summary?.beforeLabel && summary?.afterLabel) {
+      rows.push({
+        label: "Wearer",
+        value: `${summary.beforeLabel} -> ${summary.afterLabel}`,
+        class: "is-monitor"
+      });
+    }
   } else if (summary?.beforeLabel && summary?.afterLabel) {
     rows.push({
       label: "Monitor",
@@ -362,7 +425,7 @@ function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null
     classes: ["mwd-damage-card", getDamageTypeTheme(damageType), severity.key].join(" "),
     header: {
       left: "Damage Applied",
-      right: trackLabel
+      right: appliedDamage.isBattleArmor ? "Battle Armor" : trackLabel
     },
     target: {
       name: targetName,
