@@ -17,6 +17,7 @@ import {
 import {
   isMachineSensorActionBlocked,
 } from "../../mwd/machine-state-effects.js";
+import { getStealthDnParts } from "../../mwd/machine-stealth.js";
 import { createUserFacingRollError } from "../roll-errors.js";
 
 function isMachineActor(actor) {
@@ -106,7 +107,16 @@ export async function resolveAcquire({ actor, payload } = {}) {
       acquire: { currentState },
     },
   });
-  const dn         = dnBase + dnModifier;
+  const stealthDnParts = getStealthDnParts(actor, targetActor, {
+    intent: "acquire",
+    currentState,
+    payload,
+    attackerToken,
+    targetToken,
+    rangeBand: payload?.rangeBand,
+  });
+  const stealthDnModifier = stealthDnParts.reduce((sum, part) => sum + (Number(part.value ?? 0) || 0), 0);
+  const dn         = dnBase + dnModifier + stealthDnModifier;
 
   return {
     intent:    "acquire",
@@ -121,6 +131,7 @@ export async function resolveAcquire({ actor, payload } = {}) {
       parts: [
         { id: "difficulty.base",     label: "Base DN",      value: dnBase,     tags: ["base"] },
         ...(dnModifier ? [{ id: "ew.ecmDn", label: "ECM Modifier", value: dnModifier, tags: ["ew"] }] : []),
+        ...stealthDnParts,
       ],
       total: dn
     },

@@ -12,6 +12,7 @@ import {
   normalizeMachineWeaponDamageType,
 } from "./machine-weapon-types.js";
 import { DEFAULT_FIRE_MODE } from "./battlemech-fire-modes.js";
+import { getDetectionState, listTargetingStates } from "./machine-ew-state.js";
 
 const RANGE_ORDER = ["close", "near", "far", "extreme"];
 // Preferred default engagement band: near is the sweet spot; fall back toward
@@ -141,7 +142,12 @@ export function markBattlemechWeaponGroupUsed(state = {}, groupId = "") {
   return state;
 }
 
-function inspectBattlemechWeaponGroup(actor = null, group = null) {
+function hasKeyword(keywords, keyword) {
+  const kw = Array.isArray(keywords) ? keywords : String(keywords ?? "").split(",");
+  return kw.map(k => String(k ?? "").trim().toLowerCase()).filter(Boolean).includes(keyword.toLowerCase());
+}
+
+function inspectBattlemechWeaponGroup(actor = null, group = null, { token = null } = {}) {
   const weaponIds = asArray(group?.weaponIds).map(normalizeId).filter(Boolean);
   const presentWeapons = weaponIds
     .map(id => actor?.items?.get?.(id) ?? null)
@@ -224,6 +230,7 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
       hardpointType: String(mountedHardpoint?.type ?? "").trim(),
       hardpointSize: String(mountedHardpoint?.size ?? "").trim(),
       hardpointLocation: String(mountedHardpoint?.location ?? "").trim(),
+      isLockOnly: hasKeyword(profile?.keywords ?? weapon?.system?.keywords, "lock-only"),
       sourceWeapon: weapon,
     });
     memberHardpoints.push({
@@ -234,6 +241,29 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
       itemId: normalizeId(weapon?.id),
       weaponName: String(weapon?.name ?? "Weapon").trim() || "Weapon",
     });
+  }
+
+  if (memberWeapons.some(entry => entry.isLockOnly)) {
+    const combatant = token?.combatant ?? null;
+    if (combatant) {
+      const canvasTargets = Array.from(game?.user?.targets ?? []);
+      if (canvasTargets.length > 0) {
+        const hasLockedCanvasTarget = canvasTargets.some(targetToken => {
+          const uuid = targetToken.document?.uuid ?? "";
+          return uuid && getDetectionState(combatant, uuid) === "lock";
+        });
+        if (!hasLockedCanvasTarget) {
+          blockingReasons.push("Requires sensor lock on target.");
+        }
+      } else {
+        const hasAnyLockedTarget = listTargetingStates(combatant).some(
+          entry => entry.state?.detectionState === "lock"
+        );
+        if (!hasAnyLockedTarget) {
+          blockingReasons.push("Requires sensor lock: no locked targets.");
+        }
+      }
+    }
   }
 
   if (missingWeaponIds.length) {
@@ -347,12 +377,12 @@ function inspectBattlemechWeaponGroup(actor = null, group = null) {
   };
 }
 
-export function prepareBattlemechWeaponGroups(actor = null, { usedWeaponGroupIds = [], fireMode = DEFAULT_FIRE_MODE } = {}) {
+export function prepareBattlemechWeaponGroups(actor = null, { usedWeaponGroupIds = [], fireMode = DEFAULT_FIRE_MODE, token = null } = {}) {
   const usedIds = new Set(asArray(usedWeaponGroupIds).map(normalizeId).filter(Boolean));
   const activeFireMode = String(fireMode ?? DEFAULT_FIRE_MODE).trim() || DEFAULT_FIRE_MODE;
 
   return getBattlemechConfiguredWeaponGroups(actor).map(group => {
-    const inspected = inspectBattlemechWeaponGroup(actor, group);
+    const inspected = inspectBattlemechWeaponGroup(actor, group, { token });
     const usedThisActivation = usedIds.has(inspected.id);
     const lockedOut = usedThisActivation;
     const isAvailableThisActivation = !lockedOut;

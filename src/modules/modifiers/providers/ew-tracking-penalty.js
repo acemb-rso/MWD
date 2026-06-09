@@ -4,6 +4,7 @@
 import { TEMPLATE } from "../../constants.js";
 import { getTrackingPenalty } from "../../mwd/machine-ew-state.js";
 import { buildMachineAttackMotionContext } from "../../mwd/machine-attack-motion.js";
+import { getStealthTrackingPenalty } from "../../mwd/machine-stealth.js";
 
 function isMachineActor(actor) {
   return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
@@ -38,6 +39,15 @@ export class EwTrackingPenaltyProvider {
         source: "EW",
       });
     }
+
+    const stealthPenalty = getStealthTrackingPenalty(actor, targetActor, {
+      intent,
+      payload,
+      resolved,
+      rangeBand: resolved?.attack?.rangeBand,
+      targetToken,
+    });
+    if (stealthPenalty) mods.push(stealthPenalty);
 
     const motion = resolved?.attack?.machineMotion
       ?? buildMachineAttackMotionContext({ targetActor, payload });

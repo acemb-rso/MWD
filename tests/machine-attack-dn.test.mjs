@@ -128,6 +128,35 @@ function createActor({ weaponProfile = {} } = {}) {
   };
 }
 
+function createAssetModule({
+  id = "module",
+  name = "Module",
+  tags = [],
+  capabilities = [],
+  stealthProfile = null,
+  trackingPenalty = 0,
+} = {}) {
+  return {
+    id,
+    name,
+    type: "assetModule",
+    canonicalType: "assetModule",
+    system: {
+      activation: { mode: "passive", active: false },
+      tags,
+      capabilities,
+      targeting: stealthProfile ? { stealthProfile } : {},
+      effects: trackingPenalty ? [{
+        id: `${id}-tracking`,
+        label: name,
+        timing: "ready",
+        scope: "self",
+        modifies: { trackingPenalty },
+      }] : [],
+    },
+  };
+}
+
 function createPilot({ reflexes = 5, meleeCombat = 4 } = {}) {
   return {
     type: "character",
@@ -293,6 +322,7 @@ function setScene({
   };
 
   return {
+    targetToken,
     targetSnapshot: {
       tokenId: targetToken.id,
       tokenUuid: targetTokenUuid,
@@ -1163,6 +1193,121 @@ test("machine target motion uses action count for DN and movement speed for trac
     assert.equal(fast.difficulty.dn, 4);
     assert.equal(fast.attack.machineMotion.trackingHexes, 6);
     assert.equal(fastMods.find(mod => mod.id === "machineMotion.tracking")?.value, -3);
+  } finally {
+    clearScene();
+  }
+});
+
+test("machine stealth adds attack tracking dice without changing attack DN", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createActor();
+  const provider = new EwTrackingPenaltyProvider();
+  const { targetToken, targetSnapshot } = setScene({ distance: 100 });
+  targetToken.actor.system.mwd = {
+    stealth: {
+      enabled: true,
+      rating: 2,
+      mode: "passive",
+      counteredBy: ["activeProbe", "tag", "narc", "c3", "visualClose"],
+    },
+  };
+
+  try {
+    const resolved = await resolveAttack({
+      actor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+    const mods = provider.collect({ actor, resolved, payload: { intent: "attack" } });
+
+    assert.equal(resolved.difficulty.dn, 3);
+    assert.equal(resolved.dn.parts.some(part => part.id === "target.stealth"), false);
+    assert.equal(mods.find(mod => mod.id === "tracking.stealth")?.value, -2);
+
+    actor.assetModules = [
+      createAssetModule({ id: "probe", name: "Active Probe", tags: ["activeProbe"] }),
+    ];
+    const probedMods = provider.collect({ actor, resolved, payload: { intent: "attack" } });
+    assert.equal(probedMods.find(mod => mod.id === "tracking.stealth")?.value, -1);
+
+    targetToken.actor.statuses.add("narced");
+    const narcedMods = provider.collect({ actor, resolved, payload: { intent: "attack" } });
+    assert.equal(narcedMods.some(mod => mod.id === "tracking.stealth"), false);
+  } finally {
+    clearScene();
+  }
+});
+
+test("stealth counters cannot become positive attack dice", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createActor();
+  actor.assetModules = [
+    createAssetModule({ id: "probe", name: "Active Probe", tags: ["activeProbe"] }),
+    createAssetModule({ id: "c3", name: "C3 Network", tags: ["c3"] }),
+  ];
+  const provider = new EwTrackingPenaltyProvider();
+  const { targetToken, targetSnapshot } = setScene({ distance: 100 });
+  targetToken.actor.system.mwd = {
+    stealth: {
+      enabled: true,
+      rating: 1,
+      mode: "passive",
+      counteredBy: ["activeProbe", "tag", "narc", "c3", "visualClose"],
+    },
+  };
+
+  try {
+    const resolved = await resolveAttack({
+      actor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+    const mods = provider.collect({ actor, resolved, payload: { intent: "attack" } });
+    assert.equal(resolved.difficulty.dn, 3);
+    assert.equal(mods.some(mod => mod.id === "tracking.stealth"), false);
+  } finally {
+    clearScene();
+  }
+});
+
+test("stealth-profiled legacy tracking modules do not double count", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createActor();
+  const provider = new EwTrackingPenaltyProvider();
+  const { targetToken, targetSnapshot } = setScene({ distance: 100 });
+  targetToken.actor.assetModules = [
+    createAssetModule({
+      id: "stealth-x",
+      name: "Stealth X",
+      stealthProfile: { ratingBonus: 2 },
+      trackingPenalty: 2,
+    }),
+  ];
+
+  try {
+    const resolved = await resolveAttack({
+      actor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+    const mods = provider.collect({ actor, resolved, payload: { intent: "attack" } });
+    assert.equal(mods.find(mod => mod.id === "tracking.stealth")?.value, -2);
+    assert.equal(mods.some(mod => mod.id === "ew.trackingPenalty"), false);
   } finally {
     clearScene();
   }

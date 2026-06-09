@@ -1,0 +1,65 @@
+{{!--
+templates/v2/ui/vehicle/signature-panel.hbs
+Purpose: Renders machine stealth signature controls and derived rating summary.
+How it fits: Shared by vehicle and BattleMech sheets; calculations come from the
+machine stealth model, not from this template.
+--}}
+
+{{#if @root.editing}}
+  <div class="mwd-gmgadget__grid">
+    <label class="mwd-gmgadget__field">
+      <span class="mwd-gmgadget__field-label">Stealth Enabled</span>
+      <input type="checkbox" name="system.mwd.stealth.enabled" {{checked vehicleSheet.signature.enabled}} />
+    </label>
+    <label class="mwd-gmgadget__field">
+      <span class="mwd-gmgadget__field-label">Rating</span>
+      <input type="number" name="system.mwd.stealth.rating" value="{{vehicleSheet.signature.rating}}" min="0" max="3" step="1" />
+    </label>
+    <label class="mwd-gmgadget__field">
+      <span class="mwd-gmgadget__field-label">Mode</span>
+      <select name="system.mwd.stealth.mode">
+        {{#each vehicleSheet.signature.modeOptions as |option|}}
+          <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+        {{/each}}
+      </select>
+    </label>
+    <label class="mwd-gmgadget__field">
+      <span class="mwd-gmgadget__field-label">Detection Cap</span>
+      <select name="system.mwd.stealth.detectionCap">
+        <option value="" {{#unless vehicleSheet.signature.detectionCap}}selected{{/unless}}>None</option>
+        <option value="contact" {{#if (eq vehicleSheet.signature.detectionCap "contact")}}selected{{/if}}>Contact</option>
+        <option value="track" {{#if (eq vehicleSheet.signature.detectionCap "track")}}selected{{/if}}>Track</option>
+      </select>
+    </label>
+  </div>
+  <label class="mwd-gmgadget__field">
+    <span class="mwd-gmgadget__field-label">Notes</span>
+    <input type="text" name="system.mwd.stealth.notes" value="{{vehicleSheet.signature.notes}}" />
+  </label>
+{{else}}
+  <section class="mwd-item-hero">
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Stealth</span>
+      <span class="mwd-item-hero__value">{{vehicleSheet.signature.effectiveRating}}</span>
+    </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Mode</span>
+      <span class="mwd-item-hero__value">{{vehicleSheet.signature.mode}}</span>
+    </div>
+    <div class="mwd-item-hero__stat">
+      <span class="mwd-item-hero__label">Revealed</span>
+      <span class="mwd-item-hero__value">{{vehicleSheet.signature.revealedLabel}}</span>
+    </div>
+    <div class="mwd-item-hero__stat" title="{{vehicleSheet.signature.counters}}">
+      <span class="mwd-item-hero__label">Counters</span>
+      <span class="mwd-item-hero__value">{{vehicleSheet.signature.counters}}</span>
+    </div>
+  </section>
+  {{#if vehicleSheet.signature.parts.length}}
+    <div class="mwd-combat-awareness__list" style="margin-top: 0.5rem;">
+      {{#each vehicleSheet.signature.parts as |part|}}
+        <span class="chip mwd-combat-awareness__chip">{{part.label}} +{{part.value}}</span>
+      {{/each}}
+    </div>
+  {{/if}}
+{{/if}}

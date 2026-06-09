@@ -38,6 +38,13 @@
               },
               {
                 "type": "panel",
+                "title": "Signature",
+                "children": [
+                  { "type": "include", "partial": "mwd.v2.ui.vehicle.signature-panel" }
+                ]
+              },
+              {
+                "type": "panel",
                 "title": "Movement",
                 "children": [
                   { "type": "include", "partial": "mwd.v2.ui.vehicle.movement-grid" }

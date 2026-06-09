@@ -62,6 +62,7 @@ import { cachePendingTokenPosition } from "../mwd/token-measurement.js";
 import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
 import { resolveMachineOperator } from "../mwd/machine-operator.js";
 import { normalizeMachineWeaponGroups, pruneWeaponGroupsToMountedItems } from "../mwd/machine-weapon-group-state.js";
+import { buildMachineStealthModel } from "../mwd/machine-stealth.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { Misc } from "../misc.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
@@ -342,6 +343,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         reason: "Statuses require a token for this actor on the current scene.",
       },
       ewPanel: this._buildEwPanel(),
+      signature: this._buildSignaturePanel(actor),
       activeCrits: this._buildActiveCrits(),
       attributes: this._buildAttributeCards(),
       movement: this._buildMovementCards(),
@@ -368,6 +370,35 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       name: pilotActor?.name ?? null,
       id: pilotActor?.id ?? null,
       canEdit: !!this.isEditable,
+    };
+  }
+
+  _buildSignaturePanel(actor = null) {
+    const stealth = actor?.system?.mwd?.stealth ?? {};
+    const model = buildMachineStealthModel(actor);
+    const counters = Array.isArray(model.counteredBy) && model.counteredBy.length
+      ? model.counteredBy.join(", ")
+      : "None";
+    return {
+      enabled: Boolean(stealth.enabled),
+      rating: Math.max(0, toNumber(stealth.rating, 0)),
+      mode: model.mode,
+      modeOptions: ["passive", "active", "suppressed"].map(mode => ({
+        value: mode,
+        label: startCase(mode),
+        selected: model.mode === mode,
+      })),
+      detectionCap: String(stealth.detectionCap ?? ""),
+      notes: String(stealth.notes ?? ""),
+      effectiveRating: model.effectiveRating,
+      baseRating: model.baseRating,
+      contributionRating: model.contributionRating,
+      revealedLabel: model.revealed ? "Yes" : "No",
+      counters,
+      parts: model.parts.map(part => ({
+        label: part.label,
+        value: Number(part.value ?? 0),
+      })),
     };
   }
 

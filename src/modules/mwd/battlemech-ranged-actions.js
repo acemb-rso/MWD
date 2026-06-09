@@ -23,7 +23,7 @@ export function buildBattlemechRangedAttackGroups(actor = null, { token = null }
     : [];
   const fireMode = actor?.system?.mwd?.fireMode ?? DEFAULT_FIRE_MODE;
 
-  return prepareBattlemechWeaponGroups(actor, { usedWeaponGroupIds, fireMode });
+  return prepareBattlemechWeaponGroups(actor, { usedWeaponGroupIds, fireMode, token: sourceToken });
 }
 
 function buildGroupAttackPayload(group, {

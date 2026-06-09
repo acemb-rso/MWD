@@ -15,6 +15,15 @@ export function enhanceAcquire(resolved, vm) {
     });
   }
 
+  const stealthParts = (Array.isArray(resolved?.dn?.parts) ? resolved.dn.parts : [])
+    .filter(part => Array.isArray(part?.tags) && part.tags.includes("stealth"));
+  if (stealthParts.length) {
+    vm.metaRows.push({
+      text: `Stealth: ${stealthParts.map(part => `${part.label} ${part.displayValue ?? fmt(part.value)}`).join(", ")}`,
+      title: "",
+    });
+  }
+
   enhancePostEdge(resolved, vm);
 
   if (!result) return;
@@ -38,4 +47,11 @@ export function enhanceAcquire(resolved, vm) {
       title: "",
     });
   }
+}
+
+function fmt(value) {
+  const numeric = Number(value ?? 0) || 0;
+  if (numeric > 0) return `+${numeric}`;
+  if (numeric < 0) return String(numeric);
+  return "0";
 }

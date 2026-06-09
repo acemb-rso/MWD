@@ -57,6 +57,15 @@ const templateData = {
             bailedOut: false
           },
           status: { state: "operational", reasons: [] },
+          stealth: {
+            enabled: false,
+            rating: 0,
+            mode: "passive",
+            revealedUntil: null,
+            detectionCap: "",
+            counteredBy: ["activeProbe", "tag", "narc", "c3", "visualClose"],
+            notes: ""
+          },
           config: {
             critTargetNumber: 8,
             critOnSnakeEyes: true,
@@ -342,6 +351,13 @@ const templateData = {
           attackRatingBonus: 0,
           defenseRatingBonus: 0,
           dfaEnabled: false
+        }
+      },
+      targeting: {
+        stealthProfile: {
+          ratingBonus: 0,
+          tags: [],
+          requiresActiveMode: false
         }
       }
     },

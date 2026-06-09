@@ -25,6 +25,20 @@ function createMachineActor(name = "Mauler") {
   };
 }
 
+function createAssetModule({ id = "module", name = "Module", tags = [], capabilities = [] } = {}) {
+  return {
+    id,
+    name,
+    type: "assetModule",
+    canonicalType: "assetModule",
+    system: {
+      activation: { mode: "passive", active: false },
+      tags,
+      capabilities,
+    },
+  };
+}
+
 function createCombatant({ tokenId, targetTokenUuid, detectionState = "blind" } = {}) {
   let targeting = {
     [targetTokenUuid]: {
@@ -359,6 +373,59 @@ test("acquire can bypass ecmShrouded only through matching asset module effect",
     assert.deepEqual(bypassed.dn.parts, [
       { id: "difficulty.base", label: "Base DN", value: 1, tags: ["base"] },
     ]);
+  } finally {
+    clearScene();
+  }
+});
+
+test("machine stealth increases acquire DN and counters reduce only stealth", async () => {
+  const { attackerActor, attackerToken, targetToken, targetTokenUuid } = setScene({ detectionState: "contact" });
+  targetToken.actor.type = "battlemech";
+  targetToken.actor.system = {
+    mwd: {
+      stealth: {
+        enabled: true,
+        rating: 2,
+        mode: "passive",
+        counteredBy: ["activeProbe", "tag", "narc", "c3", "visualClose"],
+      },
+    },
+  };
+
+  try {
+    const stealthy = await resolveAcquire({
+      actor: attackerActor,
+      payload: {
+        sourceTokenId: attackerToken.id,
+        targetTokenUuid,
+      },
+    });
+    assert.equal(stealthy.difficulty.dn, 4);
+    assert.equal(stealthy.dn.parts.find(part => part.id === "target.stealth")?.value, 2);
+
+    attackerActor.items = [
+      createAssetModule({ id: "probe", name: "Active Probe", tags: ["activeProbe"] }),
+    ];
+    const probed = await resolveAcquire({
+      actor: attackerActor,
+      payload: {
+        sourceTokenId: attackerToken.id,
+        targetTokenUuid,
+      },
+    });
+    assert.equal(probed.difficulty.dn, 3);
+    assert.equal(probed.dn.parts.find(part => part.id === "stealth.counter.activeProbe")?.value, -1);
+
+    targetToken.actor.statuses.add("tagged");
+    const tagged = await resolveAcquire({
+      actor: attackerActor,
+      payload: {
+        sourceTokenId: attackerToken.id,
+        targetTokenUuid,
+      },
+    });
+    assert.equal(tagged.difficulty.dn, 2);
+    assert.equal(tagged.dn.parts.find(part => part.id === "stealth.counter.tagged")?.displayValue, "bypass");
   } finally {
     clearScene();
   }

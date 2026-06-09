@@ -102,6 +102,14 @@
       }
     },
     "targeting": {
+      "stealthProfile": {
+        "ratingBonus": 2,
+        "tags": [
+          "electronic",
+          "stealth"
+        ],
+        "requiresActiveMode": false
+      },
       "clustering": {
         "diceModifier": 0,
         "targetNumberModifier": 0

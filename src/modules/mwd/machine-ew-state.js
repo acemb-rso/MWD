@@ -19,6 +19,7 @@ import {
   lowerDetectionCap,
 } from "./battle-armor.js";
 import { getActiveArmorTraitEffects } from "./personal-damage.js";
+import { getApplicableStealthProfileSourceIds } from "./machine-stealth.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "targeting";
@@ -238,10 +239,14 @@ export function getTrackingPenalty(targetActor, targetCombatant, options = {}) {
   if (statuses.has("obscuredHeavy")) penalty += 3;
   if (statuses.has("obscured")) penalty += 1;
 
+  const stealthProfileSources = getApplicableStealthProfileSourceIds(targetActor);
   const moduleTrackingPenalty = getApplicableAssetModuleEffects(targetActor, {
     payload: { intent: "attack" },
     resolved: { intent: "attack" },
-  }).effects.reduce((sum, effect) => sum + (Number(effect.modifies?.trackingPenalty ?? 0) || 0), 0);
+  }).effects.reduce((sum, effect) => {
+    if (stealthProfileSources.has(effect.sourceId) || stealthProfileSources.has(effect.sourceName)) return sum;
+    return sum + (Number(effect.modifies?.trackingPenalty ?? 0) || 0);
+  }, 0);
   penalty += moduleTrackingPenalty;
   penalty += Number(getActiveArmorTraitEffects(targetActor).sensorTrackingPenalty ?? 0) || 0;
 
