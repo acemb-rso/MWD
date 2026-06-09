@@ -438,7 +438,9 @@ export function previewBattleArmorDamage(profileInput = {}, { damage = 0, source
   const multiplier = scaleConversion.factor;
   let remaining = Math.max(0, Math.ceil(scaleConversion.converted));
   const armorBefore = profile.armorPool.value;
+  const armorMax = profile.armorPool.max;
   const structureBefore = profile.structure.value;
+  const structureMax = profile.structure.max;
   const hadArmorShellAtStart = armorBefore > 0;
   let armorAbsorbed = 0;
   let structureReduced = 0;
@@ -461,6 +463,7 @@ export function previewBattleArmorDamage(profileInput = {}, { damage = 0, source
   }
 
   profile.state = deriveBattleArmorState(profile);
+  const structureDamage = Math.max(0, structureBefore - profile.structure.value);
 
   return {
     sourceScale: scale,
@@ -472,9 +475,12 @@ export function previewBattleArmorDamage(profileInput = {}, { damage = 0, source
     hadArmorShellAtStart,
     armorBefore,
     armorAfter: profile.armorPool.value,
+    armorPoolMax: armorMax,
     armorAbsorbed,
     structureBefore,
     structureAfter: profile.structure.value,
+    structureMax,
+    structureDamage,
     structureResistance: resistance,
     structureReduced,
     structureDegraded,

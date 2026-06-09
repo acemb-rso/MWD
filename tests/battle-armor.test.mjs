@@ -121,10 +121,13 @@ test("battle armor preview applies armor pool, machine scale, structure resistan
   assert.equal(preview.incomingScaled, 10);
   assert.equal(preview.hadArmorShellAtStart, true);
   assert.equal(preview.armorAbsorbed, 2);
+  assert.equal(preview.armorPoolMax, 2);
   assert.equal(preview.structureResistance, 2);
   assert.equal(preview.structureReduced, 2);
   assert.equal(preview.structureDegraded, true);
+  assert.equal(preview.structureDamage, 1);
   assert.equal(preview.structureAfter, 4);
+  assert.equal(preview.structureMax, 5);
   assert.equal(preview.wearerDamage, 6);
   assert.equal(preview.stateAfter, "breached");
 });
