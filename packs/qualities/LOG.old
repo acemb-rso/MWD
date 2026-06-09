@@ -1,3 +1,5 @@
-2026/06/08-21:07:36.300 f84c Recovering log #50
-2026/06/08-21:07:36.304 f84c Delete type=0 #50
-2026/06/08-21:07:36.304 f84c Delete type=3 #49
+2026/06/09-03:14:30.134 be24 Recovering log #54
+2026/06/09-03:14:30.134 be24 Level-0 table #56: started
+2026/06/09-03:14:30.136 be24 Level-0 table #56: 23174 bytes OK
+2026/06/09-03:14:30.138 be24 Delete type=0 #54
+2026/06/09-03:14:30.138 be24 Delete type=3 #53

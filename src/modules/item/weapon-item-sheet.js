@@ -380,6 +380,7 @@ export class WeaponItemSheet extends BaseItemSheet {
         const payload = actorPayloads.find(entry => entry.id === group.item?.uuid) ?? {};
         return {
           id: payload.id || group.item?.uuid,
+          itemId: group.item?.id || "",
           label: payload.label || group.item?.name || "Payload",
           families: group.families.join(", "),
           tags: group.tags.join(", "),
@@ -426,21 +427,12 @@ export class WeaponItemSheet extends BaseItemSheet {
     const root = this._getRootElement?.();
     if (!root) return;
 
+    // Only register the dragover handler here to allow drops. Drop handling is
+    // done exclusively in _onDrop (called once by Foundry's ApplicationV2) to
+    // avoid stacking duplicate drop listeners on every re-render.
     root.addEventListener("dragover", event => {
       event.preventDefault();
       if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
-    });
-
-    root.addEventListener("drop", event => {
-      event.preventDefault();
-      event.stopPropagation();
-      const data = getDragEventData(event);
-      void (async () => {
-        if (await this._handleWeaponPayloadDrop(data)) {
-          return;
-        }
-        await super._onDrop?.(event);
-      })();
     });
   }
 
@@ -674,6 +666,17 @@ export class WeaponItemSheet extends BaseItemSheet {
       button.addEventListener("click", event => {
         event.preventDefault();
         void preserveScroll(() => this.item.deletePayload?.(button.dataset.payloadId));
+      });
+    });
+
+    root.querySelectorAll(".mwd-payload-item-remove").forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        const itemId = String(button.dataset.itemId ?? "").trim();
+        if (!itemId) return;
+        const actor = this.item.actor ?? null;
+        if (!actor) return;
+        void preserveScroll(() => actor.deleteEmbeddedDocuments("Item", [itemId]));
       });
     });
 

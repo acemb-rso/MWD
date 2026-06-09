@@ -67,6 +67,9 @@ How it fits: Used by the CSB-driven personal weapon details layout.
               <button type="button" class="mwd-record__icon-btn mwd-payload-select" data-payload-id="{{payload.id}}" title="Select">
                 <i class="fas fa-check"></i>
               </button>
+              <button type="button" class="mwd-record__icon-btn is-danger mwd-payload-item-remove" data-item-id="{{payload.itemId}}" title="Remove from Actor">
+                <i class="fas fa-times"></i>
+              </button>
             </div>
           {{/each}}
         {{/if}}
