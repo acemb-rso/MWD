@@ -1,33 +1,40 @@
-Below is a **canonical Asset Module item schema** plus a **controlled tag taxonomy** for quirk-style modules in MWD.
+Below is a **canonical Asset Module item schema** plus a **controlled tag
+taxonomy** for quirk-style modules in MWD.
 
-## AE-first authority model
+## Shared rule contribution model
 
-Asset-module mechanics use one authoritative representation per mechanical
-effect:
+Asset-module mechanics now use `system.rules[]` as the primary declarative
+authoring surface. A rule contributes typed packets to the relevant domain
+engine; it does not execute the final outcome itself.
 
-* **AE-native** effects are authored as embedded item ActiveEffects on the
-  asset-module item. When the module contributes, the item AE is mirrored onto
-  the owning actor. Actor-side ActiveEffects created by this sync are mirrors;
-  manually created actor ActiveEffects are direct actor effects and are not
-  touched by asset-module sync.
-* **Provider-contextual** effects stay in `system.effects` when they need roll
-  context: intent, action id, skill id, weapon tags, target state, status
-  prerequisites, heat band, or selected module mode.
-* **Runtime-event** effects are authored as runtime packets when they
-  participate in events: targeting/EW state, network sharing/suppression,
-  damage interception, charges, auras, heat lifecycle, or start/end activation
-  timing.
+The core boundary is:
 
-Do not duplicate the same mechanic in more than one rail. For example,
-`ecmShrouded` should be either an embedded AE status or a provider-derived
-contextual status, not both. The existing structured `system.effects` rail is
-therefore provider-contextual/runtime-compatibility data, not the home for
-stable actor-state changes that ActiveEffects can represent.
+* `system.rules[]` describes selectors, prerequisites, limits, usage metadata,
+  and contribution outputs.
+* Domain services remain authoritative writers for rolls, action economy, heat,
+  EW/targeting, harm, criticals, and machine damage.
+* Shared rules may preview resource use or emit queued domain requests, but they
+  never directly spend SA/FA/RA, apply heat, write damage, create criticals, or
+  store targeting state.
+* `system.effects[]` is a compatibility mirror/fallback for older modules and
+  older helper APIs. Runtime code prefers native `system.rules[]` when present,
+  so mirrored legacy rows do not double-count.
+* `system.runtime.packets[]`, `system.mobility.jumping`, and
+  `system.targeting.clustering` remain compatibility/native data rails while
+  their owning domain services finish migrating to consume rule outputs
+  directly.
+* Embedded item ActiveEffects remain separate Foundry ActiveEffect data. Use
+  them for actual AE mirroring, not for generic rule contribution packets.
+
+Do not author the same mechanic in multiple authoritative rails. During the
+transition, the asset-module generator may emit both `system.rules[]` and
+legacy `system.effects[]`; the rule row is authoritative and the effect row is
+only a compatibility mirror.
 
 ## Readiness model
 
 Every subsystem must use the same readiness model before an asset module can
-contribute AE mirrors, provider effects, or runtime packets.
+contribute rule packets, AE mirrors, provider fallbacks, or runtime packets.
 
 ```js
 ready = installed && enabled && !suppressed && !offline && !destroyed && !coolingDown
@@ -55,9 +62,9 @@ Field authority:
 `disabled`, or `cooldown` for UI/debugging. It is descriptive; the booleans
 above remain authoritative.
 
-**Live implementation note:** the shipped `assetModule` schema now supports the
-structured v1 effect rail in addition to the older compatibility fields. The
-live engine normalizes and validates:
+**Live implementation note:** the shipped `assetModule` schema now supports
+shared rule packets as the primary mechanics data. The live engine normalizes
+and validates:
 
 ```json
 {
@@ -77,27 +84,44 @@ live engine normalizes and validates:
       "destroyed": false,
       "reason": ""
     },
-    "effects": [
+    "rules": [
       {
         "id": "sensor-suite.acquire",
         "label": "Active Probe",
-        "timing": "active",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
         "scope": "self",
-        "requires": {
+        "selector": {
           "actionIds": ["acquireTarget"]
         },
-        "grants": {
-          "statuses": [],
-          "actionOverrides": []
-        },
-        "modifies": {
-          "dice": 2,
-          "bypassStatuses": ["ecmShrouded"]
-        },
-        "costs": {},
-        "limits": {}
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "sensor-suite.acquire.dice",
+            "label": "Active Probe",
+            "value": 2
+          },
+          {
+            "type": "targetingConstraint",
+            "id": "sensor-suite.acquire.bypass",
+            "label": "Active Probe",
+            "constraint": "bypassStatus",
+            "value": "ecmShrouded"
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Active Probe"
       }
     ],
+    "effects": [],
     "mobility": {
       "jumping": {
         "enabled": false,
@@ -118,21 +142,52 @@ live engine normalizes and validates:
 }
 ```
 
-Validation is intentionally fail-loud. Invalid effect schema blocks item saves
-from the item sheet, and invalid installed module data raises an
+Validation is intentionally fail-loud. Invalid legacy effect schema blocks item
+saves from the item sheet, and invalid installed module data raises an
 `AssetModuleValidationError` during runtime lookup instead of silently dropping
-mechanics. Use `epmBoosted`; `ecmBoosted` is invalid. `bypassStatuses` is
-currently intentionally narrow and may only include `ecmShrouded`.
+mechanics. Use `epmBoosted`; `ecmBoosted` is invalid. Legacy
+`bypassStatuses` is currently intentionally narrow and may only include
+`ecmShrouded`.
 
 For clustering attacks, `targeting.clustering.diceModifier` adds cluster dice
 to weapons or weapon groups that already have clustering, and
 `targeting.clustering.targetNumberModifier` shifts the cluster success target
 number. Negative target-number modifiers make clustering hits easier, which is
 the intended hook for Artemis-style fire-control upgrades. New module-authored
-effects can also use `modifies.clusteringDice` and
-`modifies.clusteringTarget`, gated by effect requirements.
+rules should use `queuedDomainRequest` outputs with `domain: "clustering"`,
+gated by rule selectors and prerequisites.
 
-**Design intent:** quirks become **data-driven item records** that feed the existing **intent → resolver → RollContext** pipeline, with effects expressed as **dice parts, CQ parts, action injections, constraints, and rare rule hooks**, rather than sheet-side logic or bespoke one-off systems. That matches your locked resolver doctrine, especially “DN = Range + Motion only,” “CQ = AR – DR,” provider-based collection, and the requirement that the sheet emit intent while the engine does the work.    
+**Design intent:** quirks become **data-driven item records** that feed the
+existing **intent to resolver to RollContext** pipeline, with rules expressed as
+**dice parts, CQ parts, action availability, constraints, resource previews, and
+queued domain requests**, rather than sheet-side logic or bespoke one-off
+systems. That matches the resolver doctrine: provider-based collection,
+centralized domain writers, and sheets that emit intent while engines resolve
+outcomes.
+
+## Rule output types
+
+Asset modules may emit the shared output types supported by
+`game.mwd.rules.evaluatePhase`:
+
+| Output type | Use |
+|---|---|
+| `dicePart` | Roll dice contribution |
+| `dnPart` | DN contribution |
+| `cqPart` | AR/DR contribution |
+| `damageAdjustment` | Advisory damage modifier for a domain engine |
+| `heatAdjustment` | Advisory heat/profile/dissipation modifier |
+| `targetingConstraint` | EW/targeting constraint such as tracking penalty or bypass |
+| `targetingDataModifier` | Targeting-data packet modifier |
+| `actionAvailability` | Expose, unlock, or disable an action before spend |
+| `actionCostAdjustment` | Action-cost contribution before spend |
+| `derivedStatus` | Derived availability/status model contribution only |
+| `resourceSpendPreview` | Preview heat, charges, or other resource costs |
+| `queuedDomainRequest` | Request that a domain owner process a specific behavior |
+
+`derivedStatus` does not apply or remove Foundry ActiveEffects or actor
+statuses. It only contributes to a derived model that another service may
+consume.
 
 # 1) Canonical item type
 
@@ -347,6 +402,12 @@ This is where you prevent nonsense combinations.
 ---
 
 # 3) Effect payload schemas
+
+This section describes the older effect taxonomy and remains useful as design
+background. New compendium asset modules should author equivalent mechanics in
+`system.rules[]` using the shared output types above. `system.effects[]` may be
+generated as a compatibility mirror, but it is no longer the primary mechanics
+surface.
 
 ## A) Dice mods
 

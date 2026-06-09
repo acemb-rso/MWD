@@ -1,0 +1,126 @@
+{
+  "_id": "5bd8f335b60839e6",
+  "name": "Stealth X system",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Combat Electronics",
+    "description": "<dl><dt>Group</dt><dd>Combat Electronics</dd><dt>Requirement</dt><dd>Stealth system active</dd><dt>Effect</dt><dd>+2 trackingPenalty when attacking the carrier; +1 DN for enemy acquireTarget tests when in use</dd><dt>Cost/Risk</dt><dd>Generates +1 heat when used</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "toggle",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "stealth-x-defense",
+        "label": "Stealth X Defense",
+        "timing": "active",
+        "scope": "self",
+        "requires": {},
+        "grants": {},
+        "modifies": {
+          "trackingPenalty": 2
+        },
+        "costs": {
+          "heat": 1
+        },
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "stealth-x-defense",
+        "label": "Stealth X Defense",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "targetingConstraint",
+            "id": "stealth-x-defense.trackingPenalty",
+            "label": "Stealth X Defense",
+            "constraint": "trackingPenalty",
+            "value": 2
+          },
+          {
+            "type": "resourceSpendPreview",
+            "id": "stealth-x-defense.heat",
+            "label": "Stealth X Defense",
+            "resource": "heat",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Stealth X Defense"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Stealth system active",
+    "effectText": "+2 trackingPenalty when attacking the carrier; +1 DN for enemy acquireTarget tests when in use",
+    "costRisk": "Generates +1 heat when used",
+    "tags": [
+      "assetModule",
+      "Combat Electronics",
+      "combatElectronics",
+      "stealth",
+      "ecm"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!5bd8f335b60839e6"
+}

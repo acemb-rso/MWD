@@ -3,6 +3,8 @@
 // How it fits: Keeps module-carried mechanics data out of sheets and actor prep
 // while providing one stable source of truth for derived machine abilities.
 
+import { normalizeCarrier } from "./rules.js";
+
 function toInteger(value, fallback = 0) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return fallback;
@@ -322,6 +324,7 @@ export function normalizeAssetModuleSystem(system = {}) {
     category: toTrimmedString(source.category, "special"),
     level: Math.max(1, toInteger(source.level, 1)),
     activation: normalizeAssetModuleActivation(source.activation),
+    rules: normalizeCarrier(source).rules,
     effects: normalizeAssetModuleEffects(source.effects),
     mobility: {
       ...mobility,

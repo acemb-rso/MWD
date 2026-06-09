@@ -1,0 +1,104 @@
+{
+  "_id": "cb32c5a6a116cc9b",
+  "name": "Thermal Exchanger",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Protection Systems",
+    "description": "<dl><dt>Group</dt><dd>Protection Systems</dd><dt>Requirement</dt><dd>None</dd><dt>Effect</dt><dd>+1 heatDissipation</dd><dt>Cost/Risk</dt><dd>Gains High Emission (1) when Heat Status not SAFE</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "thermal-exchanger-dissipation",
+        "label": "thermal-exchanger-dissipation",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "thermal-exchanger-dissipation.request",
+            "label": "thermal-exchanger-dissipation",
+            "domain": "currentHeatAdjustment",
+            "request": {
+              "id": "thermal-exchanger-dissipation",
+              "kind": "currentHeatAdjustment",
+              "timing": "dissipation",
+              "value": -1
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "thermal-exchanger-dissipation"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": [
+        {
+          "id": "thermal-exchanger-dissipation",
+          "kind": "currentHeatAdjustment",
+          "timing": "dissipation",
+          "value": -1
+        }
+      ]
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "",
+    "effectText": "+1 heatDissipation",
+    "costRisk": "Gains High Emission (1) when Heat Status not SAFE",
+    "tags": [
+      "assetModule",
+      "Protection Systems",
+      "protection",
+      "thermal",
+      "heat",
+      "highEmission"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!cb32c5a6a116cc9b"
+}

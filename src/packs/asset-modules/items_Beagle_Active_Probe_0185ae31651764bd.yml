@@ -1,0 +1,182 @@
+{
+  "_id": "0185ae31651764bd",
+  "name": "Beagle Active Probe",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Advanced Sensors",
+    "description": "<dl><dt>Group</dt><dd>Advanced Sensors</dd><dt>Requirement</dt><dd>Active sensors available</dd><dt>Effect</dt><dd>+1 die acquireTarget / Sensor Sweep, +2 Piloting dice to avoid mines; upgrade blind -&gt; contact, contact -&gt; track as Free Action. Ignore obscuredLight</dd><dt>Cost/Risk</dt><dd>High Emission (1)</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "beagle-sensors",
+        "label": "Beagle Sensor Aid",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "acquireTarget",
+            "sensorSweep"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1
+        },
+        "costs": {},
+        "limits": {}
+      },
+      {
+        "id": "beagle-mine-piloting",
+        "label": "Minefield Piloting Aid",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "skillIds": [
+            "piloting"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 2
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "beagle-sensors",
+        "label": "Beagle Sensor Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "acquireTarget",
+            "sensorSweep"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "beagle-sensors.dice",
+            "label": "Beagle Sensor Aid",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Beagle Sensor Aid"
+      },
+      {
+        "id": "beagle-mine-piloting",
+        "label": "Minefield Piloting Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [
+            "piloting"
+          ],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "beagle-mine-piloting.dice",
+            "label": "Minefield Piloting Aid",
+            "value": 2
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Minefield Piloting Aid"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Active sensors available",
+    "effectText": "+1 die acquireTarget / Sensor Sweep, +2 Piloting dice to avoid mines; upgrade blind -> contact, contact -> track as Free Action. Ignore obscuredLight",
+    "costRisk": "High Emission (1)",
+    "tags": [
+      "assetModule",
+      "Advanced Sensors",
+      "sensor",
+      "activeProbe",
+      "highEmission"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!0185ae31651764bd"
+}

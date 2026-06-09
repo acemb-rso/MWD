@@ -1,0 +1,188 @@
+{
+  "_id": "cb369520f03f6ced",
+  "name": "Guardian ECM",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Combat Electronics",
+    "description": "<dl><dt>Group</dt><dd>Combat Electronics</dd><dt>Requirement</dt><dd>ECM active</dd><dt>Effect</dt><dd>Applies ecmShrouded to the carrier. Grants +3 dice to ecmSpike and breakLock; Active mode applies ecmShrouded to allies within 180m.</dd><dt>Cost/Risk</dt><dd>Active mode generates 1 heat</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "toggle",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "guardian-shroud",
+        "label": "Guardian ECM Shroud",
+        "timing": "active",
+        "scope": "self",
+        "requires": {},
+        "grants": {
+          "statuses": [
+            "ecmShrouded"
+          ]
+        },
+        "modifies": {},
+        "costs": {
+          "heat": 1
+        },
+        "limits": {}
+      },
+      {
+        "id": "guardian-ecm-aid",
+        "label": "Guardian ECM Aid",
+        "timing": "active",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "ecmSpike",
+            "breakLock"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 3
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "guardian-shroud",
+        "label": "Guardian ECM Shroud",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "derivedStatus",
+            "id": "guardian-shroud.status.ecmShrouded",
+            "label": "Guardian ECM Shroud",
+            "key": "ecmShrouded",
+            "value": true
+          },
+          {
+            "type": "resourceSpendPreview",
+            "id": "guardian-shroud.heat",
+            "label": "Guardian ECM Shroud",
+            "resource": "heat",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Guardian ECM Shroud"
+      },
+      {
+        "id": "guardian-ecm-aid",
+        "label": "Guardian ECM Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "ecmSpike",
+            "breakLock"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "guardian-ecm-aid.dice",
+            "label": "Guardian ECM Aid",
+            "value": 3
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Guardian ECM Aid"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "ECM active",
+    "effectText": "Applies ecmShrouded to the carrier. Grants +3 dice to ecmSpike and breakLock; Active mode applies ecmShrouded to allies within 180m.",
+    "costRisk": "Active mode generates 1 heat",
+    "tags": [
+      "assetModule",
+      "Combat Electronics",
+      "combatElectronics",
+      "ecm",
+      "guardian"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!cb369520f03f6ced"
+}

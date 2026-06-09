@@ -1,0 +1,140 @@
+{
+  "_id": "f1619354349c7409",
+  "name": "Basic Jump Jet",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Mobility",
+    "description": "<dl><dt>Group</dt><dd>Mobility</dd><dt>Requirement</dt><dd>None</dd><dt>Effect</dt><dd>1 Jump Move Action; +1 TrackingPenalty; +3 AR</dd><dt>Cost/Risk</dt><dd>Jump Move generates +1 heat</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "mobility",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "jump-move-bonus",
+        "label": "Jump Move Profile",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "jumpMove"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "ar": 3,
+          "trackingPenalty": 1
+        },
+        "costs": {
+          "heat": 1
+        },
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "jump-move-bonus",
+        "label": "Jump Move Profile",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "jumpMove"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "cqPart",
+            "id": "jump-move-bonus.cq",
+            "label": "Jump Move Profile",
+            "ar": 3,
+            "dr": 0
+          },
+          {
+            "type": "targetingConstraint",
+            "id": "jump-move-bonus.trackingPenalty",
+            "label": "Jump Move Profile",
+            "constraint": "trackingPenalty",
+            "value": 1
+          },
+          {
+            "type": "resourceSpendPreview",
+            "id": "jump-move-bonus.heat",
+            "label": "Jump Move Profile",
+            "resource": "heat",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Jump Move Profile"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": true,
+        "movement": 90,
+        "heat": 1,
+        "attackRatingBonus": 3,
+        "defenseRatingBonus": 1,
+        "dfaEnabled": true
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "None",
+    "effectText": "1 Jump Move Action; +1 TrackingPenalty; +3 AR",
+    "costRisk": "Jump Move generates +1 heat",
+    "tags": [
+      "assetModule",
+      "Mobility",
+      "mobility",
+      "jump",
+      "jumpJet"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!f1619354349c7409"
+}

@@ -1,0 +1,110 @@
+{
+  "_id": "321210a66ed355db",
+  "name": "NARC Beacon Launcher",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 4100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Equipment",
+    "description": "<dl><dt>Group</dt><dd>Equipment</dd><dt>Requirement</dt><dd>NARC Attack hits target; beacon attached</dd><dt>Effect</dt><dd>Attack NARC Beacon - NARCed target counts as Sensor Locked only for compatible guided missile systems. Beacon carrier trackingPenalty reduced by 3</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "equipment",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "narc-beacon-attack",
+        "label": "NARC Beacon Attack",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "action",
+        "selector": {
+          "actionIds": [
+            "narcBeaconAttack"
+          ]
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "actionAvailability",
+            "id": "narc-beacon-attack.action",
+            "label": "NARC Beacon Attack",
+            "actionId": "narcBeaconAttack",
+            "enabled": true,
+            "reason": ""
+          },
+          {
+            "type": "queuedDomainRequest",
+            "id": "narc-beacon-attack.targeting",
+            "label": "NARC Beacon Attack",
+            "domain": "targeting",
+            "request": {
+              "kind": "narcBeacon"
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "NARC Beacon Attack"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "NARC Attack hits target; beacon attached",
+    "effectText": "Attack NARC Beacon - NARCed target counts as Sensor Locked only for compatible guided missile systems. Beacon carrier trackingPenalty reduced by 3",
+    "costRisk": "",
+    "tags": [
+      "assetModule",
+      "Equipment",
+      "equipment",
+      "narc",
+      "beacon",
+      "missile",
+      "sensorLock"
+    ],
+    "capabilities": [
+      "narc",
+      "beacon"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!321210a66ed355db"
+}

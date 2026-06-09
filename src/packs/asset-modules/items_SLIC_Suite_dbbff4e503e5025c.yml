@@ -1,0 +1,130 @@
+{
+  "_id": "dbbff4e503e5025c",
+  "name": "SLIC Suite",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2900000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Network",
+    "description": "<dl><dt>Group</dt><dd>Network</dd><dt>Requirement</dt><dd>None</dd><dt>Effect</dt><dd>All friendly SLIC units have +1 initiative; Grants +1 die to acquireTarget, sensorSweep, holdLink, breakLock, generateTargetData to all friendly units within 500m</dd><dt>Cost/Risk</dt><dd>Suppressed by IFF Jammer/network disruption</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "slic-network-aid",
+        "label": "SLIC Network Aid",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "acquireTarget",
+            "sensorSweep",
+            "holdLink",
+            "breakLock",
+            "generateTargetData"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "slic-network-aid",
+        "label": "SLIC Network Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "acquireTarget",
+            "sensorSweep",
+            "holdLink",
+            "breakLock",
+            "generateTargetData"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "slic-network-aid.dice",
+            "label": "SLIC Network Aid",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "SLIC Network Aid"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "",
+    "effectText": "All friendly SLIC units have +1 initiative; Grants +1 die to acquireTarget, sensorSweep, holdLink, breakLock, generateTargetData to all friendly units within 500m",
+    "costRisk": "Suppressed by IFF Jammer/network disruption",
+    "tags": [
+      "assetModule",
+      "Network",
+      "network",
+      "slic",
+      "initiative"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!dbbff4e503e5025c"
+}

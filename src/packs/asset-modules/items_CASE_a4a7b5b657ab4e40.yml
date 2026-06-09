@@ -1,0 +1,103 @@
+{
+  "_id": "a4a7b5b657ab4e40",
+  "name": "CASE",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3000000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Protection Systems",
+    "description": "<dl><dt>Group</dt><dd>Protection Systems</dd><dt>Requirement</dt><dd>Volatile component or ammo explosion event</dd><dt>Effect</dt><dd>Prevents full machine destruction and automatic crew death. Local location still suffers severe consequence: condition +1, stress spike, or module destruction.</dd><dt>Cost/Risk</dt><dd>CASE destroyed/consumed when it prevents a catastrophic event.</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "case-catastrophic-interception",
+        "label": "case-catastrophic-interception",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "triggered",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "case-catastrophic-interception.request",
+            "label": "case-catastrophic-interception",
+            "domain": "catastrophicInterception",
+            "request": {
+              "id": "case-catastrophic-interception",
+              "kind": "catastrophicInterception",
+              "consumesModule": true
+            }
+          }
+        ],
+        "limits": {},
+        "usage": {
+          "consume": true
+        },
+        "summary": "case-catastrophic-interception"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": [
+        {
+          "id": "case-catastrophic-interception",
+          "kind": "catastrophicInterception",
+          "consumesModule": true
+        }
+      ]
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Volatile component or ammo explosion event",
+    "effectText": "Prevents full machine destruction and automatic crew death. Local location still suffers severe consequence: condition +1, stress spike, or module destruction.",
+    "costRisk": "CASE destroyed/consumed when it prevents a catastrophic event.",
+    "tags": [
+      "assetModule",
+      "Protection Systems",
+      "protection",
+      "ammo",
+      "catastrophic"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!a4a7b5b657ab4e40"
+}

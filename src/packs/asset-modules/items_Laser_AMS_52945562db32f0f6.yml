@@ -1,0 +1,115 @@
+{
+  "_id": "52945562db32f0f6",
+  "name": "Laser AMS",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 4700000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Equipment",
+    "description": "<dl><dt>Group</dt><dd>Equipment</dd><dt>Requirement</dt><dd>Incoming missile/cluster attack</dd><dt>Effect</dt><dd>Missile Cluster Dice hit on 6</dd><dt>Cost/Risk</dt><dd>Generates +1 heat when used</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "equipment",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "laser-ams-intercept",
+        "label": "laser-ams-intercept",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "triggered",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "laser-ams-intercept.request",
+            "label": "laser-ams-intercept",
+            "domain": "interceptAttack",
+            "request": {
+              "id": "laser-ams-intercept",
+              "kind": "interceptAttack",
+              "appliesTo": [
+                "missile",
+                "cluster"
+              ],
+              "clusterTargetNumber": 6,
+              "heat": 1
+            }
+          }
+        ],
+        "limits": {},
+        "usage": {
+          "consume": false
+        },
+        "summary": "laser-ams-intercept"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": [
+        {
+          "id": "laser-ams-intercept",
+          "kind": "interceptAttack",
+          "appliesTo": [
+            "missile",
+            "cluster"
+          ],
+          "clusterTargetNumber": 6,
+          "heat": 1
+        }
+      ]
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Incoming missile/cluster attack",
+    "effectText": "Missile Cluster Dice hit on 6",
+    "costRisk": "Generates +1 heat when used",
+    "tags": [
+      "assetModule",
+      "Equipment",
+      "equipment",
+      "ams",
+      "laserAms",
+      "antiMissile",
+      "cluster"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!52945562db32f0f6"
+}

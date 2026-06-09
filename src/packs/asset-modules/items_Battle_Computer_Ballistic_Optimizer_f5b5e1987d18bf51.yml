@@ -1,0 +1,130 @@
+{
+  "_id": "f5b5e1987d18bf51",
+  "name": "Battle Computer - Ballistic Optimizer",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Fire Control Suite",
+    "description": "<dl><dt>Group</dt><dd>Fire Control Suite</dd><dt>Requirement</dt><dd>Sensor Lock; ballistic weapon</dd><dt>Effect</dt><dd>+1 gunnery die, +5 AR for penetrating attacks</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "ballistic-optimizer",
+        "label": "Ballistic Optimizer",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "weaponTags": [
+            "weapon.ballistic"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1,
+          "ar": 5
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "ballistic-optimizer",
+        "label": "Ballistic Optimizer",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [
+            "weapon.ballistic"
+          ],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "ballistic-optimizer.dice",
+            "label": "Ballistic Optimizer",
+            "value": 1
+          },
+          {
+            "type": "cqPart",
+            "id": "ballistic-optimizer.cq",
+            "label": "Ballistic Optimizer",
+            "ar": 5,
+            "dr": 0
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Ballistic Optimizer"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Sensor Lock; ballistic weapon",
+    "effectText": "+1 gunnery die, +5 AR for penetrating attacks",
+    "costRisk": "None",
+    "tags": [
+      "assetModule",
+      "Fire Control Suite",
+      "fireControl",
+      "ballistic",
+      "penetrating"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!f5b5e1987d18bf51"
+}

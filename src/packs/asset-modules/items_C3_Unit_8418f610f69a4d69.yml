@@ -1,0 +1,107 @@
+{
+  "_id": "8418f610f69a4d69",
+  "name": "C3 Unit",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2700000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Network",
+    "description": "<dl><dt>Group</dt><dd>Network</dd><dt>Requirement</dt><dd>C3 Active</dd><dt>Effect</dt><dd>Friendly C3 units may use the best friendly detection state on a target, capped at track unless the attacker also has direct lock. May use best shared targetingData packet from the network, not stacked.</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "c3-network-share",
+        "label": "c3-network-share",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "c3-network-share.request",
+            "label": "c3-network-share",
+            "domain": "networkShare",
+            "request": {
+              "id": "c3-network-share",
+              "kind": "networkShare",
+              "capability": "c3",
+              "capDetectionState": "track"
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "c3-network-share"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": [
+        {
+          "id": "c3-network-share",
+          "kind": "networkShare",
+          "capability": "c3",
+          "capDetectionState": "track"
+        }
+      ]
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "C3 Active",
+    "effectText": "Friendly C3 units may use the best friendly detection state on a target, capped at track unless the attacker also has direct lock. May use best shared targetingData packet from the network, not stacked.",
+    "costRisk": "",
+    "tags": [
+      "assetModule",
+      "Network",
+      "network",
+      "c3",
+      "shareTargetingData"
+    ],
+    "capabilities": [
+      "c3",
+      "network",
+      "shareTargetingData"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!8418f610f69a4d69"
+}

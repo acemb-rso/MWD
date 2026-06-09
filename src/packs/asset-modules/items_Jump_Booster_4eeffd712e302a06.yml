@@ -1,0 +1,179 @@
+{
+  "_id": "4eeffd712e302a06",
+  "name": "Jump Booster",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 4200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Equipment",
+    "description": "<dl><dt>Group</dt><dd>Equipment</dd><dt>Requirement</dt><dd>Ready; not Prone/immobile; charge available</dd><dt>Effect</dt><dd>Free Action to jump 180 meters (or add +180 meters to a Jump Move)</dd><dt>Cost/Risk</dt><dd>1 charge, 3 turn recovery; Use generates +1 heat</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "equipment",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "jump-booster",
+        "label": "Jump Booster",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "jumpMove"
+          ]
+        },
+        "grants": {
+          "actionOverrides": [
+            {
+              "actionIds": [
+                "jumpMove"
+              ],
+              "resource": "free",
+              "cost": 0
+            }
+          ]
+        },
+        "modifies": {
+          "movementMeters": 180
+        },
+        "costs": {
+          "heat": 1,
+          "charges": 1
+        },
+        "limits": {
+          "cooldownTurns": 3
+        }
+      }
+    ],
+    "rules": [
+      {
+        "id": "jump-booster",
+        "label": "Jump Booster",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "jumpMove"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "jump-booster.movement",
+            "label": "Jump Booster",
+            "domain": "movement",
+            "request": {
+              "movementMeters": 180
+            }
+          },
+          {
+            "type": "actionAvailability",
+            "id": "jump-booster.action.jumpMove",
+            "label": "Jump Booster",
+            "actionId": "jumpMove",
+            "enabled": true,
+            "reason": ""
+          },
+          {
+            "type": "queuedDomainRequest",
+            "id": "jump-booster.actionOverride",
+            "label": "Jump Booster",
+            "domain": "actionOverride",
+            "request": {
+              "actionIds": [
+                "jumpMove"
+              ],
+              "resource": "free",
+              "cost": 0,
+              "category": "free"
+            }
+          },
+          {
+            "type": "resourceSpendPreview",
+            "id": "jump-booster.heat",
+            "label": "Jump Booster",
+            "resource": "heat",
+            "value": 1
+          },
+          {
+            "type": "resourceSpendPreview",
+            "id": "jump-booster.charges",
+            "label": "Jump Booster",
+            "resource": "charges",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": {
+          "charges": 1,
+          "cooldownTurns": 3
+        },
+        "summary": "Jump Booster"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": true,
+        "movement": 180,
+        "heat": 1,
+        "attackRatingBonus": 3,
+        "defenseRatingBonus": 1,
+        "dfaEnabled": true
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Ready; not Prone/immobile; charge available",
+    "effectText": "Free Action to jump 180 meters (or add +180 meters to a Jump Move)",
+    "costRisk": "1 charge, 3 turn recovery; Use generates +1 heat",
+    "tags": [
+      "assetModule",
+      "Equipment",
+      "equipment",
+      "jump",
+      "jumpBooster"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!4eeffd712e302a06"
+}

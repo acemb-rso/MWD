@@ -1,0 +1,168 @@
+{
+  "_id": "40cfbb3036f0eca5",
+  "name": "Encased Cybernetic Cockpit",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Reinforced Cockpit",
+    "description": "<dl><dt>Group</dt><dd>Reinforced Cockpit</dd><dt>Requirement</dt><dd>Pilot has neural interface; cockpit not disabled</dd><dt>Effect</dt><dd>Reduces pilot Physical damage from Head/Cockpit crits by 1. Grants +1 die to Piloting checks made to resist cockpit shock, fall impact, or control feedback.</dd><dt>Cost/Risk</dt><dd>If sensorBlind, shutdown, or neural-interface crit occurs, pilot suffers +1 Fatigue from feedback.</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "cybernetic-cockpit-piloting",
+        "label": "Control Feedback Resistance",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "skillIds": [
+            "piloting"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "cybernetic-cockpit-piloting",
+        "label": "Control Feedback Resistance",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [
+            "piloting"
+          ],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "cybernetic-cockpit-piloting.dice",
+            "label": "Control Feedback Resistance",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Control Feedback Resistance"
+      },
+      {
+        "id": "head-cockpit-damage-mitigation",
+        "label": "head-cockpit-damage-mitigation",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "head-cockpit-damage-mitigation.request",
+            "label": "head-cockpit-damage-mitigation",
+            "domain": "pilotDamageMitigation",
+            "request": {
+              "id": "head-cockpit-damage-mitigation",
+              "kind": "pilotDamageMitigation",
+              "value": 1,
+              "appliesTo": [
+                "head",
+                "cockpit"
+              ]
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "head-cockpit-damage-mitigation"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": [
+        {
+          "id": "head-cockpit-damage-mitigation",
+          "kind": "pilotDamageMitigation",
+          "value": 1,
+          "appliesTo": [
+            "head",
+            "cockpit"
+          ]
+        }
+      ]
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Pilot has neural interface; cockpit not disabled",
+    "effectText": "Reduces pilot Physical damage from Head/Cockpit crits by 1. Grants +1 die to Piloting checks made to resist cockpit shock, fall impact, or control feedback.",
+    "costRisk": "If sensorBlind, shutdown, or neural-interface crit occurs, pilot suffers +1 Fatigue from feedback.",
+    "tags": [
+      "assetModule",
+      "Reinforced Cockpit",
+      "cockpit",
+      "neuralInterface",
+      "pilotProtection"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!40cfbb3036f0eca5"
+}

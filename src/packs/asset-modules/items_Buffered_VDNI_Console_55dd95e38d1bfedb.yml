@@ -1,0 +1,183 @@
+{
+  "_id": "55dd95e38d1bfedb",
+  "name": "Buffered VDNI Console",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2600000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Targeting Computer",
+    "description": "<dl><dt>Group</dt><dd>Targeting Computer</dd><dt>Requirement</dt><dd>Pilot has VDNI/neural interface; console Ready</dd><dt>Effect</dt><dd>+1 initiative; +1 die to Piloting; first additional reaction or extra SA in an activation generates 1 less Burn. Grant +1 die to breakLock and holdLink.</dd><dt>Cost/Risk</dt><dd>On head crit, neural feedback, sensorBlind, or head degradation, pilot suffers 1 fatigue. If the console is disabled while active, pilot immediately suffers 3 fatigue from feedback.</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "vdni-piloting",
+        "label": "VDNI Piloting Aid",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "skillIds": [
+            "piloting"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1
+        },
+        "costs": {},
+        "limits": {}
+      },
+      {
+        "id": "vdni-ew-aid",
+        "label": "VDNI Link Aid",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "breakLock",
+            "holdLink"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "vdni-piloting",
+        "label": "VDNI Piloting Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [
+            "piloting"
+          ],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "vdni-piloting.dice",
+            "label": "VDNI Piloting Aid",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "VDNI Piloting Aid"
+      },
+      {
+        "id": "vdni-ew-aid",
+        "label": "VDNI Link Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "breakLock",
+            "holdLink"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "vdni-ew-aid.dice",
+            "label": "VDNI Link Aid",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "VDNI Link Aid"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Pilot has VDNI/neural interface; console Ready",
+    "effectText": "+1 initiative; +1 die to Piloting; first additional reaction or extra SA in an activation generates 1 less Burn. Grant +1 die to breakLock and holdLink.",
+    "costRisk": "On head crit, neural feedback, sensorBlind, or head degradation, pilot suffers 1 fatigue. If the console is disabled while active, pilot immediately suffers 3 fatigue from feedback.",
+    "tags": [
+      "assetModule",
+      "Targeting Computer",
+      "targeting",
+      "vdni",
+      "neuralInterface",
+      "initiative"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!55dd95e38d1bfedb"
+}

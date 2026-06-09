@@ -1,0 +1,129 @@
+{
+  "_id": "9f2016a71ebb391e",
+  "name": "Battle Computer - Energy Optimizer",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Fire Control Suite",
+    "description": "<dl><dt>Group</dt><dd>Fire Control Suite</dd><dt>Requirement</dt><dd>Sensor Lock; energy weapon</dd><dt>Effect</dt><dd>+1 gunnery die, +5 AR for energy attacks</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "energy-optimizer",
+        "label": "Energy Optimizer",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "weaponTags": [
+            "weapon.energy"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1,
+          "ar": 5
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "energy-optimizer",
+        "label": "Energy Optimizer",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [
+            "weapon.energy"
+          ],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "energy-optimizer.dice",
+            "label": "Energy Optimizer",
+            "value": 1
+          },
+          {
+            "type": "cqPart",
+            "id": "energy-optimizer.cq",
+            "label": "Energy Optimizer",
+            "ar": 5,
+            "dr": 0
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Energy Optimizer"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Sensor Lock; energy weapon",
+    "effectText": "+1 gunnery die, +5 AR for energy attacks",
+    "costRisk": "None",
+    "tags": [
+      "assetModule",
+      "Fire Control Suite",
+      "fireControl",
+      "energy"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!9f2016a71ebb391e"
+}

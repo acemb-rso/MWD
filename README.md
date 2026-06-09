@@ -95,6 +95,7 @@ Machine targets use the same deliberate chat-apply doctrine. Successful vehicle 
 
 - Weapon and payload standard trait rules are intentionally not automated yet; the current weapon trait registry is disabled until the rules are backed by concrete behavior
 - Actor quality/trait roll modifiers are active through the shared trait modifier provider, but that is separate from weapon standard-trait automation
+- Asset modules now use shared declarative `system.rules[]` contribution packets as their primary compendium mechanics data; legacy `system.effects[]` rows are compatibility mirrors/fallbacks during migration
 - Payload/profile modifiers are active for things like damage type, AP, attack rating band changes, and templated payload capabilities
 - Area support is limited to the currently executable template shapes
 - Multi-target attacks use one roll result with per-target CQ/resistance/damage previews

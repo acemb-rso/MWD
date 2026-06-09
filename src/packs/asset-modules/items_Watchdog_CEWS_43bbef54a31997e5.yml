@@ -1,0 +1,180 @@
+{
+  "_id": "43bbef54a31997e5",
+  "name": "Watchdog CEWS",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1600000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Combat Electronics",
+    "description": "<dl><dt>Group</dt><dd>Combat Electronics</dd><dt>Requirement</dt><dd>Suite active</dd><dt>Effect</dt><dd>Applies ecmShrouded to the carrier. Grants +1 die to acquireTarget. Grants +1 die to epmFilter. Flexible compact EW package.</dd><dt>Cost/Risk</dt><dd>High Emission: Enemies reduce trackingPenalty against this machine by 1, minimum 0. Enemies gain +1 die to acquireTarget against this machine when emissions are relevant.</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "toggle",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "watchdog-shroud",
+        "label": "Watchdog Shroud",
+        "timing": "active",
+        "scope": "self",
+        "requires": {},
+        "grants": {
+          "statuses": [
+            "ecmShrouded"
+          ]
+        },
+        "modifies": {},
+        "costs": {},
+        "limits": {}
+      },
+      {
+        "id": "watchdog-ew-aid",
+        "label": "Watchdog EW Aid",
+        "timing": "active",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "acquireTarget",
+            "epmFilter"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "watchdog-shroud",
+        "label": "Watchdog Shroud",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "derivedStatus",
+            "id": "watchdog-shroud.status.ecmShrouded",
+            "label": "Watchdog Shroud",
+            "key": "ecmShrouded",
+            "value": true
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Watchdog Shroud"
+      },
+      {
+        "id": "watchdog-ew-aid",
+        "label": "Watchdog EW Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "acquireTarget",
+            "epmFilter"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "watchdog-ew-aid.dice",
+            "label": "Watchdog EW Aid",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Watchdog EW Aid"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Suite active",
+    "effectText": "Applies ecmShrouded to the carrier. Grants +1 die to acquireTarget. Grants +1 die to epmFilter. Flexible compact EW package.",
+    "costRisk": "High Emission: Enemies reduce trackingPenalty against this machine by 1, minimum 0. Enemies gain +1 die to acquireTarget against this machine when emissions are relevant.",
+    "tags": [
+      "assetModule",
+      "Combat Electronics",
+      "combatElectronics",
+      "ecm",
+      "ew",
+      "highEmission"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!43bbef54a31997e5"
+}

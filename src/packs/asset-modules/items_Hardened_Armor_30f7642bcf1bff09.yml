@@ -1,0 +1,108 @@
+{
+  "_id": "30f7642bcf1bff09",
+  "name": "Hardened Armor",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Protection Systems",
+    "description": "<dl><dt>Group</dt><dd>Protection Systems</dd><dt>Requirement</dt><dd>Armor &gt; 0</dd><dt>Effect</dt><dd>Armor gains 2 Penetrating Resistance</dd><dt>Cost/Risk</dt><dd>Ablative Module: drops to Resistance 1 at 50% armor remaining; destroyed at 25% armor remaining.</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "hardened-armor-resistance",
+        "label": "hardened-armor-resistance",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "hardened-armor-resistance.request",
+            "label": "hardened-armor-resistance",
+            "domain": "incomingDamageReduction",
+            "request": {
+              "id": "hardened-armor-resistance",
+              "kind": "incomingDamageReduction",
+              "value": 2,
+              "appliesTo": [
+                "penetrating"
+              ]
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "hardened-armor-resistance"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": [
+        {
+          "id": "hardened-armor-resistance",
+          "kind": "incomingDamageReduction",
+          "value": 2,
+          "appliesTo": [
+            "penetrating"
+          ]
+        }
+      ]
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Armor > 0",
+    "effectText": "Armor gains 2 Penetrating Resistance",
+    "costRisk": "Ablative Module: drops to Resistance 1 at 50% armor remaining; destroyed at 25% armor remaining.",
+    "tags": [
+      "assetModule",
+      "Protection Systems",
+      "protection",
+      "armor",
+      "penetrating",
+      "ablative"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!30f7642bcf1bff09"
+}

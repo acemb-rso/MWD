@@ -1,0 +1,181 @@
+{
+  "_id": "a7dd6be5349bc323",
+  "name": "Actuator Enhancement System",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 900000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Mobility",
+    "description": "<dl><dt>Group</dt><dd>Mobility</dd><dt>Requirement</dt><dd>Arms or Legs not Disabled, no actuator failure</dd><dt>Effect</dt><dd>+1 Piloting die; +5 AR with melee attacks</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "mobility",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "actuator-piloting",
+        "label": "Actuator Piloting Aid",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "skillIds": [
+            "piloting"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1
+        },
+        "costs": {},
+        "limits": {}
+      },
+      {
+        "id": "actuator-melee",
+        "label": "Actuator Melee Targeting",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "weaponTags": [
+            "weapon.melee"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "ar": 5
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "actuator-piloting",
+        "label": "Actuator Piloting Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [
+            "piloting"
+          ],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "actuator-piloting.dice",
+            "label": "Actuator Piloting Aid",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Actuator Piloting Aid"
+      },
+      {
+        "id": "actuator-melee",
+        "label": "Actuator Melee Targeting",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [
+            "weapon.melee"
+          ],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "cqPart",
+            "id": "actuator-melee.cq",
+            "label": "Actuator Melee Targeting",
+            "ar": 5,
+            "dr": 0
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Actuator Melee Targeting"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Arms or Legs not Disabled, no actuator failure",
+    "effectText": "+1 Piloting die; +5 AR with melee attacks",
+    "costRisk": "None",
+    "tags": [
+      "assetModule",
+      "Mobility",
+      "mobility",
+      "actuator",
+      "melee"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!a7dd6be5349bc323"
+}

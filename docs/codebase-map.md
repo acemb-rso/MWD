@@ -113,7 +113,9 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 
 - `src/modules/mwd/skills.js` - Skill definitions and lookup helpers.
 - `src/modules/mwd/battlemech-loadout.js` - Mech mount/loadout computation.
+- `src/modules/mwd/rules.js` - Shared declarative rule contribution evaluator. Normalizes rule carriers, selectors, prerequisites, output packets, preview limits, usage commits, and summaries without applying domain outcomes.
 - `src/modules/mwd/traits.js` - Trait normalization, trait facts, optional roll-dialog trait modifiers, derived personal-combat hooks, and the `system.traitMods.*` ActiveEffect bridge.
+- `src/modules/mwd/asset-module-effects.js` - Asset-module rule/effect bridge. Native `system.rules[]` are primary; legacy `system.effects[]` are fallback compatibility data for existing helper APIs.
 - `src/modules/modifiers/provider-registry.js` - Modifier provider aggregation.
 - `src/modules/modifiers/providers/` - Individual modifier providers.
 
@@ -134,4 +136,5 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 - `tests/personal-action-catalog.test.mjs` - Declarative personal action catalog normalization, validation, and default-backfill coverage.
 - `tests/machine-action-catalog.test.mjs` - Declarative machine action catalog coverage for resolver ownership, canonical cost shape, aliases, action anchors, and explicit stubs.
 - `tools/` - Compendium maintenance and JSON validation scripts.
+- `tools/generate-asset-module-pack.mjs` - Source of truth for generated asset-module compendium data. Emits primary `system.rules[]` plus temporary legacy compatibility mirrors.
 - `src/packs/` - Source data for the packaged compendiums.

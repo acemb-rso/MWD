@@ -1,0 +1,108 @@
+{
+  "_id": "04e86a4737a2c50b",
+  "name": "Harjel II",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3900000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Protection Systems",
+    "description": "<dl><dt>Group</dt><dd>Protection Systems</dd><dt>Requirement</dt><dd>Ready; Structure remaining &lt; 100%</dd><dt>Effect</dt><dd>At the start of the activation, recover 2 armor damage</dd><dt>Cost/Risk</dt><dd>10 charges then asset destroyed/consumed</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "harjel-start-repair",
+        "label": "harjel-start-repair",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "triggered",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "harjel-start-repair.request",
+            "label": "harjel-start-repair",
+            "domain": "startOfActivationRepair",
+            "request": {
+              "id": "harjel-start-repair",
+              "kind": "startOfActivationRepair",
+              "monitor": "armor",
+              "value": 2,
+              "charges": 10
+            }
+          }
+        ],
+        "limits": {},
+        "usage": {
+          "charges": 10,
+          "consume": false
+        },
+        "summary": "harjel-start-repair"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": [
+        {
+          "id": "harjel-start-repair",
+          "kind": "startOfActivationRepair",
+          "monitor": "armor",
+          "value": 2,
+          "charges": 10
+        }
+      ]
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Ready; Structure remaining < 100%",
+    "effectText": "At the start of the activation, recover 2 armor damage",
+    "costRisk": "10 charges then asset destroyed/consumed",
+    "tags": [
+      "assetModule",
+      "Protection Systems",
+      "protection",
+      "repair",
+      "harjel"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!04e86a4737a2c50b"
+}

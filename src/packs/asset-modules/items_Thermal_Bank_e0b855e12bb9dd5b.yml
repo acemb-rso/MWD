@@ -1,0 +1,130 @@
+{
+  "_id": "e0b855e12bb9dd5b",
+  "name": "Thermal Bank",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Protection Systems",
+    "description": "<dl><dt>Group</dt><dd>Protection Systems</dd><dt>Requirement</dt><dd>None</dd><dt>Effect</dt><dd>+1 heatProfile</dd><dt>Cost/Risk</dt><dd>Gains High Emission (1) when Heat Status not SAFE</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "thermal-bank-profile",
+        "label": "Thermal Bank",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "heatAdjustment",
+            "id": "thermal-bank-profile.heatProfile",
+            "label": "Thermal Bank",
+            "timing": "profile",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Thermal Bank"
+      },
+      {
+        "id": "thermal-bank-emission",
+        "label": "Thermal Bank High Emission",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "fact": "heatBand",
+            "op": "truthy"
+          }
+        ],
+        "conditions": [
+          {
+            "fact": "heatBand",
+            "op": "neq",
+            "value": "safe"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "derivedStatus",
+            "id": "thermal-bank-emission.highEmission",
+            "label": "Thermal Bank",
+            "key": "highEmission",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Thermal Bank High Emission"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "",
+    "effectText": "+1 heatProfile",
+    "costRisk": "Gains High Emission (1) when Heat Status not SAFE",
+    "tags": [
+      "assetModule",
+      "Protection Systems",
+      "protection",
+      "thermal",
+      "heat",
+      "highEmission"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!e0b855e12bb9dd5b"
+}

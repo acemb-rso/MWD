@@ -229,7 +229,7 @@ export class MWDActor extends Actor {
       ? Number(getActiveArmorTraitEffects(this).attributeModifiers?.[attributeKey] ?? 0) || 0
       : 0;
     const baStrengthBonus = (this.isCharacterLike() && attributeKey === "strength")
-      ? getBattleArmorEnhancedStrengthBonus(getEquippedBattleArmor(this)?.battleArmor)
+      ? Number(this.system?.derived?.battleArmor?.enhancedStrengthBonus ?? 0) || 0
       : 0;
     return Math.max(0, base + armorModifier + baStrengthBonus);
   }
@@ -793,11 +793,23 @@ export class MWDActor extends Actor {
   _prepareMonitors() {
     const monitors = this.system.monitors ?? {};
 
-    const activeBattleArmor = getEquippedBattleArmor(this);
+    // Battle armor and its enhanced strength bonus only apply to character-like actors.
+    // Guarded here to avoid needlessly recomputing the personal combat loadout for
+    // machine actors every prepare cycle. activeBattleArmor is declared here so the
+    // medical suppression check below can reference it (it will be null for machines).
+    let activeBattleArmor = null;
 
     // For character-like actors, physical.max derives from STR and fatigue.max from GUTS.
     // This must run before deriveMonitors so penalties reflect the correct track length.
     if (this.isCharacterLike()) {
+      activeBattleArmor = getEquippedBattleArmor(this);
+      const enhancedStrengthBonus = getBattleArmorEnhancedStrengthBonus(activeBattleArmor?.battleArmor);
+
+      // Must be stored before getAttributeValue("strength") is called below — that method
+      // reads system.derived.battleArmor.enhancedStrengthBonus to avoid a re-entry cycle.
+      this.system.derived ??= {};
+      this.system.derived.battleArmor = { enhancedStrengthBonus };
+
       const str = this.getAttributeValue("strength");
       const guts = Math.max(0, Number(this.system?.attributes?.guts?.value ?? 0));
       monitors.physical ??= {};

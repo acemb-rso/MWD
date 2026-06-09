@@ -1,0 +1,180 @@
+{
+  "_id": "7637cc46bfe81cdd",
+  "name": "Triple Strength Myomer",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 700000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Mobility",
+    "description": "<dl><dt>Group</dt><dd>Mobility</dd><dt>Requirement</dt><dd>Overheat</dd><dt>Effect</dt><dd>+2 melee damage; +30m ground movement</dd><dt>Cost/Risk</dt><dd>None, but it only functions while heat remains in the required band.</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "mobility",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "tsm-movement",
+        "label": "Triple Strength Movement",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "heatBand": "overheated"
+        },
+        "grants": {},
+        "modifies": {
+          "movementMeters": 30
+        },
+        "costs": {},
+        "limits": {}
+      },
+      {
+        "id": "tsm-melee",
+        "label": "Triple Strength Melee",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "heatBand": "overheated",
+          "weaponTags": [
+            "weapon.melee"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 2
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "tsm-movement",
+        "label": "Triple Strength Movement",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "overheated",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "tsm-movement.movement",
+            "label": "Triple Strength Movement",
+            "domain": "movement",
+            "request": {
+              "movementMeters": 30
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Triple Strength Movement"
+      },
+      {
+        "id": "tsm-melee",
+        "label": "Triple Strength Melee",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [
+            "weapon.melee"
+          ],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "overheated",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "tsm-melee.dice",
+            "label": "Triple Strength Melee",
+            "value": 2
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Triple Strength Melee"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Overheat",
+    "effectText": "+2 melee damage; +30m ground movement",
+    "costRisk": "None, but it only functions while heat remains in the required band.",
+    "tags": [
+      "assetModule",
+      "Mobility",
+      "mobility",
+      "melee",
+      "overheat"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!7637cc46bfe81cdd"
+}

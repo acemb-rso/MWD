@@ -1,0 +1,108 @@
+{
+  "_id": "620b4ccf51982624",
+  "name": "Armored Cockpit Cowl",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Reinforced Cockpit",
+    "description": "<dl><dt>Group</dt><dd>Reinforced Cockpit</dd><dt>Requirement</dt><dd>Cockpit/head not disabled</dd><dt>Effect</dt><dd>Reduces pilot Physical damage from Head/Cockpit crits by 1</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "head-cockpit-damage-mitigation",
+        "label": "head-cockpit-damage-mitigation",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "head-cockpit-damage-mitigation.request",
+            "label": "head-cockpit-damage-mitigation",
+            "domain": "pilotDamageMitigation",
+            "request": {
+              "id": "head-cockpit-damage-mitigation",
+              "kind": "pilotDamageMitigation",
+              "value": 1,
+              "appliesTo": [
+                "head",
+                "cockpit"
+              ]
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "head-cockpit-damage-mitigation"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": [
+        {
+          "id": "head-cockpit-damage-mitigation",
+          "kind": "pilotDamageMitigation",
+          "value": 1,
+          "appliesTo": [
+            "head",
+            "cockpit"
+          ]
+        }
+      ]
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Cockpit/head not disabled",
+    "effectText": "Reduces pilot Physical damage from Head/Cockpit crits by 1",
+    "costRisk": "None",
+    "tags": [
+      "assetModule",
+      "Reinforced Cockpit",
+      "cockpit",
+      "pilotProtection"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!620b4ccf51982624"
+}

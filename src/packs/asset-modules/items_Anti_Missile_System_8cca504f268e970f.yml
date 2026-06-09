@@ -1,0 +1,115 @@
+{
+  "_id": "8cca504f268e970f",
+  "name": "Anti-Missile System",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 4600000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Equipment",
+    "description": "<dl><dt>Group</dt><dd>Equipment</dd><dt>Requirement</dt><dd>Incoming missile/cluster attack; charges available</dd><dt>Effect</dt><dd>Missile Cluster Dice hit on 6</dd><dt>Cost/Risk</dt><dd>10 Charges</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "equipment",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "ams-intercept",
+        "label": "ams-intercept",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "triggered",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "ams-intercept.request",
+            "label": "ams-intercept",
+            "domain": "interceptAttack",
+            "request": {
+              "id": "ams-intercept",
+              "kind": "interceptAttack",
+              "appliesTo": [
+                "missile",
+                "cluster"
+              ],
+              "clusterTargetNumber": 6,
+              "charges": 10
+            }
+          }
+        ],
+        "limits": {},
+        "usage": {
+          "charges": 10,
+          "consume": false
+        },
+        "summary": "ams-intercept"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": [
+        {
+          "id": "ams-intercept",
+          "kind": "interceptAttack",
+          "appliesTo": [
+            "missile",
+            "cluster"
+          ],
+          "clusterTargetNumber": 6,
+          "charges": 10
+        }
+      ]
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Incoming missile/cluster attack; charges available",
+    "effectText": "Missile Cluster Dice hit on 6",
+    "costRisk": "10 Charges",
+    "tags": [
+      "assetModule",
+      "Equipment",
+      "equipment",
+      "ams",
+      "antiMissile",
+      "cluster"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!8cca504f268e970f"
+}

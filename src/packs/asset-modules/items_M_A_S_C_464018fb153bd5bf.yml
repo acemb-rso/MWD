@@ -1,0 +1,133 @@
+{
+  "_id": "464018fb153bd5bf",
+  "name": "M.A.S.C.",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Mobility",
+    "description": "<dl><dt>Group</dt><dd>Mobility</dd><dt>Requirement</dt><dd>Legs not Crippled/Disabled</dd><dt>Effect</dt><dd>+50m ground movement when engaged</dd><dt>Cost/Risk</dt><dd>+1 leg stress when used.</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "mobility",
+    "level": 1,
+    "activation": {
+      "mode": "toggle",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "masc-speed",
+        "label": "MASC Speed",
+        "timing": "active",
+        "scope": "self",
+        "requires": {},
+        "grants": {},
+        "modifies": {
+          "movementMeters": 50
+        },
+        "costs": {
+          "stress": {
+            "location": "legs",
+            "value": 1
+          }
+        },
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "masc-speed",
+        "label": "MASC Speed",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "masc-speed.movement",
+            "label": "MASC Speed",
+            "domain": "movement",
+            "request": {
+              "movementMeters": 50
+            }
+          },
+          {
+            "type": "queuedDomainRequest",
+            "id": "masc-speed.stress",
+            "label": "MASC Speed",
+            "domain": "stressCost",
+            "request": {
+              "location": "legs",
+              "value": 1
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "MASC Speed"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Legs not Crippled/Disabled",
+    "effectText": "+50m ground movement when engaged",
+    "costRisk": "+1 leg stress when used.",
+    "tags": [
+      "assetModule",
+      "Mobility",
+      "mobility",
+      "masc"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!464018fb153bd5bf"
+}

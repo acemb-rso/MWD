@@ -10,6 +10,11 @@ import {
   normalizeAssetModuleSystem,
   validateAssetModuleEffects,
 } from "./asset-module-rules.js";
+import {
+  evaluatePhase,
+  normalizeCarrier,
+  normalizeRulePacket,
+} from "./rules.js";
 
 const MACHINE_ACTOR_TYPES = new Set([TEMPLATE.actorTypes.battlemech, TEMPLATE.actorTypes.vehicle]);
 
@@ -60,6 +65,10 @@ export { getAssetModuleState };
 
 function addSetEntries(target, values) {
   for (const value of normalizeStringArray(values)) target.add(value);
+}
+
+function setToArray(value) {
+  return value instanceof Set ? Array.from(value) : normalizeStringArray(value);
 }
 
 function getActionId({ payload = {}, resolved = {} } = {}) {
@@ -159,48 +168,22 @@ export function buildAssetModuleEffectFacts({ actor = null, payload = {}, resolv
 
   return {
     actor,
+    actorType: getActorType(actor),
     intent,
     actionId,
+    action: { id: actionId },
     skillId,
+    skill: { key: skillId },
     tags,
     weaponTags,
     statuses,
+    selectors: Array.from(tags),
     detectionState,
     targetState,
     heatBand,
+    event: { trigger: toTrimmedString(context?.trigger, "") },
     trigger: toTrimmedString(context?.trigger, ""),
   };
-}
-
-function includesAll(container, required = []) {
-  return required.every(value => container.has(value));
-}
-
-function matchesEffectRequirements(effect = {}, facts = {}, moduleState = {}) {
-  const requires = effect.requires ?? {};
-  if (requires.tags?.length && !includesAll(facts.tags, requires.tags)) return false;
-  if (requires.forbidsTags?.length && requires.forbidsTags.some(tag => facts.tags.has(tag))) return false;
-  if (requires.actionIds?.length && !requires.actionIds.includes(facts.actionId)) return false;
-  if (requires.skillIds?.length && !requires.skillIds.includes(facts.skillId)) return false;
-  if (requires.weaponTags?.length && !includesAll(facts.weaponTags, requires.weaponTags)) return false;
-  if (requires.statuses?.length && !includesAll(facts.statuses, requires.statuses)) return false;
-  if (requires.forbidsStatuses?.length && requires.forbidsStatuses.some(status => facts.statuses.has(status))) return false;
-  if (requires.detectionState && requires.detectionState !== facts.detectionState) return false;
-  if (requires.targetState && requires.targetState !== facts.targetState) return false;
-  if (requires.heatBand && requires.heatBand !== facts.heatBand) return false;
-  if (requires.modes?.length) {
-    const selectedMode = toTrimmedString(moduleState.activation?.selectedMode, "");
-    if (!requires.modes.includes(selectedMode)) return false;
-  }
-  return true;
-}
-
-function isEffectTimingAvailable(effect = {}, moduleState = {}, facts = {}) {
-  if (!moduleState.ready) return false;
-  if (effect.timing === "ready") return true;
-  if (effect.timing === "active") return moduleState.active;
-  if (effect.timing === "triggered") return Boolean(facts.trigger);
-  return false;
 }
 
 function getNormalizedEffects(item) {
@@ -212,6 +195,229 @@ function getNormalizedEffects(item) {
   return normalized;
 }
 
+function selectorFromEffect(effect = {}) {
+  const requires = effect.requires ?? {};
+  return {
+    tags: requires.tags ?? [],
+    forbidsTags: requires.forbidsTags ?? [],
+    actionIds: requires.actionIds ?? [],
+    skillIds: requires.skillIds ?? [],
+    weaponTags: requires.weaponTags ?? [],
+    statuses: requires.statuses ?? [],
+    forbidsStatuses: requires.forbidsStatuses ?? [],
+    detectionState: requires.detectionState ?? "",
+    targetState: requires.targetState ?? "",
+    heatBand: requires.heatBand ?? "",
+    modes: requires.modes ?? [],
+  };
+}
+
+function timingRequirements(effect = {}) {
+  if (effect.timing === "active") return [{ fact: "module.active", op: "eq", value: true }];
+  if (effect.timing === "triggered") return [
+    { fact: "module.ready", op: "eq", value: true },
+    { fact: "event.trigger", op: "truthy" },
+  ];
+  return [{ fact: "module.ready", op: "eq", value: true }];
+}
+
+function outputsFromEffect(effect = {}) {
+  const outputs = [];
+  const modifies = effect.modifies ?? {};
+  const grants = effect.grants ?? {};
+  if (toNumber(modifies.dice, 0)) {
+    outputs.push({ type: "dicePart", id: `${effect.id}.dice`, label: effect.label, value: toNumber(modifies.dice, 0) });
+  }
+  if (toNumber(modifies.ar, 0) || toNumber(modifies.dr, 0)) {
+    outputs.push({ type: "cqPart", id: `${effect.id}.cq`, label: effect.label, ar: toNumber(modifies.ar, 0), dr: toNumber(modifies.dr, 0) });
+  }
+  if (toNumber(modifies.trackingPenalty, 0)) {
+    outputs.push({ type: "targetingConstraint", id: `${effect.id}.trackingPenalty`, label: effect.label, constraint: "trackingPenalty", value: toNumber(modifies.trackingPenalty, 0) });
+  }
+  if (toNumber(modifies.targetingData, 0)) {
+    outputs.push({ type: "targetingDataModifier", id: `${effect.id}.targetingData`, label: effect.label, value: toNumber(modifies.targetingData, 0) });
+  }
+  for (const status of modifies.bypassStatuses ?? []) {
+    outputs.push({
+      type: "targetingConstraint",
+      id: `${effect.id}.bypass.${status}`,
+      label: effect.label,
+      constraint: "bypassStatus",
+      value: status,
+    });
+  }
+  if (toNumber(modifies.movementMeters, 0)) {
+    outputs.push({ type: "queuedDomainRequest", id: `${effect.id}.movement`, label: effect.label, domain: "movement", request: { movementMeters: toNumber(modifies.movementMeters, 0) } });
+  }
+  if (toNumber(modifies.clusteringDice, 0) || toNumber(modifies.clusteringTarget, 0)) {
+    outputs.push({
+      type: "queuedDomainRequest",
+      id: `${effect.id}.clustering`,
+      label: effect.label,
+      domain: "clustering",
+      request: {
+        diceModifier: toNumber(modifies.clusteringDice, 0),
+        targetNumberModifier: toNumber(modifies.clusteringTarget, 0),
+      },
+    });
+  }
+  for (const status of grants.statuses ?? []) {
+    outputs.push({ type: "derivedStatus", id: `${effect.id}.status.${status}`, label: effect.label, key: status, value: true });
+  }
+  for (const override of grants.actionOverrides ?? []) {
+    for (const actionId of normalizeStringArray(override.actionIds ?? override.actions ?? override.actionId)) {
+      outputs.push({
+        type: "actionAvailability",
+        id: `${effect.id}.action.${actionId}`,
+        label: effect.label,
+        actionId,
+        enabled: true,
+        reason: "",
+      });
+    }
+    outputs.push({
+      type: "queuedDomainRequest",
+      id: `${effect.id}.actionOverride`,
+      label: effect.label,
+      domain: "actionOverride",
+      request: {
+        actionIds: normalizeStringArray(override.actionIds ?? override.actions ?? override.actionId),
+        resource: toTrimmedString(override.resource, "fa"),
+        cost: toNumber(override.cost, 0),
+        category: toTrimmedString(override.category, "free"),
+      },
+    });
+  }
+  for (const reactionId of grants.reactions ?? []) {
+    outputs.push({
+      type: "queuedDomainRequest",
+      id: `${effect.id}.reaction.${reactionId}`,
+      label: effect.label,
+      domain: "reactionGrant",
+      request: { reactionId },
+    });
+  }
+  const costs = effect.costs ?? {};
+  if (toNumber(costs.heat, 0)) {
+    outputs.push({ type: "resourceSpendPreview", id: `${effect.id}.heat`, label: effect.label, resource: "heat", value: toNumber(costs.heat, 0) });
+  }
+  if (toNumber(costs.charges, 0)) {
+    outputs.push({ type: "resourceSpendPreview", id: `${effect.id}.charges`, label: effect.label, resource: "charges", value: toNumber(costs.charges, 0) });
+  }
+  if (costs.stress?.location && toNumber(costs.stress.value, 0)) {
+    outputs.push({
+      type: "queuedDomainRequest",
+      id: `${effect.id}.stress`,
+      label: effect.label,
+      domain: "stressCost",
+      request: {
+        location: costs.stress.location,
+        value: toNumber(costs.stress.value, 0),
+      },
+    });
+  }
+  return outputs;
+}
+
+function ruleFromEffect(effect = {}) {
+  return normalizeRulePacket({
+    id: effect.id,
+    label: effect.label,
+    scope: effect.scope,
+    phase: "assetModuleEffect",
+    mode: effect.timing === "triggered" ? "triggered" : "automatic",
+    selector: selectorFromEffect(effect),
+    requires: timingRequirements(effect),
+    outputs: outputsFromEffect(effect),
+    limits: effect.limits?.oncePerActivation ? { perActivation: 1 } : {},
+    usage: effect.costs?.charges ? { charges: effect.costs.charges } : null,
+    summary: effect.label,
+  });
+}
+
+function legacyEffectFromRuleEntry(entry = {}) {
+  const modifies = {};
+  const grants = { statuses: [], actionOverrides: [], actions: [], reactions: [] };
+  const costs = {};
+  const limits = {
+    oncePerActivation: entry.rule?.limits?.perActivation === 1,
+    cooldownTurns: toNumber(entry.rule?.usage?.cooldownTurns, 0),
+  };
+  for (const output of entry.outputs ?? []) {
+    if (output.type === "dicePart") modifies.dice = toNumber(modifies.dice, 0) + toNumber(output.value, 0);
+    if (output.type === "cqPart") {
+      modifies.ar = toNumber(modifies.ar, 0) + toNumber(output.ar, 0);
+      modifies.dr = toNumber(modifies.dr, 0) + toNumber(output.dr, 0);
+    }
+    if (output.type === "targetingConstraint" && output.constraint === "trackingPenalty") {
+      modifies.trackingPenalty = toNumber(modifies.trackingPenalty, 0) + toNumber(output.value, 0);
+    }
+    if (output.type === "targetingConstraint" && output.constraint === "bypassStatus" && output.value) {
+      modifies.bypassStatuses ??= [];
+      modifies.bypassStatuses.push(output.value);
+    }
+    if (output.type === "targetingDataModifier") {
+      modifies.targetingData = toNumber(modifies.targetingData, 0) + toNumber(output.value, 0);
+    }
+    if (output.type === "derivedStatus" && output.key) grants.statuses.push(output.key);
+    if (output.type === "queuedDomainRequest" && output.domain === "movement") {
+      modifies.movementMeters = toNumber(modifies.movementMeters, 0) + toNumber(output.request?.movementMeters, 0);
+    }
+    if (output.type === "queuedDomainRequest" && output.domain === "clustering") {
+      modifies.clusteringDice = toNumber(modifies.clusteringDice, 0) + toNumber(output.request?.diceModifier, 0);
+      modifies.clusteringTarget = toNumber(modifies.clusteringTarget, 0) + toNumber(output.request?.targetNumberModifier, 0);
+    }
+    if (output.type === "queuedDomainRequest" && output.domain === "actionOverride") {
+      grants.actionOverrides.push({
+        actionIds: normalizeStringArray(output.request?.actionIds ?? output.request?.actionId),
+        resource: toTrimmedString(output.request?.resource, "fa"),
+        cost: toNumber(output.request?.cost, 0),
+        category: toTrimmedString(output.request?.category, "free"),
+      });
+    }
+    if (output.type === "queuedDomainRequest" && output.domain === "reactionGrant" && output.request?.reactionId) {
+      grants.reactions.push(output.request.reactionId);
+    }
+    if (output.type === "queuedDomainRequest" && output.domain === "stressCost" && output.request?.location) {
+      costs.stress = {
+        location: output.request.location,
+        value: toNumber(output.request.value, 0),
+      };
+    }
+    if (output.type === "resourceSpendPreview" && output.resource === "heat") {
+      costs.heat = toNumber(costs.heat, 0) + toNumber(output.value, 0);
+    }
+    if (output.type === "resourceSpendPreview" && output.resource === "charges") {
+      costs.charges = toNumber(costs.charges, 0) + toNumber(output.value, 0);
+    }
+    if (output.type === "actionAvailability" && output.actionId) {
+      const hasExplicitOverride = grants.actionOverrides.some(override => normalizeStringArray(override.actionIds).includes(output.actionId));
+      if (!hasExplicitOverride) grants.actionOverrides.push({
+        actionIds: [output.actionId],
+        cost: 0,
+        resource: "fa",
+        category: "free",
+      });
+    }
+  }
+  return {
+    id: entry.ruleId,
+    label: entry.label,
+    timing: entry.mode === "triggered" ? "triggered" : "ready",
+    scope: toTrimmedString(entry.rule?.scope, "self"),
+    requires: {},
+    grants,
+    modifies,
+    costs,
+    limits,
+    sourceId: entry.sourceId,
+    sourceName: entry.sourceName,
+    moduleActive: true,
+    moduleReady: true,
+    ruleOutputs: entry.outputs ?? [],
+  };
+}
+
 export function getApplicableAssetModuleEffects(actor = null, context = {}) {
   if (!isMachineActor(actor)) return { effects: [] };
 
@@ -220,16 +426,52 @@ export function getApplicableAssetModuleEffects(actor = null, context = {}) {
 
   for (const item of getAssetModules(actor)) {
     const moduleState = getAssetModuleState(item, { installed: true });
-    const moduleEffects = getNormalizedEffects(item);
-    for (const effect of moduleEffects) {
-      if (!isEffectTimingAvailable(effect, moduleState, facts)) continue;
-      if (!matchesEffectRequirements(effect, facts, moduleState)) continue;
+    const moduleFacts = {
+      ...facts,
+      tags: setToArray(facts.tags),
+      weaponTags: setToArray(facts.weaponTags),
+      statuses: setToArray(facts.statuses),
+      module: {
+        ready: moduleState.ready,
+        active: moduleState.active,
+        enabled: moduleState.enabled,
+        destroyed: moduleState.destroyed,
+        suppressed: moduleState.suppressed,
+        offline: moduleState.offline,
+        selectedMode: moduleState.activation?.selectedMode ?? "",
+        activation: moduleState.activation ?? {},
+      },
+    };
+    const nativeRules = normalizeCarrier(item.system ?? {}).rules;
+    if (nativeRules.length) {
+      const ruleResult = evaluatePhase({
+        actor,
+        carrierItems: [{ item, rules: nativeRules }],
+        phase: "assetModuleEffect",
+        facts: moduleFacts,
+        runtime: context.runtime ?? {},
+      });
+      effects.push(...ruleResult.entries.map(legacyEffectFromRuleEntry));
+      continue;
+    }
+
+    for (const effect of getNormalizedEffects(item)) {
+      const result = evaluatePhase({
+        actor,
+        carrierItems: [{ item, rules: [ruleFromEffect(effect)] }],
+        phase: "assetModuleEffect",
+        facts: moduleFacts,
+        runtime: context.runtime ?? {},
+      });
+      if (!result.entries.length) continue;
+      const entry = result.entries[0];
       effects.push({
         ...effect,
         sourceId: item.id ?? "",
         sourceName: item.name ?? "Asset Module",
         moduleActive: moduleState.active,
         moduleReady: moduleState.ready,
+        ruleOutputs: entry.outputs ?? [],
       });
     }
   }

@@ -5,11 +5,13 @@ import {
   buildAssetModuleSummary,
   findAssetModuleActionOverride,
   getApplicableAssetModuleEffects,
+  getAssetModuleCqEffects,
   getAssetModuleState,
   getAssetModuleBypassStatuses,
   getAssetModuleClusteringProfile,
   getAssetModuleDerivedStatuses,
   getAssetModuleMovementBonus,
+  getAssetModuleActionCosts,
   sumAssetModuleDice,
 } from "../src/modules/mwd/asset-module-effects.js";
 import { AssetModuleValidationError, normalizeAssetModuleSystem } from "../src/modules/mwd/asset-module-rules.js";
@@ -312,6 +314,108 @@ test("active effects grant derived statuses, movement, shroud bypass, and cluste
   });
   assert.equal(cluster.diceModifier, 1);
   assert.equal(cluster.targetNumberModifier, -1);
+});
+
+test("asset module system.rules contribute through the shared rule evaluator", () => {
+  const actor = actorWithModule({
+    activation: { mode: "passive", active: false },
+    rules: [{
+      id: "shared-sensor",
+      label: "Shared Sensor Rule",
+      phase: "assetModuleEffect",
+      selector: {
+        actorTypes: ["battlemech"],
+        actionIds: ["sensorSweep"],
+        skillIds: ["perception"],
+      },
+      requires: [{ fact: "module.active", op: "eq", value: true }],
+      outputs: [
+        { type: "dicePart", value: 2 },
+      ],
+    }, {
+      id: "shared-status",
+      label: "Shared Status Rule",
+      phase: "assetModuleEffect",
+      requires: [{ fact: "module.active", op: "eq", value: true }],
+      outputs: [
+        { type: "derivedStatus", key: "epmBoosted" },
+      ],
+    }, {
+      id: "shared-cq",
+      label: "Shared CQ Rule",
+      phase: "assetModuleEffect",
+      selector: {
+        actorTypes: ["battlemech"],
+      },
+      requires: [{ fact: "module.active", op: "eq", value: true }],
+      outputs: [
+        { type: "cqPart", ar: 5 },
+      ],
+    }],
+  });
+
+  assert.equal(sumAssetModuleDice(actor, {
+    payload: { intent: "skill", key: "perception", machineActionKey: "sensorSweep" },
+  }), 2);
+  assert.equal(getAssetModuleDerivedStatuses(actor).has("epmBoosted"), true);
+  assert.equal(getAssetModuleCqEffects(actor, {
+    payload: { intent: "attack" },
+    resolved: { intent: "attack", attack: { weapon: { category: "ranged" } } },
+  }).some(effect => effect.modifies.ar === 5), true);
+});
+
+test("asset module system.rules take precedence over mirrored legacy effects", () => {
+  const actor = actorWithModule({
+    activation: { mode: "passive", active: false },
+    effects: [{
+      id: "legacy-dice",
+      requires: { actionIds: ["acquireTarget"] },
+      modifies: { dice: 99 },
+    }],
+    rules: [{
+      id: "rule-acquire",
+      label: "Rule Acquire",
+      phase: "assetModuleEffect",
+      selector: { actionIds: ["acquireTarget"] },
+      requires: [{ fact: "module.ready", op: "eq", value: true }],
+      outputs: [
+        { type: "dicePart", id: "rule-acquire.dice", value: 2 },
+        { type: "targetingConstraint", id: "rule-acquire.bypass", constraint: "bypassStatus", value: "ecmShrouded" },
+        { type: "actionAvailability", id: "rule-acquire.action", actionId: "acquireTarget", enabled: true },
+        {
+          type: "queuedDomainRequest",
+          id: "rule-acquire.override",
+          domain: "actionOverride",
+          request: { actionIds: ["acquireTarget"], resource: "fa", cost: 0, category: "free" },
+        },
+        { type: "resourceSpendPreview", id: "rule-acquire.heat", resource: "heat", value: 1 },
+        { type: "resourceSpendPreview", id: "rule-acquire.charges", resource: "charges", value: 1 },
+        {
+          type: "queuedDomainRequest",
+          id: "rule-acquire.stress",
+          domain: "stressCost",
+          request: { location: "legs", value: 1 },
+        },
+      ],
+    }],
+  });
+
+  const context = { payload: { actionId: "acquireTarget", machineActionKey: "acquireTarget" } };
+  assert.equal(sumAssetModuleDice(actor, context), 2);
+  assert.equal(getAssetModuleBypassStatuses(actor, context).has("ecmShrouded"), true);
+  assert.deepEqual(findAssetModuleActionOverride(actor, "acquireTarget", context), {
+    actionIds: ["acquireTarget"],
+    resource: "fa",
+    cost: 0,
+    category: "free",
+    sourceId: "module-1",
+    sourceName: "Test Suite",
+  });
+
+  const costs = getAssetModuleActionCosts(actor, "acquireTarget");
+  assert.equal(costs.heat, 1);
+  assert.equal(costs.charges, 1);
+  assert.deepEqual(costs.stress, [{ location: "legs", value: 1, sourceName: "Test Suite", effectId: "rule-acquire" }]);
 });
 
 test("asset module summaries are generated from normalized effects", () => {

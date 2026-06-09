@@ -1,0 +1,232 @@
+{
+  "_id": "8cf55ec673a1e89e",
+  "name": "Carried Combat Shield",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 4400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Equipment",
+    "description": "<dl><dt>Group</dt><dd>Equipment</dd><dt>Requirement</dt><dd>Ready</dd><dt>Effect</dt><dd>+3 DR; Grants Shield Block reaction: reduce incoming damage by 1</dd><dt>Cost/Risk</dt><dd>-5 AR for limb-mounted weapons; 5 Shield Block charges - asset disabled when out of charges</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "equipment",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "shield-dr",
+        "label": "Combat Shield",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {},
+        "grants": {
+          "reactions": [
+            "shieldBlock"
+          ]
+        },
+        "modifies": {
+          "dr": 3
+        },
+        "costs": {},
+        "limits": {}
+      },
+      {
+        "id": "limb-weapon-bulk",
+        "label": "Limb Weapon Bulk",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "weaponTags": [
+            "limbMounted"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "ar": -5
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "shield-dr",
+        "label": "Combat Shield",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "cqPart",
+            "id": "shield-dr.cq",
+            "label": "Combat Shield",
+            "ar": 0,
+            "dr": 3
+          },
+          {
+            "type": "queuedDomainRequest",
+            "id": "shield-dr.reaction.shieldBlock",
+            "label": "Combat Shield",
+            "domain": "reactionGrant",
+            "request": {
+              "reactionId": "shieldBlock"
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Combat Shield"
+      },
+      {
+        "id": "limb-weapon-bulk",
+        "label": "Limb Weapon Bulk",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [
+            "limbMounted"
+          ],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "cqPart",
+            "id": "limb-weapon-bulk.cq",
+            "label": "Limb Weapon Bulk",
+            "ar": -5,
+            "dr": 0
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Limb Weapon Bulk"
+      },
+      {
+        "id": "shield-block",
+        "label": "shield-block",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "shield-block.request",
+            "label": "shield-block",
+            "domain": "incomingDamageReduction",
+            "request": {
+              "id": "shield-block",
+              "kind": "incomingDamageReduction",
+              "value": 1,
+              "charges": 5
+            }
+          }
+        ],
+        "limits": {},
+        "usage": {
+          "charges": 5,
+          "consume": false
+        },
+        "summary": "shield-block"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": [
+        {
+          "id": "shield-block",
+          "kind": "incomingDamageReduction",
+          "value": 1,
+          "charges": 5
+        }
+      ]
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Ready",
+    "effectText": "+3 DR; Grants Shield Block reaction: reduce incoming damage by 1",
+    "costRisk": "-5 AR for limb-mounted weapons; 5 Shield Block charges - asset disabled when out of charges",
+    "tags": [
+      "assetModule",
+      "Equipment",
+      "equipment",
+      "shield",
+      "defense"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!8cf55ec673a1e89e"
+}

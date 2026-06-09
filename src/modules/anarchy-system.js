@@ -81,6 +81,13 @@ import {
   normalizeQualityTraitSystem,
 } from "./mwd/traits.js";
 import {
+  buildAppliedSummary as buildRuleAppliedSummary,
+  commitUsage as commitRuleUsage,
+  evaluatePhase as evaluateRulePhase,
+  normalizeCarrier as normalizeRuleCarrier,
+  prepareUsageCommit as prepareRuleUsageCommit,
+} from "./mwd/rules.js";
+import {
   adjustBattlemechPendingHeat,
   buildBattlemechHeatModel,
   recordBattlemechAttackHeat,
@@ -245,6 +252,26 @@ function createMWDTraitsService() {
   };
 }
 
+function createMWDRulesService() {
+  return {
+    normalizeCarrier(itemOrSystem, config) {
+      return normalizeRuleCarrier(itemOrSystem, config);
+    },
+    evaluatePhase(args) {
+      return evaluateRulePhase(args);
+    },
+    prepareUsageCommit(args) {
+      return prepareRuleUsageCommit(args);
+    },
+    commitUsage(args) {
+      return commitRuleUsage(args);
+    },
+    buildAppliedSummary(entries) {
+      return buildRuleAppliedSummary(entries);
+    },
+  };
+}
+
 export class AnarchySystem {
 
   static start() {
@@ -311,6 +338,7 @@ export class AnarchySystem {
       this.tokenHeatFx = game.mwd.tokenHeatFx;
     this.skills = createMWDSkillsService();
     this.lifeModules = createMWDLifeModulesService();
+    this.rules = createMWDRulesService();
     this.traits = createMWDTraitsService();
 
     // initialize remote calls registry first: used by other singleton managers
@@ -321,9 +349,11 @@ export class AnarchySystem {
     registerAssetModuleRuntimeHandlers();
     game.system.mwd.skills = this.skills;
     game.system.mwd.lifeModules = this.lifeModules;
+    game.system.mwd.rules = this.rules;
     game.system.mwd.traits = this.traits;
     game.mwd.skills = this.skills;
     game.mwd.lifeModules = this.lifeModules;
+    game.mwd.rules = this.rules;
     game.mwd.traits = this.traits;
     Enums.init();
     this.modifiers = new Modifiers();

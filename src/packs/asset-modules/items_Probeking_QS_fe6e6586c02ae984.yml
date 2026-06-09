@@ -1,0 +1,159 @@
+{
+  "_id": "fe6e6586c02ae984",
+  "name": "Probeking QS",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Advanced Sensors",
+    "description": "<dl><dt>Group</dt><dd>Advanced Sensors</dd><dt>Requirement</dt><dd>Active sensors available</dd><dt>Effect</dt><dd>acquireTarget attempt each activation may be made as a Free Action</dd><dt>Cost/Risk</dt><dd>acquireTarget action generates 1 heat</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "probeking-free-acquire",
+        "label": "Quick Acquire Target",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "acquireTarget"
+          ]
+        },
+        "grants": {
+          "actionOverrides": [
+            {
+              "actionIds": [
+                "acquireTarget"
+              ],
+              "resource": "free",
+              "cost": 0
+            }
+          ]
+        },
+        "modifies": {},
+        "costs": {
+          "heat": 1
+        },
+        "limits": {
+          "oncePerActivation": true
+        }
+      }
+    ],
+    "rules": [
+      {
+        "id": "probeking-free-acquire",
+        "label": "Quick Acquire Target",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "acquireTarget"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "actionAvailability",
+            "id": "probeking-free-acquire.action.acquireTarget",
+            "label": "Quick Acquire Target",
+            "actionId": "acquireTarget",
+            "enabled": true,
+            "reason": ""
+          },
+          {
+            "type": "queuedDomainRequest",
+            "id": "probeking-free-acquire.actionOverride",
+            "label": "Quick Acquire Target",
+            "domain": "actionOverride",
+            "request": {
+              "actionIds": [
+                "acquireTarget"
+              ],
+              "resource": "free",
+              "cost": 0,
+              "category": "free"
+            }
+          },
+          {
+            "type": "resourceSpendPreview",
+            "id": "probeking-free-acquire.heat",
+            "label": "Quick Acquire Target",
+            "resource": "heat",
+            "value": 1
+          }
+        ],
+        "limits": {
+          "perActivation": 1
+        },
+        "usage": null,
+        "summary": "Quick Acquire Target"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Active sensors available",
+    "effectText": "acquireTarget attempt each activation may be made as a Free Action",
+    "costRisk": "acquireTarget action generates 1 heat",
+    "tags": [
+      "assetModule",
+      "Advanced Sensors",
+      "sensor",
+      "activeProbe",
+      "acquireTarget"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!fe6e6586c02ae984"
+}

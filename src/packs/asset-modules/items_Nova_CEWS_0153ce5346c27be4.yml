@@ -1,0 +1,201 @@
+{
+  "_id": "0153ce5346c27be4",
+  "name": "Nova CEWS",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1700000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Combat Electronics",
+    "description": "<dl><dt>Group</dt><dd>Combat Electronics</dd><dt>Requirement</dt><dd>Suite active</dd><dt>Effect</dt><dd>Applies ecmShrouded and epmBoosted to the carrier. Grants +1 die to acquireTarget. Grants +1 die to ecmSpike, breakLock, and epmFilter. Active mode applies ecmShrouded to allies within 90m.</dd><dt>Cost/Risk</dt><dd>Active mode generates 1 heat</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "toggle",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "nova-status",
+        "label": "Nova EW Suite",
+        "timing": "active",
+        "scope": "self",
+        "requires": {},
+        "grants": {
+          "statuses": [
+            "ecmShrouded",
+            "epmBoosted"
+          ]
+        },
+        "modifies": {},
+        "costs": {
+          "heat": 1
+        },
+        "limits": {}
+      },
+      {
+        "id": "nova-ew-aid",
+        "label": "Nova EW Aid",
+        "timing": "active",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "acquireTarget",
+            "ecmSpike",
+            "breakLock",
+            "epmFilter"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "nova-status",
+        "label": "Nova EW Suite",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "derivedStatus",
+            "id": "nova-status.status.ecmShrouded",
+            "label": "Nova EW Suite",
+            "key": "ecmShrouded",
+            "value": true
+          },
+          {
+            "type": "derivedStatus",
+            "id": "nova-status.status.epmBoosted",
+            "label": "Nova EW Suite",
+            "key": "epmBoosted",
+            "value": true
+          },
+          {
+            "type": "resourceSpendPreview",
+            "id": "nova-status.heat",
+            "label": "Nova EW Suite",
+            "resource": "heat",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Nova EW Suite"
+      },
+      {
+        "id": "nova-ew-aid",
+        "label": "Nova EW Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "acquireTarget",
+            "ecmSpike",
+            "breakLock",
+            "epmFilter"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "nova-ew-aid.dice",
+            "label": "Nova EW Aid",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Nova EW Aid"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Suite active",
+    "effectText": "Applies ecmShrouded and epmBoosted to the carrier. Grants +1 die to acquireTarget. Grants +1 die to ecmSpike, breakLock, and epmFilter. Active mode applies ecmShrouded to allies within 90m.",
+    "costRisk": "Active mode generates 1 heat",
+    "tags": [
+      "assetModule",
+      "Combat Electronics",
+      "combatElectronics",
+      "ecm",
+      "epm",
+      "ew"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!0153ce5346c27be4"
+}

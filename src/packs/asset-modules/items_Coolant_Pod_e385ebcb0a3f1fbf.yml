@@ -1,0 +1,107 @@
+{
+  "_id": "e385ebcb0a3f1fbf",
+  "name": "Coolant Pod",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 4300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Equipment",
+    "description": "<dl><dt>Group</dt><dd>Equipment</dd><dt>Requirement</dt><dd>Heat &gt; 0; Coolant systems functional</dd><dt>Effect</dt><dd>Immediately reduce heat, -5 heat</dd><dt>Cost/Risk</dt><dd>Consume on use</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "equipment",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "coolant-pod-heat-reduction",
+        "label": "coolant-pod-heat-reduction",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "coolant-pod-heat-reduction.request",
+            "label": "coolant-pod-heat-reduction",
+            "domain": "currentHeatAdjustment",
+            "request": {
+              "id": "coolant-pod-heat-reduction",
+              "kind": "currentHeatAdjustment",
+              "timing": "activation",
+              "value": -5,
+              "consumesModule": true
+            }
+          }
+        ],
+        "limits": {},
+        "usage": {
+          "consume": true
+        },
+        "summary": "coolant-pod-heat-reduction"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": [
+        {
+          "id": "coolant-pod-heat-reduction",
+          "kind": "currentHeatAdjustment",
+          "timing": "activation",
+          "value": -5,
+          "consumesModule": true
+        }
+      ]
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Heat > 0; Coolant systems functional",
+    "effectText": "Immediately reduce heat, -5 heat",
+    "costRisk": "Consume on use",
+    "tags": [
+      "assetModule",
+      "Equipment",
+      "equipment",
+      "coolant",
+      "heat"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!e385ebcb0a3f1fbf"
+}

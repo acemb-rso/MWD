@@ -1,0 +1,123 @@
+{
+  "_id": "aa324c7566dfaf2d",
+  "name": "Artemis IV FCS",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Fire Control Suite",
+    "description": "<dl><dt>Group</dt><dd>Fire Control Suite</dd><dt>Requirement</dt><dd>Sensor Lock; missile weapon</dd><dt>Effect</dt><dd>+5 AR with missile attacks; guided missile systems may use Lock/TAG/NARC benefits</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "artemis-missile-ar",
+        "label": "Artemis Missile Guidance",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "weaponTags": [
+            "weapon.missile"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "ar": 5
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "artemis-missile-ar",
+        "label": "Artemis Missile Guidance",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [
+            "weapon.missile"
+          ],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "cqPart",
+            "id": "artemis-missile-ar.cq",
+            "label": "Artemis Missile Guidance",
+            "ar": 5,
+            "dr": 0
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Artemis Missile Guidance"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Sensor Lock; missile weapon",
+    "effectText": "+5 AR with missile attacks; guided missile systems may use Lock/TAG/NARC benefits",
+    "costRisk": "None",
+    "tags": [
+      "assetModule",
+      "Fire Control Suite",
+      "fireControl",
+      "missile",
+      "guidedMissile"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!aa324c7566dfaf2d"
+}

@@ -1,0 +1,122 @@
+{
+  "_id": "f6ade4e2afdd6513",
+  "name": "Feed Stabilizer",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Protection Systems",
+    "description": "<dl><dt>Group</dt><dd>Protection Systems</dd><dt>Requirement</dt><dd>None</dd><dt>Effect</dt><dd>+2 dice to feedReset and other Feed-related remedies. Applies to Jammed Ballistic, Ammo Feed Fault, Weapon Supply Interruption, missile feed failures.</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "feed-stabilizer",
+        "label": "Feed Remedy Aid",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "feedReset"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 2
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "feed-stabilizer",
+        "label": "Feed Remedy Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "feedReset"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "feed-stabilizer.dice",
+            "label": "Feed Remedy Aid",
+            "value": 2
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Feed Remedy Aid"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "",
+    "effectText": "+2 dice to feedReset and other Feed-related remedies. Applies to Jammed Ballistic, Ammo Feed Fault, Weapon Supply Interruption, missile feed failures.",
+    "costRisk": "None",
+    "tags": [
+      "assetModule",
+      "Protection Systems",
+      "protection",
+      "feed",
+      "repair"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!f6ade4e2afdd6513"
+}

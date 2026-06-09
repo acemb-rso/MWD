@@ -1,0 +1,137 @@
+{
+  "_id": "6821d48ae8882a2b",
+  "name": "Advanced Targeting Computer",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Targeting Computer",
+    "description": "<dl><dt>Group</dt><dd>Targeting Computer</dd><dt>Requirement</dt><dd>Target at track or lock; ranged attack</dd><dt>Effect</dt><dd>Ignore 1 point of penalty from Attack movement. At lock, grants +1 gunnery die or +5 AR with ranged attacks</dd><dt>Cost/Risk</dt><dd>Disabled by sensorBlind or sensorDegraded.</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "advanced-targeting",
+        "label": "Advanced Targeting",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "weaponTags": [
+            "weapon.ranged"
+          ],
+          "forbidsStatuses": [
+            "sensorBlind",
+            "sensorDegraded"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1,
+          "ar": 5
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "advanced-targeting",
+        "label": "Advanced Targeting",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [
+            "weapon.ranged"
+          ],
+          "statuses": [],
+          "forbidsStatuses": [
+            "sensorBlind",
+            "sensorDegraded"
+          ],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "advanced-targeting.dice",
+            "label": "Advanced Targeting",
+            "value": 1
+          },
+          {
+            "type": "cqPart",
+            "id": "advanced-targeting.cq",
+            "label": "Advanced Targeting",
+            "ar": 5,
+            "dr": 0
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Advanced Targeting"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Target at track or lock; ranged attack",
+    "effectText": "Ignore 1 point of penalty from Attack movement. At lock, grants +1 gunnery die or +5 AR with ranged attacks",
+    "costRisk": "Disabled by sensorBlind or sensorDegraded.",
+    "tags": [
+      "assetModule",
+      "Targeting Computer",
+      "targeting",
+      "ranged",
+      "gunnery"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!6821d48ae8882a2b"
+}

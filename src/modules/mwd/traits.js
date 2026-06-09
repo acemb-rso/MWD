@@ -3,6 +3,10 @@
 // How it fits: Keeps quality items declarative while letting engine phases consume generic rule packets.
 
 import { SYSTEM_NAME } from "../constants.js";
+import {
+  normalizeRuleLimits,
+  normalizeRulePrerequisites,
+} from "./rules.js";
 
 export const QUALITY_CATEGORIES = Object.freeze([
   { value: "positive", label: "Positive" },
@@ -179,7 +183,7 @@ function normalizeLimitValue(value) {
 }
 
 export function normalizeTraitLimits(limits = {}) {
-  const source = limits && typeof limits === "object" ? limits : {};
+  const source = normalizeRuleLimits(limits);
   return {
     perActivation: normalizeLimitValue(source.perActivation),
     perRound: normalizeLimitValue(source.perRound),
@@ -206,8 +210,10 @@ function normalizeComparatorEntry(entry = {}) {
 }
 
 export function normalizeTraitPrerequisites(entries = []) {
-  const source = Array.isArray(entries) ? entries : [];
-  return source.map(normalizeComparatorEntry);
+  return normalizeRulePrerequisites(entries).map(entry => ({
+    ...entry,
+    comparator: entry.op,
+  }));
 }
 
 function normalizeTraitEffect(entry = {}) {

@@ -1,0 +1,94 @@
+{
+  "_id": "524025bb7d120845",
+  "name": "Hardened Structural Components",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 3300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Protection Systems",
+    "description": "<dl><dt>Group</dt><dd>Protection Systems</dd><dt>Requirement</dt><dd>None</dd><dt>Effect</dt><dd>Increase global machine shock/pressure capacity by +1</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "hardened-structure-capacity",
+        "label": "Hardened Structural Components",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "hardened-structure-capacity.request",
+            "label": "Hardened Structural Components",
+            "domain": "machineMonitor",
+            "request": {
+              "shockCapacityBonus": 1,
+              "pressureCapacityBonus": 1
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Hardened Structural Components"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "",
+    "effectText": "Increase global machine shock/pressure capacity by +1",
+    "costRisk": "None",
+    "tags": [
+      "assetModule",
+      "Protection Systems",
+      "protection",
+      "structure",
+      "shock"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!524025bb7d120845"
+}

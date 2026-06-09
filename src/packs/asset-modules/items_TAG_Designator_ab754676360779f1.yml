@@ -1,0 +1,152 @@
+{
+  "_id": "ab754676360779f1",
+  "name": "TAG Designator",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 4000000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Equipment",
+    "description": "<dl><dt>Group</dt><dd>Equipment</dd><dt>Requirement</dt><dd>Target at contact or better; Line of Sight - successful TAG action</dd><dt>Effect</dt><dd>Target TAGged - Sensor Locked, generateTargetData against TAGged enemy is a Free Action</dd><dt>Cost/Risk</dt><dd>High Emission (1) while in use, FA to sustain lock</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "equipment",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "tag-free-targeting-data",
+        "label": "TAG Targeting Data",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "generateTargetData"
+          ]
+        },
+        "grants": {
+          "actionOverrides": [
+            {
+              "actionIds": [
+                "generateTargetData"
+              ],
+              "resource": "free",
+              "cost": 0
+            }
+          ]
+        },
+        "modifies": {},
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "tag-free-targeting-data",
+        "label": "TAG Targeting Data",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "generateTargetData"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "actionAvailability",
+            "id": "tag-free-targeting-data.action.generateTargetData",
+            "label": "TAG Targeting Data",
+            "actionId": "generateTargetData",
+            "enabled": true,
+            "reason": ""
+          },
+          {
+            "type": "queuedDomainRequest",
+            "id": "tag-free-targeting-data.actionOverride",
+            "label": "TAG Targeting Data",
+            "domain": "actionOverride",
+            "request": {
+              "actionIds": [
+                "generateTargetData"
+              ],
+              "resource": "free",
+              "cost": 0,
+              "category": "free"
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "TAG Targeting Data"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Target at contact or better; Line of Sight - successful TAG action",
+    "effectText": "Target TAGged - Sensor Locked, generateTargetData against TAGged enemy is a Free Action",
+    "costRisk": "High Emission (1) while in use, FA to sustain lock",
+    "tags": [
+      "assetModule",
+      "Equipment",
+      "equipment",
+      "tag",
+      "tagDesignator",
+      "sensorLock",
+      "highEmission"
+    ],
+    "capabilities": [
+      "tag",
+      "tagTarget",
+      "tagDesignator"
+    ]
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!ab754676360779f1"
+}

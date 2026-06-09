@@ -1,0 +1,197 @@
+{
+  "_id": "d771c85b47efd7b6",
+  "name": "Ares Target Projection Suite",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Targeting Computer",
+    "description": "<dl><dt>Group</dt><dd>Targeting Computer</dd><dt>Requirement</dt><dd>Target at track or lock; ranged attack</dd><dt>Effect</dt><dd>Reduces attack trackingPenalty by 1 against targets at track or better. At lock, grants +5 AR for attacks at Far/Extreme range.</dd><dt>Cost/Risk</dt><dd>Disabled while sensorBlind or sensorDegraded.</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "ares-track-assist",
+        "label": "Track Projection",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "weaponTags": [
+            "weapon.ranged"
+          ],
+          "forbidsStatuses": [
+            "sensorBlind",
+            "sensorDegraded"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "trackingPenalty": -1
+        },
+        "costs": {},
+        "limits": {}
+      },
+      {
+        "id": "ares-locked-range",
+        "label": "Long Range Projection",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "weaponTags": [
+            "weapon.ranged"
+          ],
+          "detectionState": "lock",
+          "forbidsStatuses": [
+            "sensorBlind",
+            "sensorDegraded"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "ar": 5
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "ares-track-assist",
+        "label": "Track Projection",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [
+            "weapon.ranged"
+          ],
+          "statuses": [],
+          "forbidsStatuses": [
+            "sensorBlind",
+            "sensorDegraded"
+          ],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "targetingConstraint",
+            "id": "ares-track-assist.trackingPenalty",
+            "label": "Track Projection",
+            "constraint": "trackingPenalty",
+            "value": -1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Track Projection"
+      },
+      {
+        "id": "ares-locked-range",
+        "label": "Long Range Projection",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [
+            "weapon.ranged"
+          ],
+          "statuses": [],
+          "forbidsStatuses": [
+            "sensorBlind",
+            "sensorDegraded"
+          ],
+          "detectionState": "lock",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "cqPart",
+            "id": "ares-locked-range.cq",
+            "label": "Long Range Projection",
+            "ar": 5,
+            "dr": 0
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Long Range Projection"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Target at track or lock; ranged attack",
+    "effectText": "Reduces attack trackingPenalty by 1 against targets at track or better. At lock, grants +5 AR for attacks at Far/Extreme range.",
+    "costRisk": "Disabled while sensorBlind or sensorDegraded.",
+    "tags": [
+      "assetModule",
+      "Targeting Computer",
+      "targeting",
+      "ranged",
+      "tracking"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!d771c85b47efd7b6"
+}

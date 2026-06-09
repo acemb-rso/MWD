@@ -1,0 +1,127 @@
+{
+  "_id": "44376568d0d972e8",
+  "name": "Advanced Optics",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1300000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Advanced Sensors",
+    "description": "<dl><dt>Group</dt><dd>Advanced Sensors</dd><dt>Requirement</dt><dd>Line of sight; not sensorBlind</dd><dt>Effect</dt><dd>Ignore obscuredLight; +1 die to visual identification</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "visual-identification",
+        "label": "Visual Identification",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "forbidsStatuses": [
+            "sensorBlind"
+          ],
+          "tags": [
+            "visual"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "visual-identification",
+        "label": "Visual Identification",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [
+            "visual"
+          ],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [
+            "sensorBlind"
+          ],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "visual-identification.dice",
+            "label": "Visual Identification",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Visual Identification"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Line of sight; not sensorBlind",
+    "effectText": "Ignore obscuredLight; +1 die to visual identification",
+    "costRisk": "None",
+    "tags": [
+      "assetModule",
+      "Advanced Sensors",
+      "sensor",
+      "optics",
+      "visual"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!44376568d0d972e8"
+}

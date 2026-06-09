@@ -1,0 +1,179 @@
+{
+  "_id": "b106ae69fc21b87a",
+  "name": "Electronic Protection Array",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1900000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Combat Electronics",
+    "description": "<dl><dt>Group</dt><dd>Combat Electronics</dd><dt>Requirement</dt><dd>EPM active</dd><dt>Effect</dt><dd>Applies epmBoosted to the carrier. Grants +2 dice to epmFilter and holdLink. While epmBoosted, the carrier may ignore ecmJamming's targetingData reduction and may attempt to acquire lock despite ecmJamming.</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "toggle",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "epa-boost",
+        "label": "Electronic Protection Boost",
+        "timing": "active",
+        "scope": "self",
+        "requires": {},
+        "grants": {
+          "statuses": [
+            "epmBoosted"
+          ]
+        },
+        "modifies": {},
+        "costs": {},
+        "limits": {}
+      },
+      {
+        "id": "epa-aid",
+        "label": "EPM Aid",
+        "timing": "active",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "epmFilter",
+            "holdLink"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 2
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "epa-boost",
+        "label": "Electronic Protection Boost",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "derivedStatus",
+            "id": "epa-boost.status.epmBoosted",
+            "label": "Electronic Protection Boost",
+            "key": "epmBoosted",
+            "value": true
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Electronic Protection Boost"
+      },
+      {
+        "id": "epa-aid",
+        "label": "EPM Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "epmFilter",
+            "holdLink"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "epa-aid.dice",
+            "label": "EPM Aid",
+            "value": 2
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "EPM Aid"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "EPM active",
+    "effectText": "Applies epmBoosted to the carrier. Grants +2 dice to epmFilter and holdLink. While epmBoosted, the carrier may ignore ecmJamming's targetingData reduction and may attempt to acquire lock despite ecmJamming.",
+    "costRisk": "None",
+    "tags": [
+      "assetModule",
+      "Combat Electronics",
+      "combatElectronics",
+      "epm",
+      "electronicProtection"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!b106ae69fc21b87a"
+}

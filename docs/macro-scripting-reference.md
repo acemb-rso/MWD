@@ -450,11 +450,101 @@ overrides (mapped to `energy` for armor purposes).
 
 ---
 
-### 6.7 Character Quality Trait Packets (`quality.system.effects`)
+### 6.7 Shared Rule Contribution Packets (`system.rules[]`)
+
+Asset modules use `system.rules[]` as their primary mechanics authoring surface.
+Qualities/traits share some normalizer primitives, but quality items still keep
+their character-specific `system.effects` packets until those output schemas are
+formalized.
+
+Shared rule helpers exposed on `game.mwd.rules`:
+
+| Helper | Purpose |
+|---|---|
+| `normalizeCarrier(itemOrSystem, config)` | Normalize a rule-carrying item or system object |
+| `evaluatePhase(args)` | Evaluate matching rules for a phase and return advisory outputs |
+| `prepareUsageCommit(args)` | Build carrier-local usage mutations from evaluated entries |
+| `commitUsage(args)` | Commit rule usage counters; does not apply domain outcomes |
+| `buildAppliedSummary(entries)` | Build explainable summary rows from evaluated entries |
+
+Shared output types:
+
+| Output type | Typical use |
+|---|---|
+| `dicePart` / `dnPart` / `cqPart` | Roll, DN, and AR/DR contributions |
+| `damageAdjustment` / `heatAdjustment` | Advisory harm or heat contributions for domain engines |
+| `targetingConstraint` / `targetingDataModifier` | EW and targeting contributions |
+| `actionAvailability` | Action unlock/disable contribution before resource spend |
+| `actionCostAdjustment` | Action-cost contribution before spend |
+| `derivedStatus` | Derived status model contribution only; does not apply Foundry statuses |
+| `resourceSpendPreview` | Preview heat, charges, or similar costs |
+| `queuedDomainRequest` | Ask a domain owner to process behavior such as clustering, network sharing, or protection |
+
+Character-specific output types:
+
+| Output type | Owning domain |
+|---|---|
+| `activationBudgetAdjustment` | Personal combat tracker; SA/FA/RA caps |
+| `burnRuleAdjustment` | Personal combat tracker; Burn generation/recovery rules |
+| `conditionPenaltyAdjustment` | Personal combat/harm; physical/fatigue penalty math |
+| `edgeEventHook` | Roll/Edge flow; post-roll Edge events |
+| `creationBudgetAdjustment` | Advancement or character creation |
+| `personalSpeedAdjustment` | Derived personal combat model |
+| `initiativeAdjustment` | Initiative resolver |
+| `aimBonusAdjustment` | Personal attack/action resolver |
+| `actionEffectAdjustment` | Personal action executor for action-specific effects |
+
+Shared rules are contribution packets. Domain services may consume, ignore,
+transform, or reject them. They never directly write damage, heat, targeting
+state, critical records, statuses, or action economy.
+
+Example asset-module rule:
+
+```js
+{
+  id: "guardian-ecm-aid",
+  label: "Guardian ECM Aid",
+  phase: "assetModuleEffect",
+  mode: "automatic",
+  selector: { actionIds: ["ecmSpike", "breakLock"] },
+  requires: [{ fact: "module.active", op: "eq", value: true }],
+  outputs: [{ type: "dicePart", value: 3 }],
+  limits: {},
+  usage: null
+}
+```
+
+Canonical character/quality phases:
+
+| Phase | Consuming owner |
+|---|---|
+| `characterCreation` | Advancement / character creation |
+| `derivedPersonalCombat` | Character actor prep / personal combat model |
+| `activationBudget` | Personal combat tracker |
+| `actionAvailability` | Personal action executor |
+| `actionCost` | Personal action executor |
+| `rollBuild` | Roll engine |
+| `initiative` | Initiative resolver |
+| `burn` | Personal combat tracker |
+| `edgeEvent` | Roll / Edge flow |
+| `personalDefense` | Personal attack resolver |
+| `personalDamage` | Personal harm engine |
+| `personalRecovery` | Recovery/remedy resolver |
+| `endOfActivation` | Personal combat tracker |
+
+When migrating legacy quality limits, do not preserve
+`{ perActivation: 0, perRound: 0, perScene: 0 }` as-is. In `system.rules[]`,
+omitted limits mean unlimited and numeric `0` means unavailable.
+
+---
+
+### 6.8 Character Quality Trait Packets (`quality.system.effects`)
 
 Quality items can carry structured trait packets in `system.effects`. The trait
 engine evaluates those packets in named phases and either mutates a resolved
 value automatically or presents an optional manual modifier in the roll dialog.
+This is the compatibility-first quality rail, not the preferred authoring shape
+for new asset-module mechanics.
 
 | Effect type | Typical use |
 |---|---|
@@ -551,7 +641,7 @@ Trait helpers exposed on `game.mwd.traits`:
 
 ---
 
-### 6.8 Trait-Compatible ActiveEffect Keys (`system.traitMods.*`)
+### 6.9 Trait-Compatible ActiveEffect Keys (`system.traitMods.*`)
 
 ActiveEffects can provide simple always-on numeric modifiers for derived trait
 surfaces. These are useful for gear, armor, cybernetics, and other item effects
@@ -762,6 +852,11 @@ Pass these to `game.mwd.harm.apply` with `mode: "status"`.
 ---
 
 ## 10. Asset Module Hooks
+
+Asset-module compendium data is generated with `system.rules[]` as the primary
+mechanics surface. Existing helpers still expose legacy-compatible summaries for
+older call sites, but native rules take precedence over mirrored
+`system.effects[]` rows to avoid double-counting.
 
 Hooks fired by the system that modules and macros can listen to via
 `Hooks.on("mwd.<hook>", handler)`.

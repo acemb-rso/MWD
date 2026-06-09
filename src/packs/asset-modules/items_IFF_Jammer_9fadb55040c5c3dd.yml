@@ -1,0 +1,114 @@
+{
+  "_id": "9fadb55040c5c3dd",
+  "name": "IFF Jammer",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2000000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Combat Electronics",
+    "description": "<dl><dt>Group</dt><dd>Combat Electronics</dd><dt>Requirement</dt><dd>Target must be at least track status, or part of a network/link</dd><dt>Effect</dt><dd>Suppresses shared targetingData, C3 sharing, IFF-assisted fire, TAG/NARC/beacon sharing, and allied contact-sharing on affected tracked targets. Does not apply generic ecmJamming unless used with an ECM Spike action.</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "iff-targeting-suppression",
+        "label": "iff-targeting-suppression",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "iff-targeting-suppression.request",
+            "label": "iff-targeting-suppression",
+            "domain": "targetingSuppression",
+            "request": {
+              "id": "iff-targeting-suppression",
+              "kind": "targetingSuppression",
+              "appliesTo": [
+                "c3",
+                "iff",
+                "tag",
+                "narc",
+                "beacon"
+              ]
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "iff-targeting-suppression"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": [
+        {
+          "id": "iff-targeting-suppression",
+          "kind": "targetingSuppression",
+          "appliesTo": [
+            "c3",
+            "iff",
+            "tag",
+            "narc",
+            "beacon"
+          ]
+        }
+      ]
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Target must be at least track status, or part of a network/link",
+    "effectText": "Suppresses shared targetingData, C3 sharing, IFF-assisted fire, TAG/NARC/beacon sharing, and allied contact-sharing on affected tracked targets. Does not apply generic ecmJamming unless used with an ECM Spike action.",
+    "costRisk": "None",
+    "tags": [
+      "assetModule",
+      "Combat Electronics",
+      "combatElectronics",
+      "iff",
+      "jammer",
+      "network"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!9fadb55040c5c3dd"
+}

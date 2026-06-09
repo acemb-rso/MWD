@@ -1,0 +1,125 @@
+{
+  "_id": "edce3891993da6ac",
+  "name": "Battle Computer - Cluster Optimizer",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 200000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Fire Control Suite",
+    "description": "<dl><dt>Group</dt><dd>Fire Control Suite</dd><dt>Requirement</dt><dd>Sensor Lock; cluster weapon</dd><dt>Effect</dt><dd>Cluster Dice hit on 4+</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "cluster-target",
+        "label": "Cluster Dice Targeting",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "weaponTags": [
+            "weapon.cluster"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "clusteringTarget": -1
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "cluster-target",
+        "label": "Cluster Dice Targeting",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [
+            "weapon.cluster"
+          ],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "cluster-target.clustering",
+            "label": "Cluster Dice Targeting",
+            "domain": "clustering",
+            "request": {
+              "diceModifier": 0,
+              "targetNumberModifier": -1
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Cluster Dice Targeting"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": -1
+      }
+    },
+    "requirement": "Sensor Lock; cluster weapon",
+    "effectText": "Cluster Dice hit on 4+",
+    "costRisk": "None",
+    "tags": [
+      "assetModule",
+      "Fire Control Suite",
+      "fireControl",
+      "cluster"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!edce3891993da6ac"
+}

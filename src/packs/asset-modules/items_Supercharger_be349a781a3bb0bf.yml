@@ -1,0 +1,199 @@
+{
+  "_id": "be349a781a3bb0bf",
+  "name": "Supercharger",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1000000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Mobility",
+    "description": "<dl><dt>Group</dt><dd>Mobility</dd><dt>Requirement</dt><dd>Legs not Crippled/Disabled</dd><dt>Effect</dt><dd>+100m ground movement when engaged</dd><dt>Cost/Risk</dt><dd>+1 heat per move action while active and +1 leg stress when used.</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "mobility",
+    "level": 1,
+    "activation": {
+      "mode": "toggle",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "supercharger-speed",
+        "label": "Supercharger Speed",
+        "timing": "active",
+        "scope": "self",
+        "requires": {},
+        "grants": {},
+        "modifies": {
+          "movementMeters": 100
+        },
+        "costs": {},
+        "limits": {}
+      },
+      {
+        "id": "supercharger-move-cost",
+        "label": "Supercharger Move Cost",
+        "timing": "active",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "walk",
+            "run",
+            "sprint",
+            "move",
+            "jumpMove"
+          ]
+        },
+        "grants": {},
+        "modifies": {},
+        "costs": {
+          "heat": 1,
+          "stress": {
+            "location": "legs",
+            "value": 1
+          }
+        },
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "supercharger-speed",
+        "label": "Supercharger Speed",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "supercharger-speed.movement",
+            "label": "Supercharger Speed",
+            "domain": "movement",
+            "request": {
+              "movementMeters": 100
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Supercharger Speed"
+      },
+      {
+        "id": "supercharger-move-cost",
+        "label": "Supercharger Move Cost",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "walk",
+            "run",
+            "sprint",
+            "move",
+            "jumpMove"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "resourceSpendPreview",
+            "id": "supercharger-move-cost.heat",
+            "label": "Supercharger Move Cost",
+            "resource": "heat",
+            "value": 1
+          },
+          {
+            "type": "queuedDomainRequest",
+            "id": "supercharger-move-cost.stress",
+            "label": "Supercharger Move Cost",
+            "domain": "stressCost",
+            "request": {
+              "location": "legs",
+              "value": 1
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Supercharger Move Cost"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Legs not Crippled/Disabled",
+    "effectText": "+100m ground movement when engaged",
+    "costRisk": "+1 heat per move action while active and +1 leg stress when used.",
+    "tags": [
+      "assetModule",
+      "Mobility",
+      "mobility",
+      "supercharger"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!be349a781a3bb0bf"
+}

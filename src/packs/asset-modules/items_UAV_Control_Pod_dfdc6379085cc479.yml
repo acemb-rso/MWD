@@ -1,0 +1,183 @@
+{
+  "_id": "dfdc6379085cc479",
+  "name": "UAV Control Pod",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 2800000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Network",
+    "description": "<dl><dt>Group</dt><dd>Network</dd><dt>Requirement</dt><dd>UAV Active and not jammed</dd><dt>Effect</dt><dd>Provides passive battlefield overwatch. Grants +1 die to Acquire Target / Sensor Sweep. Can maintain contact on visible enemies in UAV coverage. Grants +2 dice to Piloting checks to cross hazardous terrain/mine fields. Removes indirect fire penalties for operator.</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "equipment",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "uav-sensor-aid",
+        "label": "UAV Sensor Overwatch",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "acquireTarget",
+            "sensorSweep"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1
+        },
+        "costs": {},
+        "limits": {}
+      },
+      {
+        "id": "uav-hazard-piloting",
+        "label": "UAV Hazard Overwatch",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "skillIds": [
+            "piloting"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 2
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "uav-sensor-aid",
+        "label": "UAV Sensor Overwatch",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "acquireTarget",
+            "sensorSweep"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "uav-sensor-aid.dice",
+            "label": "UAV Sensor Overwatch",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "UAV Sensor Overwatch"
+      },
+      {
+        "id": "uav-hazard-piloting",
+        "label": "UAV Hazard Overwatch",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [
+            "piloting"
+          ],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "uav-hazard-piloting.dice",
+            "label": "UAV Hazard Overwatch",
+            "value": 2
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "UAV Hazard Overwatch"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "UAV Active and not jammed",
+    "effectText": "Provides passive battlefield overwatch. Grants +1 die to Acquire Target / Sensor Sweep. Can maintain contact on visible enemies in UAV coverage. Grants +2 dice to Piloting checks to cross hazardous terrain/mine fields. Removes indirect fire penalties for operator.",
+    "costRisk": "",
+    "tags": [
+      "assetModule",
+      "Network",
+      "network",
+      "uav",
+      "overwatch",
+      "sensor"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!dfdc6379085cc479"
+}

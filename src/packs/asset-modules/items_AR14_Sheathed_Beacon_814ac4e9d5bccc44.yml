@@ -1,0 +1,182 @@
+{
+  "_id": "814ac4e9d5bccc44",
+  "name": "AR14 Sheathed Beacon",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1400000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Advanced Sensors",
+    "description": "<dl><dt>Group</dt><dd>Advanced Sensors</dd><dt>Requirement</dt><dd>Active sensors available</dd><dt>Effect</dt><dd>Applies ecmShrouded to the carrier while active. Grants +1 die to acquireTarget. Grants +1 die to epmFilter or holdLink. Applies epmBoosted to allies within 180m</dd><dt>Cost/Risk</dt><dd>None</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "toggle",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "ar14-shroud",
+        "label": "Sheathed Beacon Shroud",
+        "timing": "active",
+        "scope": "self",
+        "requires": {},
+        "grants": {
+          "statuses": [
+            "ecmShrouded"
+          ]
+        },
+        "modifies": {},
+        "costs": {},
+        "limits": {}
+      },
+      {
+        "id": "ar14-ew-aid",
+        "label": "Sheathed Beacon EW Aid",
+        "timing": "active",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "acquireTarget",
+            "epmFilter",
+            "holdLink"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 1
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "ar14-shroud",
+        "label": "Sheathed Beacon Shroud",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "derivedStatus",
+            "id": "ar14-shroud.status.ecmShrouded",
+            "label": "Sheathed Beacon Shroud",
+            "key": "ecmShrouded",
+            "value": true
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Sheathed Beacon Shroud"
+      },
+      {
+        "id": "ar14-ew-aid",
+        "label": "Sheathed Beacon EW Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "acquireTarget",
+            "epmFilter",
+            "holdLink"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.active",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "ar14-ew-aid.dice",
+            "label": "Sheathed Beacon EW Aid",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Sheathed Beacon EW Aid"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Active sensors available",
+    "effectText": "Applies ecmShrouded to the carrier while active. Grants +1 die to acquireTarget. Grants +1 die to epmFilter or holdLink. Applies epmBoosted to allies within 180m",
+    "costRisk": "None",
+    "tags": [
+      "assetModule",
+      "Advanced Sensors",
+      "sensor",
+      "ecm",
+      "epm",
+      "beacon"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!814ac4e9d5bccc44"
+}

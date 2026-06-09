@@ -1,0 +1,132 @@
+{
+  "_id": "a38dee39ffc0fd0f",
+  "name": "Laser Heat Sinks",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 4500000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Equipment",
+    "description": "<dl><dt>Group</dt><dd>Equipment</dd><dt>Requirement</dt><dd>Ready; heat sinks functional</dd><dt>Effect</dt><dd>Heat dissipation unaffected by environmental factors</dd><dt>Cost/Risk</dt><dd>Gains High Emission (1) when Heat Status not SAFE</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "equipment",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [],
+    "rules": [
+      {
+        "id": "laser-heat-sinks-environment",
+        "label": "Laser Heat Sinks",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "laser-heat-sinks-environment.request",
+            "label": "Laser Heat Sinks",
+            "domain": "heatEnvironment",
+            "request": {
+              "ignoreEnvironmentalDissipationPenalty": true
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Laser Heat Sinks"
+      },
+      {
+        "id": "laser-heat-sinks-emission",
+        "label": "Laser Heat Sinks High Emission",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "fact": "heatBand",
+            "op": "truthy"
+          }
+        ],
+        "conditions": [
+          {
+            "fact": "heatBand",
+            "op": "neq",
+            "value": "safe"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "derivedStatus",
+            "id": "laser-heat-sinks-emission.highEmission",
+            "label": "Laser Heat Sinks",
+            "key": "highEmission",
+            "value": 1
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Laser Heat Sinks High Emission"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Ready; heat sinks functional",
+    "effectText": "Heat dissipation unaffected by environmental factors",
+    "costRisk": "Gains High Emission (1) when Heat Status not SAFE",
+    "tags": [
+      "assetModule",
+      "Equipment",
+      "equipment",
+      "heatSink",
+      "thermal",
+      "highEmission"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!a38dee39ffc0fd0f"
+}

@@ -1,0 +1,194 @@
+{
+  "_id": "2267faa092515105",
+  "name": "Bloodhound Active Probe",
+  "type": "assetModule",
+  "img": "systems/mwd/img/default/upgrade.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 1100000,
+  "flags": {},
+  "system": {
+    "sourceReference": "Asset Modules - Advanced Sensors",
+    "description": "<dl><dt>Group</dt><dd>Advanced Sensors</dd><dt>Requirement</dt><dd>Active sensors available</dd><dt>Effect</dt><dd>+2 dice acquireTarget / Sensor Sweep/generateTargetingData; +2 Piloting dice to avoid mines; acquire blind -&gt; contact as Free Action. Ignore ecmShrouded.</dd><dt>Cost/Risk</dt><dd>High Emission (1)</dd></dl>",
+    "gmnotes": "",
+    "inactive": false,
+    "installClass": "module",
+    "category": "special",
+    "level": 1,
+    "activation": {
+      "mode": "passive",
+      "active": false,
+      "selectedMode": "",
+      "cooldownUntilRound": 0
+    },
+    "effects": [
+      {
+        "id": "bloodhound-sensors",
+        "label": "Bloodhound Sensor Aid",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "actionIds": [
+            "acquireTarget",
+            "sensorSweep",
+            "generateTargetingData"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 2,
+          "bypassStatuses": [
+            "ecmShrouded"
+          ]
+        },
+        "costs": {},
+        "limits": {}
+      },
+      {
+        "id": "bloodhound-mine-piloting",
+        "label": "Minefield Piloting Aid",
+        "timing": "ready",
+        "scope": "self",
+        "requires": {
+          "skillIds": [
+            "piloting"
+          ]
+        },
+        "grants": {},
+        "modifies": {
+          "dice": 2
+        },
+        "costs": {},
+        "limits": {}
+      }
+    ],
+    "rules": [
+      {
+        "id": "bloodhound-sensors",
+        "label": "Bloodhound Sensor Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [
+            "acquireTarget",
+            "sensorSweep",
+            "generateTargetingData"
+          ],
+          "skillIds": [],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "bloodhound-sensors.dice",
+            "label": "Bloodhound Sensor Aid",
+            "value": 2
+          },
+          {
+            "type": "targetingConstraint",
+            "id": "bloodhound-sensors.bypass.ecmShrouded",
+            "label": "Bloodhound Sensor Aid",
+            "constraint": "bypassStatus",
+            "value": "ecmShrouded"
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Bloodhound Sensor Aid"
+      },
+      {
+        "id": "bloodhound-mine-piloting",
+        "label": "Minefield Piloting Aid",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {
+          "tags": [],
+          "forbidsTags": [],
+          "actionIds": [],
+          "skillIds": [
+            "piloting"
+          ],
+          "weaponTags": [],
+          "statuses": [],
+          "forbidsStatuses": [],
+          "detectionState": "",
+          "targetState": "",
+          "heatBand": "",
+          "modes": []
+        },
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "dicePart",
+            "id": "bloodhound-mine-piloting.dice",
+            "label": "Minefield Piloting Aid",
+            "value": 2
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Minefield Piloting Aid"
+      }
+    ],
+    "narrativeOnly": false,
+    "runtime": {
+      "packets": []
+    },
+    "mobility": {
+      "jumping": {
+        "enabled": false,
+        "movement": 0,
+        "heat": 0,
+        "attackRatingBonus": 0,
+        "defenseRatingBonus": 0,
+        "dfaEnabled": false
+      }
+    },
+    "targeting": {
+      "clustering": {
+        "diceModifier": 0,
+        "targetNumberModifier": 0
+      }
+    },
+    "requirement": "Active sensors available",
+    "effectText": "+2 dice acquireTarget / Sensor Sweep/generateTargetingData; +2 Piloting dice to avoid mines; acquire blind -> contact as Free Action. Ignore ecmShrouded.",
+    "costRisk": "High Emission (1)",
+    "tags": [
+      "assetModule",
+      "Advanced Sensors",
+      "sensor",
+      "activeProbe",
+      "highEmission"
+    ],
+    "capabilities": []
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!2267faa092515105"
+}
