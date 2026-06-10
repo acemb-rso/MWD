@@ -37,6 +37,10 @@ How it fits: Used by the CSB-driven personal weapon details layout.
                 <label>Current</label>
                 <input class="type-numeric mwd-source-field" type="number" value="{{source.tracking.current}}" data-source-id="{{source.id}}" data-field="tracking.current" />
               </div>
+              <div class="form-group mwd-weapon-compact__field">
+                <label>Reloadable</label>
+                <input class="mwd-source-field" type="checkbox" {{checked source.reloadable}} data-source-id="{{source.id}}" data-field="reloadable" />
+              </div>
             {{/if}}
 
             <button type="button" class="mwd-record__icon-btn is-danger mwd-source-delete" data-source-id="{{source.id}}" title="Remove">

@@ -893,17 +893,18 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
 
   if (payload.intent === "attack" && payload.weaponId) {
     const weaponItem = actor.items?.get?.(payload.weaponId) ?? null;
-    if (weaponItem?.isPersonalWeapon?.()) {
+    if (weaponItem?.isWeapon?.() && typeof weaponItem.canConsumePayload === "function") {
       const selectedPayloadId = String(payload.payloadId ?? "").trim();
-      const activePayloadId = String(weaponItem.system?.selectedPayloadUuid || weaponItem.system?.selectedPayloadId || "").trim();
+      const activePayloadId = String(weaponItem.system?.selectedPayloadKey || weaponItem.system?.selectedPayloadUuid || weaponItem.system?.selectedPayloadId || "").trim();
       if (selectedPayloadId && selectedPayloadId !== activePayloadId) {
         await weaponItem.setActivePayload?.(selectedPayloadId);
       }
 
-      if (!weaponItem.canConsumePayload?.({ payloadId: selectedPayloadId })) {
+      const consumptionState = weaponItem.canConsumePayload?.({ payloadId: selectedPayloadId, detailed: true });
+      if (!consumptionState?.ok) {
         const payloadState = weaponItem.getPayloadState?.({ payloadId: selectedPayloadId });
         const payloadName = payloadState?.payloadLabel ? ` (${payloadState.payloadLabel})` : "";
-        ui.notifications?.warn(`Not enough payload${payloadName} for ${weaponItem.name}.`);
+        ui.notifications?.warn(consumptionState?.reason || `Not enough payload${payloadName} for ${weaponItem.name}.`);
         return null;
       }
     }
@@ -1193,7 +1194,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
 
   if (payload.intent === "attack" && payload.weaponId) {
     const weaponItem = actor.items?.get?.(payload.weaponId) ?? null;
-    if (weaponItem?.isPersonalWeapon?.()) {
+    if (weaponItem?.isWeapon?.() && typeof weaponItem.consumePayload === "function") {
       const consumed = await weaponItem.consumePayload?.({ payloadId: payload.payloadId });
       if (!consumed) {
         ui.notifications?.warn(`Payload could not be consumed for ${weaponItem.name}.`);

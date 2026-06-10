@@ -15,7 +15,7 @@ function buildAttackPayload(weapon, token = null) {
   const payload = {
     intent: "attack",
     weaponId: weapon?.id ?? "",
-    payloadId: weapon?.system?.selectedPayloadUuid || weapon?.system?.selectedPayloadId || "",
+    payloadId: weapon?.system?.selectedPayloadKey || weapon?.system?.selectedPayloadUuid || weapon?.system?.selectedPayloadId || "",
     edge: { pool: "physical.grit", allowed: ["pre", "post"] },
     tags: ["combat", "attack"],
     sourceTokenId: token?.id ?? null

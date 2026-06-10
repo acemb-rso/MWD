@@ -9,7 +9,7 @@ Purpose: Renders unrated character Knowledge Skills.
       {{#each @root.knowledgeSkills as |skill|}}
         <span class="mwd-knowledge-chip">
           <span>{{skill.label}}</span>
-          {{#if @root.advancement.editable}}
+          {{#if @root.editable}}
             <button type="button"
                     class="mwd-knowledge-chip__remove"
                     data-action="removeKnowledgeSkill"
@@ -25,7 +25,7 @@ Purpose: Renders unrated character Knowledge Skills.
     <div class="mwd-inv__empty">No Knowledge Skills assigned.</div>
   {{/if}}
 
-  {{#if @root.advancement.editable}}
+  {{#if @root.editable}}
     <div class="mwd-knowledge-skills__add">
       <input type="text" name="mwdKnowledgeSkill" placeholder="Add Knowledge Skill" />
       <button type="button" data-action="addKnowledgeSkill" title="Add Knowledge Skill">

@@ -64,7 +64,9 @@ import {
 } from "../mwd/personal-weapon-capabilities.js";
 import {
   buildWeaponPayloadItemModel,
+  normalizePayloadKey,
   normalizePayloadCompatibility,
+  normalizePayloadSourceAssignments,
   normalizeWeaponPayloadItemSystem,
 } from "../mwd/weapon-payload-items.js";
 import {
@@ -207,6 +209,67 @@ function normalizeGearCategory(value) {
 
 function normalizeGearText(value) {
   return String(value ?? "").trim();
+}
+
+function normalizeSelectedPayloadKey(value) {
+  return normalizePayloadKey(value);
+}
+
+function normalizeWeaponPayloadSourceAssignments(value) {
+  return normalizePayloadSourceAssignments(value);
+}
+
+function clearPayloadAssignment(assignments = {}, payloadKey = "") {
+  const normalized = normalizePayloadSourceAssignments(assignments);
+  const key = normalizePayloadKey(payloadKey);
+  if (key) delete normalized[key];
+  return normalized;
+}
+
+function clearSourceAssignments(assignments = {}, sourceId = "") {
+  const target = String(sourceId ?? "").trim();
+  const normalized = normalizePayloadSourceAssignments(assignments);
+  if (!target) return normalized;
+  Object.entries(normalized).forEach(([key, entry]) => {
+    if (entry?.sourceId === target) delete normalized[key];
+  });
+  return normalized;
+}
+
+function toItemArray(items) {
+  if (!items) return [];
+  if (typeof items.values === "function") return Array.from(items.values());
+  if (Array.isArray(items)) return items;
+  if (Array.isArray(items.contents)) return items.contents;
+  return [];
+}
+
+function isWeaponPayloadDocument(item) {
+  return (item?.canonicalType ?? item?.type) === TEMPLATE.itemType.weaponPayload;
+}
+
+function getPayloadItemKey(item) {
+  return normalizePayloadKey(item?.system?.payloadKey ?? item?.system?.profile?.label ?? item?.name);
+}
+
+function findOwnedPayloadItemsByKey(actor, payloadKey = "") {
+  const key = normalizePayloadKey(payloadKey);
+  if (!actor || !key) return [];
+  return toItemArray(actor.items).filter(item => isWeaponPayloadDocument(item) && getPayloadItemKey(item) === key);
+}
+
+function getPayloadReserveQuantity(actor, payloadKey = "") {
+  return findOwnedPayloadItemsByKey(actor, payloadKey)
+    .reduce((sum, item) => sum + Math.max(0, Math.trunc(Number(item.system?.quantity ?? 0) || 0)), 0);
+}
+
+async function decrementPayloadReserve(actor, payloadKey = "") {
+  const source = findOwnedPayloadItemsByKey(actor, payloadKey)
+    .find(item => Math.max(0, Math.trunc(Number(item.system?.quantity ?? 0) || 0)) > 0);
+  if (!source) return false;
+  const current = Math.max(0, Math.trunc(Number(source.system?.quantity ?? 0) || 0));
+  await source.update({ "system.quantity": Math.max(0, current - 1) });
+  return true;
 }
 
 function normalizeWeaponCategory(value) {
@@ -409,6 +472,7 @@ export class MWDItem extends Item {
 
     Hooks.on("deleteItem", (item) => {
       void MWDItem.#queueEffectRemoval(item);
+      void MWDItem.#queuePayloadDeletionCleanup(item);
     });
 
     Hooks.on("createActiveEffect", (effect) => {
@@ -464,6 +528,47 @@ export class MWDItem extends Item {
       await parent.syncEquippedActorEffects();
     } catch (error) {
       console.error(`${LOG_HEAD}Failed to sync parent item effects`, { effect, error });
+    }
+  }
+
+  static async #queuePayloadDeletionCleanup(item) {
+    if (!isWeaponPayloadDocument(item)) return;
+    const actor = item.actor ?? item.parent ?? null;
+    const payloadKey = getPayloadItemKey(item);
+    if (!actor || !payloadKey) return;
+
+    try {
+      const updates = [];
+      for (const weapon of toItemArray(actor.items)) {
+        if (!weapon?.isWeapon?.()) continue;
+
+        const update = {};
+        if (normalizePayloadKey(weapon.system?.selectedPayloadKey) === payloadKey) {
+          update["system.selectedPayloadKey"] = "";
+          update["system.selectedPayloadId"] = "unloaded";
+          update["system.selectedPayloadUuid"] = "";
+        }
+
+        const nextAssignments = clearPayloadAssignment(weapon.system?.payloadSourceAssignments, payloadKey);
+        if (JSON.stringify(nextAssignments) !== JSON.stringify(normalizePayloadSourceAssignments(weapon.system?.payloadSourceAssignments))) {
+          update["system.payloadSourceAssignments"] = nextAssignments;
+        }
+
+        const sources = normalizeWeaponConsumptionSources(weapon.system?.consumptionSources, { legacyAmmo: weapon.system?.ammo });
+        const nextSources = sources.map(source => source.loadedPayloadKey === payloadKey
+          ? normalizeConsumptionSource({ ...source, loadedPayloadKey: "" })
+          : source);
+        if (JSON.stringify(nextSources) !== JSON.stringify(sources)) {
+          update["system.consumptionSources"] = nextSources;
+        }
+
+        if (Object.keys(update).length > 0) {
+          updates.push(weapon.update(update));
+        }
+      }
+      await Promise.all(updates);
+    } catch (error) {
+      console.error(`${LOG_HEAD}Failed to clean deleted payload references`, { item, error });
     }
   }
 
@@ -527,6 +632,8 @@ export class MWDItem extends Item {
       changed.system.category = normalizeWeaponCategory(nextSystem.category ?? nextSystem.weaponCategory);
       changed.system.payloadCompatibility = normalizePayloadCompatibility(nextSystem.payloadCompatibility);
       changed.system.selectedPayloadUuid = String(nextSystem.selectedPayloadUuid ?? "").trim();
+      changed.system.selectedPayloadKey = normalizeSelectedPayloadKey(nextSystem.selectedPayloadKey);
+      changed.system.payloadSourceAssignments = normalizeWeaponPayloadSourceAssignments(nextSystem.payloadSourceAssignments);
       changed.system.standardTraits = normalizeWeaponStandardTraits(nextSystem.standardTraits);
       changed.system.payloads = normalizeWeaponPayloads(nextSystem.payloads, { legacyAmmo, category: nextSystem.category });
       changed.system.consumptionSources = normalizeWeaponConsumptionSources(nextSystem.consumptionSources, { legacyAmmo });
@@ -553,6 +660,7 @@ export class MWDItem extends Item {
     if (nextSystem && this.isWeaponPayload()) {
       changed.system ??= {};
       const normalized = normalizeWeaponPayloadItemSystem(nextSystem, { name: this.name });
+      changed.system.payloadKey = normalized.payloadKey;
       changed.system.families = normalized.families;
       changed.system.tags = normalized.tags;
       changed.system.quantity = normalized.quantity;
@@ -575,6 +683,9 @@ export class MWDItem extends Item {
       changed.system.damageType = payloadModel.damageType;
       changed.system.attackRatingBand = normalizeAttackRatingBand(nextSystem.attackRatingBand);
       changed.system.range = normalizeMechWeaponRange(nextSystem.range, category);
+      changed.system.payloadCompatibility = normalizePayloadCompatibility(nextSystem.payloadCompatibility);
+      changed.system.selectedPayloadKey = normalizeSelectedPayloadKey(nextSystem.selectedPayloadKey);
+      changed.system.payloadSourceAssignments = normalizeWeaponPayloadSourceAssignments(nextSystem.payloadSourceAssignments);
       changed.system.payloads = payloadModel.payloads;
       changed.system.consumptionSources = normalizeWeaponConsumptionSources(nextSystem.consumptionSources, { legacyAmmo });
       changed.system.selectedPayloadId = payloadModel.selectedPayloadId;
@@ -734,6 +845,8 @@ export class MWDItem extends Item {
     system.availability = normalizeGearText(system.availability);
     system.payloadCompatibility = normalizePayloadCompatibility(system.payloadCompatibility);
     system.selectedPayloadUuid = String(system.selectedPayloadUuid ?? "").trim();
+    system.selectedPayloadKey = normalizeSelectedPayloadKey(system.selectedPayloadKey);
+    system.payloadSourceAssignments = normalizeWeaponPayloadSourceAssignments(system.payloadSourceAssignments);
     system.payloads = normalizeWeaponPayloads(system.payloads, { legacyAmmo, category: system.category });
     system.consumptionSources = normalizeWeaponConsumptionSources(system.consumptionSources, { legacyAmmo });
     system.selectedPayloadId = normalizeSelectedPayloadId(system.selectedPayloadId, system.payloads, { legacyAmmo, category: system.category });
@@ -744,6 +857,7 @@ export class MWDItem extends Item {
   _prepareWeaponPayloadBaseData() {
     const system = this.system ?? {};
     const normalized = normalizeWeaponPayloadItemSystem(system, { name: this.name });
+    system.payloadKey = normalized.payloadKey;
     system.families = normalized.families;
     system.tags = normalized.tags;
     system.quantity = normalized.quantity;
@@ -763,6 +877,9 @@ export class MWDItem extends Item {
     system.damage = Math.max(0, Number(system.damage ?? 0) || 0);
     const payloadModel = buildMachineEnergyPayloadModel({ ...system, category, weaponCategory: category });
     system.damageType = payloadModel.damageType;
+    system.payloadCompatibility = normalizePayloadCompatibility(system.payloadCompatibility);
+    system.selectedPayloadKey = normalizeSelectedPayloadKey(system.selectedPayloadKey);
+    system.payloadSourceAssignments = normalizeWeaponPayloadSourceAssignments(system.payloadSourceAssignments);
     system.attackRatingBand = normalizeAttackRatingBand(system.attackRatingBand);
     system.range = normalizeMechWeaponRange(system.range, category);
     system.payloads = payloadModel.payloads;
@@ -1401,6 +1518,8 @@ export class MWDItem extends Item {
       id: entry.id ?? foundry.utils.randomID(),
       label: entry.label ?? "Source",
       kind: entry.kind ?? "internal",
+      reloadable: entry.reloadable ?? true,
+      loadedPayloadKey: entry.loadedPayloadKey ?? "",
       tracking: entry.tracking ?? { current: 0, max: 0 },
       link: entry.link ?? {},
     })]));
@@ -1413,6 +1532,9 @@ export class MWDItem extends Item {
       payload.consumption.sourceId = "";
       return normalizePayloadProfile(payload);
     }));
+    await this.update({
+      "system.payloadSourceAssignments": clearSourceAssignments(this.system?.payloadSourceAssignments, sourceId),
+    });
   }
 
   async updateConsumptionSourceField(sourceId, field, value) {
@@ -1448,12 +1570,30 @@ export class MWDItem extends Item {
     }));
   }
 
+  async updatePayloadSourceAssignment(payloadKey, sourceId) {
+    const key = normalizePayloadKey(payloadKey);
+    if (!key) return;
+    const assignments = normalizePayloadSourceAssignments(this.system?.payloadSourceAssignments);
+    const normalizedSourceId = String(sourceId ?? "").trim();
+    assignments[key] = {
+      sourceId: normalizedSourceId && normalizedSourceId !== "untracked" ? normalizedSourceId : null,
+    };
+    await this.update({ "system.payloadSourceAssignments": assignments });
+  }
+
   getPayloadState({ payloadId = "", ammoTypeId = "" } = {}) {
     const itemPayloadModel = buildWeaponPayloadItemModel({
       actor: this.actor ?? null,
       weaponCompatibility: this.system?.payloadCompatibility ?? {},
+      sourceAssignments: this.system?.payloadSourceAssignments ?? {},
     });
-    const selectedPayloadId = String(payloadId || ammoTypeId || this.system?.selectedPayloadUuid || this.system?.selectedPayloadId || "").trim();
+    const requestedPayloadId = String(payloadId || ammoTypeId || this.system?.selectedPayloadKey || this.system?.selectedPayloadUuid || this.system?.selectedPayloadId || "").trim();
+    const requestedPayloadKey = normalizePayloadKey(requestedPayloadId);
+    const selectedPayloadId = itemPayloadModel.payloads.find(payload =>
+      payload.id === requestedPayloadKey
+      || payload.payloadKey === requestedPayloadKey
+      || payload.itemUuid === requestedPayloadId
+    )?.id ?? requestedPayloadId;
     return resolveWeaponPayloadState({
       payloads: [
         ...(Array.isArray(this.system?.payloads) ? this.system.payloads : []),
@@ -1485,8 +1625,8 @@ export class MWDItem extends Item {
       payloadState: null,
     };
 
-    if (!this.isPersonalWeapon()) {
-      return { ...emptyState, reason: "Only personal weapons can be reloaded from this sheet." };
+    if (!this.isWeapon()) {
+      return { ...emptyState, reason: "Only weapons can reload payloads." };
     }
 
     if (!this.actor) {
@@ -1501,15 +1641,34 @@ export class MWDItem extends Item {
     const sourceState = payloadState?.sourceState ?? null;
     const source = payloadState?.source ?? null;
     const activePayloadId = String(payloadState?.activePayloadId ?? "").trim();
+    const activePayload = payloadState?.activePayload ?? null;
+    const activePayloadKey = normalizePayloadKey(activePayload?.payloadKey ?? activePayloadId);
     const payloadLabel = String(payloadState?.payloadLabel ?? "").trim() || "Unloaded";
     const current = Math.max(0, Number(sourceState?.current ?? 0) || 0);
     const max = Math.max(0, Number(sourceState?.max ?? 0) || 0);
     const inCombat = Boolean(PersonalCombatTracker.getCombat(this.actor)?.combatant);
+    const isReusablePayload = String(activePayload?.sourceType ?? "").trim() === TEMPLATE.itemType.weaponPayload;
+    const reserveQuantity = isReusablePayload ? getPayloadReserveQuantity(this.actor, activePayloadKey) : 0;
 
     if (!activePayloadId || activePayloadId === "unloaded") {
       return {
         ...emptyState,
         reason: "Select a payload before reloading.",
+        payloadLabel,
+        activePayloadId,
+        payloadState,
+        source,
+        sourceState,
+        current,
+        max,
+        inCombat,
+      };
+    }
+
+    if (isReusablePayload && !source?.id) {
+      return {
+        ...emptyState,
+        reason: "Selected payload has no assigned source.",
         payloadLabel,
         activePayloadId,
         payloadState,
@@ -1536,10 +1695,25 @@ export class MWDItem extends Item {
       };
     }
 
-    if (sourceState.kind !== "internal") {
+    if (sourceState.kind !== "internal" || !sourceState.reloadable) {
       return {
         ...emptyState,
-        reason: "Linked ammo sources are read-only from the weapon sheet.",
+        reason: "That payload source is not reloadable from the weapon sheet.",
+        payloadLabel,
+        activePayloadId,
+        payloadState,
+        source,
+        sourceState,
+        current,
+        max,
+        inCombat,
+      };
+    }
+
+    if (isReusablePayload && reserveQuantity <= 0) {
+      return {
+        ...emptyState,
+        reason: "No reserve reloads available for the selected payload.",
         payloadLabel,
         activePayloadId,
         payloadState,
@@ -1581,7 +1755,7 @@ export class MWDItem extends Item {
       };
     }
 
-    if (current >= max) {
+    if (current >= max && (!isReusablePayload || sourceState.loadedPayloadKey === activePayloadKey)) {
       return {
         ...emptyState,
         reason: "Magazine already full.",
@@ -1606,6 +1780,7 @@ export class MWDItem extends Item {
       sourceState,
       current,
       max,
+      reserveQuantity,
       inCombat,
     };
   }
@@ -1626,8 +1801,16 @@ export class MWDItem extends Item {
       source.tracking ??= {};
       source.tracking.max = Math.max(0, Number(source.tracking?.max ?? state.max) || state.max);
       source.tracking.current = state.max;
+      const payloadKey = normalizePayloadKey(state.payloadState?.activePayload?.payloadKey ?? state.activePayloadId);
+      if (String(state.payloadState?.activePayload?.sourceType ?? "").trim() === TEMPLATE.itemType.weaponPayload) {
+        source.loadedPayloadKey = payloadKey;
+      }
       return normalizeConsumptionSource(source);
     }));
+
+    if (String(state.payloadState?.activePayload?.sourceType ?? "").trim() === TEMPLATE.itemType.weaponPayload) {
+      await decrementPayloadReserve(this.actor, state.payloadState.activePayload.payloadKey ?? state.activePayloadId);
+    }
 
     return {
       ok: true,
@@ -1646,19 +1829,51 @@ export class MWDItem extends Item {
     const isItemPayload = String(state?.activePayload?.sourceType ?? "").trim() === TEMPLATE.itemType.weaponPayload;
     await this.update({
       "system.selectedPayloadId": isItemPayload ? "unloaded" : normalizedId,
-      "system.selectedPayloadUuid": isItemPayload ? normalizedId : "",
+      "system.selectedPayloadUuid": "",
+      "system.selectedPayloadKey": isItemPayload ? normalizePayloadKey(state.activePayload?.payloadKey ?? normalizedId) : "",
       "system.ammo": forcedDeletion(),
     });
   }
 
-  canConsumePayload({ payloadId = "", ammoTypeId = "" } = {}) {
+  getPayloadConsumptionState({ payloadId = "", ammoTypeId = "" } = {}) {
     const payloadState = this.getPayloadState({ payloadId: payloadId || ammoTypeId });
-    if (!payloadState?.sourceState?.isTracked) return true;
-    return Number(payloadState.sourceState.current ?? 0) >= Number(payloadState.sourceState.consumePerUse ?? 1);
+    const activePayload = payloadState?.activePayload ?? null;
+    const sourceState = payloadState?.sourceState ?? null;
+    const isReusablePayload = String(activePayload?.sourceType ?? "").trim() === TEMPLATE.itemType.weaponPayload;
+    const payloadKey = normalizePayloadKey(activePayload?.payloadKey ?? payloadState?.activePayloadId);
+
+    if (!activePayload) {
+      return { ok: true, reason: "", payloadState };
+    }
+
+    if (isReusablePayload && String(activePayload?.consumption?.sourceId ?? "").trim() && !payloadState?.source) {
+      return { ok: false, reason: "Selected payload source is missing.", payloadState };
+    }
+
+    if (isReusablePayload && sourceState?.isTracked && sourceState.loadedPayloadKey !== payloadKey) {
+      return { ok: false, reason: "Selected payload is not loaded.", payloadState };
+    }
+
+    if (!sourceState?.isTracked) return { ok: true, reason: "", payloadState };
+
+    const consumePerUse = Math.max(1, Number(sourceState.consumePerUse ?? 1) || 1);
+    const current = Math.max(0, Number(sourceState.current ?? 0) || 0);
+    if (current < consumePerUse) {
+      return { ok: false, reason: "Not enough payload loaded.", payloadState };
+    }
+
+    return { ok: true, reason: "", payloadState };
+  }
+
+  canConsumePayload({ payloadId = "", ammoTypeId = "", detailed = false } = {}) {
+    const state = this.getPayloadConsumptionState({ payloadId, ammoTypeId });
+    return detailed ? state : state.ok;
   }
 
   async consumePayload({ payloadId = "", ammoTypeId = "" } = {}) {
-    const payloadState = this.getPayloadState({ payloadId: payloadId || ammoTypeId });
+    const consumptionState = this.getPayloadConsumptionState({ payloadId, ammoTypeId });
+    if (!consumptionState.ok) return false;
+    const payloadState = consumptionState.payloadState;
     if (!payloadState?.sourceState?.isTracked) return true;
 
     const consumePerUse = Math.max(1, Number(payloadState.sourceState.consumePerUse ?? 1) || 1);
@@ -1775,13 +1990,20 @@ export class MWDItem extends Item {
     const baseDamageType = this.isMechWeapon()
       ? normalizeMachineWeaponDamageType(system.damageType, "energy")
       : normalizePersonalDamageType(system.damageType);
-    const itemPayloadModel = this.isPersonalWeapon()
+    const itemPayloadModel = this.isWeapon()
       ? buildWeaponPayloadItemModel({
           actor: this.actor ?? null,
           weaponCompatibility: system.payloadCompatibility ?? {},
+          sourceAssignments: system.payloadSourceAssignments ?? {},
         })
       : { payloads: [], consumptionSources: [] };
-    const selectedPayloadId = String(payloadId || ammoTypeId || system.selectedPayloadUuid || system.selectedPayloadId || "").trim();
+    const requestedPayloadId = String(payloadId || ammoTypeId || system.selectedPayloadKey || system.selectedPayloadUuid || system.selectedPayloadId || "").trim();
+    const requestedPayloadKey = normalizePayloadKey(requestedPayloadId);
+    const selectedPayloadId = itemPayloadModel.payloads.find(payload =>
+      payload.id === requestedPayloadKey
+      || payload.payloadKey === requestedPayloadKey
+      || payload.itemUuid === requestedPayloadId
+    )?.id ?? requestedPayloadId;
     const effectiveProfile = resolveEffectiveWeaponProfile({
       damage,
       damageType: baseDamageType,

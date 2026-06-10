@@ -549,6 +549,14 @@ function normalizePayloadConsumption(value = {}) {
   };
 }
 
+export function normalizePayloadKey(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function normalizePayloadModifies(value = {}) {
   const source = value ?? {};
   return {
@@ -599,8 +607,10 @@ export function normalizePayloadProfile(entry, { report = null, path = "system.p
     id,
     label: String(source.label ?? source.name ?? "").trim() || "Payload",
     sourceType: String(source.sourceType ?? "").trim(),
+    payloadKey: normalizePayloadKey(source.payloadKey),
     itemId: String(source.itemId ?? "").trim(),
     itemUuid: String(source.itemUuid ?? "").trim(),
+    reserveQuantity: Math.max(0, Math.trunc(Number(source.reserveQuantity ?? source.quantity ?? 0) || 0)),
     families: normalizeStringList(source.families),
     tags: normalizeStringList(source.tags),
     compatibleWith,
@@ -637,6 +647,10 @@ export function normalizeConsumptionSource(entry) {
     id: String(source.id ?? "").trim() || randomId("source"),
     label: String(source.label ?? source.name ?? "").trim() || "Source",
     kind,
+    reloadable: source.reloadable !== undefined
+      ? Boolean(source.reloadable)
+      : kind === "internal",
+    loadedPayloadKey: kind === "untracked" ? "" : normalizePayloadKey(source.loadedPayloadKey),
     tracking: {
       current,
       max,
@@ -823,6 +837,8 @@ function resolveSourceState({ source = null, actor = null } = {}) {
       actorPath: "",
       itemId: "",
       itemPath: "",
+      loadedPayloadKey: "",
+      reloadable: false,
     };
   }
 
@@ -833,6 +849,8 @@ function resolveSourceState({ source = null, actor = null } = {}) {
     actorPath: String(source.link?.actorPath ?? "").trim(),
     itemId: String(source.link?.itemId ?? "").trim(),
     itemPath: String(source.link?.itemPath ?? "").trim(),
+    loadedPayloadKey: normalizePayloadKey(source.loadedPayloadKey),
+    reloadable: Boolean(source.reloadable),
   };
 
   if (source.kind === "internal") {
@@ -844,6 +862,8 @@ function resolveSourceState({ source = null, actor = null } = {}) {
       current,
       max,
       currentPath: "",
+      loadedPayloadKey: base.loadedPayloadKey,
+      reloadable: base.reloadable,
     };
   }
 
@@ -859,6 +879,8 @@ function resolveSourceState({ source = null, actor = null } = {}) {
       current: tracking.current,
       max: tracking.max,
       currentPath: tracking.currentPath,
+      loadedPayloadKey: base.loadedPayloadKey,
+      reloadable: base.reloadable,
     };
   }
 
@@ -876,6 +898,8 @@ function resolveSourceState({ source = null, actor = null } = {}) {
       max: tracking.max,
       currentPath: tracking.currentPath,
       sourceItem,
+      loadedPayloadKey: base.loadedPayloadKey,
+      reloadable: base.reloadable,
     };
   }
 
@@ -885,6 +909,8 @@ function resolveSourceState({ source = null, actor = null } = {}) {
     current: 0,
     max: 0,
     currentPath: "",
+    loadedPayloadKey: "",
+    reloadable: false,
   };
 }
 
@@ -928,6 +954,7 @@ export function resolveWeaponPayloadState({
       ...sourceState,
       consumePerUse: Math.max(1, Number(activeConsumption.amount ?? 1) || 1),
       sourceId: source?.id ?? "",
+      loadedPayloadKey: sourceState.loadedPayloadKey ?? "",
     },
   };
 }

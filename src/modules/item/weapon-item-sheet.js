@@ -34,6 +34,8 @@ import {
   WEAPON_PAYLOAD_ITEM_TYPE,
   isPayloadCompatibleWithWeapon,
   isWeaponPayloadItem,
+  normalizePayloadKey,
+  normalizeWeaponPayloadItemSystem,
 } from "../mwd/weapon-payload-items.js";
 import {
   AREA_EFFECT_KINDS,
@@ -85,29 +87,13 @@ function toItemArray(items) {
   return [];
 }
 
-function normalizeListKey(value) {
-  return Array.isArray(value)
-    ? value.map(entry => String(entry ?? "").trim()).filter(Boolean).sort().join(",")
-    : "";
-}
-
 function getPayloadItemQuantity(item) {
   return Math.max(0, Number(item?.system?.quantity ?? 0) || 0);
 }
 
 function getPayloadChoiceKey(item) {
-  const system = item?.system ?? {};
-  return [
-    String(item?.name ?? "").trim().toLowerCase(),
-    normalizeListKey(system.families),
-    normalizeListKey(system.tags),
-    String(system.profile?.label ?? "").trim().toLowerCase(),
-    Number(system.profile?.damage ?? 0) || 0,
-    String(system.profile?.damageType ?? "").trim().toLowerCase(),
-    Number(system.profile?.ap ?? 0) || 0,
-    Number(system.profile?.clusteringDice ?? 0) || 0,
-    String(system.profile?.resolution ?? "").trim().toLowerCase(),
-  ].join("|");
+  const normalized = normalizeWeaponPayloadItemSystem(item?.system ?? {}, { name: item?.name });
+  return normalized.payloadKey || normalizePayloadKey(item?.name);
 }
 
 function buildPayloadChoiceGroups(entries, { activeId = "" } = {}) {
@@ -138,10 +124,10 @@ function buildPayloadChoiceGroups(entries, { activeId = "" } = {}) {
     group.owned = group.owned || Boolean(entry.owned);
     group.source = group.owned ? "Actor" : entry.source;
 
-    if (String(item.uuid ?? "") === activeId) {
+    if (key === activeId || String(item.uuid ?? "") === activeId) {
       group.item = item;
       group.quantity = quantity;
-    } else if (String(group.item?.uuid ?? "") !== activeId && quantity > getPayloadItemQuantity(group.item)) {
+    } else if (getPayloadChoiceKey(group.item) !== activeId && String(group.item?.uuid ?? "") !== activeId && quantity > getPayloadItemQuantity(group.item)) {
       group.item = item;
       group.quantity = quantity;
     }
@@ -301,6 +287,17 @@ export class WeaponItemSheet extends BaseItemSheet {
       ? payloadState.payloads.filter(payload => String(payload?.sourceType ?? "").trim() === WEAPON_PAYLOAD_ITEM_TYPE)
       : [];
     const activePayloadId = String(payloadState?.activePayloadId ?? "").trim();
+    const normalizedAssignments = this.item.system?.payloadSourceAssignments && typeof this.item.system.payloadSourceAssignments === "object"
+      ? this.item.system.payloadSourceAssignments
+      : {};
+    const sourceOptions = [
+      { value: "", label: "Untracked" },
+      ...(Array.isArray(this.item.system?.consumptionSources) ? this.item.system.consumptionSources : [])
+        .filter(source => String(source?.kind ?? "").trim() !== "untracked")
+        .map(source => ({ value: source.id, label: source.label || source.id })),
+    ];
+    const sourceById = new Map((Array.isArray(this.item.system?.consumptionSources) ? this.item.system.consumptionSources : [])
+      .map(source => [String(source?.id ?? "").trim(), source]));
     const groupedActorPayloads = buildPayloadChoiceGroups(actorPayloads.map(payload => ({
       item: payload.itemId ? this.item.actor?.items?.get?.(payload.itemId) : null,
       source: "Actor",
@@ -377,17 +374,27 @@ export class WeaponItemSheet extends BaseItemSheet {
       payloadFamilyOptions: payloadCatalogToOptions(getWeaponPayloadFamilyCatalog()),
       payloadTagOptions: payloadCatalogToOptions(getWeaponPayloadTagCatalog()),
       actorPayloads: groupedActorPayloads.map(group => {
-        const payload = actorPayloads.find(entry => entry.id === group.item?.uuid) ?? {};
+        const payloadKey = getPayloadChoiceKey(group.item);
+        const payload = actorPayloads.find(entry => entry.payloadKey === payloadKey || entry.id === payloadKey) ?? {};
+        const assignment = normalizedAssignments[payloadKey] ?? { sourceId: null };
+        const assignedSourceId = String(assignment?.sourceId ?? "").trim();
+        const assignedSource = assignedSourceId ? sourceById.get(assignedSourceId) : null;
         return {
-          id: payload.id || group.item?.uuid,
+          id: payload.id || payloadKey,
+          payloadKey,
           itemId: group.item?.id || "",
           label: payload.label || group.item?.name || "Payload",
           families: group.families.join(", "),
           tags: group.tags.join(", "),
-          quantity: group.quantity,
+          quantity: group.totalQuantity || group.quantity,
           stackCount: group.count,
           stackLabel: group.count > 1 ? `${group.count} stacks` : "",
-          selected: group.items.some(item => String(item.uuid ?? "") === activePayloadId),
+          sourceId: assignedSourceId,
+          sourceOptions,
+          sourceLabel: assignedSource?.label ?? "Untracked",
+          loadedPayloadKey: normalizePayloadKey(assignedSource?.loadedPayloadKey),
+          loaded: normalizePayloadKey(assignedSource?.loadedPayloadKey) === payloadKey,
+          selected: payloadKey === activePayloadId,
         };
       }),
       activePayloadLabel: payloadState?.payloadLabel || "Unloaded",
@@ -473,21 +480,34 @@ export class WeaponItemSheet extends BaseItemSheet {
 
     let assignedItem = payloadItem;
     const isOwnedByActor = payloadItem?.parent === actor || payloadItem?.actor === actor;
+    const payloadKey = getPayloadChoiceKey(payloadItem);
+    const matchingOwned = toItemArray(actor.items)
+      .find(item => item?.id !== payloadItem?.id && isWeaponPayloadItem(item) && getPayloadChoiceKey(item) === payloadKey);
 
-    if (!isOwnedByActor) {
+    if (matchingOwned) {
+      const current = getPayloadItemQuantity(matchingOwned);
+      const incoming = Math.max(1, getPayloadItemQuantity(payloadItem));
+      await matchingOwned.update({ "system.quantity": current + incoming });
+      if (isOwnedByActor && payloadItem?.id) {
+        await actor.deleteEmbeddedDocuments("Item", [payloadItem.id]);
+      }
+      assignedItem = matchingOwned;
+    } else if (!isOwnedByActor) {
       const sourceData = foundry.utils.deepClone(payloadItem.toObject?.() ?? payloadItem ?? {});
+      sourceData.system ??= {};
+      sourceData.system.payloadKey = payloadKey;
       delete sourceData._id;
       const created = await actor.createEmbeddedDocuments("Item", [sourceData]);
       assignedItem = created?.[0] ?? null;
     }
 
-    const payloadUuid = String(assignedItem?.uuid ?? "").trim();
-    if (!payloadUuid) {
+    const assignedKey = getPayloadChoiceKey(assignedItem);
+    if (!assignedKey) {
       ui.notifications?.warn("That payload could not be assigned to this weapon.");
       return false;
     }
 
-    await this.item.setActivePayload?.(payloadUuid);
+    await this.item.setActivePayload?.(assignedKey);
     ui.notifications?.info(`${assignedItem.name ?? "Payload"} assigned to ${this.item.name ?? "weapon"}.`);
     this.render({ force: true });
     return true;
@@ -526,9 +546,9 @@ export class WeaponItemSheet extends BaseItemSheet {
         `Qty ${group.quantity}`,
         group.count > 1 ? `${group.count} stacks, ${group.totalQuantity} total` : "",
       ].filter(Boolean).join(" | ");
-      const selected = String(payload.uuid ?? "") === activeId || (!activeId && index === 0);
+      const selected = getPayloadChoiceKey(payload) === activeId || (!activeId && index === 0);
       return `
-        <option value="${foundry.utils.escapeHTML(payload.uuid)}" ${selected ? "selected" : ""}>
+        <option value="${foundry.utils.escapeHTML(group.key)}" ${selected ? "selected" : ""}>
           ${foundry.utils.escapeHTML(`${payload.name || "Payload"} (${meta})`)}
         </option>`;
     }).join("");
@@ -557,12 +577,12 @@ export class WeaponItemSheet extends BaseItemSheet {
       ok: {
         label: "Select",
         icon: "fa-solid fa-check",
-        callback: (_event, button) => button.form?.elements["payload-uuid"]?.value ?? payloads[0]?.item?.uuid ?? "",
+        callback: (_event, button) => button.form?.elements["payload-uuid"]?.value ?? payloads[0]?.key ?? "",
       },
     });
 
     if (!selectedId) return;
-    const selected = payloads.find(group => group.item?.uuid === selectedId)?.item ?? null;
+    const selected = payloads.find(group => group.key === selectedId)?.item ?? null;
     if (!selected) return;
     await this._assignWeaponPayloadItem(selected);
   }
@@ -695,6 +715,16 @@ export class WeaponItemSheet extends BaseItemSheet {
       });
     });
 
+    root.querySelectorAll(".mwd-payload-source-field").forEach(field => {
+      field.addEventListener("change", event => {
+        event.preventDefault();
+        void preserveScroll(() => this.item.updatePayloadSourceAssignment?.(
+          field.dataset.payloadKey,
+          field.value
+        ));
+      });
+    });
+
     root.querySelectorAll(".mwd-source-add").forEach(button => {
       button.addEventListener("click", event => {
         event.preventDefault();
@@ -712,10 +742,11 @@ export class WeaponItemSheet extends BaseItemSheet {
     root.querySelectorAll(".mwd-source-field").forEach(field => {
       field.addEventListener("change", event => {
         event.preventDefault();
+        const value = field.type === "checkbox" ? field.checked : field.value;
         void preserveScroll(() => this.item.updateConsumptionSourceField?.(
           field.dataset.sourceId,
           field.dataset.field,
-          field.value
+          value
         ));
       });
     });

@@ -602,6 +602,12 @@
       },
       "payloads": [],
       "selectedPayloadId": "",
+      "selectedPayloadKey": "",
+      "payloadCompatibility": {
+        "families": [],
+        "tagsAll": []
+      },
+      "payloadSourceAssignments": {},
       "consumptionSources": [],
       "fireControl": {
         "usesPerActivation": 1
@@ -651,6 +657,8 @@
         "tagsAll": []
       },
       "selectedPayloadUuid": "",
+      "selectedPayloadKey": "",
+      "payloadSourceAssignments": {},
       "ammo": {
         "current": 0,
         "max": 0,
@@ -663,6 +671,7 @@
     },
     "weaponPayload": {
       "templates": ["inactive", "references"],
+      "payloadKey": "",
       "families": [],
       "tags": [],
       "quantity": 1,

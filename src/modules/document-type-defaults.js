@@ -380,6 +380,12 @@ const templateData = {
       attackRatingBand: { close: 0, near: 0, far: 0, extreme: 0 },
       payloads: [],
       selectedPayloadId: "",
+      selectedPayloadKey: "",
+      payloadCompatibility: {
+        families: [],
+        tagsAll: []
+      },
+      payloadSourceAssignments: {},
       consumptionSources: [],
       fireControl: {
         usesPerActivation: 1
@@ -412,6 +418,8 @@ const templateData = {
         tagsAll: []
       },
       selectedPayloadUuid: "",
+      selectedPayloadKey: "",
+      payloadSourceAssignments: {},
       ammo: {
         current: 0,
         max: 0,
@@ -424,6 +432,7 @@ const templateData = {
     },
     weaponPayload: {
       templates: ["inactive", "references"],
+      payloadKey: "",
       families: [],
       tags: [],
       quantity: 1,

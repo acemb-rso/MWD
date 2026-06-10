@@ -1620,7 +1620,7 @@ ctx.edgeConsole.poolsOrdered = order
   event?.stopPropagation?.();
   if (!this.isEditable) return;
 
-  const root = target?.closest?.(".mwd-advancement") ?? event?.target?.closest?.(".mwd-advancement");
+  const root = target?.closest?.(".mwd-knowledge-skills") ?? event?.target?.closest?.(".mwd-knowledge-skills");
   const input = root?.querySelector?.("input[name='mwdKnowledgeSkill']");
   const label = String(input?.value ?? "").trim();
   if (!label) return;

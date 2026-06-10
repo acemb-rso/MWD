@@ -10,10 +10,15 @@ Purpose: Editor for reusable weapon payload items.
         <h4 class="mwd-combat-sheet__subtitle">Payload</h4>
       </header>
 
-      <div class="mwd-weapon-compact__row mwd-weapon-compact__row--3">
+      <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
         <div class="form-group mwd-weapon-compact__field">
-          <label>Quantity</label>
+          <label>Reserve Reloads</label>
           <input type="number" name="system.quantity" value="{{system.quantity}}" />
+        </div>
+
+        <div class="form-group mwd-weapon-compact__field">
+          <label>Payload Key</label>
+          <input type="text" name="system.payloadKey" value="{{system.payloadKey}}" />
         </div>
 
         <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">

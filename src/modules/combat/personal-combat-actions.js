@@ -570,7 +570,7 @@ async function executeInteractionResolver(actor, { action, metadata = {} } = {})
     await metadata.weapon.setActivePayload(metadata.payloadId);
     return {
       ok: true,
-      stateChanges: [{ type: "itemUpdate", itemId: metadata.weaponId, path: "system.selectedPayloadUuid", value: metadata.payloadId }],
+      stateChanges: [{ type: "itemUpdate", itemId: metadata.weaponId, path: "system.selectedPayloadKey", value: metadata.payloadId }],
       log: { title: action.label, message: `${metadata.weaponName}: ${metadata.payloadName}` }
     };
   }

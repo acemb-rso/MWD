@@ -750,9 +750,19 @@ export class MWDActor extends Actor {
 
     if (monitorId === "armor" && this.isCharacterLike()) {
       const loadout = this.getPersonalCombatLoadout({ refresh: true });
-      const activeArmorId = loadout?.activeArmor?.armorId ?? loadout?.activeArmor?.id ?? null;
+      const activeArmor = loadout?.activeArmor;
+      const activeArmorId = activeArmor?.armorId ?? activeArmor?.id ?? null;
       const activeArmorItem = activeArmorId ? this.items.get(activeArmorId) : null;
       if (!activeArmorItem?.id) return null;
+
+      if (isBattleArmorProfileEnabled(activeArmor?.battleArmor)) {
+        const max = Math.max(0, Number(activeArmor.battleArmor.armorPool?.max ?? 0));
+        const nextValue = Math.min(Math.max(0, Number(rawValue) || 0), max);
+        return this.updateEmbeddedDocuments("Item", [{
+          _id: activeArmorItem.id,
+          "system.battleArmor.armorPool.value": nextValue,
+        }]);
+      }
 
       const rating = Math.max(0, Number(activeArmorItem.system?.rating ?? 0) || 0);
       const max = rating;

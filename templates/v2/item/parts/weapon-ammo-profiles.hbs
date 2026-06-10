@@ -83,8 +83,18 @@ How it fits: Used by the CSB-driven personal weapon details layout.
                 <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
                   <label>{{#if payload.selected}}<strong>Active</strong>{{else}}Payload{{/if}}</label>
                   <div class="mwd-field-cluster__value">
-                    {{payload.label}} | Qty {{payload.quantity}}{{#if payload.stackLabel}} | {{payload.stackLabel}}{{/if}}{{#if payload.tags}} | {{payload.tags}}{{/if}}
+                    {{payload.label}} | Reserve {{payload.quantity}}{{#if payload.stackLabel}} | {{payload.stackLabel}}{{/if}}{{#if payload.tags}} | {{payload.tags}}{{/if}}
+                    {{#if payload.loaded}} | Loaded{{/if}}
                   </div>
+                </div>
+
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Source</label>
+                  <select class="mwd-payload-source-field" data-payload-key="{{payload.payloadKey}}">
+                    {{#each payload.sourceOptions as |source|}}
+                      <option value="{{source.value}}" {{#if (eq source.value ../sourceId)}}selected{{/if}}>{{source.label}}</option>
+                    {{/each}}
+                  </select>
                 </div>
 
                 <button type="button" class="mwd-record__icon-btn is-danger mwd-payload-item-remove" data-item-id="{{payload.itemId}}" title="Remove from Actor">
@@ -121,8 +131,18 @@ How it fits: Used by the CSB-driven personal weapon details layout.
                 <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
                   <label>{{#if payload.selected}}Selected{{else}}Payload{{/if}}</label>
                   <div class="mwd-field-cluster__value">
-                    {{payload.label}} | Qty {{payload.quantity}}{{#if payload.stackLabel}} | {{payload.stackLabel}}{{/if}}{{#if payload.tags}} | {{payload.tags}}{{/if}}
+                    {{payload.label}} | Reserve {{payload.quantity}}{{#if payload.stackLabel}} | {{payload.stackLabel}}{{/if}}{{#if payload.tags}} | {{payload.tags}}{{/if}}
+                    {{#if payload.loaded}} | Loaded{{/if}}
                   </div>
+                </div>
+
+                <div class="form-group mwd-weapon-compact__field">
+                  <label>Source</label>
+                  <select class="mwd-payload-source-field" data-payload-key="{{payload.payloadKey}}">
+                    {{#each payload.sourceOptions as |source|}}
+                      <option value="{{source.value}}" {{#if (eq source.value ../sourceId)}}selected{{/if}}>{{source.label}}</option>
+                    {{/each}}
+                  </select>
                 </div>
 
                 <button type="button" class="mwd-record__icon-btn mwd-payload-select" data-payload-id="{{payload.id}}" title="Select">

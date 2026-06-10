@@ -107,6 +107,7 @@ test("weapon payload defaults include reusable profile and inventory fields", ()
   assert.deepEqual(defaults.system.families, []);
   assert.deepEqual(defaults.system.tags, []);
   assert.equal(defaults.system.profile.label, "Payload");
+  assert.equal(defaults.system.payloadKey, "");
   assert.equal(defaults.system.profile.modifies.damage, 0);
   assert.equal(defaults.system.profile.modifies.ap, 0);
   assert.equal(defaults.system.profile.consumption.amount, 1);
@@ -148,6 +149,8 @@ test("mech weapon defaults include hardpoint slot and payload scaffolding", () =
   assert.equal(defaults.system.clusteringTargetNumber, 5);
   assert.equal(defaults.system.volatile, false);
   assert.deepEqual(defaults.system.payloads, []);
+  assert.equal(defaults.system.selectedPayloadKey, "");
+  assert.deepEqual(defaults.system.payloadSourceAssignments, {});
   assert.deepEqual(defaults.system.consumptionSources, []);
   assert.equal(defaults.system.fireControl.usesPerActivation, 1);
 });

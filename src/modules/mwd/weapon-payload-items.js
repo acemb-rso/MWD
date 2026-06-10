@@ -3,7 +3,7 @@
 // How it fits: Lets owned payload items feed the existing personal weapon payload resolver.
 
 import {
-  normalizeConsumptionSource,
+  normalizePayloadKey,
   normalizePayloadProfile,
 } from "./personal-damage.js";
 import {
@@ -13,6 +13,7 @@ import {
 
 export const UNLOADED_PAYLOAD_ID = "unloaded";
 export const WEAPON_PAYLOAD_ITEM_TYPE = "weaponPayload";
+export { normalizePayloadKey };
 
 function normalizeStringList(value, { canonicalize = value => value } = {}) {
   if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -53,9 +54,10 @@ export function normalizePayloadCompatibility(value = {}) {
 
 export function normalizeWeaponPayloadItemSystem(system = {}, { name = "Payload" } = {}) {
   const source = system ?? {};
+  const label = String(source.profile?.label ?? source.label ?? name ?? "Payload").trim() || "Payload";
   const profile = normalizePayloadProfile({
     id: "profile",
-    label: String(source.profile?.label ?? source.label ?? name ?? "Payload").trim() || "Payload",
+    label,
     ...(source.profile ?? {}),
   });
 
@@ -66,6 +68,7 @@ export function normalizeWeaponPayloadItemSystem(system = {}, { name = "Payload"
   };
 
   return {
+    payloadKey: normalizePayloadKey(source.payloadKey ?? label ?? name),
     families: distinctFamilies(source.families ?? source.family),
     tags: distinctTags(source.tags),
     quantity: Math.max(0, Math.trunc(Number(source.quantity ?? 1) || 0)),
@@ -96,23 +99,43 @@ export function isPayloadCompatibleWithWeapon(compatibility = {}, payloadSystem 
   return true;
 }
 
-export function buildWeaponPayloadItemProfile(item, { weaponCompatibility = null } = {}) {
+function normalizeAssignmentSourceId(value) {
+  const normalized = String(value ?? "").trim();
+  return normalized && normalized !== "untracked" ? normalized : null;
+}
+
+export function normalizePayloadSourceAssignments(value = {}) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  return Object.entries(source).reduce((assignments, [rawKey, rawEntry]) => {
+    const key = normalizePayloadKey(rawKey);
+    if (!key) return assignments;
+    const entry = rawEntry && typeof rawEntry === "object" ? rawEntry : { sourceId: rawEntry };
+    assignments[key] = {
+      sourceId: normalizeAssignmentSourceId(entry.sourceId),
+    };
+    return assignments;
+  }, {});
+}
+
+export function buildWeaponPayloadItemProfile(item, { weaponCompatibility = null, sourceAssignments = {} } = {}) {
   if (!isWeaponPayloadItem(item)) return null;
 
   const payloadSystem = normalizeWeaponPayloadItemSystem(item.system ?? {}, { name: item.name });
   if (weaponCompatibility && !isPayloadCompatibleWithWeapon(weaponCompatibility, payloadSystem)) return null;
 
-  const id = String(item.uuid ?? item.id ?? "").trim();
-  if (!id) return null;
+  const payloadKey = normalizePayloadKey(payloadSystem.payloadKey);
+  if (!payloadKey) return null;
 
-  const sourceId = `payload-item:${String(item.id ?? id).trim()}`;
+  const sourceId = normalizeAssignmentSourceId(sourceAssignments[payloadKey]?.sourceId);
   const profile = normalizePayloadProfile({
     ...payloadSystem.profile,
-    id,
+    id: payloadKey,
+    payloadKey,
     label: String(payloadSystem.profile?.label ?? item.name ?? "Payload").trim() || "Payload",
+    reserveQuantity: payloadSystem.quantity,
     consumption: {
       ...(payloadSystem.profile?.consumption ?? {}),
-      sourceId,
+      sourceId: sourceId ?? "",
     },
   });
 
@@ -120,35 +143,40 @@ export function buildWeaponPayloadItemProfile(item, { weaponCompatibility = null
     ...profile,
     sourceType: WEAPON_PAYLOAD_ITEM_TYPE,
     itemId: String(item.id ?? "").trim(),
-    itemUuid: id,
+    itemUuid: String(item.uuid ?? item.id ?? "").trim(),
+    payloadKey,
+    reserveQuantity: payloadSystem.quantity,
     families: payloadSystem.families,
     tags: payloadSystem.tags,
   };
 }
 
-export function buildWeaponPayloadItemModel({ actor = null, weaponCompatibility = {} } = {}) {
-  const payloads = [];
-  const consumptionSources = [];
+export function buildWeaponPayloadItemModel({ actor = null, weaponCompatibility = {}, sourceAssignments = {} } = {}) {
+  const grouped = new Map();
+  const normalizedAssignments = normalizePayloadSourceAssignments(sourceAssignments);
 
   for (const item of toItemArray(actor?.items)) {
-    const profile = buildWeaponPayloadItemProfile(item, { weaponCompatibility });
+    const profile = buildWeaponPayloadItemProfile(item, {
+      weaponCompatibility,
+      sourceAssignments: normalizedAssignments,
+    });
     if (!profile) continue;
 
-    payloads.push(profile);
-    consumptionSources.push(normalizeConsumptionSource({
-      id: profile.consumption.sourceId,
-      label: profile.label,
-      kind: "itemRef",
-      tracking: {
-        current: Math.max(0, Number(item.system?.quantity ?? 0) || 0),
-        max: Math.max(0, Number(item.system?.quantity ?? 0) || 0),
-      },
-      link: {
-        itemId: profile.itemId,
-        itemPath: "quantity",
-      },
-    }));
+    const key = profile.payloadKey;
+    const existing = grouped.get(key);
+    if (!existing) {
+      grouped.set(key, {
+        ...profile,
+        itemIds: profile.itemId ? [profile.itemId] : [],
+        itemUuids: profile.itemUuid ? [profile.itemUuid] : [],
+      });
+      continue;
+    }
+
+    existing.reserveQuantity += profile.reserveQuantity;
+    if (profile.itemId) existing.itemIds.push(profile.itemId);
+    if (profile.itemUuid) existing.itemUuids.push(profile.itemUuid);
   }
 
-  return { payloads, consumptionSources };
+  return { payloads: Array.from(grouped.values()), consumptionSources: [] };
 }

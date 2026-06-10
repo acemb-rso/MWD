@@ -32,6 +32,7 @@ test("weapon payload item systems normalize family tags and profile fields", asy
 
   assert.deepEqual(system.families, ["40mmGrenade", "launcherGrenade"]);
   assert.deepEqual(system.tags, ["frag", "armorPiercing"]);
+  assert.equal(system.payloadKey, "frag");
   assert.equal(system.quantity, 3);
   assert.equal(system.profile.label, "Frag");
   assert.equal(system.profile.modifies.damage, 5);
@@ -111,6 +112,7 @@ test("compatible owned payload items compile into selectable payload profiles", 
   } = await import("../src/modules/mwd/personal-damage.js");
   const {
     buildWeaponPayloadItemModel,
+    normalizePayloadKey,
   } = await import("../src/modules/mwd/weapon-payload-items.js");
 
   const payloadItem = {
@@ -119,6 +121,7 @@ test("compatible owned payload items compile into selectable payload profiles", 
     name: "Frag Grenades",
     type: "weaponPayload",
     system: {
+      payloadKey: "40mm Frag",
       families: ["40mmGrenade"],
       tags: ["frag"],
       quantity: 2,
@@ -133,23 +136,37 @@ test("compatible owned payload items compile into selectable payload profiles", 
   const model = buildWeaponPayloadItemModel({
     actor,
     weaponCompatibility: { families: ["40mmGrenade"] },
+    sourceAssignments: {
+      "40mm Frag": { sourceId: "magazine" },
+    },
   });
 
   const state = resolveWeaponPayloadState({
     actor,
     payloads: model.payloads,
-    consumptionSources: model.consumptionSources,
-    selectedPayloadId: payloadItem.uuid,
+    consumptionSources: [{
+      id: "magazine",
+      label: "Magazine",
+      kind: "internal",
+      reloadable: true,
+      loadedPayloadKey: "40mm Frag",
+      tracking: { current: 1, max: 2 },
+    }],
+    selectedPayloadId: normalizePayloadKey("40mm Frag"),
   });
 
-  assert.equal(state.activePayloadId, payloadItem.uuid);
+  assert.equal(state.activePayloadId, "40mm-frag");
   assert.equal(state.payloadLabel, "Frag");
   assert.equal(state.activePayload.sourceType, "weaponPayload");
+  assert.equal(state.activePayload.payloadKey, "40mm-frag");
   assert.equal(state.activePayload.itemId, payloadItem.id);
   assert.equal(state.activePayload.itemUuid, payloadItem.uuid);
-  assert.equal(state.sourceState.kind, "itemRef");
-  assert.equal(state.sourceState.current, 2);
+  assert.equal(state.activePayload.reserveQuantity, 2);
+  assert.equal(state.sourceState.kind, "internal");
+  assert.equal(state.sourceState.current, 1);
+  assert.equal(state.sourceState.loadedPayloadKey, "40mm-frag");
   assert.equal(state.sourceState.consumePerUse, 1);
+  assert.equal(model.consumptionSources.length, 0);
 });
 
 test("incompatible or absent item payloads fall back to unloaded", async () => {
@@ -189,7 +206,7 @@ test("incompatible or absent item payloads fall back to unloaded", async () => {
   assert.equal(state.activePayloadId, "unloaded");
 });
 
-test("two weapons can resolve against the same owned payload quantity", async () => {
+test("payload item quantity is reserve count, not generated source tracking", async () => {
   globalThis.foundry ??= { utils: {} };
   globalThis.foundry.utils.getProperty ??= getProperty;
 
@@ -206,6 +223,7 @@ test("two weapons can resolve against the same owned payload quantity", async ()
     name: "Shared Grenades",
     type: "weaponPayload",
     system: {
+      payloadKey: "shared-frag",
       families: ["40mmGrenade"],
       tags: ["frag"],
       quantity: 2,
@@ -218,25 +236,87 @@ test("two weapons can resolve against the same owned payload quantity", async ()
   const actor = { items: new Map([[payloadItem.id, payloadItem]]) };
   const compatibility = { families: ["40mmGrenade"] };
 
-  const firstModel = buildWeaponPayloadItemModel({ actor, weaponCompatibility: compatibility });
+  const firstModel = buildWeaponPayloadItemModel({
+    actor,
+    weaponCompatibility: compatibility,
+    sourceAssignments: { "shared-frag": { sourceId: "internal" } },
+  });
   const firstState = resolveWeaponPayloadState({
     actor,
     payloads: firstModel.payloads,
-    consumptionSources: firstModel.consumptionSources,
-    selectedPayloadId: payloadItem.uuid,
+    consumptionSources: [{
+      id: "internal",
+      label: "Internal",
+      kind: "internal",
+      reloadable: true,
+      loadedPayloadKey: "shared-frag",
+      tracking: { current: 1, max: 1 },
+    }],
+    selectedPayloadId: "shared-frag",
   });
 
-  payloadItem.system.quantity -= firstState.sourceState.consumePerUse;
+  payloadItem.system.quantity -= 1;
 
-  const secondModel = buildWeaponPayloadItemModel({ actor, weaponCompatibility: compatibility });
+  const secondModel = buildWeaponPayloadItemModel({
+    actor,
+    weaponCompatibility: compatibility,
+    sourceAssignments: { "shared-frag": { sourceId: "internal" } },
+  });
   const secondState = resolveWeaponPayloadState({
     actor,
     payloads: secondModel.payloads,
-    consumptionSources: secondModel.consumptionSources,
-    selectedPayloadId: payloadItem.uuid,
+    consumptionSources: [{
+      id: "internal",
+      label: "Internal",
+      kind: "internal",
+      reloadable: true,
+      loadedPayloadKey: "shared-frag",
+      tracking: { current: 1, max: 1 },
+    }],
+    selectedPayloadId: "shared-frag",
   });
 
-  assert.equal(firstState.sourceState.current, 2);
+  assert.equal(firstState.sourceState.current, 1);
+  assert.equal(firstState.activePayload.reserveQuantity, 2);
   assert.equal(secondState.sourceState.current, 1);
-  assert.equal(firstModel.consumptionSources[0].link.itemId, secondModel.consumptionSources[0].link.itemId);
+  assert.equal(secondState.activePayload.reserveQuantity, 1);
+  assert.equal(firstModel.consumptionSources.length, 0);
+});
+
+test("payload keys normalize and group matching reserve stacks", async () => {
+  const {
+    buildWeaponPayloadItemModel,
+    normalizePayloadKey,
+  } = await import("../src/modules/mwd/weapon-payload-items.js");
+
+  const actor = {
+    items: new Map([
+      ["fmj-1", {
+        id: "fmj-1",
+        uuid: "Actor.a.Item.fmj-1",
+        name: ".45 FMJ",
+        type: "weaponPayload",
+        system: { payloadKey: ".45 FMJ", families: ["bullet"], quantity: 2, profile: { label: ".45 FMJ" } },
+      }],
+      ["fmj-2", {
+        id: "fmj-2",
+        uuid: "Actor.a.Item.fmj-2",
+        name: "45_fmj",
+        type: "weaponPayload",
+        system: { payloadKey: "45_fmj", families: ["bullet"], quantity: 1, profile: { label: "Corrected FMJ", modifies: { ap: 2 } } },
+      }],
+    ]),
+  };
+
+  const model = buildWeaponPayloadItemModel({
+    actor,
+    weaponCompatibility: { families: ["bullet"] },
+  });
+
+  assert.equal(normalizePayloadKey(".45 FMJ"), "45-fmj");
+  assert.equal(model.payloads.length, 1);
+  assert.equal(model.payloads[0].payloadKey, "45-fmj");
+  assert.equal(model.payloads[0].reserveQuantity, 3);
+  assert.equal(model.payloads[0].label, ".45 FMJ");
+  assert.equal(model.payloads[0].modifies.ap, 0);
 });
