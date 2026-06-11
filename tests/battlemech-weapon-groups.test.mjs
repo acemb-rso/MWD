@@ -26,6 +26,7 @@ function createWeapon({
   clusteringDice = 0,
   payloadDamageType = "",
   usesPerActivation = 1,
+  keywords = [],
 } = {}) {
   const effectiveDamageType = payloadDamageType || damageType;
   const labelFor = (type) => type === "energy"
@@ -57,6 +58,7 @@ function createWeapon({
       attackRatingBand: attackRatings,
       resolution: { resolverKey },
       fireControl: { usesPerActivation },
+      keywords,
       area,
     },
     isActive() {
@@ -95,6 +97,7 @@ function createWeapon({
         areaEffect: { kind: "discrete" },
         resolverKey,
         fireControl: { usesPerActivation },
+        keywords,
         notes: "",
       };
     },
@@ -261,6 +264,58 @@ test("BattleMech standard direct-fire profiles remain groupable when their area 
   assert.equal(group.memberWeapons.length, 1);
   assert.equal(group.attackSummary?.damage, 4);
   assert.equal(group.attackSummary?.heat, 2);
+});
+
+test("BattleMech weapon group keywords are case and separator insensitive", () => {
+  const gauss = createWeapon({
+    id: "gauss",
+    name: "Gauss Rifle",
+    damage: 6,
+    damageType: "energy",
+    rangeCap: "near",
+    attackRatings: { close: 2, near: 3, far: 0, extreme: 0 },
+    keywords: ["ARMOR-BYPASS"],
+  });
+  const bypassActor = createActor({
+    groups: [{ id: "alpha", name: "Alpha", weaponIds: ["gauss"] }],
+    weapons: [gauss],
+  });
+
+  const bypassProfile = buildBattlemechWeaponGroupAttackProfile(bypassActor, "alpha");
+
+  assert.equal(bypassProfile.ok, true);
+  assert.deepEqual(bypassProfile.profile.effects.flags, ["armorBypass"]);
+
+  const lockWeapon = createWeapon({
+    id: "lock-cannon",
+    name: "Lock Cannon",
+    damage: 4,
+    damageType: "energy",
+    rangeCap: "near",
+    attackRatings: { close: 2, near: 3, far: 0, extreme: 0 },
+    keywords: ["LOCK ONLY"],
+  });
+  const lockActor = createActor({
+    groups: [{ id: "lock", name: "Lock", weaponIds: ["lock-cannon"] }],
+    weapons: [lockWeapon],
+  });
+  const previousGame = globalThis.game;
+  globalThis.game = { user: { targets: new Set() } };
+
+  try {
+    const [lockGroup] = prepareBattlemechWeaponGroups(lockActor, {
+      token: {
+        combatant: {
+          getFlag: () => ({}),
+        },
+      },
+    });
+
+    assert.equal(lockGroup.isAttackLegal, false);
+    assert.match(lockGroup.disableReason, /requires sensor lock/i);
+  } finally {
+    globalThis.game = previousGame;
+  }
 });
 
 test("BattleMech ranged groups become unavailable once marked used this activation", () => {

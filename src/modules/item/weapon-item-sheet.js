@@ -292,8 +292,10 @@ export class WeaponItemSheet extends BaseItemSheet {
     const normalizedSources = Array.isArray(this.item.system?.consumptionSources)
       ? this.item.system.consumptionSources.map(source => normalizeConsumptionSource(source))
       : [];
+    const untrackedSource = normalizedSources.find(source => String(source?.kind ?? "").trim() === "untracked") ?? null;
+    const untrackedSourceLabel = String(untrackedSource?.label ?? "").trim() || "Untracked";
     const sourceOptions = [
-      { value: "", label: "Untracked" },
+      { value: "", label: untrackedSourceLabel },
       ...normalizedSources
         .filter(source => String(source?.kind ?? "").trim() !== "untracked")
         .map(source => ({ value: source.id, label: source.label || source.id })),
@@ -364,6 +366,7 @@ export class WeaponItemSheet extends BaseItemSheet {
       consumptionSources: Array.isArray(this.item.system?.consumptionSources)
         ? this.item.system.consumptionSources.map(source => buildConsumptionSourceEditorEntry(this.item, source))
         : [],
+      untrackedSourceLabel,
       payloadCompatibilityText: {
         families: Array.isArray(payloadCompatibility.families) ? payloadCompatibility.families.join(", ") : String(payloadCompatibility.families ?? ""),
         tagsAll: Array.isArray(payloadCompatibility.tagsAll) ? payloadCompatibility.tagsAll.join(", ") : String(payloadCompatibility.tagsAll ?? ""),
@@ -393,7 +396,7 @@ export class WeaponItemSheet extends BaseItemSheet {
           stackLabel: group.count > 1 ? `${group.count} stacks` : "",
           sourceId: assignedSourceId,
           sourceOptions,
-          sourceLabel: assignedSource?.label ?? "Untracked",
+          sourceLabel: assignedSource?.label ?? untrackedSourceLabel,
           loadedPayloadKey: normalizePayloadKey(assignedSource?.loadedPayloadKey),
           loaded: normalizePayloadKey(assignedSource?.loadedPayloadKey) === payloadKey,
           selected: payloadKey === activePayloadId,

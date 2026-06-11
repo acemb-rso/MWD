@@ -197,7 +197,7 @@ How it fits: Used by the CSB-driven personal weapon details layout.
               <div class="form-group mwd-weapon-compact__field">
                 <label>Source</label>
                 <select class="mwd-payload-field" data-payload-id="{{payload.id}}" data-field="consumption.sourceId">
-                  <option value="">Untracked</option>
+                  <option value="">{{../weaponEditor.untrackedSourceLabel}}</option>
                   {{#each ../system.consumptionSources as |source|}}
                     <option value="{{source.id}}" {{#if (eq source.id payload.consumption.sourceId)}}selected{{/if}}>{{source.label}}</option>
                   {{/each}}

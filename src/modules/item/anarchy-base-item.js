@@ -215,6 +215,13 @@ function normalizeSelectedPayloadKey(value) {
   return normalizePayloadKey(value);
 }
 
+function normalizeMachineFireControl(value = {}) {
+  const source = value ?? {};
+  return {
+    usesPerActivation: Math.max(1, Math.trunc(Number(source.usesPerActivation ?? 1) || 1)),
+  };
+}
+
 function normalizeWeaponPayloadSourceAssignments(value) {
   return normalizePayloadSourceAssignments(value);
 }
@@ -689,6 +696,8 @@ export class MWDItem extends Item {
       changed.system.payloads = payloadModel.payloads;
       changed.system.consumptionSources = normalizeWeaponConsumptionSources(nextSystem.consumptionSources, { legacyAmmo });
       changed.system.selectedPayloadId = payloadModel.selectedPayloadId;
+      changed.system.fireControl = normalizeMachineFireControl(nextSystem.fireControl);
+      changed.system.keywords = normalizeWeaponKeywords(nextSystem.keywords);
       changed.system.heat = Math.max(0, Number(nextSystem.heat ?? 0) || 0);
       changed.system.area = String(nextSystem.area ?? "none").trim() || "none";
       changed.system.volatile = Boolean(nextSystem.volatile);
@@ -885,6 +894,8 @@ export class MWDItem extends Item {
     system.payloads = payloadModel.payloads;
     system.consumptionSources = normalizeWeaponConsumptionSources(system.consumptionSources, { legacyAmmo });
     system.selectedPayloadId = payloadModel.selectedPayloadId;
+    system.fireControl = normalizeMachineFireControl(system.fireControl);
+    system.keywords = normalizeWeaponKeywords(system.keywords);
     system.heat = Math.max(0, Number(system.heat ?? 0) || 0);
     system.area = String(system.area ?? "none").trim() || "none";
     system.volatile = Boolean(system.volatile);

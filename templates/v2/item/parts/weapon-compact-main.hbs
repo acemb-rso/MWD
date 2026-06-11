@@ -60,17 +60,29 @@ How it fits: Kept as an aggregate partial while the CSB layout now composes smal
             </div>
 
             <div class="form-group mwd-weapon-compact__field">
+              <label for="system.fireControl.usesPerActivation">Uses / Activation</label>
+              <input class="type-numeric" type="number" name="system.fireControl.usesPerActivation" value="{{system.fireControl.usesPerActivation}}" min="1" step="1" data-dtype="Number" />
+            </div>
+          </div>
+
+          <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
+            <div class="form-group mwd-weapon-compact__field">
               <label for="system.area">{{MWD.item.mechWeapon.area}}</label>
               <select name="system.area" data-dtype="String">
                 {{selectOptions ENUMS.areas selected=system.area valueAttr="value" labelAttr="label" localize=false blank=""}}
               </select>
             </div>
-          </div>
 
-          <div class="mwd-weapon-compact__row mwd-weapon-compact__row--4">
             {{#> "mwd.v2.components.checkbox" classes="mwd-checkbox--inline" label="Volatile"}}
               <input class="item-field-value" name="system.volatile" type="checkbox" {{checked system.volatile}} />
             {{/ "mwd.v2.components.checkbox"}}
+          </div>
+
+          <div class="mwd-weapon-compact__row">
+            <div class="form-group mwd-weapon-compact__field mwd-weapon-compact__field--wide">
+              <label for="system.keywords" data-tooltip="Comma-separated behavior keywords. Use lock-only to require a targeting lock before firing.">Keywords</label>
+              <input type="text" name="system.keywords" value="{{join system.keywords ', '}}" />
+            </div>
           </div>
 
           {{#unless itemSheet.mechIsMelee}}

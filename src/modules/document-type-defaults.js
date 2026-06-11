@@ -390,6 +390,7 @@ const templateData = {
       fireControl: {
         usesPerActivation: 1
       },
+      keywords: [],
       heat: 0,
       volatile: false,
       area: "none",

@@ -144,7 +144,13 @@ export function markBattlemechWeaponGroupUsed(state = {}, groupId = "") {
 
 function hasKeyword(keywords, keyword) {
   const kw = Array.isArray(keywords) ? keywords : String(keywords ?? "").split(",");
-  return kw.map(k => String(k ?? "").trim().toLowerCase()).filter(Boolean).includes(keyword.toLowerCase());
+  const wanted = normalizeKeywordToken(keyword);
+  if (!wanted) return false;
+  return kw.some(entry => normalizeKeywordToken(entry) === wanted);
+}
+
+function normalizeKeywordToken(value = "") {
+  return String(value ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
 function inspectBattlemechWeaponGroup(actor = null, group = null, { token = null } = {}) {
@@ -225,6 +231,7 @@ function inspectBattlemechWeaponGroup(actor = null, group = null, { token = null
       heat: toNumber(weapon?.system?.heat ?? profile?.heat, 0),
       usesPerActivation: Math.max(1, toNumber(profile?.fireControl?.usesPerActivation ?? weapon?.system?.fireControl?.usesPerActivation, 1)),
       notes: String(profile?.notes ?? weapon?.system?.notes ?? weapon?.system?.description ?? "").trim(),
+      keywords: profile?.keywords ?? weapon?.system?.keywords ?? [],
       skillDef: profile?.skillDef ?? null,
       hardpointId: normalizeId(mountedHardpoint?.id),
       hardpointType: String(mountedHardpoint?.type ?? "").trim(),
@@ -434,13 +441,10 @@ export function buildBattlemechWeaponGroupAttackProfile(actor = null, groupId = 
   const summary = group.attackSummary ?? {};
   const memberProfiles = Array.isArray(group._memberProfiles) ? group._memberProfiles : [];
   const groupFlags = [];
-  if (memberProfiles.some(member => {
-    const kw = member.item?.system?.keywords ?? member.keywords ?? [];
-    const kwList = Array.isArray(kw)
-      ? kw.map(k => String(k ?? "").trim()).filter(Boolean)
-      : String(kw ?? "").split(",").map(k => k.trim()).filter(Boolean);
-    return kwList.includes("armorBypass");
-  })) {
+  if (memberProfiles.some(member => hasKeyword(
+    member.keywords ?? member.sourceWeapon?.system?.keywords ?? [],
+    "armorBypass"
+  ))) {
     groupFlags.push("armorBypass");
   }
   const groupEffects = groupFlags.length > 0 ? { flags: groupFlags } : {};
