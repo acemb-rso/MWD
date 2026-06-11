@@ -66,9 +66,9 @@ How it fits: Used by the CSB-driven personal weapon details layout.
 
               {{#if (eq source.kind "itemRef")}}
                 <div class="form-group mwd-weapon-compact__field">
-                  <label>Owned Consumable</label>
+                  <label>Owned Item</label>
                   <select class="mwd-source-field" data-source-id="{{source.id}}" data-field="link.itemId" {{#unless source.ui.hasOwnedActor}}disabled{{/unless}}>
-                    <option value="">Select consumable</option>
+                    <option value="">Select item</option>
                     {{selectOptions source.ui.ownedItemOptions selected=source.link.itemId valueAttr="value" labelAttr="label" localize=false}}
                   </select>
                 </div>

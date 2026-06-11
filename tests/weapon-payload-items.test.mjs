@@ -320,3 +320,43 @@ test("payload keys normalize and group matching reserve stacks", async () => {
   assert.equal(model.payloads[0].label, ".45 FMJ");
   assert.equal(model.payloads[0].modifies.ap, 0);
 });
+
+test("payload source assignments normalize keys and preserve selected sources", async () => {
+  const {
+    buildWeaponPayloadItemModel,
+    normalizePayloadSourceAssignments,
+  } = await import("../src/modules/mwd/weapon-payload-items.js");
+
+  const actor = {
+    items: new Map([["sabot-1", {
+      id: "sabot-1",
+      uuid: "Actor.a.Item.sabot-1",
+      name: "120mm Sabot",
+      type: "weaponPayload",
+      system: {
+        payloadKey: "120mm-Sabot",
+        families: ["120mmAutocannon"],
+        quantity: 4,
+        profile: { label: "Sabot" },
+      },
+    }]]),
+  };
+
+  const assignments = normalizePayloadSourceAssignments({
+    "120mm Sabot": { sourceId: "autoloader" },
+    "120mm HE": { sourceId: "" },
+  });
+  const model = buildWeaponPayloadItemModel({
+    actor,
+    weaponCompatibility: { families: ["120mmAutocannon"] },
+    sourceAssignments: assignments,
+  });
+
+  assert.deepEqual(assignments, {
+    "120mm-sabot": { sourceId: "autoloader" },
+    "120mm-he": { sourceId: null },
+  });
+  assert.equal(model.payloads.length, 1);
+  assert.equal(model.payloads[0].payloadKey, "120mm-sabot");
+  assert.equal(model.payloads[0].consumption.sourceId, "autoloader");
+});

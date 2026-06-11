@@ -1575,8 +1575,13 @@ export class MWDItem extends Item {
     if (!key) return;
     const assignments = normalizePayloadSourceAssignments(this.system?.payloadSourceAssignments);
     const normalizedSourceId = String(sourceId ?? "").trim();
+    if (!normalizedSourceId || normalizedSourceId === "untracked") {
+      delete assignments[key];
+      await this.update({ "system.payloadSourceAssignments": assignments });
+      return;
+    }
     assignments[key] = {
-      sourceId: normalizedSourceId && normalizedSourceId !== "untracked" ? normalizedSourceId : null,
+      sourceId: normalizedSourceId,
     };
     await this.update({ "system.payloadSourceAssignments": assignments });
   }

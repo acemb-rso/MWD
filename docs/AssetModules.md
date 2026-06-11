@@ -133,6 +133,11 @@ and validates:
       }
     },
     "targeting": {
+      "stealthProfile": {
+        "ratingBonus": 0,
+        "tags": [],
+        "requiresActiveMode": false
+      },
       "clustering": {
         "diceModifier": 0,
         "targetNumberModifier": 0
@@ -156,6 +161,77 @@ number. Negative target-number modifiers make clustering hits easier, which is
 the intended hook for Artemis-style fire-control upgrades. New module-authored
 rules should use `queuedDomainRequest` outputs with `domain: "clustering"`,
 gated by rule selectors and prerequisites.
+
+## Stealth, signature, and emission authoring
+
+Machine stealth is modeled as signature suppression rather than a one-off attack
+modifier. For modules that provide stealth, prefer
+`system.targeting.stealthProfile` over only authoring a generic
+`modifies.trackingPenalty` row:
+
+```json
+{
+  "system": {
+    "targeting": {
+      "stealthProfile": {
+        "ratingBonus": 2,
+        "tags": ["electronic", "stealth"],
+        "requiresActiveMode": false
+      }
+    }
+  }
+}
+```
+
+Runtime stealth collection reads stealth profiles from ready asset modules and
+adds them to the actor's `system.mwd.stealth.rating` and signature-derived
+bonuses. The final stealth rating is clamped to 0-3 after mode, reveal, and
+emission penalties. Stealth-profile source IDs are excluded from the generic
+asset-module `trackingPenalty` summation so a module with both old and new data
+does not double-count its stealth contribution.
+
+Use actor-level machine stealth fields for chassis/native signatures:
+
+```json
+{
+  "system": {
+    "mwd": {
+      "stealth": {
+        "enabled": false,
+        "rating": 0,
+        "mode": "passive",
+        "signature": "medium",
+        "counteredBy": ["activeProbe", "tag", "narc", "c3", "visualClose"]
+      }
+    }
+  }
+}
+```
+
+Supported signatures are `low`, `medium`, and `high`.
+
+* `low` contributes +1 stealth rating.
+* `medium` is neutral.
+* `high` contributes +1 emission.
+
+High emission can also come from module outputs or derived statuses. A rule may
+grant `highEmission` as a derived status:
+
+```json
+{
+  "type": "derivedStatus",
+  "id": "thermal-bank-emission.highEmission",
+  "label": "Thermal Bank Emission",
+  "key": "highEmission",
+  "value": true
+}
+```
+
+Effective emission reduces the target's stealth rating and adds the
+`acquire.highEmission` dice part for enemy Acquire Target rolls against that
+machine. TAG and NARC bypass machine stealth entirely; active probe, C3/shared
+lock, close visual contact, and high emission reduce stealth before attack
+tracking parts are emitted.
 
 **Design intent:** quirks become **data-driven item records** that feed the
 existing **intent to resolver to RollContext** pipeline, with rules expressed as

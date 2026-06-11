@@ -35,6 +35,7 @@ import {
   isPayloadCompatibleWithWeapon,
   isWeaponPayloadItem,
   normalizePayloadKey,
+  normalizePayloadSourceAssignments,
   normalizeWeaponPayloadItemSystem,
 } from "../mwd/weapon-payload-items.js";
 import {
@@ -60,15 +61,15 @@ const ITEM_REF_PATH_PRESETS = Object.freeze([
   { value: "", label: "Custom Path" },
 ]);
 
-const CONSUMABLE_SOURCE_TYPE = "consumable";
+const ITEM_REF_SOURCE_TYPES = Object.freeze(new Set(["consumable", "gear"]));
 
 function formatItemTypeLabel(item) {
   const raw = String(item?.canonicalType ?? item?.type ?? "item").trim();
   return raw.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, char => char.toUpperCase());
 }
 
-function isConsumableSourceCandidate(item) {
-  return String(item?.canonicalType ?? item?.type ?? "").trim() === CONSUMABLE_SOURCE_TYPE;
+function isItemRefSourceCandidate(item) {
+  return ITEM_REF_SOURCE_TYPES.has(String(item?.canonicalType ?? item?.type ?? "").trim());
 }
 
 function getDragEventData(event) {
@@ -149,9 +150,9 @@ function buildOwnedItemOptions(item, selectedItemId = "") {
       const candidateId = String(candidate?.id ?? "").trim();
       if (!candidateId || candidateId === item?.id) return false;
 
-      // The picker should guide authors toward the new consumable workflow
-      // without hiding an older non-consumable link that still needs migration.
-      return candidateId === selectedId || isConsumableSourceCandidate(candidate);
+      // Prefer inventory-like items for shared stock such as ammo bins, while
+      // keeping any already-selected legacy item visible for migration.
+      return candidateId === selectedId || isItemRefSourceCandidate(candidate);
     })
     .sort((left, right) => String(left?.name ?? "").localeCompare(String(right?.name ?? "")))
     .map(candidate => ({
@@ -189,11 +190,11 @@ function buildConsumptionSourceEditorEntry(item, source) {
     if (!hasOwnedActor) {
       preview = "Embed this weapon in an actor to link it to owned inventory.";
     } else if (!ownedItemOptions.length) {
-      preview = "Add an owned Consumable item to the actor, then link this weapon to it.";
+      preview = "Add an owned Gear or Consumable item to the actor, then link this weapon to it.";
     } else if (!linkedItem) {
-      preview = "Pick an owned Consumable item to consume from.";
-    } else if (!isConsumableSourceCandidate(linkedItem)) {
-      preview = `Linked to ${linkedItem.name} | Legacy non-consumable source. Repoint this to a Consumable item when convenient.`;
+      preview = "Pick an owned item to consume from.";
+    } else if (!isItemRefSourceCandidate(linkedItem)) {
+      preview = `Linked to ${linkedItem.name} | Legacy non-inventory source. Repoint this to Gear or Consumable when convenient.`;
     } else if (!normalizedPath) {
       preview = `Linked to ${linkedItem.name}. Pick which field should be consumed.`;
     } else {
@@ -287,16 +288,17 @@ export class WeaponItemSheet extends BaseItemSheet {
       ? payloadState.payloads.filter(payload => String(payload?.sourceType ?? "").trim() === WEAPON_PAYLOAD_ITEM_TYPE)
       : [];
     const activePayloadId = String(payloadState?.activePayloadId ?? "").trim();
-    const normalizedAssignments = this.item.system?.payloadSourceAssignments && typeof this.item.system.payloadSourceAssignments === "object"
-      ? this.item.system.payloadSourceAssignments
-      : {};
+    const normalizedAssignments = normalizePayloadSourceAssignments(this.item.system?.payloadSourceAssignments);
+    const normalizedSources = Array.isArray(this.item.system?.consumptionSources)
+      ? this.item.system.consumptionSources.map(source => normalizeConsumptionSource(source))
+      : [];
     const sourceOptions = [
       { value: "", label: "Untracked" },
-      ...(Array.isArray(this.item.system?.consumptionSources) ? this.item.system.consumptionSources : [])
+      ...normalizedSources
         .filter(source => String(source?.kind ?? "").trim() !== "untracked")
         .map(source => ({ value: source.id, label: source.label || source.id })),
     ];
-    const sourceById = new Map((Array.isArray(this.item.system?.consumptionSources) ? this.item.system.consumptionSources : [])
+    const sourceById = new Map(normalizedSources
       .map(source => [String(source?.id ?? "").trim(), source]));
     const groupedActorPayloads = buildPayloadChoiceGroups(actorPayloads.map(payload => ({
       item: payload.itemId ? this.item.actor?.items?.get?.(payload.itemId) : null,

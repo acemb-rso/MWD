@@ -767,8 +767,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         sectionId: "gear",
         itemType: "gear",
         addLabel: "Add Gear",
-        emptyLabel: "No stored gear.",
-        items: buckets.gear ?? [],
+        emptyLabel: "No stored gear or consumables.",
+        items: [
+          ...(buckets.gear ?? []),
+          ...(buckets.consumable ?? []),
+        ],
       }),
     };
   }

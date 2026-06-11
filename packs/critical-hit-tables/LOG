@@ -1,25 +1,11 @@
-2026/06/09-17:55:56.258 bcc0 Recovering log #327
-2026/06/09-17:55:56.259 bcc0 Level-0 table #330: started
-2026/06/09-17:55:56.259 bcc0 Level-0 table #330: 18528 bytes OK
-2026/06/09-17:55:56.262 bcc0 Delete type=0 #327
-2026/06/09-17:55:56.262 bcc0 Delete type=3 #325
-2026/06/09-17:55:56.264 8838 Level-0 table #333: started
-2026/06/09-17:55:56.265 8838 Level-0 table #333: 13797 bytes OK
-2026/06/09-17:55:56.266 8838 Delete type=0 #331
-2026/06/09-17:55:56.266 8838 Manual compaction at level-0 from '!tables!MWDGeneralCrit01' @ 72057594037927935 : 1 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at '!tables.results!zs3FdB1EcqjS0tcv' @ 12418 : 0
-2026/06/09-17:55:56.266 8838 Compacting 2@0 + 1@1 files
-2026/06/09-17:55:56.267 8838 Generated table #334@0: 492 keys, 20908 bytes
-2026/06/09-17:55:56.267 8838 Compacted 2@0 + 1@1 files => 20908 bytes
-2026/06/09-17:55:56.268 8838 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/06/09-17:55:56.268 8838 Delete type=2 #328
-2026/06/09-17:55:56.268 8838 Delete type=2 #330
-2026/06/09-17:55:56.268 8838 Delete type=2 #333
-2026/06/09-17:55:56.268 8838 Manual compaction at level-0 from '!tables.results!zs3FdB1EcqjS0tcv' @ 12418 : 0 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at (end)
-2026/06/09-17:55:56.268 8838 Manual compaction at level-1 from '!tables!MWDGeneralCrit01' @ 72057594037927935 : 1 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at '!tables.results!zj0J5wK6FIX5mBtl' @ 11935 : 0
-2026/06/09-17:55:56.268 8838 Compacting 1@1 + 1@2 files
-2026/06/09-17:55:56.270 8838 Generated table #335@1: 96 keys, 11909 bytes
-2026/06/09-17:55:56.270 8838 Compacted 1@1 + 1@2 files => 11909 bytes
-2026/06/09-17:55:56.270 8838 compacted to: files[ 0 0 1 0 0 0 0 ]
-2026/06/09-17:55:56.270 8838 Delete type=2 #315
-2026/06/09-17:55:56.270 8838 Delete type=2 #334
-2026/06/09-17:55:56.270 8838 Manual compaction at level-1 from '!tables.results!zj0J5wK6FIX5mBtl' @ 11935 : 0 .. '!tables.results!MWDVehicleTurretCrit.VehTCrit12' @ 0 : 0; will stop at (end)
+2026/06/11-13:07:42.883 a1f4 Recovering log #340
+2026/06/11-13:07:42.883 a1f4 Level-0 table #342: started
+2026/06/11-13:07:42.885 a1f4 Level-0 table #342: 19155 bytes OK
+2026/06/11-13:07:42.888 a1f4 Delete type=0 #340
+2026/06/11-13:07:42.888 a1f4 Delete type=3 #338
+2026/06/11-13:07:42.919 9e9c Compacting 2@0 + 0@1 files
+2026/06/11-13:07:42.921 9e9c Generated table #344@0: 117 keys, 18405 bytes
+2026/06/11-13:07:42.921 9e9c Compacted 2@0 + 0@1 files => 18405 bytes
+2026/06/11-13:07:42.922 9e9c compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/06/11-13:07:42.922 9e9c Delete type=2 #339
+2026/06/11-13:07:42.922 9e9c Delete type=2 #342

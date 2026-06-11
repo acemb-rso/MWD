@@ -749,6 +749,9 @@ Pass these to `game.mwd.harm.apply` with `mode: "status"`.
 | `epmBoosted` | EPM Boosted |
 | `sensorLocked` | Sensor Locked |
 | `trackingLost` | Tracking Lost |
+| `signatureRevealed` | Signature Revealed |
+| `stealthActive` | Stealth Active |
+| `highEmission` | High Emission |
 
 **Reactor / Heat**
 
@@ -774,6 +777,8 @@ Pass these to `game.mwd.harm.apply` with `mode: "status"`.
 | `overextended` | Overextended |
 | `targetFocused` | Target Focused |
 | `suppressedMechanical` | Suppressed |
+| `tagged` | TAGed |
+| `narced` | NARCed |
 
 ---
 

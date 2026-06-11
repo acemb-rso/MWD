@@ -47,6 +47,13 @@ Result:
 Blind → Contact → Track → Lock
 ```
 
+Acquire rolls also collect normal dice/DN parts from providers. Machine stealth
+adds DN parts after counters are applied; high target emission adds
+`acquire.highEmission` as a positive dice part when both observer and target are
+machines and the target has effective emission. Stealth systems may also cap the
+maximum achievable detection state, such as battle armor stealth capping acquire
+at Track.
+
 ---
 
 ## Step 2 — Generate TargetingData (Fire Control)
@@ -436,6 +443,184 @@ Sources may include:
 * weather/LOS obscurants if desired
 
 Tracking penalty is applied as a negative dice part, not as DN. 
+
+### Implemented trackingPenalty sources
+
+In the live system, tracking friction is assembled from several related lanes.
+
+`getTrackingPenalty(targetActor, targetCombatant, options)` starts at 0 and
+adds target-state friction:
+
+* `ecmJamming`: +2
+* `ecmShrouded`: +1
+* `obscuredLight`: +1
+* `obscuredHeavy`: +3
+* `obscured`: +1
+* ready asset-module effects that modify `trackingPenalty`
+* active armor trait `sensorTrackingPenalty` (for example personal armor
+  `stealth`)
+* a combatant with a recorded move in the current action state: +1
+* machine degradation adjustments, such as BattleMech head impairment (+1) and
+  vehicle turret crippled (+2)
+* battle armor machine-target profile penalties
+
+Machine movement contributes separate attack dice parts through
+`buildMachineAttackMotionContext`. If the target moved, its highest non-jump
+movement speed is converted to 30 m hexes:
+
+| Target movement | Dice part |
+|---|---:|
+| 0 hexes | 0 |
+| 1-2 hexes | -1 |
+| 3-4 hexes | -2 |
+| 5-6 hexes | -3 |
+| 7-8 hexes | -4 |
+| 9+ hexes | -5 |
+
+Jumping adds +1 DN and applies a +1 tracking offset
+(`jumpTrackingPenalty: -1`), reducing the movement tracking penalty by 1.
+
+Machine stealth is a third contributor emitted by the EW tracking modifier
+provider. It appears as `tracking.stealth` rather than being folded directly
+into `getTrackingPenalty`.
+
+## 2.2.1 Machine stealth, signatures, and emission
+
+Machine stealth is derived by `buildMachineStealthModel`.
+
+Authoritative actor fields:
+
+```ts
+system.mwd.stealth = {
+  enabled: boolean,
+  rating: number,
+  mode: "passive" | "active" | "suppressed",
+  revealedUntil: number | null,
+  detectionCap: string,
+  signature: "low" | "medium" | "high",
+  counteredBy: string[],
+  notes: string
+}
+```
+
+The machine default signature is `medium`. `low` and `high` signatures have
+mechanical meaning:
+
+* `low` signature contributes +1 stealth rating.
+* `medium` signature is neutral.
+* `high` signature contributes +1 emission.
+
+Stealth rating is calculated as:
+
+```text
+rawRating = base stealth rating + ready module stealthProfile bonuses + low-signature bonuses
+clampedRawRating = clamp(rawRating, 0, 3)
+postModeRating = 0 if mode is suppressed, otherwise clampedRawRating
+counterableRating = clamp(postModeRating - revealPenalty, 0, 3)
+effectiveRating = clamp(counterableRating - emissionPenalty, 0, 3)
+```
+
+`revealPenalty` comes from the signature reveal lifecycle. `emissionPenalty`
+comes from the target's effective emission rating. The effective rating is used
+for display/model state; attack and acquire penalties use the counterable rating
+after target counters are applied.
+
+Ready asset modules may contribute stealth through
+`system.targeting.stealthProfile`:
+
+```ts
+{
+  ratingBonus: number,
+  tags: string[],
+  requiresActiveMode: boolean
+}
+```
+
+Modules with a stealth profile are excluded from the generic
+`modifies.trackingPenalty` summation to avoid double-counting the same stealth
+system. For example, Stealth X has a legacy `trackingPenalty` effect and a
+`stealthProfile.ratingBonus`; the stealth profile is the authored stealth model.
+
+Emission is derived from authored signature/emission sources, transient
+emission flags, and the `highEmission` status fallback:
+
+* high actor or trait signature: +1 emission
+* rule/effect/status outputs that grant `highEmission`
+* transient emission stored under the machine stealth lifecycle flags
+
+High emission does two things:
+
+* reduces the target's effective stealth rating
+* adds a positive acquire dice part against the target (`acquire.highEmission`)
+
+Stealth counters are applied from the attacker's context:
+
+* TAG or NARC on the target bypasses stealth entirely
+* active probe / advanced sensors reduce stealth by 1
+* C3 or shared lock reduces stealth by 1
+* close visual contact reduces stealth by 1
+* target high emission reduces stealth by its emission rating
+
+After counters, remaining stealth contributes a negative attack dice part:
+
+```text
+tracking.stealth = -(counterableRating - counterValue), minimum 0
+```
+
+Stealth lifecycle actions and statuses:
+
+* `stealthActive`: status representing active stealth mode.
+* `signatureRevealed`: target signature is temporarily revealed; applies the
+  reveal penalty.
+* `highEmission`: target is broadcasting; contributes emission when no more
+  specific authored/transient emission part is present.
+* `goDark` clears reveal/transient emission and returns active/suppressed stealth
+  toward passive mode.
+
+### Battle armor machine-target profile
+
+Battle armor uses its equipped armor profile rather than `system.mwd.stealth`.
+When a machine attacks battle armor, `getBattleArmorMachineTargetProfile`
+contributes a tracking penalty profile:
+
+```ts
+system.battleArmor = {
+  systems: {
+    stealth: {
+      enabled: boolean,
+      trackingPenalty: number,       // default 2
+      detectionStateCap: "contact" | "track" | "lock",
+      revealedOnAttack: boolean,
+      revealedOnJump: boolean,
+      revealedOnHit: boolean,
+      counteredBy: string[]
+    }
+  },
+  machineTargetProfile: {
+    machineTargetable: boolean,
+    targetClass: "battleArmor",
+    signature: "low",
+    stealthTrackingPenalty: number,
+    detectionStateCap: string | null,
+    counteredBy: string[]
+  },
+  attachedToTokenUuid: string | null
+}
+```
+
+The implemented machine targeting penalty is:
+
+```text
+trackingPenalty =
+  1                         // base battle armor small-target penalty
+  + stealthPenalty           // if stealth is enabled and not countered
+  + attachmentPenalty         // +1 if attached, +2 if attached to a friendly machine
+```
+
+If battle armor stealth is active and not countered, it may also lower the
+attacker's acquire ceiling using its detection-state cap. Battle armor stealth
+counters include active probe, TAG, NARC, point-blank/close contact, and revealed
+state.
 
 ## 2.3 targetingData
 
@@ -936,20 +1121,23 @@ This is the critical dev section.
 
 1. validate attack permission from detectionState
 2. determine effective detectionState (including C3/network)
-3. collect trackingPenalty as dice parts
-4. collect eligible targetingData packets
-5. suppress targetingData only from explicit packet/network effects
-6. apply stacking rule to choose usableTargetingData
-7. build attack dice pool:
+3. collect generic EW trackingPenalty as dice parts
+4. collect machine stealth tracking parts (`tracking.stealth`) after counters
+5. collect machine motion tracking parts
+6. collect eligible targetingData packets
+7. suppress targetingData only from explicit packet/network effects
+8. apply stacking rule to choose usableTargetingData
+9. build attack dice pool:
 
    * base
    * negative trackingPenalty
+   * negative stealth and motion tracking parts
    * positive targetingData
    * other normal dice mods
-8. roll vs attack DN
-9. resolve CQ afterward per normal combat rules
-10. consume spent targetingData packets
-11. emit mutations/chat
+10. roll vs attack DN
+11. resolve CQ afterward per normal combat rules
+12. consume spent targetingData packets
+13. emit mutations/chat
 
 ---
 
