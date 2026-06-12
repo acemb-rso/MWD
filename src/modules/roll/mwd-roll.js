@@ -1295,8 +1295,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
     flags: {
       mwd: {
         payload,
-        resolved,
-        itemId: payload.weaponId ?? null,
+        resolved
       }
     }
   });

@@ -20,6 +20,7 @@ export const ICONS_PATH = `${SYSTEM_PATH}/img/icons`;
 export const ICONS_SKILLS_PATH = `${ICONS_PATH}/skills`;
 export const LOG_HEAD = 'MWD | ';
 export const SETTING_BATTLEMECH_TOKEN_HEAT_FX = "enableBattlemechTokenHeatFx";
+export const SETTING_AA_PLAY_ON_MISS = "aaPlayOnMiss";
 
 export const SPECIALIZATION_BONUS = 2;
 

@@ -40,6 +40,7 @@ import { PersonalCombatTracker } from "./combat/personal-combat-tracker.js";
 import { PersonalCombatActions } from "./combat/personal-combat-actions.js";
 import { backfillPersonalActionCatalogSetting } from "./combat/personal-action-catalog.js";
 import { registerMWDChatActions } from "./chat/chat-actions.js";
+import { registerAutoAnimations } from "./integrations/aa-mwd.js";
 import { registerMWDGMGadgetSettings } from "./gm/mwd-gmgadget.js";
 import { getMWDGMGadget } from "./gm/mwd-gmgadget.js";
 import {
@@ -291,6 +292,7 @@ export class AnarchySystem {
     registerMwdSensorDetectionMode();
     registerMachineSensorOverlayHooks();
     registerMWDChatActions();
+    registerAutoAnimations();
     registerMWDGMGadgetSettings("mwd");
     registerMWDPlayerGadgetSettings("mwd");
     
