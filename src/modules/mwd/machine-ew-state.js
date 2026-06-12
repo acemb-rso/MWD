@@ -229,6 +229,12 @@ export function getDetectionState(combatant, targetTokenUuid) {
   return getTargetingState(combatant, targetTokenUuid).detectionState;
 }
 
+export function getEffectiveDetectionState(combatant, targetTokenUuid, targetActor = null) {
+  const statuses = targetActor?.statuses ?? new Set();
+  if (statuses.has("tagged") || statuses.has("narced")) return "lock";
+  return getDetectionState(combatant, targetTokenUuid);
+}
+
 export function getTrackingPenalty(targetActor, targetCombatant, options = {}) {
   let penalty = 0;
   const statuses = targetActor?.statuses ?? new Set();
@@ -239,6 +245,7 @@ export function getTrackingPenalty(targetActor, targetCombatant, options = {}) {
   if (statuses.has("obscuredHeavy")) penalty += 3;
   if (statuses.has("obscured")) penalty += 1;
 
+  const narced = statuses.has("narced");
   const stealthProfileSources = getApplicableStealthProfileSourceIds(targetActor);
   const moduleTrackingPenalty = getApplicableAssetModuleEffects(targetActor, {
     payload: { intent: "attack" },
@@ -247,8 +254,8 @@ export function getTrackingPenalty(targetActor, targetCombatant, options = {}) {
     if (stealthProfileSources.has(effect.sourceId) || stealthProfileSources.has(effect.sourceName)) return sum;
     return sum + (Number(effect.modifies?.trackingPenalty ?? 0) || 0);
   }, 0);
-  penalty += moduleTrackingPenalty;
-  penalty += Number(getActiveArmorTraitEffects(targetActor).sensorTrackingPenalty ?? 0) || 0;
+  penalty += narced ? 0 : moduleTrackingPenalty;
+  penalty += narced ? 0 : (Number(getActiveArmorTraitEffects(targetActor).sensorTrackingPenalty ?? 0) || 0);
 
   if (targetCombatant) {
     const actionState = targetCombatant.getFlag(FLAG_SCOPE, "personalCombat")?.actionState ?? {};

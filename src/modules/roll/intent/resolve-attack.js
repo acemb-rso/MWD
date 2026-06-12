@@ -25,7 +25,7 @@ import { getMachineAttackRestriction } from "../../mwd/machine-crit-effects.js";
 import { getDetectionStateLabel } from "../../mwd/machine-ew.js";
 import {
   getAttackerCombatant,
-  getDetectionState,
+  getEffectiveDetectionState,
   getTargetCombatant,
   getUsableTargetingPacket,
 } from "../../mwd/machine-ew-state.js";
@@ -580,7 +580,7 @@ export async function resolveAttack({ actor, payload } = {}) {
 
     const targetTokenObj = canvas?.tokens?.get?.(targetTokenUuid);
     const isVisible = targetTokenObj?.visible ?? true;
-    const effectiveState = isVisible ? getDetectionState(combatant, targetTokenUuid) : "blind";
+    const effectiveState = isVisible ? getEffectiveDetectionState(combatant, targetTokenUuid, targetTokenObj?.actor) : "blind";
 
     if (combatant && effectiveState === "blind") {
       throw createUserFacingRollError("No targeting solution. Acquire contact first.", { severity: "warn" });

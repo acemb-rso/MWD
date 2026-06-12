@@ -14,6 +14,7 @@ import { performBattlemechMovementAction } from "./battlemech-movement-actions.j
 import { performBattlemechRangedAttack } from "./battlemech-ranged-actions.js";
 import { performVehicleRangedAttack } from "./vehicle-ranged-actions.js";
 import { buildMachineEwPanel, getMachineEwAssetCapabilities, resolveMachineEwActionTarget } from "./machine-ew-panel.js";
+import { getMountedMachineItems, hasMachineWeaponKeyword } from "./machine-hardpoints.js";
 import { getMachineActionDefinition } from "./machine-action-catalog.js";
 import { findAssetModuleActionOverride } from "./asset-module-effects.js";
 import { buildBattlemechHeatModel, resolveBattlemechPendingHeat } from "./machine-heat.js";
@@ -31,7 +32,7 @@ const GM_MACHINE_ACTION_RESPONSE = "MachineActions.gmMachineActionResponse";
 const GM_MACHINE_ACTION_TIMEOUT_MS = 10000;
 const pendingGmMachineActionRequests = new Map();
 let gmMachineActionSocketRegistered = false;
-const TRANSIENT_EMISSION_EW_ACTIONS = new Set(["sensorSweep", "acquireTarget", "sensorLock", "tagTarget", "ecmSpike"]);
+const TRANSIENT_EMISSION_EW_ACTIONS = new Set(["sensorSweep", "acquireTarget", "sensorLock", "tagTarget", "narcTarget", "ecmSpike"]);
 
 function getMachineRollApi() {
   return game.mwd?.roll ?? game.system?.mwd?.roll ?? null;
@@ -711,7 +712,7 @@ async function executeMachineTargetingAction(actor, action, request = {}) {
   if (actionKey === "breakLock" || actionKey === "defensiveJink") {
     return executeMachineEwIntent(actor, { ...request, intent: actionKey, actionId: actionKey });
   }
-  if (actionKey === "sensorSweep" || actionKey === "assess" || actionKey === "epmFilter" || actionKey === "tagTarget" || actionKey === "shareTargetingData" || actionKey === "ecmSpike" || actionKey === "suppressBeacon") {
+  if (actionKey === "sensorSweep" || actionKey === "assess" || actionKey === "epmFilter" || actionKey === "tagTarget" || actionKey === "narcTarget" || actionKey === "shareTargetingData" || actionKey === "ecmSpike" || actionKey === "suppressBeacon") {
     const routedActionId = actionKey === "assess" ? "sensorSweep" : actionKey;
     return performMachineElectronicWarfare(actor, {
       actionId: routedActionId,
@@ -1067,6 +1068,7 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
   const hasTargets = Boolean(panel.hasTargets);
   const capabilities = panel.capabilities ?? getMachineEwAssetCapabilities(actor);
   const hasTag = Boolean(capabilities.tag);
+  const hasNarc = Boolean(capabilities.narc);
   const hasC3 = Boolean(capabilities.c3);
   const actions = [
     buildEwAction({
@@ -1145,8 +1147,17 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
       targetMode: "any",
       execution: "skill",
       enabled: hasTargets && hasTag,
-      reason: !hasTag ? "Requires an installed TAG asset module." : "Target a token before using TAG.",
-      mechanics: "Roll only; TAG flags are not automated yet.",
+      reason: !hasTag ? "Requires a mounted TAG Designator weapon." : "Target a token before using TAG.",
+      mechanics: "Gunnery roll; applies TAG designation to target on completion.",
+    }),
+    buildEwAction({
+      id: "narcTarget",
+      purpose: "Attach a NARC beacon to target for persistent guided-system support.",
+      targetMode: "any",
+      execution: "skill",
+      enabled: hasTargets && hasNarc,
+      reason: !hasNarc ? "Requires a mounted NARC launcher weapon." : "Target a token before using NARC.",
+      mechanics: "Gunnery roll; attaches NARC beacon to target on completion.",
     }),
     buildEwAction({
       id: "shareTargetingData",
@@ -1180,6 +1191,15 @@ export async function performMachineElectronicWarfare(actor, {
     ui.notifications?.warn(selectedAction?.reason || reason);
     return { ok: false, reason };
   }
+
+  const beaconKeywords = { tagTarget: "tag", narcTarget: "narc" };
+  const beaconStatuses = { tagTarget: "tagged", narcTarget: "narced" };
+  const beaconKeyword = beaconKeywords[selectedAction.id] ?? null;
+  const beaconWeapon = beaconKeyword
+    ? getMountedMachineItems(actor, { canonicalType: TEMPLATE.itemType.mechWeapon })
+      .filter(w => w.isActive?.())
+      .find(w => hasMachineWeaponKeyword(w, beaconKeyword)) ?? null
+    : null;
 
   let targetRow = null;
   if (selectedAction.targetMode === "acquire" || selectedAction.targetMode === "targeting") {
@@ -1226,6 +1246,7 @@ export async function performMachineElectronicWarfare(actor, {
       targetTokenId: targetRow?.targetTokenId ?? null,
       targetTokenUuid: targetRow?.targetTokenUuid ?? null,
       machineActionKey: selectedAction.actionKey,
+      weaponId: beaconWeapon?.id ?? null,
       quickAction: {
         title: selectedAction.label,
         ewAction: {
@@ -1254,6 +1275,15 @@ export async function performMachineElectronicWarfare(actor, {
       duration: "untilNextActivation",
       token: sourceToken,
     });
+  }
+
+  const beaconStatus = beaconStatuses[selectedAction.id] ?? null;
+  if (beaconStatus && targetRow?.targetTokenUuid) {
+    const targetToken = await fromUuid(targetRow.targetTokenUuid);
+    const targetActor = targetToken?.actor ?? targetToken;
+    if (targetActor) {
+      await targetActor.toggleStatusEffect(beaconStatus, { active: true, overlay: false });
+    }
   }
 
   return { ok: true, action: selectedAction, target: targetRow };

@@ -46,6 +46,8 @@ const ACTOR_TYPES_BY_GROUP = Object.freeze({
 });
 
 const DEFAULT_ICON_ROOT = "systems/mwd/img/icons/status";
+const SYSTEM_ICON_ROOT = "systems/mwd/img/icons/systems";
+const TARGETING_ICON = `${SYSTEM_ICON_ROOT}/Targeting.webp`;
 
 const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   // Person conditions: lightly filtered from the existing status/icon pool.
@@ -67,7 +69,7 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("battleArmorWorn", "Battle Armor Worn", "person", "battleArmor", ["battleArmor", "worn"], "cover.svg", { manual: false, managed: true, order: 146 }),
   status("battleArmorBreached", "Battle Armor Breached", "person", "battleArmor", ["battleArmor", "breached"], "surge.svg", { manual: false, managed: true, order: 147 }),
   status("battleArmorWrecked", "Battle Armor Wrecked", "person", "battleArmor", ["battleArmor", "wrecked"], "broken_weapon.svg", { manual: false, managed: true, order: 148 }),
-  status("battleArmorRevealed", "Battle Armor Revealed", "person", "battleArmor", ["battleArmor", "revealed", "targeting"], "target.svg", { order: 149 }),
+  status("battleArmorRevealed", "Battle Armor Revealed", "person", "battleArmor", ["battleArmor", "revealed", "targeting"], "Targeting.webp", { icon: TARGETING_ICON, order: 149 }),
   status("machineCritical", "Machine Critical", "machine", "damage", ["critical", "system"], "surge.svg", { manual: false, managed: true, order: 150 }),
   status("destroyed", "Destroyed", "machine", "damage", ["catastrophic", "destroyed", "ruined"], "on_fire.svg", { order: 160 }),
 
@@ -116,7 +118,7 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("eccmBoosted", "EPM Boosted (Legacy)", "machine", "electronicWarfare", ["ecm", "sensor", "legacy"], "all-seeing-eye.webp", { order: 1241 }),
   status("sensorLocked", "Sensor Locked", "machine", "sensor", ["sensor", "targeted"], "all-seeing-eye.webp", { order: 1250 }),
   status("trackingLost", "Tracking Lost", "machine", "sensor", ["sensor", "targetingData"], "damaged_eye.svg", { order: 1260 }),
-  status("signatureRevealed", "Signature Revealed", "machine", "sensor", ["stealth", "signature", "revealed"], "target.svg", { order: 1270 }),
+  status("signatureRevealed", "Signature Revealed", "machine", "sensor", ["stealth", "signature", "revealed"], "Targeting.webp", { icon: TARGETING_ICON, order: 1270 }),
   status("stealthActive", "Stealth Active", "machine", "sensor", ["stealth", "signature", "active"], "hidden.svg", { order: 1271 }),
   status("highEmission", "High Emission", "machine", "sensor", ["stealth", "signature", "emission"], "surge.svg", { order: 1272 }),
 
@@ -129,7 +131,7 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
 
   // Machine damage and battlefield exposure.
   status("legDestroyed", "Leg Destroyed", "battlemech", "damage", ["location", "movement", "leg"], "dismembered_leg.svg", { order: 1400 }),
-  status("exposed", "Exposed", "machine", "tactical", ["defense", "vulnerable"], "target.svg", { icon: `${DEFAULT_ICON_ROOT}/falling.svg`, order: 1410 }),
+  status("exposed", "Exposed", "machine", "tactical", ["defense", "vulnerable"], "Targeting.webp", { icon: TARGETING_ICON, order: 1410 }),
   status("entrenchedHullDown", "Entrenched / Hull Down", "machine", "tactical", ["defense", "cover"], "cover.svg", { order: 1420 }),
   status("obscured", "Obscured (Smoke/Dust)", "machine", "visibility", ["visibility", "cover"], "hidden.svg", { order: 1430 }),
   status("obscuredLight", "Obscured (Light)", "machine", "visibility", ["visibility", "cover", "light"], "hidden.svg", { order: 1431 }),
@@ -142,8 +144,8 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("targetFocused", "Target Focused", "machine", "tactical", ["targeted", "attack"], "all-seeing-eye.webp", { order: 1530 }),
   status("suppressedMechanical", "Suppressed", "machine", "tactical", ["offense", "suppressed"], "suppressed.svg", { order: 1540 }),
   status("attachedToMachine", "Attached to Machine", "person", "battleArmor", ["battleArmor", "attached"], "grappled.svg", { order: 1600 }),
-  status("tagged", "TAGed", "all", "targeting", ["tag", "designated", "targeting"], "target.svg", { order: 1610 }),
-  status("narced", "NARCed", "all", "targeting", ["narc", "beacon", "targeting"], "target.svg", { order: 1620 }),
+  status("tagged", "TAGed", "all", "targeting", ["tag", "designated", "targeting"], "Targeting.webp", { icon: TARGETING_ICON, order: 1610 }),
+  status("narced", "NARCed", "all", "targeting", ["narc", "beacon", "targeting"], "Targeting.webp", { icon: TARGETING_ICON, order: 1620 }),
 ]);
 
 function status(id, label, actorGroup, category, tags, icon, options = {}) {

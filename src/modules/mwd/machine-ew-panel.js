@@ -8,13 +8,14 @@ import { formatDistanceLabel, measureTokenDistance } from "./token-measurement.j
 import {
   getAcquireCeiling,
   getAttackerCombatant,
-  getDetectionState,
+  getEffectiveDetectionState,
   getTargetCombatant,
   getTrackingPenalty,
   getUsableTargetingPacket,
 } from "./machine-ew-state.js";
 import { getBattleArmorMachineTargetProfile } from "./battle-armor.js";
 import { hasAssetModuleCapability } from "./asset-module-effects.js";
+import { getMountedMachineItems, hasMachineWeaponKeyword } from "./machine-hardpoints.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -75,9 +76,16 @@ function buildTargetAction({ canTarget = false, targetHint = "" } = {}) {
   };
 }
 
+function hasMountedWeaponWithKeyword(actor, keyword) {
+  return getMountedMachineItems(actor, { canonicalType: "mechWeapon" })
+    .filter(w => w.isActive?.())
+    .some(w => hasMachineWeaponKeyword(w, keyword));
+}
+
 export function getMachineEwAssetCapabilities(actor = null) {
   return {
-    tag: hasAssetModuleCapability(actor, "tag", ["tagTarget"]),
+    tag: hasMountedWeaponWithKeyword(actor, "tag"),
+    narc: hasMountedWeaponWithKeyword(actor, "narc"),
     c3: hasAssetModuleCapability(actor, "c3", ["c3i", "network", "shareTargetingData"]),
   };
 }
@@ -180,7 +188,7 @@ export function buildMachineEwRow({
     rangeBand: measuredRange.band,
     friendlyMachineTokenUuid: sourceTokenUuid,
   };
-  const detectionState = getDetectionState(combatant, targetTokenUuid);
+  const detectionState = getEffectiveDetectionState(combatant, targetTokenUuid, targetToken.actor);
   const ceiling = getAcquireCeiling(targetToken.actor, battleArmorTargetOptions);
   const targetCombatant = getTargetCombatant(targetTokenId);
   const trackingPenalty = getTrackingPenalty(targetToken.actor, targetCombatant, battleArmorTargetOptions);

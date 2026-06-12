@@ -5,7 +5,7 @@ import { TEMPLATE } from "../../constants.js";
 import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import { getTargetingDataCap, getDetectionStateLabel } from "../../mwd/machine-ew.js";
-import { getAttackerCombatant, getDetectionState } from "../../mwd/machine-ew-state.js";
+import { getAttackerCombatant, getEffectiveDetectionState } from "../../mwd/machine-ew-state.js";
 import { isMachineTargetingGenerationBlocked } from "../../mwd/machine-state-effects.js";
 import { createUserFacingRollError } from "../roll-errors.js";
 
@@ -61,7 +61,7 @@ export async function resolveTargeting({ actor, payload } = {}) {
 
   const attackerToken = resolveAttackerToken(actor, payload);
   const combatant     = getAttackerCombatant(attackerToken);
-  const detectionState  = getDetectionState(combatant, targetTokenUuid);
+  const detectionState  = getEffectiveDetectionState(combatant, targetTokenUuid, targetToken.actor);
 
   if (detectionState !== "track" && detectionState !== "lock") {
     throw createUserFacingRollError("Track or Lock is required to generate targeting data.", { severity: "warn" });

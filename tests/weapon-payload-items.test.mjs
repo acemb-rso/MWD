@@ -356,7 +356,7 @@ test("payload source assignments normalize keys and preserve selected sources", 
   assert.deepEqual(assignments, {
     "120mm-sabot": { sourceId: "autoloader" },
     "120mm-he": { sourceId: null },
-    "120mm-smoke": { sourceId: null },
+    "120mm-smoke": { sourceId: "untracked" },
   });
   assert.equal(model.payloads.length, 1);
   assert.equal(model.payloads[0].payloadKey, "120mm-sabot");

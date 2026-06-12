@@ -198,7 +198,7 @@ function normalizeKeywordToken(value = "") {
   return String(value ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
-function hasMachineWeaponKeyword(item = null, keyword = "") {
+export function hasMachineWeaponKeyword(item = null, keyword = "") {
   const keywords = item?.system?.keywords;
   const raw = Array.isArray(keywords) ? keywords : String(keywords ?? "").split(",");
   const wanted = normalizeKeywordToken(keyword);

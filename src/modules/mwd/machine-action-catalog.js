@@ -615,6 +615,17 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     tags: ["targeting", "tag"],
     notes: "Apply a TAG enabler flag for guided systems.",
   }),
+  narcTarget: action("narcTarget", {
+    label: "NARC Target",
+    attributeKey: "handling",
+    skillKey: "gunnery",
+    cost: 1,
+    category: "simple",
+    resolver: "targeting",
+    intent: "narcTarget",
+    tags: ["targeting", "narc"],
+    notes: "Attach a NARC beacon to target for persistent guided-system support.",
+  }),
   shareTargetingData: action("shareTargetingData", {
     label: "Share Sensor Feed / C3 Network Support",
     attributeKey: "system",

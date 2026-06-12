@@ -12,7 +12,7 @@ import {
   normalizeMachineWeaponDamageType,
 } from "./machine-weapon-types.js";
 import { DEFAULT_FIRE_MODE } from "./battlemech-fire-modes.js";
-import { getDetectionState, listTargetingStates } from "./machine-ew-state.js";
+import { getEffectiveDetectionState, listTargetingStates } from "./machine-ew-state.js";
 
 const RANGE_ORDER = ["close", "near", "far", "extreme"];
 // Preferred default engagement band: near is the sweet spot; fall back toward
@@ -257,7 +257,7 @@ function inspectBattlemechWeaponGroup(actor = null, group = null, { token = null
       if (canvasTargets.length > 0) {
         const hasLockedCanvasTarget = canvasTargets.some(targetToken => {
           const uuid = targetToken.document?.uuid ?? "";
-          return uuid && getDetectionState(combatant, uuid) === "lock";
+          return uuid && getEffectiveDetectionState(combatant, uuid, targetToken.actor) === "lock";
         });
         if (!hasLockedCanvasTarget) {
           blockingReasons.push("Requires sensor lock on target.");
