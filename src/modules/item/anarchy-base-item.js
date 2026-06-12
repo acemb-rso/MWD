@@ -1843,12 +1843,27 @@ export class MWDItem extends Item {
     const state = this.getPayloadState({ payloadId });
     const normalizedId = String(state?.activePayloadId ?? "").trim();
     const isItemPayload = String(state?.activePayload?.sourceType ?? "").trim() === TEMPLATE.itemType.weaponPayload;
-    await this.update({
+    const payloadKey = isItemPayload ? normalizePayloadKey(state.activePayload?.payloadKey ?? normalizedId) : "";
+
+    // For non-reloadable sources, selecting a payload is equivalent to loading it —
+    // there's no separate reload step, so keep loadedPayloadKey in sync here.
+    const sourceId = state?.source?.id ?? null;
+    const nextSources = (isItemPayload && sourceId)
+      ? (this.system.consumptionSources ?? []).map(source => {
+          if (source.id !== sourceId || source.reloadable !== false) return source;
+          return { ...source, loadedPayloadKey: payloadKey };
+        })
+      : null;
+
+    const updateData = {
       "system.selectedPayloadId": isItemPayload ? "unloaded" : normalizedId,
       "system.selectedPayloadUuid": "",
-      "system.selectedPayloadKey": isItemPayload ? normalizePayloadKey(state.activePayload?.payloadKey ?? normalizedId) : "",
+      "system.selectedPayloadKey": payloadKey,
       "system.ammo": forcedDeletion(),
-    });
+    };
+    if (nextSources) updateData["system.consumptionSources"] = nextSources;
+
+    await this.update(updateData);
   }
 
   getPayloadConsumptionState({ payloadId = "", ammoTypeId = "" } = {}) {
@@ -1871,6 +1886,7 @@ export class MWDItem extends Item {
       && sourceState?.isTracked
       && sourceState.kind === "internal"
       && sourceState.loadedPayloadKey !== payloadKey
+      && !(payloadState?.source?.reloadable === false && sourceState.loadedPayloadKey === "")
     ) {
       return { ok: false, reason: "Selected payload is not loaded.", payloadState };
     }
