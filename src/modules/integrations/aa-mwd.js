@@ -38,11 +38,13 @@ export function registerAutoAnimations() {
     if (!item) return;
 
     const { targets, hitTargets } = _resolveTargets(resolved.attackResult?.results ?? []);
+    const persistentRegion = _resolvePersistentRegion(resolved.attackResult?.persistentRegionUuid);
 
     Hooks.callAll("aa.workflow", sourceToken, item, {
       targets,
       hitTargets,
       playOnMiss: game.settings.get(SYSTEM_NAME, SETTING_AA_PLAY_ON_MISS),
+      ...(persistentRegion ? { templateData: persistentRegion, isTemplate: true } : {}),
     });
   });
 }
@@ -98,6 +100,11 @@ function _resolveAnimationItem(sourceToken, weapon) {
   }
 
   return null;
+}
+
+function _resolvePersistentRegion(uuid) {
+  if (!uuid) return null;
+  return fromUuidSync(uuid) ?? null;
 }
 
 function _resolveTargets(results) {
