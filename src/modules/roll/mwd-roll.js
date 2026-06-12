@@ -703,6 +703,80 @@ async function commitMachineAttackAction(actor, payload = {}, { rollActor = null
   }
 }
 
+function getAttackPayloadWeaponItems(actor, payload = {}, ctx = null) {
+  const ids = new Set();
+  const groupWeaponIds = Array.isArray(ctx?.attack?.weapon?.machineWeaponGroup?.weaponIds)
+    ? ctx.attack.weapon.machineWeaponGroup.weaponIds
+    : [];
+  for (const id of groupWeaponIds) {
+    const normalized = String(id ?? "").trim();
+    if (normalized) ids.add(normalized);
+  }
+
+  const weaponId = String(payload?.weaponId ?? "").trim();
+  if (weaponId) ids.add(weaponId);
+
+  return Array.from(ids)
+    .map(id => actor?.items?.get?.(id) ?? null)
+    .filter(item => item?.isWeapon?.() && typeof item.canConsumePayload === "function");
+}
+
+function getPayloadIdForConsumption(payload = {}, weaponItems = []) {
+  const isGroupAttack = String(payload?.sourceType ?? "").trim() === "weaponGroup"
+    || Boolean(payload?.weaponGroupId)
+    || weaponItems.length > 1;
+  return isGroupAttack ? "" : String(payload?.payloadId ?? "").trim();
+}
+
+async function validateAttackPayloadConsumption(actor, payload = {}, ctx = null) {
+  if (payload?.intent !== "attack") return true;
+
+  const weaponItems = getAttackPayloadWeaponItems(actor, payload, ctx);
+  if (!weaponItems.length) return true;
+
+  const requestedPayloadId = getPayloadIdForConsumption(payload, weaponItems);
+  for (const weaponItem of weaponItems) {
+    if (requestedPayloadId) {
+      const activePayloadId = String(
+        weaponItem.system?.selectedPayloadKey
+        || weaponItem.system?.selectedPayloadUuid
+        || weaponItem.system?.selectedPayloadId
+        || ""
+      ).trim();
+      if (requestedPayloadId !== activePayloadId) {
+        await weaponItem.setActivePayload?.(requestedPayloadId);
+      }
+    }
+
+    const consumptionState = weaponItem.canConsumePayload?.({
+      payloadId: requestedPayloadId,
+      detailed: true,
+    });
+    if (!consumptionState?.ok) {
+      const payloadState = weaponItem.getPayloadState?.({ payloadId: requestedPayloadId });
+      const payloadName = payloadState?.payloadLabel ? ` (${payloadState.payloadLabel})` : "";
+      ui.notifications?.warn(consumptionState?.reason || `Not enough payload${payloadName} for ${weaponItem.name}.`);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function consumeAttackPayloads(actor, payload = {}, ctx = null) {
+  if (payload?.intent !== "attack") return;
+
+  const weaponItems = getAttackPayloadWeaponItems(actor, payload, ctx);
+  const requestedPayloadId = getPayloadIdForConsumption(payload, weaponItems);
+  for (const weaponItem of weaponItems) {
+    if (typeof weaponItem.consumePayload !== "function") continue;
+    const consumed = await weaponItem.consumePayload({ payloadId: requestedPayloadId });
+    if (!consumed) {
+      ui.notifications?.warn(`Payload could not be consumed for ${weaponItem.name}.`);
+    }
+  }
+}
+
 function applyAssetModuleActionOverride(action = {}, override = null) {
   if (!override) return action;
   return {
@@ -891,23 +965,8 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
     delete payload.templateGeometry;
   }
 
-  if (payload.intent === "attack" && payload.weaponId) {
-    const weaponItem = actor.items?.get?.(payload.weaponId) ?? null;
-    if (weaponItem?.isWeapon?.() && typeof weaponItem.canConsumePayload === "function") {
-      const selectedPayloadId = String(payload.payloadId ?? "").trim();
-      const activePayloadId = String(weaponItem.system?.selectedPayloadKey || weaponItem.system?.selectedPayloadUuid || weaponItem.system?.selectedPayloadId || "").trim();
-      if (selectedPayloadId && selectedPayloadId !== activePayloadId) {
-        await weaponItem.setActivePayload?.(selectedPayloadId);
-      }
-
-      const consumptionState = weaponItem.canConsumePayload?.({ payloadId: selectedPayloadId, detailed: true });
-      if (!consumptionState?.ok) {
-        const payloadState = weaponItem.getPayloadState?.({ payloadId: selectedPayloadId });
-        const payloadName = payloadState?.payloadLabel ? ` (${payloadState.payloadLabel})` : "";
-        ui.notifications?.warn(consumptionState?.reason || `Not enough payload${payloadName} for ${weaponItem.name}.`);
-        return null;
-      }
-    }
+  if (!(await validateAttackPayloadConsumption(actor, payload, ctx))) {
+    return null;
   }
 
   /* -------------------------------------- */
@@ -1192,15 +1251,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
 
   const html = await renderChat({ resolved });
 
-  if (payload.intent === "attack" && payload.weaponId) {
-    const weaponItem = actor.items?.get?.(payload.weaponId) ?? null;
-    if (weaponItem?.isWeapon?.() && typeof weaponItem.consumePayload === "function") {
-      const consumed = await weaponItem.consumePayload?.({ payloadId: payload.payloadId });
-      if (!consumed) {
-        ui.notifications?.warn(`Payload could not be consumed for ${weaponItem.name}.`);
-      }
-    }
-  }
+  await consumeAttackPayloads(actor, payload, ctx);
 
   if (ctx.intent === "attack" && actor.type === "battlemech") {
     const weaponIds = Array.from(new Set([
@@ -1244,7 +1295,8 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
     flags: {
       mwd: {
         payload,
-        resolved
+        resolved,
+        itemId: payload.weaponId ?? null,
       }
     }
   });

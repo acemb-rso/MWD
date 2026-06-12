@@ -1866,7 +1866,12 @@ export class MWDItem extends Item {
       return { ok: false, reason: "Selected payload source is missing.", payloadState };
     }
 
-    if (isReusablePayload && sourceState?.isTracked && sourceState.loadedPayloadKey !== payloadKey) {
+    if (
+      isReusablePayload
+      && sourceState?.isTracked
+      && sourceState.kind === "internal"
+      && sourceState.loadedPayloadKey !== payloadKey
+    ) {
       return { ok: false, reason: "Selected payload is not loaded.", payloadState };
     }
 
