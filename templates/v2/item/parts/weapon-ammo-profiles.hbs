@@ -92,7 +92,7 @@ How it fits: Used by the CSB-driven personal weapon details layout.
                   <label>Source</label>
                   <select class="mwd-payload-source-field" data-payload-key="{{payload.payloadKey}}">
                     {{#each payload.sourceOptions as |source|}}
-                      <option value="{{source.value}}" {{#if (eq source.value ../sourceId)}}selected{{/if}}>{{source.label}}</option>
+                      <option value="{{source.value}}" {{#if (eq source.value payload.sourceId)}}selected{{/if}}>{{source.label}}</option>
                     {{/each}}
                   </select>
                 </div>
@@ -140,7 +140,7 @@ How it fits: Used by the CSB-driven personal weapon details layout.
                   <label>Source</label>
                   <select class="mwd-payload-source-field" data-payload-key="{{payload.payloadKey}}">
                     {{#each payload.sourceOptions as |source|}}
-                      <option value="{{source.value}}" {{#if (eq source.value ../sourceId)}}selected{{/if}}>{{source.label}}</option>
+                      <option value="{{source.value}}" {{#if (eq source.value payload.sourceId)}}selected{{/if}}>{{source.label}}</option>
                     {{/each}}
                   </select>
                 </div>

@@ -194,16 +194,32 @@ export function getMachineWeaponRequiredSize(item = null) {
   return normalizeMachineWeaponSize(item?.system?.size ?? "small");
 }
 
+function normalizeKeywordToken(value = "") {
+  return String(value ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function hasMachineWeaponKeyword(item = null, keyword = "") {
+  const keywords = item?.system?.keywords;
+  const raw = Array.isArray(keywords) ? keywords : String(keywords ?? "").split(",");
+  const wanted = normalizeKeywordToken(keyword);
+  if (!wanted) return false;
+  return raw.some(entry => normalizeKeywordToken(entry) === wanted);
+}
+
+function doesHardpointTypeAcceptWeapon(hardpointType = "energy", item = null) {
+  if (hardpointType === "support") return hasMachineWeaponKeyword(item, "support");
+  if (hardpointType === "omni") return true;
+  return hardpointType === getMachineWeaponRequiredType(item);
+}
+
 export function doesHardpointAcceptItem(hardpoint = {}, item = null) {
   const canonicalType = String(item?.canonicalType ?? item?.type ?? "").trim();
   if (canonicalType !== TEMPLATE.itemType.mechWeapon) return false;
 
   const hardpointType = normalizeMachineHardpointType(hardpoint?.type ?? "energy", "energy");
   const hardpointSize = normalizeMachineWeaponSize(hardpoint?.size ?? "small");
-  const requiredType = getMachineWeaponRequiredType(item);
   const requiredSize = getMachineWeaponRequiredSize(item);
-  const typeMatches = hardpointType === "omni"
-    || hardpointType === requiredType;
+  const typeMatches = doesHardpointTypeAcceptWeapon(hardpointType, item);
 
   return typeMatches && hardpointSize === requiredSize;
 }
@@ -218,10 +234,12 @@ export function getHardpointCompatibilityError(hardpoint = {}, item = null) {
   const hardpointSize = normalizeMachineWeaponSize(hardpoint?.size ?? "small");
   const requiredType = getMachineWeaponRequiredType(item);
   const requiredSize = getMachineWeaponRequiredSize(item);
-  const typeMatches = hardpointType === "omni"
-    || hardpointType === requiredType;
+  const typeMatches = doesHardpointTypeAcceptWeapon(hardpointType, item);
 
   if (!typeMatches) {
+    if (hardpointType === "support") {
+      return `${item?.name ?? "That weapon"} needs the Support keyword to fit a Support slot.`;
+    }
     return `${item?.name ?? "That weapon"} is ${startCase(requiredType)} and cannot fit a ${startCase(hardpointType)} slot.`;
   }
 

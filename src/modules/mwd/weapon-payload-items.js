@@ -101,7 +101,8 @@ export function isPayloadCompatibleWithWeapon(compatibility = {}, payloadSystem 
 
 function normalizeAssignmentSourceId(value) {
   const normalized = String(value ?? "").trim();
-  return normalized && normalized !== "untracked" ? normalized : null;
+  if (normalized.toLowerCase() === "untracked") return null;
+  return normalized || null;
 }
 
 export function normalizePayloadSourceAssignments(value = {}) {

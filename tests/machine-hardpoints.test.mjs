@@ -13,7 +13,7 @@ import {
 } from "../src/modules/mwd/machine-hardpoints.js";
 import { normalizeMachineHardpointType } from "../src/modules/mwd/machine-weapon-types.js";
 
-function createWeapon({ damageType = "energy", size = "small" } = {}) {
+function createWeapon({ damageType = "energy", size = "small", keywords = [] } = {}) {
   return {
     name: `${damageType} weapon`,
     type: "mechWeapon",
@@ -21,6 +21,7 @@ function createWeapon({ damageType = "energy", size = "small" } = {}) {
     system: {
       damageType,
       size,
+      keywords,
     },
   };
 }
@@ -38,12 +39,25 @@ test("legacy thermal and electrical hardpoints normalize into energy compatibili
   assert.equal(doesHardpointAcceptItem(electricalSlot, createWeapon({ damageType: "thermal" })), true);
 });
 
-test("non-energy hardpoint families remain type-gated", () => {
+test("support hardpoints accept mech weapons with the support keyword", () => {
   const supportSlot = { type: "support", size: "small" };
-  const weapon = createWeapon({ damageType: "energy" });
+  const regularWeapon = createWeapon({ damageType: "energy" });
+  const supportWeapon = createWeapon({ damageType: "energy", keywords: ["SUPPORT"] });
+  const oversizedSupportWeapon = createWeapon({ damageType: "energy", size: "medium", keywords: "support" });
 
-  assert.equal(doesHardpointAcceptItem(supportSlot, weapon), false);
-  assert.match(getHardpointCompatibilityError(supportSlot, weapon), /cannot fit/i);
+  assert.equal(doesHardpointAcceptItem(supportSlot, regularWeapon), false);
+  assert.match(getHardpointCompatibilityError(supportSlot, regularWeapon), /support keyword/i);
+  assert.equal(doesHardpointAcceptItem(supportSlot, supportWeapon), true);
+  assert.equal(doesHardpointAcceptItem(supportSlot, oversizedSupportWeapon), false);
+  assert.match(getHardpointCompatibilityError(supportSlot, oversizedSupportWeapon), /medium/i);
+});
+
+test("non-support hardpoint families remain type-gated", () => {
+  const penetratingSlot = { type: "penetrating", size: "small" };
+  const weapon = createWeapon({ damageType: "energy", keywords: ["support"] });
+
+  assert.equal(doesHardpointAcceptItem(penetratingSlot, weapon), false);
+  assert.match(getHardpointCompatibilityError(penetratingSlot, weapon), /cannot fit/i);
 });
 
 test("getMountedMachineItems returns only attached mech weapons in hardpoint order", () => {

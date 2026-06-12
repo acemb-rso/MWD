@@ -345,6 +345,7 @@ test("payload source assignments normalize keys and preserve selected sources", 
   const assignments = normalizePayloadSourceAssignments({
     "120mm Sabot": { sourceId: "autoloader" },
     "120mm HE": { sourceId: "" },
+    "120mm Smoke": { sourceId: "untracked" },
   });
   const model = buildWeaponPayloadItemModel({
     actor,
@@ -355,6 +356,7 @@ test("payload source assignments normalize keys and preserve selected sources", 
   assert.deepEqual(assignments, {
     "120mm-sabot": { sourceId: "autoloader" },
     "120mm-he": { sourceId: null },
+    "120mm-smoke": { sourceId: null },
   });
   assert.equal(model.payloads.length, 1);
   assert.equal(model.payloads[0].payloadKey, "120mm-sabot");

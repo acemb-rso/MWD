@@ -384,6 +384,9 @@ export class WeaponItemSheet extends BaseItemSheet {
         const assignment = normalizedAssignments[payloadKey] ?? { sourceId: null };
         const assignedSourceId = String(assignment?.sourceId ?? "").trim();
         const assignedSource = assignedSourceId ? sourceById.get(assignedSourceId) : null;
+        const payloadSourceOptions = assignedSourceId && !assignedSource
+          ? sourceOptions.concat({ value: assignedSourceId, label: `Missing source (${assignedSourceId})` })
+          : sourceOptions;
         return {
           id: payload.id || payloadKey,
           payloadKey,
@@ -395,7 +398,7 @@ export class WeaponItemSheet extends BaseItemSheet {
           stackCount: group.count,
           stackLabel: group.count > 1 ? `${group.count} stacks` : "",
           sourceId: assignedSourceId,
-          sourceOptions,
+          sourceOptions: payloadSourceOptions,
           sourceLabel: assignedSource?.label ?? untrackedSourceLabel,
           loadedPayloadKey: normalizePayloadKey(assignedSource?.loadedPayloadKey),
           loaded: normalizePayloadKey(assignedSource?.loadedPayloadKey) === payloadKey,
