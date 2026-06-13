@@ -33,7 +33,7 @@ How it fits: Keeps combat actions and combat-side group management together with
                     value="{{group.name}}"
                   />
                 {{else}}
-                  <button type="button" class="mwd-record__title-btn" data-action="mechAttack" {{{mwd-dataset group.action.dataset}}} title="{{group.action.title}}" {{#if group.action.disabled}}disabled{{/if}}>
+                  <button type="button" class="mwd-record__title-btn" data-action="mechAttack" {{{mwd-dataset group.action.dataset}}} title="{{group.action.title}}">
                     {{group.name}}
                   </button>
                 {{/if}}
@@ -65,7 +65,7 @@ How it fits: Keeps combat actions and combat-side group management together with
             </div>
 
             <div class="mwd-record__actions">
-              <button type="button" class="mwd-record__icon-btn" data-action="mechAttack" {{{mwd-dataset group.action.dataset}}} title="{{group.action.title}}" {{#if group.action.disabled}}disabled{{/if}}>
+              <button type="button" class="mwd-record__icon-btn" data-action="mechAttack" {{{mwd-dataset group.action.dataset}}} title="{{group.action.title}}">
                 <i class="fas fa-crosshairs"></i>
               </button>
 

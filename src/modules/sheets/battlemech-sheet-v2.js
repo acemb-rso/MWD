@@ -482,9 +482,11 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         label: getQuickActionLabel("rangedAttack"),
         hint: availableRangedGroups.length > 0
           ? "Ranged attack"
-          : "No weapons",
+          : preparedGroups.length > 0
+            ? preparedGroups[0].disableReason || "No ready groups"
+            : "No weapon groups configured",
         handler: "mechAttack",
-        disabled: availableRangedGroups.length === 0,
+        disabled: false,
         dataset: { attackKind: "ranged" }
       },
       {
@@ -695,6 +697,12 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
         }
         const preparedGroups = this._getPreparedRangedWeaponGroups(actor);
         const selectedGroup = await this.#promptWeaponGroup(actor, preparedGroups);
+        if (!selectedGroup) {
+          const firstBlocked = preparedGroups.find(g => g.disableReason);
+          const reason = firstBlocked?.disableReason || "No ready weapon groups to fire.";
+          ui.notifications?.warn(reason);
+          return;
+        }
         if (selectedGroup?.id) await this.#rollWeaponGroup(actor, selectedGroup.id);
       } else if (attackKind === "melee") {
         await this.#rollMeleeAttack(actor);

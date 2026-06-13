@@ -56,11 +56,13 @@ function validateGroupForAttack(group = null) {
 function buildExecutionPlan({ fireMode = DEFAULT_FIRE_MODE, selectedGroup = null, groups = [] } = {}) {
   const availableGroups = groups.filter(group => group.isAttackLegal && group.isAvailableThisActivation);
   if (fireMode === "alphaStrike") {
-    return {
-      ok: availableGroups.length > 0,
-      reason: availableGroups.length ? "" : "No available weapon groups to fire.",
-      steps: availableGroups.map(group => ({ group })),
-    };
+    if (availableGroups.length > 0) {
+      return { ok: true, reason: "", steps: availableGroups.map(group => ({ group })) };
+    }
+    const firstBlockedReason = selectedGroup?.disableReason
+      || groups.find(g => g.disableReason)?.disableReason
+      || "No available weapon groups to fire.";
+    return { ok: false, reason: firstBlockedReason, steps: [] };
   }
 
   const selectedReason = validateGroupForAttack(selectedGroup);
