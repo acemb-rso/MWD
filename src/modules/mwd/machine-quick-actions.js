@@ -1197,7 +1197,7 @@ export async function performMachineElectronicWarfare(actor, {
   const beaconKeyword = beaconKeywords[selectedAction.id] ?? null;
   const beaconWeapon = beaconKeyword
     ? getMountedMachineItems(actor, { canonicalType: TEMPLATE.itemType.mechWeapon })
-      .filter(w => w.isActive?.())
+      .filter(w => w.isActive?.() !== false)
       .find(w => hasMachineWeaponKeyword(w, beaconKeyword)) ?? null
     : null;
 

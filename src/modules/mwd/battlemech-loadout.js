@@ -184,7 +184,7 @@ export class BattlemechLoadout {
 
   _getWeapons(filter) {
     return getMountedMachineItems(this.actor, { canonicalType: TEMPLATE.itemType.mechWeapon })
-      .filter(it => it.isActive?.())
+      .filter(it => it.isActive?.() !== false)
       .filter(filter);
   }
 

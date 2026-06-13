@@ -78,7 +78,7 @@ function buildTargetAction({ canTarget = false, targetHint = "" } = {}) {
 
 function hasMountedWeaponWithKeyword(actor, keyword) {
   return getMountedMachineItems(actor, { canonicalType: "mechWeapon" })
-    .filter(w => w.isActive?.())
+    .filter(w => w.isActive?.() !== false)
     .some(w => hasMachineWeaponKeyword(w, keyword));
 }
 
