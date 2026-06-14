@@ -47,19 +47,15 @@ export function buildMachineFireControlModel(source = {}, context = {}) {
     return { clustering: buildDisabledClusteringState() };
   }
 
-  const modules = getAssetModules(source)
-    .map(item => ({
-      item,
-      state: getAssetModuleState(item, { installed: true }),
-      profile: getLegacyAssetModuleClusteringProfile(item),
-    }))
-    .filter(entry =>
-      entry.state.active
-      && (
-        Number(entry.profile?.diceModifier ?? 0) !== 0
-        || Number(entry.profile?.targetNumberModifier ?? 0) !== 0
-      )
-    );
+  const modules = getAssetModules(source).reduce((acc, item) => {
+    const state = getAssetModuleState(item, { installed: true });
+    if (!state.active) return acc;
+    const profile = getLegacyAssetModuleClusteringProfile(item);
+    if (Number(profile?.diceModifier ?? 0) !== 0 || Number(profile?.targetNumberModifier ?? 0) !== 0) {
+      acc.push({ item, state, profile });
+    }
+    return acc;
+  }, []);
 
   const effectProfile = getEffectAssetModuleClusteringProfile(source?.actor ?? source, context);
 

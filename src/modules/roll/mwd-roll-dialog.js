@@ -229,7 +229,8 @@ function writeSpecializationPayload(payload, skillCode, specializationKey) {
  */
 function diceFromResolvedBreakdown(resolved) {
   const breakdown = Array.isArray(resolved?.breakdown) ? resolved.breakdown : [];
-  const get = (id) => Number(breakdown.find((r) => r?.id === id)?.value ?? 0);
+  const breakdownMap = new Map(breakdown.map(r => [r?.id, r]));
+  const get = (id) => Number(breakdownMap.get(id)?.value ?? 0);
 
   return {
     attribute: get("attribute"),
@@ -359,7 +360,8 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
       // Edge rolls do NOT use attribute/skill/bonus
       const resolved = bc?.resolved ?? {};
       const breakdown = Array.isArray(resolved.breakdown) ? resolved.breakdown : [];
-      const get = (id) => Number(breakdown.find(r => r.id === id)?.value ?? 0);
+      const breakdownMap = new Map(breakdown.map(r => [r.id, r]));
+      const get = (id) => Number(breakdownMap.get(id)?.value ?? 0);
 
       const pool = Number(resolved?.pool?.attribute ?? 0);
 

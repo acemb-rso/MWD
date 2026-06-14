@@ -104,7 +104,7 @@ function normalizeList(value) {
 
 function observerHasActiveProbe(actor = null) {
   const wanted = new Set(["activeprobe", "probe", "probeking", "advancedsensors"]);
-  for (const item of Array.from(actor?.items ?? [])) {
+  for (const item of (actor?.items ?? [])) {
     const values = [
       item?.id,
       item?.name,

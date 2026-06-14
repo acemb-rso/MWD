@@ -158,7 +158,8 @@ function inspectBattlemechWeaponGroup(actor = null, group = null, { token = null
   const presentWeapons = weaponIds
     .map(id => actor?.items?.get?.(id) ?? null)
     .filter(Boolean);
-  const missingWeaponIds = weaponIds.filter(id => !presentWeapons.some(weapon => normalizeId(weapon?.id) === id));
+  const presentWeaponIdSet = new Set(presentWeapons.map(w => normalizeId(w?.id)));
+  const missingWeaponIds = weaponIds.filter(id => !presentWeaponIdSet.has(id));
 
   const memberWeapons = [];
   const memberHardpoints = [];

@@ -634,7 +634,7 @@ async function updateUserTargets(tokenIds = []) {
     return;
   }
 
-  for (const token of Array.from(game.user?.targets ?? [])) {
+  for (const token of (game.user?.targets ?? [])) {
     token?.setTarget?.(false, { releaseOthers: false, user: game.user });
   }
 
@@ -655,10 +655,11 @@ function getMachineAttackToken(actor, payload = {}) {
     if (direct) return direct.document ?? direct;
   }
 
+  const activeTokens = actor?.getActiveTokens?.(true, true) ?? [];
   return actor?.token?.document
     ?? actor?.token
-    ?? actor?.getActiveTokens?.(true, true)?.[0]?.document
-    ?? actor?.getActiveTokens?.(true, true)?.[0]
+    ?? activeTokens[0]?.document
+    ?? activeTokens[0]
     ?? null;
 }
 
