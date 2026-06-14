@@ -1,0 +1,56 @@
+{
+  "_id": "0042a72ec5858625",
+  "name": "Filtration Organ",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 101200000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-filtration-organ"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Helps resist gas, toxins, smoke, bad atmosphere, drugs</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 1,
+    "bodySlot": "organ",
+    "category": "physiological",
+    "relatedSkill": "survival",
+    "availability": "Rare",
+    "rulesHook": "Helps resist gas, toxins, smoke, bad atmosphere, drugs",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "organ",
+      "filtration",
+      "toxin",
+      "atmosphere",
+      "load1",
+      "bodySlot:organ"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!0042a72ec5858625"
+}

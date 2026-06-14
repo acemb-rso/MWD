@@ -1,0 +1,55 @@
+{
+  "_id": "74a7188ed90a7d05",
+  "name": "Implanted Communicator",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 100400000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-implanted-communicator"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Hands-free personal communications; silent use</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 1,
+    "bodySlot": "head",
+    "category": "communication",
+    "relatedSkill": "systemOps",
+    "availability": "Restricted",
+    "rulesHook": "Hands-free personal communications; silent use",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "communications",
+      "comms",
+      "enhancement",
+      "load1",
+      "bodySlot:head"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!74a7188ed90a7d05"
+}

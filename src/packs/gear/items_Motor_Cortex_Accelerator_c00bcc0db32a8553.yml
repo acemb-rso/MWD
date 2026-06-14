@@ -1,0 +1,50 @@
+{
+  "_id": "c00bcc0db32a8553",
+  "name": "Motor Cortex Accelerator",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 101500000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-motor-cortex-accelerator"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 0,
+    "bodySlot": "",
+    "category": "physiological",
+    "relatedSkill": "",
+    "availability": "Very Rare",
+    "rulesHook": "",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!c00bcc0db32a8553"
+}

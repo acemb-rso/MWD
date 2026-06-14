@@ -1,0 +1,55 @@
+{
+  "_id": "9215f37172716a1c",
+  "name": "Synth-Lung / Gill Implant",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 101300000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-synth-lung-gill-implant"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Specialized breathing support; choose environment at install</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 1,
+    "bodySlot": "organ",
+    "category": "physiological",
+    "relatedSkill": "survival",
+    "availability": "Rare",
+    "rulesHook": "Specialized breathing support; choose environment at install",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "hostileEnvironment",
+      "breathing",
+      "organ",
+      "load1",
+      "bodySlot:organ"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!9215f37172716a1c"
+}

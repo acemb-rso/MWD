@@ -93,7 +93,7 @@ export class Modifiers {
           .map(it => { return { key: it.code, label: it.labelkey } });
       case 'attributeAction':
         const actions = AttributeActions.all().map(action => { return { key: action.code, label: action.labelkey }; });
-        return Misc.distinct(actions.map(it => it.key)).map(key => actions.find(it => it.key == key))
+        return Array.from(new Map(actions.map(it => [it.key, it])).values())
     }
     return [];
   }

@@ -1,0 +1,55 @@
+{
+  "_id": "317ff64d8be1bda1",
+  "name": "Medical Regulator Implant",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 101100000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-medical-regulator-implant"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Stabilizes vitals; medTech tests to treat wearer gain support</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 0,
+    "bodySlot": "organ",
+    "category": "physiological",
+    "relatedSkill": "medTech",
+    "availability": "Uncommon",
+    "rulesHook": "Stabilizes vitals; medTech tests to treat wearer gain support",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "medical",
+      "regulator",
+      "restorative",
+      "load0",
+      "bodySlot:organ"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!317ff64d8be1bda1"
+}

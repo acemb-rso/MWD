@@ -21,7 +21,7 @@ export class AnarchyCombat extends Combat {
 
   async rollInitiative(ids, options) {
 
-    const selectedCombatants = ids.map(id => this.combatants.find(c => c.id == id));
+    const selectedCombatants = ids.map(id => this.combatants.get(id));
     const combatantsByType = Misc.classify(selectedCombatants, it => it.actor.type);
 
     Object.entries(combatantsByType).forEach(async ([type, list]) => {

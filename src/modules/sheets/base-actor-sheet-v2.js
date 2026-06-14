@@ -74,6 +74,7 @@ export class BaseActorSheetV2 extends HandlebarsApplicationMixin(foundry.applica
       editOwnedItem: BaseActorSheetV2.prototype._onEditOwnedItem,
       deleteOwnedItem: BaseActorSheetV2.prototype._onDeleteOwnedItem,
       toggleOwnedItemEquipped: BaseActorSheetV2.prototype._onToggleOwnedItemEquipped,
+      toggleCyberneticActive: BaseActorSheetV2.prototype._onToggleCyberneticActive,
       setOwnedItemPrimary: BaseActorSheetV2.prototype._onSetOwnedItemPrimary,
       toggleInventoryAccordion: BaseActorSheetV2.prototype._onToggleInventoryAccordion,
       adjustGearQuantity: BaseActorSheetV2.prototype._onAdjustGearQuantity,
@@ -542,6 +543,23 @@ _initializeApplicationOptions(options) {
 
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
     await actorWriteTarget.setOwnedItemEquipped?.(item.id, !item.system?.equipped);
+    this._renderPreservingScroll({ force: true });
+  }
+
+  async _onToggleCyberneticActive(event, target) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    if (!this.isEditable) return;
+
+    const item = this._getOwnedItemFromTarget(target, event);
+    if (!item || item.system?.subtype !== "cybernetic" || item.system?.activation !== "toggle") return;
+
+    const actorWriteTarget = this.getPersistentActor() ?? this.actor;
+    await actorWriteTarget.updateEmbeddedDocuments("Item", [{
+      _id: item.id,
+      "system.active": !item.system?.active,
+    }]);
     this._renderPreservingScroll({ force: true });
   }
 

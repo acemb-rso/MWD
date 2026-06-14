@@ -1,0 +1,55 @@
+{
+  "_id": "b40499bf7aab1879",
+  "name": "Datajack / DNI Port",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 100800000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-datajack-dni-port"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Direct interface port for machines, computers, diagnostics, and neural systems</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 1,
+    "bodySlot": "neural",
+    "category": "interface",
+    "relatedSkill": "computers",
+    "availability": "Restricted",
+    "rulesHook": "Direct interface port for machines, computers, diagnostics, and neural systems",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "dni",
+      "interface",
+      "neural",
+      "load1",
+      "bodySlot:neural"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!b40499bf7aab1879"
+}

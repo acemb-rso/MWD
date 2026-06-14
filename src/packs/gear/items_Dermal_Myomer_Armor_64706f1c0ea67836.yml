@@ -1,0 +1,55 @@
+{
+  "_id": "64706f1c0ea67836",
+  "name": "Dermal Myomer Armor",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 102900000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-dermal-myomer-armor"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Subdermal reinforcement; +1 resistance, vulnerable to electrical feedback</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 5,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 2,
+    "bodySlot": "skin",
+    "category": "structural",
+    "relatedSkill": "athletics",
+    "availability": "Rare",
+    "rulesHook": "Subdermal reinforcement; +1 resistance, vulnerable to electrical feedback",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "armor",
+      "myomer",
+      "enhancement",
+      "load2",
+      "bodySlot:skin"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!64706f1c0ea67836"
+}

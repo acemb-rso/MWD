@@ -1,0 +1,68 @@
+{
+  "_id": "eeb9282f38bd4e64",
+  "name": "Smartlink Interface",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 100700000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-smartlink-interface"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Provides ammo count, fire mode, payload, range, and basic aim telemetry. Ignore personal attack motion; +1 die to Aim and targetingData.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 1,
+    "bodySlot": "",
+    "category": "interface",
+    "relatedSkill": "firearms",
+    "availability": "Rare",
+    "rulesHook": "Provides ammo count, fire mode, payload, range, and basic aim telemetry. Ignore personal attack motion; +1 die to Aim and targetingData.",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "implanted",
+      "smartlink",
+      "sensory",
+      "weaponInterface",
+      "load1"
+    ],
+    "effects": [
+      {
+        "id": "cybernetic-smartlink-interface.skill",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": [
+          "firearms"
+        ],
+        "label": "Smartlink Interface",
+        "value": 1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!eeb9282f38bd4e64"
+}

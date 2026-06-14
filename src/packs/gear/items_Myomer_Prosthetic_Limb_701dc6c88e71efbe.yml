@@ -1,0 +1,67 @@
+{
+  "_id": "701dc6c88e71efbe",
+  "name": "Myomer Prosthetic Limb",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 101900000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-myomer-prosthetic-limb"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Superhuman limb output; +1 die to relevant STR/AGI use</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 5,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 2,
+    "bodySlot": "limb",
+    "category": "replacement",
+    "relatedSkill": "medTech",
+    "availability": "Rare",
+    "rulesHook": "Superhuman limb output; +1 die to relevant STR/AGI use",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "myomer",
+      "enhancement",
+      "load2",
+      "bodySlot:limb"
+    ],
+    "effects": [
+      {
+        "id": "cybernetic-myomer-prosthetic-limb.skill",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": [
+          "medTech"
+        ],
+        "label": "Myomer Prosthetic Limb",
+        "value": 1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!701dc6c88e71efbe"
+}

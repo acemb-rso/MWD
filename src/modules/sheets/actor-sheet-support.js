@@ -4,6 +4,11 @@
 
 import { buildPersonalCriticalRestrictionChips, getWeaponAttackGateReason } from "../mwd/personal-critical-gates.js";
 import { getActivePersonalCrits, getPersonalSpeedState } from "../mwd/personal-criticals.js";
+import {
+  isCyberneticGearSystem,
+  isCyberneticOnline,
+  normalizeCyberneticGearSystem,
+} from "../mwd/traits.js";
 
 function readPathValue(document, path, fallback = "") {
   const value = foundry.utils.getProperty(document, path);
@@ -280,6 +285,9 @@ export function buildQuantityTrackedInventoryRecord({
   const relatedSkill = String(item?.system?.relatedSkill ?? "").trim();
   const availability = String(item?.system?.availability ?? "").trim();
   const rulesHook = String(item?.system?.rulesHook ?? "").trim();
+  const isCybernetic = itemType === "gear" && isCyberneticGearSystem(item?.system ?? {});
+  const cybernetic = isCybernetic ? normalizeCyberneticGearSystem(item?.system ?? {}) : null;
+  const isOnline = isCybernetic ? isCyberneticOnline({ system: cybernetic }) : false;
 
   return {
     id: item.id,
@@ -290,20 +298,38 @@ export function buildQuantityTrackedInventoryRecord({
     isExpanded,
     name: item.name,
     img: item.img,
-    subtitle: categoryLabel || defaultSubtitle,
+    subtitle: isCybernetic
+      ? `${categoryLabel || "Cybernetic"}${cybernetic.bodySlot ? ` | ${cybernetic.bodySlot}` : ""}`
+      : categoryLabel || defaultSubtitle,
     summaryStats: buildSummaryStats([
-      { label: "Qty", value: quantity, emphasis: "strong" },
+      { label: "Qty", value: isCybernetic ? 1 : quantity, emphasis: "strong" },
       { label: ratingLabel, value: rating },
+      ...(isCybernetic ? [
+        { label: "Load", value: cybernetic.load },
+        { label: "State", value: cybernetic.equipped ? (isOnline ? "Online" : "Off") : "Unequipped" },
+      ] : []),
       { label: "Avail", value: availability }
     ]),
     detailTags: buildDetailTags([
       typeLabel,
+      isCybernetic ? "Cybernetic" : "",
+      isCybernetic && cybernetic.equipped ? "Equipped" : "",
+      isCybernetic && cybernetic.activation === "toggle" ? (cybernetic.active ? "Active" : "Off") : "",
+      isCybernetic && cybernetic.bodySlot ? `Slot ${cybernetic.bodySlot}` : "",
       ...tags,
       item?.system?.inactive ? "Inactive" : ""
     ]),
     detailRows: buildDetailRows([
-      { label: "Quantity", value: quantity },
+      { label: "Quantity", value: isCybernetic ? 1 : quantity },
       { label: ratingLabel, value: rating },
+      ...(isCybernetic ? [
+        { label: "Equipped", value: cybernetic.equipped ? "Yes" : "No" },
+        { label: "Activation", value: cybernetic.activation },
+        { label: "Active", value: cybernetic.activation === "toggle" ? (cybernetic.active ? "Yes" : "No") : "Passive" },
+        { label: "Load", value: cybernetic.load },
+        { label: "Body Slot", value: cybernetic.bodySlot },
+        { label: "Effects", value: String(cybernetic.effects?.length ?? 0) },
+      ] : []),
       { label: "Related Skill", value: relatedSkill },
       { label: "Availability", value: availability },
       { label: "Rules Hook", value: rulesHook },
@@ -313,8 +339,41 @@ export function buildQuantityTrackedInventoryRecord({
     ]),
     detailText: toSnippet(item?.system?.description || rulesHook),
     quantity,
-    canAdjustQuantity: isEditable
+    equipped: cybernetic?.equipped === true,
+    cyberneticActive: cybernetic?.active === true,
+    supportsEquip: isCybernetic,
+    suppressEquip: !isCybernetic,
+    supportsCyberneticActivation: isCybernetic && cybernetic.activation === "toggle",
+    cyberneticActivationReady: isCybernetic && cybernetic.equipped,
+    canAdjustQuantity: isEditable && !isCybernetic
   };
+}
+
+export function buildCyberneticBodySlotWarnings(items = []) {
+  const bySlot = new Map();
+  for (const item of items ?? []) {
+    if (!isCyberneticGearSystem(item?.system ?? {})) continue;
+    const cybernetic = normalizeCyberneticGearSystem(item.system ?? {});
+    if (!isCyberneticOnline({ system: cybernetic }) || !cybernetic.bodySlot) continue;
+    const slot = cybernetic.bodySlot;
+    const bucket = bySlot.get(slot) ?? [];
+    bucket.push({
+      id: item.id,
+      uuid: item.uuid ?? "",
+      name: item.name ?? "Cybernetic",
+    });
+    bySlot.set(slot, bucket);
+  }
+
+  return Array.from(bySlot.entries())
+    .filter(([, entries]) => entries.length > 2)
+    .map(([slot, entries]) => ({
+      slot,
+      count: entries.length,
+      itemUuids: entries.map(entry => entry.uuid).filter(Boolean),
+      itemNames: entries.map(entry => entry.name).filter(Boolean),
+      message: `More than two active cybernetics occupy ${slot}.`,
+    }));
 }
 
 export function buildPersonalInventoryContext(actor, {
@@ -327,9 +386,16 @@ export function buildPersonalInventoryContext(actor, {
   consumableCategoryLabels = {},
 } = {}) {
   const loadout = actor?.getPersonalCombatLoadout?.() ?? { warnings: [], weapons: [], armor: [] };
+  const cyberneticBodySlotWarnings = buildCyberneticBodySlotWarnings(items?.gear ?? []);
 
   return {
-    warnings: [...(loadout?.warnings ?? [])],
+    warnings: [
+      ...(loadout?.warnings ?? []),
+      ...cyberneticBodySlotWarnings.map(warning => warning.message),
+    ],
+    cybernetics: {
+      bodySlotWarnings: cyberneticBodySlotWarnings,
+    },
     weapons: (loadout?.weapons ?? []).map(weapon => {
       const accordionId = inventoryAccordionId("weapons", weapon.id);
       const usesPayloads = String(weapon?.category ?? "").trim().toLowerCase() !== "melee";

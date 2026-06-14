@@ -1,0 +1,55 @@
+{
+  "_id": "f999e966fe92a9ee",
+  "name": "Bone Reinforcement",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 102800000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-bone-reinforcement"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Better impact tolerance; helps resist falls, knockdown, crushing injury</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 1,
+    "bodySlot": "skeleton",
+    "category": "structural",
+    "relatedSkill": "athletics",
+    "availability": "Rare",
+    "rulesHook": "Better impact tolerance; helps resist falls, knockdown, crushing injury",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "skeletal",
+      "reinforcement",
+      "enhancement",
+      "load1",
+      "bodySlot:skeleton"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!f999e966fe92a9ee"
+}

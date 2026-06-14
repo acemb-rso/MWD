@@ -1,0 +1,68 @@
+{
+  "_id": "7dfc315f0ab390f2",
+  "name": "Enhanced Cybereye Suite",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 102300000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-enhanced-cybereye-suite"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Low-light, magnification, recording, flare compensation; +1 dice pool bonus</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 1,
+    "bodySlot": "eye",
+    "category": "sensory",
+    "relatedSkill": "perception",
+    "availability": "Rare",
+    "rulesHook": "Low-light, magnification, recording, flare compensation; +1 dice pool bonus",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "sensory",
+      "optical",
+      "enhancement",
+      "load1",
+      "bodySlot:eye"
+    ],
+    "effects": [
+      {
+        "id": "cybernetic-enhanced-cybereye-suite.skill",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": [
+          "perception"
+        ],
+        "label": "Enhanced Cybereye Suite",
+        "value": 1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!7dfc315f0ab390f2"
+}

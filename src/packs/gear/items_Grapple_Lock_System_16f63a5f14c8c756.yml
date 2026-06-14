@@ -1,0 +1,63 @@
+{
+  "_id": "16f63a5f14c8c756",
+  "name": "Grapple Lock System",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 102700000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-grapple-lock-system"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>+1 die to climbing, grappling, holding, or disarm attempts</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 0,
+    "bodySlot": "",
+    "category": "structural",
+    "relatedSkill": "athletics",
+    "availability": "Uncommon",
+    "rulesHook": "+1 die to climbing, grappling, holding, or disarm attempts",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic"
+    ],
+    "effects": [
+      {
+        "id": "cybernetic-grapple-lock-system.skill",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": [
+          "athletics"
+        ],
+        "label": "Grapple Lock System",
+        "value": 1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!16f63a5f14c8c756"
+}

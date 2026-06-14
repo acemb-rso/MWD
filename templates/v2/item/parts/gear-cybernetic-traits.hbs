@@ -1,0 +1,22 @@
+{{!--
+templates/v2/item/parts/gear-cybernetic-traits.hbs
+Purpose: Renders quality-style rule packets for cybernetic gear only.
+How it fits: Keeps standard gear simple while cybernetics can contribute trait effects.
+--}}
+
+{{#if system.isCybernetic}}
+  <div class="mwd-record mwd-record--embedded">
+    <div class="mwd-record__header">
+      <div class="mwd-record__main">
+        <div class="mwd-record__topline">
+          <span class="mwd-record__title-btn">Cybernetic Effects</span>
+        </div>
+        <div class="mwd-record__subtitle">Effects apply only while the cybernetic is equipped and online.</div>
+      </div>
+    </div>
+  </div>
+
+  {{> "mwd.v2.item.parts.quality-limits"}}
+  {{> "mwd.v2.item.parts.quality-prerequisites"}}
+  {{> "mwd.v2.item.parts.quality-effects"}}
+{{/if}}

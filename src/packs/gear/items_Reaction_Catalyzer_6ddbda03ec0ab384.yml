@@ -1,0 +1,50 @@
+{
+  "_id": "6ddbda03ec0ab384",
+  "name": "Reaction Catalyzer",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 101600000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-reaction-catalyzer"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 6,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 0,
+    "bodySlot": "",
+    "category": "physiological",
+    "relatedSkill": "",
+    "availability": "Restricted",
+    "rulesHook": "",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!6ddbda03ec0ab384"
+}

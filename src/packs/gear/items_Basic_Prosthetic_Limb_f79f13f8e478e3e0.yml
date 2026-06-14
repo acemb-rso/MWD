@@ -1,0 +1,54 @@
+{
+  "_id": "f79f13f8e478e3e0",
+  "name": "Basic Prosthetic Limb",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 101700000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-basic-prosthetic-limb"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Restores lost limb function; no enhancement</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 2,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 0,
+    "bodySlot": "limb",
+    "category": "replacement",
+    "relatedSkill": "medTech",
+    "availability": "Common",
+    "rulesHook": "Restores lost limb function; no enhancement",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "prosthetic",
+      "restorative",
+      "load0",
+      "bodySlot:limb"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!f79f13f8e478e3e0"
+}

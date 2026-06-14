@@ -1,0 +1,57 @@
+{
+  "_id": "55dabba8a2665455",
+  "name": "Enhanced Imaging Interface",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 101000000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-enhanced-imaging-interface"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Clan-style full neural imaging link; powerful machine interface, requires stabilizers</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 6,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 2,
+    "bodySlot": "",
+    "category": "interface",
+    "relatedSkill": "systemOps",
+    "availability": "Rare",
+    "rulesHook": "Clan-style full neural imaging link; powerful machine interface, requires stabilizers",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "enhancedImaging",
+      "clan",
+      "neural",
+      "machineInterface",
+      "load2",
+      "feedbackRisk",
+      "stabilizers"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!55dabba8a2665455"
+}

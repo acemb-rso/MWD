@@ -30,6 +30,8 @@ import {
 } from "../mwd/machine-weapon-types.js";
 import {
   normalizeQualityTraitSystem,
+  normalizeCyberneticGearSystem,
+  isCyberneticGearSystem,
   normalizeTraitEffects,
   normalizeTraitLimits,
   normalizeTraitPrerequisites,
@@ -782,6 +784,13 @@ export class MWDItem extends Item {
       changed.system.rulesHook = normalizeGearText(nextSystem.rulesHook);
       if (this.isGear()) changed.system.mount = normalizeItemMount(nextSystem.mount);
       changed.system.tags = normalizeGearTags(nextSystem.tags);
+      if (this.isGear() && isCyberneticGearSystem(nextSystem)) {
+        const normalized = normalizeCyberneticGearSystem({
+          ...nextSystem,
+          ...changed.system,
+        });
+        foundry.utils.mergeObject(changed.system, normalized, { inplace: true, overwrite: true });
+      }
       return;
     }
 
@@ -954,6 +963,10 @@ export class MWDItem extends Item {
     system.rulesHook = normalizeGearText(system.rulesHook);
     if (this.isGear()) system.mount = normalizeItemMount(system.mount);
     system.tags = normalizeGearTags(system.tags);
+    if (this.isGear() && isCyberneticGearSystem(system)) {
+      const normalized = normalizeCyberneticGearSystem(system);
+      foundry.utils.mergeObject(system, normalized, { inplace: true, overwrite: true });
+    }
   }
 
   getAttributes() {
@@ -1211,6 +1224,11 @@ export class MWDItem extends Item {
   }
 
   async _mutateQualitySystem(mutation = system => system) {
+    if (this.isGear?.() && isCyberneticGearSystem(this.system ?? {})) {
+      const next = mutation(foundry.utils.deepClone(normalizeCyberneticGearSystem(this.system ?? {})));
+      await this.update({ system: normalizeCyberneticGearSystem(next) });
+      return;
+    }
     const next = mutation(foundry.utils.deepClone(normalizeQualityTraitSystem(this.system ?? {})));
     await this.update({ system: normalizeQualityTraitSystem(next) });
   }

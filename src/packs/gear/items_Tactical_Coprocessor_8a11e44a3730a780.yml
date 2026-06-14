@@ -1,0 +1,85 @@
+{
+  "_id": "8a11e44a3730a780",
+  "name": "Tactical Coprocessor",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 100100000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-tactical-coprocessor"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Calculates optimal attack and defense pathways; +1 skill die, +3 AR and DR when applicable</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": false,
+    "activation": "toggle",
+    "load": 2,
+    "bodySlot": "neural",
+    "category": "cognitive",
+    "relatedSkill": "tactics",
+    "availability": "Restricted",
+    "rulesHook": "Calculates optimal attack and defense pathways; +1 skill die, +3 AR and DR when applicable",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "reflex",
+      "activate",
+      "load2",
+      "bodySlot:neural"
+    ],
+    "effects": [
+      {
+        "id": "cybernetic-tactical-coprocessor.skill",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": [
+          "tactics"
+        ],
+        "label": "Tactical Coprocessor",
+        "value": 1,
+        "application": "automatic"
+      },
+      {
+        "id": "cybernetic-tactical-coprocessor.ar",
+        "type": "attackRatingMod",
+        "phase": "onAttackRatingResolved",
+        "selector": "intent.attack",
+        "label": "Tactical Coprocessor AR",
+        "value": 3,
+        "application": "automatic"
+      },
+      {
+        "id": "cybernetic-tactical-coprocessor.dr",
+        "type": "defenseRatingMod",
+        "phase": "onDefenseRatingResolved",
+        "selector": "defenseRating",
+        "label": "Tactical Coprocessor DR",
+        "value": 3,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!8a11e44a3730a780"
+}

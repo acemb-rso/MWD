@@ -1,0 +1,50 @@
+{
+  "_id": "be6f7e1757e4c501",
+  "name": "Paralysis Response Suppressor",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 100300000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-paralysis-response-suppressor"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Bonus to recover from Shaken/Stunned</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 0,
+    "bodySlot": "",
+    "category": "cognitive",
+    "relatedSkill": "composure",
+    "availability": "Rare",
+    "rulesHook": "Bonus to recover from Shaken/Stunned",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!be6f7e1757e4c501"
+}

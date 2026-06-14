@@ -1,0 +1,55 @@
+{
+  "_id": "b76f9afbd80e401b",
+  "name": "Cybernetic Tool Hand",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 102100000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-cybernetic-tool-hand"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Integrated toolset; counts as basic toolkit for repair/technical work</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 1,
+    "bodySlot": "hand",
+    "category": "replacement",
+    "relatedSkill": "technician",
+    "availability": "Uncommon",
+    "rulesHook": "Integrated toolset; counts as basic toolkit for repair/technical work",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "tools",
+      "repair",
+      "enhancement",
+      "load1",
+      "bodySlot:hand"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!b76f9afbd80e401b"
+}

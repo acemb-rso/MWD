@@ -1,0 +1,55 @@
+{
+  "_id": "278082cf7d20cf25",
+  "name": "Advanced Imaging Array",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 102400000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-advanced-imaging-array"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Ultrasound, Lidar, IR, rangefinder; ignores environment penalties</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 5,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 2,
+    "bodySlot": "eye",
+    "category": "sensory",
+    "relatedSkill": "perception",
+    "availability": "Very Rare",
+    "rulesHook": "Ultrasound, Lidar, IR, rangefinder; ignores environment penalties",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "sensory",
+      "optical",
+      "enhancement",
+      "load2",
+      "bodySlot:eye"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!278082cf7d20cf25"
+}

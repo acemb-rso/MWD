@@ -113,6 +113,7 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/inactive.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/references.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/gear-main.hbs`,
+  `systems/${SYSTEM_NAME}/templates/v2/item/parts/gear-cybernetic-traits.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/consumable-main.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/asset-module-main.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/item/parts/skill-main.hbs`,

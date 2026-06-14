@@ -107,11 +107,23 @@ How it fits: Shared by the character inventory section partials.
 
     <div class="mwd-record__actions">
       {{#if supportsEquip}}
+        {{#unless record.suppressEquip}}
+          <button type="button"
+                  class="mwd-record__icon-btn {{#if record.equipped}}is-on{{/if}}"
+                  data-action="toggleOwnedItemEquipped"
+                  title="{{#if record.equipped}}Unequip{{else}}Equip{{/if}}">
+            <i class="fas {{#if record.equipped}}fa-check-circle{{else}}fa-circle{{/if}}"></i>
+          </button>
+        {{/unless}}
+      {{/if}}
+
+      {{#if record.supportsCyberneticActivation}}
         <button type="button"
-                class="mwd-record__icon-btn {{#if record.equipped}}is-on{{/if}}"
-                data-action="toggleOwnedItemEquipped"
-                title="{{#if record.equipped}}Unequip{{else}}Equip{{/if}}">
-          <i class="fas {{#if record.equipped}}fa-check-circle{{else}}fa-circle{{/if}}"></i>
+                class="mwd-record__icon-btn {{#if record.cyberneticActive}}is-on{{/if}}"
+                data-action="toggleCyberneticActive"
+                title="{{#if record.cyberneticActive}}Deactivate cybernetic{{else}}Activate cybernetic{{/if}}"
+                {{#unless record.cyberneticActivationReady}}disabled{{/unless}}>
+          <i class="fas {{#if record.cyberneticActive}}fa-toggle-on{{else}}fa-toggle-off{{/if}}"></i>
         </button>
       {{/if}}
 

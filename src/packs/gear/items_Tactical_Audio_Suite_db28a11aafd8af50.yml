@@ -1,0 +1,68 @@
+{
+  "_id": "db28a11aafd8af50",
+  "name": "Tactical Audio Suite",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 102600000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-tactical-audio-suite"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Audio filtering, amplification, recording, directional pickup; +1 dice pool bonus to Perception</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 1,
+    "bodySlot": "ear",
+    "category": "sensory",
+    "relatedSkill": "perception",
+    "availability": "Rare",
+    "rulesHook": "Audio filtering, amplification, recording, directional pickup; +1 dice pool bonus to Perception",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "sensory",
+      "audio",
+      "enhancement",
+      "load1",
+      "bodySlot:ear"
+    ],
+    "effects": [
+      {
+        "id": "cybernetic-tactical-audio-suite.skill",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": [
+          "perception"
+        ],
+        "label": "Tactical Audio Suite",
+        "value": 1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!db28a11aafd8af50"
+}

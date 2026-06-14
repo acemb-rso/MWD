@@ -672,7 +672,10 @@ export class PersonalCombatTracker {
   static _actorsMatch(left = null, right = null) {
     if (!left || !right) return false;
     const rightKeys = getActorIdentityKeys(right);
-    return Array.from(getActorIdentityKeys(left)).some(key => rightKeys.has(key));
+    for (const key of getActorIdentityKeys(left)) {
+      if (rightKeys.has(key)) return true;
+    }
+    return false;
   }
 
   static _findMachineCombatantForPilot(pilotActor, combat = game?.combat) {

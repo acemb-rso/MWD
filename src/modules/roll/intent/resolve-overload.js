@@ -5,7 +5,11 @@
 
 // modules/roll/intents/resolve-overload.js
 
-import { getTraitActiveEffectModifier } from "../../mwd/traits.js";
+import {
+  buildRollTraitFacts,
+  evaluateTraitPhase,
+  getTraitActiveEffectModifier,
+} from "../../mwd/traits.js";
 
 export async function resolveOverload({ actor }) {
 
@@ -19,6 +23,23 @@ export async function resolveOverload({ actor }) {
 
   const guts = Number(actor.system?.attributes?.guts?.value ?? 0);
   const dnMod = getTraitActiveEffectModifier(actor, "overloadDNMod");
+  const baseDn = Math.max(0, burn - (threshold - 1) + dnMod);
+  const packet = { dn: baseDn };
+  const traitRuntime = {
+    snapshot: globalThis.game?.mwd?.personalCombat?.getSnapshot?.(actor) ?? null,
+  };
+  const dnPhase = evaluateTraitPhase({
+    actor,
+    phase: "onBuildRoll",
+    facts: buildRollTraitFacts({
+      actor,
+      resolved: { intent: "overload", domains: ["mental"] },
+      payload: { intent: "overload" },
+      runtime: traitRuntime,
+    }),
+    packet,
+    options: { runtime: traitRuntime, consumeUsage: false },
+  });
 
   return {
     intent: "overload",
@@ -33,7 +54,7 @@ export async function resolveOverload({ actor }) {
     },
 
     difficulty: {
-      dn: Math.max(0, burn - (threshold - 1) + dnMod)
+      dn: Math.max(0, Number(dnPhase.packet.dn ?? baseDn) || 0)
     },
 
     breakdown: [

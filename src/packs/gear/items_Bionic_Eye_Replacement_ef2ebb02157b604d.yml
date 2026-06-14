@@ -1,0 +1,54 @@
+{
+  "_id": "ef2ebb02157b604d",
+  "name": "Bionic Eye Replacement",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 102200000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-bionic-eye-replacement"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Restores vision; can host one basic optical feature</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 0,
+    "bodySlot": "eye",
+    "category": "sensory",
+    "relatedSkill": "medTech",
+    "availability": "Uncommon",
+    "rulesHook": "Restores vision; can host one basic optical feature",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "sensory",
+      "restorative",
+      "load0",
+      "bodySlot:eye"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!ef2ebb02157b604d"
+}

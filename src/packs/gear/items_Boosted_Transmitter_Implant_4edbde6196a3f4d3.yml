@@ -1,0 +1,55 @@
+{
+  "_id": "4edbde6196a3f4d3",
+  "name": "Boosted Transmitter Implant",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 100500000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-boosted-transmitter-implant"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Improved signal reach and encryption; field communications aid</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 4,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 1,
+    "bodySlot": "head",
+    "category": "communication",
+    "relatedSkill": "systemOps",
+    "availability": "Restricted",
+    "rulesHook": "Improved signal reach and encryption; field communications aid",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "communications",
+      "transmitter",
+      "encryption",
+      "load1",
+      "bodySlot:head"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!4edbde6196a3f4d3"
+}

@@ -9,15 +9,15 @@ machine stealth model, not from this template.
   <div class="mwd-gmgadget__grid">
     <label class="mwd-gmgadget__field">
       <span class="mwd-gmgadget__field-label">Stealth Enabled</span>
-      <input type="checkbox" name="system.mwd.stealth.enabled" {{checked vehicleSheet.signature.enabled}} />
+      <input type="checkbox" name="system.mwd.stealth.enabled" data-edit-field="staged" {{checked vehicleSheet.signature.enabled}} />
     </label>
     <label class="mwd-gmgadget__field">
       <span class="mwd-gmgadget__field-label">Rating</span>
-      <input type="number" name="system.mwd.stealth.rating" value="{{vehicleSheet.signature.rating}}" min="0" max="3" step="1" />
+      <input type="number" name="system.mwd.stealth.rating" value="{{vehicleSheet.signature.rating}}" min="0" max="3" step="1" data-edit-field="staged" />
     </label>
     <label class="mwd-gmgadget__field">
       <span class="mwd-gmgadget__field-label">Mode</span>
-      <select name="system.mwd.stealth.mode">
+      <select name="system.mwd.stealth.mode" data-edit-field="staged">
         {{#each vehicleSheet.signature.modeOptions as |option|}}
           <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
         {{/each}}
@@ -25,7 +25,7 @@ machine stealth model, not from this template.
     </label>
     <label class="mwd-gmgadget__field">
       <span class="mwd-gmgadget__field-label">Detection Cap</span>
-      <select name="system.mwd.stealth.detectionCap">
+      <select name="system.mwd.stealth.detectionCap" data-edit-field="staged">
         <option value="" {{#unless vehicleSheet.signature.detectionCap}}selected{{/unless}}>None</option>
         <option value="contact" {{#if (eq vehicleSheet.signature.detectionCap "contact")}}selected{{/if}}>Contact</option>
         <option value="track" {{#if (eq vehicleSheet.signature.detectionCap "track")}}selected{{/if}}>Track</option>
@@ -33,7 +33,7 @@ machine stealth model, not from this template.
     </label>
     <label class="mwd-gmgadget__field">
       <span class="mwd-gmgadget__field-label">Signature</span>
-      <select name="system.mwd.stealth.signature">
+      <select name="system.mwd.stealth.signature" data-edit-field="staged">
         <option value="" {{#unless vehicleSheet.signature.signature}}selected{{/unless}}>Medium</option>
         <option value="low" {{#if (eq vehicleSheet.signature.signature "low")}}selected{{/if}}>Low</option>
         <option value="medium" {{#if (eq vehicleSheet.signature.signature "medium")}}selected{{/if}}>Medium</option>
@@ -43,7 +43,7 @@ machine stealth model, not from this template.
   </div>
   <label class="mwd-gmgadget__field">
     <span class="mwd-gmgadget__field-label">Notes</span>
-    <input type="text" name="system.mwd.stealth.notes" value="{{vehicleSheet.signature.notes}}" />
+    <input type="text" name="system.mwd.stealth.notes" value="{{vehicleSheet.signature.notes}}" data-edit-field="staged" />
   </label>
 {{else}}
   <section class="mwd-item-hero">

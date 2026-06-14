@@ -90,13 +90,13 @@ export class Migration {
   async migrate() { return () => { } };
 
   async applyItemsUpdates(computeUpdates) {
-    await game.actors.forEach(async (actor) => {
+    for (const actor of game.actors) {
       const actorItemUpdates = computeUpdates(actor.items);
       if (actorItemUpdates.length > 0) {
         console.log(this.code, `Applying updates on actor ${actor.name} items`, actorItemUpdates);
         await actor.updateEmbeddedDocuments('Item', actorItemUpdates);
       }
-    });
+    }
 
     const itemUpdates = computeUpdates(game.items);
     if (itemUpdates.length > 0) {
@@ -111,13 +111,13 @@ class _0_3_1_MigrationMoveWordsInObjects extends Migration {
   get code() { return 'move-words-in-objects'; }
 
   async migrate() {
-    game.actors.forEach(async actor => {
+    for (const actor of game.actors) {
       await actor.update({
         ['system.keywords']: this._createWordObject(actor.system.keywords),
         ['system.cues']: this._createWordObject(actor.system.cues),
         ['system.dispositions']: this._createWordObject(actor.system.dispositions),
       });
-    });
+    }
   }
 
   _createWordObject(current) {
@@ -176,7 +176,9 @@ class _0_5_0_MigrationBaseResistanceIsZero extends Migration {
   get code() { return 'base-resistance-is-zero'; }
 
   async migrate() {
-    game.actors.forEach(async actor => await actor.update(this._resistanceUpdates(actor)));
+    for (const actor of game.actors) {
+      await actor.update(this._resistanceUpdates(actor));
+    }
   }
 
   _resistanceUpdates(actor) {
@@ -290,13 +292,13 @@ class _11_1_12_MigrateBackWords extends Migration {
   get version() { return '11.1.12' }
   get code() { return 'migrate-back-words' }
   async migrate() {
-    game.actors.forEach(async actor => {
+    for (const actor of game.actors) {
       await actor.update({
         ['system.keywords']: this._migrateBackWords(actor.system.keywords),
         ['system.cues']: this._migrateBackWords(actor.system.cues),
         ['system.dispositions']: this._migrateBackWords(actor.system.dispositions),
       });
-    });
+    }
   }
 
   _migrateBackWords(current) {

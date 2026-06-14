@@ -1,0 +1,54 @@
+{
+  "_id": "1845e70b01e61eac",
+  "name": "Subdermal ID / Cred Chip",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 100600000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-subdermal-id-cred-chip"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Embedded identification, credential, or payment chip</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 1,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 0,
+    "bodySlot": "skin",
+    "category": "communication",
+    "relatedSkill": "computers",
+    "availability": "Common",
+    "rulesHook": "Embedded identification, credential, or payment chip",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "identity",
+      "credential",
+      "load0",
+      "bodySlot:skin"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!1845e70b01e61eac"
+}

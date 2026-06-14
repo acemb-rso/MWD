@@ -90,6 +90,9 @@ const PHASE_VALUES = new Set(TRAIT_PHASES.map(entry => entry.value));
 const COMPARATOR_VALUES = new Set(TRAIT_COMPARATORS.map(entry => entry.value));
 const EDGE_OPERATION_VALUES = new Set(TRAIT_EDGE_OPERATIONS.map(entry => entry.value));
 const APPLICATION_VALUES = new Set(TRAIT_EFFECT_APPLICATIONS.map(entry => entry.value));
+const CYBERNETIC_SUBTYPE = "cybernetic";
+const CYBERNETIC_ACTIVATIONS = new Set(["passive", "toggle"]);
+const CYBERNETIC_LOAD_MAX = 2;
 
 export const TRAIT_ACTIVE_EFFECT_PATHS = Object.freeze({
   speedMod: "system.traitMods.speedMod",
@@ -147,6 +150,22 @@ function normalizeStringArray(values = []) {
   return raw
     .map(entry => String(entry ?? "").trim())
     .filter(Boolean);
+}
+
+export function normalizeCyberneticTags(values = []) {
+  return normalizeStringArray(values);
+}
+
+export function parseCyberneticTagMetadata(tags = []) {
+  const normalizedTags = normalizeCyberneticTags(tags);
+  const loadTag = normalizedTags.find(tag => /^load\d+$/i.test(tag));
+  const bodySlotTag = normalizedTags.find(tag => /^bodySlot:/i.test(tag));
+  return {
+    load: loadTag ? Math.min(CYBERNETIC_LOAD_MAX, Math.max(0, Math.trunc(toNumber(loadTag.replace(/^load/i, ""), 0)))) : 0,
+    bodySlot: bodySlotTag ? toTrimmedString(bodySlotTag.split(":").slice(1).join(":")) : "",
+    hasActivateTag: normalizedTags.some(tag => tag.toLowerCase() === "activate"),
+    tags: normalizedTags,
+  };
 }
 
 function parseTypedValue(value) {
@@ -292,6 +311,78 @@ export function normalizeQualityTraitSystem(system = {}) {
   };
 }
 
+export function isCyberneticGearSystem(system = {}) {
+  const tags = normalizeCyberneticTags(system?.tags);
+  return toTrimmedString(system?.subtype).toLowerCase() === CYBERNETIC_SUBTYPE
+    || tags.some(tag => tag.toLowerCase() === CYBERNETIC_SUBTYPE);
+}
+
+export function normalizeCyberneticGearSystem(system = {}) {
+  const source = system && typeof system === "object" ? clone(system) : {};
+  const tagMeta = parseCyberneticTagMetadata(source.tags);
+  const activation = tagMeta.hasActivateTag
+    ? "toggle"
+    : CYBERNETIC_ACTIVATIONS.has(toTrimmedString(source.activation))
+      ? toTrimmedString(source.activation)
+      : "passive";
+  const loadFromSystem = source.load === undefined || source.load === null || source.load === ""
+    ? tagMeta.load
+    : toNumber(source.load, tagMeta.load);
+  return {
+    ...source,
+    subtype: CYBERNETIC_SUBTYPE,
+    equipped: source.equipped === true,
+    active: activation === "toggle" ? source.active === true : true,
+    activation,
+    load: Math.min(CYBERNETIC_LOAD_MAX, Math.max(0, Math.trunc(loadFromSystem))),
+    bodySlot: toTrimmedString(source.bodySlot, tagMeta.bodySlot),
+    tags: tagMeta.tags.some(tag => tag.toLowerCase() === CYBERNETIC_SUBTYPE)
+      ? tagMeta.tags
+      : [CYBERNETIC_SUBTYPE, ...tagMeta.tags],
+    effects: normalizeTraitEffects(source.effects),
+    prerequisites: normalizeTraitPrerequisites(source.prerequisites),
+    limits: normalizeTraitLimits(source.limits),
+  };
+}
+
+export function isCyberneticOnline(item) {
+  const system = item?.system ?? item ?? {};
+  return !system.inactive
+    && isCyberneticGearSystem(system)
+    && system.equipped === true
+    && (
+      toTrimmedString(system.activation) !== "toggle"
+      || system.active === true
+    );
+}
+
+function normalizeCyberneticTraitSystem(item) {
+  const system = normalizeCyberneticGearSystem(item?.system ?? {});
+  const effects = [...system.effects];
+  if (system.load > 0) {
+    effects.push({
+      id: "cybernetic-load",
+      type: "overloadDNMod",
+      phase: "onBuildRoll",
+      selector: "intent.overload",
+      label: `${item?.name ?? "Cybernetic"} Load`,
+      value: system.load,
+      min: null,
+      max: null,
+      pool: "",
+      operation: "adjustAmount",
+      application: "automatic",
+      defaultEnabled: false,
+      conditions: [],
+      limit: normalizeTraitLimits({}),
+    });
+  }
+  return {
+    ...system,
+    effects,
+  };
+}
+
 export function getTraitEditorConfig() {
   return {
     categories: [...QUALITY_CATEGORIES],
@@ -326,18 +417,29 @@ function defaultPhaseForEffect(type = "") {
     case "faCapMod": return "onActivationBudgetResolved";
     case "raCapMod": return "onActivationBudgetResolved";
     case "conditionPenaltyMod": return "onConditionPenaltyResolved";
+    case "overloadDNMod": return "onBuildRoll";
+    case "overloadThresholdMod": return "onBuildRoll";
     case "edgeEvent": return "onEdgeGain";
     default: return "onBuildRoll";
   }
 }
 
 function getItemTraits(actor) {
-  return Array.from(actor?.items ?? [])
+  const traits = Array.from(actor?.items ?? [])
     .filter(item => (item?.canonicalType ?? item?.type) === "quality")
     .map(item => ({
       item,
       system: normalizeQualityTraitSystem(item.system ?? {}),
     }));
+  const cybernetics = Array.from(actor?.items ?? [])
+    .filter(item => (item?.canonicalType ?? item?.type) === "gear")
+    .filter(item => isCyberneticGearSystem(item?.system ?? {}))
+    .filter(item => isCyberneticOnline(item))
+    .map(item => ({
+      item,
+      system: normalizeCyberneticTraitSystem(item),
+    }));
+  return traits.concat(cybernetics);
 }
 
 function mergeUsageLimits(itemLimits = {}, effectLimits = {}) {
@@ -353,7 +455,7 @@ function mergeUsageLimits(itemLimits = {}, effectLimits = {}) {
 function getRuntimeKeys(runtime = {}) {
   const combatId = toTrimmedString(runtime.combatId ?? runtime.combat?.id);
   const round = Math.max(0, Math.trunc(toNumber(runtime.round ?? runtime.combat?.round, 0)));
-  const sceneId = toTrimmedString(runtime.sceneId ?? canvas?.scene?.id);
+  const sceneId = toTrimmedString(runtime.sceneId ?? globalThis.canvas?.scene?.id);
   return {
     activationKey: toTrimmedString(runtime.activationKey),
     roundKey: combatId ? `${combatId}:${round}` : "",
@@ -557,6 +659,18 @@ function applyTraitEffect({ item, effect, phase, packet, result }) {
           : "totalPenalty";
       const field = track === "totalPenalty" ? "totalPenalty" : track;
       const delta = clampPacketNumber(packet, field, effect);
+      pushModifier(result.modifiers, item, effect, delta, phase);
+      return delta;
+    }
+    case "overloadDNMod": {
+      if (!Object.prototype.hasOwnProperty.call(packet, "dn")) return 0;
+      const delta = clampPacketNumber(packet, "dn", effect);
+      pushModifier(result.modifiers, item, effect, delta, phase);
+      return delta;
+    }
+    case "overloadThresholdMod": {
+      if (!Object.prototype.hasOwnProperty.call(packet, "threshold")) return 0;
+      const delta = clampPacketNumber(packet, "threshold", effect);
       pushModifier(result.modifiers, item, effect, delta, phase);
       return delta;
     }

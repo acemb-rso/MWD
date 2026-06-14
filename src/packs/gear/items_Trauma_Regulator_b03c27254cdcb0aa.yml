@@ -1,0 +1,54 @@
+{
+  "_id": "b03c27254cdcb0aa",
+  "name": "Trauma Regulator",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 101400000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-trauma-regulator"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Suppresses pain response; reduces physical penalties by 2. First Aid treatment DN +1.</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 5,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": false,
+    "activation": "toggle",
+    "load": 2,
+    "bodySlot": "neural",
+    "category": "physiological",
+    "relatedSkill": "medTech",
+    "availability": "Restricted",
+    "rulesHook": "Suppresses pain response; reduces physical penalties by 2. First Aid treatment DN +1.",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "painGate",
+      "activate",
+      "load2",
+      "bodySlot:neural"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!b03c27254cdcb0aa"
+}

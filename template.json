@@ -777,12 +777,25 @@
         ],
         "quantity": 1,
         "rating": 0,
+        "subtype": "",
+        "equipped": false,
+        "active": false,
+        "activation": "passive",
+        "load": 0,
+        "bodySlot": "",
         "category": "",
         "mount": {
           "mountedOnItemId": "",
           "mountType": ""
         },
-        "tags": []
+        "tags": [],
+        "effects": [],
+        "prerequisites": [],
+        "limits": {
+          "perActivation": 0,
+          "perRound": 0,
+          "perScene": 0
+        }
       },
     "consumable": {
       "templates": [

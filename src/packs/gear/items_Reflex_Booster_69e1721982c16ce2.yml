@@ -1,0 +1,54 @@
+{
+  "_id": "69e1721982c16ce2",
+  "name": "Reflex Booster",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 100200000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-reflex-booster"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Enhances reaction timing; may improve reaction/quick action workflows</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 5,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": false,
+    "activation": "toggle",
+    "load": 2,
+    "bodySlot": "neural",
+    "category": "cognitive",
+    "relatedSkill": "athletics",
+    "availability": "Restricted",
+    "rulesHook": "Enhances reaction timing; may improve reaction/quick action workflows",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "reflex",
+      "activate",
+      "load2",
+      "bodySlot:neural"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!69e1721982c16ce2"
+}

@@ -1,0 +1,54 @@
+{
+  "_id": "a9ce053638beffc8",
+  "name": "Cloned Replacement Limb",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 102000000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-cloned-replacement-limb"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Biological replacement; removes lost-limb issue; not EMP vulnerable</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 6,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 0,
+    "bodySlot": "limb",
+    "category": "replacement",
+    "relatedSkill": "medTech",
+    "availability": "Rare",
+    "rulesHook": "Biological replacement; removes lost-limb issue; not EMP vulnerable",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "clonal",
+      "restorative",
+      "load0",
+      "bodySlot:limb"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!a9ce053638beffc8"
+}

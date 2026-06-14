@@ -1,0 +1,67 @@
+{
+  "_id": "c2a85a441c61da06",
+  "name": "Advanced Prosthetic Limb",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 101800000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-advanced-prosthetic-limb"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Better-than-baseline limb; choose two physical skills to gain a +1 dice pool bonus</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 1,
+    "bodySlot": "limb",
+    "category": "replacement",
+    "relatedSkill": "medTech",
+    "availability": "Uncommon",
+    "rulesHook": "Better-than-baseline limb; choose two physical skills to gain a +1 dice pool bonus",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "prosthetic",
+      "enhancement",
+      "load1",
+      "bodySlot:limb"
+    ],
+    "effects": [
+      {
+        "id": "cybernetic-advanced-prosthetic-limb.skill",
+        "type": "rollMod",
+        "phase": "onBuildRoll",
+        "selector": "intent.skill",
+        "skillKeys": [
+          "medTech"
+        ],
+        "label": "Advanced Prosthetic Limb",
+        "value": 1,
+        "application": "automatic"
+      }
+    ],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!c2a85a441c61da06"
+}

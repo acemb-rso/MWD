@@ -1,0 +1,56 @@
+{
+  "_id": "38dd8b1d2b377648",
+  "name": "Buffered VDNI Implant",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 100900000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-buffered-vdni-implant"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Combat-grade machine interface; strong piloting/gunnery support, feedback risk</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 6,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 2,
+    "bodySlot": "",
+    "category": "interface",
+    "relatedSkill": "systemOps",
+    "availability": "Restricted",
+    "rulesHook": "Combat-grade machine interface; strong piloting/gunnery support, feedback risk",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "vdni",
+      "neural",
+      "machineInterface",
+      "enhancement",
+      "load2",
+      "feedbackRisk"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!38dd8b1d2b377648"
+}

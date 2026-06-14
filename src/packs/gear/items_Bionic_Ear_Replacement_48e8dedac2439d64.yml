@@ -1,0 +1,54 @@
+{
+  "_id": "48e8dedac2439d64",
+  "name": "Bionic Ear Replacement",
+  "type": "gear",
+  "img": "systems/mwd/img/default/Default_Cyberware.svg",
+  "effects": [],
+  "folder": null,
+  "sort": 102500000,
+  "flags": {
+    "mwd": {
+      "stableId": "cybernetic-bionic-ear-replacement"
+    }
+  },
+  "system": {
+    "sourceReference": "Cybernetic Gear",
+    "description": "<p>Restores hearing; can host one basic audio feature</p>",
+    "gmnotes": "",
+    "inactive": false,
+    "quantity": 1,
+    "rating": 3,
+    "subtype": "cybernetic",
+    "equipped": false,
+    "active": true,
+    "activation": "passive",
+    "load": 0,
+    "bodySlot": "ear",
+    "category": "sensory",
+    "relatedSkill": "perception",
+    "availability": "Uncommon",
+    "rulesHook": "Restores hearing; can host one basic audio feature",
+    "mount": {
+      "mountedOnItemId": "",
+      "mountType": ""
+    },
+    "tags": [
+      "cybernetic",
+      "sensory",
+      "restorative",
+      "load0",
+      "bodySlot:ear"
+    ],
+    "effects": [],
+    "prerequisites": [],
+    "limits": {
+      "perActivation": 0,
+      "perRound": 0,
+      "perScene": 0
+    }
+  },
+  "ownership": {
+    "default": 0
+  },
+  "_key": "!items!48e8dedac2439d64"
+}

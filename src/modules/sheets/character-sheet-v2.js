@@ -485,6 +485,11 @@ ctx.edgeConsole.poolsOrdered = order
       gearCategoryLabels: GEAR_CATEGORY_LABELS,
       consumableCategoryLabels: CONSUMABLE_CATEGORY_LABELS,
     });
+    ctx.mwd ??= {};
+    ctx.mwd.warnings ??= {};
+    ctx.mwd.warnings.cybernetics = {
+      bodySlots: ctx.personalInventory.cybernetics?.bodySlotWarnings ?? [],
+    };
 
     /* -------------------------------------------- */
     /* Bio                                          */

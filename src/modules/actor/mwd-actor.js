@@ -363,13 +363,17 @@ export class MWDActor extends Actor {
   async setOwnedItemEquipped(itemId, equipped) {
     const item = this.getOwnedItem(itemId);
     if (!item) return null;
-    if (!(item.isPersonalWeapon?.() || item.isArmor?.())) return null;
+    const isCyberneticGear = item.isGear?.() && item.system?.subtype === "cybernetic";
+    if (!(item.isPersonalWeapon?.() || item.isArmor?.() || isCyberneticGear)) return null;
 
-    return this.updateEmbeddedDocuments("Item", [{
+    const update = {
       _id: item.id,
       "system.equipped": Boolean(equipped),
-      "system.isPrimary": Boolean(equipped) ? Boolean(item.system?.isPrimary) : false
-    }]);
+    };
+    if (item.isPersonalWeapon?.() || item.isArmor?.()) {
+      update["system.isPrimary"] = Boolean(equipped) ? Boolean(item.system?.isPrimary) : false;
+    }
+    return this.updateEmbeddedDocuments("Item", [update]);
   }
 
   async setOwnedItemPrimary(itemId, isPrimary) {
