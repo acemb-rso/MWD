@@ -259,9 +259,7 @@ test("status modifiers use granular domains without double-counting broad aliase
   assert.deepEqual(hiddenAttack, []);
 
   const suppressedRanged = provider.collect({ actor: actor("character", ["suppressed"]), domains: ["physical", "attack.ranged"] });
-  assert.equal(suppressedRanged.length, 1);
-  assert.equal(suppressedRanged[0].value, -2);
-  assert.equal(suppressedRanged[0].domain, "attack.ranged");
+  assert.deepEqual(suppressedRanged, []);
 
   const blindedAcquire = provider.collect({ actor: actor("character", ["blinded"]), domains: ["mental", "sensor.acquire"] });
   assert.equal(blindedAcquire.length, 1);

@@ -335,6 +335,117 @@ test("roll, attack, reduce burn, and remove-log intents route through the centra
   }
 });
 
+test("suppression fire launches a region-backed automatic weapon attack and schedules unload", async () => {
+  const {
+    executeCombatActionIntent,
+    PersonalCombatTracker,
+  } = await importModules();
+  const actor = makeActor();
+  const weapon = {
+    id: "weapon-1",
+    uuid: "Actor.actor-1.Item.weapon-1",
+    type: "personalWeapon",
+    name: "Auto Rifle",
+    actor,
+    system: {
+      equipped: true,
+      selectedPayloadId: "standard",
+      selectedPayloadKey: "",
+      selectedPayloadUuid: "",
+      standardTraits: ["Automatic"],
+    },
+    isPersonalWeapon: () => true,
+    getCombatProfile: () => ({
+      effects: { flags: ["automatic"] },
+      payloadState: { activePayloadId: "standard" },
+    }),
+  };
+  actor.items = [weapon];
+
+  const snapshot = makeSnapshot();
+  const original = {
+    rollExecute: game.mwd.roll.execute,
+    getSnapshot: PersonalCombatTracker.getSnapshot,
+    spendResource: PersonalCombatTracker.spendResource,
+    scheduleSuppressionUnload: PersonalCombatTracker.scheduleSuppressionUnload,
+  };
+  const payloads = [];
+  const spends = [];
+  const scheduled = [];
+
+  game.mwd.roll.execute = async ({ payload }) => {
+    payloads.push(payload);
+    return { total: 8 };
+  };
+  PersonalCombatTracker.getSnapshot = () => snapshot;
+  PersonalCombatTracker.spendResource = async (_actor, request) => {
+    spends.push(request);
+    return { ok: true, costPaid: true, costLabel: request.actionCostLabel ?? "", snapshot };
+  };
+  PersonalCombatTracker.scheduleSuppressionUnload = async (_actor, request) => {
+    scheduled.push(request);
+    return { ok: true };
+  };
+  queueDialog({ weaponId: "weapon-1", shape: "line", size: "12" });
+
+  try {
+    const result = await executeCombatActionIntent({ actor, payload: { intent: "combatAction", actionId: "suppressionFire" } });
+
+    assert.equal(result.ok, true);
+    assert.equal(payloads[0]?.suppressionFire?.active, true);
+    assert.deepEqual(payloads[0]?.suppressionFire?.template, { shape: "line", size: 12, placement: "origin" });
+    assert.equal(payloads[0]?.weaponId, "weapon-1");
+    assert.equal(spends[0]?.actionId, "suppressionFire");
+    assert.equal(spends[0]?.cost, 2);
+    assert.deepEqual(scheduled[0], { token: null, weaponId: "weapon-1", weaponName: "Auto Rifle" });
+  } finally {
+    game.mwd.roll.execute = original.rollExecute;
+    PersonalCombatTracker.getSnapshot = original.getSnapshot;
+    PersonalCombatTracker.spendResource = original.spendResource;
+    PersonalCombatTracker.scheduleSuppressionUnload = original.scheduleSuppressionUnload;
+  }
+});
+
+test("suppressed actors cannot aim or prepare and clear suppression by moving", async () => {
+  const {
+    executeCombatActionIntent,
+    PersonalCombatTracker,
+  } = await importModules();
+  const actor = makeActor();
+  actor.statuses = new Set(["suppressed"]);
+  let suppressedActive = true;
+  actor.toggleStatusEffect = async (statusId, { active } = {}) => {
+    if (statusId === "suppressed") suppressedActive = Boolean(active);
+  };
+  const snapshot = makeSnapshot();
+  const original = {
+    getSnapshot: PersonalCombatTracker.getSnapshot,
+    spendResource: PersonalCombatTracker.spendResource,
+    applyActionState: PersonalCombatTracker._applyActionState,
+  };
+
+  PersonalCombatTracker.getSnapshot = () => snapshot;
+  PersonalCombatTracker.spendResource = async (_actor, request) => ({ ok: true, costPaid: true, costLabel: request.actionCostLabel ?? "", snapshot });
+  PersonalCombatTracker._applyActionState = async () => ({ ok: true });
+
+  try {
+    const aim = await executeCombatActionIntent({ actor, payload: { intent: "combatAction", actionId: "aim" } });
+    const prepare = await executeCombatActionIntent({ actor, payload: { intent: "combatAction", actionId: "prepare" } });
+    const move = await executeCombatActionIntent({ actor, payload: { intent: "combatAction", actionId: "move" } });
+
+    assert.equal(aim.ok, false);
+    assert.match(aim.reason, /Suppressed/);
+    assert.equal(prepare.ok, false);
+    assert.match(prepare.reason, /Suppressed/);
+    assert.equal(move.ok, true);
+    assert.equal(suppressedActive, false);
+  } finally {
+    PersonalCombatTracker.getSnapshot = original.getSnapshot;
+    PersonalCombatTracker.spendResource = original.spendResource;
+    PersonalCombatTracker._applyActionState = original.applyActionState;
+  }
+});
+
 test("cancelling a personal skill roll does not spend action economy", async () => {
   const {
     executeCombatActionIntent,

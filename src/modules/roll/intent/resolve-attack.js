@@ -384,7 +384,7 @@ export async function resolveAttack({ actor, payload } = {}) {
     diceModifier: Number(machineFireControl?.diceModifier ?? 0) || 0,
     targetNumberModifier: Number(machineFireControl?.targetNumberModifier ?? 0) || 0,
   });
-  const effectiveWeapon = {
+  let effectiveWeapon = {
     ...weapon,
     clusteringDice: clusteringProfile.dice,
     clusteringTargetNumber: clusteringProfile.targetNumber,
@@ -398,6 +398,36 @@ export async function resolveAttack({ actor, payload } = {}) {
       sourceLabel: String(machineFireControl?.sourceLabel ?? "").trim(),
     },
   };
+  if (payload?.suppressionFire?.active) {
+    const suppressionTemplate = payload.suppressionFire.template ?? {};
+    effectiveWeapon = {
+      ...effectiveWeapon,
+      damage: 0,
+      template: {
+        shape: String(suppressionTemplate.shape ?? "cone").trim() || "cone",
+        size: Math.max(1, Number(suppressionTemplate.size ?? 10) || 10),
+        placement: String(suppressionTemplate.placement ?? "origin").trim() || "origin",
+      },
+      resolution: {
+        ...(effectiveWeapon.resolution ?? {}),
+        resolverKey: "template",
+        damageModel: "suppression",
+      },
+      resolverKey: "template",
+      capabilityReport: {
+        ...(effectiveWeapon.capabilityReport ?? {}),
+        errors: [],
+        liveCapabilities: ["templated"],
+        isTemplated: true,
+        template: {
+          shape: String(suppressionTemplate.shape ?? "cone").trim() || "cone",
+          size: Math.max(1, Number(suppressionTemplate.size ?? 10) || 10),
+          placement: String(suppressionTemplate.placement ?? "origin").trim() || "origin",
+        },
+      },
+      suppressionFire: true,
+    };
+  }
   if (isMachineActor(actor)) {
     const restriction = getMachineAttackRestriction(actor, {
       weaponGroupId: payload?.weaponGroupId,
@@ -656,6 +686,7 @@ export async function resolveAttack({ actor, payload } = {}) {
       template: effectiveWeapon?.template ?? null,
       areaEffect,
       damageScaling,
+      suppressionFire: Boolean(payload?.suppressionFire?.active),
       templateGeometry: payload?.templateGeometry ?? null,
       templatePlacement: payload?.templatePlacement ?? null,
       resolution: effectiveWeapon?.resolution ?? null,

@@ -44,9 +44,7 @@ export const STATUS_MAP = {
 
   suppressed: {
     label: "Suppressed",
-    mods: [
-      { domains: ["combat", "attack", "attack.ranged", "attack.melee"], value: -2 }
-    ]
+    mods: []
   },
 
   grappled: {

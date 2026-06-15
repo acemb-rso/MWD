@@ -84,6 +84,7 @@ function defaultState(activation = null, budgets = {}) {
     },
     hazards: {},
     pendingReaction: null,
+    pendingSuppressionUnloads: [],
     machineCritsProcessed: false,
     actionLog: [],
     activation
@@ -259,6 +260,9 @@ function nextActivationState(stored = null, activation = null, actor = null, run
   state.reactionBurnSinceLastActivation = Math.max(0, Number(stored?.reactionBurnSinceLastActivation ?? 0) || 0);
   state.actionLog = filterReactionActionLog(stored?.actionLog);
   state.hazards = normalizeHazardStates(stored?.hazards);
+  state.pendingSuppressionUnloads = Array.isArray(stored?.pendingSuppressionUnloads)
+    ? foundry.utils.deepClone(stored.pendingSuppressionUnloads)
+    : [];
   return state;
 }
 
@@ -295,6 +299,19 @@ function getActionImplementationReason(action = {}) {
   if (state === "ready" || state === "legacy") return "";
   return String(action?.implementation?.reason ?? action?.reason ?? "That action is not implemented yet.").trim()
     || "That action is not implemented yet.";
+}
+
+function actorHasAutomaticPersonalWeapon(actor = null) {
+  const collection = actor?.items ?? [];
+  const items = typeof collection.values === "function"
+    ? Array.from(collection.values())
+    : Array.from(collection);
+  return items.some(item => {
+    if (!(item?.isPersonalWeapon?.() ?? item?.type === "personalWeapon")) return false;
+    if (item?.system?.equipped === false) return false;
+    const flags = item?.getCombatProfile?.()?.effects?.flags;
+    return Array.isArray(flags) && flags.some(flag => String(flag ?? "").trim() === "automatic");
+  });
 }
 
 function mergeActionState(state = {}, actionId = "", { snapshot = null, metadata = {} } = {}) {
@@ -594,6 +611,7 @@ export class PersonalCombatTracker {
     await this.ensureCurrentCombatantState();
     await this.syncPreparedIndicators();
     await this._syncAllSceneHazards();
+    await this._processCurrentCombatantSuppressionUnloads();
     await this._processCurrentCombatantMachineCrits();
     if (game.combat?.id) {
       this._lastActivationByCombat.set(
@@ -1351,6 +1369,80 @@ export class PersonalCombatTracker {
     return { ok: true, snapshot: this.getSnapshot(actor, { token }) };
   }
 
+  static async scheduleSuppressionUnload(actor, { token = null, weaponId = "", weaponName = "" } = {}) {
+    const normalizedWeaponId = String(weaponId ?? "").trim();
+    if (!actor || !normalizedWeaponId) return { ok: false, reason: "Suppression unload requires a weapon." };
+
+    return this.updateCombatantState(actor, {
+      token,
+      mutate: state => {
+        const pending = Array.isArray(state.pendingSuppressionUnloads)
+          ? state.pendingSuppressionUnloads
+          : [];
+        state.pendingSuppressionUnloads = pending
+          .filter(entry => String(entry?.weaponId ?? "").trim() !== normalizedWeaponId);
+        state.pendingSuppressionUnloads.push({
+          weaponId: normalizedWeaponId,
+          weaponName: String(weaponName ?? "").trim(),
+        });
+        return state;
+      }
+    });
+  }
+
+  static async _processCurrentCombatantSuppressionUnloads(combat = game.combat) {
+    const combatant = combat?.combatant ?? null;
+    const tokenDoc = this._getCombatantTokenDocument(combatant, combat?.scene?.id ?? canvas?.scene?.id);
+    const actor = tokenDoc?.actor ?? combatant?.actor ?? null;
+    if (!combatant || !actor) return;
+
+    const snapshot = this.getSnapshot(actor, { token: tokenDoc });
+    const pending = Array.isArray(snapshot?.state?.pendingSuppressionUnloads)
+      ? snapshot.state.pendingSuppressionUnloads
+      : [];
+    if (!snapshot?.hasCombatant || !snapshot?.isCurrentTurn || !pending.length) return;
+
+    const unloaded = [];
+    for (const entry of pending) {
+      const weaponId = String(entry?.weaponId ?? "").trim();
+      if (!weaponId) continue;
+      const weapon = actor.items?.get?.(weaponId) ?? null;
+      if (!weapon) continue;
+
+      if (typeof weapon.setActivePayload === "function") {
+        await weapon.setActivePayload("unloaded");
+      } else if (typeof weapon.update === "function") {
+        await weapon.update({
+          "system.selectedPayloadId": "unloaded",
+          "system.selectedPayloadUuid": "",
+          "system.selectedPayloadKey": "",
+        });
+      }
+      unloaded.push(String(entry?.weaponName ?? weapon.name ?? "Weapon").trim() || "Weapon");
+    }
+
+    await this.updateCombatantState(actor, {
+      token: tokenDoc,
+      mutate: state => {
+        state.pendingSuppressionUnloads = [];
+        return state;
+      }
+    });
+
+    if (unloaded.length) {
+      const content = [
+        `<div class="mwd-gm-notice">`,
+        `<strong>${foundry.utils.escapeHTML(actor.name ?? "Attacker")} - Suppression Fire</strong>`,
+        `<p>${foundry.utils.escapeHTML(unloaded.join(", "))} becomes unloaded at the start of this activation.</p>`,
+        `</div>`,
+      ].join("");
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor, token: tokenDoc }),
+        content,
+      });
+    }
+  }
+
   // Move actions feed both the "Aim after moving" gate and the personal attack
   // DN (attacker/target motion). Each Move action logs one entry, so the log
   // count is the authoritative tally for this activation.
@@ -1663,6 +1755,9 @@ export class PersonalCombatTracker {
         || notTurnReason
         || overloadedReason
         || (saCapacityRemaining < cost ? "Activation SA cap reached." : "");
+      if (!reason && action.id === "suppressionFire" && !actorHasAutomaticPersonalWeapon(actor)) {
+        reason = "Requires an equipped personal weapon with the Automatic trait.";
+      }
     } else if (category === PERSONAL_ACTION_CATEGORIES.free) {
       const usesFreeAction = Number(state.faRemaining ?? 0) > 0;
       resource = usesFreeAction ? "fa" : "sa";
@@ -1685,6 +1780,9 @@ export class PersonalCombatTracker {
     }
 
     reason = getActionImplementationReason(action) || reason;
+    if (!reason && (action.id === "aim" || action.id === "prepare") && actor?.statuses?.has?.("suppressed")) {
+      reason = "Suppressed actors cannot Aim or Prepare.";
+    }
     reason = reason || getPersonalActionGateReason(actor, action);
 
     return {
@@ -2617,6 +2715,7 @@ export class PersonalCombatTracker {
       await this.reconcileOperatedCombatants(combat);
       await this.syncDestroyedMachineDefeatedCombatants(combat);
       await this.ensureCurrentCombatantState();
+      await this._processCurrentCombatantSuppressionUnloads(combat);
       await this._processCurrentCombatantHazards(combat);
       await this._processCurrentCombatantMachineCrits(combat);
       if (combat?.id) {

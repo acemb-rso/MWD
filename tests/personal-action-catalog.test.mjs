@@ -89,6 +89,19 @@ test("personal action catalog backfill appends missing defaults without duplicat
   assert.ok(once.some(action => action.id === "selectPayload"));
 });
 
+test("suppression fire is a ready complex attack action", async () => {
+  const {
+    getPersonalAction,
+  } = await import("../src/modules/combat/personal-action-catalog.js");
+
+  const action = getPersonalAction("suppressionFire");
+  assert.equal(action?.implementation?.state, "ready");
+  assert.equal(action?.category, "complex");
+  assert.deepEqual(action?.cost, { resource: "sa", value: 2 });
+  assert.equal(action?.resolver, "attack");
+  assert.deepEqual(action?.prompt, { type: "weapon", required: true });
+});
+
 test("personal action catalog retires removed defaults and migrates renamed actions", async () => {
   const {
     mergePersonalActionCatalogDefaults,

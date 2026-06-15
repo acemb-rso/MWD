@@ -85,6 +85,45 @@ export function enhanceAttack(resolved, vm) {
     title: ""
   });
 
+  if (r?.attack?.suppressionFire) {
+    const shapeLabel = startCase(r?.attack?.template?.shape ?? "template");
+    vm.header.left = "Suppression Fire";
+    vm.header.right = shapeLabel;
+    vm.outcomeText = `SUPPRESSION FIRE - ${shapeLabel.toUpperCase()}`;
+    vm.metaRows.push({ text: "Targets:", title: "" });
+    vm.targetRows = targetResults.map((result, index) => {
+      const pending = Boolean(result?.suppression?.pending && !result?.suppression?.applied);
+      return {
+        targetName: result?.target?.name ?? "Target",
+        applied: Boolean(result?.suppression?.applied),
+        outcomeLabel: String(result?.outcome ?? "miss").toUpperCase(),
+        effectKey: "Effect",
+        exposureLabel: `${startCase(result?.outcome ?? "miss")} -> ${result?.suppression?.effectLabel ?? "No effect"}`,
+        resultKey: "Status",
+        damageLabel: result?.suppression?.applied
+          ? "Applied"
+          : (pending ? "Pending" : "No effect"),
+        reactionHint: "",
+        rowActions: pending ? [{
+          action: "applySuppression",
+          label: "Apply",
+          dataset: { "result-index": String(index) },
+          cssClass: "mwd-target-row__action mwd-apply-suppression"
+        }] : []
+      };
+    });
+
+    const pendingCount = targetResults.filter(result => result?.suppression?.pending && !result?.suppression?.applied).length;
+    if (pendingCount > 0) {
+      vm.actions.push({
+        action: "applyAllSuppression",
+        label: `Apply All (${pendingCount})`,
+        cssClass: "mwd-apply-all-suppression"
+      });
+    }
+    return;
+  }
+
   if (isAreaEffect) {
     vm.targetRows = targetResults.map((result, index) => {
       const previewState = r?.areaEffectPreviewState?.[result?.previewKey] ?? {};
@@ -141,9 +180,11 @@ export function enhanceAttack(resolved, vm) {
         exposureLabel: initialExposure === finalExposure
           ? initialExposure
           : `${initialExposure} -> ${finalExposure}`,
-        damageLabel: damageBefore === damageAfter
-          ? String(damageAfter)
-          : `${damageBefore} -> ${damageAfter}`,
+        damageLabel: result?.suppression
+          ? (result.suppression.applied ? "Suppressed" : "No effect")
+          : (damageBefore === damageAfter
+            ? String(damageAfter)
+            : `${damageBefore} -> ${damageAfter}`),
         reactionHint: result?.evadeActive
           ? (previewState?.edgePoolKey
             ? "Evade active. Reaction Burn canceled by Edge."

@@ -18,6 +18,7 @@ import {
 } from "../area-effects/hazard-chat.js";
 import { buildMachineCriticalChatSummary } from "../mwd/machine-crit-effects.js";
 import { applyFirstAidRecovery } from "../mwd/first-aid.js";
+import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 
 export function registerMWDChatActions() {
   Hooks.on("renderChatMessageHTML", (message, htmlElement) => {
@@ -40,6 +41,8 @@ export function registerMWDChatActions() {
       if (action === "machineCritRemedy") void onMachineCritRemedy(ev, message);
       if (action === "applyAttackDamage") void onApplyAttackDamage(ev, message);
       if (action === "applyAllAttackDamage") void onApplyAllAttackDamage(ev, message);
+      if (action === "applySuppression") void onApplySuppression(ev, message);
+      if (action === "applyAllSuppression") void onApplyAllSuppression(ev, message);
       if (action === "applyFirstAid") void onApplyFirstAid(ev, message);
     });
   });
@@ -676,6 +679,74 @@ async function onApplyAllAttackDamage(ev, message) {
   if (result.failures?.length) {
     ui.notifications?.warn?.(`Applied ${result.applied} queued damage result${result.applied === 1 ? "" : "s"}; ${result.failures.length} failed.`);
   }
+}
+
+async function applySuppressionResult(resolved, resultIndex) {
+  const results = Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [];
+  const result = results[resultIndex] ?? null;
+  if (!result?.suppression?.pending || result?.suppression?.applied) return { ok: false, reason: "No pending suppression effect." };
+
+  const targetActor = result?.target?.actorUuid ? await fromUuid(result.target.actorUuid) : null;
+  if (!targetActor) return { ok: false, reason: "Unable to resolve suppression target." };
+
+  const applied = await applyManagedStatusUpdate({
+    actor: targetActor,
+    statusId: result.suppression.statusId ?? "suppressed",
+    active: true,
+    metadata: result.suppression.metadata ?? { source: "suppressionFire" },
+  });
+
+  result.suppression.applied = Boolean(applied);
+  result.suppression.pending = !applied;
+  return { ok: Boolean(applied), result, targetActor };
+}
+
+async function rerenderResolvedMessage(message, resolved) {
+  const htmlContent = await renderChat({ resolved });
+  await message.update({
+    content: htmlContent,
+    "flags.mwd.resolved": resolved
+  });
+}
+
+async function onApplySuppression(ev, message) {
+  ev.preventDefault();
+
+  const btn = ev.target.closest("[data-mwd-action='applySuppression']");
+  const resultIndex = Number(btn?.dataset?.resultIndex);
+  if (!Number.isInteger(resultIndex) || resultIndex < 0) return;
+
+  const resolved = foundry.utils.deepClone(message?.getFlag?.("mwd", "resolved") ?? message?.flags?.mwd?.resolved);
+  if (!resolved) return;
+
+  const result = await applySuppressionResult(resolved, resultIndex);
+  if (!result.ok) {
+    ui.notifications?.warn?.(result.reason ?? "Unable to apply suppression.");
+    return;
+  }
+
+  await rerenderResolvedMessage(message, resolved);
+}
+
+async function onApplyAllSuppression(ev, message) {
+  ev.preventDefault();
+
+  const resolved = foundry.utils.deepClone(message?.getFlag?.("mwd", "resolved") ?? message?.flags?.mwd?.resolved);
+  if (!resolved) return;
+
+  const results = Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [];
+  let applied = 0;
+  for (let index = 0; index < results.length; index += 1) {
+    const result = await applySuppressionResult(resolved, index);
+    if (result.ok) applied += 1;
+  }
+
+  if (!applied) {
+    ui.notifications?.info?.("No pending suppression effects.");
+    return;
+  }
+
+  await rerenderResolvedMessage(message, resolved);
 }
 
 async function onToggleMachineChaosCrit(ev, message) {

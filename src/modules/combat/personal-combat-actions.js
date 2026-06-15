@@ -8,7 +8,7 @@ import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 import { executeFirstAidCombatAction } from "../mwd/first-aid.js";
 import { getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
 import { listSkillDefs } from "../mwd/skills.js";
-import { launchOwnedWeaponAttack } from "../roll/weapon-attack-actions.js";
+import { launchOwnedWeaponAttack, launchSuppressionFire } from "../roll/weapon-attack-actions.js";
 import {
   getPersonalAction,
   PERSONAL_ACTION_CATEGORIES,
@@ -162,7 +162,11 @@ function getActionLabel(action = {}, metadata = {}) {
 }
 
 function getOwnedItems(actor = null, predicate = () => true) {
-  return Array.from(actor?.items ?? []).filter(item => {
+  const collection = actor?.items ?? [];
+  const items = typeof collection.values === "function"
+    ? Array.from(collection.values())
+    : Array.from(collection);
+  return items.filter(item => {
     try {
       return predicate(item);
     } catch (_error) {
@@ -176,6 +180,27 @@ function getPersonalWeapons(actor = null) {
     item?.type === TEMPLATE.itemType.personalWeapon
     || item?.isPersonalWeapon?.()
   );
+}
+
+function isAutomaticWeapon(weapon = null) {
+  const profile = weapon?.getCombatProfile?.() ?? null;
+  const flags = Array.isArray(profile?.effects?.flags) ? profile.effects.flags : [];
+  if (flags.map(flag => String(flag ?? "").trim()).includes("automatic")) return true;
+
+  const traits = [
+    ...(Array.isArray(weapon?.system?.standardTraits) ? weapon.system.standardTraits : []),
+    ...(Array.isArray(weapon?.system?.traits) ? weapon.system.traits : []),
+  ];
+  return traits.some(trait => {
+    const value = typeof trait === "string" ? trait : (trait?.key ?? trait?.label);
+    return String(value ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "") === "automatic";
+  });
+}
+
+function getAutomaticPersonalWeapons(actor = null) {
+  return getPersonalWeapons(actor)
+    .filter(weapon => weapon?.system?.equipped !== false)
+    .filter(isAutomaticWeapon);
 }
 
 function getWeaponPayloadChoices(weapon = null) {
@@ -286,6 +311,58 @@ async function promptWeapon(action, actor) {
   if (!result) return null;
   const weapon = weapons.find(item => item.id === result.weaponId) ?? null;
   return weapon ? { weapon, weaponId: weapon.id, weaponName: weapon.name } : { ok: false, reason: "Selected weapon could not be found." };
+}
+
+async function promptSuppressionFire(action, actor) {
+  const weapons = getAutomaticPersonalWeapons(actor);
+  if (!weapons.length) {
+    return { ok: false, reason: "Suppression Fire requires an equipped personal weapon with the Automatic trait." };
+  }
+
+  const weaponOptions = weapons
+    .map(weapon => `<option value="${escapeHtml(weapon.id)}">${escapeHtml(weapon.name ?? "Weapon")}</option>`)
+    .join("");
+  const content = `
+    <form class="mwd-quick-select">
+      <div class="mwd-field">
+        <label>Weapon</label>
+        <select name="weaponId">${weaponOptions}</select>
+      </div>
+      <div class="mwd-field">
+        <label>Template</label>
+        <select name="shape">
+          <option value="cone">Cone</option>
+          <option value="ray">Line</option>
+        </select>
+      </div>
+      <div class="mwd-field">
+        <label>Size</label>
+        <input type="number" name="size" value="10" min="1" step="1" />
+      </div>
+    </form>`;
+  const result = await promptWithHtml({
+    title: action.label,
+    content,
+    submitLabel: "Suppress",
+    callback: form => ({
+      weaponId: readFormValue(form, "weaponId"),
+      shape: readFormValue(form, "shape") || "cone",
+      size: Math.max(1, Number(readFormValue(form, "size")) || 10),
+    })
+  });
+  if (!result) return null;
+  const weapon = weapons.find(item => item.id === result.weaponId) ?? null;
+  if (!weapon) return { ok: false, reason: "Selected automatic weapon could not be found." };
+  return {
+    weapon,
+    weaponId: weapon.id,
+    weaponName: weapon.name,
+    suppressionTemplate: {
+      shape: result.shape === "ray" || result.shape === "line" ? "line" : "cone",
+      size: result.size,
+      placement: "origin",
+    },
+  };
 }
 
 async function promptPayload(action, actor) {
@@ -430,6 +507,7 @@ async function confirmInterrupt(action, snapshot) {
 
 async function resolvePrompt(action, actor, snapshot) {
   if (["firstAid", "evade", "reduceBurn", "recoverBurn"].includes(action.id)) return {};
+  if (action.id === "suppressionFire") return promptSuppressionFire(action, actor);
   if (action.id === "prepare") return promptPrepare(action);
   if (action.id === "assist") return promptAssistTarget(action, snapshot);
   if (action.id === "interrupt") return confirmInterrupt(action, snapshot);
@@ -485,6 +563,9 @@ function getCommonGateReason(action, actor, snapshot, effectiveCost) {
   }
   if (action.id === "aim" && PersonalCombatTracker.getMoveActionCountFromState?.(snapshot.state) > 0) {
     return "Cannot aim after taking a move action this activation.";
+  }
+  if ((action.id === "aim" || action.id === "prepare") && actor?.statuses?.has?.("suppressed")) {
+    return "Suppressed actors cannot Aim or Prepare.";
   }
   if (effectiveCost.resource === "sa" && getSaCapacityRemaining(actor, snapshot) < effectiveCost.value) {
     return "Activation SA cap reached.";
@@ -544,6 +625,16 @@ async function executeAttackResolver(actor, { action, token = null, metadata = {
   if (action.id === "opportunity") {
     const gateState = getPersonalCriticalGateState(actor);
     if (gateState.cannotReact) return { ok: false, reason: `Disabled (${gateState.reactionReason})` };
+  }
+  if (action.id === "suppressionFire") {
+    if (!metadata.weapon) return { ok: false, reason: "Choose an automatic weapon for Suppression Fire." };
+    const value = await launchSuppressionFire({
+      weapon: metadata.weapon,
+      token,
+      event,
+      template: metadata.suppressionTemplate,
+    });
+    return { ok: Boolean(value), rolled: Boolean(value), value };
   }
   if (metadata.weapon) {
     const value = await launchOwnedWeaponAttack({ weapon: metadata.weapon, token, event });
@@ -614,6 +705,14 @@ async function executeMovementResolver(actor, { action } = {}) {
     if (!actor?.statuses?.has?.("prone")) return { ok: false, reason: "Prone is not active." };
     await applyManagedStatusUpdate({ actor, statusId: "prone", active: false, metadata: { source: action.id } });
     return { ok: true, stateChanges: [{ type: "status", statusId: "prone", active: false }] };
+  }
+  if ((action.id === "move" || action.id === "carefulMove") && actor?.statuses?.has?.("suppressed")) {
+    await applyManagedStatusUpdate({ actor, statusId: "suppressed", active: false, metadata: { source: action.id } });
+    return {
+      ok: true,
+      stateChanges: [{ type: "status", statusId: "suppressed", active: false }],
+      log: { title: action.label, message: "Repositioned and cleared Suppressed." },
+    };
   }
   return { ok: true };
 }
@@ -737,7 +836,7 @@ export async function executeCombatActionIntent({ actor, token = null, payload =
   const gateReason = getCommonGateReason(action, actor, snapshot, effectiveCost);
   if (gateReason) return { ok: false, reason: gateReason, actionId: action.id, costPaid: false, rolled: false, stateChanges: [] };
 
-  if (["attack", "firstAid", "evade", "reduceBurn"].includes(action.id)) {
+  if (["attack", "suppressionFire", "firstAid", "evade", "reduceBurn"].includes(action.id)) {
     const result = await executeResolver(actor, { action, token, metadata, event });
     if (action.id === "attack" && result?.ok && !metadata.weapon) {
       const spend = action.category === PERSONAL_ACTION_CATEGORIES.reaction

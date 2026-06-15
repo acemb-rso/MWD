@@ -114,11 +114,11 @@ How it fits: Used by rendering code to produce UI fragments.
             <div class="mwd-roll-card__target-outcome">{{row.outcomeLabel}}</div>
           </header>
           <div class="mwd-roll-card__line">
-            <span class="k">Exposure</span>
+            <span class="k">{{#if row.effectKey}}{{row.effectKey}}{{else}}Exposure{{/if}}</span>
             <span class="v">{{row.exposureLabel}}</span>
           </div>
           <div class="mwd-roll-card__line">
-            <span class="k">Damage</span>
+            <span class="k">{{#if row.resultKey}}{{row.resultKey}}{{else}}Damage{{/if}}</span>
             <span class="v">{{row.damageLabel}}</span>
           </div>
           {{#if row.reactionHint}}

@@ -165,11 +165,27 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
     });
   }
 
+  if (attacker?.statuses?.has?.("suppressed")) {
+    arParts.push({
+      id: "status.suppressed.attackRating",
+      label: "Suppressed",
+      value: -2,
+    });
+  }
+
   drParts.push({
     id: "target.armorDefense",
     label: "Armor Defense",
     value: armorDefense
   });
+
+  if (targetActor?.statuses?.has?.("suppressed")) {
+    drParts.push({
+      id: "status.suppressed.defenseRating",
+      label: "Suppressed",
+      value: -2,
+    });
+  }
 
   if (isMachineActor(attacker)) {
     const attackerAdjustments = getMachineAttackCqAdjustments(attacker, {
@@ -696,6 +712,40 @@ async function resolveTargetAttack({ attacker, ctx, outcomeModel, target, previe
   const netHits = outcome === "hit" ? Math.max(0, rawNetHits) : 0;
   const attack = ctx?.attack ?? {};
   const previewKey = getTargetPreviewKey(target);
+  if (attack?.suppressionFire) {
+    const suppresses = outcome === "hit" || outcome === "graze";
+
+    return {
+      target: {
+        name: target?.name ?? "Target",
+        actorUuid: target?.actorUuid ?? null,
+        tokenUuid: target?.tokenUuid ?? null
+      },
+      previewKey,
+      exposure: target?.exposure ?? createExposureData({ tier: "none" }),
+      evadeActive: false,
+      evadeEdgePoolKey: null,
+      cq,
+      margin,
+      rawNetHits,
+      netHits,
+      outcome,
+      suppression: {
+        statusId: "suppressed",
+        pending: suppresses,
+        applied: false,
+        effectLabel: suppresses ? "Suppressed" : "No effect",
+        metadata: {
+          source: "suppressionFire",
+          attackerUuid: attacker?.uuid ?? "",
+          weaponName: attack?.weapon?.name ?? "",
+        },
+      },
+      damage: null,
+      damageResult: null,
+      queuedMutation: null
+    };
+  }
   const targetPreview = previewState?.[previewKey] ?? {};
   const currentExposure = target?.exposure ?? createExposureData({ tier: "none" });
   const damage = await buildDamageSnapshot({

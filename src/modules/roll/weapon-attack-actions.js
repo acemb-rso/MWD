@@ -28,11 +28,39 @@ function buildAttackPayload(weapon, token = null) {
   return { payload, hasAim };
 }
 
+function buildSuppressionPayload(weapon, token = null, template = {}) {
+  const normalizedShape = String(template?.shape ?? "cone").trim().toLowerCase();
+  const payload = {
+    intent: "attack",
+    weaponId: weapon?.id ?? "",
+    payloadId: weapon?.system?.selectedPayloadKey || weapon?.system?.selectedPayloadUuid || weapon?.system?.selectedPayloadId || "",
+    edge: { pool: "physical.grit", allowed: ["pre", "post"] },
+    tags: ["combat", "attack", "suppression"],
+    sourceTokenId: token?.id ?? null,
+    suppressionFire: {
+      active: true,
+      template: {
+        shape: normalizedShape === "ray" ? "line" : normalizedShape,
+        size: Math.max(1, Number(template?.size ?? 10) || 10),
+        placement: String(template?.placement ?? "origin").trim() || "origin",
+      },
+    },
+  };
+
+  return { payload };
+}
+
 function getAttackToken(actor, token = null) {
   return token
     ?? actor?.token
     ?? PersonalCombatTracker.getCurrentSceneTokenDocument(actor)
     ?? null;
+}
+
+function isAutomaticWeaponProfile(weapon = null) {
+  const profile = weapon?.getCombatProfile?.() ?? null;
+  const flags = Array.isArray(profile?.effects?.flags) ? profile.effects.flags : [];
+  return flags.some(flag => String(flag ?? "").trim() === "automatic");
 }
 
 export function getOwnedWeaponAttackDragData(weapon) {
@@ -97,6 +125,66 @@ export async function launchOwnedWeaponAttack({ weapon, event = null, token = nu
   } catch (error) {
     console.error("MWD | Failed to launch weapon attack", error);
     notifyRollError(error, "Unable to attack with that weapon.");
+    return null;
+  }
+}
+
+export async function launchSuppressionFire({ weapon, event = null, token = null, template = {} } = {}) {
+  try {
+    if (!weapon?.isPersonalWeapon?.()) {
+      throw new Error("Suppression Fire requires an owned personal weapon.");
+    }
+
+    const actor = weapon.actor ?? null;
+    if (!actor) {
+      throw new Error("Suppression Fire requires an owned personal weapon.");
+    }
+    const gateReason = getWeaponAttackGateReason(actor, weapon);
+    if (gateReason) {
+      ui.notifications?.warn(gateReason);
+      return null;
+    }
+    if (!isAutomaticWeaponProfile(weapon)) {
+      ui.notifications?.warn("Suppression Fire requires a weapon with the Automatic trait.");
+      return null;
+    }
+
+    const attackToken = getAttackToken(actor, token);
+    const { payload } = buildSuppressionPayload(weapon, attackToken, template);
+    const rollApi = game.mwd?.roll ?? game.system?.mwd?.roll;
+    if (!rollApi?.execute) {
+      throw new Error("MWD roll system not initialized.");
+    }
+
+    const result = await rollApi.execute({ actor, payload, event });
+    if (result) {
+      const snapshot = PersonalCombatTracker.getSnapshot(actor, { token: attackToken });
+      if (snapshot?.hasCombatant) {
+        const spend = await PersonalCombatTracker.spendResource(actor, {
+          token: attackToken,
+          resource: "sa",
+          cost: 2,
+          actionId: "suppressionFire",
+          actionLabel: "Suppression Fire",
+          actionCostLabel: "2 SA",
+          actionCategory: "complex"
+        });
+
+        if (!spend?.ok) {
+          ui.notifications?.warn(spend?.reason ?? "Unable to record Suppression Fire action.");
+        } else {
+          await PersonalCombatTracker.scheduleSuppressionUnload(actor, {
+            token: attackToken,
+            weaponId: weapon.id,
+            weaponName: weapon.name,
+          });
+        }
+      }
+    }
+    return result;
+  } catch (error) {
+    console.error("MWD | Failed to launch suppression fire", error);
+    notifyRollError(error, "Unable to use Suppression Fire with that weapon.");
     return null;
   }
 }
@@ -168,6 +256,7 @@ export const WeaponAttackActions = {
   HOTBAR_ATTACK_TYPE,
   getOwnedWeaponAttackDragData,
   launchOwnedWeaponAttack,
+  launchSuppressionFire,
   attackWeaponByUuid,
   handleWeaponAttackHotbarDrop,
   registerWeaponAttackHotbarHook

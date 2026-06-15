@@ -81,12 +81,10 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/actor/battlemech-sheet.hbs`,
 
   // Placeholders
-  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/assigned-systems.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-gear.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-consumables.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-armor.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/inventory-weapons.hbs`,
-  `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-description.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-traits.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/placeholders/bio-life-modules.hbs`,
   `systems/${SYSTEM_NAME}/templates/v2/ui/actor/field-grid.hbs`,
