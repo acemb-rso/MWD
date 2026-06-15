@@ -1,10 +1,11 @@
-// src/modules/sheets/battlemech-sheet-v2.js
-// Purpose: Layout-driven flagship BattleMech sheet built on the reusable vehicle V2 sheet patterns.
-// How it fits: Surfaces prepared BattleMech data through semantic context and V2-native action wiring.
+﻿// src/modules/sheets/battlemech-sheet-v2.js
+// Purpose: Player-facing BattleMech sheet for loadout, heat, movement, and quick actions.
+// Workflow: actor preparation -> this sheet assembles BattleMech view models ->
+// template rendering and V2 action handlers dispatch user intent to services.
 
-import { MWD } from "../config.js";
-import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../constants.js";
-import { Misc } from "../misc.js";
+import { MWD } from "../core/config.js";
+import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../core/constants.js";
+import { Misc } from "../utils/misc.js";
 import { notifyRollError } from "../roll/roll-errors.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { buildCombatAwarenessPreview } from "../combat/combat-awareness-preview.js";
@@ -58,6 +59,8 @@ function compactList(values = []) {
 
 
 function buildSummaryStats(stats = []) {
+  // Normalize the mixed summary stat shapes used by inherited vehicle sections
+  // and BattleMech-only hero bar parts into one template-friendly array.
   return stats
     .map(stat => {
       const data = stat ?? {};
@@ -162,6 +165,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   }, { inplace: false });
 
   async _prepareContext(options) {
+    // Layer BattleMech-specific view models onto the base vehicle context. The
+    // sheet renders prepared data and delegates state changes to action services.
     const ctx = await super._prepareContext(options);
     const actor = this.getPersistentActor() ?? this.actor;
     const token = this.getSheetTokenDocument?.() ?? this._resolveStatusToken(actor);
@@ -182,6 +187,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   }
 
   _onRender(context, options) {
+    // V2 action handlers cover button clicks; these form controls need explicit
+    // listeners because they edit embedded array-like state.
     super._onRender(context, options);
     const root = this._getRootElement();
     if (!root) return;
@@ -238,6 +245,8 @@ export class BattlemechSheetV2 extends VehicleSheetV2 {
   }
 
   _buildChassisFields() {
+    // Chassis fields are compact editable rows for the sheet sidebar. They keep
+    // labels/options close to config while values come from actor system data.
     const tonnage = toNumber(this.actor.system?.mwd?.tonnage, 0);
     const weightClass = this.actor.system?.mwd?.weightClass ?? "medium";
     const weightClassLabels = MWD.mwd.weightClass;

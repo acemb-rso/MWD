@@ -1,9 +1,9 @@
-// src/modules/mwd/machine-crit-consequences.js
+﻿// src/modules/mwd/machine-crit-consequences.js
 // Purpose: Shared machine-critical consequence metadata and weapon-group scoping.
-// How it fits: Keeps crit consequence normalization dependency-free so engine,
-// chat, sheets, and crit storage can all share one authority.
+// Workflow: raw crit-table signal/location -> normalized consequence record ->
+// storage, chat summaries, and runtime crit effects use the same scoped data.
 
-import { startCase } from "../constants.js";
+import { startCase } from "../core/constants.js";
 import { getMachineHardpointByItemId } from "./machine-hardpoints.js";
 import {
   isMachineEnergyDamageFamily,
@@ -19,6 +19,8 @@ export function normalizeMachineCritId(value = "") {
 }
 
 export function normalizeMachineMountLocationFamily(value = "") {
+  // Critical tables and hardpoints use different location vocabularies. Fold
+  // them into broad families before choosing a scoped weapon group.
   const normalized = String(value ?? "").trim().toLowerCase();
   if (!normalized) return "";
   if (["head", "cockpit"].includes(normalized)) return "head";
@@ -80,6 +82,8 @@ function groupMatchesLocationFamily(group = {}, actor = null, locationFamily = "
 }
 
 export function resolveMachineCriticalWeaponScope(actor = null, { statusId = "", locationFamily = "" } = {}) {
+  // Weapon-scoped criticals need a deterministic target even when the rolled
+  // location has no matching group; prefer same-family mounts, then first legal.
   const groups = getConfiguredMachineWeaponGroups(actor);
   if (!groups.length) {
     return {
@@ -124,6 +128,8 @@ export function getMachineCritStatusLabel(crit = {}) {
 }
 
 export function getMachineCritEffectText(crit = {}) {
+  // Stored records may carry explicit text; otherwise derive stable rules text
+  // from key/status so old crit records can still render useful summaries.
   const explicit = String(crit?.effectText ?? "").trim();
   if (explicit) return explicit;
 
@@ -174,6 +180,8 @@ export function getMachineCritScopeSummary(crit = {}) {
 }
 
 export function buildMachineCriticalConsequenceData(actor = null, signal = {}, location = {}) {
+  // Converts a raw critical-table signal into the persisted consequence fields.
+  // This is where weapon failures gain group ids and automation mode.
   const key = String(signal?.key ?? "").trim();
   const statusId = String(signal?.statusId ?? "").trim();
   const scoped = ["weaponFailure", "jammedBallistic"].includes(statusId)

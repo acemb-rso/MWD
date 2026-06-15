@@ -1,5 +1,7 @@
 // src/modules/mwd/machine-ew-state.js
-// Combatant-flag read/write for machine targeting state.
+// Purpose: Combatant-flag read/write for machine targeting state.
+// Workflow: EW roll outcomes -> this module mutates combatant targeting flags ->
+// attack prep and EW panels read normalized contact/track/lock packet state.
 // This is the only module permitted to access combatant.flags.mwd.targeting.
 
 import { DETECTION_STATE_ORDER, getTargetingDataCap } from "./machine-ew.js";
@@ -82,6 +84,8 @@ function deleteExpandedObjectPath(target = {}, path = "") {
 }
 
 function setObjectPath(target = {}, path = "", value = null) {
+  // Token UUIDs contain dots, so writes use the full UUID as an object key after
+  // clearing any older expanded-path shape from legacy saves.
   const key = normalizeTargetUuid(path);
   if (!key) return target;
   deleteExpandedObjectPath(target, key);
@@ -174,6 +178,8 @@ function chooseLegacyPacket(rawPackets = []) {
 }
 
 export function normalizeTargetingState(raw) {
+  // Canonical state stores one packet, but legacy saves may have an array. Keep
+  // the newest/highest packet as the single active targetingData source.
   const detectionState = DETECTION_STATE_ORDER.includes(raw?.detectionState) ? raw.detectionState : "blind";
   const packet = chooseCanonicalPacket(raw?.packet) ?? chooseLegacyPacket(raw?.packets);
   return {
@@ -230,12 +236,16 @@ export function getDetectionState(combatant, targetTokenUuid) {
 }
 
 export function getEffectiveDetectionState(combatant, targetTokenUuid, targetActor = null) {
+  // TAG/NARC are hard lock bypasses: the attacker may not own a normal lock
+  // packet, but targeting should still behave as locked.
   const statuses = targetActor?.statuses ?? new Set();
   if (statuses.has("tagged") || statuses.has("narced")) return "lock";
   return getDetectionState(combatant, targetTokenUuid);
 }
 
 export function getTrackingPenalty(targetActor, targetCombatant, options = {}) {
+  // Tracking penalty is an aggregate of target statuses, stealth modules,
+  // movement state, and Battle Armor context. Attack code consumes only the sum.
   let penalty = 0;
   const statuses = targetActor?.statuses ?? new Set();
   const derivedStatuses = getAssetModuleDerivedStatuses(targetActor);
@@ -294,6 +304,8 @@ export function getAcquireCeiling(targetActor, options = {}) {
 }
 
 export function getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, detectionState, currentRound) {
+  // A packet is usable only at Track/Lock, before expiry, under the current cap,
+  // and after any module/state adjustments have had a chance to clamp it.
   const beforeContext = { combatant, targetTokenUuid, systemAttr, detectionState, currentRound };
   dispatchAssetModuleHook(ASSET_MODULE_HOOKS.ew.beforeAttackTargeting, beforeContext);
   if (detectionState !== "track" && detectionState !== "lock") return null;

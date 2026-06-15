@@ -3,9 +3,9 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { ANARCHY } from "./config.js";
-import { Icons } from "./icons.js";
-import { formatString } from "./strings.js";
+import { ANARCHY } from "../core/config.js";
+import { Icons } from "../utils/icons.js";
+import { formatString } from "../utils/strings.js";
 
 export class ConfirmationDialog {
 

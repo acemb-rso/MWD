@@ -4,13 +4,13 @@
 
 
 // handlebars-manager.js
-import { Damage } from "./damage.js";
-import { Enums } from "./enums.js";
-import { Grammar } from "./grammar.js";
-import { Icons } from "./icons.js";
-import { WeaponItem } from "./item/weapon-item.js";
-import { Misc } from "./misc.js";
-import { LOG_HEAD } from "./constants.js";
+import { Damage } from "../utils/damage.js";
+import { Enums } from "../core/enums.js";
+import { Grammar } from "../utils/grammar.js";
+import { Icons } from "../utils/icons.js";
+import { WeaponItem } from "../item/weapon-item.js";
+import { Misc } from "../utils/misc.js";
+import { LOG_HEAD } from "../core/constants.js";
 
 /** DND5E-style dataset helper */
 function dataset(object) {

@@ -1,8 +1,8 @@
-// src/modules/item/item-type-utils.js
+﻿// src/modules/item/item-type-utils.js
 // Purpose: Pure helpers for item-type normalization and create-time defaults.
 // How it fits: Keeps legacy type shims in one place so runtime code can branch on canonical keys only.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 
 // Legacy worlds may still contain Anarchy-era item types. We accept them as
 // migration inputs, but the rest of the runtime should normalize immediately.

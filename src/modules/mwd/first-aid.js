@@ -1,7 +1,7 @@
-// src/modules/mwd/first-aid.js
+﻿// src/modules/mwd/first-aid.js
 // Purpose: Shared First Aid setup, recovery math, and monitor application helpers.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { HarmEngine } from "../harm/harm-engine.js";
 

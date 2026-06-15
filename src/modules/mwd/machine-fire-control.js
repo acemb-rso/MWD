@@ -1,9 +1,9 @@
-// src/modules/mwd/machine-fire-control.js
+﻿// src/modules/mwd/machine-fire-control.js
 // Purpose: Derives machine fire-control bonuses from installed asset modules.
-// How it fits: Lets upgrade-authored targeting bonuses feed the attack engine
-// without hardcoding Artemis-style behavior into sheets.
+// Workflow: ready asset modules/effect packets -> clustering/fire-control model
+// -> machine attack profile construction adjusts clustered damage rolls.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import {
   getAssetModuleClusteringProfile as getLegacyAssetModuleClusteringProfile,
   getAssetModuleState,
@@ -38,6 +38,8 @@ function buildDisabledClusteringState() {
 }
 
 export function buildMachineFireControlModel(source = {}, context = {}) {
+  // Combine legacy module profiles and newer effect-provider profiles into the
+  // clustering shape consumed by attack resolution.
   const actorType = getActorType(source);
   if (
     actorType

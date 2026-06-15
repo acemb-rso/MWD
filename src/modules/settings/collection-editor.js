@@ -1,8 +1,8 @@
-// src/modules/settings/collection-editor.js
+﻿// src/modules/settings/collection-editor.js
 // Purpose: Defines reusable FormApplication-based editors for settings collections.
 // How it fits: Used by system settings registration to provide structured submenu editors.
 
-import { SYSTEM_NAME } from "../constants.js";
+import { SYSTEM_NAME } from "../core/constants.js";
 
 const TEMPLATE_PATH = `systems/${SYSTEM_NAME}/templates/settings/collection-editor.hbs`;
 const SETTINGS_COLLECTION_DEFINITIONS = new Map();

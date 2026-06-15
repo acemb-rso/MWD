@@ -1,9 +1,9 @@
-// src/modules/item/lifemodule-item-sheet.js
+﻿// src/modules/item/lifemodule-item-sheet.js
 // Purpose: Provides the catalog-driven UI for life module items.
 // How it fits: Lets owned actor life modules reference canonical catalog definitions and chosen skill bonuses.
 
 import { BaseItemSheet } from "./base-item-sheet.js";
-import { TEMPLATES_PATH } from "../constants.js";
+import { TEMPLATES_PATH } from "../core/constants.js";
 import {
   describeLifeModuleChoice,
   evaluateActorLifeModules,

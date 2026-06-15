@@ -1,6 +1,7 @@
 // src/modules/mwd/machine-monitors.js
 // Purpose: Shared machine monitor normalization helpers.
-// How it fits: Keeps vehicle/BattleMech monitor semantics independent from personal armor rules.
+// Workflow: actor monitor storage -> remaining-capacity monitor state and
+// migration updates -> sheets, token bars, and damage apply agree on values.
 
 function toFiniteNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -17,6 +18,8 @@ function normalizeByType(byType = {}) {
 }
 
 export function normalizeMachineMonitorResistance(resistance = {}) {
+  // Machine monitors do not inherit the personal-scale default resistance.
+  // Only explicitly typed resistance should affect vehicle/BattleMech damage.
   return {
     default: 0,
     byType: normalizeByType(resistance?.byType),
@@ -37,6 +40,8 @@ export function clampMonitorValue(value, max = 0) {
 }
 
 export function getMachineMonitorState(actor = null, monitorKey = "") {
+  // Public monitor state uses value as remaining capacity. damageTaken is
+  // derived for older UI pieces that still talk in damage-pip terms.
   const monitor = actor?.system?.monitors?.[monitorKey] ?? {};
   const max = Math.max(0, toFiniteNumber(monitor.max, 0));
   const remaining = clampMonitorValue(monitor.value, max);
@@ -50,6 +55,8 @@ export function getMachineMonitorState(actor = null, monitorKey = "") {
 }
 
 export function getDepletingMachineMonitorClickValue(currentValue = 0, pipValue = 0) {
+  // Clicking a filled pip clears it and every higher pip; clicking the current
+  // edge pip steps down by one so depleting tracks feel natural on the sheet.
   const current = Math.max(0, toFiniteNumber(currentValue, 0));
   const pip = Math.max(0, toFiniteNumber(pipValue, 0));
   return current === pip ? Math.max(0, pip - 1) : pip;
@@ -61,6 +68,8 @@ export function isMachineActorType(actorOrType = null) {
 }
 
 export function collectMachineMonitorRemainingStorageUpdates(actor = null) {
+  // Build a single migration update object and let the caller decide when to
+  // write. This keeps actor prep and sheet rendering side-effect free.
   if (!isMachineActorType(actor)) return null;
 
   const currentFlag = actor?.getFlag?.("mwd", MACHINE_MONITOR_STORAGE_FLAG)

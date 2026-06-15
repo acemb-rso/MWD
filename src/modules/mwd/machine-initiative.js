@@ -1,8 +1,9 @@
-// src/modules/mwd/machine-initiative.js
+﻿// src/modules/mwd/machine-initiative.js
 // Purpose: Resolves vehicle-scale initiative components.
-// How it fits: Keeps machine initiative tied to the machine's best control attribute plus its pilot's reflexes.
+// Workflow: combat initiative roll asks for machine context -> best machine
+// control attribute plus pilot Reflexes -> tracker receives total initiative bonus.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -18,6 +19,8 @@ export function isMachineActor(actor) {
 }
 
 export function resolveMachineInitiativeComponents({ machineActor = null, pilotActor = null } = {}) {
+  // Machine initiative uses the better machine control attribute plus pilot
+  // Reflexes, keeping pilot skill relevant without duplicating machine stats.
   const handling = getAttributeValue(machineActor, TEMPLATE.actorAttributes.handling);
   const system = getAttributeValue(machineActor, TEMPLATE.actorAttributes.system);
   const pilotReflexes = Math.max(0, toNumber(

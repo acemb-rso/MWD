@@ -1,9 +1,9 @@
-// src/modules/status/status-condition-catalog.js
+﻿// src/modules/status/status-condition-catalog.js
 // Purpose: Actor-aware condition catalog for token statuses.
 // How it fits: Keeps status availability declarative while Foundry ActiveEffects
 // remain the storage and token-indicator layer.
 
-import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
+import { SYSTEM_NAME, TEMPLATE } from "../core/constants.js";
 import { STATUS_MAP } from "../roll/config/status-modifiers.js";
 
 export const SETTING_STATUS_CONDITION_CATALOG = "statusConditionCatalog";

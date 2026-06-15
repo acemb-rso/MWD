@@ -1,14 +1,14 @@
-// src/modules/common/checkbars.js
+﻿// src/modules/common/checkbars.js
 // Purpose: Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { ErrorManager } from "../error-manager.js";
-import { ANARCHY } from "../config.js";
-import { AnarchyUsers } from "../users.js";
-import { Icons } from "../icons.js";
-import { TEMPLATE, THIRD_PARTY_STYLE_PATH } from "../constants.js";
-import { formatString } from "../strings.js";
+import { ErrorManager } from "../system/error-manager.js";
+import { ANARCHY } from "../core/config.js";
+import { AnarchyUsers } from "../system/users.js";
+import { Icons } from "../utils/icons.js";
+import { TEMPLATE, THIRD_PARTY_STYLE_PATH } from "../core/constants.js";
+import { formatString } from "../utils/strings.js";
 
 const MONITORS = ANARCHY.actor.monitors;
 const COUNTERS = ANARCHY.actor.counters;

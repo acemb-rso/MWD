@@ -1,10 +1,10 @@
-// src/modules/roll/dice.js
+﻿// src/modules/roll/dice.js
 // Purpose: Registers Foundry hooks: diceSoNiceReady, ready. References legacy Anarchy system behavior.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { ANARCHY } from "../config.js";
-import { SYSTEM_DESCRIPTION, SYSTEM_NAME, THIRD_PARTY_STYLE_PATH } from "../constants.js";
+import { ANARCHY } from "../core/config.js";
+import { SYSTEM_DESCRIPTION, SYSTEM_NAME, THIRD_PARTY_STYLE_PATH } from "../core/constants.js";
 
 export const GLITCH_COLORSET = 'glitch';
 export const RISK_COLORSET = 'risk';

@@ -1,8 +1,8 @@
-// src/modules/player/player-gadget-subjects.js
+﻿// src/modules/player/player-gadget-subjects.js
 // Purpose: Resolves the active personal-scale subject for the Player Gadget.
 // How it fits: Keeps ownership, token, and fallback selection out of the gadget AppV2 class.
 
-import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
+import { SYSTEM_NAME, TEMPLATE } from "../core/constants.js";
 
 export const SETTING_PLAYER_GADGET_SUBJECT = "playerGadgetRememberedSubject";
 

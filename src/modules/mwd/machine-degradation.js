@@ -1,9 +1,9 @@
-// src/modules/mwd/machine-degradation.js
+﻿// src/modules/mwd/machine-degradation.js
 // Purpose: Central machine degradation state and resolution helpers.
-// How it fits: Keeps machine stress/shock/reliability logic deterministic and
-// testable outside Foundry sheet or chat workflows.
+// Workflow: machine damage preview/apply -> stress, shock, reliability, and
+// location state updates -> crit/status systems consume normalized consequences.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 
 export const MACHINE_CONDITION_STAGES = Object.freeze({
   intact: 0,
@@ -118,6 +118,8 @@ function getConditionStage(value = 0) {
 }
 
 function ensureLocationState(source = {}, defaults = {}) {
+  // Degradation locations are persisted as durable machine state, so normalize
+  // authored partials and legacy records into the full condition/stress shape.
   return {
     enabled: source?.enabled !== undefined ? Boolean(source.enabled) : Boolean(defaults.enabled),
     stress: Math.max(0, toNumber(source?.stress ?? defaults?.stress, 0)),
@@ -128,6 +130,8 @@ function ensureLocationState(source = {}, defaults = {}) {
 }
 
 function mergeLegacyMechLocations(locations = {}) {
+  // Older BattleMech data used side-specific limbs and torso sections. The MWD
+  // machine rules now operate on four broad locations, so fold them together.
   const groups = {
     head: ["head"],
     torso: ["torso", "torsoFront", "torsoRear", "core"],
@@ -167,6 +171,8 @@ function mergeLegacyMechLocations(locations = {}) {
 }
 
 function mergeLegacyVehicleLocations(locations = {}) {
+  // Vehicle saves may still contain directional armor locations. Collapse those
+  // into body/turret/mobility so degradation and critical tables share keys.
   const groups = {
     body: ["body", "core", "front"],
     turret: ["turret"],
@@ -205,6 +211,8 @@ function mergeLegacyVehicleLocations(locations = {}) {
 }
 
 function normalizeLocations(locations = {}, actorType = TEMPLATE.actorTypes.vehicle) {
+  // Always include the default locations for the actor type, then preserve any
+  // custom locations after they have been put into the same normalized shape.
   const defaults = getDefaultLocationConfig(actorType);
   const sourceLocations = actorType === TEMPLATE.actorTypes.battlemech
     ? mergeLegacyMechLocations(locations ?? {})

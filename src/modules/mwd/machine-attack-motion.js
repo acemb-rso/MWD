@@ -1,13 +1,16 @@
-// src/modules/mwd/machine-attack-motion.js
+﻿// src/modules/mwd/machine-attack-motion.js
 // Purpose: Machine attack motion and tracking rules.
-// How it fits: Resolves target movement declarations into DN and dice modifiers.
+// Workflow: combatant movement flags or attack payload overrides -> motion DN
+// and tracking dice packet -> machine attack resolver applies final modifiers.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { applyMachineMovementPenalty, normalizeMachineMovement } from "./machine-movement.js";
 import { getMachineMovementEffects } from "./machine-state-effects.js";
 
 export const METERS_PER_HEX = 30;
 
+// Target movement has two independent attack impacts:
+// action count raises the attack DN, while actual speed produces tracking dice.
 export const TARGET_MOTION_DN_BY_ACTIONS = Object.freeze({
   stationary: 0,
   moved1: 1,
@@ -31,6 +34,8 @@ export const TARGET_MOTION_LABELS = Object.freeze({
   moved3Plus: "Moved 3+",
 });
 
+// Combat action-state stores the movement action id; attack resolution needs
+// the coarser motion bucket used by the tabletop targeting table.
 const TARGET_MOTION_BY_MOVEMENT_KIND = Object.freeze({
   walk: "moved1",
   fly: "moved1",
@@ -84,6 +89,8 @@ function getCombatantPersonalCombatState(combatant = null) {
 }
 
 export function getKnownTargetMotionFromCombatant(combatant = null, { combat = globalThis.game?.combat } = {}) {
+  // Only trust tracker motion from the active round so a stale combatant flag
+  // cannot keep taxing future attacks after the tracker advances.
   const move = getCombatantPersonalCombatState(combatant)?.actionState?.move ?? null;
   if (!move || typeof move !== "object" || move.moved === false) return null;
 
@@ -113,6 +120,8 @@ export function getHighestNonJumpMovementSpeed(actor = null) {
 }
 
 export function normalizeMachineMotionPayload(payload = {}, { targetCombatant = null } = {}) {
+  // Explicit payload values win over tracker-derived state. Chat cards and
+  // rerolls can therefore replay the same declared motion even if combat moved on.
   const source = payload?.machineMotion && typeof payload.machineMotion === "object"
     ? payload.machineMotion
     : {};
@@ -137,6 +146,8 @@ export function buildMachineAttackMotionContext({
   payload = {},
   suppressAttackerMotion = false,
 } = {}) {
+  // This is the complete motion packet consumed by attack resolvers and sheet
+  // previews: DN modifiers, speed-derived tracking dice, and the display labels.
   const declaration = normalizeMachineMotionPayload(payload, { targetCombatant });
   const source = payload?.machineMotion && typeof payload.machineMotion === "object"
     ? payload.machineMotion

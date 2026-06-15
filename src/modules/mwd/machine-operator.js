@@ -1,6 +1,7 @@
 // src/modules/mwd/machine-operator.js
-// Purpose: Resolves the actor who pays for machine critical remediation or Chaos conversion.
-// How it fits: Machines do not own Edge/action pools; the operator/pilot does.
+// Purpose: Resolves the actor who pays for machine actions and repairs.
+// Workflow: machine action/remedy requests -> explicit operator or pilot lookup
+// -> action economy, Edge, and roll pools charge the resolved personal actor.
 
 async function resolveActorUuid(uuid = "") {
   const value = String(uuid ?? "").trim();
@@ -16,6 +17,8 @@ export async function resolveMachineOperator({
   machineActor = null,
   operatorActorUuid = "",
 } = {}) {
+  // Explicit operator choice wins, then authored pilot/crew links. Returning a
+  // reason without an actor lets UI explain why personal resources cannot spend.
   const explicit = await resolveActorUuid(operatorActorUuid);
   if (explicit) {
     return { actor: explicit, uuid: explicit.uuid ?? operatorActorUuid, source: "explicit", reason: "" };

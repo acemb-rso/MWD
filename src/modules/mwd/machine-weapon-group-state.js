@@ -1,7 +1,7 @@
 // src/modules/mwd/machine-weapon-group-state.js
 // Purpose: Normalize and sanitize machine weapon-group persistence state.
-// How it fits: Keeps sheet actions from leaving stale item ids in groups after
-// slot mounts, unmounts, or deletions.
+// Workflow: sheet group edits and mount changes -> normalized weapon id arrays
+// with stale ids pruned -> ranged group inspection receives clean actor data.
 
 function toObject(value) {
   return value && typeof value === "object" ? value : {};

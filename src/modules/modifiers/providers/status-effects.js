@@ -1,6 +1,7 @@
 // src/modules/modifiers/providers/status-effects.js
-// Purpose: Provides module-level utilities or helpers.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+// Purpose: Emits roll modifiers from active catalog-backed actor statuses.
+// Workflow: modifier collection -> actor and roll-actor statuses are matched
+// against the status catalog -> applicable status dice modifiers join the roll.
 
 
 // modules/modifiers/providers/status-effects.js

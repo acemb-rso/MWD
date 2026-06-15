@@ -1,9 +1,9 @@
-// src/modules/combat/combat-awareness-preview.js
+﻿// src/modules/combat/combat-awareness-preview.js
 // Purpose: Builds a display-only combat awareness read model for actor sheets.
 // How it fits: Sheets render known AR/DR, target, DN, motion, and EW context
 // without resolving an attack or consuming any combat resources.
 
-import { TEMPLATE, startCase } from "../constants.js";
+import { TEMPLATE, startCase } from "../core/constants.js";
 import { getAssetModuleCqEffects } from "../mwd/asset-module-effects.js";
 import {
   buildMachineAttackMotionContext,

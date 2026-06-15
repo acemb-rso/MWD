@@ -1,7 +1,7 @@
-// src/modules/actor/mwd-actor.js
+﻿// src/modules/actor/mwd-actor.js
 
 
-import { BASE_MONITOR, MONITOR_DEFS, TEMPLATE } from "../constants.js";
+import { BASE_MONITOR, MONITOR_DEFS, TEMPLATE } from "../core/constants.js";
 import { WeaponItem } from "../item/weapon-item.js";
 import {
   computeArmorBaseMitigation,
@@ -23,7 +23,7 @@ import {
   getTraitActiveEffectModifier,
 } from "../mwd/traits.js";
 import { normalizeCharacterAdvancementState } from "../advancement/character-advancement.js";
-import { getDocumentTypeCreateDefaults } from "../document-type-defaults.js";
+import { getDocumentTypeCreateDefaults } from "../utils/document-type-defaults.js";
 import { getAttackerCombatant, resetAllSensorTargetingStatesToBlind } from "../mwd/machine-ew-state.js";
 import {
   MACHINE_MONITOR_STORAGE_FLAG,

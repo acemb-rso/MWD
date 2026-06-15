@@ -3,12 +3,12 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { ANARCHY_SYSTEM, LOG_HEAD, SYSTEM_NAME, SYSTEM_SCOPE, TEMPLATE } from "./constants.js";
+import { ANARCHY_SYSTEM, LOG_HEAD, SYSTEM_NAME, SYSTEM_SCOPE, TEMPLATE } from "../core/constants.js";
 //import { ANARCHY_SKILLS } from "./skills.js";
 import { ANARCHY_HOOKS, HooksManager } from "./hooks-manager.js";
-import { Misc } from "./misc.js";
-import { AttributeActions } from "./attribute-actions.js";
-import { MESSAGE_DATA } from "./chat/chat-manager.js";
+import { Misc } from "../utils/misc.js";
+import { AttributeActions } from "../combat/attribute-actions.js";
+import { MESSAGE_DATA } from "../chat/chat-manager.js";
 import {
   migrateLegacyAmmoToPayloadModel,
   migrateLegacyArmorMitigation,
@@ -24,26 +24,26 @@ import {
   normalizeWeaponResolution,
   normalizeWeaponStandardTraits,
   resolveArmorTraitEffects,
-} from "./mwd/personal-damage.js";
+} from "../mwd/personal-damage.js";
 import {
   createCapabilityMigrationReport,
   normalizeWeaponCapabilityState,
   validateTemplatedCapability,
-} from "./mwd/personal-weapon-capabilities.js";
+} from "../mwd/personal-weapon-capabilities.js";
 import {
   getMachineDefaultLocations,
   normalizeMachineDegradationState,
-} from "./mwd/machine-degradation.js";
-import { normalizeMachineWeaponSize } from "./mwd/machine-hardpoints.js";
+} from "../mwd/machine-degradation.js";
+import { normalizeMachineWeaponSize } from "../mwd/machine-hardpoints.js";
 import {
   buildMachineEnergyPayloadModel,
   normalizeMachineHardpointType,
-} from "./mwd/machine-weapon-types.js";
+} from "../mwd/machine-weapon-types.js";
 import {
   migrateMachineMonitorStorageOnce,
-} from "./mwd/machine-monitors.js";
-import { normalizeVehicleMovementProfile } from "./mwd/vehicle-profiles.js";
-import { normalizeVehicleStrainState } from "./mwd/vehicle-strain.js";
+} from "../mwd/machine-monitors.js";
+import { normalizeVehicleMovementProfile } from "../mwd/vehicle-profiles.js";
+import { normalizeVehicleStrainState } from "../mwd/vehicle-strain.js";
 
 function forcedDeletion() {
   return foundry.data.operators.ForcedDeletion;

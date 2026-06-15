@@ -1,9 +1,9 @@
-// src/modules/mwd/machine-crit-effects.js
+﻿// src/modules/mwd/machine-crit-effects.js
 // Purpose: Centralizes runtime machine-critical consequence rules.
-// How it fits: Reads system.mwd.crits as the single source of truth for
-// activation hooks, attack restrictions, roll modifiers, and UI summaries.
+// Workflow: active system.mwd.crits -> attack restrictions, activation reports,
+// and summary text -> action services and sheets react to current damage.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { getActiveMachineCrits } from "./critical-hits.js";
 import {
   getConfiguredMachineWeaponGroups,
@@ -35,6 +35,9 @@ function scopeMatchesAttack(crit = {}, scope = {}) {
 }
 
 export function getMachineAttackScope(actor = null, { weaponGroupId = "", weaponId = "", weapon = null } = {}) {
+  // Accept either a group id or a single weapon id. Runtime critical rules care
+  // about the resolved group membership and weapon damage families, not which
+  // UI control launched the attack.
   const normalizedGroupId = normalizeMachineCritId(weaponGroupId);
   const normalizedWeaponId = normalizeMachineCritId(weaponId);
   const directGroup = getMachineWeaponGroup(actor, normalizedGroupId);
@@ -61,6 +64,8 @@ export function getMachineAttackScope(actor = null, { weaponGroupId = "", weapon
 }
 
 export function getMachineAttackActionCost(actor = null) {
+  // Attack cost remains a runtime query because criticals can add action cost
+  // after the sheet has already rendered its normal attack buttons.
   const activeCrits = getActiveMachineCrits(actor);
   const extraCost = activeCrits.reduce((sum, crit) => (
     normalizeMachineCritId(crit?.key) === "targetingProcessorLock" ? sum + 1 : sum
@@ -74,6 +79,8 @@ export function getMachineAttackActionCost(actor = null) {
 }
 
 export function getMachineAttackRestriction(actor = null, { weaponGroupId = "", weaponId = "", weapon = null } = {}) {
+  // Blocking criticals are evaluated immediately before roll emission so stale
+  // sheet context cannot fire a weapon group that was damaged mid-round.
   const scope = getMachineAttackScope(actor, { weaponGroupId, weaponId, weapon });
   const crits = getActiveMachineCrits(actor);
 
@@ -128,6 +135,8 @@ export function getMachineAttackDamageModifier(actor = null, { weaponGroupId = "
 }
 
 export function buildMachineActivationStartReport(actor = null) {
+  // Start-of-activation criticals split into automated resource/heat deltas and
+  // reminder-only entries for rules that still require table adjudication.
   const crits = getActiveMachineCrits(actor);
   const report = {
     saCost: 0,

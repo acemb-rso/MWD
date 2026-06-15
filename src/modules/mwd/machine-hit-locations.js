@@ -1,9 +1,9 @@
-// src/modules/mwd/machine-hit-locations.js
+﻿// src/modules/mwd/machine-hit-locations.js
 // Purpose: Resolves MWD vehicle-scale hit locations from the code-owned 3d6 table.
-// How it fits: Attack previews use this before machine damage decides whether a
-// hit is descriptive, Chaos-convertible, or an automatic critical.
+// Workflow: machine damage preview rolls/receives 3d6 -> descriptive and rules
+// locations are derived -> damage apply chooses Chaos or automatic critical flow.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 
 const MACHINE_TYPES = new Set([TEMPLATE.actorTypes.vehicle, TEMPLATE.actorTypes.battlemech]);
 
@@ -40,6 +40,8 @@ function enabledLocationKeys(actor = null) {
 }
 
 function chooseEnabled(actor, candidates = [], fallback = "core") {
+  // Location tables name preferred hits, but actors may disable locations. Pick
+  // the first enabled candidate before falling back to table order.
   const enabled = new Set(enabledLocationKeys(actor));
   return candidates.find(key => enabled.has(key)) ?? candidates[0] ?? fallback;
 }
@@ -55,6 +57,8 @@ function familyForLocation(locationKey = "") {
 }
 
 function rulesLocationFor(actorType = "", locationKey = "", family = "") {
+  // Display locations can be more descriptive than the rules locations used by
+  // critical consequences. Collapse them before downstream crit lookup.
   const normalizedFamily = String(family ?? "").trim();
   const normalizedKey = String(locationKey ?? "").trim();
   if (actorType === TEMPLATE.actorTypes.battlemech) {
@@ -128,6 +132,8 @@ export function resolveMachineHitLocation({
   armorBefore = 0,
   structureBefore = 0,
 } = {}) {
+  // Resolve both the descriptive hit location and the critical-routing metadata
+  // so damage code can decide between automatic crits and Chaos conversion.
   const type = actorType(actor);
   const total = clampRollTotal(rollTotal);
   const pureStructureHit = Math.max(0, Number(armorBefore ?? 0) || 0) <= 0;

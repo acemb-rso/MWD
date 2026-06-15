@@ -1,6 +1,7 @@
 // src/modules/modifiers/providers/base-modifiers.js
-// Purpose: Provides module-level utilities or helpers.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+// Purpose: Emits manual roll modifiers supplied by roll dialogs or payloads.
+// Workflow: roll dialog/payload provides manual rows or legacy otherMods ->
+// this provider normalizes them into generic modifier entries.
 
 
 // modules/modifiers/providers/base-modifiers.js

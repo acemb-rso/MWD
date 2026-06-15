@@ -1,10 +1,9 @@
-// src/modules/mwd/charge-attack-actions.js
+﻿// src/modules/mwd/charge-attack-actions.js
 // Purpose: Builds and executes Impact Charge, Control Charge, and DFA collision attacks.
-// How it fits: Emits attack intent and follow-up knockdown checks through the existing
-// attack and skill roll pipelines. Recoil is queued as a separate machineAttackDamage
-// notification; the main attack produces defender damage through the standard resolver.
+// Workflow: quick-action charge choice -> collision profile and attack intent ->
+// standard attack damage, recoil queueing, and follow-up knockdown checks.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { getMachineAttackActionCost } from "./machine-crit-effects.js";
 import { resolveBattlemechJumpProfile } from "./battlemech-mobility.js";

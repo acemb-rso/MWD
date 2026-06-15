@@ -1,8 +1,8 @@
-// src/modules/chat/chat-actions.js
+﻿// src/modules/chat/chat-actions.js
 // Purpose: Registers Foundry hooks: renderChatMessageHTML.
 // How it fits: Wires chat-card post-roll and queued attack mutation actions.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { getPersonalDamageTypeLabel } from "../mwd/personal-damage.js";
 import { renderChat } from "../roll/renderers/render-chat.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";

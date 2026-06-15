@@ -1,9 +1,9 @@
-// src/modules/mwd/battlemech-mobility.js
+﻿// src/modules/mwd/battlemech-mobility.js
 // Purpose: Derives BattleMech mobility abilities from installed asset modules.
-// How it fits: Lets machine capability logic live in the engine instead of in
-// the sheet or on a permanently authored movement field.
+// Workflow: installed modules and legacy movement -> derived jump profile ->
+// movement menus and attack modifiers consume current mobility capability.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { getAssetModuleJumpingProfile, getAssetModuleState, normalizeAssetModuleJumping } from "./asset-module-rules.js";
 
 function toNonNegativeInteger(value, fallback = 0) {
@@ -28,6 +28,8 @@ function getActorSystem(source = {}) {
 }
 
 function getAssetModules(source = {}) {
+  // Mobility can be prepared from an actor, a sheet context, or a test snapshot;
+  // accept all item collection shapes used by Foundry and our fixtures.
   const explicit = source?.assetModules ?? source?.items ?? source?.actor?.items ?? [];
   return toCollectionArray(explicit).filter(item => (item?.canonicalType ?? item?.type) === TEMPLATE.itemType.assetModule);
 }
@@ -58,6 +60,8 @@ function hasJumpFailureStatus(source = {}) {
 }
 
 function hasJumpGateCrit(source = {}) {
+  // Some criticals gate a capability without applying a status effect, so jump
+  // availability must check active crit records directly.
   const crits = Array.isArray(getActorSystem(source)?.mwd?.crits)
     ? getActorSystem(source).mwd.crits
     : [];
@@ -88,6 +92,8 @@ function buildDisabledJumpingState(reason = "") {
 }
 
 export function buildBattlemechMobilityModel(source = {}) {
+  // Jump movement is derived from active modules first, with legacy authored
+  // movement as a fallback for older actors that predate asset modules.
   const actorType = getActorType(source);
   if (actorType && actorType !== TEMPLATE.actorTypes.battlemech) {
     return { jumping: buildDisabledJumpingState() };

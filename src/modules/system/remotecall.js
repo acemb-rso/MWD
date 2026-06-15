@@ -3,7 +3,7 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { LOG_HEAD, SYSTEM_SOCKET } from "./constants.js";
+import { LOG_HEAD, SYSTEM_SOCKET } from "../core/constants.js";
 import { AnarchyUsers } from "./users.js";
 
 export class RemoteCall {

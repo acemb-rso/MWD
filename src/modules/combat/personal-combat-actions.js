@@ -1,8 +1,8 @@
-// src/modules/combat/personal-combat-actions.js
+﻿// src/modules/combat/personal-combat-actions.js
 // Purpose: Executes declarative personal combat action intents above the roll system.
 // How it fits: Sheets emit one combat intent; this module owns prompts, cost, resolver dispatch, and state/log side effects.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { activatePendingEvadeFromCombatMenu } from "../chat/chat-actions.js";
 import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 import { executeFirstAidCombatAction } from "../mwd/first-aid.js";

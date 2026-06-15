@@ -1,10 +1,10 @@
-// src/modules/mwd/vehicle-strain.js
+﻿// src/modules/mwd/vehicle-strain.js
 // Purpose: Vehicle-only operational strain model for Redline and future terrain
 // or critical hooks.
 // How it fits: Keeps vehicle strain separate from BattleMech heat while exposing
 // provider-friendly state and simple actor update helpers.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { movementPenaltyStepsToMeters } from "./machine-movement.js";
 
 export const VEHICLE_STRAIN_THRESHOLDS = Object.freeze({

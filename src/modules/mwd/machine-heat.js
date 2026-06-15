@@ -1,6 +1,8 @@
 // src/modules/mwd/machine-heat.js
 // Purpose: Centralizes BattleMech heat state prep, pending-heat tracking, and
-//          end-of-activation resolution outside sheet code.
+//          end-of-activation resolution.
+// Workflow: attacks/movement add pending heat -> activation finalization applies
+// dissipation and danger checks -> sheets render the updated heat model.
 
 import { computeDangerCheckParams, computeHeatPenalties, hasVolatileComponents, resolveEndOfActivationHeat } from "./heat-effects.js";
 import { getMachineHeatStatusLabel, normalizeMachineHeatThresholds, resolveMachineHeatStatus } from "./heat-state.js";
@@ -30,6 +32,8 @@ function getActorName(actor) {
 }
 
 function getActiveHeatCrits(systemData = {}) {
+  // Machine criticals are stored as system records rather than Foundry
+  // ActiveEffects; inactive records remain visible but do not alter heat math.
   return asArray(systemData?.mwd?.crits).filter(crit => crit?.active !== false);
 }
 
@@ -38,6 +42,8 @@ export function getBattlemechPendingHeat(systemData = {}) {
 }
 
 export function getBattlemechHeatActivationKey(activation = null) {
+  // The resolver writes this key after end-of-activation heat is finalized so
+  // duplicate combat hooks or refreshes do not apply cooling twice.
   if (!activation) return "";
 
   const combatId = String(activation?.combatId ?? "").trim();
@@ -49,6 +55,8 @@ export function getBattlemechHeatActivationKey(activation = null) {
 }
 
 export function isEnergyMachineWeapon(weapon = {}) {
+  // Weapon data has gone through a few schema shapes; accept canonical fields,
+  // older category hints, and trait payloads so heat crits work across packs.
   const system = weapon?.system ?? weapon ?? {};
   const typeHints = [
     system.baseDamageType,
@@ -63,6 +71,8 @@ export function isEnergyMachineWeapon(weapon = {}) {
 }
 
 export function computeBattlemechAttackHeat({ weapons = [], crits = [] } = {}) {
+  // Keep weapon heat, per-attack crit heat, and energy-only crit heat separate
+  // so chat summaries and tests can prove which rule contributed.
   const attackWeapons = asArray(weapons).filter(Boolean);
   const activeCrits = asArray(crits).filter(crit => crit?.active !== false);
   const baseHeat = attackWeapons.reduce((sum, weapon) => sum + clampMin(weapon?.system?.heat ?? weapon?.heat, 0), 0);
@@ -86,6 +96,8 @@ export function computeBattlemechAttackHeat({ weapons = [], crits = [] } = {}) {
 }
 
 export function buildBattlemechHeatModel(source = {}) {
+  // Read-only heat view model. Callers use it for sheets, roll prompts, and
+  // danger checks; writes happen in the pending/finalization helpers below.
   const systemData = getSystemData(source);
   const heatMonitor = systemData?.monitors?.heat ?? {};
   const heatConfig = systemData?.mwd?.heat ?? {};
@@ -150,6 +162,8 @@ export function buildBattlemechHeatModel(source = {}) {
 }
 
 export function resolveBattlemechHeatActivation(source = {}, { pendingGenerated = null } = {}) {
+  // Pure calculation step for activation end: generated heat and dissipation
+  // are hook-adjustable here, but persistence is intentionally left to callers.
   const systemData = getSystemData(source);
   const heat = buildBattlemechHeatModel(systemData);
   const generated = pendingGenerated === null ? heat.pendingGenerated : clampMin(pendingGenerated, 0);
@@ -210,6 +224,8 @@ export async function adjustBattlemechPendingHeat(actor, delta, { reason = "" } 
 }
 
 export async function recordBattlemechAttackHeat(actor, { weaponIds = [], attackProfile = null, reason = "" } = {}) {
+  // Group-fire attacks may provide either real item ids or a synthetic attack
+  // profile. Use whichever is richer, then accumulate into pending heat.
   if (!actor || actor.type !== "battlemech") return { ok: false, reason: "BattleMech actor required." };
 
   const resolvedWeaponIds = Array.from(new Set(asArray(weaponIds).map(id => String(id ?? "").trim()).filter(Boolean)));

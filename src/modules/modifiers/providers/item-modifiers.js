@@ -1,6 +1,7 @@
 // src/modules/modifiers/providers/item-modifiers.js
-// Purpose: Defines function `coerceNumber`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+// Purpose: Emits legacy item-flag roll modifiers.
+// Workflow: modifier collection -> owned item flags.mwd.modifiers rows are
+// normalized -> valid numeric rows join the generic modifier pipeline.
 
 
 // modules/modifiers/providers/item-modifier.js

@@ -1,10 +1,10 @@
-// src/modules/mwd/machine-pilot-vision.js
+﻿// src/modules/mwd/machine-pilot-vision.js
 // Purpose: Grants assigned machine pilots enough actor visibility for token vision
 // without making them machine owners.
-// How it fits: Pilot assignment is the authority; this syncs Foundry observer
-// permissions so players can see through machines they operate.
+// Workflow: pilot assignment changes -> observer permission sync -> assigned
+// players can use machine token vision without becoming machine owners.
 
-import { SYSTEM_NAME } from "../constants.js";
+import { SYSTEM_NAME } from "../core/constants.js";
 import { isMachineActorType } from "./machine-monitors.js";
 
 const PILOT_VISION_OWNERSHIP_FLAG = "pilotVisionOwnership";

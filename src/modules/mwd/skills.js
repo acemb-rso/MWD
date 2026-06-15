@@ -1,10 +1,11 @@
-// src/modules/mwd/skills.js
-// Purpose: Defines function `normalizeSkillDef`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+﻿// src/modules/mwd/skills.js
+// Purpose: Canonical MWD skill catalog and specialization metadata.
+// Workflow: system config and actor prep read skill definitions -> sheets and
+// roll builders use normalized labels, attributes, icons, and domains.
 
 
-import { ICONS_SKILLS_PATH, SYSTEM_NAME, SYSTEM_PATH } from "../constants.js";
-import { Enums } from "../enums.js"; // if you want pretty attribute labels (optional)
+import { ICONS_SKILLS_PATH, SYSTEM_NAME, SYSTEM_PATH } from "../core/constants.js";
+import { Enums } from "../core/enums.js"; // if you want pretty attribute labels (optional)
 
 
 /**

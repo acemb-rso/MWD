@@ -1,9 +1,9 @@
-// src/modules/mwd/battlemech-movement-actions.js
-// Purpose: Builds the BattleMech movement quick-action menu.
-// How it fits: Sheets and actors both use this so token/synthetic actors still
-//              get the baseline ground movement choices.
+﻿// src/modules/mwd/battlemech-movement-actions.js
+// Purpose: Builds and executes the BattleMech movement quick-action menu.
+// Workflow: actor movement/effects -> available movement choices -> action
+// spend, combatant movement-state update, heat/signature/status side effects.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 import { adjustBattlemechPendingHeat } from "./machine-heat.js";
@@ -45,6 +45,8 @@ function hasStatus(actor = null, statusId = "") {
 }
 
 function isAirborneMachine(actor = null, movement = {}) {
+  // Flight posture can come from statuses, mwd flags, legacy movement mode, or
+  // a chassis with flight speed and no ground speed.
   if (AIRBORNE_STATUS_IDS.some(statusId => hasStatus(actor, statusId))) return true;
   if (actor?.system?.mwd?.airborne === true || actor?.system?.airborne === true) return true;
   const movementMode = String(actor?.system?.mwd?.movementMode ?? actor?.system?.movementMode ?? "").trim().toLowerCase();
@@ -53,6 +55,8 @@ function isAirborneMachine(actor = null, movement = {}) {
 }
 
 export function buildBattlemechMovementActionChoices(actor = null) {
+  // Build UI-ready movement choices from base movement plus current damage and
+  // status effects. This remains read-only; perform* applies costs and flags.
   const movement = normalizeMachineMovement(actor?.system?.movement ?? {}, {
     actorType: actor?.type ?? TEMPLATE.actorTypes.battlemech,
     legacyMoves: actor?.system?.moves,
@@ -155,6 +159,8 @@ export function buildBattlemechMovementActionChoices(actor = null) {
 }
 
 export async function performBattlemechMovementAction(actor, { movementKind = "", operatorActorUuid = "" } = {}) {
+  // Movement is recorded in personal-combat state because attack motion, target
+  // tracking, and turn economy all read the same combatant snapshot.
   const actionId = String(movementKind ?? "").trim();
   const action = buildBattlemechMovementActionChoices(actor).find(entry => entry.id === actionId) ?? null;
   if (!action) {

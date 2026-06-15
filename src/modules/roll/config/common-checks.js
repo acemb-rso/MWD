@@ -1,8 +1,8 @@
-// src/modules/roll/config/common-checks.js
+﻿// src/modules/roll/config/common-checks.js
 // Purpose: Defines reusable common two-attribute checks for the modern roll engine.
 // How it fits: Shared source of truth for declarative payload references and resolver lookup.
 
-import { ACTOR_ATTRIBUTES } from "../../constants.js";
+import { ACTOR_ATTRIBUTES } from "../../core/constants.js";
 
 const ATTRIBUTE_CODE_MAP = Object.freeze({
   STR: ACTOR_ATTRIBUTES.strength,

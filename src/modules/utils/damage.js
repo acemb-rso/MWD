@@ -3,7 +3,7 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { Enums } from "./enums.js";
+import { Enums } from "../core/enums.js";
 
 export class Damage {
   static monitor(code) {

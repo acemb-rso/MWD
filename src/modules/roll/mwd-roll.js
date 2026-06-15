@@ -1,4 +1,4 @@
-// src/modules/roll/mwd-roll.js
+﻿// src/modules/roll/mwd-roll.js
 // Purpose: Defines function `pickMostMissingEdgePool`.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
@@ -10,7 +10,7 @@ import { interpretOutcome } from "./outcome/interpret-outcome.js";
 import { MWDRollDialog } from "./mwd-roll-dialog.js";
 import { WeaponItem } from "../item/weapon-item.js";
 import { SelectItem } from "../dialog/select-item.js";
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { resolveAttackExecution } from "./attack-resolution.js";
 import { createAttackTemplateIndicator, placeTemplatedAttack } from "./template-placement.js";
 import {

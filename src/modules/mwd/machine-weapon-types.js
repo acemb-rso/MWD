@@ -1,7 +1,7 @@
 // src/modules/mwd/machine-weapon-types.js
 // Purpose: Canonical machine weapon base-type helpers.
-// How it fits: Keeps BattleMech/vehicle hardpoint compatibility separate from
-// personal-scale and payload damage effects.
+// Workflow: authored weapon damage/hardpoint values -> normalized machine damage
+// family/type labels -> hardpoint compatibility and payload migration use them.
 
 import {
   getPersonalDamageTypeLabel,

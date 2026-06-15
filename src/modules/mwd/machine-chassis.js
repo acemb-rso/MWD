@@ -1,7 +1,7 @@
 // src/modules/mwd/machine-chassis.js
 // Purpose: Shared chassis-centered physical helper formulas.
-// How it fits: Keeps knockdown, forced movement, and crash math separate from
-// the machine degradation loop.
+// Workflow: collision, knockdown, and forced-movement resolvers -> chassis math
+// helpers -> degradation/damage workflows receive already-derived values.
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);

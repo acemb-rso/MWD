@@ -1,13 +1,13 @@
-// src/modules/modifiers/anarchy-modifiers.js
+﻿// src/modules/modifiers/anarchy-modifiers.js
 // Purpose: Registers Foundry hooks: ready. Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { AttributeActions } from "../attribute-actions.js";
-import { ANARCHY } from "../config.js";
-import { TEMPLATE } from "../constants.js";
-import { Enums } from "../enums.js";
-import { Misc } from "../misc.js";
+import { AttributeActions } from "../combat/attribute-actions.js";
+import { ANARCHY } from "../core/config.js";
+import { TEMPLATE } from "../core/constants.js";
+import { Enums } from "../core/enums.js";
+import { Misc } from "../utils/misc.js";
 
 const ASSET_MODULE_TYPES = [
   TEMPLATE.itemType.assetModule,

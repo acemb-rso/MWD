@@ -1,12 +1,12 @@
-// src/modules/mwd/machine-quick-actions.js
+﻿// src/modules/mwd/machine-quick-actions.js
 // Purpose: Executes shared machine quick checks for piloting, EW, and critical repair.
-// How it fits: Sheets choose the requested action or issue; this layer emits the
-// canonical roll intent payloads into the shared roll engine.
+// Workflow: sheet quick-action click -> request normalization/GM routing ->
+// movement, attack, EW, or remedy service emits the canonical roll/action intent.
 
-import { MWD } from "../config.js";
-import { SYSTEM_SOCKET, TEMPLATE } from "../constants.js";
+import { MWD } from "../core/config.js";
+import { SYSTEM_SOCKET, TEMPLATE } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
-import { RemoteCall } from "../remotecall.js";
+import { RemoteCall } from "../system/remotecall.js";
 import { DEFAULT_FIRE_MODE, FIRE_MODE_IDS, getFireModeDefinition } from "./battlemech-fire-modes.js";
 import { performMachineMeleeAttack } from "./battlemech-melee-actions.js";
 import { performChargeAttack } from "./charge-attack-actions.js";
@@ -170,6 +170,8 @@ function resolveRequestToken(actor, request = {}) {
 }
 
 function serializeMachineActionRequest(actor, request = {}) {
+  // Socket payloads must be plain data. Keep only stable ids and primitive
+  // choices so a GM client can resolve documents in its own Foundry context.
   const serialized = {
     kind: String(request.kind ?? "").trim(),
     machineActorUuid: String(actor?.uuid ?? request.machineActorUuid ?? "").trim(),
@@ -216,6 +218,8 @@ function serializeMachineActionResult(result = {}) {
 }
 
 function shouldRouteMachineActionThroughGm(actor, request = {}) {
+  // Non-owner players can click machine controls on a represented scene token,
+  // but the GM must perform actor writes for permission-safe automation.
   return Boolean(globalThis.game?.user)
     && !globalThis.game.user.isGM
     && isMachineActor(actor)
@@ -237,6 +241,8 @@ function resolvePendingGmMachineActionRequest(data = {}) {
 }
 
 async function requestGmMachineAction(actor, request = {}) {
+  // The originating client waits for a small serialized result while the GM
+  // executes the same request path with the _gmRouted guard set.
   const requestId = getRequestId();
   const userId = String(game?.user?.id ?? "").trim();
   if (!userId) return { ok: false, reason: "No active user for GM operation." };

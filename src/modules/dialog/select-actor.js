@@ -1,9 +1,9 @@
-// src/modules/dialog/select-actor.js
+﻿// src/modules/dialog/select-actor.js
 // Purpose: Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { TEMPLATES_PATH } from "../constants.js";
+import { TEMPLATES_PATH } from "../core/constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 

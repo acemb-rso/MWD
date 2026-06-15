@@ -1,9 +1,9 @@
-// src/modules/harm/queued-attack-damage.js
+﻿// src/modules/harm/queued-attack-damage.js
 // Purpose: Owns chat-card queued attack damage mechanics behind the harm façade.
 // How it fits: Chat handlers ask for message update data; harm/roll internals
 // stay behind service boundaries.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { resolveMachineOperator } from "../mwd/machine-operator.js";
 import { parseOnHitEffect, summarizeAttackDamageResult } from "../roll/attack-resolution.js";

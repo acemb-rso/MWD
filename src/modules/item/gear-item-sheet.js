@@ -1,11 +1,11 @@
-// src/modules/item/gear-item-sheet.js
+﻿// src/modules/item/gear-item-sheet.js
 // Purpose: Provides a Sheet / UI class for entities (actor/item) or an application.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
 import { BaseItemSheet } from "./base-item-sheet.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
-import { TEMPLATES_PATH } from "../constants.js";
+import { TEMPLATES_PATH } from "../core/constants.js";
 import {
   getTraitEditorConfig,
   isCyberneticGearSystem,

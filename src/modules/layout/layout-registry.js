@@ -1,8 +1,8 @@
-// src/modules/layout/layout-registry.js
+﻿// src/modules/layout/layout-registry.js
 // Purpose: Load and normalize JSON layout definitions for AppV2 sheets.
 // How it fits: Converts declarative layout JSON into a stable render contract before Handlebars sees it.
 
-import { SYSTEM_NAME, LOG_HEAD } from "../constants.js";
+import { SYSTEM_NAME, LOG_HEAD } from "../core/constants.js";
 
 export function templateForLayoutNode(node = {}) {
   switch (node.type) {

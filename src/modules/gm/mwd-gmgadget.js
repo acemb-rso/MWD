@@ -1,4 +1,4 @@
-// src/modules/gm/mwd-gmgadget.js
+﻿// src/modules/gm/mwd-gmgadget.js
 // Purpose: Registers system settings. Preloads or manages Handlebars templates.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
@@ -19,7 +19,7 @@ import {
   SCENE_MODIFIER_INTENT_OPTIONS,
   normalizeActiveModifier
 } from "../modifiers/providers/scene-modifiers.js";
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { DETECTION_STATE_ORDER, getDetectionStateLabel } from "../mwd/machine-ew.js";
 import {
   clearTargetingPacket as clearTargetingPacketState,

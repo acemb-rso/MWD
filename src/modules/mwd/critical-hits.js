@@ -1,9 +1,9 @@
-// src/modules/mwd/critical-hits.js
+﻿// src/modules/mwd/critical-hits.js
 // Purpose: Machine critical-hit engine and active-crit data normalization.
 // How it fits: Keeps vehicle/BattleMech critical effects in actor data while
 // token statuses remain visual indicators only.
 
-import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
+import { SYSTEM_NAME, TEMPLATE } from "../core/constants.js";
 import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 import { ASSET_MODULE_HOOKS, dispatchAssetModuleHook } from "./asset-module-hooks.js";
 import {

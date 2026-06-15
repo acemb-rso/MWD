@@ -1,9 +1,9 @@
-// src/modules/mwd/battlemech-ranged-actions.js
+﻿// src/modules/mwd/battlemech-ranged-actions.js
 // Purpose: Builds and executes BattleMech ranged weapon-group quick actions.
-// How it fits: Keeps sheets as input emitters while group-fire legality and
-// attack intent emission live in the machine action layer.
+// Workflow: sheet/group button -> fire-mode execution plan -> roll intent
+// emission, resource spend, and combat-tracker weapon-group lockout.
 
-import { MWD } from "../config.js";
+import { MWD } from "../core/config.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { prepareBattlemechWeaponGroups } from "./battlemech-weapon-groups.js";
 import { DEFAULT_FIRE_MODE, getFireModeDefinition } from "./battlemech-fire-modes.js";
@@ -16,6 +16,8 @@ function getMachineRollApi() {
 }
 
 export function buildBattlemechRangedAttackGroups(actor = null, { token = null } = {}) {
+  // The same actor can be rendered outside its active combat turn; only current
+  // turn snapshots provide weapon-group usage lockouts.
   const sourceToken = token ?? resolveMachineSceneToken(actor);
   const snapshot = PersonalCombatTracker.getSnapshot?.(actor, { token: sourceToken }) ?? null;
   const usedWeaponGroupIds = snapshot?.isCurrentTurn
@@ -54,6 +56,9 @@ function validateGroupForAttack(group = null) {
 }
 
 function buildExecutionPlan({ fireMode = DEFAULT_FIRE_MODE, selectedGroup = null, groups = [] } = {}) {
+  // Fire modes expand a button press into one or more roll executions. Resource
+  // spend is committed after at least one roll completes, so cancelled dialogs
+  // do not consume actions.
   const availableGroups = groups.filter(group => group.isAttackLegal && group.isAvailableThisActivation);
   if (fireMode === "alphaStrike") {
     if (availableGroups.length > 0) {

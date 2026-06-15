@@ -1,11 +1,11 @@
-// src/modules/sheets/base-actor-sheet-v2.js
+﻿// src/modules/sheets/base-actor-sheet-v2.js
 // Purpose: Shared AppV2 actor-sheet foundation.
 // How it fits: Defines the stable edit/render/submit contract that every V2
 // actor sheet now builds on, so actor-specific sheets stay thin.
 
 
-import { LOG_HEAD, SYSTEM_NAME } from "../constants.js";
-import { Misc } from "../misc.js";
+import { LOG_HEAD, SYSTEM_NAME } from "../core/constants.js";
+import { Misc } from "../utils/misc.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import {

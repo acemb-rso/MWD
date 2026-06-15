@@ -1,8 +1,8 @@
-// src/modules/player/player-modifier-presets.js
+﻿// src/modules/player/player-modifier-presets.js
 // Purpose: Stores Player Gadget manual modifier presets and applies them only to opted-in gadget rolls.
 // How it fits: Preserves the roll dialog as the final review point without creating a new modifier engine.
 
-import { SYSTEM_NAME } from "../constants.js";
+import { SYSTEM_NAME } from "../core/constants.js";
 import { getPlayerGadgetStorageKey } from "./player-gadget-subjects.js";
 
 export const SETTING_PLAYER_GADGET_PRESETS = "playerManualModifierPresets";

@@ -1,4 +1,4 @@
-// src/modules/roll/intent/resolve-attack.js
+﻿// src/modules/roll/intent/resolve-attack.js
 // Purpose: Defines function `getTargets`.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
@@ -17,7 +17,7 @@ import {
   selectMechRangeBand,
   selectPersonalRangeBand,
 } from "../../mwd/personal-range-bands.js";
-import { TEMPLATE } from "../../constants.js";
+import { TEMPLATE } from "../../core/constants.js";
 import { WeaponItem } from "../../item/weapon-item.js";
 import { createUserFacingRollError } from "../roll-errors.js";
 import { buildTargetSnapshot } from "../template-placement.js";

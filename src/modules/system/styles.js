@@ -3,8 +3,8 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { MWD } from "./config.js";
-import { LOG_HEAD, SYSTEM_NAME } from "./constants.js";
+import { MWD } from "../core/config.js";
+import { LOG_HEAD, SYSTEM_NAME } from "../core/constants.js";
 import { ANARCHY_HOOKS, HooksManager } from "./hooks-manager.js";
 
 const DEFAULT_CSS_CLASS = "sheetTheme";

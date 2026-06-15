@@ -1,9 +1,9 @@
-// src/modules/sheets/npc-sheet-v2.js
+﻿// src/modules/sheets/npc-sheet-v2.js
 // Purpose: Layout-driven AppV2 NPC sheet.
 // How it fits: Brings NPCs onto the same shell, preload, and context-shaping path as the character sheet.
 
-import { SYSTEM_NAME, TEMPLATES_PATH } from "../constants.js";
-import { MWD } from "../config.js";
+import { SYSTEM_NAME, TEMPLATES_PATH } from "../core/constants.js";
+import { MWD } from "../core/config.js";
 import { buildCombatAwarenessPreview } from "../combat/combat-awareness-preview.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";

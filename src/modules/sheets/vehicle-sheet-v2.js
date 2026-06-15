@@ -1,9 +1,9 @@
-// src/modules/sheets/vehicle-sheet-v2.js
+﻿// src/modules/sheets/vehicle-sheet-v2.js
 // Purpose: Layout-driven AppV2 vehicle sheet that prepares semantic view models for dumb templates.
 // How it fits: Serves as the base vehicle-scale V2 sheet and the reuse target for BattleMech sheets.
 
-import { MWD } from "../config.js";
-import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../constants.js";
+import { MWD } from "../core/config.js";
+import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../core/constants.js";
 import { buildCombatAwarenessPreview } from "../combat/combat-awareness-preview.js";
 import { getActiveStatusSummaries, openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
@@ -64,7 +64,7 @@ import { resolveMachineOperator } from "../mwd/machine-operator.js";
 import { normalizeMachineWeaponGroups, pruneWeaponGroupsToMountedItems } from "../mwd/machine-weapon-group-state.js";
 import { buildMachineStealthModel } from "../mwd/machine-stealth.js";
 import { notifyRollError } from "../roll/roll-errors.js";
-import { Misc } from "../misc.js";
+import { Misc } from "../utils/misc.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { SelectActor } from "../dialog/select-actor.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";

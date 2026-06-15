@@ -1,8 +1,9 @@
-// src/modules/mwd/battlemech-weapon-groups.js
-// Purpose: Centralizes BattleMech ranged weapon-group legality, aggregation,
-// and activation-local availability so sheets and resolvers share one source.
+﻿// src/modules/mwd/battlemech-weapon-groups.js
+// Purpose: Centralizes BattleMech ranged weapon-group legality and aggregation.
+// Workflow: actor weapon groups and hardpoints -> group inspection/attack summary
+// -> ranged sheet buttons and attack-profile construction.
 
-import { TEMPLATE, startCase } from "../constants.js";
+import { TEMPLATE, startCase } from "../core/constants.js";
 import {
   doesHardpointAcceptItem,
   getMachineHardpointByItemId,
@@ -48,6 +49,8 @@ function chooseWorseRangeCap(left = "near", right = "near") {
 }
 
 function normalizeRangeData(range = {}) {
+  // Every grouped profile exposes the same four-band range object, even when
+  // older items only authored short/medium/long aliases.
   const max = normalizeRangeCap(range);
   return {
     max,
@@ -78,6 +81,8 @@ function getWeaponResolverKey(weapon = null, profile = null) {
 }
 
 function isSpecialCaseRangedProfile(weapon = null, profile = null) {
+  // v1 group fire only supports standard direct ranged attacks. Area and custom
+  // resolver weapons stay individual so their specialized engines can run.
   const resolverKey = getWeaponResolverKey(weapon, profile);
   if (resolverKey !== "standard") return true;
 
@@ -154,6 +159,8 @@ function normalizeKeywordToken(value = "") {
 }
 
 function inspectBattlemechWeaponGroup(actor = null, group = null, { token = null } = {}) {
+  // Inspection resolves all member weapons into a single attack summary and a
+  // list of blocking reasons. It does not spend resources or mutate combat.
   const weaponIds = asArray(group?.weaponIds).map(normalizeId).filter(Boolean);
   const presentWeapons = weaponIds
     .map(id => actor?.items?.get?.(id) ?? null)
@@ -310,6 +317,8 @@ function inspectBattlemechWeaponGroup(actor = null, group = null, { token = null
     firstWeapon?.rangeCap ?? "near"
   );
   const rangeCapIndex = getRangeCapIndex(rangeCap);
+  // Grouped weapons use the weakest usable attack rating at each band and the
+  // shortest max range, since the whole group must be able to fire together.
   const attackRatings = RANGE_ORDER.reduce((bands, band, index) => {
     bands[band] = index <= rangeCapIndex
       ? memberWeapons.reduce((worst, weapon) => Math.min(worst, toNumber(weapon.attackRatingBand?.[band], 0)), Number.POSITIVE_INFINITY)
@@ -386,6 +395,8 @@ function inspectBattlemechWeaponGroup(actor = null, group = null, { token = null
 }
 
 export function prepareBattlemechWeaponGroups(actor = null, { usedWeaponGroupIds = [], fireMode = DEFAULT_FIRE_MODE, token = null } = {}) {
+  // Adds activation-local availability on top of static group legality. The
+  // used-id list comes from the combat tracker snapshot, not actor data.
   const usedIds = new Set(asArray(usedWeaponGroupIds).map(normalizeId).filter(Boolean));
   const activeFireMode = String(fireMode ?? DEFAULT_FIRE_MODE).trim() || DEFAULT_FIRE_MODE;
 
@@ -427,6 +438,8 @@ export function getBattlemechPreparedWeaponGroup(actor = null, groupId = "", { u
 }
 
 export function buildBattlemechWeaponGroupAttackProfile(actor = null, groupId = "", { usedWeaponGroupIds = [] } = {}) {
+  // Adapter from sheet/loadout group data into the standard attack profile
+  // consumed by the shared roll and damage pipeline.
   const group = getBattlemechPreparedWeaponGroup(actor, groupId, { usedWeaponGroupIds });
   if (!group) {
     return { ok: false, reason: "That weapon group no longer exists.", group: null, profile: null };

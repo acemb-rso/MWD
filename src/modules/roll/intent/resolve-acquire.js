@@ -1,7 +1,7 @@
-// src/modules/roll/intent/resolve-acquire.js
+﻿// src/modules/roll/intent/resolve-acquire.js
 // Resolve roll context for an EW acquire action (System + Perception).
 
-import { TEMPLATE } from "../../constants.js";
+import { TEMPLATE } from "../../core/constants.js";
 import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import {

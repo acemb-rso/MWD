@@ -1,8 +1,8 @@
-// src/modules/combat/personal-action-catalog.js
+﻿// src/modules/combat/personal-action-catalog.js
 // Purpose: Defines declarative personal combat action payloads consumed by the combat tracker.
 // How it fits: Keeps action economy, resolver ownership, prompts, and implementation state out of sheet code.
 
-import { SYSTEM_NAME } from "../constants.js";
+import { SYSTEM_NAME } from "../core/constants.js";
 
 export const SETTING_PERSONAL_ACTION_CATALOG = "personalActionCatalog";
 

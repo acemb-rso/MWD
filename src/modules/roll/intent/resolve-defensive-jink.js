@@ -1,7 +1,7 @@
-// src/modules/roll/intent/resolve-defensive-jink.js
+﻿// src/modules/roll/intent/resolve-defensive-jink.js
 // Resolves Defensive Jink as Handling + Piloting to spoil targetingData.
 
-import { TEMPLATE } from "../../constants.js";
+import { TEMPLATE } from "../../core/constants.js";
 import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import { createUserFacingRollError } from "../roll-errors.js";

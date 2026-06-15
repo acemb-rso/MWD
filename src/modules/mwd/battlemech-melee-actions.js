@@ -1,10 +1,10 @@
-// src/modules/mwd/battlemech-melee-actions.js
+﻿// src/modules/mwd/battlemech-melee-actions.js
 // Purpose: Builds and executes BattleMech melee quick-action profiles.
-// How it fits: Keeps sheets as input emitters while melee roll intent remains
-// in the machine action layer shared by BattleMech actors and V2 sheets.
+// Workflow: mounted melee weapons or unarmed fallback -> selectable profiles ->
+// standard machine attack intents emitted through the roll engine.
 
-import { MWD } from "../config.js";
-import { TEMPLATE } from "../constants.js";
+import { MWD } from "../core/config.js";
+import { TEMPLATE } from "../core/constants.js";
 import { getMountedMachineItems } from "./machine-hardpoints.js";
 import { buildStandardMachineMeleeProfile, resolveMachineMeleeCombatProfile } from "./machine-melee-weapons.js";
 import { resolveMachineSceneToken } from "./machine-token-resolution.js";
@@ -33,6 +33,8 @@ function isMeleeWeapon(item = null) {
 }
 
 export function buildBattlemechMeleeProfiles(actor = null) {
+  // Prepared actors may already have derived melee profiles. If not, synthesize
+  // an unarmed fallback and add mounted melee weapons from hardpoints.
   const prepared = Array.isArray(actor?.system?.meleeProfiles)
     ? actor.system.meleeProfiles.map(normalizeProfile)
     : [];
@@ -68,6 +70,8 @@ export async function performBattlemechMeleeAttack(actor, {
   profileId = "",
   operatorActorUuid = "",
 } = {}) {
+  // Mounted melee weapons execute as normal item-backed attacks; the unarmed
+  // fallback sends a synthetic profile through the same roll pipeline.
   const profiles = buildBattlemechMeleeProfiles(actor);
   const selectedProfile = profile
     ?? profiles.find(entry => String(entry.id ?? "").trim() === String(profileId ?? "").trim())

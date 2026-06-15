@@ -1,19 +1,19 @@
-// src/modules/item/weapon-item.js
+﻿// src/modules/item/weapon-item.js
 // Purpose: Registers Foundry hooks. References legacy Anarchy system behavior.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { TEMPLATE, TEMPLATES_PATH, ROLL_PARAMETER_CATEGORY } from "../constants.js";
-import { MWD } from "../config.js";
-import { Enums } from "../enums.js";
+import { TEMPLATE, TEMPLATES_PATH, ROLL_PARAMETER_CATEGORY } from "../core/constants.js";
+import { MWD } from "../core/config.js";
+import { Enums } from "../core/enums.js";
 import { MWDItem } from "./anarchy-base-item.js";
 import { Checkbars } from "../common/checkbars.js";
-import { AnarchyUsers } from "../users.js";
-import { ANARCHY_HOOKS } from "../hooks-manager.js";
-import { AttributeActions } from "../attribute-actions.js";
-import { ErrorManager } from "../error-manager.js";
-import { Misc } from "../misc.js";
-import { formatString } from "../strings.js";
+import { AnarchyUsers } from "../system/users.js";
+import { ANARCHY_HOOKS } from "../system/hooks-manager.js";
+import { AttributeActions } from "../combat/attribute-actions.js";
+import { ErrorManager } from "../system/error-manager.js";
+import { Misc } from "../utils/misc.js";
+import { formatString } from "../utils/strings.js";
 import { getSkillDef } from "../mwd/skills.js";
 import {
   getPersonalDamageTypeLabel,

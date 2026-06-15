@@ -1,17 +1,17 @@
-// src/modules/item/anarchy-base-item.js
+﻿// src/modules/item/anarchy-base-item.js
 // Purpose: Registers Foundry hooks: createItem, updateItem, deleteItem. References legacy Anarchy system behavior.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { LOG_HEAD, SYSTEM_NAME, TEMPLATE } from "../constants.js";
-import { MWD } from "../config.js";
-import { AttributeActions } from "../attribute-actions.js";
+import { LOG_HEAD, SYSTEM_NAME, TEMPLATE } from "../core/constants.js";
+import { MWD } from "../core/config.js";
+import { AttributeActions } from "../combat/attribute-actions.js";
 import { Checkbars } from "../common/checkbars.js";
-import { ErrorManager } from "../error-manager.js";
-import { Enums } from "../enums.js";
-import { Misc } from "../misc.js";
-import { AnarchyUsers } from "../users.js";
-import { formatString } from "../strings.js";
+import { ErrorManager } from "../system/error-manager.js";
+import { Enums } from "../core/enums.js";
+import { Misc } from "../utils/misc.js";
+import { AnarchyUsers } from "../system/users.js";
+import { formatString } from "../utils/strings.js";
 import { getSkillDef } from "../mwd/skills.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import {
@@ -77,7 +77,7 @@ import {
   normalizeDamageSourceScale,
   normalizeMountProfile,
 } from "../mwd/battle-armor.js";
-import { getDocumentTypeCreateDefaults } from "../document-type-defaults.js";
+import { getDocumentTypeCreateDefaults } from "../utils/document-type-defaults.js";
 import {
   canonicalizeItemType,
   getDefaultItemIcon,

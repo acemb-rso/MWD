@@ -1,9 +1,9 @@
-// src/modules/mwd/vehicle-ranged-actions.js
+﻿// src/modules/mwd/vehicle-ranged-actions.js
 // Purpose: Builds and executes vehicle ranged weapon quick actions.
 // How it fits: Mirrors battlemech-ranged-actions.js for vehicle actors — vehicles
 // select individual mounted weapons rather than weapon groups.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { getMachineAttackActionCost } from "./machine-crit-effects.js";
 import { getConfiguredMachineHardpoints } from "./machine-hardpoints.js";

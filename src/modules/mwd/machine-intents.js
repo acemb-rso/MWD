@@ -1,12 +1,12 @@
-// src/modules/mwd/machine-intents.js
+﻿// src/modules/mwd/machine-intents.js
 // Purpose: Resolves machine remedy intent context, spending, and outcome mutation.
-// How it fits: Sheets/chat emit tiny remedy payloads while the roll engine keeps
-// the machine-side authority and state changes centralized.
+// Workflow: sheet/chat remedy payload -> operator/resource validation and GM
+// routing -> crit/status cleanup mutates machine state after the roll resolves.
 
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
-import { SYSTEM_NAME, SYSTEM_SOCKET } from "../constants.js";
+import { SYSTEM_NAME, SYSTEM_SOCKET } from "../core/constants.js";
 import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
-import { RemoteCall } from "../remotecall.js";
+import { RemoteCall } from "../system/remotecall.js";
 import { MACHINE_CRITICAL_STATUS_ID } from "./critical-hits.js";
 import {
   getMachineCritRemedy,
@@ -79,6 +79,8 @@ function userCanOperateAsActor(user = null, actor = null) {
 }
 
 function buildSerializableRemedyIntent(intent = {}) {
+  // Remedy requests cross sockets, chat cards, and tests; keep the intent shape
+  // primitive so each client can resolve documents locally.
   return {
     machineActorUuid: String(intent.machineActorUuid ?? "").trim(),
     issueKind: String(intent.issueKind ?? "").trim(),
@@ -152,6 +154,8 @@ function resolvePendingGmMachineRemedyRequest(data = {}) {
 }
 
 async function requestGmMachineRemedyOperation(operation = "", payload = {}) {
+  // Non-GM users ask the GM client to perform protected actor writes, then get
+  // back a small serializable result for notifications and chat flow.
   const requestId = getRequestId();
   const userId = String(game?.user?.id ?? "").trim();
   if (!userId) return { ok: false, reason: "No active user for GM operation." };
@@ -181,6 +185,8 @@ async function requestGmMachineRemedyOperation(operation = "", payload = {}) {
 }
 
 async function authorizeGmMachineRemedyRequest(data = {}) {
+  // Authorization is based on control of the linked operator, not ownership of
+  // the machine actor itself, because machines do not spend personal resources.
   const requester = getUserById(data.userId);
   if (!requester) return { ok: false, reason: "Requesting user could not be resolved." };
 

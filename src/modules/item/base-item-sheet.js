@@ -1,14 +1,14 @@
-// src/modules/item/base-item-sheet.js
+﻿// src/modules/item/base-item-sheet.js
 // Purpose: Shared AppV2 item-sheet foundation.
 // How it fits: Keeps every item sheet on one submit/render contract even when
 // the actual content is driven by either a direct template or a layout JSON.
 
 
-import { MWD } from "../config.js";
-import { SYSTEM_NAME, TEMPLATE, TEMPLATES_PATH } from "../constants.js";
-import { Enums } from "../enums.js";
+import { MWD } from "../core/config.js";
+import { SYSTEM_NAME, TEMPLATE, TEMPLATES_PATH } from "../core/constants.js";
+import { Enums } from "../core/enums.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
-import { Misc } from "../misc.js";
+import { Misc } from "../utils/misc.js";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { HTMLField, StringField } = foundry.data.fields;

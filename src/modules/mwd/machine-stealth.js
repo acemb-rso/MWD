@@ -1,9 +1,9 @@
-// src/modules/mwd/machine-stealth.js
+﻿// src/modules/mwd/machine-stealth.js
 // Purpose: Builds the derived machine stealth model and EW-facing stealth parts.
-// How it fits: Keeps stealth as targeting friction consumed by acquire DN and
-// attack tracking providers instead of creating a separate combat subsystem.
+// Workflow: stealth mode/modules/status lifecycle -> acquire DN and tracking
+// penalty parts -> EW rolls and attack modifier providers consume the result.
 
-import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
+import { SYSTEM_NAME, TEMPLATE } from "../core/constants.js";
 import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 import { getApplicableAssetModuleEffects } from "./asset-module-effects.js";
 import { getReadyAssetModules } from "./asset-module-runtime.js";
@@ -145,6 +145,8 @@ async function markStatusOwnership(actor = null, statusId = "", { reason = "", s
 }
 
 async function applyOwnedStatus(actor = null, statusId = "", active = true, { reason = "", source = "" } = {}) {
+  // Only clear statuses this module owns. Player- or GM-applied copies of the
+  // same status should survive stealth lifecycle cleanup.
   if (!actor || !statusId) return false;
   const state = getStealthLifecycleState(actor);
   state.ownedStatuses ??= {};
@@ -180,6 +182,8 @@ async function applyOwnedStatus(actor = null, statusId = "", active = true, { re
 }
 
 function buildLifecycleEntry({ active = true, reason = "", penalty = 1, rating = 1, source = "system", duration = "untilNextActivation", ctx = {} } = {}) {
+  // Lifecycle entries remember the combat position where they were created so
+  // round/activation cleanup can expire transient reveals deterministically.
   const { round, turn } = getCombatRoundTurn(ctx);
   return {
     active: Boolean(active),
@@ -202,6 +206,8 @@ function toItemArray(value) {
 }
 
 function collectAssetModuleKeys(actor = null) {
+  // Stealth overrides can reference modules by id, name, category, or authored
+  // keyword. Normalize all of those aliases into one lookup set.
   const keys = new Set();
   const add = value => {
     const normalized = normalizeKey(value);
@@ -232,6 +238,8 @@ function getStealthProfile(item = null) {
 }
 
 function getApplicableStealthProfileContribution(actor = null, item = null, { mode = null } = {}) {
+  // Stealth profiles contribute only when the owning module is ready and, for
+  // active-only profiles, when the machine is actually in active stealth mode.
   const profile = getStealthProfile(item);
   if (!profile || profile.ratingBonus <= 0) return null;
   const stealthMode = normalizeMode(mode ?? actor?.system?.mwd?.stealth?.mode);

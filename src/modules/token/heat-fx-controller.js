@@ -1,8 +1,8 @@
-// src/modules/token/heat-fx-controller.js
+﻿// src/modules/token/heat-fx-controller.js
 // Purpose: Applies machine token visuals such as BattleMech heat filters and ruined decals.
 // How it fits: Isolates canvas/filter/decal lifecycle from heat rules and actor state prep.
 
-import { SETTING_BATTLEMECH_TOKEN_HEAT_FX, SYSTEM_NAME } from "../constants.js";
+import { SETTING_BATTLEMECH_TOKEN_HEAT_FX, SYSTEM_NAME } from "../core/constants.js";
 import { buildBattlemechHeatVisualState } from "../mwd/heat-visual-state.js";
 import { createHeatShimmerFilter } from "./filters/heat-shimmer-filter.js";
 

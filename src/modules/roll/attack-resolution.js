@@ -1,9 +1,9 @@
-// src/modules/roll/attack-resolution.js
+﻿// src/modules/roll/attack-resolution.js
 // Purpose: Resolves personal attacks into per-target CQ/outcome/damage data.
 // How it fits: Extends the main roll execution pipeline without creating a parallel combat path.
 
 import { HarmEngine } from "../harm/harm-engine.js";
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { getPersonalDamageTypeLabel, normalizePersonalDamageType } from "../mwd/personal-damage.js";
 import { getPersonalRangeBandName } from "../mwd/personal-range-bands.js";
 import {

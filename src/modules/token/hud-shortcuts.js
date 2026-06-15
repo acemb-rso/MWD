@@ -1,11 +1,11 @@
-// src/modules/token/hud-shortcuts.js
+﻿// src/modules/token/hud-shortcuts.js
 // Purpose: Registers Foundry hooks: renderTokenHUD, ready. Renders Handlebars templates at runtime. References legacy Anarchy system behavior.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { ANARCHY } from "../config.js";
-import { TEMPLATES_PATH } from "../constants.js";
-import { Misc } from "../misc.js";
+import { ANARCHY } from "../core/config.js";
+import { TEMPLATES_PATH } from "../core/constants.js";
+import { Misc } from "../utils/misc.js";
 
 const { loadTemplates, renderTemplate } = foundry.applications.handlebars;
 

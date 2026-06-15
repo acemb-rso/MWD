@@ -1,11 +1,11 @@
-// src/modules/item/weapon-item-sheet.js
+﻿// src/modules/item/weapon-item-sheet.js
 // Purpose: Provides a Sheet / UI class for entities (actor/item) or an application.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { AttributeActions } from "../attribute-actions.js";
-import { MWD } from "../config.js";
-import { startCase } from "../constants.js";
+import { AttributeActions } from "../combat/attribute-actions.js";
+import { MWD } from "../core/config.js";
+import { startCase } from "../core/constants.js";
 import { BaseItemSheet } from "./base-item-sheet.js";
 import { WeaponItem } from "./weapon-item.js";
 import {

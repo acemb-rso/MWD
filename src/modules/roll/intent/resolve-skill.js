@@ -1,4 +1,4 @@
-// src/modules/roll/intent/resolve-skill.js
+﻿// src/modules/roll/intent/resolve-skill.js
 // Purpose: Defines function `resolveSkill`.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
@@ -13,7 +13,7 @@ import {
 import {
   getMachinePilotingDnModifier,
 } from "../../mwd/machine-state-effects.js";
-import { TEMPLATE } from "../../constants.js";
+import { TEMPLATE } from "../../core/constants.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import { getFirstAidRollConfig } from "../../mwd/first-aid.js";
 

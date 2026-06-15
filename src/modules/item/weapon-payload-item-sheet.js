@@ -1,4 +1,4 @@
-// src/modules/item/weapon-payload-item-sheet.js
+﻿// src/modules/item/weapon-payload-item-sheet.js
 // Purpose: Provides a compact editor for reusable weapon payload items.
 
 import { BaseItemSheet } from "./base-item-sheet.js";
@@ -20,7 +20,7 @@ import {
   getWeaponPayloadTagCatalog,
   payloadCatalogToOptions,
 } from "../mwd/weapon-payload-catalogs.js";
-import { TEMPLATES_PATH } from "../constants.js";
+import { TEMPLATES_PATH } from "../core/constants.js";
 
 export class WeaponPayloadItemSheet extends BaseItemSheet {
   static PARTS = {

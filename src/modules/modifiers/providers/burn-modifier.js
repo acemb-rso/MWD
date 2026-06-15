@@ -1,6 +1,7 @@
 // src/modules/modifiers/providers/burn-modifier.js
-// Purpose: Provides module-level utilities or helpers.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+// Purpose: Emits roll penalties from the actor Burn track.
+// Workflow: modifier collection -> current burn is halved into a penalty ->
+// the roll receives a source-labeled Burn modifier.
 
 
 export const burnModifier = {

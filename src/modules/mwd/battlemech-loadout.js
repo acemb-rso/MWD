@@ -1,10 +1,11 @@
-// src/modules/mwd/battlemech-loadout.js
-// Purpose: References legacy Anarchy system behavior.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+﻿// src/modules/mwd/battlemech-loadout.js
+// Purpose: Validates BattleMech hardpoint, weapon-group, and melee loadout.
+// Workflow: actor hardpoint/group state -> this validator builds diagnostics and
+// occupied-slot summaries -> sheets and attack prep display or block choices.
 
 
-import { ANARCHY } from "../config.js";
-import { TEMPLATE } from "../constants.js";
+import { ANARCHY } from "../core/config.js";
+import { TEMPLATE } from "../core/constants.js";
 import {
   doesHardpointAcceptItem,
   getMachineHardpointByItemId,
@@ -15,8 +16,10 @@ import {
   normalizeMachineHardpointType,
   normalizeMachineWeaponDamageType,
 } from "./machine-weapon-types.js";
-import { formatString } from "../strings.js";
+import { formatString } from "../utils/strings.js";
 
+// Current chassis budget model: each configured ranged weapon group consumes
+// one mount point from the weight-class allowance.
 const MOUNT_POINTS = {
   light: 4,
   medium: 5,
@@ -45,6 +48,8 @@ export class BattlemechLoadout {
   }
 
   compute() {
+    // Produce render-ready state and diagnostics only. Actor mutations stay in
+    // sheet handlers so validation remains safe for previews and tests.
     const weightClass = this.mwd.weightClass ?? "medium";
     const mountPointTotal = MOUNT_POINTS[weightClass] ?? MOUNT_POINTS.medium;
     const hardpoints = this._normalizeHardpoints();
@@ -64,6 +69,8 @@ export class BattlemechLoadout {
     const rangedById = new Map(rangedWeapons.map(it => [it.id, it]));
     const usedWeapons = new Set();
 
+    // A group claims the hardpoint of each member weapon, which lets us detect
+    // missing mounts, stale assignments, and duplicate ranged-group membership.
     const hardpointState = hardpoints.map(hp => ({ ...hp, occupiedBy: null, occupiedByName: undefined }));
 
     for (const group of groups) {
@@ -145,6 +152,8 @@ export class BattlemechLoadout {
   }
 
   _computeMeleeState(errors) {
+    // Melee has separate location/quantity limits and should not count against
+    // ranged group mount-point validation.
     const meleeConfig = foundry.utils.mergeObject(foundry.utils.duplicate(DEFAULT_MELEE), this.mwd.melee ?? {});
     const meleeWeapons = this._getWeapons(it => (it.system.weaponCategory ?? "ranged") === "melee");
     const profiles = [];
@@ -193,6 +202,8 @@ export class BattlemechLoadout {
   }
 
   _toCollection(value) {
+    // Foundry form updates can round-trip arrays as index-keyed objects; the
+    // loadout model accepts either shape so saved actors and previews match.
     if (Array.isArray(value)) {
       return value;
     }

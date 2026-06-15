@@ -1,7 +1,7 @@
 // src/modules/mwd/battlemech-fire-modes.js
 // Purpose: Defines BattleMech weapon group fire modes and their action costs.
-// How it fits: Shared by sheets and the machine action service so UI hints and
-// validation read from the same mode catalog.
+// Workflow: sheet fire-mode controls and attack execution both read this catalog
+// before ranged actions expand one button press into one or more rolls.
 
 export const FIRE_MODES = Object.freeze({
   chainFire: Object.freeze({

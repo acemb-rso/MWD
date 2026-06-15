@@ -1,7 +1,7 @@
 // src/modules/canvas/machine-sensor-detection.js
 // Purpose: Observer-relative MWD sensor detection for hostile machine tokens.
-// How it fits: Foundry vision remains scene authority; this mode only answers
-// whether a token can be sensor-detected by a specific observer token.
+// Workflow: Foundry asks a detection mode about a target -> this module checks
+// EW state and observer context -> canvas overlays/rendering consume the answer.
 
 import { getAttackerCombatant, getDetectionState as getCombatantDetectionState } from "../mwd/machine-ew-state.js";
 import { DETECTION_STATE_ORDER } from "../mwd/machine-ew.js";

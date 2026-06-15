@@ -1,7 +1,7 @@
-// src/modules/roll/intent/resolve-break-lock.js
+﻿// src/modules/roll/intent/resolve-break-lock.js
 // Resolves Break Lock as Handling + Stealth against the detection-state ladder.
 
-import { TEMPLATE } from "../../constants.js";
+import { TEMPLATE } from "../../core/constants.js";
 import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import { getMachineSignatureEmissionModel } from "../../mwd/machine-stealth.js";

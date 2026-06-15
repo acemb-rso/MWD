@@ -1,9 +1,9 @@
-// src/modules/sheets/register-actor-sheets-v2.js
+﻿// src/modules/sheets/register-actor-sheets-v2.js
 // Purpose: Registers custom actor/item sheets.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { SYSTEM_NAME, LOG_HEAD } from "../constants.js";
+import { SYSTEM_NAME, LOG_HEAD } from "../core/constants.js";
 import { CharacterSheetV2 } from "./character-sheet-v2.js";
 import { NpcSheetV2 } from "./npc-sheet-v2.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";

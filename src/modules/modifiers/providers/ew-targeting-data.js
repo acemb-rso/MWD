@@ -1,7 +1,7 @@
-// src/modules/modifiers/providers/ew-targeting-data.js
+﻿// src/modules/modifiers/providers/ew-targeting-data.js
 // Emits positive dice-pool modifier from stored targeting data packets.
 
-import { TEMPLATE } from "../../constants.js";
+import { TEMPLATE } from "../../core/constants.js";
 
 function isMachineActor(actor) {
   return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;

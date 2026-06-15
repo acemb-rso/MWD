@@ -1,7 +1,7 @@
 // src/modules/canvas/machine-sensor-overlays.js
 // Purpose: Local contact/track/lock visuals for MWD sensor-detected tokens.
-// How it fits: DetectionMode decides eligibility; this controller owns only the
-// client-side marker, reticle, and label semantics.
+// Workflow: sensor detection marks eligible targets -> this controller paints
+// client-side markers/reticles -> token visibility stays owned by Foundry.
 
 import {
   canDetect,

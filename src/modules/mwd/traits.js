@@ -1,8 +1,8 @@
-// src/modules/mwd/traits.js
+﻿// src/modules/mwd/traits.js
 // Purpose: Shared quality/trait schema normalization and generic trait rule evaluation.
 // How it fits: Keeps quality items declarative while letting engine phases consume generic rule packets.
 
-import { SYSTEM_NAME } from "../constants.js";
+import { SYSTEM_NAME } from "../core/constants.js";
 import {
   normalizeRuleLimits,
   normalizeRulePrerequisites,

@@ -3,8 +3,8 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { LOG_HEAD, SYSTEM_NAME } from "./constants.js";
-import { SETTING_ENABLE_PLAYER_GADGET } from "./player/mwd-player-gadget.js";
+import { LOG_HEAD, SYSTEM_NAME } from "../core/constants.js";
+import { SETTING_ENABLE_PLAYER_GADGET } from "../player/mwd-player-gadget.js";
 
 export const ANARCHY_HOOKS = {
   /**

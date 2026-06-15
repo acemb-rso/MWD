@@ -1,8 +1,9 @@
-// src/modules/mwd/machine-summary.js
+﻿// src/modules/mwd/machine-summary.js
 // Purpose: Small view-model helpers for machine sheet summary stats.
-// How it fits: Keeps BattleMech hero-bar math testable without instantiating Foundry sheets.
+// Workflow: prepared monitor/crit data -> compact integrity and critical summary
+// parts -> BattleMech/vehicle sheet headers render consistent status blocks.
 
-import { startCase } from "../constants.js";
+import { startCase } from "../core/constants.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -24,6 +25,8 @@ export function getIntegrityToneForPercent(percent = 0) {
 }
 
 export function buildIntegrityPart(label, monitor = {}) {
+  // Machine monitor values are remaining capacity; the summary converts them
+  // into compact label/tone parts for the hero bar.
   const max = Math.max(0, toNumber(monitor?.max, 0));
   const remaining = clamp(toNumber(monitor?.value, 0), 0, max);
   const percent = max > 0 ? (remaining / max) * 100 : 0;
@@ -58,6 +61,8 @@ export function buildRemainingMonitorTrack({
   monitor = {},
   editable = false,
 } = {}) {
+  // Track segments are generated from remaining capacity so the sheet can use
+  // the same pips for armor, structure, and other depleting machine monitors.
   const max = Math.max(0, toNumber(monitor?.max, 0));
   const remaining = clamp(toNumber(monitor?.value, 0), 0, max);
 
@@ -85,6 +90,8 @@ function formatCriticalTitle(crit = {}) {
 }
 
 export function buildCriticalStatusSummary(crits = []) {
+  // Inactive critical records remain in history/storage but are excluded from
+  // the visible current-status count.
   const activeCrits = Array.isArray(crits)
     ? crits.filter(crit => crit && crit.active !== false)
     : [];

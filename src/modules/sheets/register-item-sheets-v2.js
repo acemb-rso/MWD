@@ -1,9 +1,9 @@
-// src/modules/sheets/register-item-sheets-v2.js
+﻿// src/modules/sheets/register-item-sheets-v2.js
 // Purpose: Registers custom actor/item sheets.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { SYSTEM_NAME, LOG_HEAD } from "../constants.js";
+import { SYSTEM_NAME, LOG_HEAD } from "../core/constants.js";
 
 // Import your EXISTING item sheet classes (whatever they are named)
 // If you are pivoting items later, we can replace these with new V2 item sheets.

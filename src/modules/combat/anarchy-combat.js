@@ -3,8 +3,8 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { Misc } from "./misc.js";
-import { AnarchyUsers } from "./users.js";
+import { Misc } from "../utils/misc.js";
+import { AnarchyUsers } from "../system/users.js";
 
 export class AnarchyCombat extends Combat {
 

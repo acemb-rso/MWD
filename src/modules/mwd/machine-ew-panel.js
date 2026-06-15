@@ -1,6 +1,7 @@
 // src/modules/mwd/machine-ew-panel.js
-// Purpose: Build a shared sheet view model for machine EW status and actions.
-// How it fits: Keeps EW state derivation in one place so vehicle and BattleMech sheets stay thin.
+// Purpose: Build the machine EW sheet panel view model.
+// Workflow: selected canvas targets and combatant EW flags -> row/action model
+// with range, packet, and capability data -> vehicle/BattleMech sheets render it.
 
 import { getAcquireBaseDn, getDetectionStateLabel, getTargetingDataCap } from "./machine-ew.js";
 import { getMechRangeBandName, selectMechRangeBand } from "./personal-range-bands.js";
@@ -99,6 +100,8 @@ function buildCompactActions({
   targetHint = "",
   capabilities = {},
 } = {}) {
+  // Compact actions are intentionally row-local: every button carries the target
+  // token identifiers needed by quick-action handlers.
   const hasTag = Boolean(capabilities.tag);
   return [
     {
@@ -178,6 +181,8 @@ export function buildMachineEwRow({
   currentRound = null,
   capabilities = null,
 } = {}) {
+  // EW rows join combatant targeting state, measured canvas range, target
+  // defensive modifiers, and asset capabilities into one sheet view model.
   if (!targetToken?.actor) return null;
 
   const targetTokenUuid = targetToken.document?.uuid ?? targetToken.uuid ?? "";
@@ -251,6 +256,8 @@ export function buildMachineEwPanel({
   targets,
   currentRound = null,
 } = {}) {
+  // The panel does no writes. It snapshots the current user's targets so sheets
+  // can render actionable rows without owning EW state transitions.
   const combatant = getAttackerCombatant(token);
   const systemAttr = toNumber(actor?.system?.attributes?.system?.value, 0);
   const round = currentRound ?? globalThis.game?.combat?.round ?? null;

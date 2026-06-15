@@ -1,6 +1,7 @@
 // src/modules/mwd/machine-crit-remedies.js
 // Purpose: Code-owned remedy catalog for machine critical hits.
-// How it fits: Roll Tables choose remedy keys, while action cost and meaning stay stable.
+// Workflow: crit table stores a remedy key -> this catalog resolves cost/skill/DN
+// defaults -> machine-intents prepares or applies the repair workflow.
 
 import { getMachineActionDefinition } from "./machine-action-catalog.js";
 
@@ -27,6 +28,8 @@ export const MACHINE_CRIT_REMEDY_KEYS = Object.freeze([
 ]);
 
 function remedy(key, overrides = {}) {
+  // Remedies inherit action-economy data from the canonical action catalog, then
+  // override only the repair-specific DN/label details.
   const definition = getMachineActionDefinition(key);
   return Object.freeze({
     key: definition.key,
@@ -90,6 +93,8 @@ function getCritSearchText(crit = {}) {
 }
 
 export function getMachineRemedySkillKey(crit = {}, remedy = null) {
+  // Some older crit rows only say "system reset"; infer Computers for sensor
+  // and targeting faults so imported tables remain playable.
   const remedyData = remedy ?? getMachineCritRemedy(crit?.remedyKey ?? "");
   const explicit = String(crit?.remedySkillKey ?? "").trim();
   if (explicit) return explicit;

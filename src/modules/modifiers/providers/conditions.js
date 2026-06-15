@@ -1,6 +1,7 @@
 // src/modules/modifiers/providers/conditions.js
-// Purpose: Provides module-level utilities or helpers.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+// Purpose: Emits personal condition penalties from derived monitor state.
+// Workflow: modifier collection -> physical/fatigue derived penalties are read
+// from the roll actor -> non-Edge rolls receive condition modifiers.
 
 
 // modules/modifiers/providers/condition.js

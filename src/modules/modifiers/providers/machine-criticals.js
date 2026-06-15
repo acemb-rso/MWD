@@ -1,6 +1,7 @@
 // src/modules/modifiers/providers/machine-criticals.js
 // Purpose: Emits first-pass roll penalties from active machine critical records.
-// How it fits: Providers read system.mwd.crits; token statuses stay visual-only.
+// Workflow: roll modifier collection -> active system.mwd.crits are inspected ->
+// applicable crit penalties join the same modifier packet as other providers.
 
 import { getActiveMachineCrits } from "../../mwd/critical-hits.js";
 

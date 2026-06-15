@@ -1,9 +1,9 @@
-// src/modules/mwd/asset-module-runtime.js
+﻿// src/modules/mwd/asset-module-runtime.js
 // Purpose: Thin registry/facts helper for runtime-event asset-module packets.
 // How it fits: Keeps packet lookup declarative while heat, harm, EW, and aura
 // subsystems own their lifecycle dispatch points.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { getAssetModuleState } from "./asset-module-rules.js";
 
 export const ASSET_MODULE_RUNTIME_KINDS = Object.freeze([

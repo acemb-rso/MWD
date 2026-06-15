@@ -1,9 +1,9 @@
-// src/modules/mwd/machine-melee-weapons.js
+﻿// src/modules/mwd/machine-melee-weapons.js
 // Purpose: Resolves BattleMech melee weapon formulas into concrete attack stats.
-// How it fits: Melee weapons scale from the machine and pilot at roll time, while
-// normal machine weapon plumbing consumes ordinary numeric damage and AR values.
+// Workflow: selected melee profile plus machine/pilot context -> numeric damage
+// and AR bands -> standard machine attack resolution consumes an ordinary profile.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { getMachineWeaponDamageTypeLabel, normalizeMachineWeaponDamageType } from "./machine-weapon-types.js";
 
 export const MACHINE_STANDARD_MELEE_ID = "machineStandardMelee";
@@ -40,6 +40,8 @@ function isMachineMeleeProfile(profile = null) {
 }
 
 export function getMachineMeleeBaseDamage(machineActor = null) {
+  // Baseline physical damage scales from tonnage so unarmed attacks and simple
+  // melee weapons can share the same machine-size foundation.
   const tonnage = Math.max(0, toNumber(
     machineActor?.system?.mwd?.tonnage
       ?? machineActor?.system?.tonnage
@@ -95,6 +97,8 @@ function getRangeCap(profile = {}) {
 }
 
 export function buildStandardMachineMeleeProfile(machineActor = null) {
+  // Synthetic unarmed profile: it looks like a normal mech weapon to the attack
+  // engine but has no backing item document.
   const baseDamageType = "concussive";
   return {
     id: MACHINE_STANDARD_MELEE_ID,
@@ -133,6 +137,8 @@ export function resolveMachineMeleeCombatProfile({
   pilotActor = null,
   profile = null,
 } = {}) {
+  // Resolve authored formulas into concrete attack values at roll time, when
+  // both the machine tonnage and current pilot reflexes are known.
   if (!isMachineActor(machineActor) || !isMachineMeleeProfile(profile)) return profile;
 
   const rangeCap = getRangeCap(profile);

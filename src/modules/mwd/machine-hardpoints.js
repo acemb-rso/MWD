@@ -1,9 +1,9 @@
-// src/modules/mwd/machine-hardpoints.js
+﻿// src/modules/mwd/machine-hardpoints.js
 // Purpose: Shared machine hardpoint normalization and slot-occupancy helpers.
-// How it fits: Keeps slot ownership actor-side so sheets, crit logic, and
-// loadout validation can all resolve the same mounted-item state.
+// Workflow: actor hardpoint storage -> normalized mounted-item ownership ->
+// loadout validation, crit scoping, and attack prep resolve the same mounts.
 
-import { TEMPLATE, startCase } from "../constants.js";
+import { TEMPLATE, startCase } from "../core/constants.js";
 import {
   normalizeMachineHardpointType,
   normalizeMachineWeaponDamageType,
@@ -31,6 +31,8 @@ export function rawHardpointsArray(actor = null) {
 }
 
 export function normalizeMachineHardpoints(rawHardpoints = [], { defaultLocation = "", idFactory = null } = {}) {
+  // Normalize into the persisted hardpoint shape without resolving item data.
+  // Occupancy and compatibility are later phases layered on top of these ids.
   const raw = Array.isArray(rawHardpoints) ? rawHardpoints : Object.values(rawHardpoints && typeof rawHardpoints === "object" ? rawHardpoints : {});
   return raw.map((hardpoint, index) => ({
     id: String(hardpoint?.id ?? `hardpoint-${index + 1}`).trim(),
@@ -49,6 +51,8 @@ export function getConfiguredMachineHardpoints(actor = null) {
 }
 
 export function reconcileMachineHardpoints(currentRaw = [], stagedRaw = [], { defaultLocation = "" } = {}) {
+  // Sheet edits may change slot settings, but mounted items are preserved from
+  // the current actor state so a config save cannot silently unmount weapons.
   const current = normalizeMachineHardpoints(currentRaw, { defaultLocation });
   const stagedById = new Map(
     normalizeMachineHardpoints(stagedRaw, { defaultLocation })
@@ -98,6 +102,8 @@ export function removeMachineHardpointById(currentRaw = [], hardpointId = "", { 
 }
 
 export function assignMachineHardpointOccupant(currentRaw = [], hardpointId = "", itemId = "", { defaultLocation = "" } = {}) {
+  // A weapon may occupy only one hardpoint. Assigning it here clears any older
+  // slot ownership in the same atomic hardpoint array update.
   const normalizedHardpointId = String(hardpointId ?? "").trim();
   const normalizedItemId = String(itemId ?? "").trim();
   const current = normalizeMachineHardpoints(currentRaw, { defaultLocation });
@@ -164,6 +170,8 @@ export function getAssignedMachineItemIds(actor = null) {
 }
 
 export function getMountedMachineItems(actor = null, { canonicalType = "" } = {}) {
+  // Mounted items are resolved by hardpoint ownership rather than by item flags;
+  // this keeps loadout, crit scope, and attack prep aligned.
   const normalizedType = String(canonicalType ?? "").trim();
   const itemMap = new Map(
     Array.from(actor?.items ?? [])
@@ -207,6 +215,8 @@ export function hasMachineWeaponKeyword(item = null, keyword = "") {
 }
 
 function doesHardpointTypeAcceptWeapon(hardpointType = "energy", item = null) {
+  // Support slots are keyword gated, omni slots are universal, and all other
+  // slots require the weapon damage family to match.
   if (hardpointType === "support") return hasMachineWeaponKeyword(item, "support");
   if (hardpointType === "omni") return true;
   return hardpointType === getMachineWeaponRequiredType(item);

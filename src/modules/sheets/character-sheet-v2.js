@@ -1,8 +1,8 @@
-// src/modules/sheets/character-sheet-v2.js
+﻿// src/modules/sheets/character-sheet-v2.js
 
 
-import { TEMPLATES_PATH, SYSTEM_NAME, EDGE_POOL_GROUPS } from "../constants.js";
-import { MWD } from "../config.js";
+import { TEMPLATES_PATH, SYSTEM_NAME, EDGE_POOL_GROUPS } from "../core/constants.js";
+import { MWD } from "../core/config.js";
 import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { LayoutRegistry } from "../layout/layout-registry.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";

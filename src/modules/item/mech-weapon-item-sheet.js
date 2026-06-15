@@ -1,10 +1,10 @@
-// src/modules/item/mech-weapon-item-sheet.js
+﻿// src/modules/item/mech-weapon-item-sheet.js
 // Purpose: Provides a Sheet / UI class for entities (actor/item) or an application.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
 import { WeaponItemSheet } from "./weapon-item-sheet.js";
-import { TEMPLATES_PATH } from "../constants.js";
+import { TEMPLATES_PATH } from "../core/constants.js";
 
 /**
  * Mech-scale weapon item sheet (AppV2).

@@ -3,7 +3,7 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { LOG_HEAD } from "./constants.js";
+import { LOG_HEAD } from "../core/constants.js";
 
 /**
  * Hardens Handlebars template loading by stripping null/empty paths and emitting

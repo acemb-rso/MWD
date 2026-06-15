@@ -1,10 +1,10 @@
-// src/modules/item/contact-item-sheet.js
+﻿// src/modules/item/contact-item-sheet.js
 // Purpose: Provides a Sheet / UI class for entities (actor/item) or an application.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
 import { BaseItemSheet } from "./base-item-sheet.js";
-import { TEMPLATES_PATH } from "../constants.js";
+import { TEMPLATES_PATH } from "../core/constants.js";
 
 export class ContactItemSheet extends BaseItemSheet {
   static LAYOUT_ID = "contact";

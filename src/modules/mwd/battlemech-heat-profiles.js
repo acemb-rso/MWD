@@ -1,7 +1,7 @@
 // src/modules/mwd/battlemech-heat-profiles.js
 // Purpose: Canonical BattleMech heat tier shortcut table.
-// How it fits: Sheets use these presets to fill heat track thresholds while
-//              preserving manual adjustment of the resulting fields.
+// Workflow: sheet profile selection -> preset values fill heat track fields ->
+// actor data stores the resulting thresholds for heat-state evaluation.
 
 export const BATTLEMECH_HEAT_PROFILES = Object.freeze([
   Object.freeze({ code: "HT-01", tier: "D", trackLength: 8, thresholds: Object.freeze({ runningHot: 2, overheated: 4, shutdown: 6 }) }),

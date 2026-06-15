@@ -1,10 +1,10 @@
-// src/modules/sheets/preload-templates.js
+﻿// src/modules/sheets/preload-templates.js
 // Purpose: Preloads or manages Handlebars templates.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
 // sheets/preload-templates.js
-import { SYSTEM_NAME, LOG_HEAD } from "../constants.js";
+import { SYSTEM_NAME, LOG_HEAD } from "../core/constants.js";
 
 /**
  * Minimal preload list to guarantee CSB/AppV2 sheets render.

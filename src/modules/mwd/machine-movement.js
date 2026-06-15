@@ -1,9 +1,9 @@
-// src/modules/mwd/machine-movement.js
+﻿// src/modules/mwd/machine-movement.js
 // Purpose: Normalizes machine movement speeds for vehicle-scale actors.
-// How it fits: Keeps vehicle and BattleMech sheets aligned on Ground and Flight
-// fields while allowing BattleMech jump movement to be derived from modules.
+// Workflow: actor movement storage and legacy fields -> normalized movement rows
+// with penalties/derived jump -> sheets and movement actions display distances.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 
 const MOVEMENT_LABELS = Object.freeze({
   ground: "Ground",
@@ -29,6 +29,8 @@ export function applyMachineMovementPenalty(
   movementPenalty = 0,
   { immobile = false, minimum = MACHINE_MINIMUM_PENALIZED_MOVEMENT_METERS } = {},
 ) {
+  // Penalties reduce speed in meters but preserve a small movement floor unless
+  // the aggregate state marks the machine fully immobile.
   const base = toNonNegativeInteger(speed, 0);
   if (immobile) return 0;
   const penalty = toNonNegativeInteger(movementPenalty, 0);
@@ -48,6 +50,8 @@ export function getMachineMovementModes(actorType = "") {
 }
 
 export function normalizeMachineMovement(movement = {}, { actorType = "", legacyMoves = 0 } = {}) {
+  // Accept current ground/flight fields plus legacy move/run/fly names. Jump is
+  // retained only for BattleMechs, where module-derived jump can supersede it.
   if (!isMachineActorType(actorType)) return {};
 
   const source = movement && typeof movement === "object" ? movement : {};
@@ -65,6 +69,8 @@ export function normalizeMachineMovement(movement = {}, { actorType = "", legacy
 }
 
 function buildBattlemechJumpField(jumpProfile = null, movementEffects = {}) {
+  // Jump displays as a derived, non-editable movement row because its source is
+  // modules or cached mobility, not the actor's base movement inputs.
   if (!jumpProfile?.enabled) return null;
 
   const value = toNonNegativeInteger(jumpProfile.movement, 0);

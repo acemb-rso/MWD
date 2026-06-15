@@ -3,10 +3,10 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { ANARCHY } from "./config.js";
-import { TEMPLATE } from "./constants.js";
-import { formatString } from "./strings.js";
-import { getPersonalDamageTypeLabel, isPersonalDamageType } from "./mwd/personal-damage.js";
+import { ANARCHY } from "../core/config.js";
+import { TEMPLATE } from "../core/constants.js";
+import { formatString } from "../utils/strings.js";
+import { getPersonalDamageTypeLabel, isPersonalDamageType } from "../mwd/personal-damage.js";
 
 export class ErrorManager {
 

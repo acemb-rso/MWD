@@ -1,11 +1,11 @@
-// src/modules/harm/harm-engine.js
+﻿// src/modules/harm/harm-engine.js
 // Purpose: Central GM harm application service.
 // How it fits: Routes the GM harm tool through one actor-first workflow so
 // damage, burn, and status changes share the same targeting and chat contract.
 
 
 import { Checkbars } from "../common/checkbars.js";
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import {
   applyManagedStatusUpdate,

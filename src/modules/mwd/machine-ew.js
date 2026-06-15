@@ -1,5 +1,7 @@
 // src/modules/mwd/machine-ew.js
-// Pure, stateless EW derivation helpers — no actor/combatant lookups, no side effects.
+// Purpose: Pure EW ladder math for detection states, acquire DNs, and targeting caps.
+// Workflow: EW rolls and panels pass a state string -> these stateless helpers
+// return labels/caps/next states -> combatant state remains owned elsewhere.
 
 export const DETECTION_STATE_ORDER = Object.freeze(["blind", "contact", "track", "lock"]);
 

@@ -1,10 +1,10 @@
-// src/modules/mwd/machine-state-effects.js
+﻿// src/modules/mwd/machine-state-effects.js
 // Purpose: Canonical machine status and degradation mechanics aligned to the
 //          MWD state/degrade docs.
-// How it fits: Centralizes machine-state rule expression so the roll engine,
-//              EW helpers, heat, and sheets share one authority.
+// Workflow: actor statuses, active crits, degradation, heat, and strain ->
+// aggregate machine state effects -> rolls, EW, movement, heat, and sheets query it.
 
-import { TEMPLATE, startCase } from "../constants.js";
+import { TEMPLATE, startCase } from "../core/constants.js";
 import { getActiveMachineCrits } from "./critical-hits.js";
 import { getMachineHardpointByItemId } from "./machine-hardpoints.js";
 import {
@@ -36,11 +36,14 @@ function getActorType(actor = null) {
 }
 
 function hasStatus(actor = null, statusId = "") {
+  // Asset modules can derive statuses without creating Foundry ActiveEffects;
+  // state rules should see both real actor statuses and module-derived ones.
   return (actor?.statuses?.has?.(statusId) ?? false) || getAssetModuleDerivedStatuses(actor).has(statusId);
 }
 
 
 function setDetectionCap(currentCap = "lock", nextCap = "lock") {
+  // Detection caps only ever get stricter while aggregating effects.
   const currentRank = DETECTION_CAP_RANKS[currentCap] ?? DETECTION_CAP_RANKS.lock;
   const nextRank = DETECTION_CAP_RANKS[nextCap] ?? DETECTION_CAP_RANKS.lock;
   return nextRank < currentRank ? nextCap : currentCap;
@@ -55,6 +58,8 @@ function getCondition(location = {}) {
 }
 
 function getAttackScope(actor = null, { weaponGroupId = "", weaponId = "", weapon = null, rangeBand = "" } = {}) {
+  // Attack modifiers may arrive from a sheet group button or an individual
+  // weapon roll. Resolve both into mounted weapons and location families.
   const normalizedGroupId = normalizeMachineCritId(weaponGroupId);
   const normalizedWeaponId = normalizeMachineCritId(weaponId);
   const groups = getConfiguredMachineWeaponGroups(actor);
@@ -92,6 +97,8 @@ function addMovementPenalty(state, steps = 1) {
 }
 
 function applyMachineCritDerivedState(state, actor = null) {
+  // Critical consequences contribute to the same aggregate state object as
+  // statuses, letting downstream helpers consume one compact rules snapshot.
   for (const crit of getActiveMachineCrits(actor)) {
     const statusId = String(crit?.statusId ?? "").trim();
     if (statusId === "unstable") {
@@ -124,6 +131,8 @@ function applyMachineCritDerivedState(state, actor = null) {
 }
 
 function applyExplicitStatuses(state, actor = null) {
+  // Status ids are the stable bridge between chat/effect UI and the rule engine.
+  // Keep their mechanical meaning here instead of scattering checks in sheets.
   if (hasStatus(actor, "sensorDegraded")) {
     state.acquireDice += -2;
     pushEffect(state, "Sensor Degraded: -2 dice to Acquire Target.");
@@ -200,6 +209,8 @@ function applyExplicitStatuses(state, actor = null) {
 }
 
 function applyVehicleStrain(state, actor = null) {
+  // Vehicle strain is vehicle-only degradation pressure and should not leak into
+  // BattleMech heat/degradation behavior.
   if (getActorType(actor) !== TEMPLATE.actorTypes.vehicle) return;
   const strainEffects = getVehicleStrainStateEffects(actor);
   state.handling += strainEffects.handling;
@@ -212,6 +223,8 @@ function applyVehicleStrain(state, actor = null) {
 }
 
 function applyBattlemechHeatMovementPenalty(state, actor = null) {
+  // BattleMech heat affects movement through the same aggregate movementPenalty
+  // used by criticals and vehicle strain.
   if (getActorType(actor) !== TEMPLATE.actorTypes.battlemech) return;
   const system = actor?.system ?? {};
   const heatMonitor = system?.monitors?.heat ?? {};

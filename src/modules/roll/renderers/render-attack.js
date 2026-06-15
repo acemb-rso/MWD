@@ -1,8 +1,8 @@
-// src/modules/roll/renderers/render-attack.js
+﻿// src/modules/roll/renderers/render-attack.js
 // Purpose: Enhances attack roll cards with CQ, outcome, and damage details.
 // How it fits: Keeps attack presentation as a pure render step over resolved engine data.
 
-import { startCase } from "../../constants.js";
+import { startCase } from "../../core/constants.js";
 import { buildMachineCriticalChatSummary } from "../../mwd/machine-crit-effects.js";
 import { buildPersonalCriticalChatSummary } from "../../mwd/personal-criticals.js";
 import { enhancePostEdge } from "./render-edge-post.js";

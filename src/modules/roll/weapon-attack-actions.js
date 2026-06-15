@@ -1,7 +1,7 @@
-// src/modules/roll/weapon-attack-actions.js
+﻿// src/modules/roll/weapon-attack-actions.js
 // Purpose: Shared helpers for launching personal-weapon attacks from sheets and hotbar macros.
 
-import { SYSTEM_NAME } from "../constants.js";
+import { SYSTEM_NAME } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { getWeaponAttackGateReason } from "../mwd/personal-critical-gates.js";
 import { notifyRollError } from "./roll-errors.js";

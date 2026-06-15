@@ -1,9 +1,9 @@
 // src/modules/mwd/machine-action-catalog.js
 // Purpose: Canonical machine action and remediation definitions aligned to the
 //          MWD action docs.
-// How it fits: Keeps labels, skill pairing, resolver ownership, prompts, and
-//              action-economy rules in one data-owned surface for sheets,
-//              statuses, crit remedies, and machine action intents.
+// Workflow: sheets/statuses/remedies request an action key -> this catalog
+// supplies labels, prompts, costs, and resolver ownership -> action services
+// execute the matching workflow.
 
 export const MACHINE_ACTION_RESOLVERS = Object.freeze([
   "action",

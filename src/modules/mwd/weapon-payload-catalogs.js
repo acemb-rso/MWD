@@ -1,9 +1,9 @@
-// src/modules/mwd/weapon-payload-catalogs.js
+﻿// src/modules/mwd/weapon-payload-catalogs.js
 // Purpose: Provides configurable canonical payload family and tag catalogs.
 // How it fits: Weapon and payload sheets use these catalogs so compatibility
 // keys are authored consistently across reusable payload items and weapons.
 
-import { SYSTEM_NAME } from "../constants.js";
+import { SYSTEM_NAME } from "../core/constants.js";
 
 export const SETTING_WEAPON_PAYLOAD_FAMILY_CATALOG = "weaponPayloadFamilyCatalog";
 export const SETTING_WEAPON_PAYLOAD_TAG_CATALOG = "weaponPayloadTagCatalog";

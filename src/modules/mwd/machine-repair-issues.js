@@ -1,9 +1,11 @@
-// src/modules/mwd/machine-repair-issues.js
+﻿// src/modules/mwd/machine-repair-issues.js
 // Purpose: Merge active crits and curated status-backed repair issues into one
 //          chooser-friendly model.
+// Workflow: active crits and repairable statuses -> read-only issue rows with
+// remedy metadata -> quick-action menus hand selected issues to machine-intents.
 
 import { getStatusConditionDefinition } from "../status/status-condition-catalog.js";
-import { startCase } from "../constants.js";
+import { startCase } from "../core/constants.js";
 import { getSkillDef } from "./skills.js";
 import { getActiveMachineCrits } from "./critical-hits.js";
 import { describeMachineCriticalEffect } from "./machine-crit-effects.js";
@@ -66,6 +68,8 @@ function compactList(values = []) {
 }
 
 function getLocationContext(actor, locationKey = "") {
+  // Repair DN can rise with local degradation, so status-backed issues need the
+  // same location condition lookup as critical-backed issues.
   const normalizedKey = String(locationKey ?? "").trim();
   if (!normalizedKey) {
     return {
@@ -96,6 +100,8 @@ function buildIssueSummary({ remedySkillKey = "", totalDn = 0, conditionLabel = 
 }
 
 function buildCriticalIssue(actor, crit = {}) {
+  // Convert a stored critical into the same issue shape as a status repair so
+  // the sheet can render one chooser for both sources.
   const remedy = getMachineCritRemedy(crit.remedyKey);
   const effect = describeMachineCriticalEffect(crit);
   const location = getLocationContext(actor, crit.locationKey);
@@ -132,6 +138,8 @@ function buildCriticalIssue(actor, crit = {}) {
 }
 
 export function getRepairableMachineStatusIssue(actor, statusId = "") {
+  // Only curated statuses become repair issues. Other statuses may affect rules
+  // but should not clutter the field-remedy chooser.
   const normalizedStatusId = String(statusId ?? "").trim();
   const definition = REPAIRABLE_MACHINE_STATUS_DEFINITIONS[normalizedStatusId] ?? null;
   if (!definition) return null;

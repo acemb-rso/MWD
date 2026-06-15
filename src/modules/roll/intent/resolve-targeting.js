@@ -1,7 +1,7 @@
-// src/modules/roll/intent/resolve-targeting.js
+﻿// src/modules/roll/intent/resolve-targeting.js
 // Resolve roll context for an EW targeting-data action (System + Gunnery, DN 2).
 
-import { TEMPLATE } from "../../constants.js";
+import { TEMPLATE } from "../../core/constants.js";
 import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import { getTargetingDataCap, getDetectionStateLabel } from "../../mwd/machine-ew.js";

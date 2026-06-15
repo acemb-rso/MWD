@@ -1,6 +1,7 @@
 // src/modules/mwd/derive-monitors.js
-// Purpose: Defines function `penaltyFromDamage`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+// Purpose: Legacy monitor-derived penalty and resistance helpers.
+// Workflow: actor monitor values -> derived physical/fatigue penalties and armor
+// resistance -> legacy sheets/providers consume the derived monitor block.
 
 // systems/mwd/modules/mwd/derive-monitors.js
 

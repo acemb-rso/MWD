@@ -3,15 +3,15 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { ANARCHY } from "./config.js";
-import { SETTING_BATTLEMECH_TOKEN_HEAT_FX, SYSTEM_NAME } from "./constants.js";
-import { registerGMDnPresetSettingsEditor } from "./settings/gm-dn-preset-settings.js";
-import { registerLifeModuleSettingsEditor } from "./settings/life-module-settings.js";
-import { registerPersonalActionCatalogSettingsEditor } from "./settings/personal-action-catalog-settings.js";
-import { registerSkillSpecializationSettingsEditor } from "./settings/skill-specialization-settings.js";
-import { registerSceneModifierTemplateSettingsEditor } from "./settings/scene-modifier-template-settings.js";
-import { registerStatusConditionCatalogSettingsEditor } from "./settings/status-condition-catalog-settings.js";
-import { registerWeaponPayloadCatalogSettingsEditors } from "./settings/weapon-payload-catalog-settings.js";
+import { ANARCHY } from "../core/config.js";
+import { SETTING_BATTLEMECH_TOKEN_HEAT_FX, SYSTEM_NAME } from "../core/constants.js";
+import { registerGMDnPresetSettingsEditor } from "../settings/gm-dn-preset-settings.js";
+import { registerLifeModuleSettingsEditor } from "../settings/life-module-settings.js";
+import { registerPersonalActionCatalogSettingsEditor } from "../settings/personal-action-catalog-settings.js";
+import { registerSkillSpecializationSettingsEditor } from "../settings/skill-specialization-settings.js";
+import { registerSceneModifierTemplateSettingsEditor } from "../settings/scene-modifier-template-settings.js";
+import { registerStatusConditionCatalogSettingsEditor } from "../settings/status-condition-catalog-settings.js";
+import { registerWeaponPayloadCatalogSettingsEditors } from "../settings/weapon-payload-catalog-settings.js";
 import {
   DEFAULT_MACHINE_CRIT_TABLE_UUIDS,
   SETTING_MACHINE_CRIT_TABLE_GENERAL,
@@ -22,7 +22,7 @@ import {
   SETTING_MACHINE_CRIT_TABLE_VEHICLE_BODY,
   SETTING_MACHINE_CRIT_TABLE_VEHICLE_MOBILITY,
   SETTING_MACHINE_CRIT_TABLE_VEHICLE_TURRET,
-} from "./mwd/critical-hits.js";
+} from "../mwd/critical-hits.js";
 
 
 export class SystemSettings {

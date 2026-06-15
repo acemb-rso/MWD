@@ -3,11 +3,11 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { ANARCHY } from "./config.js";
+import { ANARCHY } from "../core/config.js";
 import { ErrorManager } from "./error-manager.js";
-import { Misc } from "./misc.js";
+import { Misc } from "../utils/misc.js";
 import { RemoteCall } from "./remotecall.js";
-import { formatString } from "./strings.js";
+import { formatString } from "../utils/strings.js";
 
 const BLIND_MESSAGE_TO_GM = 'Users.blindMessageToGM';
 

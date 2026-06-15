@@ -1,7 +1,7 @@
 // src/modules/mwd/machine-clustering.js
 // Purpose: Shared helpers for machine-scale clustering dice profiles and rolls.
-// How it fits: Keeps clustering math consistent across weapon prep, upgrade
-// aggregation, attack resolution, and tests.
+// Workflow: weapon/fire-control data -> normalized clustering profile -> attack
+// resolution rolls clustered hits and adds them to queued damage.
 
 function toInteger(value, fallback = 0) {
   const numeric = Number(value);
@@ -19,6 +19,8 @@ export function buildClusteringProfile({
   diceModifier = 0,
   targetNumberModifier = 0,
 } = {}) {
+  // Modifiers only apply when the base weapon actually rolls clustering dice;
+  // support modules should not create clustering on weapons that lack it.
   const baseDice = Math.max(0, toInteger(clusteringDice, 0));
   const baseTargetNumber = normalizeClusteringTargetNumber(clusteringTargetNumber, 5);
   const activeBaseProfile = baseDice > 0;
@@ -43,6 +45,8 @@ export async function rollClusteringDamage({
   clusteringTargetNumber = 5,
   RollClass = globalThis.Roll,
 } = {}) {
+  // Return a rich no-roll result for zero dice so callers can render the same
+  // result shape without special casing non-clustering attacks.
   const dice = Math.max(0, toInteger(clusteringDice, 0));
   const targetNumber = normalizeClusteringTargetNumber(clusteringTargetNumber, 5);
   const formula = dice > 0 ? `${dice}d6cs>=${targetNumber}` : "";

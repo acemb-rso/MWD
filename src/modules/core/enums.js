@@ -7,7 +7,7 @@
 
 import { ANARCHY as MWD } from "./config.js";
 import { ACTOR_ATTRIBUTE_SETS } from "./constants.js";
-import { Misc } from "./misc.js";
+import { Misc } from "../utils/misc.js";
 
 const actorWordTypes = {
   keyword: "keywords",

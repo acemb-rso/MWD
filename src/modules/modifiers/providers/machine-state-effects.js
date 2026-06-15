@@ -1,9 +1,9 @@
-// src/modules/modifiers/providers/machine-state-effects.js
+﻿// src/modules/modifiers/providers/machine-state-effects.js
 // Purpose: Emits canonical machine status/degradation dice modifiers.
-// How it fits: Keeps canonical state penalties on the modifier-provider rail
-// instead of scattering dice math across individual resolvers.
+// Workflow: roll modifier collection -> this provider reads aggregate machine
+// state -> roll assembly receives dice/DN modifiers with source labels.
 
-import { TEMPLATE } from "../../constants.js";
+import { TEMPLATE } from "../../core/constants.js";
 import { computeHeatPenalties } from "../../mwd/heat-effects.js";
 import { normalizeMachineHeatThresholds } from "../../mwd/heat-state.js";
 import {

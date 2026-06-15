@@ -1,10 +1,10 @@
-// src/modules/mwd/rules.js
+﻿// src/modules/mwd/rules.js
 // Purpose: Shared declarative contribution evaluator for rule-carrying items.
 // How it fits: Qualities, traits, and asset modules can share selector,
 // prerequisite, output, and usage-limit plumbing while domain engines remain
 // the only writers for rolls, heat, harm, action economy, and targeting state.
 
-import { SYSTEM_NAME } from "../constants.js";
+import { SYSTEM_NAME } from "../core/constants.js";
 
 export const RULE_MODES = Object.freeze(["automatic", "optional", "action", "triggered", "narrative"]);
 export const RULE_OUTPUT_TYPES = Object.freeze([

@@ -1,8 +1,8 @@
-// src/modules/player/mwd-player-gadget.js
+﻿// src/modules/player/mwd-player-gadget.js
 // Purpose: AppV2 compact combat command surface for non-GM players.
 // How it fits: Emits player-facing combat, attack, status, and roll intents through existing services.
 
-import { SYSTEM_NAME } from "../constants.js";
+import { SYSTEM_NAME } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { openTokenStatusDialog } from "../dialog/token-status-dialog.js";
 import { getWeaponAttackGateReason } from "../mwd/personal-critical-gates.js";

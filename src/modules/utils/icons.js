@@ -3,7 +3,7 @@
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
 
-import { STYLE_PATH } from './constants.js';
+import { STYLE_PATH } from '../core/constants.js';
 
 const faClassD6 = [
   'fas fa-dice',

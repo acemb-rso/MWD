@@ -1,7 +1,7 @@
 // src/modules/mwd/machine-token-resolution.js
 // Purpose: Prefer live scene tokens over prototype tokens for machine actions.
-// How it fits: EW state and combatant-backed actions must resolve against the
-// active scene token id, not the actor's prototype token document.
+// Workflow: sheet/action service needs a source token -> explicit or active
+// scene token is selected -> EW and combatant-backed actions use live ids.
 
 export function resolveMachineSceneToken(actor = null, { sheetToken = null } = {}) {
   const explicitSheetToken = sheetToken?.document ?? sheetToken ?? null;

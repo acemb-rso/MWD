@@ -1,9 +1,9 @@
-// src/modules/mwd/vehicle-movement-actions.js
+﻿// src/modules/mwd/vehicle-movement-actions.js
 // Purpose: Vehicle movement quick actions, including Redline strain.
 // How it fits: Mirrors the BattleMech movement action service while preserving
 // vehicle doctrine: normal movement is stable, Redline is the Sprint equivalent.
 
-import { TEMPLATE } from "../constants.js";
+import { TEMPLATE } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 import { getVehicleStrainStateEffects, adjustVehiclePendingStrain } from "./vehicle-strain.js";

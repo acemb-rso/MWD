@@ -1,8 +1,8 @@
-// src/modules/mwd/life-modules.js
+﻿// src/modules/mwd/life-modules.js
 // Purpose: Defines life module catalog defaults, validation, and roll-facing life module state.
 // How it fits: Shared by settings registration, modifier providers, item sheets, and character sheets.
 
-import { SYSTEM_NAME, TEMPLATE } from "../constants.js";
+import { SYSTEM_NAME, TEMPLATE } from "../core/constants.js";
 import { MWD_SKILLS, getSkillDef } from "./skills.js";
 
 export const SETTING_LIFE_MODULE_CATALOG = "lifeModuleCatalog";
