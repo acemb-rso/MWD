@@ -19,6 +19,7 @@ import { normalizeMachineHeatThresholds } from "./heat-state.js";
 import { movementPenaltyStepsToMeters } from "./machine-movement.js";
 import { getAssetModuleDerivedStatuses, getAssetModuleMovementBonus } from "./asset-module-effects.js";
 import { getVehicleStrainStateEffects } from "./vehicle-strain.js";
+import { collectMachineStateAnnotations } from "../status/status-mechanics.js";
 
 const DETECTION_CAP_RANKS = Object.freeze({
   contact: 1,
@@ -34,13 +35,6 @@ function toNumber(value, fallback = 0) {
 function getActorType(actor = null) {
   return actor?.type === TEMPLATE.actorTypes.battlemech ? TEMPLATE.actorTypes.battlemech : TEMPLATE.actorTypes.vehicle;
 }
-
-function hasStatus(actor = null, statusId = "") {
-  // Asset modules can derive statuses without creating Foundry ActiveEffects;
-  // state rules should see both real actor statuses and module-derived ones.
-  return (actor?.statuses?.has?.(statusId) ?? false) || getAssetModuleDerivedStatuses(actor).has(statusId);
-}
-
 
 function setDetectionCap(currentCap = "lock", nextCap = "lock") {
   // Detection caps only ever get stricter while aggregating effects.
@@ -97,32 +91,9 @@ function addMovementPenalty(state, steps = 1) {
 }
 
 function applyMachineCritDerivedState(state, actor = null) {
-  // Critical consequences contribute to the same aggregate state object as
-  // statuses, letting downstream helpers consume one compact rules snapshot.
+  // Non-status critical consequences stay here. Status-bearing crits flow
+  // through the declarative status mechanics collector below.
   for (const crit of getActiveMachineCrits(actor)) {
-    const statusId = String(crit?.statusId ?? "").trim();
-    if (statusId === "unstable") {
-      state.pilotingDice += -2;
-      pushEffect(state, "Unstable: -2 dice to Piloting; movement risks a fall.");
-    } else if (statusId === "staggeredMechanical") {
-      state.startTurnSaLoss += 1;
-    } else if (statusId === "overheating") {
-      state.startTurnHeat += 2;
-    } else if (statusId === "reactorInstability") {
-      state.energyAttackHeat += 1;
-      state.energyAttackDamage += -1;
-    } else if (statusId === "stalled") {
-      state.handling += -1;
-      state.system += -1;
-      state.noSprint = true;
-      state.noJump = true;
-    } else if (statusId === "limping") {
-      addMovementPenalty(state, 1);
-      state.pilotingDn += 1;
-    } else if (statusId === "jumpJetFailure") {
-      state.noJump = true;
-    }
-
     if (String(crit?.key ?? "").trim() === "opticsCoolantFog") {
       state.rangeCapClose = true;
       pushEffect(state, "Optics Coolant Fog: attacks beyond Close are blocked.");
@@ -130,82 +101,82 @@ function applyMachineCritDerivedState(state, actor = null) {
   }
 }
 
-function applyExplicitStatuses(state, actor = null) {
-  // Status ids are the stable bridge between chat/effect UI and the rule engine.
-  // Keep their mechanical meaning here instead of scattering checks in sheets.
-  if (hasStatus(actor, "sensorDegraded")) {
-    state.acquireDice += -2;
-    pushEffect(state, "Sensor Degraded: -2 dice to Acquire Target.");
+function machineCqValue(value, actor = null) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (!value || typeof value !== "object") return 0;
+  const actorType = getActorType(actor);
+  return toNumber(value[actorType] ?? value.default, 0);
+}
+
+function applyMachineStatusAnnotations(state, actor = null) {
+  const critStatusIds = getActiveMachineCrits(actor)
+    .map(crit => String(crit?.statusId ?? "").trim())
+    .filter(Boolean)
+    .map(statusId => ({ statusId, sourceChannel: "critical" }));
+  const assetStatusIds = Array.from(getAssetModuleDerivedStatuses(actor))
+    .map(statusId => ({ statusId, sourceChannel: "degradation" }));
+  const annotations = collectMachineStateAnnotations(actor, {
+    extraStatusIds: [...critStatusIds, ...assetStatusIds],
+  });
+
+  for (const entry of annotations.dice) {
+    const selector = String(entry.selector ?? "").trim();
+    const value = toNumber(entry.value, 0);
+    if (selector && Object.prototype.hasOwnProperty.call(state, selector)) {
+      state[selector] += value;
+    }
+    if (entry.effectText) pushEffect(state, entry.effectText);
   }
-  if (hasStatus(actor, "sensorBlind")) {
-    state.rangeCapClose = true;
-    state.noTargetingDataGeneration = true;
-    state.noTargetingDataUse = true;
-    pushEffect(state, "Sensor Blind: no Targeting Data and attacks beyond Close are blocked.");
-  }
-  if (hasStatus(actor, "trackingLost")) {
-    state.noTargetingDataUse = true;
-    pushEffect(state, "Tracking Lost: stored Targeting Data is unusable.");
-  }
-  if (hasStatus(actor, "epmBoosted") || hasStatus(actor, "eccmBoosted")) {
-    state.ecmSpikeDefenseDice += 2;
-    pushEffect(state, "EPM Boosted: -2 dice against incoming ECM Spike attempts.");
-  }
-  if (hasStatus(actor, "coolingFailure")) {
-    state.coolingImpaired = true;
-    pushEffect(state, "Cooling Failure: heat dissipation reduced by 2.");
-  }
-  if (hasStatus(actor, "shutdown")) {
-    state.cannotAct = true;
-    state.rangeCapClose = true;
-    state.noTargetingDataGeneration = true;
-    state.noTargetingDataUse = true;
-    pushEffect(state, "Shutdown: the machine cannot act until it is power-cycled.");
-  }
-  if (hasStatus(actor, "proneMechFall")) {
-    state.prone = true;
-    state.noSprint = true;
-    state.noJump = true;
-    pushEffect(state, "Prone: crawl only; Close attacks are impaired and Close defense is compromised.");
-  }
-  if (hasStatus(actor, "onFire")) {
-    state.startTurnHeat += 1;
-    pushEffect(state, "On Fire: gain 1 Heat at the start of the turn.");
-  }
-  if (hasStatus(actor, "actuatorFailure")) {
-    state.handling += -1;
-  }
-  if (hasStatus(actor, "gyroDamage")) {
-    state.pilotingDn += 1;
-  }
-  if (hasStatus(actor, "suppressedMechanical")) {
-    state.attackAr += -4;
-    state.defenseDr += -4;
-    state.noTargetingDataGeneration = true;
-  }
-  if (hasStatus(actor, "evasiveWeave")) {
-    state.attackAr += -2;
-    state.defenseDr += 3;
-  }
-  if (hasStatus(actor, "shielded")) {
-    state.attackAr += -1;
-    state.defenseDr += 4;
-  }
-  if (hasStatus(actor, "braced")) {
-    state.attackAr += 1;
-  }
-  if (hasStatus(actor, "targetFocused")) {
-    state.defenseDr += -2;
-    state.targetFocused = true;
-  }
-  if (hasStatus(actor, "entrenchedHullDown")) {
-    state.defenseDr += actor?.type === TEMPLATE.actorTypes.vehicle ? 7 : 5;
-    if (actor?.type === TEMPLATE.actorTypes.vehicle) {
-      pushEffect(state, "Hull Down: vehicle gains a strong prepared-position defense bonus.");
+
+  for (const entry of annotations.cq) {
+    const ar = machineCqValue(entry.ar, actor);
+    const dr = machineCqValue(entry.dr, actor);
+    if (entry.whenBearerIs === "attacker" || entry.ar !== undefined) state.attackAr += ar;
+    if (entry.whenBearerIs === "defender" || entry.dr !== undefined) state.defenseDr += dr;
+    if (entry.effectText && (actor?.type === TEMPLATE.actorTypes.vehicle || !entry.effectText.includes("vehicle"))) {
+      pushEffect(state, entry.effectText);
     }
   }
-  if (hasStatus(actor, "exposed")) {
-    state.defenseDr += -2;
+
+  for (const entry of annotations.gates) {
+    if (entry.cannotAct) state.cannotAct = true;
+    if (entry.effectText) pushEffect(state, entry.effectText);
+  }
+
+  for (const entry of annotations.targeting) {
+    if (entry.rangeCapClose) state.rangeCapClose = true;
+    if (entry.noSensorActions) state.noSensorActions = true;
+    if (entry.noTargetingDataGeneration) state.noTargetingDataGeneration = true;
+    if (entry.noTargetingDataUse) state.noTargetingDataUse = true;
+    if (entry.targetFocused) state.targetFocused = true;
+    if (entry.detectionStateCap) state.detectionStateCap = setDetectionCap(state.detectionStateCap, entry.detectionStateCap);
+    if (entry.trackingPenaltyAsTarget) state.trackingPenaltyAsTarget += toNumber(entry.trackingPenaltyAsTarget, 0);
+    if (entry.effectText) pushEffect(state, entry.effectText);
+  }
+
+  for (const entry of annotations.movement) {
+    if (entry.noSprint) state.noSprint = true;
+    if (entry.noJump) state.noJump = true;
+    if (entry.immobile) state.immobile = true;
+    if (entry.forcedProne) state.forcedProne = true;
+    if (entry.prone) state.prone = true;
+    if (entry.movementPenaltySteps) addMovementPenalty(state, toNumber(entry.movementPenaltySteps, 0));
+    if (entry.pilotingDn) state.pilotingDn += toNumber(entry.pilotingDn, 0);
+    if (entry.effectText) pushEffect(state, entry.effectText);
+  }
+
+  for (const entry of annotations.heat) {
+    if (entry.coolingImpaired) state.coolingImpaired = true;
+    if (entry.attackHeat) state.attackHeat += toNumber(entry.attackHeat, 0);
+    if (entry.energyAttackHeat) state.energyAttackHeat += toNumber(entry.energyAttackHeat, 0);
+    if (entry.energyAttackDamage) state.energyAttackDamage += toNumber(entry.energyAttackDamage, 0);
+    if (entry.effectText) pushEffect(state, entry.effectText);
+  }
+
+  for (const entry of annotations.startTurn) {
+    if (entry.heat) state.startTurnHeat += toNumber(entry.heat, 0);
+    if (entry.resource === "sa") state.startTurnSaLoss += toNumber(entry.value, 0);
+    if (entry.effectText) pushEffect(state, entry.effectText);
   }
 }
 
@@ -419,7 +390,7 @@ export function getMachineRuleState(actor = null) {
   applyBattlemechHeatMovementPenalty(state, actor);
   state.movementBonus += getAssetModuleMovementBonus(actor);
   applyMachineCritDerivedState(state, actor);
-  applyExplicitStatuses(state, actor);
+  applyMachineStatusAnnotations(state, actor);
   if (getActorType(actor) === TEMPLATE.actorTypes.battlemech) applyBattlemechDegradation(state, actor);
   else applyVehicleDegradation(state, actor);
   return state;
@@ -515,7 +486,11 @@ export function getMachineDetectionStateCap(actor = null) {
 export function adjustTargetingDataValue({ attacker = null, targetActor = null, value = 0 } = {}) {
   let adjusted = Math.max(0, toNumber(value, 0));
   if (isMachineTargetingDataUseBlocked(attacker)) return 0;
-  if (hasStatus(targetActor, "ecmJamming")) adjusted = Math.max(0, adjusted - 2);
+  const targetAnnotations = collectMachineStateAnnotations(targetActor);
+  for (const entry of targetAnnotations.targeting) {
+    if (entry.targetingDataValueDelta) adjusted += toNumber(entry.targetingDataValueDelta, 0);
+  }
+  adjusted = Math.max(0, adjusted);
   return adjusted;
 }
 

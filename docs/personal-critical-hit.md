@@ -142,16 +142,18 @@ namespace, so this is top-level — the personal parallel to machine
 
 | Kind | Families | Applied via |
 |------|----------|-------------|
-| `rollMod` | Concussion, Off Balance, Hampered (−1 die) | Status condition → `STATUS_MAP` → existing status-effects modifier provider |
+| `rollMod` | Concussion, Hampered (-1 die) | Status condition -> `STATUS_MAP.mods` -> existing status-effects modifier provider |
+| `cq` | Off Balance | Status condition -> `STATUS_MAP.cq` -> attack CQ breakdown |
 | `resource` | Winded | one-time Burn add on apply |
 | `speed` | Crippled | movement/speed reduction read from active crits |
 | `gate` | Hampered (unequip, prone), Shaken (aim / reaction / complex) | action & attack pipeline checks keyed off the active crit |
 
-Roll penalties therefore flow through the **existing** status-condition pipeline
-— per-band statuses (`concussionMinor/Moderate/Severe`, `offbalance…`,
-`crippled…`, `winded…`, `hampered…`, `shaken…`, plus a managed `personalCritical`
-marker) are codified in the status-condition catalog with their `STATUS_MAP`
-magnitudes. No new modifier provider is required.
+Status effects therefore flow through the **existing** status-condition
+pipeline. Per-band statuses (`concussionMinor/Moderate/Severe`,
+`offbalance...`, `crippled...`, `winded...`, `hampered...`, `shaken...`, plus a
+managed `personalCritical` marker) are codified in the status-condition catalog
+with their `STATUS_MAP` mechanics. Roll penalties use `mods`; CQ state uses
+perspective-aware `cq` entries. No new modifier provider is required.
 
 **Idempotency:** as with machine criticals, prepared crit records are drawn
 during preview only when required, pinned to `previewRevision`, and reused on

@@ -88,7 +88,7 @@ const STATUS_CONDITION_CATALOG_EDITOR_DEFINITION = {
   settingType: Array,
   title: "Status Condition Catalog",
   description: "Edit the actor-aware statuses available in MWD status pickers and GM Harm.",
-  helpText: "Actor group controls where a condition can be applied. Modifier Key is optional and only links to existing mechanics-backed status modifiers.",
+  helpText: "Actor group controls where a condition can be applied. Modifier Key is optional; blank uses the condition id as the mechanics key, while a value explicitly points to another STATUS_MAP entry.",
   bulkHelpText: 'JSON shape: [{ "id": "unstable", "label": "Unstable", "actorGroup": "machine", "category": "stability", "tags": ["movement"] }]',
   emptyStateText: "No condition rows configured. Restore defaults to rebuild the standard MWD status catalog.",
   addRowLabel: "Add Condition",

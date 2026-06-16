@@ -36,6 +36,7 @@ import {
   evaluateTraitPhase,
   getTraitActiveEffectModifier,
 } from "../mwd/traits.js";
+import { collectStatusCqAdjustments } from "../status/status-mechanics.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -140,6 +141,18 @@ function sumParts(parts = []) {
   return parts.reduce((sum, part) => sum + toNumber(part?.value, 0), 0);
 }
 
+function pushStatusCqParts(parts = [], actor = null, { role = "", target = "ar" } = {}) {
+  for (const entry of collectStatusCqAdjustments(actor, { role })) {
+    const value = toNumber(entry?.[target], 0);
+    if (!value) continue;
+    parts.push({
+      id: `status.${entry.statusId}.${entry.id ?? target}`,
+      label: entry.sourceStatusLabel ?? entry.statusId ?? "Status",
+      value,
+    });
+  }
+}
+
 async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {}) {
   const targetActor = await getTargetActor(target);
   const attackRating = Math.max(0, Number(ctx?.attack?.weapon?.attackRatingBand?.[ctx?.attack?.rangeBand] ?? 0) || 0);
@@ -201,13 +214,7 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
     });
   }
 
-  if (attacker?.statuses?.has?.("suppressed")) {
-    arParts.push({
-      id: "status.suppressed.attackRating",
-      label: "Suppressed",
-      value: -4,
-    });
-  }
+  pushStatusCqParts(arParts, attacker, { role: "attacker", target: "ar" });
 
   if (attacker?.statuses?.has?.("restrained")) {
     arParts.push({
@@ -235,13 +242,7 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
     value: armorDefense
   });
 
-  if (targetActor?.statuses?.has?.("suppressed")) {
-    drParts.push({
-      id: "status.suppressed.defenseRating",
-      label: "Suppressed",
-      value: -4,
-    });
-  }
+  pushStatusCqParts(drParts, targetActor, { role: "defender", target: "dr" });
 
   if (targetActor?.statuses?.has?.("grappled") && String(ctx?.attack?.rangeBand ?? "").trim().toLowerCase() === "close") {
     drParts.push({

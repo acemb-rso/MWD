@@ -62,6 +62,7 @@ import { QueuedAttackDamageActions } from "../harm/queued-attack-damage.js";
 import { registerTokenStatusHudFilter } from "../dialog/token-status-dialog.js";
 import { HeatFxController } from "../token/heat-fx-controller.js";
 import { configureMWDStatusEffects, ensureStatusConditionCatalogDefaults } from "../status/status-condition-catalog.js";
+import { validateBundledStatusMechanics } from "../status/status-mechanics.js";
 import { AttributeActions } from "../combat/attribute-actions.js";
 import {
   applyTraitMutations,
@@ -360,6 +361,10 @@ export class AnarchySystem {
     game.mwd.traits = this.traits;
     Enums.init();
     this.modifiers = new Modifiers();
+    const statusMechanicsErrors = validateBundledStatusMechanics();
+    if (statusMechanicsErrors.length) {
+      console.warn("MWD | Status mechanics validation warnings", statusMechanicsErrors);
+    }
 
     modifierProviders.register(new ItemModifiersProvider());
     modifierProviders.register(new StatusEffectsProvider());

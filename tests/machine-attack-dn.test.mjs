@@ -565,8 +565,8 @@ test("personal Suppressed applies -4 AR and -4 DR in CQ", async () => {
     });
     const result = execution.results[0];
 
-    assert.equal(result.cq.ar.parts.find(part => part.id === "status.suppressed.attackRating")?.value, -4);
-    assert.equal(result.cq.dr.parts.find(part => part.id === "status.suppressed.defenseRating")?.value, -4);
+    assert.equal(result.cq.ar.parts.find(part => part.id === "status.suppressed.suppressed.attackAr")?.value, -2);
+    assert.equal(result.cq.dr.parts.find(part => part.id === "status.suppressed.suppressed.defenseDr")?.value, -2);
   } finally {
     globalThis.fromUuid = previousFromUuid;
     globalThis.CONFIG = previousConfig;

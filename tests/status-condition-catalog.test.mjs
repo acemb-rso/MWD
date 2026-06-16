@@ -10,6 +10,7 @@ import {
   normalizeStatusTags,
 } from "../src/modules/status/status-condition-catalog.js";
 import { StatusEffectsProvider } from "../src/modules/modifiers/providers/status-effects.js";
+import { collectStatusCqAdjustments, validateBundledStatusMechanics } from "../src/modules/status/status-mechanics.js";
 import {
   applyManagedStatusUpdate,
   getActiveStatusSummaries,
@@ -275,9 +276,15 @@ test("status modifiers use granular domains without double-counting broad aliase
   assert.deepEqual(shaken, []);
 
   const offBalance = provider.collect({ actor: actor("character", ["offbalanceModerate"]), domains: ["physical", "attack"] });
-  assert.equal(offBalance.length, 1);
-  assert.equal(offBalance[0].label, "Off Balance II");
-  assert.equal(offBalance[0].value, -4);
+  assert.deepEqual(offBalance, []);
+  const offBalanceCq = collectStatusCqAdjustments(actor("character", ["offbalanceModerate"]), { role: "attacker" });
+  assert.equal(offBalanceCq.length, 1);
+  assert.equal(offBalanceCq[0].sourceStatusLabel, "Off Balance II");
+  assert.equal(offBalanceCq[0].ar, -4);
+});
+
+test("bundled status mechanics registry validates", () => {
+  assert.deepEqual(validateBundledStatusMechanics(), []);
 });
 
 test("applying catalog statuses stores future mechanics metadata", async () => {

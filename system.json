@@ -1,7 +1,7 @@
 {
   "id": "mwd",
   "type": "system",
-  "version": "0.5.7.1",
+  "version": "0.5.8",
   "title": "MechWarrior: Destiny",
   "description": "MechWarrior: Destiny RPG for FoundryVTT",
   "compatibility": {
@@ -9,6 +9,10 @@
     "verified": "14"
   },
   "authors": [
+    {
+      "name": "Goldwalker",
+      "discord": ".Goldwalker#0001"
+    },
     {
       "name": "Vincent VK",
       "email": "vincent.vandeme@gmail.com",

@@ -42,6 +42,7 @@ import { buildMachineActivationStartReport, isMachineActor } from "../mwd/machin
 import { getBattlemechUsedWeaponGroupIds, markBattlemechWeaponGroupUsed } from "../mwd/battlemech-weapon-groups.js";
 import { getPersonalActionGateReason, getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
 import { clearSuppressedTargetingPackets } from "../mwd/machine-ew-state.js";
+import { getStatusActionGateReason } from "../status/status-mechanics.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -1788,9 +1789,7 @@ export class PersonalCombatTracker {
     }
 
     reason = getActionImplementationReason(action) || reason;
-    if (!reason && (action.id === "aim" || action.id === "prepare") && actor?.statuses?.has?.("suppressed")) {
-      reason = "Suppressed actors cannot Aim or Prepare.";
-    }
+    reason = reason || getStatusActionGateReason(actor, { actionId: action.id });
     reason = reason || getPersonalActionGateReason(actor, action);
 
     return {

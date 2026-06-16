@@ -5,6 +5,7 @@
 // remedy metadata -> quick-action menus hand selected issues to machine-intents.
 
 import { getStatusConditionDefinition } from "../status/status-condition-catalog.js";
+import { getStatusRepairDefinition } from "../status/status-mechanics.js";
 import { startCase } from "../core/constants.js";
 import { getSkillDef } from "./skills.js";
 import { getActiveMachineCrits } from "./critical-hits.js";
@@ -15,53 +16,6 @@ import {
   getMachineConditionModifier,
   normalizeMachineDegradationState,
 } from "./machine-degradation.js";
-
-const REPAIRABLE_MACHINE_STATUS_DEFINITIONS = Object.freeze({
-  sensorDegraded: Object.freeze({
-    remedyKey: "systemReset",
-    skillKey: "computers",
-    locationKey: "head",
-    effectSummary: "Sensor sweeps and targeting suffer degraded optics and processing until reset.",
-  }),
-  sensorBlind: Object.freeze({
-    remedyKey: "systemReset",
-    skillKey: "computers",
-    locationKey: "head",
-    effectSummary: "Sensor and targeting actions are severely impaired until reset.",
-  }),
-  stalled: Object.freeze({
-    remedyKey: "emergencyRepair",
-    effectSummary: "The machine cannot move normally until the fault is repaired.",
-  }),
-  unstable: Object.freeze({
-    remedyKey: "emergencyRepair",
-    effectSummary: "Piloting and movement remain unstable until the machine is repaired.",
-  }),
-  limping: Object.freeze({
-    remedyKey: "emergencyRepair",
-    locationKey: "legs",
-    effectSummary: "Mobility remains impaired until the damaged leg assembly is repaired.",
-  }),
-  jumpJetFailure: Object.freeze({
-    remedyKey: "emergencyRepair",
-    locationKey: "legs",
-    effectSummary: "Jump movement is unavailable until the jump system is repaired.",
-  }),
-  overheating: Object.freeze({
-    remedyKey: "coolantDump",
-    locationKey: "torso",
-    effectSummary: "Heat continues to spike until the cooling issue is cleared.",
-  }),
-  reactorInstability: Object.freeze({
-    remedyKey: "coolantDump",
-    locationKey: "torso",
-    effectSummary: "The reactor remains unstable until coolant routing is restored.",
-  }),
-  proneMechFall: Object.freeze({
-    remedyKey: "stand",
-    effectSummary: "The machine must recover from a prone fall before normal movement resumes.",
-  }),
-});
 
 function compactList(values = []) {
   return values.map(value => String(value ?? "").trim()).filter(Boolean);
@@ -141,16 +95,16 @@ export function getRepairableMachineStatusIssue(actor, statusId = "") {
   // Only curated statuses become repair issues. Other statuses may affect rules
   // but should not clutter the field-remedy chooser.
   const normalizedStatusId = String(statusId ?? "").trim();
-  const definition = REPAIRABLE_MACHINE_STATUS_DEFINITIONS[normalizedStatusId] ?? null;
+  const definition = getStatusRepairDefinition(actor, normalizedStatusId);
   if (!definition) return null;
   if (!(actor?.statuses?.has?.(normalizedStatusId) ?? false)) return null;
 
   const catalogEntry = getStatusConditionDefinition(normalizedStatusId);
-  const remedy = getMachineCritRemedy(definition.remedyKey);
+  const remedy = getMachineCritRemedy(definition.remedyKey ?? definition.remedy);
   const location = getLocationContext(actor, definition.locationKey);
   const remedySkillKey = String(definition.skillKey ?? "").trim()
-    || getMachineRemedySkillKey({ remedyKey: definition.remedyKey }, remedy);
-  const remedyBaseDn = getMachineRemedyBaseDn({ remedyKey: definition.remedyKey }, remedy);
+    || getMachineRemedySkillKey({ remedyKey: definition.remedyKey ?? definition.remedy }, remedy);
+  const remedyBaseDn = getMachineRemedyBaseDn({ remedyKey: definition.remedyKey ?? definition.remedy }, remedy);
   const totalDn = Math.max(0, remedyBaseDn + Number(location.conditionModifier ?? 0));
 
   return {

@@ -8,6 +8,7 @@ import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 import { executeFirstAidCombatAction } from "../mwd/first-aid.js";
 import { getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
 import { listSkillDefs } from "../mwd/skills.js";
+import { collectStatusClearsOnAction, getStatusActionGateReason } from "../status/status-mechanics.js";
 import { launchOwnedWeaponAttack, launchSuppressionFire } from "../roll/weapon-attack-actions.js";
 import {
   getPersonalAction,
@@ -564,9 +565,8 @@ function getCommonGateReason(action, actor, snapshot, effectiveCost) {
   if (action.id === "aim" && PersonalCombatTracker.getMoveActionCountFromState?.(snapshot.state) > 0) {
     return "Cannot aim after taking a move action this activation.";
   }
-  if ((action.id === "aim" || action.id === "prepare") && actor?.statuses?.has?.("suppressed")) {
-    return "Suppressed actors cannot Aim or Prepare.";
-  }
+  const statusGateReason = getStatusActionGateReason(actor, { actionId: action.id });
+  if (statusGateReason) return statusGateReason;
   if (effectiveCost.resource === "sa" && getSaCapacityRemaining(actor, snapshot) < effectiveCost.value) {
     return "Activation SA cap reached.";
   }
@@ -728,13 +728,22 @@ async function executeMovementResolver(actor, { action } = {}) {
     await applyManagedStatusUpdate({ actor, statusId: "prone", active: false, metadata: { source: action.id } });
     return { ok: true, stateChanges: [{ type: "status", statusId: "prone", active: false }] };
   }
-  if ((action.id === "move" || action.id === "carefulMove") && actor?.statuses?.has?.("suppressed")) {
-    await applyManagedStatusUpdate({ actor, statusId: "suppressed", active: false, metadata: { source: action.id } });
-    return {
-      ok: true,
-      stateChanges: [{ type: "status", statusId: "suppressed", active: false }],
-      log: { title: action.label, message: "Repositioned and cleared Suppressed." },
-    };
+  const clears = collectStatusClearsOnAction(actor, { actionId: action.id });
+  if (clears.length) {
+    const stateChanges = [];
+    for (const entry of clears) {
+      const statusId = String(entry.statusId ?? "").trim();
+      if (!statusId || !(actor?.statuses?.has?.(statusId) ?? false)) continue;
+      await applyManagedStatusUpdate({ actor, statusId, active: false, metadata: { source: action.id } });
+      stateChanges.push({ type: "status", statusId, active: false });
+    }
+    if (stateChanges.length) {
+      return {
+        ok: true,
+        stateChanges,
+        log: { title: action.label, message: String(clears[0]?.message ?? "").trim() || "Status cleared." },
+      };
+    }
   }
   return { ok: true };
 }
@@ -847,6 +856,10 @@ export async function executeCombatActionIntent({ actor, token = null, payload =
   }
 
   const snapshot = PersonalCombatTracker.getSnapshot(actor, { token });
+  const effectiveCost = getEffectiveCost(action, snapshot);
+  const gateReason = getCommonGateReason(action, actor, snapshot, effectiveCost);
+  if (gateReason) return { ok: false, reason: gateReason, actionId: action.id, costPaid: false, rolled: false, stateChanges: [] };
+
   const promptResult = await resolvePrompt(action, actor, snapshot);
   if (promptResult === null) {
     return { ok: false, cancelled: true, actionId: action.id, costPaid: false, rolled: false, stateChanges: [] };
@@ -854,9 +867,6 @@ export async function executeCombatActionIntent({ actor, token = null, payload =
   if (promptResult?.ok === false) return promptResult;
 
   const metadata = { ...(normalizedPayload.metadata ?? {}), ...(promptResult ?? {}) };
-  const effectiveCost = getEffectiveCost(action, snapshot);
-  const gateReason = getCommonGateReason(action, actor, snapshot, effectiveCost);
-  if (gateReason) return { ok: false, reason: gateReason, actionId: action.id, costPaid: false, rolled: false, stateChanges: [] };
 
   if (["attack", "suppressionFire", "firstAid", "evade", "reduceBurn"].includes(action.id)) {
     const result = await executeResolver(actor, { action, token, metadata, event });
