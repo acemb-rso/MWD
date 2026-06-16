@@ -636,6 +636,25 @@ async function executeAttackResolver(actor, { action, token = null, metadata = {
     });
     return { ok: Boolean(value), rolled: Boolean(value), value };
   }
+  if (action.id === "grapple") {
+    const rollApi = getRollApi();
+    if (!rollApi?.execute) return { ok: false, reason: "MWD roll system not initialized." };
+    const value = await rollApi.execute({
+      actor,
+      payload: {
+        intent: "attack",
+        syntheticWeapon: {
+          id: "grapple",
+          name: "Grapple",
+        },
+        sourceTokenId: token?.id ?? null,
+        edge: { pool: "physical.grit", allowed: ["pre", "post"] },
+        tags: ["combat", "attack", "grapple", "melee"],
+      },
+      event,
+    });
+    return { ok: Boolean(value), rolled: Boolean(value), value };
+  }
   if (metadata.weapon) {
     const value = await launchOwnedWeaponAttack({ weapon: metadata.weapon, token, event });
     return { ok: Boolean(value), rolled: Boolean(value), value };
@@ -681,6 +700,9 @@ async function executeRecoveryResolver(actor, { action, token = null, metadata =
   }
   if (action.id === "evade") {
     return activatePendingEvadeFromCombatMenu(actor, { token });
+  }
+  if (action.id === "grappleDefense") {
+    return executeRollAction(actor, { action, metadata, event });
   }
   if (action.id === "reduceBurn") {
     return PersonalCombatTracker.reduceBurn(actor, { token });

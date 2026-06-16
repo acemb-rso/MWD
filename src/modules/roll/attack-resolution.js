@@ -42,6 +42,42 @@ function toNumber(value, fallback = 0) {
   return Number.isFinite(numeric) ? numeric : fallback;
 }
 
+function getGrappleStatus(actor = null) {
+  if (!actor?.statuses?.has) return "";
+  if (actor.statuses.has("pinned")) return "pinned";
+  if (actor.statuses.has("restrained")) return "restrained";
+  if (actor.statuses.has("grappled")) return "grappled";
+  return "";
+}
+
+function getGrappleEffectStatus({ outcome = "miss", targetActor = null } = {}) {
+  if (outcome === "miss") return "";
+  if (outcome === "graze") return "grappled";
+  const current = getGrappleStatus(targetActor);
+  return current === "restrained" || current === "pinned" ? "pinned" : "restrained";
+}
+
+function getGrappleStatusLabel(statusId = "") {
+  if (statusId === "pinned") return "Pinned";
+  if (statusId === "restrained") return "Restrained";
+  if (statusId === "grappled") return "Grappled";
+  return "No effect";
+}
+
+function getStatusMetadata(actor = null, statusId = "") {
+  const id = String(statusId ?? "").trim();
+  if (!actor || !id) return null;
+  const effects = Array.from(actor.effects?.contents ?? actor.effects ?? []);
+  const effect = effects.find(entry => {
+    if (entry?.statuses?.has?.(id)) return true;
+    if (Array.isArray(entry?.statuses) && entry.statuses.includes(id)) return true;
+    if (entry?.flags?.mwd?.status?.id === id) return true;
+    if (entry?.getFlag?.("mwd", "status")?.id === id) return true;
+    return false;
+  }) ?? null;
+  return effect?.getFlag?.("mwd", "status") ?? effect?.flags?.mwd?.status ?? null;
+}
+
 export function parseOnHitEffect(value) {
   const str = String(value ?? "").trim().toLowerCase();
   if (str === "onfire") return { kind: "onFire" };
@@ -169,8 +205,28 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
     arParts.push({
       id: "status.suppressed.attackRating",
       label: "Suppressed",
+      value: -4,
+    });
+  }
+
+  if (attacker?.statuses?.has?.("restrained")) {
+    arParts.push({
+      id: "status.restrained.attackRating",
+      label: "Restrained",
       value: -2,
     });
+  }
+
+  if (attacker?.statuses?.has?.("grappled")) {
+    const grapplerUuid = String(getStatusMetadata(attacker, "grappled")?.attackerUuid ?? "").trim();
+    const targetActorUuid = String(target?.actorUuid ?? "").trim();
+    if (grapplerUuid && targetActorUuid && grapplerUuid !== targetActorUuid) {
+      arParts.push({
+        id: "status.grappled.attackRating",
+        label: "Grappled (not grappler)",
+        value: -2,
+      });
+    }
   }
 
   drParts.push({
@@ -183,6 +239,14 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
     drParts.push({
       id: "status.suppressed.defenseRating",
       label: "Suppressed",
+      value: -4,
+    });
+  }
+
+  if (targetActor?.statuses?.has?.("grappled") && String(ctx?.attack?.rangeBand ?? "").trim().toLowerCase() === "close") {
+    drParts.push({
+      id: "status.grappled.closeDefense",
+      label: "Grappled (Close)",
       value: -2,
     });
   }
@@ -270,7 +334,15 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
       value: Number(modifier.value ?? 0),
     });
   }
-  const arTotal = Number(arTraitPhase.packet.total ?? sumParts(arParts)) || 0;
+  let arTotal = Number(arTraitPhase.packet.total ?? sumParts(arParts)) || 0;
+  if (attacker?.statuses?.has?.("pinned")) {
+    arParts.push({
+      id: "status.pinned.attackRatingOverride",
+      label: "Pinned (AR override)",
+      value: -arTotal,
+    });
+    arTotal = 0;
+  }
 
   const activeEffectDr = getTraitActiveEffectModifier(targetActor, "defenseRatingMod");
   if (activeEffectDr) {
@@ -299,7 +371,16 @@ async function buildCQBreakdown({ attacker = null, ctx = {}, target = {} } = {})
       value: Number(modifier.value ?? 0),
     });
   }
-  const drTotal = Number(drTraitPhase.packet.total ?? sumParts(drParts)) || 0;
+  let drTotal = Number(drTraitPhase.packet.total ?? sumParts(drParts)) || 0;
+  const defenderGrappleStatus = getGrappleStatus(targetActor);
+  if (defenderGrappleStatus === "restrained" || defenderGrappleStatus === "pinned") {
+    drParts.push({
+      id: `status.${defenderGrappleStatus}.defenseRatingOverride`,
+      label: `${getGrappleStatusLabel(defenderGrappleStatus)} (DR override)`,
+      value: -drTotal,
+    });
+    drTotal = 0;
+  }
 
   return {
     ar: {
@@ -709,6 +790,9 @@ async function resolveTargetAttack({ attacker, ctx, outcomeModel, target, previe
   if (String(ctx?.attack?.rangeBand ?? "").trim().toLowerCase() === "outofrange" && outcome === "hit") {
     outcome = "graze";
   }
+  if (target?.grazeOnly && outcome === "hit") {
+    outcome = "graze";
+  }
   const netHits = outcome === "hit" ? Math.max(0, rawNetHits) : 0;
   const attack = ctx?.attack ?? {};
   const previewKey = getTargetPreviewKey(target);
@@ -722,6 +806,8 @@ async function resolveTargetAttack({ attacker, ctx, outcomeModel, target, previe
         tokenUuid: target?.tokenUuid ?? null
       },
       previewKey,
+      fireModeTargetRole: target?.fireModeTargetRole ?? null,
+      grazeOnly: Boolean(target?.grazeOnly),
       exposure: target?.exposure ?? createExposureData({ tier: "none" }),
       evadeActive: false,
       evadeEdgePoolKey: null,
@@ -746,6 +832,47 @@ async function resolveTargetAttack({ attacker, ctx, outcomeModel, target, previe
       queuedMutation: null
     };
   }
+
+  if (attack?.resolution?.effect === "grapple") {
+    const previousStatusId = getGrappleStatus(targetActor);
+    const statusId = getGrappleEffectStatus({ outcome, targetActor });
+    const applies = Boolean(statusId);
+
+    return {
+      target: {
+        name: target?.name ?? "Target",
+        actorUuid: target?.actorUuid ?? null,
+        tokenUuid: target?.tokenUuid ?? null
+      },
+      previewKey,
+      fireModeTargetRole: target?.fireModeTargetRole ?? null,
+      grazeOnly: Boolean(target?.grazeOnly),
+      exposure: target?.exposure ?? createExposureData({ tier: "none" }),
+      evadeActive: false,
+      evadeEdgePoolKey: null,
+      cq,
+      margin,
+      rawNetHits,
+      netHits,
+      outcome,
+      grapple: {
+        statusId,
+        pending: applies,
+        applied: false,
+        effectLabel: getGrappleStatusLabel(statusId),
+        previousStatusId,
+        metadata: {
+          source: "grapple",
+          attackerUuid: attacker?.uuid ?? "",
+          weaponName: attack?.weapon?.name ?? "Grapple",
+        },
+      },
+      damage: null,
+      damageResult: null,
+      queuedMutation: null
+    };
+  }
+
   const targetPreview = previewState?.[previewKey] ?? {};
   const currentExposure = target?.exposure ?? createExposureData({ tier: "none" });
   const damage = await buildDamageSnapshot({
@@ -775,6 +902,8 @@ async function resolveTargetAttack({ attacker, ctx, outcomeModel, target, previe
       tokenUuid: target?.tokenUuid ?? null
     },
     previewKey,
+    fireModeTargetRole: target?.fireModeTargetRole ?? null,
+    grazeOnly: Boolean(target?.grazeOnly),
     exposure: currentExposure,
     evadeActive: Boolean(targetPreview?.evadeActive),
     evadeEdgePoolKey: String(targetPreview?.edgePoolKey ?? "").trim() || null,

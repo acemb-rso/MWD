@@ -54,6 +54,11 @@ import {
 } from "../../area-effects/area-effect-engine.js";
 import { MACHINE_CHARGE_ATTACK_ID } from "../../mwd/charge-attack-actions.js";
 import { getTraitActiveEffectModifier } from "../../mwd/traits.js";
+import {
+  addPersonalFireModeAttackRating,
+  buildPersonalFireModeState,
+  normalizePersonalFireModeKey,
+} from "../../mwd/personal-fire-modes.js";
 
 const DAMAGE_SCALING_MODES = Object.freeze({
   direct: "direct",
@@ -99,10 +104,14 @@ function getTargetActor(target = {}) {
   return getTargetToken(target)?.actor ?? null;
 }
 
+function getTokenCenter(token = null) {
+  return token?.center ?? token?.object?.center ?? null;
+}
+
 function measureTokenDistance(sourceToken, targetToken) {
   const grid = canvas?.grid;
-  const sourceCenter = sourceToken?.center ?? sourceToken?.object?.center ?? null;
-  const targetCenter = targetToken?.center ?? targetToken?.object?.center ?? null;
+  const sourceCenter = getTokenCenter(sourceToken);
+  const targetCenter = getTokenCenter(targetToken);
   if (!grid || !sourceCenter || !targetCenter) return null;
 
   if (typeof grid.measurePath === "function") {
@@ -135,9 +144,51 @@ function measureTokenDistance(sourceToken, targetToken) {
   return null;
 }
 
+function measureTargetsDistance(left = {}, right = {}) {
+  const leftToken = getTargetToken(left);
+  const rightToken = getTargetToken(right);
+  return measureTokenDistance(leftToken, rightToken);
+}
+
+function annotatePersonalFireModeTargets(targets = [], fireMode = null) {
+  const modeKey = normalizePersonalFireModeKey(fireMode?.key);
+  const maxTargets = Math.max(1, Number(fireMode?.maxTargets ?? 1) || 1);
+  if (modeKey !== "spray") {
+    return targets.slice(0, maxTargets).map((target, index) => ({
+      ...target,
+      fireModeTargetRole: index === 0 ? "primary" : "target",
+      grazeOnly: false,
+    }));
+  }
+
+  const primary = targets[0] ?? null;
+  if (!primary) return [];
+  const secondaryCandidates = targets
+    .slice(1)
+    .map(target => ({
+      target,
+      distance: measureTargetsDistance(primary, target),
+    }))
+    .filter(entry => Number.isFinite(entry.distance) && entry.distance <= 6)
+    .sort((left, right) => left.distance - right.distance)
+    .slice(0, Math.max(0, maxTargets - 1));
+
+  return [
+    { ...primary, fireModeTargetRole: "primary", grazeOnly: false },
+    ...secondaryCandidates.map(entry => ({
+      ...entry.target,
+      fireModeTargetRole: "secondary",
+      grazeOnly: true,
+      primaryTargetTokenUuid: primary.tokenUuid ?? null,
+      primaryTargetActorUuid: primary.actorUuid ?? null,
+      primaryTargetDistance: entry.distance,
+    })),
+  ];
+}
+
 function resolveRangeBand({ actor, payload, weapon, targets = [] } = {}) {
   const explicit = String(payload?.rangeBand ?? "").trim().toLowerCase();
-  const canMeasurePersonalRange = (weapon?.type === "personalWeapon" || weapon?.isSynthetic) && targets.length === 1;
+  const canMeasurePersonalRange = (weapon?.type === "personalWeapon" || weapon?.isSynthetic) && targets.length >= 1;
   const canMeasureMachineRange = isMachineActor(actor) && targets.length === 1;
   if (!canMeasurePersonalRange && !canMeasureMachineRange) {
     return explicit || String(weapon?.defaultRangeBand ?? "close").trim() || "close";
@@ -163,7 +214,7 @@ function resolveRangeBand({ actor, payload, weapon, targets = [] } = {}) {
 
   if (explicit) return explicit;
 
-  if ((weapon?.type !== "personalWeapon" && !weapon?.isSynthetic) || targets.length !== 1) {
+  if ((weapon?.type !== "personalWeapon" && !weapon?.isSynthetic) || targets.length < 1) {
     return String(weapon?.defaultRangeBand ?? "close").trim() || "close";
   }
   return measuredBand;
@@ -271,6 +322,32 @@ function getWeaponProfile(actor, payload) {
     return { ...payload.syntheticWeapon, isSynthetic: true };
   }
 
+  if (payload?.syntheticWeapon?.id === "grapple") {
+    return {
+      id: "grapple",
+      uuid: "",
+      name: payload.syntheticWeapon.name ?? "Grapple",
+      type: "personalWeapon",
+      category: "melee",
+      skill: "meleeCombat",
+      attributeKey: "strength",
+      damage: 0,
+      ap: 0,
+      damageType: "concussive",
+      damageTypeLabel: "Concussive",
+      damageTrack: TEMPLATE.monitors.physical,
+      attackRatingBand: { close: 0, near: 0, far: 0, extreme: 0 },
+      range: { max: "close", close: 20, near: 0, far: 0, extreme: 0 },
+      defaultRangeBand: "close",
+      effects: {},
+      traits: [],
+      keywords: ["grapple"],
+      resolution: { effect: "grapple", damageModel: "status" },
+      isSynthetic: true,
+      capabilityReport: { isTemplated: false, errors: [] },
+    };
+  }
+
   if (payload?.syntheticWeapon?.id === "unarmed") {
     const unarmed = WeaponItem.buildDefaultUnarmedProfile(actor);
     return {
@@ -335,8 +412,11 @@ function buildPersonalAttackMotionContext({ actor, payload, targets = [] } = {})
   const sourceToken = getSourceToken(actor, payload);
   const attackerCombatant = getAttackerCombatant(sourceToken);
   const targetCombatant = getTargetCombatant(targets[0]?.tokenId);
+  const targetActor = getTargetActor(targets[0]);
   const attackerMoves = PersonalCombatTracker.getMoveActionCountForCombatant(attackerCombatant, { combat });
-  const targetMoves = PersonalCombatTracker.getMoveActionCountForCombatant(targetCombatant, { combat });
+  const targetMoves = targetActor?.statuses?.has?.("pinned")
+    ? 0
+    : PersonalCombatTracker.getMoveActionCountForCombatant(targetCombatant, { combat });
 
   const attackerMotionDn = (attackerMoves > 0 && !getTraitActiveEffectModifier(actor, "suppressAttackerMotionDN")) ? 1 : 0;
   const targetMotionDn = targetMoves === 0 ? -1 : (targetMoves >= 2 ? 1 : 0);
@@ -398,6 +478,23 @@ export async function resolveAttack({ actor, payload } = {}) {
       sourceLabel: String(machineFireControl?.sourceLabel ?? "").trim(),
     },
   };
+  const isPersonalWeaponAttack = effectiveWeapon?.type === "personalWeapon";
+  const requestedFireMode = normalizePersonalFireModeKey(payload?.fireMode ?? payload?.weaponFireMode ?? "single");
+  let fireModeState = null;
+  if (isPersonalWeaponAttack) {
+    fireModeState = buildPersonalFireModeState(effectiveWeapon, requestedFireMode);
+    if (!fireModeState.requested.enabled) {
+      throw createUserFacingRollError(fireModeState.requested.reason || "That fire mode is not available.", {
+        severity: "warn",
+      });
+    }
+    effectiveWeapon = {
+      ...effectiveWeapon,
+      attackRatingBand: addPersonalFireModeAttackRating(effectiveWeapon.attackRatingBand, fireModeState.selected),
+      fireMode: fireModeState.selected,
+      fireModeState,
+    };
+  }
   if (payload?.suppressionFire?.active) {
     const suppressionTemplate = payload.suppressionFire.template ?? {};
     effectiveWeapon = {
@@ -464,7 +561,7 @@ export async function resolveAttack({ actor, payload } = {}) {
     domains: ["physical"]
   };
 
-  const attrKey = String(skillDef.attribute ?? "reflexes").trim() || "reflexes";
+  const attrKey = String(effectiveWeapon.attributeKey ?? effectiveWeapon.attrKey ?? skillDef.attribute ?? "reflexes").trim() || "reflexes";
   const attrLabel = startCase(attrKey);
   const attribute = rollActor.getAttributeValue?.(attrKey) ?? Number(rollActor.system?.attributes?.[attrKey]?.value ?? 0);
   const skill = rollActor.getSkillRating?.(effectiveWeapon.skill) ?? Number(rollActor.system?.skills?.[effectiveWeapon.skill]?.rating ?? 0);
@@ -476,8 +573,11 @@ export async function resolveAttack({ actor, payload } = {}) {
     : null;
   const specializationBonus = selectedSpecialization ? SKILL_SPECIALIZATION_BONUS : 0;
   const accuracyBonus = Number(effectiveWeapon?.effects?.accuracyMod ?? 0) || 0;
-  const bonus = skillBonus + accuracyBonus;
-  const targets = getTargets(payload);
+  const fireModeDiceBonus = Number(effectiveWeapon?.fireMode?.diceModifier ?? 0) || 0;
+  const bonus = skillBonus + accuracyBonus + fireModeDiceBonus;
+  const targets = isPersonalWeaponAttack
+    ? annotatePersonalFireModeTargets(getTargets(payload), effectiveWeapon.fireMode)
+    : getTargets(payload);
   const rangeBand = resolveRangeBand({ actor, payload, weapon: effectiveWeapon, targets });
   const rangeBandLabel = (effectiveWeapon?.type === "personalWeapon" || effectiveWeapon?.isSynthetic)
     ? getPersonalRangeBandName(rangeBand)
@@ -667,6 +767,7 @@ export async function resolveAttack({ actor, payload } = {}) {
         value: specializationBonus
       }] : []),
       { id: "weaponAccuracy", label: "Weapon Accuracy", value: accuracyBonus },
+      ...(fireModeDiceBonus ? [{ id: "fireMode", label: `Fire Mode (${effectiveWeapon.fireMode.label})`, value: fireModeDiceBonus }] : []),
       ...(aimPerceptionBonus ? [{ id: "aim.perception", label: "Aim (Perception)", value: aimPerceptionBonus }] : []),
       { id: "damage", label: "Damage", value: Number(effectiveWeapon.damage ?? 0) || 0 },
       ...(clusteringProfile.active ? [
@@ -692,6 +793,8 @@ export async function resolveAttack({ actor, payload } = {}) {
       resolution: effectiveWeapon?.resolution ?? null,
       resolverKey: effectiveWeapon?.resolverKey ?? "standard",
       fireModes: effectiveWeapon?.fireModes ?? null,
+      fireMode: effectiveWeapon?.fireMode ?? null,
+      fireModeState: effectiveWeapon?.fireModeState ?? null,
       keywords: effectiveWeapon?.keywords ?? [],
       capabilityReport: effectiveWeapon?.capabilityReport ?? null,
       skill: {

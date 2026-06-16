@@ -179,7 +179,8 @@ function applyExplicitStatuses(state, actor = null) {
     state.pilotingDn += 1;
   }
   if (hasStatus(actor, "suppressedMechanical")) {
-    state.attackAr += -2;
+    state.attackAr += -4;
+    state.defenseDr += -4;
     state.noTargetingDataGeneration = true;
   }
   if (hasStatus(actor, "evasiveWeave")) {

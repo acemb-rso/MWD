@@ -436,7 +436,7 @@ export class MWDItem extends Item {
     fireModes: {
       single: { enabled: false },
       burst: { enabled: false },
-      fullAuto: { enabled: false },
+      spray: { enabled: false },
     },
     payloads: [],
     selectedPayloadId: "",

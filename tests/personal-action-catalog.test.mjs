@@ -102,6 +102,26 @@ test("suppression fire is a ready complex attack action", async () => {
   assert.deepEqual(action?.prompt, { type: "weapon", required: true });
 });
 
+test("grapple actions are ready combat actions", async () => {
+  const {
+    getPersonalAction,
+  } = await import("../src/modules/combat/personal-action-catalog.js");
+
+  const grapple = getPersonalAction("grapple");
+  assert.equal(grapple?.implementation?.state, "ready");
+  assert.equal(grapple?.category, "complex");
+  assert.deepEqual(grapple?.cost, { resource: "sa", value: 2 });
+  assert.equal(grapple?.resolver, "attack");
+  assert.ok(grapple?.tags?.includes("grapple"));
+
+  const defense = getPersonalAction("grappleDefense");
+  assert.equal(defense?.implementation?.state, "ready");
+  assert.equal(defense?.category, "reaction");
+  assert.deepEqual(defense?.cost, { resource: "ra", value: 1 });
+  assert.equal(defense?.resolver, "recovery");
+  assert.deepEqual(defense?.roll, { intent: "skill", key: "meleeCombat", attrKey: "reflexes" });
+});
+
 test("personal action catalog retires removed defaults and migrates renamed actions", async () => {
   const {
     mergePersonalActionCatalogDefaults,
@@ -124,6 +144,13 @@ test("personal action catalog retires removed defaults and migrates renamed acti
       resolver: "action",
     },
     {
+      id: "breakGrappleDefense",
+      label: "Break Grapple Defense",
+      category: "reaction",
+      cost: { resource: "ra", value: 1 },
+      resolver: "recovery",
+    },
+    {
       id: "communicate",
       label: "Speak / Signal",
       category: "free",
@@ -143,6 +170,8 @@ test("personal action catalog retires removed defaults and migrates renamed acti
   const normalized = normalizePersonalActionCatalog(legacy, { strict: false, includeDefaults: true });
   assert.equal(normalized.some(action => action.id === "recoverBurn"), false);
   assert.equal(normalized.some(action => action.id === "gesture"), false);
+  assert.equal(normalized.some(action => action.id === "breakGrappleDefense"), false);
+  assert.equal(normalized.some(action => action.id === "grappleDefense"), true);
 
   const communicate = normalized.find(action => action.id === "communicate");
   assert.equal(communicate?.label, "Communicate");
@@ -156,5 +185,6 @@ test("personal action catalog retires removed defaults and migrates renamed acti
   const merged = mergePersonalActionCatalogDefaults(legacy);
   assert.equal(merged.some(action => action.id === "recoverBurn"), false);
   assert.equal(merged.some(action => action.id === "gesture"), false);
+  assert.equal(merged.some(action => action.id === "breakGrappleDefense"), false);
   assert.equal(merged.filter(action => action.id === "communicate").length, 1);
 });

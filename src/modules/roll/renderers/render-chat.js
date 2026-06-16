@@ -99,10 +99,17 @@ function buildBaseCardVM(resolved) {
       : String(attack?.rangeBand ?? "").trim();
     const damageType = String(attack?.weapon?.damageTypeLabel ?? attack?.weapon?.damageType ?? "").trim();
     const payloadLabel = String(attack?.payload?.label ?? attack?.weapon?.payloadLabel ?? "").trim();
+    const fireModeLabel = String(attack?.fireMode?.label ?? "").trim();
     vm.metaRows.push({
       text: `Weapon: ${attack.weapon.name}${rangeBand ? ` • Range: ${rangeBand}` : ""}${damageType ? ` • Type: ${damageType}` : ""}${payloadLabel ? ` • Payload: ${payloadLabel}` : ""}`,
       title: ""
     });
+    if (fireModeLabel) {
+      vm.metaRows.push({
+        text: `Mode: ${fireModeLabel}`,
+        title: ""
+      });
+    }
     if (attack?.sourceState?.isTracked) {
       vm.footerRows.push({
         text: `Source: ${Number(attack.sourceState.current ?? 0)}/${Number(attack.sourceState.max ?? 0)}`,

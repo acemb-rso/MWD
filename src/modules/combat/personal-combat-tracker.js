@@ -41,6 +41,7 @@ import { resolveBattlemechPendingHeat } from "../mwd/machine-heat.js";
 import { buildMachineActivationStartReport, isMachineActor } from "../mwd/machine-crit-effects.js";
 import { getBattlemechUsedWeaponGroupIds, markBattlemechWeaponGroupUsed } from "../mwd/battlemech-weapon-groups.js";
 import { getPersonalActionGateReason, getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
+import { clearSuppressedTargetingPackets } from "../mwd/machine-ew-state.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -611,6 +612,7 @@ export class PersonalCombatTracker {
     await this.ensureCurrentCombatantState();
     await this.syncPreparedIndicators();
     await this._syncAllSceneHazards();
+    await this._processCurrentCombatantBeaconSuppressions();
     await this._processCurrentCombatantSuppressionUnloads();
     await this._processCurrentCombatantMachineCrits();
     if (game.combat?.id) {
@@ -1441,6 +1443,12 @@ export class PersonalCombatTracker {
         content,
       });
     }
+  }
+
+  static async _processCurrentCombatantBeaconSuppressions(combat = game.combat) {
+    const combatant = combat?.combatant ?? null;
+    if (!combatant) return;
+    await clearSuppressedTargetingPackets(combatant);
   }
 
   // Move actions feed both the "Aim after moving" gate and the personal attack
@@ -2715,6 +2723,7 @@ export class PersonalCombatTracker {
       await this.reconcileOperatedCombatants(combat);
       await this.syncDestroyedMachineDefeatedCombatants(combat);
       await this.ensureCurrentCombatantState();
+      await this._processCurrentCombatantBeaconSuppressions(combat);
       await this._processCurrentCombatantSuppressionUnloads(combat);
       await this._processCurrentCombatantHazards(combat);
       await this._processCurrentCombatantMachineCrits(combat);

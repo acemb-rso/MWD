@@ -440,6 +440,71 @@ export async function reduceTargetingPacket(combatant, targetTokenUuid, amount =
   };
 }
 
+export async function suppressTargetingPacket(combatant, targetTokenUuid, { packetId = "", suppressedBy = {} } = {}) {
+  const uuid = normalizeTargetUuid(targetTokenUuid);
+  if (!uuid || !combatant) return { ok: false, reason: "Missing targeting state target." };
+
+  const current = getTargetingState(combatant, uuid);
+  const packet = current.packet ? foundry.utils.deepClone(current.packet) : null;
+  if (!packet) return { ok: false, reason: "No eligible beacon/network packet is available." };
+
+  const expectedPacketId = String(packetId ?? "").trim();
+  if (expectedPacketId && packet.id !== expectedPacketId) {
+    return { ok: false, reason: "Beacon/network packet no longer matches." };
+  }
+
+  const all = cloneAllTargetingStates(combatant);
+  const suppression = suppressedBy && typeof suppressedBy === "object"
+    ? foundry.utils.deepClone(suppressedBy)
+    : {};
+  suppression.source = String(suppression.source ?? "suppressBeacon").trim() || "suppressBeacon";
+  suppression.duration = String(suppression.duration ?? "untilNextActivation").trim() || "untilNextActivation";
+  suppression.round = Number.isFinite(Number(suppression.round)) ? Number(suppression.round) : (globalThis.game?.combat?.round ?? null);
+  suppression.turn = Number.isFinite(Number(suppression.turn)) ? Number(suppression.turn) : (globalThis.game?.combat?.turn ?? null);
+
+  setObjectPath(all, uuid, {
+    detectionState: current.detectionState,
+    packet: {
+      ...packet,
+      suppressedBy: suppression,
+    },
+  });
+  await writeRawTargetingState(combatant, all);
+
+  return {
+    ok: true,
+    packetId: packet.id,
+    previousSuppressedBy: packet.suppressedBy ?? null,
+    suppressedBy: suppression,
+    targetTokenUuid: uuid,
+  };
+}
+
+export async function clearSuppressedTargetingPackets(combatant, { targetTokenUuid = "" } = {}) {
+  if (!combatant) return { ok: false, reason: "Missing combatant.", cleared: 0 };
+  const filterUuid = normalizeTargetUuid(targetTokenUuid);
+  const all = cloneAllTargetingStates(combatant);
+  let cleared = 0;
+
+  for (const [uuid, raw] of Object.entries(all)) {
+    const normalizedUuid = normalizeTargetUuid(uuid);
+    if (!normalizedUuid || (filterUuid && normalizedUuid !== filterUuid)) continue;
+    const current = normalizeTargetingState(raw);
+    const packet = current.packet ? foundry.utils.deepClone(current.packet) : null;
+    if (!packet?.suppressedBy) continue;
+
+    packet.suppressedBy = null;
+    setObjectPath(all, normalizedUuid, {
+      detectionState: current.detectionState,
+      packet,
+    });
+    cleared += 1;
+  }
+
+  if (cleared > 0) await writeRawTargetingState(combatant, all);
+  return { ok: true, cleared };
+}
+
 export async function consumeTargetingPacket(combatant, targetTokenUuid, packetId = "") {
   const uuid = normalizeTargetUuid(targetTokenUuid);
   const id = String(packetId ?? "").trim();

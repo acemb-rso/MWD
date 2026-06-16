@@ -57,6 +57,60 @@ test("targeting helpers read legacy ewState data and normalize a single active p
   assert.equal(consumed.packet, null);
 });
 
+test("suppress beacon marks a packet unusable until suppression is cleared", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.deepClone ??= value => JSON.parse(JSON.stringify(value));
+
+  const {
+    clearSuppressedTargetingPackets,
+    getTargetingState,
+    getUsableTargetingPacket,
+    suppressTargetingPacket,
+  } = await import("../src/modules/mwd/machine-ew-state.js");
+
+  const targetUuid = "Scene.scene.Token.target-1";
+  const flags = {
+    targeting: {
+      [targetUuid]: {
+        detectionState: "lock",
+        packet: {
+          id: "beacon-packet",
+          value: 3,
+          sourceTokenUuid: "Scene.scene.Token.observer",
+          round: 1,
+          expiresAfterRound: 1,
+        },
+      },
+    },
+  };
+  const combatant = {
+    getFlag(scope, key) {
+      if (scope !== "mwd") return null;
+      return flags[key] ?? null;
+    },
+    async setFlag(scope, key, value) {
+      if (scope !== "mwd") throw new Error("unexpected scope");
+      flags[key] = value;
+    },
+  };
+
+  assert.equal(getUsableTargetingPacket(combatant, targetUuid, 3, "lock", 1)?.value, 3);
+
+  const suppressed = await suppressTargetingPacket(combatant, targetUuid, {
+    suppressedBy: { source: "suppressBeacon", suppressorActorUuid: "Actor.defender" },
+  });
+
+  assert.equal(suppressed.ok, true);
+  assert.equal(getTargetingState(combatant, targetUuid).packet.suppressedBy.source, "suppressBeacon");
+  assert.equal(getUsableTargetingPacket(combatant, targetUuid, 3, "lock", 1), null);
+
+  const cleared = await clearSuppressedTargetingPackets(combatant);
+
+  assert.equal(cleared.cleared, 1);
+  assert.equal(getTargetingState(combatant, targetUuid).packet.suppressedBy, null);
+  assert.equal(getUsableTargetingPacket(combatant, targetUuid, 3, "lock", 1)?.value, 3);
+});
+
 test("targeting helpers read legacy Foundry-expanded token UUID paths and migrate writes to literal keys", async () => {
   globalThis.foundry ??= { utils: {} };
   globalThis.foundry.utils.deepClone ??= value => JSON.parse(JSON.stringify(value));

@@ -6,11 +6,13 @@ import { DETECTION_STATE_ORDER, upgradeDetectionState } from "../mwd/machine-ew.
 import {
   getAttackerCombatant,
   getDetectionState,
+  getTargetingState,
   getTargetCombatant,
   setDetectionState,
   setTargetingPacket,
   buildTargetingPacket,
   reduceTargetingPacket,
+  suppressTargetingPacket,
 } from "../mwd/machine-ew-state.js";
 
 function getAttackerTokenFromUuid(uuid) {
@@ -55,6 +57,10 @@ function resolveAttackerCombatant(context = {}) {
 
 function getTokenUuid(token = null) {
   return String(token?.document?.uuid ?? token?.uuid ?? "").trim();
+}
+
+function isMachineActor(actor = null) {
+  return actor?.type === "vehicle" || actor?.type === "battlemech";
 }
 
 function downgradeDetectionState(state = "blind") {
@@ -353,5 +359,92 @@ export async function resolveDefensiveJinkRollExecution({ defender, payload = {}
     ...result,
     hits,
     dn,
+  };
+}
+
+export async function resolveSuppressBeaconRollExecution({ suppressor, payload = {}, ctx = {}, outcomeModel } = {}) {
+  const actionKey = String(payload?.machineActionKey ?? payload?.actionId ?? ctx?.data?.actionId ?? "").trim();
+  if (actionKey !== "suppressBeacon" && ctx?.intent !== "suppressBeacon") return null;
+
+  const hits = Number(outcomeModel?.successes ?? outcomeModel?.hits ?? 0);
+  const dn = Number(ctx?.difficulty?.dn ?? 1);
+  const passed = hits >= dn;
+  if (!passed) {
+    return {
+      ok: false,
+      reason: "Suppress Beacon roll failed.",
+      hits,
+      dn,
+    };
+  }
+
+  const sourceToken = resolveBreakLockSourceToken(suppressor, payload);
+  const sourceTokenUuid = String(payload?.suppressBeaconTargetTokenUuid ?? "").trim() || getTokenUuid(sourceToken);
+  const targetToken = getAttackerTokenFromId(payload?.targetTokenId) ?? getAttackerTokenFromUuid(payload?.targetTokenUuid);
+  const targetCombatant = resolveBreakLockObserverCombatant(payload);
+  const targetActor = targetToken?.actor ?? targetCombatant?.actor ?? null;
+
+  if (!sourceTokenUuid) {
+    return {
+      ok: false,
+      reason: "Suppress Beacon succeeded, but no protected machine token was found.",
+      persistenceFailed: true,
+      hits,
+      dn,
+    };
+  }
+
+  if (!targetCombatant) {
+    return {
+      ok: false,
+      reason: "Suppress Beacon succeeded, but no target combatant was found; beacon/network packet was not suppressed.",
+      persistenceFailed: true,
+      hits,
+      dn,
+      targetTokenUuid: sourceTokenUuid,
+    };
+  }
+
+  if (targetActor && !isMachineActor(targetActor)) {
+    return {
+      ok: false,
+      reason: "Suppress Beacon target is not a machine.",
+      hits,
+      dn,
+      targetTokenUuid: sourceTokenUuid,
+      targetCombatantId: targetCombatant.id ?? "",
+    };
+  }
+
+  const current = getTargetingState(targetCombatant, sourceTokenUuid);
+  if (!current.packet) {
+    return {
+      ok: false,
+      reason: "No eligible beacon/network packet is available.",
+      hits,
+      dn,
+      targetTokenUuid: sourceTokenUuid,
+      targetCombatantId: targetCombatant.id ?? "",
+    };
+  }
+
+  const result = await suppressTargetingPacket(targetCombatant, sourceTokenUuid, {
+    packetId: String(payload?.targetingPacketId ?? payload?.packetId ?? current.packet.id ?? "").trim(),
+    suppressedBy: {
+      source: "suppressBeacon",
+      suppressorActorUuid: suppressor?.uuid ?? "",
+      suppressorTokenUuid: getTokenUuid(sourceToken),
+      targetCombatantId: targetCombatant.id ?? "",
+      targetTokenUuid: targetToken?.document?.uuid ?? targetToken?.uuid ?? "",
+      duration: "untilNextActivation",
+    },
+  });
+
+  return {
+    ...result,
+    hits,
+    dn,
+    targetCombatantId: targetCombatant.id ?? "",
+    targetTokenUuid: sourceTokenUuid,
   };
 }

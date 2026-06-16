@@ -37,9 +37,10 @@ import {
 import { getMachineActionDefinition } from "../mwd/machine-action-catalog.js";
 import { findAssetModuleActionOverride, getAssetModuleActionCosts } from "../mwd/asset-module-effects.js";
 import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
-import { resolveAcquireExecution, resolveBreakLockExecution, resolveDefensiveJinkRollExecution, resolveTargetingExecution } from "./ew-execution.js";
+import { resolveAcquireExecution, resolveBreakLockExecution, resolveDefensiveJinkRollExecution, resolveSuppressBeaconRollExecution, resolveTargetingExecution } from "./ew-execution.js";
 import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-state.js";
 import { revealMachineSignature } from "../mwd/machine-stealth.js";
+import { isPersonalFireModeUnloadAfterAction } from "../mwd/personal-fire-modes.js";
 
 /**
  * Public roll API.
@@ -521,6 +522,19 @@ async function normalizeAttackPayload({ actor, payload } = {}) {
     normalized.weaponId = explicitSourceId;
   }
 
+  if (syntheticWeaponId === "grapple") {
+    normalized.syntheticWeapon = {
+      id: "grapple",
+      name: "Grapple",
+      ...(normalized.syntheticWeapon ?? {}),
+    };
+    normalized.weaponId = "grapple";
+    normalized.sourceType = "personalWeapon";
+    normalized.sourceId = "grapple";
+    normalized.rangeBand = String(normalized.rangeBand ?? "close").trim() || "close";
+    return normalized;
+  }
+
   if (normalized.weaponId) {
     const profile = resolveWeaponProfile(normalized.weaponId);
     if (!profile) {
@@ -774,6 +788,25 @@ async function consumeAttackPayloads(actor, payload = {}, ctx = null) {
     const consumed = await weaponItem.consumePayload({ payloadId: requestedPayloadId });
     if (!consumed) {
       ui.notifications?.warn(`Payload could not be consumed for ${weaponItem.name}.`);
+    }
+  }
+}
+
+async function unloadPersonalFireModeWeapons(actor, payload = {}, ctx = null) {
+  if (payload?.intent !== "attack") return;
+  if (!isPersonalFireModeUnloadAfterAction(payload?.fireMode ?? ctx?.attack?.fireMode?.key)) return;
+
+  const weaponItems = getAttackPayloadWeaponItems(actor, payload, ctx)
+    .filter(weaponItem => weaponItem?.isPersonalWeapon?.() ?? weaponItem?.type === TEMPLATE.itemType.personalWeapon);
+  for (const weaponItem of weaponItems) {
+    if (typeof weaponItem.setActivePayload === "function") {
+      await weaponItem.setActivePayload("unloaded");
+    } else if (typeof weaponItem.update === "function") {
+      await weaponItem.update({
+        "system.selectedPayloadId": "unloaded",
+        "system.selectedPayloadUuid": "",
+        "system.selectedPayloadKey": "",
+      });
     }
   }
 }
@@ -1174,6 +1207,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   let ewTargetingResult = null;
   let ewBreakLockResult = null;
   let ewJinkResult = null;
+  let ewSuppressBeaconResult = null;
   if (ctx.intent === "acquire") {
     ewAcquireResult = await resolveAcquireExecution({ attacker: actor, ctx, outcomeModel });
   }
@@ -1185,6 +1219,9 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   }
   if (ctx.intent === "defensiveJink") {
     ewJinkResult = await resolveDefensiveJinkRollExecution({ defender: actor, payload, ctx, outcomeModel });
+  }
+  if (ctx.intent === "suppressBeacon" || (ctx.intent === "skill" && payload.machineActionKey === "suppressBeacon")) {
+    ewSuppressBeaconResult = await resolveSuppressBeaconRollExecution({ suppressor: actor, payload, ctx, outcomeModel });
   }
   if (ctx.intent === "attack" && ctx.attack?.ewContext?.activePacketId) {
     const attackerToken = getMachineAttackToken(actor, payload);
@@ -1243,6 +1280,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   if (ewTargetingResult) resolved.ewTargetingResult = ewTargetingResult;
   if (ewBreakLockResult) resolved.ewBreakLockResult = ewBreakLockResult;
   if (ewJinkResult) resolved.ewJinkResult = ewJinkResult;
+  if (ewSuppressBeaconResult) resolved.ewSuppressBeaconResult = ewSuppressBeaconResult;
   if (ctx.acquire)   resolved.acquire   = ctx.acquire;
   if (ctx.targeting) resolved.targeting = ctx.targeting;
 
@@ -1253,6 +1291,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   const html = await renderChat({ resolved });
 
   await consumeAttackPayloads(actor, payload, ctx);
+  await unloadPersonalFireModeWeapons(actor, payload, ctx);
 
   if (ctx.intent === "attack" && actor.type === "battlemech") {
     const weaponIds = Array.from(new Set([

@@ -95,6 +95,15 @@ test("prone battlemechs apply close-range penalties through the shared state hel
   assert.equal(cq.dr, -5);
 });
 
+test("suppressed machines take -4 AR and -4 DR", () => {
+  const actor = buildActor({ statuses: ["suppressedMechanical"] });
+
+  const cq = getMachineAttackCqAdjustments(actor, { rangeBand: "near" });
+
+  assert.equal(cq.ar, -4);
+  assert.equal(cq.dr, -4);
+});
+
 test("machine movement penalties are expressed in meters", () => {
   const actor = buildActor({
     crits: [{ active: true, statusId: "limping" }],

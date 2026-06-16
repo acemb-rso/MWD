@@ -1138,7 +1138,7 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
       execution: "skill",
       enabled: hasTargets,
       reason: "Target a token before suppressing a beacon.",
-      mechanics: "Roll only; beacon suppression is not automated yet.",
+      mechanics: "Automated on success: selected target's beacon/network packet against this machine is suppressed until its next activation.",
     }),
     buildEwAction({
       id: "swat",

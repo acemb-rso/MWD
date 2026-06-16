@@ -115,6 +115,8 @@ test("default person hazard and tactical statuses link to mechanics-backed modif
     ["hidden", "hidden"],
     ["suppressed", "suppressed"],
     ["grappled", "grappled"],
+    ["restrained", "restrained"],
+    ["pinned", "pinned"],
     ["stunned", "stunned"],
     ["onFire", "onFire"],
     ["drugged", "drugged"],
@@ -260,6 +262,9 @@ test("status modifiers use granular domains without double-counting broad aliase
 
   const suppressedRanged = provider.collect({ actor: actor("character", ["suppressed"]), domains: ["physical", "attack.ranged"] });
   assert.deepEqual(suppressedRanged, []);
+
+  const grappleStates = provider.collect({ actor: actor("character", ["grappled", "restrained", "pinned"]), domains: ["physical", "attack.melee"] });
+  assert.deepEqual(grappleStates, []);
 
   const blindedAcquire = provider.collect({ actor: actor("character", ["blinded"]), domains: ["mental", "sensor.acquire"] });
   assert.equal(blindedAcquire.length, 1);

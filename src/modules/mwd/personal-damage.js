@@ -75,7 +75,7 @@ const WEAPON_STANDARD_TRAIT_DEFS = Object.freeze({
       fireModes: {
         single: { enabled: true },
         burst: { enabled: false },
-        fullAuto: { enabled: false },
+        spray: { enabled: false },
       },
       flags: ["singleShot"],
     }),
@@ -89,7 +89,7 @@ const WEAPON_STANDARD_TRAIT_DEFS = Object.freeze({
       fireModes: {
         single: { enabled: true },
         burst: { enabled: true },
-        fullAuto: { enabled: true },
+        spray: { enabled: true },
       },
       flags: ["automatic"],
     }),
@@ -451,7 +451,7 @@ function mergeWeaponFireModes(base = {}, addition = {}) {
   return {
     single: { ...normalizedBase.single, ...normalizedAddition.single },
     burst: { ...normalizedBase.burst, ...normalizedAddition.burst },
-    fullAuto: { ...normalizedBase.fullAuto, ...normalizedAddition.fullAuto },
+    spray: { ...normalizedBase.spray, ...normalizedAddition.spray },
   };
 }
 

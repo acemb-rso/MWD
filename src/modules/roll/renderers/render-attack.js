@@ -124,6 +124,54 @@ export function enhanceAttack(resolved, vm) {
     return;
   }
 
+  if (r?.attack?.resolution?.effect === "grapple") {
+    vm.header.left = "Grapple";
+    vm.header.right = "Close";
+    vm.outcomeText = targetResults.length > 1
+      ? `GRAPPLE ${summary.hits} HIT / ${summary.grazes} GRAZE / ${summary.misses} MISS`
+      : (outcome === "hit" ? "GRAPPLE HIT!" : outcome === "graze" ? "GRAPPLE GRAZE!" : "GRAPPLE MISS!");
+    vm.metaRows.push({ text: "Targets:", title: "" });
+    vm.targetRows = targetResults.map((result, index) => {
+      const pending = Boolean(result?.grapple?.pending && !result?.grapple?.applied);
+      return {
+        targetName: result?.target?.name ?? "Target",
+        applied: Boolean(result?.grapple?.applied),
+        outcomeLabel: String(result?.outcome ?? "miss").toUpperCase(),
+        effectKey: "Effect",
+        exposureLabel: `${startCase(result?.outcome ?? "miss")} -> ${result?.grapple?.effectLabel ?? "No effect"}`,
+        resultKey: "Status",
+        damageLabel: result?.grapple?.applied
+          ? "Applied"
+          : (pending ? "Pending" : "No effect"),
+        reactionHint: result?.grapple?.defenseReduced ? "Grapple Defense reduced the effect." : "",
+        rowActions: pending ? [
+          {
+            action: "reduceGrapple",
+            label: "Reduce",
+            dataset: { "result-index": String(index) },
+            cssClass: "mwd-target-row__action mwd-reduce-grapple"
+          },
+          {
+            action: "applyGrapple",
+            label: "Apply",
+            dataset: { "result-index": String(index) },
+            cssClass: "mwd-target-row__action mwd-apply-grapple"
+          }
+        ] : []
+      };
+    });
+
+    const pendingCount = targetResults.filter(result => result?.grapple?.pending && !result?.grapple?.applied).length;
+    if (pendingCount > 0) {
+      vm.actions.push({
+        action: "applyAllGrapple",
+        label: `Apply All (${pendingCount})`,
+        cssClass: "mwd-apply-all-grapple"
+      });
+    }
+    return;
+  }
+
   if (isAreaEffect) {
     vm.targetRows = targetResults.map((result, index) => {
       const previewState = r?.areaEffectPreviewState?.[result?.previewKey] ?? {};

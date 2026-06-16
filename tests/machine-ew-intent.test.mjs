@@ -5,7 +5,7 @@ import { resolveAcquire } from "../src/modules/roll/intent/resolve-acquire.js";
 import { resolveTargeting } from "../src/modules/roll/intent/resolve-targeting.js";
 import { resolveBreakLock } from "../src/modules/roll/intent/resolve-break-lock.js";
 import { resolveDefensiveJink } from "../src/modules/roll/intent/resolve-defensive-jink.js";
-import { resolveAcquireExecution, resolveBreakLockExecution, resolveDefensiveJinkRollExecution } from "../src/modules/roll/ew-execution.js";
+import { resolveAcquireExecution, resolveBreakLockExecution, resolveDefensiveJinkRollExecution, resolveSuppressBeaconRollExecution } from "../src/modules/roll/ew-execution.js";
 import { getDetectionState, getTargetingState } from "../src/modules/mwd/machine-ew-state.js";
 
 function createMachineActor(name = "Mauler") {
@@ -769,6 +769,133 @@ test("failed Defensive Jink leaves targetingData unchanged", async () => {
     assert.equal(result.ok, false);
     assert.match(result.reason, /failed/i);
     assert.equal(getTargetingState(observerCombatant, defenderTokenUuid).packet.value, 1);
+  } finally {
+    clearScene();
+  }
+});
+
+test("successful Suppress Beacon suppresses the target machine packet against the acting machine", async () => {
+  ensureFoundryStub();
+
+  const defender = createMachineActor("Defender");
+  const observer = createMachineActor("Observer");
+  const defenderTokenUuid = "Scene.scene.Token.defender";
+  const defenderToken = {
+    id: "defender-token",
+    actor: defender,
+    document: { id: "defender-token", uuid: defenderTokenUuid },
+  };
+  const observerToken = {
+    id: "observer-token",
+    name: "Observer Token",
+    actor: observer,
+    document: { id: "observer-token", uuid: "Scene.scene.Token.observer" },
+  };
+  const observerCombatant = createCombatant({
+    tokenId: observerToken.id,
+    targetTokenUuid: defenderTokenUuid,
+    detectionState: "lock",
+    packet: {
+      id: "packet-1",
+      value: 3,
+      sourceTokenUuid: observerToken.document.uuid,
+      round: 1,
+    },
+  });
+
+  globalThis.game = {
+    combat: {
+      round: 1,
+      turn: 0,
+      combatants: [observerCombatant],
+    },
+  };
+  globalThis.canvas = {
+    tokens: {
+      get: id => id === defenderToken.id ? defenderToken : id === observerToken.id ? observerToken : null,
+      placeables: [defenderToken, observerToken],
+    },
+  };
+
+  try {
+    const result = await resolveSuppressBeaconRollExecution({
+      suppressor: defender,
+      payload: {
+        intent: "skill",
+        machineActionKey: "suppressBeacon",
+        sourceTokenId: defenderToken.id,
+        targetTokenId: observerToken.id,
+      },
+      ctx: { intent: "skill", difficulty: { dn: 1 } },
+      outcomeModel: { successes: 1 },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.packetId, "packet-1");
+    assert.equal(getTargetingState(observerCombatant, defenderTokenUuid).packet.suppressedBy.source, "suppressBeacon");
+  } finally {
+    clearScene();
+  }
+});
+
+test("failed Suppress Beacon leaves beacon packet usable", async () => {
+  ensureFoundryStub();
+
+  const defender = createMachineActor("Defender");
+  const observer = createMachineActor("Observer");
+  const defenderTokenUuid = "Scene.scene.Token.defender";
+  const defenderToken = {
+    id: "defender-token",
+    actor: defender,
+    document: { id: "defender-token", uuid: defenderTokenUuid },
+  };
+  const observerToken = {
+    id: "observer-token",
+    actor: observer,
+    document: { id: "observer-token", uuid: "Scene.scene.Token.observer" },
+  };
+  const observerCombatant = createCombatant({
+    tokenId: observerToken.id,
+    targetTokenUuid: defenderTokenUuid,
+    detectionState: "lock",
+    packet: {
+      id: "packet-1",
+      value: 3,
+      sourceTokenUuid: observerToken.document.uuid,
+      round: 1,
+    },
+  });
+
+  globalThis.game = {
+    combat: {
+      round: 1,
+      turn: 0,
+      combatants: [observerCombatant],
+    },
+  };
+  globalThis.canvas = {
+    tokens: {
+      get: id => id === defenderToken.id ? defenderToken : id === observerToken.id ? observerToken : null,
+      placeables: [defenderToken, observerToken],
+    },
+  };
+
+  try {
+    const result = await resolveSuppressBeaconRollExecution({
+      suppressor: defender,
+      payload: {
+        intent: "skill",
+        machineActionKey: "suppressBeacon",
+        sourceTokenId: defenderToken.id,
+        targetTokenId: observerToken.id,
+      },
+      ctx: { intent: "skill", difficulty: { dn: 2 } },
+      outcomeModel: { successes: 1 },
+    });
+
+    assert.equal(result.ok, false);
+    assert.match(result.reason, /failed/i);
+    assert.equal(getTargetingState(observerCombatant, defenderTokenUuid).packet.suppressedBy, null);
   } finally {
     clearScene();
   }

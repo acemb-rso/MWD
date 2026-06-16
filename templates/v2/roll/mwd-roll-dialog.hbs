@@ -122,6 +122,24 @@ How it fits: Used by rendering code to produce UI fragments.
           </select>
         </div>
       {{/if}}
+
+      {{#if attack.fireMode}}
+        <div class="mwd-roll-dialog__panel-subtitle">Fire Mode</div>
+        <div class="mwd-roll-dialog__choice-grid mwd-roll-dialog__choice-grid--fire-mode">
+          {{#each attack.fireMode.options as |mode|}}
+            <button
+              type="button"
+              class="mwd-roll-dialog__choice {{#if mode.selected}}is-selected{{/if}}"
+              data-action="setFireMode"
+              data-fire-mode="{{mode.key}}"
+              {{#unless mode.enabled}}disabled title="{{mode.reason}}"{{/unless}}
+              aria-pressed="{{#if mode.selected}}true{{else}}false{{/if}}">
+              <span class="mwd-roll-dialog__choice-label">{{mode.label}}</span>
+              <span class="mwd-roll-dialog__choice-value">Dice {{mode.diceLabel}} / AR {{mode.arLabel}}</span>
+            </button>
+          {{/each}}
+        </div>
+      {{/if}}
     </div>
   {{/if}}
 

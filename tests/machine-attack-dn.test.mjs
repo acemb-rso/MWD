@@ -340,6 +340,441 @@ function clearScene() {
   delete globalThis.canvas;
 }
 
+function createPersonalActorWithWeapon({ flags = ["automatic"], payloadId = "standard" } = {}) {
+  const weapon = {
+    id: "auto-rifle",
+    type: "personalWeapon",
+    canonicalType: "personalWeapon",
+    name: "Auto Rifle",
+    system: {
+      equipped: true,
+      selectedPayloadId: payloadId,
+      selectedPayloadKey: "",
+      selectedPayloadUuid: "",
+    },
+    isPersonalWeapon: () => true,
+    isWeapon: () => true,
+    getCombatProfile() {
+      return {
+        id: this.id,
+        uuid: "Item.auto-rifle",
+        name: this.name,
+        item: this,
+        type: "personalWeapon",
+        category: "ranged",
+        skill: "firearms",
+        damage: 4,
+        clusteringDice: 0,
+        clusteringTargetNumber: 5,
+        ap: 0,
+        damageType: "penetrating",
+        damageTypeLabel: "Penetrating",
+        attackRatingBand: { close: 4, near: 3, far: 2, extreme: 1 },
+        range: { max: "near", close: 20, near: 80, far: 0, extreme: 0 },
+        defaultRangeBand: "close",
+        effects: { flags },
+        traits: [],
+        keywords: [],
+        payload: { id: payloadId, label: "Standard" },
+        payloadState: {
+          activePayloadId: payloadId,
+          payloadLabel: "Standard",
+          payloads: [{ id: "unloaded", label: "Unloaded" }, { id: payloadId, label: "Standard" }],
+        },
+        sourceState: { isTracked: false },
+        fireModes: {
+          single: { enabled: true },
+          burst: { enabled: flags.includes("automatic") },
+          spray: { enabled: flags.includes("automatic") || flags.includes("spread") },
+        },
+        capabilityReport: { isTemplated: false, errors: [] },
+      };
+    },
+  };
+
+  return {
+    type: "character",
+    name: "Infantry",
+    uuid: "Actor.infantry",
+    statuses: new Set(),
+    items: new Map([[weapon.id, weapon]]),
+    getAttributeValue(key) {
+      if (key === "reflexes") return 4;
+      if (key === "strength") return 5;
+      return 0;
+    },
+    getSkillRating(key) {
+      if (key === "firearms") return 3;
+      if (key === "meleeCombat") return 2;
+      return 0;
+    },
+    system: {
+      attributes: { reflexes: { value: 4 }, strength: { value: 5 } },
+      skills: { firearms: { rating: 3, bonus: 0 }, meleeCombat: { rating: 2, bonus: 0 } },
+    },
+  };
+}
+
+function setPersonalSprayScene() {
+  const attackerToken = { id: "attacker-token", center: { x: 0, y: 0 } };
+  const primary = { id: "primary-token", visible: true, center: { x: 10, y: 0 }, document: { id: "primary-token", uuid: "Scene.scene.Token.primary-token" } };
+  const adjacent = { id: "adjacent-token", visible: true, center: { x: 16, y: 0 }, document: { id: "adjacent-token", uuid: "Scene.scene.Token.adjacent-token" } };
+  const distant = { id: "distant-token", visible: true, center: { x: 24, y: 0 }, document: { id: "distant-token", uuid: "Scene.scene.Token.distant-token" } };
+  const tokens = new Map([
+    [attackerToken.id, attackerToken],
+    [primary.id, primary],
+    [adjacent.id, adjacent],
+    [distant.id, distant],
+  ]);
+  const distanceBetween = (left, right) => Math.hypot(Number((right?.x ?? 0) - (left?.x ?? 0)), Number((right?.y ?? 0) - (left?.y ?? 0)));
+
+  globalThis.game = {
+    combat: { round: 1, combatants: [] },
+    user: { targets: new Set() },
+  };
+  globalThis.canvas = {
+    tokens: {
+      get: id => tokens.get(id) ?? null,
+      placeables: Array.from(tokens.values()),
+      controlled: [],
+    },
+    grid: {
+      measurePath: points => ({ distance: distanceBetween(points?.[0], points?.[1]) }),
+    },
+  };
+
+  const snapshotFor = token => ({
+    tokenId: token.id,
+    tokenUuid: token.document.uuid,
+    actorId: `actor-${token.id}`,
+    actorUuid: `Actor.${token.id}`,
+    name: token.id,
+    attributes: {},
+    skills: {},
+  });
+
+  return {
+    targetSnapshots: [primary, adjacent, distant].map(snapshotFor),
+  };
+}
+
+test("personal Spray uses primary plus adjacent secondaries and applies mode modifiers", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createPersonalActorWithWeapon({ flags: ["automatic"] });
+  const { targetSnapshots } = setPersonalSprayScene();
+
+  try {
+    const ctx = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        weaponId: "auto-rifle",
+        payloadId: "standard",
+        fireMode: "spray",
+        sourceTokenId: "attacker-token",
+        targetSnapshots,
+      },
+    });
+
+    assert.equal(ctx.attack.fireMode.key, "spray");
+    assert.equal(ctx.pool.bonus, 1);
+    assert.equal(ctx.attack.weapon.attackRatingBand.close, 2);
+    assert.equal(ctx.attack.targets.length, 2);
+    assert.equal(ctx.attack.targets[0].fireModeTargetRole, "primary");
+    assert.equal(ctx.attack.targets[0].grazeOnly, false);
+    assert.equal(ctx.attack.targets[1].fireModeTargetRole, "secondary");
+    assert.equal(ctx.attack.targets[1].grazeOnly, true);
+    assert.equal(ctx.attack.targets[1].tokenId, "adjacent-token");
+  } finally {
+    clearScene();
+  }
+});
+
+test("personal Suppressed applies -4 AR and -4 DR in CQ", async () => {
+  const resolveAttack = await getResolveAttack();
+  const { resolveAttackExecution } = await getAttackResolution();
+  const actor = createPersonalActorWithWeapon({ flags: ["automatic"] });
+  actor.statuses.add("suppressed");
+  const { targetSnapshots } = setPersonalSprayScene();
+  const targetSnapshot = {
+    ...targetSnapshots[0],
+    attributes: { reflexes: 3 },
+    skills: { tactics: { rating: 0 } },
+    activeArmor: { defenseBonus: 0 },
+  };
+  const targetActor = {
+    id: "target-person",
+    uuid: targetSnapshot.actorUuid,
+    type: "character",
+    name: "Suppressed Target",
+    statuses: new Set(["suppressed"]),
+    getAttributeValue(key) {
+      return key === "reflexes" ? 3 : 0;
+    },
+    getSkillRating(key) {
+      return key === "tactics" ? 0 : 0;
+    },
+    getPersonalCombatLoadout() {
+      return {
+        activeArmor: {
+          currentArmorRating: 0,
+          tags: [],
+          mitigationByType: {},
+          durability: { current: 0 },
+          traitState: { reinforced: { current: 0, max: 0 } },
+          item: { id: "armor", update: async () => {} },
+        },
+      };
+    },
+    system: {
+      monitors: {
+        physical: { value: 0, max: 10 },
+        fatigue: { value: 0, max: 10 },
+      },
+      attributes: { reflexes: { value: 3 } },
+      skills: { tactics: { rating: 0 } },
+      criticals: [],
+    },
+  };
+  const targetToken = { uuid: targetSnapshot.tokenUuid, actor: targetActor };
+  const previousFromUuid = globalThis.fromUuid;
+  const previousConfig = globalThis.CONFIG;
+  globalThis.CONFIG = { ...(previousConfig ?? {}), statusEffects: previousConfig?.statusEffects ?? [] };
+  globalThis.fromUuid = async uuid => {
+    if (uuid === targetActor.uuid) return targetActor;
+    if (uuid === targetToken.uuid) return targetToken;
+    return null;
+  };
+
+  try {
+    const ctx = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        weaponId: "auto-rifle",
+        payloadId: "standard",
+        fireMode: "single",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+    const execution = await resolveAttackExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: { margin: 1 },
+    });
+    const result = execution.results[0];
+
+    assert.equal(result.cq.ar.parts.find(part => part.id === "status.suppressed.attackRating")?.value, -4);
+    assert.equal(result.cq.dr.parts.find(part => part.id === "status.suppressed.defenseRating")?.value, -4);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
+    globalThis.CONFIG = previousConfig;
+    clearScene();
+  }
+});
+
+test("personal Grapple is a Close STR + Melee Combat status attack", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createPersonalActorWithWeapon({ flags: ["automatic"] });
+  const { targetSnapshots } = setPersonalSprayScene();
+
+  try {
+    const ctx = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        syntheticWeapon: { id: "grapple", name: "Grapple" },
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshots[0]],
+      },
+    });
+
+    assert.equal(ctx.attack.weapon.id, "grapple");
+    assert.equal(ctx.attack.weapon.skill, "meleeCombat");
+    assert.equal(ctx.attack.rangeBand, "close");
+    assert.equal(ctx.attack.resolution.effect, "grapple");
+    assert.equal(ctx.attack.skill.attribute, "strength");
+    assert.equal(ctx.pool.attribute, 5);
+    assert.equal(ctx.pool.skill, 2);
+  } finally {
+    clearScene();
+  }
+});
+
+test("Grapple attack results map to grapple states without damage", async () => {
+  const resolveAttack = await getResolveAttack();
+  const { resolveAttackExecution } = await getAttackResolution();
+  const actor = createPersonalActorWithWeapon({ flags: ["automatic"] });
+  const { targetSnapshots } = setPersonalSprayScene();
+  const targetSnapshot = {
+    ...targetSnapshots[0],
+    attributes: { reflexes: 3 },
+    skills: { tactics: { rating: 0 } },
+    activeArmor: { defenseBonus: 0 },
+  };
+  const targetActor = {
+    uuid: targetSnapshot.actorUuid,
+    type: "character",
+    name: "Grapple Target",
+    statuses: new Set(),
+    getAttributeValue(key) {
+      return key === "reflexes" ? 3 : 0;
+    },
+    getSkillRating(key) {
+      return key === "tactics" ? 0 : 0;
+    },
+    system: {
+      attributes: { reflexes: { value: 3 } },
+      skills: { tactics: { rating: 0 } },
+    },
+  };
+  const previousFromUuid = globalThis.fromUuid;
+  globalThis.fromUuid = async uuid => uuid === targetActor.uuid ? targetActor : null;
+
+  try {
+    const ctx = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        syntheticWeapon: { id: "grapple", name: "Grapple" },
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+
+    const miss = await resolveAttackExecution({ attacker: actor, ctx, outcomeModel: { margin: 0 } });
+    assert.equal(miss.results[0].outcome, "miss");
+    assert.equal(miss.results[0].grapple.pending, false);
+    assert.equal(miss.results[0].grapple.effectLabel, "No effect");
+    assert.equal(miss.results[0].damageResult, null);
+    assert.equal(miss.results[0].queuedMutation, null);
+
+    const graze = await resolveAttackExecution({ attacker: actor, ctx, outcomeModel: { margin: 1 } });
+    assert.equal(graze.results[0].outcome, "graze");
+    assert.equal(graze.results[0].grapple.statusId, "grappled");
+    assert.equal(graze.results[0].grapple.pending, true);
+
+    const hit = await resolveAttackExecution({ attacker: actor, ctx, outcomeModel: { margin: 3 } });
+    assert.equal(hit.results[0].outcome, "hit");
+    assert.equal(hit.results[0].grapple.statusId, "restrained");
+    assert.equal(hit.results[0].grapple.pending, true);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
+    clearScene();
+  }
+});
+
+test("Restrained and Pinned modify Grapple CQ and escalation", async () => {
+  const resolveAttack = await getResolveAttack();
+  const { resolveAttackExecution } = await getAttackResolution();
+  const actor = createPersonalActorWithWeapon({ flags: ["automatic"] });
+  actor.statuses.add("restrained");
+  const { targetSnapshots } = setPersonalSprayScene();
+  const targetSnapshot = {
+    ...targetSnapshots[0],
+    attributes: { reflexes: 3 },
+    skills: { tactics: { rating: 0 } },
+    activeArmor: { defenseBonus: 0 },
+  };
+  const targetActor = {
+    uuid: targetSnapshot.actorUuid,
+    type: "character",
+    name: "Restrained Target",
+    statuses: new Set(["restrained"]),
+    getAttributeValue(key) {
+      return key === "reflexes" ? 3 : 0;
+    },
+    getSkillRating(key) {
+      return key === "tactics" ? 0 : 0;
+    },
+    system: {
+      attributes: { reflexes: { value: 3 } },
+      skills: { tactics: { rating: 0 } },
+    },
+  };
+  const previousFromUuid = globalThis.fromUuid;
+  globalThis.fromUuid = async uuid => uuid === targetActor.uuid ? targetActor : null;
+
+  try {
+    const ctx = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        syntheticWeapon: { id: "grapple", name: "Grapple" },
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+    const execution = await resolveAttackExecution({ attacker: actor, ctx, outcomeModel: { margin: 1 } });
+    const result = execution.results[0];
+
+    assert.equal(result.grapple.previousStatusId, "restrained");
+    assert.equal(result.grapple.statusId, "pinned");
+    assert.equal(result.cq.ar.parts.find(part => part.id === "status.restrained.attackRating")?.value, -2);
+    assert.equal(result.cq.dr.parts.find(part => part.id === "status.restrained.defenseRatingOverride")?.value, -6);
+    assert.equal(result.cq.dr.total, 0);
+
+    actor.statuses.delete("restrained");
+    actor.statuses.add("pinned");
+    const pinnedExecution = await resolveAttackExecution({ attacker: actor, ctx, outcomeModel: { margin: 1 } });
+    assert.equal(pinnedExecution.results[0].cq.ar.parts.find(part => part.id === "status.pinned.attackRatingOverride")?.value, -2);
+    assert.equal(pinnedExecution.results[0].cq.ar.total, 0);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
+    clearScene();
+  }
+});
+
+test("Grappled attackers take AR penalty against targets other than their grappler", async () => {
+  const resolveAttack = await getResolveAttack();
+  const { resolveAttackExecution } = await getAttackResolution();
+  const actor = createPersonalActorWithWeapon({ flags: ["automatic"] });
+  actor.statuses.add("grappled");
+  actor.effects = [{
+    statuses: new Set(["grappled"]),
+    flags: { mwd: { status: { id: "grappled", attackerUuid: "Actor.grappler" } } },
+  }];
+  const { targetSnapshots } = setPersonalSprayScene();
+  const targetSnapshot = {
+    ...targetSnapshots[0],
+    attributes: { reflexes: 3 },
+    skills: { tactics: { rating: 0 } },
+    activeArmor: { defenseBonus: 0 },
+  };
+  const previousFromUuid = globalThis.fromUuid;
+  globalThis.fromUuid = async () => null;
+
+  try {
+    const otherCtx = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        syntheticWeapon: { id: "grapple", name: "Grapple" },
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+    const other = await resolveAttackExecution({ attacker: actor, ctx: otherCtx, outcomeModel: { margin: 1 } });
+    assert.equal(other.results[0].cq.ar.parts.find(part => part.id === "status.grappled.attackRating")?.value, -2);
+
+    const grapplerCtx = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        syntheticWeapon: { id: "grapple", name: "Grapple" },
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [{ ...targetSnapshot, actorUuid: "Actor.grappler" }],
+      },
+    });
+    const grappler = await resolveAttackExecution({ attacker: actor, ctx: grapplerCtx, outcomeModel: { margin: 1 } });
+    assert.equal(grappler.results[0].cq.ar.parts.some(part => part.id === "status.grappled.attackRating"), false);
+  } finally {
+    globalThis.fromUuid = previousFromUuid;
+    clearScene();
+  }
+});
+
 test("machine range bands are explicit continuous meter ranges with matching DNs", () => {
   assert.equal(getMechRangeBandLabel("close"), "Close 0-59 m");
   assert.equal(getMechRangeBandLabel("near"), "Near 60-269 m");

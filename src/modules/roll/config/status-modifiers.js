@@ -49,10 +49,17 @@ export const STATUS_MAP = {
 
   grappled: {
     label: "Grappled",
-    mods: [
-      { domains: ["physical", "movement", "movement.ground", "attack.melee"], value: -2 },
-      { domains: ["combat", "attack"], value: -1 }
-    ]
+    mods: []
+  },
+
+  restrained: {
+    label: "Restrained",
+    mods: []
+  },
+
+  pinned: {
+    label: "Pinned",
+    mods: []
   },
 
   stunned: {

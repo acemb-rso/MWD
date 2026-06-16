@@ -42,7 +42,7 @@ function pushError(report, message, details = {}) {
 export const PERSONAL_WEAPON_LIVE_CAPABILITIES = Object.freeze(["templated"]);
 export const PERSONAL_WEAPON_RESERVED_WEAPON_CAPABILITIES = Object.freeze([
   "burstCapable",
-  "fullAutoCapable",
+  "sprayCapable",
   "salvoCapable",
 ]);
 export const PERSONAL_WEAPON_RESERVED_PAYLOAD_CAPABILITIES = Object.freeze([
@@ -56,7 +56,7 @@ export const PERSONAL_WEAPON_RESERVED_PAYLOAD_CAPABILITIES = Object.freeze([
 
 export const PERSONAL_WEAPON_WEAPON_CAPABILITY_OPTIONS = Object.freeze([
   { value: "burstCapable", label: "Burst Capable" },
-  { value: "fullAutoCapable", label: "Full Auto Capable" },
+  { value: "sprayCapable", label: "Spray Capable" },
   { value: "salvoCapable", label: "Salvo Capable" },
 ]);
 
@@ -208,10 +208,11 @@ function normalizeFireModeConfig(value = {}) {
 
 export function normalizePersonalWeaponFireModes(value = {}) {
   const source = value ?? {};
+  const spray = source.spray ?? source.fullAuto;
   return {
     single: normalizeFireModeConfig(source.single),
     burst: normalizeFireModeConfig(source.burst),
-    fullAuto: normalizeFireModeConfig(source.fullAuto),
+    spray: normalizeFireModeConfig(spray),
   };
 }
 

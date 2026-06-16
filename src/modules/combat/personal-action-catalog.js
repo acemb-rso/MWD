@@ -110,7 +110,7 @@ const VALID_RESOLVERS = new Set(PERSONAL_ACTION_RESOLVER_OPTIONS.map(option => o
 const VALID_COST_RESOURCES = new Set(PERSONAL_ACTION_COST_RESOURCE_OPTIONS.map(option => option.value));
 const VALID_PROMPTS = new Set(PERSONAL_ACTION_PROMPT_OPTIONS.map(option => option.value));
 const VALID_IMPLEMENTATION_STATES = new Set(PERSONAL_ACTION_IMPLEMENTATION_OPTIONS.map(option => option.value));
-const RETIRED_ACTION_IDS = new Set(["recoverBurn", "gesture"]);
+const RETIRED_ACTION_IDS = new Set(["recoverBurn", "gesture", "breakGrappleDefense"]);
 
 const LEGACY_HANDLER_TO_RESOLVER = Object.freeze({
   combatAction: PERSONAL_ACTION_RESOLVERS.action,
@@ -215,6 +215,7 @@ const DEFAULT_ACTIONS = Object.freeze([
   action({ id: "leadTeam", label: "Assist / Lead Team", category: "standard", resolver: "action", tags: ["combat", "assist", "support"], description: "Provide active support during your activation." }),
 
   action({ id: "attack", label: "Attack", category: "complex", cost: cost("sa", 2), resolver: "attack", prompt: prompt("weapon", false), tags: ["combat", "attack"], prominent: true, description: "Make an offensive action and resolve it through the attack pipeline." }),
+  action({ id: "grapple", label: "Grapple", category: "complex", cost: cost("sa", 2), resolver: "attack", tags: ["combat", "attack", "grapple", "melee"], description: "Make a Close STR + Melee Combat attack to Grapple, Restrain, or Pin a target." }),
   action({ id: "suppressionFire", label: "Suppression Fire", category: "complex", cost: cost("sa", 2), resolver: "attack", prompt: prompt("weapon", true), tags: ["combat", "attack", "suppression"], description: "Lay down a cone or line of automatic fire. Graze or Hit applies Suppressed instead of damage." }),
   action({ id: "firstAid", label: "First Aid", category: "complex", cost: cost("sa", 2), resolver: "recovery", prompt: prompt("target", true), roll: { intent: "skill", key: "medicine" }, tags: ["combat", "recovery", "medical"], description: "Stabilize or recover harm through focused treatment." }),
   action({ id: "useComplexSkill", label: "Use Complex Skill", category: "complex", cost: cost("sa", 2), resolver: "action", prompt: prompt("skill", true), roll: { intent: "skill" }, tags: ["combat", "skill", "complex"], description: "Make an extended or higher-risk skill check." }),
@@ -235,7 +236,7 @@ const DEFAULT_ACTIONS = Object.freeze([
   action({ id: "opportunity", label: "Opportunity Attack", category: "reaction", resolver: "attack", tags: ["combat", "reaction", "attack", "opportunity"], description: "Exploit an opening and make a reactive attack." }),
   action({ id: "assist", label: "Assist Ally", category: "reaction", resolver: "action", prompt: prompt("target", true), tags: ["combat", "reaction", "assist"], description: "Support another combatant when their moment comes." }),
   action({ id: "interrupt", label: "Interrupt from Prepare", category: "reaction", resolver: "action", tags: ["combat", "reaction", "interrupt"], description: "Resolve a prepared response when its trigger is met." }),
-  action({ id: "breakGrappleDefense", label: "Break Grapple / Melee Defense", category: "reaction", resolver: "recovery", tags: ["combat", "reaction", "defense", "grapple"], implementation: implementation("stub", "Close-combat defensive reactions are not implemented yet."), description: "Break a grapple or defend in close combat once supported." }),
+  action({ id: "grappleDefense", label: "Grapple Defense", category: "reaction", cost: cost("ra", 1), resolver: "recovery", roll: { intent: "skill", key: "meleeCombat", attrKey: "reflexes" }, tags: ["combat", "reaction", "defense", "grapple"], description: "React to a successful Grapple attack. On success, reduce the grapple effect by one step." }),
 
   action({ id: "reduceBurn", label: "Reduce Burn", category: "standard", cost: cost("sa", 1), resolver: "recovery", tags: ["combat", "recovery", "burn"], prominentWhenBurning: true, description: "Take a breather and bring your Burn down by one." }),
   action({ id: "overloadCheck", label: "Overload Check", category: "recovery", cost: cost("none", 0), resolver: "recovery", roll: { intent: "overload" }, tags: ["combat", "recovery", "burn", "overload"], prominentWhenBurning: true, description: "Roll to see whether mounting Burn pushes you into overload." }

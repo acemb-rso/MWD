@@ -205,6 +205,11 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.mwd-roll-dialog__choice-grid--fire-mode {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 6px;
+}
+
 .mwd-roll-dialog__choice {
   position: relative;
   min-width: 0;
@@ -226,6 +231,11 @@
 .mwd-roll-dialog__check--toggle:hover {
   border-color: rgba(255, 255, 255, 0.28);
   background: rgba(255, 255, 255, 0.08);
+}
+
+.mwd-roll-dialog__choice:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
 }
 
 .mwd-roll-dialog__choice.is-selected {
@@ -415,7 +425,8 @@
 
 @media (max-width: 540px) {
   .mwd-roll-dialog__choice-grid--motion,
-  .mwd-roll-dialog__choice-grid--options {
+  .mwd-roll-dialog__choice-grid--options,
+  .mwd-roll-dialog__choice-grid--fire-mode {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

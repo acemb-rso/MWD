@@ -43,10 +43,15 @@ export function registerMWDChatActions() {
       if (action === "applyAllAttackDamage") void onApplyAllAttackDamage(ev, message);
       if (action === "applySuppression") void onApplySuppression(ev, message);
       if (action === "applyAllSuppression") void onApplyAllSuppression(ev, message);
+      if (action === "reduceGrapple") void onReduceGrapple(ev, message);
+      if (action === "applyGrapple") void onApplyGrapple(ev, message);
+      if (action === "applyAllGrapple") void onApplyAllGrapple(ev, message);
       if (action === "applyFirstAid") void onApplyFirstAid(ev, message);
     });
   });
 }
+
+const GRAPPLE_STATUS_IDS = Object.freeze(["grappled", "restrained", "pinned"]);
 
 function getHarmService() {
   return game.mwd?.harm ?? game.system?.mwd?.harm ?? null;
@@ -701,6 +706,64 @@ async function applySuppressionResult(resolved, resultIndex) {
   return { ok: Boolean(applied), result, targetActor };
 }
 
+async function applyGrappleResult(resolved, resultIndex) {
+  const results = Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [];
+  const result = results[resultIndex] ?? null;
+  if (!result?.grapple?.pending || result?.grapple?.applied) return { ok: false, reason: "No pending grapple effect." };
+
+  const targetActor = result?.target?.actorUuid ? await fromUuid(result.target.actorUuid) : null;
+  if (!targetActor) return { ok: false, reason: "Unable to resolve grapple target." };
+
+  const statusId = String(result.grapple.statusId ?? "").trim();
+  if (!GRAPPLE_STATUS_IDS.includes(statusId)) return { ok: false, reason: "Grapple result has no valid status." };
+
+  for (const otherStatusId of GRAPPLE_STATUS_IDS) {
+    if (otherStatusId === statusId) continue;
+    if (!targetActor.statuses?.has?.(otherStatusId)) continue;
+    await applyManagedStatusUpdate({
+      actor: targetActor,
+      statusId: otherStatusId,
+      active: false,
+      metadata: { source: "grapple", supersededBy: statusId },
+    });
+  }
+
+  const applied = await applyManagedStatusUpdate({
+    actor: targetActor,
+    statusId,
+    active: true,
+    metadata: result.grapple.metadata ?? { source: "grapple" },
+  });
+
+  result.grapple.applied = Boolean(applied);
+  result.grapple.pending = !applied;
+  return { ok: Boolean(applied), result, targetActor };
+}
+
+function reduceGrappleResult(resolved, resultIndex) {
+  const results = Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [];
+  const result = results[resultIndex] ?? null;
+  if (!result?.grapple?.pending || result?.grapple?.applied) return { ok: false, reason: "No pending grapple effect." };
+
+  const statusId = String(result.grapple.statusId ?? "").trim();
+  if (statusId === "grappled") {
+    result.grapple.statusId = "";
+    result.grapple.pending = false;
+    result.grapple.effectLabel = "No effect";
+  } else if (statusId === "restrained") {
+    result.grapple.statusId = "grappled";
+    result.grapple.effectLabel = "Grappled";
+  } else if (statusId === "pinned") {
+    result.grapple.statusId = "restrained";
+    result.grapple.effectLabel = "Restrained";
+  } else {
+    return { ok: false, reason: "Grapple result has no valid status." };
+  }
+
+  result.grapple.defenseReduced = true;
+  return { ok: true, result };
+}
+
 async function rerenderResolvedMessage(message, resolved) {
   const htmlContent = await renderChat({ resolved });
   await message.update({
@@ -743,6 +806,65 @@ async function onApplyAllSuppression(ev, message) {
 
   if (!applied) {
     ui.notifications?.info?.("No pending suppression effects.");
+    return;
+  }
+
+  await rerenderResolvedMessage(message, resolved);
+}
+
+async function onReduceGrapple(ev, message) {
+  ev.preventDefault();
+
+  const btn = ev.target.closest("[data-mwd-action='reduceGrapple']");
+  const resultIndex = Number(btn?.dataset?.resultIndex);
+  if (!Number.isInteger(resultIndex) || resultIndex < 0) return;
+
+  const resolved = foundry.utils.deepClone(message?.getFlag?.("mwd", "resolved") ?? message?.flags?.mwd?.resolved);
+  if (!resolved) return;
+
+  const result = reduceGrappleResult(resolved, resultIndex);
+  if (!result.ok) {
+    ui.notifications?.warn?.(result.reason ?? "Unable to reduce grapple.");
+    return;
+  }
+
+  await rerenderResolvedMessage(message, resolved);
+}
+
+async function onApplyGrapple(ev, message) {
+  ev.preventDefault();
+
+  const btn = ev.target.closest("[data-mwd-action='applyGrapple']");
+  const resultIndex = Number(btn?.dataset?.resultIndex);
+  if (!Number.isInteger(resultIndex) || resultIndex < 0) return;
+
+  const resolved = foundry.utils.deepClone(message?.getFlag?.("mwd", "resolved") ?? message?.flags?.mwd?.resolved);
+  if (!resolved) return;
+
+  const result = await applyGrappleResult(resolved, resultIndex);
+  if (!result.ok) {
+    ui.notifications?.warn?.(result.reason ?? "Unable to apply grapple.");
+    return;
+  }
+
+  await rerenderResolvedMessage(message, resolved);
+}
+
+async function onApplyAllGrapple(ev, message) {
+  ev.preventDefault();
+
+  const resolved = foundry.utils.deepClone(message?.getFlag?.("mwd", "resolved") ?? message?.flags?.mwd?.resolved);
+  if (!resolved) return;
+
+  const results = Array.isArray(resolved?.attackResult?.results) ? resolved.attackResult.results : [];
+  let applied = 0;
+  for (let index = 0; index < results.length; index += 1) {
+    const result = await applyGrappleResult(resolved, index);
+    if (result.ok) applied += 1;
+  }
+
+  if (!applied) {
+    ui.notifications?.info?.("No pending grapple effects.");
     return;
   }
 

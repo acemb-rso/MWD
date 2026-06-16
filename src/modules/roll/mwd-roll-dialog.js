@@ -17,6 +17,10 @@ import {
 } from "../mwd/machine-attack-motion.js";
 import { normalizeMachineMotionPayload } from "../mwd/machine-attack-motion.js";
 import { getTargetCombatant } from "../mwd/machine-ew-state.js";
+import {
+  buildPersonalFireModeState,
+  normalizePersonalFireModeKey,
+} from "../mwd/personal-fire-modes.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 const ATTACK_OPTION_MODIFIERS = Object.freeze([
@@ -191,6 +195,32 @@ function buildAttackOptionControls({ manual = [], attack = null, payload = {} } 
   };
 }
 
+function buildFireModeControls({ attack = null, payload = {}, selectedPayloadId = "" } = {}) {
+  if (attack?.weapon?.type !== "personalWeapon") return null;
+
+  const weapon = {
+    ...(attack.weapon ?? {}),
+    effects: foundry.utils.deepClone(attack.weapon?.effects ?? {}),
+    traits: foundry.utils.deepClone(attack.weapon?.traits ?? []),
+    keywords: foundry.utils.deepClone(attack.weapon?.keywords ?? []),
+  };
+  weapon.payloadState = {
+    ...(weapon.payloadState ?? {}),
+    activePayloadId: String(selectedPayloadId ?? weapon.payloadState?.activePayloadId ?? "").trim(),
+  };
+  const requested = normalizePersonalFireModeKey(payload?.fireMode ?? attack?.fireMode?.key ?? "single");
+  const state = buildPersonalFireModeState(weapon, requested);
+  return {
+    selectedKey: state.selected.key,
+    selected: state.selected,
+    options: state.options.map(option => ({
+      ...option,
+      diceLabel: option.diceModifier >= 0 ? `+${option.diceModifier}` : String(option.diceModifier),
+      arLabel: option.attackRatingModifier >= 0 ? `+${option.attackRatingModifier}` : String(option.attackRatingModifier),
+    })),
+  };
+}
+
 function readToggle(payload, key) {
   // Prefer nested payload.toggles, fall back to flat keys
   const t = payload?.toggles;
@@ -268,6 +298,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         toggleMachineTargetJumped: MWDRollDialog.prototype._onToggleMachineTargetJumped,
         toggleAttackOption: MWDRollDialog.prototype._onToggleAttackOption,
         toggleAttackFlag: MWDRollDialog.prototype._onToggleAttackFlag,
+        setFireMode: MWDRollDialog.prototype._onSetFireMode,
         setDn: MWDRollDialog.prototype._onSetDn,
         setPayload: MWDRollDialog.prototype._onSetPayload,
         setSpecialization: MWDRollDialog.prototype._onSetSpecialization
@@ -440,6 +471,15 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const selectedPayloadId = String(st?.payload?.payloadId ?? attack?.payloadState?.activePayloadId ?? "").trim();
     const selectedPayload = payloads.find(type => type.id === selectedPayloadId) ?? null;
     const selectedPayloadState = attack?.weapon?.item?.getPayloadState?.({ payloadId: selectedPayloadId }) ?? null;
+    const fireModeControls = buildFireModeControls({ attack, payload: st.payload ?? {}, selectedPayloadId });
+    if (fireModeControls) {
+      st.payload.fireMode = fireModeControls.selected.key;
+      const currentDiceModifier = Number(attack?.fireMode?.diceModifier ?? 0) || 0;
+      const nextDiceModifier = Number(fireModeControls.selected?.diceModifier ?? 0) || 0;
+      const fireModeDiceDelta = nextDiceModifier - currentDiceModifier;
+      dice.bonus += fireModeDiceDelta;
+      totalPool = Math.max(0, totalPool + fireModeDiceDelta);
+    }
     const machineActor = bc?.machineActor ?? this.actor;
     const machineAttackOptions = intent === "attack" && attack && isMachineActor(machineActor)
       ? buildAttackOptionControls({ manual: st.manual ?? [], attack, payload: st.payload ?? {} })
@@ -501,6 +541,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         selectedPayloadId,
         selectedPayloadLabel: selectedPayloadState?.payloadLabel ?? selectedPayload?.label ?? attack?.payload?.label ?? attack?.weapon?.payloadLabel ?? "",
         selectedSourceLabel: selectedPayloadState?.sourceState?.label ?? attack?.sourceState?.label ?? "",
+        fireMode: fireModeControls,
       } : null,
       machineAttackOptions,
     };
@@ -693,6 +734,13 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const flag = String(target?.dataset?.flag ?? "").trim();
     if (!flag) return;
     writeAttackOptions(this._mwd.state.payload, { [flag]: Boolean(target?.checked) });
+    return this.render(false);
+  }
+
+  async _onSetFireMode(event, target) {
+    event?.preventDefault();
+    if (target?.disabled) return;
+    this._mwd.state.payload.fireMode = normalizePersonalFireModeKey(target?.dataset?.fireMode);
     return this.render(false);
   }
 

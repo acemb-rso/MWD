@@ -43,6 +43,25 @@ export function enhanceSkill(resolved, vm) {
   if (isFirstAidPayload(r?.originPayload ?? {})) {
     enhanceFirstAid(r, vm, firstAid);
   }
+  enhanceSuppressBeacon(r, vm);
+}
+
+function enhanceSuppressBeacon(resolved, vm) {
+  const result = resolved?.ewSuppressBeaconResult ?? null;
+  if (!result) return;
+
+  if (result.ok) {
+    vm.footerRows.push({
+      text: "Suppress Beacon: beacon/network packet suppressed until target's next activation.",
+      title: "",
+    });
+    return;
+  }
+
+  vm.footerRows.push({
+    text: `Suppress Beacon: ${result.reason ?? "No beacon/network packet was suppressed."}`,
+    title: "",
+  });
 }
 
 function enhanceFirstAid(_resolved, vm, firstAid) {

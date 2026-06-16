@@ -58,6 +58,8 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("hidden", "Hidden", "person", "tactical", ["stealth"], "hidden.svg", { modifierKey: "hidden", order: 50 }),
   status("suppressed", "Suppressed", "person", "tactical", ["offense"], "suppressed.svg", { modifierKey: "suppressed", order: 60 }),
   status("grappled", "Grappled", "person", "physical", ["movement"], "grappled.svg", { modifierKey: "grappled", order: 70 }),
+  status("restrained", "Restrained", "person", "physical", ["movement", "grapple"], "grappled.svg", { modifierKey: "restrained", order: 72 }),
+  status("pinned", "Pinned", "person", "physical", ["movement", "grapple", "stationary"], "grappled.svg", { modifierKey: "pinned", order: 74 }),
   status("stunned", "Stunned", "person", "physical", ["action"], "concussion.svg", { modifierKey: "stunned", order: 80 }),
   status("knockedOut", "Knocked Out", "person", "physical", ["unconscious"], "knockout.svg", { order: 90 }),
   status("onFire", "On Fire", "all", "hazard", ["fire", "heat", "escalating"], "on_fire.svg", { modifierKey: "onFire", order: 100 }),
