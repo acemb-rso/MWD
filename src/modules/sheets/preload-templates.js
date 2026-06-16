@@ -147,6 +147,18 @@ const PARTIALS = [
   `systems/${SYSTEM_NAME}/templates/v2/actor/battlemech-sheet.hbs`
 ];
 
+const REQUIRED_PARTIAL_ALIASES = Object.freeze([
+  "mwd.v2.ui.layout-root",
+  "mwd.v2.ui.nodes.stack",
+  "mwd.v2.ui.nodes.panel",
+  "mwd.v2.ui.nodes.include",
+  "mwd.v2.ui.nodes.tabs",
+  "mwd.v2.actor.sheet-root",
+  "mwd.v2.item.item-sheet-root",
+  "mwd.v2.actor.character-sheet",
+  "mwd.v2.item.gear",
+]);
+
 function toAlias(path) {
   const p = String(path).replaceAll("\\", "/");
 
@@ -172,6 +184,24 @@ function getHB() {
   return foundry?.applications?.handlebars?.Handlebars ?? Handlebars;
 }
 
+function assertRequiredPartials(HB) {
+  const partials = HB?.partials ?? {};
+  const missing = REQUIRED_PARTIAL_ALIASES.filter(alias => !partials[alias]);
+  if (!missing.length) return;
+
+  const keys = Object.keys(partials);
+  console.error(`${LOG_HEAD}Template preload missing required partial aliases`, {
+    missing,
+    closestMatches: Object.fromEntries(
+      missing.map(alias => {
+        const tail = alias.split(".").pop();
+        return [alias, keys.filter(key => key.includes(tail)).slice(0, 8)];
+      })
+    )
+  });
+  throw new Error(`Template preload failed: ${missing.join(", ")} not registered`);
+}
+
 export async function preloadTemplatesV2() {
   const HB = getHB();
 
@@ -185,15 +215,9 @@ export async function preloadTemplatesV2() {
     // This compiles & registers the aliases as partials in Foundry's HB env
     await foundry.applications.handlebars.loadTemplates(map);
 
-    // Hard asserts against the *same* environment used by AppV2 rendering
-    const required = "mwd.v2.ui.layout-root";
-    if (!Handlebars.partials?.[required]) {
-      const keys = Object.keys(Handlebars.partials ?? {});
-      console.error("Missing required partial:", required);
-      console.error("Closest matches:", keys.filter(k => k.includes("layout-root")));
-      throw new Error(`Template preload failed: ${required} not registered`);
-    }
-
+    // Hard assert against the same environment used by AppV2 rendering. The
+    // global Handlebars object can be a different instance in Foundry v13.
+    assertRequiredPartials(HB);
 
     // Optional compatibility: mirror into global Handlebars too (some legacy render paths read global)
     if (HB !== Handlebars) {
