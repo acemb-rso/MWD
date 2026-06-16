@@ -10,7 +10,11 @@ import {
   normalizeStatusTags,
 } from "../src/modules/status/status-condition-catalog.js";
 import { StatusEffectsProvider } from "../src/modules/modifiers/providers/status-effects.js";
-import { collectStatusCqAdjustments, validateBundledStatusMechanics } from "../src/modules/status/status-mechanics.js";
+import {
+  collectStatusCqAdjustments,
+  getStatusMechanicsDefinition,
+  validateBundledStatusMechanics,
+} from "../src/modules/status/status-mechanics.js";
 import {
   applyManagedStatusUpdate,
   getActiveStatusSummaries,
@@ -245,6 +249,22 @@ test("visual-only statuses emit no modifiers while existing mechanical statuses 
   assert.deepEqual(visualMods, []);
   assert.deepEqual(criticalMods, []);
   assert.ok(proneMods.some(mod => mod.label === "Prone" && mod.value === -2));
+});
+
+test("winded critical statuses are visual markers because Burn applies from the crit record", () => {
+  for (const statusId of ["windedMinor", "windedModerate", "windedSevere"]) {
+    const mechanic = getStatusMechanicsDefinition(statusId, actor("character"));
+    assert.deepEqual(mechanic.definition.roles, ["visualMarker"], statusId);
+    assert.equal(mechanic.definition.resource, undefined, statusId);
+  }
+});
+
+test("crippled critical statuses are visual markers because speed derives from the crit record", () => {
+  for (const statusId of ["crippledMinor", "crippledModerate", "crippledSevere"]) {
+    const mechanic = getStatusMechanicsDefinition(statusId, actor("character"));
+    assert.deepEqual(mechanic.definition.roles, ["visualMarker"], statusId);
+    assert.equal(mechanic.definition.speed, undefined, statusId);
+  }
 });
 
 test("status modifiers use granular domains without double-counting broad aliases", () => {

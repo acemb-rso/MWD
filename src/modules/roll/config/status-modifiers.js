@@ -157,9 +157,11 @@ export const STATUS_MAP = Object.freeze({
   machineCritical: marker("Machine Critical", "Managed aggregate machine critical marker."),
   destroyed: marker("Destroyed", "Destruction marker consumed by combat/damage helpers."),
 
-  windedMinor: { label: "Winded I", roles: [R.resourceEffect], resource: [{ id: "windedMinor.burn", resource: "burn", value: 1 }] },
-  windedModerate: { label: "Winded II", roles: [R.resourceEffect], resource: [{ id: "windedModerate.burn", resource: "burn", value: 2 }] },
-  windedSevere: { label: "Winded III", roles: [R.resourceEffect], resource: [{ id: "windedSevere.burn", resource: "burn", value: 3 }] },
+  // Winded applies Burn once through the personal critical record, including escalation.
+  // The status only marks the active crit for display/remedy flow.
+  windedMinor: marker("Winded I", "Visual marker only; Burn is applied once by the personal critical record."),
+  windedModerate: marker("Winded II", "Visual marker only; Burn is applied once by the personal critical record."),
+  windedSevere: marker("Winded III", "Visual marker only; Burn is applied once by the personal critical record."),
 
   concussionMinor: roll("Concussion I", [
     { id: "concussionMinor.roll", domains: ["physical", "mental", "combat", "initiative", "action"], tags: ["personalCritical", "concussion"], value: -1 },
@@ -171,9 +173,11 @@ export const STATUS_MAP = Object.freeze({
     { id: "concussionSevere.roll", domains: ["physical", "mental", "combat", "initiative", "action"], tags: ["personalCritical", "concussion"], value: -3 },
   ]),
 
-  crippledMinor: { label: "Crippled I", roles: [R.speedEffect], speed: [{ id: "crippledMinor.speed", mode: "delta", value: -2 }] },
-  crippledModerate: { label: "Crippled II", roles: [R.speedEffect], speed: [{ id: "crippledModerate.speed", mode: "delta", value: -4 }] },
-  crippledSevere: { label: "Crippled III", roles: [R.speedEffect], speed: [{ id: "crippledSevere.speed", mode: "delta", value: -6 }] },
+  // Crippled speed penalties are derived from active personal critical records.
+  // The status only marks the active crit for display/remedy flow.
+  crippledMinor: marker("Crippled I", "Visual marker only; speed is derived from the personal critical record."),
+  crippledModerate: marker("Crippled II", "Visual marker only; speed is derived from the personal critical record."),
+  crippledSevere: marker("Crippled III", "Visual marker only; speed is derived from the personal critical record."),
 
   hamperedMinor: {
     label: "Hampered I",
