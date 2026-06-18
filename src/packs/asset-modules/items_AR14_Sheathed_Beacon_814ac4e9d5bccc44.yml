@@ -140,11 +140,63 @@
         "limits": {},
         "usage": null,
         "summary": "Sheathed Beacon EW Aid"
+      },
+      {
+        "id": "ar14-sheathed-beacon-aura",
+        "label": "AR14 Sheathed Beacon",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "ar14-sheathed-beacon-aura.request",
+            "label": "AR14 Sheathed Beacon",
+            "domain": "aura",
+            "request": {
+              "id": "ar14-sheathed-beacon-aura",
+              "kind": "aura",
+              "label": "AR14 Sheathed Beacon",
+              "radius": 180,
+              "allegiance": "ally",
+              "grants": {
+                "statuses": [
+                  "epmBoosted"
+                ]
+              }
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "AR14 Sheathed Beacon"
       }
     ],
     "narrativeOnly": false,
     "runtime": {
-      "packets": []
+      "packets": [
+        {
+          "id": "ar14-sheathed-beacon-aura",
+          "kind": "aura",
+          "label": "AR14 Sheathed Beacon",
+          "radius": 180,
+          "allegiance": "ally",
+          "grants": {
+            "statuses": [
+              "epmBoosted"
+            ]
+          }
+        }
+      ]
     },
     "mobility": {
       "jumping": {

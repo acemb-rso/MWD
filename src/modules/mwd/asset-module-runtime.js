@@ -5,6 +5,7 @@
 
 import { TEMPLATE } from "../core/constants.js";
 import { getAssetModuleState } from "./asset-module-rules.js";
+import { normalizeAuraPacket } from "../area-status/normalize-aura-packet.js";
 
 export const ASSET_MODULE_RUNTIME_KINDS = Object.freeze([
   "targetingPacket",
@@ -34,21 +35,32 @@ function isAssetModule(item = null) {
   return (item?.canonicalType ?? item?.type) === TEMPLATE.itemType.assetModule;
 }
 
-function normalizePacket(packet = {}, { item = null, index = 0 } = {}) {
+export function normalizeAssetModuleRuntimePacket(packet = {}, { item = null, index = 0, strict = true } = {}) {
   if (!packet || typeof packet !== "object" || Array.isArray(packet)) return null;
   const kind = String(packet.kind ?? "").trim();
   if (!RUNTIME_KIND_SET.has(kind)) {
-    throw new Error(`${item?.name ?? "Asset Module"}: runtime packet ${index + 1} has unsupported kind "${kind}".`);
+    if (strict) throw new Error(`${item?.name ?? "Asset Module"}: runtime packet ${index + 1} has unsupported kind "${kind}".`);
+    return null;
   }
+  const normalizedPacket = kind === "aura"
+    ? normalizeAuraPacket(packet, { strict, index })
+    : { ...packet };
+  if (!normalizedPacket) return null;
   return {
-    ...packet,
-    id: String(packet.id ?? `${kind}-${index + 1}`).trim() || `${kind}-${index + 1}`,
+    ...normalizedPacket,
+    id: String(normalizedPacket.id ?? `${kind}-${index + 1}`).trim() || `${kind}-${index + 1}`,
     kind,
-    hook: String(packet.hook ?? "").trim(),
+    hook: String(normalizedPacket.hook ?? "").trim(),
     sourceId: item?.id ?? "",
     sourceUuid: item?.uuid ?? "",
     sourceName: item?.name ?? "Asset Module",
   };
+}
+
+export function normalizeAssetModuleRuntimePackets(packets = [], options = {}) {
+  return toCollectionArray(packets)
+    .map((packet, index) => normalizeAssetModuleRuntimePacket(packet, { ...options, index }))
+    .filter(Boolean);
 }
 
 export function getReadyAssetModules(actor = null) {
@@ -69,7 +81,7 @@ export function collectAssetModuleRuntimePackets(actor = null, { kind = "", hook
       ...toCollectionArray(item?.system?.runtimePackets),
     ];
     rawPackets.forEach((raw, index) => {
-      const packet = normalizePacket(raw, { item, index });
+      const packet = normalizeAssetModuleRuntimePacket(raw, { item, index });
       if (!packet) return;
       if (kindFilter && packet.kind !== kindFilter) return;
       if (hookFilter && packet.hook && packet.hook !== hookFilter) return;

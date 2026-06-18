@@ -419,6 +419,14 @@ const rows = [
         modifies: { dice: 1 },
       }),
     ],
+    runtimePackets: [{
+      id: "ar14-sheathed-beacon-aura",
+      kind: "aura",
+      label: "AR14 Sheathed Beacon",
+      radius: 180,
+      allegiance: "ally",
+      grants: { statuses: ["epmBoosted"] },
+    }],
   },
   {
     section: "Advanced Sensors",
@@ -476,6 +484,14 @@ const rows = [
         modifies: { dice: 1 },
       }),
     ],
+    runtimePackets: [{
+      id: "nova-cews-shroud-aura",
+      kind: "aura",
+      label: "Nova CEWS Shroud",
+      radius: 90,
+      allegiance: "ally",
+      grants: { statuses: ["ecmShrouded"] },
+    }],
   },
   {
     section: "Combat Electronics",
@@ -497,6 +513,14 @@ const rows = [
         modifies: { dice: 3 },
       }),
     ],
+    runtimePackets: [{
+      id: "guardian-shroud-aura",
+      kind: "aura",
+      label: "Guardian ECM Shroud",
+      radius: 180,
+      allegiance: "ally",
+      grants: { statuses: ["ecmShrouded"] },
+    }],
   },
   {
     section: "Combat Electronics",
@@ -537,6 +561,13 @@ const rows = [
     costRisk: "Generates +1 heat when used",
     activationMode: "toggle",
     tags: ["combatElectronics", "stealth", "ecm"],
+    targeting: {
+      stealthProfile: {
+        ratingBonus: 2,
+        tags: ["electronic", "stealth"],
+        requiresActiveMode: false,
+      },
+    },
     effects: [
       effect("stealth-x-defense", "Stealth X Defense", {
         timing: "active",
@@ -1024,6 +1055,7 @@ function documentFor(row, index) {
         },
       },
       targeting: {
+        ...(row.targeting ?? {}),
         clustering: row.targeting?.clustering ?? {
           diceModifier: 0,
           targetNumberModifier: 0,

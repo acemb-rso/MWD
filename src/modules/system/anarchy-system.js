@@ -61,6 +61,8 @@ import { HarmEngine } from "../harm/harm-engine.js";
 import { QueuedAttackDamageActions } from "../harm/queued-attack-damage.js";
 import { registerTokenStatusHudFilter } from "../dialog/token-status-dialog.js";
 import { HeatFxController } from "../token/heat-fx-controller.js";
+import { AreaStatusController } from "../area-status/area-status-controller.js";
+import { registerAreaStatusHooks } from "../area-status/register-area-status-hooks.js";
 import { configureMWDStatusEffects, ensureStatusConditionCatalogDefaults } from "../status/status-condition-catalog.js";
 import { validateBundledStatusMechanics } from "../status/status-mechanics.js";
 import { AttributeActions } from "../combat/attribute-actions.js";
@@ -330,6 +332,8 @@ export class AnarchySystem {
     };
     game.mwd.tokenHeatFx = new HeatFxController();
     game.mwd.tokenHeatFx.init();
+    game.mwd.areaStatus = new AreaStatusController();
+    registerAreaStatusHooks(game.mwd.areaStatus);
 
     // Optional alias if you want it under the system object too:
       this.roll = MWDRoll;
@@ -340,6 +344,7 @@ export class AnarchySystem {
       this.harm = game.mwd.harm;
       this.machineHeat = game.mwd.machineHeat;
       this.tokenHeatFx = game.mwd.tokenHeatFx;
+      this.areaStatus = game.mwd.areaStatus;
     this.skills = createMWDSkillsService();
     this.lifeModules = createMWDLifeModulesService();
     this.rules = createMWDRulesService();
@@ -428,6 +433,7 @@ export class AnarchySystem {
 
     await PersonalCombatTracker.onReady();
     game.mwd?.tokenHeatFx?.refreshAll?.();
+    await game.mwd?.areaStatus?.reconcileScene?.(globalThis.canvas?.scene, { reason: "systemReady" });
 
     if (!game.user.isGM) {
       maybeAutoOpenPlayerGadget({ systemId: SYSTEM_NAME });

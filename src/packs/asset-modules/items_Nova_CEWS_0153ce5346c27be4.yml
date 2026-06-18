@@ -159,11 +159,63 @@
         "limits": {},
         "usage": null,
         "summary": "Nova EW Aid"
+      },
+      {
+        "id": "nova-cews-shroud-aura",
+        "label": "Nova CEWS Shroud",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "nova-cews-shroud-aura.request",
+            "label": "Nova CEWS Shroud",
+            "domain": "aura",
+            "request": {
+              "id": "nova-cews-shroud-aura",
+              "kind": "aura",
+              "label": "Nova CEWS Shroud",
+              "radius": 90,
+              "allegiance": "ally",
+              "grants": {
+                "statuses": [
+                  "ecmShrouded"
+                ]
+              }
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Nova CEWS Shroud"
       }
     ],
     "narrativeOnly": false,
     "runtime": {
-      "packets": []
+      "packets": [
+        {
+          "id": "nova-cews-shroud-aura",
+          "kind": "aura",
+          "label": "Nova CEWS Shroud",
+          "radius": 90,
+          "allegiance": "ally",
+          "grants": {
+            "statuses": [
+              "ecmShrouded"
+            ]
+          }
+        }
+      ]
     },
     "mobility": {
       "jumping": {

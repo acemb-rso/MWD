@@ -147,11 +147,63 @@
         "limits": {},
         "usage": null,
         "summary": "Guardian ECM Aid"
+      },
+      {
+        "id": "guardian-shroud-aura",
+        "label": "Guardian ECM Shroud",
+        "scope": "self",
+        "phase": "assetModuleEffect",
+        "mode": "automatic",
+        "selector": {},
+        "requires": [
+          {
+            "fact": "module.ready",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "conditions": [],
+        "outputs": [
+          {
+            "type": "queuedDomainRequest",
+            "id": "guardian-shroud-aura.request",
+            "label": "Guardian ECM Shroud",
+            "domain": "aura",
+            "request": {
+              "id": "guardian-shroud-aura",
+              "kind": "aura",
+              "label": "Guardian ECM Shroud",
+              "radius": 180,
+              "allegiance": "ally",
+              "grants": {
+                "statuses": [
+                  "ecmShrouded"
+                ]
+              }
+            }
+          }
+        ],
+        "limits": {},
+        "usage": null,
+        "summary": "Guardian ECM Shroud"
       }
     ],
     "narrativeOnly": false,
     "runtime": {
-      "packets": []
+      "packets": [
+        {
+          "id": "guardian-shroud-aura",
+          "kind": "aura",
+          "label": "Guardian ECM Shroud",
+          "radius": 180,
+          "allegiance": "ally",
+          "grants": {
+            "statuses": [
+              "ecmShrouded"
+            ]
+          }
+        }
+      ]
     },
     "mobility": {
       "jumping": {

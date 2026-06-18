@@ -49,3 +49,20 @@ test("previously text-only asset modules now have structured rule contributions"
     true,
   );
 });
+
+test("ECM support modules ship canonical area-status aura packets", () => {
+  const byName = new Map(readAssetModules().map(item => [item.name, item]));
+  const expected = [
+    ["Guardian ECM", "guardian-shroud-aura", 180, "ecmShrouded"],
+    ["Nova CEWS", "nova-cews-shroud-aura", 90, "ecmShrouded"],
+    ["AR14 Sheathed Beacon", "ar14-sheathed-beacon-aura", 180, "epmBoosted"],
+  ];
+
+  for (const [name, id, radius, statusId] of expected) {
+    const aura = byName.get(name)?.system?.runtime?.packets?.find(packet => packet.id === id);
+    assert.equal(aura?.kind, "aura", name);
+    assert.equal(aura?.radius, radius, name);
+    assert.equal(aura?.allegiance, "ally", name);
+    assert.deepEqual(aura?.grants, { statuses: [statusId] }, name);
+  }
+});
