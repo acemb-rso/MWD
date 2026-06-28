@@ -266,9 +266,8 @@ export const STATUS_MAP = Object.freeze({
     dice: [{ id: "epmBoosted.ecmSpikeDefense", selector: "ecmSpikeDefenseDice", value: 2, effectText: "EPM Boosted: -2 dice against incoming ECM Spike attempts." }],
   }),
   eccmBoosted: machine("EPM Boosted (Legacy)", {
-    mechanicId: "epmBoosted",
     dice: [{ id: "eccmBoosted.ecmSpikeDefense", selector: "ecmSpikeDefenseDice", value: 2, effectText: "EPM Boosted: -2 dice against incoming ECM Spike attempts." }],
-  }),
+  }, { mechanicId: "epmBoosted" }),
   sensorLocked: marker("Sensor Locked", "Sensor targeting marker."),
   trackingLost: machine("Tracking Lost", {
     targeting: [{ id: "trackingLost.noUse", noTargetingDataUse: true, effectText: "Tracking Lost: stored Targeting Data is unusable." }],

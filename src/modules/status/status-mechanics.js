@@ -9,6 +9,7 @@ import {
   getDefaultStatusConditionCatalog,
   getStatusConditionDefinition,
   isStatusConditionApplicableToActor,
+  normalizeStatusConditionId,
 } from "./status-condition-catalog.js";
 
 const CONTRIBUTION_FIELDS = Object.freeze([
@@ -33,7 +34,7 @@ function collectionToArray(value = null) {
 }
 
 function normalizeStatusId(value = "") {
-  return String(value ?? "").trim();
+  return normalizeStatusConditionId(value);
 }
 
 function normalizeStacking(value = "") {

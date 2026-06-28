@@ -20,6 +20,7 @@ import { movementPenaltyStepsToMeters } from "./machine-movement.js";
 import { getAssetModuleDerivedStatuses, getAssetModuleMovementBonus } from "./asset-module-effects.js";
 import { getVehicleStrainStateEffects } from "./vehicle-strain.js";
 import { collectMachineStateAnnotations } from "../status/status-mechanics.js";
+import { normalizeStatusConditionId } from "../status/status-condition-catalog.js";
 
 const DETECTION_CAP_RANKS = Object.freeze({
   contact: 1,
@@ -84,6 +85,12 @@ function pushEffect(state, text = "") {
   const value = String(text ?? "").trim();
   if (!value) return;
   if (!state.effectTexts.includes(value)) state.effectTexts.push(value);
+}
+
+function hasStatus(actor = null, statusId = "") {
+  const id = normalizeStatusConditionId(statusId);
+  if (!actor || !id) return false;
+  return Array.from(actor.statuses ?? []).some(activeId => normalizeStatusConditionId(activeId) === id);
 }
 
 function addMovementPenalty(state, steps = 1) {
@@ -488,6 +495,7 @@ export function adjustTargetingDataValue({ attacker = null, targetActor = null, 
   if (isMachineTargetingDataUseBlocked(attacker)) return 0;
   const targetAnnotations = collectMachineStateAnnotations(targetActor);
   for (const entry of targetAnnotations.targeting) {
+    if (entry.statusId === "ecmJamming" && hasStatus(targetActor, "epmBoosted")) continue;
     if (entry.targetingDataValueDelta) adjusted += toNumber(entry.targetingDataValueDelta, 0);
   }
   adjusted = Math.max(0, adjusted);

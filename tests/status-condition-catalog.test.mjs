@@ -6,6 +6,7 @@ import {
   getDefaultStatusConditionCatalog,
   getStatusConditionCatalog,
   getStatusConditionDefinition,
+  normalizeStatusConditionId,
   normalizeStatusConditionCatalog,
   normalizeStatusTags,
 } from "../src/modules/status/status-condition-catalog.js";
@@ -178,6 +179,30 @@ test("actor-aware status filtering separates person, machine, and BattleMech-onl
   assert.ok(!vehicleStatuses.includes("armDestroyed"));
   assert.ok(battlemechStatuses.includes("destroyed"));
   assert.ok(battlemechStatuses.includes("armDestroyed"));
+  assert.ok(!battlemechStatuses.includes("eccmBoosted"));
+});
+
+test("legacy ECCM boosted status aliases to canonical EPM boosted mechanics", async () => {
+  globalThis.CONFIG = { statusEffects: [] };
+
+  assert.equal(normalizeStatusConditionId("eccmboosted"), "epmBoosted");
+  assert.equal(getStatusConditionDefinition("eccmBoosted").id, "epmBoosted");
+
+  const mechanic = getStatusMechanicsDefinition("eccmBoosted", actor("battlemech"));
+  assert.equal(mechanic.statusId, "epmBoosted");
+  assert.equal(mechanic.mechanicsKey, "epmBoosted");
+
+  const target = actor("battlemech");
+  await applyManagedStatusUpdate({ actor: target, statusId: "eccmBoosted", active: true });
+
+  assert.equal(target.statuses.has("epmBoosted"), true);
+  assert.equal(target.statuses.has("eccmBoosted"), false);
+
+  const legacyOnly = actor("battlemech", ["eccmBoosted"]);
+  await applyManagedStatusUpdate({ actor: legacyOnly, statusId: "epmBoosted", active: true });
+
+  assert.equal(legacyOnly.statuses.has("epmBoosted"), true);
+  assert.equal(legacyOnly.statuses.has("eccmBoosted"), false);
 });
 
 test("saved world status catalogs merge newly shipped defaults like destroyed", async () => {

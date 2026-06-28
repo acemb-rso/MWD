@@ -22,6 +22,7 @@ import {
 } from "./battle-armor.js";
 import { getActiveArmorTraitEffects } from "./personal-damage.js";
 import { getApplicableStealthProfileSourceIds } from "./machine-stealth.js";
+import { normalizeStatusConditionId } from "../status/status-condition-catalog.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "targeting";
@@ -31,6 +32,12 @@ function resolveTargetActorFromUuid(targetTokenUuid = "") {
   const uuid = String(targetTokenUuid ?? "").trim();
   if (!uuid) return null;
   return globalThis.canvas?.tokens?.placeables?.find(token => (token.document?.uuid ?? token.uuid) === uuid)?.actor ?? null;
+}
+
+function hasStatus(actor = null, statusId = "") {
+  const id = normalizeStatusConditionId(statusId);
+  if (!actor || !id) return false;
+  return Array.from(actor.statuses ?? []).some(activeId => normalizeStatusConditionId(activeId) === id);
 }
 
 function normalizeTargetUuid(value = "") {
@@ -293,8 +300,9 @@ export function getAcquireDnModifier(targetActor, { attacker = null, payload = {
 }
 
 export function getAcquireCeiling(targetActor, options = {}) {
-  const statuses = targetActor?.statuses ?? new Set();
-  const baseCap = statuses.has("ecmJamming") ? "track" : "lock";
+  const ecmJammed = hasStatus(targetActor, "ecmJamming");
+  const epmBoosted = hasStatus(targetActor, "epmBoosted");
+  const baseCap = ecmJammed && !epmBoosted ? "track" : "lock";
   const derivedCap = getMachineDetectionStateCap(targetActor);
   const battleArmorCap = getBattleArmorMachineTargetProfile(targetActor, options)?.detectionStateCap ?? "lock";
   const baseIndex = DETECTION_STATE_ORDER.indexOf(baseCap);
