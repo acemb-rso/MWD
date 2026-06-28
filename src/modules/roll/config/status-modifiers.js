@@ -332,4 +332,5 @@ export const STATUS_MAP = Object.freeze({
   }),
   tagged: marker("TAGed", "Target designation marker."),
   narced: marker("NARCed", "Target beacon marker."),
+  spotted: marker("Spotted", "Indirect-fire designation (visual only; validity is token-scoped metadata)."),
 });

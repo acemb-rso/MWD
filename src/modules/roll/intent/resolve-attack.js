@@ -28,6 +28,7 @@ import {
   getEffectiveDetectionState,
   getTargetCombatant,
   getUsableTargetingPacket,
+  hasValidIndirectDesignation,
 } from "../../mwd/machine-ew-state.js";
 import { PersonalCombatTracker } from "../../combat/personal-combat-tracker.js";
 import {
@@ -618,8 +619,20 @@ export async function resolveAttack({ actor, payload } = {}) {
   }
   const totalAp = Number(effectiveWeapon.ap ?? 0) + Number(effectiveWeapon?.effects?.ap ?? 0);
   const attackOptions = payload?.attackOptions && typeof payload.attackOptions === "object" ? payload.attackOptions : {};
-  if (isMachineActor(actor) && attackOptions.losBlocked && !attackOptions.indirectAttack) {
-    throw createUserFacingRollError("Line of sight is fully blocked. Use Indirect Attack or sensor-enabled fire.", { severity: "warn" });
+  if (isMachineActor(actor) && attackOptions.losBlocked) {
+    if (!attackOptions.indirectAttack) {
+      throw createUserFacingRollError("Line of sight is fully blocked. Use Indirect Attack or sensor-enabled fire.", { severity: "warn" });
+    }
+    // Indirect fire at an unseen target requires a spotter: a valid allied spot,
+    // or a TAG/NARC designation. LoS-bypass only — no Lock or targeting-data is granted here.
+    const indirectTargetUuid = String(targets[0]?.tokenUuid ?? "").trim();
+    const indirectTargetToken = canvas?.tokens?.get?.(String(targets[0]?.tokenId ?? "").trim())
+      ?? canvas?.tokens?.placeables?.find(t => (t.document?.uuid ?? t.uuid) === indirectTargetUuid)
+      ?? null;
+    const indirectAttackerToken = getSourceToken(actor, payload);
+    if (!hasValidIndirectDesignation(indirectTargetToken, { attackerToken: indirectAttackerToken, combat: game.combat })) {
+      throw createUserFacingRollError("No spotter has designated this target — you cannot fire indirectly at a unit you cannot see.", { severity: "warn" });
+    }
   }
   const attackKindDomain = effectiveWeapon.category === "melee" ? "attack.melee" : "attack.ranged";
   const weaponTypeDomains = [

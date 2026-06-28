@@ -148,6 +148,7 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("attachedToMachine", "Attached to Machine", "person", "battleArmor", ["battleArmor", "attached"], "grappled.svg", { order: 1600 }),
   status("tagged", "TAGed", "all", "targeting", ["tag", "designated", "targeting"], "Targeting.webp", { icon: TARGETING_ICON, order: 1610 }),
   status("narced", "NARCed", "all", "targeting", ["narc", "beacon", "targeting"], "Targeting.webp", { icon: TARGETING_ICON, order: 1620 }),
+  status("spotted", "Spotted", "all", "targeting", ["spot", "designated", "indirect"], "Targeting.webp", { icon: TARGETING_ICON, order: 1615 }),
 ]);
 
 function status(id, label, actorGroup, category, tags, icon, options = {}) {

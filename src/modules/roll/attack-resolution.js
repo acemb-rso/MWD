@@ -84,6 +84,7 @@ export function parseOnHitEffect(value) {
   if (str === "onfire") return { kind: "onFire" };
   if (str === "tagged" || str === "tag") return { kind: "status", statusId: "tagged" };
   if (str === "narced" || str === "narc") return { kind: "status", statusId: "narced" };
+  if (str === "spotted" || str === "spot") return { kind: "status", statusId: "spotted" };
   const match = str.match(/^(burn|heat)\+(\d+(?:\.\d+)?)$/);
   if (!match) return null;
   const amount = Math.max(0, Number(match[2]) || 0);

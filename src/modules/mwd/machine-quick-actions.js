@@ -484,7 +484,7 @@ async function executeMachineMovement(actor, request) {
 
 async function executeMachineEwIntent(actor, request) {
   const intent = String(request.intent ?? "").trim();
-  if (!["acquire", "targeting", "breakLock", "defensiveJink"].includes(intent)) return null;
+  if (!["acquire", "targeting", "breakLock", "defensiveJink", "spotIndirect"].includes(intent)) return null;
 
   const token = resolveRequestToken(actor, request);
   const panel = buildMachineEwPanel({ actor, token });
@@ -495,7 +495,7 @@ async function executeMachineEwIntent(actor, request) {
       (explicitTargetTokenUuid && row?.targetTokenUuid === explicitTargetTokenUuid)
       || (explicitTargetTokenId && row?.targetTokenId === explicitTargetTokenId)
     ) ?? null
-    : (intent === "breakLock" || intent === "defensiveJink")
+    : (intent === "breakLock" || intent === "defensiveJink" || intent === "spotIndirect")
       ? getAnyEwTarget(panel)
       : resolveMachineEwActionTarget(panel, intent);
   if (!targetRow) {
@@ -505,11 +505,13 @@ async function executeMachineEwIntent(actor, request) {
         ? "break lock"
         : intent === "defensiveJink"
           ? "jink"
-          : "acquire";
+          : intent === "spotIndirect"
+            ? "spot"
+            : "acquire";
     return { ok: false, reason: "missing-target", userMessage: `No targeted token is ready to ${verb}.` };
   }
 
-  const isEligible = intent === "breakLock" || intent === "defensiveJink"
+  const isEligible = intent === "breakLock" || intent === "defensiveJink" || intent === "spotIndirect"
     ? true
     : intent === "targeting" ? targetRow.canTarget : targetRow.canAcquire;
   if (!isEligible) {
@@ -717,6 +719,9 @@ async function executeMachineTargetingAction(actor, action, request = {}) {
   }
   if (actionKey === "breakLock" || actionKey === "defensiveJink") {
     return executeMachineEwIntent(actor, { ...request, intent: actionKey, actionId: actionKey });
+  }
+  if (actionKey === "spotIndirect") {
+    return executeMachineEwIntent(actor, { ...request, intent: "spotIndirect", actionId: "spotIndirect" });
   }
   if (actionKey === "sensorSweep" || actionKey === "assess" || actionKey === "epmFilter" || actionKey === "tagTarget" || actionKey === "narcTarget" || actionKey === "shareTargetingData" || actionKey === "ecmSpike" || actionKey === "suppressBeacon") {
     const routedActionId = actionKey === "assess" ? "sensorSweep" : actionKey;

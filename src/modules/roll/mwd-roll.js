@@ -37,7 +37,7 @@ import {
 import { getMachineActionDefinition } from "../mwd/machine-action-catalog.js";
 import { findAssetModuleActionOverride, getAssetModuleActionCosts } from "../mwd/asset-module-effects.js";
 import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
-import { resolveAcquireExecution, resolveBreakLockExecution, resolveDefensiveJinkRollExecution, resolveSuppressBeaconRollExecution, resolveTargetingExecution } from "./ew-execution.js";
+import { resolveAcquireExecution, resolveBreakLockExecution, resolveDefensiveJinkRollExecution, resolveSpotIndirectExecution, resolveSuppressBeaconRollExecution, resolveTargetingExecution } from "./ew-execution.js";
 import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-state.js";
 import { revealMachineSignature } from "../mwd/machine-stealth.js";
 import { isPersonalFireModeUnloadAfterAction } from "../mwd/personal-fire-modes.js";
@@ -133,6 +133,12 @@ async function recomputeResolvedOutcomeAndAttack(resolved = {}, actor = null) {
     });
   } else if (ctx.intent === "targeting" && actor && ctx.targeting) {
     resolved.ewTargetingResult = await resolveTargetingExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: resolved.outcomeModel,
+    });
+  } else if (ctx.intent === "spotIndirect" && actor && ctx.spotIndirect) {
+    resolved.spotIndirectResult = await resolveSpotIndirectExecution({
       attacker: actor,
       ctx,
       outcomeModel: resolved.outcomeModel,
@@ -1208,11 +1214,15 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   let ewBreakLockResult = null;
   let ewJinkResult = null;
   let ewSuppressBeaconResult = null;
+  let spotIndirectResult = null;
   if (ctx.intent === "acquire") {
     ewAcquireResult = await resolveAcquireExecution({ attacker: actor, ctx, outcomeModel });
   }
   if (ctx.intent === "targeting") {
     ewTargetingResult = await resolveTargetingExecution({ attacker: actor, ctx, outcomeModel });
+  }
+  if (ctx.intent === "spotIndirect") {
+    spotIndirectResult = await resolveSpotIndirectExecution({ attacker: actor, ctx, outcomeModel });
   }
   if (ctx.intent === "breakLock" || (ctx.intent === "skill" && payload.machineActionKey === "breakLock")) {
     ewBreakLockResult = await resolveBreakLockExecution({ attacker: actor, payload, ctx, outcomeModel });
@@ -1278,11 +1288,13 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   }
   if (ewAcquireResult)   resolved.ewAcquireResult  = ewAcquireResult;
   if (ewTargetingResult) resolved.ewTargetingResult = ewTargetingResult;
+  if (spotIndirectResult) resolved.spotIndirectResult = spotIndirectResult;
   if (ewBreakLockResult) resolved.ewBreakLockResult = ewBreakLockResult;
   if (ewJinkResult) resolved.ewJinkResult = ewJinkResult;
   if (ewSuppressBeaconResult) resolved.ewSuppressBeaconResult = ewSuppressBeaconResult;
   if (ctx.acquire)   resolved.acquire   = ctx.acquire;
   if (ctx.targeting) resolved.targeting = ctx.targeting;
+  if (ctx.spotIndirect) resolved.spotIndirect = ctx.spotIndirect;
 
   /* --------------------------- */
   /* 8) Render chat             */

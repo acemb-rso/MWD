@@ -13,6 +13,7 @@ import { enhanceMachineRemedy } from "./render-machine-remedy.js";
 import { enhanceHeatDangerCheck } from "./render-heat-danger-check.js";
 import { enhanceAcquire } from "./render-acquire.js";
 import { enhanceTargeting } from "./render-targeting.js";
+import { enhanceSpotIndirect } from "./render-spot-indirect.js";
 import { getPersonalRangeBandName } from "../../mwd/personal-range-bands.js";
 // import { enhanceDefense } from "./render-defense.js";
 // import { enhanceEdge } from "./render-edge.js";
@@ -27,6 +28,7 @@ const ENHANCERS = {
   heatDangerCheck: enhanceHeatDangerCheck,
   acquire: enhanceAcquire,
   targeting: enhanceTargeting,
+  spotIndirect: enhanceSpotIndirect,
   // defense: enhanceDefense,
   // edge: enhanceEdge,
 };

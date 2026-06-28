@@ -187,5 +187,5 @@ service.
 | chargeAttack | 2 SA | attack | ready | Impact / Control / DFA collision attack; piloting+handling vs target; knockdown check auto-fires |
 | evasiveManeuver | 2 SA | movement | ready | Withdraw without provoking parting attacks; gain Evasive (+3 DR / −2 AR) until next activation |
 | shield | 2 SA | movement | ready | Guarded stance; gain Shielded (+4 DR / −1 AR) until next activation; first hit absorbed −2 damage then ends |
-| spotIndirect | 2 SA | targeting | stub | Indirect-fire network effect |
+| spotIndirect | 2 SA | targeting | ready | Spot for Indirect Fire: System+Perception designates a target so allies without line of sight may fire indirectly (LoS-bypass only; see Indirect-Fire-Spotting.md) |
 | eject | 1 SA | interaction | stub | Manual ejection state changes |

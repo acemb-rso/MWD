@@ -550,3 +550,225 @@ export function buildTargetingPacket({ value, sourceToken, round } = {}) {
     expiresAfterRound: normalizedRound,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Indirect-fire spotting (token-scoped, multi-spotter; LoS-bypass only)
+// ---------------------------------------------------------------------------
+// A "spot" is a short-lived indirect-fire *permission* marker stored on the
+// TARGET TOKEN document (per-token, naturally scene-scoped). It is deliberately
+// NOT part of detection state / targetingData / Lock: getEffectiveDetectionState
+// must never read it, or spotting would leak the Lock-gated bonuses that TAG/NARC
+// pay for. The `spotted` ActiveEffect is a visual marker only; this token-flag
+// metadata is authoritative for the attack-side gate.
+
+const SPOTTING_FLAG_KEY = "spotting";
+const SPOTTED_STATUS_ID = "spotted";
+const VALID_SPOT_ALLEGIANCES = new Set(["ally", "enemy", "any"]);
+
+function getTokenDocument(token) {
+  if (!token) return null;
+  return token.document ?? token ?? null;
+}
+
+// Token shape varies (placeable vs document). Real Foundry exposes actor /
+// disposition / uuid on both; some call sites and tests carry them on only one.
+// Read with a fallback so either shape works.
+function getTokenActor(token) {
+  return token?.actor ?? token?.document?.actor ?? null;
+}
+
+function getTokenDisposition(token) {
+  return Number(token?.document?.disposition ?? token?.disposition ?? 0) || 0;
+}
+
+function getTokenUuid(token) {
+  return String(token?.document?.uuid ?? token?.uuid ?? "").trim();
+}
+
+function readSpotEntries(targetDoc) {
+  const raw = targetDoc?.getFlag?.(FLAG_SCOPE, SPOTTING_FLAG_KEY);
+  return asObject(asObject(raw).spots);
+}
+
+async function writeSpots(targetDoc, spots) {
+  if (!targetDoc?.setFlag) return;
+  if (!spots || !Object.keys(spots).length) {
+    await targetDoc.unsetFlag?.(FLAG_SCOPE, SPOTTING_FLAG_KEY);
+    return;
+  }
+  await targetDoc.setFlag(FLAG_SCOPE, SPOTTING_FLAG_KEY, { spots });
+}
+
+function findCombatantIdForToken(combat, tokenId) {
+  const id = String(tokenId ?? "").trim();
+  if (!combat || !id) return "";
+  const direct = combat.getCombatantByToken?.(id);
+  if (direct?.id) return String(direct.id);
+  const match = combat.combatants?.find?.(entry => String(entry?.tokenId ?? "").trim() === id);
+  return match?.id ? String(match.id) : "";
+}
+
+function spotAllegianceMatches(spot, { uuid = "", disposition = 0 } = {}) {
+  if (spot.allegiance === "any") return true;
+  if (!uuid && !disposition) return false;
+  const sameToken = String(spot.spotterTokenUuid ?? "").trim() === String(uuid ?? "").trim();
+  const sameDisposition = Number(spot.spotterDisposition ?? 0) === Number(disposition ?? 0);
+  if (spot.allegiance === "enemy") return !sameToken && !sameDisposition;
+  return sameDisposition; // "ally": attacker shares the spotter's side
+}
+
+export async function setSpot(targetToken, { spotterToken = null, combat = null, allegiance = "ally", source = "spotIndirect" } = {}) {
+  const targetDoc = getTokenDocument(targetToken);
+  if (!targetDoc?.setFlag || !spotterToken) return { ok: false, reason: "missing-token" };
+  const spotterTokenUuid = getTokenUuid(spotterToken);
+  if (!spotterTokenUuid) return { ok: false, reason: "missing-spotter" };
+
+  const requested = String(allegiance ?? "").trim().toLowerCase();
+  const normalizedAllegiance = VALID_SPOT_ALLEGIANCES.has(requested) ? requested : "ally";
+
+  const entry = {
+    spotKey: spotterTokenUuid,
+    sceneUuid: String(targetDoc.parent?.uuid ?? "").trim(),
+    targetTokenUuid: getTokenUuid(targetToken),
+    targetActorUuid: String(getTokenActor(targetToken)?.uuid ?? "").trim(),
+    spotterTokenUuid,
+    spotterActorUuid: String(getTokenActor(spotterToken)?.uuid ?? "").trim(),
+    spotterCombatantId: findCombatantIdForToken(combat, spotterToken.id ?? spotterToken.document?.id),
+    spotterDisposition: getTokenDisposition(spotterToken),
+    allegiance: normalizedAllegiance,
+    source: String(source ?? "spotIndirect").trim() || "spotIndirect",
+    round: Number.isFinite(Number(combat?.round)) ? Number(combat.round) : null,
+    turn: Number.isFinite(Number(combat?.turn)) ? Number(combat.turn) : null,
+    createdAt: Date.now(),
+  };
+
+  const spots = { ...readSpotEntries(targetDoc), [spotterTokenUuid]: entry };
+  await writeSpots(targetDoc, spots);
+  await reconcileSpottedStatus(targetToken);
+  return { ok: true, spot: entry };
+}
+
+export function getValidSpots(targetToken, { attackerToken = null, combat = null, includeTagNarcs = false } = {}) {
+  const targetDoc = getTokenDocument(targetToken);
+  if (!targetDoc) return [];
+  const attacker = { uuid: getTokenUuid(attackerToken), disposition: getTokenDisposition(attackerToken) };
+  const sceneUuid = String(targetDoc.parent?.uuid ?? "").trim();
+  const currentRound = Number.isFinite(Number(combat?.round)) ? Number(combat.round) : null;
+
+  const valid = Object.values(readSpotEntries(targetDoc)).filter(spot => {
+    if (!spot || typeof spot !== "object") return false;
+    if (sceneUuid && spot.sceneUuid && spot.sceneUuid !== sceneUuid) return false;
+    // Spotter combatant must still exist while a combat is running.
+    if (combat && spot.spotterCombatantId && !(combat.combatants?.get?.(spot.spotterCombatantId))) return false;
+    // Coarse expiry fallback (authoritative clear runs in the updateCombat hook):
+    // a spot expires once combat advances past the spotter's next activation.
+    if (currentRound !== null && Number.isFinite(Number(spot.round)) && currentRound > Number(spot.round) + 1) return false;
+    return spotAllegianceMatches(spot, attacker);
+  });
+
+  if (includeTagNarcs) {
+    const statuses = getTokenActor(targetToken)?.statuses ?? new Set();
+    if (statuses.has?.("tagged")) valid.push({ spotKey: "tag", source: "tag", allegiance: "any" });
+    if (statuses.has?.("narced")) valid.push({ spotKey: "narc", source: "narc", allegiance: "any" });
+  }
+  return valid;
+}
+
+export function hasValidIndirectDesignation(targetToken, { attackerToken = null, combat = null } = {}) {
+  if (!getTokenDocument(targetToken)) return false;
+  // TAG/NARC are globally-readable hard designations (their existing role).
+  const statuses = getTokenActor(targetToken)?.statuses ?? new Set();
+  if (statuses.has?.("tagged") || statuses.has?.("narced")) return true;
+  // Ordinary spots: token/scene/allegiance/expiry validated.
+  return getValidSpots(targetToken, { attackerToken, combat, includeTagNarcs: false }).length > 0;
+}
+
+export async function reconcileSpottedStatus(targetToken) {
+  const targetDoc = getTokenDocument(targetToken);
+  const actor = getTokenActor(targetToken);
+  if (!targetDoc || !actor?.toggleStatusEffect) return;
+  const hasSpots = Object.keys(readSpotEntries(targetDoc)).length > 0;
+  const hasStatus = actor.statuses?.has?.(SPOTTED_STATUS_ID) ?? false;
+  if (hasSpots && !hasStatus) {
+    await actor.toggleStatusEffect(SPOTTED_STATUS_ID, { active: true, overlay: false });
+  } else if (!hasSpots && hasStatus) {
+    await actor.toggleStatusEffect(SPOTTED_STATUS_ID, { active: false, overlay: false });
+  }
+}
+
+export async function clearSpot(targetToken, spotKey = "") {
+  const targetDoc = getTokenDocument(targetToken);
+  if (!targetDoc) return { ok: false, cleared: 0 };
+  const key = String(spotKey ?? "").trim();
+  const spots = readSpotEntries(targetDoc);
+  if (key && !spots[key]) return { ok: true, cleared: 0 };
+  const next = key ? { ...spots } : {};
+  if (key) delete next[key];
+  await writeSpots(targetDoc, next);
+  await reconcileSpottedStatus(targetDoc);
+  return { ok: true, cleared: key ? 1 : Object.keys(spots).length };
+}
+
+export async function clearExpiredSpotsForCombatant(combat, combatantId) {
+  const id = String(combatantId ?? "").trim();
+  if (!combat || !id) return { ok: true, cleared: 0 };
+  const round = Number.isFinite(Number(combat.round)) ? Number(combat.round) : null;
+  const scene = combat.scene ?? combat.parent ?? null;
+  let cleared = 0;
+  for (const tokenDoc of scene?.tokens ?? []) {
+    const spots = readSpotEntries(tokenDoc);
+    let mutated = false;
+    const next = { ...spots };
+    for (const [key, spot] of Object.entries(spots)) {
+      if (String(spot?.spotterCombatantId ?? "").trim() !== id) continue;
+      // Only expire on a LATER activation than the one that created the spot.
+      if (round !== null && Number.isFinite(Number(spot?.round)) && Number(spot.round) >= round) continue;
+      delete next[key];
+      mutated = true;
+      cleared += 1;
+    }
+    if (mutated) {
+      await writeSpots(tokenDoc, next);
+      await reconcileSpottedStatus(tokenDoc);
+    }
+  }
+  return { ok: true, cleared };
+}
+
+export async function clearAllSpotsForCombat(combat) {
+  const scene = combat?.scene ?? combat?.parent ?? null;
+  if (!scene) return { ok: true, cleared: 0 };
+  let cleared = 0;
+  for (const tokenDoc of scene.tokens ?? []) {
+    if (!Object.keys(readSpotEntries(tokenDoc)).length) continue;
+    await writeSpots(tokenDoc, {});
+    await reconcileSpottedStatus(tokenDoc);
+    cleared += 1;
+  }
+  return { ok: true, cleared };
+}
+
+export async function clearSpotsForToken(tokenDoc, { skipSelf = false } = {}) {
+  const doc = getTokenDocument(tokenDoc);
+  if (!doc) return { ok: true, cleared: 0 };
+  const uuid = String(doc.uuid ?? "").trim();
+  let cleared = 0;
+  // Spots applied directly ON this token (skipped when the token is being deleted).
+  if (!skipSelf && Object.keys(readSpotEntries(doc)).length) {
+    await writeSpots(doc, {});
+    await reconcileSpottedStatus(doc);
+    cleared += 1;
+  }
+  // Spots authored BY this token (its uuid is the spotKey) on other scene tokens.
+  for (const other of doc.parent?.tokens ?? []) {
+    if (other === doc || !uuid) continue;
+    const spots = readSpotEntries(other);
+    if (!spots[uuid]) continue;
+    const next = { ...spots };
+    delete next[uuid];
+    await writeSpots(other, next);
+    await reconcileSpottedStatus(other);
+    cleared += 1;
+  }
+  return { ok: true, cleared };
+}

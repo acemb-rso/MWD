@@ -13,6 +13,7 @@ import {
   buildTargetingPacket,
   reduceTargetingPacket,
   suppressTargetingPacket,
+  setSpot,
 } from "../mwd/machine-ew-state.js";
 
 function getAttackerTokenFromUuid(uuid) {
@@ -162,6 +163,52 @@ export async function resolveAcquireExecution({ attacker, ctx, outcomeModel } = 
     dn,
     hitCeiling:    newState !== rawNewState,
   };
+}
+
+/**
+ * Apply the result of a Spot for Indirect Fire roll by recording a short-lived
+ * spot marker on the target token. LoS-bypass only: this never touches detection
+ * state, targeting data, or Lock.
+ */
+export async function resolveSpotIndirectExecution({ attacker, ctx, outcomeModel } = {}) {
+  const spot = ctx?.spotIndirect;
+  if (!spot) return { ok: false, reason: "Missing spot context." };
+
+  const hits = Number(outcomeModel?.successes ?? outcomeModel?.hits ?? 0);
+  const dn   = Number(ctx?.difficulty?.dn ?? 1);
+  if (hits < dn) {
+    return { ok: false, reason: "Spot roll failed.", hits, dn, targetTokenUuid: spot.targetTokenUuid };
+  }
+
+  const targetToken = getAttackerTokenFromUuid(spot.targetTokenUuid)
+    ?? getAttackerTokenFromId(spot.targetTokenId);
+  const spotterToken = getAttackerTokenFromUuid(spot.attackerTokenUuid)
+    ?? getAttackerTokenFromId(spot.attackerTokenId)
+    ?? attacker?.getActiveTokens?.(true, true)?.[0]
+    ?? null;
+
+  if (!targetToken || !spotterToken) {
+    const reason = "Spot succeeded, but tokens were not found; designation was not persisted.";
+    console.warn(`MWD | spot: ${reason}`);
+    return { ok: false, reason, persistenceFailed: true, hits, dn, targetTokenUuid: spot.targetTokenUuid };
+  }
+
+  const result = await setSpot(targetToken, {
+    spotterToken,
+    combat: globalThis.game?.combat ?? null,
+    allegiance: "ally",
+    source: "spotIndirect",
+  });
+
+  Hooks.callAll("mwd.afterSpotIndirect", {
+    attacker,
+    targetTokenUuid: spot.targetTokenUuid,
+    spotterTokenUuid: spot.attackerTokenUuid,
+    ctx,
+    result,
+  });
+
+  return { ok: result?.ok !== false, hits, dn, targetTokenUuid: spot.targetTokenUuid, spot: result?.spot ?? null };
 }
 
 /**

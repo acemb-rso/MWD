@@ -63,6 +63,7 @@ import { registerTokenStatusHudFilter } from "../dialog/token-status-dialog.js";
 import { HeatFxController } from "../token/heat-fx-controller.js";
 import { AreaStatusController } from "../area-status/area-status-controller.js";
 import { registerAreaStatusHooks } from "../area-status/register-area-status-hooks.js";
+import { registerSpotHooks } from "../mwd/register-spot-hooks.js";
 import { configureMWDStatusEffects, ensureStatusConditionCatalogDefaults } from "../status/status-condition-catalog.js";
 import { validateBundledStatusMechanics } from "../status/status-mechanics.js";
 import { AttributeActions } from "../combat/attribute-actions.js";
@@ -334,6 +335,7 @@ export class AnarchySystem {
     game.mwd.tokenHeatFx.init();
     game.mwd.areaStatus = new AreaStatusController();
     registerAreaStatusHooks(game.mwd.areaStatus);
+    registerSpotHooks();
 
     // Optional alias if you want it under the system object too:
       this.roll = MWDRoll;

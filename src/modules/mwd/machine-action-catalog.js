@@ -411,7 +411,7 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     resolver: "targeting",
     prompt: { type: "target", required: true },
     tags: ["sensors", "targeting", "indirect"],
-    implementation: stub("Indirect-fire network effects are not automated yet."),
+    implementation: readyNarrative("Designate a target so allies without line of sight can fire indirectly."),
   }),
   useComplexSkill: action("useComplexSkill", {
     label: "Use Complex Skill",

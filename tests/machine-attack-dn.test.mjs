@@ -1992,7 +1992,7 @@ test("machine target jump adds flat DN and tracking penalties", async () => {
 test("machine attacks reject fully blocked LOS unless indirect attack is selected", async () => {
   const resolveAttack = await getResolveAttack();
   const actor = createActor();
-  const { targetSnapshot } = setScene({ distance: 100, targetMovement: { ground: 60 } });
+  const { targetSnapshot, targetToken } = setScene({ distance: 100, targetMovement: { ground: 60 } });
 
   try {
     await assert.rejects(
@@ -2010,6 +2010,24 @@ test("machine attacks reject fully blocked LOS unless indirect attack is selecte
       /Line of sight is fully blocked/
     );
 
+    // Indirect fire at an unseen target now requires a spotter/designation.
+    await assert.rejects(
+      resolveAttack({
+        actor,
+        payload: {
+          sourceType: "mechWeapon",
+          sourceId: "w-laser",
+          weaponId: "w-laser",
+          sourceTokenId: "attacker-token",
+          targetSnapshots: [targetSnapshot],
+          attackOptions: { losBlocked: true, indirectAttack: true },
+        },
+      }),
+      /No spotter has designated this target/
+    );
+
+    // A TAG/NARC designation (or an allied spot) satisfies the requirement.
+    targetToken.actor.statuses.add("tagged");
     const indirect = await resolveAttack({
       actor,
       payload: {
