@@ -349,6 +349,35 @@ export function normalizeWeaponStandardTraits(value) {
   return normalizeStandardTraitEntries(value, WEAPON_STANDARD_TRAIT_ALIAS_MAP);
 }
 
+// Attack-legality helper: does a combat/weapon profile carry the Danger Close trait?
+// Standard weapon traits are authored differently per scale: personal weapons use the
+// Standard Traits picker (`standardTraits` -> resolved `effects.flags`), while machine
+// weapons author them through the Keywords field (`keywords`). We check every channel
+// (resolved flags, standardTraits, freeform traits, and keywords) through the standard-
+// trait alias map so the trait is detected regardless of how it was authored. Keywords
+// that are not standard traits (e.g. "lock-only", which has its own dedicated handling
+// via weaponProfileIsLockOnly) do not resolve to a standard-trait key and are skipped here.
+// TODO(tech-debt): move shared weapon-trait utilities to src/modules/mwd/weapon-traits.js.
+export function weaponProfileHasDangerClose(profile = {}) {
+  const flags = profile?.effects?.flags;
+  if (Array.isArray(flags) && flags.includes("dangerClose")) return true;
+  const candidates = [
+    ...(Array.isArray(profile?.standardTraits) ? profile.standardTraits : []),
+    ...(Array.isArray(profile?.traits) ? profile.traits : []),
+    ...(Array.isArray(profile?.keywords) ? profile.keywords : []),
+  ];
+  return normalizeWeaponStandardTraits(candidates).some(entry => entry.key === "dangerClose");
+}
+
+// Attack-legality helper: is this a "lock-only" weapon? Lock-only is a machine-weapon
+// keyword: the weapon may only fire on a target the attacker holds at the "lock"
+// detection state (the top of the blind -> contact -> track -> lock ladder). Authored
+// via the Keywords field, like other machine-weapon keywords.
+export function weaponProfileIsLockOnly(profile = {}) {
+  const keywords = Array.isArray(profile?.keywords) ? profile.keywords : [];
+  return keywords.some(entry => normalizeTraitAlias(entry) === "lockonly");
+}
+
 export function normalizeArmorStandardTraits(value) {
   return normalizeStandardTraitEntries(value, ARMOR_STANDARD_TRAIT_ALIAS_MAP);
 }

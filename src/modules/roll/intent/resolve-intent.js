@@ -43,7 +43,7 @@ const RESOLVERS = {
   spotIndirect: resolveSpotIndirect,
 };
 
-export async function resolveIntent({ actor, payload, event } = {}) {
+export async function resolveIntent({ actor, payload, event, preview = false } = {}) {
   if (!actor) throw new Error("resolveIntent requires actor");
   const intent = String(payload?.intent ?? "").trim();
   if (!intent) throw new Error("resolveIntent requires payload.intent");
@@ -51,7 +51,10 @@ export async function resolveIntent({ actor, payload, event } = {}) {
   const fn = RESOLVERS[intent];
   if (!fn) throw new Error(`Unsupported roll intent: ${intent}`);
 
-  const ctx = await fn({ actor, payload, event });
+  // `preview` marks pre-dialog resolves: legality gates that the player can
+  // satisfy via a dialog control (e.g. Danger Close / Hot Load) must not throw
+  // during preview, so the dialog can open and surface the override.
+  const ctx = await fn({ actor, payload, event, preview });
   return normalizeResolvedContext(ctx, { intent });
 }
 

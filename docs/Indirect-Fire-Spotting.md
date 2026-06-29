@@ -34,8 +34,7 @@ A plain skill roll must not be as strong as dedicated designation gear, so `spot
   `targeting`, attribute **System**, skill **Perception**, prompts for a target.
 - **Personal `spotIndirect`** - character/NPC combat action, Complex action, **2 SA**,
   resolver `targeting`, attribute **Intelligence**, skill **Perception**, prompts for
-  a target. This action is disabled unless equipped gear contributes an
-  `actionAvailability` rule for `spotIndirect`.
+  a target. This action is disabled unless the actor has equipped spotting gear.
 - **Machine roll:** System + Perception vs **DN 2**, plus the same sensing penalties Acquire uses
   (ECM-shroud via `getAcquireDnModifier`, stealth/obscured via `getStealthDnParts`).
 - **Personal roll:** Intelligence + Perception vs **DN 2**, with the same target-side
@@ -79,7 +78,15 @@ enemy free fire correction. TAG/NARC remain globally readable.
 
 Infantry spotting is equipment-gated. A character does not become a forward
 observer just by having Perception; they need an owned, equipped gear item with a
-rules-native unlock packet. Minimal example:
+spotting tag.
+
+In the item sheet, author the gear as ordinary `gear`, add `spotter` to the
+item's Tags field, and mark it Equipped. The tag parser is case-insensitive and
+also recognizes `spotter-kit`, `forward-observer`, `forward-observer-kit`,
+`indirect-spotter`, and `target-designator`.
+
+For conditional or custom gear, the rules-native path remains available. Minimal
+rule example:
 
 ```js
 {

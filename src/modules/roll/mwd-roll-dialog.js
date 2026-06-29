@@ -9,6 +9,7 @@ import {
   getSkillSpecializationLabel,
 } from "../mwd/skills.js";
 import { getPersonalRangeBandName } from "../mwd/personal-range-bands.js";
+import { weaponProfileHasDangerClose } from "../mwd/personal-damage.js";
 import {
   getIndirectAttackPenalty,
   isMachineActor,
@@ -484,6 +485,13 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const machineAttackOptions = intent === "attack" && attack && isMachineActor(machineActor)
       ? buildAttackOptionControls({ manual: st.manual ?? [], attack, payload: st.payload ?? {} })
       : null;
+    // Hot Load override for Danger Close weapons. Shown for any attack (personal or
+    // machine) whose weapon has the trait — not gated on range band, since the
+    // resolver is the sole legality authority. Toggling never blocks; it only
+    // declares the override the resolver checks.
+    const hotLoadOption = intent === "attack" && attack && weaponProfileHasDangerClose(attack.weapon)
+      ? { active: Boolean(normalizeAttackOptions(st.payload ?? {}).hotLoad) }
+      : null;
 
 
     return {
@@ -544,6 +552,7 @@ export class MWDRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         fireMode: fireModeControls,
       } : null,
       machineAttackOptions,
+      hotLoadOption,
     };
   }
 

@@ -48,6 +48,17 @@ function asObject(value) {
   return value && typeof value === "object" ? value : {};
 }
 
+function collectionEntries(collection = null) {
+  if (!collection) return [];
+  if (Array.isArray(collection)) return collection;
+  if (Array.isArray(collection.contents)) return collection.contents;
+  if (typeof collection.values === "function") return Array.from(collection.values());
+  if (typeof collection[Symbol.iterator] === "function") {
+    return Array.from(collection).map(entry => Array.isArray(entry) ? entry[1] : entry);
+  }
+  return [];
+}
+
 function getObjectPath(source = {}, path = "") {
   const key = normalizeTargetUuid(path);
   if (!key) return undefined;
@@ -602,17 +613,52 @@ async function writeSpots(targetDoc, spots) {
   if (!targetDoc?.setFlag) return;
   if (!spots || !Object.keys(spots).length) {
     await targetDoc.unsetFlag?.(FLAG_SCOPE, SPOTTING_FLAG_KEY);
+    notifySpotsChanged(targetDoc, {});
     return;
   }
   await targetDoc.setFlag(FLAG_SCOPE, SPOTTING_FLAG_KEY, { spots });
+  notifySpotsChanged(targetDoc, spots);
 }
 
-function findCombatantIdForToken(combat, tokenId) {
+function notifySpotsChanged(targetDoc, spots = {}) {
+  globalThis.Hooks?.callAll?.("mwd.spotsChanged", {
+    targetToken: targetDoc,
+    targetTokenUuid: String(targetDoc?.uuid ?? "").trim(),
+    spots,
+  });
+}
+
+function findTokenDocumentInCombatScene(combat = null, tokenId = "") {
   const id = String(tokenId ?? "").trim();
-  if (!combat || !id) return "";
+  if (!combat || !id) return null;
+  const scene = combat.scene ?? combat.parent ?? null;
+  return collectionEntries(scene?.tokens).find(tokenDoc => String(tokenDoc?.id ?? "").trim() === id) ?? null;
+}
+
+function getCombatantTokenUuid(combat = null, combatant = null) {
+  const direct = String(
+    combatant?.token?.document?.uuid
+      ?? combatant?.token?.uuid
+      ?? combatant?.tokenUuid
+      ?? ""
+  ).trim();
+  if (direct) return direct;
+
+  const tokenDoc = findTokenDocumentInCombatScene(combat, combatant?.tokenId);
+  return String(tokenDoc?.uuid ?? "").trim();
+}
+
+function findCombatantIdForToken(combat, tokenId, tokenUuid = "") {
+  const id = String(tokenId ?? "").trim();
+  const uuid = String(tokenUuid ?? "").trim();
+  if (!combat || (!id && !uuid)) return "";
   const direct = combat.getCombatantByToken?.(id);
   if (direct?.id) return String(direct.id);
-  const match = combat.combatants?.find?.(entry => String(entry?.tokenId ?? "").trim() === id);
+  const match = collectionEntries(combat.combatants).find(entry => {
+    const entryTokenId = String(entry?.tokenId ?? entry?.token?.id ?? entry?.token?.document?.id ?? "").trim();
+    const entryTokenUuid = getCombatantTokenUuid(combat, entry);
+    return (id && entryTokenId === id) || (uuid && entryTokenUuid === uuid);
+  });
   return match?.id ? String(match.id) : "";
 }
 
@@ -640,8 +686,9 @@ export async function setSpot(targetToken, { spotterToken = null, combat = null,
     targetTokenUuid: getTokenUuid(targetToken),
     targetActorUuid: String(getTokenActor(targetToken)?.uuid ?? "").trim(),
     spotterTokenUuid,
+    spotterTokenId: String(spotterToken?.id ?? spotterToken?.document?.id ?? "").trim(),
     spotterActorUuid: String(getTokenActor(spotterToken)?.uuid ?? "").trim(),
-    spotterCombatantId: findCombatantIdForToken(combat, spotterToken.id ?? spotterToken.document?.id),
+    spotterCombatantId: findCombatantIdForToken(combat, spotterToken.id ?? spotterToken.document?.id, spotterTokenUuid),
     spotterDisposition: getTokenDisposition(spotterToken),
     allegiance: normalizedAllegiance,
     source: String(source ?? "spotIndirect").trim() || "spotIndirect",
@@ -722,13 +769,24 @@ export async function clearExpiredSpotsForCombatant(combat, combatantId) {
   if (!combat || !id) return { ok: true, cleared: 0 };
   const round = Number.isFinite(Number(combat.round)) ? Number(combat.round) : null;
   const scene = combat.scene ?? combat.parent ?? null;
+  const combatant = combat.combatants?.get?.(id) ?? collectionEntries(combat.combatants).find(entry => String(entry?.id ?? "").trim() === id) ?? null;
+  const combatantTokenId = String(combatant?.tokenId ?? combatant?.token?.id ?? combatant?.token?.document?.id ?? "").trim();
+  const combatantTokenUuid = getCombatantTokenUuid(combat, combatant);
   let cleared = 0;
-  for (const tokenDoc of scene?.tokens ?? []) {
+  for (const tokenDoc of collectionEntries(scene?.tokens)) {
     const spots = readSpotEntries(tokenDoc);
     let mutated = false;
     const next = { ...spots };
     for (const [key, spot] of Object.entries(spots)) {
-      if (String(spot?.spotterCombatantId ?? "").trim() !== id) continue;
+      const spotterCombatantId = String(spot?.spotterCombatantId ?? "").trim();
+      const spotterTokenUuid = String(spot?.spotterTokenUuid ?? key ?? "").trim();
+      const spotterTokenId = String(spot?.spotterTokenId ?? "").trim();
+      const sameCombatant = spotterCombatantId === id;
+      const sameToken = Boolean(
+        (combatantTokenUuid && spotterTokenUuid === combatantTokenUuid)
+          || (combatantTokenId && spotterTokenId === combatantTokenId)
+      );
+      if (!sameCombatant && !sameToken) continue;
       // Only expire on a LATER activation than the one that created the spot.
       if (round !== null && Number.isFinite(Number(spot?.round)) && Number(spot.round) >= round) continue;
       delete next[key];
@@ -747,7 +805,7 @@ export async function clearAllSpotsForCombat(combat) {
   const scene = combat?.scene ?? combat?.parent ?? null;
   if (!scene) return { ok: true, cleared: 0 };
   let cleared = 0;
-  for (const tokenDoc of scene.tokens ?? []) {
+  for (const tokenDoc of collectionEntries(scene.tokens)) {
     if (!Object.keys(readSpotEntries(tokenDoc)).length) continue;
     await writeSpots(tokenDoc, {});
     await reconcileSpottedStatus(tokenDoc);
@@ -768,7 +826,7 @@ export async function clearSpotsForToken(tokenDoc, { skipSelf = false } = {}) {
     cleared += 1;
   }
   // Spots authored BY this token (its uuid is the spotKey) on other scene tokens.
-  for (const other of doc.parent?.tokens ?? []) {
+  for (const other of collectionEntries(doc.parent?.tokens)) {
     if (other === doc || !uuid) continue;
     const spots = readSpotEntries(other);
     if (!spots[uuid]) continue;

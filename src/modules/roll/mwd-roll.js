@@ -904,7 +904,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   /* 1) Resolve intent (always first) */
   /* -------------------------------- */
 
-  let ctx = await resolveIntent({ actor, payload, event });
+  let ctx = await resolveIntent({ actor, payload, event, preview: true });
   let rollActor = ctx?.rollActor ?? actor;
 
   if (payload.intent === "attack" && ctx?.attack?.capabilityReport?.isTemplated) {
@@ -938,7 +938,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
     payload.targetSnapshots = Array.isArray(placementResult.targetSnapshots) ? placementResult.targetSnapshots : [];
     payload.templateGeometry = placementResult.templateGeometry ?? null;
     payload.templatePlacement = placementResult.placement;
-    ctx = await resolveIntent({ actor, payload, event });
+    ctx = await resolveIntent({ actor, payload, event, preview: true });
     rollActor = ctx?.rollActor ?? actor;
   } else if (payload.intent === "attack") {
     delete payload.targetSnapshots;

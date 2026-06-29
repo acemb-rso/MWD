@@ -112,6 +112,12 @@ function buildBaseCardVM(resolved) {
         title: ""
       });
     }
+    if (attack?.attackOptions?.hotLoad) {
+      vm.metaRows.push({
+        text: "Hot Load: minimum arming distance overridden",
+        title: ""
+      });
+    }
     if (attack?.sourceState?.isTracked) {
       vm.footerRows.push({
         text: `Source: ${Number(attack.sourceState.current ?? 0)}/${Number(attack.sourceState.max ?? 0)}`,

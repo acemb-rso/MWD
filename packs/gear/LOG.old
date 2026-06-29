@@ -1,3 +1,5 @@
-2026/06/29-09:26:34.205 dd34 Recovering log #110
-2026/06/29-09:26:34.207 dd34 Delete type=0 #110
-2026/06/29-09:26:34.207 dd34 Delete type=3 #108
+2026/06/29-10:55:52.491 dacc Recovering log #115
+2026/06/29-10:55:52.491 dacc Level-0 table #117: started
+2026/06/29-10:55:52.493 dacc Level-0 table #117: 29467 bytes OK
+2026/06/29-10:55:52.495 dacc Delete type=0 #115
+2026/06/29-10:55:52.495 dacc Delete type=3 #114

@@ -12,6 +12,7 @@ import {
   getMachineWeaponDamageTypeLabel,
   normalizeMachineWeaponDamageType,
 } from "./machine-weapon-types.js";
+import { weaponProfileHasDangerClose } from "./personal-damage.js";
 import { DEFAULT_FIRE_MODE } from "./battlemech-fire-modes.js";
 import { getEffectiveDetectionState, listTargetingStates } from "./machine-ew-state.js";
 
@@ -460,6 +461,16 @@ export function buildBattlemechWeaponGroupAttackProfile(actor = null, groupId = 
     "armorBypass"
   ))) {
     groupFlags.push("armorBypass");
+  }
+  // Danger Close is contagious: if any firing member has a minimum arming distance,
+  // the whole group is treated as Danger Close at the legality gate. Machine weapons
+  // author the trait via the Keywords field, like armorBypass above.
+  if (memberProfiles.some(member => weaponProfileHasDangerClose({
+    keywords: member.keywords ?? member.sourceWeapon?.system?.keywords,
+    standardTraits: member.sourceWeapon?.system?.standardTraits,
+    traits: member.sourceWeapon?.system?.traits,
+  }))) {
+    groupFlags.push("dangerClose");
   }
   const groupEffects = groupFlags.length > 0 ? { flags: groupFlags } : {};
   const notes = [

@@ -60,6 +60,10 @@ function createCombat({ round = 1, turn = 0, combatants = [], activeId = null } 
   };
 }
 
+function makeCollection(items = []) {
+  return { contents: items };
+}
+
 function reset() {
   scene.tokens = [];
 }
@@ -119,6 +123,36 @@ test("a spot expires when the spotter begins its next turn", async () => {
 
   assert.equal(hasValidIndirectDesignation(target, { attackerToken: ally, combat: next }), false);
   assert.equal(target.actor.statuses.has("spotted"), false, "visual status reconciled away");
+});
+
+test("spot expiry handles Foundry-style collection contents", async () => {
+  reset();
+  const target = createTokenDoc({ uuid: "Scene.s1.Token.t", disposition: -1 });
+  const spotter = createTokenDoc({ uuid: "Scene.s1.Token.a", disposition: 1 });
+  const ally = createTokenDoc({ uuid: "Scene.s1.Token.b", disposition: 1 });
+  const combatants = [{ id: "c-a", tokenId: spotter.id }];
+  scene.tokens = makeCollection([target, spotter, ally]);
+  const created = {
+    round: 1,
+    turn: 0,
+    combatants: makeCollection(combatants),
+    scene,
+  };
+
+  await setSpot(target, { spotterToken: spotter, combat: created });
+
+  const next = {
+    round: 2,
+    turn: 0,
+    combatant: combatants[0],
+    combatants: makeCollection(combatants),
+    scene,
+  };
+  const result = await clearExpiredSpotsForCombatant(next, "c-a");
+
+  assert.equal(result.cleared, 1);
+  assert.equal(hasValidIndirectDesignation(target, { attackerToken: ally, combat: next }), false);
+  assert.equal(target.actor.statuses.has("spotted"), false);
 });
 
 test("clearing the last spot reconciles the visual status off", async () => {

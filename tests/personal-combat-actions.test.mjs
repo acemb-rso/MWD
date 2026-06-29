@@ -219,7 +219,7 @@ test("Prepare prompts for metadata and applies action state through the executor
   }
 });
 
-test("Spot for Indirect Fire is gated by equipped gear rules", async () => {
+test("Spot for Indirect Fire is gated by equipped spotter-tagged gear", async () => {
   const {
     executeCombatActionIntent,
     PersonalCombatTracker,
@@ -271,18 +271,19 @@ test("Spot for Indirect Fire is gated by equipped gear rules", async () => {
       type: "gear",
       canonicalType: "gear",
       system: {
-        equipped: true,
+        equipped: false,
         quantity: 1,
         tags: ["spotter"],
-        rules: [{
-          id: "spotter-kit.action",
-          label: "Spotter Kit",
-          phase: "actionAvailability",
-          selector: { actionIds: ["spotIndirect"] },
-          outputs: [{ type: "actionAvailability", actionId: "spotIndirect", enabled: true }],
-        }],
+        rules: [],
       },
     });
+
+    const unequipped = await executeCombatActionIntent({ actor, payload: { intent: "combatAction", actionId: "spotIndirect" } });
+    assert.equal(unequipped.ok, false);
+    assert.equal(unequipped.reason, "Requires equipped spotting gear.");
+    assert.equal(rolls.length, 0);
+
+    actor.items.get("spotter-kit").system.equipped = true;
 
     const allowed = await executeCombatActionIntent({ actor, payload: { intent: "combatAction", actionId: "spotIndirect" } });
     assert.equal(allowed.ok, true);

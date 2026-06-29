@@ -2130,3 +2130,339 @@ test("machine indirect attacks treat TAG/NARC as lock without prior sensor conta
     clearScene();
   }
 });
+
+// `authoring` chooses how the Danger Close trait reaches the profile:
+//   "keywords" (the mech-weapon authoring control), "flags", or "standardTraits".
+function createDangerCloseMachineActor({ authoring = "keywords" } = {}) {
+  const weapon = {
+    id: "rocket",
+    type: "mechWeapon",
+    canonicalType: "mechWeapon",
+    name: "Rocket Pod",
+    getCombatProfile() {
+      return {
+        id: this.id,
+        uuid: "Item.rocket",
+        name: this.name,
+        type: "mechWeapon",
+        category: "ranged",
+        skill: "gunnery",
+        damage: 5,
+        ap: 0,
+        damageType: "energy",
+        attackRatingBand: { close: 4, near: 3, far: 2, extreme: 1 },
+        range: { max: "extreme" },
+        defaultRangeBand: "near",
+        keywords: authoring === "keywords" ? ["dangerClose"] : [],
+        effects: authoring === "flags" ? { flags: ["dangerClose"] } : {},
+        standardTraits: authoring === "standardTraits" ? [{ key: "dangerClose", rating: 1 }] : [],
+        capabilityReport: { isTemplated: false, errors: [] },
+      };
+    },
+  };
+  return {
+    type: "battlemech",
+    name: "Rocket Mech",
+    uuid: "Actor.rocket-mech",
+    statuses: new Set(),
+    items: new Map([[weapon.id, weapon]]),
+    system: {
+      attributes: { reflexes: { value: 4 }, system: { value: 3 } },
+      skills: { gunnery: { rating: 3, bonus: 0 } },
+      mwd: { crits: [], hardpoints: [], locations: {} },
+    },
+  };
+}
+
+function createGroupVehicleWeapon(id, name, { dangerClose = false, lockOnly = false } = {}) {
+  const keywords = [];
+  if (dangerClose) keywords.push("dangerClose");
+  if (lockOnly) keywords.push("lock-only");
+  return {
+    id,
+    type: "vehicleWeapon",
+    canonicalType: "vehicleWeapon",
+    name,
+    getCombatProfile() {
+      return {
+        id,
+        uuid: `Item.${id}`,
+        name,
+        type: "vehicleWeapon",
+        category: "ranged",
+        skill: "gunnery",
+        damage: 3,
+        ap: 0,
+        damageType: "energy",
+        attackRatingBand: { close: 3, near: 2, far: 1, extreme: 0 },
+        range: { max: "extreme" },
+        defaultRangeBand: "near",
+        keywords,
+        effects: {},
+        standardTraits: [],
+        capabilityReport: { isTemplated: false, errors: [] },
+        notes: "",
+      };
+    },
+  };
+}
+
+function createLockOnlyMachineActor() {
+  const weapon = {
+    id: "lrm",
+    type: "mechWeapon",
+    canonicalType: "mechWeapon",
+    name: "LRM Rack",
+    getCombatProfile() {
+      return {
+        id: this.id,
+        uuid: "Item.lrm",
+        name: this.name,
+        type: "mechWeapon",
+        category: "ranged",
+        skill: "gunnery",
+        damage: 5,
+        ap: 0,
+        damageType: "energy",
+        attackRatingBand: { close: 4, near: 3, far: 2, extreme: 1 },
+        range: { max: "extreme" },
+        defaultRangeBand: "near",
+        keywords: ["lock-only"],
+        effects: {},
+        standardTraits: [],
+        capabilityReport: { isTemplated: false, errors: [] },
+      };
+    },
+  };
+  return {
+    type: "battlemech",
+    name: "Missile Boat",
+    uuid: "Actor.missile-boat",
+    statuses: new Set(),
+    items: new Map([[weapon.id, weapon]]),
+    system: {
+      attributes: { reflexes: { value: 4 }, system: { value: 3 } },
+      skills: { gunnery: { rating: 3, bonus: 0 } },
+      mwd: { crits: [], hardpoints: [], locations: {} },
+    },
+  };
+}
+
+function createVehicleGroupActor({ members = [] } = {}) {
+  return {
+    type: "vehicle",
+    name: "Gun Truck",
+    uuid: "Actor.gun-truck",
+    statuses: new Set(),
+    items: new Map(members.map(weapon => [weapon.id, weapon])),
+    system: {
+      attributes: { reflexes: { value: 3 }, system: { value: 3 } },
+      skills: { gunnery: { rating: 3, bonus: 0 } },
+      weaponGroups: [{ id: "grp", name: "Turret", weaponIds: members.map(weapon => weapon.id) }],
+      mwd: { crits: [], hardpoints: [], locations: {} },
+    },
+  };
+}
+
+test("Danger Close blocks a Close-range machine attack unless Hot Load is declared", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createDangerCloseMachineActor();
+  const { targetSnapshot } = setScene({ distance: 30 });
+  const basePayload = {
+    intent: "attack",
+    sourceType: "mechWeapon",
+    sourceId: "rocket",
+    weaponId: "rocket",
+    sourceTokenId: "attacker-token",
+    targetSnapshots: [targetSnapshot],
+  };
+
+  try {
+    await assert.rejects(
+      () => resolveAttack({ actor, payload: { ...basePayload } }),
+      /minimum arming distance/i
+    );
+
+    // Hot Load override permits the Close-range attack and is recorded for audit.
+    const hot = await resolveAttack({ actor, payload: { ...basePayload, attackOptions: { hotLoad: true } } });
+    assert.equal(hot.attack.rangeBand, "close");
+    assert.equal(hot.attack.attackOptions.hotLoad, true);
+    // Pure legality gate: no DN parts or breakdown rows are added for the trait/override.
+    assert.ok(!hot.dn.parts.some(part => /hot\s*load|danger\s*close|arming/i.test(part.label ?? "")));
+    assert.ok(!hot.breakdown.some(row => /hot\s*load|danger\s*close|arming/i.test(row.label ?? "")));
+
+    // Preview resolve must never throw, so the dialog can open and surface Hot Load.
+    const preview = await resolveAttack({ actor, payload: { ...basePayload }, preview: true });
+    assert.equal(preview.attack.rangeBand, "close");
+    assert.equal(preview.attack.attackOptions.hotLoad, false);
+  } finally {
+    clearScene();
+  }
+});
+
+test("Danger Close detected via effects.flags also blocks at Close", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createDangerCloseMachineActor({ authoring: "flags" });
+  const { targetSnapshot } = setScene({ distance: 30 });
+
+  try {
+    await assert.rejects(
+      () => resolveAttack({
+        actor,
+        payload: {
+          intent: "attack",
+          sourceType: "mechWeapon",
+          sourceId: "rocket",
+          weaponId: "rocket",
+          sourceTokenId: "attacker-token",
+          targetSnapshots: [targetSnapshot],
+        },
+      }),
+      /minimum arming distance/i
+    );
+  } finally {
+    clearScene();
+  }
+});
+
+test("Danger Close does not block beyond Close range", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createDangerCloseMachineActor();
+  const { targetSnapshot } = setScene({ distance: 100 });
+
+  try {
+    const resolved = await resolveAttack({
+      actor,
+      payload: {
+        intent: "attack",
+        sourceType: "mechWeapon",
+        sourceId: "rocket",
+        weaponId: "rocket",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+
+    assert.equal(resolved.attack.rangeBand, "near");
+    assert.equal(resolved.attack.attackOptions.hotLoad, false);
+  } finally {
+    clearScene();
+  }
+});
+
+test("Danger Close is contagious across a machine weapon group (mixed group blocked at Close)", async () => {
+  const resolveAttack = await getResolveAttack();
+  const mixed = createVehicleGroupActor({
+    members: [
+      createGroupVehicleWeapon("safe", "Autocannon"),
+      createGroupVehicleWeapon("rockets", "Rocket Pod", { dangerClose: true }),
+    ],
+  });
+  const { targetSnapshot } = setScene({ distance: 30 });
+  const payload = {
+    intent: "attack",
+    sourceType: "weaponGroup",
+    sourceId: "grp",
+    weaponGroupId: "grp",
+    sourceTokenId: "attacker-token",
+    targetSnapshots: [targetSnapshot],
+  };
+
+  try {
+    await assert.rejects(
+      () => resolveAttack({ actor: mixed, payload: { ...payload } }),
+      /minimum arming distance/i
+    );
+
+    const hot = await resolveAttack({ actor: mixed, payload: { ...payload, attackOptions: { hotLoad: true } } });
+    assert.equal(hot.attack.attackOptions.hotLoad, true);
+  } finally {
+    clearScene();
+  }
+});
+
+test("a machine weapon group with no Danger Close member is allowed at Close", async () => {
+  const resolveAttack = await getResolveAttack();
+  const clean = createVehicleGroupActor({
+    members: [
+      createGroupVehicleWeapon("safe", "Autocannon"),
+      createGroupVehicleWeapon("safe2", "Machine Gun"),
+    ],
+  });
+  const { targetSnapshot } = setScene({ distance: 30 });
+
+  try {
+    const resolved = await resolveAttack({
+      actor: clean,
+      payload: {
+        intent: "attack",
+        sourceType: "weaponGroup",
+        sourceId: "grp",
+        weaponGroupId: "grp",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+      },
+    });
+
+    assert.equal(resolved.attack.rangeBand, "close");
+  } finally {
+    clearScene();
+  }
+});
+
+test("lock-only machine weapons require a sensor lock on the target", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createLockOnlyMachineActor();
+  const payload = {
+    intent: "attack",
+    sourceType: "mechWeapon",
+    sourceId: "lrm",
+    weaponId: "lrm",
+    sourceTokenId: "attacker-token",
+  };
+
+  const contact = setScene({ distance: 270, detectionState: "contact" });
+  try {
+    await assert.rejects(
+      () => resolveAttack({ actor, payload: { ...payload, targetSnapshots: [contact.targetSnapshot] } }),
+      /sensor lock/i
+    );
+  } finally {
+    clearScene();
+  }
+
+  const locked = setScene({ distance: 270, detectionState: "lock" });
+  try {
+    const resolved = await resolveAttack({ actor, payload: { ...payload, targetSnapshots: [locked.targetSnapshot] } });
+    assert.equal(resolved.attack.ewContext.detectionState, "lock");
+  } finally {
+    clearScene();
+  }
+});
+
+test("lock-only is contagious across a machine weapon group", async () => {
+  const resolveAttack = await getResolveAttack();
+  const group = createVehicleGroupActor({
+    members: [
+      createGroupVehicleWeapon("ac", "Autocannon"),
+      createGroupVehicleWeapon("lrm", "LRM Rack", { lockOnly: true }),
+    ],
+  });
+  const payload = {
+    intent: "attack",
+    sourceType: "weaponGroup",
+    sourceId: "grp",
+    weaponGroupId: "grp",
+    sourceTokenId: "attacker-token",
+  };
+
+  const contact = setScene({ distance: 270, detectionState: "contact" });
+  try {
+    await assert.rejects(
+      () => resolveAttack({ actor: group, payload: { ...payload, targetSnapshots: [contact.targetSnapshot] } }),
+      /sensor lock/i
+    );
+  } finally {
+    clearScene();
+  }
+});

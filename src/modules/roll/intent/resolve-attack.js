@@ -55,6 +55,7 @@ import {
 } from "../../area-effects/area-effect-engine.js";
 import { MACHINE_CHARGE_ATTACK_ID } from "../../mwd/charge-attack-actions.js";
 import { getTraitActiveEffectModifier } from "../../mwd/traits.js";
+import { weaponProfileHasDangerClose, weaponProfileIsLockOnly } from "../../mwd/personal-damage.js";
 import {
   addPersonalFireModeAttackRating,
   buildPersonalFireModeState,
@@ -305,7 +306,13 @@ function getMachineWeaponGroupProfile(actor, payload) {
     attackRatingBand,
     range: first.range ?? {},
     defaultRangeBand: first.defaultRangeBand ?? "near",
-    effects: {},
+    // Danger Close is contagious: if any firing member has a minimum arming
+    // distance, the whole group is treated as Danger Close at the legality gate.
+    effects: profiles.some(profile => weaponProfileHasDangerClose(profile))
+      ? { flags: ["dangerClose"] }
+      : {},
+    // Likewise lock-only: if any member is lock-only, the group requires a sensor lock.
+    keywords: profiles.some(profile => weaponProfileIsLockOnly(profile)) ? ["lock-only"] : [],
     notes: profiles.map(profile => profile.notes).filter(Boolean).join("\n"),
   };
 }
@@ -449,7 +456,7 @@ function buildPersonalAttackMotionContext({ actor, payload, targets = [] } = {})
   };
 }
 
-export async function resolveAttack({ actor, payload } = {}) {
+export async function resolveAttack({ actor, payload, preview = false } = {}) {
   if (!actor) throw new Error("resolveAttack requires actor");
 
   const rawWeapon = getWeaponProfile(actor, payload);
@@ -633,6 +640,18 @@ export async function resolveAttack({ actor, payload } = {}) {
   }
   const totalAp = Number(effectiveWeapon.ap ?? 0) + Number(effectiveWeapon?.effects?.ap ?? 0);
   const attackOptions = payload?.attackOptions && typeof payload.attackOptions === "object" ? payload.attackOptions : {};
+  // Danger Close (minimum arming distance): block Close-range attacks unless the
+  // player declares a Hot Load override for this attack. Pure legality gate — adds
+  // no DN, damage, or other mechanical effect. The resolver is the sole authority.
+  // Skip during preview so the roll dialog can open and surface the Hot Load
+  // toggle; the final (non-preview) resolve is the authoritative legality gate.
+  const hotLoad = attackOptions?.hotLoad === true;
+  if (!preview && rangeBand === "close" && weaponProfileHasDangerClose(effectiveWeapon) && !hotLoad) {
+    throw createUserFacingRollError(
+      `${effectiveWeapon.name} has a minimum arming distance and cannot fire at Close range. Enable Hot Load to override for this attack.`,
+      { severity: "warn" }
+    );
+  }
   let indirectDesignationValid = false;
   let indirectDesignationState = "blind";
   if (isMachineActor(actor) && attackOptions.losBlocked) {
@@ -749,6 +768,18 @@ export async function resolveAttack({ actor, payload } = {}) {
       throw createUserFacingRollError("No targeting solution. Acquire contact first.", { severity: "warn" });
     }
 
+    // Lock-only weapons may only fire on a target held at the "lock" detection state.
+    // Like the blind gate above, there is no in-dialog override, so this is enforced on
+    // every resolve (no preview exemption). BattleMech weapon groups are gated upstream
+    // in buildBattlemechWeaponGroupAttackProfile; this covers single weapons and the
+    // generic machine-weapon-group path.
+    if (combatant && weaponProfileIsLockOnly(effectiveWeapon) && effectiveState !== "lock") {
+      throw createUserFacingRollError(
+        `${effectiveWeapon.name} can only fire on a target with a sensor lock.`,
+        { severity: "warn" }
+      );
+    }
+
     const systemAttr = Number(actor?.system?.attributes?.system?.value ?? 0) || 0;
     const usablePacket = getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, effectiveState, game.combat?.round);
     const displayState = effectiveState === "blind" && indirectDesignationValid ? indirectDesignationState : effectiveState;
@@ -856,6 +887,7 @@ export async function resolveAttack({ actor, payload } = {}) {
       attackOptions: {
         indirectAttack: Boolean(attackOptions.indirectAttack),
         losBlocked: Boolean(attackOptions.losBlocked),
+        hotLoad: Boolean(attackOptions.hotLoad),
       },
     },
     rollActor,

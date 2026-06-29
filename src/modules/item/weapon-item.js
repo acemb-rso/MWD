@@ -19,6 +19,8 @@ import {
   getPersonalDamageTypeLabel,
   normalizePersonalDamageType,
   normalizeWeaponTraits,
+  normalizeWeaponStandardTraits,
+  normalizeWeaponKeywords,
 } from "../mwd/personal-damage.js";
 import {
   normalizeDamageSourceScale,
@@ -277,6 +279,12 @@ export class WeaponItem extends MWDItem {
       range,
       defaultRangeBand: this.getDefaultRangeBand(range),
       traits,
+      // Machine weapons author standard traits through the Keywords field; surface
+      // them (and standardTraits, if present) so the attack resolver and trait helpers
+      // can read them. Without this, keywords never reach the resolver for a lone
+      // mech weapon (only weapon-group profiles previously carried keywords).
+      keywords: normalizeWeaponKeywords(system.keywords),
+      standardTraits: normalizeWeaponStandardTraits(system.standardTraits),
       effects: {},
       notes: String(system.notes ?? system.description ?? "").trim()
     };

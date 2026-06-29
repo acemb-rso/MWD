@@ -200,6 +200,20 @@ How it fits: Used by rendering code to produce UI fragments.
     </div>
   {{/if}}
 
+  {{#if hotLoadOption}}
+    <div class="mwd-roll-dialog__panel">
+      <div class="mwd-roll-dialog__panel-title">Hot Load</div>
+      <label class="mwd-roll-dialog__check mwd-roll-dialog__check--toggle {{#if hotLoadOption.active}}is-selected{{/if}}">
+        <input
+          type="checkbox"
+          {{checked hotLoadOption.active}}
+          data-action="toggleAttackFlag"
+          data-flag="hotLoad" />
+        <span>Hot Load — permits Close-range attack with a minimum-arming weapon</span>
+      </label>
+    </div>
+  {{/if}}
+
   {{#if specialization}}
     <div class="mwd-field">
       <label>Specialization</label>

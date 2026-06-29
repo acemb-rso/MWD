@@ -37,6 +37,7 @@ const OVERLAY_MODELS = Object.freeze({
 });
 
 let overlayHooksRegistered = false;
+let registeredHooksObject = null;
 let queuedRefresh = false;
 const overlayRecords = new Map();
 
@@ -303,14 +304,17 @@ function queueSensorOverlayRefresh({ requestPerception = true } = {}) {
 }
 
 export function registerMachineSensorOverlayHooks() {
-  if (overlayHooksRegistered || !globalThis.Hooks) return false;
+  if (!globalThis.Hooks) return false;
+  if (overlayHooksRegistered && registeredHooksObject === globalThis.Hooks) return false;
   overlayHooksRegistered = true;
+  registeredHooksObject = globalThis.Hooks;
 
   Hooks.on("canvasReady", () => queueSensorOverlayRefresh({ requestPerception: false }));
   Hooks.on("sightRefresh", () => refreshSensorOverlays());
   Hooks.on("refreshToken", () => queueSensorOverlayRefresh({ requestPerception: false }));
   Hooks.on("controlToken", () => queueSensorOverlayRefresh());
   Hooks.on("targetToken", () => queueSensorOverlayRefresh());
+  Hooks.on("mwd.spotsChanged", () => queueSensorOverlayRefresh());
   Hooks.on("updateToken", () => queueSensorOverlayRefresh());
   Hooks.on("updateActor", () => queueSensorOverlayRefresh());
   Hooks.on("updateCombatant", () => queueSensorOverlayRefresh());

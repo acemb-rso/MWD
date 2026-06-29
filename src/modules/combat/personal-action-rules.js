@@ -7,6 +7,14 @@ import { TEMPLATE } from "../core/constants.js";
 import { evaluatePhase, normalizeCarrier } from "../mwd/rules.js";
 
 const RULE_GATED_ACTION_IDS = Object.freeze(new Set(["spotIndirect"]));
+const SPOTTER_GEAR_TAGS = Object.freeze(new Set([
+  "spotter",
+  "spotter-kit",
+  "forward-observer",
+  "forward-observer-kit",
+  "indirect-spotter",
+  "target-designator",
+]));
 
 function toArray(collection = []) {
   if (typeof collection?.values === "function") return Array.from(collection.values());
@@ -37,6 +45,18 @@ function getGearRuleCarriers(actor = null) {
     .filter(Boolean);
 }
 
+function getUsableGearItems(actor = null) {
+  return toArray(actor?.items).filter(isUsableGear);
+}
+
+function normalizeTagKey(value = "") {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-+|-+$)/g, "");
+}
+
 function getItemTags(item = null) {
   const tags = item?.system?.tags;
   if (Array.isArray(tags)) return tags.map(tag => String(tag ?? "").trim()).filter(Boolean);
@@ -44,6 +64,22 @@ function getItemTags(item = null) {
     .split(",")
     .map(tag => tag.trim())
     .filter(Boolean);
+}
+
+function gearHasAnyTag(item = null, tagKeys = new Set()) {
+  return getItemTags(item).some(tag => tagKeys.has(normalizeTagKey(tag)));
+}
+
+function buildTagActionAvailabilityOutput(item = null, action = {}) {
+  return {
+    type: "actionAvailability",
+    actionId: String(action?.id ?? "").trim(),
+    enabled: true,
+    sourceId: String(item?.uuid ?? item?.id ?? "").trim(),
+    sourceName: String(item?.name ?? "Spotting Gear").trim(),
+    ruleId: "gear-tag.spotter",
+    ruleLabel: "Spotter Gear Tag",
+  };
 }
 
 function buildFacts({ actor = null, action = {}, snapshot = null, item = null } = {}) {
@@ -96,6 +132,15 @@ function outputAppliesToAction(output = {}, action = {}) {
 export function evaluatePersonalActionAvailability(actor = null, action = {}, { snapshot = null, runtime = {} } = {}) {
   const outputs = [];
   const entries = [];
+  const actionId = String(action?.id ?? "").trim();
+
+  if (actionId === "spotIndirect") {
+    for (const item of getUsableGearItems(actor)) {
+      if (gearHasAnyTag(item, SPOTTER_GEAR_TAGS)) {
+        outputs.push(buildTagActionAvailabilityOutput(item, action));
+      }
+    }
+  }
 
   for (const carrier of getGearRuleCarriers(actor)) {
     const result = evaluatePhase({
@@ -138,4 +183,3 @@ export function getPersonalActionAvailabilityReason(actor = null, action = {}, o
 
   return "";
 }
-

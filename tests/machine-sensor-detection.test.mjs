@@ -82,6 +82,7 @@ function cleanupGlobals() {
   delete globalThis.game;
   delete globalThis.CONST;
   delete globalThis.canvas;
+  delete globalThis.Hooks;
 }
 
 function setPath(root, path, value) {
@@ -312,6 +313,54 @@ test("sensor overlays update local state without rewriting target token data", a
     refreshSensorOverlays({ observerTokens: [observer], targetTokens: [target] });
     assert.equal(target._mwdSensorOverlayModel.state, "track");
     assert.deepEqual(targetUpdates, []);
+  } finally {
+    cleanupGlobals();
+  }
+});
+
+test("spot changes request perception and sensor overlay refresh", async () => {
+  const {
+    registerMachineSensorOverlayHooks,
+  } = await import("../src/modules/canvas/machine-sensor-overlays.js");
+
+  const observer = token({ id: "observer", type: "battlemech", disposition: 1 });
+  const target = token({ id: "target", type: "battlemech", disposition: -1 });
+  const callbacks = new Map();
+
+  globalThis.Hooks = {
+    on(name, callback) {
+      callbacks.set(name, callback);
+      return callback;
+    },
+  };
+
+  await target.document.setFlag("mwd", "spotting", {
+    spots: {
+      "Scene.scene.Token.spotter": {
+        spotKey: "Scene.scene.Token.spotter",
+        sceneUuid: "Scene.scene",
+        targetTokenUuid: target.document.uuid,
+        spotterTokenUuid: "Scene.scene.Token.spotter",
+        spotterDisposition: 1,
+        allegiance: "ally",
+        source: "spotIndirect",
+        round: 1,
+      },
+    },
+  });
+  installCombat([
+    combatant({ tokenId: observer.id, targeting: { [target.document.uuid]: { detectionState: "blind" } } }),
+  ]);
+  installCanvasDistance(30);
+  globalThis.canvas.tokens = { controlled: [observer], placeables: [observer, target] };
+
+  try {
+    assert.equal(registerMachineSensorOverlayHooks(), true);
+    callbacks.get("mwd.spotsChanged")?.({ targetToken: target.document });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    assert.equal(globalThis.canvas.perception.calls.length, 1);
+    assert.equal(target._mwdSensorOverlayModel.state, "contact");
   } finally {
     cleanupGlobals();
   }
