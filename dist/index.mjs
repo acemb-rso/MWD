@@ -45343,8 +45343,8 @@ function os(e = null) {
   return e ? Array.isArray(e) ? e : Array.isArray(e.contents) ? e.contents : typeof e.values == "function" ? Array.from(e.values()) : typeof e[Symbol.iterator] == "function" ? Array.from(e) : [] : [];
 }
 function Fa(e = null) {
-  var t;
-  return (e == null ? void 0 : e.object) ?? (e == null ? void 0 : e.token) ?? ((t = e == null ? void 0 : e.document) == null ? void 0 : t.object) ?? e;
+  var t, n, i, a, r;
+  return (e == null ? void 0 : e.object) ?? (e == null ? void 0 : e.token) ?? ((t = e == null ? void 0 : e.document) == null ? void 0 : t.object) ?? ((n = e == null ? void 0 : e.target) == null ? void 0 : n.object) ?? ((i = e == null ? void 0 : e.target) == null ? void 0 : i.token) ?? ((r = (a = e == null ? void 0 : e.target) == null ? void 0 : a.document) == null ? void 0 : r.object) ?? e;
 }
 function S4(e = null) {
   return (e == null ? void 0 : e.document) ?? e ?? null;
@@ -45451,6 +45451,9 @@ class N4 extends wN() {
   }
   _testRange(t, n, i) {
     return M4(t, n, i);
+  }
+  _testPoint(t, n, i) {
+    return this._canDetect(t, i) && this._testRange(t, n, i);
   }
 }
 function Ny(e = []) {

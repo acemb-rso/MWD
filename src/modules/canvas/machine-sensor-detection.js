@@ -31,6 +31,9 @@ function resolveToken(value = null) {
   return value?.object
     ?? value?.token
     ?? value?.document?.object
+    ?? value?.target?.object
+    ?? value?.target?.token
+    ?? value?.target?.document?.object
     ?? value;
 }
 
@@ -190,6 +193,10 @@ export class MwdSensorDetectionMode extends getDetectionModeClass() {
 
   _testRange(visionSource, mode, target) {
     return modeRangeAllows(visionSource, mode, target);
+  }
+
+  _testPoint(visionSource, mode, target) {
+    return this._canDetect(visionSource, target) && this._testRange(visionSource, mode, target);
   }
 }
 

@@ -196,6 +196,46 @@ test("valid indirect designations create selectable sensor awareness without EW 
   }
 });
 
+test("MWD sensor detection mode accepts spotted targets at the point-test stage", async () => {
+  const {
+    MwdSensorDetectionMode,
+  } = await import("../src/modules/canvas/machine-sensor-detection.js");
+  const observer = token({ id: "observer", type: "battlemech", disposition: 1 });
+  const target = token({ id: "target", type: "battlemech", disposition: -1 });
+
+  await target.document.setFlag("mwd", "spotting", {
+    spots: {
+      "Scene.scene.Token.spotter": {
+        spotKey: "Scene.scene.Token.spotter",
+        sceneUuid: "Scene.scene",
+        targetTokenUuid: target.document.uuid,
+        spotterTokenUuid: "Scene.scene.Token.spotter",
+        spotterDisposition: 1,
+        allegiance: "ally",
+        source: "spotIndirect",
+        round: 1,
+      },
+    },
+  });
+
+  installCombat([
+    combatant({ tokenId: observer.id, targeting: { [target.document.uuid]: { detectionState: "blind" } } }),
+  ]);
+  installCanvasDistance(30);
+
+  try {
+    const mode = new MwdSensorDetectionMode({ id: "mwdSensor", range: 0 });
+    const visionSource = { object: observer };
+    const detectionTarget = { target: { object: target } };
+
+    assert.equal(mode._testLOS(), true);
+    assert.equal(mode._canDetect(visionSource, detectionTarget), true);
+    assert.equal(mode._testPoint(visionSource, { range: 0 }, detectionTarget), true);
+  } finally {
+    cleanupGlobals();
+  }
+});
+
 test("TAG/NARC designations create lock-level sensor awareness without rewriting EW state", async () => {
   const {
     canDetect,
