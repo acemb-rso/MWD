@@ -105,6 +105,20 @@ function getTargetActor(target = {}) {
   return getTargetToken(target)?.actor ?? null;
 }
 
+function hasActorStatus(actor = null, statusId = "") {
+  const id = String(statusId ?? "").trim();
+  if (!actor || !id) return false;
+  const statuses = actor.statuses ?? new Set();
+  if (statuses?.has?.(id)) return true;
+  return Array.isArray(statuses) && statuses.includes(id);
+}
+
+function getDesignationDetectionState(targetToken = null, { attackerToken = null, combat = null } = {}) {
+  const targetActor = targetToken?.actor ?? targetToken?.document?.actor ?? null;
+  if (hasActorStatus(targetActor, "tagged") || hasActorStatus(targetActor, "narced")) return "lock";
+  return hasValidIndirectDesignation(targetToken, { attackerToken, combat }) ? "contact" : "blind";
+}
+
 function getTokenCenter(token = null) {
   return token?.center ?? token?.object?.center ?? null;
 }
@@ -619,6 +633,8 @@ export async function resolveAttack({ actor, payload } = {}) {
   }
   const totalAp = Number(effectiveWeapon.ap ?? 0) + Number(effectiveWeapon?.effects?.ap ?? 0);
   const attackOptions = payload?.attackOptions && typeof payload.attackOptions === "object" ? payload.attackOptions : {};
+  let indirectDesignationValid = false;
+  let indirectDesignationState = "blind";
   if (isMachineActor(actor) && attackOptions.losBlocked) {
     if (!attackOptions.indirectAttack) {
       throw createUserFacingRollError("Line of sight is fully blocked. Use Indirect Attack or sensor-enabled fire.", { severity: "warn" });
@@ -630,7 +646,9 @@ export async function resolveAttack({ actor, payload } = {}) {
       ?? canvas?.tokens?.placeables?.find(t => (t.document?.uuid ?? t.uuid) === indirectTargetUuid)
       ?? null;
     const indirectAttackerToken = getSourceToken(actor, payload);
-    if (!hasValidIndirectDesignation(indirectTargetToken, { attackerToken: indirectAttackerToken, combat: game.combat })) {
+    indirectDesignationState = getDesignationDetectionState(indirectTargetToken, { attackerToken: indirectAttackerToken, combat: game.combat });
+    indirectDesignationValid = indirectDesignationState !== "blind";
+    if (!indirectDesignationValid) {
       throw createUserFacingRollError("No spotter has designated this target — you cannot fire indirectly at a unit you cannot see.", { severity: "warn" });
     }
   }
@@ -721,20 +739,23 @@ export async function resolveAttack({ actor, payload } = {}) {
     const attackerToken = getSourceToken(actor, payload);
     const combatant = getAttackerCombatant(attackerToken);
 
-    const targetTokenObj = canvas?.tokens?.get?.(targetTokenUuid);
+    const targetTokenObj = getTargetToken(firstTarget)
+      ?? canvas?.tokens?.placeables?.find(t => (t.document?.uuid ?? t.uuid) === targetTokenUuid)
+      ?? null;
     const isVisible = targetTokenObj?.visible ?? true;
     const effectiveState = isVisible ? getEffectiveDetectionState(combatant, targetTokenUuid, targetTokenObj?.actor) : "blind";
 
-    if (combatant && effectiveState === "blind") {
+    if (combatant && effectiveState === "blind" && !indirectDesignationValid) {
       throw createUserFacingRollError("No targeting solution. Acquire contact first.", { severity: "warn" });
     }
 
     const systemAttr = Number(actor?.system?.attributes?.system?.value ?? 0) || 0;
     const usablePacket = getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, effectiveState, game.combat?.round);
+    const displayState = effectiveState === "blind" && indirectDesignationValid ? indirectDesignationState : effectiveState;
 
     ewContext = {
-      detectionState: effectiveState,
-      detectionStateLabel: getDetectionStateLabel(effectiveState),
+      detectionState: displayState,
+      detectionStateLabel: getDetectionStateLabel(displayState),
       targetTokenUuid,
       attackerCombatantId: combatant?.id ?? null,
       activePacketId: usablePacket?.id ?? null,

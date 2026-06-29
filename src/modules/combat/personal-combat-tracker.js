@@ -43,6 +43,7 @@ import { getBattlemechUsedWeaponGroupIds, markBattlemechWeaponGroupUsed } from "
 import { getPersonalActionGateReason, getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
 import { clearSuppressedTargetingPackets } from "../mwd/machine-ew-state.js";
 import { getStatusActionGateReason } from "../status/status-mechanics.js";
+import { getPersonalActionAvailabilityReason } from "./personal-action-rules.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -1791,6 +1792,7 @@ export class PersonalCombatTracker {
     reason = getActionImplementationReason(action) || reason;
     reason = reason || getStatusActionGateReason(actor, { actionId: action.id });
     reason = reason || getPersonalActionGateReason(actor, action);
+    reason = reason || getPersonalActionAvailabilityReason(actor, action, { snapshot });
 
     return {
       id: action.id,
@@ -1816,6 +1818,8 @@ export class PersonalCombatTracker {
     if (implementationReason) return { ok: false, reason: implementationReason };
     const gateReason = getPersonalActionGateReason(actor, action);
     if (gateReason) return { ok: false, reason: gateReason };
+    const availabilityReason = getPersonalActionAvailabilityReason(actor, action, { snapshot: this.getSnapshot(actor, { token }) });
+    if (availabilityReason) return { ok: false, reason: availabilityReason };
 
     if (action.category === PERSONAL_ACTION_CATEGORIES.standard) {
       return this._executeStandardAction(actor, { token, action, metadata });

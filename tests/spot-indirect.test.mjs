@@ -153,3 +153,56 @@ test("TAG still grants effective Lock (regression guard for the parallel mechani
   const combatant = { getFlag: () => ({}) };
   assert.equal(getEffectiveDetectionState(combatant, "Scene.s1.Token.t", targetActor), "lock");
 });
+
+test("personal spotter roll uses Intelligence + Perception and normal spot context", async () => {
+  reset();
+  const { resolveSpotIndirect } = await import("../src/modules/roll/intent/resolve-spot-indirect.js");
+  const spotterActor = {
+    id: "spotter-actor",
+    uuid: "Actor.spotter",
+    type: "character",
+    name: "Forward Observer",
+    system: {
+      attributes: { intelligence: { value: 3 } },
+      skills: { perception: { rating: 2, bonus: 1 } },
+    },
+    getAttributeValue(key) {
+      return this.system.attributes[key]?.value ?? 0;
+    },
+  };
+  const targetActor = createActor();
+  targetActor.name = "Target";
+  targetActor.type = "battlemech";
+  targetActor.system = {};
+  const target = {
+    id: "target-token",
+    uuid: "Scene.s1.Token.target-token",
+    name: "Target",
+    visible: true,
+    actor: targetActor,
+    document: { id: "target-token", uuid: "Scene.s1.Token.target-token", actor: targetActor },
+  };
+  const spotterToken = {
+    id: "spotter-token",
+    uuid: "Scene.s1.Token.spotter-token",
+    name: "Forward Observer",
+    actor: spotterActor,
+    document: { id: "spotter-token", uuid: "Scene.s1.Token.spotter-token", actor: spotterActor },
+  };
+  globalThis.canvas = { tokens: { controlled: [spotterToken], placeables: [target, spotterToken], get: id => [target, spotterToken].find(token => token.id === id) ?? null } };
+  globalThis.game = { user: { targets: new Set([target]) } };
+
+  const ctx = await resolveSpotIndirect({
+    actor: spotterActor,
+    payload: { personalSpotter: true, targetTokenUuid: target.document.uuid, sourceTokenId: spotterToken.id },
+  });
+
+  assert.equal(ctx.intent, "spotIndirect");
+  assert.equal(ctx.pool.attribute, 3);
+  assert.equal(ctx.pool.skill, 2);
+  assert.equal(ctx.pool.bonus, 1);
+  assert.equal(ctx.data.attrKey, "intelligence");
+  assert.equal(ctx.spotIndirect.personalSpotter, true);
+  assert.equal(ctx.spotIndirect.attackerTokenUuid, spotterToken.document.uuid);
+  assert.equal(ctx.spotIndirect.targetTokenUuid, target.document.uuid);
+});

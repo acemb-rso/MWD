@@ -453,9 +453,10 @@ overrides (mapped to `energy` for armor purposes).
 ### 6.7 Shared Rule Contribution Packets (`system.rules[]`)
 
 Asset modules use `system.rules[]` as their primary mechanics authoring surface.
-Qualities/traits share some normalizer primitives, but quality items still keep
-their character-specific `system.effects` packets until those output schemas are
-formalized.
+Gear may also carry `system.rules[]` for personal-scale action availability and
+related contribution packets. Qualities/traits share some normalizer primitives,
+but quality items still keep their character-specific `system.effects` packets
+until those output schemas are formalized.
 
 Shared rule helpers exposed on `game.mwd.rules`:
 

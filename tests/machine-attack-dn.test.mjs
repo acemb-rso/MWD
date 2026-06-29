@@ -57,7 +57,7 @@ async function getAttackResolution() {
   return attackResolutionModule;
 }
 
-function createCombatant({ tokenId, targetTokenUuid, personalCombat = null } = {}) {
+function createCombatant({ tokenId, targetTokenUuid, detectionState = "contact", personalCombat = null } = {}) {
   return {
     id: `${tokenId}-combatant`,
     tokenId,
@@ -67,7 +67,7 @@ function createCombatant({ tokenId, targetTokenUuid, personalCombat = null } = {
       if (key !== "targeting") return {};
       return {
         [targetTokenUuid]: {
-          detectionState: "contact",
+          detectionState,
           packet: null,
         },
       };
@@ -265,14 +265,22 @@ function createMeleeActor({ weapon = createMeleeWeapon(), tonnage = 90, pilotUui
 function setScene({
   distance = 270,
   targetMovement = {},
+  detectionState = "contact",
   attackerPersonalCombat = null,
   targetPersonalCombat = null,
 } = {}) {
   const targetTokenUuid = "Scene.scene.Token.target-token";
   const attackerToken = {
     id: "attacker-token",
+    actor: { type: "battlemech" },
     center: { x: 0, y: 0 },
+    document: {
+      id: "attacker-token",
+      uuid: "Scene.scene.Token.attacker-token",
+      disposition: 1,
+    },
   };
+  const targetFlags = {};
   const targetToken = {
     id: "target-token",
     visible: true,
@@ -291,6 +299,15 @@ function setScene({
     document: {
       id: "target-token",
       uuid: targetTokenUuid,
+      disposition: -1,
+      parent: { uuid: "Scene.scene" },
+      getFlag(scope, key) {
+        return targetFlags[`${scope}.${key}`];
+      },
+      async setFlag(scope, key, value) {
+        targetFlags[`${scope}.${key}`] = value;
+        return this;
+      },
     },
   };
   const tokens = new Map([
@@ -302,7 +319,7 @@ function setScene({
     combat: {
       round: 1,
       combatants: [
-        createCombatant({ tokenId: attackerToken.id, targetTokenUuid, personalCombat: attackerPersonalCombat }),
+        createCombatant({ tokenId: attackerToken.id, targetTokenUuid, detectionState, personalCombat: attackerPersonalCombat }),
         createCombatant({ tokenId: targetToken.id, personalCombat: targetPersonalCombat }),
       ],
     },
@@ -2040,6 +2057,75 @@ test("machine attacks reject fully blocked LOS unless indirect attack is selecte
       },
     });
     assert.equal(indirect.attack.attackOptions.indirectAttack, true);
+  } finally {
+    clearScene();
+  }
+});
+
+test("machine indirect attacks can use a valid spot without prior sensor contact", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createActor();
+  const { targetSnapshot, targetToken } = setScene({ distance: 100, detectionState: "blind" });
+
+  try {
+    await targetToken.document.setFlag("mwd", "spotting", {
+      spots: {
+        "Scene.scene.Token.spotter": {
+          spotKey: "Scene.scene.Token.spotter",
+          sceneUuid: "Scene.scene",
+          targetTokenUuid: targetSnapshot.tokenUuid,
+          spotterTokenUuid: "Scene.scene.Token.spotter",
+          spotterDisposition: 1,
+          allegiance: "ally",
+          source: "spotIndirect",
+          round: 1,
+          turn: 0,
+        },
+      },
+    });
+
+    const indirect = await resolveAttack({
+      actor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+        attackOptions: { losBlocked: true, indirectAttack: true },
+      },
+    });
+
+    assert.equal(indirect.attack.attackOptions.indirectAttack, true);
+    assert.equal(indirect.attack.ewContext.detectionState, "contact");
+    assert.equal(indirect.attack.ewContext.targetingDataValue, 0);
+  } finally {
+    clearScene();
+  }
+});
+
+test("machine indirect attacks treat TAG/NARC as lock without prior sensor contact", async () => {
+  const resolveAttack = await getResolveAttack();
+  const actor = createActor();
+  const { targetSnapshot, targetToken } = setScene({ distance: 100, detectionState: "blind" });
+
+  try {
+    targetToken.actor.statuses.add("narced");
+
+    const indirect = await resolveAttack({
+      actor,
+      payload: {
+        sourceType: "mechWeapon",
+        sourceId: "w-laser",
+        weaponId: "w-laser",
+        sourceTokenId: "attacker-token",
+        targetSnapshots: [targetSnapshot],
+        attackOptions: { losBlocked: true, indirectAttack: true },
+      },
+    });
+
+    assert.equal(indirect.attack.attackOptions.indirectAttack, true);
+    assert.equal(indirect.attack.ewContext.detectionState, "lock");
   } finally {
     clearScene();
   }

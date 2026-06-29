@@ -12,12 +12,12 @@ How it fits: Included by the layout-backed Gear sheet.
     </select>
   </div>
 
-  {{#if system.isCybernetic}}
-    <div class="form-group">
-      <label for="system.equipped">Equipped</label>
-      <input type="checkbox" name="system.equipped" {{checked system.equipped}} />
-    </div>
+  <div class="form-group">
+    <label for="system.equipped">Equipped</label>
+    <input type="checkbox" name="system.equipped" {{checked system.equipped}} />
+  </div>
 
+  {{#if system.isCybernetic}}
     <div class="form-group">
       <label for="system.activation">Activation</label>
       <select name="system.activation" data-dtype="String">

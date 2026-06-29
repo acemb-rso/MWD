@@ -1107,6 +1107,15 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
       mechanics: "Automated targeting-data packet on success.",
     }),
     buildEwAction({
+      id: "spotIndirect",
+      purpose: "Designate a visible target so allied units can fire indirectly without line of sight.",
+      targetMode: "any",
+      execution: "intent",
+      enabled: hasTargets,
+      reason: "Target a token before spotting for indirect fire.",
+      mechanics: "Automated on success: allied indirect-fire designation until the spotter's next turn.",
+    }),
+    buildEwAction({
       id: "ecmSpike",
       purpose: "Offensive EW: jam or disrupt a specific target.",
       targetMode: "any",

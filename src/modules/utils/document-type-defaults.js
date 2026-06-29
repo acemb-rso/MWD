@@ -517,11 +517,15 @@ const templateData = {
       quantity: 1,
       rating: 0,
       category: "",
+      equipped: false,
+      active: false,
+      activation: "passive",
       relatedSkill: "",
       availability: "",
       rulesHook: "",
       mount: { mountedOnItemId: "", mountType: "" },
-      tags: []
+      tags: [],
+      rules: []
     },
     consumable: {
       templates: ["inactive", "references"],

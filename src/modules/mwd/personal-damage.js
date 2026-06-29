@@ -115,6 +115,13 @@ const WEAPON_STANDARD_TRAIT_DEFS = Object.freeze({
     aliases: ["armorBypass", "armor-bypass", "armor bypass", "bypass"],
     resolve: () => ({ flags: ["armorBypass"] }),
   }),
+  dangerClose: Object.freeze({
+    key: "dangerClose",
+    label: "Danger Close",
+    rated: false,
+    aliases: ["dangerClose", "danger-close", "danger close", "minArm", "minimumArming", "arming"],
+    resolve: () => ({ flags: ["dangerClose"] }),
+  }),
 });
 
 const ARMOR_STANDARD_TRAIT_DEFS = Object.freeze({

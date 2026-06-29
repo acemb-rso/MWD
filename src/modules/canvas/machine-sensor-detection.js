@@ -3,7 +3,11 @@
 // Workflow: Foundry asks a detection mode about a target -> this module checks
 // EW state and observer context -> canvas overlays/rendering consume the answer.
 
-import { getAttackerCombatant, getDetectionState as getCombatantDetectionState } from "../mwd/machine-ew-state.js";
+import {
+  getAttackerCombatant,
+  getDetectionState as getCombatantDetectionState,
+  hasValidIndirectDesignation,
+} from "../mwd/machine-ew-state.js";
 import { DETECTION_STATE_ORDER } from "../mwd/machine-ew.js";
 import { isMachineActorType } from "../mwd/machine-monitors.js";
 import { getMechRangeBand } from "../mwd/personal-range-bands.js";
@@ -142,6 +146,26 @@ export function getDetectionState(observerToken = null, targetToken = null) {
   return getCombatantDetectionState(combatant, targetTokenUuid);
 }
 
+export function hasSensorDesignation(observerToken = null, targetToken = null) {
+  const observer = resolveToken(observerToken);
+  const target = resolveToken(targetToken);
+  if (!observer || !target) return false;
+  return hasValidIndirectDesignation(target, { attackerToken: observer, combat: globalThis.game?.combat ?? null });
+}
+
+function getDesignationAwarenessState(observerToken = null, targetToken = null) {
+  const target = resolveToken(targetToken);
+  const targetActor = getTokenActor(target);
+  if (hasStatus(targetActor, "tagged") || hasStatus(targetActor, "narced")) return "lock";
+  return hasSensorDesignation(observerToken, target) ? "contact" : "blind";
+}
+
+export function getSensorAwarenessState(observerToken = null, targetToken = null) {
+  const detectionState = getDetectionState(observerToken, targetToken);
+  if (SENSOR_DETECTION_STATES.includes(detectionState)) return detectionState;
+  return getDesignationAwarenessState(observerToken, targetToken);
+}
+
 export function canDetect(observerToken = null, targetToken = null) {
   const observer = resolveToken(observerToken);
   const target = resolveToken(targetToken);
@@ -152,7 +176,7 @@ export function canDetect(observerToken = null, targetToken = null) {
   if (getTokenDisposition(target) !== getHostileDisposition()) return false;
   if (observerSensorBlindBeyondClose(observer, target)) return false;
 
-  return SENSOR_DETECTION_STATES.includes(getDetectionState(observer, target));
+  return getSensorAwarenessState(observer, target) !== "blind";
 }
 
 export class MwdSensorDetectionMode extends getDetectionModeClass() {

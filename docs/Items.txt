@@ -225,7 +225,33 @@ Gear
 ----
 
 - Templates: `inactive`, `references`
-- No additional guaranteed schema beyond the shared templates
+- Fields:
+  - `quantity`
+  - `rating`
+  - `category`
+  - `equipped`
+  - `active`
+  - `activation`
+  - `relatedSkill`
+  - `availability`
+  - `rulesHook`
+  - `mount`
+  - `tags`
+  - `rules`
+- Gear may carry `system.rules[]` for personal-scale action availability,
+  cost, roll, or other rule contribution packets.
+- Personal `spotIndirect` is gated by equipped gear. A forward-observer kit can
+  unlock it with:
+
+```js
+{
+  id: "forward-observer-kit.spot",
+  label: "Forward Observer Kit",
+  phase: "actionAvailability",
+  selector: { actionIds: ["spotIndirect"] },
+  outputs: [{ type: "actionAvailability", actionId: "spotIndirect", enabled: true }]
+}
+```
 
 Contact
 -------

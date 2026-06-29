@@ -6,7 +6,7 @@
 import {
   canDetect,
   compareDetectionState,
-  getDetectionState,
+  getSensorAwarenessState,
   requestSensorPerceptionRefresh,
 } from "./machine-sensor-detection.js";
 
@@ -230,7 +230,7 @@ export function getSensorOverlayModel(observerTokens = [], targetToken = null) {
     if (observerToken === targetToken) continue;
     if (!canDetect(observerToken, targetToken)) continue;
 
-    const state = getDetectionState(observerToken, targetToken);
+    const state = getSensorAwarenessState(observerToken, targetToken);
     if (!selectedState || compareDetectionState(state, selectedState) > 0) {
       selectedState = state;
     }

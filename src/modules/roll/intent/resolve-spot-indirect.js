@@ -20,6 +20,10 @@ function isMachineActor(actor) {
   return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
 }
 
+function isPersonalActor(actor) {
+  return actor?.type === TEMPLATE.actorTypes.character || actor?.type === TEMPLATE.actorTypes.npc;
+}
+
 function resolveTargetToken(payload) {
   const explicitUuid = String(payload?.targetTokenUuid ?? "").trim();
   if (explicitUuid) {
@@ -52,10 +56,12 @@ function withOwner(label = "", actor = null) {
 
 export async function resolveSpotIndirect({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveSpotIndirect requires actor");
-  if (!isMachineActor(actor)) {
+  const machineRoll = isMachineActor(actor);
+  const personalRoll = !machineRoll && isPersonalActor(actor) && Boolean(payload?.personalSpotter);
+  if (!machineRoll && !personalRoll) {
     throw createUserFacingRollError("Spot for Indirect Fire is a machine action.", { severity: "warn" });
   }
-  if (isMachineSensorActionBlocked(actor)) {
+  if (machineRoll && isMachineSensorActionBlocked(actor)) {
     throw createUserFacingRollError("Sensor actions are blocked by the machine's current state.", { severity: "warn" });
   }
 
@@ -74,15 +80,18 @@ export async function resolveSpotIndirect({ actor, payload } = {}) {
   const targetName = getTokenDisplayName(targetToken);
   const attackerToken = resolveAttackerToken(actor, payload);
 
-  const operator = await resolveMachineOperator({
-    machineActor: actor,
-    operatorActorUuid: String(payload?.operatorActorUuid ?? "").trim(),
-  });
+  const operator = machineRoll
+    ? await resolveMachineOperator({
+      machineActor: actor,
+      operatorActorUuid: String(payload?.operatorActorUuid ?? "").trim(),
+    })
+    : { actor, source: "self" };
   const roller = operator.actor ?? actor;
 
-  const attrKey    = "system";
+  const attrKey    = machineRoll ? "system" : String(payload?.attrKey ?? "intelligence").trim() || "intelligence";
   const skillKey   = "perception";
-  const systemAttr = Math.max(0, Number(actor?.system?.attributes?.[attrKey]?.value ?? 0) || 0);
+  const attributeActor = machineRoll ? actor : roller;
+  const systemAttr = Math.max(0, Number(attributeActor?.getAttributeValue?.(attrKey) ?? attributeActor?.system?.attributes?.[attrKey]?.value ?? 0) || 0);
   const skillDef   = getSkillDef("perception");
   const perceptionRating = Number(roller?.system?.skills?.[skillKey]?.rating ?? 0) || 0;
   const perceptionBonus  = Number(roller?.system?.skills?.[skillKey]?.bonus  ?? 0) || 0;
@@ -127,7 +136,7 @@ export async function resolveSpotIndirect({ actor, payload } = {}) {
       specialization: 0,
     },
     breakdown: [
-      { id: "attribute", label: withOwner("System", actor), value: systemAttr },
+      { id: "attribute", label: withOwner(machineRoll ? "System" : "Intelligence", attributeActor), value: systemAttr },
       { id: "skill", label: withOwner(skillDef?.label ?? "Perception", operator.actor), value: perceptionRating },
       ...(perceptionBonus ? [{ id: "bonus", label: "Perception Bonus", value: perceptionBonus }] : []),
     ],
@@ -135,14 +144,15 @@ export async function resolveSpotIndirect({ actor, payload } = {}) {
     data: {
       skillKey,
       attrKey,
-      machineActorUuid: actor.uuid ?? "",
+      machineActorUuid: machineRoll ? actor.uuid ?? "" : "",
       operatorActorUuid: operator.actor?.uuid ?? "",
       label: `${attrKey}+${skillDef?.label ?? "Perception"}`,
     },
     spotIndirect: {
-      machineActorUuid:   actor.uuid ?? "",
+      machineActorUuid:   machineRoll ? actor.uuid ?? "" : "",
       operatorActorUuid:  operator.actor?.uuid ?? "",
       operatorName:       operator.actor?.name ?? "",
+      personalSpotter:    personalRoll,
       attackerTokenId:    attackerToken?.id ?? attackerToken?.document?.id ?? "",
       attackerTokenUuid:  attackerToken?.document?.uuid ?? attackerToken?.uuid ?? "",
       targetTokenUuid,
@@ -150,6 +160,6 @@ export async function resolveSpotIndirect({ actor, payload } = {}) {
       targetName,
     },
     rollActor: roller,
-    machineActor: actor,
+    machineActor: machineRoll ? actor : null,
   };
 }

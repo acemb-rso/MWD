@@ -105,6 +105,10 @@ function makeActor() {
       attributes: {
         reflexes: { value: 4 },
         guts: { value: 4 },
+        intelligence: { value: 3 },
+      },
+      skills: {
+        perception: { rating: 2, bonus: 0 },
       },
       burn: { value: 6, overloaded: false },
     },
@@ -210,6 +214,88 @@ test("Prepare prompts for metadata and applies action state through the executor
     assert.deepEqual(states[0]?.metadata, { condition: "when attacked", scope: "shoot back" });
   } finally {
     PersonalCombatTracker.getSnapshot = original.getSnapshot;
+    PersonalCombatTracker.spendResource = original.spendResource;
+    PersonalCombatTracker._applyActionState = original.applyActionState;
+  }
+});
+
+test("Spot for Indirect Fire is gated by equipped gear rules", async () => {
+  const {
+    executeCombatActionIntent,
+    PersonalCombatTracker,
+  } = await importModules();
+  const actor = makeActor();
+  const snapshot = makeSnapshot();
+  const original = {
+    getSnapshot: PersonalCombatTracker.getSnapshot,
+    previewResourceSpend: PersonalCombatTracker.previewResourceSpend,
+    spendResource: PersonalCombatTracker.spendResource,
+    applyActionState: PersonalCombatTracker._applyActionState,
+  };
+  const rolls = [];
+  const spends = [];
+  const states = [];
+  const targetToken = {
+    id: "target-token",
+    uuid: "Scene.scene-1.Token.target-token",
+    name: "Target",
+    actor: { id: "target-actor", name: "Target", statuses: new Set(), system: {} },
+    document: { id: "target-token", uuid: "Scene.scene-1.Token.target-token", name: "Target" },
+  };
+  globalThis.game.user.targets = new Set([targetToken]);
+  globalThis.game.mwd.roll.execute = async request => {
+    rolls.push(request);
+    return { ok: true, resolved: { intent: "spotIndirect" } };
+  };
+  PersonalCombatTracker.getSnapshot = () => snapshot;
+  PersonalCombatTracker.previewResourceSpend = () => ({ ok: true });
+  PersonalCombatTracker.spendResource = async (_actor, request) => {
+    spends.push(request);
+    return { ok: true, costPaid: true, costLabel: request.actionCostLabel ?? "", snapshot };
+  };
+  PersonalCombatTracker._applyActionState = async (_actor, request) => {
+    states.push(request);
+    return { ok: true };
+  };
+
+  try {
+    const blocked = await executeCombatActionIntent({ actor, payload: { intent: "combatAction", actionId: "spotIndirect" } });
+    assert.equal(blocked.ok, false);
+    assert.equal(blocked.reason, "Requires equipped spotting gear.");
+    assert.equal(rolls.length, 0);
+
+    actor.items.set("spotter-kit", {
+      id: "spotter-kit",
+      uuid: "Actor.actor-1.Item.spotter-kit",
+      name: "Forward Observer Kit",
+      type: "gear",
+      canonicalType: "gear",
+      system: {
+        equipped: true,
+        quantity: 1,
+        tags: ["spotter"],
+        rules: [{
+          id: "spotter-kit.action",
+          label: "Spotter Kit",
+          phase: "actionAvailability",
+          selector: { actionIds: ["spotIndirect"] },
+          outputs: [{ type: "actionAvailability", actionId: "spotIndirect", enabled: true }],
+        }],
+      },
+    });
+
+    const allowed = await executeCombatActionIntent({ actor, payload: { intent: "combatAction", actionId: "spotIndirect" } });
+    assert.equal(allowed.ok, true);
+    assert.equal(rolls.length, 1);
+    assert.equal(rolls[0].payload.intent, "spotIndirect");
+    assert.equal(rolls[0].payload.personalSpotter, true);
+    assert.equal(rolls[0].payload.targetTokenUuid, "Scene.scene-1.Token.target-token");
+    assert.equal(spends[0].actionId, "spotIndirect");
+    assert.equal(spends[0].cost, 2);
+    assert.equal(states[0].actionId, "spotIndirect");
+  } finally {
+    PersonalCombatTracker.getSnapshot = original.getSnapshot;
+    PersonalCombatTracker.previewResourceSpend = original.previewResourceSpend;
     PersonalCombatTracker.spendResource = original.spendResource;
     PersonalCombatTracker._applyActionState = original.applyActionState;
   }

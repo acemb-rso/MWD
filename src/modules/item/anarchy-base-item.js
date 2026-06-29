@@ -60,6 +60,7 @@ import {
   resolveWeaponPayloadState,
 } from "../mwd/personal-damage.js";
 import { getAssetModuleState, normalizeAssetModuleSystem } from "../mwd/asset-module-rules.js";
+import { normalizeCarrier } from "../mwd/rules.js";
 import {
   createCapabilityMigrationReport,
   normalizeWeaponCapabilityState,
@@ -782,7 +783,13 @@ export class MWDItem extends Item {
       changed.system.relatedSkill = normalizeGearText(nextSystem.relatedSkill);
       changed.system.availability = normalizeGearText(nextSystem.availability);
       changed.system.rulesHook = normalizeGearText(nextSystem.rulesHook);
-      if (this.isGear()) changed.system.mount = normalizeItemMount(nextSystem.mount);
+      changed.system.rules = normalizeCarrier(nextSystem).rules;
+      if (this.isGear()) {
+        if (Object.prototype.hasOwnProperty.call(nextSystem, "equipped")) changed.system.equipped = Boolean(nextSystem.equipped);
+        if (Object.prototype.hasOwnProperty.call(nextSystem, "active")) changed.system.active = Boolean(nextSystem.active);
+        if (Object.prototype.hasOwnProperty.call(nextSystem, "activation")) changed.system.activation = normalizeGearText(nextSystem.activation) || "passive";
+        changed.system.mount = normalizeItemMount(nextSystem.mount);
+      }
       changed.system.tags = normalizeGearTags(nextSystem.tags);
       if (this.isGear() && isCyberneticGearSystem(nextSystem)) {
         const normalized = normalizeCyberneticGearSystem({
@@ -961,7 +968,13 @@ export class MWDItem extends Item {
     system.relatedSkill = normalizeGearText(system.relatedSkill);
     system.availability = normalizeGearText(system.availability);
     system.rulesHook = normalizeGearText(system.rulesHook);
-    if (this.isGear()) system.mount = normalizeItemMount(system.mount);
+    system.rules = normalizeCarrier(system).rules;
+    if (this.isGear()) {
+      system.equipped = Boolean(system.equipped);
+      system.active = Boolean(system.active);
+      system.activation = normalizeGearText(system.activation) || "passive";
+      system.mount = normalizeItemMount(system.mount);
+    }
     system.tags = normalizeGearTags(system.tags);
     if (this.isGear() && isCyberneticGearSystem(system)) {
       const normalized = normalizeCyberneticGearSystem(system);

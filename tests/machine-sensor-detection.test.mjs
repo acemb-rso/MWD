@@ -28,6 +28,7 @@ function token({
   disposition = -1,
   statuses = [],
 } = {}) {
+  const flags = {};
   return {
     id,
     actor: actor(type, { statuses }),
@@ -36,7 +37,15 @@ function token({
       id,
       uuid,
       disposition,
+      parent: { uuid: "Scene.scene" },
       actor: null,
+      getFlag(scope, key) {
+        return flags[`${scope}.${key}`];
+      },
+      async setFlag(scope, key, value) {
+        flags[`${scope}.${key}`] = value;
+        return this;
+      },
     },
   };
 }
@@ -137,6 +146,73 @@ test("MWD sensor detection only allows hostile machine targets with contact, tra
     assert.equal(canDetect(observer, friendlyMech), false);
     assert.equal(canDetect(observer, hostileCharacter), false);
     assert.equal(canDetect(observer, neutralMech), false);
+  } finally {
+    cleanupGlobals();
+  }
+});
+
+test("valid indirect designations create selectable sensor awareness without EW contact", async () => {
+  const {
+    canDetect,
+    getDetectionState,
+    getSensorAwarenessState,
+  } = await import("../src/modules/canvas/machine-sensor-detection.js");
+  const {
+    refreshSensorOverlays,
+  } = await import("../src/modules/canvas/machine-sensor-overlays.js");
+  const observer = token({ id: "observer", type: "battlemech", disposition: 1 });
+  const target = token({ id: "target", type: "battlemech", disposition: -1 });
+
+  await target.document.setFlag("mwd", "spotting", {
+    spots: {
+      "Scene.scene.Token.spotter": {
+        spotKey: "Scene.scene.Token.spotter",
+        sceneUuid: "Scene.scene",
+        targetTokenUuid: target.document.uuid,
+        spotterTokenUuid: "Scene.scene.Token.spotter",
+        spotterDisposition: 1,
+        allegiance: "ally",
+        source: "spotIndirect",
+        round: 1,
+      },
+    },
+  });
+
+  installCombat([
+    combatant({ tokenId: observer.id, targeting: { [target.document.uuid]: { detectionState: "blind" } } }),
+  ]);
+  installCanvasDistance(30);
+
+  try {
+    assert.equal(getDetectionState(observer, target), "blind");
+    assert.equal(getSensorAwarenessState(observer, target), "contact");
+    assert.equal(canDetect(observer, target), true);
+
+    refreshSensorOverlays({ observerTokens: [observer], targetTokens: [target] });
+    assert.equal(target._mwdSensorOverlayModel.state, "contact");
+  } finally {
+    cleanupGlobals();
+  }
+});
+
+test("TAG/NARC designations create lock-level sensor awareness without rewriting EW state", async () => {
+  const {
+    canDetect,
+    getDetectionState,
+    getSensorAwarenessState,
+  } = await import("../src/modules/canvas/machine-sensor-detection.js");
+  const observer = token({ id: "observer", type: "battlemech", disposition: 1 });
+  const target = token({ id: "target", type: "battlemech", disposition: -1, statuses: ["tagged"] });
+
+  installCombat([
+    combatant({ tokenId: observer.id, targeting: { [target.document.uuid]: { detectionState: "blind" } } }),
+  ]);
+  installCanvasDistance(30);
+
+  try {
+    assert.equal(getDetectionState(observer, target), "blind");
+    assert.equal(getSensorAwarenessState(observer, target), "lock");
+    assert.equal(canDetect(observer, target), true);
   } finally {
     cleanupGlobals();
   }

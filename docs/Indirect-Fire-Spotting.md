@@ -32,8 +32,14 @@ A plain skill roll must not be as strong as dedicated designation gear, so `spot
 
 - **`spotIndirect`** — "Spot for Indirect Fire". Complex action, **2 SA**, resolver
   `targeting`, attribute **System**, skill **Perception**, prompts for a target.
-- **Roll:** System + Perception vs **DN 2**, plus the same sensing penalties Acquire uses
+- **Personal `spotIndirect`** - character/NPC combat action, Complex action, **2 SA**,
+  resolver `targeting`, attribute **Intelligence**, skill **Perception**, prompts for
+  a target. This action is disabled unless equipped gear contributes an
+  `actionAvailability` rule for `spotIndirect`.
+- **Machine roll:** System + Perception vs **DN 2**, plus the same sensing penalties Acquire uses
   (ECM-shroud via `getAcquireDnModifier`, stealth/obscured via `getStealthDnParts`).
+- **Personal roll:** Intelligence + Perception vs **DN 2**, with the same target-side
+  ECM/stealth DN modifiers.
   Spotting is independent of detection state — a spotter only needs to see the target.
 - **Line of sight:** V1 uses Foundry token **visibility / targetability** as the LoS
   proxy. This is **not** geometric wall/path LoS — the system does not compute that.
@@ -68,6 +74,31 @@ disposition-comparison pattern from `area-status-sources.js`
 (`sameDisposition = sourceDoc.disposition === targetDoc.disposition`) and the
 `["ally","enemy","any"]` vocabulary. Ordinary spotting therefore does **not** hand the
 enemy free fire correction. TAG/NARC remain globally readable.
+
+## Infantry spotter gear
+
+Infantry spotting is equipment-gated. A character does not become a forward
+observer just by having Perception; they need an owned, equipped gear item with a
+rules-native unlock packet. Minimal example:
+
+```js
+{
+  id: "forward-observer-kit.spot",
+  label: "Forward Observer Kit",
+  phase: "actionAvailability",
+  selector: { actionIds: ["spotIndirect"] },
+  requires: [{ fact: "gear.equipped", op: "eq", value: true }],
+  outputs: [{
+    type: "actionAvailability",
+    actionId: "spotIndirect",
+    enabled: true
+  }]
+}
+```
+
+The personal action uses the same `spotIndirect` roll/execution lane as machine
+spotting. On success it writes the same token-scoped `spotted` marker, with the
+same duration, allegiance, and no-Lock/no-TargetingData limits.
 
 ## Duration / expiry
 
@@ -122,6 +153,7 @@ A new spotter adds a keyed entry; the same spotter re-spotting refreshes its ent
 | Roll resolver | `roll/intent/resolve-spot-indirect.js` (registered in `roll/intent/resolve-intent.js`) |
 | Post-roll execution | `roll/ew-execution.js` `resolveSpotIndirectExecution` (dispatched in `roll/mwd-roll.js`) |
 | Action catalog + executor | `mwd/machine-action-catalog.js`, `mwd/machine-quick-actions.js` |
+| Personal action gate | `combat/personal-action-catalog.js`, `combat/personal-combat-actions.js`, `combat/personal-action-rules.js` |
 | Chat card | `roll/renderers/render-spot-indirect.js` (registered in `roll/renderers/render-chat.js`) |
 
 ## Tests

@@ -88,6 +88,8 @@ existing Burn/Edge reaction fallback rules.
 
 * Attack
 * Suppression Fire, visible stub until suppression resolver exists
+* Spot for Indirect Fire, gated by equipped gear with an `actionAvailability`
+  rule for `spotIndirect`
 * First Aid
 * Use Complex Skill
 * Use Untrained Complex Skill, tag-only in V1
