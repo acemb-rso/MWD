@@ -1,6 +1,23 @@
 ﻿// src/modules/sheets/vehicle-sheet-v2.js
-// Purpose: Layout-driven AppV2 vehicle sheet that prepares semantic view models for dumb templates.
-// How it fits: Serves as the base vehicle-scale V2 sheet and the reuse target for BattleMech sheets.
+/**
+ * @pipeline ui-emitter
+ * @role Layout-driven AppV2 vehicle sheet, and the base/reuse target for the
+ *   BattleMech sheet. Assembles semantic view-models (monitors, hardpoints, EW
+ *   panel, degradation/movement summaries) from prepared actor data for "dumb"
+ *   templates, and wires clickable controls to intent payloads. Highest fan-out
+ *   sheet (~30 imports) because it composes many machine subsystems for display.
+ * @invariants
+ *   - INVARIANT(boundary): the sheet is a paper puppet (Design Principles §5). It
+ *     displays state and emits intent; it must not compute dice pools, apply
+ *     modifiers, or decide outcomes — those live in resolvers/execution (§1.1).
+ *   - Every clickable control maps to exactly one intent/payload routed through
+ *     the engine (game.mwd.roll / action services); no local rule enforcement (§8.2, §12.2).
+ *   - View-models read already-normalized data; the sheet does not persist derived
+ *     mechanics back into the actor (§6.1).
+ * @downstream config.js/constants.js (labels), machine-* helpers (view-model builders),
+ *   token-status-dialog.js, layout-registry.js
+ * @subclass battlemech-sheet-v2.js extends this
+ */
 
 import { MWD } from "../core/config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../core/constants.js";

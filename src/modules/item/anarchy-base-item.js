@@ -1,6 +1,22 @@
 ﻿// src/modules/item/anarchy-base-item.js
-// Purpose: Registers Foundry hooks: createItem, updateItem, deleteItem. References legacy Anarchy system behavior.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+/**
+ * @pipeline shared
+ * @role Base Item document class (MWDItem) and the common item lifecycle. Owns
+ *   create/update/delete hooks and the per-type normalization of item system data
+ *   (traits, ranges, life modules, machine weapon/armor fields). The shared model
+ *   layer every item type and sheet builds on; high fan-out (~16).
+ * @invariants
+ *   - INVARIANT(normalize): normalization runs at prep/update time so stored data
+ *     stays simple and canonical — derived mechanics are not baked into the schema
+ *     (Design Principles §6.1). Keep normalizers idempotent.
+ *   - INVARIANT(boundary): the item is a data/model document. It normalizes and
+ *     describes; it does not assemble dice pools or resolve rolls — resolvers read
+ *     these normalized facts (§1.2, §3.1).
+ *   - One canonical shape per item concept; subclasses (weapon-item, etc.) extend
+ *     this rather than forking parallel item models (§6.2).
+ * @downstream constants.js/config.js, traits.js, personal-range-bands.js, life-modules.js, machine-weapon-types.js
+ * @subclass weapon-item.js and the other item/*-item.js types extend this
+ */
 
 
 import { LOG_HEAD, SYSTEM_NAME, TEMPLATE } from "../core/constants.js";

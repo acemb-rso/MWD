@@ -1,5 +1,22 @@
 ﻿// src/modules/sheets/character-sheet-v2.js
-
+/**
+ * @pipeline ui-emitter
+ * @role Player-facing character sheet (extends BaseActorSheetV2). Builds
+ *   view-models for skills, attributes, edge pools, life modules, advancement,
+ *   and combat awareness from prepared actor data, and emits roll/purchase intent
+ *   from its controls.
+ * @invariants
+ *   - INVARIANT(boundary): paper puppet (Design Principles §5, §1.1). It displays
+ *     skill/edge/advancement state and emits intent; pools and outcomes are
+ *     computed by the resolvers/execution, never here.
+ *   - Advancement previews (previewPurchase/evaluateBuild) are shown by the sheet
+ *     but committed through the advancement service — the sheet hints, it does not
+ *     enforce legality (§8.2).
+ *   - Reads normalized skill/life-module data from their canonical sources; does
+ *     not redefine that data locally (§6.2).
+ * @extends   base-actor-sheet-v2.js
+ * @downstream skills.js, life-modules.js, character-advancement.js, roll engine
+ */
 
 import { TEMPLATES_PATH, SYSTEM_NAME, EDGE_POOL_GROUPS } from "../core/constants.js";
 import { MWD } from "../core/config.js";

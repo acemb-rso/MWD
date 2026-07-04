@@ -1,7 +1,22 @@
 ﻿// src/modules/mwd/machine-quick-actions.js
-// Purpose: Executes shared machine quick checks for piloting, EW, and critical repair.
-// Workflow: sheet quick-action click -> request normalization/GM routing ->
-// movement, attack, EW, or remedy service emits the canonical roll/action intent.
+/**
+ * @pipeline ui-emitter
+ * @role Machine quick-action dispatcher. Takes a sheet quick-action (piloting,
+ *   movement, ranged/melee/charge attack, EW, critical repair), normalizes the
+ *   request, handles GM routing over the socket, and hands off to the matching
+ *   action service which emits the canonical roll/action intent. High fan-out (~23).
+ * @invariants
+ *   - INVARIANT(boundary): this is a dispatcher, not a rules engine. It routes
+ *     clicks to services and the roll engine; it must not compute pools or resolve
+ *     outcomes locally (Design Principles §1.1, §5). Every action maps to one intent.
+ *   - INVARIANT(canonical): quick actions funnel into the same roll/action pipeline
+ *     as everywhere else (game.mwd.roll / action services) — no parallel execution
+ *     path for the "quick" buttons (§2.3, §4.2).
+ *   - GM-only effects go through the socket request/response contract, not by
+ *     assuming client authority (§8, §14).
+ * @upstream   battlemech-sheet-v2.js / vehicle-sheet-v2.js (quick-action controls)
+ * @downstream battlemech-*-actions.js, vehicle-*-actions.js, machine-ew-panel.js, machine-operator.js, roll engine
+ */
 
 import { MWD } from "../core/config.js";
 import { SYSTEM_SOCKET, TEMPLATE } from "../core/constants.js";

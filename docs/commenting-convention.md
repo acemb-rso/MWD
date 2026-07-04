@@ -137,6 +137,13 @@ state hubs:
 | `core/config.js` | `data` |
 | `mwd/skills.js` | `data` |
 | `combat/personal-combat-tracker.js` | `shared` |
+| `sheets/vehicle-sheet-v2.js` | `ui-emitter` |
+| `sheets/battlemech-sheet-v2.js` | `ui-emitter` |
+| `sheets/character-sheet-v2.js` | `ui-emitter` |
+| `mwd/machine-quick-actions.js` | `ui-emitter` |
+| `item/anarchy-base-item.js` | `shared` |
+| `item/weapon-item.js` | `shared` |
+| `mwd/machine-operator.js` | `shared` |
 
 When you add a header to a new high-importance file, add a row here so this table
 stays the index of what's covered.

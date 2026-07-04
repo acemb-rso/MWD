@@ -1,7 +1,19 @@
 ﻿// src/modules/sheets/battlemech-sheet-v2.js
-// Purpose: Player-facing BattleMech sheet for loadout, heat, movement, and quick actions.
-// Workflow: actor preparation -> this sheet assembles BattleMech view models ->
-// template rendering and V2 action handlers dispatch user intent to services.
+/**
+ * @pipeline ui-emitter
+ * @role Player-facing BattleMech sheet (extends VehicleSheetV2). Assembles
+ *   BattleMech view-models — loadout, heat, movement, melee/ranged/charge and
+ *   quick actions — from prepared actor data, and dispatches user intent to the
+ *   engine and machine action services.
+ * @invariants
+ *   - INVARIANT(boundary): paper puppet (Design Principles §5, §1.1). Heat models,
+ *     movement effects, and attack groups are *built for display* here; the
+ *     mechanics that produce them live in machine-* services and the roll engine.
+ *   - Each action control maps to one intent/payload; the sheet routes to
+ *     services (quick-actions, roll engine), it does not enforce rules (§8.2, §12.2).
+ * @extends   vehicle-sheet-v2.js
+ * @downstream machine-heat.js, battlemech-*-actions.js, machine-quick-actions.js, roll engine
+ */
 
 import { MWD } from "../core/config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../core/constants.js";
