@@ -1,12 +1,19 @@
-// src/modules/constants.js
-// Purpose: References legacy Anarchy system behavior.
-// How it fits: Describes role within src/modules or template rendering pipeline.
-
-
+// src/modules/core/constants.js
 /**
- * The constants file contains things that do not change
- *
- * Constants are written in ALL_CAPS_CONSTANTS and should never be changed during runtime.
+ * @pipeline data
+ * @role Canonical, immutable constants for the whole system: system identifiers
+ *   and paths, the TEMPLATE data shapes, MONITOR_DEFS, attribute keys, and roll
+ *   thresholds (TARGET_SUCCESS, etc). Highest fan-in file in the codebase
+ *   (~113 importers) precisely because it is a pure leaf: depended on by
+ *   everything, depends on nothing.
+ * @invariants
+ *   - INVARIANT(canonical): one definition per concept lives here (§6.2, §11).
+ *     Do not fork a second copy of TEMPLATE/MONITOR_DEFS or a magic threshold
+ *     elsewhere — import it from here so there is a single source of truth.
+ *   - Values are declarative data, never behavior: ALL_CAPS, frozen at load, and
+ *     never mutated at runtime (Design Principles §3.1).
+ *   - Keep this a leaf: it must not import from resolver/execution/UI modules,
+ *     or it stops being a safe universal dependency.
  */
 export const SYSTEM_NAME = 'mwd';
 export const SYSTEM_DESCRIPTION = "MechWarrior: Destiny";

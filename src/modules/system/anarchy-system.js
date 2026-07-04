@@ -1,6 +1,20 @@
-// src/modules/anarchy-system.js
-// Purpose: Registers Foundry hooks: init, ready. Registers custom actor/item sheets. Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+// src/modules/system/anarchy-system.js
+/**
+ * @pipeline shared
+ * @role System bootstrap. On Foundry `init`/`ready` it wires the whole system
+ *   together: registers document classes, AppV2 sheets, Handlebars templates,
+ *   settings, hooks, chat actions, and the modifier providers the engine
+ *   consumes. Highest fan-out file in the codebase (~54 local imports) because
+ *   it is the single assembly point — not because it holds mechanics.
+ * @invariants
+ *   - INVARIANT(boundary): wiring only. This file registers and connects; it
+ *     never computes dice pools, applies modifiers, or resolves outcomes.
+ *     Mechanics belong in resolvers/providers/execution (Design Principles §1).
+ *   - Provider registration order here defines the modifier collection order the
+ *     engine later relies on; treat it as part of the contract, not incidental.
+ * @downstream mwd-roll.js (execution API it exposes on game.mwd),
+ *   register-*-sheets-v2.js (UI it mounts), modifiers/providers/* (registers)
+ */
 
 
 import { MWD } from '../core/config.js';

@@ -1,9 +1,19 @@
 // src/modules/roll/renderers/render-chat.js
-// Purpose: Renders Handlebars templates at runtime.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+/**
+ * @pipeline ui-emitter
+ * @role Chat renderer. Builds the base card view-model from the resolved payload,
+ *   then applies the per-intent enhancer (skill/attack/net/opposed/…) via the
+ *   ENHANCERS registry to produce the final chat card. Final step (8) of execute().
+ * @invariants
+ *   - INVARIANT(boundary): chat is a stateless view. This renders already-resolved
+ *     data — it must not compute pools, apply modifiers, or decide outcomes.
+ *     Buttons on the card emit new intents; they never re-run logic (§1.3, §5).
+ *   - INVARIANT(canonical): a new intent gets rendered by adding an ENHANCERS
+ *     entry — presentation is data entry, not a new pipeline (§2.2, §4.2).
+ * @upstream   build-resolved.js (the model), mwd-roll.js execute() (step 8)
+ * @downstream render-skill/attack/net/opposed/… (per-intent card enhancers)
+ */
 
-
-// modules/roll/renderers/render-chat.js
 import { enhanceSkill } from "./render-skill.js";
 import { enhanceAttack } from "./render-attack.js";
 import { enhanceNet } from "./render-net.js";

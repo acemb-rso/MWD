@@ -1,9 +1,22 @@
 // src/modules/roll/collect-modifiers.js
-// Purpose: Defines function `coerceNumber`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
-
-
-// modules/roll/collect-modifiers.js
+/**
+ * @pipeline execution
+ * @role Modifier collection stage. Runs every registered modifier provider
+ *   against the RollContext, coerces/normalizes each contribution into a safe
+ *   { label, value, source } part, and returns the additive modifier list the
+ *   roll totals are built from. Executed at steps 2/4 of execute() (§10).
+ * @invariants
+ *   - INVARIANT(order): collection happens before the dice are rolled and is
+ *     re-run as a final pass after the dialog, so late player choices are
+ *     included. Never collect modifiers after the roll (§10, steps 2/3.5/4).
+ *   - Modifiers are additive, inspectable parts — never hidden mutations of the
+ *     pool (Design Principles §3.2, §9). Invalid/blank values coerce to 0 or are
+ *     dropped, not silently guessed.
+ *   - Rules live in the providers, not here: this file orchestrates collection;
+ *     it does not encode any specific modifier's logic (§4.1).
+ * @upstream   mwd-roll.js execute() (steps 2, 3.5, 4)
+ * @downstream modifiers/index.js → provider-registry.js (the providers it runs)
+ */
 import { modifierProviders } from "../modifiers/index.js";
 
 /** Convert arbitrary provider value to a safe finite number (or null if invalid) */

@@ -1,6 +1,22 @@
 ﻿// src/modules/roll/attack-resolution.js
-// Purpose: Resolves personal attacks into per-target CQ/outcome/damage data.
-// How it fits: Extends the main roll execution pipeline without creating a parallel combat path.
+/**
+ * @pipeline context
+ * @role Canonical AttackResolution. Given a resolved attack context and the roll
+ *   outcome, produces the per-target CQ / outcome / hit-location / damage data
+ *   that is the one true representation of an attack's result (Design Principles §6.2).
+ *   Handles exposure/area-effect scaling, clustering, machine hit locations,
+ *   criticals-severity and trait/status CQ adjustments.
+ * @invariants
+ *   - INVARIANT(canonical): AttackResolution is the single shape for attack
+ *     results. Do not introduce a parallel combat resolution path (§2.3, §6.2).
+ *   - INVARIANT(order): consumes an already-rolled outcome and derives damage
+ *     from it. It runs at step "resolve outcome → apply damage"; it does not
+ *     roll the attack dice itself (§10, steps 7–8).
+ *   - Operates on additive, inspectable parts (CQ adjustments, exposure scaling),
+ *     never on hardcoded per-weapon special cases (§3.2, §3.3).
+ * @upstream   mwd-roll.js execute() → resolveAttackExecution
+ * @downstream harm-engine.js (applies the damage this produces)
+ */
 
 import { HarmEngine } from "../harm/harm-engine.js";
 import { TEMPLATE } from "../core/constants.js";

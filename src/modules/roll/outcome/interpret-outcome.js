@@ -1,7 +1,22 @@
 // src/modules/roll/outcome/interpret-outcome.js
-// Purpose: Defines function `interpretOutcome`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
-
+/**
+ * @pipeline execution
+ * @role Outcome interpreter. Given the RollContext and the rolled dice result,
+ *   dispatches on ctx.rollType (simple / opposed / net / extended) to produce one
+ *   normalized Outcome (passed, successes, difficulty/opposed/net/extended,
+ *   edgeEarned). Step 6.5 of execute() (§10).
+ * @invariants
+ *   - INVARIANT(canonical): every roll type converges on the single Outcome
+ *     shape here; interpretation branches by rollType, not by bespoke per-feature
+ *     code paths (Design Principles §2.2, §11 — one meaning per mechanic).
+ *   - INVARIANT(order): runs after the dice are rolled (step 6) and before the
+ *     resolved payload is built (step 7). It reads the roll result; it never
+ *     rolls or mutates the pool.
+ *   - Interpretation only — success thresholds come from constants/context; do
+ *     not hardcode difficulty here (§3.3, §11).
+ * @upstream   mwd-roll.js execute() (step 6.5)
+ * @downstream interpret-simple/opposed/net/extended.js (per-rollType interpreters)
+ */
 
 import { interpretSimpleOutcome } from "./interpret-simple.js";
 import { interpretOpposedOutcome } from "./interpret-opposed.js";

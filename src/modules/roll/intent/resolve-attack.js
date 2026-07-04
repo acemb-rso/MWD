@@ -1,6 +1,21 @@
 ﻿// src/modules/roll/intent/resolve-attack.js
-// Purpose: Defines function `getTargets`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+/**
+ * @pipeline resolver
+ * @role Attack resolver. Turns an attack intent into a RollContext: selects the
+ *   weapon/skill, computes range band + base DN, folds in machine fire-control,
+ *   clustering, motion, melee, targeting/EW and area-effect context. Assembles
+ *   the *parts* (dice/DN/CQ) declaratively; it does not roll or apply damage.
+ * @invariants
+ *   - INVARIANT(boundary): produces context parts only. Dice are not rolled and
+ *     damage is not applied here — that is execution's job (Design Principles §1.2, §10).
+ *   - INVARIANT(normalize): derives range band, restrictions and modifiers at
+ *     resolve time from live state; it does not read pre-persisted results (§6.1).
+ *   - Legality gates (e.g. detection/indirect designation) must respect the
+ *     `preview` flag so pre-dialog resolves don't throw before the player can
+ *     satisfy them in the dialog (§8, mirrors resolve-intent preview contract).
+ * @upstream   resolve-intent.js (RESOLVERS.attack)
+ * @downstream attack-resolution.js (executes the attack this context describes)
+ */
 
 
 import {

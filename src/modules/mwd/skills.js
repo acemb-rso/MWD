@@ -1,8 +1,21 @@
 ﻿// src/modules/mwd/skills.js
-// Purpose: Canonical MWD skill catalog and specialization metadata.
-// Workflow: system config and actor prep read skill definitions -> sheets and
-// roll builders use normalized labels, attributes, icons, and domains.
-
+/**
+ * @pipeline data
+ * @role Canonical MWD skill catalog and specialization metadata. The single
+ *   source for skill definitions (code, label, attribute, icon, defense hint,
+ *   domains, specializations) plus the normalize/lookup helpers over them.
+ *   System config and actor prep read these; sheets and roll builders consume
+ *   the normalized labels/attributes/domains. High fan-in (~17).
+ * @invariants
+ *   - INVARIANT(canonical): MWD_SKILLS is the one skill list. Sheets, resolvers,
+ *     and advancement must read skill facts from here, not redefine them (§6.2, §11).
+ *   - Data describes, it does not execute: entries are declarative; a skill's
+ *     roll behavior is assembled by the resolver from these facts, not baked in
+ *     as logic here (Design Principles §3.1, §3.2).
+ *   - Skill `code` is the stable key (system.skills.<code>.rating); treat codes as
+ *     part of the data contract when adding/renaming skills.
+ * @downstream core/constants.js (paths), core/enums.js (attribute labels)
+ */
 
 import { ICONS_SKILLS_PATH, SYSTEM_NAME, SYSTEM_PATH } from "../core/constants.js";
 import { Enums } from "../core/enums.js"; // if you want pretty attribute labels (optional)

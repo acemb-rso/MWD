@@ -1,6 +1,21 @@
 // src/modules/combat/personal-combat-tracker.js
-// Purpose: Registers Foundry hooks: updateCombat, updateCombatant, createCombatant.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+/**
+ * @pipeline shared
+ * @role Combat-state service and hub. Owns turn/activation state via Foundry
+ *   combat hooks (updateCombat/updateCombatant/createCombatant) and exposes the
+ *   action-economy, exposure, hazard-region and gating queries that resolvers
+ *   and execution read. High fan-in (~25 importers): it is a shared source of
+ *   combat state, not an orchestrator (modest fan-out).
+ * @invariants
+ *   - INVARIANT(boundary): provides state and gate *reasons*; it does not roll,
+ *     apply modifiers, or decide roll outcomes. Callers emit intents to the
+ *     engine — gates here inform (may hint), they don't execute rules (§1, §8.2).
+ *   - INVARIANT(canonical): exposure tiers and action-catalog lookups are read
+ *     from their one source (area-effect-engine, personal-action-catalog);
+ *     don't duplicate that math locally (§6.2, §11).
+ * @downstream personal-action-catalog.js, area-effects/*, status-mechanics.js
+ * @consumers  resolve-attack.js, attack-resolution.js, mwd-roll.js (read state)
+ */
 
 
 import { humanizeStatusKey } from "../dialog/token-status-dialog.js";
