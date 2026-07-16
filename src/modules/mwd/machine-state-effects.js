@@ -21,6 +21,7 @@ import { getAssetModuleDerivedStatuses, getAssetModuleMovementBonus } from "./as
 import { getVehicleStrainStateEffects } from "./vehicle-strain.js";
 import { collectMachineStateAnnotations } from "../status/status-mechanics.js";
 import { normalizeStatusConditionId } from "../status/status-condition-catalog.js";
+import { getMachineActorType } from "../utils/actor-guards.js";
 import { toNumber } from "../utils/coercion.js";
 
 const DETECTION_CAP_RANKS = Object.freeze({
@@ -28,10 +29,6 @@ const DETECTION_CAP_RANKS = Object.freeze({
   track: 2,
   lock: 3,
 });
-
-function getActorType(actor = null) {
-  return actor?.type === TEMPLATE.actorTypes.battlemech ? TEMPLATE.actorTypes.battlemech : TEMPLATE.actorTypes.vehicle;
-}
 
 function setDetectionCap(currentCap = "lock", nextCap = "lock") {
   // Detection caps only ever get stricter while aggregating effects.
@@ -107,7 +104,7 @@ function applyMachineCritDerivedState(state, actor = null) {
 function machineCqValue(value, actor = null) {
   if (typeof value === "number") return Number.isFinite(value) ? value : 0;
   if (!value || typeof value !== "object") return 0;
-  const actorType = getActorType(actor);
+  const actorType = getMachineActorType(actor?.type);
   return toNumber(value[actorType] ?? value.default, 0);
 }
 
@@ -186,7 +183,7 @@ function applyMachineStatusAnnotations(state, actor = null) {
 function applyVehicleStrain(state, actor = null) {
   // Vehicle strain is vehicle-only degradation pressure and should not leak into
   // BattleMech heat/degradation behavior.
-  if (getActorType(actor) !== TEMPLATE.actorTypes.vehicle) return;
+  if (getMachineActorType(actor?.type) !== TEMPLATE.actorTypes.vehicle) return;
   const strainEffects = getVehicleStrainStateEffects(actor);
   state.handling += strainEffects.handling;
   state.system += strainEffects.system;
@@ -200,7 +197,7 @@ function applyVehicleStrain(state, actor = null) {
 function applyBattlemechHeatMovementPenalty(state, actor = null) {
   // BattleMech heat affects movement through the same aggregate movementPenalty
   // used by criticals and vehicle strain.
-  if (getActorType(actor) !== TEMPLATE.actorTypes.battlemech) return;
+  if (getMachineActorType(actor?.type) !== TEMPLATE.actorTypes.battlemech) return;
   const system = actor?.system ?? {};
   const heatMonitor = system?.monitors?.heat ?? {};
   const heatConfig = system?.mwd?.heat ?? {};
@@ -394,7 +391,7 @@ export function getMachineRuleState(actor = null) {
   state.movementBonus += getAssetModuleMovementBonus(actor);
   applyMachineCritDerivedState(state, actor);
   applyMachineStatusAnnotations(state, actor);
-  if (getActorType(actor) === TEMPLATE.actorTypes.battlemech) applyBattlemechDegradation(state, actor);
+  if (getMachineActorType(actor?.type) === TEMPLATE.actorTypes.battlemech) applyBattlemechDegradation(state, actor);
   else applyVehicleDegradation(state, actor);
   return state;
 }
@@ -581,7 +578,7 @@ export function buildMachineDegradationEffectSummary(actorType = "", locationKey
 }
 
 export function getMachineDerivedStatusIds(actor = null) {
-  const actorType = getActorType(actor);
+  const actorType = getMachineActorType(actor?.type);
   const statuses = new Set();
   if (actorType === TEMPLATE.actorTypes.battlemech) {
     if (getCondition(getLocationState(actor, "head")) >= 1) statuses.add("sensorDegraded");

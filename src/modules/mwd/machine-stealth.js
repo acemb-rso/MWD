@@ -10,7 +10,7 @@ import { getReadyAssetModules } from "./asset-module-runtime.js";
 import { measureTokenDistance } from "./token-measurement.js";
 import { selectMechRangeBand } from "./personal-range-bands.js";
 import { isMachineActor } from "../utils/actor-guards.js";
-import { toNumber } from "../utils/coercion.js";
+import { toNonNegativeInteger as nonNegativeInteger, toNumber } from "../utils/coercion.js";
 import { cloneValue } from "../utils/clone.js";
 
 const STEALTH_MODES = new Set(["passive", "active", "suppressed"]);
@@ -22,10 +22,6 @@ const STATUS_HIGH_EMISSION = "highEmission";
 
 function clamp(value, min = 0, max = 3) {
   return Math.min(max, Math.max(min, Number(value) || 0));
-}
-
-function nonNegativeInteger(value, fallback = 0) {
-  return Math.max(0, Math.trunc(toNumber(value, fallback)));
 }
 
 function normalizeMode(value = "") {

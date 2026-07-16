@@ -4,12 +4,7 @@
 // parts -> BattleMech/vehicle sheet headers render consistent status blocks.
 
 import { startCase } from "../core/constants.js";
-import { toNumber } from "../utils/coercion.js";
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
+import { clamp, toNumber } from "../utils/coercion.js";
 
 export function getIntegrityToneForPercent(percent = 0) {
   const normalized = clamp(toNumber(percent, 0), 0, 100);

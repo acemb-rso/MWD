@@ -15,16 +15,12 @@ import {
 import { weaponProfileHasDangerClose } from "./personal-damage.js";
 import { DEFAULT_FIRE_MODE } from "./battlemech-fire-modes.js";
 import { getEffectiveDetectionState, listTargetingStates } from "./machine-ew-state.js";
-import { toNumber } from "../utils/coercion.js";
+import { asArray, toNumber } from "../utils/coercion.js";
 
 const RANGE_ORDER = ["close", "near", "far", "extreme"];
 // Preferred default engagement band: near is the sweet spot; fall back toward
 // closer bands if the weapon can't reach near.
 const DEFAULT_BAND_PREFERENCE = ["near", "close", "far", "extreme"];
-
-function asArray(value) {
-  return Array.isArray(value) ? value : [];
-}
 
 function normalizeId(value = "") {
   return String(value ?? "").trim();

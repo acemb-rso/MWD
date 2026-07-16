@@ -4,7 +4,8 @@
 // location state updates -> crit/status systems consume normalized consequences.
 
 import { TEMPLATE } from "../core/constants.js";
-import { toNumber } from "../utils/coercion.js";
+import { getMachineActorType } from "../utils/actor-guards.js";
+import { clamp, toNumber } from "../utils/coercion.js";
 import { cloneValue } from "../utils/clone.js";
 
 export const MACHINE_CONDITION_STAGES = Object.freeze({
@@ -79,16 +80,6 @@ const CATASTROPHIC_FALLBACKS = Object.freeze({
     mobility: Object.freeze({ type: "mobilityCollapse", destroyed: true, statusState: "immobilized" }),
   }),
 });
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function getActorType(actorOrType = null) {
-  const type = String(actorOrType?.type ?? actorOrType ?? "").trim();
-  if (type === TEMPLATE.actorTypes.battlemech || type === "mech") return TEMPLATE.actorTypes.battlemech;
-  return TEMPLATE.actorTypes.vehicle;
-}
 
 function getDefaultLocationConfig(actorType = TEMPLATE.actorTypes.vehicle) {
   return actorType === TEMPLATE.actorTypes.battlemech ? DEFAULT_MECH_LOCATIONS : DEFAULT_VEHICLE_LOCATIONS;
@@ -233,7 +224,7 @@ function getStructureRemaining(systemData = {}) {
 }
 
 function applyVehicleStructureZeroLocationDisable(systemData = {}, actorType = TEMPLATE.actorTypes.vehicle) {
-  if (getActorType(actorType) !== TEMPLATE.actorTypes.vehicle) return systemData;
+  if (getMachineActorType(actorType, { allowMechAlias: true }) !== TEMPLATE.actorTypes.vehicle) return systemData;
   if ((getStructureRemaining(systemData) ?? 1) > 0) return systemData;
 
   const locations = systemData?.mwd?.locations ?? {};
@@ -396,15 +387,15 @@ export function getMachineConditionModifier(value = 0) {
 }
 
 export function getMachineDegradationLocationPriority(actorType = TEMPLATE.actorTypes.vehicle) {
-  return getLocationOrder(getActorType(actorType)).slice();
+  return getLocationOrder(getMachineActorType(actorType, { allowMechAlias: true })).slice();
 }
 
 export function getMachineDefaultLocations(actorType = TEMPLATE.actorTypes.vehicle) {
-  return cloneValue(getDefaultLocationConfig(getActorType(actorType)), null);
+  return cloneValue(getDefaultLocationConfig(getMachineActorType(actorType, { allowMechAlias: true })), null);
 }
 
 export function normalizeMachineDegradationState(systemData = {}, actorType = TEMPLATE.actorTypes.vehicle) {
-  const resolvedActorType = getActorType(actorType);
+  const resolvedActorType = getMachineActorType(actorType, { allowMechAlias: true });
   const attributes = systemData.attributes = systemData.attributes ?? {};
   const reliabilityValue = resolveReliabilityValue(systemData);
 
@@ -429,7 +420,7 @@ export function normalizeMachineDegradationState(systemData = {}, actorType = TE
 }
 
 export function buildVehicleStructureZeroDisableUpdates(actor = null, structureRemaining = null) {
-  const actorType = getActorType(actor);
+  const actorType = getMachineActorType(actor?.type, { allowMechAlias: true });
   if (actorType !== TEMPLATE.actorTypes.vehicle) return {};
 
   const systemData = normalizeMachineDegradationState(cloneValue(actor?.system ?? {}, null), actorType);
@@ -447,7 +438,7 @@ export function buildVehicleStructureZeroDisableUpdates(actor = null, structureR
 }
 
 export function resolveCatastrophicFallback({ actorSnapshot = null, unitType = "", locationKey = "" } = {}) {
-  const actorType = getActorType(unitType || actorSnapshot?.type || actorSnapshot?.actorType);
+  const actorType = getMachineActorType(unitType || actorSnapshot?.type || actorSnapshot?.actorType, { allowMechAlias: true });
   const key = String(locationKey ?? "").trim();
   const fallback = CATASTROPHIC_FALLBACKS[actorType]?.[key] ?? {
     type: "catastrophicFailure",
@@ -475,7 +466,7 @@ export function resolveMachineDegradation({
   maxIterations = 10,
 } = {}) {
   const snapshot = cloneValue(actorSnapshot ?? {}, null);
-  const actorType = getActorType(snapshot?.type ?? snapshot?.actorType);
+  const actorType = getMachineActorType(snapshot?.type ?? snapshot?.actorType, { allowMechAlias: true });
   const systemData = normalizeMachineDegradationState(snapshot.system ?? {}, actorType);
   const locations = cloneValue(systemData.mwd?.locations ?? {}, null);
   const reliability = Math.max(0, toNumber(systemData.attributes?.reliability?.value, 0));
@@ -596,7 +587,7 @@ export function resolveMachineDegradation({
 export function buildMachineDegradationUpdates(actor = null, degradation = null) {
   if (!actor || !degradation) return {};
 
-  const actorType = getActorType(actor);
+  const actorType = getMachineActorType(actor?.type, { allowMechAlias: true });
   const systemData = normalizeMachineDegradationState(cloneValue(actor.system ?? {}, null), actorType);
   const locations = cloneValue(systemData.mwd?.locations ?? {}, null);
   const updates = {};

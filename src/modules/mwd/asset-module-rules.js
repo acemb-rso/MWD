@@ -5,16 +5,7 @@
 
 import { normalizeCarrier } from "./rules.js";
 import { normalizeStatusConditionId } from "../status/status-condition-catalog.js";
-
-function toInteger(value, fallback = 0) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return fallback;
-  return Math.trunc(numeric);
-}
-
-function toNonNegativeInteger(value, fallback = 0) {
-  return Math.max(0, toInteger(value, fallback));
-}
+import { toInteger, toNonNegativeInteger } from "../utils/coercion.js";
 
 function toTrimmedString(value, fallback = "") {
   const normalized = String(value ?? "").trim();

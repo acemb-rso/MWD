@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import {
   MACHINE_ACTOR_TYPES,
   getActorType,
+  getDirectActorType,
+  getMachineActorType,
   isBattleMechActor,
   isMachineActor,
   isPersonActor,
@@ -29,6 +31,19 @@ test("getActorType resolves token-like wrappers through actor data first", () =>
   assert.equal(getActorType({ document: { type: "Token", actor: { type: "vehicle" } } }), "vehicle");
   assert.equal(getActorType({ baseActor: { type: "npc" } }), "npc");
   assert.equal(getActorType({ document: { baseActor: { type: "character" } } }), "character");
+});
+
+test("getDirectActorType preserves source-first fixture semantics", () => {
+  assert.equal(getDirectActorType({ type: "vehicle", actor: { type: "battlemech" } }), "vehicle");
+  assert.equal(getDirectActorType({ actor: { type: "battlemech" } }), "battlemech");
+  assert.equal(getDirectActorType("vehicle"), "vehicle");
+});
+
+test("getMachineActorType normalizes machine actors with a vehicle fallback", () => {
+  assert.equal(getMachineActorType({ type: "battlemech" }), "battlemech");
+  assert.equal(getMachineActorType("vehicle"), "vehicle");
+  assert.equal(getMachineActorType("mech", { allowMechAlias: true }), "battlemech");
+  assert.equal(getMachineActorType("character"), "vehicle");
 });
 
 test("actor guards classify machine and personal actors", () => {

@@ -8,6 +8,10 @@ import {
   normalizeDamageScale,
 } from "./damage-scale.js";
 import { cloneValue } from "../utils/clone.js";
+import {
+  toNonNegativeInteger as nonNegativeInteger,
+  toNumber as number,
+} from "../utils/coercion.js";
 
 export const BATTLE_ARMOR_STATES = Object.freeze({
   intact: "intact",
@@ -26,15 +30,6 @@ export const BATTLE_ARMOR_STATUSES = Object.freeze({
 });
 
 const BATTLE_ARMOR_MACHINE_TARGET_BASE_PENALTY = 1;
-
-function number(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
-
-function nonNegativeInteger(value, fallback = 0) {
-  return Math.max(0, Math.trunc(number(value, fallback)));
-}
 
 function bool(value, fallback = false) {
   if (typeof value === "boolean") return value;

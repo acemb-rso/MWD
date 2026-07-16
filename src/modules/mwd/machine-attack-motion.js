@@ -6,7 +6,7 @@
 import { applyMachineMovementPenalty, normalizeMachineMovement } from "./machine-movement.js";
 import { getMachineMovementEffects } from "./machine-state-effects.js";
 import { isMachineActor } from "../utils/actor-guards.js";
-import { toNumber } from "../utils/coercion.js";
+import { toNonNegativeInteger, toNumber } from "../utils/coercion.js";
 
 export { isMachineActor };
 
@@ -46,10 +46,6 @@ const TARGET_MOTION_BY_MOVEMENT_KIND = Object.freeze({
   run: "moved2",
   sprint: "moved3Plus",
 });
-
-function toNonNegativeInteger(value, fallback = 0) {
-  return Math.max(0, Math.trunc(toNumber(value, fallback)));
-}
 
 export function metersToHexes(meters = 0) {
   return Math.max(0, Math.round(toNumber(meters, 0) / METERS_PER_HEX));

@@ -12,6 +12,7 @@ import {
   normalizeStatusConditionId,
 } from "./status-condition-catalog.js";
 import { cloneValue } from "../utils/clone.js";
+import { asArray } from "../utils/coercion.js";
 
 const CONTRIBUTION_FIELDS = Object.freeze([
   "mods",
@@ -41,10 +42,6 @@ function normalizeStatusId(value = "") {
 function normalizeStacking(value = "") {
   const raw = String(value ?? "unique").trim();
   return raw || "unique";
-}
-
-function asArray(value) {
-  return Array.isArray(value) ? value : [];
 }
 
 function getMechanicsKey(statusId = "", actor = null) {

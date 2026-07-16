@@ -38,6 +38,24 @@ export function getActorType(source = null) {
     .find(Boolean) ?? "";
 }
 
+export function getDirectActorType(source = null) {
+  if (!source) return "";
+  if (typeof source === "string") return normalizeType(source);
+  return [
+    source?.type,
+    source?.actor?.type,
+  ]
+    .map(normalizeType)
+    .find(Boolean) ?? "";
+}
+
+export function getMachineActorType(source = null, { fallback = TEMPLATE.actorTypes.vehicle, allowMechAlias = false } = {}) {
+  const type = normalizeType(typeof source === "string" ? source : source?.type ?? source);
+  if (type === TEMPLATE.actorTypes.battlemech || (allowMechAlias && type === "mech")) return TEMPLATE.actorTypes.battlemech;
+  if (type === TEMPLATE.actorTypes.vehicle) return TEMPLATE.actorTypes.vehicle;
+  return fallback;
+}
+
 export function isMachineActor(source = null) {
   return MACHINE_ACTOR_TYPE_SET.has(getActorType(source));
 }

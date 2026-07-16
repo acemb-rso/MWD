@@ -5,22 +5,14 @@
 
 import { TEMPLATE } from "../core/constants.js";
 import { getAssetModuleJumpingProfile, getAssetModuleState, normalizeAssetModuleJumping } from "./asset-module-rules.js";
-
-function toNonNegativeInteger(value, fallback = 0) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return fallback;
-  return Math.max(0, Math.trunc(numeric));
-}
+import { getDirectActorType } from "../utils/actor-guards.js";
+import { toNonNegativeInteger } from "../utils/coercion.js";
 
 function toCollectionArray(value) {
   if (Array.isArray(value)) return value;
   if (Array.isArray(value?.contents)) return value.contents;
   if (value && typeof value[Symbol.iterator] === "function") return Array.from(value);
   return [];
-}
-
-function getActorType(source = {}) {
-  return String(source?.type ?? source?.actor?.type ?? "").trim();
 }
 
 function getActorSystem(source = {}) {
@@ -94,7 +86,7 @@ function buildDisabledJumpingState(reason = "") {
 export function buildBattlemechMobilityModel(source = {}) {
   // Jump movement is derived from active modules first, with legacy authored
   // movement as a fallback for older actors that predate asset modules.
-  const actorType = getActorType(source);
+  const actorType = getDirectActorType(source);
   if (actorType && actorType !== TEMPLATE.actorTypes.battlemech) {
     return { jumping: buildDisabledJumpingState() };
   }
@@ -176,7 +168,7 @@ export function resolveBattlemechJumpProfile(source = {}) {
 
 export function getMachineJumpProfile(actor = null) {
   if (!actor) return null;
-  if (getActorType(actor) === TEMPLATE.actorTypes.battlemech) return resolveBattlemechJumpProfile(actor);
+  if (getDirectActorType(actor) === TEMPLATE.actorTypes.battlemech) return resolveBattlemechJumpProfile(actor);
   return normalizeAssetModuleJumping(getActorSystem(actor)?.mwd?.mobility?.jumping ?? {});
 }
 

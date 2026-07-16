@@ -5,11 +5,7 @@
 
 import { buildBattlemechHeatModel } from "../../mwd/machine-heat.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
-import { toNumber } from "../../utils/coercion.js";
-
-function clampMin(value, min = 0) {
-  return Math.max(min, toNumber(value, min));
-}
+import { clampMin, toNumber } from "../../utils/coercion.js";
 
 function normalizeCheckKind(value = "") {
   const kind = String(value ?? "").trim().toLowerCase();

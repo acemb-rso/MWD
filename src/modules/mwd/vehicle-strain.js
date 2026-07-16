@@ -6,7 +6,7 @@
 
 import { TEMPLATE } from "../core/constants.js";
 import { movementPenaltyStepsToMeters } from "./machine-movement.js";
-import { toNumber } from "../utils/coercion.js";
+import { toNonNegativeInteger as clampNonNegativeInteger } from "../utils/coercion.js";
 
 export const VEHICLE_STRAIN_THRESHOLDS = Object.freeze({
   strained: 2,
@@ -15,10 +15,6 @@ export const VEHICLE_STRAIN_THRESHOLDS = Object.freeze({
 });
 
 export const VEHICLE_STRAIN_MAX = 6;
-
-function clampNonNegativeInteger(value, fallback = 0) {
-  return Math.max(0, Math.trunc(toNumber(value, fallback)));
-}
 
 function normalizeThresholds(thresholds = {}) {
   return {

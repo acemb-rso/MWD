@@ -4,11 +4,7 @@
 //              the generic roll runner while returning chat-card details.
 
 import { applyManagedStatusUpdate, getCurrentStatusState } from "../dialog/token-status-dialog.js";
-import { toNumber } from "../utils/coercion.js";
-
-function clampMin(value, min = 0) {
-  return Math.max(min, toNumber(value, min));
-}
+import { clampMin, toNumber } from "../utils/coercion.js";
 
 function normalizeKind(value = "") {
   const kind = String(value ?? "").trim().toLowerCase();

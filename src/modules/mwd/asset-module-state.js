@@ -4,6 +4,7 @@
 // apply phases commit spends through one actor-owned state document.
 
 import { cloneValue } from "../utils/clone.js";
+import { toNonNegativeInteger } from "../utils/coercion.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "assetModuleState";
@@ -14,12 +15,6 @@ function asObject(value) {
 
 function toId(value = "") {
   return String(value ?? "").trim();
-}
-
-function toNonNegativeInteger(value, fallback = 0) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return fallback;
-  return Math.max(0, Math.trunc(numeric));
 }
 
 function resolveItemKey(itemOrUuid = "") {

@@ -9,15 +9,7 @@ import { getMachineHeatStatusLabel, normalizeMachineHeatThresholds, resolveMachi
 import { ASSET_MODULE_HOOKS, dispatchAssetModuleHook } from "./asset-module-hooks.js";
 import { getMachineHeatAdjustments } from "./machine-state-effects.js";
 import { isMachineEnergyDamageFamily } from "./machine-weapon-types.js";
-import { toNumber } from "../utils/coercion.js";
-
-function clampMin(value, min = 0) {
-  return Math.max(min, toNumber(value, min));
-}
-
-function asArray(value) {
-  return Array.isArray(value) ? value : [];
-}
+import { asArray, clampMin, toNumber } from "../utils/coercion.js";
 
 function getSystemData(source = {}) {
   return source?.system ?? source ?? {};
