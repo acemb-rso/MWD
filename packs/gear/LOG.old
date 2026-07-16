@@ -1,5 +1,3 @@
-2026/06/29-10:55:52.491 dacc Recovering log #115
-2026/06/29-10:55:52.491 dacc Level-0 table #117: started
-2026/06/29-10:55:52.493 dacc Level-0 table #117: 29467 bytes OK
-2026/06/29-10:55:52.495 dacc Delete type=0 #115
-2026/06/29-10:55:52.495 dacc Delete type=3 #114
+2026/07/03-16:14:23.157 ae80 Recovering log #123
+2026/07/03-16:14:23.160 ae80 Delete type=0 #123
+2026/07/03-16:14:23.160 ae80 Delete type=3 #121
