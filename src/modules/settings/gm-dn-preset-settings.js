@@ -7,6 +7,7 @@ import {
   normalizeDnPresetCollection,
   SETTING_DN_PRESETS,
 } from "../gm/mwd-gmgadget.js";
+import { parseBulkJson, serializeBulkJson } from "./bulk-json.js";
 import { createSettingsCollectionValidationError, registerSettingsCollectionEditor } from "./collection-editor.js";
 
 const MENU_KEY = "gmDnPresetEditor";
@@ -60,27 +61,16 @@ function valueToRows(value = []) {
 }
 
 function parseBulk(text = "") {
-  const raw = String(text ?? "").trim();
-  if (!raw) return [];
-
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (error) {
-    throw createSettingsCollectionValidationError([
-      `Bulk JSON must be valid JSON: ${error.message}`
-    ]);
-  }
-
-  return normalizeDnPresetCollection(parsed, { strict: true });
+  return parseBulkJson(text, {
+    expect: "array",
+    normalize: value => normalizeDnPresetCollection(value, { strict: true }),
+  });
 }
 
 function serializeBulk(value = []) {
-  return JSON.stringify(
-    normalizeDnPresetCollection(value, { strict: false }),
-    null,
-    2
-  );
+  return serializeBulkJson(value, {
+    normalize: source => normalizeDnPresetCollection(source, { strict: false }),
+  });
 }
 
 const GM_DN_PRESET_EDITOR_DEFINITION = {

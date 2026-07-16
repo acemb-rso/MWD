@@ -1,12 +1,28 @@
 ﻿// src/modules/mwd/machine-quick-actions.js
-// Purpose: Executes shared machine quick checks for piloting, EW, and critical repair.
-// Workflow: sheet quick-action click -> request normalization/GM routing ->
-// movement, attack, EW, or remedy service emits the canonical roll/action intent.
+/**
+ * @pipeline ui-emitter
+ * @role Machine quick-action dispatcher. Takes a sheet quick-action (piloting,
+ *   movement, ranged/melee/charge attack, EW, critical repair), normalizes the
+ *   request, handles GM routing over the socket, and hands off to the matching
+ *   action service which emits the canonical roll/action intent. High fan-out (~23).
+ * @invariants
+ *   - INVARIANT(boundary): this is a dispatcher, not a rules engine. It routes
+ *     clicks to services and the roll engine; it must not compute pools or resolve
+ *     outcomes locally (Design Principles §1.1, §5). Every action maps to one intent.
+ *   - INVARIANT(canonical): quick actions funnel into the same roll/action pipeline
+ *     as everywhere else (game.mwd.roll / action services) — no parallel execution
+ *     path for the "quick" buttons (§2.3, §4.2).
+ *   - GM-only effects go through the socket request/response contract, not by
+ *     assuming client authority (§8, §14).
+ * @upstream   battlemech-sheet-v2.js / vehicle-sheet-v2.js (quick-action controls)
+ * @downstream battlemech-*-actions.js, vehicle-*-actions.js, machine-ew-panel.js, machine-operator.js, roll engine
+ */
 
 import { MWD } from "../core/config.js";
 import { SYSTEM_SOCKET, TEMPLATE } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { RemoteCall } from "../system/remotecall.js";
+import { isMachineActor } from "../utils/actor-guards.js";
 import { DEFAULT_FIRE_MODE, FIRE_MODE_IDS, getFireModeDefinition } from "./battlemech-fire-modes.js";
 import { performMachineMeleeAttack } from "./battlemech-melee-actions.js";
 import { performChargeAttack } from "./charge-attack-actions.js";
@@ -26,6 +42,8 @@ import { performVehicleMovementAction } from "./vehicle-movement-actions.js";
 import { resolveVehiclePendingStrain } from "./vehicle-strain.js";
 import { findAttachedBattleArmorTargets } from "./battle-armor.js";
 import { goDarkMachineSignature, setMachineTransientEmission } from "./machine-stealth.js";
+import { createRandomId } from "../utils/id.js";
+import { getTokenId } from "../utils/token.js";
 
 const GM_MACHINE_ACTION_REQUEST = "MachineActions.gmMachineActionRequest";
 const GM_MACHINE_ACTION_RESPONSE = "MachineActions.gmMachineActionResponse";
@@ -66,10 +84,6 @@ function assertMachineActionResult(result, kind) {
     throw new Error(`MWD machine action "${kind}" returned a failure without reason.`);
   }
   return result;
-}
-
-function isMachineActor(actor = null) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
 }
 
 function getActorIdentityKeys(actor = null) {
@@ -148,11 +162,7 @@ async function resolveActorUuid(uuid = "") {
 function getRequestId() {
   return globalThis.foundry?.utils?.randomID?.()
     ?? globalThis.crypto?.randomUUID?.()
-    ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
-
-function getTokenId(token = null) {
-  return String(token?.document?.id ?? token?.id ?? "").trim();
+    ?? createRandomId({ includeTimestamp: true });
 }
 
 function getTokenById(tokenId = "") {
@@ -484,7 +494,7 @@ async function executeMachineMovement(actor, request) {
 
 async function executeMachineEwIntent(actor, request) {
   const intent = String(request.intent ?? "").trim();
-  if (!["acquire", "targeting", "breakLock", "defensiveJink"].includes(intent)) return null;
+  if (!["acquire", "targeting", "breakLock", "defensiveJink", "spotIndirect"].includes(intent)) return null;
 
   const token = resolveRequestToken(actor, request);
   const panel = buildMachineEwPanel({ actor, token });
@@ -495,7 +505,7 @@ async function executeMachineEwIntent(actor, request) {
       (explicitTargetTokenUuid && row?.targetTokenUuid === explicitTargetTokenUuid)
       || (explicitTargetTokenId && row?.targetTokenId === explicitTargetTokenId)
     ) ?? null
-    : (intent === "breakLock" || intent === "defensiveJink")
+    : (intent === "breakLock" || intent === "defensiveJink" || intent === "spotIndirect")
       ? getAnyEwTarget(panel)
       : resolveMachineEwActionTarget(panel, intent);
   if (!targetRow) {
@@ -505,11 +515,13 @@ async function executeMachineEwIntent(actor, request) {
         ? "break lock"
         : intent === "defensiveJink"
           ? "jink"
-          : "acquire";
+          : intent === "spotIndirect"
+            ? "spot"
+            : "acquire";
     return { ok: false, reason: "missing-target", userMessage: `No targeted token is ready to ${verb}.` };
   }
 
-  const isEligible = intent === "breakLock" || intent === "defensiveJink"
+  const isEligible = intent === "breakLock" || intent === "defensiveJink" || intent === "spotIndirect"
     ? true
     : intent === "targeting" ? targetRow.canTarget : targetRow.canAcquire;
   if (!isEligible) {
@@ -717,6 +729,9 @@ async function executeMachineTargetingAction(actor, action, request = {}) {
   }
   if (actionKey === "breakLock" || actionKey === "defensiveJink") {
     return executeMachineEwIntent(actor, { ...request, intent: actionKey, actionId: actionKey });
+  }
+  if (actionKey === "spotIndirect") {
+    return executeMachineEwIntent(actor, { ...request, intent: "spotIndirect", actionId: "spotIndirect" });
   }
   if (actionKey === "sensorSweep" || actionKey === "assess" || actionKey === "epmFilter" || actionKey === "tagTarget" || actionKey === "narcTarget" || actionKey === "shareTargetingData" || actionKey === "ecmSpike" || actionKey === "suppressBeacon") {
     const routedActionId = actionKey === "assess" ? "sensorSweep" : actionKey;
@@ -1100,6 +1115,15 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
       enabled: panel.canTargetAny,
       reason: "Track or Lock is required before generating targeting data.",
       mechanics: "Automated targeting-data packet on success.",
+    }),
+    buildEwAction({
+      id: "spotIndirect",
+      purpose: "Designate a visible target so allied units can fire indirectly without line of sight.",
+      targetMode: "any",
+      execution: "intent",
+      enabled: hasTargets,
+      reason: "Target a token before spotting for indirect fire.",
+      mechanics: "Automated on success: allied indirect-fire designation until the spotter's next turn.",
     }),
     buildEwAction({
       id: "ecmSpike",

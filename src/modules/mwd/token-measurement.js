@@ -3,29 +3,9 @@
 // How it fits: EW panels, combat trackers, and roll intents can all measure with
 // the same Foundry v12/v11-compatible fallback chain.
 
+import { getMeasuredTokenCenter } from "../utils/token.js";
+
 const pendingTokenPositions = new Map();
-
-function getTokenCenter(token = null) {
-  const tokenDocument = token?.document ?? token ?? null;
-  const tokenObject = token?.object ?? tokenDocument?.object ?? token ?? null;
-  const tokenId = String(tokenDocument?.id ?? token?.id ?? "").trim();
-  const pendingPosition = pendingTokenPositions.get(tokenId) ?? null;
-  const x = Number(pendingPosition?.x ?? tokenDocument?.x ?? token?.x);
-  const y = Number(pendingPosition?.y ?? tokenDocument?.y ?? token?.y);
-
-  if (tokenObject && Number.isFinite(x) && Number.isFinite(y)) {
-    if (typeof tokenObject.getCenterPoint === "function") {
-      return tokenObject.getCenterPoint({ x, y });
-    }
-    if (typeof tokenObject.getCenter === "function") {
-      return tokenObject.getCenter(x, y);
-    }
-  }
-
-  return tokenObject?.center
-    ?? tokenDocument?.object?.center
-    ?? null;
-}
 
 export function cachePendingTokenPosition(tokenDocument = null, changed = {}) {
   const tokenId = String(tokenDocument?.id ?? tokenDocument?.document?.id ?? "").trim();
@@ -45,8 +25,8 @@ export function cachePendingTokenPosition(tokenDocument = null, changed = {}) {
 
 export function measureTokenDistance(sourceToken = null, targetToken = null) {
   const grid = globalThis.canvas?.grid;
-  const sourceCenter = getTokenCenter(sourceToken);
-  const targetCenter = getTokenCenter(targetToken);
+  const sourceCenter = getMeasuredTokenCenter(sourceToken, { pendingPositions: pendingTokenPositions });
+  const targetCenter = getMeasuredTokenCenter(targetToken, { pendingPositions: pendingTokenPositions });
   if (!grid || !sourceCenter || !targetCenter) return null;
 
   if (typeof grid.measurePath === "function") {

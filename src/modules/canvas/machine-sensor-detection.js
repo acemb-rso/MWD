@@ -3,11 +3,21 @@
 // Workflow: Foundry asks a detection mode about a target -> this module checks
 // EW state and observer context -> canvas overlays/rendering consume the answer.
 
-import { getAttackerCombatant, getDetectionState as getCombatantDetectionState } from "../mwd/machine-ew-state.js";
+import {
+  getAttackerCombatant,
+  getDetectionState as getCombatantDetectionState,
+  hasValidIndirectDesignation,
+} from "../mwd/machine-ew-state.js";
 import { DETECTION_STATE_ORDER } from "../mwd/machine-ew.js";
 import { isMachineActorType } from "../mwd/machine-monitors.js";
 import { getMechRangeBand } from "../mwd/personal-range-bands.js";
 import { measureTokenDistance } from "../mwd/token-measurement.js";
+import {
+  getTokenActor,
+  getTokenDisposition,
+  getTokenDocument,
+  getTokenUuid,
+} from "../utils/token.js";
 
 export const MWD_SENSOR_DETECTION_MODE_ID = "mwdSensor";
 export const SENSOR_DETECTION_STATES = Object.freeze(["contact", "track", "lock"]);
@@ -27,28 +37,10 @@ function resolveToken(value = null) {
   return value?.object
     ?? value?.token
     ?? value?.document?.object
+    ?? value?.target?.object
+    ?? value?.target?.token
+    ?? value?.target?.document?.object
     ?? value;
-}
-
-function getTokenDocument(token = null) {
-  return token?.document ?? token ?? null;
-}
-
-function getTokenActor(token = null) {
-  return token?.actor ?? token?.document?.actor ?? token?.actorLink?.actor ?? null;
-}
-
-function getTokenUuid(token = null) {
-  return String(token?.document?.uuid ?? token?.uuid ?? "").trim();
-}
-
-function getTokenDisposition(token = null) {
-  return Number(
-    token?.document?.disposition
-      ?? token?.disposition
-      ?? token?.data?.disposition
-      ?? 0
-  );
 }
 
 function getHostileDisposition() {
@@ -142,6 +134,26 @@ export function getDetectionState(observerToken = null, targetToken = null) {
   return getCombatantDetectionState(combatant, targetTokenUuid);
 }
 
+export function hasSensorDesignation(observerToken = null, targetToken = null) {
+  const observer = resolveToken(observerToken);
+  const target = resolveToken(targetToken);
+  if (!observer || !target) return false;
+  return hasValidIndirectDesignation(target, { attackerToken: observer, combat: globalThis.game?.combat ?? null });
+}
+
+function getDesignationAwarenessState(observerToken = null, targetToken = null) {
+  const target = resolveToken(targetToken);
+  const targetActor = getTokenActor(target);
+  if (hasStatus(targetActor, "tagged") || hasStatus(targetActor, "narced")) return "lock";
+  return hasSensorDesignation(observerToken, target) ? "contact" : "blind";
+}
+
+export function getSensorAwarenessState(observerToken = null, targetToken = null) {
+  const detectionState = getDetectionState(observerToken, targetToken);
+  if (SENSOR_DETECTION_STATES.includes(detectionState)) return detectionState;
+  return getDesignationAwarenessState(observerToken, targetToken);
+}
+
 export function canDetect(observerToken = null, targetToken = null) {
   const observer = resolveToken(observerToken);
   const target = resolveToken(targetToken);
@@ -152,7 +164,7 @@ export function canDetect(observerToken = null, targetToken = null) {
   if (getTokenDisposition(target) !== getHostileDisposition()) return false;
   if (observerSensorBlindBeyondClose(observer, target)) return false;
 
-  return SENSOR_DETECTION_STATES.includes(getDetectionState(observer, target));
+  return getSensorAwarenessState(observer, target) !== "blind";
 }
 
 export class MwdSensorDetectionMode extends getDetectionModeClass() {
@@ -166,6 +178,10 @@ export class MwdSensorDetectionMode extends getDetectionModeClass() {
 
   _testRange(visionSource, mode, target) {
     return modeRangeAllows(visionSource, mode, target);
+  }
+
+  _testPoint(visionSource, mode, target) {
+    return this._canDetect(visionSource, target) && this._testRange(visionSource, mode, target);
   }
 }
 

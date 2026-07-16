@@ -3,6 +3,10 @@
 // Workflow: actor monitor storage -> remaining-capacity monitor state and
 // migration updates -> sheets, token bars, and damage apply agree on values.
 
+import { isMachineActor as isMachineActorType } from "../utils/actor-guards.js";
+
+export { isMachineActorType };
+
 function toFiniteNumber(value, fallback = 0) {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : fallback;
@@ -60,11 +64,6 @@ export function getDepletingMachineMonitorClickValue(currentValue = 0, pipValue 
   const current = Math.max(0, toFiniteNumber(currentValue, 0));
   const pip = Math.max(0, toFiniteNumber(pipValue, 0));
   return current === pip ? Math.max(0, pip - 1) : pip;
-}
-
-export function isMachineActorType(actorOrType = null) {
-  const type = typeof actorOrType === "string" ? actorOrType : actorOrType?.type;
-  return type === "vehicle" || type === "battlemech";
 }
 
 export function collectMachineMonitorRemainingStorageUpdates(actor = null) {

@@ -1,7 +1,19 @@
 // src/modules/mwd/machine-operator.js
-// Purpose: Resolves the actor who pays for machine actions and repairs.
-// Workflow: machine action/remedy requests -> explicit operator or pilot lookup
-// -> action economy, Edge, and roll pools charge the resolved personal actor.
+/**
+ * @pipeline shared
+ * @role Operator resolution service. Given a machine actor (and optional explicit
+ *   operator), resolves the personal actor who pays action economy / Edge / roll
+ *   costs — explicit choice first, then authored pilot/crew links. Shared by
+ *   resolvers, execution, and sheets; high fan-in (~18).
+ * @invariants
+ *   - INVARIANT(canonical): the single place "who operates this machine" is
+ *     decided. Callers must route cost/Edge/pool spending through the resolved
+ *     actor rather than re-deriving the pilot ad hoc (Design Principles §6.2, §11).
+ *   - Fail explicit, not silent: when no operator can be resolved it returns a
+ *     `reason` (and null actor) so the UI can explain why personal resources
+ *     cannot spend — it does not guess an actor (§14).
+ * @consumers resolve-attack.js, mwd-roll.js, queued-attack-damage.js, machine-quick-actions.js
+ */
 
 async function resolveActorUuid(uuid = "") {
   const value = String(uuid ?? "").trim();

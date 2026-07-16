@@ -1,8 +1,21 @@
 ﻿// src/modules/harm/harm-engine.js
-// Purpose: Central GM harm application service.
-// How it fits: Routes the GM harm tool through one actor-first workflow so
-// damage, burn, and status changes share the same targeting and chat contract.
-
+/**
+ * @pipeline execution
+ * @role Central harm application service. The single actor-first workflow that
+ *   applies damage, burn, armor mitigation/wear, criticals, and status changes —
+ *   sharing one targeting and chat contract across personal, machine, and battle
+ *   armor. This is the "apply damage" stage of the combat order (§10, step 8).
+ * @invariants
+ *   - INVARIANT(canonical): all harm routes through here. Do not apply damage or
+ *     status directly from a sheet/chat/feature — that would create a parallel
+ *     path and diverge the contract (Design Principles §2.3, §6.2).
+ *   - INVARIANT(order): consumes an already-resolved attack result; it applies
+ *     outcomes, it does not roll to-hit or interpret success (§10, runs last).
+ *   - Mitigation, wear, and criticals are computed from declarative data
+ *     (armor tags, damage type, damage scale), not per-weapon special cases (§3.3).
+ * @upstream   attack-resolution.js result / GM harm tool
+ * @downstream personal-damage.js, critical-hits.js, personal-criticals.js, token-status-dialog.js
+ */
 
 import { Checkbars } from "../common/checkbars.js";
 import { TEMPLATE } from "../core/constants.js";
@@ -44,6 +57,7 @@ import {
   buildDamageScaleConversion,
   normalizeDamageScale,
 } from "../mwd/damage-scale.js";
+import { isMachineActor, isPersonActor } from "../utils/actor-guards.js";
 
 // The harm tool can target either a live Token object or its TokenDocument.
 // Normalizing that boundary early keeps the rest of the engine actor-first.
@@ -78,21 +92,8 @@ function getBurnValue(actor) {
   return Math.max(0, Number(actor?.system?.burn?.value ?? 0) || 0);
 }
 
-function isPersonActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.character || actor?.type === TEMPLATE.actorTypes.npc;
-}
-
-function isMachineActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
-}
-
 function isKnownActor(actor) {
-  return [
-    TEMPLATE.actorTypes.character,
-    TEMPLATE.actorTypes.npc,
-    TEMPLATE.actorTypes.vehicle,
-    TEMPLATE.actorTypes.battlemech,
-  ].includes(actor?.type);
+  return isPersonActor(actor) || isMachineActor(actor);
 }
 
 function modeAllowsActor(mode, actor) {

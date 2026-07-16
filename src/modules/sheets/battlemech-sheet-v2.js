@@ -1,7 +1,19 @@
 ﻿// src/modules/sheets/battlemech-sheet-v2.js
-// Purpose: Player-facing BattleMech sheet for loadout, heat, movement, and quick actions.
-// Workflow: actor preparation -> this sheet assembles BattleMech view models ->
-// template rendering and V2 action handlers dispatch user intent to services.
+/**
+ * @pipeline ui-emitter
+ * @role Player-facing BattleMech sheet (extends VehicleSheetV2). Assembles
+ *   BattleMech view-models — loadout, heat, movement, melee/ranged/charge and
+ *   quick actions — from prepared actor data, and dispatches user intent to the
+ *   engine and machine action services.
+ * @invariants
+ *   - INVARIANT(boundary): paper puppet (Design Principles §5, §1.1). Heat models,
+ *     movement effects, and attack groups are *built for display* here; the
+ *     mechanics that produce them live in machine-* services and the roll engine.
+ *   - Each action control maps to one intent/payload; the sheet routes to
+ *     services (quick-actions, roll engine), it does not enforce rules (§8.2, §12.2).
+ * @extends   vehicle-sheet-v2.js
+ * @downstream machine-heat.js, battlemech-*-actions.js, machine-quick-actions.js, roll engine
+ */
 
 import { MWD } from "../core/config.js";
 import { SYSTEM_NAME, TEMPLATES_PATH, startCase } from "../core/constants.js";
@@ -38,60 +50,18 @@ import {
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 import { normalizeMachineWeaponGroups } from "../mwd/machine-weapon-group-state.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
+import {
+  buildDetailRows,
+  buildDetailTags,
+  buildSummaryStats,
+  toNumber,
+} from "./actor-sheet-support.js";
 
 // Foundry stores arrays-of-objects as plain objects keyed by index after the
 // first save. Always coerce to a real array before mutating.
 function readWeaponGroups(actor) {
   const raw = foundry.utils.deepClone(actor?.system?.mwd?.weaponGroups);
   return normalizeMachineWeaponGroups(raw);
-}
-
-function compactList(values = []) {
-  return values
-    .map(value => String(value ?? "").trim())
-    .filter(Boolean);
-}
-
-
-function buildSummaryStats(stats = []) {
-  // Normalize the mixed summary stat shapes used by inherited vehicle sections
-  // and BattleMech-only hero bar parts into one template-friendly array.
-  return stats
-    .map(stat => {
-      const data = stat ?? {};
-      return {
-        ...data,
-        label: String(data.label ?? "").trim(),
-        value: String(data.value ?? "").trim(),
-        emphasis: data.emphasis ?? "",
-        title: String(data.title ?? "").trim(),
-        tone: String(data.tone ?? "").trim(),
-        parts: Array.isArray(data.parts)
-          ? data.parts
-            .filter(part => part && part.value !== undefined && part.value !== null && String(part.value).trim() !== "")
-            .map(part => ({
-              label: String(part.label ?? "").trim(),
-              value: String(part.value ?? "").trim(),
-              tone: String(part.tone ?? "").trim(),
-              title: String(part.title ?? "").trim(),
-            }))
-          : [],
-      };
-    })
-    .filter(stat => stat.value !== "" || stat.parts.length)
-    .map(stat => ({
-      ...stat,
-      hasParts: stat.parts.length > 0,
-    }));
-}
-
-function buildDetailTags(tags = []) {
-  return compactList(tags).map(label => ({ label }));
 }
 
 function getMovementActionChoices(actor) {
@@ -108,15 +78,6 @@ async function executeMachineAction(actor, request = {}) {
   const service = getMachineActionService();
   if (!service?.execute) throw new Error("MWD machine action service not initialized.");
   return service.execute(actor, request);
-}
-
-function buildDetailRows(rows = []) {
-  return rows
-    .filter(row => row && row.value !== undefined && row.value !== null && String(row.value).trim() !== "")
-    .map(row => ({
-      label: String(row.label ?? "").trim(),
-      value: String(row.value ?? "").trim()
-    }));
 }
 
 function formatRangeBandLabel(value = "") {

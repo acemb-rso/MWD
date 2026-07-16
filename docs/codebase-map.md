@@ -32,6 +32,10 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 - `src/modules/system/styles.js` - Theme selection helpers used by AppV2 sheets.
 - `src/modules/utils/document-type-defaults.js` - Resolves create-time actor/item defaults from an inlined JS constant.
 
+### Shared utility modules
+
+Common helpers (coercion, actor-type guards, token shape access, clone/id, settings bulk JSON, roll token context) live in dedicated shared modules — do not define local copies. See [shared-utils.md](shared-utils.md) for the full directory and the decision order for adding new helpers.
+
 ---
 
 ## Actor framework

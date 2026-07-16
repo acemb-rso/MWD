@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {
   resolveDocumentTypeCreateDefaults,
   resolveDocumentTypeBlock,
-} from "../src/modules/document-type-defaults.js";
+} from "../src/modules/utils/document-type-defaults.js";
 import { ensureCoreSkillRatings } from "../src/modules/mwd/skills.js";
 
 test("character defaults keep prototype token at the root", () => {
@@ -120,10 +120,14 @@ test("gear defaults include inventory rule metadata", () => {
   assert.equal(defaults.system.quantity, 1);
   assert.equal(defaults.system.rating, 0);
   assert.equal(defaults.system.category, "");
+  assert.equal(defaults.system.equipped, false);
+  assert.equal(defaults.system.active, false);
+  assert.equal(defaults.system.activation, "passive");
   assert.equal(defaults.system.relatedSkill, "");
   assert.equal(defaults.system.availability, "");
   assert.equal(defaults.system.rulesHook, "");
   assert.deepEqual(defaults.system.tags, []);
+  assert.deepEqual(defaults.system.rules, []);
 });
 
 test("asset module defaults include structured jumping payload fields", () => {

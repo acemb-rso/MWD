@@ -3,9 +3,12 @@
 // Workflow: combatant movement flags or attack payload overrides -> motion DN
 // and tracking dice packet -> machine attack resolver applies final modifiers.
 
-import { TEMPLATE } from "../core/constants.js";
 import { applyMachineMovementPenalty, normalizeMachineMovement } from "./machine-movement.js";
 import { getMachineMovementEffects } from "./machine-state-effects.js";
+import { isMachineActor } from "../utils/actor-guards.js";
+import { toNonNegativeInteger, toNumber } from "../utils/coercion.js";
+
+export { isMachineActor };
 
 export const METERS_PER_HEX = 30;
 
@@ -43,21 +46,6 @@ const TARGET_MOTION_BY_MOVEMENT_KIND = Object.freeze({
   run: "moved2",
   sprint: "moved3Plus",
 });
-
-const MACHINE_TYPES = new Set([TEMPLATE.actorTypes.vehicle, TEMPLATE.actorTypes.battlemech]);
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
-
-function toNonNegativeInteger(value, fallback = 0) {
-  return Math.max(0, Math.trunc(toNumber(value, fallback)));
-}
-
-export function isMachineActor(actor = null) {
-  return MACHINE_TYPES.has(actor?.type);
-}
 
 export function metersToHexes(meters = 0) {
   return Math.max(0, Math.round(toNumber(meters, 0) / METERS_PER_HEX));

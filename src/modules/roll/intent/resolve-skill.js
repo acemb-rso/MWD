@@ -16,10 +16,7 @@ import {
 import { TEMPLATE } from "../../core/constants.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import { getFirstAidRollConfig } from "../../mwd/first-aid.js";
-
-function isMachineActor(actor = null) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
-}
+import { isMachineActor } from "../../utils/actor-guards.js";
 
 function startCase(value = "") {
   return String(value ?? "")

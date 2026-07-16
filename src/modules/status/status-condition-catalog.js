@@ -5,6 +5,7 @@
 
 import { SYSTEM_NAME, TEMPLATE } from "../core/constants.js";
 import { STATUS_MAP } from "../roll/config/status-modifiers.js";
+import { cloneValue } from "../utils/clone.js";
 
 export const SETTING_STATUS_CONDITION_CATALOG = "statusConditionCatalog";
 
@@ -46,6 +47,10 @@ const ACTOR_TYPES_BY_GROUP = Object.freeze({
 });
 
 const DEFAULT_ICON_ROOT = "systems/mwd/img/icons/status";
+const STATUS_ID_ALIASES = Object.freeze({
+  eccmboosted: "epmBoosted",
+  ecmboosted: "epmBoosted",
+});
 const SYSTEM_ICON_ROOT = "systems/mwd/img/icons/systems";
 const TARGETING_ICON = `${SYSTEM_ICON_ROOT}/Targeting.webp`;
 
@@ -117,7 +122,7 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("ecmJamming", "ECM Jamming", "machine", "electronicWarfare", ["ecm", "tracking"], "emp.svg", { order: 1220 }),
   status("ecmShrouded", "ECM Shrouded", "machine", "electronicWarfare", ["ecm", "defense"], "hidden.svg", { order: 1230 }),
   status("epmBoosted", "EPM Boosted", "machine", "electronicWarfare", ["ecm", "sensor"], "all-seeing-eye.webp", { order: 1240 }),
-  status("eccmBoosted", "EPM Boosted (Legacy)", "machine", "electronicWarfare", ["ecm", "sensor", "legacy"], "all-seeing-eye.webp", { order: 1241 }),
+  status("eccmBoosted", "EPM Boosted (Legacy ECCM)", "machine", "electronicWarfare", ["ecm", "sensor", "legacy"], "all-seeing-eye.webp", { manual: false, modifierKey: "epmBoosted", order: 1241 }),
   status("sensorLocked", "Sensor Locked", "machine", "sensor", ["sensor", "targeted"], "all-seeing-eye.webp", { order: 1250 }),
   status("trackingLost", "Tracking Lost", "machine", "sensor", ["sensor", "targetingData"], "damaged_eye.svg", { order: 1260 }),
   status("signatureRevealed", "Signature Revealed", "machine", "sensor", ["stealth", "signature", "revealed"], "Targeting.webp", { icon: TARGETING_ICON, order: 1270 }),
@@ -148,6 +153,7 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("attachedToMachine", "Attached to Machine", "person", "battleArmor", ["battleArmor", "attached"], "grappled.svg", { order: 1600 }),
   status("tagged", "TAGed", "all", "targeting", ["tag", "designated", "targeting"], "Targeting.webp", { icon: TARGETING_ICON, order: 1610 }),
   status("narced", "NARCed", "all", "targeting", ["narc", "beacon", "targeting"], "Targeting.webp", { icon: TARGETING_ICON, order: 1620 }),
+  status("spotted", "Spotted", "all", "targeting", ["spot", "designated", "indirect"], "Targeting.webp", { icon: TARGETING_ICON, order: 1615 }),
 ]);
 
 function status(id, label, actorGroup, category, tags, icon, options = {}) {
@@ -169,13 +175,6 @@ function hasFoundry() {
   return typeof foundry !== "undefined" && foundry?.utils;
 }
 
-function clone(value) {
-  if (hasFoundry() && typeof foundry.utils.deepClone === "function") {
-    return foundry.utils.deepClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
-}
-
 function bool(value, fallback = false) {
   if (typeof value === "boolean") return value;
   const raw = String(value ?? "").trim().toLowerCase();
@@ -184,7 +183,7 @@ function bool(value, fallback = false) {
 }
 
 export function getDefaultStatusConditionCatalog() {
-  return clone(DEFAULT_STATUS_CONDITION_CATALOG);
+  return cloneValue(DEFAULT_STATUS_CONDITION_CATALOG, undefined);
 }
 
 export function normalizeStatusTagId(value) {
@@ -205,6 +204,12 @@ export function normalizeStatusTagId(value) {
       return index === 0 ? lower : `${lower.charAt(0).toUpperCase()}${lower.slice(1)}`;
     })
     .join("");
+}
+
+export function normalizeStatusConditionId(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  return STATUS_ID_ALIASES[raw.toLowerCase()] ?? raw;
 }
 
 export function normalizeStatusTags(value = []) {
@@ -337,7 +342,7 @@ function mergeCatalogWithDefaults(value = []) {
 
   for (const [id, entry] of defaultsById.entries()) {
     if (existingIds.has(id)) continue;
-    merged.push(clone(entry));
+    merged.push(cloneValue(entry, undefined));
   }
 
   return normalizeStatusConditionCatalog(merged, { strict: false });
@@ -369,7 +374,7 @@ function readStatusConditionCatalogSetting() {
 }
 
 export function getStatusConditionDefinition(statusId, catalog = getStatusConditionCatalog()) {
-  const id = String(statusId ?? "").trim();
+  const id = normalizeStatusConditionId(statusId);
   if (!id) return null;
   return catalog.find(entry => String(entry.id ?? "").trim() === id) ?? null;
 }

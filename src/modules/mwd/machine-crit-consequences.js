@@ -9,10 +9,7 @@ import {
   isMachineEnergyDamageFamily,
   isMachinePenetratingDamageFamily,
 } from "./machine-weapon-types.js";
-
-function asArray(value) {
-  return Array.isArray(value) ? value : [];
-}
+import { asArray } from "../utils/coercion.js";
 
 export function normalizeMachineCritId(value = "") {
   return String(value ?? "").trim();

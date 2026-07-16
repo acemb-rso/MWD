@@ -4,6 +4,8 @@
 
 import { SETTING_BATTLEMECH_TOKEN_HEAT_FX, SYSTEM_NAME } from "../core/constants.js";
 import { buildBattlemechHeatVisualState } from "../mwd/heat-visual-state.js";
+import { isMachineActor } from "../utils/actor-guards.js";
+import { asArray, clampMin } from "../utils/coercion.js";
 import { createHeatShimmerFilter } from "./filters/heat-shimmer-filter.js";
 
 export const MACHINE_RUINED_DECAL_PATH = "systems/mwd/img/mek/units/DamageDecals/FireMulti/SmokeFireMulti.png";
@@ -40,10 +42,6 @@ function getTokenKey(token) {
   return String(token?.document?.uuid ?? token?.id ?? "").trim();
 }
 
-function asArray(value) {
-  return Array.isArray(value) ? value : [];
-}
-
 function collectionEntries(collection = null) {
   if (!collection) return [];
   if (Array.isArray(collection)) return collection;
@@ -53,19 +51,10 @@ function collectionEntries(collection = null) {
   return [];
 }
 
-function clampMin(value, min = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? Math.max(min, numeric) : min;
-}
-
 function matchesActor(token, actor) {
   if (!token || !actor) return false;
   if (token.actor?.id === actor.id) return true;
   return String(token?.document?.baseActor?.id ?? "").trim() === String(actor.id ?? "").trim();
-}
-
-function isMachineActor(actor = null) {
-  return actor?.type === "battlemech" || actor?.type === "vehicle";
 }
 
 function getEffectStatusIds(effect = null) {

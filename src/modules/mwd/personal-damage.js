@@ -16,6 +16,7 @@ import {
   AREA_EFFECT_KINDS,
   normalizeAreaEffect,
 } from "../area-effects/area-effect-engine.js";
+import { createRandomId } from "../utils/id.js";
 
 
 const PERSONAL_DAMAGE_TYPE_LABELS = Object.freeze({
@@ -114,6 +115,13 @@ const WEAPON_STANDARD_TRAIT_DEFS = Object.freeze({
     rated: false,
     aliases: ["armorBypass", "armor-bypass", "armor bypass", "bypass"],
     resolve: () => ({ flags: ["armorBypass"] }),
+  }),
+  dangerClose: Object.freeze({
+    key: "dangerClose",
+    label: "Danger Close",
+    rated: false,
+    aliases: ["dangerClose", "danger-close", "danger close", "minArm", "minimumArming", "arming"],
+    resolve: () => ({ flags: ["dangerClose"] }),
   }),
 });
 
@@ -282,13 +290,6 @@ export function normalizePayloadTemplate(value = null) {
   return normalizePersonalWeaponTemplate(value);
 }
 
-function randomId(prefix = "id") {
-  const factory = globalThis.foundry?.utils?.randomID;
-  return typeof factory === "function"
-    ? factory()
-    : `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
 function buildAliasMap(registry) {
   const map = {};
   Object.values(registry).forEach(def => {
@@ -323,7 +324,7 @@ function normalizeStandardTraitEntry(entry, aliasMap) {
   if (typeof entry === "string" || typeof entry === "number") {
     const key = aliasMap[normalizeTraitAlias(entry)];
     if (!key) return null;
-    return { id: randomId("trait"), key, rating: 1 };
+    return { id: createRandomId({ prefix: "trait", fallbackLength: 8, prefixFoundry: false }), key, rating: 1 };
   }
 
   if (!entry || typeof entry !== "object") return null;
@@ -332,7 +333,7 @@ function normalizeStandardTraitEntry(entry, aliasMap) {
   if (!key) return null;
 
   return {
-    id: String(entry.id ?? "").trim() || randomId("trait"),
+    id: String(entry.id ?? "").trim() || createRandomId({ prefix: "trait", fallbackLength: 8, prefixFoundry: false }),
     key,
     rating: Math.max(0, Number(entry.rating ?? 0) || 0),
   };
@@ -340,6 +341,35 @@ function normalizeStandardTraitEntry(entry, aliasMap) {
 
 export function normalizeWeaponStandardTraits(value) {
   return normalizeStandardTraitEntries(value, WEAPON_STANDARD_TRAIT_ALIAS_MAP);
+}
+
+// Attack-legality helper: does a combat/weapon profile carry the Danger Close trait?
+// Standard weapon traits are authored differently per scale: personal weapons use the
+// Standard Traits picker (`standardTraits` -> resolved `effects.flags`), while machine
+// weapons author them through the Keywords field (`keywords`). We check every channel
+// (resolved flags, standardTraits, freeform traits, and keywords) through the standard-
+// trait alias map so the trait is detected regardless of how it was authored. Keywords
+// that are not standard traits (e.g. "lock-only", which has its own dedicated handling
+// via weaponProfileIsLockOnly) do not resolve to a standard-trait key and are skipped here.
+// TODO(tech-debt): move shared weapon-trait utilities to src/modules/mwd/weapon-traits.js.
+export function weaponProfileHasDangerClose(profile = {}) {
+  const flags = profile?.effects?.flags;
+  if (Array.isArray(flags) && flags.includes("dangerClose")) return true;
+  const candidates = [
+    ...(Array.isArray(profile?.standardTraits) ? profile.standardTraits : []),
+    ...(Array.isArray(profile?.traits) ? profile.traits : []),
+    ...(Array.isArray(profile?.keywords) ? profile.keywords : []),
+  ];
+  return normalizeWeaponStandardTraits(candidates).some(entry => entry.key === "dangerClose");
+}
+
+// Attack-legality helper: is this a "lock-only" weapon? Lock-only is a machine-weapon
+// keyword: the weapon may only fire on a target the attacker holds at the "lock"
+// detection state (the top of the blind -> contact -> track -> lock ladder). Authored
+// via the Keywords field, like other machine-weapon keywords.
+export function weaponProfileIsLockOnly(profile = {}) {
+  const keywords = Array.isArray(profile?.keywords) ? profile.keywords : [];
+  return keywords.some(entry => normalizeTraitAlias(entry) === "lockonly");
 }
 
 export function normalizeArmorStandardTraits(value) {
@@ -494,7 +524,7 @@ function normalizeAmmoType(entry) {
     path: "ammo.types[].traits",
   });
   return {
-    id: String(source.id ?? "").trim() || randomId("ammo"),
+    id: String(source.id ?? "").trim() || createRandomId({ prefix: "ammo", fallbackLength: 8, prefixFoundry: false }),
     name: String(source.name ?? "").trim() || "Ammo",
     damageType: normalizeOptionalPersonalDamageType(source.damageType),
     apMod: Number(source.apMod ?? source.ap ?? 0) || 0,
@@ -578,7 +608,7 @@ function isUnloadedPayloadId(value) {
 
 export function normalizePayloadProfile(entry, { report = null, path = "system.payloads[]" } = {}) {
   const source = entry ?? {};
-  const id = String(source.id ?? "").trim() || randomId("payload");
+  const id = String(source.id ?? "").trim() || createRandomId({ prefix: "payload", fallbackLength: 8, prefixFoundry: false });
   const capabilityState = normalizePayloadCapabilityState({
     traits: source.traits ?? source.modifies?.traits,
     keywords: source.keywords,
@@ -644,7 +674,7 @@ export function normalizeConsumptionSource(entry) {
     : Math.max(0, max);
 
   return {
-    id: String(source.id ?? "").trim() || randomId("source"),
+    id: String(source.id ?? "").trim() || createRandomId({ prefix: "source", fallbackLength: 8, prefixFoundry: false }),
     label: String(source.label ?? source.name ?? "").trim() || "Source",
     kind,
     reloadable: source.reloadable !== undefined

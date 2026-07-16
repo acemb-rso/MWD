@@ -1,6 +1,21 @@
 ﻿// src/modules/roll/intent/resolve-attack.js
-// Purpose: Defines function `getTargets`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+/**
+ * @pipeline resolver
+ * @role Attack resolver. Turns an attack intent into a RollContext: selects the
+ *   weapon/skill, computes range band + base DN, folds in machine fire-control,
+ *   clustering, motion, melee, targeting/EW and area-effect context. Assembles
+ *   the *parts* (dice/DN/CQ) declaratively; it does not roll or apply damage.
+ * @invariants
+ *   - INVARIANT(boundary): produces context parts only. Dice are not rolled and
+ *     damage is not applied here — that is execution's job (Design Principles §1.2, §10).
+ *   - INVARIANT(normalize): derives range band, restrictions and modifiers at
+ *     resolve time from live state; it does not read pre-persisted results (§6.1).
+ *   - Legality gates (e.g. detection/indirect designation) must respect the
+ *     `preview` flag so pre-dialog resolves don't throw before the player can
+ *     satisfy them in the dialog (§8, mirrors resolve-intent preview contract).
+ * @upstream   resolve-intent.js (RESOLVERS.attack)
+ * @downstream attack-resolution.js (executes the attack this context describes)
+ */
 
 
 import {
@@ -17,6 +32,7 @@ import {
   selectMechRangeBand,
   selectPersonalRangeBand,
 } from "../../mwd/personal-range-bands.js";
+import { getTokenCenter } from "../../utils/token.js";
 import { TEMPLATE } from "../../core/constants.js";
 import { WeaponItem } from "../../item/weapon-item.js";
 import { createUserFacingRollError } from "../roll-errors.js";
@@ -28,6 +44,7 @@ import {
   getEffectiveDetectionState,
   getTargetCombatant,
   getUsableTargetingPacket,
+  hasValidIndirectDesignation,
 } from "../../mwd/machine-ew-state.js";
 import { PersonalCombatTracker } from "../../combat/personal-combat-tracker.js";
 import {
@@ -54,6 +71,7 @@ import {
 } from "../../area-effects/area-effect-engine.js";
 import { MACHINE_CHARGE_ATTACK_ID } from "../../mwd/charge-attack-actions.js";
 import { getTraitActiveEffectModifier } from "../../mwd/traits.js";
+import { weaponProfileHasDangerClose, weaponProfileIsLockOnly } from "../../mwd/personal-damage.js";
 import {
   addPersonalFireModeAttackRating,
   buildPersonalFireModeState,
@@ -104,8 +122,18 @@ function getTargetActor(target = {}) {
   return getTargetToken(target)?.actor ?? null;
 }
 
-function getTokenCenter(token = null) {
-  return token?.center ?? token?.object?.center ?? null;
+function hasActorStatus(actor = null, statusId = "") {
+  const id = String(statusId ?? "").trim();
+  if (!actor || !id) return false;
+  const statuses = actor.statuses ?? new Set();
+  if (statuses?.has?.(id)) return true;
+  return Array.isArray(statuses) && statuses.includes(id);
+}
+
+function getDesignationDetectionState(targetToken = null, { attackerToken = null, combat = null } = {}) {
+  const targetActor = targetToken?.actor ?? targetToken?.document?.actor ?? null;
+  if (hasActorStatus(targetActor, "tagged") || hasActorStatus(targetActor, "narced")) return "lock";
+  return hasValidIndirectDesignation(targetToken, { attackerToken, combat }) ? "contact" : "blind";
 }
 
 function measureTokenDistance(sourceToken, targetToken) {
@@ -290,7 +318,13 @@ function getMachineWeaponGroupProfile(actor, payload) {
     attackRatingBand,
     range: first.range ?? {},
     defaultRangeBand: first.defaultRangeBand ?? "near",
-    effects: {},
+    // Danger Close is contagious: if any firing member has a minimum arming
+    // distance, the whole group is treated as Danger Close at the legality gate.
+    effects: profiles.some(profile => weaponProfileHasDangerClose(profile))
+      ? { flags: ["dangerClose"] }
+      : {},
+    // Likewise lock-only: if any member is lock-only, the group requires a sensor lock.
+    keywords: profiles.some(profile => weaponProfileIsLockOnly(profile)) ? ["lock-only"] : [],
     notes: profiles.map(profile => profile.notes).filter(Boolean).join("\n"),
   };
 }
@@ -434,7 +468,7 @@ function buildPersonalAttackMotionContext({ actor, payload, targets = [] } = {})
   };
 }
 
-export async function resolveAttack({ actor, payload } = {}) {
+export async function resolveAttack({ actor, payload, preview = false } = {}) {
   if (!actor) throw new Error("resolveAttack requires actor");
 
   const rawWeapon = getWeaponProfile(actor, payload);
@@ -618,8 +652,36 @@ export async function resolveAttack({ actor, payload } = {}) {
   }
   const totalAp = Number(effectiveWeapon.ap ?? 0) + Number(effectiveWeapon?.effects?.ap ?? 0);
   const attackOptions = payload?.attackOptions && typeof payload.attackOptions === "object" ? payload.attackOptions : {};
-  if (isMachineActor(actor) && attackOptions.losBlocked && !attackOptions.indirectAttack) {
-    throw createUserFacingRollError("Line of sight is fully blocked. Use Indirect Attack or sensor-enabled fire.", { severity: "warn" });
+  // Danger Close (minimum arming distance): block Close-range attacks unless the
+  // player declares a Hot Load override for this attack. Pure legality gate — adds
+  // no DN, damage, or other mechanical effect. The resolver is the sole authority.
+  // Skip during preview so the roll dialog can open and surface the Hot Load
+  // toggle; the final (non-preview) resolve is the authoritative legality gate.
+  const hotLoad = attackOptions?.hotLoad === true;
+  if (!preview && rangeBand === "close" && weaponProfileHasDangerClose(effectiveWeapon) && !hotLoad) {
+    throw createUserFacingRollError(
+      `${effectiveWeapon.name} has a minimum arming distance and cannot fire at Close range. Enable Hot Load to override for this attack.`,
+      { severity: "warn" }
+    );
+  }
+  let indirectDesignationValid = false;
+  let indirectDesignationState = "blind";
+  if (isMachineActor(actor) && attackOptions.losBlocked) {
+    if (!attackOptions.indirectAttack) {
+      throw createUserFacingRollError("Line of sight is fully blocked. Use Indirect Attack or sensor-enabled fire.", { severity: "warn" });
+    }
+    // Indirect fire at an unseen target requires a spotter: a valid allied spot,
+    // or a TAG/NARC designation. LoS-bypass only — no Lock or targeting-data is granted here.
+    const indirectTargetUuid = String(targets[0]?.tokenUuid ?? "").trim();
+    const indirectTargetToken = canvas?.tokens?.get?.(String(targets[0]?.tokenId ?? "").trim())
+      ?? canvas?.tokens?.placeables?.find(t => (t.document?.uuid ?? t.uuid) === indirectTargetUuid)
+      ?? null;
+    const indirectAttackerToken = getSourceToken(actor, payload);
+    indirectDesignationState = getDesignationDetectionState(indirectTargetToken, { attackerToken: indirectAttackerToken, combat: game.combat });
+    indirectDesignationValid = indirectDesignationState !== "blind";
+    if (!indirectDesignationValid) {
+      throw createUserFacingRollError("No spotter has designated this target — you cannot fire indirectly at a unit you cannot see.", { severity: "warn" });
+    }
   }
   const attackKindDomain = effectiveWeapon.category === "melee" ? "attack.melee" : "attack.ranged";
   const weaponTypeDomains = [
@@ -708,20 +770,35 @@ export async function resolveAttack({ actor, payload } = {}) {
     const attackerToken = getSourceToken(actor, payload);
     const combatant = getAttackerCombatant(attackerToken);
 
-    const targetTokenObj = canvas?.tokens?.get?.(targetTokenUuid);
+    const targetTokenObj = getTargetToken(firstTarget)
+      ?? canvas?.tokens?.placeables?.find(t => (t.document?.uuid ?? t.uuid) === targetTokenUuid)
+      ?? null;
     const isVisible = targetTokenObj?.visible ?? true;
     const effectiveState = isVisible ? getEffectiveDetectionState(combatant, targetTokenUuid, targetTokenObj?.actor) : "blind";
 
-    if (combatant && effectiveState === "blind") {
+    if (combatant && effectiveState === "blind" && !indirectDesignationValid) {
       throw createUserFacingRollError("No targeting solution. Acquire contact first.", { severity: "warn" });
+    }
+
+    // Lock-only weapons may only fire on a target held at the "lock" detection state.
+    // Like the blind gate above, there is no in-dialog override, so this is enforced on
+    // every resolve (no preview exemption). BattleMech weapon groups are gated upstream
+    // in buildBattlemechWeaponGroupAttackProfile; this covers single weapons and the
+    // generic machine-weapon-group path.
+    if (combatant && weaponProfileIsLockOnly(effectiveWeapon) && effectiveState !== "lock") {
+      throw createUserFacingRollError(
+        `${effectiveWeapon.name} can only fire on a target with a sensor lock.`,
+        { severity: "warn" }
+      );
     }
 
     const systemAttr = Number(actor?.system?.attributes?.system?.value ?? 0) || 0;
     const usablePacket = getUsableTargetingPacket(combatant, targetTokenUuid, systemAttr, effectiveState, game.combat?.round);
+    const displayState = effectiveState === "blind" && indirectDesignationValid ? indirectDesignationState : effectiveState;
 
     ewContext = {
-      detectionState: effectiveState,
-      detectionStateLabel: getDetectionStateLabel(effectiveState),
+      detectionState: displayState,
+      detectionStateLabel: getDetectionStateLabel(displayState),
       targetTokenUuid,
       attackerCombatantId: combatant?.id ?? null,
       activePacketId: usablePacket?.id ?? null,
@@ -822,6 +899,7 @@ export async function resolveAttack({ actor, payload } = {}) {
       attackOptions: {
         indirectAttack: Boolean(attackOptions.indirectAttack),
         losBlocked: Boolean(attackOptions.losBlocked),
+        hotLoad: Boolean(attackOptions.hotLoad),
       },
     },
     rollActor,

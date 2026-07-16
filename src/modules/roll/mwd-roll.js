@@ -1,6 +1,22 @@
 ﻿// src/modules/roll/mwd-roll.js
-// Purpose: Defines function `pickMostMissingEdgePool`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+/**
+ * @pipeline execution
+ * @role The one centralized execution path. game.mwd.roll.execute() takes an
+ *   intent payload, resolves it to a RollContext, collects modifiers, runs the
+ *   dialog, rolls the dice once, interprets the outcome, executes attack damage,
+ *   and renders chat. Every roll type (skill, attack, mech action, EW) converges
+ *   here — there is exactly one dice system and one result format (Design Principles §2.3).
+ * @invariants
+ *   - INVARIANT(order): the numbered steps in execute() implement the fixed
+ *     processing order of Design Principles §10 (resolve → collect → dialog →
+ *     finalize → roll → interpret → build → chat). Reordering introduces bugs.
+ *   - INVARIANT(boundary): dice are rolled exactly once (step 6). No caller and
+ *     no chat button may re-run this logic locally; chat re-emits intents (§1.3).
+ *   - No parallel roll systems or custom dice handlers may be added; extend
+ *     resolvers/providers and route through here instead (§2.3, §4.2).
+ * @upstream   sheets / chat actions (emit intent payloads), anarchy-system.js (mounts API)
+ * @downstream resolve-intent.js, collect-modifiers.js, attack-resolution.js, render-chat.js
+ */
 
 import { resolveIntent } from "./intent/resolve-intent.js";
 import { collectModifiers } from "./collect-modifiers.js";
@@ -37,7 +53,7 @@ import {
 import { getMachineActionDefinition } from "../mwd/machine-action-catalog.js";
 import { findAssetModuleActionOverride, getAssetModuleActionCosts } from "../mwd/asset-module-effects.js";
 import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
-import { resolveAcquireExecution, resolveBreakLockExecution, resolveDefensiveJinkRollExecution, resolveSuppressBeaconRollExecution, resolveTargetingExecution } from "./ew-execution.js";
+import { resolveAcquireExecution, resolveBreakLockExecution, resolveDefensiveJinkRollExecution, resolveSpotIndirectExecution, resolveSuppressBeaconRollExecution, resolveTargetingExecution } from "./ew-execution.js";
 import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-state.js";
 import { revealMachineSignature } from "../mwd/machine-stealth.js";
 import { isPersonalFireModeUnloadAfterAction } from "../mwd/personal-fire-modes.js";
@@ -133,6 +149,12 @@ async function recomputeResolvedOutcomeAndAttack(resolved = {}, actor = null) {
     });
   } else if (ctx.intent === "targeting" && actor && ctx.targeting) {
     resolved.ewTargetingResult = await resolveTargetingExecution({
+      attacker: actor,
+      ctx,
+      outcomeModel: resolved.outcomeModel,
+    });
+  } else if (ctx.intent === "spotIndirect" && actor && ctx.spotIndirect) {
+    resolved.spotIndirectResult = await resolveSpotIndirectExecution({
       attacker: actor,
       ctx,
       outcomeModel: resolved.outcomeModel,
@@ -885,6 +907,10 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
 
   if (!actor) throw new Error("MWD.roll.execute requires actor");
   if (!payload?.intent) throw new Error("MWD.roll.execute requires payload.intent");
+  // INVARIANT(order): the numbered steps below are the fixed processing order
+  // (Design Principles §10): resolve intent → collect modifiers → dialog →
+  // finalize totals → roll (once) → interpret outcome → build resolved → chat.
+  // Reordering these — or rolling before modifiers are final — introduces bugs.
   const applyPlayerPresets = shouldApplyPlayerModifierPresets(uiState);
   if (applyPlayerPresets) {
     payload = applyPlayerModifierPresetsToPayload(payload, { subject: uiState?.subject ?? null });
@@ -898,7 +924,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   /* 1) Resolve intent (always first) */
   /* -------------------------------- */
 
-  let ctx = await resolveIntent({ actor, payload, event });
+  let ctx = await resolveIntent({ actor, payload, event, preview: true });
   let rollActor = ctx?.rollActor ?? actor;
 
   if (payload.intent === "attack" && ctx?.attack?.capabilityReport?.isTemplated) {
@@ -932,7 +958,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
     payload.targetSnapshots = Array.isArray(placementResult.targetSnapshots) ? placementResult.targetSnapshots : [];
     payload.templateGeometry = placementResult.templateGeometry ?? null;
     payload.templatePlacement = placementResult.placement;
-    ctx = await resolveIntent({ actor, payload, event });
+    ctx = await resolveIntent({ actor, payload, event, preview: true });
     rollActor = ctx?.rollActor ?? actor;
   } else if (payload.intent === "attack") {
     delete payload.targetSnapshots;
@@ -1208,11 +1234,15 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   let ewBreakLockResult = null;
   let ewJinkResult = null;
   let ewSuppressBeaconResult = null;
+  let spotIndirectResult = null;
   if (ctx.intent === "acquire") {
     ewAcquireResult = await resolveAcquireExecution({ attacker: actor, ctx, outcomeModel });
   }
   if (ctx.intent === "targeting") {
     ewTargetingResult = await resolveTargetingExecution({ attacker: actor, ctx, outcomeModel });
+  }
+  if (ctx.intent === "spotIndirect") {
+    spotIndirectResult = await resolveSpotIndirectExecution({ attacker: actor, ctx, outcomeModel });
   }
   if (ctx.intent === "breakLock" || (ctx.intent === "skill" && payload.machineActionKey === "breakLock")) {
     ewBreakLockResult = await resolveBreakLockExecution({ attacker: actor, payload, ctx, outcomeModel });
@@ -1278,11 +1308,13 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   }
   if (ewAcquireResult)   resolved.ewAcquireResult  = ewAcquireResult;
   if (ewTargetingResult) resolved.ewTargetingResult = ewTargetingResult;
+  if (spotIndirectResult) resolved.spotIndirectResult = spotIndirectResult;
   if (ewBreakLockResult) resolved.ewBreakLockResult = ewBreakLockResult;
   if (ewJinkResult) resolved.ewJinkResult = ewJinkResult;
   if (ewSuppressBeaconResult) resolved.ewSuppressBeaconResult = ewSuppressBeaconResult;
   if (ctx.acquire)   resolved.acquire   = ctx.acquire;
   if (ctx.targeting) resolved.targeting = ctx.targeting;
+  if (ctx.spotIndirect) resolved.spotIndirect = ctx.spotIndirect;
 
   /* --------------------------- */
   /* 8) Render chat             */

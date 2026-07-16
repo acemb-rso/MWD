@@ -1,7 +1,18 @@
-// src/modules/config.js
-// Purpose: References legacy Anarchy system behavior.
-// How it fits: Describes role within src/modules or template rendering pipeline.
-
+// src/modules/core/config.js
+/**
+ * @pipeline data
+ * @role Primary declarative config for the MWD system: the canonical MWD object
+ *   holding actor/item type labels, setting definitions, and enum-ish label maps
+ *   read across sheets, settings, and system registration. High fan-in (~25);
+ *   like constants.js it is depended on widely because it is descriptive data.
+ * @invariants
+ *   - INVARIANT(canonical): MWD is the single symbol. `ANARCHY = MWD` remains
+ *     only as a temporary migration alias — do not add new code against ANARCHY;
+ *     remove it once imports are updated (§6.2, §11).
+ *   - Data describes, it does not execute: entries are labels/flags/definitions,
+ *     never functions or computed mechanics (Design Principles §3.1).
+ * @downstream (none — leaf config; consumed by sheets, settings, anarchy-system.js)
+ */
 
 // config.js
 // Primary config for the MWD system.

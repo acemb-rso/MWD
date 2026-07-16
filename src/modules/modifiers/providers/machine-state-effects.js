@@ -12,21 +12,14 @@ import {
   getMachinePilotingDiceModifier,
   getMachineTargetingDiceModifier,
 } from "../../mwd/machine-state-effects.js";
-
-function isMachineActor(actor = null) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
-}
+import { isMachineActor } from "../../utils/actor-guards.js";
+import { toNumber } from "../../utils/coercion.js";
 
 function isRangedAttack(resolved = {}, payload = {}) {
   const weapon = resolved?.attack?.weapon ?? {};
   const category = String(weapon?.category ?? weapon?.attackKind ?? payload?.attackKind ?? "").trim().toLowerCase();
   const skill = String(resolved?.attack?.skill?.code ?? weapon?.skill ?? payload?.key ?? "").trim().toLowerCase();
   return category !== "melee" && skill !== "meleecombat" && skill !== "melee";
-}
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
 }
 
 function getBattlemechRangedHeatPenalty(actor = null) {

@@ -1,12 +1,8 @@
 ﻿// src/modules/modifiers/providers/stealth-emission-acquire.js
 // Emits acquire dice bonuses against targets broadcasting a high signature.
 
-import { TEMPLATE } from "../../core/constants.js";
 import { getHighEmissionAcquireDicePart } from "../../mwd/machine-stealth.js";
-
-function isMachineActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
-}
+import { isMachineActor } from "../../utils/actor-guards.js";
 
 function resolveAcquireTargetActor(resolved = {}) {
   const direct = resolved?.acquire?.targetActor ?? resolved?.targetActor ?? null;

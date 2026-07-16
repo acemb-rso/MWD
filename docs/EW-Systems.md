@@ -135,6 +135,12 @@ Only at **Lock**:
 * full indirect fire
 * advanced targeting features
 
+> Note: *self* full indirect fire (firing without line of sight using your own
+> Lock) is the advanced-system path above. The separate **spotter** path — an ally
+> designating a target so other units without line of sight may fire on it — is
+> the `spotIndirect` action and is **LoS-bypass only** (no Lock, no TargetingData).
+> See [Indirect-Fire-Spotting.md](Indirect-Fire-Spotting.md).
+
 
 ---
 

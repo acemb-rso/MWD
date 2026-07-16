@@ -9,6 +9,7 @@ import {
   serializeLifeModuleGrants,
   SETTING_LIFE_MODULE_CATALOG,
 } from "../mwd/life-modules.js";
+import { parseBulkJson, serializeBulkJson } from "./bulk-json.js";
 import { registerSettingsCollectionEditor } from "./collection-editor.js";
 
 const MENU_KEY = "lifeModuleCatalogEditor";
@@ -36,33 +37,16 @@ function catalogToRows(value = []) {
 }
 
 function parseBulk(text = "") {
-  const raw = String(text ?? "").trim();
-  if (!raw) return [];
-
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (error) {
-    const validation = new Error(`Bulk JSON must be valid JSON: ${error.message}`);
-    validation.validationErrors = [validation.message];
-    throw validation;
-  }
-
-  if (!Array.isArray(parsed)) {
-    const validation = new Error("Bulk JSON must be an array.");
-    validation.validationErrors = [validation.message];
-    throw validation;
-  }
-
-  return normalizeLifeModuleCatalog(parsed, { strict: true });
+  return parseBulkJson(text, {
+    expect: "array",
+    normalize: value => normalizeLifeModuleCatalog(value, { strict: true }),
+  });
 }
 
 function serializeBulk(value = []) {
-  return JSON.stringify(
-    normalizeLifeModuleCatalog(value, { strict: false }),
-    null,
-    2
-  );
+  return serializeBulkJson(value, {
+    normalize: source => normalizeLifeModuleCatalog(source, { strict: false }),
+  });
 }
 
 const LIFE_MODULE_CATALOG_EDITOR_DEFINITION = {

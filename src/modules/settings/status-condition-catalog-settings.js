@@ -11,6 +11,7 @@ import {
   STATUS_ACTOR_GROUP_OPTIONS,
   STATUS_BOOLEAN_OPTIONS,
 } from "../status/status-condition-catalog.js";
+import { parseBulkJson, serializeBulkJson } from "./bulk-json.js";
 import { createSettingsCollectionValidationError, registerSettingsCollectionEditor } from "./collection-editor.js";
 
 const MENU_KEY = "statusConditionCatalogEditor";
@@ -52,33 +53,16 @@ function catalogToRows(value = []) {
 }
 
 function parseBulk(text = "") {
-  const raw = String(text ?? "").trim();
-  if (!raw) return [];
-
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (error) {
-    throw createSettingsCollectionValidationError([
-      `Bulk JSON must be valid JSON: ${error.message}`
-    ]);
-  }
-
-  try {
-    return normalizeStatusConditionCatalog(parsed, { strict: true });
-  } catch (error) {
-    throw createSettingsCollectionValidationError(
-      Array.isArray(error.validationErrors) ? error.validationErrors : [error.message]
-    );
-  }
+  return parseBulkJson(text, {
+    expect: "array",
+    normalize: value => normalizeStatusConditionCatalog(value, { strict: true }),
+  });
 }
 
 function serializeBulk(value = []) {
-  return JSON.stringify(
-    normalizeStatusConditionCatalog(value, { strict: false }),
-    null,
-    2
-  );
+  return serializeBulkJson(value, {
+    normalize: source => normalizeStatusConditionCatalog(source, { strict: false }),
+  });
 }
 
 const STATUS_CONDITION_CATALOG_EDITOR_DEFINITION = {

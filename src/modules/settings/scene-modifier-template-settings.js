@@ -6,6 +6,7 @@ import {
   SCENE_MODIFIER_ATTRIBUTE_OPTIONS,
   SCENE_MODIFIER_INTENT_OPTIONS
 } from "../modifiers/providers/scene-modifiers.js";
+import { parseBulkJson, serializeBulkJson } from "./bulk-json.js";
 import { createSettingsCollectionValidationError, registerSettingsCollectionEditor } from "./collection-editor.js";
 
 export const SETTING_SCENE_MODIFIER_TEMPLATES = "sceneModifierTemplates";
@@ -68,41 +69,26 @@ function valueToRows(value = []) {
 }
 
 function parseBulk(text = "") {
-  const raw = String(text ?? "").trim();
-  if (!raw) return [];
-
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (error) {
-    throw createSettingsCollectionValidationError([
-      `Bulk JSON must be valid JSON: ${error.message}`
-    ]);
-  }
-
-  if (!Array.isArray(parsed)) {
-    throw createSettingsCollectionValidationError(["Bulk JSON must be an array."]);
-  }
-
-  return rowsToValue(parsed.map(entry => ({
-    label: String(entry?.label ?? ""),
-    value: String(entry?.value ?? "0"),
-    attributeFilter: normalizeFilter(entry?.attributeFilter),
-    intentFilter: normalizeFilter(entry?.intentFilter)
-  })));
+  return parseBulkJson(text, {
+    expect: "array",
+    normalize: value => rowsToValue(value.map(entry => ({
+      label: String(entry?.label ?? ""),
+      value: String(entry?.value ?? "0"),
+      attributeFilter: normalizeFilter(entry?.attributeFilter),
+      intentFilter: normalizeFilter(entry?.intentFilter)
+    }))),
+  });
 }
 
 function serializeBulk(value = []) {
-  return JSON.stringify(
-    (Array.isArray(value) ? value : []).map(entry => ({
+  return serializeBulkJson(value, {
+    normalize: source => (Array.isArray(source) ? source : []).map(entry => ({
       label: String(entry?.label ?? ""),
       value: Number(entry?.value ?? 0),
       attributeFilter: normalizeFilter(entry?.attributeFilter),
       intentFilter: normalizeFilter(entry?.intentFilter)
     })),
-    null,
-    2
-  );
+  });
 }
 
 const SCENE_MODIFIER_TEMPLATE_EDITOR_DEFINITION = {

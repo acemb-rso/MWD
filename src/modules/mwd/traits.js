@@ -3,10 +3,17 @@
 // How it fits: Keeps quality items declarative while letting engine phases consume generic rule packets.
 
 import { SYSTEM_NAME } from "../core/constants.js";
+import { toNumber, toTrimmedString } from "../utils/coercion.js";
+import { cloneValue } from "../utils/clone.js";
 import {
   normalizeRuleLimits,
   normalizeRulePrerequisites,
 } from "./rules.js";
+import {
+  compareTypedValues,
+  parseTypedValue,
+  stringifyTypedValue,
+} from "./typed-rule-values.js";
 
 export const QUALITY_CATEGORIES = Object.freeze([
   { value: "positive", label: "Positive" },
@@ -110,21 +117,11 @@ export const TRAIT_ACTIVE_EFFECT_PATHS = Object.freeze({
   overloadThresholdMod: "system.traitMods.overloadThresholdMod",
 });
 
-function toTrimmedString(value, fallback = "") {
-  const normalized = String(value ?? "").trim();
-  return normalized || fallback;
-}
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
-
 function getProperty(source, path = "") {
   const normalized = toTrimmedString(path);
   if (!source || !normalized) return undefined;
-  if (typeof foundry?.utils?.getProperty === "function") {
-    return foundry.utils.getProperty(source, normalized);
+  if (typeof globalThis.foundry?.utils?.getProperty === "function") {
+    return globalThis.foundry.utils.getProperty(source, normalized);
   }
   return normalized.split(".").reduce((current, segment) => current?.[segment], source);
 }
@@ -134,10 +131,6 @@ export function getTraitActiveEffectModifier(actor, key = "") {
   if (!actor || !path) return 0;
   const systemPath = path.startsWith("system.") ? path.slice(7) : path;
   return toNumber(getProperty(actor.system ?? {}, systemPath), 0);
-}
-
-function clone(value) {
-  return foundry.utils.deepClone(value);
 }
 
 function normalizeStringArray(values = []) {
@@ -166,34 +159,6 @@ export function parseCyberneticTagMetadata(tags = []) {
     hasActivateTag: normalizedTags.some(tag => tag.toLowerCase() === "activate"),
     tags: normalizedTags,
   };
-}
-
-function parseTypedValue(value) {
-  if (typeof value !== "string") return value;
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  if (trimmed === "true") return true;
-  if (trimmed === "false") return false;
-  if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
-  if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}"))) {
-    try {
-      return JSON.parse(trimmed);
-    } catch (_error) {
-      return trimmed;
-    }
-  }
-  return trimmed;
-}
-
-function stringifyTypedValue(value) {
-  if (value === undefined || value === null) return "";
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
-  try {
-    return JSON.stringify(value);
-  } catch (_error) {
-    return String(value);
-  }
 }
 
 function normalizeLimitValue(value) {
@@ -286,7 +251,7 @@ export function normalizeTraitEffects(entries = []) {
 }
 
 export function normalizeQualityTraitSystem(system = {}) {
-  const source = system && typeof system === "object" ? clone(system) : {};
+  const source = system && typeof system === "object" ? cloneValue(system, null) : {};
   const categoryFromLegacy = source.positive === false ? "negative" : "positive";
   const category = CATEGORY_VALUES.has(String(source.category ?? "").trim())
     ? String(source.category).trim()
@@ -318,7 +283,7 @@ export function isCyberneticGearSystem(system = {}) {
 }
 
 export function normalizeCyberneticGearSystem(system = {}) {
-  const source = system && typeof system === "object" ? clone(system) : {};
+  const source = system && typeof system === "object" ? cloneValue(system, null) : {};
   const tagMeta = parseCyberneticTagMetadata(source.tags);
   const activation = tagMeta.hasActivateTag
     ? "toggle"
@@ -500,33 +465,10 @@ function canApplyEffectForLimits(usageState, runtimeKeys, limits, key) {
   return failures;
 }
 
-function compareValues(actual, comparator, expected) {
-  switch (comparator) {
-    case "truthy": return !!actual;
-    case "falsy": return !actual;
-    case "neq": return actual !== expected;
-    case "gt": return Number(actual) > Number(expected);
-    case "gte": return Number(actual) >= Number(expected);
-    case "lt": return Number(actual) < Number(expected);
-    case "lte": return Number(actual) <= Number(expected);
-    case "includes":
-      return Array.isArray(actual)
-        ? actual.includes(expected)
-        : String(actual ?? "").includes(String(expected ?? ""));
-    case "notIncludes":
-      return Array.isArray(actual)
-        ? !actual.includes(expected)
-        : !String(actual ?? "").includes(String(expected ?? ""));
-    case "eq":
-    default:
-      return actual === expected;
-  }
-}
-
 function evaluateComparatorEntry(entry, facts) {
   if (!toTrimmedString(entry?.fact)) return true;
   const actual = foundry.utils.getProperty(facts, entry.fact);
-  return compareValues(actual, entry.comparator, entry.value);
+  return compareTypedValues(actual, entry.value, entry.comparator);
 }
 
 function selectorMatches(selector = "", facts = {}) {
@@ -944,7 +886,7 @@ export function buildEndOfActivationTraitFacts({ actor, packet = {}, runtime = {
 
 export function evaluateTraitPhase({ actor, phase, facts = {}, packet = {}, options = {} } = {}) {
   const result = {
-    packet: clone(packet),
+    packet: cloneValue(packet, null),
     modifiers: [],
     mutations: [],
     applied: [],
@@ -1106,8 +1048,8 @@ export async function applyTraitMutations({ actor, mutations = [], runtime = {} 
   const usageMutations = mutations.filter(mutation => mutation?.kind === "usage");
   if (!usageMutations.length) return;
 
-  const sceneUsage = clone(actor.flags?.[SYSTEM_NAME]?.traitUsage?.scene ?? {});
-  const nextState = runtime.state ? clone(runtime.state) : null;
+  const sceneUsage = cloneValue(actor.flags?.[SYSTEM_NAME]?.traitUsage?.scene ?? {}, null);
+  const nextState = runtime.state ? cloneValue(runtime.state, null) : null;
   const runtimeKeys = getRuntimeKeys(runtime);
 
   for (const mutation of usageMutations) {

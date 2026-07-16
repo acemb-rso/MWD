@@ -15,19 +15,14 @@ import {
   normalizeCarrier,
   normalizeRulePacket,
 } from "./rules.js";
-
-const MACHINE_ACTOR_TYPES = new Set([TEMPLATE.actorTypes.battlemech, TEMPLATE.actorTypes.vehicle]);
+import { getActorType, isMachineActor } from "../utils/actor-guards.js";
+import { toNumber } from "../utils/coercion.js";
 
 function toCollectionArray(value) {
   if (Array.isArray(value)) return value;
   if (Array.isArray(value?.contents)) return value.contents;
   if (value && typeof value[Symbol.iterator] === "function") return Array.from(value);
   return [];
-}
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
 }
 
 function toTrimmedString(value, fallback = "") {
@@ -51,14 +46,6 @@ function isAssetModule(item = null) {
 export function getAssetModules(source = {}) {
   const explicit = source?.assetModules ?? source?.items ?? source?.actor?.items ?? [];
   return toCollectionArray(explicit).filter(isAssetModule);
-}
-
-function getActorType(source = {}) {
-  return String(source?.type ?? source?.actor?.type ?? "").trim();
-}
-
-function isMachineActor(source = {}) {
-  return MACHINE_ACTOR_TYPES.has(getActorType(source));
 }
 
 export { getAssetModuleState };
