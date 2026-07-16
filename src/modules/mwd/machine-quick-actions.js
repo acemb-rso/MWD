@@ -22,6 +22,7 @@ import { MWD } from "../core/config.js";
 import { SYSTEM_SOCKET, TEMPLATE } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { RemoteCall } from "../system/remotecall.js";
+import { isMachineActor } from "../utils/actor-guards.js";
 import { DEFAULT_FIRE_MODE, FIRE_MODE_IDS, getFireModeDefinition } from "./battlemech-fire-modes.js";
 import { performMachineMeleeAttack } from "./battlemech-melee-actions.js";
 import { performChargeAttack } from "./charge-attack-actions.js";
@@ -41,6 +42,8 @@ import { performVehicleMovementAction } from "./vehicle-movement-actions.js";
 import { resolveVehiclePendingStrain } from "./vehicle-strain.js";
 import { findAttachedBattleArmorTargets } from "./battle-armor.js";
 import { goDarkMachineSignature, setMachineTransientEmission } from "./machine-stealth.js";
+import { createRandomId } from "../utils/id.js";
+import { getTokenId } from "../utils/token.js";
 
 const GM_MACHINE_ACTION_REQUEST = "MachineActions.gmMachineActionRequest";
 const GM_MACHINE_ACTION_RESPONSE = "MachineActions.gmMachineActionResponse";
@@ -81,10 +84,6 @@ function assertMachineActionResult(result, kind) {
     throw new Error(`MWD machine action "${kind}" returned a failure without reason.`);
   }
   return result;
-}
-
-function isMachineActor(actor = null) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
 }
 
 function getActorIdentityKeys(actor = null) {
@@ -163,11 +162,7 @@ async function resolveActorUuid(uuid = "") {
 function getRequestId() {
   return globalThis.foundry?.utils?.randomID?.()
     ?? globalThis.crypto?.randomUUID?.()
-    ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
-
-function getTokenId(token = null) {
-  return String(token?.document?.id ?? token?.id ?? "").trim();
+    ?? createRandomId({ includeTimestamp: true });
 }
 
 function getTokenById(tokenId = "") {

@@ -73,17 +73,18 @@ import {
 } from "../mwd/traits.js";
 import { getOwnedWeaponAttackDragData } from "../roll/weapon-attack-actions.js";
 import {
+  buildDetailRows,
+  buildDetailTags,
   buildPersonalCombatDashboardContext,
   buildPersonalConditionMonitors,
   buildPersonalActiveCriticalsContext,
   buildPersonalInventoryContext,
   buildPersonalSpeedContext,
+  buildSummaryStats,
+  compactList,
+  toNumber,
+  toSnippet,
 } from "./actor-sheet-support.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
 
 function getPilotSkillRating(actor = null, skillKey = "") {
   const key = String(skillKey ?? "").trim();
@@ -115,26 +116,6 @@ function buildTrainedPilotSkillGroups(pilotActor = null) {
   return Array.from(groups.values()).filter(group => group.skills.length);
 }
 
-function stripHtml(value) {
-  return String(value ?? "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function toSnippet(value, max = 180) {
-  const plain = stripHtml(value);
-  if (!plain) return "";
-  if (plain.length <= max) return plain;
-  return `${plain.slice(0, Math.max(0, max - 3)).trim()}...`;
-}
-
-function compactList(values = []) {
-  return values
-    .map(value => String(value ?? "").trim())
-    .filter(Boolean);
-}
-
 function getActorItems(actor = null) {
   const items = actor?.items;
   if (!items) return [];
@@ -142,29 +123,6 @@ function getActorItems(actor = null) {
   if (Array.isArray(items.contents)) return items.contents;
   if (typeof items[Symbol.iterator] === "function") return Array.from(items);
   return [];
-}
-
-function buildSummaryStats(stats = []) {
-  return stats
-    .filter(stat => stat && stat.value !== undefined && stat.value !== null && String(stat.value).trim() !== "")
-    .map(stat => ({
-      label: String(stat.label ?? "").trim(),
-      value: String(stat.value ?? "").trim(),
-      emphasis: stat.emphasis ?? ""
-    }));
-}
-
-function buildDetailTags(tags = []) {
-  return compactList(tags).map(label => ({ label }));
-}
-
-function buildDetailRows(rows = []) {
-  return rows
-    .filter(row => row && row.value !== undefined && row.value !== null && String(row.value).trim() !== "")
-    .map(row => ({
-      label: String(row.label ?? "").trim(),
-      value: String(row.value ?? "").trim()
-    }));
 }
 
 const ARMOR_MODIFIER_LABELS = MWD.mwd.armorMitigationType;

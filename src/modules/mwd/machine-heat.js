@@ -9,11 +9,7 @@ import { getMachineHeatStatusLabel, normalizeMachineHeatThresholds, resolveMachi
 import { ASSET_MODULE_HOOKS, dispatchAssetModuleHook } from "./asset-module-hooks.js";
 import { getMachineHeatAdjustments } from "./machine-state-effects.js";
 import { isMachineEnergyDamageFamily } from "./machine-weapon-types.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
+import { toNumber } from "../utils/coercion.js";
 
 function clampMin(value, min = 0) {
   return Math.max(min, toNumber(value, min));

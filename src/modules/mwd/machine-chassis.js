@@ -3,10 +3,7 @@
 // Workflow: collision, knockdown, and forced-movement resolvers -> chassis math
 // helpers -> degradation/damage workflows receive already-derived values.
 
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
+import { toNumber } from "../utils/coercion.js";
 
 export function resolveMachineKnockdownDn({ chassis = 0, forceModifier = 0 } = {}) {
   return Math.max(0, toNumber(chassis, 0) + toNumber(forceModifier, 0));

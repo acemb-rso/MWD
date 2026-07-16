@@ -33,6 +33,9 @@ import {
   buildDamageScaleConversion,
   normalizeDamageScale,
 } from "./damage-scale.js";
+import { isMachineActor } from "../utils/actor-guards.js";
+import { cloneValue } from "../utils/clone.js";
+import { createRandomId } from "../utils/id.js";
 
 export const MACHINE_CRITICAL_STATUS_ID = "machineCritical";
 export const SETTING_MACHINE_CRIT_TABLE_GENERAL = "machineCriticalTableGeneralUuid";
@@ -177,11 +180,6 @@ function hasFoundry() {
   return typeof foundry !== "undefined" && foundry?.utils;
 }
 
-function clone(value) {
-  if (hasFoundry() && typeof foundry.utils.deepClone === "function") return foundry.utils.deepClone(value);
-  return JSON.parse(JSON.stringify(value ?? null));
-}
-
 function critRow(
   key,
   label,
@@ -212,12 +210,6 @@ function critRow(
       statusLabel,
     }),
   });
-}
-
-function randomId() {
-  return hasFoundry() && typeof foundry.utils.randomID === "function"
-    ? foundry.utils.randomID()
-    : Math.random().toString(36).slice(2, 18).padEnd(16, "0").slice(0, 16);
 }
 
 function nowIso() {
@@ -256,7 +248,7 @@ function strictError(message, errors, strict) {
 
 export function getDefaultCriticalSignalForRoll(rollTotal = 7) {
   const total = Math.min(12, Math.max(2, Math.trunc(Number(rollTotal ?? 7)) || 7));
-  return clone(DEFAULT_GENERAL_CRITICAL_SIGNALS[total] ?? DEFAULT_GENERAL_CRITICAL_SIGNALS[7]);
+  return cloneValue(DEFAULT_GENERAL_CRITICAL_SIGNALS[total] ?? DEFAULT_GENERAL_CRITICAL_SIGNALS[7], null);
 }
 
 export function normalizeCriticalSignal(resultOrData = {}, { strict = false } = {}) {
@@ -323,10 +315,6 @@ export function getActiveMachineCrits(actor, filters = {}) {
     .filter(crit => !filters.locationFamily || crit.locationFamily === filters.locationFamily)
     .filter(crit => !filters.gate || (Array.isArray(crit.gates) && crit.gates.includes(filters.gate)))
     .filter(crit => !filters.mod || (Array.isArray(crit.mods) && crit.mods.includes(filters.mod)));
-}
-
-function isMachineActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
 }
 
 function normalizeHitLocationForDamage(actor, payload, armorRemainingBefore, structureRemainingBefore) {
@@ -414,10 +402,10 @@ function buildDamagePreview(preview = {}) {
     effectiveAp: Number(preview?.effectiveAp ?? 0),
     beforeLabel: String(preview?.beforeLabel ?? "").trim(),
     afterLabel: String(preview?.afterLabel ?? "").trim(),
-    machine: clone(preview?.machine ?? {}),
+    machine: cloneValue(preview?.machine ?? {}, null),
     sourceScale: String(preview?.sourceScale ?? "").trim(),
     targetScale: String(preview?.targetScale ?? "").trim(),
-    scaleConversion: clone(preview?.scaleConversion ?? null),
+    scaleConversion: cloneValue(preview?.scaleConversion ?? null, null),
   };
 }
 
@@ -531,7 +519,7 @@ export function previewMachineAttackDamage({
     sourceScale,
     targetScale,
     scaleConversion,
-    attackDamage: clone(payload?.attackDamage ?? null),
+    attackDamage: cloneValue(payload?.attackDamage ?? null, null),
     requestedDelta: incoming,
     appliedDelta: preview.appliedDelta,
     usedArmor: preview.usedArmor,
@@ -662,7 +650,7 @@ function getDefaultLocationCriticalResult(actor = null, hitLocation = {}, rollTo
   const actorGroup = actor?.type === TEMPLATE.actorTypes.vehicle ? "vehicle" : "battlemech";
   const family = normalizeCriticalLocationFamily(actor, hitLocation);
   const total = Math.min(12, Math.max(2, Math.trunc(Number(rollTotal ?? 7)) || 7));
-  return clone(LOCATION_CRITICAL_RESULTS[actorGroup]?.[family]?.[total] ?? LOCATION_CRITICAL_RESULTS[actorGroup]?.[family]?.[7]);
+  return cloneValue(LOCATION_CRITICAL_RESULTS[actorGroup]?.[family]?.[total] ?? LOCATION_CRITICAL_RESULTS[actorGroup]?.[family]?.[7], null);
 }
 
 function getGeneralRollTotal(drawn = {}, signal = {}) {
@@ -806,7 +794,7 @@ function buildCritRecord({ actor, drawn, hitLocation, source = {}, cascade = fal
     remedyKey: signal.remedyKey,
   }, remedy);
   return {
-    id: randomId(),
+    id: createRandomId(),
     previewRevision: getPreviewRevision({ previewRevision }),
     key: signal.key,
     resultKey: signal.key,
@@ -867,7 +855,7 @@ function buildCritRecord({ actor, drawn, hitLocation, source = {}, cascade = fal
     cascade: Boolean(cascade),
     createdRound: Number(globalThis.game?.combat?.round ?? 0) || 0,
     createdAt: nowIso(),
-    source: clone(source ?? {}),
+    source: cloneValue(source ?? {}, null),
     actorType: actor?.type ?? "",
   };
 }
@@ -944,7 +932,7 @@ export async function drawMachineCriticalRecords({
 
 function getPreparedCriticalRecords(payload = {}, actor = null) {
   return Array.isArray(payload?.preparedCriticalRecords)
-    ? payload.preparedCriticalRecords.map(record => normalizeMachineCriticalRecord(clone(record), actor))
+    ? payload.preparedCriticalRecords.map(record => normalizeMachineCriticalRecord(cloneValue(record, null), actor))
     : [];
 }
 
@@ -1133,7 +1121,7 @@ export async function applyMachineAttackDamage({
     });
   }
 
-  const existingCrits = Array.isArray(actor?.system?.mwd?.crits) ? clone(actor.system.mwd.crits) : [];
+  const existingCrits = Array.isArray(actor?.system?.mwd?.crits) ? cloneValue(actor.system.mwd.crits, null) : [];
   const nextCrits = critDraw.ok && critDraw.crits.length
     ? existingCrits.concat(critDraw.crits)
     : existingCrits;

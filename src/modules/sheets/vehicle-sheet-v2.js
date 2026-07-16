@@ -86,17 +86,14 @@ import { BaseActorSheetV2 } from "./base-actor-sheet-v2.js";
 import { SelectActor } from "../dialog/select-actor.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { buildAssetModuleSummary } from "../mwd/asset-module-effects.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
-
-function compactList(values = []) {
-  return values
-    .map(value => String(value ?? "").trim())
-    .filter(Boolean);
-}
+import {
+  buildDetailRows,
+  buildDetailTags,
+  buildSummaryStats,
+  compactList,
+  toNumber,
+  toSnippet,
+} from "./actor-sheet-support.js";
 
 function getPilotSkillRating(actor = null, skillKey = "") {
   const key = String(skillKey ?? "").trim();
@@ -128,20 +125,6 @@ function buildTrainedPilotSkillGroups(pilotActor = null) {
   return Array.from(groups.values()).filter(group => group.skills.length);
 }
 
-function stripHtml(value) {
-  return String(value ?? "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function toSnippet(value, max = 180) {
-  const plain = stripHtml(value);
-  if (!plain) return "";
-  if (plain.length <= max) return plain;
-  return `${plain.slice(0, Math.max(0, max - 3)).trim()}...`;
-}
-
 function getMachineActionService() {
   return game.mwd?.machineActions ?? game.system?.mwd?.machineActions ?? null;
 }
@@ -158,49 +141,6 @@ const HARDPOINT_TYPE_CODES = Object.freeze({
   missile: "MSL",
   omni: "OMNI",
 });
-
-function buildSummaryStats(stats = []) {
-  return stats
-    .map(stat => {
-      const data = stat ?? {};
-      return {
-        ...data,
-        label: String(data.label ?? "").trim(),
-        value: String(data.value ?? "").trim(),
-        emphasis: data.emphasis ?? "",
-        title: String(data.title ?? "").trim(),
-        tone: String(data.tone ?? "").trim(),
-        parts: Array.isArray(data.parts)
-          ? data.parts
-            .filter(part => part && part.value !== undefined && part.value !== null && String(part.value).trim() !== "")
-            .map(part => ({
-              label: String(part.label ?? "").trim(),
-              value: String(part.value ?? "").trim(),
-              tone: String(part.tone ?? "").trim(),
-              title: String(part.title ?? "").trim(),
-            }))
-          : [],
-      };
-    })
-    .filter(stat => stat.value !== "" || stat.parts.length)
-    .map(stat => ({
-      ...stat,
-      hasParts: stat.parts.length > 0,
-    }));
-}
-
-function buildDetailTags(tags = []) {
-  return compactList(tags).map(label => ({ label }));
-}
-
-function buildDetailRows(rows = []) {
-  return rows
-    .filter(row => row && row.value !== undefined && row.value !== null && String(row.value).trim() !== "")
-    .map(row => ({
-      label: String(row.label ?? "").trim(),
-      value: String(row.value ?? "").trim()
-    }));
-}
 
 function getHardpointTypeCode(type = "") {
   const normalized = String(type ?? "").trim().toLowerCase();

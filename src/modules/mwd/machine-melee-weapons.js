@@ -4,16 +4,13 @@
 // and AR bands -> standard machine attack resolution consumes an ordinary profile.
 
 import { TEMPLATE } from "../core/constants.js";
+import { isMachineActor } from "../utils/actor-guards.js";
+import { toNumber } from "../utils/coercion.js";
 import { getMachineWeaponDamageTypeLabel, normalizeMachineWeaponDamageType } from "./machine-weapon-types.js";
 
 export const MACHINE_STANDARD_MELEE_ID = "machineStandardMelee";
 
 const RANGE_ORDER = Object.freeze(["close", "near", "far", "extreme"]);
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
 
 function normalizeRangeKey(value = "close", fallback = "close") {
   const normalized = String(value ?? "").trim().toLowerCase();
@@ -23,10 +20,6 @@ function normalizeRangeKey(value = "close", fallback = "close") {
 function rangeIndex(value = "close") {
   const index = RANGE_ORDER.indexOf(normalizeRangeKey(value));
   return index >= 0 ? index : 0;
-}
-
-function isMachineActor(actor = null) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
 }
 
 function isMachineMeleeProfile(profile = null) {

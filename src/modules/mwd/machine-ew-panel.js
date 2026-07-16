@@ -17,11 +17,7 @@ import {
 import { getBattleArmorMachineTargetProfile } from "./battle-armor.js";
 import { hasAssetModuleCapability } from "./asset-module-effects.js";
 import { getMountedMachineItems, hasMachineWeaponKeyword } from "./machine-hardpoints.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
+import { toNumber } from "../utils/coercion.js";
 
 function toTargets(targets) {
   return Array.from(targets ?? globalThis.game?.user?.targets ?? []).filter(target => target?.actor);

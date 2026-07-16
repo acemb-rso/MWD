@@ -1,14 +1,10 @@
 ﻿// src/modules/modifiers/providers/ew-tracking-penalty.js
 // Emits negative dice-pool modifiers for attack rolls against EW-hardened targets.
 
-import { TEMPLATE } from "../../core/constants.js";
 import { getTrackingPenalty } from "../../mwd/machine-ew-state.js";
 import { buildMachineAttackMotionContext } from "../../mwd/machine-attack-motion.js";
 import { getStealthTrackingPenalty } from "../../mwd/machine-stealth.js";
-
-function isMachineActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
-}
+import { isMachineActor } from "../../utils/actor-guards.js";
 
 export class EwTrackingPenaltyProvider {
   id = "mwd.ewTrackingPenalty";

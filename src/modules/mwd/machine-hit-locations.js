@@ -4,8 +4,8 @@
 // locations are derived -> damage apply chooses Chaos or automatic critical flow.
 
 import { TEMPLATE } from "../core/constants.js";
-
-const MACHINE_TYPES = new Set([TEMPLATE.actorTypes.vehicle, TEMPLATE.actorTypes.battlemech]);
+import { getActorType, isMachineActor } from "../utils/actor-guards.js";
+export { isMachineActor };
 
 const LOCATION_LABELS = Object.freeze({
   head: "Head",
@@ -26,10 +26,6 @@ function clampRollTotal(value) {
   const total = Math.trunc(Number(value ?? 0));
   if (!Number.isFinite(total)) return 10;
   return Math.min(18, Math.max(3, total));
-}
-
-function actorType(actor = null) {
-  return String(actor?.type ?? actor ?? "").trim();
 }
 
 function enabledLocationKeys(actor = null) {
@@ -107,10 +103,6 @@ export function getMachineLocationLabel(locationKey = "") {
   return LOCATION_LABELS[locationKey] ?? (String(locationKey ?? "").trim() || "Location");
 }
 
-export function isMachineActor(actor = null) {
-  return MACHINE_TYPES.has(actorType(actor));
-}
-
 export function rollMachineHitLocationTotal() {
   if (typeof Roll === "function") {
     try {
@@ -134,7 +126,7 @@ export function resolveMachineHitLocation({
 } = {}) {
   // Resolve both the descriptive hit location and the critical-routing metadata
   // so damage code can decide between automatic crits and Chaos conversion.
-  const type = actorType(actor);
+  const type = getActorType(actor);
   const total = clampRollTotal(rollTotal);
   const pureStructureHit = Math.max(0, Number(armorBefore ?? 0) || 0) <= 0;
   const base = type === TEMPLATE.actorTypes.battlemech

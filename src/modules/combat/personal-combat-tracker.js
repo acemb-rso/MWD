@@ -58,6 +58,7 @@ import { getBattlemechUsedWeaponGroupIds, markBattlemechWeaponGroupUsed } from "
 import { getPersonalActionGateReason, getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
 import { clearSuppressedTargetingPackets } from "../mwd/machine-ew-state.js";
 import { getStatusActionGateReason } from "../status/status-mechanics.js";
+import { getMeasuredTokenCenter } from "../utils/token.js";
 import { getPersonalActionAvailabilityReason } from "./personal-action-rules.js";
 
 const FLAG_SCOPE = "mwd";
@@ -420,26 +421,6 @@ function parseModifierValue(value) {
 
   const match = String(value ?? "").trim().match(/[-+]?\d+(\.\d+)?/);
   return match ? Number(match[0]) : 0;
-}
-
-function getTokenCenter(token) {
-  const tokenDoc = token?.document ?? token ?? null;
-  const tokenObject = token?.object ?? tokenDoc?.object ?? token ?? null;
-  const tokenId = String(tokenDoc?.id ?? "").trim();
-  const pendingPosition = PersonalCombatTracker._pendingTokenPositions.get(tokenId) ?? null;
-  const x = Number(pendingPosition?.x ?? tokenDoc?.x);
-  const y = Number(pendingPosition?.y ?? tokenDoc?.y);
-
-  if (tokenObject && Number.isFinite(x) && Number.isFinite(y)) {
-    if (typeof tokenObject.getCenterPoint === "function") {
-      return tokenObject.getCenterPoint({ x, y });
-    }
-    if (typeof tokenObject.getCenter === "function") {
-      return tokenObject.getCenter(x, y);
-    }
-  }
-
-  return tokenObject?.center ?? tokenDoc?.object?.center ?? null;
 }
 
 function formatDistanceLabel(distance, units = "") {
@@ -933,8 +914,14 @@ export class PersonalCombatTracker {
 
   static _measureTokenDistance(sourceToken, targetToken) {
     const grid = canvas?.grid;
-    const source = getTokenCenter(sourceToken);
-    const target = getTokenCenter(targetToken);
+    const source = getMeasuredTokenCenter(sourceToken, {
+      pendingPositions: PersonalCombatTracker._pendingTokenPositions,
+      useTokenPositionFallback: false,
+    });
+    const target = getMeasuredTokenCenter(targetToken, {
+      pendingPositions: PersonalCombatTracker._pendingTokenPositions,
+      useTokenPositionFallback: false,
+    });
 
     if (!grid || !source || !target) return null;
 

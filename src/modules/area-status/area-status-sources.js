@@ -2,7 +2,14 @@
 // How it fits: Source data is authoritative; Regions and ActiveEffects are projections.
 
 import { collectAssetModuleRuntimePackets } from "../mwd/asset-module-runtime.js";
+import {
+  getTokenActor,
+  getTokenCenter,
+  getTokenDocument,
+} from "../utils/token.js";
 import { normalizeAuraPacket } from "./normalize-aura-packet.js";
+
+export { getTokenActor, getTokenDocument };
 
 function toArray(value) {
   if (Array.isArray(value)) return value;
@@ -10,14 +17,6 @@ function toArray(value) {
   if (value && typeof value.values === "function") return Array.from(value.values());
   if (value && typeof value[Symbol.iterator] === "function") return Array.from(value);
   return [];
-}
-
-export function getTokenActor(token = null) {
-  return token?.actor ?? token?.document?.actor ?? null;
-}
-
-export function getTokenDocument(token = null) {
-  return token?.document ?? token ?? null;
 }
 
 export function getSceneTokens(scene = null) {
@@ -125,21 +124,10 @@ export function isTokenAffectedBySource(source = {}, sourceToken = null, targetT
   return source.allegiance === "enemy" ? !sameDisposition : sameDisposition;
 }
 
-export function getTokenCenter(token = null, scene = null) {
-  const doc = getTokenDocument(token) ?? {};
-  const gridSize = Math.max(1, Number(scene?.grid?.size ?? globalThis.canvas?.grid?.size ?? 100) || 100);
-  const widthPixels = token?.w ?? ((Number(doc.width ?? 1) || 1) * gridSize);
-  const heightPixels = token?.h ?? ((Number(doc.height ?? 1) || 1) * gridSize);
-  return {
-    x: Number(token?.center?.x ?? doc.x ?? 0) + (token?.center ? 0 : widthPixels / 2),
-    y: Number(token?.center?.y ?? doc.y ?? 0) + (token?.center ? 0 : heightPixels / 2),
-  };
-}
-
 export function getTokenDistance(sourceToken = null, targetToken = null, scene = null) {
   if (!sourceToken || !targetToken) return Number.POSITIVE_INFINITY;
-  const left = getTokenCenter(sourceToken, scene);
-  const right = getTokenCenter(targetToken, scene);
+  const left = getTokenCenter(sourceToken, { scene });
+  const right = getTokenCenter(targetToken, { scene });
   const gridSize = Math.max(1, Number(scene?.grid?.size ?? globalThis.canvas?.grid?.size ?? 100) || 100);
   const gridDistance = Math.max(0.0001, Number(scene?.grid?.distance ?? globalThis.canvas?.scene?.grid?.distance ?? 1) || 1);
   return (Math.hypot(left.x - right.x, left.y - right.y) / gridSize) * gridDistance;

@@ -4,6 +4,8 @@
 
 import { SYSTEM_NAME } from "../core/constants.js";
 import { getPlayerGadgetStorageKey } from "./player-gadget-subjects.js";
+import { cloneValue } from "../utils/clone.js";
+import { createRandomId } from "../utils/id.js";
 
 export const SETTING_PLAYER_GADGET_PRESETS = "playerManualModifierPresets";
 export const PLAYER_GADGET_ROLL_SOURCE = "playerGadget";
@@ -47,14 +49,6 @@ export const SITUATIONAL_PRESET_GROUPS = Object.freeze([
   }),
 ]);
 
-function clone(value) {
-  return globalThis.foundry?.utils?.deepClone?.(value) ?? JSON.parse(JSON.stringify(value ?? null));
-}
-
-function randomId() {
-  return globalThis.foundry?.utils?.randomID?.() ?? Math.random().toString(36).slice(2, 10);
-}
-
 function signed(value) {
   const numeric = Number(value ?? 0) || 0;
   return numeric > 0 ? `+${numeric}` : String(numeric);
@@ -65,7 +59,7 @@ export function normalizePlayerModifierPreset(row = {}, { fallbackSource = "play
   const label = String(row?.label ?? "").trim();
   if (!label || !Number.isFinite(value) || value === 0) return null;
   return {
-    id: String(row?.id ?? randomId()).trim() || randomId(),
+    id: String(row?.id ?? createRandomId({ fallbackLength: 8 })).trim() || createRandomId({ fallbackLength: 8 }),
     label,
     value,
     enabled: row?.enabled !== false,
@@ -101,7 +95,7 @@ export function getSituationalPresetGroups() {
 function readStore(systemId = SYSTEM_NAME) {
   try {
     const value = game.settings?.get?.(systemId, SETTING_PLAYER_GADGET_PRESETS);
-    return value && typeof value === "object" && !Array.isArray(value) ? clone(value) : {};
+    return value && typeof value === "object" && !Array.isArray(value) ? cloneValue(value, null) : {};
   } catch (_error) {
     return {};
   }

@@ -21,6 +21,7 @@ import {
   getMachineConditionModifier,
   normalizeMachineDegradationState,
 } from "./machine-degradation.js";
+import { createRandomId } from "../utils/id.js";
 
 const GM_MACHINE_REMEDY_REQUEST = "MachineIntents.gmMachineRemedyRequest";
 const GM_MACHINE_REMEDY_RESPONSE = "MachineIntents.gmMachineRemedyResponse";
@@ -133,7 +134,7 @@ function serializeRemedyOutcome(result = {}) {
 function getRequestId() {
   return globalThis.foundry?.utils?.randomID?.()
     ?? globalThis.crypto?.randomUUID?.()
-    ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    ?? createRandomId({ includeTimestamp: true });
 }
 
 function isNonGmUser() {

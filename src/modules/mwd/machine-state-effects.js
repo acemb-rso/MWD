@@ -21,17 +21,13 @@ import { getAssetModuleDerivedStatuses, getAssetModuleMovementBonus } from "./as
 import { getVehicleStrainStateEffects } from "./vehicle-strain.js";
 import { collectMachineStateAnnotations } from "../status/status-mechanics.js";
 import { normalizeStatusConditionId } from "../status/status-condition-catalog.js";
+import { toNumber } from "../utils/coercion.js";
 
 const DETECTION_CAP_RANKS = Object.freeze({
   contact: 1,
   track: 2,
   lock: 3,
 });
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
 
 function getActorType(actor = null) {
   return actor?.type === TEMPLATE.actorTypes.battlemech ? TEMPLATE.actorTypes.battlemech : TEMPLATE.actorTypes.vehicle;

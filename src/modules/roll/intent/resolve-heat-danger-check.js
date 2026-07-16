@@ -5,11 +5,7 @@
 
 import { buildBattlemechHeatModel } from "../../mwd/machine-heat.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
+import { toNumber } from "../../utils/coercion.js";
 
 function clampMin(value, min = 0) {
   return Math.max(min, toNumber(value, min));

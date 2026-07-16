@@ -6,58 +6,28 @@
 // targeting data, and no cap increase. Spotting is independent of detection
 // state by design (a spotter only needs to see the target).
 
-import { TEMPLATE } from "../../core/constants.js";
 import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import { getAcquireDnModifier } from "../../mwd/machine-ew-state.js";
 import { isMachineSensorActionBlocked } from "../../mwd/machine-state-effects.js";
 import { getStealthDnParts } from "../../mwd/machine-stealth.js";
+import { isMachineActor, isPersonActor } from "../../utils/actor-guards.js";
 import { createUserFacingRollError } from "../roll-errors.js";
+import {
+  getTokenDisplayName,
+  getTokenId,
+  getTokenUuid,
+  resolveRollSourceToken,
+  resolveRollTargetToken,
+  withOwner,
+} from "./token-context.js";
 
 const SPOT_BASE_DN = 2;
-
-function isMachineActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
-}
-
-function isPersonalActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.character || actor?.type === TEMPLATE.actorTypes.npc;
-}
-
-function resolveTargetToken(payload) {
-  const explicitUuid = String(payload?.targetTokenUuid ?? "").trim();
-  if (explicitUuid) {
-    return canvas?.tokens?.placeables?.find(t => (t.document?.uuid ?? t.uuid) === explicitUuid) ?? null;
-  }
-  const explicitId = String(payload?.targetTokenId ?? "").trim();
-  if (explicitId) {
-    return canvas?.tokens?.get?.(explicitId) ?? null;
-  }
-  return Array.from(game.user?.targets ?? []).find(t => t.actor) ?? null;
-}
-
-function resolveAttackerToken(actor, payload) {
-  const id = String(payload?.sourceTokenId ?? "").trim();
-  if (id) return canvas?.tokens?.get?.(id) ?? canvas?.tokens?.placeables?.find(t => t.id === id) ?? null;
-  return canvas?.tokens?.controlled?.find(t => t.actor?.id === actor?.id)
-    ?? actor?.getActiveTokens?.(true, true)?.[0]
-    ?? null;
-}
-
-function getTokenDisplayName(token, fallback = "Target") {
-  return String(token?.name ?? token?.actor?.name ?? fallback).trim() || fallback;
-}
-
-function withOwner(label = "", actor = null) {
-  const base = String(label ?? "").trim();
-  const owner = String(actor?.name ?? "").trim();
-  return owner ? `${base} (${owner})` : base;
-}
 
 export async function resolveSpotIndirect({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveSpotIndirect requires actor");
   const machineRoll = isMachineActor(actor);
-  const personalRoll = !machineRoll && isPersonalActor(actor) && Boolean(payload?.personalSpotter);
+  const personalRoll = !machineRoll && isPersonActor(actor) && Boolean(payload?.personalSpotter);
   if (!machineRoll && !personalRoll) {
     throw createUserFacingRollError("Spot for Indirect Fire is a machine action.", { severity: "warn" });
   }
@@ -65,7 +35,7 @@ export async function resolveSpotIndirect({ actor, payload } = {}) {
     throw createUserFacingRollError("Sensor actions are blocked by the machine's current state.", { severity: "warn" });
   }
 
-  const targetToken = resolveTargetToken(payload);
+  const targetToken = resolveRollTargetToken(payload);
   if (!targetToken?.actor) {
     throw createUserFacingRollError("Target a token to spot.", { severity: "warn" });
   }
@@ -76,9 +46,9 @@ export async function resolveSpotIndirect({ actor, payload } = {}) {
   }
 
   const targetActor = targetToken.actor;
-  const targetTokenUuid = targetToken.document?.uuid ?? targetToken.uuid ?? "";
+  const targetTokenUuid = getTokenUuid(targetToken);
   const targetName = getTokenDisplayName(targetToken);
-  const attackerToken = resolveAttackerToken(actor, payload);
+  const attackerToken = resolveRollSourceToken(actor, payload);
 
   const operator = machineRoll
     ? await resolveMachineOperator({
@@ -153,10 +123,10 @@ export async function resolveSpotIndirect({ actor, payload } = {}) {
       operatorActorUuid:  operator.actor?.uuid ?? "",
       operatorName:       operator.actor?.name ?? "",
       personalSpotter:    personalRoll,
-      attackerTokenId:    attackerToken?.id ?? attackerToken?.document?.id ?? "",
-      attackerTokenUuid:  attackerToken?.document?.uuid ?? attackerToken?.uuid ?? "",
+      attackerTokenId:    getTokenId(attackerToken),
+      attackerTokenUuid:  getTokenUuid(attackerToken),
       targetTokenUuid,
-      targetTokenId:      targetToken?.id ?? "",
+      targetTokenId:      getTokenId(targetToken),
       targetName,
     },
     rollActor: roller,

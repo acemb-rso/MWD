@@ -19,6 +19,7 @@
 
 import { ICONS_SKILLS_PATH, SYSTEM_NAME, SYSTEM_PATH } from "../core/constants.js";
 import { Enums } from "../core/enums.js"; // if you want pretty attribute labels (optional)
+import { cloneValue } from "../utils/clone.js";
 
 
 /**
@@ -281,9 +282,7 @@ export function getSkillSpecializationLabel(skillCode, specializationKey) {
 }
 
 export function getDefaultSkillSpecializationCatalog() {
-  const clone = globalThis.foundry?.utils?.deepClone
-    ?? (value => JSON.parse(JSON.stringify(value ?? null)));
-  return clone(DEFAULT_SKILL_SPECIALIZATION_CATALOG);
+  return cloneValue(DEFAULT_SKILL_SPECIALIZATION_CATALOG, null);
 }
 
 export function normalizeSkillSpecializationCatalog(value, { strict = false } = {}) {

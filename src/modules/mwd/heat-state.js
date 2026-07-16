@@ -2,6 +2,8 @@
 // Purpose: Normalizes BattleMech heat thresholds and display state labels.
 // How it fits: Actor prep and sheets can share the same Safe/Hot/Overheat/Danger rules.
 
+import { toNumber } from "../utils/coercion.js";
+
 export const MACHINE_HEAT_STATUS_LABELS = Object.freeze({
   safe: "Safe",
   hot: "Hot",
@@ -11,11 +13,6 @@ export const MACHINE_HEAT_STATUS_LABELS = Object.freeze({
   overheated: "Overheat",
   shutdown: "Danger",
 });
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
 
 export function normalizeMachineHeatThresholds(thresholds = {}, max = 0) {
   const heatMax = Math.max(0, toNumber(max, 0));

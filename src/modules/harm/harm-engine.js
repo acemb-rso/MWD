@@ -57,6 +57,7 @@ import {
   buildDamageScaleConversion,
   normalizeDamageScale,
 } from "../mwd/damage-scale.js";
+import { isMachineActor, isPersonActor } from "../utils/actor-guards.js";
 
 // The harm tool can target either a live Token object or its TokenDocument.
 // Normalizing that boundary early keeps the rest of the engine actor-first.
@@ -91,21 +92,8 @@ function getBurnValue(actor) {
   return Math.max(0, Number(actor?.system?.burn?.value ?? 0) || 0);
 }
 
-function isPersonActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.character || actor?.type === TEMPLATE.actorTypes.npc;
-}
-
-function isMachineActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
-}
-
 function isKnownActor(actor) {
-  return [
-    TEMPLATE.actorTypes.character,
-    TEMPLATE.actorTypes.npc,
-    TEMPLATE.actorTypes.vehicle,
-    TEMPLATE.actorTypes.battlemech,
-  ].includes(actor?.type);
+  return isPersonActor(actor) || isMachineActor(actor);
 }
 
 function modeAllowsActor(mode, actor) {

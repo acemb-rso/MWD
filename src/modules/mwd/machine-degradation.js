@@ -4,6 +4,8 @@
 // location state updates -> crit/status systems consume normalized consequences.
 
 import { TEMPLATE } from "../core/constants.js";
+import { toNumber } from "../utils/coercion.js";
+import { cloneValue } from "../utils/clone.js";
 
 export const MACHINE_CONDITION_STAGES = Object.freeze({
   intact: 0,
@@ -77,23 +79,6 @@ const CATASTROPHIC_FALLBACKS = Object.freeze({
     mobility: Object.freeze({ type: "mobilityCollapse", destroyed: true, statusState: "immobilized" }),
   }),
 });
-
-function deepClone(value) {
-  if (typeof foundry !== "undefined" && typeof foundry?.utils?.deepClone === "function") {
-    try {
-      return foundry.utils.deepClone(value);
-    } catch (_error) {
-      // Test doubles and actor stubs sometimes carry functions that cannot be
-      // structured-cloned. Fall back to a data-only clone for degradation math.
-    }
-  }
-  return JSON.parse(JSON.stringify(value ?? null));
-}
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -372,7 +357,7 @@ function createResultSkeleton({ locations = {}, shockBefore = 0, shockGain = 0, 
       reliabilitySpendableBefore: spendableBefore,
       reliabilitySpendableAfter: spendableBefore,
       selectedLocations: [],
-      locationsBefore: deepClone(locations),
+      locationsBefore: cloneValue(locations, null),
       locationsAfter: null,
     },
   };
@@ -415,7 +400,7 @@ export function getMachineDegradationLocationPriority(actorType = TEMPLATE.actor
 }
 
 export function getMachineDefaultLocations(actorType = TEMPLATE.actorTypes.vehicle) {
-  return deepClone(getDefaultLocationConfig(getActorType(actorType)));
+  return cloneValue(getDefaultLocationConfig(getActorType(actorType)), null);
 }
 
 export function normalizeMachineDegradationState(systemData = {}, actorType = TEMPLATE.actorTypes.vehicle) {
@@ -447,7 +432,7 @@ export function buildVehicleStructureZeroDisableUpdates(actor = null, structureR
   const actorType = getActorType(actor);
   if (actorType !== TEMPLATE.actorTypes.vehicle) return {};
 
-  const systemData = normalizeMachineDegradationState(deepClone(actor?.system ?? {}), actorType);
+  const systemData = normalizeMachineDegradationState(cloneValue(actor?.system ?? {}, null), actorType);
   const remaining = Number.isFinite(Number(structureRemaining))
     ? Math.max(0, Number(structureRemaining))
     : getStructureRemaining(systemData);
@@ -489,10 +474,10 @@ export function resolveMachineDegradation({
   directConditionLocations = [],
   maxIterations = 10,
 } = {}) {
-  const snapshot = deepClone(actorSnapshot ?? {});
+  const snapshot = cloneValue(actorSnapshot ?? {}, null);
   const actorType = getActorType(snapshot?.type ?? snapshot?.actorType);
   const systemData = normalizeMachineDegradationState(snapshot.system ?? {}, actorType);
-  const locations = deepClone(systemData.mwd?.locations ?? {});
+  const locations = cloneValue(systemData.mwd?.locations ?? {}, null);
   const reliability = Math.max(0, toNumber(systemData.attributes?.reliability?.value, 0));
   let spendable = Math.max(0, toNumber(systemData.mwd?.reliabilitySpendable?.value, reliability));
   const threshold = getMachineReliabilityThreshold(reliability);
@@ -604,7 +589,7 @@ export function resolveMachineDegradation({
   result.shockDelta = Math.max(0, workingShock) - initialShock;
   result.summary.shockAfter = Math.max(0, workingShock);
   result.summary.reliabilitySpendableAfter = spendable;
-  result.summary.locationsAfter = deepClone(locations);
+  result.summary.locationsAfter = cloneValue(locations, null);
   return result;
 }
 
@@ -612,8 +597,8 @@ export function buildMachineDegradationUpdates(actor = null, degradation = null)
   if (!actor || !degradation) return {};
 
   const actorType = getActorType(actor);
-  const systemData = normalizeMachineDegradationState(deepClone(actor.system ?? {}), actorType);
-  const locations = deepClone(systemData.mwd?.locations ?? {});
+  const systemData = normalizeMachineDegradationState(cloneValue(actor.system ?? {}, null), actorType);
+  const locations = cloneValue(systemData.mwd?.locations ?? {}, null);
   const updates = {};
 
   for (const [locationKey, delta] of Object.entries(degradation.stressDelta ?? {})) {

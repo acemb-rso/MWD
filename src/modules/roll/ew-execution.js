@@ -15,6 +15,8 @@ import {
   suppressTargetingPacket,
   setSpot,
 } from "../mwd/machine-ew-state.js";
+import { isMachineActor } from "../utils/actor-guards.js";
+import { getTokenUuid } from "../utils/token.js";
 
 function getAttackerTokenFromUuid(uuid) {
   const id = String(uuid ?? "").trim();
@@ -54,14 +56,6 @@ function resolveAttackerCombatant(context = {}) {
   return getCombatantById(context?.attackerCombatantId)
     ?? getAttackerCombatant(getAttackerTokenFromUuid(context?.attackerTokenUuid))
     ?? getAttackerCombatant(getAttackerTokenFromId(context?.attackerTokenId));
-}
-
-function getTokenUuid(token = null) {
-  return String(token?.document?.uuid ?? token?.uuid ?? "").trim();
-}
-
-function isMachineActor(actor = null) {
-  return actor?.type === "vehicle" || actor?.type === "battlemech";
 }
 
 function downgradeDetectionState(state = "blind") {

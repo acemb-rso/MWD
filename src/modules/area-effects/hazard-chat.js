@@ -9,13 +9,9 @@ import {
   scaleDamageByExposure,
 } from "./area-effect-engine.js";
 import { getPersonalDamageTypeLabel, normalizePersonalDamageType } from "../mwd/personal-damage.js";
+import { toNumber } from "../utils/coercion.js";
 
 export const MWD_HAZARD_CARD_TEMPLATE = "systems/mwd/templates/v2/roll/_mwd-hazard-card.hbs";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
 
 function getPortraitSource({ actor = null, token = null } = {}) {
   const tokenDoc = token?.document ?? token ?? null;

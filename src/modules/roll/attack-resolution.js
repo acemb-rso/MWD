@@ -53,11 +53,8 @@ import {
   getTraitActiveEffectModifier,
 } from "../mwd/traits.js";
 import { collectStatusCqAdjustments } from "../status/status-mechanics.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
+import { toNumber } from "../utils/coercion.js";
+import { cloneValue } from "../utils/clone.js";
 
 function getGrappleStatus(actor = null) {
   if (!actor?.statuses?.has) return "";
@@ -585,15 +582,9 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
   };
 }
 
-function clone(value) {
-  return typeof foundry !== "undefined" && foundry?.utils?.deepClone
-    ? foundry.utils.deepClone(value)
-    : JSON.parse(JSON.stringify(value ?? null));
-}
-
 function buildCanonicalMachineMutation({ target = {}, payload = {}, hitLocation = null, preview = {} } = {}) {
   const preparedCriticalRecords = Array.isArray(preview?.critical?.records)
-    ? clone(preview.critical.records)
+    ? cloneValue(preview.critical.records, null)
     : [];
   const previewRevision = Math.max(0, Math.trunc(Number(payload?.previewRevision ?? 0) || 0));
   if (preparedCriticalRecords.length) {
@@ -764,7 +755,7 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
         },
         critical: preview?.critical ?? null,
         preparedCriticalRecords: Array.isArray(preview?.critical?.records)
-          ? clone(preview.critical.records).map(record => ({
+          ? cloneValue(preview.critical.records, null).map(record => ({
             ...record,
             previewRevision: Math.max(0, Math.trunc(Number(queuedPayload.previewRevision ?? 0) || 0)),
           }))
@@ -774,7 +765,7 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
           ...queuedPayload,
           criticalPreview: preview?.critical ?? null,
           preparedCriticalRecords: Array.isArray(preview?.critical?.records)
-            ? clone(preview.critical.records).map(record => ({
+            ? cloneValue(preview.critical.records, null).map(record => ({
               ...record,
               previewRevision: Math.max(0, Math.trunc(Number(queuedPayload.previewRevision ?? 0) || 0)),
             }))

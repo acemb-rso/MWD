@@ -12,6 +12,12 @@ import { DETECTION_STATE_ORDER } from "../mwd/machine-ew.js";
 import { isMachineActorType } from "../mwd/machine-monitors.js";
 import { getMechRangeBand } from "../mwd/personal-range-bands.js";
 import { measureTokenDistance } from "../mwd/token-measurement.js";
+import {
+  getTokenActor,
+  getTokenDisposition,
+  getTokenDocument,
+  getTokenUuid,
+} from "../utils/token.js";
 
 export const MWD_SENSOR_DETECTION_MODE_ID = "mwdSensor";
 export const SENSOR_DETECTION_STATES = Object.freeze(["contact", "track", "lock"]);
@@ -35,27 +41,6 @@ function resolveToken(value = null) {
     ?? value?.target?.token
     ?? value?.target?.document?.object
     ?? value;
-}
-
-function getTokenDocument(token = null) {
-  return token?.document ?? token ?? null;
-}
-
-function getTokenActor(token = null) {
-  return token?.actor ?? token?.document?.actor ?? token?.actorLink?.actor ?? null;
-}
-
-function getTokenUuid(token = null) {
-  return String(token?.document?.uuid ?? token?.uuid ?? "").trim();
-}
-
-function getTokenDisposition(token = null) {
-  return Number(
-    token?.document?.disposition
-      ?? token?.disposition
-      ?? token?.data?.disposition
-      ?? 0
-  );
 }
 
 function getHostileDisposition() {

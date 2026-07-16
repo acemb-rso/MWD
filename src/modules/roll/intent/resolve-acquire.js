@@ -1,7 +1,6 @@
 ﻿// src/modules/roll/intent/resolve-acquire.js
 // Resolve roll context for an EW acquire action (System + Perception).
 
-import { TEMPLATE } from "../../core/constants.js";
 import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import {
@@ -18,41 +17,16 @@ import {
   isMachineSensorActionBlocked,
 } from "../../mwd/machine-state-effects.js";
 import { getStealthDnParts } from "../../mwd/machine-stealth.js";
+import { isMachineActor } from "../../utils/actor-guards.js";
 import { createUserFacingRollError } from "../roll-errors.js";
-
-function isMachineActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
-}
-
-function resolveTargetToken(payload) {
-  const explicitUuid = String(payload?.targetTokenUuid ?? "").trim();
-  if (explicitUuid) {
-    return canvas?.tokens?.placeables?.find(t => (t.document?.uuid ?? t.uuid) === explicitUuid) ?? null;
-  }
-  const explicitId = String(payload?.targetTokenId ?? "").trim();
-  if (explicitId) {
-    return canvas?.tokens?.get?.(explicitId) ?? null;
-  }
-  return Array.from(game.user?.targets ?? []).find(t => t.actor) ?? null;
-}
-
-function resolveAttackerToken(actor, payload) {
-  const id = String(payload?.sourceTokenId ?? "").trim();
-  if (id) return canvas?.tokens?.get?.(id) ?? canvas?.tokens?.placeables?.find(t => t.id === id) ?? null;
-  return canvas?.tokens?.controlled?.find(t => t.actor?.id === actor?.id)
-    ?? actor?.getActiveTokens?.(true, true)?.[0]
-    ?? null;
-}
-
-function getTokenDisplayName(token, fallback = "Target") {
-  return String(token?.name ?? token?.actor?.name ?? fallback).trim() || fallback;
-}
-
-function withOwner(label = "", actor = null) {
-  const base = String(label ?? "").trim();
-  const owner = String(actor?.name ?? "").trim();
-  return owner ? `${base} (${owner})` : base;
-}
+import {
+  getTokenDisplayName,
+  getTokenId,
+  getTokenUuid,
+  resolveRollSourceToken,
+  resolveRollTargetToken,
+  withOwner,
+} from "./token-context.js";
 
 export async function resolveAcquire({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveAcquire requires actor");
@@ -63,15 +37,15 @@ export async function resolveAcquire({ actor, payload } = {}) {
     throw createUserFacingRollError("Sensor actions are blocked by the machine's current state.", { severity: "warn" });
   }
 
-  const targetToken = resolveTargetToken(payload);
+  const targetToken = resolveRollTargetToken(payload);
   if (!targetToken?.actor) {
     throw createUserFacingRollError("Target a token to acquire.", { severity: "warn" });
   }
   const targetActor = targetToken.actor;
-  const targetTokenUuid = targetToken.document?.uuid ?? targetToken.uuid ?? "";
+  const targetTokenUuid = getTokenUuid(targetToken);
   const targetName = getTokenDisplayName(targetToken);
 
-  const attackerToken = resolveAttackerToken(actor, payload);
+  const attackerToken = resolveRollSourceToken(actor, payload);
   const combatant = getAttackerCombatant(attackerToken);
 
   const currentState = getDetectionState(combatant, targetTokenUuid);
@@ -159,11 +133,11 @@ export async function resolveAcquire({ actor, payload } = {}) {
       machineActorUuid:   actor.uuid ?? "",
       operatorActorUuid:  operator.actor?.uuid ?? "",
       operatorName:       operator.actor?.name ?? "",
-      attackerTokenId:    attackerToken?.id ?? attackerToken?.document?.id ?? "",
-      attackerTokenUuid:  attackerToken?.document?.uuid ?? attackerToken?.uuid ?? "",
+      attackerTokenId:    getTokenId(attackerToken),
+      attackerTokenUuid:  getTokenUuid(attackerToken),
       attackerCombatantId: combatant?.id ?? "",
       targetTokenUuid,
-      targetTokenId:      targetToken?.id ?? "",
+      targetTokenId:      getTokenId(targetToken),
       targetName,
       currentState,
       currentStateLabel:  getDetectionStateLabel(currentState),

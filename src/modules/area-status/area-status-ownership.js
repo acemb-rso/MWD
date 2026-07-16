@@ -6,6 +6,7 @@ import {
   getStatusConditionDefinition,
   isStatusConditionApplicableToActor,
 } from "../status/status-condition-catalog.js";
+import { cloneValue } from "../utils/clone.js";
 
 export const AREA_STATUS_EFFECT_FLAG = "areaStatus";
 
@@ -14,11 +15,6 @@ function toArray(value) {
   if (Array.isArray(value?.contents)) return value.contents;
   if (value && typeof value[Symbol.iterator] === "function") return Array.from(value);
   return [];
-}
-
-function clone(value) {
-  return globalThis.foundry?.utils?.deepClone?.(value)
-    ?? JSON.parse(JSON.stringify(value ?? null));
 }
 
 function getStatusIds(effect = null) {
@@ -110,7 +106,7 @@ export class AreaStatusOwnership {
     }
     if (!effect) return false;
 
-    const current = clone(getAreaStatusMetadata(effect) ?? {});
+    const current = cloneValue(getAreaStatusMetadata(effect) ?? {}, null);
     const existingSources = current.sources && typeof current.sources === "object" ? current.sources : {};
     const metadata = {
       createdByAreaStatus: current.createdByAreaStatus ?? createdByAreaStatus,
@@ -148,7 +144,7 @@ export class AreaStatusOwnership {
       .find(candidate => Boolean(getAreaStatusMetadata(candidate)?.sources?.[sourceKey]));
     if (!effect) return false;
 
-    const current = clone(getAreaStatusMetadata(effect) ?? {});
+    const current = cloneValue(getAreaStatusMetadata(effect) ?? {}, null);
     const sources = { ...(current.sources ?? {}) };
     delete sources[sourceKey];
     const hasSources = Object.keys(sources).length > 0;
@@ -172,7 +168,7 @@ export class AreaStatusOwnership {
   }
 
   static async markExternalClaim(effect = null, active = true) {
-    const current = clone(getAreaStatusMetadata(effect) ?? {});
+    const current = cloneValue(getAreaStatusMetadata(effect) ?? {}, null);
     if (!effect || !current.sources || !Object.keys(current.sources).length) return false;
     await this.#write(() => effect.update({
       "flags.mwd.areaStatus": {

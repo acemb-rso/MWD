@@ -4,6 +4,9 @@
 // with penalties/derived jump -> sheets and movement actions display distances.
 
 import { TEMPLATE } from "../core/constants.js";
+import { isMachineActor as isMachineActorType } from "../utils/actor-guards.js";
+
+export { isMachineActorType };
 
 const MOVEMENT_LABELS = Object.freeze({
   ground: "Ground",
@@ -37,10 +40,6 @@ export function applyMachineMovementPenalty(
   if (base <= 0 || penalty <= 0) return base;
   const floor = Math.min(base, toNonNegativeInteger(minimum, MACHINE_MINIMUM_PENALIZED_MOVEMENT_METERS));
   return Math.max(floor, base - penalty);
-}
-
-export function isMachineActorType(actorType = "") {
-  return actorType === TEMPLATE.actorTypes.vehicle || actorType === TEMPLATE.actorTypes.battlemech;
 }
 
 export function getMachineMovementModes(actorType = "") {

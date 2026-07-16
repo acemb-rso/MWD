@@ -50,60 +50,18 @@ import {
 import { BattlemechLoadout } from "../mwd/battlemech-loadout.js";
 import { normalizeMachineWeaponGroups } from "../mwd/machine-weapon-group-state.js";
 import { VehicleSheetV2 } from "./vehicle-sheet-v2.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
+import {
+  buildDetailRows,
+  buildDetailTags,
+  buildSummaryStats,
+  toNumber,
+} from "./actor-sheet-support.js";
 
 // Foundry stores arrays-of-objects as plain objects keyed by index after the
 // first save. Always coerce to a real array before mutating.
 function readWeaponGroups(actor) {
   const raw = foundry.utils.deepClone(actor?.system?.mwd?.weaponGroups);
   return normalizeMachineWeaponGroups(raw);
-}
-
-function compactList(values = []) {
-  return values
-    .map(value => String(value ?? "").trim())
-    .filter(Boolean);
-}
-
-
-function buildSummaryStats(stats = []) {
-  // Normalize the mixed summary stat shapes used by inherited vehicle sections
-  // and BattleMech-only hero bar parts into one template-friendly array.
-  return stats
-    .map(stat => {
-      const data = stat ?? {};
-      return {
-        ...data,
-        label: String(data.label ?? "").trim(),
-        value: String(data.value ?? "").trim(),
-        emphasis: data.emphasis ?? "",
-        title: String(data.title ?? "").trim(),
-        tone: String(data.tone ?? "").trim(),
-        parts: Array.isArray(data.parts)
-          ? data.parts
-            .filter(part => part && part.value !== undefined && part.value !== null && String(part.value).trim() !== "")
-            .map(part => ({
-              label: String(part.label ?? "").trim(),
-              value: String(part.value ?? "").trim(),
-              tone: String(part.tone ?? "").trim(),
-              title: String(part.title ?? "").trim(),
-            }))
-          : [],
-      };
-    })
-    .filter(stat => stat.value !== "" || stat.parts.length)
-    .map(stat => ({
-      ...stat,
-      hasParts: stat.parts.length > 0,
-    }));
-}
-
-function buildDetailTags(tags = []) {
-  return compactList(tags).map(label => ({ label }));
 }
 
 function getMovementActionChoices(actor) {
@@ -120,15 +78,6 @@ async function executeMachineAction(actor, request = {}) {
   const service = getMachineActionService();
   if (!service?.execute) throw new Error("MWD machine action service not initialized.");
   return service.execute(actor, request);
-}
-
-function buildDetailRows(rows = []) {
-  return rows
-    .filter(row => row && row.value !== undefined && row.value !== null && String(row.value).trim() !== "")
-    .map(row => ({
-      label: String(row.label ?? "").trim(),
-      value: String(row.value ?? "").trim()
-    }));
 }
 
 function formatRangeBandLabel(value = "") {

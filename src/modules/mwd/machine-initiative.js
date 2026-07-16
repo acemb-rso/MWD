@@ -4,18 +4,11 @@
 // control attribute plus pilot Reflexes -> tracker receives total initiative bonus.
 
 import { TEMPLATE } from "../core/constants.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
+import { toNumber } from "../utils/coercion.js";
+export { isMachineActor } from "../utils/actor-guards.js";
 
 function getAttributeValue(actor, key) {
   return Math.max(0, toNumber(actor?.system?.attributes?.[key]?.value, 0));
-}
-
-export function isMachineActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
 }
 
 export function resolveMachineInitiativeComponents({ machineActor = null, pilotActor = null } = {}) {

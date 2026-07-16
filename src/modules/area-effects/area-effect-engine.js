@@ -2,6 +2,8 @@
 // Purpose: Shared area effect helpers for exposure math, preview state, and Region payloads.
 // How it fits: Keeps template attack and persistent hazard logic on one data contract.
 
+import { cloneValue } from "../utils/clone.js";
+
 const EXPOSURE_ORDER = Object.freeze(["none", "minor", "major", "full"]);
 const TEMPLATE_SHAPES = Object.freeze(["blast", "cone", "line", "rect"]);
 const MEASURED_TEMPLATE_TYPES = Object.freeze({
@@ -49,10 +51,6 @@ function asBoolean(value, fallback = false) {
   if (["true", "1", "yes", "y", "on"].includes(normalized)) return true;
   if (["false", "0", "no", "n", "off"].includes(normalized)) return false;
   return fallback;
-}
-
-function deepClone(value) {
-  return foundry.utils.deepClone(value);
 }
 
 export function normalizeExposureTier(value, fallback = EXPOSURE_TIERS.none) {
@@ -337,7 +335,7 @@ function getRegionShapeSource(shape = null) {
   if (!shape) return null;
   if (typeof shape?.toObject === "function") return shape.toObject();
   if (typeof shape?.toJSON === "function") return shape.toJSON();
-  return shape && typeof shape === "object" ? deepClone(shape) : null;
+  return shape && typeof shape === "object" ? cloneValue(shape, null) : null;
 }
 
 function getUniquePositiveNumbers(values = []) {
@@ -774,5 +772,5 @@ export function buildAreaEffectTargetState(target = {}, { evadeActive = false, e
 
 export function cloneTemplateGeometry(templateGeometry = null) {
   const geometry = normalizeTemplateGeometry(templateGeometry);
-  return geometry ? deepClone(geometry) : null;
+  return geometry ? cloneValue(geometry, null) : null;
 }

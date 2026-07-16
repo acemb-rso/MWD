@@ -20,11 +20,7 @@ import {
 } from "./personal-action-catalog.js";
 import { getPersonalActionAvailabilityReason } from "./personal-action-rules.js";
 import { PersonalCombatTracker } from "./personal-combat-tracker.js";
-
-function clone(value) {
-  if (value === undefined) return undefined;
-  return globalThis.foundry?.utils?.deepClone?.(value) ?? JSON.parse(JSON.stringify(value ?? null));
-}
+import { cloneValue } from "../utils/clone.js";
 
 function escapeHtml(value) {
   const helper = globalThis.foundry?.utils?.escapeHTML;
@@ -613,7 +609,7 @@ async function executeRollAction(actor, { action, token = null, metadata = {}, e
   const rollApi = getRollApi();
   if (!rollApi?.execute) return { ok: false, reason: "MWD roll system not initialized." };
   const payload = {
-    ...(clone(action.roll) ?? { intent: "skill" }),
+    ...(cloneValue(action.roll, undefined) ?? { intent: "skill" }),
     key: metadata.skillKey ?? action.roll?.key ?? undefined,
     tags: Array.from(new Set(action.tags ?? [])),
   };

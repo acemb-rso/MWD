@@ -32,6 +32,7 @@ import {
   selectMechRangeBand,
   selectPersonalRangeBand,
 } from "../../mwd/personal-range-bands.js";
+import { getTokenCenter } from "../../utils/token.js";
 import { TEMPLATE } from "../../core/constants.js";
 import { WeaponItem } from "../../item/weapon-item.js";
 import { createUserFacingRollError } from "../roll-errors.js";
@@ -133,10 +134,6 @@ function getDesignationDetectionState(targetToken = null, { attackerToken = null
   const targetActor = targetToken?.actor ?? targetToken?.document?.actor ?? null;
   if (hasActorStatus(targetActor, "tagged") || hasActorStatus(targetActor, "narced")) return "lock";
   return hasValidIndirectDesignation(targetToken, { attackerToken, combat }) ? "contact" : "blind";
-}
-
-function getTokenCenter(token = null) {
-  return token?.center ?? token?.object?.center ?? null;
 }
 
 function measureTokenDistance(sourceToken, targetToken) {

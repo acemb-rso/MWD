@@ -2,6 +2,8 @@
 // Purpose: Resolve create-time actor and item defaults without runtime fetches.
 // How it fits: Keeps document creation deterministic and makes the default graph testable outside Foundry.
 
+import { cloneValue } from "./clone.js";
+
 const templateData = {
   Actor: {
     types: ["character", "npc", "vehicle", "battlemech"],
@@ -565,11 +567,6 @@ const ROOT_CREATE_FIELDS = Object.freeze({
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function cloneValue(value) {
-  if (typeof structuredClone === "function") return structuredClone(value);
-  return JSON.parse(JSON.stringify(value));
 }
 
 function mergePlainObjects(base = {}, extra = {}) {

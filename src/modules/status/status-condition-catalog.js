@@ -5,6 +5,7 @@
 
 import { SYSTEM_NAME, TEMPLATE } from "../core/constants.js";
 import { STATUS_MAP } from "../roll/config/status-modifiers.js";
+import { cloneValue } from "../utils/clone.js";
 
 export const SETTING_STATUS_CONDITION_CATALOG = "statusConditionCatalog";
 
@@ -174,13 +175,6 @@ function hasFoundry() {
   return typeof foundry !== "undefined" && foundry?.utils;
 }
 
-function clone(value) {
-  if (hasFoundry() && typeof foundry.utils.deepClone === "function") {
-    return foundry.utils.deepClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
-}
-
 function bool(value, fallback = false) {
   if (typeof value === "boolean") return value;
   const raw = String(value ?? "").trim().toLowerCase();
@@ -189,7 +183,7 @@ function bool(value, fallback = false) {
 }
 
 export function getDefaultStatusConditionCatalog() {
-  return clone(DEFAULT_STATUS_CONDITION_CATALOG);
+  return cloneValue(DEFAULT_STATUS_CONDITION_CATALOG, undefined);
 }
 
 export function normalizeStatusTagId(value) {
@@ -348,7 +342,7 @@ function mergeCatalogWithDefaults(value = []) {
 
   for (const [id, entry] of defaultsById.entries()) {
     if (existingIds.has(id)) continue;
-    merged.push(clone(entry));
+    merged.push(cloneValue(entry, undefined));
   }
 
   return normalizeStatusConditionCatalog(merged, { strict: false });

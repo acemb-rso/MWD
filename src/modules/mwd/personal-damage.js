@@ -16,6 +16,7 @@ import {
   AREA_EFFECT_KINDS,
   normalizeAreaEffect,
 } from "../area-effects/area-effect-engine.js";
+import { createRandomId } from "../utils/id.js";
 
 
 const PERSONAL_DAMAGE_TYPE_LABELS = Object.freeze({
@@ -289,13 +290,6 @@ export function normalizePayloadTemplate(value = null) {
   return normalizePersonalWeaponTemplate(value);
 }
 
-function randomId(prefix = "id") {
-  const factory = globalThis.foundry?.utils?.randomID;
-  return typeof factory === "function"
-    ? factory()
-    : `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
 function buildAliasMap(registry) {
   const map = {};
   Object.values(registry).forEach(def => {
@@ -330,7 +324,7 @@ function normalizeStandardTraitEntry(entry, aliasMap) {
   if (typeof entry === "string" || typeof entry === "number") {
     const key = aliasMap[normalizeTraitAlias(entry)];
     if (!key) return null;
-    return { id: randomId("trait"), key, rating: 1 };
+    return { id: createRandomId({ prefix: "trait", fallbackLength: 8, prefixFoundry: false }), key, rating: 1 };
   }
 
   if (!entry || typeof entry !== "object") return null;
@@ -339,7 +333,7 @@ function normalizeStandardTraitEntry(entry, aliasMap) {
   if (!key) return null;
 
   return {
-    id: String(entry.id ?? "").trim() || randomId("trait"),
+    id: String(entry.id ?? "").trim() || createRandomId({ prefix: "trait", fallbackLength: 8, prefixFoundry: false }),
     key,
     rating: Math.max(0, Number(entry.rating ?? 0) || 0),
   };
@@ -530,7 +524,7 @@ function normalizeAmmoType(entry) {
     path: "ammo.types[].traits",
   });
   return {
-    id: String(source.id ?? "").trim() || randomId("ammo"),
+    id: String(source.id ?? "").trim() || createRandomId({ prefix: "ammo", fallbackLength: 8, prefixFoundry: false }),
     name: String(source.name ?? "").trim() || "Ammo",
     damageType: normalizeOptionalPersonalDamageType(source.damageType),
     apMod: Number(source.apMod ?? source.ap ?? 0) || 0,
@@ -614,7 +608,7 @@ function isUnloadedPayloadId(value) {
 
 export function normalizePayloadProfile(entry, { report = null, path = "system.payloads[]" } = {}) {
   const source = entry ?? {};
-  const id = String(source.id ?? "").trim() || randomId("payload");
+  const id = String(source.id ?? "").trim() || createRandomId({ prefix: "payload", fallbackLength: 8, prefixFoundry: false });
   const capabilityState = normalizePayloadCapabilityState({
     traits: source.traits ?? source.modifies?.traits,
     keywords: source.keywords,
@@ -680,7 +674,7 @@ export function normalizeConsumptionSource(entry) {
     : Math.max(0, max);
 
   return {
-    id: String(source.id ?? "").trim() || randomId("source"),
+    id: String(source.id ?? "").trim() || createRandomId({ prefix: "source", fallbackLength: 8, prefixFoundry: false }),
     label: String(source.label ?? source.name ?? "").trim() || "Source",
     kind,
     reloadable: source.reloadable !== undefined

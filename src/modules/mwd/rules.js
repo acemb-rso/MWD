@@ -5,6 +5,14 @@
 // the only writers for rolls, heat, harm, action economy, and targeting state.
 
 import { SYSTEM_NAME } from "../core/constants.js";
+import { toInteger, toNumber, toTrimmedString } from "../utils/coercion.js";
+import { cloneValue } from "../utils/clone.js";
+import { createRandomId } from "../utils/id.js";
+import {
+  compareTypedValues,
+  parseTypedValue,
+  stringifyTypedValue,
+} from "./typed-rule-values.js";
 
 export const RULE_MODES = Object.freeze(["automatic", "optional", "action", "triggered", "narrative"]);
 export const RULE_OUTPUT_TYPES = Object.freeze([
@@ -46,17 +54,6 @@ export const RULE_COMPARATORS = Object.freeze([
 
 const LIMIT_SCOPES = Object.freeze(["perActivation", "perRound", "perScene"]);
 
-function randomId() {
-  return globalThis.foundry?.utils?.randomID?.() ?? Math.random().toString(36).slice(2, 18);
-}
-
-function clone(value) {
-  if (typeof globalThis.foundry?.utils?.deepClone === "function") {
-    return globalThis.foundry.utils.deepClone(value);
-  }
-  return JSON.parse(JSON.stringify(value ?? {}));
-}
-
 function getProperty(source, path = "") {
   const normalized = toTrimmedString(path);
   if (!source || !normalized) return undefined;
@@ -70,20 +67,6 @@ function asObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
-function toTrimmedString(value, fallback = "") {
-  const normalized = String(value ?? "").trim();
-  return normalized || fallback;
-}
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
-
-function toInteger(value, fallback = 0) {
-  return Math.trunc(toNumber(value, fallback));
-}
-
 function normalizeStringArray(values = []) {
   const raw = Array.isArray(values)
     ? values
@@ -94,34 +77,6 @@ function normalizeStringArray(values = []) {
         : [];
 
   return raw.map(entry => String(entry ?? "").trim()).filter(Boolean);
-}
-
-function parseTypedValue(value) {
-  if (typeof value !== "string") return value;
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  if (trimmed === "true") return true;
-  if (trimmed === "false") return false;
-  if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
-  if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || (trimmed.startsWith("{") && trimmed.endsWith("}"))) {
-    try {
-      return JSON.parse(trimmed);
-    } catch (_error) {
-      return trimmed;
-    }
-  }
-  return trimmed;
-}
-
-function stringifyTypedValue(value) {
-  if (value === undefined || value === null) return "";
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
-  try {
-    return JSON.stringify(value);
-  } catch (_error) {
-    return String(value);
-  }
 }
 
 function normalizeMode(value = "") {
@@ -138,7 +93,7 @@ function normalizeComparatorEntry(entry = {}) {
   const resolvedOp = op || "eq";
 
   const normalized = {
-    id: toTrimmedString(source.id, randomId()),
+    id: toTrimmedString(source.id, createRandomId()),
     fact: toTrimmedString(source.fact),
     op: resolvedOp,
   };
@@ -319,7 +274,7 @@ export function normalizeRuleOutput(output = {}, rule = {}, index = 0) {
         ...base,
         type: normalizedType,
         trigger: toTrimmedString(source.trigger),
-        effect: clone(source.effect ?? {}),
+        effect: cloneValue(source.effect ?? {}, {}),
       };
     case "creationBudgetAdjustment":
       return {
@@ -369,7 +324,7 @@ export function normalizeRuleOutput(output = {}, rule = {}, index = 0) {
         ...base,
         type: normalizedType,
         domain: toTrimmedString(source.domain),
-        request: clone(source.request ?? {}),
+        request: cloneValue(source.request ?? {}, {}),
       };
     case "summary":
     default:
@@ -392,7 +347,7 @@ export function normalizeRulePacket(rule = {}, index = 0) {
     phase: toTrimmedString(source.phase, "passive"),
     mode: normalizeMode(source.mode),
     selector: normalizeRuleSelector(source.selector),
-    trigger: clone(source.trigger ?? {}),
+    trigger: cloneValue(source.trigger ?? {}, {}),
     requires: normalizeRulePrerequisites(source.requires ?? source.prerequisites),
     conditions: normalizeRulePrerequisites(source.conditions),
     outputs: [],
@@ -478,33 +433,10 @@ function selectorMatches(selector = {}, facts = {}) {
   return true;
 }
 
-function compareValues(actual, comparator, expected) {
-  switch (comparator) {
-    case "truthy": return !!actual;
-    case "falsy": return !actual;
-    case "neq": return actual !== expected;
-    case "gt": return Number(actual) > Number(expected);
-    case "gte": return Number(actual) >= Number(expected);
-    case "lt": return Number(actual) < Number(expected);
-    case "lte": return Number(actual) <= Number(expected);
-    case "includes":
-      return Array.isArray(actual)
-        ? actual.includes(expected)
-        : String(actual ?? "").includes(String(expected ?? ""));
-    case "notIncludes":
-      return Array.isArray(actual)
-        ? !actual.includes(expected)
-        : !String(actual ?? "").includes(String(expected ?? ""));
-    case "eq":
-    default:
-      return actual === expected;
-  }
-}
-
 function evaluateComparatorEntry(entry, facts) {
   if (!toTrimmedString(entry?.fact)) return true;
   const actual = getProperty(facts, entry.fact);
-  return compareValues(actual, entry.op ?? entry.comparator, entry.value);
+  return compareTypedValues(actual, entry.value, entry.op ?? entry.comparator);
 }
 
 function describeConditionList(entries = []) {
@@ -614,7 +546,7 @@ export function evaluatePhase({
   const runtimeKeys = getRuntimeKeys(runtime);
   const desiredMode = toTrimmedString(mode);
   const result = {
-    packet: clone(packet),
+    packet: cloneValue(packet, {}),
     entries: [],
     outputs: [],
     disabled: [],
@@ -719,8 +651,8 @@ export function prepareUsageCommit({ entries = [] } = {}) {
 export async function commitUsage({ actor = null, usageMutations = [], runtime = {} } = {}) {
   if (!actor?.setFlag || !Array.isArray(usageMutations) || !usageMutations.length) return false;
 
-  const current = clone(actor.flags?.[SYSTEM_NAME]?.ruleUsage ?? {});
-  const nextRuntimeUsage = clone(runtime.ruleUsage ?? {});
+  const current = cloneValue(actor.flags?.[SYSTEM_NAME]?.ruleUsage ?? {}, {});
+  const nextRuntimeUsage = cloneValue(runtime.ruleUsage ?? {}, {});
   const runtimeKeys = getRuntimeKeys(runtime);
   let changed = false;
 
@@ -754,7 +686,7 @@ export async function commitUsage({ actor = null, usageMutations = [], runtime =
 
   if (!changed) return false;
   if (runtime.state && runtime.combatant?.setFlag) {
-    const nextState = clone(runtime.state);
+    const nextState = cloneValue(runtime.state, {});
     nextState.ruleUsage = nextRuntimeUsage;
     await runtime.combatant.setFlag(SYSTEM_NAME, "personalCombat", nextState);
   }

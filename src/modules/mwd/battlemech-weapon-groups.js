@@ -15,6 +15,7 @@ import {
 import { weaponProfileHasDangerClose } from "./personal-damage.js";
 import { DEFAULT_FIRE_MODE } from "./battlemech-fire-modes.js";
 import { getEffectiveDetectionState, listTargetingStates } from "./machine-ew-state.js";
+import { toNumber } from "../utils/coercion.js";
 
 const RANGE_ORDER = ["close", "near", "far", "extreme"];
 // Preferred default engagement band: near is the sweet spot; fall back toward
@@ -29,11 +30,6 @@ function normalizeId(value = "") {
   return String(value ?? "").trim();
 }
 
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
 
 function normalizeRangeCap(range = {}) {
   const raw = String(range?.max ?? range?.bandCap ?? "near").trim().toLowerCase();

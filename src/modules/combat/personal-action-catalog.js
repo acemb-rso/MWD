@@ -3,6 +3,7 @@
 // How it fits: Keeps action economy, resolver ownership, prompts, and implementation state out of sheet code.
 
 import { SYSTEM_NAME } from "../core/constants.js";
+import { cloneValue } from "../utils/clone.js";
 
 export const SETTING_PERSONAL_ACTION_CATALOG = "personalActionCatalog";
 
@@ -123,10 +124,6 @@ const LEGACY_HANDLER_TO_RESOLVER = Object.freeze({
   combatOverloadCheck: PERSONAL_ACTION_RESOLVERS.recovery
 });
 
-function cloneJson(value) {
-  return JSON.parse(JSON.stringify(value ?? null));
-}
-
 function toBoolean(value, fallback = false) {
   if (typeof value === "boolean") return value;
   const normalized = String(value ?? "").trim().toLowerCase();
@@ -170,7 +167,7 @@ function prompt(type = PERSONAL_ACTION_PROMPT_TYPES.none, required = false) {
 
 function roll(config = null) {
   if (!config) return null;
-  return Object.freeze(cloneJson(config));
+  return Object.freeze(cloneValue(config));
 }
 
 function action(config) {
@@ -242,7 +239,7 @@ const DEFAULT_ACTIONS = Object.freeze([
   action({ id: "reduceBurn", label: "Reduce Burn", category: "standard", cost: cost("sa", 1), resolver: "recovery", tags: ["combat", "recovery", "burn"], prominentWhenBurning: true, description: "Take a breather and bring your Burn down by one." }),
   action({ id: "overloadCheck", label: "Overload Check", category: "recovery", cost: cost("none", 0), resolver: "recovery", roll: { intent: "overload" }, tags: ["combat", "recovery", "burn", "overload"], prominentWhenBurning: true, description: "Roll to see whether mounting Burn pushes you into overload." }
   )
-].map(entry => Object.freeze(cloneJson(entry))));
+].map(entry => Object.freeze(cloneValue(entry))));
 
 const DEFAULT_ACTIONS_BY_ID = new Map(DEFAULT_ACTIONS.map(entry => [entry.id, entry]));
 
@@ -278,7 +275,7 @@ function normalizeCost(entry, fallback, { strict = false, prefix = "Action" } = 
       error.validationErrors = errors;
       throw error;
     }
-    return cloneJson(fallbackCost);
+    return cloneValue(fallbackCost);
   }
 
   return { resource, value: Math.trunc(value) };
@@ -294,7 +291,7 @@ function normalizePrompt(entry, fallback, { strict = false, prefix = "Action" } 
       error.validationErrors = [error.message];
       throw error;
     }
-    return cloneJson(fallback?.prompt ?? prompt());
+    return cloneValue(fallback?.prompt ?? prompt());
   }
   return { type, required };
 }
@@ -309,7 +306,7 @@ function normalizeImplementation(entry, fallback, { strict = false, prefix = "Ac
       error.validationErrors = [error.message];
       throw error;
     }
-    return cloneJson(fallback?.implementation ?? implementation("disabled", reason));
+    return cloneValue(fallback?.implementation ?? implementation("disabled", reason));
   }
   return { state, reason };
 }
@@ -317,15 +314,15 @@ function normalizeImplementation(entry, fallback, { strict = false, prefix = "Ac
 function normalizeRoll(entry, fallback = null) {
   const raw = entry?.roll;
   if (raw === null) return null;
-  if (typeof raw === "object" && raw) return cloneJson(raw);
+  if (typeof raw === "object" && raw) return cloneValue(raw);
   const intent = String(entry?.rollIntent ?? fallback?.intent ?? "").trim();
-  return intent ? { intent } : cloneJson(fallback ?? null);
+  return intent ? { intent } : cloneValue(fallback ?? null);
 }
 
 function normalizePayload(entry, fallback, actionId) {
   const raw = entry?.payload;
-  if (raw && typeof raw === "object") return cloneJson(raw);
-  return cloneJson(fallback?.payload ?? { intent: "combatAction", actionId });
+  if (raw && typeof raw === "object") return cloneValue(raw);
+  return cloneValue(fallback?.payload ?? { intent: "combatAction", actionId });
 }
 
 function inferResolver(entry, fallback) {
@@ -352,17 +349,17 @@ export function normalizeActionEntry(entry, { strict = false, index = 0 } = {}) 
       ...working,
       label: fallback.label,
       category: fallback.category,
-      cost: cloneJson(fallback.cost),
-      tags: cloneJson(fallback.tags),
+      cost: cloneValue(fallback.cost),
+      tags: cloneValue(fallback.tags),
       description: fallback.description,
-      implementation: cloneJson(fallback.implementation),
+      implementation: cloneValue(fallback.implementation),
     };
   }
   if (id === "communicate" && String(working?.label ?? "").trim() === "Speak / Signal") {
     working = {
       ...working,
       label: fallback.label,
-      tags: cloneJson(fallback.tags),
+      tags: cloneValue(fallback.tags),
       description: fallback.description,
     };
   }
@@ -402,7 +399,7 @@ export function normalizeActionEntry(entry, { strict = false, index = 0 } = {}) 
   }
 
   const normalized = {
-    ...cloneJson(fallback),
+    ...cloneValue(fallback),
     id,
     label,
     category,
@@ -433,7 +430,7 @@ export function normalizeActionEntry(entry, { strict = false, index = 0 } = {}) 
 }
 
 export function getDefaultPersonalActionCatalog() {
-  return cloneJson(DEFAULT_ACTIONS);
+  return cloneValue(DEFAULT_ACTIONS);
 }
 
 export function mergePersonalActionCatalogDefaults(value) {
@@ -442,7 +439,7 @@ export function mergePersonalActionCatalogDefaults(value) {
   const merged = [...normalized];
   for (const action of DEFAULT_ACTIONS) {
     if (seenIds.has(action.id.toLowerCase())) continue;
-    merged.push(cloneJson(action));
+    merged.push(cloneValue(action));
   }
   return merged;
 }
@@ -492,7 +489,7 @@ export function normalizePersonalActionCatalog(value, { strict = false, includeD
   const merged = [...normalized];
   for (const action of DEFAULT_ACTIONS) {
     if (!seenIds.has(action.id.toLowerCase())) {
-      merged.push(cloneJson(action));
+      merged.push(cloneValue(action));
     }
   }
   return merged;
@@ -531,5 +528,5 @@ export function getPersonalAction(actionId) {
 export function getPersonalActionsByCategory(category) {
   return getConfiguredPersonalActionCatalog()
     .filter(action => action.category === category)
-    .map(action => Object.freeze(cloneJson(action)));
+    .map(action => Object.freeze(cloneValue(action)));
 }

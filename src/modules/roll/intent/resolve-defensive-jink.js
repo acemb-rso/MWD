@@ -4,53 +4,19 @@
 import { TEMPLATE } from "../../core/constants.js";
 import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
+import { isMachineActor } from "../../utils/actor-guards.js";
+import { toNumber } from "../../utils/coercion.js";
 import { createUserFacingRollError } from "../roll-errors.js";
+import {
+  getTokenDisplayName,
+  getTokenId,
+  getTokenUuid,
+  resolveRollObserverToken,
+  resolveRollSourceToken,
+  withOwner,
+} from "./token-context.js";
 
 const DN = 2;
-
-function isMachineActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
-}
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
-
-function resolveTokenById(id = "") {
-  const tokenId = String(id ?? "").trim();
-  if (!tokenId) return null;
-  return globalThis.canvas?.tokens?.get?.(tokenId)
-    ?? globalThis.canvas?.tokens?.placeables?.find(token => token.id === tokenId || token.document?.id === tokenId)
-    ?? null;
-}
-
-function resolveTokenByUuid(uuid = "") {
-  const tokenUuid = String(uuid ?? "").trim();
-  if (!tokenUuid) return null;
-  return globalThis.canvas?.tokens?.placeables?.find(token => (token.document?.uuid ?? token.uuid) === tokenUuid) ?? null;
-}
-
-function resolveSourceToken(actor, payload = {}) {
-  return resolveTokenByUuid(payload?.sourceTokenUuid)
-    ?? resolveTokenById(payload?.sourceTokenId)
-    ?? actor?.getActiveTokens?.(true, true)?.[0]
-    ?? actor?.token?.object
-    ?? actor?.token
-    ?? null;
-}
-
-function resolveObserverToken(payload = {}) {
-  return resolveTokenById(payload?.targetTokenId)
-    ?? resolveTokenByUuid(payload?.targetTokenUuid)
-    ?? null;
-}
-
-function withOwner(label = "", actor = null) {
-  const base = String(label ?? "").trim();
-  const owner = String(actor?.name ?? "").trim();
-  return owner ? `${base} (${owner})` : base;
-}
 
 export async function resolveDefensiveJink({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveDefensiveJink requires actor");
@@ -58,8 +24,8 @@ export async function resolveDefensiveJink({ actor, payload } = {}) {
     throw createUserFacingRollError("Defensive Jink is a machine action.", { severity: "warn" });
   }
 
-  const sourceToken = resolveSourceToken(actor, payload);
-  const observerToken = resolveObserverToken(payload);
+  const sourceToken = resolveRollSourceToken(actor, payload);
+  const observerToken = resolveRollObserverToken(payload);
   const operator = await resolveMachineOperator({
     machineActor: actor,
     operatorActorUuid: String(payload?.operatorActorUuid ?? "").trim(),
@@ -77,7 +43,7 @@ export async function resolveDefensiveJink({ actor, payload } = {}) {
     intent: "defensiveJink",
     rollType: "simple",
     title: "Defensive Jink",
-    subtitle: observerToken?.name ?? observerToken?.actor?.name ?? "Observer",
+    subtitle: getTokenDisplayName(observerToken, "Observer"),
     domains: ["physical", "skill.piloting", "sensor", "ew"],
     domainTags: ["sensor", "sensor.jink", "skill.piloting"],
     diceTarget: 5,
@@ -109,10 +75,10 @@ export async function resolveDefensiveJink({ actor, payload } = {}) {
     defensiveJink: {
       machineActorUuid: actor.uuid ?? "",
       operatorActorUuid: operator.actor?.uuid ?? "",
-      sourceTokenId: sourceToken?.id ?? sourceToken?.document?.id ?? "",
-      sourceTokenUuid: sourceToken?.document?.uuid ?? sourceToken?.uuid ?? "",
-      observerTokenId: observerToken?.id ?? observerToken?.document?.id ?? "",
-      observerTokenUuid: observerToken?.document?.uuid ?? observerToken?.uuid ?? "",
+      sourceTokenId: getTokenId(sourceToken),
+      sourceTokenUuid: getTokenUuid(sourceToken),
+      observerTokenId: getTokenId(observerToken),
+      observerTokenUuid: getTokenUuid(observerToken),
     },
     rollActor: roller,
     machineActor: actor,

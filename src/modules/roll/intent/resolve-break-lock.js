@@ -7,7 +7,17 @@ import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import { getMachineSignatureEmissionModel } from "../../mwd/machine-stealth.js";
 import { getAttackerCombatant, getDetectionState } from "../../mwd/machine-ew-state.js";
 import { getDetectionStateLabel } from "../../mwd/machine-ew.js";
+import { isMachineActor } from "../../utils/actor-guards.js";
+import { toNumber } from "../../utils/coercion.js";
 import { createUserFacingRollError } from "../roll-errors.js";
+import {
+  getTokenDisplayName,
+  getTokenId,
+  getTokenUuid,
+  resolveRollObserverToken,
+  resolveRollSourceToken,
+  withOwner,
+} from "./token-context.js";
 
 const BREAK_LOCK_DN_BY_STATE = Object.freeze({
   blind: 1,
@@ -29,15 +39,6 @@ const SITUATION_DICE = Object.freeze({
   ecm: 1,
 });
 
-function isMachineActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
-}
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
-
 function normalizeSituation(value = "") {
   const key = String(value ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
   if (key === "openground" || key === "fullyexposed") return "open";
@@ -50,39 +51,6 @@ function normalizeSituation(value = "") {
 function normalizeDetectionState(value = "", fallback = "contact") {
   const key = String(value ?? "").trim().toLowerCase();
   return Object.prototype.hasOwnProperty.call(BREAK_LOCK_DN_BY_STATE, key) ? key : fallback;
-}
-
-function resolveTokenById(id = "") {
-  const tokenId = String(id ?? "").trim();
-  if (!tokenId) return null;
-  return globalThis.canvas?.tokens?.get?.(tokenId)
-    ?? globalThis.canvas?.tokens?.placeables?.find(token => token.id === tokenId || token.document?.id === tokenId)
-    ?? null;
-}
-
-function resolveTokenByUuid(uuid = "") {
-  const tokenUuid = String(uuid ?? "").trim();
-  if (!tokenUuid) return null;
-  return globalThis.canvas?.tokens?.placeables?.find(token => (token.document?.uuid ?? token.uuid) === tokenUuid) ?? null;
-}
-
-function resolveSourceToken(actor, payload = {}) {
-  return resolveTokenByUuid(payload?.sourceTokenUuid)
-    ?? resolveTokenById(payload?.sourceTokenId)
-    ?? actor?.getActiveTokens?.(true, true)?.[0]
-    ?? actor?.token?.object
-    ?? actor?.token
-    ?? null;
-}
-
-function resolveObserverToken(payload = {}) {
-  return resolveTokenById(payload?.targetTokenId)
-    ?? resolveTokenByUuid(payload?.targetTokenUuid)
-    ?? null;
-}
-
-function getTokenUuid(token = null) {
-  return String(token?.document?.uuid ?? token?.uuid ?? "").trim();
 }
 
 function hasStatus(actor = null, statusId = "") {
@@ -195,20 +163,14 @@ function getObserverDetectionState({ observerToken = null, sourceToken = null, p
   return explicit;
 }
 
-function withOwner(label = "", actor = null) {
-  const base = String(label ?? "").trim();
-  const owner = String(actor?.name ?? "").trim();
-  return owner ? `${base} (${owner})` : base;
-}
-
 export async function resolveBreakLock({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveBreakLock requires actor");
   if (!isMachineActor(actor)) {
     throw createUserFacingRollError("Break Lock is a machine action.", { severity: "warn" });
   }
 
-  const sourceToken = resolveSourceToken(actor, payload);
-  const observerToken = resolveObserverToken(payload);
+  const sourceToken = resolveRollSourceToken(actor, payload);
+  const observerToken = resolveRollObserverToken(payload);
   const operator = await resolveMachineOperator({
     machineActor: actor,
     operatorActorUuid: String(payload?.operatorActorUuid ?? "").trim(),
@@ -231,7 +193,7 @@ export async function resolveBreakLock({ actor, payload } = {}) {
     intent: "breakLock",
     rollType: "simple",
     title: "Break Lock",
-    subtitle: observerToken?.name ?? observerToken?.actor?.name ?? "Observer",
+    subtitle: getTokenDisplayName(observerToken, "Observer"),
     domains: ["physical", "skill.stealth", "sensor", "ew"],
     domainTags: ["sensor", "sensor.breakLock", "skill.stealth"],
     diceTarget: 5,
@@ -261,10 +223,10 @@ export async function resolveBreakLock({ actor, payload } = {}) {
     breakLock: {
       machineActorUuid: actor.uuid ?? "",
       operatorActorUuid: operator.actor?.uuid ?? "",
-      sourceTokenId: sourceToken?.id ?? sourceToken?.document?.id ?? "",
-      sourceTokenUuid: sourceToken?.document?.uuid ?? sourceToken?.uuid ?? "",
-      observerTokenId: observerToken?.id ?? observerToken?.document?.id ?? "",
-      observerTokenUuid: observerToken?.document?.uuid ?? observerToken?.uuid ?? "",
+      sourceTokenId: getTokenId(sourceToken),
+      sourceTokenUuid: getTokenUuid(sourceToken),
+      observerTokenId: getTokenId(observerToken),
+      observerTokenUuid: getTokenUuid(observerToken),
       currentState,
       currentStateLabel: getDetectionStateLabel(currentState),
     },

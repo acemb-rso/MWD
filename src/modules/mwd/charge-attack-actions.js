@@ -16,6 +16,7 @@ import { getMachineWeaponDamageTypeLabel } from "./machine-weapon-types.js";
 import { resolveMachineOperator } from "./machine-operator.js";
 import { resolveMachineSceneToken } from "./machine-token-resolution.js";
 import { revealMachineSignature } from "./machine-stealth.js";
+import { toNumber } from "../utils/coercion.js";
 
 export const MACHINE_CHARGE_ATTACK_ID = "machineChargeAttack";
 
@@ -50,11 +51,6 @@ const SPEED_TIER_BY_MOVEMENT = Object.freeze({
 
 function getMachineRollApi() {
   return game.mwd?.roll ?? game.system?.mwd?.roll ?? null;
-}
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
 }
 
 function getActorChassis(actor) {

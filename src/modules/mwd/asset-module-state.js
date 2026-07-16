@@ -3,13 +3,10 @@
 // How it fits: Preview phases can inspect charge/use-limit availability while
 // apply phases commit spends through one actor-owned state document.
 
+import { cloneValue } from "../utils/clone.js";
+
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "assetModuleState";
-
-function clone(value) {
-  if (typeof globalThis.foundry?.utils?.deepClone === "function") return globalThis.foundry.utils.deepClone(value);
-  return JSON.parse(JSON.stringify(value ?? {}));
-}
 
 function asObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -31,7 +28,7 @@ function resolveItemKey(itemOrUuid = "") {
 }
 
 export function getAssetModuleRuntimeState(actor = null) {
-  return clone(asObject(actor?.getFlag?.(FLAG_SCOPE, FLAG_KEY)));
+  return cloneValue(asObject(actor?.getFlag?.(FLAG_SCOPE, FLAG_KEY)), {});
 }
 
 export async function setAssetModuleRuntimeState(actor = null, state = {}) {
@@ -102,7 +99,7 @@ export async function applyAssetModuleSpend(actor = null, itemOrUuid = "", optio
         max: preview.charges.max,
       }
       : itemState.charges,
-    uses: clone(itemState.uses ?? {}),
+    uses: cloneValue(itemState.uses ?? {}, {}),
   };
 
   if (preview.useScope && preview.useId && preview.useMax > 0) {
@@ -129,7 +126,7 @@ export async function resetAssetModuleUses(actor = null, { scope = "", itemOrUui
   for (const key of keys) {
     const itemState = asObject(state[key]);
     if (!itemState.uses?.[useScope]) continue;
-    const nextUses = clone(itemState.uses);
+    const nextUses = cloneValue(itemState.uses, {});
     delete nextUses[useScope];
     state[key] = { ...itemState, uses: nextUses };
     changed = true;

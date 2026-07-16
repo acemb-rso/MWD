@@ -23,6 +23,12 @@ import {
 import { getActiveArmorTraitEffects } from "./personal-damage.js";
 import { getApplicableStealthProfileSourceIds } from "./machine-stealth.js";
 import { normalizeStatusConditionId } from "../status/status-condition-catalog.js";
+import {
+  getTokenActor,
+  getTokenDisposition,
+  getTokenDocument,
+  getTokenUuid,
+} from "../utils/token.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "targeting";
@@ -583,26 +589,6 @@ export function buildTargetingPacket({ value, sourceToken, round } = {}) {
 const SPOTTING_FLAG_KEY = "spotting";
 const SPOTTED_STATUS_ID = "spotted";
 const VALID_SPOT_ALLEGIANCES = new Set(["ally", "enemy", "any"]);
-
-function getTokenDocument(token) {
-  if (!token) return null;
-  return token.document ?? token ?? null;
-}
-
-// Token shape varies (placeable vs document). Real Foundry exposes actor /
-// disposition / uuid on both; some call sites and tests carry them on only one.
-// Read with a fallback so either shape works.
-function getTokenActor(token) {
-  return token?.actor ?? token?.document?.actor ?? null;
-}
-
-function getTokenDisposition(token) {
-  return Number(token?.document?.disposition ?? token?.disposition ?? 0) || 0;
-}
-
-function getTokenUuid(token) {
-  return String(token?.document?.uuid ?? token?.uuid ?? "").trim();
-}
 
 function readSpotEntries(targetDoc) {
   const raw = targetDoc?.getFlag?.(FLAG_SCOPE, SPOTTING_FLAG_KEY);

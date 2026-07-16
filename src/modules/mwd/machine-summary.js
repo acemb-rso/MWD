@@ -4,11 +4,7 @@
 // parts -> BattleMech/vehicle sheet headers render consistent status blocks.
 
 import { startCase } from "../core/constants.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
+import { toNumber } from "../utils/coercion.js";
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
