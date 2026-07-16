@@ -110,9 +110,17 @@ Resolves actor/item creation defaults from the inlined defaults constant.
 
 ## Keeping entropy down
 
-The duplication audit is re-runnable: scan `src/` for function names defined in
-2+ files (regex over `function name(` / `const name = (...) =>` declarations).
-Baseline after the July 2026 cleanup: **134 duplicated names, 249 redundant
-definitions** — a PR should not push these numbers up. Known intentional
-duplicates are mostly generic method names (`add`, `render`) on unrelated
-classes, not copy-pasted helpers.
+Duplication is enforced by a ratchet check that runs automatically before the
+test suite (`pretest`):
+
+- `npm run check:entropy` — scans `src/` for function names defined in 2+
+  files and fails if any name has gained a definition site beyond the
+  committed baseline (`tools/entropy-baseline.json`). New duplicate names
+  also fail.
+- `npm run update:entropy-baseline` — rewrites the baseline from the current
+  tree. Run it to lock in an improvement after consolidating helpers, or (rarely)
+  to accept an intentional duplicate — unrelated methods that happen to share a
+  generic name, not a copy-pasted helper.
+
+The baseline only shrinks over time; a PR must never push it up. Baseline after
+the July 2026 cleanup: **126 duplicated names, 205 redundant definitions**.

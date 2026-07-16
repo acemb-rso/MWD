@@ -6,7 +6,12 @@ Foundry compaction — commit it separately from code).
 
 ## Commands
 
-- `npm test` — full unit test suite (Node test runner; fast, run it before committing)
+- `npm test` — full unit test suite (Node test runner; fast, run it before
+  committing). Its `pretest` step runs the helper-duplication ratchet
+  (`tools/check-entropy.mjs` vs `tools/entropy-baseline.json`) and fails the
+  build if a helper name gains a definition site — fix by importing the shared
+  helper, not by updating the baseline (only shrink the baseline via
+  `npm run update:entropy-baseline` after consolidation).
 - `npm run build` — Vite build
 - `npm run validate:json` — JSON validation for data files
 
