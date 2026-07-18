@@ -1,0 +1,585 @@
+{
+  "action": [
+    "src/modules/combat/attribute-actions.js",
+    "src/modules/combat/personal-action-catalog.js",
+    "src/modules/mwd/machine-action-catalog.js"
+  ],
+  "actionCostLabel": [
+    "src/modules/combat/personal-combat-actions.js",
+    "src/modules/combat/personal-combat-tracker.js"
+  ],
+  "actorHasStatusId": [
+    "src/modules/combat/personal-combat-tracker.js",
+    "src/modules/token/heat-fx-controller.js"
+  ],
+  "actorsMatch": [
+    "src/modules/mwd/machine-intents.js",
+    "src/modules/mwd/machine-pilot-vision.js",
+    "src/modules/mwd/machine-quick-actions.js"
+  ],
+  "add": [
+    "src/modules/combat/personal-combat-tracker.js",
+    "src/modules/mwd/asset-module-effects.js",
+    "src/modules/mwd/battle-armor.js",
+    "src/modules/mwd/machine-intents.js",
+    "src/modules/mwd/machine-pilot-vision.js",
+    "src/modules/mwd/machine-quick-actions.js",
+    "src/modules/mwd/machine-stealth.js",
+    "src/modules/token/heat-fx-controller.js"
+  ],
+  "apply": [
+    "src/modules/item/base-item-sheet.js",
+    "src/modules/sheets/base-actor-sheet-v2.js"
+  ],
+  "applyChatVisibility": [
+    "src/modules/chat/chat-actions.js",
+    "src/modules/combat/personal-combat-tracker.js",
+    "src/modules/harm/harm-engine.js"
+  ],
+  "asArray": [
+    "src/modules/mwd/critical-hits.js",
+    "src/modules/utils/coercion.js"
+  ],
+  "asObject": [
+    "src/modules/area-effects/hazard-regions.js",
+    "src/modules/mwd/asset-module-state.js",
+    "src/modules/mwd/machine-ew-state.js",
+    "src/modules/mwd/rules.js"
+  ],
+  "asTokenDocument": [
+    "src/modules/dialog/token-status-dialog.js",
+    "src/modules/harm/harm-engine.js",
+    "src/modules/mwd/first-aid.js",
+    "src/modules/player/player-gadget-subjects.js"
+  ],
+  "bool": [
+    "src/modules/mwd/battle-armor.js",
+    "src/modules/status/status-condition-catalog.js"
+  ],
+  "buildArmorModifierSummary": [
+    "src/modules/item/armor-item-sheet.js",
+    "src/modules/sheets/actor-sheet-support.js"
+  ],
+  "buildTrainedPilotSkillGroups": [
+    "src/modules/sheets/character-sheet-v2.js",
+    "src/modules/sheets/vehicle-sheet-v2.js"
+  ],
+  "buildUsageMutations": [
+    "src/modules/mwd/rules.js",
+    "src/modules/mwd/traits.js"
+  ],
+  "catalogToRows": [
+    "src/modules/settings/life-module-settings.js",
+    "src/modules/settings/personal-action-catalog-settings.js",
+    "src/modules/settings/skill-specialization-settings.js",
+    "src/modules/settings/status-condition-catalog-settings.js",
+    "src/modules/settings/weapon-payload-catalog-settings.js"
+  ],
+  "clamp": [
+    "src/modules/mwd/machine-stealth.js",
+    "src/modules/utils/coercion.js"
+  ],
+  "clean": [
+    "src/modules/roll/intent/token-context.js",
+    "src/modules/utils/token.js"
+  ],
+  "coerceNumber": [
+    "src/modules/modifiers/providers/item-modifiers.js",
+    "src/modules/roll/collect-modifiers.js"
+  ],
+  "collectionEntries": [
+    "src/modules/canvas/machine-sensor-detection.js",
+    "src/modules/canvas/machine-sensor-overlays.js",
+    "src/modules/combat/personal-combat-tracker.js",
+    "src/modules/mwd/machine-ew-state.js",
+    "src/modules/token/heat-fx-controller.js"
+  ],
+  "combatantsToArray": [
+    "src/modules/combat/personal-combat-actions.js",
+    "src/modules/mwd/machine-ew-state.js",
+    "src/modules/roll/ew-execution.js"
+  ],
+  "compactList": [
+    "src/modules/mwd/machine-repair-issues.js",
+    "src/modules/sheets/actor-sheet-support.js"
+  ],
+  "createValidationError": [
+    "src/modules/mwd/life-modules.js",
+    "src/modules/mwd/skills.js"
+  ],
+  "describeConditionList": [
+    "src/modules/mwd/rules.js",
+    "src/modules/mwd/traits.js"
+  ],
+  "distinctStrings": [
+    "src/modules/combat/personal-action-catalog.js",
+    "src/modules/mwd/personal-weapon-capabilities.js",
+    "src/modules/mwd/weapon-payload-items.js"
+  ],
+  "escapeHtml": [
+    "src/modules/combat/personal-combat-actions.js",
+    "src/modules/item/asset-module-item-sheet.js",
+    "src/modules/mwd/first-aid.js",
+    "src/modules/sheets/character-sheet-v2.js"
+  ],
+  "evaluateComparatorEntry": [
+    "src/modules/mwd/rules.js",
+    "src/modules/mwd/traits.js"
+  ],
+  "executeMachineAction": [
+    "src/modules/sheets/battlemech-sheet-v2.js",
+    "src/modules/sheets/character-sheet-v2.js",
+    "src/modules/sheets/vehicle-sheet-v2.js"
+  ],
+  "fmt": [
+    "src/modules/roll/build-resolved.js",
+    "src/modules/roll/renderers/render-acquire.js",
+    "src/modules/roll/renderers/render-attack.js",
+    "src/modules/roll/renderers/render-skill.js"
+  ],
+  "forcedDeletion": [
+    "src/modules/item/anarchy-base-item.js",
+    "src/modules/system/migrations.js"
+  ],
+  "formatAttackRatings": [
+    "src/modules/roll/renderers/render-attack.js",
+    "src/modules/sheets/battlemech-sheet-v2.js"
+  ],
+  "formatDistanceLabel": [
+    "src/modules/combat/personal-combat-tracker.js",
+    "src/modules/mwd/token-measurement.js"
+  ],
+  "formatRangeBandLabel": [
+    "src/modules/sheets/actor-sheet-support.js",
+    "src/modules/sheets/battlemech-sheet-v2.js"
+  ],
+  "formatSignedValue": [
+    "src/modules/combat/combat-awareness-preview.js",
+    "src/modules/combat/personal-combat-tracker.js",
+    "src/modules/item/armor-item-sheet.js",
+    "src/modules/sheets/actor-sheet-support.js"
+  ],
+  "get": [
+    "src/modules/player/mwd-player-gadget.js",
+    "src/modules/roll/mwd-roll-dialog.js"
+  ],
+  "getActivationMaxSA": [
+    "src/modules/combat/personal-combat-actions.js",
+    "src/modules/combat/personal-combat-tracker.js"
+  ],
+  "getActorIdentityKeys": [
+    "src/modules/combat/personal-combat-tracker.js",
+    "src/modules/mwd/machine-intents.js",
+    "src/modules/mwd/machine-pilot-vision.js",
+    "src/modules/mwd/machine-quick-actions.js",
+    "src/modules/sheets/character-sheet-v2.js"
+  ],
+  "getActorItems": [
+    "src/modules/advancement/character-advancement.js",
+    "src/modules/sheets/character-sheet-v2.js"
+  ],
+  "getActorType": [
+    "src/modules/status/status-condition-catalog.js",
+    "src/modules/utils/actor-guards.js"
+  ],
+  "getAssetModuleClusteringProfile": [
+    "src/modules/mwd/asset-module-effects.js",
+    "src/modules/mwd/asset-module-rules.js"
+  ],
+  "getAssetModules": [
+    "src/modules/mwd/asset-module-effects.js",
+    "src/modules/mwd/battlemech-mobility.js",
+    "src/modules/mwd/machine-fire-control.js"
+  ],
+  "getAttributeValue": [
+    "src/modules/combat/combat-awareness-preview.js",
+    "src/modules/mwd/machine-initiative.js"
+  ],
+  "getCondition": [
+    "src/modules/mwd/first-aid.js",
+    "src/modules/mwd/machine-state-effects.js"
+  ],
+  "getDetectionState": [
+    "src/modules/canvas/machine-sensor-detection.js",
+    "src/modules/mwd/machine-ew-state.js"
+  ],
+  "getEffectStatusIds": [
+    "src/modules/combat/personal-combat-tracker.js",
+    "src/modules/token/heat-fx-controller.js"
+  ],
+  "getGridSizePixels": [
+    "src/modules/area-effects/area-effect-engine.js",
+    "src/modules/roll/template-placement.js"
+  ],
+  "getHB": [
+    "src/modules/sheets/preload-templates.js",
+    "src/modules/system/handlebars-manager.js"
+  ],
+  "getMachineActionService": [
+    "src/modules/chat/chat-actions.js",
+    "src/modules/sheets/battlemech-sheet-v2.js",
+    "src/modules/sheets/character-sheet-v2.js",
+    "src/modules/sheets/vehicle-sheet-v2.js"
+  ],
+  "getMachineAttackRestriction": [
+    "src/modules/mwd/machine-crit-effects.js",
+    "src/modules/mwd/machine-state-effects.js"
+  ],
+  "getMachinePilotingDnModifier": [
+    "src/modules/mwd/machine-crit-effects.js",
+    "src/modules/mwd/machine-state-effects.js"
+  ],
+  "getMachineRollApi": [
+    "src/modules/mwd/battlemech-melee-actions.js",
+    "src/modules/mwd/battlemech-ranged-actions.js",
+    "src/modules/mwd/charge-attack-actions.js",
+    "src/modules/mwd/machine-quick-actions.js",
+    "src/modules/mwd/vehicle-ranged-actions.js"
+  ],
+  "getMachineRuntimeAttributeAdjustments": [
+    "src/modules/mwd/machine-crit-effects.js",
+    "src/modules/mwd/machine-state-effects.js"
+  ],
+  "getMutationTargetActorUuid": [
+    "src/modules/chat/chat-actions.js",
+    "src/modules/harm/queued-attack-damage.js"
+  ],
+  "getMutationTargetTokenUuid": [
+    "src/modules/chat/chat-actions.js",
+    "src/modules/harm/queued-attack-damage.js"
+  ],
+  "getPersistentActorForToken": [
+    "src/modules/dialog/token-status-dialog.js",
+    "src/modules/harm/harm-engine.js"
+  ],
+  "getPilotSkillRating": [
+    "src/modules/sheets/character-sheet-v2.js",
+    "src/modules/sheets/vehicle-sheet-v2.js"
+  ],
+  "getPortraitSource": [
+    "src/modules/area-effects/hazard-chat.js",
+    "src/modules/chat/chat-actions.js"
+  ],
+  "getPreparedCriticalRecords": [
+    "src/modules/mwd/critical-hits.js",
+    "src/modules/mwd/personal-criticals.js"
+  ],
+  "getPreviewRevision": [
+    "src/modules/mwd/critical-hits.js",
+    "src/modules/mwd/personal-criticals.js"
+  ],
+  "getProperty": [
+    "src/modules/mwd/machine-stealth.js",
+    "src/modules/mwd/rules.js",
+    "src/modules/mwd/traits.js"
+  ],
+  "getRequestId": [
+    "src/modules/mwd/machine-intents.js",
+    "src/modules/mwd/machine-quick-actions.js"
+  ],
+  "getRollApi": [
+    "src/modules/combat/personal-combat-actions.js",
+    "src/modules/player/mwd-player-gadget.js"
+  ],
+  "getRuntimeKeys": [
+    "src/modules/mwd/rules.js",
+    "src/modules/mwd/traits.js"
+  ],
+  "getSaCapacityRemaining": [
+    "src/modules/combat/personal-combat-actions.js",
+    "src/modules/combat/personal-combat-tracker.js"
+  ],
+  "getSceneTokens": [
+    "src/modules/area-status/area-status-sources.js",
+    "src/modules/player/player-gadget-subjects.js"
+  ],
+  "getSkillRating": [
+    "src/modules/roll/intent/resolve-heat-danger-check.js",
+    "src/modules/roll/intent/resolve-machine-remedy.js"
+  ],
+  "getSourceToken": [
+    "src/modules/combat/combat-awareness-preview.js",
+    "src/modules/roll/intent/resolve-attack.js"
+  ],
+  "getTargetActor": [
+    "src/modules/roll/attack-resolution.js",
+    "src/modules/roll/intent/resolve-attack.js"
+  ],
+  "getTargetToken": [
+    "src/modules/canvas/machine-sensor-detection.js",
+    "src/modules/roll/intent/resolve-attack.js"
+  ],
+  "getTokenKey": [
+    "src/modules/canvas/machine-sensor-overlays.js",
+    "src/modules/token/heat-fx-controller.js"
+  ],
+  "getTokenRadius": [
+    "src/modules/area-effects/area-effect-engine.js",
+    "src/modules/roll/template-placement.js"
+  ],
+  "getTrackLabel": [
+    "src/modules/chat/chat-actions.js",
+    "src/modules/mwd/first-aid.js"
+  ],
+  "getUserById": [
+    "src/modules/mwd/machine-intents.js",
+    "src/modules/mwd/machine-quick-actions.js"
+  ],
+  "hasFoundry": [
+    "src/modules/mwd/critical-hits.js",
+    "src/modules/status/status-condition-catalog.js"
+  ],
+  "hasStatus": [
+    "src/modules/canvas/machine-sensor-detection.js",
+    "src/modules/mwd/battlemech-movement-actions.js",
+    "src/modules/mwd/machine-ew-state.js",
+    "src/modules/mwd/machine-state-effects.js",
+    "src/modules/roll/intent/resolve-break-lock.js"
+  ],
+  "isAssetModule": [
+    "src/modules/area-status/register-area-status-hooks.js",
+    "src/modules/mwd/asset-module-effects.js",
+    "src/modules/mwd/asset-module-runtime.js"
+  ],
+  "isEnergyMachineWeapon": [
+    "src/modules/mwd/machine-crit-consequences.js",
+    "src/modules/mwd/machine-heat.js"
+  ],
+  "isMachineDamageMutation": [
+    "src/modules/chat/chat-actions.js",
+    "src/modules/harm/queued-attack-damage.js"
+  ],
+  "isMeleeWeapon": [
+    "src/modules/mwd/battlemech-melee-actions.js",
+    "src/modules/mwd/vehicle-ranged-actions.js"
+  ],
+  "measureTokenDistance": [
+    "src/modules/mwd/token-measurement.js",
+    "src/modules/roll/intent/resolve-attack.js"
+  ],
+  "mergeCatalogWithDefaults": [
+    "src/modules/mwd/life-modules.js",
+    "src/modules/status/status-condition-catalog.js"
+  ],
+  "movementNumber": [
+    "src/modules/mwd/battlemech-movement-actions.js",
+    "src/modules/mwd/vehicle-movement-actions.js"
+  ],
+  "normalizeComparatorEntry": [
+    "src/modules/mwd/rules.js",
+    "src/modules/mwd/traits.js"
+  ],
+  "normalizeFilter": [
+    "src/modules/modifiers/providers/scene-modifiers.js",
+    "src/modules/settings/scene-modifier-template-settings.js"
+  ],
+  "normalizeId": [
+    "src/modules/mwd/battlemech-weapon-groups.js",
+    "src/modules/mwd/machine-weapon-group-state.js"
+  ],
+  "normalizeImplementation": [
+    "src/modules/combat/personal-action-catalog.js",
+    "src/modules/mwd/machine-action-catalog.js"
+  ],
+  "normalizeKey": [
+    "src/modules/mwd/machine-stealth.js",
+    "src/modules/mwd/vehicle-profiles.js",
+    "src/modules/roll/intent/resolve-break-lock.js"
+  ],
+  "normalizeKeywordToken": [
+    "src/modules/mwd/battlemech-weapon-groups.js",
+    "src/modules/mwd/machine-hardpoints.js"
+  ],
+  "normalizeList": [
+    "src/modules/mwd/machine-stealth.js",
+    "src/modules/mwd/vehicle-profiles.js",
+    "src/modules/roll/intent/resolve-break-lock.js"
+  ],
+  "normalizeMode": [
+    "src/modules/mwd/machine-stealth.js",
+    "src/modules/mwd/rules.js"
+  ],
+  "normalizePayload": [
+    "src/modules/combat/personal-action-catalog.js",
+    "src/modules/combat/personal-combat-actions.js",
+    "src/modules/roll/mwd-roll.js"
+  ],
+  "normalizePrompt": [
+    "src/modules/combat/personal-action-catalog.js",
+    "src/modules/mwd/machine-action-catalog.js"
+  ],
+  "normalizeRangeData": [
+    "src/modules/item/anarchy-base-item.js",
+    "src/modules/mwd/battlemech-weapon-groups.js"
+  ],
+  "normalizeRangeKey": [
+    "src/modules/item/anarchy-base-item.js",
+    "src/modules/mwd/machine-melee-weapons.js"
+  ],
+  "normalizeString": [
+    "src/modules/mwd/machine-weapon-types.js",
+    "src/modules/mwd/personal-fire-modes.js"
+  ],
+  "normalizeStringArray": [
+    "src/modules/mwd/asset-module-effects.js",
+    "src/modules/mwd/asset-module-rules.js",
+    "src/modules/mwd/asset-module-runtime-handlers.js",
+    "src/modules/mwd/rules.js",
+    "src/modules/mwd/traits.js"
+  ],
+  "normalizeStringList": [
+    "src/modules/area-status/normalize-aura-packet.js",
+    "src/modules/mwd/personal-damage.js",
+    "src/modules/mwd/personal-weapon-capabilities.js",
+    "src/modules/mwd/weapon-payload-items.js"
+  ],
+  "normalizeTemplateShape": [
+    "src/modules/area-effects/area-effect-engine.js",
+    "src/modules/mwd/personal-weapon-capabilities.js"
+  ],
+  "normalizeTraits": [
+    "src/modules/item/anarchy-base-item.js",
+    "src/modules/item/armor-item.js"
+  ],
+  "nowIso": [
+    "src/modules/mwd/critical-hits.js",
+    "src/modules/mwd/personal-criticals.js"
+  ],
+  "parseBulk": [
+    "src/modules/settings/gm-dn-preset-settings.js",
+    "src/modules/settings/life-module-settings.js",
+    "src/modules/settings/personal-action-catalog-settings.js",
+    "src/modules/settings/scene-modifier-template-settings.js",
+    "src/modules/settings/skill-specialization-settings.js",
+    "src/modules/settings/status-condition-catalog-settings.js",
+    "src/modules/settings/weapon-payload-catalog-settings.js"
+  ],
+  "parseJson": [
+    "src/modules/combat/personal-combat-actions.js",
+    "src/modules/player/mwd-player-gadget.js"
+  ],
+  "preserveScroll": [
+    "src/modules/item/asset-module-item-sheet.js",
+    "src/modules/item/gear-item-sheet.js",
+    "src/modules/item/quality-item-sheet.js",
+    "src/modules/item/weapon-item-sheet.js"
+  ],
+  "resolveActorUuid": [
+    "src/modules/mwd/machine-operator.js",
+    "src/modules/mwd/machine-quick-actions.js"
+  ],
+  "resolveRangeBand": [
+    "src/modules/mwd/machine-stealth.js",
+    "src/modules/roll/intent/resolve-attack.js"
+  ],
+  "roll": [
+    "src/modules/combat/personal-action-catalog.js",
+    "src/modules/roll/config/status-modifiers.js"
+  ],
+  "rowsToCatalog": [
+    "src/modules/settings/life-module-settings.js",
+    "src/modules/settings/personal-action-catalog-settings.js",
+    "src/modules/settings/skill-specialization-settings.js",
+    "src/modules/settings/status-condition-catalog-settings.js",
+    "src/modules/settings/weapon-payload-catalog-settings.js"
+  ],
+  "rowsToValue": [
+    "src/modules/settings/gm-dn-preset-settings.js",
+    "src/modules/settings/scene-modifier-template-settings.js"
+  ],
+  "sceneDistanceToPixels": [
+    "src/modules/area-effects/area-effect-engine.js",
+    "src/modules/area-status/area-status-regions.js",
+    "src/modules/roll/template-placement.js"
+  ],
+  "selectorMatches": [
+    "src/modules/mwd/rules.js",
+    "src/modules/mwd/traits.js"
+  ],
+  "serializeBulk": [
+    "src/modules/settings/gm-dn-preset-settings.js",
+    "src/modules/settings/life-module-settings.js",
+    "src/modules/settings/personal-action-catalog-settings.js",
+    "src/modules/settings/scene-modifier-template-settings.js",
+    "src/modules/settings/skill-specialization-settings.js",
+    "src/modules/settings/status-condition-catalog-settings.js",
+    "src/modules/settings/weapon-payload-catalog-settings.js"
+  ],
+  "signed": [
+    "src/modules/player/mwd-player-gadget.js",
+    "src/modules/player/player-modifier-presets.js"
+  ],
+  "startCase": [
+    "src/modules/core/constants.js",
+    "src/modules/roll/intent/resolve-attack.js",
+    "src/modules/roll/intent/resolve-skill.js"
+  ],
+  "summarizeTargetResults": [
+    "src/modules/roll/attack-resolution.js",
+    "src/modules/roll/renderers/render-attack.js"
+  ],
+  "sumParts": [
+    "src/modules/combat/combat-awareness-preview.js",
+    "src/modules/roll/attack-resolution.js"
+  ],
+  "sync": [
+    "src/modules/combat/personal-combat-tracker.js",
+    "src/modules/token/heat-fx-controller.js"
+  ],
+  "toArray": [
+    "src/modules/area-status/area-status-ownership.js",
+    "src/modules/area-status/area-status-regions.js",
+    "src/modules/area-status/area-status-sources.js",
+    "src/modules/combat/personal-action-rules.js",
+    "src/modules/mwd/machine-action-catalog.js"
+  ],
+  "toCollectionArray": [
+    "src/modules/mwd/asset-module-effects.js",
+    "src/modules/mwd/asset-module-runtime.js",
+    "src/modules/mwd/battlemech-mobility.js",
+    "src/modules/mwd/machine-fire-control.js"
+  ],
+  "toInt": [
+    "src/modules/advancement/character-advancement.js",
+    "src/modules/roll/outcome/_outcome-helpers.js"
+  ],
+  "toInteger": [
+    "src/modules/mwd/machine-clustering.js",
+    "src/modules/utils/coercion.js"
+  ],
+  "toItemArray": [
+    "src/modules/item/anarchy-base-item.js",
+    "src/modules/item/weapon-item-sheet.js",
+    "src/modules/mwd/machine-stealth.js",
+    "src/modules/mwd/weapon-payload-items.js"
+  ],
+  "toTrimmedString": [
+    "src/modules/mwd/asset-module-effects.js",
+    "src/modules/mwd/asset-module-rules.js",
+    "src/modules/mwd/weapon-payload-catalogs.js",
+    "src/modules/utils/coercion.js"
+  ],
+  "uniqueActors": [
+    "src/modules/modifiers/providers/item-modifiers.js",
+    "src/modules/modifiers/providers/life-modules.js",
+    "src/modules/modifiers/providers/traits.js",
+    "src/modules/mwd/traits.js",
+    "src/modules/roll/mwd-roll.js"
+  ],
+  "usageCountForScope": [
+    "src/modules/mwd/rules.js",
+    "src/modules/mwd/traits.js"
+  ],
+  "userCanOperateAsActor": [
+    "src/modules/mwd/machine-intents.js",
+    "src/modules/mwd/machine-quick-actions.js"
+  ],
+  "validatePreparedCriticalRecords": [
+    "src/modules/mwd/critical-hits.js",
+    "src/modules/mwd/personal-criticals.js"
+  ],
+  "valueToRows": [
+    "src/modules/settings/gm-dn-preset-settings.js",
+    "src/modules/settings/scene-modifier-template-settings.js"
+  ]
+}
