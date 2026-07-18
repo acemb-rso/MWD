@@ -102,6 +102,22 @@ test("suppression fire is a ready complex attack action", async () => {
   assert.deepEqual(action?.prompt, { type: "weapon", required: true });
 });
 
+test("spot indirect is a ready complex perception action", async () => {
+  const {
+    getPersonalAction,
+  } = await import("../src/modules/combat/personal-action-catalog.js");
+
+  const action = getPersonalAction("spotIndirect");
+  assert.equal(action?.label, "Spot for Indirect Fire");
+  assert.equal(action?.implementation?.state, "ready");
+  assert.equal(action?.category, "complex");
+  assert.deepEqual(action?.cost, { resource: "sa", value: 2 });
+  assert.equal(action?.resolver, "action");
+  assert.deepEqual(action?.prompt, { type: "target", required: true });
+  assert.deepEqual(action?.roll, { intent: "skill", key: "perception" });
+  assert.ok(action?.tags?.includes("indirect"));
+});
+
 test("grapple actions are ready combat actions", async () => {
   const {
     getPersonalAction,

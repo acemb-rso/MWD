@@ -497,6 +497,89 @@ test("cancelling a personal skill roll does not spend action economy", async () 
   }
 });
 
+test("Spot for Indirect Fire requires spotter gear and rolls Perception against the selected target", async () => {
+  const {
+    executeCombatActionIntent,
+    PersonalCombatTracker,
+  } = await importModules();
+  const actor = makeActor();
+  const snapshot = makeSnapshot();
+  const original = {
+    rollExecute: game.mwd.roll.execute,
+    targets: game.user.targets,
+    getSnapshot: PersonalCombatTracker.getSnapshot,
+    previewResourceSpend: PersonalCombatTracker.previewResourceSpend,
+    spendResource: PersonalCombatTracker.spendResource,
+    applyActionState: PersonalCombatTracker._applyActionState,
+  };
+  const previews = [];
+  const spends = [];
+  const states = [];
+  const rolls = [];
+
+  game.user.targets = new Set([{
+    id: "target-1",
+    name: "Target One",
+    document: { uuid: "Scene.scene-1.Token.target-1", name: "Target One" },
+  }]);
+  game.mwd.roll.execute = async request => {
+    rolls.push(request);
+    return { ok: true };
+  };
+  PersonalCombatTracker.getSnapshot = () => snapshot;
+  PersonalCombatTracker.previewResourceSpend = (_actor, request) => {
+    previews.push(request);
+    return { ok: true, snapshot, finalCost: request.cost };
+  };
+  PersonalCombatTracker.spendResource = async (_actor, request) => {
+    spends.push(request);
+    return { ok: true, costPaid: true, costLabel: request.actionCostLabel ?? "", snapshot };
+  };
+  PersonalCombatTracker._applyActionState = async (_actor, request) => {
+    states.push(request);
+    return { ok: true };
+  };
+
+  try {
+    const withoutGear = await executeCombatActionIntent({ actor, payload: { intent: "combatAction", actionId: "spotIndirect" } });
+    assert.equal(withoutGear.ok, false);
+    assert.match(withoutGear.reason, /spotter gear/i);
+    assert.equal(rolls.length, 0);
+
+    actor.items = new Map([[
+      "binoculars",
+      {
+        id: "binoculars",
+        name: "Binoculars",
+        type: "gear",
+        system: {
+          category: "optical",
+          relatedSkill: "perception",
+          tags: ["observation", "visual", "magnification"],
+        },
+      },
+    ]]);
+    const withGear = await executeCombatActionIntent({ actor, payload: { intent: "combatAction", actionId: "spotIndirect" } });
+
+    assert.equal(withGear.ok, true);
+    assert.equal(previews[0]?.actionId, "spotIndirect");
+    assert.equal(spends[0]?.actionId, "spotIndirect");
+    assert.equal(spends[0]?.cost, 2);
+    assert.equal(states[0]?.actionId, "spotIndirect");
+    assert.equal(rolls[0]?.payload?.intent, "skill");
+    assert.equal(rolls[0]?.payload?.key, "perception");
+    assert.equal(rolls[0]?.payload?.targetTokenUuid, "Scene.scene-1.Token.target-1");
+    assert.equal(rolls[0]?.payload?.targetName, "Target One");
+  } finally {
+    game.mwd.roll.execute = original.rollExecute;
+    game.user.targets = original.targets;
+    PersonalCombatTracker.getSnapshot = original.getSnapshot;
+    PersonalCombatTracker.previewResourceSpend = original.previewResourceSpend;
+    PersonalCombatTracker.spendResource = original.spendResource;
+    PersonalCombatTracker._applyActionState = original.applyActionState;
+  }
+});
+
 test("CharacterSheetV2 does not override inherited personal combat handlers", async () => {
   const source = await readFile(new URL("../src/modules/sheets/character-sheet-v2.js", import.meta.url), "utf8");
   for (const handler of [

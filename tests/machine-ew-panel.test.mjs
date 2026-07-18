@@ -55,7 +55,7 @@ function setSceneState({ targets = [], attackerCombatant = null, targetCombatant
   };
 }
 
-function createAssetModule({ name = "Module", tags = [], effects = [], enabled = true, state = {} } = {}) {
+function createAssetModule({ name = "Module", tags = [], capabilities = [], effects = [], enabled = true, state = {}, effectText = "", description = "" } = {}) {
   return {
     id: name.toLowerCase().replace(/\s+/g, "-"),
     name,
@@ -63,8 +63,22 @@ function createAssetModule({ name = "Module", tags = [], effects = [], enabled =
     system: {
       enabled,
       tags,
+      capabilities,
       state,
       effects,
+      effectText,
+      description,
+    },
+  };
+}
+
+function createMountedMechWeapon({ id = "weapon-1", name = "Weapon", keywords = [] } = {}) {
+  return {
+    id,
+    name,
+    type: "mechWeapon",
+    system: {
+      keywords,
     },
   };
 }
@@ -399,8 +413,10 @@ test("EW quick action menu exposes canonical player-facing actions", () => {
     "breakLock",
     "defensiveJink",
     "suppressBeacon",
+    "spotIndirect",
     "swat",
     "tagTarget",
+    "narcTarget",
     "shareTargetingData",
   ]);
   assert.equal(actions.find(action => action.id === "acquireTarget")?.intent, "acquireTarget");
@@ -408,7 +424,7 @@ test("EW quick action menu exposes canonical player-facing actions", () => {
   assert.equal(actions.find(action => action.id === "generateFireSolution")?.disabled, false);
 });
 
-test("EW TAG and C3 actions are enabled only by ready asset modules", () => {
+test("EW TAG and C3 actions are enabled only by mounted gear", () => {
   const target = createTargetToken({
     id: "target-1",
     uuid: "Scene.scene.Token.target-1",
@@ -430,22 +446,83 @@ test("EW TAG and C3 actions are enabled only by ready asset modules", () => {
     includeDisabled: true,
   });
   assert.equal(actionsWithoutModules.find(action => action.id === "tagTarget")?.disabled, true);
-  assert.match(actionsWithoutModules.find(action => action.id === "tagTarget")?.reason ?? "", /TAG asset module/i);
+  assert.match(actionsWithoutModules.find(action => action.id === "tagTarget")?.reason ?? "", /TAG/i);
   assert.equal(actionsWithoutModules.find(action => action.id === "shareTargetingData")?.disabled, true);
   assert.match(actionsWithoutModules.find(action => action.id === "shareTargetingData")?.reason ?? "", /C3 asset module/i);
 
   const actionsWithModules = buildMachineEwActionChoices({
     items: [
-      createAssetModule({ name: "TAG", tags: ["tag"] }),
+      createMountedMechWeapon({ id: "tag-weapon", name: "TAG Designator", keywords: ["tag"] }),
       createAssetModule({ name: "C3 Network", tags: ["c3"] }),
     ],
-    system: { attributes: { system: { value: 3 } } },
+    system: {
+      attributes: { system: { value: 3 } },
+      mwd: { hardpoints: [{ id: "support-1", itemId: "tag-weapon" }] },
+    },
   }, {
     token: { id: "attacker-token" },
     includeDisabled: true,
   });
   assert.equal(actionsWithModules.find(action => action.id === "tagTarget")?.disabled, false);
   assert.equal(actionsWithModules.find(action => action.id === "shareTargetingData")?.disabled, false);
+
+  const actionsWithInactiveC3 = buildMachineEwActionChoices({
+    items: [
+      createMountedMechWeapon({ id: "tag-weapon", name: "TAG Designator", keywords: ["tag"] }),
+      createAssetModule({ name: "C3 Network", tags: ["c3"], enabled: false }),
+    ],
+    system: { attributes: { system: { value: 3 } } },
+  }, {
+    token: { id: "attacker-token" },
+    includeDisabled: true,
+  });
+  assert.equal(actionsWithInactiveC3.find(action => action.id === "shareTargetingData")?.disabled, true);
+});
+
+test("EW Spot for Indirect Fire is enabled by spotter gear", () => {
+  const target = createTargetToken({
+    id: "target-1",
+    uuid: "Scene.scene.Token.target-1",
+    name: "Tracked Target",
+  });
+  const attackerCombatant = createCombatant({
+    tokenId: "attacker-token",
+    targeting: {
+      [target.document.uuid]: { detectionState: "track" },
+    },
+  });
+  setSceneState({ targets: [target], attackerCombatant });
+
+  const actorBase = {
+    system: { attributes: { system: { value: 3 } } },
+  };
+  const actionsWithoutGear = buildMachineEwActionChoices({
+    ...actorBase,
+    items: [],
+  }, {
+    token: { id: "attacker-token" },
+    includeDisabled: true,
+  });
+  assert.equal(actionsWithoutGear.find(action => action.id === "spotIndirect")?.disabled, true);
+  assert.match(actionsWithoutGear.find(action => action.id === "spotIndirect")?.reason ?? "", /spotter gear/i);
+
+  const actionsWithUav = buildMachineEwActionChoices({
+    ...actorBase,
+    items: [
+      createAssetModule({
+        name: "UAV Control Pod",
+        tags: ["assetModule", "Network", "uav", "overwatch", "sensor"],
+        effectText: "Removes indirect fire penalties for operator.",
+      }),
+    ],
+  }, {
+    token: { id: "attacker-token" },
+    includeDisabled: true,
+  });
+  const spotAction = actionsWithUav.find(action => action.id === "spotIndirect");
+  assert.equal(spotAction?.disabled, false);
+  assert.equal(spotAction?.targetMode, "any");
+  assert.equal(spotAction?.execution, "skill");
 });
 
 test("EW quick action menu keeps unavailable target-gated actions visible with reasons", () => {
@@ -461,8 +538,10 @@ test("EW quick action menu keeps unavailable target-gated actions visible with r
   assert.equal(actions.find(action => action.id === "sensorSweep")?.disabled, false);
   assert.equal(actions.find(action => action.id === "acquireTarget")?.disabled, true);
   assert.match(actions.find(action => action.id === "acquireTarget")?.reason ?? "", /detection state/i);
+  assert.equal(actions.find(action => action.id === "spotIndirect")?.disabled, true);
+  assert.match(actions.find(action => action.id === "spotIndirect")?.reason ?? "", /spotter gear/i);
   assert.equal(actions.find(action => action.id === "tagTarget")?.disabled, true);
-  assert.match(actions.find(action => action.id === "tagTarget")?.reason ?? "", /TAG asset module/i);
+  assert.match(actions.find(action => action.id === "tagTarget")?.reason ?? "", /TAG/i);
 });
 
 test("machine layouts surface EW controls through combat awareness on battlemech and vehicle sheets", async () => {

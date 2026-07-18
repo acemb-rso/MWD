@@ -1076,6 +1076,7 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
   const hasTag = Boolean(capabilities.tag);
   const hasNarc = Boolean(capabilities.narc);
   const hasC3 = Boolean(capabilities.c3);
+  const hasIndirectSpotter = Boolean(capabilities.indirectSpotter);
   const actions = [
     buildEwAction({
       id: "sensorSweep",
@@ -1139,6 +1140,15 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
       enabled: hasTargets,
       reason: "Target a token before suppressing a beacon.",
       mechanics: "Automated on success: selected target's beacon/network packet against this machine is suppressed until its next activation.",
+    }),
+    buildEwAction({
+      id: "spotIndirect",
+      purpose: "Spot a target for allied indirect fire.",
+      targetMode: "any",
+      execution: "skill",
+      enabled: hasTargets && hasIndirectSpotter,
+      reason: !hasIndirectSpotter ? "Requires spotter gear such as a UAV Control Pod." : "Target a token before spotting for indirect fire.",
+      mechanics: "Roll only; indirect-fire network effects are handled narratively.",
     }),
     buildEwAction({
       id: "swat",

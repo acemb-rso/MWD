@@ -30,6 +30,78 @@ function mergeObject(target, source, { inplace = true, overwrite = true } = {}) 
   return output;
 }
 
+test("personal complex actions expose Spot for Indirect Fire when carrying spotter gear", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.getProperty ??= getProperty;
+  globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
+  globalThis.foundry.utils.deepClone ??= deepClone;
+  globalThis.foundry.utils.mergeObject ??= mergeObject;
+  globalThis.Hooks ??= { on() {} };
+  globalThis.CONFIG ??= { statusEffects: [] };
+  globalThis.game ??= { user: { isGM: true }, combat: null, actors: new Map(), scenes: new Map() };
+
+  const { PersonalCombatTracker } = await import("../src/modules/combat/personal-combat-tracker.js");
+  const baseActor = {
+    id: "spotter",
+    type: "character",
+    statuses: new Set(),
+    system: {
+      attributes: {
+        reflexes: { value: 2 },
+        guts: { value: 2 },
+      },
+      burn: { value: 0, overloaded: false },
+    },
+  };
+  const snapshot = {
+    hasCombatant: true,
+    isCurrentTurn: true,
+    overloaded: false,
+    burn: { value: 0, threshold: 6, canOverloadCheck: false },
+    state: {
+      saRemaining: 3,
+      faRemaining: 1,
+      raRemaining: 1,
+      saSpentThisActivation: 0,
+      burnThisActivation: 0,
+      actionLog: [],
+      actionState: {},
+    },
+  };
+
+  const withoutGear = PersonalCombatTracker.buildActionModel({
+    ...baseActor,
+    items: [],
+  }, snapshot);
+  const disabledSpot = withoutGear.menus
+    .find(menu => menu.id === "complex")
+    ?.actions.find(action => action.id === "spotIndirect");
+  assert.equal(disabledSpot?.disabled, true);
+  assert.match(disabledSpot?.reason ?? "", /spotter gear/i);
+
+  const withGear = PersonalCombatTracker.buildActionModel({
+    ...baseActor,
+    items: [
+      {
+        id: "binoculars",
+        name: "Binoculars",
+        type: "gear",
+        system: {
+          category: "optical",
+          relatedSkill: "perception",
+          tags: ["observation", "visual", "magnification"],
+        },
+      },
+    ],
+  }, snapshot);
+  const enabledSpot = withGear.menus
+    .find(menu => menu.id === "complex")
+    ?.actions.find(action => action.id === "spotIndirect");
+  assert.equal(enabledSpot?.label, "Spot for Indirect Fire");
+  assert.equal(enabledSpot?.disabled, false);
+  assert.deepEqual(JSON.parse(enabledSpot?.roll ?? "{}"), { intent: "skill", key: "perception" });
+});
+
 test("markWeaponGroupUsed starts from the reset snapshot state instead of reviving the stale stored activation", async () => {
   globalThis.foundry ??= { utils: {} };
   globalThis.foundry.utils.getProperty ??= getProperty;

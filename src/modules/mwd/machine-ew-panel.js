@@ -17,6 +17,7 @@ import {
 import { getBattleArmorMachineTargetProfile } from "./battle-armor.js";
 import { hasAssetModuleCapability } from "./asset-module-effects.js";
 import { getMountedMachineItems, hasMachineWeaponKeyword } from "./machine-hardpoints.js";
+import { actorHasSpotterGear } from "./spotter-gear.js";
 
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
@@ -88,6 +89,7 @@ export function getMachineEwAssetCapabilities(actor = null) {
     tag: hasMountedWeaponWithKeyword(actor, "tag"),
     narc: hasMountedWeaponWithKeyword(actor, "narc"),
     c3: hasAssetModuleCapability(actor, "c3", ["c3i", "network", "shareTargetingData"]),
+    indirectSpotter: actorHasSpotterGear(actor),
   };
 }
 

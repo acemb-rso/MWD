@@ -42,6 +42,7 @@ import { buildMachineActivationStartReport, isMachineActor } from "../mwd/machin
 import { getBattlemechUsedWeaponGroupIds, markBattlemechWeaponGroupUsed } from "../mwd/battlemech-weapon-groups.js";
 import { getPersonalActionGateReason, getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
 import { clearSuppressedTargetingPackets } from "../mwd/machine-ew-state.js";
+import { actorHasSpotterGear } from "../mwd/spotter-gear.js";
 import { getStatusActionGateReason } from "../status/status-mechanics.js";
 
 const FLAG_SCOPE = "mwd";
@@ -1766,6 +1767,9 @@ export class PersonalCombatTracker {
         || (saCapacityRemaining < cost ? "Activation SA cap reached." : "");
       if (!reason && action.id === "suppressionFire" && !actorHasAutomaticPersonalWeapon(actor)) {
         reason = "Requires an equipped personal weapon with the Automatic trait.";
+      }
+      if (!reason && action.id === "spotIndirect" && !actorHasSpotterGear(actor)) {
+        reason = "Requires spotter gear such as binoculars, sensors, or a UAV Control Pod.";
       }
     } else if (category === PERSONAL_ACTION_CATEGORIES.free) {
       const usesFreeAction = Number(state.faRemaining ?? 0) > 0;

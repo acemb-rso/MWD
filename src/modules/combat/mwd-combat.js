@@ -42,6 +42,7 @@ export class MWDCombat extends Combat {
     await this.resetAll();
     const result = await super.nextRound();
     await this.rollAll();
+    await this.update({ turn: 0 });
     return result;
   }
 }
