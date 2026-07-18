@@ -16,6 +16,7 @@ import { performVehicleRangedAttack } from "./vehicle-ranged-actions.js";
 import { buildMachineEwPanel, getMachineEwAssetCapabilities, resolveMachineEwActionTarget } from "./machine-ew-panel.js";
 import { getMountedMachineItems, hasMachineWeaponKeyword } from "./machine-hardpoints.js";
 import { getMachineActionDefinition } from "./machine-action-catalog.js";
+import { isMachineSensorActionBlocked } from "./machine-state-effects.js";
 import { findAssetModuleActionOverride } from "./asset-module-effects.js";
 import { buildBattlemechHeatModel, resolveBattlemechPendingHeat } from "./machine-heat.js";
 import { prepareMachineRemedyRoll } from "./machine-intents.js";
@@ -506,7 +507,7 @@ async function executeMachineEwIntent(actor, request) {
         : intent === "defensiveJink"
           ? "jink"
           : "acquire";
-    return { ok: false, reason: "missing-target", userMessage: `No targeted token is ready to ${verb}.` };
+    return { ok: false, reason: "missing-target", userMessage: `No eligible contact is ready to ${verb}.` };
   }
 
   const isEligible = intent === "breakLock" || intent === "defensiveJink"
@@ -994,7 +995,21 @@ function buildEwAction({
 }
 
 function getAnyEwTarget(panel = {}) {
-  return Array.isArray(panel?.rows) ? panel.rows.find(row => row?.targetTokenUuid || row?.targetTokenId) ?? null : null;
+  const rows = Array.isArray(panel?.rows)
+    ? panel.rows.filter(row => row?.targetTokenUuid || row?.targetTokenId)
+    : [];
+  // Prefer a row the user has targeted on the canvas; encounter rows exist
+  // without targeting, so the first eligible row is only a fallback.
+  const targetedKeys = new Set();
+  for (const target of globalThis.game?.user?.targets ?? []) {
+    const id = String(target?.id ?? target?.document?.id ?? "").trim();
+    const uuid = String(target?.document?.uuid ?? target?.uuid ?? "").trim();
+    if (id) targetedKeys.add(id);
+    if (uuid) targetedKeys.add(uuid);
+  }
+  return rows.find(row => targetedKeys.has(row?.targetTokenId) || targetedKeys.has(row?.targetTokenUuid))
+    ?? rows[0]
+    ?? null;
 }
 
 async function recordMachineActionCost(actor, action, { token = null, operatorActorUuid = "" } = {}) {
@@ -1086,11 +1101,11 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
     }),
     buildEwAction({
       id: "acquireTarget",
-      purpose: "Improve detection state on the first eligible targeted token.",
+      purpose: "Improve detection state on a targeted or eligible encounter contact.",
       targetMode: "acquire",
       execution: "intent",
       enabled: panel.canAcquireAny,
-      reason: "No targeted token can currently advance detection state.",
+      reason: "No eligible contact can currently advance detection state.",
       mechanics: "Automated detection-state update on success.",
     }),
     buildEwAction({
@@ -1208,6 +1223,14 @@ export async function performMachineElectronicWarfare(actor, {
     return { ok: false, reason };
   }
 
+  if (isMachineSensorActionBlocked(actor)) {
+    // Same machine-state service the resolvers consult; every action routed
+    // through this menu is a sensor or ECM action.
+    const reason = "Sensor actions are blocked by the machine's current state.";
+    ui.notifications?.warn(reason);
+    return { ok: false, reason };
+  }
+
   const beaconKeywords = { tagTarget: "tag", narcTarget: "narc" };
   const beaconStatuses = { tagTarget: "tagged", narcTarget: "narced" };
   const beaconKeyword = beaconKeywords[selectedAction.id] ?? null;
@@ -1225,7 +1248,7 @@ export async function performMachineElectronicWarfare(actor, {
   }
 
   if ((selectedAction.targetMode === "acquire" || selectedAction.targetMode === "targeting" || selectedAction.targetMode === "any") && !targetRow) {
-    const reason = "No targeted token is ready for that EW action.";
+    const reason = "No eligible contact is ready for that EW action.";
     ui.notifications?.warn(reason);
     return { ok: false, reason };
   }

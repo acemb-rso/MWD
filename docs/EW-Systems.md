@@ -54,6 +54,51 @@ machines and the target has effective emission. Stealth systems may also cap the
 maximum achievable detection state, such as battle armor stealth capping acquire
 at Track.
 
+### EW panel enumeration and masking (UI contract)
+
+The sheet EW panel derives its rows from the **active encounter**, not from
+canvas targets, so a player always has an acquisition affordance even when a
+contact has no line of sight and is not rendered. A row exists for every
+combatant whose token is a sensor-eligible target:
+
+* machine actor with HOSTILE disposition (one canonical predicate in
+  `machine-sensor-eligibility.js`, shared with canvas sensor detection),
+* on the current scene, not the observer itself, not GM-hidden.
+
+GM-hidden combatants produce **no row at all** — hidden remains the GM's
+ambush lever.
+
+What a row shows is decided by the stored detection state:
+
+| State   | Identity              | Range                   | EW detail                  |
+| ------- | --------------------- | ----------------------- | -------------------------- |
+| Blind   | `Unknown Contact A/B` | hidden                  | hidden                     |
+| Contact | token name            | range band only         | basic state                |
+| Track   | token name            | band + exact distance   | penalties, packet caps     |
+| Lock    | token name            | band + exact distance   | full packet/system details |
+
+Anonymous labels are keyed to a token-id sort, never initiative order. The
+acquire roll card also masks a blind contact's name until Contact is gained.
+
+Observer degradation gates the row actions through the same machine-state
+services the resolvers use: `noSensorActions` disables all sensor/EW buttons;
+Sensor Blind disables Acquire beyond Close, blocks targeting-data generation,
+and annotates previously earned Track/Lock rows ("live sensor feed
+unavailable") instead of erasing the stored state. The resolvers enforce the
+same rules independently — the panel is only a projection.
+
+The player loop this enables:
+
+```text
+Encounter row exists (masked)
+    → Acquire vs Unknown Contact (DN 1)
+    → success creates Contact
+    → sensor detection reveals the token on canvas
+    → normal canvas targeting becomes available
+```
+
+Sensor Sweep is unchanged: it does not auto-seed contacts.
+
 ---
 
 ## Step 2 — Generate TargetingData (Fire Control)

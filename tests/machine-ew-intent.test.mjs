@@ -142,24 +142,41 @@ function clearScene() {
   delete globalThis.Hooks;
 }
 
-test("acquire roll card subtitle uses the target token name", async () => {
-  const { attackerActor, attackerToken, targetTokenUuid } = setScene({ detectionState: "blind" });
+test("acquire roll card masks blind contacts and names acquired ones", async () => {
+  const blindScene = setScene({ detectionState: "blind" });
 
   try {
     const resolved = await resolveAcquire({
-      actor: attackerActor,
+      actor: blindScene.attackerActor,
       payload: {
-        sourceTokenId: attackerToken.id,
-        targetTokenUuid,
+        sourceTokenId: blindScene.attackerToken.id,
+        targetTokenUuid: blindScene.targetTokenUuid,
       },
     });
 
     assert.equal(resolved.title, "Acquire Target");
+    assert.equal(resolved.subtitle, "Unknown Contact");
+    assert.equal(resolved.acquire.targetName, "Unknown Contact");
+    assert.equal(resolved.acquire.attackerTokenId, blindScene.attackerToken.id);
+    assert.equal(resolved.acquire.attackerCombatantId, `${blindScene.attackerToken.id}-combatant`);
+    assert.deepEqual(resolved.edge.allowed, ["pre", "post"]);
+  } finally {
+    clearScene();
+  }
+
+  const contactScene = setScene({ detectionState: "contact" });
+
+  try {
+    const resolved = await resolveAcquire({
+      actor: contactScene.attackerActor,
+      payload: {
+        sourceTokenId: contactScene.attackerToken.id,
+        targetTokenUuid: contactScene.targetTokenUuid,
+      },
+    });
+
     assert.equal(resolved.subtitle, "Vindicator");
     assert.equal(resolved.acquire.targetName, "Vindicator");
-    assert.equal(resolved.acquire.attackerTokenId, attackerToken.id);
-    assert.equal(resolved.acquire.attackerCombatantId, `${attackerToken.id}-combatant`);
-    assert.deepEqual(resolved.edge.allowed, ["pre", "post"]);
   } finally {
     clearScene();
   }

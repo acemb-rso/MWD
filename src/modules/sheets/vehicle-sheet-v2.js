@@ -2286,7 +2286,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       : resolveMachineEwActionTarget(panel, intent);
     if (!targetRow) {
       const verb = intent === "targeting" ? "generate targeting data" : "acquire";
-      ui.notifications?.warn(`No targeted token is ready to ${verb}.`);
+      ui.notifications?.warn(`No eligible contact is ready to ${verb}.`);
       return false;
     }
 
@@ -2330,9 +2330,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         this.#renderEwState();
       })],
       ["updateToken", Hooks.on("updateToken", (tokenDocument, changed) => {
-        if (!this.#didTokenPositionChange(changed)) return;
+        const positionChanged = this.#didTokenPositionChange(changed);
+        const eligibilityChanged = this.#didTokenEligibilityChange(changed);
+        if (!positionChanged && !eligibilityChanged) return;
         if (!this.#isRelevantEwToken(tokenDocument)) return;
-        cachePendingTokenPosition(tokenDocument, changed);
+        if (positionChanged) cachePendingTokenPosition(tokenDocument, changed);
         this.#renderEwState();
       })],
       ["updateCombatant", Hooks.on("updateCombatant", (combatant, changed) => {
@@ -2352,8 +2354,15 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
         if (!this.#isTrackedCombat(combat)) return;
         this.#renderEwState();
       })],
-      ["deleteCombat", Hooks.on("deleteCombat", combat => {
-        if (!this.#isTrackedCombat(combat)) return;
+      ["createCombat", Hooks.on("createCombat", () => {
+        this.#renderEwState();
+      })],
+      ["deleteCombat", Hooks.on("deleteCombat", () => {
+        // The panel enumerates the active encounter, so any combat ending or
+        // starting can change which rows exist.
+        this.#renderEwState();
+      })],
+      ["canvasReady", Hooks.on("canvasReady", () => {
         this.#renderEwState();
       })],
     ];
@@ -2384,6 +2393,8 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     const sheetTokenId = String(sheetToken?.id ?? sheetToken?.document?.id ?? "").trim();
     if (sheetTokenId && tokenId === sheetTokenId) return true;
 
+    if (this.#isEncounterCombatantTokenId(tokenId)) return true;
+
     const targetedTokenIds = new Set(
       Array.from(game.user?.targets ?? [])
         .map(targetToken => String(targetToken?.id ?? targetToken?.document?.id ?? "").trim())
@@ -2394,19 +2405,27 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
   #isRelevantEwCombatant(combatant) {
     if (!combatant) return false;
+    // Panel rows enumerate the active encounter, so every combatant in the
+    // tracked combat can affect what this sheet shows.
+    if (this.#isTrackedCombat(combatant?.parent ?? combatant?.combat)) return true;
 
     const sheetToken = this._resolveStatusToken(this.getPersistentActor?.() ?? this.actor);
     const sheetTokenId = String(sheetToken?.id ?? sheetToken?.document?.id ?? "").trim();
     const combatantTokenId = String(combatant?.tokenId ?? combatant?.token?.id ?? combatant?.token?.document?.id ?? "").trim();
     if (!combatantTokenId) return false;
-    if (sheetTokenId && combatantTokenId === sheetTokenId) return true;
+    return Boolean(sheetTokenId) && combatantTokenId === sheetTokenId;
+  }
 
-    const targetedTokenIds = new Set(
-      Array.from(game.user?.targets ?? [])
-        .map(targetToken => String(targetToken?.id ?? targetToken?.document?.id ?? "").trim())
-        .filter(Boolean)
-    );
-    return targetedTokenIds.has(combatantTokenId);
+  #isEncounterCombatantTokenId(tokenId) {
+    const combatants = game.combat?.combatants;
+    if (!combatants) return false;
+    const entries = Array.isArray(combatants.contents)
+      ? combatants.contents
+      : Array.from(combatants);
+    return entries.some(combatant => {
+      const combatantTokenId = String(combatant?.tokenId ?? combatant?.token?.id ?? combatant?.token?.document?.id ?? "").trim();
+      return combatantTokenId === tokenId;
+    });
   }
 
   #didCombatantEwStateChange(changed) {
@@ -2426,5 +2445,11 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     return foundry.utils.hasProperty(changed, "x")
       || foundry.utils.hasProperty(changed, "y")
       || foundry.utils.hasProperty(changed, "elevation");
+  }
+
+  #didTokenEligibilityChange(changed) {
+    // Hidden and disposition drive sensor-target eligibility for panel rows.
+    return foundry.utils.hasProperty(changed, "hidden")
+      || foundry.utils.hasProperty(changed, "disposition");
   }
 }

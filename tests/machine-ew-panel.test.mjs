@@ -25,19 +25,32 @@ function createCombatant({ tokenId, targeting = {}, ewState = {}, moved = false 
   };
 }
 
-function createTargetToken({ id, uuid, name, statuses = [] } = {}) {
-  return {
+function createTargetToken({ id, uuid, name, statuses = [], disposition = -1, hidden = false, actorType = "vehicle" } = {}) {
+  const token = {
     id,
     name,
     center: { x: 100, y: 0 },
     actor: {
+      type: actorType,
       statuses: new Set(statuses),
     },
     document: {
       id,
       uuid,
+      disposition,
+      hidden,
     },
   };
+  // Encounter enumeration resolves tokens through the combatant's document.
+  token.document.object = token;
+  token.document.actor = token.actor;
+  return token;
+}
+
+function createEncounterCombatant(token, { moved = false } = {}) {
+  const combatant = createCombatant({ tokenId: token?.document?.id ?? token?.id, moved });
+  combatant.token = token?.document ?? null;
+  return combatant;
 }
 
 function setSceneState({ targets = [], attackerCombatant = null, targetCombatants = [], round = 3 } = {}) {
@@ -83,11 +96,28 @@ function createMountedMechWeapon({ id = "weapon-1", name = "Weapon", keywords = 
   };
 }
 
-function buildPanel({ system = 3, targets = [], attackerCombatant, targetCombatants = [], items = [] } = {}) {
-  setSceneState({ targets, attackerCombatant, targetCombatants });
+function buildPanel({ system = 3, targets = [], attackerCombatant, targetCombatants = [], items = [], statuses = [] } = {}) {
+  // Targets become encounter combatants so the panel exercises the real
+  // encounter-enumeration path; explicit targetCombatants win on token id.
+  const coveredTokenIds = new Set(targetCombatants.map(combatant => String(combatant?.tokenId ?? "").trim()));
+  const encounterCombatants = [
+    ...targetCombatants,
+    ...targets
+      .filter(target => !coveredTokenIds.has(String(target?.document?.id ?? target?.id ?? "").trim()))
+      .map(target => createEncounterCombatant(target)),
+  ];
+  for (const combatant of targetCombatants) {
+    if (combatant.token) continue;
+    const match = targets.find(target => String(target?.document?.id ?? target?.id ?? "").trim() === String(combatant?.tokenId ?? "").trim());
+    if (match) combatant.token = match.document;
+  }
+  setSceneState({ targets, attackerCombatant, targetCombatants: encounterCombatants });
   return buildMachineEwPanel({
     actor: {
+      // Machine type keeps status mechanics (e.g. sensorBlind) applicable.
+      type: "vehicle",
       items,
+      statuses: new Set(statuses),
       system: {
         attributes: {
           system: { value: system },
@@ -98,7 +128,7 @@ function buildPanel({ system = 3, targets = [], attackerCombatant, targetCombata
   });
 }
 
-test("EW panel shows an empty state when no token targets are selected", () => {
+test("EW panel shows an empty state when the encounter has no eligible contacts", () => {
   const panel = buildPanel({
     attackerCombatant: createCombatant({ tokenId: "attacker-token" }),
   });
@@ -107,7 +137,18 @@ test("EW panel shows an empty state when no token targets are selected", () => {
   assert.equal(panel.rows.length, 0);
   assert.equal(panel.canAcquireAny, false);
   assert.equal(panel.canTargetAny, false);
-  assert.match(panel.emptyState, /Target one or more tokens/i);
+  assert.match(panel.emptyState, /No eligible hostile contacts/i);
+});
+
+test("EW panel reports no active encounter when there is no combat", () => {
+  globalThis.game = { user: { targets: new Set() } };
+  const panel = buildMachineEwPanel({
+    actor: { system: { attributes: { system: { value: 3 } } } },
+    token: { id: "attacker-token" },
+  });
+
+  assert.equal(panel.rows.length, 0);
+  assert.match(panel.emptyState, /No active encounter/i);
 });
 
 test("EW panel exposes Contact targets as acquire-ready but not targeting-ready", () => {
@@ -368,6 +409,110 @@ test("EW panel keeps blind targets informational only and lock targets optimized
   assert.equal(lockRow.targetHint, "Targeting solution optimized.");
 });
 
+test("EW panel enumerates eligible hostile encounter contacts without canvas targets", () => {
+  const hostileB = createTargetToken({ id: "encounter-b", uuid: "Scene.scene.Token.encounter-b", name: "Enemy Atlas" });
+  const hostileA = createTargetToken({ id: "encounter-a", uuid: "Scene.scene.Token.encounter-a", name: "Enemy Marauder" });
+  const neutral = createTargetToken({ id: "encounter-n", uuid: "Scene.scene.Token.encounter-n", name: "Bystander", disposition: 0 });
+  const hidden = createTargetToken({ id: "encounter-h", uuid: "Scene.scene.Token.encounter-h", name: "Ambusher", hidden: true });
+  const person = createTargetToken({ id: "encounter-p", uuid: "Scene.scene.Token.encounter-p", name: "Infantry", actorType: "character" });
+
+  setSceneState({
+    targets: [],
+    attackerCombatant: createCombatant({ tokenId: "attacker-token" }),
+    targetCombatants: [hostileB, hostileA, neutral, hidden, person].map(token => createEncounterCombatant(token)),
+  });
+  const panel = buildMachineEwPanel({
+    actor: { system: { attributes: { system: { value: 3 } } } },
+    token: { id: "attacker-token" },
+  });
+
+  assert.deepEqual(panel.rows.map(row => row.targetTokenId), ["encounter-a", "encounter-b"]);
+  const [rowA, rowB] = panel.rows;
+  assert.equal(rowA.identityMasked, true);
+  assert.equal(rowA.displayName, "Unknown Contact A");
+  assert.equal(rowA.tokenName, "Unknown Contact A");
+  assert.equal(rowB.displayName, "Unknown Contact B");
+  assert.equal(rowA.distanceVisible, false);
+  assert.equal(rowA.exactDistanceVisible, false);
+  assert.equal(rowA.hasTrackingPenalty, false);
+  assert.equal(rowA.canAcquire, true);
+  assert.equal(panel.canAcquireAny, true);
+});
+
+test("EW panel reveals identity and band at Contact and exact distance only from Track", () => {
+  globalThis.canvas = {
+    scene: { grid: { units: "m" } },
+    grid: {
+      measurePath(points) {
+        const [source, target] = points;
+        return { distance: Math.abs(Number(target?.x ?? 0) - Number(source?.x ?? 0)) };
+      },
+    },
+  };
+
+  const contactTarget = createTargetToken({ id: "mask-contact", uuid: "Scene.scene.Token.mask-contact", name: "Enemy Contact" });
+  contactTarget.center = { x: 140, y: 0 };
+  const trackTarget = createTargetToken({ id: "mask-track", uuid: "Scene.scene.Token.mask-track", name: "Tracked Enemy" });
+  trackTarget.center = { x: 200, y: 0 };
+  const attackerCombatant = createCombatant({
+    tokenId: "attacker-token",
+    targeting: {
+      [contactTarget.document.uuid]: { detectionState: "contact", packet: null },
+      [trackTarget.document.uuid]: { detectionState: "track", packet: null },
+    },
+  });
+
+  setSceneState({
+    attackerCombatant,
+    targetCombatants: [contactTarget, trackTarget].map(token => createEncounterCombatant(token)),
+  });
+  const panel = buildMachineEwPanel({
+    actor: { system: { attributes: { system: { value: 3 } } } },
+    token: { id: "attacker-token", center: { x: 0, y: 0 } },
+  });
+
+  const contactRow = panel.rows.find(row => row.targetTokenId === "mask-contact");
+  const trackRow = panel.rows.find(row => row.targetTokenId === "mask-track");
+  assert.equal(contactRow.identityMasked, false);
+  assert.equal(contactRow.displayName, "Enemy Contact");
+  assert.equal(contactRow.distanceVisible, true);
+  assert.equal(contactRow.exactDistanceVisible, false);
+  assert.equal(trackRow.exactDistanceVisible, true);
+  assert.equal(trackRow.distanceLabel, "200 m");
+
+  delete globalThis.canvas;
+});
+
+test("EW panel gates acquisition and annotates held states when the observer is Sensor Blind", () => {
+  // No canvas measurement in this test, so every contact counts as beyond Close.
+  const blindTarget = createTargetToken({ id: "sb-blind", uuid: "Scene.scene.Token.sb-blind", name: "Distant Enemy" });
+  const trackTarget = createTargetToken({ id: "sb-track", uuid: "Scene.scene.Token.sb-track", name: "Held Track" });
+  const attackerCombatant = createCombatant({
+    tokenId: "attacker-token",
+    targeting: {
+      [trackTarget.document.uuid]: { detectionState: "track", packet: null },
+    },
+  });
+
+  const panel = buildPanel({
+    targets: [blindTarget, trackTarget],
+    attackerCombatant,
+    statuses: ["sensorBlind"],
+  });
+
+  assert.equal(panel.sensorBlind, true);
+  assert.match(panel.observerNotice, /Sensor Blind/i);
+  const blindRow = panel.rows.find(row => row.targetTokenId === "sb-blind");
+  const trackRow = panel.rows.find(row => row.targetTokenId === "sb-track");
+  assert.equal(blindRow.canAcquire, false);
+  assert.match(blindRow.acquireAction.title, /Close range/i);
+  assert.equal(trackRow.detectionState, "track");
+  assert.equal(trackRow.liveFeedAvailable, false);
+  assert.match(trackRow.liveFeedNotice, /live sensor feed unavailable/i);
+  assert.equal(trackRow.canTarget, false);
+  assert.match(trackRow.targetAction.title, /targeting data/i);
+});
+
 test("EW action target selection chooses the first eligible targeted token", () => {
   const panel = {
     rows: [
@@ -395,7 +540,7 @@ test("EW quick action menu exposes canonical player-facing actions", () => {
       [target.document.uuid]: { detectionState: "track" },
     },
   });
-  setSceneState({ targets: [target], attackerCombatant });
+  setSceneState({ targets: [target], attackerCombatant, targetCombatants: [createEncounterCombatant(target)] });
 
   const actions = buildMachineEwActionChoices({
     system: { attributes: { system: { value: 3 } } },
@@ -436,7 +581,7 @@ test("EW TAG and C3 actions are enabled only by mounted gear", () => {
       [target.document.uuid]: { detectionState: "track" },
     },
   });
-  setSceneState({ targets: [target], attackerCombatant });
+  setSceneState({ targets: [target], attackerCombatant, targetCombatants: [createEncounterCombatant(target)] });
 
   const actionsWithoutModules = buildMachineEwActionChoices({
     items: [],
@@ -491,7 +636,7 @@ test("EW Spot for Indirect Fire is enabled by spotter gear", () => {
       [target.document.uuid]: { detectionState: "track" },
     },
   });
-  setSceneState({ targets: [target], attackerCombatant });
+  setSceneState({ targets: [target], attackerCombatant, targetCombatants: [createEncounterCombatant(target)] });
 
   const actorBase = {
     system: { attributes: { system: { value: 3 } } },

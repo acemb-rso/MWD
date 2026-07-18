@@ -16,9 +16,14 @@ import {
 } from "../../mwd/machine-ew-state.js";
 import {
   isMachineSensorActionBlocked,
+  isMachineSensorBlind,
 } from "../../mwd/machine-state-effects.js";
 import { getStealthDnParts } from "../../mwd/machine-stealth.js";
+import { getMechRangeBand } from "../../mwd/personal-range-bands.js";
+import { measureTokenDistance } from "../../mwd/token-measurement.js";
 import { createUserFacingRollError } from "../roll-errors.js";
+
+const CLOSE_RANGE_MAX = Number(getMechRangeBand("close")?.max ?? 59);
 
 function isMachineActor(actor) {
   return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
@@ -69,12 +74,23 @@ export async function resolveAcquire({ actor, payload } = {}) {
   }
   const targetActor = targetToken.actor;
   const targetTokenUuid = targetToken.document?.uuid ?? targetToken.uuid ?? "";
-  const targetName = getTokenDisplayName(targetToken);
 
   const attackerToken = resolveAttackerToken(actor, payload);
   const combatant = getAttackerCombatant(attackerToken);
 
   const currentState = getDetectionState(combatant, targetTokenUuid);
+
+  // Chat and dialog output must not reveal an unacquired contact's identity.
+  const targetName = currentState === "blind" ? "Unknown Contact" : getTokenDisplayName(targetToken);
+
+  if (isMachineSensorBlind(actor)) {
+    // Mirrors the canvas detection rule: Sensor Blind limits sensor work to
+    // Close range, and an unmeasurable distance counts as beyond Close.
+    const distance = measureTokenDistance(attackerToken, targetToken);
+    if (!Number.isFinite(distance) || distance > CLOSE_RANGE_MAX) {
+      throw createUserFacingRollError("Sensor Blind: cannot acquire targets beyond Close range.", { severity: "warn" });
+    }
+  }
 
   if (currentState === "lock") {
     throw createUserFacingRollError("Target is already at lock state.", { severity: "info" });

@@ -6,6 +6,7 @@
 import { getAttackerCombatant, getDetectionState as getCombatantDetectionState } from "../mwd/machine-ew-state.js";
 import { DETECTION_STATE_ORDER } from "../mwd/machine-ew.js";
 import { isMachineActorType } from "../mwd/machine-monitors.js";
+import { isMachineSensorEligibleTarget } from "../mwd/machine-sensor-eligibility.js";
 import { getMechRangeBand } from "../mwd/personal-range-bands.js";
 import { measureTokenDistance } from "../mwd/token-measurement.js";
 
@@ -40,19 +41,6 @@ function getTokenActor(token = null) {
 
 function getTokenUuid(token = null) {
   return String(token?.document?.uuid ?? token?.uuid ?? "").trim();
-}
-
-function getTokenDisposition(token = null) {
-  return Number(
-    token?.document?.disposition
-      ?? token?.disposition
-      ?? token?.data?.disposition
-      ?? 0
-  );
-}
-
-function getHostileDisposition() {
-  return Number(globalThis.CONST?.TOKEN_DISPOSITIONS?.HOSTILE ?? -1);
 }
 
 function hasStatus(source = null, statusId = "") {
@@ -147,9 +135,7 @@ export function canDetect(observerToken = null, targetToken = null) {
   const target = resolveToken(targetToken);
   if (!observer || !target) return false;
 
-  const targetActor = getTokenActor(target);
-  if (!isMachineActorType(targetActor)) return false;
-  if (getTokenDisposition(target) !== getHostileDisposition()) return false;
+  if (!isMachineSensorEligibleTarget({ observerToken: observer, targetToken: target })) return false;
   if (observerSensorBlindBeyondClose(observer, target)) return false;
 
   return SENSOR_DETECTION_STATES.includes(getDetectionState(observer, target));

@@ -100,12 +100,13 @@ running attack resolution.
           {{#each vehicleSheet.ewPanel.rows as |row|}}
             <article class="mwd-combat-awareness__ew-row">
               <div class="mwd-combat-awareness__ew-main">
-                <strong>{{row.tokenName}}</strong>
+                <strong>{{row.displayName}}</strong>
                 <span>State {{row.detectionStateLabel}}</span>
-                {{#if row.hasRange}}<span>{{row.rangeBandLabel}} {{row.distanceLabel}}</span>{{/if}}
+                {{#if row.distanceVisible}}<span>{{row.rangeBandLabel}}{{#if row.exactDistanceVisible}} {{row.distanceLabel}}{{/if}}</span>{{/if}}
                 {{#if row.hasPacket}}<span>Packet +{{row.packetValue}}</span>{{/if}}
                 {{#if row.hasPacketCap}}<span>Cap +{{row.packetCap}}</span>{{/if}}
                 {{#if row.hasTrackingPenalty}}<span>Track -{{row.trackingPenalty}}</span>{{/if}}
+                {{#if row.liveFeedNotice}}<span class="is-warning">{{row.liveFeedNotice}}</span>{{/if}}
               </div>
               <div class="mwd-combat-awareness__ew-actions">
                 {{#each row.compactActions as |action|}}

@@ -461,6 +461,12 @@ export function isMachineSensorActionBlocked(actor = null) {
   return state.cannotAct || state.noSensorActions;
 }
 
+export function isMachineSensorBlind(actor = null) {
+  // Degradation-derived sensorBlind is applied as a real status by the crit
+  // pipeline, so the status set is the canonical runtime source.
+  return Boolean(actor?.statuses?.has?.("sensorBlind"));
+}
+
 export function isMachineTargetingGenerationBlocked(actor = null) {
   const state = getMachineRuleState(actor);
   return state.cannotAct || state.noSensorActions || state.noTargetingDataGeneration;

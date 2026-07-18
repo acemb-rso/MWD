@@ -6,6 +6,9 @@ How it fits: Renders a dumb view model from vehicleSheet.ewPanel and launches sh
 
 <div class="mwd-inv mwd-ew-panel">
   <p class="mwd-hint">{{vehicleSheet.ewPanel.helpText}}</p>
+  {{#if vehicleSheet.ewPanel.observerNotice}}
+    <p class="mwd-hint mwd-hint--warning">{{vehicleSheet.ewPanel.observerNotice}}</p>
+  {{/if}}
 
   {{#if vehicleSheet.ewPanel.rows.length}}
     <div class="mwd-records mwd-records--inventory">
@@ -14,21 +17,23 @@ How it fits: Renders a dumb view model from vehicleSheet.ewPanel and launches sh
           <div class="mwd-record__header">
             <div class="mwd-record__main">
               <div class="mwd-record__topline">
-                <div class="mwd-record__title">{{row.tokenName}}</div>
+                <div class="mwd-record__title">{{row.displayName}}</div>
                 <div class="mwd-record__stats">
                   <span class="mwd-record__stat is-strong">
                     <span class="mwd-record__stat-label">State</span>
                     <span class="mwd-record__stat-value">{{row.detectionStateLabel}}</span>
                   </span>
-                  {{#if row.hasRange}}
+                  {{#if row.distanceVisible}}
                     <span class="mwd-record__stat">
                       <span class="mwd-record__stat-label">Range</span>
                       <span class="mwd-record__stat-value">{{row.rangeBandLabel}}</span>
                     </span>
-                    <span class="mwd-record__stat">
-                      <span class="mwd-record__stat-label">Dist</span>
-                      <span class="mwd-record__stat-value">{{row.distanceLabel}}</span>
-                    </span>
+                    {{#if row.exactDistanceVisible}}
+                      <span class="mwd-record__stat">
+                        <span class="mwd-record__stat-label">Dist</span>
+                        <span class="mwd-record__stat-value">{{row.distanceLabel}}</span>
+                      </span>
+                    {{/if}}
                   {{/if}}
                   {{#if row.hasPacket}}
                     <span class="mwd-record__stat">
@@ -51,6 +56,9 @@ How it fits: Renders a dumb view model from vehicleSheet.ewPanel and launches sh
                 </div>
               </div>
 
+              {{#if row.liveFeedNotice}}
+                <div class="mwd-record__subtitle mwd-record__subtitle--warning">{{row.liveFeedNotice}}</div>
+              {{/if}}
               <div class="mwd-record__subtitle">{{row.acquireHint}}</div>
               <div class="mwd-record__subtitle">{{row.targetHint}}</div>
 
