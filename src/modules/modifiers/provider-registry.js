@@ -1,7 +1,21 @@
 // src/modules/modifiers/provider-registry.js
-// Purpose: Provides module-level utilities or helpers.
-// How it fits: Describes role within src/modules or template rendering pipeline.
-
+/**
+ * @pipeline provider
+ * @role The modifier-provider registry primitive. Holds the set of registered
+ *   providers and, via collectAll(ctx), runs each provider's collect() against a
+ *   RollContext and returns the merged, shape-validated modifier list. This is
+ *   the composition point for the "providers" primitive of Design Principles §4.1.
+ * @invariants
+ *   - INVARIANT(boundary): the registry orchestrates collection only; every rule
+ *     lives inside an individual provider's collect(). Adding a modifier source
+ *     means registering a provider, never editing this file (§4.1, §7).
+ *   - Providers must expose { id, collect() }; duplicate ids are ignored so
+ *     registration is idempotent.
+ *   - Fail-loud on bad output: a mod lacking a string label/source or numeric
+ *     value is dropped with a warning, never coerced into the pool (§9, §14).
+ * @upstream   anarchy-system.js (registers providers), collect-modifiers.js (calls collectAll)
+ * @downstream modifiers/providers/* (each provider's collect())
+ */
 
 export class ModifierProviderRegistry {
   #providers = new Map();

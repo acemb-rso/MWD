@@ -1,6 +1,22 @@
 ﻿// src/modules/roll/attack-resolution.js
-// Purpose: Resolves personal attacks into per-target CQ/outcome/damage data.
-// How it fits: Extends the main roll execution pipeline without creating a parallel combat path.
+/**
+ * @pipeline context
+ * @role Canonical AttackResolution. Given a resolved attack context and the roll
+ *   outcome, produces the per-target CQ / outcome / hit-location / damage data
+ *   that is the one true representation of an attack's result (Design Principles §6.2).
+ *   Handles exposure/area-effect scaling, clustering, machine hit locations,
+ *   criticals-severity and trait/status CQ adjustments.
+ * @invariants
+ *   - INVARIANT(canonical): AttackResolution is the single shape for attack
+ *     results. Do not introduce a parallel combat resolution path (§2.3, §6.2).
+ *   - INVARIANT(order): consumes an already-rolled outcome and derives damage
+ *     from it. It runs at step "resolve outcome → apply damage"; it does not
+ *     roll the attack dice itself (§10, steps 7–8).
+ *   - Operates on additive, inspectable parts (CQ adjustments, exposure scaling),
+ *     never on hardcoded per-weapon special cases (§3.2, §3.3).
+ * @upstream   mwd-roll.js execute() → resolveAttackExecution
+ * @downstream harm-engine.js (applies the damage this produces)
+ */
 
 import { HarmEngine } from "../harm/harm-engine.js";
 import { TEMPLATE } from "../core/constants.js";
@@ -37,11 +53,8 @@ import {
   getTraitActiveEffectModifier,
 } from "../mwd/traits.js";
 import { collectStatusCqAdjustments } from "../status/status-mechanics.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
+import { toNumber } from "../utils/coercion.js";
+import { cloneValue } from "../utils/clone.js";
 
 function getGrappleStatus(actor = null) {
   if (!actor?.statuses?.has) return "";
@@ -84,6 +97,7 @@ export function parseOnHitEffect(value) {
   if (str === "onfire") return { kind: "onFire" };
   if (str === "tagged" || str === "tag") return { kind: "status", statusId: "tagged" };
   if (str === "narced" || str === "narc") return { kind: "status", statusId: "narced" };
+  if (str === "spotted" || str === "spot") return { kind: "status", statusId: "spotted" };
   const match = str.match(/^(burn|heat)\+(\d+(?:\.\d+)?)$/);
   if (!match) return null;
   const amount = Math.max(0, Number(match[2]) || 0);
@@ -568,15 +582,9 @@ function buildQueuedDamagePayload({ attacker, ctx, damage, targetActor = null, h
   };
 }
 
-function clone(value) {
-  return typeof foundry !== "undefined" && foundry?.utils?.deepClone
-    ? foundry.utils.deepClone(value)
-    : JSON.parse(JSON.stringify(value ?? null));
-}
-
 function buildCanonicalMachineMutation({ target = {}, payload = {}, hitLocation = null, preview = {} } = {}) {
   const preparedCriticalRecords = Array.isArray(preview?.critical?.records)
-    ? clone(preview.critical.records)
+    ? cloneValue(preview.critical.records, null)
     : [];
   const previewRevision = Math.max(0, Math.trunc(Number(payload?.previewRevision ?? 0) || 0));
   if (preparedCriticalRecords.length) {
@@ -747,7 +755,7 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
         },
         critical: preview?.critical ?? null,
         preparedCriticalRecords: Array.isArray(preview?.critical?.records)
-          ? clone(preview.critical.records).map(record => ({
+          ? cloneValue(preview.critical.records, null).map(record => ({
             ...record,
             previewRevision: Math.max(0, Math.trunc(Number(queuedPayload.previewRevision ?? 0) || 0)),
           }))
@@ -757,7 +765,7 @@ async function queueAttackDamage({ attacker, ctx, target, outcome, damage } = {}
           ...queuedPayload,
           criticalPreview: preview?.critical ?? null,
           preparedCriticalRecords: Array.isArray(preview?.critical?.records)
-            ? clone(preview.critical.records).map(record => ({
+            ? cloneValue(preview.critical.records, null).map(record => ({
               ...record,
               previewRevision: Math.max(0, Math.trunc(Number(queuedPayload.previewRevision ?? 0) || 0)),
             }))

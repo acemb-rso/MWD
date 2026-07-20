@@ -8,6 +8,7 @@ import {
   normalizeSkillSpecializationCatalog,
   SETTING_SKILL_SPECIALIZATION_CATALOG,
 } from "../mwd/skills.js";
+import { parseBulkJson, serializeBulkJson } from "./bulk-json.js";
 import { createSettingsCollectionValidationError, registerSettingsCollectionEditor } from "./collection-editor.js";
 
 const MENU_KEY = "skillSpecializationEditor";
@@ -59,27 +60,17 @@ function catalogToRows(value = {}) {
 }
 
 function parseBulk(text = "") {
-  const raw = String(text ?? "").trim();
-  if (!raw) return {};
-
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (error) {
-    throw createSettingsCollectionValidationError([
-      `Bulk JSON must be valid JSON: ${error.message}`
-    ]);
-  }
-
-  return normalizeSkillSpecializationCatalog(parsed, { strict: true });
+  return parseBulkJson(text, {
+    expect: "object",
+    emptyValue: {},
+    normalize: value => normalizeSkillSpecializationCatalog(value, { strict: true }),
+  });
 }
 
 function serializeBulk(value = {}) {
-  return JSON.stringify(
-    normalizeSkillSpecializationCatalog(value, { strict: false }),
-    null,
-    2
-  );
+  return serializeBulkJson(value, {
+    normalize: source => normalizeSkillSpecializationCatalog(source, { strict: false }),
+  });
 }
 
 const SKILL_SPECIALIZATION_EDITOR_DEFINITION = {

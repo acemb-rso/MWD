@@ -1,6 +1,21 @@
 // src/modules/combat/personal-combat-tracker.js
-// Purpose: Registers Foundry hooks: updateCombat, updateCombatant, createCombatant.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+/**
+ * @pipeline shared
+ * @role Combat-state service and hub. Owns turn/activation state via Foundry
+ *   combat hooks (updateCombat/updateCombatant/createCombatant) and exposes the
+ *   action-economy, exposure, hazard-region and gating queries that resolvers
+ *   and execution read. High fan-in (~25 importers): it is a shared source of
+ *   combat state, not an orchestrator (modest fan-out).
+ * @invariants
+ *   - INVARIANT(boundary): provides state and gate *reasons*; it does not roll,
+ *     apply modifiers, or decide roll outcomes. Callers emit intents to the
+ *     engine — gates here inform (may hint), they don't execute rules (§1, §8.2).
+ *   - INVARIANT(canonical): exposure tiers and action-catalog lookups are read
+ *     from their one source (area-effect-engine, personal-action-catalog);
+ *     don't duplicate that math locally (§6.2, §11).
+ * @downstream personal-action-catalog.js, area-effects/*, status-mechanics.js
+ * @consumers  resolve-attack.js, attack-resolution.js, mwd-roll.js (read state)
+ */
 
 
 import { humanizeStatusKey } from "../dialog/token-status-dialog.js";
@@ -44,6 +59,8 @@ import { getPersonalActionGateReason, getPersonalCriticalGateState } from "../mw
 import { clearSuppressedTargetingPackets } from "../mwd/machine-ew-state.js";
 import { actorHasSpotterGear } from "../mwd/spotter-gear.js";
 import { getStatusActionGateReason } from "../status/status-mechanics.js";
+import { getMeasuredTokenCenter } from "../utils/token.js";
+import { getPersonalActionAvailabilityReason } from "./personal-action-rules.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -405,26 +422,6 @@ function parseModifierValue(value) {
 
   const match = String(value ?? "").trim().match(/[-+]?\d+(\.\d+)?/);
   return match ? Number(match[0]) : 0;
-}
-
-function getTokenCenter(token) {
-  const tokenDoc = token?.document ?? token ?? null;
-  const tokenObject = token?.object ?? tokenDoc?.object ?? token ?? null;
-  const tokenId = String(tokenDoc?.id ?? "").trim();
-  const pendingPosition = PersonalCombatTracker._pendingTokenPositions.get(tokenId) ?? null;
-  const x = Number(pendingPosition?.x ?? tokenDoc?.x);
-  const y = Number(pendingPosition?.y ?? tokenDoc?.y);
-
-  if (tokenObject && Number.isFinite(x) && Number.isFinite(y)) {
-    if (typeof tokenObject.getCenterPoint === "function") {
-      return tokenObject.getCenterPoint({ x, y });
-    }
-    if (typeof tokenObject.getCenter === "function") {
-      return tokenObject.getCenter(x, y);
-    }
-  }
-
-  return tokenObject?.center ?? tokenDoc?.object?.center ?? null;
 }
 
 function formatDistanceLabel(distance, units = "") {
@@ -918,8 +915,14 @@ export class PersonalCombatTracker {
 
   static _measureTokenDistance(sourceToken, targetToken) {
     const grid = canvas?.grid;
-    const source = getTokenCenter(sourceToken);
-    const target = getTokenCenter(targetToken);
+    const source = getMeasuredTokenCenter(sourceToken, {
+      pendingPositions: PersonalCombatTracker._pendingTokenPositions,
+      useTokenPositionFallback: false,
+    });
+    const target = getMeasuredTokenCenter(targetToken, {
+      pendingPositions: PersonalCombatTracker._pendingTokenPositions,
+      useTokenPositionFallback: false,
+    });
 
     if (!grid || !source || !target) return null;
 
@@ -1795,6 +1798,7 @@ export class PersonalCombatTracker {
     reason = getActionImplementationReason(action) || reason;
     reason = reason || getStatusActionGateReason(actor, { actionId: action.id });
     reason = reason || getPersonalActionGateReason(actor, action);
+    reason = reason || getPersonalActionAvailabilityReason(actor, action, { snapshot });
 
     return {
       id: action.id,
@@ -1820,6 +1824,8 @@ export class PersonalCombatTracker {
     if (implementationReason) return { ok: false, reason: implementationReason };
     const gateReason = getPersonalActionGateReason(actor, action);
     if (gateReason) return { ok: false, reason: gateReason };
+    const availabilityReason = getPersonalActionAvailabilityReason(actor, action, { snapshot: this.getSnapshot(actor, { token }) });
+    if (availabilityReason) return { ok: false, reason: availabilityReason };
 
     if (action.category === PERSONAL_ACTION_CATEGORIES.standard) {
       return this._executeStandardAction(actor, { token, action, metadata });

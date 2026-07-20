@@ -3,7 +3,6 @@
 // Workflow: active system.mwd.crits -> attack restrictions, activation reports,
 // and summary text -> action services and sheets react to current damage.
 
-import { TEMPLATE } from "../core/constants.js";
 import { getActiveMachineCrits } from "./critical-hits.js";
 import {
   getConfiguredMachineWeaponGroups,
@@ -197,6 +196,4 @@ export function buildMachineCriticalChatSummary(crit = {}) {
   return parts.join(" | ");
 }
 
-export function isMachineActor(actor = null) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
-}
+export { isMachineActor } from "../utils/actor-guards.js";

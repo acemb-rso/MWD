@@ -26,11 +26,8 @@ import {
   selectMechRangeBand,
 } from "../mwd/personal-range-bands.js";
 import { formatDistanceLabel, measureTokenDistance } from "../mwd/token-measurement.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
+import { toNumber } from "../utils/coercion.js";
+import { getTokenActor, getTokenId, getTokenUuid } from "../utils/token.js";
 
 function formatSignedValue(value = 0) {
   const numeric = toNumber(value, 0);
@@ -51,18 +48,6 @@ function buildPart({ id = "", label = "", value = 0, title = "", source = "" } =
 
 function sumParts(parts = []) {
   return parts.reduce((sum, part) => sum + toNumber(part?.value, 0), 0);
-}
-
-function getTokenId(token = null) {
-  return String(token?.id ?? token?.document?.id ?? token?.tokenId ?? "").trim();
-}
-
-function getTokenUuid(token = null) {
-  return String(token?.document?.uuid ?? token?.uuid ?? "").trim();
-}
-
-function getTokenActor(token = null) {
-  return token?.actor ?? token?.document?.actor ?? null;
 }
 
 function getTokenName(token = null) {

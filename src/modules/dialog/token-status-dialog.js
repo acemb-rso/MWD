@@ -9,6 +9,7 @@ import {
   getStatusConditionCatalog,
   getStatusConditionDefinition,
   isStatusConditionApplicableToActor,
+  normalizeStatusConditionId,
 } from "../status/status-condition-catalog.js";
 
 const MANAGED_STATUS_IDS = new Set(["overloaded", "preparedInterrupt"]);
@@ -81,6 +82,25 @@ function actorHasBurnOverloadState(actor) {
   return Object.prototype.hasOwnProperty.call(actor?.system?.burn ?? {}, "overloaded");
 }
 
+function statusIdsMatch(left = "", right = "") {
+  const leftId = normalizeStatusConditionId(left);
+  const rightId = normalizeStatusConditionId(right);
+  return Boolean(leftId && rightId && leftId === rightId);
+}
+
+function getExactCurrentStatusState(actor, statusId) {
+  const id = String(statusId ?? "").trim();
+  return Boolean(id && actor?.statuses?.has?.(id));
+}
+
+function getAliasedActiveStatusIds(actor, canonicalStatusId) {
+  const canonical = normalizeStatusConditionId(canonicalStatusId);
+  if (!actor || !canonical) return [];
+  return Array.from(actor.statuses ?? [])
+    .map(statusId => String(statusId ?? "").trim())
+    .filter(statusId => statusId && statusId !== canonical && normalizeStatusConditionId(statusId) === canonical);
+}
+
 function getActorStatusEffect(actor, statusId) {
   const id = String(statusId ?? "").trim();
   if (!actor || !id) return null;
@@ -89,9 +109,12 @@ function getActorStatusEffect(actor, statusId) {
   return effects.find(effect => {
     if (effect?.statuses?.has?.(id)) return true;
     if (Array.isArray(effect?.statuses) && effect.statuses.includes(id)) return true;
-    if (effect?.getFlag?.(SYSTEM_NAME, "status")?.id === id) return true;
-    if (effect?.flags?.[SYSTEM_NAME]?.status?.id === id) return true;
-    return String(effect?.statusId ?? effect?.id ?? "").trim() === id;
+    for (const effectStatusId of Array.from(effect?.statuses ?? [])) {
+      if (statusIdsMatch(effectStatusId, id)) return true;
+    }
+    if (statusIdsMatch(effect?.getFlag?.(SYSTEM_NAME, "status")?.id, id)) return true;
+    if (statusIdsMatch(effect?.flags?.[SYSTEM_NAME]?.status?.id, id)) return true;
+    return statusIdsMatch(effect?.statusId ?? effect?.id ?? "", id);
   }) ?? null;
 }
 
@@ -106,7 +129,10 @@ export function getCurrentStatusState(actor, statusId) {
   if (statusId === "overloaded" && actorHasBurnOverloadState(actor)) {
     return !!actor?.system?.burn?.overloaded || !!actor?.statuses?.has?.(statusId);
   }
-  return actor?.statuses?.has?.(statusId) ?? false;
+  const id = String(statusId ?? "").trim();
+  if (!actor || !id) return false;
+  if (actor?.statuses?.has?.(id)) return true;
+  return Array.from(actor?.statuses ?? []).some(activeId => statusIdsMatch(activeId, id));
 }
 
 function statusEffectFromCatalogEntry(entry, actor) {
@@ -286,23 +312,57 @@ async function updateStatusEffectMetadata(actor, statusId, metadata = {}) {
 export async function applyManagedStatusUpdate({ actor, statusId, active, metadata = {} }) {
   if (!actor || !statusId) return false;
 
-  const isActive = getCurrentStatusState(actor, statusId);
+  const rawStatusId = String(statusId ?? "").trim();
+  const canonicalStatusId = normalizeStatusConditionId(rawStatusId);
+  if (!canonicalStatusId) return false;
+
+  if (rawStatusId !== canonicalStatusId) {
+    const rawActive = getExactCurrentStatusState(actor, rawStatusId);
+    const canonicalActive = getExactCurrentStatusState(actor, canonicalStatusId);
+
+    if (!active) {
+      if (!rawActive) return false;
+      await actor.toggleStatusEffect(rawStatusId, { active: false, overlay: false });
+      return true;
+    }
+
+    const entry = getStatusConditionDefinition(canonicalStatusId);
+    const applicable = entry ? isStatusConditionApplicableToActor(entry, actor) : false;
+    if (entry && !applicable) return false;
+
+    if (rawActive) await actor.toggleStatusEffect(rawStatusId, { active: false, overlay: false });
+    if (!canonicalActive) await actor.toggleStatusEffect(canonicalStatusId, { active: true, overlay: false });
+    await updateStatusEffectMetadata(actor, canonicalStatusId, metadata);
+    return true;
+  }
+
+  const isActive = getCurrentStatusState(actor, canonicalStatusId);
+  if (active && isActive && !getExactCurrentStatusState(actor, canonicalStatusId)) {
+    const aliases = getAliasedActiveStatusIds(actor, canonicalStatusId);
+    await actor.toggleStatusEffect(canonicalStatusId, { active: true, overlay: false });
+    for (const alias of aliases) {
+      await actor.toggleStatusEffect(alias, { active: false, overlay: false });
+    }
+    await updateStatusEffectMetadata(actor, canonicalStatusId, metadata);
+    return true;
+  }
+
   if (Boolean(active) === isActive) {
-    if (active) return updateStatusEffectMetadata(actor, statusId, metadata);
+    if (active) return updateStatusEffectMetadata(actor, canonicalStatusId, metadata);
     return false;
   }
 
-  const entry = getStatusConditionDefinition(statusId);
+  const entry = getStatusConditionDefinition(canonicalStatusId);
   const applicable = entry ? isStatusConditionApplicableToActor(entry, actor) : false;
   if (active && entry && !applicable) return false;
 
-  if (statusId === "overloaded" && actorHasBurnOverloadState(actor)) {
+  if (canonicalStatusId === "overloaded" && actorHasBurnOverloadState(actor)) {
     await actor.update({ "system.burn.overloaded": Boolean(active) });
     return true;
   }
 
-  await actor.toggleStatusEffect(statusId, { active: Boolean(active), overlay: false });
-  if (active) await updateStatusEffectMetadata(actor, statusId, metadata);
+  await actor.toggleStatusEffect(canonicalStatusId, { active: Boolean(active), overlay: false });
+  if (active) await updateStatusEffectMetadata(actor, canonicalStatusId, metadata);
   return true;
 }
 

@@ -7,6 +7,7 @@ import {
   getMachineDerivedStatusIds,
   getMachineMovementEffects,
   getMachineRuleState,
+  adjustTargetingDataValue,
 } from "../src/modules/mwd/machine-state-effects.js";
 
 function buildActor({
@@ -116,6 +117,21 @@ test("machine movement penalties are expressed in meters", () => {
 
   assert.equal(movement.movementPenalty, 60);
   assert.equal(movement.immobile, false);
+});
+
+test("EPM boosted ignores ECM jamming targeting data reduction", () => {
+  assert.equal(
+    adjustTargetingDataValue({ targetActor: buildActor({ statuses: ["ecmJamming"] }), value: 3 }),
+    1,
+  );
+  assert.equal(
+    adjustTargetingDataValue({ targetActor: buildActor({ statuses: ["ecmJamming", "epmBoosted"] }), value: 3 }),
+    3,
+  );
+  assert.equal(
+    adjustTargetingDataValue({ targetActor: buildActor({ statuses: ["ecmJamming", "eccmboosted"] }), value: 3 }),
+    3,
+  );
 });
 
 test("battlemech heat movement penalties join shared movement effects in meters", () => {

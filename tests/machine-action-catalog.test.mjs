@@ -76,11 +76,11 @@ test("machine action aliases resolve legacy and table vocabulary to canonical an
 });
 
 test("machine catalog exposes ready and unsupported complex action states explicitly", () => {
-  for (const id of ["chargeAttack", "evasiveManeuver", "shield"]) {
+  for (const id of ["chargeAttack", "evasiveManeuver", "shield", "spotIndirect"]) {
     assert.equal(getMachineActionDefinition(id).implementation.state, "ready", `${id} is ready`);
   }
 
-  for (const id of ["spotIndirect", "eject"]) {
+  for (const id of ["eject"]) {
     const action = getMachineActionDefinition(id);
     assert.equal(action.implementation.state, "stub", `${id} is a stub`);
     assert.match(action.implementation.reason, /not automated|not implemented/i);

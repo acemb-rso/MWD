@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 2026/07/18-18:23:51.526 7684 Log #355: 161 ops saved to Table #374 OK
 2026/07/18-18:23:51.527 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\critical-hit-tables/000355.log: OK
 2026/07/18-18:23:51.529 7684 Log #372: 161 ops saved to Table #375 OK
@@ -9,3 +10,8 @@
 2026/07/18-18:23:51.530 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\critical-hit-tables/MANIFEST-000353: OK
 2026/07/18-18:23:51.530 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\critical-hit-tables/MANIFEST-000370: OK
 2026/07/18-18:23:51.532 7684 **** Repaired leveldb D:\FoundryData-Dev\Data\systems\mwd\packs\critical-hit-tables; recovered 4 files; 95794 bytes. Some data may have been lost. ****
+=======
+2026/07/03-16:14:23.184 4bd0 Recovering log #365
+2026/07/03-16:14:23.187 4bd0 Delete type=0 #365
+2026/07/03-16:14:23.187 4bd0 Delete type=3 #361
+>>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618

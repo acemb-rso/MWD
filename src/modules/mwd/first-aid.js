@@ -4,6 +4,7 @@
 import { TEMPLATE } from "../core/constants.js";
 import { PersonalCombatTracker } from "../combat/personal-combat-tracker.js";
 import { HarmEngine } from "../harm/harm-engine.js";
+import { isPersonActor } from "../utils/actor-guards.js";
 
 export const FIRST_AID_ACTION_ID = "firstAid";
 
@@ -15,10 +16,6 @@ export const FIRST_AID_CONDITIONS = Object.freeze([
 
 function escapeHtml(value = "") {
   return foundry.utils.escapeHTML(String(value ?? ""));
-}
-
-function isPersonActor(actor = null) {
-  return actor?.type === TEMPLATE.actorTypes.character || actor?.type === TEMPLATE.actorTypes.npc;
 }
 
 function asTokenDocument(token = null) {

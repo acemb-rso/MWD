@@ -8,15 +8,8 @@ import {
   getTokenDistance,
   isTokenAffectedBySource,
 } from "../area-status/area-status-sources.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
-
-function getTokenActor(token = null) {
-  return token?.actor ?? token?.document?.actor ?? null;
-}
+import { toNumber } from "../utils/coercion.js";
+import { getTokenActor } from "../utils/token.js";
 
 function isActorToken(token = null, actor = null) {
   if (!token || !actor) return false;

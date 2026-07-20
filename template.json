@@ -784,6 +784,7 @@
         "load": 0,
         "bodySlot": "",
         "category": "",
+        "rules": [],
         "mount": {
           "mountedOnItemId": "",
           "mountType": ""

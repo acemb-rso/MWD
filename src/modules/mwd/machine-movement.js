@@ -4,6 +4,10 @@
 // with penalties/derived jump -> sheets and movement actions display distances.
 
 import { TEMPLATE } from "../core/constants.js";
+import { isMachineActor as isMachineActorType } from "../utils/actor-guards.js";
+import { toNonNegativeInteger } from "../utils/coercion.js";
+
+export { isMachineActorType };
 
 const MOVEMENT_LABELS = Object.freeze({
   ground: "Ground",
@@ -13,12 +17,6 @@ const MOVEMENT_LABELS = Object.freeze({
 
 export const MACHINE_MOVEMENT_PENALTY_STEP_METERS = 30;
 export const MACHINE_MINIMUM_PENALIZED_MOVEMENT_METERS = 10;
-
-function toNonNegativeInteger(value, fallback = 0) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return fallback;
-  return Math.max(0, Math.trunc(numeric));
-}
 
 export function movementPenaltyStepsToMeters(steps = 0) {
   return toNonNegativeInteger(steps, 0) * MACHINE_MOVEMENT_PENALTY_STEP_METERS;
@@ -37,10 +35,6 @@ export function applyMachineMovementPenalty(
   if (base <= 0 || penalty <= 0) return base;
   const floor = Math.min(base, toNonNegativeInteger(minimum, MACHINE_MINIMUM_PENALIZED_MOVEMENT_METERS));
   return Math.max(floor, base - penalty);
-}
-
-export function isMachineActorType(actorType = "") {
-  return actorType === TEMPLATE.actorTypes.vehicle || actorType === TEMPLATE.actorTypes.battlemech;
 }
 
 export function getMachineMovementModes(actorType = "") {

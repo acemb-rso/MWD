@@ -7,6 +7,11 @@ import {
   buildDamageScaleConversion,
   normalizeDamageScale,
 } from "./damage-scale.js";
+import { cloneValue } from "../utils/clone.js";
+import {
+  toNonNegativeInteger as nonNegativeInteger,
+  toNumber as number,
+} from "../utils/coercion.js";
 
 export const BATTLE_ARMOR_STATES = Object.freeze({
   intact: "intact",
@@ -25,20 +30,6 @@ export const BATTLE_ARMOR_STATUSES = Object.freeze({
 });
 
 const BATTLE_ARMOR_MACHINE_TARGET_BASE_PENALTY = 1;
-
-function clone(value) {
-  if (typeof foundry !== "undefined" && foundry?.utils?.deepClone) return foundry.utils.deepClone(value);
-  return JSON.parse(JSON.stringify(value ?? null));
-}
-
-function number(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
-
-function nonNegativeInteger(value, fallback = 0) {
-  return Math.max(0, Math.trunc(number(value, fallback)));
-}
 
 function bool(value, fallback = false) {
   if (typeof value === "boolean") return value;
@@ -519,8 +510,8 @@ export function buildBattleArmorSheetContext(actor = null) {
     },
     state: deriveBattleArmorState(profile),
     stateLabel: deriveBattleArmorState(profile).replace(/^./, char => char.toUpperCase()),
-    armorPool: clone(profile.armorPool),
-    structure: clone(profile.structure),
+    armorPool: cloneValue(profile.armorPool, null),
+    structure: cloneValue(profile.structure, null),
     structureResistance: getBattleArmorStructureResistance(profile),
     systems: {
       stealth: normalizeBattleArmorStealth(profile.systems?.stealth),

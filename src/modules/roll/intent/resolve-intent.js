@@ -1,6 +1,21 @@
 // src/modules/roll/intent/resolve-intent.js
-// Purpose: Defines function `resolveIntent`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+/**
+ * @pipeline resolver
+ * @role Intent router. Maps a declarative intent payload ({ intent: "attack", … })
+ *   to the matching per-intent resolver via the RESOLVERS registry, then
+ *   normalizes the result into a canonical RollContext. This is the single
+ *   entry to the resolver layer (Design Principles §2, §6.2).
+ * @invariants
+ *   - INVARIANT(boundary): consumes intent + references only. Resolvers read the
+ *     payload's declarative fields; they must never trust computed values such
+ *     as a pre-baked dicePool off the payload (Design Principles §2.1).
+ *   - INVARIANT(canonical): every intent converges on one RollContext shape via
+ *     normalizeResolvedContext — no intent may emit a bespoke result (§2.2, §6.2).
+ *   - Adding a roll type is data entry: add an entry to RESOLVERS, nothing else.
+ *     An unknown intent fails loud (§14), it does not silently fall back.
+ * @upstream   mwd-roll.js execute() (calls resolveIntent, incl. preview pass)
+ * @downstream resolve-attack.js and the other per-intent resolvers
+ */
 
 
 // modules/roll/intent/resolve-intent.js
@@ -18,6 +33,7 @@ import { resolveAcquire } from "./resolve-acquire.js";
 import { resolveTargeting } from "./resolve-targeting.js";
 import { resolveBreakLock } from "./resolve-break-lock.js";
 import { resolveDefensiveJink } from "./resolve-defensive-jink.js";
+import { resolveSpotIndirect } from "./resolve-spot-indirect.js";
 import { resolveHeatDangerCheck } from "./resolve-heat-danger-check.js";
 
 // Registry: adding a roll is "data entry"
@@ -39,9 +55,10 @@ const RESOLVERS = {
   generateFireSolution: resolveTargeting,
   breakLock: resolveBreakLock,
   defensiveJink: resolveDefensiveJink,
+  spotIndirect: resolveSpotIndirect,
 };
 
-export async function resolveIntent({ actor, payload, event } = {}) {
+export async function resolveIntent({ actor, payload, event, preview = false } = {}) {
   if (!actor) throw new Error("resolveIntent requires actor");
   const intent = String(payload?.intent ?? "").trim();
   if (!intent) throw new Error("resolveIntent requires payload.intent");
@@ -49,7 +66,10 @@ export async function resolveIntent({ actor, payload, event } = {}) {
   const fn = RESOLVERS[intent];
   if (!fn) throw new Error(`Unsupported roll intent: ${intent}`);
 
-  const ctx = await fn({ actor, payload, event });
+  // `preview` marks pre-dialog resolves: legality gates that the player can
+  // satisfy via a dialog control (e.g. Danger Close / Hot Load) must not throw
+  // during preview, so the dialog can open and surface the override.
+  const ctx = await fn({ actor, payload, event, preview });
   return normalizeResolvedContext(ctx, { intent });
 }
 

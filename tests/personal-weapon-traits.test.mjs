@@ -13,12 +13,58 @@ test("standard personal weapon traits expose the curated prebuilt list", async (
 
   assert.deepEqual(
     WEAPON_STANDARD_TRAITS.map(entry => entry.label),
-    ["Fatigue", "Concealable", "Single Shot", "Automatic", "Spread", "Space Capable", "Armor Bypass"]
+    ["Fatigue", "Concealable", "Single Shot", "Automatic", "Spread", "Space Capable", "Armor Bypass", "Danger Close"]
   );
   assert.deepEqual(
     normalizeWeaponStandardTraits(["Fatigue", "Space Capable"]).map(entry => entry.key),
     ["fatigue", "spaceCapable"]
   );
+});
+
+test("weaponProfileHasDangerClose detects the trait across every profile shape", async () => {
+  const { weaponProfileHasDangerClose } = await import("../src/modules/mwd/personal-damage.js");
+
+  // Resolved effect flags (personal weapon picker path).
+  assert.equal(weaponProfileHasDangerClose({ effects: { flags: ["dangerClose"] } }), true);
+  // Canonical standardTraits entries.
+  assert.equal(weaponProfileHasDangerClose({ standardTraits: [{ key: "dangerClose", rating: 1 }] }), true);
+  // Machine weapons author standard traits via the Keywords field.
+  assert.equal(weaponProfileHasDangerClose({ keywords: ["dangerClose"] }), true);
+  assert.equal(weaponProfileHasDangerClose({ keywords: ["lock-only", "danger-close"] }), true);
+  // Aliased / freeform traits string list.
+  assert.equal(weaponProfileHasDangerClose({ traits: ["Danger Close"] }), true);
+  // Empty standardTraits must not mask a keyword entry.
+  assert.equal(weaponProfileHasDangerClose({ standardTraits: [], keywords: ["danger-close"] }), true);
+  // Negative cases (unrelated keywords/flags do not resolve to the trait key).
+  assert.equal(weaponProfileHasDangerClose({ keywords: ["lock-only", "armorBypass"] }), false);
+  assert.equal(weaponProfileHasDangerClose({ effects: { flags: ["armorBypass"] }, traits: ["Fatigue"] }), false);
+  assert.equal(weaponProfileHasDangerClose({}), false);
+});
+
+test("weaponProfileIsLockOnly detects the lock-only keyword in any spelling", async () => {
+  const { weaponProfileIsLockOnly } = await import("../src/modules/mwd/personal-damage.js");
+
+  assert.equal(weaponProfileIsLockOnly({ keywords: ["lock-only"] }), true);
+  assert.equal(weaponProfileIsLockOnly({ keywords: ["lockOnly"] }), true);
+  assert.equal(weaponProfileIsLockOnly({ keywords: ["armorBypass", "lock only"] }), true);
+  assert.equal(weaponProfileIsLockOnly({ keywords: ["armorBypass"] }), false);
+  assert.equal(weaponProfileIsLockOnly({}), false);
+});
+
+test("resolveEffectiveWeaponProfile maps the dangerClose trait to a flag", async () => {
+  globalThis.foundry ??= { utils: {} };
+  globalThis.foundry.utils.deepClone ??= deepClone;
+
+  const { resolveEffectiveWeaponProfile, weaponProfileHasDangerClose } =
+    await import("../src/modules/mwd/personal-damage.js");
+
+  const profile = resolveEffectiveWeaponProfile({
+    damageType: "penetrating",
+    standardTraits: ["Danger Close"],
+  });
+
+  assert.ok(profile.effects.flags.includes("dangerClose"));
+  assert.equal(weaponProfileHasDangerClose(profile), true);
 });
 
 test("fatigue and automatic weapon traits affect the combat profile", async () => {

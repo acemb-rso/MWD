@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 2026/07/18-18:23:51.409 70cc Log #620: 0 ops saved to Table #632 OK
 2026/07/18-18:23:51.409 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\macros/000620.log: OK
 2026/07/18-18:23:51.409 70cc Log #631: 0 ops saved to Table #633 OK
@@ -8,3 +9,8 @@
 2026/07/18-18:23:51.410 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\macros/MANIFEST-000619: OK
 2026/07/18-18:23:51.411 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\macros/MANIFEST-000630: OK
 2026/07/18-18:23:51.412 70cc **** Repaired leveldb D:\FoundryData-Dev\Data\systems\mwd\packs\macros; recovered 3 files; 14933 bytes. Some data may have been lost. ****
+=======
+2026/07/03-16:14:23.138 64dc Recovering log #625
+2026/07/03-16:14:23.140 64dc Delete type=0 #625
+2026/07/03-16:14:23.140 64dc Delete type=3 #623
+>>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618

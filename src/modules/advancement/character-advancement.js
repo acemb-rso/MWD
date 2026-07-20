@@ -4,6 +4,7 @@
 // prices, and commits advancement changes.
 
 import { MWD_SKILLS, getSkillSpecializationDefs, normalizeStoredSkillSpecializationKeys } from "../mwd/skills.js";
+import { toNumber } from "../utils/coercion.js";
 
 export const ADVANCEMENT_MODE = "advancement";
 
@@ -61,11 +62,6 @@ const EDGE_POOL_LABELS = Object.freeze({
   legend: "Legend",
   credibility: "Credibility",
 });
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
 
 function toInt(value, fallback = 0) {
   return Math.trunc(toNumber(value, fallback));

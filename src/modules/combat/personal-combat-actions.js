@@ -19,12 +19,9 @@ import {
   PERSONAL_ACTION_RESOLVERS,
   normalizeActionEntry,
 } from "./personal-action-catalog.js";
+import { getPersonalActionAvailabilityReason } from "./personal-action-rules.js";
 import { PersonalCombatTracker } from "./personal-combat-tracker.js";
-
-function clone(value) {
-  if (value === undefined) return undefined;
-  return globalThis.foundry?.utils?.deepClone?.(value) ?? JSON.parse(JSON.stringify(value ?? null));
-}
+import { cloneValue } from "../utils/clone.js";
 
 function escapeHtml(value) {
   const helper = globalThis.foundry?.utils?.escapeHTML;
@@ -568,9 +565,14 @@ function getCommonGateReason(action, actor, snapshot, effectiveCost) {
   }
   const statusGateReason = getStatusActionGateReason(actor, { actionId: action.id });
   if (statusGateReason) return statusGateReason;
+<<<<<<< HEAD
   if (action.id === "spotIndirect" && !actorHasSpotterGear(actor)) {
     return "Requires spotter gear such as binoculars, sensors, or a UAV Control Pod.";
   }
+=======
+  const availabilityReason = getPersonalActionAvailabilityReason(actor, action, { snapshot });
+  if (availabilityReason) return availabilityReason;
+>>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618
   if (effectiveCost.resource === "sa" && getSaCapacityRemaining(actor, snapshot) < effectiveCost.value) {
     return "Activation SA cap reached.";
   }
@@ -610,17 +612,22 @@ async function spendActionCost(actor, { token = null, action, metadata = {}, sna
   });
 }
 
-async function executeRollAction(actor, { action, metadata = {}, event = null } = {}) {
+async function executeRollAction(actor, { action, token = null, metadata = {}, event = null } = {}) {
   const rollApi = getRollApi();
   if (!rollApi?.execute) return { ok: false, reason: "MWD roll system not initialized." };
   const payload = {
-    ...(clone(action.roll) ?? { intent: "skill" }),
+    ...(cloneValue(action.roll, undefined) ?? { intent: "skill" }),
     key: metadata.skillKey ?? action.roll?.key ?? undefined,
     tags: Array.from(new Set(action.tags ?? [])),
   };
   if (metadata.targetTokenUuid) payload.targetTokenUuid = metadata.targetTokenUuid;
+<<<<<<< HEAD
   if (metadata.targetName) payload.targetName = metadata.targetName;
   payload.quickAction ??= { title: action.label };
+=======
+  if (metadata.targetTokenId) payload.targetTokenId = metadata.targetTokenId;
+  if (token?.id) payload.sourceTokenId = token.id;
+>>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618
   if (!payload.key && payload.intent === "skill") {
     return { ok: false, reason: "Choose a skill before rolling." };
   }
@@ -755,6 +762,11 @@ async function executeMovementResolver(actor, { action } = {}) {
   return { ok: true };
 }
 
+async function executeTargetingResolver(actor, context) {
+  if (context?.action?.id === "spotIndirect") return executeRollAction(actor, context);
+  return { ok: true };
+}
+
 async function executeResolver(actor, context) {
   const { action } = context;
   if (action.roll && (action.resolver === PERSONAL_ACTION_RESOLVERS.action || action.id === "overloadCheck")) {
@@ -769,6 +781,8 @@ async function executeResolver(actor, context) {
       return executeRecoveryResolver(actor, context);
     case PERSONAL_ACTION_RESOLVERS.movement:
       return executeMovementResolver(actor, context);
+    case PERSONAL_ACTION_RESOLVERS.targeting:
+      return executeTargetingResolver(actor, context);
     default:
       return { ok: true };
   }
@@ -904,7 +918,7 @@ export async function executeCombatActionIntent({ actor, token = null, payload =
     };
   }
 
-  if (action.roll && (action.resolver === PERSONAL_ACTION_RESOLVERS.action || action.id === "overloadCheck")) {
+  if (action.roll && ([PERSONAL_ACTION_RESOLVERS.action, PERSONAL_ACTION_RESOLVERS.targeting].includes(action.resolver) || action.id === "overloadCheck")) {
     const spendPreview = effectiveCost.resource === "none" || effectiveCost.value <= 0
       ? { ok: true }
       : PersonalCombatTracker.previewResourceSpend?.(actor, {

@@ -3,21 +3,7 @@
 // How it fits: Keeps heat math separate from token rendering and shader code.
 
 import { buildBattlemechHeatModel } from "./machine-heat.js";
-
-function clamp(value, min = 0, max = 1) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return min;
-  return Math.min(max, Math.max(min, numeric));
-}
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
-
-function clampMin(value, min = 0) {
-  return Math.max(min, toNumber(value, min));
-}
+import { clamp, clampMin } from "../utils/coercion.js";
 
 function inverseLerp(value, min, max) {
   if (max <= min) return value >= max ? 1 : 0;

@@ -27,6 +27,7 @@ import { collectMachineEwEncounterTargets } from "./machine-sensor-eligibility.j
 import { getBattleArmorMachineTargetProfile } from "./battle-armor.js";
 import { hasAssetModuleCapability } from "./asset-module-effects.js";
 import { getMountedMachineItems, hasMachineWeaponKeyword } from "./machine-hardpoints.js";
+<<<<<<< HEAD
 import { actorHasSpotterGear } from "./spotter-gear.js";
 
 const UNKNOWN_CONTACT_LABEL = "Unknown Contact";
@@ -35,6 +36,9 @@ function toNumber(value, fallback = 0) {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : fallback;
 }
+=======
+import { toNumber } from "../utils/coercion.js";
+>>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618
 
 function toTargets(targets) {
   return Array.from(targets ?? []).filter(target => target?.actor);

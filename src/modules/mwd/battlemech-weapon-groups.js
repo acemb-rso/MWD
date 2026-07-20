@@ -12,27 +12,20 @@ import {
   getMachineWeaponDamageTypeLabel,
   normalizeMachineWeaponDamageType,
 } from "./machine-weapon-types.js";
+import { weaponProfileHasDangerClose } from "./personal-damage.js";
 import { DEFAULT_FIRE_MODE } from "./battlemech-fire-modes.js";
 import { getEffectiveDetectionState, listTargetingStates } from "./machine-ew-state.js";
+import { asArray, toNumber } from "../utils/coercion.js";
 
 const RANGE_ORDER = ["close", "near", "far", "extreme"];
 // Preferred default engagement band: near is the sweet spot; fall back toward
 // closer bands if the weapon can't reach near.
 const DEFAULT_BAND_PREFERENCE = ["near", "close", "far", "extreme"];
 
-function asArray(value) {
-  return Array.isArray(value) ? value : [];
-}
-
 function normalizeId(value = "") {
   return String(value ?? "").trim();
 }
 
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
 
 function normalizeRangeCap(range = {}) {
   const raw = String(range?.max ?? range?.bandCap ?? "near").trim().toLowerCase();
@@ -460,6 +453,16 @@ export function buildBattlemechWeaponGroupAttackProfile(actor = null, groupId = 
     "armorBypass"
   ))) {
     groupFlags.push("armorBypass");
+  }
+  // Danger Close is contagious: if any firing member has a minimum arming distance,
+  // the whole group is treated as Danger Close at the legality gate. Machine weapons
+  // author the trait via the Keywords field, like armorBypass above.
+  if (memberProfiles.some(member => weaponProfileHasDangerClose({
+    keywords: member.keywords ?? member.sourceWeapon?.system?.keywords,
+    standardTraits: member.sourceWeapon?.system?.standardTraits,
+    traits: member.sourceWeapon?.system?.traits,
+  }))) {
+    groupFlags.push("dangerClose");
   }
   const groupEffects = groupFlags.length > 0 ? { flags: groupFlags } : {};
   const notes = [

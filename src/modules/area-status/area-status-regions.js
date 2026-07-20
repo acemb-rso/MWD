@@ -3,8 +3,8 @@
 
 import {
   findSourceToken,
-  getTokenCenter,
 } from "./area-status-sources.js";
+import { getTokenCenter } from "../utils/token.js";
 
 export const AREA_STATUS_REGION_FLAG = "areaStatusRegion";
 let regionWriteDepth = 0;
@@ -52,7 +52,7 @@ function sceneDistanceToPixels(scene = null, distance = 0) {
 function buildRegionData(scene, source) {
   const sourceToken = findSourceToken(scene, source);
   if (!sourceToken) return null;
-  const center = getTokenCenter(sourceToken, scene);
+  const center = getTokenCenter(sourceToken, { scene });
   const radiusPixels = sceneDistanceToPixels(scene, source.radius);
   const flag = {
     sourceKey: source.sourceKey,

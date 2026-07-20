@@ -5,13 +5,9 @@
 
 import { ASSET_MODULE_HOOKS } from "./asset-module-hooks.js";
 import { collectAssetModuleRuntimePackets } from "./asset-module-runtime.js";
+import { toNumber } from "../utils/coercion.js";
 
 let registeredHooks = null;
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
 
 function normalizeStringArray(value) {
   const raw = Array.isArray(value)

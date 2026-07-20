@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 2026/07/18-18:23:51.497 c4c4 Log #104: 0 ops saved to Table #116 OK
 2026/07/18-18:23:51.497 c4c4 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\weapons/000104.log: OK
 2026/07/18-18:23:51.497 c4c4 Log #115: 0 ops saved to Table #117 OK
@@ -8,3 +9,8 @@
 2026/07/18-18:23:51.499 c4c4 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\weapons/MANIFEST-000103: OK
 2026/07/18-18:23:51.499 c4c4 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\weapons/MANIFEST-000114: OK
 2026/07/18-18:23:51.501 c4c4 **** Repaired leveldb D:\FoundryData-Dev\Data\systems\mwd\packs\weapons; recovered 3 files; 82676 bytes. Some data may have been lost. ****
+=======
+2026/07/03-16:14:23.173 4bd0 Recovering log #109
+2026/07/03-16:14:23.176 4bd0 Delete type=0 #109
+2026/07/03-16:14:23.176 4bd0 Delete type=3 #107
+>>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618

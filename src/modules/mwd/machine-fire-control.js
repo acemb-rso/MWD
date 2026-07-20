@@ -9,16 +9,13 @@ import {
   getAssetModuleState,
 } from "./asset-module-rules.js";
 import { getAssetModuleClusteringProfile as getEffectAssetModuleClusteringProfile } from "./asset-module-effects.js";
+import { getDirectActorType } from "../utils/actor-guards.js";
 
 function toCollectionArray(value) {
   if (Array.isArray(value)) return value;
   if (Array.isArray(value?.contents)) return value.contents;
   if (value && typeof value[Symbol.iterator] === "function") return Array.from(value);
   return [];
-}
-
-function getActorType(source = {}) {
-  return String(source?.type ?? source?.actor?.type ?? "").trim();
 }
 
 function getAssetModules(source = {}) {
@@ -40,7 +37,7 @@ function buildDisabledClusteringState() {
 export function buildMachineFireControlModel(source = {}, context = {}) {
   // Combine legacy module profiles and newer effect-provider profiles into the
   // clustering shape consumed by attack resolution.
-  const actorType = getActorType(source);
+  const actorType = getDirectActorType(source);
   if (
     actorType
     && actorType !== TEMPLATE.actorTypes.battlemech

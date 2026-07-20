@@ -5,23 +5,14 @@
 
 import { getSkillDef } from "../../mwd/skills.js";
 import { prepareMachineRemedyRoll, resolveMachineCritIntentContext } from "../../mwd/machine-intents.js";
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
+import { toNumber } from "../../utils/coercion.js";
+import { withOwner } from "./token-context.js";
 
 function getSkillRating(actor = null, skillKey = "") {
   return {
     rating: toNumber(actor?.system?.skills?.[skillKey]?.rating, 0),
     bonus: toNumber(actor?.system?.skills?.[skillKey]?.bonus, 0),
   };
-}
-
-function withOwner(label = "", actor = null) {
-  const base = String(label ?? "").trim();
-  const owner = String(actor?.name ?? "").trim();
-  return owner ? `${base} (${owner})` : base;
 }
 
 export async function resolveMachineRemedy({ actor, payload } = {}) {

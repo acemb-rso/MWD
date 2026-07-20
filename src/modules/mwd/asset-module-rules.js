@@ -4,16 +4,8 @@
 // while providing one stable source of truth for derived machine abilities.
 
 import { normalizeCarrier } from "./rules.js";
-
-function toInteger(value, fallback = 0) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return fallback;
-  return Math.trunc(numeric);
-}
-
-function toNonNegativeInteger(value, fallback = 0) {
-  return Math.max(0, toInteger(value, fallback));
-}
+import { normalizeStatusConditionId } from "../status/status-condition-catalog.js";
+import { toInteger, toNonNegativeInteger } from "../utils/coercion.js";
 
 function toTrimmedString(value, fallback = "") {
   const normalized = String(value ?? "").trim();
@@ -28,6 +20,12 @@ function normalizeStringArray(value) {
       : [];
   return raw
     .map(entry => String(entry ?? "").trim())
+    .filter(Boolean);
+}
+
+function normalizeStatusArray(value) {
+  return normalizeStringArray(value)
+    .map(entry => normalizeStatusConditionId(entry))
     .filter(Boolean);
 }
 
@@ -131,8 +129,10 @@ export function validateAssetModuleEffects(source = {}, options = {}) {
     assertObject(effect.grants, pathLabel(index, "grants"), options);
     const grants = effect.grants ?? {};
     assertStringArrayLike(grants.statuses, pathLabel(index, "grants.statuses"), options);
-    if (normalizeStringArray(grants.statuses).includes("ecmBoosted")) {
-      fail(`${pathLabel(index, "grants.statuses")} must use epmBoosted, not ecmBoosted.`, options);
+    const legacyBoostStatus = normalizeStringArray(grants.statuses)
+      .find(status => normalizeStatusConditionId(status) === "epmBoosted" && status !== "epmBoosted");
+    if (legacyBoostStatus) {
+      fail(`${pathLabel(index, "grants.statuses")} must use epmBoosted, not ${legacyBoostStatus}.`, options);
     }
     assertActionOverrides(grants.actionOverrides, pathLabel(index, "grants.actionOverrides"), options);
     assertStringArrayLike(grants.actions, pathLabel(index, "grants.actions"), options);
@@ -195,8 +195,8 @@ export function normalizeAssetModuleEffectRequires(source = {}) {
     actionIds: normalizeStringArray(requires.actionIds ?? requires.actions ?? requires.action),
     skillIds: normalizeStringArray(requires.skillIds ?? requires.skills ?? requires.skill),
     weaponTags: normalizeStringArray(requires.weaponTags),
-    statuses: normalizeStringArray(requires.statuses),
-    forbidsStatuses: normalizeStringArray(requires.forbidsStatuses),
+    statuses: normalizeStatusArray(requires.statuses),
+    forbidsStatuses: normalizeStatusArray(requires.forbidsStatuses),
     forbidsTags: normalizeStringArray(requires.forbidsTags),
     detectionState: toTrimmedString(requires.detectionState, ""),
     targetState: toTrimmedString(requires.targetState, ""),
@@ -208,7 +208,7 @@ export function normalizeAssetModuleEffectRequires(source = {}) {
 export function normalizeAssetModuleEffectGrants(source = {}) {
   const grants = source && typeof source === "object" ? source : {};
   return {
-    statuses: normalizeStringArray(grants.statuses),
+    statuses: normalizeStatusArray(grants.statuses),
     actionOverrides: Array.isArray(grants.actionOverrides) ? grants.actionOverrides.filter(Boolean) : [],
     actions: normalizeStringArray(grants.actions),
     reactions: normalizeStringArray(grants.reactions),

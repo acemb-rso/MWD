@@ -12,6 +12,7 @@ import {
   PERSONAL_ACTION_RESOLVER_OPTIONS,
   SETTING_PERSONAL_ACTION_CATALOG,
 } from "../combat/personal-action-catalog.js";
+import { parseBulkJson, serializeBulkJson } from "./bulk-json.js";
 import { createSettingsCollectionValidationError, registerSettingsCollectionEditor } from "./collection-editor.js";
 
 const MENU_KEY = "personalActionCatalogEditor";
@@ -74,33 +75,16 @@ function catalogToRows(value = []) {
 }
 
 function parseBulk(text = "") {
-  const raw = String(text ?? "").trim();
-  if (!raw) return [];
-
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (error) {
-    throw createSettingsCollectionValidationError([
-      `Bulk JSON must be valid JSON: ${error.message}`
-    ]);
-  }
-
-  try {
-    return normalizePersonalActionCatalog(parsed, { strict: true });
-  } catch (error) {
-    throw createSettingsCollectionValidationError(
-      Array.isArray(error.validationErrors) ? error.validationErrors : [error.message]
-    );
-  }
+  return parseBulkJson(text, {
+    expect: "array",
+    normalize: value => normalizePersonalActionCatalog(value, { strict: true }),
+  });
 }
 
 function serializeBulk(value = []) {
-  return JSON.stringify(
-    normalizePersonalActionCatalog(value, { strict: false }),
-    null,
-    2
-  );
+  return serializeBulkJson(value, {
+    normalize: source => normalizePersonalActionCatalog(source, { strict: false }),
+  });
 }
 
 const PERSONAL_ACTION_CATALOG_EDITOR_DEFINITION = {

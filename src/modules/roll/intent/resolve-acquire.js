@@ -1,7 +1,6 @@
 ﻿// src/modules/roll/intent/resolve-acquire.js
 // Resolve roll context for an EW acquire action (System + Perception).
 
-import { TEMPLATE } from "../../core/constants.js";
 import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import {
@@ -19,6 +18,7 @@ import {
   isMachineSensorBlind,
 } from "../../mwd/machine-state-effects.js";
 import { getStealthDnParts } from "../../mwd/machine-stealth.js";
+<<<<<<< HEAD
 import { getMechRangeBand } from "../../mwd/personal-range-bands.js";
 import { measureTokenDistance } from "../../mwd/token-measurement.js";
 import { createUserFacingRollError } from "../roll-errors.js";
@@ -58,6 +58,18 @@ function withOwner(label = "", actor = null) {
   const owner = String(actor?.name ?? "").trim();
   return owner ? `${base} (${owner})` : base;
 }
+=======
+import { isMachineActor } from "../../utils/actor-guards.js";
+import { createUserFacingRollError } from "../roll-errors.js";
+import {
+  getTokenDisplayName,
+  getTokenId,
+  getTokenUuid,
+  resolveRollSourceToken,
+  resolveRollTargetToken,
+  withOwner,
+} from "./token-context.js";
+>>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618
 
 export async function resolveAcquire({ actor, payload } = {}) {
   if (!actor) throw new Error("resolveAcquire requires actor");
@@ -68,14 +80,19 @@ export async function resolveAcquire({ actor, payload } = {}) {
     throw createUserFacingRollError("Sensor actions are blocked by the machine's current state.", { severity: "warn" });
   }
 
-  const targetToken = resolveTargetToken(payload);
+  const targetToken = resolveRollTargetToken(payload);
   if (!targetToken?.actor) {
     throw createUserFacingRollError("Target a token to acquire.", { severity: "warn" });
   }
   const targetActor = targetToken.actor;
+<<<<<<< HEAD
   const targetTokenUuid = targetToken.document?.uuid ?? targetToken.uuid ?? "";
+=======
+  const targetTokenUuid = getTokenUuid(targetToken);
+  const targetName = getTokenDisplayName(targetToken);
+>>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618
 
-  const attackerToken = resolveAttackerToken(actor, payload);
+  const attackerToken = resolveRollSourceToken(actor, payload);
   const combatant = getAttackerCombatant(attackerToken);
 
   const currentState = getDetectionState(combatant, targetTokenUuid);
@@ -175,11 +192,11 @@ export async function resolveAcquire({ actor, payload } = {}) {
       machineActorUuid:   actor.uuid ?? "",
       operatorActorUuid:  operator.actor?.uuid ?? "",
       operatorName:       operator.actor?.name ?? "",
-      attackerTokenId:    attackerToken?.id ?? attackerToken?.document?.id ?? "",
-      attackerTokenUuid:  attackerToken?.document?.uuid ?? attackerToken?.uuid ?? "",
+      attackerTokenId:    getTokenId(attackerToken),
+      attackerTokenUuid:  getTokenUuid(attackerToken),
       attackerCombatantId: combatant?.id ?? "",
       targetTokenUuid,
-      targetTokenId:      targetToken?.id ?? "",
+      targetTokenId:      getTokenId(targetToken),
       targetName,
       currentState,
       currentStateLabel:  getDetectionStateLabel(currentState),

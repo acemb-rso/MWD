@@ -1,6 +1,21 @@
 ﻿// src/modules/item/weapon-item.js
-// Purpose: Registers Foundry hooks. References legacy Anarchy system behavior.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+/**
+ * @pipeline shared
+ * @role Weapon Item document (extends MWDItem). Normalizes weapon system data —
+ *   damage type/scale, traits/keywords, range bands, mount profile, machine vs.
+ *   personal weapon fields — into the canonical shape resolvers and sheets read.
+ *   Imported wherever weapons are inspected or attacked with.
+ * @invariants
+ *   - INVARIANT(normalize): weapon fields are normalized at prep time; the sheet
+ *     and resolvers consume normalized data, they don't re-parse raw input (§6.1).
+ *   - INVARIANT(boundary): describes the weapon as declarative facts (damage,
+ *     range, traits). It does not compute the attack pool or roll — resolve-attack
+ *     assembles that from these facts (Design Principles §1.2, §3.1, §3.3).
+ *   - INVARIANT(canonical): one weapon model. Extend MWDItem here; don't duplicate
+ *     weapon normalization elsewhere (§6.2).
+ * @extends   anarchy-base-item.js (MWDItem)
+ * @downstream personal-damage.js, machine-weapon-types.js, battle-armor.js, personal-range-bands.js
+ */
 
 
 import { TEMPLATE, TEMPLATES_PATH, ROLL_PARAMETER_CATEGORY } from "../core/constants.js";
@@ -19,6 +34,8 @@ import {
   getPersonalDamageTypeLabel,
   normalizePersonalDamageType,
   normalizeWeaponTraits,
+  normalizeWeaponStandardTraits,
+  normalizeWeaponKeywords,
 } from "../mwd/personal-damage.js";
 import {
   normalizeDamageSourceScale,
@@ -277,6 +294,12 @@ export class WeaponItem extends MWDItem {
       range,
       defaultRangeBand: this.getDefaultRangeBand(range),
       traits,
+      // Machine weapons author standard traits through the Keywords field; surface
+      // them (and standardTraits, if present) so the attack resolver and trait helpers
+      // can read them. Without this, keywords never reach the resolver for a lone
+      // mech weapon (only weapon-group profiles previously carried keywords).
+      keywords: normalizeWeaponKeywords(system.keywords),
+      standardTraits: normalizeWeaponStandardTraits(system.standardTraits),
       effects: {},
       notes: String(system.notes ?? system.description ?? "").trim()
     };

@@ -1,6 +1,22 @@
 ﻿// src/modules/item/anarchy-base-item.js
-// Purpose: Registers Foundry hooks: createItem, updateItem, deleteItem. References legacy Anarchy system behavior.
-// How it fits: Describes role within src/modules or template rendering pipeline.
+/**
+ * @pipeline shared
+ * @role Base Item document class (MWDItem) and the common item lifecycle. Owns
+ *   create/update/delete hooks and the per-type normalization of item system data
+ *   (traits, ranges, life modules, machine weapon/armor fields). The shared model
+ *   layer every item type and sheet builds on; high fan-out (~16).
+ * @invariants
+ *   - INVARIANT(normalize): normalization runs at prep/update time so stored data
+ *     stays simple and canonical — derived mechanics are not baked into the schema
+ *     (Design Principles §6.1). Keep normalizers idempotent.
+ *   - INVARIANT(boundary): the item is a data/model document. It normalizes and
+ *     describes; it does not assemble dice pools or resolve rolls — resolvers read
+ *     these normalized facts (§1.2, §3.1).
+ *   - One canonical shape per item concept; subclasses (weapon-item, etc.) extend
+ *     this rather than forking parallel item models (§6.2).
+ * @downstream constants.js/config.js, traits.js, personal-range-bands.js, life-modules.js, machine-weapon-types.js
+ * @subclass weapon-item.js and the other item/*-item.js types extend this
+ */
 
 
 import { LOG_HEAD, SYSTEM_NAME, TEMPLATE } from "../core/constants.js";
@@ -60,6 +76,7 @@ import {
   resolveWeaponPayloadState,
 } from "../mwd/personal-damage.js";
 import { getAssetModuleState, normalizeAssetModuleSystem } from "../mwd/asset-module-rules.js";
+import { normalizeCarrier } from "../mwd/rules.js";
 import {
   createCapabilityMigrationReport,
   normalizeWeaponCapabilityState,
@@ -782,7 +799,13 @@ export class MWDItem extends Item {
       changed.system.relatedSkill = normalizeGearText(nextSystem.relatedSkill);
       changed.system.availability = normalizeGearText(nextSystem.availability);
       changed.system.rulesHook = normalizeGearText(nextSystem.rulesHook);
-      if (this.isGear()) changed.system.mount = normalizeItemMount(nextSystem.mount);
+      changed.system.rules = normalizeCarrier(nextSystem).rules;
+      if (this.isGear()) {
+        if (Object.prototype.hasOwnProperty.call(nextSystem, "equipped")) changed.system.equipped = Boolean(nextSystem.equipped);
+        if (Object.prototype.hasOwnProperty.call(nextSystem, "active")) changed.system.active = Boolean(nextSystem.active);
+        if (Object.prototype.hasOwnProperty.call(nextSystem, "activation")) changed.system.activation = normalizeGearText(nextSystem.activation) || "passive";
+        changed.system.mount = normalizeItemMount(nextSystem.mount);
+      }
       changed.system.tags = normalizeGearTags(nextSystem.tags);
       if (this.isGear() && isCyberneticGearSystem(nextSystem)) {
         const normalized = normalizeCyberneticGearSystem({
@@ -961,7 +984,13 @@ export class MWDItem extends Item {
     system.relatedSkill = normalizeGearText(system.relatedSkill);
     system.availability = normalizeGearText(system.availability);
     system.rulesHook = normalizeGearText(system.rulesHook);
-    if (this.isGear()) system.mount = normalizeItemMount(system.mount);
+    system.rules = normalizeCarrier(system).rules;
+    if (this.isGear()) {
+      system.equipped = Boolean(system.equipped);
+      system.active = Boolean(system.active);
+      system.activation = normalizeGearText(system.activation) || "passive";
+      system.mount = normalizeItemMount(system.mount);
+    }
     system.tags = normalizeGearTags(system.tags);
     if (this.isGear() && isCyberneticGearSystem(system)) {
       const normalized = normalizeCyberneticGearSystem(system);

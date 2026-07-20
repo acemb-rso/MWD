@@ -19,7 +19,6 @@ import {
   SCENE_MODIFIER_INTENT_OPTIONS,
   normalizeActiveModifier
 } from "../modifiers/providers/scene-modifiers.js";
-import { TEMPLATE } from "../core/constants.js";
 import { DETECTION_STATE_ORDER, getDetectionStateLabel } from "../mwd/machine-ew.js";
 import {
   clearTargetingPacket as clearTargetingPacketState,
@@ -27,6 +26,7 @@ import {
   setDetectionState as setTargetingDetectionState,
 } from "../mwd/machine-ew-state.js";
 import { SETTING_SCENE_MODIFIER_TEMPLATES } from "../settings/scene-modifier-template-settings.js";
+import { isMachineActor } from "../utils/actor-guards.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -174,10 +174,6 @@ function cloneTargetingState(state = {}) {
     state ?? {},
     { inplace: false, overwrite: true }
   );
-}
-
-function isMachineActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
 }
 
 function getMachineTargetingAttackerOptions() {

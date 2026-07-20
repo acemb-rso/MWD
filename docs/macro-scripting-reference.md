@@ -355,6 +355,7 @@ resolves into `effects` at attack-resolution time.
 | `spread` | `flags: ["spread"]` | Display / future AoE use |
 | `spaceCapable` | `flags: ["spaceCapable"]` | Display / environment rules |
 | `armorBypass` | `flags: ["armorBypass"]` | Damage bypasses armor to Physical/Fatigue directly |
+| `dangerClose` | `flags: ["dangerClose"]` | Blocks Close-range attacks (minimum arming distance) unless the attack declares Hot Load (`attackOptions.hotLoad`). Personal weapons author it via the Standard Traits picker; machine weapons author it via the **Keywords** field (like `armorBypass`). Applies to single weapons and weapon groups (contagious: any member with the trait makes the whole group Danger Close). The resolver is the sole legality authority; the roll dialog exposes the Hot Load override. |
 
 ---
 
@@ -393,6 +394,7 @@ traits. Read by the damage engine at apply time.
 | `concealable` | — | Display only |
 | `spread` | — | Display only (future AoE) |
 | `spaceCapable` | — | Display only |
+| `dangerClose` | Personal & machine (incl. groups) | Attack-legality gate: blocks Close-range attacks unless `attackOptions.hotLoad` is set. No DN/damage effect. Machine weapons author it via the Keywords field |
 
 For **machine weapons**, `armorBypass` is authored as the keyword `armorBypass`
 on the weapon item's Keywords field. The weapon group attack profile reads it
@@ -453,9 +455,10 @@ overrides (mapped to `energy` for armor purposes).
 ### 6.7 Shared Rule Contribution Packets (`system.rules[]`)
 
 Asset modules use `system.rules[]` as their primary mechanics authoring surface.
-Qualities/traits share some normalizer primitives, but quality items still keep
-their character-specific `system.effects` packets until those output schemas are
-formalized.
+Gear may also carry `system.rules[]` for personal-scale action availability and
+related contribution packets. Qualities/traits share some normalizer primitives,
+but quality items still keep their character-specific `system.effects` packets
+until those output schemas are formalized.
 
 Shared rule helpers exposed on `game.mwd.rules`:
 

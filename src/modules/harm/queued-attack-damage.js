@@ -9,6 +9,7 @@ import { resolveMachineOperator } from "../mwd/machine-operator.js";
 import { parseOnHitEffect, summarizeAttackDamageResult } from "../roll/attack-resolution.js";
 import { renderChat } from "../roll/renderers/render-chat.js";
 import { adjustBattlemechPendingHeat } from "../mwd/machine-heat.js";
+import { isMachineActor as isMachineActorType, isPersonActor as isPersonalActor } from "../utils/actor-guards.js";
 import { HarmEngine } from "./harm-engine.js";
 
 export function isMachineDamageMutation(mutation = {}) {
@@ -120,14 +121,6 @@ async function spendMachineChaosCriticalEdge({ machineActor = null, operatorActo
     await operator.actor.spendEdge?.(pool, 1, { source: "machineChaosCritical" });
   }
   return { ok: true, operatorActor: operator.actor };
-}
-
-function isPersonalActor(actor) {
-  return actor?.type === TEMPLATE.actorTypes.character || actor?.type === TEMPLATE.actorTypes.npc;
-}
-
-function isMachineActorType(actor) {
-  return actor?.type === TEMPLATE.actorTypes.battlemech || actor?.type === TEMPLATE.actorTypes.vehicle;
 }
 
 async function applyOnHitEffect({ targetActor, targetToken, onHitEffect, source = "" } = {}) {

@@ -1,9 +1,20 @@
 // src/modules/roll/build-resolved.js
-// Purpose: Defines function `buildResolved`.
-// How it fits: Describes role within src/modules or template rendering pipeline.
-
-
-// systems/mwd/module/roll/build-resolved.js
+/**
+ * @pipeline execution
+ * @role Assembles the "resolved" payload — the stateless, output-shaped model
+ *   the chat card renders from: UI-ready rows, tooltips, dice groups, and replay
+ *   hooks (originPayload + roll.json + stable refs). Step 7 of execute() (§10).
+ * @invariants
+ *   - INVARIANT(canonical): this resolved payload is the data chat stores and
+ *     replays from. Chat is a stateless view — it renders this, it never re-runs
+ *     roll logic (Design Principles §1.3). Keep it fully self-describing.
+ *   - Rows and mods carry stable ids (row.id / mod.id, rows→mods via modIds[]) so
+ *     the card is inspectable and replayable (§9). Preserve id stability.
+ *   - Output-shaped only: it formats already-resolved values; it must not compute
+ *     new mechanics or re-derive outcomes here (§1.1, §3.1).
+ * @upstream   mwd-roll.js execute() (step 7)
+ * @downstream renderers/render-chat.js (renders this model)
+ */
 
 /**
  * Build the stateless chat-card render model.

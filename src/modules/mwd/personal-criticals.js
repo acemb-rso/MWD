@@ -15,20 +15,12 @@ import {
   evaluateTraitPhase,
   getTraitActiveEffectModifier,
 } from "./traits.js";
+import { cloneValue } from "../utils/clone.js";
+import { createRandomId } from "../utils/id.js";
 
 export const PERSONAL_CRITICAL_STATUS_ID = "personalCritical";
 
 const BAND_ORDER = Object.freeze(["minor", "moderate", "severe"]);
-
-function clone(value) {
-  if (value === undefined) return undefined;
-  if (globalThis.foundry?.utils?.deepClone) return foundry.utils.deepClone(value);
-  return JSON.parse(JSON.stringify(value ?? null));
-}
-
-function randomId() {
-  return globalThis.foundry?.utils?.randomID?.() ?? Math.random().toString(36).slice(2, 18);
-}
 
 function nowIso() {
   try {
@@ -131,7 +123,7 @@ export function normalizePersonalCriticalRecord(record = {}, actor = null) {
     : (weaponId && actor?.items?.get ? actor.items.get(weaponId) : null);
 
   return {
-    id: String(record?.id ?? "").trim() || randomId(),
+    id: String(record?.id ?? "").trim() || createRandomId(),
     previewRevision: getPreviewRevision(record),
     familyId,
     familyLabel: family.label,
@@ -144,7 +136,7 @@ export function normalizePersonalCriticalRecord(record = {}, actor = null) {
     statusLabel,
     effectText: String(record?.effectText ?? bandDefinition.effectText ?? "").trim(),
     effectKind: String(record?.effectKind ?? bandDefinition.effectKind ?? "").trim(),
-    effectPayload: clone(record?.effectPayload ?? bandDefinition.effectPayload ?? {}),
+    effectPayload: cloneValue(record?.effectPayload ?? bandDefinition.effectPayload ?? {}, undefined),
     remedyKey: remedy.key,
     remedyLabel: String(record?.remedyLabel ?? bandDefinition.remedyLabel ?? remedy.label).trim(),
     remedySkillKey: String(record?.remedySkillKey ?? bandDefinition.remedySkillKey ?? remedy.skillKey ?? "").trim(),
@@ -152,7 +144,7 @@ export function normalizePersonalCriticalRecord(record = {}, actor = null) {
     active: record?.active !== false,
     createdRound: Math.max(0, Math.trunc(Number(record?.createdRound ?? globalThis.game?.combat?.round ?? 0) || 0)),
     createdAt: String(record?.createdAt ?? nowIso()).trim(),
-    source: clone(record?.source ?? {}),
+    source: cloneValue(record?.source ?? {}, undefined),
     weaponUuid,
     weaponId,
     weaponName: String(record?.weaponName ?? weapon?.name ?? record?.source?.weaponName ?? "").trim(),
@@ -171,7 +163,7 @@ export function buildPersonalCritRecord({
   weaponName = "",
 } = {}) {
   return normalizePersonalCriticalRecord({
-    id: randomId(),
+    id: createRandomId(),
     previewRevision,
     familyId,
     band,
@@ -179,7 +171,7 @@ export function buildPersonalCritRecord({
     active: true,
     createdRound: Number(globalThis.game?.combat?.round ?? 0) || 0,
     createdAt: nowIso(),
-    source: clone(source ?? {}),
+    source: cloneValue(source ?? {}, undefined),
     weaponUuid,
     weaponId,
     weaponName,
@@ -229,7 +221,7 @@ export function getPersonalSpeedState(actor) {
 
 function getPreparedCriticalRecords(payload = {}, actor = null) {
   return Array.isArray(payload?.preparedCriticalRecords)
-    ? payload.preparedCriticalRecords.map(record => normalizePersonalCriticalRecord(clone(record), actor)).filter(Boolean)
+    ? payload.preparedCriticalRecords.map(record => normalizePersonalCriticalRecord(cloneValue(record, undefined), actor)).filter(Boolean)
     : [];
 }
 
@@ -407,7 +399,7 @@ export async function applyPersonalCriticalToActor({ actor = null, token = null,
     .filter(Boolean);
   if (!normalized.length) return { ok: true, records: [], activeCrits: getActivePersonalCrits(actor) };
 
-  const existing = Array.isArray(actor?.system?.criticals) ? clone(actor.system.criticals) : [];
+  const existing = Array.isArray(actor?.system?.criticals) ? cloneValue(actor.system.criticals, undefined) : [];
   const toAdd = [];
   const escalations = [];
 
@@ -480,7 +472,7 @@ export async function applyPersonalCriticalToActor({ actor = null, token = null,
 export async function removePersonalCrit({ actor = null, critId = "" } = {}) {
   const id = String(critId ?? "").trim();
   if (!actor || !id) return { ok: false, reason: "Personal critical not specified." };
-  const current = Array.isArray(actor.system?.criticals) ? clone(actor.system.criticals) : [];
+  const current = Array.isArray(actor.system?.criticals) ? cloneValue(actor.system.criticals, undefined) : [];
   const index = current.findIndex(record => String(record?.id ?? "").trim() === id);
   if (index < 0) return { ok: false, reason: "That critical effect is no longer active." };
   const removed = normalizePersonalCriticalRecord(current[index], actor);

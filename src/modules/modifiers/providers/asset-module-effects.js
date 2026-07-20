@@ -3,12 +3,8 @@
 // How it fits: Keeps module-authored dice effects on the same provider rail as
 // machine state, EW targeting data, traits, and scene modifiers.
 
-import { TEMPLATE } from "../../core/constants.js";
 import { getApplicableAssetModuleEffects } from "../../mwd/asset-module-effects.js";
-
-function isMachineActor(actor = null) {
-  return actor?.type === TEMPLATE.actorTypes.vehicle || actor?.type === TEMPLATE.actorTypes.battlemech;
-}
+import { isMachineActor } from "../../utils/actor-guards.js";
 
 export class AssetModuleEffectsProvider {
   id = "mwd.assetModuleEffects";

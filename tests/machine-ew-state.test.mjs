@@ -111,6 +111,20 @@ test("suppress beacon marks a packet unusable until suppression is cleared", asy
   assert.equal(getUsableTargetingPacket(combatant, targetUuid, 3, "lock", 1)?.value, 3);
 });
 
+test("EPM boosted allows lock acquisition through ECM jamming", async () => {
+  const { getAcquireCeiling } = await import("../src/modules/mwd/machine-ew-state.js");
+
+  const actor = statuses => ({
+    type: "battlemech",
+    statuses: new Set(statuses),
+    system: { mwd: { crits: [], locations: {} } },
+  });
+
+  assert.equal(getAcquireCeiling(actor(["ecmJamming"])), "track");
+  assert.equal(getAcquireCeiling(actor(["ecmJamming", "epmBoosted"])), "lock");
+  assert.equal(getAcquireCeiling(actor(["ecmJamming", "eccmBoosted"])), "lock");
+});
+
 test("targeting helpers read legacy Foundry-expanded token UUID paths and migrate writes to literal keys", async () => {
   globalThis.foundry ??= { utils: {} };
   globalThis.foundry.utils.deepClone ??= value => JSON.parse(JSON.stringify(value));

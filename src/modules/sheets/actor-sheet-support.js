@@ -9,15 +9,13 @@ import {
   isCyberneticOnline,
   normalizeCyberneticGearSystem,
 } from "../mwd/traits.js";
+import { compactStringList, toNumber } from "../utils/coercion.js";
+
+export { toNumber };
 
 function readPathValue(document, path, fallback = "") {
   const value = foundry.utils.getProperty(document, path);
   return value === undefined ? fallback : value;
-}
-
-export function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
 }
 
 function stripHtml(value) {
@@ -35,18 +33,36 @@ export function toSnippet(value, max = 180) {
 }
 
 export function compactList(values = []) {
-  return values
-    .map(value => String(value ?? "").trim())
-    .filter(Boolean);
+  return compactStringList(values);
 }
 
 export function buildSummaryStats(stats = []) {
   return stats
-    .filter(stat => stat && stat.value !== undefined && stat.value !== null && String(stat.value).trim() !== "")
+    .map(stat => {
+      const data = stat ?? {};
+      return {
+        ...data,
+        label: String(data.label ?? "").trim(),
+        value: String(data.value ?? "").trim(),
+        emphasis: data.emphasis ?? "",
+        title: String(data.title ?? "").trim(),
+        tone: String(data.tone ?? "").trim(),
+        parts: Array.isArray(data.parts)
+          ? data.parts
+            .filter(part => part && part.value !== undefined && part.value !== null && String(part.value).trim() !== "")
+            .map(part => ({
+              label: String(part.label ?? "").trim(),
+              value: String(part.value ?? "").trim(),
+              tone: String(part.tone ?? "").trim(),
+              title: String(part.title ?? "").trim(),
+            }))
+          : [],
+      };
+    })
+    .filter(stat => stat.value !== "" || stat.parts.length)
     .map(stat => ({
-      label: String(stat.label ?? "").trim(),
-      value: String(stat.value ?? "").trim(),
-      emphasis: stat.emphasis ?? ""
+      ...stat,
+      hasParts: stat.parts.length > 0,
     }));
 }
 

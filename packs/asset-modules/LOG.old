@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 2026/07/18-18:23:51.510 70cc Log #37: 0 ops saved to Table #49 OK
 2026/07/18-18:23:51.511 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\asset-modules/000037.log: OK
 2026/07/18-18:23:51.511 70cc Log #48: 0 ops saved to Table #50 OK
@@ -8,3 +9,8 @@
 2026/07/18-18:23:51.513 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\asset-modules/MANIFEST-000036: OK
 2026/07/18-18:23:51.513 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\asset-modules/MANIFEST-000047: OK
 2026/07/18-18:23:51.515 70cc **** Repaired leveldb D:\FoundryData-Dev\Data\systems\mwd\packs\asset-modules; recovered 3 files; 147459 bytes. Some data may have been lost. ****
+=======
+2026/07/03-16:14:23.179 530c Recovering log #42
+2026/07/03-16:14:23.181 530c Delete type=0 #42
+2026/07/03-16:14:23.181 530c Delete type=3 #40
+>>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618

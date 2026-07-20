@@ -12,12 +12,7 @@ import {
   normalizeAssetModuleRuntimePackets,
 } from "../mwd/asset-module-runtime.js";
 import { getStatusConditionCatalog } from "../status/status-condition-catalog.js";
-
-function randomId(prefix = "aura") {
-  const id = globalThis.foundry?.utils?.randomID?.()
-    ?? Math.random().toString(36).slice(2, 10);
-  return `${prefix}-${id}`;
-}
+import { createRandomId } from "../utils/id.js";
 
 function escapeHtml(value) {
   return globalThis.foundry?.utils?.escapeHTML?.(String(value ?? ""))
@@ -166,7 +161,7 @@ export class AssetModuleItemSheet extends BaseItemSheet {
   async #addAura() {
     const packets = this.#getRuntimePackets();
     packets.push({
-      id: randomId("area-status-aura"),
+      id: createRandomId({ prefix: "area-status-aura", fallbackLength: 8 }),
       kind: "aura",
       label: "Area Status Aura",
       radius: 90,

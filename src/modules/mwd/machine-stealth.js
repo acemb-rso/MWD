@@ -9,8 +9,10 @@ import { getApplicableAssetModuleEffects } from "./asset-module-effects.js";
 import { getReadyAssetModules } from "./asset-module-runtime.js";
 import { measureTokenDistance } from "./token-measurement.js";
 import { selectMechRangeBand } from "./personal-range-bands.js";
+import { isMachineActor } from "../utils/actor-guards.js";
+import { toNonNegativeInteger as nonNegativeInteger, toNumber } from "../utils/coercion.js";
+import { cloneValue } from "../utils/clone.js";
 
-const MACHINE_ACTOR_TYPES = new Set([TEMPLATE.actorTypes.battlemech, TEMPLATE.actorTypes.vehicle]);
 const STEALTH_MODES = new Set(["passive", "active", "suppressed"]);
 const STEALTH_DURATIONS = new Set(["untilNextActivation", "endOfRound", "manual"]);
 const FULL_BYPASS_STATUSES = Object.freeze(["tagged", "narced"]);
@@ -18,21 +20,8 @@ const STATUS_SIGNATURE_REVEALED = "signatureRevealed";
 const STATUS_STEALTH_ACTIVE = "stealthActive";
 const STATUS_HIGH_EMISSION = "highEmission";
 
-function isMachineActor(actor = null) {
-  return MACHINE_ACTOR_TYPES.has(actor?.type);
-}
-
-function toNumber(value, fallback = 0) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
-}
-
 function clamp(value, min = 0, max = 3) {
   return Math.min(max, Math.max(min, Number(value) || 0));
-}
-
-function nonNegativeInteger(value, fallback = 0) {
-  return Math.max(0, Math.trunc(toNumber(value, fallback)));
 }
 
 function normalizeMode(value = "") {
@@ -73,11 +62,6 @@ function getProperty(source = {}, path = "") {
   }, source);
 }
 
-function clone(value) {
-  if (typeof globalThis.foundry?.utils?.deepClone === "function") return globalThis.foundry.utils.deepClone(value);
-  return JSON.parse(JSON.stringify(value ?? {}));
-}
-
 function getCombatRoundTurn(ctx = {}) {
   const combat = ctx?.combat ?? globalThis.game?.combat ?? null;
   return {
@@ -88,7 +72,7 @@ function getCombatRoundTurn(ctx = {}) {
 
 function getStealthLifecycleState(actor = null) {
   const flag = actor?.getFlag?.(SYSTEM_NAME, "stealth") ?? actor?.flags?.[SYSTEM_NAME]?.stealth ?? actor?.flags?.mwd?.stealth ?? {};
-  return flag && typeof flag === "object" && !Array.isArray(flag) ? clone(flag) : {};
+  return flag && typeof flag === "object" && !Array.isArray(flag) ? cloneValue(flag, {}) : {};
 }
 
 async function setStealthLifecycleState(actor = null, state = {}) {

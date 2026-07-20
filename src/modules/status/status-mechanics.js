@@ -9,7 +9,10 @@ import {
   getDefaultStatusConditionCatalog,
   getStatusConditionDefinition,
   isStatusConditionApplicableToActor,
+  normalizeStatusConditionId,
 } from "./status-condition-catalog.js";
+import { cloneValue } from "../utils/clone.js";
+import { asArray } from "../utils/coercion.js";
 
 const CONTRIBUTION_FIELDS = Object.freeze([
   "mods",
@@ -33,20 +36,12 @@ function collectionToArray(value = null) {
 }
 
 function normalizeStatusId(value = "") {
-  return String(value ?? "").trim();
+  return normalizeStatusConditionId(value);
 }
 
 function normalizeStacking(value = "") {
   const raw = String(value ?? "unique").trim();
   return raw || "unique";
-}
-
-function clone(value) {
-  return globalThis.foundry?.utils?.deepClone?.(value) ?? JSON.parse(JSON.stringify(value ?? null));
-}
-
-function asArray(value) {
-  return Array.isArray(value) ? value : [];
 }
 
 function getMechanicsKey(statusId = "", actor = null) {
@@ -132,7 +127,7 @@ export function getActorStatusMechanics(actor = null, { extraStatusIds = [], sou
 
 function tagContribution(base, entry = {}, field = "") {
   return {
-    ...clone(entry),
+    ...cloneValue(entry, null),
     statusId: base.statusId,
     mechanicsKey: base.mechanicsKey,
     mechanicId: base.mechanicId,

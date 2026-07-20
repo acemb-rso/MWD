@@ -10,6 +10,7 @@ import {
   SETTING_WEAPON_PAYLOAD_FAMILY_CATALOG,
   SETTING_WEAPON_PAYLOAD_TAG_CATALOG,
 } from "../mwd/weapon-payload-catalogs.js";
+import { parseBulkJson, serializeBulkJson } from "./bulk-json.js";
 import { createSettingsCollectionValidationError, registerSettingsCollectionEditor } from "./collection-editor.js";
 
 const FAMILY_MENU_KEY = "weaponPayloadFamilyCatalogEditor";
@@ -64,23 +65,16 @@ function catalogToRows(value = []) {
 }
 
 function parseBulk(text = "", { defaults = [] } = {}) {
-  const raw = String(text ?? "").trim();
-  if (!raw) return [];
-
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (error) {
-    throw createSettingsCollectionValidationError([
-      `Bulk JSON must be valid JSON: ${error.message}`
-    ]);
-  }
-
-  return normalizePayloadCatalog(parsed, { defaults });
+  return parseBulkJson(text, {
+    expect: "array",
+    normalize: value => normalizePayloadCatalog(value, { defaults }),
+  });
 }
 
 function serializeBulk(value = []) {
-  return JSON.stringify(normalizePayloadCatalog(value), null, 2);
+  return serializeBulkJson(value, {
+    normalize: source => normalizePayloadCatalog(source),
+  });
 }
 
 const ROW_SCHEMA = Object.freeze([
