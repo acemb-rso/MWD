@@ -1,1 +1,10 @@
-2026/07/16-02:15:14.927 9df4 Delete type=3 #1
+2026/07/18-18:23:51.473 7684 Log #19: 0 ops saved to Table #31 OK
+2026/07/18-18:23:51.473 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\consumables/000019.log: OK
+2026/07/18-18:23:51.473 7684 Log #30: 0 ops saved to Table #32 OK
+2026/07/18-18:23:51.473 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\consumables/000030.log: OK
+2026/07/18-18:23:51.473 7684 Table #5: 9 entries OK
+2026/07/18-18:23:51.473 7684 Table #9: 9 entries OK
+2026/07/18-18:23:51.473 7684 Table #26: 9 entries OK
+2026/07/18-18:23:51.475 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\consumables/MANIFEST-000018: OK
+2026/07/18-18:23:51.475 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\consumables/MANIFEST-000029: OK
+2026/07/18-18:23:51.476 7684 **** Repaired leveldb D:\FoundryData-Dev\Data\systems\mwd\packs\consumables; recovered 3 files; 7062 bytes. Some data may have been lost. ****

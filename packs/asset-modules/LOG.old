@@ -1,1 +1,10 @@
-2026/07/16-02:15:14.987 4fbc Delete type=3 #1
+2026/07/18-18:23:51.510 70cc Log #37: 0 ops saved to Table #49 OK
+2026/07/18-18:23:51.511 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\asset-modules/000037.log: OK
+2026/07/18-18:23:51.511 70cc Log #48: 0 ops saved to Table #50 OK
+2026/07/18-18:23:51.511 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\asset-modules/000048.log: OK
+2026/07/18-18:23:51.511 70cc Table #23: 47 entries OK
+2026/07/18-18:23:51.512 70cc Table #27: 47 entries OK
+2026/07/18-18:23:51.512 70cc Table #44: 47 entries OK
+2026/07/18-18:23:51.513 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\asset-modules/MANIFEST-000036: OK
+2026/07/18-18:23:51.513 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\asset-modules/MANIFEST-000047: OK
+2026/07/18-18:23:51.515 70cc **** Repaired leveldb D:\FoundryData-Dev\Data\systems\mwd\packs\asset-modules; recovered 3 files; 147459 bytes. Some data may have been lost. ****

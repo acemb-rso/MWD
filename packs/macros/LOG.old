@@ -1,1 +1,10 @@
-2026/07/16-02:15:14.820 4fbc Delete type=3 #1
+2026/07/18-18:23:51.409 70cc Log #620: 0 ops saved to Table #632 OK
+2026/07/18-18:23:51.409 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\macros/000620.log: OK
+2026/07/18-18:23:51.409 70cc Log #631: 0 ops saved to Table #633 OK
+2026/07/18-18:23:51.409 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\macros/000631.log: OK
+2026/07/18-18:23:51.409 70cc Table #606: 2 entries OK
+2026/07/18-18:23:51.409 70cc Table #610: 2 entries OK
+2026/07/18-18:23:51.409 70cc Table #627: 2 entries OK
+2026/07/18-18:23:51.410 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\macros/MANIFEST-000619: OK
+2026/07/18-18:23:51.411 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\macros/MANIFEST-000630: OK
+2026/07/18-18:23:51.412 70cc **** Repaired leveldb D:\FoundryData-Dev\Data\systems\mwd\packs\macros; recovered 3 files; 14933 bytes. Some data may have been lost. ****

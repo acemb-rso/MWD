@@ -1,8 +1,11 @@
-2026/07/16-02:15:15.015 9df4 Delete type=3 #1
-2026/07/16-02:15:15.066 7724 Compacting 3@0 + 0@1 files
-2026/07/16-02:15:15.068 7724 Generated table #352@0: 185 keys, 28211 bytes
-2026/07/16-02:15:15.068 7724 Compacted 3@0 + 0@1 files => 28211 bytes
-2026/07/16-02:15:15.069 7724 compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/07/16-02:15:15.069 7724 Delete type=2 #335
-2026/07/16-02:15:15.069 7724 Delete type=2 #348
-2026/07/16-02:15:15.069 7724 Delete type=2 #349
+2026/07/18-18:23:51.526 7684 Log #355: 161 ops saved to Table #374 OK
+2026/07/18-18:23:51.527 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\critical-hit-tables/000355.log: OK
+2026/07/18-18:23:51.529 7684 Log #372: 161 ops saved to Table #375 OK
+2026/07/18-18:23:51.529 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\critical-hit-tables/000372.log: OK
+2026/07/18-18:23:51.529 7684 Table #356: 185 entries OK
+2026/07/18-18:23:51.529 7684 Table #373: 185 entries OK
+2026/07/18-18:23:51.529 7684 Table #374: 161 entries OK
+2026/07/18-18:23:51.530 7684 Table #375: 161 entries OK
+2026/07/18-18:23:51.530 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\critical-hit-tables/MANIFEST-000353: OK
+2026/07/18-18:23:51.530 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\critical-hit-tables/MANIFEST-000370: OK
+2026/07/18-18:23:51.532 7684 **** Repaired leveldb D:\FoundryData-Dev\Data\systems\mwd\packs\critical-hit-tables; recovered 4 files; 95794 bytes. Some data may have been lost. ****
