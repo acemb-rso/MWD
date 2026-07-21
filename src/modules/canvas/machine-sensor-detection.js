@@ -15,7 +15,6 @@ import { getMechRangeBand } from "../mwd/personal-range-bands.js";
 import { measureTokenDistance } from "../mwd/token-measurement.js";
 import {
   getTokenActor,
-  getTokenDisposition,
   getTokenDocument,
   getTokenUuid,
 } from "../utils/token.js";
@@ -42,23 +41,6 @@ function resolveToken(value = null) {
     ?? value?.target?.token
     ?? value?.target?.document?.object
     ?? value;
-}
-
-<<<<<<< HEAD
-function getTokenDocument(token = null) {
-  return token?.document ?? token ?? null;
-}
-
-function getTokenActor(token = null) {
-  return token?.actor ?? token?.document?.actor ?? token?.actorLink?.actor ?? null;
-}
-
-function getTokenUuid(token = null) {
-  return String(token?.document?.uuid ?? token?.uuid ?? "").trim();
-=======
-function getHostileDisposition() {
-  return Number(globalThis.CONST?.TOKEN_DISPOSITIONS?.HOSTILE ?? -1);
->>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618
 }
 
 function hasStatus(source = null, statusId = "") {

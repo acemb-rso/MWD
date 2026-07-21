@@ -30,7 +30,7 @@ function mergeObject(target, source, { inplace = true, overwrite = true } = {}) 
   return output;
 }
 
-test("personal complex actions expose Spot for Indirect Fire when carrying spotter gear", async () => {
+test("personal complex actions expose Spot for Indirect Fire when equipped with spotter gear", async () => {
   globalThis.foundry ??= { utils: {} };
   globalThis.foundry.utils.getProperty ??= getProperty;
   globalThis.foundry.utils.hasProperty ??= (root, path) => getProperty(root, path) !== undefined;
@@ -77,19 +77,19 @@ test("personal complex actions expose Spot for Indirect Fire when carrying spott
     .find(menu => menu.id === "complex")
     ?.actions.find(action => action.id === "spotIndirect");
   assert.equal(disabledSpot?.disabled, true);
-  assert.match(disabledSpot?.reason ?? "", /spotter gear/i);
+  assert.match(disabledSpot?.reason ?? "", /spotting gear/i);
 
   const withGear = PersonalCombatTracker.buildActionModel({
     ...baseActor,
     items: [
       {
-        id: "binoculars",
-        name: "Binoculars",
+        id: "spotter-kit",
+        name: "Forward Observer Kit",
         type: "gear",
         system: {
           category: "optical",
-          relatedSkill: "perception",
-          tags: ["observation", "visual", "magnification"],
+          equipped: true,
+          tags: ["spotter"],
         },
       },
     ],
@@ -99,7 +99,7 @@ test("personal complex actions expose Spot for Indirect Fire when carrying spott
     ?.actions.find(action => action.id === "spotIndirect");
   assert.equal(enabledSpot?.label, "Spot for Indirect Fire");
   assert.equal(enabledSpot?.disabled, false);
-  assert.deepEqual(JSON.parse(enabledSpot?.roll ?? "{}"), { intent: "skill", key: "perception" });
+  assert.deepEqual(JSON.parse(enabledSpot?.roll ?? "{}"), { intent: "spotIndirect", personalSpotter: true, attrKey: "intelligence" });
 });
 
 test("markWeaponGroupUsed starts from the reset snapshot state instead of reviving the stale stored activation", async () => {

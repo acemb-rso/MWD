@@ -1771,9 +1771,6 @@ export class PersonalCombatTracker {
       if (!reason && action.id === "suppressionFire" && !actorHasAutomaticPersonalWeapon(actor)) {
         reason = "Requires an equipped personal weapon with the Automatic trait.";
       }
-      if (!reason && action.id === "spotIndirect" && !actorHasSpotterGear(actor)) {
-        reason = "Requires spotter gear such as binoculars, sensors, or a UAV Control Pod.";
-      }
     } else if (category === PERSONAL_ACTION_CATEGORIES.free) {
       const usesFreeAction = Number(state.faRemaining ?? 0) > 0;
       resource = usesFreeAction ? "fa" : "sa";

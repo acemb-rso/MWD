@@ -8,7 +8,6 @@ import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
 import { executeFirstAidCombatAction } from "../mwd/first-aid.js";
 import { getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
 import { listSkillDefs } from "../mwd/skills.js";
-import { actorHasSpotterGear } from "../mwd/spotter-gear.js";
 import { collectStatusClearsOnAction, getStatusActionGateReason } from "../status/status-mechanics.js";
 import { launchOwnedWeaponAttack, launchSuppressionFire } from "../roll/weapon-attack-actions.js";
 import {
@@ -565,14 +564,8 @@ function getCommonGateReason(action, actor, snapshot, effectiveCost) {
   }
   const statusGateReason = getStatusActionGateReason(actor, { actionId: action.id });
   if (statusGateReason) return statusGateReason;
-<<<<<<< HEAD
-  if (action.id === "spotIndirect" && !actorHasSpotterGear(actor)) {
-    return "Requires spotter gear such as binoculars, sensors, or a UAV Control Pod.";
-  }
-=======
   const availabilityReason = getPersonalActionAvailabilityReason(actor, action, { snapshot });
   if (availabilityReason) return availabilityReason;
->>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618
   if (effectiveCost.resource === "sa" && getSaCapacityRemaining(actor, snapshot) < effectiveCost.value) {
     return "Activation SA cap reached.";
   }
@@ -621,13 +614,10 @@ async function executeRollAction(actor, { action, token = null, metadata = {}, e
     tags: Array.from(new Set(action.tags ?? [])),
   };
   if (metadata.targetTokenUuid) payload.targetTokenUuid = metadata.targetTokenUuid;
-<<<<<<< HEAD
   if (metadata.targetName) payload.targetName = metadata.targetName;
-  payload.quickAction ??= { title: action.label };
-=======
   if (metadata.targetTokenId) payload.targetTokenId = metadata.targetTokenId;
   if (token?.id) payload.sourceTokenId = token.id;
->>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618
+  payload.quickAction ??= { title: action.label };
   if (!payload.key && payload.intent === "skill") {
     return { ok: false, reason: "Choose a skill before rolling." };
   }
