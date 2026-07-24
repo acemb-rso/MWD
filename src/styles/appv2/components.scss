@@ -2843,6 +2843,47 @@
   min-width: 0;
 }
 
+.mwd-skills-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: -2px 0 6px;
+}
+
+.mwd-skills-toolbar__toggle {
+  opacity: 0.72;
+  transition: opacity 120ms ease-in-out;
+}
+
+.mwd-skills-toolbar__toggle:hover,
+.mwd-skills-toolbar__toggle:focus-within {
+  opacity: 1;
+}
+
+.mwd-skills-toolbar__toggle .mwd-checkbox__label {
+  color: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-shadow: none;
+}
+
+.mwd-skills-toolbar__toggle .mwd-checkbox__control {
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 7px;
+}
+
+.mwd-skills-toolbar__toggle .mwd-checkbox__box {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+}
+
+.mwd-skills-toolbar__toggle .mwd-checkbox__box::before {
+  width: 4px;
+  height: 7px;
+}
+
 /* One row */
 .mwd-skill {
   display: flex;

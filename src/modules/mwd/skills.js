@@ -349,9 +349,14 @@ export function ensureCoreSkillRatings(systemData) {
     entry.specializations = normalizeStoredSkillSpecializationKeys(entry.specializations);
   }
 }
-export function buildSkillDisplay(systemData, { bonusBySkill = null } = {}) {
+function isStatOnlySkillRow(row) {
+  return Number(row?.rating ?? 0) === 0
+    && Number(row?.bonus ?? 0) === 0
+    && !(row?.specializations?.length);
+}
+
+export function buildSkillDisplay(systemData, { bonusBySkill = null, hideStatOnly = false } = {}) {
   const defs = listSkillDefs();
-  const { left, right } = splitSkillsTwoColumns(defs);
 
   const mkRow = (def) => {
     const code = def.code;
@@ -402,8 +407,13 @@ export function buildSkillDisplay(systemData, { bonusBySkill = null } = {}) {
     };
   };
 
+  const rows = defs
+    .map(mkRow)
+    .filter(row => !hideStatOnly || !isStatOnlySkillRow(row));
+  const { left, right } = splitSkillsTwoColumns(rows);
+
   return {
-    left: left.map(mkRow),
-    right: right.map(mkRow)
+    left,
+    right
   };
 }

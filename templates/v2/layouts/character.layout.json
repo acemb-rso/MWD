@@ -112,6 +112,10 @@
                 "label": "Skills",
                 "children": [
                   {
+                    "type": "include",
+                    "partial": "mwd.v2.ui.character.skills-toolbar"
+                  },
+                  {
                     "type": "stack",
                     "classes": ["mwd-skills-grid"],
                     "children": [

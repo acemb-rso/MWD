@@ -273,6 +273,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
   #inventoryAttackDragController = null;
   #linkedMechHookId = null;
   #advancementOpen = false;
+  #hideStatOnlySkills = false;
 
   static PARTS = {
     sheet: {
@@ -311,6 +312,7 @@ export class CharacterSheetV2 extends BaseActorSheetV2 {
       openAdvancementDialog: CharacterSheetV2.prototype._onOpenAdvancementDialog,
       addKnowledgeSkill: CharacterSheetV2.prototype._onAddKnowledgeSkill,
       removeKnowledgeSkill: CharacterSheetV2.prototype._onRemoveKnowledgeSkill,
+      toggleStatOnlySkills: CharacterSheetV2.prototype._onToggleStatOnlySkills,
     }
   }, { inplace: false });
 
@@ -488,8 +490,12 @@ ctx.edgeConsole.poolsOrdered = order
     };
 
     const lifeModuleEvaluation = evaluateActorLifeModules(this.actor);
+    ctx.skillDisplayOptions = {
+      hideStatOnly: this.#hideStatOnlySkills
+    };
     ctx.skillsDisplay = buildSkillDisplay(this.actor?.system ?? {}, {
-      bonusBySkill: lifeModuleEvaluation.bonusBySkill
+      bonusBySkill: lifeModuleEvaluation.bonusBySkill,
+      hideStatOnly: this.#hideStatOnlySkills
     });
     ctx.lifeModules = lifeModuleEvaluation.slotStates.map(slot => {
       const itemState = slot.state;
@@ -1641,6 +1647,15 @@ ctx.edgeConsole.poolsOrdered = order
     ui.notifications?.warn(error?.message ?? "Unable to remove Knowledge Skill.");
   }
 }
+
+ _onToggleStatOnlySkills(event, target) {
+  event?.stopPropagation?.();
+  const input =
+    target?.closest?.("input[type='checkbox'][data-action='toggleStatOnlySkills']")
+    ?? event?.target?.closest?.("input[type='checkbox'][data-action='toggleStatOnlySkills']");
+  this.#hideStatOnlySkills = !!input?.checked;
+  this.#renderPreservingScroll(false);
+ }
 
  async _onAddSkillSpecialization(event, target) {
   event?.preventDefault?.();
