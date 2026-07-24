@@ -1,16 +1,1 @@
-<<<<<<< HEAD
-2026/07/18-18:23:51.485 29cc Log #106: 0 ops saved to Table #118 OK
-2026/07/18-18:23:51.485 29cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\armor/000106.log: OK
-2026/07/18-18:23:51.485 29cc Log #117: 0 ops saved to Table #119 OK
-2026/07/18-18:23:51.485 29cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\armor/000117.log: OK
-2026/07/18-18:23:51.485 29cc Table #92: 12 entries OK
-2026/07/18-18:23:51.485 29cc Table #96: 12 entries OK
-2026/07/18-18:23:51.485 29cc Table #113: 12 entries OK
-2026/07/18-18:23:51.487 29cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\armor/MANIFEST-000105: OK
-2026/07/18-18:23:51.487 29cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\armor/MANIFEST-000116: OK
-2026/07/18-18:23:51.488 29cc **** Repaired leveldb D:\FoundryData-Dev\Data\systems\mwd\packs\armor; recovered 3 files; 15849 bytes. Some data may have been lost. ****
-=======
-2026/07/03-16:14:23.168 ae80 Recovering log #111
-2026/07/03-16:14:23.171 ae80 Delete type=0 #111
-2026/07/03-16:14:23.171 ae80 Delete type=3 #109
->>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618
+2026/07/24-01:11:59.370 b010 Delete type=3 #1

@@ -1,11 +1,22 @@
-2026/07/21-17:29:22.796 8b44 Recovering log #382
-2026/07/21-17:29:22.796 8b44 Level-0 table #385: started
-2026/07/21-17:29:22.798 8b44 Level-0 table #385: 19800 bytes OK
-2026/07/21-17:29:22.800 8b44 Delete type=0 #382
-2026/07/21-17:29:22.800 8b44 Delete type=3 #381
-2026/07/21-17:29:22.840 7d9c Compacting 1@0 + 1@1 files
-2026/07/21-17:29:22.843 7d9c Generated table #387@0: 185 keys, 28276 bytes
-2026/07/21-17:29:22.843 7d9c Compacted 1@0 + 1@1 files => 28276 bytes
-2026/07/21-17:29:22.843 7d9c compacted to: files[ 0 1 0 0 0 0 0 ]
-2026/07/21-17:29:22.844 7d9c Delete type=2 #383
-2026/07/21-17:29:22.844 7d9c Delete type=2 #385
+2026/07/24-01:16:14.685 9878 Recovering log #392
+2026/07/24-01:16:14.685 9878 Level-0 table #395: started
+2026/07/24-01:16:14.688 9878 Level-0 table #395: 21451 bytes OK
+2026/07/24-01:16:14.690 9878 Delete type=0 #392
+2026/07/24-01:16:14.690 9878 Delete type=3 #391
+2026/07/24-01:16:14.724 a388 Compacting 1@0 + 1@1 files
+2026/07/24-01:16:14.726 a388 Generated table #397@0: 185 keys, 28217 bytes
+2026/07/24-01:16:14.726 a388 Compacted 1@0 + 1@1 files => 28217 bytes
+2026/07/24-01:16:14.727 a388 compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/07/24-01:16:14.727 a388 Delete type=2 #393
+2026/07/24-01:16:14.727 a388 Delete type=2 #395
+2026/07/24-01:17:15.815 a388 Level-0 table #399: started
+2026/07/24-01:17:15.818 a388 Level-0 table #399: 19673 bytes OK
+2026/07/24-01:17:15.819 a388 Delete type=0 #396
+2026/07/24-01:17:15.821 a388 Manual compaction at level-0 from '!tables!MWDGeneralCrit01' @ 72057594037927935 : 1 .. '!tables.results!zqSXIe72qlqNXcIG' @ 0 : 0; will stop at '!tables.results!zqSXIe72qlqNXcIG' @ 15157 : 1
+2026/07/24-01:17:15.821 a388 Compacting 1@0 + 1@1 files
+2026/07/24-01:17:15.827 a388 Generated table #400@0: 185 keys, 29058 bytes
+2026/07/24-01:17:15.827 a388 Compacted 1@0 + 1@1 files => 29058 bytes
+2026/07/24-01:17:15.828 a388 compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/07/24-01:17:15.828 a388 Delete type=2 #397
+2026/07/24-01:17:15.828 a388 Delete type=2 #399
+2026/07/24-01:17:15.835 a388 Manual compaction at level-0 from '!tables.results!zqSXIe72qlqNXcIG' @ 15157 : 1 .. '!tables.results!zqSXIe72qlqNXcIG' @ 0 : 0; will stop at (end)

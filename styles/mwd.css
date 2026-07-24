@@ -3430,12 +3430,16 @@
 
 .mwd-skills-toolbar {
   display: flex;
-  justify-content: flex-end;
-  margin: -2px 0 6px;
+  justify-content: flex-start;
+  margin: 0 0 8px 2px;
+  min-height: 24px;
 }
 
 .mwd-skills-toolbar__toggle {
-  opacity: 0.72;
+  gap: 6px;
+  color: var(--mwd-tab-text, var(--csb-text-muted));
+  text-shadow: 0 1px 0 var(--mwd-tab-text-shadow, transparent);
+  opacity: 0.84;
   transition: opacity 120ms ease-in-out;
 }
 
@@ -3446,9 +3450,10 @@
 
 .mwd-skills-toolbar__toggle .mwd-checkbox__label {
   color: inherit;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 600;
-  text-shadow: none;
+  line-height: 1;
+  text-shadow: inherit;
 }
 
 .mwd-skills-toolbar__toggle .mwd-checkbox__control {

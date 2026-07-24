@@ -1,16 +1,1 @@
-<<<<<<< HEAD
-2026/07/18-18:23:51.421 7684 Log #620: 0 ops saved to Table #632 OK
-2026/07/18-18:23:51.422 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\gm-info/000620.log: OK
-2026/07/18-18:23:51.422 7684 Log #631: 0 ops saved to Table #633 OK
-2026/07/18-18:23:51.423 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\gm-info/000631.log: OK
-2026/07/18-18:23:51.423 7684 Table #606: 4 entries OK
-2026/07/18-18:23:51.423 7684 Table #610: 4 entries OK
-2026/07/18-18:23:51.423 7684 Table #627: 4 entries OK
-2026/07/18-18:23:51.424 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\gm-info/MANIFEST-000619: OK
-2026/07/18-18:23:51.424 7684 Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\gm-info/MANIFEST-000630: OK
-2026/07/18-18:23:51.426 7684 **** Repaired leveldb D:\FoundryData-Dev\Data\systems\mwd\packs\gm-info; recovered 3 files; 11250 bytes. Some data may have been lost. ****
-=======
-2026/07/03-16:14:23.142 64dc Recovering log #625
-2026/07/03-16:14:23.145 64dc Delete type=0 #625
-2026/07/03-16:14:23.145 64dc Delete type=3 #623
->>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618
+2026/07/24-01:11:59.279 aaa4 Delete type=3 #1

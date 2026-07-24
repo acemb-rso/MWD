@@ -1,16 +1,1 @@
-<<<<<<< HEAD
-2026/07/18-18:23:51.460 70cc Log #119: 0 ops saved to Table #131 OK
-2026/07/18-18:23:51.460 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\gear/000119.log: OK
-2026/07/18-18:23:51.460 70cc Log #130: 0 ops saved to Table #132 OK
-2026/07/18-18:23:51.460 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\gear/000130.log: OK
-2026/07/18-18:23:51.461 70cc Table #113: 75 entries OK
-2026/07/18-18:23:51.461 70cc Table #118: 75 entries OK
-2026/07/18-18:23:51.461 70cc Table #126: 75 entries OK
-2026/07/18-18:23:51.462 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\gear/MANIFEST-000117: OK
-2026/07/18-18:23:51.462 70cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\gear/MANIFEST-000129: OK
-2026/07/18-18:23:51.464 70cc **** Repaired leveldb D:\FoundryData-Dev\Data\systems\mwd\packs\gear; recovered 3 files; 81287 bytes. Some data may have been lost. ****
-=======
-2026/07/03-16:14:23.157 ae80 Recovering log #123
-2026/07/03-16:14:23.160 ae80 Delete type=0 #123
-2026/07/03-16:14:23.160 ae80 Delete type=3 #121
->>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618
+2026/07/24-01:11:59.330 3fc8 Delete type=3 #1

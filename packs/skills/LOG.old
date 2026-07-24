@@ -1,16 +1,1 @@
-<<<<<<< HEAD
-2026/07/18-18:23:51.435 29cc Log #620: 0 ops saved to Table #632 OK
-2026/07/18-18:23:51.435 29cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\skills/000620.log: OK
-2026/07/18-18:23:51.435 29cc Log #631: 0 ops saved to Table #633 OK
-2026/07/18-18:23:51.435 29cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\skills/000631.log: OK
-2026/07/18-18:23:51.435 29cc Table #606: 32 entries OK
-2026/07/18-18:23:51.435 29cc Table #610: 32 entries OK
-2026/07/18-18:23:51.436 29cc Table #627: 32 entries OK
-2026/07/18-18:23:51.437 29cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\skills/MANIFEST-000619: OK
-2026/07/18-18:23:51.437 29cc Archiving D:\FoundryData-Dev\Data\systems\mwd\packs\skills/MANIFEST-000630: OK
-2026/07/18-18:23:51.438 29cc **** Repaired leveldb D:\FoundryData-Dev\Data\systems\mwd\packs\skills; recovered 3 files; 14680 bytes. Some data may have been lost. ****
-=======
-2026/07/03-16:14:23.147 ae80 Recovering log #625
-2026/07/03-16:14:23.149 ae80 Delete type=0 #625
-2026/07/03-16:14:23.149 ae80 Delete type=3 #623
->>>>>>> 457c5ebbe97303449a29b7bcbb65c8ec5b14f618
+2026/07/24-01:11:59.292 b010 Delete type=3 #1
