@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx sass *)",
+      "Bash(npm run *)",
+      "Bash(npm test *)",
+      "Bash(grep -c \"margin \\\\${\" dist/index.mjs)"
+    ]
+  }
+}
