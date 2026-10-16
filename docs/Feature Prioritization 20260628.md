@@ -16,6 +16,10 @@ automation area:
 - **Manual ejection** machine action — stub. [machine-action-catalog.js:346](../src/modules/mwd/machine-action-catalog.js#L346) ("Manual ejection state changes are not automated yet.")
 - **Weapon trait automation** — broad, ongoing. Payload/profile modifiers are live (damage type, AP, attack-rating bands, templated payload capabilities) and personal fire modes are fully implemented, but standard weapon *traits* still need concrete, rule-backed, tested behavior before registry entries are enabled. See Tier&nbsp;1 #3 below.
 
+- **Communications, C3, and data networks** — not yet designed; several pieces
+  exist without a shared model (Hold Link has module dice but no action). See
+  [Communications-Networks.md](Communications-Networks.md).
+
 Separately tracked (not part of this doc's scope): HUD token shortcuts remain
 broken after the legacy class cleanup.
 
