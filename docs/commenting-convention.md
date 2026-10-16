@@ -144,6 +144,8 @@ state hubs:
 | `item/anarchy-base-item.js` | `shared` |
 | `item/weapon-item.js` | `shared` |
 | `mwd/machine-operator.js` | `shared` |
+| `system/migration/schema-migrations.js` | `shared` |
+| `system/migration/migration-runner.js` | `shared` |
 
 When you add a header to a new high-importance file, add a row here so this table
 stays the index of what's covered.

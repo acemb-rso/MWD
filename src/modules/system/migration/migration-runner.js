@@ -1,13 +1,19 @@
 // src/modules/system/migration/migration-runner.js
-// Purpose: Foundry-side executor for the versioned data-schema migrations.
-// How it fits: registered on `init`, gated first thing on `ready`. Only the
-// active GM migrates, after confirming a backup exists. Steps run one at a
-// time: snapshot -> plan (schema-migrations.js) -> sequential awaited writes ->
-// re-plan to verify. The schema version advances only when a step's re-plan is
-// empty and no write failed. Policy and recovery: docs/migrations.md.
-//
-// INVARIANT(no-false-current): a failed, declined, or interrupted migration
-// never advances `schemaVersion`; the world reports itself as behind.
+/**
+ * @pipeline shared
+ * @role World-data migration gate. Registered on `init`, run first on `ready`:
+ *   the active GM confirms a backup, then each schema step is snapshotted,
+ *   planned (schema-migrations.js), written sequentially, and re-planned to
+ *   verify. Policy and recovery: docs/migrations.md.
+ * @invariants
+ *   - INVARIANT(canonical): the single path that writes schema upgrades and
+ *     advances `mwd.schemaVersion` (§2.3).
+ *   - A failed, declined, or interrupted migration never advances the schema
+ *     version; the world reports itself as behind and GM ready-time data
+ *     writes are skipped (§14).
+ * @upstream anarchy-system.js (init: settings; ready: runSchemaMigrationGate)
+ * @downstream schema-migrations.js (plans), Foundry document updates
+ */
 
 import { SYSTEM_NAME, LOG_HEAD } from "../../core/constants.js";
 import { CURRENT_SCHEMA_VERSION, getPendingSchemaSteps, planSchemaStep } from "./schema-migrations.js";

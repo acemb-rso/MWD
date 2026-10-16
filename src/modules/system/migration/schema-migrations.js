@@ -1,14 +1,19 @@
 // src/modules/system/migration/schema-migrations.js
-// Purpose: Pure, versioned world-data schema transforms. No Foundry calls.
-// How it fits: migration-runner.js snapshots world documents as plain source
-// objects, asks planSchemaStep() for an operation list, and performs the writes.
-// The data schema version is an integer independent of the system.json package
-// version (see docs/migrations.md).
-//
-// INVARIANT(idempotent): every transform is gated on a legacy marker, so a plan
-// built from already-migrated data contains no operations.
-// INVARIANT(no-guessing): when stored data cannot be classified safely, the
-// transform emits a review entry for the GM instead of an operation.
+/**
+ * @pipeline shared
+ * @role The versioned registry of persisted-data upgrades. Each schema step
+ *   turns plain document snapshots into a list of field operations; it never
+ *   touches Foundry documents. The data schema version is an integer
+ *   independent of the system.json package version (docs/migrations.md).
+ * @invariants
+ *   - INVARIANT(canonical): the only place persisted document shapes are
+ *     upgraded; runtime code reads current shapes (§6.2).
+ *   - Every transform is gated on a legacy marker, so a plan built from
+ *     already-migrated data is empty (re-running is safe).
+ *   - Data that cannot be classified safely produces a GM review entry, never
+ *     a guessed operation (§14).
+ * @downstream migration-runner.js (executes and verifies the operations)
+ */
 
 import {
   MACHINE_DEPLETING_MONITORS,
@@ -26,7 +31,6 @@ const MACHINE_TYPES = new Set(["vehicle", "battlemech"]);
 const GUTS_TEMPLATE_DEFAULT = 1;
 const LEGACY_MECH_WEAPON_FIELDS = Object.freeze(["hardpointId", "hardpointType", "hardpointSize", "mountLocation"]);
 
-const hasOwn = (object, key) => Boolean(object) && Object.hasOwn(object, key);
 const itemType = item => String(item?.type ?? "").trim();
 
 function operation(target, set = {}, unset = []) {
@@ -123,7 +127,7 @@ function planMachineMonitorStorage({ actors, scenes }) {
 // Willpower -> Guts (attribute rename shipped 2026-05-30).
 
 export function planGutsRename(attributes = {}) {
-  if (!hasOwn(attributes, "willpower")) return { set: {}, unset: [], conflict: null };
+  if (!Object.hasOwn(attributes ?? {}, "willpower")) return { set: {}, unset: [], conflict: null };
   const willpower = attributes.willpower;
   const guts = attributes.guts;
   const gutsValue = guts?.value;
@@ -202,7 +206,7 @@ function planWillpowerToGuts({ actors, items, scenes }) {
 // be lost, so link first, then remove the fields.
 
 function legacyMechWeaponUnset(system = {}) {
-  return LEGACY_MECH_WEAPON_FIELDS.filter(field => hasOwn(system, field)).map(field => `system.${field}`);
+  return LEGACY_MECH_WEAPON_FIELDS.filter(field => Object.hasOwn(system ?? {}, field)).map(field => `system.${field}`);
 }
 
 function planLegacyHardpointLink({ actors, items }) {
@@ -251,7 +255,7 @@ function planLegacyHardpointLink({ actors, items }) {
 // its typed resistances.
 
 function planArmorUpdate(system = {}) {
-  if (!hasOwn(system, "mitigation")) return null;
+  if (!Object.hasOwn(system ?? {}, "mitigation")) return null;
   const set = {};
   const existing = system.mitigationByType;
   const hasTyped = existing && Object.values(existing).some(value => toNumber(value, 0) !== 0);
