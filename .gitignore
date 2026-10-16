@@ -1,1 +1,7 @@
 node_modules/
+
+# Local editor state (Visual Studio)
+.vs/
+
+# Local header/template backup snapshots
+backups/
