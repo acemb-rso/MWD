@@ -1061,6 +1061,23 @@ ECM Spike should stay in the interference lane. In the core workflow it does not
 
 **Implemented:** ECM Spike declares `appliesToTarget: ["ecmJamming"]` and `targetDefenseDice: "ecmSpikeDefenseDice"` in the machine action catalog. A successful Spike applies ECM Jamming to the target (`resolveTargetStatusActionExecution` in `roll/ew-execution.js`), and a target with EPM Boosted removes 2 dice from the Spike. ECM Jamming degrades the **jammed machine's own sensors**: its Targeting Data -2, +2 tracking penalty on its attacks, and it cannot acquire beyond Track. Its EPM Boosted cancels all three. Jamming has no timer; EPM Filter clears it. Being hard to target is the separate `ecmShrouded` (ECM cloud) status.
 
+**ECM cloud (`ecmShrouded`):** granted by ECM modules (Guardian ECM, Nova and
+Watchdog CEWS, AR14 Sheathed Beacon; some spread it to nearby allies). While it
+is effective against an observer (`isEcmShroudEffective` in
+`mwd/machine-ew-state.js`) it gives +1 tracking penalty, +1 Acquire DN, stops
+acquisition at Track, and counts as the ECM-support situation (+1 die) for the
+bearer's Break Lock. Situations do not stack: the better of the selected
+situation and ECM support applies.
+
+**Active Probe vs. ECM (design decision, 2026-10-15).** In the BattleTech
+wargame an Active Probe automatically reveals units (placement and record sheet
+become known) and an ECM Suite blocks that, which is why the MechWarrior:
+Destiny rulebook describes ECM as rendering probes unusable in its bubble. MWD
+instead models sensing as the Detection State ladder, so an Active Probe is a
+sensor aid that **sees through** an ECM cloud (`bypassStatuses: ["ecmShrouded"]`)
+rather than a reveal ECM must block. This inversion is intentional. TAG and
+NARC also bypass the cloud (hard designations).
+
 Suggested rule:
 
 ```ts

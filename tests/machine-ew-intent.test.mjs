@@ -400,6 +400,71 @@ test("acquire can bypass ecmShrouded only through matching asset module effect",
   }
 });
 
+const shroudBypassModule = () => ({
+  id: "probe",
+  name: "Active Probe",
+  type: "assetModule",
+  canonicalType: "assetModule",
+  system: {
+    activation: { mode: "toggle", active: true },
+    effects: [{
+      id: "ignore-shroud",
+      timing: "active",
+      requires: { actionIds: ["acquireTarget"] },
+      modifies: { bypassStatuses: ["ecmShrouded"] },
+    }],
+  },
+});
+
+test("an ECM cloud stops acquisition at Track unless the acquirer bypasses it", async () => {
+  const { attackerActor, attackerToken, targetToken, targetTokenUuid } = setScene({ detectionState: "track" });
+  targetToken.actor.statuses.add("ecmShrouded");
+  const acquire = () => resolveAcquire({ actor: attackerActor, payload: { sourceTokenId: attackerToken.id, targetTokenUuid } });
+
+  try {
+    await assert.rejects(acquire(), /prevents advancing beyond Track/);
+    attackerActor.items = [shroudBypassModule()];
+    const bypassed = await acquire();
+    assert.equal(bypassed.acquire.ceiling, "lock");
+  } finally {
+    clearScene();
+  }
+});
+
+test("Break Lock gets ECM support from the defender's ECM cloud without stacking", async () => {
+  ensureFoundryStub();
+  const defender = createMachineActor("Defender");
+  defender.statuses.add("ecmShrouded");
+  const observer = createMachineActor("Observer");
+  const defenderToken = { id: "defender-token", actor: defender, document: { id: "defender-token", uuid: "Scene.scene.Token.defender" } };
+  const observerToken = { id: "observer-token", actor: observer, document: { id: "observer-token", uuid: "Scene.scene.Token.observer" } };
+  globalThis.canvas = {
+    tokens: {
+      get: id => id === defenderToken.id ? defenderToken : id === observerToken.id ? observerToken : null,
+      placeables: [defenderToken, observerToken],
+    },
+  };
+  globalThis.game = { combat: { combatants: [createCombatant({ tokenId: observerToken.id, targetTokenUuid: defenderToken.document.uuid, detectionState: "track" })] } };
+  const breakLock = situation => resolveBreakLock({
+    actor: defender,
+    payload: { sourceTokenId: defenderToken.id, targetTokenId: observerToken.id, breakLockSituation: situation },
+  });
+  const situationPart = resolved => resolved.breakdown.find(part => part.id === "breakLock.situation");
+
+  try {
+    assert.deepEqual(situationPart(await breakLock("typical")), { id: "breakLock.situation", label: "ECM Shroud", value: 1 });
+    assert.equal(situationPart(await breakLock("open"))?.value, 1);
+    const woods = situationPart(await breakLock("woods"));
+    assert.equal(woods?.value, 1);
+    assert.notEqual(woods?.label, "ECM Shroud");
+
+    observer.items = [shroudBypassModule()];
+    assert.equal(situationPart(await breakLock("typical")), undefined);
+  } finally {
+    clearScene();
+  }
+});
+
 test("machine stealth increases acquire DN and counters reduce only stealth", async () => {
   const { attackerActor, attackerToken, targetToken, targetTokenUuid } = setScene({ detectionState: "contact" });
   targetToken.actor.type = "battlemech";

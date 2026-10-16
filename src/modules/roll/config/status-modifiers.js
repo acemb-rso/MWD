@@ -272,7 +272,10 @@ export const STATUS_MAP = Object.freeze({
       effectText: "ECM Jamming: own Targeting Data -2, +2 tracking penalty on own attacks, cannot acquire beyond Track.",
     }],
   }),
-  ecmShrouded: marker("ECM Shrouded", "ECM defense marker; dedicated EW helpers handle context-specific effects."),
+  // ECM cloud. Effects need the observer (bypass by Active Probe), so EW helpers
+  // own them (machine-ew-state isEcmShroudEffective): +1 tracking penalty, +1
+  // Acquire DN, acquisition capped at Track, ECM support for Break Lock.
+  ecmShrouded: marker("ECM Shrouded", "ECM cloud marker; machine-ew-state EW helpers apply its observer-dependent effects."),
   epmBoosted: machine("EPM Boosted", {
     dice: [{ id: "epmBoosted.ecmSpikeDefense", selector: "ecmSpikeDefenseDice", value: 2, effectText: "EPM Boosted: -2 dice against incoming ECM Spike attempts." }],
   }),

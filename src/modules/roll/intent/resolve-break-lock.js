@@ -5,7 +5,7 @@ import { TEMPLATE } from "../../core/constants.js";
 import { getSkillDef } from "../../mwd/skills.js";
 import { resolveMachineOperator } from "../../mwd/machine-operator.js";
 import { getMachineSignatureEmissionModel } from "../../mwd/machine-stealth.js";
-import { getAttackerCombatant, getDetectionState } from "../../mwd/machine-ew-state.js";
+import { getAttackerCombatant, getDetectionState, isEcmShroudEffective } from "../../mwd/machine-ew-state.js";
 import { getDetectionStateLabel } from "../../mwd/machine-ew.js";
 import { isMachineActor } from "../../utils/actor-guards.js";
 import { toNumber } from "../../utils/coercion.js";
@@ -101,15 +101,19 @@ function getSituationLabel(situation = "typical") {
   return "Typical Battlefield";
 }
 
-function getBreakLockSituationDicePart(payload = {}) {
-  const situation = normalizeSituation(payload?.breakLockSituation ?? payload?.situation);
+// An effective ECM cloud on the defender counts as the ECM-support situation.
+// Situations do not stack, so the better of the selected one and ECM applies.
+function getBreakLockSituationDicePart(payload = {}, { ecmShrouded = false } = {}) {
+  const selected = normalizeSituation(payload?.breakLockSituation ?? payload?.situation);
+  const useShroud = ecmShrouded && (SITUATION_DICE[selected] ?? 0) < SITUATION_DICE.ecm;
+  const situation = useShroud ? "ecm" : selected;
   const value = SITUATION_DICE[situation] ?? 0;
   if (!value) return null;
   return {
     id: "breakLock.situation",
-    label: getSituationLabel(situation),
+    label: useShroud ? "ECM Shroud" : getSituationLabel(situation),
     value,
-    tags: ["breakLock", "situation"],
+    tags: ["breakLock", "situation", ...(useShroud ? ["ecm"] : [])],
   };
 }
 
@@ -184,7 +188,9 @@ export async function resolveBreakLock({ actor, payload } = {}) {
   const stealthRating = Math.max(0, toNumber(roller?.system?.skills?.[skillKey]?.rating, 0));
   const stealthBonus = Math.max(0, toNumber(roller?.system?.skills?.[skillKey]?.bonus, 0));
   const currentState = getObserverDetectionState({ observerToken, sourceToken, payload });
-  const situationPart = getBreakLockSituationDicePart(payload);
+  const situationPart = getBreakLockSituationDicePart(payload, {
+    ecmShrouded: isEcmShroudEffective(actor, { attacker: observerToken?.actor ?? null }),
+  });
   const situationBonus = toNumber(situationPart?.value, 0);
   const dnParts = buildBreakLockDnParts(actor, observerToken?.actor ?? null, payload, currentState);
   const dn = Math.max(1, dnParts.reduce((sum, part) => sum + toNumber(part.value, 0), 0));

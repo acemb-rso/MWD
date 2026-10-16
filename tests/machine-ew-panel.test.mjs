@@ -331,7 +331,7 @@ test("EW panel uses pending token move coordinates before canvas centers refresh
   delete globalThis.canvas;
 });
 
-test("EW panel shows capped targeting data and penalties for Track targets", () => {
+test("EW panel shows capped targeting data and penalties for Track targets under an ECM cloud", () => {
   const target = createTargetToken({
     id: "target-2",
     uuid: "Scene.scene.Token.target-2",
@@ -357,17 +357,17 @@ test("EW panel shows capped targeting data and penalties for Track targets", () 
   });
   const [row] = panel.rows;
 
-  assert.equal(panel.canAcquireAny, true);
+  // The ECM cloud stops acquisition at Track; targeting data at Track still works.
+  assert.equal(panel.canAcquireAny, false);
   assert.equal(panel.canTargetAny, true);
   assert.equal(row.hasPacket, true);
   assert.equal(row.packetValue, 3);
   assert.equal(row.packetCap, 3);
   assert.equal(row.trackingPenalty, 2);
-  assert.equal(row.canAcquire, true);
+  assert.equal(row.canAcquire, false);
   assert.equal(row.canTarget, true);
-  assert.equal(row.acquireHint, "Acquire can upgrade to Lock.");
+  assert.equal(row.acquireHint, "ECM prevents advancing beyond Track.");
   assert.equal(row.targetHint, "Targeting Data available.");
-  assert.equal(row.acquireAction.title, "Acquire can upgrade to Lock.");
   assert.equal(row.targetAction.title, "Targeting Data available.");
 });
 

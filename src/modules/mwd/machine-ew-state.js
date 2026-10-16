@@ -298,23 +298,33 @@ export function getTrackingPenalty(targetActor, targetCombatant, options = {}) {
   return Math.max(0, penalty);
 }
 
-export function getAcquireDnModifier(targetActor, { attacker = null, payload = {}, resolved = {} } = {}) {
+// ECM Shrouded (the protective ECM cloud) protects the bearer against an
+// observer unless the observer's equipment sees through it (asset-module
+// `bypassStatuses`, e.g. Active Probe), judged in the acquire context. TAG/NARC
+// bypass it separately through getEffectiveDetectionState.
+export function isEcmShroudEffective(targetActor, { attacker = null, payload = {}, resolved = {} } = {}) {
   const statuses = targetActor?.statuses ?? new Set();
-  const derivedStatuses = getAssetModuleDerivedStatuses(targetActor);
-  const shrouded = statuses.has("ecmShrouded") || derivedStatuses.has("ecmShrouded");
-  if (!shrouded) return 0;
+  const shrouded = statuses.has("ecmShrouded") || getAssetModuleDerivedStatuses(targetActor).has("ecmShrouded");
+  if (!shrouded) return false;
 
   const bypasses = getAssetModuleBypassStatuses(attacker, {
     payload: { ...payload, actionId: "acquireTarget" },
     resolved: { ...resolved, intent: "acquire" },
   });
-  return bypasses.has("ecmShrouded") ? 0 : 1;
+  return !bypasses.has("ecmShrouded");
+}
+
+export function getAcquireDnModifier(targetActor, options = {}) {
+  return isEcmShroudEffective(targetActor, options) ? 1 : 0;
 }
 
 export function getAcquireCeiling(targetActor, options = {}) {
   // The acquirer's own state can cap what it can reach (options.attackerActor,
-  // e.g. ECM Jamming caps at Track).
-  const baseCap = getMachineObserverDetectionCap(options.attackerActor);
+  // e.g. ECM Jamming caps at Track), and an effective ECM cloud on the target
+  // stops acquisition at Track.
+  const observerCap = getMachineObserverDetectionCap(options.attackerActor);
+  const shroudCap = isEcmShroudEffective(targetActor, { attacker: options.attackerActor }) ? "track" : "lock";
+  const baseCap = lowerDetectionCap(observerCap, shroudCap);
   const derivedCap = getMachineDetectionStateCap(targetActor);
   const battleArmorCap = getBattleArmorMachineTargetProfile(targetActor, options)?.detectionStateCap ?? "lock";
   const baseIndex = DETECTION_STATE_ORDER.indexOf(baseCap);
