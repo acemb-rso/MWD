@@ -645,6 +645,7 @@ export function summarizeAttackDamageResult(result, target = {}, damage = {}, { 
       hitLocation: result.hitLocation ?? null,
       critical: result.critical ?? null,
       damagePreview: result.damagePreview ?? null,
+      shield: result.shield ?? null,
       reliabilityOptions: result.reliabilityOptions ?? null,
       previewRevision: Number(result.previewRevision ?? 0) || 0,
       machine: result.machine ?? null,

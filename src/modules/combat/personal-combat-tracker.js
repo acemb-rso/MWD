@@ -18,7 +18,7 @@
  */
 
 
-import { humanizeStatusKey } from "../dialog/token-status-dialog.js";
+import { applyManagedStatusUpdate, humanizeStatusKey } from "../dialog/token-status-dialog.js";
 import {
   getCommonCheckDefinition,
   getCommonCheckPayload
@@ -54,6 +54,7 @@ import {
 import { renderHazardCard } from "../area-effects/hazard-chat.js";
 import { resolveBattlemechPendingHeat } from "../mwd/machine-heat.js";
 import { buildMachineActivationStartReport, isMachineActor } from "../mwd/machine-crit-effects.js";
+import { SHIELDED_STATUS_ID } from "../mwd/critical-hits.js";
 import { getBattlemechUsedWeaponGroupIds, markBattlemechWeaponGroupUsed } from "../mwd/battlemech-weapon-groups.js";
 import { getPersonalActionGateReason, getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
 import { clearSuppressedTargetingPackets } from "../mwd/machine-ew-state.js";
@@ -3101,10 +3102,17 @@ export class PersonalCombatTracker {
 
     reminderLines.push(...report.reminders.map(entry => `${entry.label}: ${entry.text}`));
 
+    // Shield lasts until the start of the machine's next activation if no hit
+    // consumed it first (machine-action-catalog `shield`).
+    if (actor.statuses?.has?.(SHIELDED_STATUS_ID)) {
+      await applyManagedStatusUpdate({ actor, statusId: SHIELDED_STATUS_ID, active: false });
+      reminderLines.push("Shield: unused Shielded posture ended at the start of activation.");
+    }
+
     if (reminderLines.length) {
       const content = [
         `<div class="mwd-gm-notice">`,
-        `<strong>${foundry.utils.escapeHTML(actor.name ?? "Machine")} - Critical Effects</strong>`,
+        `<strong>${foundry.utils.escapeHTML(actor.name ?? "Machine")} - Start of Activation</strong>`,
         `<ul>${reminderLines.map(line => `<li>${foundry.utils.escapeHTML(line)}</li>`).join("")}</ul>`,
         `</div>`,
       ].join("");

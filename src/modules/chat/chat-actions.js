@@ -391,6 +391,13 @@ function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null
     });
   }
 
+  if (summary?.shield?.consumed) {
+    rows.push({
+      label: "Shield",
+      value: `-${Number(summary.shield.reduction ?? 0)} damage; Shielded ended`
+    });
+  }
+
   if (summary?.usedArmor && summary?.mitigation) {
     rows.push({
       label: "Resistance",

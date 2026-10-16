@@ -245,7 +245,7 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
     });
   } else if (action.id === "shield") {
     await ChatMessage.create({
-      content: `<div class="mwd-chat-message"><p><strong>${actor?.name ?? "BattleMech"}</strong> takes a <strong>Shield</strong> posture. Gains <strong>Shielded</strong> (+4 DR / −1 AR) until the start of next activation. The first hit or graze reduces incoming damage by 2, then Shield ends — apply this manually and clear the <em>Shielded</em> status. Clear at the start of the next turn if unused.</p></div>`,
+      content: `<div class="mwd-chat-message"><p><strong>${actor?.name ?? "BattleMech"}</strong> takes a <strong>Shield</strong> posture. Gains <strong>Shielded</strong> (+4 DR / −1 AR) until the start of next activation. The first hit or graze reduces incoming damage by 2, then Shield ends (applied automatically when damage is applied).</p></div>`,
       speaker: ChatMessage.getSpeaker({ actor }),
       flags: { mwd: { messageType: "postureAction", actionId: "shield" } },
     });
