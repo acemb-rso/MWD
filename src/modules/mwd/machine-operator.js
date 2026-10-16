@@ -15,6 +15,14 @@
  * @consumers resolve-attack.js, mwd-roll.js, queued-attack-damage.js, machine-quick-actions.js
  */
 
+import { isPersonActor } from "../utils/actor-guards.js";
+
+// Any personal actor (character or NPC) may be linked as a machine's pilot or
+// operator; machines cannot operate machines.
+export function isEligibleMachineOperator(actor = null) {
+  return isPersonActor(actor);
+}
+
 async function resolveActorUuid(uuid = "") {
   const value = String(uuid ?? "").trim();
   if (!value || typeof fromUuid !== "function") return null;
