@@ -1147,7 +1147,7 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
       execution: "skill",
       enabled: hasTargets,
       reason: "Target a token before launching an ECM Spike.",
-      mechanics: "Roll only; ECM state effects are not automated yet.",
+      mechanics: "Automated on success: target gains ECM Jamming until cleared by EPM Filter.",
     }),
     buildEwAction({
       id: "epmFilter",

@@ -1058,6 +1058,8 @@ ECM should not usually destroy targetingData outright. It should:
 
 ECM Spike should stay in the interference lane. In the core workflow it does not directly downgrade Detection State, and it is not the generic answer to a fresh targetingData packet. Use Break Lock for Detection State and Defensive Jink for targetingData.
 
+**Implemented:** a successful ECM Spike (`resolveEcmSpikeExecution` in `roll/ew-execution.js`) applies the `ecmJamming` status to the targeted machine. Jamming has no timer; it lasts until cleared by EPM Filter. A Spike against an already-jammed target changes nothing.
+
 Suggested rule:
 
 ```ts

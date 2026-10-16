@@ -403,6 +403,63 @@ export async function resolveDefensiveJinkRollExecution({ defender, payload = {}
   };
 }
 
+// ECM Jamming persists until cleared by EPM Filter (docs/MWD states.md); the
+// status is boolean, so a repeat Spike on a jammed target changes nothing.
+export const ECM_JAMMING_STATUS_ID = "ecmJamming";
+
+/**
+ * Apply ECM Spike: a successful offensive EW roll gives the targeted machine
+ * ECM Jamming.
+ */
+export async function resolveEcmSpikeExecution({ attacker, payload = {}, ctx = {}, outcomeModel } = {}) {
+  const actionKey = String(payload?.machineActionKey ?? payload?.actionId ?? ctx?.data?.actionId ?? "").trim();
+  if (actionKey !== "ecmSpike" && ctx?.intent !== "ecmSpike") return null;
+
+  const hits = Number(outcomeModel?.successes ?? outcomeModel?.hits ?? 0);
+  const dn = Number(ctx?.difficulty?.dn ?? 1);
+  if (hits < dn) {
+    return { ok: false, reason: "ECM Spike roll failed.", hits, dn };
+  }
+
+  const targetToken = getAttackerTokenFromId(payload?.targetTokenId) ?? getAttackerTokenFromUuid(payload?.targetTokenUuid);
+  const targetActor = targetToken?.actor ?? null;
+  const targetTokenUuid = getTokenUuid(targetToken) || String(payload?.targetTokenUuid ?? "").trim();
+  if (!targetActor) {
+    return {
+      ok: false,
+      reason: "ECM Spike succeeded, but the target token was not found; ECM Jamming was not applied.",
+      persistenceFailed: true,
+      hits,
+      dn,
+      targetTokenUuid,
+    };
+  }
+  if (!isMachineActor(targetActor)) {
+    return { ok: false, reason: "ECM Spike target is not a machine.", hits, dn, targetTokenUuid };
+  }
+
+  const alreadyJammed = targetActor.statuses?.has?.(ECM_JAMMING_STATUS_ID) ?? false;
+  if (!alreadyJammed) {
+    try {
+      await targetActor.toggleStatusEffect(ECM_JAMMING_STATUS_ID, { active: true, overlay: false });
+    } catch (error) {
+      console.warn("MWD | ECM Spike: could not apply ECM Jamming.", error);
+      return {
+        ok: false,
+        reason: `ECM Spike succeeded, but ECM Jamming could not be applied to ${targetActor.name}; a GM must apply it.`,
+        persistenceFailed: true,
+        hits,
+        dn,
+        targetTokenUuid,
+      };
+    }
+  }
+
+  Hooks.callAll("mwd.afterEcmSpike", { attacker, targetActor, targetTokenUuid, alreadyJammed, ctx });
+
+  return { ok: true, hits, dn, alreadyJammed, targetName: targetActor.name ?? "", targetTokenUuid };
+}
+
 export async function resolveSuppressBeaconRollExecution({ suppressor, payload = {}, ctx = {}, outcomeModel } = {}) {
   const actionKey = String(payload?.machineActionKey ?? payload?.actionId ?? ctx?.data?.actionId ?? "").trim();
   if (actionKey !== "suppressBeacon" && ctx?.intent !== "suppressBeacon") return null;

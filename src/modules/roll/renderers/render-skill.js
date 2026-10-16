@@ -44,6 +44,7 @@ export function enhanceSkill(resolved, vm) {
     enhanceFirstAid(r, vm, firstAid);
   }
   enhanceSuppressBeacon(r, vm);
+  enhanceEcmSpike(r, vm);
 }
 
 function enhanceSuppressBeacon(resolved, vm) {
@@ -62,6 +63,18 @@ function enhanceSuppressBeacon(resolved, vm) {
     text: `Suppress Beacon: ${result.reason ?? "No beacon/network packet was suppressed."}`,
     title: "",
   });
+}
+
+function enhanceEcmSpike(resolved, vm) {
+  const result = resolved?.ewEcmSpikeResult ?? null;
+  if (!result) return;
+
+  const text = result.ok
+    ? (result.alreadyJammed
+      ? `ECM Spike: ${result.targetName || "Target"} is already ECM Jammed.`
+      : `ECM Spike: ${result.targetName || "Target"} is ECM Jammed until cleared by EPM Filter.`)
+    : `ECM Spike: ${result.reason ?? "ECM Jamming was not applied."}`;
+  vm.footerRows.push({ text, title: "" });
 }
 
 function enhanceFirstAid(_resolved, vm, firstAid) {
