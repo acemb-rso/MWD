@@ -134,10 +134,6 @@
     "src/modules/roll/renderers/render-attack.js",
     "src/modules/roll/renderers/render-skill.js"
   ],
-  "forcedDeletion": [
-    "src/modules/item/anarchy-base-item.js",
-    "src/modules/system/migrations.js"
-  ],
   "formatAttackRatings": [
     "src/modules/roll/renderers/render-attack.js",
     "src/modules/sheets/battlemech-sheet-v2.js"

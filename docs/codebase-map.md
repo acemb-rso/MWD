@@ -29,6 +29,7 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 - `src/modules/core/config.js` - User-facing labels and other display configuration.
 - `src/modules/core/enums.js` - Enum builders used by sheets and dialogs.
 - `src/modules/system/system-settings.js` - World settings for themes, GM tools, and runtime options.
+- `src/modules/system/migration/` - Versioned data-schema migrations: pure transforms (`schema-migrations.js`) and the GM-gated `ready` runner (`migration-runner.js`). See [migrations.md](migrations.md).
 - `src/modules/system/styles.js` - Theme selection helpers used by AppV2 sheets.
 - `src/modules/utils/document-type-defaults.js` - Resolves create-time actor/item defaults from an inlined JS constant.
 
