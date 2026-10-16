@@ -1673,7 +1673,9 @@ export class MWDItem extends Item {
     });
   }
 
-  getActivePayloadReloadState({ payloadId = "", ammoTypeId = "", user = game.user } = {}) {
+  // `combatAction`: the caller is the combat Reload action, which has already
+  // gone through the action economy, so the in-combat sheet gate does not apply.
+  getActivePayloadReloadState({ payloadId = "", ammoTypeId = "", user = game.user, combatAction = false } = {}) {
     const category = String(this.system?.category ?? this.system?.weaponCategory ?? "").trim().toLowerCase();
     const emptyState = {
       canReload: false,
@@ -1803,10 +1805,10 @@ export class MWDItem extends Item {
       };
     }
 
-    if (inCombat && !user?.isGM) {
+    if (inCombat && !user?.isGM && !combatAction) {
       return {
         ...emptyState,
-        reason: "Only a GM can reload from the weapon sheet during combat.",
+        reason: "Only a GM can reload from the weapon sheet during combat. Use the Reload combat action.",
         payloadLabel,
         activePayloadId,
         payloadState,
@@ -1853,8 +1855,8 @@ export class MWDItem extends Item {
     return detailed ? state : state.canReload;
   }
 
-  async reloadActivePayload({ payloadId = "", ammoTypeId = "" } = {}) {
-    const state = this.getActivePayloadReloadState({ payloadId, ammoTypeId });
+  async reloadActivePayload({ payloadId = "", ammoTypeId = "", combatAction = false } = {}) {
+    const state = this.getActivePayloadReloadState({ payloadId, ammoTypeId, combatAction });
     if (!state.canReload || !state.source?.id) {
       return { ok: false, ...state };
     }
