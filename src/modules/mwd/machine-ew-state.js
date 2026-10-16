@@ -9,6 +9,8 @@ import { ASSET_MODULE_HOOKS, dispatchAssetModuleHook } from "./asset-module-hook
 import {
   adjustTargetingDataValue,
   getMachineDetectionStateCap,
+  getMachineAttackerTrackingPenalty,
+  getMachineObserverDetectionCap,
   getMachineTrackingPenaltyAdjustment,
 } from "./machine-state-effects.js";
 import {
@@ -22,7 +24,6 @@ import {
 } from "./battle-armor.js";
 import { getActiveArmorTraitEffects } from "./personal-damage.js";
 import { getApplicableStealthProfileSourceIds } from "./machine-stealth.js";
-import { normalizeStatusConditionId } from "../status/status-condition-catalog.js";
 import {
   getTokenActor,
   getTokenDisposition,
@@ -38,12 +39,6 @@ function resolveTargetActorFromUuid(targetTokenUuid = "") {
   const uuid = String(targetTokenUuid ?? "").trim();
   if (!uuid) return null;
   return globalThis.canvas?.tokens?.placeables?.find(token => (token.document?.uuid ?? token.uuid) === uuid)?.actor ?? null;
-}
-
-function hasStatus(actor = null, statusId = "") {
-  const id = normalizeStatusConditionId(statusId);
-  if (!actor || !id) return false;
-  return Array.from(actor.statuses ?? []).some(activeId => normalizeStatusConditionId(activeId) === id);
 }
 
 function normalizeTargetUuid(value = "") {
@@ -269,11 +264,11 @@ export function getEffectiveDetectionState(combatant, targetTokenUuid, targetAct
 
 export function getTrackingPenalty(targetActor, targetCombatant, options = {}) {
   // Tracking penalty is an aggregate of target statuses, stealth modules,
-  // movement state, and Battle Armor context. Attack code consumes only the sum.
-  let penalty = 0;
+  // movement state, Battle Armor context, and attacker-side status penalties
+  // (options.attackerActor, e.g. ECM Jamming). Attack code consumes only the sum.
+  let penalty = getMachineAttackerTrackingPenalty(options.attackerActor);
   const statuses = targetActor?.statuses ?? new Set();
   const derivedStatuses = getAssetModuleDerivedStatuses(targetActor);
-  if (statuses.has("ecmJamming")) penalty += 2;
   if (statuses.has("ecmShrouded") || derivedStatuses.has("ecmShrouded")) penalty += 1;
   if (statuses.has("obscuredLight")) penalty += 1;
   if (statuses.has("obscuredHeavy")) penalty += 3;
@@ -317,9 +312,9 @@ export function getAcquireDnModifier(targetActor, { attacker = null, payload = {
 }
 
 export function getAcquireCeiling(targetActor, options = {}) {
-  const ecmJammed = hasStatus(targetActor, "ecmJamming");
-  const epmBoosted = hasStatus(targetActor, "epmBoosted");
-  const baseCap = ecmJammed && !epmBoosted ? "track" : "lock";
+  // The acquirer's own state can cap what it can reach (options.attackerActor,
+  // e.g. ECM Jamming caps at Track).
+  const baseCap = getMachineObserverDetectionCap(options.attackerActor);
   const derivedCap = getMachineDetectionStateCap(targetActor);
   const battleArmorCap = getBattleArmorMachineTargetProfile(targetActor, options)?.detectionStateCap ?? "lock";
   const baseIndex = DETECTION_STATE_ORDER.indexOf(baseCap);

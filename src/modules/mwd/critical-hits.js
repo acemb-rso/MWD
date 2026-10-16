@@ -23,7 +23,7 @@ import {
   getMachineAttackQualityShockGain,
   resolveMachineDegradation,
 } from "./machine-degradation.js";
-import { getMachineDerivedStatusIds } from "./machine-state-effects.js";
+import { getMachineDerivedStatusIds, getMachineIncomingDamageModifiers } from "./machine-state-effects.js";
 import {
   buildMachineCriticalConsequenceData,
   normalizeMachineCriticalRecord,
@@ -406,7 +406,7 @@ function buildDamagePreview(preview = {}) {
     sourceScale: String(preview?.sourceScale ?? "").trim(),
     targetScale: String(preview?.targetScale ?? "").trim(),
     scaleConversion: cloneValue(preview?.scaleConversion ?? null, null),
-    shield: cloneValue(preview?.shield ?? null, null),
+    statusDamage: cloneValue(preview?.statusDamage ?? null, null),
   };
 }
 
@@ -446,12 +446,6 @@ function resolveAttackQuality(payload = {}) {
   return "";
 }
 
-// Shield posture (docs/MWD Actions.md): the first hit or graze taken while
-// Shielded loses 2 incoming damage, then Shielded ends. Evaluated against the
-// defender's current state, so only the first queued attack applied benefits.
-export const SHIELDED_STATUS_ID = "shielded";
-export const SHIELD_FIRST_HIT_REDUCTION = 2;
-
 export function previewMachineAttackDamage({
   actor = null,
   payload = {},
@@ -479,10 +473,15 @@ export function previewMachineAttackDamage({
   };
   dispatchAssetModuleHook(ASSET_MODULE_HOOKS.harm.beforeMachineDamagePreview, damageContext);
   const moduleAdjustedIncoming = Math.max(0, Math.ceil(Number(damageContext.adjustedIncoming ?? damageContext.damageIncoming ?? incoming) || 0));
-  const shielded = actor.statuses?.has?.(SHIELDED_STATUS_ID) ?? false;
-  const shieldReduction = shielded ? Math.min(SHIELD_FIRST_HIT_REDUCTION, moduleAdjustedIncoming) : 0;
-  const shield = { consumed: shielded, reduction: shieldReduction };
-  const adjustedIncoming = moduleAdjustedIncoming - shieldReduction;
+  // Defender status damage effects (status-modifiers `machineState.damage`, e.g.
+  // Shielded). Read from current state, so of several queued attacks only the
+  // first applied sees a status that the hit consumes.
+  const statusDamageModifiers = getMachineIncomingDamageModifiers(actor);
+  const adjustedIncoming = Math.max(0, moduleAdjustedIncoming + statusDamageModifiers.delta);
+  const statusDamage = {
+    delta: adjustedIncoming - moduleAdjustedIncoming,
+    consumes: statusDamageModifiers.consumes,
+  };
   const armor = getMachineMonitorState(actor, TEMPLATE.monitors.armor);
   const structure = getMachineMonitorState(actor, TEMPLATE.monitors.structure);
   const resolvedHitLocation = hitLocation
@@ -512,7 +511,7 @@ export function previewMachineAttackDamage({
     damageType: damageContext.damageType,
     effectiveAp: damageContext.effectiveAp,
     assetModuleContributions: damageContext.contributions,
-    shield,
+    statusDamage,
     beforeLabel: `Armor ${armor.remaining}/${armor.max}, Structure ${structure.remaining}/${structure.max}`,
     afterLabel: `Armor ${armorAfterValue}/${armor.max}, Structure ${structureAfterValue}/${structure.max}`,
     sourceScale,
@@ -538,7 +537,7 @@ export function previewMachineAttackDamage({
     damageType: preview.damageType,
     effectiveAp: preview.effectiveAp,
     assetModuleContributions: preview.assetModuleContributions,
-    shield,
+    statusDamage,
     hitLocation: resolvedHitLocation,
     critical: criticalState,
     machine: {
@@ -1156,8 +1155,8 @@ export async function applyMachineAttackDamage({
       await applyMachineCritStatusConditions(actor, critDraw.crits);
     }
     await applyDegradationStatusConditions(actor, degradation);
-    if (preview.shield?.consumed) {
-      await applyManagedStatusUpdate({ actor, statusId: SHIELDED_STATUS_ID, active: false });
+    for (const consumed of preview.statusDamage?.consumes ?? []) {
+      await applyManagedStatusUpdate({ actor, statusId: consumed.statusId, active: false });
     }
   }
 

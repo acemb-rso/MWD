@@ -6,9 +6,11 @@
 import { TEMPLATE } from "../../core/constants.js";
 import { computeHeatPenalties } from "../../mwd/heat-effects.js";
 import { normalizeMachineHeatThresholds } from "../../mwd/heat-state.js";
+import { getMachineActionDefinition } from "../../mwd/machine-action-catalog.js";
 import {
   getMachineAcquireDiceModifier,
   getMachineAttackDiceModifier,
+  getMachineDefenseDice,
   getMachinePilotingDiceModifier,
   getMachineTargetingDiceModifier,
 } from "../../mwd/machine-state-effects.js";
@@ -29,6 +31,24 @@ function getBattlemechRangedHeatPenalty(actor = null) {
   const trackLength = Math.max(0, toNumber(heatMonitor.max ?? heatConfig.max ?? heatConfig.hardMax, 0));
   const thresholds = normalizeMachineHeatThresholds(heatConfig.thresholds ?? {}, trackLength);
   return Math.max(0, toNumber(computeHeatPenalties(current, thresholds).rangedDicePenalty, 0));
+}
+
+// A machine action may declare the target's rule-state selector it is resisted
+// by (machine-action-catalog `targetDefenseDice`).
+function getTargetDefenseDice(payload = {}) {
+  const actionKey = String(payload?.machineActionKey ?? "").trim();
+  if (!actionKey) return null;
+  const action = getMachineActionDefinition(actionKey);
+  if (!action.targetDefenseDice) return null;
+  const targetActor = globalThis.canvas?.tokens?.get?.(String(payload?.targetTokenId ?? "").trim())?.actor ?? null;
+  const value = getMachineDefenseDice(targetActor, action.targetDefenseDice);
+  if (!value) return null;
+  return {
+    id: `machineState.targetDefense.${action.key}`,
+    label: "Target Defense",
+    value: -value,
+    source: "Machine State",
+  };
 }
 
 export class MachineStateEffectsProvider {
@@ -105,6 +125,9 @@ export class MachineStateEffectsProvider {
         });
       }
     }
+
+    const targetDefense = getTargetDefenseDice(payload);
+    if (targetDefense) mods.push(targetDefense);
 
     return mods;
   }

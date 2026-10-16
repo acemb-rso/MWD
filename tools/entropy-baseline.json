@@ -325,7 +325,6 @@
   "hasStatus": [
     "src/modules/canvas/machine-sensor-detection.js",
     "src/modules/mwd/battlemech-movement-actions.js",
-    "src/modules/mwd/machine-ew-state.js",
     "src/modules/mwd/machine-state-effects.js",
     "src/modules/roll/intent/resolve-break-lock.js"
   ],

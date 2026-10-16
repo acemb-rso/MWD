@@ -44,7 +44,7 @@ export function enhanceSkill(resolved, vm) {
     enhanceFirstAid(r, vm, firstAid);
   }
   enhanceSuppressBeacon(r, vm);
-  enhanceEcmSpike(r, vm);
+  enhanceTargetStatus(r, vm);
 }
 
 function enhanceSuppressBeacon(resolved, vm) {
@@ -65,16 +65,22 @@ function enhanceSuppressBeacon(resolved, vm) {
   });
 }
 
-function enhanceEcmSpike(resolved, vm) {
-  const result = resolved?.ewEcmSpikeResult ?? null;
+function enhanceTargetStatus(resolved, vm) {
+  const result = resolved?.targetStatusResult ?? null;
   if (!result) return;
 
-  const text = result.ok
-    ? (result.alreadyJammed
-      ? `ECM Spike: ${result.targetName || "Target"} is already ECM Jammed.`
-      : `ECM Spike: ${result.targetName || "Target"} is ECM Jammed until cleared by EPM Filter.`)
-    : `ECM Spike: ${result.reason ?? "ECM Jamming was not applied."}`;
-  vm.footerRows.push({ text, title: "" });
+  if (!result.ok) {
+    vm.footerRows.push({ text: `${result.actionLabel}: ${result.reason ?? "No status was applied."}`, title: "" });
+    return;
+  }
+  const target = result.targetName || "Target";
+  for (const status of result.statuses ?? []) {
+    const until = status.clearedBy?.length ? ` until cleared by ${status.clearedBy.join(" or ")}` : "";
+    const text = status.alreadyActive
+      ? `${result.actionLabel}: ${target} already has ${status.label}.`
+      : `${result.actionLabel}: ${target} gains ${status.label}${until}.`;
+    vm.footerRows.push({ text, title: "" });
+  }
 }
 
 function enhanceFirstAid(_resolved, vm, firstAid) {

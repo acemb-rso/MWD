@@ -502,7 +502,8 @@ In the live system, tracking friction is assembled from several related lanes.
 `getTrackingPenalty(targetActor, targetCombatant, options)` starts at 0 and
 adds target-state friction:
 
-* `ecmJamming`: +2
+* attacker-side status penalties via `options.attackerActor` — e.g. the
+  attacker's own `ecmJamming`: +2 (cancelled by its EPM Boosted)
 * `ecmShrouded`: +1
 * `obscuredLight`: +1
 * `obscuredHeavy`: +3
@@ -1058,7 +1059,7 @@ ECM should not usually destroy targetingData outright. It should:
 
 ECM Spike should stay in the interference lane. In the core workflow it does not directly downgrade Detection State, and it is not the generic answer to a fresh targetingData packet. Use Break Lock for Detection State and Defensive Jink for targetingData.
 
-**Implemented:** a successful ECM Spike (`resolveEcmSpikeExecution` in `roll/ew-execution.js`) applies the `ecmJamming` status to the targeted machine. Jamming has no timer; it lasts until cleared by EPM Filter. A Spike against an already-jammed target changes nothing.
+**Implemented:** ECM Spike declares `appliesToTarget: ["ecmJamming"]` and `targetDefenseDice: "ecmSpikeDefenseDice"` in the machine action catalog. A successful Spike applies ECM Jamming to the target (`resolveTargetStatusActionExecution` in `roll/ew-execution.js`), and a target with EPM Boosted removes 2 dice from the Spike. ECM Jamming degrades the **jammed machine's own sensors**: its Targeting Data -2, +2 tracking penalty on its attacks, and it cannot acquire beyond Track. Its EPM Boosted cancels all three. Jamming has no timer; EPM Filter clears it. Being hard to target is the separate `ecmShrouded` (ECM cloud) status.
 
 Suggested rule:
 

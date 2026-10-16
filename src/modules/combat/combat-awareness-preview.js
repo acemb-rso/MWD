@@ -254,7 +254,7 @@ function buildMachineContext(actor = null, sourceToken = null, targetToken = nul
   const usablePacket = attackerCombatant && targetTokenUuid
     ? getUsableTargetingPacket(attackerCombatant, targetTokenUuid, systemAttr, detectionState, globalThis.game?.combat?.round)
     : null;
-  const ewTrackingPenalty = getTrackingPenalty(targetActor, targetCombatant);
+  const ewTrackingPenalty = getTrackingPenalty(targetActor, targetCombatant, { attackerActor: actor });
   const trackingPenalty = [];
 
   if (ewTrackingPenalty) {

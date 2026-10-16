@@ -26,7 +26,7 @@ export class EwTrackingPenaltyProvider {
     const targetActor = targetToken?.actor ?? null;
     const mods = [];
 
-    const penalty = getTrackingPenalty(targetActor, null);
+    const penalty = getTrackingPenalty(targetActor, null, { attackerActor: actor });
     if (penalty) {
       mods.push({
         id: "ew.trackingPenalty",

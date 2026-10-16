@@ -54,7 +54,7 @@ import {
 import { renderHazardCard } from "../area-effects/hazard-chat.js";
 import { resolveBattlemechPendingHeat } from "../mwd/machine-heat.js";
 import { buildMachineActivationStartReport, isMachineActor } from "../mwd/machine-crit-effects.js";
-import { SHIELDED_STATUS_ID } from "../mwd/critical-hits.js";
+import { getMachineStartTurnStatusClears } from "../mwd/machine-state-effects.js";
 import { getBattlemechUsedWeaponGroupIds, markBattlemechWeaponGroupUsed } from "../mwd/battlemech-weapon-groups.js";
 import { getPersonalActionGateReason, getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
 import { clearSuppressedTargetingPackets } from "../mwd/machine-ew-state.js";
@@ -3102,11 +3102,10 @@ export class PersonalCombatTracker {
 
     reminderLines.push(...report.reminders.map(entry => `${entry.label}: ${entry.text}`));
 
-    // Shield lasts until the start of the machine's next activation if no hit
-    // consumed it first (machine-action-catalog `shield`).
-    if (actor.statuses?.has?.(SHIELDED_STATUS_ID)) {
-      await applyManagedStatusUpdate({ actor, statusId: SHIELDED_STATUS_ID, active: false });
-      reminderLines.push("Shield: unused Shielded posture ended at the start of activation.");
+    // Statuses declaring `startTurn.clearStatus` end now (e.g. an unused Shield).
+    for (const clear of getMachineStartTurnStatusClears(actor)) {
+      await applyManagedStatusUpdate({ actor, statusId: clear.statusId, active: false });
+      if (clear.effectText) reminderLines.push(clear.effectText);
     }
 
     if (reminderLines.length) {

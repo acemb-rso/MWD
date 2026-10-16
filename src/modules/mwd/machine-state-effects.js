@@ -108,16 +108,22 @@ function machineCqValue(value, actor = null) {
   return toNumber(value[actorType] ?? value.default, 0);
 }
 
-function applyMachineStatusAnnotations(state, actor = null) {
+// Status annotations for a machine, including statuses carried by active
+// crits and asset modules (e.g. a module-granted EPM Boosted).
+function collectActorMachineAnnotations(actor = null) {
   const critStatusIds = getActiveMachineCrits(actor)
     .map(crit => String(crit?.statusId ?? "").trim())
     .filter(Boolean)
     .map(statusId => ({ statusId, sourceChannel: "critical" }));
   const assetStatusIds = Array.from(getAssetModuleDerivedStatuses(actor))
     .map(statusId => ({ statusId, sourceChannel: "degradation" }));
-  const annotations = collectMachineStateAnnotations(actor, {
+  return collectMachineStateAnnotations(actor, {
     extraStatusIds: [...critStatusIds, ...assetStatusIds],
   });
+}
+
+function applyMachineStatusAnnotations(state, actor = null) {
+  const annotations = collectActorMachineAnnotations(actor);
 
   for (const entry of annotations.dice) {
     const selector = String(entry.selector ?? "").trim();
@@ -151,6 +157,16 @@ function applyMachineStatusAnnotations(state, actor = null) {
     if (entry.targetFocused) state.targetFocused = true;
     if (entry.detectionStateCap) state.detectionStateCap = setDetectionCap(state.detectionStateCap, entry.detectionStateCap);
     if (entry.trackingPenaltyAsTarget) state.trackingPenaltyAsTarget += toNumber(entry.trackingPenaltyAsTarget, 0);
+    if (entry.trackingPenaltyAsAttacker) state.trackingPenaltyAsAttacker += toNumber(entry.trackingPenaltyAsAttacker, 0);
+    if (entry.observerDetectionCap) state.observerDetectionCap = setDetectionCap(state.observerDetectionCap, entry.observerDetectionCap);
+    if (entry.effectText) pushEffect(state, entry.effectText);
+  }
+
+  for (const entry of annotations.damage) {
+    if (entry.incomingDamageDelta) state.incomingDamageDelta += toNumber(entry.incomingDamageDelta, 0);
+    if (entry.consumeOnHit && entry.statusId && !state.consumeOnHit.some(consumed => consumed.statusId === entry.statusId)) {
+      state.consumeOnHit.push({ statusId: entry.statusId, label: entry.sourceStatusLabel ?? entry.statusId });
+    }
     if (entry.effectText) pushEffect(state, entry.effectText);
   }
 
@@ -176,6 +192,10 @@ function applyMachineStatusAnnotations(state, actor = null) {
   for (const entry of annotations.startTurn) {
     if (entry.heat) state.startTurnHeat += toNumber(entry.heat, 0);
     if (entry.resource === "sa") state.startTurnSaLoss += toNumber(entry.value, 0);
+    if (entry.clearStatus && entry.statusId) {
+      state.startTurnClears.push({ statusId: entry.statusId, effectText: String(entry.effectText ?? "").trim() });
+      continue;
+    }
     if (entry.effectText) pushEffect(state, entry.effectText);
   }
 }
@@ -360,6 +380,11 @@ export function getMachineRuleState(actor = null) {
     movementBonus: 0,
     movementPenalty: 0,
     trackingPenaltyAsTarget: 0,
+    trackingPenaltyAsAttacker: 0,
+    observerDetectionCap: "lock",
+    incomingDamageDelta: 0,
+    consumeOnHit: [],
+    startTurnClears: [],
     ecmSpikeDefenseDice: 0,
     startTurnHeat: 0,
     startTurnSaLoss: 0,
@@ -489,12 +514,47 @@ export function getMachineDetectionStateCap(actor = null) {
   return getMachineRuleState(actor).detectionStateCap;
 }
 
+// Tracking penalty on the bearer's own attacks (e.g. ECM Jamming).
+export function getMachineAttackerTrackingPenalty(actor = null) {
+  return getMachineRuleState(actor).trackingPenaltyAsAttacker;
+}
+
+// Highest detection state the bearer can acquire on anyone (e.g. ECM Jamming).
+export function getMachineObserverDetectionCap(actor = null) {
+  return getMachineRuleState(actor).observerDetectionCap;
+}
+
+// Incoming-damage adjustment from the defender's statuses, and the statuses a
+// hit consumes (e.g. Shielded).
+export function getMachineIncomingDamageModifiers(actor = null) {
+  const state = getMachineRuleState(actor);
+  return { delta: state.incomingDamageDelta, consumes: state.consumeOnHit.map(entry => ({ ...entry })) };
+}
+
+// Statuses that end at the start of the bearer's activation.
+export function getMachineStartTurnStatusClears(actor = null) {
+  return getMachineRuleState(actor).startTurnClears;
+}
+
+// Defense dice the bearer holds against an incoming action, by rule-state
+// selector (machine-action-catalog `targetDefenseDice`, e.g. EPM Boosted vs.
+// ECM Spike).
+export function getMachineDefenseDice(actor = null, selector = "") {
+  const state = getMachineRuleState(actor);
+  return Object.hasOwn(state, selector) ? toNumber(state[selector], 0) : 0;
+}
+
 export function adjustTargetingDataValue({ attacker = null, targetActor = null, value = 0 } = {}) {
+  // Targeting-data deltas apply from the side they declare: `whenBearerIs:
+  // "attacker"` entries from the attacker's statuses, all others from the target's.
   let adjusted = Math.max(0, toNumber(value, 0));
   if (isMachineTargetingDataUseBlocked(attacker)) return 0;
-  const targetAnnotations = collectMachineStateAnnotations(targetActor);
-  for (const entry of targetAnnotations.targeting) {
-    if (entry.statusId === "ecmJamming" && hasStatus(targetActor, "epmBoosted")) continue;
+  for (const entry of collectActorMachineAnnotations(targetActor).targeting) {
+    if (entry.whenBearerIs === "attacker") continue;
+    if (entry.targetingDataValueDelta) adjusted += toNumber(entry.targetingDataValueDelta, 0);
+  }
+  for (const entry of collectActorMachineAnnotations(attacker).targeting) {
+    if (entry.whenBearerIs !== "attacker") continue;
     if (entry.targetingDataValueDelta) adjusted += toNumber(entry.targetingDataValueDelta, 0);
   }
   adjusted = Math.max(0, adjusted);

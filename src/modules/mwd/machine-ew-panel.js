@@ -252,6 +252,7 @@ export function buildMachineEwRow({
   const battleArmorTargetOptions = {
     rangeBand: measuredRange.band,
     friendlyMachineTokenUuid: sourceTokenUuid,
+    attackerActor: actor,
   };
   const detectionState = getEffectiveDetectionState(combatant, targetTokenUuid, targetToken.actor);
   const ceiling = getAcquireCeiling(targetToken.actor, battleArmorTargetOptions);

@@ -26,6 +26,7 @@ export const MACHINE_STATE_FIELDS = Object.freeze([
   "cq",
   "gates",
   "targeting",
+  "damage",
   "movement",
   "heat",
   "speed",
@@ -258,8 +259,18 @@ export const STATUS_MAP = Object.freeze({
   sensorBlind: machine("Sensor Blind", {
     targeting: [{ id: "sensorBlind.targeting", rangeCapClose: true, noTargetingDataGeneration: true, noTargetingDataUse: true, effectText: "Sensor Blind: no Targeting Data and attacks beyond Close are blocked." }],
   }, { roles: [R.machineState, R.repairIssue], repair: repair({ remedyKey: "systemReset", skillKey: "computers", locationKey: "head", effectSummary: "Sensor and targeting actions are severely impaired until reset." }) }),
+  // Applied to an enemy by ECM Spike: degrades the bearer's own sensors. Being
+  // hard to target is the separate ecmShrouded (ECM cloud) status.
   ecmJamming: machine("ECM Jamming", {
-    targeting: [{ id: "ecmJamming.targetingData", targetingDataValueDelta: -2 }],
+    targeting: [{
+      id: "ecmJamming.ownSensors",
+      whenBearerIs: "attacker",
+      targetingDataValueDelta: -2,
+      trackingPenaltyAsAttacker: 2,
+      observerDetectionCap: "track",
+      suppressedByStatuses: ["epmBoosted"],
+      effectText: "ECM Jamming: own Targeting Data -2, +2 tracking penalty on own attacks, cannot acquire beyond Track.",
+    }],
   }),
   ecmShrouded: marker("ECM Shrouded", "ECM defense marker; dedicated EW helpers handle context-specific effects."),
   epmBoosted: machine("EPM Boosted", {
@@ -313,6 +324,8 @@ export const STATUS_MAP = Object.freeze({
       { id: "shielded.attackAr", whenBearerIs: "attacker", ar: -1 },
       { id: "shielded.defenseDr", whenBearerIs: "defender", dr: 4 },
     ],
+    damage: [{ id: "shielded.firstHit", incomingDamageDelta: -2, consumeOnHit: true, effectText: "Shielded: the first hit or graze loses 2 damage, then Shield ends." }],
+    startTurn: [{ id: "shielded.expire", clearStatus: true, effectText: "Shield: unused Shielded posture ended at the start of activation." }],
   }),
   braced: machine("Braced", {
     cq: [{ id: "braced.attackAr", whenBearerIs: "attacker", ar: 1 }],

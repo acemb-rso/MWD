@@ -391,10 +391,11 @@ function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null
     });
   }
 
-  if (summary?.shield?.consumed) {
+  for (const consumed of summary?.statusDamage?.consumes ?? []) {
+    const delta = Number(summary.statusDamage.delta ?? 0);
     rows.push({
-      label: "Shield",
-      value: `-${Number(summary.shield.reduction ?? 0)} damage; Shielded ended`
+      label: consumed.label,
+      value: `${delta} damage; ${consumed.label} ended`
     });
   }
 

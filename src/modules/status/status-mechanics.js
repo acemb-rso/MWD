@@ -209,11 +209,18 @@ export function collectStatusClearsOnAction(actor = null, { actionId = "" } = {}
 
 export function collectMachineStateAnnotations(actor = null, { extraStatusIds = [] } = {}) {
   const state = Object.fromEntries(MACHINE_STATE_FIELDS.map(field => [field, []]));
-  for (const mechanic of getActorStatusMechanics(actor, { extraStatusIds })) {
+  const mechanics = getActorStatusMechanics(actor, { extraStatusIds });
+  const activeStatusIds = new Set(mechanics.map(mechanic => mechanic.statusId));
+  // An entry may declare `suppressedByStatuses`; it contributes nothing while
+  // the bearer has any of them (e.g. EPM Boosted cancels ECM Jamming).
+  const isSuppressed = entry => asArray(entry.suppressedByStatuses)
+    .some(statusId => activeStatusIds.has(normalizeStatusId(statusId)));
+  for (const mechanic of mechanics) {
     const machineState = mechanic.definition.machineState;
     if (!machineState || typeof machineState !== "object") continue;
     for (const field of MACHINE_STATE_FIELDS) {
       for (const entry of asArray(machineState[field])) {
+        if (isSuppressed(entry)) continue;
         state[field].push(tagContribution(mechanic, entry, `machineState.${field}`));
       }
     }
