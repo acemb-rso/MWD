@@ -61,6 +61,7 @@ import { actorHasSpotterGear } from "../mwd/spotter-gear.js";
 import { getStatusActionGateReason } from "../status/status-mechanics.js";
 import { getMeasuredTokenCenter } from "../utils/token.js";
 import { getPersonalActionAvailabilityReason } from "./personal-action-rules.js";
+import { collectionEntries } from "../utils/coercion.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -442,15 +443,6 @@ function applyChatVisibility(chatData) {
 
 function isHazardRegionDocument(region) {
   return Boolean(getHazardRegionFlag(region));
-}
-
-function collectionEntries(collection = null) {
-  if (!collection) return [];
-  if (Array.isArray(collection)) return collection;
-  if (collection.contents && Array.isArray(collection.contents)) return collection.contents;
-  if (typeof collection.values === "function") return Array.from(collection.values());
-  if (typeof collection[Symbol.iterator] === "function") return Array.from(collection);
-  return [];
 }
 
 function getEffectStatusIds(effect = null) {

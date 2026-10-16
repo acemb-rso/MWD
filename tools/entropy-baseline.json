@@ -88,11 +88,8 @@
     "src/modules/roll/collect-modifiers.js"
   ],
   "collectionEntries": [
-    "src/modules/canvas/machine-sensor-detection.js",
-    "src/modules/canvas/machine-sensor-overlays.js",
-    "src/modules/combat/personal-combat-tracker.js",
     "src/modules/mwd/machine-ew-state.js",
-    "src/modules/token/heat-fx-controller.js"
+    "src/modules/utils/coercion.js"
   ],
   "combatantsToArray": [
     "src/modules/combat/personal-combat-actions.js",

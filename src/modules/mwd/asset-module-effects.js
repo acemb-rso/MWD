@@ -545,7 +545,7 @@ export function findAssetModuleActionOverride(actor = null, actionId = "", conte
   return null;
 }
 
-function normalizeCapabilityKey(value = "") {
+export function normalizeCapabilityKey(value = "") {
   return String(value ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 

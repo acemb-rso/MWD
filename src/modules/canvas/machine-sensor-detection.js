@@ -18,20 +18,12 @@ import {
   getTokenDocument,
   getTokenUuid,
 } from "../utils/token.js";
+import { collectionEntries } from "../utils/coercion.js";
 
 export const MWD_SENSOR_DETECTION_MODE_ID = "mwdSensor";
 export const SENSOR_DETECTION_STATES = Object.freeze(["contact", "track", "lock"]);
 
 const CLOSE_RANGE_MAX = Number(getMechRangeBand("close")?.max ?? 59);
-
-function collectionEntries(collection = null) {
-  if (!collection) return [];
-  if (Array.isArray(collection)) return collection;
-  if (Array.isArray(collection.contents)) return collection.contents;
-  if (typeof collection.values === "function") return Array.from(collection.values());
-  if (typeof collection[Symbol.iterator] === "function") return Array.from(collection);
-  return [];
-}
 
 function resolveToken(value = null) {
   return value?.object

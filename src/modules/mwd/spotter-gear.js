@@ -1,7 +1,8 @@
 // src/modules/mwd/spotter-gear.js
 // Purpose: Shared detection for equipment that can support indirect-fire spotting.
 
-import { getAssetModuleState, hasAssetModuleCapability } from "./asset-module-effects.js";
+import { getAssetModuleState, hasAssetModuleCapability, normalizeCapabilityKey } from "./asset-module-effects.js";
+import { collectionEntries } from "../utils/coercion.js";
 
 const SPOTTER_GEAR_ALIASES = Object.freeze([
   "indirectSpotter",
@@ -16,18 +17,6 @@ const SPOTTER_GEAR_ALIASES = Object.freeze([
   "surveillance",
   "targeting",
 ]);
-
-function normalizeCapabilityKey(value = "") {
-  return String(value ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
-}
-
-function toCollectionArray(value) {
-  if (Array.isArray(value)) return value;
-  if (Array.isArray(value?.contents)) return value.contents;
-  if (typeof value?.values === "function") return Array.from(value.values());
-  if (value && typeof value[Symbol.iterator] === "function") return Array.from(value);
-  return [];
-}
 
 function itemIsUsable(item = null, type = "") {
   if (!item) return false;
@@ -59,9 +48,9 @@ function itemMatchesAliases(item = null, aliases = SPOTTER_GEAR_ALIASES) {
     system.rulesHook,
     system.effectText,
     system.description,
-    ...toCollectionArray(system.tags),
-    ...toCollectionArray(system.keywords),
-    ...toCollectionArray(system.capabilities),
+    ...collectionEntries(system.tags),
+    ...collectionEntries(system.keywords),
+    ...collectionEntries(system.capabilities),
   ];
   return values.some(matchesWanted);
 }
@@ -69,7 +58,7 @@ function itemMatchesAliases(item = null, aliases = SPOTTER_GEAR_ALIASES) {
 export function actorHasSpotterGear(actor = null, aliases = SPOTTER_GEAR_ALIASES) {
   if (hasAssetModuleCapability(actor, "indirectSpotter", aliases)) return true;
 
-  return toCollectionArray(actor?.items).some(item => {
+  return collectionEntries(actor?.items).some(item => {
     const type = String(item?.canonicalType ?? item?.type ?? "").trim();
     if (!["gear", "consumable", "assetModule"].includes(type)) return false;
     if (!itemIsUsable(item, type)) return false;

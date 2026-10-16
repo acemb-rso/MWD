@@ -32,6 +32,7 @@ belongs in a shared module.
 ### `src/modules/utils/coercion.js` — primitive value shaping
 
 `toNumber`, `toInteger`, `toNonNegativeInteger`, `toTrimmedString`, `asArray`,
+`collectionEntries` (Collection/Map/Set/iterable → value array),
 `compactStringList`, `clamp`, `clampMin`.
 
 Domain-neutral fallback/clamping semantics. If you need a new coercion

@@ -5,6 +5,7 @@ import {
   asArray,
   clamp,
   clampMin,
+  collectionEntries,
   compactStringList,
   toInteger,
   toNonNegativeInteger,
@@ -70,4 +71,15 @@ test("clamp helpers constrain finite values and use minimum for invalid values",
   assert.equal(clampMin(-1, 0), 0);
   assert.equal(clampMin(4, 0), 4);
   assert.equal(clampMin("bad", 2), 2);
+});
+
+test("collectionEntries flattens collections, maps, sets, and iterables to values", () => {
+  const list = [1, 2];
+  assert.equal(collectionEntries(list), list);
+  assert.deepEqual(collectionEntries({ contents: ["a"] }), ["a"]);
+  assert.deepEqual(collectionEntries(new Map([["k", "v"]])), ["v"]);
+  assert.deepEqual(collectionEntries(new Set([3, 4])), [3, 4]);
+  assert.deepEqual(collectionEntries((function* () { yield 5; })()), [5]);
+  assert.deepEqual(collectionEntries(null), []);
+  assert.deepEqual(collectionEntries({ size: 1 }), []);
 });
