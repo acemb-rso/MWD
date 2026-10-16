@@ -1,4 +1,4 @@
-﻿// src/modules/common/checkbars.js
+// src/modules/common/checkbars.js
 // Purpose: Preloads or manages Handlebars templates. References legacy Anarchy system behavior.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 

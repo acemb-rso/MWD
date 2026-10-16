@@ -1,4 +1,4 @@
-﻿// src/modules/roll/mwd-roll.js
+// src/modules/roll/mwd-roll.js
 /**
  * @pipeline execution
  * @role The one centralized execution path. game.mwd.roll.execute() takes an

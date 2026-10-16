@@ -1,4 +1,4 @@
-﻿// src/modules/dialog/token-status-dialog.js
+// src/modules/dialog/token-status-dialog.js
 // Purpose: Actor-aware token status dialog and status mutation helpers.
 // How it fits: UI emits status intent while the catalog resolves valid actor
 // conditions and ActiveEffects store the token indicators.

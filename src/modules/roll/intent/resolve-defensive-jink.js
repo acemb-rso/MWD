@@ -1,4 +1,4 @@
-﻿// src/modules/roll/intent/resolve-defensive-jink.js
+// src/modules/roll/intent/resolve-defensive-jink.js
 // Resolves Defensive Jink as Handling + Piloting to spoil targetingData.
 
 import { TEMPLATE } from "../../core/constants.js";

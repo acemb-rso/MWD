@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-stealth.js
+// src/modules/mwd/machine-stealth.js
 // Purpose: Builds the derived machine stealth model and EW-facing stealth parts.
 // Workflow: stealth mode/modules/status lifecycle -> acquire DN and tracking
 // penalty parts -> EW rolls and attack modifier providers consume the result.

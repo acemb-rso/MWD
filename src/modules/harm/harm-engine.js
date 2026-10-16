@@ -1,4 +1,4 @@
-﻿// src/modules/harm/harm-engine.js
+// src/modules/harm/harm-engine.js
 /**
  * @pipeline execution
  * @role Central harm application service. The single actor-first workflow that

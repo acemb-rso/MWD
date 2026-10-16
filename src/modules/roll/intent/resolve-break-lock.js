@@ -1,4 +1,4 @@
-﻿// src/modules/roll/intent/resolve-break-lock.js
+// src/modules/roll/intent/resolve-break-lock.js
 // Resolves Break Lock as Handling + Stealth against the detection-state ladder.
 
 import { TEMPLATE } from "../../core/constants.js";

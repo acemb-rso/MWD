@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/battlemech-melee-actions.js
+// src/modules/mwd/battlemech-melee-actions.js
 // Purpose: Builds and executes BattleMech melee quick-action profiles.
 // Workflow: mounted melee weapons or unarmed fallback -> selectable profiles ->
 // standard machine attack intents emitted through the roll engine.

@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/battlemech-weapon-groups.js
+// src/modules/mwd/battlemech-weapon-groups.js
 // Purpose: Centralizes BattleMech ranged weapon-group legality and aggregation.
 // Workflow: actor weapon groups and hardpoints -> group inspection/attack summary
 // -> ranged sheet buttons and attack-profile construction.

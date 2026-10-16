@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/asset-module-effects.js
+// src/modules/mwd/asset-module-effects.js
 // Purpose: Runtime matching and summaries for data-driven AssetModule effects.
 // How it fits: Gives providers and action builders one stable way to consume
 // schema-first module rules without hardcoding individual upgrade names.

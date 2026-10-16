@@ -1,4 +1,4 @@
-﻿// src/modules/actor/mwd-actor.js
+// src/modules/actor/mwd-actor.js
 
 
 import { BASE_MONITOR, MONITOR_DEFS, TEMPLATE } from "../core/constants.js";

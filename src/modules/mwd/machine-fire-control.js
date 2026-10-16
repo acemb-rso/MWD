@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-fire-control.js
+// src/modules/mwd/machine-fire-control.js
 // Purpose: Derives machine fire-control bonuses from installed asset modules.
 // Workflow: ready asset modules/effect packets -> clustering/fire-control model
 // -> machine attack profile construction adjusts clustered damage rolls.

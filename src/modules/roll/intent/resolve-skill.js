@@ -1,4 +1,4 @@
-﻿// src/modules/roll/intent/resolve-skill.js
+// src/modules/roll/intent/resolve-skill.js
 // Purpose: Defines function `resolveSkill`.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 

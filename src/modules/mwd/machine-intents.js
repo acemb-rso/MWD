@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-intents.js
+// src/modules/mwd/machine-intents.js
 // Purpose: Resolves machine remedy intent context, spending, and outcome mutation.
 // Workflow: sheet/chat remedy payload -> operator/resource validation and GM
 // routing -> crit/status cleanup mutates machine state after the roll resolves.

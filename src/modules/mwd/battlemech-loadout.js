@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/battlemech-loadout.js
+// src/modules/mwd/battlemech-loadout.js
 // Purpose: Validates BattleMech hardpoint, weapon-group, and melee loadout.
 // Workflow: actor hardpoint/group state -> this validator builds diagnostics and
 // occupied-slot summaries -> sheets and attack prep display or block choices.

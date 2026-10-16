@@ -1,4 +1,4 @@
-﻿// src/modules/roll/attack-resolution.js
+// src/modules/roll/attack-resolution.js
 /**
  * @pipeline context
  * @role Canonical AttackResolution. Given a resolved attack context and the roll

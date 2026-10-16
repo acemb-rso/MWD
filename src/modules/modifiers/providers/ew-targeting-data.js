@@ -1,4 +1,4 @@
-﻿// src/modules/modifiers/providers/ew-targeting-data.js
+// src/modules/modifiers/providers/ew-targeting-data.js
 // Emits positive dice-pool modifier from stored targeting data packets.
 
 import { isMachineActor } from "../../utils/actor-guards.js";

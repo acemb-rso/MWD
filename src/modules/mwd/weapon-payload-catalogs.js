@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/weapon-payload-catalogs.js
+// src/modules/mwd/weapon-payload-catalogs.js
 // Purpose: Provides configurable canonical payload family and tag catalogs.
 // How it fits: Weapon and payload sheets use these catalogs so compatibility
 // keys are authored consistently across reusable payload items and weapons.

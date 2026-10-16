@@ -1,4 +1,4 @@
-﻿// src/modules/sheets/register-actor-sheets-v2.js
+// src/modules/sheets/register-actor-sheets-v2.js
 // Purpose: Registers custom actor/item sheets.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 

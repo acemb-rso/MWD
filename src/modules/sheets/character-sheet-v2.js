@@ -1,4 +1,4 @@
-﻿// src/modules/sheets/character-sheet-v2.js
+// src/modules/sheets/character-sheet-v2.js
 /**
  * @pipeline ui-emitter
  * @role Player-facing character sheet (extends BaseActorSheetV2). Builds

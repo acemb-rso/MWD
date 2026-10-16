@@ -1,4 +1,4 @@
-﻿// src/modules/roll/intent/resolve-acquire.js
+// src/modules/roll/intent/resolve-acquire.js
 // Resolve roll context for an EW acquire action (System + Perception).
 
 import { getSkillDef } from "../../mwd/skills.js";

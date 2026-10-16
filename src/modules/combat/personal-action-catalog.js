@@ -1,4 +1,4 @@
-﻿// src/modules/combat/personal-action-catalog.js
+// src/modules/combat/personal-action-catalog.js
 // Purpose: Defines declarative personal combat action payloads consumed by the combat tracker.
 // How it fits: Keeps action economy, resolver ownership, prompts, and implementation state out of sheet code.
 

@@ -1,4 +1,4 @@
-﻿// src/modules/roll/intent/resolve-targeting.js
+// src/modules/roll/intent/resolve-targeting.js
 // Resolve roll context for an EW targeting-data action (System + Gunnery, DN 2).
 
 import { getSkillDef } from "../../mwd/skills.js";

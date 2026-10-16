@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/battlemech-mobility.js
+// src/modules/mwd/battlemech-mobility.js
 // Purpose: Derives BattleMech mobility abilities from installed asset modules.
 // Workflow: installed modules and legacy movement -> derived jump profile ->
 // movement menus and attack modifiers consume current mobility capability.

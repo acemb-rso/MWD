@@ -1,4 +1,4 @@
-﻿// src/modules/item/weapon-payload-item-sheet.js
+// src/modules/item/weapon-payload-item-sheet.js
 // Purpose: Provides a compact editor for reusable weapon payload items.
 
 import { BaseItemSheet } from "./base-item-sheet.js";

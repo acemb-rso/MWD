@@ -1,4 +1,4 @@
-﻿// src/modules/player/mwd-player-gadget.js
+// src/modules/player/mwd-player-gadget.js
 // Purpose: AppV2 compact combat command surface for non-GM players.
 // How it fits: Emits player-facing combat, attack, status, and roll intents through existing services.
 

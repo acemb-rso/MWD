@@ -1,4 +1,4 @@
-﻿// src/modules/modifiers/providers/machine-state-effects.js
+// src/modules/modifiers/providers/machine-state-effects.js
 // Purpose: Emits canonical machine status/degradation dice modifiers.
 // Workflow: roll modifier collection -> this provider reads aggregate machine
 // state -> roll assembly receives dice/DN modifiers with source labels.

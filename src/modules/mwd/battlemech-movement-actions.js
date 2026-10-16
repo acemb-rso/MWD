@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/battlemech-movement-actions.js
+// src/modules/mwd/battlemech-movement-actions.js
 // Purpose: Builds and executes the BattleMech movement quick-action menu.
 // Workflow: actor movement/effects -> available movement choices -> action
 // spend, combatant movement-state update, heat/signature/status side effects.

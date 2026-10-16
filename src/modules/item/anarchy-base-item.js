@@ -1,4 +1,4 @@
-﻿// src/modules/item/anarchy-base-item.js
+// src/modules/item/anarchy-base-item.js
 /**
  * @pipeline shared
  * @role Base Item document class (MWDItem) and the common item lifecycle. Owns

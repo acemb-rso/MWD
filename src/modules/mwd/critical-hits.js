@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/critical-hits.js
+// src/modules/mwd/critical-hits.js
 // Purpose: Machine critical-hit engine and active-crit data normalization.
 // How it fits: Keeps vehicle/BattleMech critical effects in actor data while
 // token statuses remain visual indicators only.

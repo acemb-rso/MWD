@@ -1,4 +1,4 @@
-﻿// src/modules/roll/config/common-checks.js
+// src/modules/roll/config/common-checks.js
 // Purpose: Defines reusable common two-attribute checks for the modern roll engine.
 // How it fits: Shared source of truth for declarative payload references and resolver lookup.
 

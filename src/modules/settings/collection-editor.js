@@ -1,4 +1,4 @@
-﻿// src/modules/settings/collection-editor.js
+// src/modules/settings/collection-editor.js
 // Purpose: Defines reusable FormApplication-based editors for settings collections.
 // How it fits: Used by system settings registration to provide structured submenu editors.
 

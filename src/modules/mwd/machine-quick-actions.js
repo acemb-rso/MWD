@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-quick-actions.js
+// src/modules/mwd/machine-quick-actions.js
 /**
  * @pipeline ui-emitter
  * @role Machine quick-action dispatcher. Takes a sheet quick-action (piloting,

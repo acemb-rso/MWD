@@ -1,4 +1,4 @@
-﻿// src/modules/status/status-condition-catalog.js
+// src/modules/status/status-condition-catalog.js
 // Purpose: Actor-aware condition catalog for token statuses.
 // How it fits: Keeps status availability declarative while Foundry ActiveEffects
 // remain the storage and token-indicator layer.

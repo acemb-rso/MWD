@@ -1,4 +1,4 @@
-﻿// src/modules/chat/chat-actions.js
+// src/modules/chat/chat-actions.js
 // Purpose: Registers Foundry hooks: renderChatMessageHTML.
 // How it fits: Wires chat-card post-roll and queued attack mutation actions.
 

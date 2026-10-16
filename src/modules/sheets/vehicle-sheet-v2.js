@@ -1,4 +1,4 @@
-﻿// src/modules/sheets/vehicle-sheet-v2.js
+// src/modules/sheets/vehicle-sheet-v2.js
 /**
  * @pipeline ui-emitter
  * @role Layout-driven AppV2 vehicle sheet, and the base/reuse target for the

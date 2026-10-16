@@ -1,4 +1,4 @@
-﻿// src/modules/sheets/base-actor-sheet-v2.js
+// src/modules/sheets/base-actor-sheet-v2.js
 // Purpose: Shared AppV2 actor-sheet foundation.
 // How it fits: Defines the stable edit/render/submit contract that every V2
 // actor sheet now builds on, so actor-specific sheets stay thin.

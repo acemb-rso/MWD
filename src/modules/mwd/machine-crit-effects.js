@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-crit-effects.js
+// src/modules/mwd/machine-crit-effects.js
 // Purpose: Centralizes runtime machine-critical consequence rules.
 // Workflow: active system.mwd.crits -> attack restrictions, activation reports,
 // and summary text -> action services and sheets react to current damage.

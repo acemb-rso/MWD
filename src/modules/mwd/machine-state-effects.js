@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-state-effects.js
+// src/modules/mwd/machine-state-effects.js
 // Purpose: Canonical machine status and degradation mechanics aligned to the
 //          MWD state/degrade docs.
 // Workflow: actor statuses, active crits, degradation, heat, and strain ->

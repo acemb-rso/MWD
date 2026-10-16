@@ -1,4 +1,4 @@
-﻿// src/modules/roll/dice.js
+// src/modules/roll/dice.js
 // Purpose: Registers Foundry hooks: diceSoNiceReady, ready. References legacy Anarchy system behavior.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 

@@ -1,4 +1,4 @@
-﻿// src/modules/sheets/battlemech-sheet-v2.js
+// src/modules/sheets/battlemech-sheet-v2.js
 /**
  * @pipeline ui-emitter
  * @role Player-facing BattleMech sheet (extends VehicleSheetV2). Assembles

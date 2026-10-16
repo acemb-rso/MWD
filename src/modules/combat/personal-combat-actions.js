@@ -1,4 +1,4 @@
-﻿// src/modules/combat/personal-combat-actions.js
+// src/modules/combat/personal-combat-actions.js
 // Purpose: Executes declarative personal combat action intents above the roll system.
 // How it fits: Sheets emit one combat intent; this module owns prompts, cost, resolver dispatch, and state/log side effects.
 

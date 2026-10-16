@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-crit-consequences.js
+// src/modules/mwd/machine-crit-consequences.js
 // Purpose: Shared machine-critical consequence metadata and weapon-group scoping.
 // Workflow: raw crit-table signal/location -> normalized consequence record ->
 // storage, chat summaries, and runtime crit effects use the same scoped data.

@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-repair-issues.js
+// src/modules/mwd/machine-repair-issues.js
 // Purpose: Merge active crits and curated status-backed repair issues into one
 //          chooser-friendly model.
 // Workflow: active crits and repairable statuses -> read-only issue rows with
