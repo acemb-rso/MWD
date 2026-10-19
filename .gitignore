@@ -5,3 +5,6 @@ node_modules/
 
 # Local header/template backup snapshots
 backups/
+
+# Personal digitized sourcebooks (owned copies) — never distribute
+docs/*.pdf
