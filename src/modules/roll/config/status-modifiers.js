@@ -309,8 +309,13 @@ export const STATUS_MAP = Object.freeze({
   exposed: machine("Exposed", {
     cq: [{ id: "exposed.defenseDr", whenBearerIs: "defender", dr: -2 }],
   }),
+  // Positional postures end when the machine moves (machine movement records
+  // the "move" action). Shield instead lasts until next activation or a hit.
   entrenchedHullDown: machine("Entrenched / Hull Down", {
     cq: [{ id: "entrenchedHullDown.defenseDr", whenBearerIs: "defender", dr: { vehicle: 7, battlemech: 5 }, effectText: "Hull Down: vehicle gains a strong prepared-position defense bonus." }],
+  }, {
+    roles: [R.machineState, R.actionGate],
+    clearsOnActions: [{ id: "entrenchedHullDown.clearOnMove", actionIds: ["move"], statusId: "entrenchedHullDown", message: "Moved out of the Hull Down position." }],
   }),
   obscured: marker("Obscured (Smoke/Dust)", "Visibility marker."),
   obscuredLight: marker("Obscured (Light)", "Visibility marker."),
@@ -332,6 +337,9 @@ export const STATUS_MAP = Object.freeze({
   }),
   braced: machine("Braced", {
     cq: [{ id: "braced.attackAr", whenBearerIs: "attacker", ar: 1 }],
+  }, {
+    roles: [R.machineState, R.actionGate],
+    clearsOnActions: [{ id: "braced.clearOnMove", actionIds: ["move"], statusId: "braced", message: "Moved and lost the Braced posture." }],
   }),
   overextended: marker("Overextended", "Tactical marker."),
   targetFocused: machine("Target Focused", {

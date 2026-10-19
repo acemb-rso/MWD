@@ -102,6 +102,13 @@ after the action resolves successfully.
 Example: `suppressed` blocks `aim` and `prepare`, but `move` or `carefulMove`
 clears it only after the move action succeeds.
 
+Machines use the same field. Vehicle and BattleMech movement records the
+`move` action, and a movement that actually moves (anything but a pure
+posture) ends the statuses that declare `clearsOnActions` for `move` through
+`clearStatusesEndedByAction` in `mwd/machine-action-statuses.js`. Braced and
+Entrenched / Hull Down declare it; Shielded does not (it lasts until the next
+activation or the first hit).
+
 ## Machine State
 
 `machineState` is annotation only. Supported v1 fields are:

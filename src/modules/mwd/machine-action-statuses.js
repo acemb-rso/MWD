@@ -8,8 +8,11 @@
 // machine-action GM relay request kind "applyTargetStatus", whose GM handler
 // calls applyActionTargetStatuses. Status ids always come from the catalog,
 // never from the request, so a relayed request cannot apply arbitrary statuses.
+// Also ends statuses that declare `clearsOnActions` for an action the machine
+// takes (status-modifiers, e.g. Braced and Hull Down end on "move").
 
 import { applyManagedStatusUpdate } from "../dialog/token-status-dialog.js";
+import { collectStatusClearsOnAction } from "../status/status-mechanics.js";
 import { isMachineActor } from "../utils/actor-guards.js";
 import { getMachineActionDefinition } from "./machine-action-catalog.js";
 
@@ -46,4 +49,20 @@ export async function clearActionSelfStatuses({ actionKey = "", actor = null } =
     cleared.push(statusId);
   }
   return { ok: true, cleared };
+}
+
+/**
+ * End the statuses that declare they end when the actor takes `actionId`.
+ * @returns {Promise<Array<{statusId:string, message:string}>>}
+ */
+export async function clearStatusesEndedByAction({ actor = null, actionId = "" } = {}) {
+  const cleared = [];
+  for (const entry of collectStatusClearsOnAction(actor, { actionId })) {
+    const statusId = String(entry.statusId ?? "").trim();
+    if (!statusId || !actor?.statuses?.has?.(statusId)) continue;
+    if (cleared.some(existing => existing.statusId === statusId)) continue;
+    await applyManagedStatusUpdate({ actor, statusId, active: false, metadata: { source: actionId } });
+    cleared.push({ statusId, message: String(entry.message ?? "").trim() });
+  }
+  return cleared;
 }

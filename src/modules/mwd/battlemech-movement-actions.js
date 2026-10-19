@@ -13,6 +13,7 @@ import { applyMachineMovementPenalty, normalizeMachineMovement } from "./machine
 import { getMachineMovementEffects } from "./machine-state-effects.js";
 import { resolveBattlemechJumpProfile } from "./battlemech-mobility.js";
 import { revealMachineSignature } from "./machine-stealth.js";
+import { clearStatusesEndedByAction } from "./machine-action-statuses.js";
 
 export const BATTLEMECH_MOVEMENT_ACTIONS = Object.freeze({
   walk: Object.freeze({ id: "walk", label: "Walk", cost: 1, heat: 0, mode: "ground" }),
@@ -192,6 +193,10 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
     return spend;
   }
 
+  // A pure posture holds position; every other movement (including a posture
+  // that includes movement, e.g. Evasive Maneuver) actually moves.
+  const moved = action.mode !== "posture" || Boolean(action.includesMovement);
+
   await PersonalCombatTracker.updateCombatantState(spendActor, {
     token,
     mutate: (state, snapshot) => {
@@ -200,7 +205,7 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
         actionId: "move",
         movementKind: action.id,
         label: action.label,
-        moved: !["prone", "shield"].includes(action.id),
+        moved,
         round: Number(snapshot?.combat?.round ?? 0),
         turn: Number(snapshot?.combat?.turn ?? 0),
         combatantId: snapshot?.combatant?.id ?? null,
@@ -208,6 +213,12 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
       return state;
     }
   });
+
+  if (moved) {
+    for (const cleared of await clearStatusesEndedByAction({ actor, actionId: "move" })) {
+      if (cleared.message) ui.notifications?.info(`${actor?.name ?? "Machine"}: ${cleared.message}`);
+    }
+  }
 
   if (action.heat > 0) {
     await adjustBattlemechPendingHeat(actor, action.heat, { reason: `${action.label} movement` });
