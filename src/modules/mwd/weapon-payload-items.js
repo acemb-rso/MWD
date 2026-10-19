@@ -52,7 +52,7 @@ export function normalizePayloadCompatibility(value = {}) {
   };
 }
 
-export function normalizeWeaponPayloadItemSystem(system = {}, { name = "Payload" } = {}) {
+export function normalizeWeaponPayloadItemSystem(system = {}, { name = "" } = {}) {
   const source = system ?? {};
   const label = String(source.profile?.label ?? source.label ?? name ?? "Payload").trim() || "Payload";
   const profile = normalizePayloadProfile({
@@ -68,7 +68,11 @@ export function normalizeWeaponPayloadItemSystem(system = {}, { name = "Payload"
   };
 
   return {
-    payloadKey: normalizePayloadKey(source.payloadKey ?? label ?? name),
+    // The stack identity of a payload item: its explicit key, else its item
+    // name, else its profile label. Stored keys default to "" (template.json),
+    // so empty values must fall through. Name precedes label because unedited
+    // payloads share the default label "Payload".
+    payloadKey: normalizePayloadKey(source.payloadKey) || normalizePayloadKey(name) || normalizePayloadKey(label),
     families: distinctFamilies(source.families ?? source.family),
     tags: distinctTags(source.tags),
     quantity: Math.max(0, Math.trunc(Number(source.quantity ?? 1) || 0)),

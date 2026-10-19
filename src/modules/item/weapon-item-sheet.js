@@ -93,8 +93,7 @@ function getPayloadItemQuantity(item) {
 }
 
 function getPayloadChoiceKey(item) {
-  const normalized = normalizeWeaponPayloadItemSystem(item?.system ?? {}, { name: item?.name });
-  return normalized.payloadKey || normalizePayloadKey(item?.name);
+  return normalizeWeaponPayloadItemSystem(item?.system ?? {}, { name: item?.name }).payloadKey;
 }
 
 function buildPayloadChoiceGroups(entries, { activeId = "" } = {}) {

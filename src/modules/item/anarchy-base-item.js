@@ -272,7 +272,7 @@ function isWeaponPayloadDocument(item) {
 }
 
 function getPayloadItemKey(item) {
-  return normalizePayloadKey(item?.system?.payloadKey ?? item?.system?.profile?.label ?? item?.name);
+  return normalizeWeaponPayloadItemSystem(item?.system ?? {}, { name: item?.name }).payloadKey;
 }
 
 function findOwnedPayloadItemsByKey(actor, payloadKey = "") {
