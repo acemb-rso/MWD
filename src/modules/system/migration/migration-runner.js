@@ -16,6 +16,7 @@
  */
 
 import { SYSTEM_NAME, LOG_HEAD } from "../../core/constants.js";
+import { forcedDeletion } from "../../utils/document-update.js";
 import { CURRENT_SCHEMA_VERSION, getPendingSchemaSteps, planSchemaStep } from "./schema-migrations.js";
 
 export const SETTING_SCHEMA_VERSION = "schemaVersion";
@@ -66,15 +67,9 @@ function snapshotWorld() {
   };
 }
 
-function deletionOperator() {
-  return globalThis._del
-    ?? foundry.data.operators?.ForcedDeletion?.create?.()
-    ?? foundry.data.operators?.ForcedDeletion;
-}
-
 function buildUpdate(op) {
   const update = { ...op.set };
-  const del = deletionOperator();
+  const del = forcedDeletion();
   for (const path of op.unset) update[path] = del;
   return update;
 }
@@ -143,15 +138,18 @@ function escape(value) {
   return foundry.utils.escapeHTML(String(value ?? ""));
 }
 
-async function postReport({ fromVersion, results, ok }) {
+// Schema 0 is an unversioned legacy world (the setting is still unset).
+const schemaLabel = version => (version === 0 ? "0 (legacy)" : String(version));
+
+async function postReport({ fromVersion, toVersion, results, ok }) {
   const sections = results.map(result => {
     const reviews = result.reviews.map(entry => `<li><strong>Review</strong> ${escape(entry.document)}: ${escape(entry.message)}</li>`);
     const failures = result.failures.map(entry => `<li><strong>Failed</strong> ${escape(entry.document)}: ${escape(entry.message)}</li>`);
     return `<h3>Schema ${result.version}: ${escape(result.label)}</h3><p>${result.applied} document change(s) applied.</p>${reviews.length || failures.length ? `<ul>${[...failures, ...reviews].join("")}</ul>` : ""}`;
   });
   const headline = ok
-    ? `<p>World data upgraded from schema ${fromVersion} to ${getWorldSchemaVersion()}.</p>`
-    : `<p><strong>Migration incomplete.</strong> The world remains at schema ${getWorldSchemaVersion()}. Restore your backup or fix the listed documents and reload to retry.</p>`;
+    ? `<p>World data upgraded from schema ${schemaLabel(fromVersion)} to ${schemaLabel(toVersion)}.</p>`
+    : `<p><strong>Migration incomplete.</strong> The world remains at schema ${schemaLabel(toVersion)}. Restore your backup or fix the listed documents and reload to retry.</p>`;
   await ChatMessage.create({
     whisper: ChatMessage.getWhisperRecipients("GM"),
     content: `<h2>MWD Data Migration</h2>${headline}${sections.join("")}`,
@@ -227,7 +225,7 @@ export async function runSchemaMigrationGate() {
     failures: results.flatMap(result => result.failures),
     reviews: results.flatMap(result => result.reviews),
   });
-  await postReport({ fromVersion, results, ok });
+  await postReport({ fromVersion, toVersion: version, results, ok });
 
   if (ok) ui.notifications.info(`MWD world data migrated to schema ${version}.`);
   else ui.notifications.error(`MWD data migration failed at schema ${version}. See the GM chat report.`, { permanent: true });

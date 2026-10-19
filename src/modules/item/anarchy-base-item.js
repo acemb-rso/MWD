@@ -101,12 +101,9 @@ import {
   isLegacyItemType,
 } from "./item-type-utils.js";
 import { AREA_EFFECT_KINDS } from "../area-effects/area-effect-engine.js";
+import { forcedDeletion } from "../utils/document-update.js";
 
 const RANGE_ORDER = Object.freeze(["close", "near", "far", "extreme"]);
-
-function forcedDeletion() {
-  return foundry.data.operators.ForcedDeletion;
-}
 
 function ensureObjectPath(target, path) {
   const segments = String(path ?? "").split(".").map(segment => segment.trim()).filter(Boolean);

@@ -38,6 +38,13 @@ belongs in a shared module.
 Domain-neutral fallback/clamping semantics. If you need a new coercion
 (e.g. `toBoolean`), it goes here.
 
+### `src/modules/utils/document-update.js` — Foundry update operators
+
+`forcedDeletion()` returns the operator instance that removes a key in a
+Document update (`{ "system.oldKey": forcedDeletion() }`). Never pass the
+`foundry.data.operators.ForcedDeletion` class itself: Foundry does not treat the
+class as a deletion and the key silently stays.
+
 ### `src/modules/utils/actor-guards.js` — actor-type predicates
 
 `isMachineActor`, `isPersonActor`, `isBattleMechActor`, `isVehicleActor`,
