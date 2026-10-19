@@ -6,6 +6,7 @@ import {
   getTokenActor,
   getTokenCenter,
   getTokenDocument,
+  isSameDisposition,
 } from "../utils/token.js";
 import { normalizeAuraPacket } from "./normalize-aura-packet.js";
 
@@ -120,8 +121,8 @@ export function isTokenAffectedBySource(source = {}, sourceToken = null, targetT
   if (source.allegiance === "enemy" && sameToken) return false;
   if (source.allegiance === "any") return true;
 
-  const sameDisposition = Number(sourceDoc.disposition ?? 0) === Number(targetDoc.disposition ?? 0);
-  return source.allegiance === "enemy" ? !sameDisposition : sameDisposition;
+  const sameSide = isSameDisposition(sourceDoc, targetDoc);
+  return source.allegiance === "enemy" ? !sameSide : sameSide;
 }
 
 export function getTokenDistance(sourceToken = null, targetToken = null, scene = null) {

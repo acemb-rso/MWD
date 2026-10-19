@@ -14,6 +14,7 @@ import {
   getTokenId,
   getTokenObject,
   getTokenUuid,
+  isSameDisposition,
 } from "../utils/token.js";
 import { collectionEntries } from "../utils/coercion.js";
 
@@ -36,8 +37,9 @@ function isSameToken(left = null, right = null) {
 
 /**
  * Decide whether a token is a valid machine-sensor target for an observer.
- * Current policy: machine actor, HOSTILE disposition, not the observer itself,
- * and not GM-hidden unless the caller opts in. Widening the disposition rule
+ * Current policy: machine actor whose disposition differs from the observer's
+ * (the system's binary side test; with no observer, Hostile machines), not the
+ * observer itself, and not GM-hidden unless the caller opts in. Changing the disposition rule
  * is a rules change and must happen here, nowhere else.
  */
 export function isMachineSensorEligibleTarget({
@@ -48,11 +50,12 @@ export function isMachineSensorEligibleTarget({
   const target = getTokenObject(targetToken);
   if (!target) return false;
   if (!isMachineActorType(getTokenActor(target))) return false;
-  if (getTokenDisposition(target) !== getHostileDisposition()) return false;
   if (!includeHidden && isTokenHidden(target)) return false;
   const observer = getTokenObject(observerToken);
   if (observer && isSameToken(observer, target)) return false;
-  return true;
+  return observer
+    ? !isSameDisposition(observer, target)
+    : getTokenDisposition(target) === getHostileDisposition();
 }
 
 function resolveCombatantToken(combatant = null) {

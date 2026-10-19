@@ -137,7 +137,7 @@ test("EW panel shows an empty state when the encounter has no eligible contacts"
   assert.equal(panel.rows.length, 0);
   assert.equal(panel.canAcquireAny, false);
   assert.equal(panel.canTargetAny, false);
-  assert.match(panel.emptyState, /No eligible hostile contacts/i);
+  assert.match(panel.emptyState, /No eligible enemy contacts/i);
 });
 
 test("EW panel reports no active encounter when there is no combat", () => {

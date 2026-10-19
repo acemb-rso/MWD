@@ -418,10 +418,10 @@ export function buildMachineEwPanel({
     canAcquireAny: rows.some(row => row.canAcquire),
     canTargetAny: rows.some(row => row.canTarget),
     emptyState: combatRef
-      ? "No eligible hostile contacts in the current encounter."
-      : "No active encounter. Hostile contacts appear here when combat begins.",
+      ? "No eligible enemy contacts in the current encounter."
+      : "No active encounter. Enemy contacts appear here when combat begins.",
     helpText: hasTargets
-      ? "Detection state is tracked per hostile contact. Use row buttons for the automated Acquire and Fire Solution actions."
-      : "Hostile machine combatants appear here during an encounter, ready for target-specific EW actions.",
+      ? "Detection state is tracked per enemy contact. Use row buttons for the automated Acquire and Fire Solution actions."
+      : "Enemy machine combatants appear here during an encounter, ready for target-specific EW actions.",
   };
 }

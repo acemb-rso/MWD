@@ -61,8 +61,11 @@ canvas targets, so a player always has an acquisition affordance even when a
 contact has no line of sight and is not rendered. A row exists for every
 combatant whose token is a sensor-eligible target:
 
-* machine actor with HOSTILE disposition (one canonical predicate in
-  `machine-sensor-eligibility.js`, shared with canvas sensor detection),
+* machine actor whose token disposition differs from the observer's (the
+  binary side test `isSameDisposition` in `utils/token.js`; one canonical
+  predicate in `machine-sensor-eligibility.js`, shared with canvas sensor
+  detection). Hostile machines therefore sense Friendly ones exactly as Friendly
+  machines sense Hostile ones, and Neutral machines are the other side for both,
 * on the current scene, not the observer itself, not GM-hidden.
 
 GM-hidden combatants produce **no row at all** — hidden remains the GM's

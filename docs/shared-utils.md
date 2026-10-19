@@ -59,7 +59,12 @@ check — use these.
 
 `getTokenDocument`, `getTokenObject`, `getTokenActor`, `getTokenId`,
 `getTokenUuid`, `getTokenDisposition`, `getTokenCenter`,
-`getMeasuredTokenCenter`.
+`getMeasuredTokenCenter`, `isSameDisposition`.
+
+`isSameDisposition(a, b)` is the system's only side test: the same token
+disposition is the same side, and any different disposition is the other side.
+EW sensing, template auto-targeting, area-status allegiance, and spotting all
+use it. Do not compare dispositions inline.
 
 Normalizes placeable-vs-document ambiguity. No canvas mutation, no mechanics.
 

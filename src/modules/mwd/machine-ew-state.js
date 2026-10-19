@@ -29,6 +29,7 @@ import {
   getTokenDisposition,
   getTokenDocument,
   getTokenUuid,
+  isSameDisposition,
 } from "../utils/token.js";
 
 const FLAG_SCOPE = "mwd";
@@ -657,9 +658,9 @@ function spotAllegianceMatches(spot, { uuid = "", disposition = 0 } = {}) {
   if (spot.allegiance === "any") return true;
   if (!uuid && !disposition) return false;
   const sameToken = String(spot.spotterTokenUuid ?? "").trim() === String(uuid ?? "").trim();
-  const sameDisposition = Number(spot.spotterDisposition ?? 0) === Number(disposition ?? 0);
-  if (spot.allegiance === "enemy") return !sameToken && !sameDisposition;
-  return sameDisposition; // "ally": attacker shares the spotter's side
+  const sameSide = isSameDisposition({ disposition: spot.spotterDisposition }, { disposition });
+  if (spot.allegiance === "enemy") return !sameToken && !sameSide;
+  return sameSide; // "ally": attacker shares the spotter's side
 }
 
 export async function setSpot(targetToken, { spotterToken = null, combat = null, allegiance = "ally", source = "spotIndirect" } = {}) {
