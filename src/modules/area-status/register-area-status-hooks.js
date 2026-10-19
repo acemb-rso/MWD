@@ -7,6 +7,7 @@ import {
   isAreaStatusRegion,
   isAreaStatusRegionWriteInProgress,
 } from "./area-status-regions.js";
+import { isTerrainRegion } from "../terrain/terrain-regions.js";
 
 const timers = new Map();
 
@@ -65,7 +66,7 @@ export function registerAreaStatusHooks(controller) {
   for (const hookName of ["createRegion", "updateRegion", "deleteRegion"]) {
     Hooks.on(hookName, region => {
       if (isAreaStatusRegionWriteInProgress()) return;
-      if (!isAreaStatusRegion(region)) return;
+      if (!isAreaStatusRegion(region) && !isTerrainRegion(region)) return;
       scheduleAreaStatusReconcile(controller, getSceneFromDocument(region), hookName);
     });
   }

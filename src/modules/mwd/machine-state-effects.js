@@ -19,6 +19,8 @@ import { normalizeMachineHeatThresholds } from "./heat-state.js";
 import { movementPenaltyStepsToMeters } from "./machine-movement.js";
 import { getAssetModuleDerivedStatuses, getAssetModuleMovementBonus } from "./asset-module-effects.js";
 import { getVehicleStrainStateEffects } from "./vehicle-strain.js";
+import { buildVehicleProfileSummary } from "./vehicle-profiles.js";
+import { getTerrainEntryByStatusId, VEHICLE_TERRAIN_AFFINITY_DICE } from "../terrain/terrain-catalog.js";
 import { collectMachineStateAnnotations } from "../status/status-mechanics.js";
 import { normalizeStatusConditionId } from "../status/status-condition-catalog.js";
 import { getMachineActorType } from "../utils/actor-guards.js";
@@ -212,6 +214,28 @@ function applyVehicleStrain(state, actor = null) {
   state.movementPenalty += strainEffects.movementPenalty;
   state.redlineBlocked = Boolean(strainEffects.redlineBlocked);
   for (const text of strainEffects.effectTexts ?? []) pushEffect(state, text);
+}
+
+// Vehicle terrain affinity: occupied terrain (statuses projected by terrain
+// Regions) against the vehicle profile's favored / adverse terrain classes.
+// Magnitudes live in terrain-catalog.js.
+function applyVehicleTerrainAffinity(state, actor = null) {
+  if (actor?.type !== TEMPLATE.actorTypes.vehicle) return;
+  const occupied = new Set(Array.from(actor.statuses ?? [])
+    .map(statusId => getTerrainEntryByStatusId(statusId)?.vehicleTerrainClass)
+    .filter(Boolean));
+  if (!occupied.size) return;
+  const { favoredTerrain, adverseTerrain } = buildVehicleProfileSummary(actor.system ?? {});
+  for (const terrainClass of occupied) {
+    if (favoredTerrain.includes(terrainClass)) {
+      state.pilotingDice += VEHICLE_TERRAIN_AFFINITY_DICE.favored;
+      pushEffect(state, `Favored terrain (${startCase(terrainClass)}): ${VEHICLE_TERRAIN_AFFINITY_DICE.favored >= 0 ? "+" : ""}${VEHICLE_TERRAIN_AFFINITY_DICE.favored} Piloting dice.`);
+    }
+    if (adverseTerrain.includes(terrainClass)) {
+      state.pilotingDice += VEHICLE_TERRAIN_AFFINITY_DICE.adverse;
+      pushEffect(state, `Adverse terrain (${startCase(terrainClass)}): ${VEHICLE_TERRAIN_AFFINITY_DICE.adverse} Piloting dice.`);
+    }
+  }
 }
 
 function applyBattlemechHeatMovementPenalty(state, actor = null) {
@@ -412,6 +436,7 @@ export function getMachineRuleState(actor = null) {
   };
 
   applyVehicleStrain(state, actor);
+  applyVehicleTerrainAffinity(state, actor);
   applyBattlemechHeatMovementPenalty(state, actor);
   state.movementBonus += getAssetModuleMovementBonus(actor);
   applyMachineCritDerivedState(state, actor);

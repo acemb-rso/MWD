@@ -6,6 +6,7 @@
 import { SYSTEM_NAME, TEMPLATE } from "../core/constants.js";
 import { STATUS_MAP } from "../roll/config/status-modifiers.js";
 import { cloneValue } from "../utils/clone.js";
+import { listTerrainStatusEntries } from "../terrain/terrain-catalog.js";
 
 export const SETTING_STATUS_CONDITION_CATALOG = "statusConditionCatalog";
 
@@ -155,6 +156,9 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("tagged", "TAGed", "all", "targeting", ["tag", "designated", "targeting"], "Targeting.webp", { icon: TARGETING_ICON, order: 1610 }),
   status("narced", "NARCed", "all", "targeting", ["narc", "beacon", "targeting"], "Targeting.webp", { icon: TARGETING_ICON, order: 1620 }),
   status("spotted", "Spotted", "all", "targeting", ["spot", "designated", "indirect"], "Targeting.webp", { icon: TARGETING_ICON, order: 1615 }),
+  // Terrain occupancy statuses, projected by terrain Regions (terrain-catalog.js).
+  ...listTerrainStatusEntries().map((terrain, index) =>
+    status(terrain.statusId, `Terrain: ${terrain.label}`, "machine", "terrain", ["terrain"], "cover.svg", { manual: false, managed: true, order: 1700 + index })),
 ]);
 
 function status(id, label, actorGroup, category, tags, icon, options = {}) {

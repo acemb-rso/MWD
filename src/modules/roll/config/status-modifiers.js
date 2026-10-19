@@ -3,6 +3,8 @@
 // Workflow: status catalog determines availability; this map declares what an
 // active status contributes; existing subsystem helpers consume typed fields.
 
+import { listTerrainStatusEntries } from "../../terrain/terrain-catalog.js";
+
 export const STATUS_ROLES = Object.freeze({
   rollModifier: "rollModifier",
   actionGate: "actionGate",
@@ -356,4 +358,16 @@ export const STATUS_MAP = Object.freeze({
   tagged: marker("TAGed", "Target designation marker."),
   narced: marker("NARCed", "Target beacon marker."),
   spotted: marker("Spotted", "Indirect-fire designation (visual only; validity is token-scoped metadata)."),
+
+  // Terrain occupancy, generated from terrain-catalog.js (the single source of
+  // terrain magnitudes). Terrain with no occupancy effect is a marker.
+  ...Object.fromEntries(listTerrainStatusEntries().map(terrain => {
+    const movement = { id: `${terrain.statusId}.movement` };
+    if (terrain.movementPenaltySteps) movement.movementPenaltySteps = terrain.movementPenaltySteps;
+    if (terrain.pilotingDn) movement.pilotingDn = terrain.pilotingDn;
+    const hasEffect = Boolean(terrain.movementPenaltySteps || terrain.pilotingDn);
+    return [terrain.statusId, hasEffect
+      ? machine(`Terrain: ${terrain.label}`, { movement: [movement] })
+      : marker(`Terrain: ${terrain.label}`, "Terrain occupancy marker (vehicle terrain affinity).")];
+  })),
 });

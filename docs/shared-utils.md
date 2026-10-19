@@ -38,6 +38,12 @@ belongs in a shared module.
 Domain-neutral fallback/clamping semantics. If you need a new coercion
 (e.g. `toBoolean`), it goes here.
 
+### `src/modules/utils/region.js` — Foundry Region membership
+
+`isTokenInRegion(region, token)`: Foundry's tracked region membership, falling
+back to testing the token's centre point. Hazard and terrain regions both use
+it; do not test region membership inline.
+
 ### `src/modules/utils/document-update.js` — Foundry update operators
 
 `forcedDeletion()` returns the operator instance that removes a key in a
