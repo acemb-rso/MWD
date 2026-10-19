@@ -1,16 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { resolveTargetStatusActionExecution } from "../src/modules/roll/ew-execution.js";
+import { resolveSelfStatusActionExecution, resolveTargetStatusActionExecution } from "../src/modules/roll/ew-execution.js";
 import { getMachineActionDefinition } from "../src/modules/mwd/machine-action-catalog.js";
 import { getAcquireCeiling, getTrackingPenalty } from "../src/modules/mwd/machine-ew-state.js";
 import { MachineStateEffectsProvider } from "../src/modules/modifiers/providers/machine-state-effects.js";
 
-function createMachine({ name = "Target Mech", type = "battlemech", statuses = [], throws = false } = {}) {
+function createMachine({ name = "Target Mech", type = "battlemech", statuses = [], throws = false, isOwner = true } = {}) {
   const calls = [];
   const actor = {
     name,
     type,
+    isOwner,
     statuses: new Set(statuses),
     items: [],
     system: { mwd: { crits: [], locations: {} } },
@@ -18,6 +19,7 @@ function createMachine({ name = "Target Mech", type = "battlemech", statuses = [
       calls.push({ statusId, options });
       if (throws) throw new Error("User lacks permission");
       if (options?.active) actor.statuses.add(statusId);
+      else actor.statuses.delete(statusId);
     },
   };
   return { actor, calls };
@@ -90,7 +92,7 @@ test("failed rolls, repeat spikes, invalid targets, and failed writes apply noth
   await withTargetToken(locked.actor, async () => {
     const result = await resolveTargetStatusActionExecution({ payload: spike, ctx, outcomeModel: passed });
     assert.equal(result.persistenceFailed, true);
-    assert.match(result.reason, /GM must apply it/);
+    assert.match(result.reason, /could not be applied to Target Mech: User lacks permission/);
   });
 });
 
@@ -122,4 +124,76 @@ test("a target's EPM Boosted removes 2 dice from an incoming ECM Spike", async (
     const mods = provider.collect({ actor: spiker, resolved: { intent: "skill" }, payload });
     assert.equal(mods.some(mod => mod.id === "machineState.targetDefense.ecmSpike"), false);
   });
+});
+
+test("a target the roller does not own is jammed through the GM machine-action relay", async () => {
+  const target = createMachine({ isOwner: false });
+  const spiker = createMachine({ name: "Spiker" }).actor;
+  const relayed = [];
+  await withTargetToken(target.actor, async () => {
+    globalThis.game = { mwd: { machineActions: { execute: async (actor, request) => { relayed.push({ actor, request }); return { ok: true }; } } } };
+    try {
+      const result = await resolveTargetStatusActionExecution({
+        attacker: spiker,
+        payload: { ...spike, operatorActorUuid: "Actor.pilot" },
+        ctx,
+        outcomeModel: passed,
+      });
+      assert.equal(result.ok, true);
+      assert.equal(target.calls.length, 0);
+      assert.equal(relayed[0].actor, spiker);
+      assert.deepEqual(relayed[0].request, {
+        kind: "applyTargetStatus",
+        actionId: "ecmSpike",
+        targetTokenUuid: "Scene.s.Token.target",
+        operatorActorUuid: "Actor.pilot",
+      });
+
+      globalThis.game.mwd.machineActions.execute = async () => ({ ok: false, reason: "No active GM responded to the machine action request." });
+      const unanswered = await resolveTargetStatusActionExecution({ attacker: spiker, payload: spike, ctx, outcomeModel: passed });
+      assert.equal(unanswered.persistenceFailed, true);
+      assert.match(unanswered.reason, /No active GM responded/);
+    } finally {
+      delete globalThis.game;
+    }
+  });
+});
+
+test("a successful EPM Filter clears ECM Jamming from the acting machine", async () => {
+  const epm = { machineActionKey: "epmFilter" };
+  const jammed = createMachine({ statuses: ["ecmJamming"] });
+
+  const failed = await resolveSelfStatusActionExecution({ actor: jammed.actor, payload: epm, ctx, outcomeModel: { successes: 1 } });
+  assert.equal(failed.ok, false);
+  assert.equal(jammed.actor.statuses.has("ecmJamming"), true);
+
+  const cleared = await resolveSelfStatusActionExecution({ actor: jammed.actor, payload: epm, ctx, outcomeModel: passed });
+  assert.equal(cleared.ok, true);
+  assert.deepEqual(cleared.cleared, [{ statusId: "ecmJamming", label: "ECM Jamming" }]);
+  assert.equal(jammed.actor.statuses.has("ecmJamming"), false);
+
+  const clean = createMachine();
+  const nothing = await resolveSelfStatusActionExecution({ actor: clean.actor, payload: epm, ctx, outcomeModel: passed });
+  assert.deepEqual(nothing.cleared, []);
+
+  assert.equal(await resolveSelfStatusActionExecution({ actor: clean.actor, payload: spike, ctx, outcomeModel: passed }), null);
+});
+
+test("the GM relay handler applies only the catalog-declared statuses", async () => {
+  const { MachineActions } = await import("../src/modules/mwd/machine-quick-actions.js");
+  const target = createMachine({ isOwner: false });
+  const spiker = createMachine({ name: "Spiker" }).actor;
+  globalThis.fromUuid = async uuid => (uuid === "Scene.s.Token.target" ? { actor: target.actor } : null);
+  globalThis.game = { user: { isGM: true } };
+  try {
+    const result = await MachineActions.execute(spiker, { kind: "applyTargetStatus", actionId: "ecmSpike", targetTokenUuid: "Scene.s.Token.target", statusId: "shutdown" });
+    assert.equal(result.ok, true);
+    assert.deepEqual([...target.actor.statuses], ["ecmJamming"]);
+
+    const refused = await MachineActions.execute(spiker, { kind: "applyTargetStatus", actionId: "breakLock", targetTokenUuid: "Scene.s.Token.target" });
+    assert.equal(refused.ok, false);
+  } finally {
+    delete globalThis.fromUuid;
+    delete globalThis.game;
+  }
 });

@@ -53,7 +53,7 @@ import {
 import { getMachineActionDefinition } from "../mwd/machine-action-catalog.js";
 import { findAssetModuleActionOverride, getAssetModuleActionCosts } from "../mwd/asset-module-effects.js";
 import { getMachineAttackActionCost, isMachineActor } from "../mwd/machine-crit-effects.js";
-import { resolveAcquireExecution, resolveBreakLockExecution, resolveDefensiveJinkRollExecution, resolveSpotIndirectExecution, resolveSuppressBeaconRollExecution, resolveTargetStatusActionExecution, resolveTargetingExecution } from "./ew-execution.js";
+import { resolveAcquireExecution, resolveBreakLockExecution, resolveDefensiveJinkRollExecution, resolveSelfStatusActionExecution, resolveSpotIndirectExecution, resolveSuppressBeaconRollExecution, resolveTargetStatusActionExecution, resolveTargetingExecution } from "./ew-execution.js";
 import { getAttackerCombatant, consumeTargetingPacket } from "../mwd/machine-ew-state.js";
 import { revealMachineSignature } from "../mwd/machine-stealth.js";
 import { isPersonalFireModeUnloadAfterAction } from "../mwd/personal-fire-modes.js";
@@ -176,6 +176,12 @@ async function recomputeResolvedOutcomeAndAttack(resolved = {}, actor = null) {
   } else if (ctx.intent === "skill" && resolved.originPayload?.machineActionKey && actor) {
     resolved.targetStatusResult = await resolveTargetStatusActionExecution({
       attacker: actor,
+      payload: resolved.originPayload,
+      ctx,
+      outcomeModel: resolved.outcomeModel,
+    });
+    resolved.selfStatusResult = await resolveSelfStatusActionExecution({
+      actor,
       payload: resolved.originPayload,
       ctx,
       outcomeModel: resolved.outcomeModel,
@@ -1242,6 +1248,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   let ewJinkResult = null;
   let ewSuppressBeaconResult = null;
   let targetStatusResult = null;
+  let selfStatusResult = null;
   let spotIndirectResult = null;
   if (ctx.intent === "acquire") {
     ewAcquireResult = await resolveAcquireExecution({ attacker: actor, ctx, outcomeModel });
@@ -1263,6 +1270,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   }
   if (ctx.intent === "skill" && payload.machineActionKey) {
     targetStatusResult = await resolveTargetStatusActionExecution({ attacker: actor, payload, ctx, outcomeModel });
+    selfStatusResult = await resolveSelfStatusActionExecution({ actor, payload, ctx, outcomeModel });
   }
   if (ctx.intent === "attack" && ctx.attack?.ewContext?.activePacketId) {
     const attackerToken = getMachineAttackToken(actor, payload);
@@ -1324,6 +1332,7 @@ async function execute({ actor, payload, event, uiState = null } = {}) {
   if (ewJinkResult) resolved.ewJinkResult = ewJinkResult;
   if (ewSuppressBeaconResult) resolved.ewSuppressBeaconResult = ewSuppressBeaconResult;
   if (targetStatusResult) resolved.targetStatusResult = targetStatusResult;
+  if (selfStatusResult) resolved.selfStatusResult = selfStatusResult;
   if (ctx.acquire)   resolved.acquire   = ctx.acquire;
   if (ctx.targeting) resolved.targeting = ctx.targeting;
   if (ctx.spotIndirect) resolved.spotIndirect = ctx.spotIndirect;

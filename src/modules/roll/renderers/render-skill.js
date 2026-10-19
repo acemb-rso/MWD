@@ -45,6 +45,7 @@ export function enhanceSkill(resolved, vm) {
   }
   enhanceSuppressBeacon(r, vm);
   enhanceTargetStatus(r, vm);
+  enhanceSelfStatus(r, vm);
 }
 
 function enhanceSuppressBeacon(resolved, vm) {
@@ -81,6 +82,20 @@ function enhanceTargetStatus(resolved, vm) {
       : `${result.actionLabel}: ${target} gains ${status.label}${until}.`;
     vm.footerRows.push({ text, title: "" });
   }
+}
+
+function enhanceSelfStatus(resolved, vm) {
+  const result = resolved?.selfStatusResult ?? null;
+  if (!result) return;
+
+  if (!result.ok) {
+    vm.footerRows.push({ text: `${result.actionLabel}: ${result.reason ?? "No status was cleared."}`, title: "" });
+    return;
+  }
+  const text = result.cleared?.length
+    ? `${result.actionLabel}: ${result.cleared.map(status => status.label).join(", ")} cleared.`
+    : `${result.actionLabel}: nothing to clear.`;
+  vm.footerRows.push({ text, title: "" });
 }
 
 function enhanceFirstAid(_resolved, vm, firstAid) {

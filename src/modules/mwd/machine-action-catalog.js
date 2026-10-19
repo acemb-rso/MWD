@@ -65,6 +65,7 @@ function action(key, config = {}) {
   const tags = toArray(config.tags);
   const resolves = toArray(config.resolves);
   const appliesToTarget = toArray(config.appliesToTarget);
+  const clearsOnSuccess = toArray(config.clearsOnSuccess);
 
   return Object.freeze({
     key,
@@ -92,6 +93,8 @@ function action(key, config = {}) {
     resolves: Object.freeze(resolves),
     // Statuses a successful roll applies to the action's target.
     appliesToTarget: Object.freeze(appliesToTarget),
+    // Statuses a successful roll removes from the acting machine.
+    clearsOnSuccess: Object.freeze(clearsOnSuccess),
     // Machine rule-state selector the target resists this action with (dice
     // removed from the actor's pool).
     targetDefenseDice: String(config.targetDefenseDice ?? "").trim(),
@@ -466,6 +469,7 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     intent: "epmFilter",
     tags: ["sensors", "ew", "ecm"],
     resolves: ["ecmJamming"],
+    clearsOnSuccess: ["ecmJamming"],
     notes: "Remove or reduce ECM Jamming.",
   }),
   swat: action("swat", {
