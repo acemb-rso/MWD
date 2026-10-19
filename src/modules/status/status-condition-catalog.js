@@ -147,6 +147,7 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   // Tactical markers.
   status("evasiveWeave", "Evasive", "machine", "tactical", ["defense", "attackPenalty", "selfInduced"], "falling.svg", { order: 1500 }),
   status("braced", "Braced", "machine", "tactical", ["defense", "mobilityPenalty"], "cover.svg", { order: 1510 }),
+  status("shielded", "Shielded", "machine", "tactical", ["defense", "attackPenalty", "selfInduced"], "cover.svg", { order: 1520 }),
   status("overextended", "Overextended", "machine", "tactical", ["attack", "defensePenalty"], "surge.svg", { order: 1520 }),
   status("targetFocused", "Target Focused", "machine", "tactical", ["targeted", "attack"], "all-seeing-eye.webp", { order: 1530 }),
   status("suppressedMechanical", "Suppressed", "machine", "tactical", ["offense", "suppressed"], "suppressed.svg", { order: 1540 }),
