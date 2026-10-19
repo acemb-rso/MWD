@@ -2247,14 +2247,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       return false;
     }
 
-    const isEligible = intent === "targeting" ? targetRow.canTarget : targetRow.canAcquire;
-    if (!isEligible) {
-      ui.notifications?.warn(intent === "targeting"
-        ? "That target is not ready for targeting data yet."
-        : "That target cannot advance its detection state right now.");
-      return false;
-    }
-
+    // The resolver enforces eligibility and reports the specific reason.
     try {
       const result = await executeMachineAction(actor, {
         kind: "ew",

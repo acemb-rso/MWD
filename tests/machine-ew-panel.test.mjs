@@ -178,7 +178,10 @@ test("EW panel exposes Contact targets as acquire-ready but not targeting-ready"
   assert.equal(row.acquireHint, "Acquire can upgrade to Track.");
   assert.equal(row.targetHint, "Targeting Data unavailable until Track.");
   assert.equal(row.acquireAction.enabled, true);
-  assert.equal(row.targetAction.enabled, false);
+  // Buttons only hint (Design Principles §8): Target stays clickable and the
+  // targeting resolver refuses below Track with its own message.
+  assert.equal(row.targetAction.enabled, true);
+  assert.equal(row.targetAction.title, "Targeting Data unavailable until Track.");
   assert.deepEqual(row.compactActions.map(action => action.id), ["acquire", "target", "ecmSpike", "tagTarget"]);
   assert.equal(row.compactActions.find(action => action.id === "tagTarget")?.enabled, false);
   assert.match(row.compactActions.find(action => action.id === "tagTarget")?.title ?? "", /TAG asset module/i);
@@ -367,6 +370,9 @@ test("EW panel shows capped targeting data and penalties for Track targets under
   assert.equal(row.canAcquire, false);
   assert.equal(row.canTarget, true);
   assert.equal(row.acquireHint, "ECM prevents advancing beyond Track.");
+  // Clickable so the acquire resolver can refuse with a visible warning.
+  assert.equal(row.acquireAction.enabled, true);
+  assert.equal(row.acquireAction.title, "ECM prevents advancing beyond Track.");
   assert.equal(row.targetHint, "Targeting Data available.");
   assert.equal(row.targetAction.title, "Targeting Data available.");
 });
@@ -402,7 +408,8 @@ test("EW panel keeps blind targets informational only and lock targets optimized
   assert.equal(blindRow.canAcquire, true);
   assert.equal(blindRow.canTarget, false);
   assert.equal(blindRow.acquireHint, "Acquire can establish Contact (DN 1).");
-  assert.equal(blindRow.targetAction.title, "Track or Lock is required before generating targeting data.");
+  assert.equal(blindRow.targetAction.title, "Targeting Data unavailable until Track.");
+  assert.equal(lockRow.acquireAction.enabled, false);
   assert.equal(lockRow.canAcquire, false);
   assert.equal(lockRow.canTarget, true);
   assert.equal(lockRow.acquireAction.title, "Target is already at Lock.");

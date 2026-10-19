@@ -85,45 +85,26 @@ function buildTargetHint({ detectionState = "blind", lockGated = false } = {}) {
   return "Targeting solution available.";
 }
 
+// Acquire and Target buttons only hint (Design Principles §8): they stay
+// clickable whenever an attempt is conceivable, and the resolver refuses with
+// the specific reason (ECM ceiling, Sensor Blind, sensors blocked, no Track).
+// Only Acquire at Lock is disabled, because no attempt exists there.
 function buildAcquireAction({ canAcquire = false, detectionState = "blind", acquireHint = "", blockReason = "" } = {}) {
-  if (canAcquire) {
-    return {
-      enabled: true,
-      label: "Acquire",
-      title: acquireHint,
-    };
-  }
-
-  if (blockReason) {
-    return {
-      enabled: false,
-      label: "Acquire",
-      title: blockReason,
-    };
-  }
-
   if (detectionState === "lock") {
-    return {
-      enabled: false,
-      label: "Acquire",
-      title: "Target is already at Lock.",
-    };
+    return { enabled: false, label: "Acquire", title: "Target is already at Lock." };
   }
-
   return {
-    enabled: false,
+    enabled: true,
     label: "Acquire",
-    title: "Acquire is not available for this target right now.",
+    title: canAcquire ? acquireHint : (blockReason || acquireHint),
   };
 }
 
 function buildTargetAction({ canTarget = false, targetHint = "", blockReason = "" } = {}) {
   return {
-    enabled: canTarget,
+    enabled: true,
     label: "Target",
-    title: canTarget
-      ? targetHint
-      : blockReason || "Track or Lock is required before generating targeting data.",
+    title: canTarget ? targetHint : (blockReason || targetHint),
   };
 }
 
@@ -165,8 +146,8 @@ function buildCompactActions({
       label: "Acquire",
       icon: "fa-satellite-dish",
       dn: getAcquireBaseDn(detectionState),
-      enabled: canAcquire,
-      title: canAcquire ? acquireHint : (acquireBlockReason || "Acquire is not available for this target right now."),
+      enabled: row.acquireAction?.enabled ?? canAcquire,
+      title: row.acquireAction?.title ?? acquireHint,
     },
     {
       id: "target",
@@ -174,8 +155,8 @@ function buildCompactActions({
       label: "Target",
       icon: "fa-crosshairs",
       dn: 2,
-      enabled: canTarget,
-      title: canTarget ? targetHint : (targetingBlockReason || "Track or Lock is required before generating targeting data."),
+      enabled: row.targetAction?.enabled ?? canTarget,
+      title: row.targetAction?.title ?? targetHint,
     },
     {
       id: "ecmSpike",
@@ -363,8 +344,12 @@ export function resolveMachineEwActionTarget(panel, intent = "") {
   // Canvas targeting is optional but still meaningful: a user-targeted row wins
   // over the deterministic first eligible encounter row.
   const targetedKeys = getUserTargetTokenKeys();
-  return eligible.find(row => targetedKeys.has(row?.targetTokenId) || targetedKeys.has(row?.targetTokenUuid))
+  const isTargeted = row => targetedKeys.has(row?.targetTokenId) || targetedKeys.has(row?.targetTokenUuid);
+  // With no eligible row, fall back to the user's targeted contact so the
+  // resolver can explain why it cannot proceed instead of "no contact".
+  return eligible.find(isTargeted)
     ?? eligible[0]
+    ?? rows.find(isTargeted)
     ?? null;
 }
 

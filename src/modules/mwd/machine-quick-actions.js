@@ -523,19 +523,8 @@ async function executeMachineEwIntent(actor, request) {
     return { ok: false, reason: "missing-target", userMessage: `No eligible contact is ready to ${verb}.` };
   }
 
-  const isEligible = intent === "breakLock" || intent === "defensiveJink" || intent === "spotIndirect"
-    ? true
-    : intent === "targeting" ? targetRow.canTarget : targetRow.canAcquire;
-  if (!isEligible) {
-    return {
-      ok: false,
-      reason: "target-not-eligible",
-      userMessage: intent === "targeting"
-        ? "That target is not ready for targeting data yet."
-        : "That target cannot advance its detection state right now.",
-    };
-  }
-
+  // Eligibility (ECM ceiling, Sensor Blind, Track required, ...) is enforced by
+  // the acquire/targeting resolvers, which refuse with the specific reason.
   return executeRollPayload(actor, {
     intent,
     actionId: intent,
