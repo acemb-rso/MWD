@@ -172,6 +172,9 @@
         "htmlFields": ["description"]
       }
     },
+    "RegionBehavior": {
+      "terrain": {}
+    },
     "Item": {
       "contact": {
         "htmlFields": ["description"]

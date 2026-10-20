@@ -101,6 +101,7 @@ Common helpers (coercion, actor-type guards, token shape access, clone/id, setti
 ## Terrain
 
 - `src/modules/terrain/terrain-catalog.js` - Terrain classes and conditions: the single source of terrain meaning and (provisional) magnitudes, from which the terrain statuses are generated.
+- `src/modules/terrain/terrain-region-behavior.js` - Registers the native **Terrain (MWD)** Region Behavior (authoring on a Region's Behaviors tab).
 - `src/modules/terrain/terrain-regions.js` - Reads terrain from GM-authored Regions (`getRegionTerrain`) and supplies them to the area-status controller as region-kind sources, which project terrain statuses onto occupants. See [Terrain-Regions.md](Terrain-Regions.md).
 
 ---

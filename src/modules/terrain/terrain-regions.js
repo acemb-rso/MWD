@@ -9,15 +9,26 @@
 
 import { getTerrainStatusIds, normalizeRegionTerrain } from "./terrain-catalog.js";
 import { collectionEntries } from "../utils/coercion.js";
+import { isTerrainBehaviorType } from "./terrain-region-behavior.js";
 
 export const TERRAIN_REGION_FLAG = "terrain";
 export const TERRAIN_REGION_SOURCE_KIND = "region";
 
 /**
  * The terrain a Region declares, or null when it is not a terrain Region.
- * Authored as `flags.mwd.terrain = { terrainClass, conditions }`.
+ * Authored as an enabled Terrain Region Behavior (terrain-region-behavior.js);
+ * `flags.mwd.terrain = { terrainClass, conditions }` is the fallback for
+ * macros or when the behavior type is unavailable.
  */
 export function getRegionTerrain(region = null) {
+  const behavior = collectionEntries(region?.behaviors)
+    .find(entry => isTerrainBehaviorType(entry?.type) && !entry?.disabled);
+  if (behavior) {
+    return normalizeRegionTerrain({
+      terrainClass: behavior.system?.terrainClass,
+      conditions: Array.from(behavior.system?.conditions ?? []),
+    });
+  }
   const raw = region?.getFlag?.("mwd", TERRAIN_REGION_FLAG) ?? region?.flags?.mwd?.[TERRAIN_REGION_FLAG] ?? null;
   return normalizeRegionTerrain(raw);
 }

@@ -2,8 +2,8 @@
 
 Design for review item #1 (see [MaxTech-Review.md](MaxTech-Review.md)).
 **Status:** 1a (occupancy) core implemented: catalog, terrain statuses, region
-sources in the area-status controller, vehicle affinity. Authoring pending a
-decision. 1b (line of effect) designed here, not yet built. All magnitudes are **provisional, to be set by playtesting**,
+sources in the area-status controller, vehicle affinity. Authored through a
+native Region Behavior. 1b (line of effect) designed here, not yet built. All magnitudes are **provisional, to be set by playtesting**,
 and live in data.
 
 ## Model
@@ -91,11 +91,25 @@ Foundry walls stay the hard line-of-sight blocker. This replaces target-side
 Open: magnitude per obscuring point; whether a total of 3 blocks line of
 effect; whether elevation clears an obstruction.
 
-## Authoring (decision pending)
+## Authoring
 
-| Option | Pros | Cons |
-| --- | --- | --- |
-| **Native Region Behavior** (`documentTypes.RegionBehavior` + a behavior data model) | Native Region config form; idiomatic Foundry | New pattern in this codebase; v14 API unverified here, a wrong registration can break system load |
-| **GM tool** writing a region flag (`flags.mwd.terrain`) | Uses known APIs only; no load risk | Extra UI to build; not in the native Region editor |
+**Native Region Behavior** (decided 2026-10-20). The GM adds a **Terrain
+(MWD)** behavior on a Region's Behaviors tab (Region config → Behaviors →
+create) and picks the terrain and conditions in its form, which Foundry
+generates from the behavior's schema.
 
-Both write data that `getRegionTerrain` reads.
+- `system.json` declares `documentTypes.RegionBehavior.terrain`;
+  `terrain/terrain-region-behavior.js` registers the data model on `init`
+  (`RegionBehaviorType` subclass with `terrainClass` and `conditions`) under
+  whichever type key Foundry generated (`terrain` or `mwd.terrain`), with a
+  plain English label (the system has no localization).
+- Registration feature-detects the API and never throws, so it cannot break
+  system load.
+- The behavior stores data only and handles no Region events; disabling it
+  removes the terrain. Behavior create/update/delete hooks trigger
+  reconciliation.
+- `flags.mwd.terrain` remains a fallback (macros, or if the behavior type is
+  unavailable). `getRegionTerrain` prefers an enabled behavior.
+- Foundry v14's own terrain movement-cost system (`ModifyMovementCost`,
+  `_getTerrainEffects`) applies to ruler movement; MWD movement is
+  action-based, so it is not used.

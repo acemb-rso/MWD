@@ -27,6 +27,7 @@ import { HooksManager } from './hooks-manager.js';
 import { MWDItem } from '../item/anarchy-base-item.js';
 import { SystemSettings } from './system-settings.js';
 import { registerSchemaMigrationSettings, runSchemaMigrationGate } from "./migration/migration-runner.js";
+import { registerTerrainRegionBehavior } from "../terrain/terrain-region-behavior.js";
 import { registerActorSheetsV2 } from "../sheets/register-actor-sheets-v2.js";
 import { registerItemSheetsV2 } from "../sheets/register-item-sheets-v2.js";
 import { preloadTemplatesV2 } from "../sheets/preload-templates.js";
@@ -309,6 +310,7 @@ export class AnarchySystem {
 
     configureMWDFonts();
     registerMwdSensorDetectionMode();
+    registerTerrainRegionBehavior();
     registerMachineSensorOverlayHooks();
     registerMWDChatActions();
     registerAutoAnimations();
