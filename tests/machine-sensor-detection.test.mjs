@@ -121,7 +121,7 @@ test("MWD sensor detection is observer-relative", async () => {
   }
 });
 
-test("MWD sensor detection only allows hostile machine targets with contact, track, or lock", async () => {
+test("MWD sensor detection only allows other-side machine targets with contact, track, or lock", async () => {
   const { canDetect } = await import("../src/modules/canvas/machine-sensor-detection.js");
   const observer = token({ id: "observer", type: "battlemech", disposition: 1 });
   const hostileMech = token({ id: "hostile-mech", type: "vehicle", disposition: -1 });
@@ -146,7 +146,8 @@ test("MWD sensor detection only allows hostile machine targets with contact, tra
     assert.equal(canDetect(observer, hostileMech), true);
     assert.equal(canDetect(observer, friendlyMech), false);
     assert.equal(canDetect(observer, hostileCharacter), false);
-    assert.equal(canDetect(observer, neutralMech), false);
+    // Binary side test: a Neutral machine is not on the Friendly observer's side.
+    assert.equal(canDetect(observer, neutralMech), true);
   } finally {
     cleanupGlobals();
   }

@@ -1,4 +1,4 @@
-﻿// src/modules/token/hud-shortcuts.js
+// src/modules/token/hud-shortcuts.js
 // Purpose: Registers Foundry hooks: renderTokenHUD, ready. Renders Handlebars templates at runtime. References legacy Anarchy system behavior.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 

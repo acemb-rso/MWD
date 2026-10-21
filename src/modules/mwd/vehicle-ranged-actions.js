@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/vehicle-ranged-actions.js
+// src/modules/mwd/vehicle-ranged-actions.js
 // Purpose: Builds and executes vehicle ranged weapon quick actions.
 // How it fits: Mirrors battlemech-ranged-actions.js for vehicle actors — vehicles
 // select individual mounted weapons rather than weapon groups.

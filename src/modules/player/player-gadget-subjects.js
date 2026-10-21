@@ -1,4 +1,4 @@
-﻿// src/modules/player/player-gadget-subjects.js
+// src/modules/player/player-gadget-subjects.js
 // Purpose: Resolves the active personal-scale subject for the Player Gadget.
 // How it fits: Keeps ownership, token, and fallback selection out of the gadget AppV2 class.
 

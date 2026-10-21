@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/vehicle-movement-actions.js
+// src/modules/mwd/vehicle-movement-actions.js
 // Purpose: Vehicle movement quick actions, including Redline strain.
 // How it fits: Mirrors the BattleMech movement action service while preserving
 // vehicle doctrine: normal movement is stable, Redline is the Sprint equivalent.
@@ -13,6 +13,7 @@ import { applyMachineMovementPenalty, normalizeMachineMovement } from "./machine
 import { getMachineMovementEffects } from "./machine-state-effects.js";
 import { buildVehicleProfileSummary } from "./vehicle-profiles.js";
 import { revealMachineSignature } from "./machine-stealth.js";
+import { clearStatusesEndedByAction } from "./machine-action-statuses.js";
 
 export const VEHICLE_MOVEMENT_ACTIONS = Object.freeze({
   move: Object.freeze({ id: "move", label: "Move", cost: 1, strain: 0, mode: "ground" }),
@@ -146,6 +147,10 @@ export async function performVehicleMovementAction(actor, { movementKind = "", o
     return spend;
   }
 
+  // A pure posture holds position; every other movement (including a posture
+  // that includes movement, e.g. Evasive Maneuver) actually moves.
+  const moved = action.mode !== "posture" || Boolean(action.includesMovement);
+
   await PersonalCombatTracker.updateCombatantState(spendActor, {
     token,
     mutate: (state, snapshot) => {
@@ -154,7 +159,7 @@ export async function performVehicleMovementAction(actor, { movementKind = "", o
         actionId: "move",
         movementKind: action.id,
         label: action.label,
-        moved: !["hullDown", "brace", "shield"].includes(action.id),
+        moved,
         round: Number(snapshot?.combat?.round ?? 0),
         turn: Number(snapshot?.combat?.turn ?? 0),
         combatantId: snapshot?.combatant?.id ?? null,
@@ -162,6 +167,12 @@ export async function performVehicleMovementAction(actor, { movementKind = "", o
       return state;
     },
   });
+
+  if (moved) {
+    for (const cleared of await clearStatusesEndedByAction({ actor, actionId: "move" })) {
+      if (cleared.message) ui.notifications?.info(`${actor?.name ?? "Machine"}: ${cleared.message}`);
+    }
+  }
 
   if (action.strain > 0) {
     await adjustVehiclePendingStrain(actor, action.strain, { reason: `${action.label} movement` });
@@ -199,7 +210,7 @@ export async function performVehicleMovementAction(actor, { movementKind = "", o
     });
   } else if (action.id === "shield") {
     await ChatMessage.create({
-      content: `<div class="mwd-chat-message"><p><strong>${actor?.name ?? "Vehicle"}</strong> takes a <strong>Shield</strong> posture. Gains <strong>Shielded</strong> (+4 DR / −1 AR) until the start of next activation. The first hit or graze reduces incoming damage by 2, then Shield ends — apply this manually and clear the <em>Shielded</em> status. Clear at the start of the next turn if unused.</p></div>`,
+      content: `<div class="mwd-chat-message"><p><strong>${actor?.name ?? "Vehicle"}</strong> takes a <strong>Shield</strong> posture. Gains <strong>Shielded</strong> (+4 DR / −1 AR) until the start of next activation. The first hit or graze reduces incoming damage by 2, then Shield ends (applied automatically when damage is applied).</p></div>`,
       speaker: ChatMessage.getSpeaker({ actor }),
       flags: { mwd: { messageType: "postureAction", actionId: "shield" } },
     });

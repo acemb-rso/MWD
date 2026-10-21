@@ -61,8 +61,11 @@ canvas targets, so a player always has an acquisition affordance even when a
 contact has no line of sight and is not rendered. A row exists for every
 combatant whose token is a sensor-eligible target:
 
-* machine actor with HOSTILE disposition (one canonical predicate in
-  `machine-sensor-eligibility.js`, shared with canvas sensor detection),
+* machine actor whose token disposition differs from the observer's (the
+  binary side test `isSameDisposition` in `utils/token.js`; one canonical
+  predicate in `machine-sensor-eligibility.js`, shared with canvas sensor
+  detection). Hostile machines therefore sense Friendly ones exactly as Friendly
+  machines sense Hostile ones, and Neutral machines are the other side for both,
 * on the current scene, not the observer itself, not GM-hidden.
 
 GM-hidden combatants produce **no row at all** — hidden remains the GM's
@@ -502,7 +505,8 @@ In the live system, tracking friction is assembled from several related lanes.
 `getTrackingPenalty(targetActor, targetCombatant, options)` starts at 0 and
 adds target-state friction:
 
-* `ecmJamming`: +2
+* attacker-side status penalties via `options.attackerActor` — e.g. the
+  attacker's own `ecmJamming`: +2 (cancelled by its EPM Boosted)
 * `ecmShrouded`: +1
 * `obscuredLight`: +1
 * `obscuredHeavy`: +3
@@ -1057,6 +1061,27 @@ ECM should not usually destroy targetingData outright. It should:
 * make upgrades to `lock` harder
 
 ECM Spike should stay in the interference lane. In the core workflow it does not directly downgrade Detection State, and it is not the generic answer to a fresh targetingData packet. Use Break Lock for Detection State and Defensive Jink for targetingData.
+
+**Implemented:** ECM Spike declares `appliesToTarget: ["ecmJamming"]` and `targetDefenseDice: "ecmSpikeDefenseDice"` in the machine action catalog. A successful Spike applies ECM Jamming to the target (`resolveTargetStatusActionExecution` in `roll/ew-execution.js`), and a target with EPM Boosted removes 2 dice from the Spike. ECM Jamming degrades the **jammed machine's own sensors**: its Targeting Data -2, +2 tracking penalty on its attacks, and it cannot acquire beyond Track. Its EPM Boosted cancels all three. Jamming has no timer; a successful EPM Filter clears it (catalog `clearsOnSuccess: ["ecmJamming"]`, `resolveSelfStatusActionExecution`). Being hard to target is the separate `ecmShrouded` (ECM cloud) status.
+
+**Writes and permissions:** `mwd/machine-action-statuses.js` is the only writer for catalog-declared action statuses. A roller who does not own the target (the normal case for a player) sends the machine-action GM relay request kind `applyTargetStatus`; the GM re-checks that the requester controls the acting machine's operator, and applies only the statuses the catalog declares for that action. With no GM connected, the chat card reports that the status could not be applied.
+
+**ECM cloud (`ecmShrouded`):** granted by ECM modules (Guardian ECM, Nova and
+Watchdog CEWS, AR14 Sheathed Beacon; some spread it to nearby allies). While it
+is effective against an observer (`isEcmShroudEffective` in
+`mwd/machine-ew-state.js`) it gives +1 tracking penalty, +1 Acquire DN, stops
+acquisition at Track, and counts as the ECM-support situation (+1 die) for the
+bearer's Break Lock. Situations do not stack: the better of the selected
+situation and ECM support applies.
+
+**Active Probe vs. ECM (design decision, 2026-10-15).** In the BattleTech
+wargame an Active Probe automatically reveals units (placement and record sheet
+become known) and an ECM Suite blocks that, which is why the MechWarrior:
+Destiny rulebook describes ECM as rendering probes unusable in its bubble. MWD
+instead models sensing as the Detection State ladder, so an Active Probe is a
+sensor aid that **sees through** an ECM cloud (`bypassStatuses: ["ecmShrouded"]`)
+rather than a reveal ECM must block. This inversion is intentional. TAG and
+NARC also bypass the cloud (hard designations).
 
 Suggested rule:
 

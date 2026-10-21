@@ -1,4 +1,4 @@
-﻿// src/modules/item/lifemodule-item-sheet.js
+// src/modules/item/lifemodule-item-sheet.js
 // Purpose: Provides the catalog-driven UI for life module items.
 // How it fits: Lets owned actor life modules reference canonical catalog definitions and chosen skill bonuses.
 

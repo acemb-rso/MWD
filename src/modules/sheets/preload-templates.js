@@ -1,4 +1,4 @@
-﻿// src/modules/sheets/preload-templates.js
+// src/modules/sheets/preload-templates.js
 // Purpose: Preloads or manages Handlebars templates.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 

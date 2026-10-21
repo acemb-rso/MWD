@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/battlemech-ranged-actions.js
+// src/modules/mwd/battlemech-ranged-actions.js
 // Purpose: Builds and executes BattleMech ranged weapon-group quick actions.
 // Workflow: sheet/group button -> fire-mode execution plan -> roll intent
 // emission, resource spend, and combat-tracker weapon-group lockout.

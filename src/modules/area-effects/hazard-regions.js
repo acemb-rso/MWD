@@ -11,6 +11,7 @@ import {
   normalizeHazardDefinition,
   normalizeTemplateGeometry,
 } from "./area-effect-engine.js";
+import { isTokenInRegion } from "../utils/region.js";
 
 export const HAZARD_REGION_FLAG = "hazard";
 
@@ -114,26 +115,7 @@ export function getHazardRegionsForToken(tokenDocument = null) {
   const scene = token?.parent ?? canvas?.scene ?? null;
   if (!scene) return [];
 
-  const center = token?.object?.center
-    ?? token?.center
-    ?? {
-      x: Number(token?.x ?? 0) + ((Number(token?.width ?? 1) || 1) * (Number(canvas?.grid?.size ?? 100) || 100) / 2),
-      y: Number(token?.y ?? 0) + ((Number(token?.height ?? 1) || 1) * (Number(canvas?.grid?.size ?? 100) || 100) / 2),
-    };
-  const tokenPoint = {
-    x: Number(center?.x ?? 0) || 0,
-    y: Number(center?.y ?? 0) || 0,
-    elevation: Number(token?.elevation ?? token?.object?.elevation ?? 0) || 0,
-  };
-
   return Array.from(scene.regions ?? [])
     .filter(isHazardRegion)
-    .filter(region => {
-      if (region?.tokens?.has?.(token)) return true;
-      try {
-        return region?.testPoint?.(tokenPoint) ?? false;
-      } catch (_error) {
-        return false;
-      }
-    });
+    .filter(region => isTokenInRegion(region, token, { scene }));
 }

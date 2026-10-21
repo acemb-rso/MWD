@@ -1,4 +1,4 @@
-﻿// src/modules/combat/personal-combat-actions.js
+// src/modules/combat/personal-combat-actions.js
 // Purpose: Executes declarative personal combat action intents above the roll system.
 // How it fits: Sheets emit one combat intent; this module owns prompts, cost, resolver dispatch, and state/log side effects.
 
@@ -678,6 +678,17 @@ async function executeAttackResolver(actor, { action, token = null, metadata = {
   return { ok: Boolean(value), rolled: Boolean(value), value };
 }
 
+// Preconditions an interaction must meet before its cost is spent, so an
+// action that cannot take effect costs nothing (Design Principles §8, §14).
+function getInteractionPreconditionReason(action, metadata = {}) {
+  if (action.id === "reload") {
+    const state = metadata.weapon?.canReloadActivePayload?.({ detailed: true, combatAction: true });
+    if (!state) return "Selected weapon cannot be reloaded.";
+    if (!state.canReload) return state.reason || "Selected weapon cannot be reloaded.";
+  }
+  return "";
+}
+
 async function executeInteractionResolver(actor, { action, metadata = {} } = {}) {
   if (action.id === "selectPayload") {
     if (!metadata.weapon?.setActivePayload) return { ok: false, reason: "Selected weapon cannot select payloads." };
@@ -689,7 +700,13 @@ async function executeInteractionResolver(actor, { action, metadata = {} } = {})
     };
   }
   if (action.id === "reload") {
-    return { ok: true, log: { title: action.label, message: "Action spent; ammo consumption is not automated." } };
+    const result = await metadata.weapon?.reloadActivePayload?.({ combatAction: true });
+    if (!result?.ok) return { ok: false, reason: result?.reason || "Selected weapon cannot be reloaded." };
+    return {
+      ok: true,
+      stateChanges: [{ type: "itemUpdate", itemId: metadata.weaponId, path: "system.consumptionSources" }],
+      log: { title: action.label, message: `${metadata.weaponName}: ${result.payloadLabel} reloaded (${result.current}/${result.max}).` },
+    };
   }
   if (action.id === "changeFireMode") {
     return { ok: true, log: { title: action.label, message: "Fire mode selection is recorded for this activation." } };
@@ -957,6 +974,11 @@ export async function executeCombatActionIntent({ actor, token = null, payload =
       value: resolved.value,
     };
   }
+
+  const preconditionReason = action.resolver === PERSONAL_ACTION_RESOLVERS.interaction
+    ? getInteractionPreconditionReason(action, metadata)
+    : "";
+  if (preconditionReason) return { ok: false, reason: preconditionReason, actionId: action.id, costPaid: false, rolled: false, stateChanges: [] };
 
   const spend = await spendActionCost(actor, { token, action, metadata, snapshot });
   if (!spend?.ok) return { ...spend, actionId: action.id, costPaid: false, rolled: false, stateChanges: [] };

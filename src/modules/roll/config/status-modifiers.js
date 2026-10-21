@@ -3,6 +3,8 @@
 // Workflow: status catalog determines availability; this map declares what an
 // active status contributes; existing subsystem helpers consume typed fields.
 
+import { listTerrainStatusEntries } from "../../terrain/terrain-catalog.js";
+
 export const STATUS_ROLES = Object.freeze({
   rollModifier: "rollModifier",
   actionGate: "actionGate",
@@ -26,6 +28,7 @@ export const MACHINE_STATE_FIELDS = Object.freeze([
   "cq",
   "gates",
   "targeting",
+  "damage",
   "movement",
   "heat",
   "speed",
@@ -258,10 +261,23 @@ export const STATUS_MAP = Object.freeze({
   sensorBlind: machine("Sensor Blind", {
     targeting: [{ id: "sensorBlind.targeting", rangeCapClose: true, noTargetingDataGeneration: true, noTargetingDataUse: true, effectText: "Sensor Blind: no Targeting Data and attacks beyond Close are blocked." }],
   }, { roles: [R.machineState, R.repairIssue], repair: repair({ remedyKey: "systemReset", skillKey: "computers", locationKey: "head", effectSummary: "Sensor and targeting actions are severely impaired until reset." }) }),
+  // Applied to an enemy by ECM Spike: degrades the bearer's own sensors. Being
+  // hard to target is the separate ecmShrouded (ECM cloud) status.
   ecmJamming: machine("ECM Jamming", {
-    targeting: [{ id: "ecmJamming.targetingData", targetingDataValueDelta: -2 }],
+    targeting: [{
+      id: "ecmJamming.ownSensors",
+      whenBearerIs: "attacker",
+      targetingDataValueDelta: -2,
+      trackingPenaltyAsAttacker: 2,
+      observerDetectionCap: "track",
+      suppressedByStatuses: ["epmBoosted"],
+      effectText: "ECM Jamming: own Targeting Data -2, +2 tracking penalty on own attacks, cannot acquire beyond Track.",
+    }],
   }),
-  ecmShrouded: marker("ECM Shrouded", "ECM defense marker; dedicated EW helpers handle context-specific effects."),
+  // ECM cloud. Effects need the observer (bypass by Active Probe), so EW helpers
+  // own them (machine-ew-state isEcmShroudEffective): +1 tracking penalty, +1
+  // Acquire DN, acquisition capped at Track, ECM support for Break Lock.
+  ecmShrouded: marker("ECM Shrouded", "ECM cloud marker; machine-ew-state EW helpers apply its observer-dependent effects."),
   epmBoosted: machine("EPM Boosted", {
     dice: [{ id: "epmBoosted.ecmSpikeDefense", selector: "ecmSpikeDefenseDice", value: 2, effectText: "EPM Boosted: -2 dice against incoming ECM Spike attempts." }],
   }),
@@ -295,8 +311,13 @@ export const STATUS_MAP = Object.freeze({
   exposed: machine("Exposed", {
     cq: [{ id: "exposed.defenseDr", whenBearerIs: "defender", dr: -2 }],
   }),
+  // Positional postures end when the machine moves (machine movement records
+  // the "move" action). Shield instead lasts until next activation or a hit.
   entrenchedHullDown: machine("Entrenched / Hull Down", {
     cq: [{ id: "entrenchedHullDown.defenseDr", whenBearerIs: "defender", dr: { vehicle: 7, battlemech: 5 }, effectText: "Hull Down: vehicle gains a strong prepared-position defense bonus." }],
+  }, {
+    roles: [R.machineState, R.actionGate],
+    clearsOnActions: [{ id: "entrenchedHullDown.clearOnMove", actionIds: ["move"], statusId: "entrenchedHullDown", message: "Moved out of the Hull Down position." }],
   }),
   obscured: marker("Obscured (Smoke/Dust)", "Visibility marker."),
   obscuredLight: marker("Obscured (Light)", "Visibility marker."),
@@ -313,9 +334,14 @@ export const STATUS_MAP = Object.freeze({
       { id: "shielded.attackAr", whenBearerIs: "attacker", ar: -1 },
       { id: "shielded.defenseDr", whenBearerIs: "defender", dr: 4 },
     ],
+    damage: [{ id: "shielded.firstHit", incomingDamageDelta: -2, consumeOnHit: true, effectText: "Shielded: the first hit or graze loses 2 damage, then Shield ends." }],
+    startTurn: [{ id: "shielded.expire", clearStatus: true, effectText: "Shield: unused Shielded posture ended at the start of activation." }],
   }),
   braced: machine("Braced", {
     cq: [{ id: "braced.attackAr", whenBearerIs: "attacker", ar: 1 }],
+  }, {
+    roles: [R.machineState, R.actionGate],
+    clearsOnActions: [{ id: "braced.clearOnMove", actionIds: ["move"], statusId: "braced", message: "Moved and lost the Braced posture." }],
   }),
   overextended: marker("Overextended", "Tactical marker."),
   targetFocused: machine("Target Focused", {
@@ -332,4 +358,16 @@ export const STATUS_MAP = Object.freeze({
   tagged: marker("TAGed", "Target designation marker."),
   narced: marker("NARCed", "Target beacon marker."),
   spotted: marker("Spotted", "Indirect-fire designation (visual only; validity is token-scoped metadata)."),
+
+  // Terrain occupancy, generated from terrain-catalog.js (the single source of
+  // terrain magnitudes). Terrain with no occupancy effect is a marker.
+  ...Object.fromEntries(listTerrainStatusEntries().map(terrain => {
+    const movement = { id: `${terrain.statusId}.movement` };
+    if (terrain.movementPenaltySteps) movement.movementPenaltySteps = terrain.movementPenaltySteps;
+    if (terrain.pilotingDn) movement.pilotingDn = terrain.pilotingDn;
+    const hasEffect = Boolean(terrain.movementPenaltySteps || terrain.pilotingDn);
+    return [terrain.statusId, hasEffect
+      ? machine(`Terrain: ${terrain.label}`, { movement: [movement] })
+      : marker(`Terrain: ${terrain.label}`, "Terrain occupancy marker (vehicle terrain affinity).")];
+  })),
 });

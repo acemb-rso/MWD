@@ -1,4 +1,4 @@
-﻿// src/modules/roll/intent/resolve-acquire.js
+// src/modules/roll/intent/resolve-acquire.js
 // Resolve roll context for an EW acquire action (System + Perception).
 
 import { getSkillDef } from "../../mwd/skills.js";
@@ -70,9 +70,9 @@ export async function resolveAcquire({ actor, payload } = {}) {
     throw createUserFacingRollError("Target is already at lock state.", { severity: "info" });
   }
 
-  const ceiling = getAcquireCeiling(targetActor);
+  const ceiling = getAcquireCeiling(targetActor, { attackerActor: actor });
   if (currentState === "track" && ceiling === "track") {
-    throw createUserFacingRollError("ECM prevents advancing beyond Track on this target.", { severity: "warn" });
+    throw createUserFacingRollError("ECM interference prevents advancing beyond Track on this target.", { severity: "warn" });
   }
 
   const operator = await resolveMachineOperator({

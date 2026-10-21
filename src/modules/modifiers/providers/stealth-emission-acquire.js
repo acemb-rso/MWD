@@ -1,4 +1,4 @@
-﻿// src/modules/modifiers/providers/stealth-emission-acquire.js
+// src/modules/modifiers/providers/stealth-emission-acquire.js
 // Emits acquire dice bonuses against targets broadcasting a high signature.
 
 import { getHighEmissionAcquireDicePart } from "../../mwd/machine-stealth.js";

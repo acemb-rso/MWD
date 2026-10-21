@@ -1,4 +1,4 @@
-﻿// src/modules/item/item-type-utils.js
+// src/modules/item/item-type-utils.js
 // Purpose: Pure helpers for item-type normalization and create-time defaults.
 // How it fits: Keeps legacy type shims in one place so runtime code can branch on canonical keys only.
 

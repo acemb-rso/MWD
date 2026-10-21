@@ -321,6 +321,38 @@ test("payload keys normalize and group matching reserve stacks", async () => {
   assert.equal(model.payloads[0].modifies.ap, 0);
 });
 
+test("payload items with the default empty key are keyed by item name and stack", async () => {
+  const { buildWeaponPayloadItemModel } = await import("../src/modules/mwd/weapon-payload-items.js");
+  const bullets = (id, quantity) => [id, {
+    id,
+    uuid: `Actor.a.Item.${id}`,
+    name: "Pistol Bullets",
+    type: "weaponPayload",
+    system: { payloadKey: "", families: ["smallArmsBallistic"], tags: [], quantity, profile: { label: "FMJ" } },
+  }];
+  const actor = {
+    items: new Map([
+      bullets("b1", 1),
+      bullets("b2", 5),
+      bullets("b3", 1),
+      ["ap", {
+        id: "ap",
+        uuid: "Actor.a.Item.ap",
+        name: "Pistol AP",
+        type: "weaponPayload",
+        system: { payloadKey: "", families: ["smallArmsBallistic"], tags: [], quantity: 2, profile: { label: "Payload" } },
+      }],
+    ]),
+  };
+
+  const model = buildWeaponPayloadItemModel({ actor, weaponCompatibility: { families: ["smallArmsBallistic"] } });
+
+  assert.deepEqual(model.payloads.map(payload => [payload.payloadKey, payload.reserveQuantity]), [
+    ["pistol-bullets", 7],
+    ["pistol-ap", 2],
+  ]);
+});
+
 test("payload source assignments normalize keys and preserve selected sources", async () => {
   const {
     buildWeaponPayloadItemModel,

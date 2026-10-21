@@ -1,1 +1,12 @@
 node_modules/
+
+# Local editor state (Visual Studio)
+.vs/
+
+# Local header/template backup snapshots
+backups/
+
+# Personal digitized sourcebooks (owned copies) — never distribute
+docs/*.pdf
+MWD.pdf
+fonts/PLAYER_BOOK.pdf

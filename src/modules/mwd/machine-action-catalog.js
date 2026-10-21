@@ -64,6 +64,8 @@ function action(key, config = {}) {
   const implementation = normalizeImplementation(config.implementation);
   const tags = toArray(config.tags);
   const resolves = toArray(config.resolves);
+  const appliesToTarget = toArray(config.appliesToTarget);
+  const clearsOnSuccess = toArray(config.clearsOnSuccess);
 
   return Object.freeze({
     key,
@@ -89,6 +91,13 @@ function action(key, config = {}) {
     prompt: normalizePrompt(config.prompt),
     tags: Object.freeze(tags),
     resolves: Object.freeze(resolves),
+    // Statuses a successful roll applies to the action's target.
+    appliesToTarget: Object.freeze(appliesToTarget),
+    // Statuses a successful roll removes from the acting machine.
+    clearsOnSuccess: Object.freeze(clearsOnSuccess),
+    // Machine rule-state selector the target resists this action with (dice
+    // removed from the actor's pool).
+    targetDefenseDice: String(config.targetDefenseDice ?? "").trim(),
     payload: Object.freeze({
       intent: String(config.payload?.intent ?? "machineAction").trim() || "machineAction",
       actionId: String(config.payload?.actionId ?? key).trim() || key,
@@ -460,6 +469,7 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     intent: "epmFilter",
     tags: ["sensors", "ew", "ecm"],
     resolves: ["ecmJamming"],
+    clearsOnSuccess: ["ecmJamming"],
     notes: "Remove or reduce ECM Jamming.",
   }),
   swat: action("swat", {
@@ -581,6 +591,8 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     resolver: "targeting",
     intent: "ecmSpike",
     tags: ["ew", "ecm", "targeting"],
+    appliesToTarget: ["ecmJamming"],
+    targetDefenseDice: "ecmSpikeDefenseDice",
     notes: "Apply ECM Jamming.",
   }),
   suppressBeacon: action("suppressBeacon", {

@@ -1,4 +1,4 @@
-﻿// src/modules/roll/attack-resolution.js
+// src/modules/roll/attack-resolution.js
 /**
  * @pipeline context
  * @role Canonical AttackResolution. Given a resolved attack context and the roll
@@ -645,6 +645,7 @@ export function summarizeAttackDamageResult(result, target = {}, damage = {}, { 
       hitLocation: result.hitLocation ?? null,
       critical: result.critical ?? null,
       damagePreview: result.damagePreview ?? null,
+      statusDamage: result.statusDamage ?? null,
       reliabilityOptions: result.reliabilityOptions ?? null,
       previewRevision: Number(result.previewRevision ?? 0) || 0,
       machine: result.machine ?? null,

@@ -1,4 +1,4 @@
-﻿// src/modules/modifiers/providers/ew-tracking-penalty.js
+// src/modules/modifiers/providers/ew-tracking-penalty.js
 // Emits negative dice-pool modifiers for attack rolls against EW-hardened targets.
 
 import { getTrackingPenalty } from "../../mwd/machine-ew-state.js";
@@ -26,7 +26,7 @@ export class EwTrackingPenaltyProvider {
     const targetActor = targetToken?.actor ?? null;
     const mods = [];
 
-    const penalty = getTrackingPenalty(targetActor, null);
+    const penalty = getTrackingPenalty(targetActor, null, { attackerActor: actor });
     if (penalty) {
       mods.push({
         id: "ew.trackingPenalty",

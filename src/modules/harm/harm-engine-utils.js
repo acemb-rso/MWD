@@ -1,4 +1,4 @@
-﻿// src/modules/harm/harm-engine-utils.js
+// src/modules/harm/harm-engine-utils.js
 // Purpose: Pure helpers shared by the GM harm engine and its tests.
 // How it fits: Pulls non-Foundry math and branching out of the UI-facing engine so the damage contract is easier to verify.
 

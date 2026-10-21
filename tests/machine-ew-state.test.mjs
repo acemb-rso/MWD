@@ -111,7 +111,7 @@ test("suppress beacon marks a packet unusable until suppression is cleared", asy
   assert.equal(getUsableTargetingPacket(combatant, targetUuid, 3, "lock", 1)?.value, 3);
 });
 
-test("EPM boosted allows lock acquisition through ECM jamming", async () => {
+test("ECM Jamming caps the jammed acquirer at Track unless EPM Boosted", async () => {
   const { getAcquireCeiling } = await import("../src/modules/mwd/machine-ew-state.js");
 
   const actor = statuses => ({
@@ -119,10 +119,13 @@ test("EPM boosted allows lock acquisition through ECM jamming", async () => {
     statuses: new Set(statuses),
     system: { mwd: { crits: [], locations: {} } },
   });
+  const target = actor([]);
 
-  assert.equal(getAcquireCeiling(actor(["ecmJamming"])), "track");
-  assert.equal(getAcquireCeiling(actor(["ecmJamming", "epmBoosted"])), "lock");
-  assert.equal(getAcquireCeiling(actor(["ecmJamming", "eccmBoosted"])), "lock");
+  assert.equal(getAcquireCeiling(target, { attackerActor: actor(["ecmJamming"]) }), "track");
+  assert.equal(getAcquireCeiling(target, { attackerActor: actor(["ecmJamming", "epmBoosted"]) }), "lock");
+  assert.equal(getAcquireCeiling(target, { attackerActor: actor(["ecmJamming", "eccmBoosted"]) }), "lock");
+  // A jammed target is not protected by its own jamming (that is ecmShrouded).
+  assert.equal(getAcquireCeiling(actor(["ecmJamming"]), { attackerActor: actor([]) }), "lock");
 });
 
 test("targeting helpers read legacy Foundry-expanded token UUID paths and migrate writes to literal keys", async () => {

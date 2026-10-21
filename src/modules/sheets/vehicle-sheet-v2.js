@@ -1,4 +1,4 @@
-﻿// src/modules/sheets/vehicle-sheet-v2.js
+// src/modules/sheets/vehicle-sheet-v2.js
 /**
  * @pipeline ui-emitter
  * @role Layout-driven AppV2 vehicle sheet, and the base/reuse target for the
@@ -77,7 +77,7 @@ import { resolveBattlemechJumpProfile } from "../mwd/battlemech-mobility.js";
 import { getSkillDef } from "../mwd/skills.js";
 import { cachePendingTokenPosition } from "../mwd/token-measurement.js";
 import { resolveMachineSceneToken } from "../mwd/machine-token-resolution.js";
-import { resolveMachineOperator } from "../mwd/machine-operator.js";
+import { isEligibleMachineOperator, resolveMachineOperator } from "../mwd/machine-operator.js";
 import { normalizeMachineWeaponGroups, pruneWeaponGroupsToMountedItems } from "../mwd/machine-weapon-group-state.js";
 import { buildMachineStealthModel } from "../mwd/machine-stealth.js";
 import { notifyRollError } from "../roll/roll-errors.js";
@@ -369,15 +369,15 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
 
   async _onAssignPilot(event, target) {
     if (!this.isEditable) return;
-    const characters = (game.actors?.contents ?? []).filter(a => a.type === "character");
-    if (!characters.length) {
-      ui.notifications?.warn("No character actors found in this world.");
+    const candidates = (game.actors?.contents ?? []).filter(isEligibleMachineOperator);
+    if (!candidates.length) {
+      ui.notifications?.warn("No character or NPC actors found in this world.");
       return;
     }
     const actorWriteTarget = this.getPersistentActor() ?? this.actor;
     await SelectActor.selectActor(
       "Assign Pilot",
-      characters,
+      candidates,
       async (actor) => actorWriteTarget.update({ "system.pilot.uuid": actor.uuid }),
     );
   }
@@ -405,7 +405,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
     }
     if (data?.type === "Actor") {
       const dropped = await fromUuid(data.uuid).catch(() => null);
-      if (dropped?.type === "character") {
+      if (isEligibleMachineOperator(dropped)) {
         const actorWriteTarget = this.getPersistentActor() ?? this.actor;
         await actorWriteTarget.update({ "system.pilot.uuid": dropped.uuid });
         return;
@@ -2247,14 +2247,7 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       return false;
     }
 
-    const isEligible = intent === "targeting" ? targetRow.canTarget : targetRow.canAcquire;
-    if (!isEligible) {
-      ui.notifications?.warn(intent === "targeting"
-        ? "That target is not ready for targeting data yet."
-        : "That target cannot advance its detection state right now.");
-      return false;
-    }
-
+    // The resolver enforces eligibility and reports the specific reason.
     try {
       const result = await executeMachineAction(actor, {
         kind: "ew",

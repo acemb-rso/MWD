@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-quick-actions.js
+// src/modules/mwd/machine-quick-actions.js
 /**
  * @pipeline ui-emitter
  * @role Machine quick-action dispatcher. Takes a sheet quick-action (piloting,
@@ -43,6 +43,7 @@ import { performVehicleMovementAction } from "./vehicle-movement-actions.js";
 import { resolveVehiclePendingStrain } from "./vehicle-strain.js";
 import { findAttachedBattleArmorTargets } from "./battle-armor.js";
 import { goDarkMachineSignature, setMachineTransientEmission } from "./machine-stealth.js";
+import { applyActionTargetStatuses } from "./machine-action-statuses.js";
 import { createRandomId } from "../utils/id.js";
 import { getTokenId } from "../utils/token.js";
 
@@ -522,19 +523,8 @@ async function executeMachineEwIntent(actor, request) {
     return { ok: false, reason: "missing-target", userMessage: `No eligible contact is ready to ${verb}.` };
   }
 
-  const isEligible = intent === "breakLock" || intent === "defensiveJink" || intent === "spotIndirect"
-    ? true
-    : intent === "targeting" ? targetRow.canTarget : targetRow.canAcquire;
-  if (!isEligible) {
-    return {
-      ok: false,
-      reason: "target-not-eligible",
-      userMessage: intent === "targeting"
-        ? "That target is not ready for targeting data yet."
-        : "That target cannot advance its detection state right now.",
-    };
-  }
-
+  // Eligibility (ECM ceiling, Sensor Blind, Track required, ...) is enforced by
+  // the acquire/targeting resolvers, which refuse with the specific reason.
   return executeRollPayload(actor, {
     intent,
     actionId: intent,
@@ -883,6 +873,20 @@ async function executeMachineCatalogAction(actor, request = {}) {
   }
 }
 
+// Post-roll target statuses (machine-action-statuses.js). A player usually does
+// not own the target, so the GM performs the write; the relay authorizes the
+// requester as the acting machine's operator, and the statuses come from the
+// action catalog, not from the request.
+async function executeTargetStatusRequest(actor, request = {}) {
+  const targetDocument = request.targetTokenUuid ? await fromUuid(request.targetTokenUuid).catch(() => null) : null;
+  const targetActor = targetDocument?.actor ?? null;
+  if (!targetActor) return { ok: false, reason: "Target token could not be resolved." };
+  if (!globalThis.game?.user?.isGM && !request._gmRouted && !targetActor.isOwner) {
+    return requestGmMachineAction(actor, request);
+  }
+  return applyActionTargetStatuses({ actionKey: request.actionId, targetActor });
+}
+
 export async function executeMachineQuickAction(actor, request = {}) {
   assertMachineActionActor(actor);
   const normalized = normalizeMachineActionRequest(request);
@@ -938,6 +942,9 @@ export async function executeMachineQuickAction(actor, request = {}) {
       break;
     case "heatDangerCheck":
       result = await executeMachineHeatDangerCheck(actor, normalized);
+      break;
+    case "applyTargetStatus":
+      result = await executeTargetStatusRequest(actor, normalized);
       break;
     case "resolvePendingHeat":
       result = await resolveBattlemechPendingHeat(actor, {
@@ -1147,14 +1154,14 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
       execution: "skill",
       enabled: hasTargets,
       reason: "Target a token before launching an ECM Spike.",
-      mechanics: "Roll only; ECM state effects are not automated yet.",
+      mechanics: "Automated on success: target gains ECM Jamming until cleared by EPM Filter.",
     }),
     buildEwAction({
       id: "epmFilter",
       purpose: "Defensive remediation: remove or reduce ECM Jamming.",
       targetMode: "none",
       execution: "skill",
-      mechanics: "Roll only unless launched as a critical/status remedy.",
+      mechanics: "Automated on success: clears ECM Jamming from this machine.",
     }),
     buildEwAction({
       id: "breakLock",

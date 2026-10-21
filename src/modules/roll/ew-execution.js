@@ -15,6 +15,9 @@ import {
   suppressTargetingPacket,
   setSpot,
 } from "../mwd/machine-ew-state.js";
+import { getMachineActionDefinition, listMachineActionDefinitions } from "../mwd/machine-action-catalog.js";
+import { applyActionTargetStatuses, clearActionSelfStatuses } from "../mwd/machine-action-statuses.js";
+import { getStatusConditionDefinition } from "../status/status-condition-catalog.js";
 import { isMachineActor } from "../utils/actor-guards.js";
 import { getTokenUuid } from "../utils/token.js";
 
@@ -400,6 +403,90 @@ export async function resolveDefensiveJinkRollExecution({ defender, payload = {}
     ...result,
     hits,
     dn,
+  };
+}
+
+/**
+ * Apply the statuses a machine action declares in `appliesToTarget`
+ * (machine-action-catalog) to its target when the roll succeeds, e.g. ECM Spike
+ * -> ECM Jamming. Statuses are boolean, so ones already present are left as is.
+ */
+export async function resolveTargetStatusActionExecution({ attacker, payload = {}, ctx = {}, outcomeModel } = {}) {
+  const actionKey = String(payload?.machineActionKey ?? payload?.actionId ?? ctx?.data?.actionId ?? "").trim();
+  if (!actionKey) return null;
+  const action = getMachineActionDefinition(actionKey);
+  const statusIds = action.appliesToTarget ?? [];
+  if (!statusIds.length) return null;
+
+  const hits = Number(outcomeModel?.successes ?? outcomeModel?.hits ?? 0);
+  const dn = Number(ctx?.difficulty?.dn ?? 1);
+  const base = { actionLabel: action.label, hits, dn };
+  if (hits < dn) {
+    return { ...base, ok: false, reason: `${action.label} roll failed.` };
+  }
+
+  const targetToken = getAttackerTokenFromId(payload?.targetTokenId) ?? getAttackerTokenFromUuid(payload?.targetTokenUuid);
+  const targetActor = targetToken?.actor ?? null;
+  const targetTokenUuid = getTokenUuid(targetToken) || String(payload?.targetTokenUuid ?? "").trim();
+  if (!targetActor) {
+    return { ...base, ok: false, persistenceFailed: true, targetTokenUuid, reason: `${action.label} succeeded, but the target token was not found; no status was applied.` };
+  }
+  if (!isMachineActor(targetActor)) {
+    return { ...base, ok: false, targetTokenUuid, reason: `${action.label} target is not a machine.` };
+  }
+
+  // The target is usually not the roller's to write: owners write locally,
+  // everyone else goes through the machine-action GM relay.
+  const statuses = statusIds.map(statusId => ({
+    statusId,
+    label: getStatusConditionDefinition(statusId)?.label ?? statusId,
+    alreadyActive: targetActor.statuses?.has?.(statusId) ?? false,
+    clearedBy: listMachineActionDefinitions().filter(entry => entry.resolves.includes(statusId)).map(entry => entry.label),
+  }));
+  let write;
+  try {
+    write = targetActor.isOwner
+      ? await applyActionTargetStatuses({ actionKey: action.key, targetActor })
+      : await globalThis.game?.mwd?.machineActions?.execute?.(attacker, {
+        kind: "applyTargetStatus",
+        actionId: action.key,
+        targetTokenUuid,
+        operatorActorUuid: String(payload?.operatorActorUuid ?? "").trim(),
+      });
+  } catch (error) {
+    console.warn(`MWD | ${action.label}: could not apply target statuses.`, error);
+    write = { ok: false, reason: String(error?.message ?? error) };
+  }
+  if (!write?.ok) {
+    const labels = statuses.map(status => status.label).join(", ");
+    return { ...base, ok: false, persistenceFailed: true, targetTokenUuid, reason: `${action.label} succeeded, but ${labels} could not be applied to ${targetActor.name}: ${write?.reason || "no GM responded"}` };
+  }
+
+  Hooks.callAll("mwd.afterTargetStatusAction", { attacker, actionKey: action.key, targetActor, targetTokenUuid, statuses, ctx });
+
+  return { ...base, ok: true, targetName: targetActor.name ?? "", targetTokenUuid, statuses };
+}
+
+/**
+ * Clear the statuses a machine action declares in `clearsOnSuccess` from the
+ * acting machine when the roll succeeds, e.g. EPM Filter -> ECM Jamming.
+ */
+export async function resolveSelfStatusActionExecution({ actor, payload = {}, ctx = {}, outcomeModel } = {}) {
+  const actionKey = String(payload?.machineActionKey ?? payload?.actionId ?? ctx?.data?.actionId ?? "").trim();
+  if (!actionKey) return null;
+  const action = getMachineActionDefinition(actionKey);
+  if (!action.clearsOnSuccess?.length) return null;
+
+  const hits = Number(outcomeModel?.successes ?? outcomeModel?.hits ?? 0);
+  const dn = Number(ctx?.difficulty?.dn ?? 1);
+  const base = { actionLabel: action.label, hits, dn };
+  if (hits < dn) return { ...base, ok: false, reason: `${action.label} roll failed.` };
+
+  const { cleared } = await clearActionSelfStatuses({ actionKey: action.key, actor });
+  return {
+    ...base,
+    ok: true,
+    cleared: cleared.map(statusId => ({ statusId, label: getStatusConditionDefinition(statusId)?.label ?? statusId })),
   };
 }
 

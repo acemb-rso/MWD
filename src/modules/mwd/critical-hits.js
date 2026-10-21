@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/critical-hits.js
+// src/modules/mwd/critical-hits.js
 // Purpose: Machine critical-hit engine and active-crit data normalization.
 // How it fits: Keeps vehicle/BattleMech critical effects in actor data while
 // token statuses remain visual indicators only.
@@ -23,7 +23,7 @@ import {
   getMachineAttackQualityShockGain,
   resolveMachineDegradation,
 } from "./machine-degradation.js";
-import { getMachineDerivedStatusIds } from "./machine-state-effects.js";
+import { getMachineDerivedStatusIds, getMachineIncomingDamageModifiers } from "./machine-state-effects.js";
 import {
   buildMachineCriticalConsequenceData,
   normalizeMachineCriticalRecord,
@@ -406,6 +406,7 @@ function buildDamagePreview(preview = {}) {
     sourceScale: String(preview?.sourceScale ?? "").trim(),
     targetScale: String(preview?.targetScale ?? "").trim(),
     scaleConversion: cloneValue(preview?.scaleConversion ?? null, null),
+    statusDamage: cloneValue(preview?.statusDamage ?? null, null),
   };
 }
 
@@ -471,7 +472,16 @@ export function previewMachineAttackDamage({
     contributions: [],
   };
   dispatchAssetModuleHook(ASSET_MODULE_HOOKS.harm.beforeMachineDamagePreview, damageContext);
-  const adjustedIncoming = Math.max(0, Math.ceil(Number(damageContext.adjustedIncoming ?? damageContext.damageIncoming ?? incoming) || 0));
+  const moduleAdjustedIncoming = Math.max(0, Math.ceil(Number(damageContext.adjustedIncoming ?? damageContext.damageIncoming ?? incoming) || 0));
+  // Defender status damage effects (status-modifiers `machineState.damage`, e.g.
+  // Shielded). Read from current state, so of several queued attacks only the
+  // first applied sees a status that the hit consumes.
+  const statusDamageModifiers = getMachineIncomingDamageModifiers(actor);
+  const adjustedIncoming = Math.max(0, moduleAdjustedIncoming + statusDamageModifiers.delta);
+  const statusDamage = {
+    delta: adjustedIncoming - moduleAdjustedIncoming,
+    consumes: statusDamageModifiers.consumes,
+  };
   const armor = getMachineMonitorState(actor, TEMPLATE.monitors.armor);
   const structure = getMachineMonitorState(actor, TEMPLATE.monitors.structure);
   const resolvedHitLocation = hitLocation
@@ -501,6 +511,7 @@ export function previewMachineAttackDamage({
     damageType: damageContext.damageType,
     effectiveAp: damageContext.effectiveAp,
     assetModuleContributions: damageContext.contributions,
+    statusDamage,
     beforeLabel: `Armor ${armor.remaining}/${armor.max}, Structure ${structure.remaining}/${structure.max}`,
     afterLabel: `Armor ${armorAfterValue}/${armor.max}, Structure ${structureAfterValue}/${structure.max}`,
     sourceScale,
@@ -526,6 +537,7 @@ export function previewMachineAttackDamage({
     damageType: preview.damageType,
     effectiveAp: preview.effectiveAp,
     assetModuleContributions: preview.assetModuleContributions,
+    statusDamage,
     hitLocation: resolvedHitLocation,
     critical: criticalState,
     machine: {
@@ -1143,6 +1155,9 @@ export async function applyMachineAttackDamage({
       await applyMachineCritStatusConditions(actor, critDraw.crits);
     }
     await applyDegradationStatusConditions(actor, degradation);
+    for (const consumed of preview.statusDamage?.consumes ?? []) {
+      await applyManagedStatusUpdate({ actor, statusId: consumed.statusId, active: false });
+    }
   }
 
   const result = {

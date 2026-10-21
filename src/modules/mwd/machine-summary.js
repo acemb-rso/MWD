@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-summary.js
+// src/modules/mwd/machine-summary.js
 // Purpose: Small view-model helpers for machine sheet summary stats.
 // Workflow: prepared monitor/crit data -> compact integrity and critical summary
 // parts -> BattleMech/vehicle sheet headers render consistent status blocks.

@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/life-modules.js
+// src/modules/mwd/life-modules.js
 // Purpose: Defines life module catalog defaults, validation, and roll-facing life module state.
 // How it fits: Shared by settings registration, modifier providers, item sheets, and character sheets.
 

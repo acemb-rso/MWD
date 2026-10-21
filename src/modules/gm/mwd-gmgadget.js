@@ -1,4 +1,4 @@
-﻿// src/modules/gm/mwd-gmgadget.js
+// src/modules/gm/mwd-gmgadget.js
 // Purpose: Registers system settings. Preloads or manages Handlebars templates.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 

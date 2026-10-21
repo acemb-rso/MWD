@@ -1,4 +1,4 @@
-﻿// src/modules/item/weapon-item.js
+// src/modules/item/weapon-item.js
 /**
  * @pipeline shared
  * @role Weapon Item document (extends MWDItem). Normalizes weapon system data —

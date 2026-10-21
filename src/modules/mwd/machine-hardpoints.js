@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-hardpoints.js
+// src/modules/mwd/machine-hardpoints.js
 // Purpose: Shared machine hardpoint normalization and slot-occupancy helpers.
 // Workflow: actor hardpoint storage -> normalized mounted-item ownership ->
 // loadout validation, crit scoping, and attack prep resolve the same mounts.

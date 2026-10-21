@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-hit-locations.js
+// src/modules/mwd/machine-hit-locations.js
 // Purpose: Resolves MWD vehicle-scale hit locations from the code-owned 3d6 table.
 // Workflow: machine damage preview rolls/receives 3d6 -> descriptive and rules
 // locations are derived -> damage apply chooses Chaos or automatic critical flow.

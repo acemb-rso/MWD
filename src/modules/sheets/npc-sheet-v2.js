@@ -1,4 +1,4 @@
-﻿// src/modules/sheets/npc-sheet-v2.js
+// src/modules/sheets/npc-sheet-v2.js
 // Purpose: Layout-driven AppV2 NPC sheet.
 // How it fits: Brings NPCs onto the same shell, preload, and context-shaping path as the character sheet.
 

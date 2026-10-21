@@ -1,4 +1,4 @@
-﻿// src/modules/item/skill-item-sheet.js
+// src/modules/item/skill-item-sheet.js
 // Purpose: Provides a Sheet / UI class for entities (actor/item) or an application.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 

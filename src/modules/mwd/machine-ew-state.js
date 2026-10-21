@@ -9,6 +9,8 @@ import { ASSET_MODULE_HOOKS, dispatchAssetModuleHook } from "./asset-module-hook
 import {
   adjustTargetingDataValue,
   getMachineDetectionStateCap,
+  getMachineAttackerTrackingPenalty,
+  getMachineObserverDetectionCap,
   getMachineTrackingPenaltyAdjustment,
 } from "./machine-state-effects.js";
 import {
@@ -22,12 +24,12 @@ import {
 } from "./battle-armor.js";
 import { getActiveArmorTraitEffects } from "./personal-damage.js";
 import { getApplicableStealthProfileSourceIds } from "./machine-stealth.js";
-import { normalizeStatusConditionId } from "../status/status-condition-catalog.js";
 import {
   getTokenActor,
   getTokenDisposition,
   getTokenDocument,
   getTokenUuid,
+  isSameDisposition,
 } from "../utils/token.js";
 
 const FLAG_SCOPE = "mwd";
@@ -38,12 +40,6 @@ function resolveTargetActorFromUuid(targetTokenUuid = "") {
   const uuid = String(targetTokenUuid ?? "").trim();
   if (!uuid) return null;
   return globalThis.canvas?.tokens?.placeables?.find(token => (token.document?.uuid ?? token.uuid) === uuid)?.actor ?? null;
-}
-
-function hasStatus(actor = null, statusId = "") {
-  const id = normalizeStatusConditionId(statusId);
-  if (!actor || !id) return false;
-  return Array.from(actor.statuses ?? []).some(activeId => normalizeStatusConditionId(activeId) === id);
 }
 
 function normalizeTargetUuid(value = "") {
@@ -269,11 +265,11 @@ export function getEffectiveDetectionState(combatant, targetTokenUuid, targetAct
 
 export function getTrackingPenalty(targetActor, targetCombatant, options = {}) {
   // Tracking penalty is an aggregate of target statuses, stealth modules,
-  // movement state, and Battle Armor context. Attack code consumes only the sum.
-  let penalty = 0;
+  // movement state, Battle Armor context, and attacker-side status penalties
+  // (options.attackerActor, e.g. ECM Jamming). Attack code consumes only the sum.
+  let penalty = getMachineAttackerTrackingPenalty(options.attackerActor);
   const statuses = targetActor?.statuses ?? new Set();
   const derivedStatuses = getAssetModuleDerivedStatuses(targetActor);
-  if (statuses.has("ecmJamming")) penalty += 2;
   if (statuses.has("ecmShrouded") || derivedStatuses.has("ecmShrouded")) penalty += 1;
   if (statuses.has("obscuredLight")) penalty += 1;
   if (statuses.has("obscuredHeavy")) penalty += 3;
@@ -303,23 +299,33 @@ export function getTrackingPenalty(targetActor, targetCombatant, options = {}) {
   return Math.max(0, penalty);
 }
 
-export function getAcquireDnModifier(targetActor, { attacker = null, payload = {}, resolved = {} } = {}) {
+// ECM Shrouded (the protective ECM cloud) protects the bearer against an
+// observer unless the observer's equipment sees through it (asset-module
+// `bypassStatuses`, e.g. Active Probe), judged in the acquire context. TAG/NARC
+// bypass it separately through getEffectiveDetectionState.
+export function isEcmShroudEffective(targetActor, { attacker = null, payload = {}, resolved = {} } = {}) {
   const statuses = targetActor?.statuses ?? new Set();
-  const derivedStatuses = getAssetModuleDerivedStatuses(targetActor);
-  const shrouded = statuses.has("ecmShrouded") || derivedStatuses.has("ecmShrouded");
-  if (!shrouded) return 0;
+  const shrouded = statuses.has("ecmShrouded") || getAssetModuleDerivedStatuses(targetActor).has("ecmShrouded");
+  if (!shrouded) return false;
 
   const bypasses = getAssetModuleBypassStatuses(attacker, {
     payload: { ...payload, actionId: "acquireTarget" },
     resolved: { ...resolved, intent: "acquire" },
   });
-  return bypasses.has("ecmShrouded") ? 0 : 1;
+  return !bypasses.has("ecmShrouded");
+}
+
+export function getAcquireDnModifier(targetActor, options = {}) {
+  return isEcmShroudEffective(targetActor, options) ? 1 : 0;
 }
 
 export function getAcquireCeiling(targetActor, options = {}) {
-  const ecmJammed = hasStatus(targetActor, "ecmJamming");
-  const epmBoosted = hasStatus(targetActor, "epmBoosted");
-  const baseCap = ecmJammed && !epmBoosted ? "track" : "lock";
+  // The acquirer's own state can cap what it can reach (options.attackerActor,
+  // e.g. ECM Jamming caps at Track), and an effective ECM cloud on the target
+  // stops acquisition at Track.
+  const observerCap = getMachineObserverDetectionCap(options.attackerActor);
+  const shroudCap = isEcmShroudEffective(targetActor, { attacker: options.attackerActor }) ? "track" : "lock";
+  const baseCap = lowerDetectionCap(observerCap, shroudCap);
   const derivedCap = getMachineDetectionStateCap(targetActor);
   const battleArmorCap = getBattleArmorMachineTargetProfile(targetActor, options)?.detectionStateCap ?? "lock";
   const baseIndex = DETECTION_STATE_ORDER.indexOf(baseCap);
@@ -652,9 +658,9 @@ function spotAllegianceMatches(spot, { uuid = "", disposition = 0 } = {}) {
   if (spot.allegiance === "any") return true;
   if (!uuid && !disposition) return false;
   const sameToken = String(spot.spotterTokenUuid ?? "").trim() === String(uuid ?? "").trim();
-  const sameDisposition = Number(spot.spotterDisposition ?? 0) === Number(disposition ?? 0);
-  if (spot.allegiance === "enemy") return !sameToken && !sameDisposition;
-  return sameDisposition; // "ally": attacker shares the spotter's side
+  const sameSide = isSameDisposition({ disposition: spot.spotterDisposition }, { disposition });
+  if (spot.allegiance === "enemy") return !sameToken && !sameSide;
+  return sameSide; // "ally": attacker shares the spotter's side
 }
 
 export async function setSpot(targetToken, { spotterToken = null, combat = null, allegiance = "ally", source = "spotIndirect" } = {}) {

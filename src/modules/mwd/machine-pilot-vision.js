@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-pilot-vision.js
+// src/modules/mwd/machine-pilot-vision.js
 // Purpose: Grants assigned machine pilots enough actor visibility for token vision
 // without making them machine owners.
 // Workflow: pilot assignment changes -> observer permission sync -> assigned

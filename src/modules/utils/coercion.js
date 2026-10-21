@@ -25,6 +25,17 @@ export function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+// Flattens Foundry Collections, Maps, Sets, and other iterables into a plain
+// array of values. Arrays and `.contents` are returned as-is (not copied).
+export function collectionEntries(collection = null) {
+  if (!collection) return [];
+  if (Array.isArray(collection)) return collection;
+  if (Array.isArray(collection.contents)) return collection.contents;
+  if (typeof collection.values === "function") return Array.from(collection.values());
+  if (typeof collection[Symbol.iterator] === "function") return Array.from(collection);
+  return [];
+}
+
 export function compactStringList(value) {
   return asArray(value)
     .map(entry => String(entry ?? "").trim())

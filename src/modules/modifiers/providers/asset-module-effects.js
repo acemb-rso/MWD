@@ -1,4 +1,4 @@
-﻿// src/modules/modifiers/providers/asset-module-effects.js
+// src/modules/modifiers/providers/asset-module-effects.js
 // Purpose: Emits dice-pool modifiers from data-driven AssetModule effects.
 // How it fits: Keeps module-authored dice effects on the same provider rail as
 // machine state, EW targeting data, traits, and scene modifiers.

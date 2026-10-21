@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/rules.js
+// src/modules/mwd/rules.js
 // Purpose: Shared declarative contribution evaluator for rule-carrying items.
 // How it fits: Qualities, traits, and asset modules can share selector,
 // prerequisite, output, and usage-limit plumbing while domain engines remain

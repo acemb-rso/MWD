@@ -102,6 +102,13 @@ after the action resolves successfully.
 Example: `suppressed` blocks `aim` and `prepare`, but `move` or `carefulMove`
 clears it only after the move action succeeds.
 
+Machines use the same field. Vehicle and BattleMech movement records the
+`move` action, and a movement that actually moves (anything but a pure
+posture) ends the statuses that declare `clearsOnActions` for `move` through
+`clearStatusesEndedByAction` in `mwd/machine-action-statuses.js`. Braced and
+Entrenched / Hull Down declare it; Shielded does not (it lasts until the next
+activation or the first hit).
+
 ## Machine State
 
 `machineState` is annotation only. Supported v1 fields are:
@@ -112,6 +119,7 @@ machineState: {
   cq: [],
   gates: [],
   targeting: [],
+  damage: [],
   movement: [],
   heat: [],
   speed: [],
@@ -129,14 +137,30 @@ Allowed meanings:
 | `cq` | AR/DR parts | Resolve attacks |
 | `gates` | Blocked machine actions/capabilities | Spend actions |
 | `targeting` | Detection caps, targeting-data suppression, tracking penalties | Create/delete EW state directly |
+| `damage` | Incoming-damage deltas (`incomingDamageDelta`) and `consumeOnHit` (status ends on the first applied hit) | Write monitors or remove statuses directly |
 | `movement` | No sprint/jump/run, forced-prone requirements, piloting DN modifiers | Move tokens |
 | `heat` | Heat generation/dissipation annotations | Directly change heat |
 | `speed` | Speed/movement deltas | Directly update movement state |
 | `resource` | SA/FA/RA loss annotations | Spend resources directly |
-| `startTurn` / `endTurn` | Trigger metadata for owner helpers | Apply damage or crit records directly |
+| `startTurn` / `endTurn` | Trigger metadata for owner helpers, including `clearStatus` (the status ends at the start of the bearer's activation) | Apply damage or crit records directly |
 
 Machine owner helpers consume these annotations and remain responsible for all
 mutation and enforcement.
+
+Side and suppression keys, usable on any `machineState` entry:
+
+- `whenBearerIs: "attacker"` marks a `targeting` entry as acting on the bearer's
+  own attacks (e.g. `targetingDataValueDelta`). Attacker-side fields:
+  `trackingPenaltyAsAttacker` (tracking penalty on the bearer's attacks) and
+  `observerDetectionCap` (highest detection state the bearer can acquire).
+  `trackingPenaltyAsTarget` and `detectionStateCap` act on whoever targets the bearer.
+- `suppressedByStatuses: [...]` makes the entry contribute nothing while the
+  bearer has any listed status, including module-granted ones (e.g. EPM Boosted
+  cancels ECM Jamming).
+
+Owners: rule-state accumulation in `mwd/machine-state-effects.js`; incoming
+damage in `previewMachineAttackDamage` / `applyMachineAttackDamage`; start-turn
+clears in the personal combat tracker's machine activation start.
 
 ## Repair Metadata
 

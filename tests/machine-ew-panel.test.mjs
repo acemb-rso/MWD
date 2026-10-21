@@ -137,7 +137,7 @@ test("EW panel shows an empty state when the encounter has no eligible contacts"
   assert.equal(panel.rows.length, 0);
   assert.equal(panel.canAcquireAny, false);
   assert.equal(panel.canTargetAny, false);
-  assert.match(panel.emptyState, /No eligible hostile contacts/i);
+  assert.match(panel.emptyState, /No eligible enemy contacts/i);
 });
 
 test("EW panel reports no active encounter when there is no combat", () => {
@@ -178,7 +178,10 @@ test("EW panel exposes Contact targets as acquire-ready but not targeting-ready"
   assert.equal(row.acquireHint, "Acquire can upgrade to Track.");
   assert.equal(row.targetHint, "Targeting Data unavailable until Track.");
   assert.equal(row.acquireAction.enabled, true);
-  assert.equal(row.targetAction.enabled, false);
+  // Buttons only hint (Design Principles §8): Target stays clickable and the
+  // targeting resolver refuses below Track with its own message.
+  assert.equal(row.targetAction.enabled, true);
+  assert.equal(row.targetAction.title, "Targeting Data unavailable until Track.");
   assert.deepEqual(row.compactActions.map(action => action.id), ["acquire", "target", "ecmSpike", "tagTarget"]);
   assert.equal(row.compactActions.find(action => action.id === "tagTarget")?.enabled, false);
   assert.match(row.compactActions.find(action => action.id === "tagTarget")?.title ?? "", /TAG asset module/i);
@@ -331,7 +334,7 @@ test("EW panel uses pending token move coordinates before canvas centers refresh
   delete globalThis.canvas;
 });
 
-test("EW panel shows capped targeting data and penalties for Track targets", () => {
+test("EW panel shows capped targeting data and penalties for Track targets under an ECM cloud", () => {
   const target = createTargetToken({
     id: "target-2",
     uuid: "Scene.scene.Token.target-2",
@@ -357,17 +360,20 @@ test("EW panel shows capped targeting data and penalties for Track targets", () 
   });
   const [row] = panel.rows;
 
-  assert.equal(panel.canAcquireAny, true);
+  // The ECM cloud stops acquisition at Track; targeting data at Track still works.
+  assert.equal(panel.canAcquireAny, false);
   assert.equal(panel.canTargetAny, true);
   assert.equal(row.hasPacket, true);
   assert.equal(row.packetValue, 3);
   assert.equal(row.packetCap, 3);
   assert.equal(row.trackingPenalty, 2);
-  assert.equal(row.canAcquire, true);
+  assert.equal(row.canAcquire, false);
   assert.equal(row.canTarget, true);
-  assert.equal(row.acquireHint, "Acquire can upgrade to Lock.");
+  assert.equal(row.acquireHint, "ECM prevents advancing beyond Track.");
+  // Clickable so the acquire resolver can refuse with a visible warning.
+  assert.equal(row.acquireAction.enabled, true);
+  assert.equal(row.acquireAction.title, "ECM prevents advancing beyond Track.");
   assert.equal(row.targetHint, "Targeting Data available.");
-  assert.equal(row.acquireAction.title, "Acquire can upgrade to Lock.");
   assert.equal(row.targetAction.title, "Targeting Data available.");
 });
 
@@ -402,7 +408,8 @@ test("EW panel keeps blind targets informational only and lock targets optimized
   assert.equal(blindRow.canAcquire, true);
   assert.equal(blindRow.canTarget, false);
   assert.equal(blindRow.acquireHint, "Acquire can establish Contact (DN 1).");
-  assert.equal(blindRow.targetAction.title, "Track or Lock is required before generating targeting data.");
+  assert.equal(blindRow.targetAction.title, "Targeting Data unavailable until Track.");
+  assert.equal(lockRow.acquireAction.enabled, false);
   assert.equal(lockRow.canAcquire, false);
   assert.equal(lockRow.canTarget, true);
   assert.equal(lockRow.acquireAction.title, "Target is already at Lock.");

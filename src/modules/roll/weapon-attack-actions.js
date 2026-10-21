@@ -1,4 +1,4 @@
-﻿// src/modules/roll/weapon-attack-actions.js
+// src/modules/roll/weapon-attack-actions.js
 // Purpose: Shared helpers for launching personal-weapon attacks from sheets and hotbar macros.
 
 import { SYSTEM_NAME } from "../core/constants.js";

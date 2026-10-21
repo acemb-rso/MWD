@@ -24,15 +24,26 @@ function createCombatantFor(token, { sceneId = "" } = {}) {
 
 const observer = createToken({ id: "observer", uuid: "Scene.s.Token.observer", disposition: 1 });
 
-test("sensor eligibility requires a hostile machine token", () => {
+test("sensor eligibility requires a machine token with a different disposition", () => {
   const hostileMachine = createToken({ id: "t1", uuid: "Scene.s.Token.t1" });
   const neutralMachine = createToken({ id: "t2", uuid: "Scene.s.Token.t2", disposition: 0 });
+  const friendlyMachine = createToken({ id: "t5", uuid: "Scene.s.Token.t5", disposition: 1 });
   const hostilePerson = createToken({ id: "t3", uuid: "Scene.s.Token.t3", actorType: "character" });
 
   assert.equal(isMachineSensorEligibleTarget({ observerToken: observer, targetToken: hostileMachine }), true);
-  assert.equal(isMachineSensorEligibleTarget({ observerToken: observer, targetToken: neutralMachine }), false);
+  assert.equal(isMachineSensorEligibleTarget({ observerToken: observer, targetToken: neutralMachine }), true);
+  assert.equal(isMachineSensorEligibleTarget({ observerToken: observer, targetToken: friendlyMachine }), false);
   assert.equal(isMachineSensorEligibleTarget({ observerToken: observer, targetToken: hostilePerson }), false);
   assert.equal(isMachineSensorEligibleTarget({ observerToken: observer, targetToken: null }), false);
+});
+
+test("a hostile observer senses friendly machines but not its own side", () => {
+  const hostileObserver = createToken({ id: "enemy", uuid: "Scene.s.Token.enemy", disposition: -1 });
+  const friendlyMachine = createToken({ id: "pc", uuid: "Scene.s.Token.pc", disposition: 1 });
+  const hostileWingman = createToken({ id: "wing", uuid: "Scene.s.Token.wing", disposition: -1 });
+
+  assert.equal(isMachineSensorEligibleTarget({ observerToken: hostileObserver, targetToken: friendlyMachine }), true);
+  assert.equal(isMachineSensorEligibleTarget({ observerToken: hostileObserver, targetToken: hostileWingman }), false);
 });
 
 test("sensor eligibility excludes GM-hidden tokens unless explicitly included", () => {

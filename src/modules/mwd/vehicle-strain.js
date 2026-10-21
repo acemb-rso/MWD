@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/vehicle-strain.js
+// src/modules/mwd/vehicle-strain.js
 // Purpose: Vehicle-only operational strain model for Redline and future terrain
 // or critical hooks.
 // How it fits: Keeps vehicle strain separate from BattleMech heat while exposing

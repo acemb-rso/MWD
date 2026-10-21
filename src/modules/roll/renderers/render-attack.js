@@ -1,4 +1,4 @@
-﻿// src/modules/roll/renderers/render-attack.js
+// src/modules/roll/renderers/render-attack.js
 // Purpose: Enhances attack roll cards with CQ, outcome, and damage details.
 // How it fits: Keeps attack presentation as a pure render step over resolved engine data.
 

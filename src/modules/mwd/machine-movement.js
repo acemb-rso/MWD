@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-movement.js
+// src/modules/mwd/machine-movement.js
 // Purpose: Normalizes machine movement speeds for vehicle-scale actors.
 // Workflow: actor movement storage and legacy fields -> normalized movement rows
 // with penalties/derived jump -> sheets and movement actions display distances.

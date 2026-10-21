@@ -1,4 +1,4 @@
-﻿// src/modules/roll/intent/resolve-attack.js
+// src/modules/roll/intent/resolve-attack.js
 /**
  * @pipeline resolver
  * @role Attack resolver. Turns an attack intent into a RollContext: selects the

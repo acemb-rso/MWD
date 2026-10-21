@@ -26,6 +26,8 @@ import { Styles } from './styles.js';
 import { HooksManager } from './hooks-manager.js';
 import { MWDItem } from '../item/anarchy-base-item.js';
 import { SystemSettings } from './system-settings.js';
+import { registerSchemaMigrationSettings, runSchemaMigrationGate } from "./migration/migration-runner.js";
+import { registerTerrainRegionBehavior } from "../terrain/terrain-region-behavior.js";
 import { registerActorSheetsV2 } from "../sheets/register-actor-sheets-v2.js";
 import { registerItemSheetsV2 } from "../sheets/register-item-sheets-v2.js";
 import { preloadTemplatesV2 } from "../sheets/preload-templates.js";
@@ -308,6 +310,7 @@ export class AnarchySystem {
 
     configureMWDFonts();
     registerMwdSensorDetectionMode();
+    registerTerrainRegionBehavior();
     registerMachineSensorOverlayHooks();
     registerMWDChatActions();
     registerAutoAnimations();
@@ -418,6 +421,7 @@ export class AnarchySystem {
     this.handlebarsManager = new HandlebarsManager();
     PersonalCombatTracker.init();
     SystemSettings.register();
+    registerSchemaMigrationSettings();
     Hooks.on("updateSetting", setting => {
       if (setting?.key === `${SYSTEM_NAME}.statusConditionCatalog`) configureMWDStatusEffects();
     });
@@ -447,12 +451,21 @@ export class AnarchySystem {
   async onReady() {
     console.log(LOG_HEAD + 'AnarchySystem.onReady');
 
+    // Data-schema gate runs before anything that writes documents. A world left
+    // behind the system schema skips the GM-side write automation below.
+    const schema = await runSchemaMigrationGate();
+
     await PersonalCombatTracker.onReady();
     game.mwd?.tokenHeatFx?.refreshAll?.();
     await game.mwd?.areaStatus?.reconcileScene?.(globalThis.canvas?.scene, { reason: "systemReady" });
 
     if (!game.user.isGM) {
       maybeAutoOpenPlayerGadget({ systemId: SYSTEM_NAME });
+      return;
+    }
+
+    if (!schema.ok) {
+      console.warn(`${LOG_HEAD}World data schema ${schema.version} is behind the system; skipping GM ready-time data writes.`);
       return;
     }
 

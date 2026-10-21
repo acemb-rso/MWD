@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/charge-attack-actions.js
+// src/modules/mwd/charge-attack-actions.js
 // Purpose: Builds and executes Impact Charge, Control Charge, and DFA collision attacks.
 // Workflow: quick-action charge choice -> collision profile and attack intent ->
 // standard attack damage, recoil queueing, and follow-up knockdown checks.

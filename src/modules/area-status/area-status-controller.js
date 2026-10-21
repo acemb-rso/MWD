@@ -6,8 +6,10 @@ import {
   getAffectedTokensForSource,
   getSceneTokens,
   getTokenActor,
+  isAreaStatusSourceUsable,
   normalizeAreaStatusSource,
 } from "./area-status-sources.js";
+import { collectTerrainRegionAreaStatusSources } from "../terrain/terrain-regions.js";
 import { AreaStatusOwnership } from "./area-status-ownership.js";
 import {
   reconcileAreaStatusRegions,
@@ -119,16 +121,21 @@ export class AreaStatusController {
 
     this.#reconcilingScenes.add(sceneUuid);
     try {
-      const collected = collectAssetModuleAreaStatusSources(scene);
+      const collected = [
+        ...collectAssetModuleAreaStatusSources(scene),
+        ...collectTerrainRegionAreaStatusSources(scene),
+      ];
       const manual = Array.from(this.#manualSources.values())
         .filter(source => source.sceneUuid === sceneUuid && source.active !== false);
       const sources = [...collected, ...manual]
         .map(normalizeAreaStatusSource)
-        .filter(source => source.active && source.radius > 0 && source.statusIds.length);
+        .filter(isAreaStatusSourceUsable);
       const sourceMap = new Map(sources.map(source => [source.sourceKey, source]));
       this.#sceneSources.set(sceneUuid, sourceMap);
 
-      await reconcileAreaStatusRegions(scene, sources);
+      // Only aura sources get projected hidden Regions; region sources already
+      // are Regions.
+      await reconcileAreaStatusRegions(scene, sources.filter(source => source.kind !== "region"));
 
       const desired = new Map();
       for (const source of sources) {

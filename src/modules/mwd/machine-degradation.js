@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-degradation.js
+// src/modules/mwd/machine-degradation.js
 // Purpose: Central machine degradation state and resolution helpers.
 // Workflow: machine damage preview/apply -> stress, shock, reliability, and
 // location state updates -> crit/status systems consume normalized consequences.

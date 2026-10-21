@@ -18,7 +18,7 @@ import {
   templateGeometryHitsToken,
   EXPOSURE_TIERS,
 } from "../area-effects/area-effect-engine.js";
-import { getTokenCenter, getTokenDisposition } from "../utils/token.js";
+import { getTokenCenter, isSameDisposition } from "../utils/token.js";
 
 const DEFAULT_CONE_ANGLE = 90;
 const TEMPLATE_INDICATOR_REGION_VISIBILITY = Number(CONST?.REGION_VISIBILITY?.ALWAYS ?? 2) || 2;
@@ -388,19 +388,7 @@ function getAutoTargetTokenIds({ geometry = null, attack = {}, attacker = null }
 
   const attackerToken = getActorToken(attacker);
   const attackerTokenId = attackerToken?.id ?? null;
-  const hostile = Number(CONST?.TOKEN_DISPOSITIONS?.HOSTILE ?? -1);
-  const friendly = Number(CONST?.TOKEN_DISPOSITIONS?.FRIENDLY ?? 1);
-  const neutral = Number(CONST?.TOKEN_DISPOSITIONS?.NEUTRAL ?? 0);
-  const attackerDisposition = getTokenDisposition(attackerToken, neutral);
-
-  const isEnemyToken = (token) => {
-    const disposition = getTokenDisposition(token, neutral);
-    if (!attackerToken) return true;
-    if (attackerDisposition === friendly) return disposition === hostile;
-    if (attackerDisposition === hostile) return disposition === friendly;
-    if (attackerDisposition === neutral) return disposition === hostile;
-    return disposition !== attackerDisposition;
-  };
+  const isEnemyToken = token => !attackerToken || !isSameDisposition(attackerToken, token);
 
   return (canvas.tokens?.placeables ?? [])
     .filter(token => token?.actor)

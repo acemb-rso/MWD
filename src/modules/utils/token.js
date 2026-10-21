@@ -42,6 +42,12 @@ export function getTokenDisposition(token = null, fallback = 0) {
   ) || 0;
 }
 
+// The system's side test: tokens sharing a disposition are on the same side;
+// any different disposition is the other side.
+export function isSameDisposition(sourceToken = null, targetToken = null) {
+  return getTokenDisposition(sourceToken) === getTokenDisposition(targetToken);
+}
+
 export function getTokenCenter(token = null, { scene = null, gridSize = null } = {}) {
   if (!token) return null;
   const document = getTokenDocument(token) ?? {};

@@ -29,6 +29,7 @@ This document summarizes the active MechWarrior: Destiny system architecture. Ap
 - `src/modules/core/config.js` - User-facing labels and other display configuration.
 - `src/modules/core/enums.js` - Enum builders used by sheets and dialogs.
 - `src/modules/system/system-settings.js` - World settings for themes, GM tools, and runtime options.
+- `src/modules/system/migration/` - Versioned data-schema migrations: pure transforms (`schema-migrations.js`) and the GM-gated `ready` runner (`migration-runner.js`). See [migrations.md](migrations.md).
 - `src/modules/system/styles.js` - Theme selection helpers used by AppV2 sheets.
 - `src/modules/utils/document-type-defaults.js` - Resolves create-time actor/item defaults from an inlined JS constant.
 
@@ -94,6 +95,14 @@ Common helpers (coercion, actor-type guards, token shape access, clone/id, setti
 - `src/modules/sheets/document-sheet-form.js` - Shared helpers for collecting and coercing AppV2 form field updates.
 - `templates/v2/layouts/` - Declarative layout JSON files for actor and item sheets.
 - `templates/v2/ui/` - Shared AppV2 layout nodes and reusable actor/item UI partials.
+
+---
+
+## Terrain
+
+- `src/modules/terrain/terrain-catalog.js` - Terrain classes and conditions: the single source of terrain meaning and (provisional) magnitudes, from which the terrain statuses are generated.
+- `src/modules/terrain/terrain-region-behavior.js` - Registers the native **Terrain (MWD)** Region Behavior (authoring on a Region's Behaviors tab).
+- `src/modules/terrain/terrain-regions.js` - Reads terrain from GM-authored Regions (`getRegionTerrain`) and supplies them to the area-status controller as region-kind sources, which project terrain statuses onto occupants. See [Terrain-Regions.md](Terrain-Regions.md).
 
 ---
 

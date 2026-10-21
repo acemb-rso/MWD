@@ -1,4 +1,4 @@
-﻿// Integration with the Automated Animations (autoanimations) module.
+// Integration with the Automated Animations (autoanimations) module.
 // Registered conditionally in AnarchySystem.onInit — no-ops if AA is not installed/active.
 //
 // AA's public entry point is the "aa.workflow" hook, which accepts:

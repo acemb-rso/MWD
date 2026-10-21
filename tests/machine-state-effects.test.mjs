@@ -119,17 +119,22 @@ test("machine movement penalties are expressed in meters", () => {
   assert.equal(movement.immobile, false);
 });
 
-test("EPM boosted ignores ECM jamming targeting data reduction", () => {
+test("ECM Jamming reduces the jammed attacker's targeting data unless EPM Boosted", () => {
   assert.equal(
-    adjustTargetingDataValue({ targetActor: buildActor({ statuses: ["ecmJamming"] }), value: 3 }),
+    adjustTargetingDataValue({ attacker: buildActor({ statuses: ["ecmJamming"] }), value: 3 }),
     1,
   );
   assert.equal(
-    adjustTargetingDataValue({ targetActor: buildActor({ statuses: ["ecmJamming", "epmBoosted"] }), value: 3 }),
+    adjustTargetingDataValue({ attacker: buildActor({ statuses: ["ecmJamming", "epmBoosted"] }), value: 3 }),
     3,
   );
   assert.equal(
-    adjustTargetingDataValue({ targetActor: buildActor({ statuses: ["ecmJamming", "eccmboosted"] }), value: 3 }),
+    adjustTargetingDataValue({ attacker: buildActor({ statuses: ["ecmJamming", "eccmboosted"] }), value: 3 }),
+    3,
+  );
+  // Jamming on the target does not reduce attacks against it.
+  assert.equal(
+    adjustTargetingDataValue({ targetActor: buildActor({ statuses: ["ecmJamming"] }), value: 3 }),
     3,
   );
 });

@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-initiative.js
+// src/modules/mwd/machine-initiative.js
 // Purpose: Resolves vehicle-scale initiative components.
 // Workflow: combat initiative roll asks for machine context -> best machine
 // control attribute plus pilot Reflexes -> tracker receives total initiative bonus.

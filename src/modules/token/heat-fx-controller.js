@@ -1,11 +1,11 @@
-﻿// src/modules/token/heat-fx-controller.js
+// src/modules/token/heat-fx-controller.js
 // Purpose: Applies machine token visuals such as BattleMech heat filters and ruined decals.
 // How it fits: Isolates canvas/filter/decal lifecycle from heat rules and actor state prep.
 
 import { SETTING_BATTLEMECH_TOKEN_HEAT_FX, SYSTEM_NAME } from "../core/constants.js";
 import { buildBattlemechHeatVisualState } from "../mwd/heat-visual-state.js";
 import { isMachineActor } from "../utils/actor-guards.js";
-import { asArray, clampMin } from "../utils/coercion.js";
+import { asArray, clampMin, collectionEntries } from "../utils/coercion.js";
 import { createHeatShimmerFilter } from "./filters/heat-shimmer-filter.js";
 
 export const MACHINE_RUINED_DECAL_PATH = "systems/mwd/img/mek/units/DamageDecals/FireMulti/SmokeFireMulti.png";
@@ -40,15 +40,6 @@ function getBlendMode(name = "SCREEN") {
 
 function getTokenKey(token) {
   return String(token?.document?.uuid ?? token?.id ?? "").trim();
-}
-
-function collectionEntries(collection = null) {
-  if (!collection) return [];
-  if (Array.isArray(collection)) return collection;
-  if (collection.contents && Array.isArray(collection.contents)) return collection.contents;
-  if (typeof collection.values === "function") return Array.from(collection.values());
-  if (typeof collection[Symbol.iterator] === "function") return Array.from(collection);
-  return [];
 }
 
 function matchesActor(token, actor) {

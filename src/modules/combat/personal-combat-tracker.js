@@ -18,7 +18,7 @@
  */
 
 
-import { humanizeStatusKey } from "../dialog/token-status-dialog.js";
+import { applyManagedStatusUpdate, humanizeStatusKey } from "../dialog/token-status-dialog.js";
 import {
   getCommonCheckDefinition,
   getCommonCheckPayload
@@ -54,6 +54,7 @@ import {
 import { renderHazardCard } from "../area-effects/hazard-chat.js";
 import { resolveBattlemechPendingHeat } from "../mwd/machine-heat.js";
 import { buildMachineActivationStartReport, isMachineActor } from "../mwd/machine-crit-effects.js";
+import { getMachineStartTurnStatusClears } from "../mwd/machine-state-effects.js";
 import { getBattlemechUsedWeaponGroupIds, markBattlemechWeaponGroupUsed } from "../mwd/battlemech-weapon-groups.js";
 import { getPersonalActionGateReason, getPersonalCriticalGateState } from "../mwd/personal-critical-gates.js";
 import { clearSuppressedTargetingPackets } from "../mwd/machine-ew-state.js";
@@ -61,6 +62,7 @@ import { actorHasSpotterGear } from "../mwd/spotter-gear.js";
 import { getStatusActionGateReason } from "../status/status-mechanics.js";
 import { getMeasuredTokenCenter } from "../utils/token.js";
 import { getPersonalActionAvailabilityReason } from "./personal-action-rules.js";
+import { collectionEntries } from "../utils/coercion.js";
 
 const FLAG_SCOPE = "mwd";
 const FLAG_KEY = "personalCombat";
@@ -442,15 +444,6 @@ function applyChatVisibility(chatData) {
 
 function isHazardRegionDocument(region) {
   return Boolean(getHazardRegionFlag(region));
-}
-
-function collectionEntries(collection = null) {
-  if (!collection) return [];
-  if (Array.isArray(collection)) return collection;
-  if (collection.contents && Array.isArray(collection.contents)) return collection.contents;
-  if (typeof collection.values === "function") return Array.from(collection.values());
-  if (typeof collection[Symbol.iterator] === "function") return Array.from(collection);
-  return [];
 }
 
 function getEffectStatusIds(effect = null) {
@@ -3109,10 +3102,16 @@ export class PersonalCombatTracker {
 
     reminderLines.push(...report.reminders.map(entry => `${entry.label}: ${entry.text}`));
 
+    // Statuses declaring `startTurn.clearStatus` end now (e.g. an unused Shield).
+    for (const clear of getMachineStartTurnStatusClears(actor)) {
+      await applyManagedStatusUpdate({ actor, statusId: clear.statusId, active: false });
+      if (clear.effectText) reminderLines.push(clear.effectText);
+    }
+
     if (reminderLines.length) {
       const content = [
         `<div class="mwd-gm-notice">`,
-        `<strong>${foundry.utils.escapeHTML(actor.name ?? "Machine")} - Critical Effects</strong>`,
+        `<strong>${foundry.utils.escapeHTML(actor.name ?? "Machine")} - Start of Activation</strong>`,
         `<ul>${reminderLines.map(line => `<li>${foundry.utils.escapeHTML(line)}</li>`).join("")}</ul>`,
         `</div>`,
       ].join("");

@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-attack-motion.js
+// src/modules/mwd/machine-attack-motion.js
 // Purpose: Machine attack motion and tracking rules.
 // Workflow: combatant movement flags or attack payload overrides -> motion DN
 // and tracking dice packet -> machine attack resolver applies final modifiers.

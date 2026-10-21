@@ -1,4 +1,4 @@
-﻿// src/modules/chat/chat-actions.js
+// src/modules/chat/chat-actions.js
 // Purpose: Registers Foundry hooks: renderChatMessageHTML.
 // How it fits: Wires chat-card post-roll and queued attack mutation actions.
 
@@ -388,6 +388,14 @@ function buildDamageApplicationCardVM({ summary = {}, actor = null, token = null
     rows.push({
       label: "Incoming",
       value: String(Number(summary.damageIncoming ?? 0))
+    });
+  }
+
+  for (const consumed of summary?.statusDamage?.consumes ?? []) {
+    const delta = Number(summary.statusDamage.delta ?? 0);
+    rows.push({
+      label: consumed.label,
+      value: `${delta} damage; ${consumed.label} ended`
     });
   }
 

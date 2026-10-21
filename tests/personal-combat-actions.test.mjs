@@ -219,6 +219,78 @@ test("Prepare prompts for metadata and applies action state through the executor
   }
 });
 
+function makeReloadableWeapon({ canReload = true, reason = "" } = {}) {
+  const calls = [];
+  return {
+    calls,
+    weapon: {
+      id: "weapon-1",
+      name: "Auto-Pistol",
+      type: "personalWeapon",
+      canReloadActivePayload(options) {
+        calls.push({ check: options });
+        return { canReload, reason };
+      },
+      async reloadActivePayload(options) {
+        calls.push({ reload: options });
+        return canReload
+          ? { ok: true, payloadLabel: "Standard", current: 12, max: 12, sourceId: "magazine" }
+          : { ok: false, reason };
+      },
+    },
+  };
+}
+
+async function runReload(weaponDouble) {
+  const { executeCombatActionIntent, PersonalCombatTracker } = await importModules();
+  const actor = makeActor();
+  actor.items = new Map([[weaponDouble.weapon.id, weaponDouble.weapon]]);
+  const snapshot = makeSnapshot();
+  const original = {
+    getSnapshot: PersonalCombatTracker.getSnapshot,
+    spendResource: PersonalCombatTracker.spendResource,
+    applyActionState: PersonalCombatTracker._applyActionState,
+  };
+  const spends = [];
+  PersonalCombatTracker.getSnapshot = () => snapshot;
+  PersonalCombatTracker.spendResource = async (_actor, request) => {
+    spends.push(request);
+    return { ok: true, costPaid: true, costLabel: "1 SA", snapshot };
+  };
+  PersonalCombatTracker._applyActionState = async () => ({ ok: true });
+  queueDialog({ weaponId: weaponDouble.weapon.id });
+  try {
+    const result = await executeCombatActionIntent({ actor, payload: { intent: "combatAction", actionId: "reload" } });
+    return { result, spends };
+  } finally {
+    PersonalCombatTracker.getSnapshot = original.getSnapshot;
+    PersonalCombatTracker.spendResource = original.spendResource;
+    PersonalCombatTracker._applyActionState = original.applyActionState;
+  }
+}
+
+test("Reload spends the action and refills the weapon through the combat-action path", async () => {
+  const weaponDouble = makeReloadableWeapon();
+  const { result, spends } = await runReload(weaponDouble);
+
+  assert.equal(result.ok, true);
+  assert.equal(spends.length, 1);
+  assert.equal(spends[0].actionId, "reload");
+  assert.deepEqual(weaponDouble.calls.find(call => call.reload)?.reload, { combatAction: true });
+  assert.match(result.log.message, /Standard reloaded \(12\/12\)/);
+});
+
+test("Reload that cannot take effect is refused before any cost is spent", async () => {
+  const weaponDouble = makeReloadableWeapon({ canReload: false, reason: "Magazine already full." });
+  const { result, spends } = await runReload(weaponDouble);
+
+  assert.equal(result.ok, false);
+  assert.equal(result.costPaid, false);
+  assert.equal(result.reason, "Magazine already full.");
+  assert.equal(spends.length, 0);
+  assert.equal(weaponDouble.calls.some(call => call.reload), false);
+});
+
 test("Spot for Indirect Fire is gated by equipped spotter-tagged gear", async () => {
   const {
     executeCombatActionIntent,

@@ -1,4 +1,4 @@
-﻿// src/modules/combat/combat-awareness-preview.js
+// src/modules/combat/combat-awareness-preview.js
 // Purpose: Builds a display-only combat awareness read model for actor sheets.
 // How it fits: Sheets render known AR/DR, target, DN, motion, and EW context
 // without resolving an attack or consuming any combat resources.
@@ -254,7 +254,7 @@ function buildMachineContext(actor = null, sourceToken = null, targetToken = nul
   const usablePacket = attackerCombatant && targetTokenUuid
     ? getUsableTargetingPacket(attackerCombatant, targetTokenUuid, systemAttr, detectionState, globalThis.game?.combat?.round)
     : null;
-  const ewTrackingPenalty = getTrackingPenalty(targetActor, targetCombatant);
+  const ewTrackingPenalty = getTrackingPenalty(targetActor, targetCombatant, { attackerActor: actor });
   const trackingPenalty = [];
 
   if (ewTrackingPenalty) {

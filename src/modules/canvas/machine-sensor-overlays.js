@@ -9,6 +9,7 @@ import {
   getSensorAwarenessState,
   requestSensorPerceptionRefresh,
 } from "./machine-sensor-detection.js";
+import { collectionEntries } from "../utils/coercion.js";
 
 export const MWD_SENSOR_OVERLAY_NAME = "mwd-sensor-overlay";
 
@@ -40,15 +41,6 @@ let overlayHooksRegistered = false;
 let registeredHooksObject = null;
 let queuedRefresh = false;
 const overlayRecords = new Map();
-
-function collectionEntries(collection = null) {
-  if (!collection) return [];
-  if (Array.isArray(collection)) return collection;
-  if (Array.isArray(collection.contents)) return collection.contents;
-  if (typeof collection.values === "function") return Array.from(collection.values());
-  if (typeof collection[Symbol.iterator] === "function") return Array.from(collection);
-  return [];
-}
 
 function getTokenKey(token = null) {
   return String(token?.document?.uuid ?? token?.uuid ?? token?.id ?? token?.document?.id ?? "").trim();

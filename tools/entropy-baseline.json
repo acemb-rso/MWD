@@ -88,11 +88,8 @@
     "src/modules/roll/collect-modifiers.js"
   ],
   "collectionEntries": [
-    "src/modules/canvas/machine-sensor-detection.js",
-    "src/modules/canvas/machine-sensor-overlays.js",
-    "src/modules/combat/personal-combat-tracker.js",
     "src/modules/mwd/machine-ew-state.js",
-    "src/modules/token/heat-fx-controller.js"
+    "src/modules/utils/coercion.js"
   ],
   "combatantsToArray": [
     "src/modules/combat/personal-combat-actions.js",
@@ -136,10 +133,6 @@
     "src/modules/roll/renderers/render-acquire.js",
     "src/modules/roll/renderers/render-attack.js",
     "src/modules/roll/renderers/render-skill.js"
-  ],
-  "forcedDeletion": [
-    "src/modules/item/anarchy-base-item.js",
-    "src/modules/system/migrations.js"
   ],
   "formatAttackRatings": [
     "src/modules/roll/renderers/render-attack.js",
@@ -332,7 +325,6 @@
   "hasStatus": [
     "src/modules/canvas/machine-sensor-detection.js",
     "src/modules/mwd/battlemech-movement-actions.js",
-    "src/modules/mwd/machine-ew-state.js",
     "src/modules/mwd/machine-state-effects.js",
     "src/modules/roll/intent/resolve-break-lock.js"
   ],

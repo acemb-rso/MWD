@@ -1,4 +1,4 @@
-﻿// src/modules/harm/queued-attack-damage.js
+// src/modules/harm/queued-attack-damage.js
 // Purpose: Owns chat-card queued attack damage mechanics behind the harm façade.
 // How it fits: Chat handlers ask for message update data; harm/roll internals
 // stay behind service boundaries.

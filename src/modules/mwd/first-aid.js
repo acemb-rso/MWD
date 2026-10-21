@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/first-aid.js
+// src/modules/mwd/first-aid.js
 // Purpose: Shared First Aid setup, recovery math, and monitor application helpers.
 
 import { TEMPLATE } from "../core/constants.js";

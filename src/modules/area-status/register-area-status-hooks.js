@@ -7,6 +7,8 @@ import {
   isAreaStatusRegion,
   isAreaStatusRegionWriteInProgress,
 } from "./area-status-regions.js";
+import { isTerrainRegion } from "../terrain/terrain-regions.js";
+import { isTerrainBehaviorType } from "../terrain/terrain-region-behavior.js";
 
 const timers = new Map();
 
@@ -65,8 +67,17 @@ export function registerAreaStatusHooks(controller) {
   for (const hookName of ["createRegion", "updateRegion", "deleteRegion"]) {
     Hooks.on(hookName, region => {
       if (isAreaStatusRegionWriteInProgress()) return;
-      if (!isAreaStatusRegion(region)) return;
+      if (!isAreaStatusRegion(region) && !isTerrainRegion(region)) return;
       scheduleAreaStatusReconcile(controller, getSceneFromDocument(region), hookName);
+    });
+  }
+
+  // Terrain Region Behaviors are embedded in their Region; editing one does
+  // not fire the Region hooks.
+  for (const hookName of ["createRegionBehavior", "updateRegionBehavior", "deleteRegionBehavior"]) {
+    Hooks.on(hookName, behavior => {
+      if (!isTerrainBehaviorType(behavior?.type)) return;
+      scheduleAreaStatusReconcile(controller, getSceneFromDocument(behavior?.parent), hookName);
     });
   }
 

@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/battlemech-movement-actions.js
+// src/modules/mwd/battlemech-movement-actions.js
 // Purpose: Builds and executes the BattleMech movement quick-action menu.
 // Workflow: actor movement/effects -> available movement choices -> action
 // spend, combatant movement-state update, heat/signature/status side effects.
@@ -13,6 +13,7 @@ import { applyMachineMovementPenalty, normalizeMachineMovement } from "./machine
 import { getMachineMovementEffects } from "./machine-state-effects.js";
 import { resolveBattlemechJumpProfile } from "./battlemech-mobility.js";
 import { revealMachineSignature } from "./machine-stealth.js";
+import { clearStatusesEndedByAction } from "./machine-action-statuses.js";
 
 export const BATTLEMECH_MOVEMENT_ACTIONS = Object.freeze({
   walk: Object.freeze({ id: "walk", label: "Walk", cost: 1, heat: 0, mode: "ground" }),
@@ -192,6 +193,10 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
     return spend;
   }
 
+  // A pure posture holds position; every other movement (including a posture
+  // that includes movement, e.g. Evasive Maneuver) actually moves.
+  const moved = action.mode !== "posture" || Boolean(action.includesMovement);
+
   await PersonalCombatTracker.updateCombatantState(spendActor, {
     token,
     mutate: (state, snapshot) => {
@@ -200,7 +205,7 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
         actionId: "move",
         movementKind: action.id,
         label: action.label,
-        moved: !["prone", "shield"].includes(action.id),
+        moved,
         round: Number(snapshot?.combat?.round ?? 0),
         turn: Number(snapshot?.combat?.turn ?? 0),
         combatantId: snapshot?.combatant?.id ?? null,
@@ -208,6 +213,12 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
       return state;
     }
   });
+
+  if (moved) {
+    for (const cleared of await clearStatusesEndedByAction({ actor, actionId: "move" })) {
+      if (cleared.message) ui.notifications?.info(`${actor?.name ?? "Machine"}: ${cleared.message}`);
+    }
+  }
 
   if (action.heat > 0) {
     await adjustBattlemechPendingHeat(actor, action.heat, { reason: `${action.label} movement` });
@@ -245,7 +256,7 @@ export async function performBattlemechMovementAction(actor, { movementKind = ""
     });
   } else if (action.id === "shield") {
     await ChatMessage.create({
-      content: `<div class="mwd-chat-message"><p><strong>${actor?.name ?? "BattleMech"}</strong> takes a <strong>Shield</strong> posture. Gains <strong>Shielded</strong> (+4 DR / −1 AR) until the start of next activation. The first hit or graze reduces incoming damage by 2, then Shield ends — apply this manually and clear the <em>Shielded</em> status. Clear at the start of the next turn if unused.</p></div>`,
+      content: `<div class="mwd-chat-message"><p><strong>${actor?.name ?? "BattleMech"}</strong> takes a <strong>Shield</strong> posture. Gains <strong>Shielded</strong> (+4 DR / −1 AR) until the start of next activation. The first hit or graze reduces incoming damage by 2, then Shield ends (applied automatically when damage is applied).</p></div>`,
       speaker: ChatMessage.getSpeaker({ actor }),
       flags: { mwd: { messageType: "postureAction", actionId: "shield" } },
     });

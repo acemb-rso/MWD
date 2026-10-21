@@ -1,4 +1,4 @@
-﻿// src/modules/item/anarchy-base-item.js
+// src/modules/item/anarchy-base-item.js
 /**
  * @pipeline shared
  * @role Base Item document class (MWDItem) and the common item lifecycle. Owns
@@ -101,12 +101,9 @@ import {
   isLegacyItemType,
 } from "./item-type-utils.js";
 import { AREA_EFFECT_KINDS } from "../area-effects/area-effect-engine.js";
+import { forcedDeletion } from "../utils/document-update.js";
 
 const RANGE_ORDER = Object.freeze(["close", "near", "far", "extreme"]);
-
-function forcedDeletion() {
-  return foundry.data.operators.ForcedDeletion;
-}
 
 function ensureObjectPath(target, path) {
   const segments = String(path ?? "").split(".").map(segment => segment.trim()).filter(Boolean);
@@ -275,7 +272,7 @@ function isWeaponPayloadDocument(item) {
 }
 
 function getPayloadItemKey(item) {
-  return normalizePayloadKey(item?.system?.payloadKey ?? item?.system?.profile?.label ?? item?.name);
+  return normalizeWeaponPayloadItemSystem(item?.system ?? {}, { name: item?.name }).payloadKey;
 }
 
 function findOwnedPayloadItemsByKey(actor, payloadKey = "") {
@@ -1673,7 +1670,9 @@ export class MWDItem extends Item {
     });
   }
 
-  getActivePayloadReloadState({ payloadId = "", ammoTypeId = "", user = game.user } = {}) {
+  // `combatAction`: the caller is the combat Reload action, which has already
+  // gone through the action economy, so the in-combat sheet gate does not apply.
+  getActivePayloadReloadState({ payloadId = "", ammoTypeId = "", user = game.user, combatAction = false } = {}) {
     const category = String(this.system?.category ?? this.system?.weaponCategory ?? "").trim().toLowerCase();
     const emptyState = {
       canReload: false,
@@ -1803,10 +1802,10 @@ export class MWDItem extends Item {
       };
     }
 
-    if (inCombat && !user?.isGM) {
+    if (inCombat && !user?.isGM && !combatAction) {
       return {
         ...emptyState,
-        reason: "Only a GM can reload from the weapon sheet during combat.",
+        reason: "Only a GM can reload from the weapon sheet during combat. Use the Reload combat action.",
         payloadLabel,
         activePayloadId,
         payloadState,
@@ -1853,8 +1852,8 @@ export class MWDItem extends Item {
     return detailed ? state : state.canReload;
   }
 
-  async reloadActivePayload({ payloadId = "", ammoTypeId = "" } = {}) {
-    const state = this.getActivePayloadReloadState({ payloadId, ammoTypeId });
+  async reloadActivePayload({ payloadId = "", ammoTypeId = "", combatAction = false } = {}) {
+    const state = this.getActivePayloadReloadState({ payloadId, ammoTypeId, combatAction });
     if (!state.canReload || !state.source?.id) {
       return { ok: false, ...state };
     }

@@ -1,4 +1,4 @@
-﻿// src/modules/item/base-item-sheet.js
+// src/modules/item/base-item-sheet.js
 // Purpose: Shared AppV2 item-sheet foundation.
 // How it fits: Keeps every item sheet on one submit/render contract even when
 // the actual content is driven by either a direct template or a layout JSON.

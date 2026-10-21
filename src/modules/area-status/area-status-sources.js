@@ -6,8 +6,10 @@ import {
   getTokenActor,
   getTokenCenter,
   getTokenDocument,
+  isSameDisposition,
 } from "../utils/token.js";
 import { normalizeAuraPacket } from "./normalize-aura-packet.js";
+import { isTokenInRegion } from "../utils/region.js";
 
 export { getTokenActor, getTokenDocument };
 
@@ -39,8 +41,12 @@ export function buildAreaStatusSourceKey({
     .join("::");
 }
 
+// Source kinds: "aura" (radius around a source token, e.g. an Asset Module)
+// and "region" (the shape of a GM-authored Region, e.g. terrain).
 export function normalizeAreaStatusSource(source = {}) {
   const normalized = {
+    kind: String(source.kind ?? "").trim() === "region" ? "region" : "aura",
+    regionUuid: String(source.regionUuid ?? "").trim(),
     sourceKey: String(source.sourceKey ?? "").trim(),
     sceneUuid: String(source.sceneUuid ?? "").trim(),
     sourceTokenUuid: String(source.sourceTokenUuid ?? "").trim(),
@@ -120,8 +126,8 @@ export function isTokenAffectedBySource(source = {}, sourceToken = null, targetT
   if (source.allegiance === "enemy" && sameToken) return false;
   if (source.allegiance === "any") return true;
 
-  const sameDisposition = Number(sourceDoc.disposition ?? 0) === Number(targetDoc.disposition ?? 0);
-  return source.allegiance === "enemy" ? !sameDisposition : sameDisposition;
+  const sameSide = isSameDisposition(sourceDoc, targetDoc);
+  return source.allegiance === "enemy" ? !sameSide : sameSide;
 }
 
 export function getTokenDistance(sourceToken = null, targetToken = null, scene = null) {
@@ -133,7 +139,19 @@ export function getTokenDistance(sourceToken = null, targetToken = null, scene =
   return (Math.hypot(left.x - right.x, left.y - right.y) / gridSize) * gridDistance;
 }
 
+// A usable source: an aura with a radius, or a region source naming its Region.
+export function isAreaStatusSourceUsable(source = {}) {
+  if (source.active === false || !source.statusIds?.length) return false;
+  return source.kind === "region" ? Boolean(source.regionUuid) : source.radius > 0;
+}
+
 export function getAffectedTokensForSource(scene = null, source = {}) {
+  if (source.kind === "region") {
+    if (source.active === false) return [];
+    const region = Array.from(scene?.regions ?? []).find(entry => String(entry?.uuid ?? "").trim() === source.regionUuid);
+    if (!region) return [];
+    return getSceneTokens(scene).filter(token => isTokenInRegion(region, token, { scene }));
+  }
   const sourceToken = findSourceToken(scene, source);
   if (!sourceToken) return [];
   return getSceneTokens(scene).filter(targetToken =>

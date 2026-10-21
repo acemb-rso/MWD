@@ -51,6 +51,14 @@ have been consolidated and must not come back.
   document class routing — type-specific behavior branches on `actor.type`.
 - AppV2 sheets are the only supported authoring path.
 
+## Releases and data migrations
+
+- Bump `version` in `system.json` on every release — live worlds update from
+  the manifest on `main`, so anything merged there reaches the campaign.
+- Any change to persisted document shape or meaning needs a schema step in
+  `src/modules/system/migration/schema-migrations.js` (gated on a legacy
+  marker, idempotent, tested). Policy: `docs/migrations.md`.
+
 ## Conventions
 
 - High-importance files carry `Purpose:` / pipeline comment headers — spec in

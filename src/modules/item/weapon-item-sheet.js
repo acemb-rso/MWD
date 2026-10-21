@@ -1,4 +1,4 @@
-﻿// src/modules/item/weapon-item-sheet.js
+// src/modules/item/weapon-item-sheet.js
 // Purpose: Provides a Sheet / UI class for entities (actor/item) or an application.
 // How it fits: Describes role within src/modules or template rendering pipeline.
 
@@ -93,8 +93,7 @@ function getPayloadItemQuantity(item) {
 }
 
 function getPayloadChoiceKey(item) {
-  const normalized = normalizeWeaponPayloadItemSystem(item?.system ?? {}, { name: item?.name });
-  return normalized.payloadKey || normalizePayloadKey(item?.name);
+  return normalizeWeaponPayloadItemSystem(item?.system ?? {}, { name: item?.name }).payloadKey;
 }
 
 function buildPayloadChoiceGroups(entries, { activeId = "" } = {}) {

@@ -1,0 +1,3166 @@
+{
+ "_note": "Sanitized pre-migration snapshot of the 'dev' world (mwd 0.6.1, core 14.363), taken 2026-10-15. Only fields read by schema migrations are retained.",
+ "actors": [
+  {
+   "_id": "p1bxUTIcaLUafAWS",
+   "name": "Annihilator",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 18,
+      "max": 18,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "mzmyhDxmv0p5y6LW",
+   "name": "Archer",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 24,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 41,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "3LEaEJBqH4O5tfpQ",
+   "name": "Atlas",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 18,
+      "max": 18,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "qzYOS2j0UC4o6CRG",
+   "name": "Awesome",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 18,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "eVQHH1HNUdHCFFuQ",
+   "name": "Axman",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 23,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 41,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "YK5xZcx6Wp16Y8Be",
+   "name": "Banshee",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 18,
+      "max": 18,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "Zjal7C4y9Cfz8uxP",
+   "name": "Battlemaster",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 18,
+      "max": 18,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "mRZvyRDI4LbS6MKn",
+   "name": "Black Knight",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 25,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 49,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "wUQUjPeQ2vLHtrcR",
+   "name": "Blackjack",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 25,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "dFa9p6pxbF3sT074",
+   "name": "Bulldog",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "l9Ig2mWje7kwf1xR",
+   "name": "Catapult",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 23,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 36,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "TZ4NuyezXdw9yjfB",
+   "name": "Centurion",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 17,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 33,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "tcJSprDEkneBlVrP",
+   "name": "Chippewa",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "Xy1kk4y45u77fR1C",
+   "name": "Cicada",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 14,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "jGHmZjmjBa3AUalh",
+   "name": "Commando",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 9,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 19,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "jAr5HulBvu2tTCw7",
+   "name": "Condor",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "jt4nO7SP6OWOPIIU",
+   "name": "Corsair",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "qWFCEGfzo3skghxD",
+   "name": "Crusader",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 21,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 36,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "Pc2imkHCi3bIncc7",
+   "name": "Demolisher",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "zl7csTpcmCrkCTNT",
+   "name": "Devastator",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 18,
+      "max": 18,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "WG5u7gF8Q0zr4Qxc",
+   "name": "Dragon",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 21,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 35,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "pO4nEoMO84RPxGvV",
+   "name": "Flea",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 7,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 17,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "oxzNycUHIwyN6Z6E",
+   "name": "Goliath",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 18,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "eSoObOJRdfXzUr7S",
+   "name": "Grasshopper",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 24,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 42,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "433ZjtojkWahIWgC",
+   "name": "Griffin",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 19,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 29,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "zxboZ7Pppq7o3R7T",
+   "name": "Hermes",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 11,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 14,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "gX8hhEq8u6sK23ru",
+   "name": "Hetzer",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "3KKxgf3XwGz6BM9k",
+   "name": "Highlander",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 18,
+      "max": 18,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "RATG0JymUtNDPTbB",
+   "name": "Hunchback",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 17,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 38,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "ztC8KoAMqYSdsVb2",
+   "name": "Javelin",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 11,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 18,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "p18iC0no2TzxmVkN",
+   "name": "King Crab",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 18,
+      "max": 18,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "9K7OwRhdyA5l4ygY",
+   "name": "Locust",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 7,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 14,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "Q9yInGDsbu3w855f",
+   "name": "Mao-Heng",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "I9jonUDoUNH2bER7",
+   "name": "Marauder",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 25,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 41,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "hY7NWlleBFT2kuRD",
+   "name": "Marik Darvos",
+   "type": "character",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "armor": {
+      "label": "Armor",
+      "value": 0,
+      "max": 0,
+      "effect": "",
+      "resistance": {
+       "default": 0,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 0
+      },
+      "resistanceBonusByType": {}
+     }
+    },
+    "attributes": {
+     "guts": {
+      "value": 1
+     }
+    },
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "Qun8NNsfkZhbf3xB",
+   "name": "Mauler",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 31,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 45,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": [
+      {
+       "id": "fBkWzFOeq9qcGrl1",
+       "type": "penetrating",
+       "size": "small",
+       "location": "torso",
+       "itemId": "Fzi4PgdA3M6U3CE7"
+      },
+      {
+       "id": "vdtCfByux0KwWbKS",
+       "type": "penetrating",
+       "size": "small",
+       "location": "torso",
+       "itemId": "JfOcnM7hVSD03lKh"
+      },
+      {
+       "id": "fqbZWAtDHkXBWbzM",
+       "type": "concussive",
+       "size": "medium",
+       "location": "torso",
+       "itemId": "7UMMXMRrooehQjED"
+      },
+      {
+       "id": "Emm442LiUSEcJaDc",
+       "type": "concussive",
+       "size": "medium",
+       "location": "torso",
+       "itemId": "XjMxZP2QQZqbE2yE"
+      },
+      {
+       "id": "CdZ4AdRPbHsSwuMR",
+       "type": "energy",
+       "size": "large",
+       "location": "arms",
+       "itemId": "oThR4V9Y15t5vA4V"
+      },
+      {
+       "id": "qswJy51Y204t03DF",
+       "type": "energy",
+       "size": "large",
+       "location": "arms",
+       "itemId": "S4dNfnrjFlZfRloJ"
+      }
+     ]
+    }
+   },
+   "items": [
+    {
+     "_id": "Fzi4PgdA3M6U3CE7",
+     "name": "Autocannon/2",
+     "type": "mechWeapon",
+     "system": {
+      "size": "small"
+     }
+    },
+    {
+     "_id": "JfOcnM7hVSD03lKh",
+     "name": "Autocannon/2",
+     "type": "mechWeapon",
+     "system": {
+      "size": "small"
+     }
+    },
+    {
+     "_id": "7UMMXMRrooehQjED",
+     "name": "LRM 15",
+     "type": "mechWeapon",
+     "system": {
+      "size": "medium"
+     }
+    },
+    {
+     "_id": "XjMxZP2QQZqbE2yE",
+     "name": "LRM 15",
+     "type": "mechWeapon",
+     "system": {
+      "size": "medium"
+     }
+    },
+    {
+     "_id": "oThR4V9Y15t5vA4V",
+     "name": "PPC",
+     "type": "mechWeapon",
+     "system": {
+      "hardpointId": "",
+      "hardpointType": "energy",
+      "hardpointSize": "medium",
+      "mountLocation": "",
+      "size": "large"
+     }
+    },
+    {
+     "_id": "S4dNfnrjFlZfRloJ",
+     "name": "PPC",
+     "type": "mechWeapon",
+     "system": {
+      "hardpointId": "",
+      "hardpointType": "energy",
+      "hardpointSize": "medium",
+      "mountLocation": "",
+      "size": "large"
+     }
+    }
+   ]
+  },
+  {
+   "_id": "0uj47qpFiGscSnQc",
+   "name": "Mongoose",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 9,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 16,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "q8WFT64a85zkQz8F",
+   "name": "NPC",
+   "type": "npc",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "armor": {
+      "label": "Armor",
+      "value": 0,
+      "max": 9,
+      "effect": "",
+      "resistance": ""
+     }
+    },
+    "attributes": {
+     "guts": {
+      "value": 1
+     }
+    },
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "WrPcYEGOT0VM5r2H",
+   "name": "Orion",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 25,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 42,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "Y9rzwFnYyZ1oPXOK",
+   "name": "Packrat",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "lOW3HCySIijv2j0M",
+   "name": "Panther",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 13,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 22,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "NyulYRe7ecSM2hZF",
+   "name": "Patton",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "6R9nTOnVG3pLImTA",
+   "name": "Phoenix Hawk",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 25,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "UuyOJhpcOd61ytxg",
+   "name": "Plague",
+   "type": "character",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "armor": {
+      "label": "Armor",
+      "value": 0,
+      "max": 0,
+      "effect": "",
+      "resistance": {
+       "default": 0,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 0
+      },
+      "resistanceBonusByType": {}
+     }
+    },
+    "attributes": {
+     "guts": {
+      "value": 2
+     }
+    },
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": [
+    {
+     "_id": "2dab6edddd1eb5c9",
+     "name": "Ballistic Plate Armor",
+     "type": "armor",
+     "system": {
+      "mitigationByType": {
+       "penetrating": 2,
+       "concussive": 0,
+       "energy": 0,
+       "thermal": 0,
+       "electrical": 0
+      }
+     }
+    },
+    {
+     "_id": "ESCaEyNbmqRsWvHV",
+     "name": "Nighthawk PA",
+     "type": "armor",
+     "system": {
+      "mitigationByType": {
+       "penetrating": 0,
+       "concussive": 0,
+       "energy": 0,
+       "thermal": 0,
+       "electrical": 0
+      }
+     }
+    }
+   ]
+  },
+  {
+   "_id": "vlzPpYjBpsXmhWws",
+   "name": "Quickdraw",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 21,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 30,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "9tNjy3mhFji5Fxig",
+   "name": "Raven",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 13,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 20,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "wqozn8vPGNacwcff",
+   "name": "Rifleman",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 21,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 30,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "90neoH6mHfOjgMDk",
+   "name": "Scorpion",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "5qFlWkamtnCDyR0L",
+   "name": "Shadow Hawk",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 19,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 31,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "z7lVUhPKpoBUfMHc",
+   "name": "Shilone",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "mPN7Y33wEylMtDUj",
+   "name": "Slipper",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "peI1QaaVH6KsTc43",
+   "name": "Spider",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 11,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "U6sZaSlrhO2mDTkZ",
+   "name": "Stalker",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 18,
+      "max": 18,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "iklEFcRuKTGYfK11",
+   "name": "Starslayer",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 17,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 27,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "4Thopi9HcOIEu5nC",
+   "name": "Stinger",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 7,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "kJ2rlchws0b4TssE",
+   "name": "Stingray",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "HKmp9uY8Bxl9hcSB",
+   "name": "Stumbles",
+   "type": "character",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "armor": {
+      "label": "Armor",
+      "value": 9,
+      "max": 9,
+      "effect": "",
+      "resistance": ""
+     }
+    },
+    "attributes": {
+     "guts": {
+      "value": 1
+     },
+     "willpower": {
+      "value": 5
+     }
+    },
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": [
+    {
+     "_id": "cf2bb544c115e1bc",
+     "name": "Flak Armor",
+     "type": "armor",
+     "system": {
+      "mitigationByType": {
+       "penetrating": 1,
+       "concussive": 2,
+       "energy": 0,
+       "thermal": 0,
+       "electrical": 0
+      }
+     }
+    }
+   ]
+  },
+  {
+   "_id": "FPDfZzEHEle2nfa1",
+   "name": "Thrush",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "QpXN7H28xzXiMgeH",
+   "name": "Thunderbolt",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 23,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 44,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "Zz5h1WeHiZ6dryJ6",
+   "name": "Uziel",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 17,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 29,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "702EjWtnmQ9D1EwU",
+   "name": "Valkyrie",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 11,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 21,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "c5yYLL65hxGDVT4H",
+   "name": "Vedette",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "KsFIhRvyi9us3Suj",
+   "name": "Victor",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 18,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "OTd6yuqV6XDLzJNm",
+   "name": "Vindicator",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 15,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 28,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": [
+      {
+       "id": "hardpoint-1",
+       "type": "energy",
+       "size": "small",
+       "location": "head",
+       "itemId": "nhRB0uM5HhZXZUgC"
+      },
+      {
+       "id": "hardpoint-2",
+       "type": "energy",
+       "size": "medium",
+       "location": "arms",
+       "itemId": "QiMbUhBwDPD1YST7"
+      },
+      {
+       "id": "CW8UblKCCNjYLusV",
+       "type": "energy",
+       "size": "large",
+       "location": "arms",
+       "itemId": "EsNYhU8rMxq7pnIv"
+      },
+      {
+       "id": "jZ2ENH5bcds42vWM",
+       "type": "concussive",
+       "size": "small",
+       "location": "torso",
+       "itemId": "gVsFOgK30WTPJ9IY"
+      }
+     ]
+    }
+   },
+   "items": [
+    {
+     "_id": "ymHrJf94L3m0zbqs",
+     "name": "PPC",
+     "type": "mechWeapon",
+     "system": {
+      "hardpointId": "",
+      "hardpointType": "energy",
+      "hardpointSize": "medium",
+      "mountLocation": "",
+      "size": "large"
+     }
+    },
+    {
+     "_id": "OEW0da2cIy4MiD75",
+     "name": "Medium Laser",
+     "type": "mechWeapon",
+     "system": {
+      "size": "medium"
+     }
+    },
+    {
+     "_id": "SmzECNi2KVhRPdL7",
+     "name": "PPC",
+     "type": "mechWeapon",
+     "system": {
+      "hardpointId": "",
+      "hardpointType": "energy",
+      "hardpointSize": "medium",
+      "mountLocation": "",
+      "size": "large"
+     }
+    },
+    {
+     "_id": "NAEVNZZodkjuvlUI",
+     "name": "PPC",
+     "type": "mechWeapon",
+     "system": {
+      "hardpointId": "",
+      "hardpointType": "energy",
+      "hardpointSize": "medium",
+      "mountLocation": "",
+      "size": "large"
+     }
+    },
+    {
+     "_id": "zyKzltantAtuXN4E",
+     "name": "Small Laser",
+     "type": "mechWeapon",
+     "system": {
+      "size": "small"
+     }
+    },
+    {
+     "_id": "ZIoXgkHPdUsrGB9h",
+     "name": "LRM 5",
+     "type": "mechWeapon",
+     "system": {
+      "size": "small"
+     }
+    },
+    {
+     "_id": "YzfouMKRRpBD20G7",
+     "name": "Small Laser",
+     "type": "mechWeapon",
+     "system": {
+      "size": "small"
+     }
+    },
+    {
+     "_id": "4s2CNoY303Zccya2",
+     "name": "Medium Laser",
+     "type": "mechWeapon",
+     "system": {
+      "size": "medium"
+     }
+    },
+    {
+     "_id": "ZrlTeHNYwRmze2D4",
+     "name": "PPC",
+     "type": "mechWeapon",
+     "system": {
+      "hardpointId": "",
+      "hardpointType": "energy",
+      "hardpointSize": "medium",
+      "mountLocation": "",
+      "size": "large"
+     }
+    },
+    {
+     "_id": "Y0NCb2Ot8xoKmZ4O",
+     "name": "LRM 5",
+     "type": "mechWeapon",
+     "system": {
+      "size": "small"
+     }
+    },
+    {
+     "_id": "EsNYhU8rMxq7pnIv",
+     "name": "PPC",
+     "type": "mechWeapon",
+     "system": {
+      "hardpointId": "",
+      "hardpointType": "energy",
+      "hardpointSize": "medium",
+      "mountLocation": "",
+      "size": "large"
+     }
+    },
+    {
+     "_id": "QiMbUhBwDPD1YST7",
+     "name": "Medium Laser",
+     "type": "mechWeapon",
+     "system": {
+      "size": "medium"
+     }
+    },
+    {
+     "_id": "nhRB0uM5HhZXZUgC",
+     "name": "Small Laser",
+     "type": "mechWeapon",
+     "system": {
+      "size": "small"
+     }
+    },
+    {
+     "_id": "gVsFOgK30WTPJ9IY",
+     "name": "LRM 5",
+     "type": "mechWeapon",
+     "system": {
+      "size": "small"
+     }
+    }
+   ]
+  },
+  {
+   "_id": "dI3Fq1DscHdiAZ9l",
+   "name": "Vulcan",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 14,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 20,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "7Wo4vdbglys46FnH",
+   "name": "Warhammer",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 24,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 44,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "II4Oq1ooSyabEZ3S",
+   "name": "Warrior",
+   "type": "vehicle",
+   "flags": {
+    "mwd": {
+     "machineMonitorStorage": "remaining-v1"
+    }
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 15,
+      "max": 15,
+      "resistance": {
+       "default": 2,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 12,
+      "max": 12,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 3
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "mUu1u7MUijNDMzBr",
+   "name": "Wasp LAM",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 11,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 17,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "eu51HVN5KCG7jaez",
+   "name": "Wolfhound",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 13,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 24,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  },
+  {
+   "_id": "TqPmBXn6F5xkgyVj",
+   "name": "Wolverine",
+   "type": "battlemech",
+   "flags": {
+    "mwd": {}
+   },
+   "system": {
+    "monitors": {
+     "structure": {
+      "value": 0,
+      "max": 19,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      }
+     },
+     "armor": {
+      "value": 0,
+      "max": 30,
+      "resistance": {
+       "default": 1,
+       "byType": {}
+      },
+      "derived": {
+       "resistance": 4
+      }
+     }
+    },
+    "attributes": {},
+    "mwd": {
+     "hardpoints": []
+    }
+   },
+   "items": []
+  }
+ ],
+ "items": [
+  {
+   "_id": "FQqWb9aIMnddeOIx",
+   "name": "Autocannon/2",
+   "type": "mechWeapon",
+   "system": {
+    "size": "small"
+   }
+  },
+  {
+   "_id": "zVWpJVp6bE2v7gOd",
+   "name": "Autocannon/5",
+   "type": "mechWeapon",
+   "system": {
+    "size": "medium"
+   }
+  },
+  {
+   "_id": "2dab6edddd1eb5c9",
+   "name": "Ballistic Plate Armor",
+   "type": "armor",
+   "system": {
+    "mitigationByType": {
+     "penetrating": 2,
+     "concussive": 0,
+     "energy": 0,
+     "thermal": 0,
+     "electrical": 0
+    }
+   }
+  },
+  {
+   "_id": "uB3Orv1C5EYpSnyY",
+   "name": "ER Large Laser",
+   "type": "mechWeapon",
+   "system": {
+    "size": "large"
+   }
+  },
+  {
+   "_id": "iDKbMe8mIfFiLKSS",
+   "name": "ER Medium Laser",
+   "type": "mechWeapon",
+   "system": {
+    "size": "medium"
+   }
+  },
+  {
+   "_id": "Hzc8QZsdXAhANkvh",
+   "name": "ER PPC",
+   "type": "mechWeapon",
+   "system": {
+    "hardpointId": "",
+    "hardpointType": "energy",
+    "hardpointSize": "medium",
+    "mountLocation": "",
+    "size": "large"
+   }
+  },
+  {
+   "_id": "nzSv2awBqAdNpc3d",
+   "name": "ER Small Laser",
+   "type": "mechWeapon",
+   "system": {
+    "size": "small"
+   }
+  },
+  {
+   "_id": "cf2bb544c115e1bc",
+   "name": "Flak Armor",
+   "type": "armor",
+   "system": {
+    "mitigationByType": {
+     "penetrating": 1,
+     "concussive": 2,
+     "energy": 0,
+     "thermal": 0,
+     "electrical": 0
+    }
+   }
+  },
+  {
+   "_id": "fq5DzIGUcIpRZxJh",
+   "name": "LB AC-2X",
+   "type": "mechWeapon",
+   "system": {
+    "size": "small"
+   }
+  },
+  {
+   "_id": "Vqexnv1ZvO7aAGwu",
+   "name": "LB AC-5X",
+   "type": "mechWeapon",
+   "system": {
+    "size": "medium"
+   }
+  },
+  {
+   "_id": "jYUTTYlLi760nGM0",
+   "name": "LRM 15",
+   "type": "mechWeapon",
+   "system": {
+    "size": "medium"
+   }
+  },
+  {
+   "_id": "YKfmKe5pT6fYsWzV",
+   "name": "LRM 5",
+   "type": "mechWeapon",
+   "system": {
+    "size": "small"
+   }
+  },
+  {
+   "_id": "Z5Mx8hlPdrRbzPPO",
+   "name": "Medium Laser",
+   "type": "mechWeapon",
+   "system": {
+    "size": "medium"
+   }
+  },
+  {
+   "_id": "L977YORcgfbrpnVy",
+   "name": "Medium PuLse Laser",
+   "type": "mechWeapon",
+   "system": {
+    "size": "medium"
+   }
+  },
+  {
+   "_id": "ESCaEyNbmqRsWvHV",
+   "name": "Nighthawk PA",
+   "type": "armor",
+   "system": {
+    "mitigationByType": {
+     "penetrating": 0,
+     "concussive": 0,
+     "energy": 0,
+     "thermal": 0,
+     "electrical": 0
+    }
+   }
+  },
+  {
+   "_id": "WeoYbU6vfAyNhsd1",
+   "name": "PPC",
+   "type": "mechWeapon",
+   "system": {
+    "hardpointId": "",
+    "hardpointType": "energy",
+    "hardpointSize": "medium",
+    "mountLocation": "",
+    "size": "large"
+   }
+  },
+  {
+   "_id": "pKMlG0e2i1GBRCNN",
+   "name": "Rotary Autocannon/2",
+   "type": "mechWeapon",
+   "system": {
+    "size": "small"
+   }
+  },
+  {
+   "_id": "g0biKNN0yes0HcK0",
+   "name": "Rotary Autocannon/5",
+   "type": "mechWeapon",
+   "system": {
+    "size": "medium"
+   }
+  },
+  {
+   "_id": "ZutDSUyce4oFrI85",
+   "name": "Small Laser",
+   "type": "mechWeapon",
+   "system": {
+    "size": "small"
+   }
+  },
+  {
+   "_id": "KTR0XYIazqwIRpVU",
+   "name": "Small Pulse Laser",
+   "type": "mechWeapon",
+   "system": {
+    "size": "small"
+   }
+  },
+  {
+   "_id": "QgTOpx6UdqLqC2Zi",
+   "name": "Ultra Autocannon/2",
+   "type": "mechWeapon",
+   "system": {
+    "size": "small"
+   }
+  },
+  {
+   "_id": "2ylBRIfs8lNwUYUA",
+   "name": "Ultra Autocannon/5",
+   "type": "mechWeapon",
+   "system": {
+    "size": "medium"
+   }
+  },
+  {
+   "_id": "espMd1dUUlTtJ4kD",
+   "name": "X-Pulse Large Laser",
+   "type": "mechWeapon",
+   "system": {
+    "size": "large"
+   }
+  },
+  {
+   "_id": "f0NIHuUdVVcjO4Yb",
+   "name": "X-Pulse Medium Laser",
+   "type": "mechWeapon",
+   "system": {
+    "size": "medium"
+   }
+  },
+  {
+   "_id": "GCkXxEqFU5TmEXbc",
+   "name": "X-Pulse Small Laser",
+   "type": "mechWeapon",
+   "system": {
+    "size": "small"
+   }
+  }
+ ],
+ "scenes": [
+  {
+   "_id": "RqeJhsMF07uyTM2W",
+   "name": "Default",
+   "tokens": [
+    {
+     "_id": "ByEi3JIqlrGxsMNZ",
+     "name": "Plague",
+     "actorId": "UuyOJhpcOd61ytxg",
+     "actorLink": true,
+     "delta": {
+      "system": {},
+      "flags": {}
+     }
+    },
+    {
+     "_id": "FifWXDmjWFWm4pa0",
+     "name": "Warhammer",
+     "actorId": "7Wo4vdbglys46FnH",
+     "actorLink": false,
+     "delta": {
+      "system": {
+       "monitors": {
+        "armor": {
+         "value": 44,
+         "derived": {
+          "resistance": 11
+         }
+        },
+        "structure": {
+         "value": 24
+        }
+       }
+      },
+      "flags": {
+       "mwd": {
+        "pilotVisionOwnership": {
+         "4dQypAosdF0iDf7G": 0
+        },
+        "stealth": {
+         "transientEmission": {
+          "active": true,
+          "reason": "acquireTarget",
+          "rating": 1,
+          "source": "system",
+          "round": 2,
+          "turn": 0,
+          "duration": "untilNextActivation"
+         },
+         "ownedStatuses": {
+          "highEmission": {
+           "active": true,
+           "reason": "acquireTarget",
+           "source": "system"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    {
+     "_id": "Ywheh8WSAfUljJmw",
+     "name": "Commando",
+     "actorId": "jGHmZjmjBa3AUalh",
+     "actorLink": false,
+     "delta": {
+      "system": {},
+      "flags": {}
+     }
+    }
+   ]
+  }
+ ]
+}

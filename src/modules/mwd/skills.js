@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/skills.js
+// src/modules/mwd/skills.js
 /**
  * @pipeline data
  * @role Canonical MWD skill catalog and specialization metadata. The single

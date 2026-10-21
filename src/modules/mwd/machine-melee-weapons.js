@@ -1,4 +1,4 @@
-﻿// src/modules/mwd/machine-melee-weapons.js
+// src/modules/mwd/machine-melee-weapons.js
 // Purpose: Resolves BattleMech melee weapon formulas into concrete attack stats.
 // Workflow: selected melee profile plus machine/pilot context -> numeric damage
 // and AR bands -> standard machine attack resolution consumes an ordinary profile.

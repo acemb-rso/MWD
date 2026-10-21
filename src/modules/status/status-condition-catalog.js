@@ -1,4 +1,4 @@
-﻿// src/modules/status/status-condition-catalog.js
+// src/modules/status/status-condition-catalog.js
 // Purpose: Actor-aware condition catalog for token statuses.
 // How it fits: Keeps status availability declarative while Foundry ActiveEffects
 // remain the storage and token-indicator layer.
@@ -6,6 +6,7 @@
 import { SYSTEM_NAME, TEMPLATE } from "../core/constants.js";
 import { STATUS_MAP } from "../roll/config/status-modifiers.js";
 import { cloneValue } from "../utils/clone.js";
+import { listTerrainStatusEntries } from "../terrain/terrain-catalog.js";
 
 export const SETTING_STATUS_CONDITION_CATALOG = "statusConditionCatalog";
 
@@ -147,6 +148,7 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   // Tactical markers.
   status("evasiveWeave", "Evasive", "machine", "tactical", ["defense", "attackPenalty", "selfInduced"], "falling.svg", { order: 1500 }),
   status("braced", "Braced", "machine", "tactical", ["defense", "mobilityPenalty"], "cover.svg", { order: 1510 }),
+  status("shielded", "Shielded", "machine", "tactical", ["defense", "attackPenalty", "selfInduced"], "cover.svg", { order: 1520 }),
   status("overextended", "Overextended", "machine", "tactical", ["attack", "defensePenalty"], "surge.svg", { order: 1520 }),
   status("targetFocused", "Target Focused", "machine", "tactical", ["targeted", "attack"], "all-seeing-eye.webp", { order: 1530 }),
   status("suppressedMechanical", "Suppressed", "machine", "tactical", ["offense", "suppressed"], "suppressed.svg", { order: 1540 }),
@@ -154,6 +156,9 @@ const DEFAULT_STATUS_CONDITION_CATALOG = Object.freeze([
   status("tagged", "TAGed", "all", "targeting", ["tag", "designated", "targeting"], "Targeting.webp", { icon: TARGETING_ICON, order: 1610 }),
   status("narced", "NARCed", "all", "targeting", ["narc", "beacon", "targeting"], "Targeting.webp", { icon: TARGETING_ICON, order: 1620 }),
   status("spotted", "Spotted", "all", "targeting", ["spot", "designated", "indirect"], "Targeting.webp", { icon: TARGETING_ICON, order: 1615 }),
+  // Terrain occupancy statuses, projected by terrain Regions (terrain-catalog.js).
+  ...listTerrainStatusEntries().map((terrain, index) =>
+    status(terrain.statusId, `Terrain: ${terrain.label}`, "machine", "terrain", ["terrain"], "cover.svg", { manual: false, managed: true, order: 1700 + index })),
 ]);
 
 function status(id, label, actorGroup, category, tags, icon, options = {}) {
