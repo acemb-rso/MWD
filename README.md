@@ -4,7 +4,7 @@ This is a fan-built Foundry VTT system for **MechWarrior: Destiny**. The project
 
 ## Current Status
 
-- System version: **0.7.0**
+- System version: **0.7.1**
 - Foundry compatibility: **minimum v14**, **verified v14**
 - Actor types: `character`, `npc`, `vehicle`, `battlemech`
 - Item types: `contact`, `gear`, `quality`, `assetModule`, `skill`, `lifeModule`, `personalWeapon`, `mechWeapon`, `weaponPayload`, `armor`

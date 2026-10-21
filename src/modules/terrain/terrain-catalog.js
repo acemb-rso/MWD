@@ -8,16 +8,18 @@
 // All magnitudes here are PROVISIONAL, pending playtesting.
 
 // movementPenaltySteps: movement steps lost while occupying (30 m each).
-// pilotingDn: DN added to piloting checks while occupying.
+// pilotingDice: dice added to (negative: removed from) piloting rolls while
+// occupying. Terrain is a circumstance: it modifies the dice pool, never the
+// task's DN (see docs/MaxTech-Review.md, "Environment modifies, task sets DN").
 // obscuring: line-of-effect obscuring value (review #1b; not yet consumed).
-function entry(id, label, { vehicleTerrainClass = null, movementPenaltySteps = 0, pilotingDn = 0, obscuring = 0 } = {}) {
+function entry(id, label, { vehicleTerrainClass = null, movementPenaltySteps = 0, pilotingDice = 0, obscuring = 0 } = {}) {
   return Object.freeze({
     id,
     label,
     statusId: `terrain${id.charAt(0).toUpperCase()}${id.slice(1)}`,
     vehicleTerrainClass,
     movementPenaltySteps,
-    pilotingDn,
+    pilotingDice,
     obscuring,
   });
 }
@@ -28,19 +30,19 @@ export const TERRAIN_CLASSES = Object.freeze({
   open: entry("open", "Open", { vehicleTerrainClass: "open" }),
   rough: entry("rough", "Rough", { vehicleTerrainClass: "rough", movementPenaltySteps: 1 }),
   woodsLight: entry("woodsLight", "Light Woods", { vehicleTerrainClass: "forest", movementPenaltySteps: 1, obscuring: 1 }),
-  woodsHeavy: entry("woodsHeavy", "Heavy Woods", { vehicleTerrainClass: "forest", movementPenaltySteps: 2, pilotingDn: 1, obscuring: 2 }),
-  jungle: entry("jungle", "Jungle", { vehicleTerrainClass: "forest", movementPenaltySteps: 2, pilotingDn: 1, obscuring: 2 }),
+  woodsHeavy: entry("woodsHeavy", "Heavy Woods", { vehicleTerrainClass: "forest", movementPenaltySteps: 2, pilotingDice: -1, obscuring: 2 }),
+  jungle: entry("jungle", "Jungle", { vehicleTerrainClass: "forest", movementPenaltySteps: 2, pilotingDice: -1, obscuring: 2 }),
   urban: entry("urban", "Urban", { vehicleTerrainClass: "urban", movementPenaltySteps: 1 }),
-  water: entry("water", "Water", { vehicleTerrainClass: "water", movementPenaltySteps: 1, pilotingDn: 1 }),
+  water: entry("water", "Water", { vehicleTerrainClass: "water", movementPenaltySteps: 1, pilotingDice: -1 }),
 });
 
 // Conditions layered on the base terrain: any number per terrain Region.
 export const TERRAIN_CONDITIONS = Object.freeze({
-  mud: entry("mud", "Mud", { movementPenaltySteps: 1, pilotingDn: 1 }),
-  deepSnow: entry("deepSnow", "Deep Snow", { movementPenaltySteps: 1, pilotingDn: 1 }),
-  ice: entry("ice", "Ice", { pilotingDn: 2 }),
-  sand: entry("sand", "Sand", { pilotingDn: 1 }),
-  swamp: entry("swamp", "Swamp", { movementPenaltySteps: 1, pilotingDn: 1 }),
+  mud: entry("mud", "Mud", { movementPenaltySteps: 1, pilotingDice: -1 }),
+  deepSnow: entry("deepSnow", "Deep Snow", { movementPenaltySteps: 1, pilotingDice: -1 }),
+  ice: entry("ice", "Ice", { pilotingDice: -2 }),
+  sand: entry("sand", "Sand", { pilotingDice: -1 }),
+  swamp: entry("swamp", "Swamp", { movementPenaltySteps: 1, pilotingDice: -1 }),
   rubble: entry("rubble", "Rubble", { movementPenaltySteps: 1 }),
 });
 

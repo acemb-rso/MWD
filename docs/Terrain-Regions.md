@@ -55,28 +55,29 @@ GM terrain Region ──collectTerrainRegionAreaStatusSources──▶ source { 
 
 ### Provisional occupancy effects
 
-Movement penalty is in movement steps (30 m each); Piloting DN applies to
-piloting checks. Machines only for now; personal-scale terrain follows later
+Movement penalty is in movement steps (30 m each); Piloting dice apply to
+piloting rolls. Terrain is a circumstance, so it never changes a task's DN
+(design rule in MaxTech-Review.md). Machines only for now; personal-scale terrain follows later
 through the same data.
 
-| Terrain | Movement | Piloting DN | Vehicle class | Obscuring (1b) |
+| Terrain | Movement | Piloting dice | Vehicle class | Obscuring (1b) |
 | --- | --- | --- | --- | --- |
 | Road | 0 | 0 | road | 0 |
 | Open | 0 | 0 | open | 0 |
 | Rough | −1 | 0 | rough | 0 |
 | Light Woods | −1 | 0 | forest | 1 |
-| Heavy Woods | −2 | +1 | forest | 2 |
-| Jungle | −2 | +1 | forest | 2 |
+| Heavy Woods | −2 | −1 | forest | 2 |
+| Jungle | −2 | −1 | forest | 2 |
 | Urban | −1 | 0 | urban | 0 |
-| Water | −1 | +1 | water | 0 |
+| Water | −1 | −1 | water | 0 |
 
-| Condition | Movement | Piloting DN |
+| Condition | Movement | Piloting dice |
 | --- | --- | --- |
-| Mud | −1 | +1 |
-| Deep Snow | −1 | +1 |
-| Ice | 0 | +2 |
-| Sand | 0 | +1 |
-| Swamp | −1 | +1 |
+| Mud | −1 | −1 |
+| Deep Snow | −1 | −1 |
+| Ice | 0 | −2 |
+| Sand | 0 | −1 |
+| Swamp | −1 | −1 |
 | Rubble | −1 | 0 |
 
 ## 1b. Line of effect (designed, not built)
@@ -84,7 +85,7 @@ through the same data.
 When an attack, Acquire, or spot resolves, a provider samples the attacker →
 target segment at grid resolution, collects the terrain regions it crosses
 (each once, including the endpoints' own regions), sums their `obscuring`
-values, and emits a dice/DN part. Derived at resolve time, never stored.
+values, and emits a **dice** part (attack dice and Acquire dice; never DN). Derived at resolve time, never stored.
 Foundry walls stay the hard line-of-sight blocker. This replaces target-side
 `obscuredLight` / `obscuredHeavy` for terrain-based obscuring.
 

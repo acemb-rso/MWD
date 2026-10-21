@@ -361,13 +361,23 @@ export const STATUS_MAP = Object.freeze({
 
   // Terrain occupancy, generated from terrain-catalog.js (the single source of
   // terrain magnitudes). Terrain with no occupancy effect is a marker.
+  // Terrain is a circumstance: it changes movement and the piloting dice pool,
+  // never a task's DN.
   ...Object.fromEntries(listTerrainStatusEntries().map(terrain => {
-    const movement = { id: `${terrain.statusId}.movement` };
-    if (terrain.movementPenaltySteps) movement.movementPenaltySteps = terrain.movementPenaltySteps;
-    if (terrain.pilotingDn) movement.pilotingDn = terrain.pilotingDn;
-    const hasEffect = Boolean(terrain.movementPenaltySteps || terrain.pilotingDn);
-    return [terrain.statusId, hasEffect
-      ? machine(`Terrain: ${terrain.label}`, { movement: [movement] })
+    const machineState = {};
+    if (terrain.movementPenaltySteps) {
+      machineState.movement = [{ id: `${terrain.statusId}.movement`, movementPenaltySteps: terrain.movementPenaltySteps }];
+    }
+    if (terrain.pilotingDice) {
+      machineState.dice = [{
+        id: `${terrain.statusId}.pilotingDice`,
+        selector: "pilotingDice",
+        value: terrain.pilotingDice,
+        tags: ["piloting", "terrain"],
+      }];
+    }
+    return [terrain.statusId, Object.keys(machineState).length
+      ? machine(`Terrain: ${terrain.label}`, machineState)
       : marker(`Terrain: ${terrain.label}`, "Terrain occupancy marker (vehicle terrain affinity).")];
   })),
 });

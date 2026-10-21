@@ -56,15 +56,18 @@ test("every terrain status is registered and generated from the terrain catalog"
   assert.deepEqual(STATUS_MAP.terrainWoodsHeavy.machineState.movement, [{
     id: "terrainWoodsHeavy.movement",
     movementPenaltySteps: TERRAIN_CLASSES.woodsHeavy.movementPenaltySteps,
-    pilotingDn: TERRAIN_CLASSES.woodsHeavy.pilotingDn,
   }]);
+  assert.equal(STATUS_MAP.terrainWoodsHeavy.machineState.dice[0].selector, "pilotingDice");
+  assert.equal(STATUS_MAP.terrainWoodsHeavy.machineState.dice[0].value, TERRAIN_CLASSES.woodsHeavy.pilotingDice);
   assert.deepEqual(STATUS_MAP.terrainRoad.roles, ["visualMarker"]);
 });
 
-test("occupied terrain slows machines and raises piloting DN, stacking base and conditions", () => {
+test("occupied terrain slows machines and costs piloting dice (never DN), stacking base and conditions", () => {
   const inHeavyMud = machine({ statuses: ["terrainWoodsHeavy", "terrainMud"] });
   assert.equal(getMachineMovementEffects(inHeavyMud).movementPenalty, 90);
-  assert.equal(getMachinePilotingDnModifier(inHeavyMud), 2);
+  assert.equal(getMachinePilotingDiceModifier(inHeavyMud), -2);
+  // Environment modifies the dice pool; the task keeps its DN.
+  assert.equal(getMachinePilotingDnModifier(inHeavyMud), 0);
   assert.equal(getMachineMovementEffects(machine({ statuses: ["terrainRoad"] })).movementPenalty, 0);
 });
 
@@ -117,7 +120,9 @@ test("vehicles gain dice in favored terrain and lose them in adverse terrain; me
   assert.equal(getMachinePilotingDiceModifier(wheeled(["terrainRoad"])), 1);
   assert.equal(getMachinePilotingDiceModifier(wheeled(["terrainWoodsLight"])), -1);
   assert.equal(getMachinePilotingDiceModifier(wheeled(["terrainOpen"])), 0);
-  // Profile defaults apply when the vehicle has no authored preference lists.
-  assert.equal(getMachinePilotingDiceModifier(machine({ type: "vehicle", statuses: ["terrainWater"], mwd: { movementProfile: "hover" } })), 1);
+  // Profile defaults apply when the vehicle has no authored preference lists:
+  // hover favors water (+1), which offsets water's own piloting penalty (-1).
+  assert.equal(getMachinePilotingDiceModifier(machine({ type: "vehicle", statuses: ["terrainWater"], mwd: { movementProfile: "hover" } })), 0);
+  assert.equal(getMachinePilotingDiceModifier(machine({ type: "vehicle", statuses: ["terrainWater"], mwd: { movementProfile: "tracked" } })), -2);
   assert.equal(getMachinePilotingDiceModifier(machine({ type: "battlemech", statuses: ["terrainRoad"] })), 0);
 });

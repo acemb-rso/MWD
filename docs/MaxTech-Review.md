@@ -50,6 +50,46 @@ around it.**
 
 Almost every Max Tech environment rule lands on this gap.
 
+## Design rule: environment modifies, the task sets the DN
+
+**Adopted 2026-10-21.** MWD's established convention is that the *task* sets
+the DN and *circumstances* modify the dice pool or other mechanics (EW: Acquire
+Contact DN 1, Track DN 2, Lock DN 3; interference and tracking penalties
+affect dice).
+
+> Environmental conditions modify the dice pool, movement capabilities,
+> resource costs, or consequences of an action. The action or task
+> establishes its DN. Environmental conditions do not ordinarily alter that DN
+> unless a specific rule explicitly requires it.
+
+| Situation | Task DN | Circumstantial modifier |
+| --- | --- | --- |
+| Drive across ordinary ground | Normal movement rules | None |
+| Perform a difficult maneuver | Set by the maneuver | Mud: Piloting dice penalty |
+| Recover from a skid | Set by the recovery task | Ice: dice penalty |
+| Acquire a sensor contact | Set by the acquisition task | Fog / obscuring: dice penalty |
+| Fire a weapon | Existing attack resolution | Wind / obscuring: attack dice |
+| Escape being Bogged | Set by the recovery task | Vehicle capabilities modify the roll |
+
+A hazardous feature may introduce a **new task** (a Piloting check to avoid
+becoming Bogged) with its own DN; conditions then contribute dice to it.
+
+This keeps a maneuver's difficulty recognizable wherever it is attempted,
+keeps the roll breakdown transparent, and stops ordinary weather from imposing
+large difficulty jumps on inexperienced characters.
+
+**Existing DN-raising effects, against this rule:**
+
+| Effect | Status |
+| --- | --- |
+| Crit consequences (e.g. Limping, Gyro Damage: +1 Piloting DN) | Allowed: specific mechanical consequences |
+| Target movement raises attack DN by actions taken | Core attack rule; review separately |
+| ECM cloud: +1 Acquire DN | Circumstance raising DN; review against this rule |
+| Stealth: Acquire DN parts (`getStealthDnParts`) | Circumstance raising DN; review against this rule |
+
+Terrain (#1a) shipped in 0.7.0 with Piloting DN and was converted to Piloting
+dice under this rule.
+
 ## Environmental effect classes (design prerequisite)
 
 Environmental effects relate to units in four different ways. Each needs its
@@ -60,7 +100,7 @@ neither combatant stands in it).
 | Class | Spatial question | Examples | Mechanism |
 | --- | --- | --- | --- |
 | **Occupancy** | What is this unit standing in? | Mud, deep snow, water depth, hazardous ground, local temperature (magma, fire) | Region membership projects declarative statuses onto occupants (area-status projection; hazard regions for damage). Effects live in `status-modifiers.js`. |
-| **Line of effect** | What does this attack or sensor sweep pass through? | Smoke, intervening woods/jungle, other visibility obstructions | Computed **at resolve time** for the attacker → target pair: test the segment between the two tokens against obstruction regions and emit dice/DN parts from a provider (Design Principles §6.1, §4). Never persisted on either actor. |
+| **Line of effect** | What does this attack or sensor sweep pass through? | Smoke, intervening woods/jungle, other visibility obstructions | Computed **at resolve time** for the attacker → target pair: test the segment between the two tokens against obstruction regions and emit dice parts from a provider (Design Principles §6.1, §4). Never persisted on either actor. |
 | **Scene-wide** | What applies to everyone here? | Weather, wind, gravity, ambient light, ambient temperature | A typed scene condition read by providers (the scene-modifier flag pattern, but typed). Not written as statuses onto every token. |
 | **Persistent actor consequence** | What has happened to this unit? | Bogged, Skidding, On Fire, Unstable, Prone | Real statuses with their own lifetime: created by outcomes (a failed bog-down or reckless-move check, a hazard), cleared by actions, remedies, or `clearsOnActions` — not by leaving a region. |
 
@@ -176,8 +216,8 @@ the region (reusing the area-status projection), with effects in
 - Terrain classes start from the existing vehicle vocabulary — road, open,
   rough, forest (light/heavy), urban, water — plus jungle, sand, snow, ice,
   mud/swamp as conditions.
-- Effects map to existing fields: movement penalty (`movement`), piloting DN
-  (`movement.pilotingDn`), heat (`heat` / `startTurn`), cover DR for the
+- Effects map to existing fields: movement penalty (`movement`), Piloting
+  dice (`dice` with selector `pilotingDice`), heat (`heat` / `startTurn`), cover DR for the
   occupant (`cq`).
 - **Activates the dead data:** vehicle `favoredTerrain` / `adverseTerrain`
   compares the vehicle's profile to the occupied region's terrain class
@@ -188,7 +228,7 @@ the region (reusing the area-status projection), with effects in
 
 **1b. Line of effect.** New mechanism: when an attack or sensor action
 resolves, test the attacker → target segment against obstruction regions and
-emit dice/DN parts from a provider, derived at resolve time and never stored
+emit dice parts from a provider, derived at resolve time and never stored
 on either actor. Each obstruction counts once per segment, including when an
 endpoint is inside it. Consumers: ranged attacks, Acquire / sensor tracking,
 and indirect-fire spotting (which already treats line of sight as a gate).
@@ -240,7 +280,7 @@ conditions** read directly by providers. These are scene-wide by nature, so
 they are *not* written as statuses onto every token:
 
 - Visibility: dusk, night, fog, rain, snow, blizzard, blowing sand → tracking
-  penalty / acquire DN, using the existing EW tracking lane.
+  penalty / Acquire dice, using the existing EW tracking lane.
 - Weapon lanes: wind penalizes kinetic/missile attacks; sand/fog penalize
   energy — keyed to MWD damage types, not BT weapon classes.
 - Heat: ambient temperature and rain/snow adjust dissipation through the heat
