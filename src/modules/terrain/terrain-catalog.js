@@ -8,6 +8,8 @@
 // See docs/Terrain-Regions.md and docs/Environment-Catalog.md.
 // All magnitudes here are PROVISIONAL, pending playtesting.
 
+import { withoutReplaced } from "./environment-dice.js";
+
 // movementPenaltySteps: movement steps lost while occupying (30 m each).
 // pilotingDice: Handling dice (piloting rolls) while occupying; a penalty in
 //   the "traction" environment function (environment-dice.js). Terrain is a
@@ -104,11 +106,6 @@ export function getTerrainReplacingStatusIds(id = "") {
     .map(item => item.statusId);
 }
 
-// Drops entries superseded by another present entry.
-export function withoutReplacedTerrain(entries = []) {
-  const present = entries.filter(Boolean);
-  return present.filter(item => !present.some(other => other.replaces.includes(item.id)));
-}
 
 /**
  * Normalize authored terrain data. Unknown classes fall back to open; unknown
@@ -126,7 +123,7 @@ export function normalizeRegionTerrain(raw = null) {
   ));
   return {
     terrainClass,
-    conditions: withoutReplacedTerrain(conditions.map(id => TERRAIN_CONDITIONS[id])).map(item => item.id),
+    conditions: withoutReplaced(conditions.map(id => TERRAIN_CONDITIONS[id])).map(item => item.id),
   };
 }
 

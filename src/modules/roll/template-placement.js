@@ -18,7 +18,7 @@ import {
   templateGeometryHitsToken,
   EXPOSURE_TIERS,
 } from "../area-effects/area-effect-engine.js";
-import { getTokenCenter, isSameDisposition } from "../utils/token.js";
+import { getActorActiveToken, getTokenCenter, isSameDisposition } from "../utils/token.js";
 
 const DEFAULT_CONE_ANGLE = 90;
 const TEMPLATE_INDICATOR_REGION_VISIBILITY = Number(CONST?.REGION_VISIBILITY?.ALWAYS ?? 2) || 2;
@@ -29,11 +29,6 @@ function getGridSizePixels() {
 
 function authoredTemplateDistance(template = {}) {
   return Math.max(0, Number(template?.size ?? 0) || 0);
-}
-
-function getActorToken(actor) {
-  const controlled = canvas.tokens?.controlled?.find(token => token.actor?.id === actor?.id) ?? null;
-  return controlled ?? actor?.getActiveTokens?.(true, true)?.[0] ?? null;
 }
 
 function getTokenRadius(token) {
@@ -64,7 +59,7 @@ function getMidpoint(a, b) {
 
 function resolveInitialAnchor({ template = {}, actor = null } = {}) {
   const placementMode = String(template?.placement ?? "").trim().toLowerCase();
-  const attackerToken = getActorToken(actor);
+  const attackerToken = getActorActiveToken(actor);
   const targetToken = getPrimaryTargetToken();
   const attackerCenter = attackerToken ? getTokenCenter(attackerToken) : null;
   const targetCenter = targetToken ? getTokenCenter(targetToken) : null;
@@ -196,7 +191,7 @@ function buildInteractiveTemplateGeometry({ geometry = null, pointer = null, att
   }
 
   if (["line", "cone", "rect"].includes(String(next.shape ?? "").trim().toLowerCase())) {
-    const attackerToken = getActorToken(actor);
+    const attackerToken = getActorActiveToken(actor);
     const attackerCenter = attackerToken ? getTokenCenter(attackerToken) : null;
     const directionOrigin = anchorFollowsPointer
       ? (attackerCenter ?? { x: Number(base.x ?? 0), y: Number(base.y ?? 0) })
@@ -343,7 +338,7 @@ function deriveTemplateTargets({ attack = {}, geometry = null, attacker = null }
   const normalizedGeometry = normalizeTemplateGeometry(geometry);
   if (!template || !normalizedGeometry) return [];
 
-  const attackerToken = getActorToken(attacker);
+  const attackerToken = getActorActiveToken(attacker);
   const attackerTokenId = attackerToken?.id ?? null;
 
   return (canvas.tokens?.placeables ?? [])
@@ -366,7 +361,7 @@ function deriveTemplateTargets({ attack = {}, geometry = null, attacker = null }
 
 function buildMarkerState({ attack = {}, geometry = null, attacker = null } = {}) {
   const template = attack?.template ?? null;
-  const attackerToken = getActorToken(attacker);
+  const attackerToken = getActorActiveToken(attacker);
   const attackerTokenId = attackerToken?.id ?? null;
   const normalizedGeometry = normalizeTemplateGeometry(geometry);
   if (!template || !normalizedGeometry) return [];
@@ -386,7 +381,7 @@ function getAutoTargetTokenIds({ geometry = null, attack = {}, attacker = null }
   const normalizedGeometry = normalizeTemplateGeometry(geometry);
   if (!template || !normalizedGeometry) return [];
 
-  const attackerToken = getActorToken(attacker);
+  const attackerToken = getActorActiveToken(attacker);
   const attackerTokenId = attackerToken?.id ?? null;
   const isEnemyToken = token => !attackerToken || !isSameDisposition(attackerToken, token);
 
@@ -534,7 +529,7 @@ export async function placeTemplatedAttack({ actor, attack } = {}) {
     throw createUserFacingRollError(`Template shape "${template.shape}" is normalized but not supported in v1.`, { severity: "warn" });
   }
 
-  const attackerToken = getActorToken(actor);
+  const attackerToken = getActorActiveToken(actor);
   if (template.placement === "origin" && !attackerToken) {
     throw createUserFacingRollError("Origin-placed templated attacks require the attacker to have a token on the current scene.", { severity: "warn" });
   }

@@ -20,6 +20,7 @@ import { movementPenaltyStepsToMeters } from "./machine-movement.js";
 import { getAssetModuleDerivedStatuses, getAssetModuleMovementBonus } from "./asset-module-effects.js";
 import { getVehicleStrainStateEffects } from "./vehicle-strain.js";
 import { getActorTerrainDiceContributions } from "../terrain/terrain-mobility.js";
+import { getActorSceneConditionDiceContributions } from "../terrain/scene-conditions.js";
 import { combineEnvironmentDice } from "../terrain/environment-dice.js";
 import { collectMachineStateAnnotations } from "../status/status-mechanics.js";
 import { normalizeStatusConditionId } from "../status/status-condition-catalog.js";
@@ -216,16 +217,20 @@ function applyVehicleStrain(state, actor = null) {
   for (const text of strainEffects.effectTexts ?? []) pushEffect(state, text);
 }
 
-// Environmental dice: occupied terrain (statuses projected by terrain Regions)
-// read through the machine's mobility type, combined per function with the
-// routine penalty cap. Terrain changes dice, never a task's DN. Magnitudes live
-// in terrain-catalog.js; rules in environment-dice.js / terrain-mobility.js.
+// Environmental Handling dice: occupied terrain (statuses projected by terrain
+// Regions) read through the machine's mobility type, plus the scene conditions
+// at its position after shelter, combined per group with the routine penalty
+// cap. The environment changes dice, never a task's DN. Magnitudes live in
+// terrain-catalog.js / scene-conditions.js; rules in environment-dice.js.
 function applyEnvironmentDice(state, actor = null) {
-  const contributions = getActorTerrainDiceContributions(actor);
+  const contributions = [
+    ...getActorTerrainDiceContributions(actor),
+    ...getActorSceneConditionDiceContributions(actor),
+  ];
   if (!contributions.length) return;
   for (const entry of contributions) {
-    const relation = entry.relation === "normal" ? "" : `, ${entry.relation}`;
-    pushEffect(state, `Terrain (${entry.label}${relation}): ${entry.value > 0 ? "+" : ""}${entry.value} Handling dice.`);
+    const relation = entry.relation && entry.relation !== "normal" ? `, ${entry.relation}` : "";
+    pushEffect(state, `${entry.source} (${entry.label}${relation}): ${entry.value > 0 ? "+" : ""}${entry.value} Handling dice.`);
   }
   const combined = combineEnvironmentDice(contributions);
   state.pilotingDice += combined.value;

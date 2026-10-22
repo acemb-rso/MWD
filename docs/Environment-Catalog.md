@@ -429,6 +429,47 @@ Benchmarks: `rules conventions.md`, "Task DN and Environmental Modifiers".
 
 ---
 
+## Scene conditions (decided 2026-10-22; slice 1 implemented)
+
+Typed scene conditions live on the scene, not in Regions: the GM ticks them in
+**Scene Configuration → Environment → MWD Conditions** (stored as
+`flags.mwd.sceneConditions`, `{id: true}`). Catalog and resolution:
+`terrain/scene-conditions.js`.
+
+- **Kinds:** *light* (Dusk / Dawn, Night), *weather* (Rain, Heavy Rain, Heavy
+  Snowfall, Dense Fog, Moderate Wind, High Wind, Blizzard, Blowing Sand),
+  *ambient* (Extreme Heat). Dusk and Night are GM-picked conditions, not
+  derived from Foundry's darkness level, because in-play lighting is often
+  adjusted for player visibility or scene simplicity.
+- **Mechanical only:** independent of Foundry's weather animation.
+- **Shelter** uses Foundry's native Region behaviors at the token's position:
+
+  | Shelter | Suppresses |
+  | --- | --- |
+  | Enabled **Suppress Weather** Region | Weather and ambient (e.g. a climate-controlled building) |
+  | Overhead **Define Surface** (roof) | Weather only; a roof does not cool the air |
+  | — | Light conditions are never suppressed |
+
+  An overhead surface is a Define Surface above the token's elevation, over
+  its centre, restricting movement, sight or light. A token on or above the
+  roof is exposed.
+- **Replacement:** a more severe or compound condition replaces what it
+  includes (Night → Dusk, Heavy Rain → Rain, High Wind → Moderate Wind,
+  Blizzard → Heavy Snowfall / High Wind / Moderate Wind), shared with terrain
+  (`withoutReplaced`, `environment-dice.js`).
+- **Effect packets:** each condition carries `{group, lane, value, mobility}`.
+  Lanes: `handling` (consumed now: joins terrain in the machine rule state's
+  capped Handling combiner), `visual`, `windSensitiveAttack`, `energyAttack`
+  (declared, consumed by slices 3–4). Weather traction applies to ground
+  mobility only; High Wind's Handling −1 applies to hover and VTOL.
+
+Slices: (1) data, authoring, shelter, Handling ✔; (2) heat (cooling, Extreme
+Heat; values open); (3) wind on attacks; (4) visibility and targeting method.
+
+**Open:** heat magnitudes. Dissipation defaults to 1 and effective dissipation
+never drops below 1, so an Extreme Heat "−1 dissipation" does nothing to a
+default mech; Extreme Heat likely needs added heat instead.
+
 ## Implementation plan: initial 12 presets
 
 ### What exists today and must change to match this catalog

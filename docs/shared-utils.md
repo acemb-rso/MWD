@@ -65,7 +65,11 @@ check — use these.
 
 `getTokenDocument`, `getTokenObject`, `getTokenActor`, `getTokenId`,
 `getTokenUuid`, `getTokenDisposition`, `getTokenCenter`,
-`getMeasuredTokenCenter`, `isSameDisposition`.
+`getMeasuredTokenCenter`, `isSameDisposition`, `getActorActiveToken`.
+
+`getActorActiveToken(actor)` is the token an actor acts through on the viewed
+scene: a controlled token of that actor, else its first active token. Do not
+hand-roll this lookup.
 
 `isSameDisposition(a, b)` is the system's only side test: the same token
 disposition is the same side, and any different disposition is the other side.

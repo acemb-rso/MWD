@@ -27,7 +27,7 @@ import {
 } from "../mwd/personal-range-bands.js";
 import { formatDistanceLabel, measureTokenDistance } from "../mwd/token-measurement.js";
 import { toNumber } from "../utils/coercion.js";
-import { getTokenActor, getTokenId, getTokenUuid } from "../utils/token.js";
+import { getActorActiveToken, getTokenActor, getTokenId, getTokenUuid } from "../utils/token.js";
 
 function formatSignedValue(value = 0) {
   const numeric = toNumber(value, 0);
@@ -57,9 +57,7 @@ function getTokenName(token = null) {
 function getSourceToken(actor = null, explicitToken = null) {
   const token = explicitToken?.object ?? explicitToken ?? null;
   if (token) return token;
-  return globalThis.canvas?.tokens?.controlled?.find(candidate => candidate?.actor?.id === actor?.id)
-    ?? actor?.getActiveTokens?.(true, true)?.[0]
-    ?? null;
+  return getActorActiveToken(actor);
 }
 
 function getUserTargetTokens(user = globalThis.game?.user) {

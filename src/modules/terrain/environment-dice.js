@@ -10,6 +10,14 @@
 // extreme conditions use restrictions, risks, and hazards instead.
 export const ENVIRONMENT_DICE_PENALTY_CAP = -2;
 
+// Drops entries ({id, replaces}) superseded by another present entry: a more
+// severe or compound form replaces its constituents and never stacks with them
+// (Deep Mud replaces Mud; Blizzard replaces High Wind).
+export function withoutReplaced(entries = []) {
+  const present = entries.filter(Boolean);
+  return present.filter(item => !present.some(other => (other.replaces ?? []).includes(item.id)));
+}
+
 /**
  * @param {Array<{function:string, value:number, label?:string}>} contributions
  *   Negative values are penalties, positive values bonuses.

@@ -25,6 +25,15 @@ export function getTokenActor(token = null) {
   return token?.actor ?? token?.document?.actor ?? token?.actorLink?.actor ?? null;
 }
 
+// The token an actor acts through on the viewed scene: a controlled token of
+// that actor first, then its first active token (document).
+export function getActorActiveToken(actor = null) {
+  if (!actor) return null;
+  return globalThis.canvas?.tokens?.controlled?.find(token => token?.actor?.id === actor.id)
+    ?? actor.getActiveTokens?.(true, true)?.[0]
+    ?? null;
+}
+
 export function getTokenId(token = null) {
   return clean(token?.document?.id ?? token?.id ?? token?.tokenId);
 }

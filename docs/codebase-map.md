@@ -102,7 +102,9 @@ Common helpers (coercion, actor-type guards, token shape access, clone/id, setti
 
 - `src/modules/terrain/terrain-catalog.js` - Terrain classes and conditions: the single source of terrain meaning and (provisional) magnitudes, from which the terrain statuses are generated, plus the terrain mobility matrix.
 - `src/modules/terrain/terrain-mobility.js` - Actor terrain mobility (walker / wheeled / tracked / hover / flight) and the per-terrain Handling dice contributions from the mobility matrix; flight ignores ground terrain.
-- `src/modules/terrain/environment-dice.js` - Environmental dice stacking: strongest penalty per function, bonus once, routine combined penalty capped at −2.
+- `src/modules/terrain/environment-dice.js` - Environmental dice stacking: strongest penalty per function, bonus once, routine combined penalty capped at −2; `withoutReplaced` for superseding entries.
+- `src/modules/terrain/scene-conditions.js` - Typed scene conditions (light, weather, ambient) with effect packets, shelter from native Suppress Weather Regions and overhead Define Surfaces, and the Handling-lane contributions.
+- `src/modules/terrain/scene-conditions-config.js` - Adds the MWD Conditions picker to Scene Configuration's Environment tab.
 - `src/modules/terrain/terrain-region-behavior.js` - Registers the native **Terrain (MWD)** Region Behavior (authoring on a Region's Behaviors tab).
 - `src/modules/terrain/terrain-regions.js` - Reads terrain from GM-authored Regions (`getRegionTerrain`) and supplies them to the area-status controller as region-kind sources, which project terrain statuses onto occupants. See [Terrain-Regions.md](Terrain-Regions.md).
 

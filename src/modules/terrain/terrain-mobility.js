@@ -13,8 +13,8 @@ import {
   getTerrainEntryByStatusId,
   TERRAIN_AFFINITY_DICE,
   TERRAIN_MOBILITY_MATRIX,
-  withoutReplacedTerrain,
 } from "./terrain-catalog.js";
+import { withoutReplaced } from "./environment-dice.js";
 
 export const FLIGHT_TERRAIN_MOBILITY = "flight";
 
@@ -62,13 +62,13 @@ export function getTerrainDiceContribution(mobility = "", terrain = null) {
   if (relation === "favored") value = TERRAIN_AFFINITY_DICE.favored;
   else if (relation === "adverse" || relation === "restricted") value = Math.min(base, TERRAIN_AFFINITY_DICE.adverse);
   if (!value) return null;
-  return { function: terrain.diceFunction, value, label: terrain.label, relation };
+  return { function: terrain.diceFunction, value, label: terrain.label, relation, source: "Terrain" };
 }
 
 export function getActorTerrainDiceContributions(actor = null) {
   const mobility = getActorTerrainMobility(actor);
   if (!mobility || mobility === FLIGHT_TERRAIN_MOBILITY) return [];
-  const occupied = withoutReplacedTerrain(Array.from(actor.statuses ?? []).map(getTerrainEntryByStatusId));
+  const occupied = withoutReplaced(Array.from(actor.statuses ?? []).map(getTerrainEntryByStatusId));
   return occupied
     .map(terrain => getTerrainDiceContribution(mobility, terrain))
     .filter(Boolean);
