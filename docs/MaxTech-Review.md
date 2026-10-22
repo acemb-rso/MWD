@@ -319,8 +319,9 @@ outlive the terrain or condition that caused them.
   | Sprint | *Prone*, plus falling damage |
 
   Falling damage does not exist yet for machines. Decided as a shared fall
-  event with fixed damage by weight class (2/3/4/5), through HarmEngine; see
-  the movement-risk procedure in [Environment-Catalog.md](Environment-Catalog.md). The Sprint stability roll becomes the reckless-Sprint check.
+  impact (weight-class base plus per-10 m damage, controlled vs. powered
+  descent, automatic Chassis mitigation) through HarmEngine; see "Falls and
+  descents" in [Environment-Catalog.md](Environment-Catalog.md). The Sprint stability roll becomes the reckless-Sprint check.
 - **Bog down**: mud/snow/swamp terrain can apply a *Bogged* status (no
   movement) cleared by a piloting check — a status with `clearsOnSuccess`.
 

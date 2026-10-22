@@ -246,41 +246,90 @@ specific consequence, or both; when a terrain-specific consequence is
 configured to, it **replaces** the generic failure result, so one failed roll
 never imposes several unrelated conditions.
 
-**Falling damage (decided 2026-10-22):** the movement resolver only decides
-that a fall happened. MWD has no machine fall-damage rule yet (falls today only
-apply Prone), so one **fall event** is defined once and shared by reckless
-Sprint, crit-driven falls and knockdowns:
+**Falls and descents (decided 2026-10-22):** the movement resolver only decides
+*what kind* of descent happened. MWD has no machine fall-damage rule yet (falls
+today only apply Prone), so one **fall impact** is defined once and shared by
+reckless Sprint, crit-driven falls, knockdowns, and descents from elevation.
+The resolver keeps three separate concepts:
 
-1. A qualifying event (failed reckless Sprint, a critical-hit result, ...)
-   triggers a fall.
-2. The machine becomes Prone.
-3. The fall event applies fixed damage by BattleMech weight class through
-   HarmEngine.
-4. Existing Armor and Structure rules (and criticals) resolve it as ordinary
-   damage.
-5. Pilot harm only when the originating rule specifies a catastrophic fall or
-   qualifying violent impact (`critical-hit.md`); no new pilot-damage rule.
+- **Controlled descent:** a deliberate maneuver the pilot initiates and keeps
+  control of; the first 10 m of height are exempt.
+- **Powered descent:** Jump Jets successfully arrest the descent; no fall
+  event and no damage.
+- **Fall impact:** an uncontrolled or forced fall; full damage from the whole
+  height, then automatic Chassis mitigation.
 
-| Weight class | Tonnage | Fall damage |
-| --- | --- | --- |
-| Light | 20–35 t | 2 |
-| Medium | 40–55 t | 3 |
-| Heavy | 60–75 t | 4 |
-| Assault | 80–100 t | 5 |
+| Event | Classification | First 10 m exempt | Fall damage |
+| --- | --- | --- | --- |
+| Deliberately going Prone | Posture change | N/A | None |
+| Rolling or dropping to the ground | Deliberate movement | N/A | None |
+| Leaping down from elevation | Controlled descent | Yes | Based on remaining height |
+| Successful Climb and Drop | Controlled descent | Yes | Based on remaining height |
+| Dangle and Drop | Controlled descent | Yes | Based on remaining height |
+| Jump Jet-assisted descent | Powered descent | Entire fall | None |
+| Failed reckless Sprint | Uncontrolled fall | No | Full |
+| Failed stability check | Uncontrolled fall | No | Full |
+| Pushed off a ledge | Forced fall | No | Full |
 
-- **Weight class, not tonnage:** predictable, consistent per class, no
-  arithmetic in play; matches MWD's abstracted damage and durability. Falls
-  from significant height can add damage later without changing the base rule.
-- **No Chassis reduction** for now: mass already sets the damage, so using
-  Chassis to reduce it would count mass twice.
+**Damage** (weight class, not tonnage):
+
+| Weight class | Tonnage | Base damage | Additional per 10 m |
+| --- | --- | --- | --- |
+| Light | 20–35 t | 2 | +1 |
+| Medium | 40–55 t | 3 | +2 |
+| Heavy | 60–75 t | 4 | +3 |
+| Assault | 80–100 t | 5 | +4 |
+
+- Effective height: the full height for an uncontrolled or forced fall; the
+  height minus 10 m for a controlled descent.
+- A controlled descent of 10 m or less still takes base damage (before
+  mitigation). This keeps dropping from a ledge distinct from a Jump Jet
+  landing.
+- **Automatic impact mitigation:** for any fall that produces damage,
+  `Final damage = max(0, fall damage − successes on the mitigation roll)`. The
+  roll is automatic, costs no Reaction, and does not prevent Prone or
+  displacement.
+- The fall impact makes the machine Prone and applies the damage through
+  HarmEngine. Existing Armor and Structure rules (and criticals) resolve it as
+  ordinary damage.
+- Pilot harm only when the originating rule specifies a catastrophic fall or a
+  qualifying violent impact (`critical-hit.md`). There is no new pilot-damage
+  rule.
+
+**Jump Jet exception:** a powered descent negates fall damage entirely when
+all of these hold:
+
+- the machine has operational Jump Jets;
+- the pilot can activate them before impact;
+- the jets have enough capability to control the descent;
+- machine state and environment do not prohibit the maneuver.
+
+A failed or unavailable Jump Jet descent resolves as an uncontrolled fall.
+
+**Invariants:**
 - **Prone never implies a fall:** applying Prone (Drop Prone, other knockdown
-  mechanics) never triggers fall damage on its own; only the fall event does.
+  mechanics) never triggers fall damage on its own; only a fall impact does.
 - **One impact per action:** an originating action produces at most one
-  impact-damage event and never duplicates damage already resolved by a
+  impact-damage event. It never duplicates damage already resolved by a
   collision.
-- **Provisional:** weight class measures mass, not resilience. Validate the
-  2/3/4/5 scale against typical Armor and Structure totals per class (a
-  comparable consequence across classes) **before enabling the fall event**.
+- No new statuses or action costs beyond the movement actions involved.
+
+**Open before enabling the fall impact:**
+- **Mitigation pool:** this design says Chassis + Chassis, but
+  `Machine-Attributes.md` §4 defines fall/crash mitigation as **Chassis +
+  Handling** (Handling = control, Chassis = structural tolerance). One must
+  change. (This mitigation also supersedes the earlier "no Chassis reduction"
+  note.)
+- **Height rounding:** proposed reading is `base + per-10 m × floor(effective
+  height / 10)`, so a standing fall or a short drop takes base damage. Partial
+  increments could round up instead.
+- **Jump Jet arrest:** automatic when the conditions hold, or a roll (and on
+  which pool)? Does it consume jump movement or heat?
+- **Height source:** token elevation difference, Region elevation, or a GM
+  entry?
+- **Calibration:** the per-10 m slope is steep. An uncontrolled 30 m fall
+  deals 5 (Light) vs. 17 (Assault) before mitigation. Validate it against
+  typical Armor and Structure totals per class.
 
 ### Balance: DN 2 vs. starting pools
 
