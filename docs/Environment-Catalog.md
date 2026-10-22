@@ -457,17 +457,116 @@ built before this catalog. Differences resolved:
    Bogged and recovery, reckless ladder.
 5. **Fire** — verify existing hazard Regions against this catalog.
 
-### Decisions needed
+### Weather and combat decisions (decided 2026-10-22)
 
-- **Visual vs. non-visual:** "visual attack/tracking dice" implies sensors can
-  mitigate. Which MWD fact decides it — machine sensor modules, active-probe
-  style capabilities, or a simple "machine attacks use sensors, personal
-  attacks are visual" default?
-- **Wind-sensitive weapons:** map to MWD damage types / weapon tags
-  (kinetic and missile payloads), or an explicit weapon keyword?
-- **Attack pool vs. tracking pool:** for visibility weather, pick one lane per
-  condition (the catalog lists both columns).
+Guiding principle: keep Maximum Tech's differentiation of terrain, atmosphere,
+weapons and sensors, expressed through MWD's existing task DN, dice and EW
+systems, **without charging the same difficulty twice**. Effects are typed
+environmental modifier packets consumed by the existing attack, targeting and
+movement providers; there is no separate environmental combat resolver.
+
+Maximum Tech (expanded weather table, pp. 8, 11–12) modifies the attack roll
+directly; MWD's detection and tracking system absorbs part of that. Its
+"ballistic" weather class is broad (autocannons, artillery, Gauss, machine
+guns, missiles, NARC, flamers) and is **not** MWD's kinetic damage type.
+
+| Issue | Decision |
+| --- | --- |
+| Visual vs. sensor targeting | The attack's actual **targeting method** (visual/manual, sensor-assisted, indirect/guided), resolved at attack time from the firing solution and available sensor capability; not the weapon's damage type, and not detection state alone. The default preserves existing attack behavior. |
+| Wind-sensitive weapons | An explicit weapon/payload property, initially following Maximum Tech's broad ballistic class. Guided or homing payloads override through payload traits. Not keyed to damage type. |
+| Visibility destination | Friction in finding or keeping a firing solution goes to **tracking/acquisition**. Physical interference with the weapon (wind, beam attenuation) and direct visual aiming go to **attack dice**. The same visibility problem is never charged twice. |
+| Stacking groups | `traction`, `visibility`, `wind`, `electronic`. Strongest environmental effect within a group, and independent groups combine. **Electronic keeps the existing EW composition rules** (stealth, ECM, sensor degradation, tracking friction can coexist), never strongest-only. |
+
+**Targeting methods:**
+
+| Method | Description | Environmental interactions |
+| --- | --- | --- |
+| Visual/manual | Direct sight, or manual aim without a usable sensor solution | Visual obscuration and sightline |
+| Sensor-assisted | Uses an active Track or Lock sensor solution | Sensor interference and relevant atmospheric effects |
+| Indirect/guided | Indirect fire, spotting, or guidance support | Whatever the actual guidance or spotting mechanism is |
+
+**Evaluation order:**
+1. Resolve the targeting method.
+2. Apply targeting friction (visibility, smoke, ECM, stealth, sensor
+   degradation).
+3. Apply weapon interference (wind, beam attenuation, atmosphere).
+4. Build the attack dice pool, with one normalized modifier per applicable
+   effect.
+
+**Primary effect per condition:**
+
+| Condition | Acquisition / tracking | Attack dice |
+| --- | --- | --- |
+| Dusk / night | Visual sensors only | Visual/manual attacks |
+| Rain, snowfall | Visual acquisition | Visual/manual attacks only |
+| Fog | Visual acquisition | Energy attacks, where modeled as atmospheric interference |
+| Smoke | LOS / tracking impairment | No additional generic penalty |
+| Moderate / high wind | Usually none | Wind-sensitive weapons |
+| Blowing sand | Visual acquisition | Weapon-specific atmospheric interference (energy) |
+| Electronic interference | Sensor acquisition / tracking | No additional generic penalty |
+| Earthquake | Usually none | Attack dice when firing during tremors |
+
+**Compound conditions** (e.g. Blizzard) replace their constituents within each
+group. Blizzard + High Wind gives Blizzard's wind effect, not both.
+
+**Stacking examples:**
+
+| Conditions | Result |
+| --- | --- |
+| Heavy rain + icy ground | Rain visibility + strongest traction |
+| Dense fog + light smoke | The stronger visibility effect only |
+| Dust storm + ECM | Visibility + applicable electronic interference |
+| Heavy fog + wind-sensitive missile | Visibility where relevant + wind on the missile attack |
+| ECM + degraded sensors | Existing EW aggregation |
+
+**Provisional weather values** (to playtest; dice, never DN):
+
+| Environment | Visibility | Wind | Traction | Additional |
+| --- | --- | --- | --- | --- |
+| Dusk / dawn | −1 visual | — | — | Nonvisual sensors may bypass |
+| Night | −2 visual | — | — | Appropriate sensors may bypass |
+| Rain | −1 visual | — | Heavy rain −1 | Cooling |
+| Heavy snowfall | −1 visual | — | −1 | Cooling |
+| Dense fog | −2 visual | — | — | Hazardous movement; careful option |
+| Moderate wind | — | −1 | — | Missile guidance interaction |
+| High wind | — | −2 | −1 for susceptible units | Smoke drift |
+| Blizzard | −1 visual | −2 wind-sensitive | −1 | Cooling; compound |
+| Blowing sand | −1 visual | — | — | −2 on susceptible energy attacks |
+| Light smoke | Existing `obscuredLight` +1 tracking penalty | — | — | LOS interaction |
+| Heavy smoke | Existing `obscuredHeavy` +3 tracking penalty | — | — | LOS interaction |
+| ECM interference | — | — | — | Existing EW mechanics |
+
+Terrain movement consequences stay separate from these dice penalties.
+
+**Implementation guardrails:**
+- **No visual escape hatch:** a player cannot declare an attack visual to
+  dodge ECM. A visual/manual attack needs its own LOS and visibility check
+  (`machine-stealth.js` already has a visual-contact test based on token
+  visibility).
+- **No global tracking penalty:** weather is not folded into one
+  `trackingPenalty`. Some effects hit acquisition, some the attack, some only
+  certain weapons.
+- A targeting-method selector never bypasses the Track/Lock permission and
+  TargetingData gates.
+
+**Open (conflicts with shipped or designed work):**
+- **Ice and mud values:** the proposal lists Ice −1 or −2 and Deep Mud −2.
+  The shipped catalog has Ice −1 and Mud −1 (step 1). Is Deep Mud a separate,
+  stronger condition from Mud?
+- **Line of effect (1b) vs. existing obscured values:** Terrain-Regions.md
+  designed 1b as −1 attack/Acquire die per obscuring point (heavy woods = 2)
+  replacing `obscuredLight` / `obscuredHeavy`. This proposal keeps the existing
+  +1 / +3 *tracking* penalties for smoke. Pick one scale for terrain and smoke
+  obscuring: map obscuring 1 → +1 and 2 → +3 tracking (reuse EW), or keep 1b's
+  per-point dice.
+- **Wind default without a migration:** derive wind sensitivity from the
+  machine weapon's required hardpoint type (ballistic, missile → sensitive;
+  energy → not), with a weapon/payload keyword overriding it (flamers,
+  guided payloads). Personal weapons need their own default.
+- **Targeting-method default:** proposed — sensor-assisted when the attacker
+  holds Track or Lock on the target, indirect when the attack uses
+  spotting/indirect fire, otherwise visual/manual (with the visibility check).
+- **Penalty cap scope:** the −2 routine cap (§6) applies per roll pool
+  (piloting, tracking, attack), not across pools.
 - **"Risky movement":** which machine actions count (Run, Sprint, reckless
   moves, Difficult Maneuver)? Shared with #4.
-- **Stacking functions:** proposed set — `traction`, `visibility`, `wind`,
-  `electronic`; confirm.
