@@ -592,8 +592,8 @@ Terrain movement consequences stay separate from these dice penalties.
    | Condition | Handling | Additional |
    | --- | --- | --- |
    | Ice | −1 | Loss-of-control risk |
-   | Mud | −1 | Movement restriction; possible Bogged risk |
-   | Deep Mud | −2 | Greater movement restriction and Bogged risk |
+   | Mud | −1 (movement −1 step) | Movement restriction; possible Bogged risk |
+   | Deep Mud | −2 (movement −2 steps) | Greater movement restriction and Bogged risk |
    | Deep Snow | −1 (proposed) | Movement restriction and Bogged risk |
 
 2. **Obscuring as line of effect:** evaluate the obscuring Regions the
@@ -662,13 +662,44 @@ Terrain movement consequences stay separate from these dice penalties.
   weather (separately selected High Wind, Heavy Snowfall) rather than
   stacking with it.
 
-**Still open:**
-- **Deep Mud movement:** how many movement steps (Mud is 1)?
-- **Additive obscuring along a line:** 1b summed obscuring values along the
-  sightline (BattleTech style: several light woods hexes accumulate). Under
-  "severity, not count", the effective level is the highest crossed. Decide
-  whether crossing several light Regions escalates to heavy, and whether
-  anything blocks line of effect outright (1b had "3+ blocks").
-- **Manual obscured statuses:** retire `obscuredLight` / `obscuredHeavy`
-  outright (actors carrying them would need a migration step), or keep them
-  as a GM override feeding the same scale.
+**Follow-up decisions (decided 2026-10-22):**
+
+| Item | Resolution | Implementation timing |
+| --- | --- | --- |
+| Deep Mud | −2 movement steps (60 m), −2 Handling dice, replaces Mud | Shipped with this decision (terrain catalog) |
+| Several obscuring areas | Accumulate along the sightline: 1 = +1, 2 = +3, 3+ blocks **visual** LOS | Line of effect (1b) |
+| Manual Obscured statuses | Kept as GM overrides, normalized into the same obscuration | Line of effect (1b) |
+
+- **Deep Mud** is a more severe Mud for both movement and Handling (Bogged,
+  with greater susceptibility). It replaces Mud and never stacks with it,
+  even across overlapping Regions (`replaces` in the terrain catalog). The
+  existing movement floor applies: penalized movement never drops below 10 m
+  unless the machine is immobile. Bogged stays separate from the movement
+  penalty; Deep Mud slows a unit whether or not it bogs down.
+- **Accumulated obscuring** (replaces the strongest-only rule *for line of
+  effect only*; overlapping scene-wide visibility such as fog and rain stays
+  strongest-only). Each Region's `obscuring` value is its contribution.
+  - Count **distinct** contributions, not polygon intersections: a sightline
+    crossing one irregular woods Region several times counts it once.
+  - Woods and smoke feed the **same** accumulator.
+  - **Blocked visual LOS is not blocked line of effect.** Three light woods
+    may prevent visual identification without making the terrain physically
+    impenetrable to weapons. The targeting method and sensor capability decide
+    whether an attack is still possible (a sensor-guided shot may be). Foundry
+    walls remain the physical blocker.
+
+  | Accumulated obscuring | Visibility | Tracking penalty |
+  | --- | --- | --- |
+  | 0 | Clear | 0 |
+  | 1 | Light | +1 |
+  | 2 | Heavy | +3 |
+  | 3+ | Blocked | No visual line of sight |
+
+- **Manual Obscured statuses as GM overrides**, for concealment the map
+  geometry does not represent (an unusual concealment effect, a scripted
+  encounter). Manual and spatial obscuration feed **one** resolver:
+  `O_effective = max(O_spatial, O_manual)` (Obscured Light = 1, Obscured
+  Heavy = 2, Heavy wins when both are present), then the shared EW scale. A
+  manual Heavy never adds a second +3 on top of terrain. The status
+  establishes obscuration; sensor capability still decides whether it impairs
+  a given targeting method. No migration needed.

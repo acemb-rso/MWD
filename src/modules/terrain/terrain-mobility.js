@@ -13,6 +13,7 @@ import {
   getTerrainEntryByStatusId,
   TERRAIN_AFFINITY_DICE,
   TERRAIN_MOBILITY_MATRIX,
+  withoutReplacedTerrain,
 } from "./terrain-catalog.js";
 
 export const FLIGHT_TERRAIN_MOBILITY = "flight";
@@ -67,7 +68,8 @@ export function getTerrainDiceContribution(mobility = "", terrain = null) {
 export function getActorTerrainDiceContributions(actor = null) {
   const mobility = getActorTerrainMobility(actor);
   if (!mobility || mobility === FLIGHT_TERRAIN_MOBILITY) return [];
-  return Array.from(actor.statuses ?? [])
-    .map(statusId => getTerrainDiceContribution(mobility, getTerrainEntryByStatusId(statusId)))
+  const occupied = withoutReplacedTerrain(Array.from(actor.statuses ?? []).map(getTerrainEntryByStatusId));
+  return occupied
+    .map(terrain => getTerrainDiceContribution(mobility, terrain))
     .filter(Boolean);
 }

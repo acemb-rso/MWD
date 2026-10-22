@@ -96,6 +96,7 @@ mobility matrix and stacking.
 | Condition | Movement | Piloting dice |
 | --- | --- | --- |
 | Mud | −1 | −1 |
+| Deep Mud (replaces Mud) | −2 | −2 |
 | Deep Snow | −1 | −1 |
 | Ice | 0 | −1 |
 | Sand | 0 | −1 (wheeled, tracked only) |
@@ -106,17 +107,17 @@ mobility matrix and stacking.
 
 When an attack, Acquire, or spot resolves, a provider samples the attacker →
 target segment at grid resolution, collects the terrain (and smoke) regions it
-crosses (each once, including the endpoints' own regions), determines the
-effective obscuring level (0 clear, 1 light, 2 heavy), and converts it to the
-**EW tracking penalty**: 1 → +1, 2 → +3 (dice, never DN; decided 2026-10-22,
-see Environment-Catalog.md). Applied once per roll, with no separate
-attack-dice obscuration. Derived at resolve time, never stored. Foundry walls
-stay the hard line-of-sight blocker. This replaces target-side
-`obscuredLight` / `obscuredHeavy` for terrain-based obscuring.
+crosses (each distinct Region once, including the endpoints' own regions),
+**accumulates** their `obscuring` values, and converts the total to the **EW
+tracking penalty**: 1 → +1, 2 → +3, 3+ blocks **visual** line of sight (not
+physical line of effect; the targeting method and sensors decide whether an
+attack is still possible). Dice, never DN; decided 2026-10-22, see
+Environment-Catalog.md. Manual `obscuredLight` / `obscuredHeavy` remain as GM
+overrides: effective obscuring = max(spatial, manual). Applied once per roll,
+with no separate attack-dice obscuration. Derived at resolve time, never stored. Foundry walls
+stay the hard line-of-sight blocker.
 
-Open: whether several light Regions along one line escalate to heavy (the
-level is severity, not a count); whether anything blocks line of effect
-outright; whether elevation clears an obstruction.
+Open: whether elevation clears an obstruction.
 
 ## Authoring
 

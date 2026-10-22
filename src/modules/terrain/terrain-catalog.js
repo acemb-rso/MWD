@@ -14,7 +14,9 @@
 //   circumstance: it modifies dice, never a task's DN.
 // pilotingDiceMobility: mobility types the dice apply to (null = all).
 // obscuring: line-of-effect obscuring value (review #1b; not yet consumed).
-function entry(id, label, { movementPenaltySteps = 0, pilotingDice = 0, pilotingDiceMobility = null, obscuring = 0 } = {}) {
+// replaces: terrain ids this entry supersedes when both are present (a more
+//   severe form; never stacks with it).
+function entry(id, label, { movementPenaltySteps = 0, pilotingDice = 0, pilotingDiceMobility = null, obscuring = 0, replaces = [] } = {}) {
   return Object.freeze({
     id,
     label,
@@ -24,6 +26,7 @@ function entry(id, label, { movementPenaltySteps = 0, pilotingDice = 0, piloting
     diceFunction: "traction",
     pilotingDiceMobility: pilotingDiceMobility ? Object.freeze([...pilotingDiceMobility]) : null,
     obscuring,
+    replaces: Object.freeze([...replaces]),
   });
 }
 
@@ -43,6 +46,7 @@ export const TERRAIN_CLASSES = Object.freeze({
 // Conditions layered on the base terrain: any number per terrain Region.
 export const TERRAIN_CONDITIONS = Object.freeze({
   mud: entry("mud", "Mud", { movementPenaltySteps: 1, pilotingDice: -1 }),
+  deepMud: entry("deepMud", "Deep Mud", { movementPenaltySteps: 2, pilotingDice: -2, replaces: ["mud"] }),
   deepSnow: entry("deepSnow", "Deep Snow", { movementPenaltySteps: 1, pilotingDice: -1 }),
   ice: entry("ice", "Ice", { pilotingDice: -1 }),
   sand: entry("sand", "Sand", { pilotingDice: -1, pilotingDiceMobility: ["wheeled", "tracked"] }),
@@ -62,7 +66,7 @@ export const DEFAULT_TERRAIN_CLASS = "open";
 // Flight mobility (VTOL, drone, aerospace) is unaffected by ground terrain.
 export const TERRAIN_MOBILITY_MATRIX = Object.freeze({
   wheeled: Object.freeze({
-    road: "favored", open: "favored", rough: "adverse", mud: "adverse", deepSnow: "adverse", ice: "adverse",
+    road: "favored", open: "favored", rough: "adverse", mud: "adverse", deepMud: "adverse", deepSnow: "adverse", ice: "adverse",
     swamp: "adverse", water: "adverse", woodsHeavy: "restricted", jungle: "restricted", urban: "adverse",
   }),
   tracked: Object.freeze({
@@ -93,9 +97,22 @@ export function getTerrainEntryById(id = "") {
   return TERRAIN_CLASSES[key] ?? TERRAIN_CONDITIONS[key] ?? null;
 }
 
+// Status ids of the entries that supersede this one (e.g. Deep Mud for Mud).
+export function getTerrainReplacingStatusIds(id = "") {
+  return listTerrainStatusEntries()
+    .filter(item => item.replaces.includes(id))
+    .map(item => item.statusId);
+}
+
+// Drops entries superseded by another present entry.
+export function withoutReplacedTerrain(entries = []) {
+  const present = entries.filter(Boolean);
+  return present.filter(item => !present.some(other => other.replaces.includes(item.id)));
+}
+
 /**
  * Normalize authored terrain data. Unknown classes fall back to open; unknown
- * conditions are dropped.
+ * conditions, and conditions superseded by another present one, are dropped.
  * @returns {{terrainClass:string, conditions:string[]}|null} null when no terrain is declared.
  */
 export function normalizeRegionTerrain(raw = null) {
@@ -107,7 +124,10 @@ export function normalizeRegionTerrain(raw = null) {
       .map(value => String(value ?? "").trim())
       .filter(value => Object.hasOwn(TERRAIN_CONDITIONS, value)),
   ));
-  return { terrainClass, conditions };
+  return {
+    terrainClass,
+    conditions: withoutReplacedTerrain(conditions.map(id => TERRAIN_CONDITIONS[id])).map(item => item.id),
+  };
 }
 
 export function getTerrainEntries(terrain = null) {
