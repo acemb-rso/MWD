@@ -206,8 +206,8 @@ Normal movement outside hazards is unchanged.
    ordinary terrain-risk check is skipped. No extra SA. Careful avoids the
    movement-risk check only, not other environmental consequences (a
    BattleMech carefully crossing fire still takes heat and exposure).
-5. **Reckless:** full distance; a **Handling + Piloting** check, **fixed
-   DN** (proposed 2, see balance below), with environmental conditions
+5. **Reckless:** full distance; a **Handling + Piloting** check at **DN 1**
+   (decided 2026-10-22, see balance below), with environmental conditions
    adding or removing **dice** (Ice −1, Deep Mud −2, Dense Fog at speed −1,
    favored/adverse terrain ±1).
 6. On failure, apply the consequence for the **declared movement mode and
@@ -269,9 +269,17 @@ for a new pilot.
 At DN 2 a new pilot fails a reckless move on ice about half the time and in
 deep mud about two times in three, which makes Careful the default choice. At
 DN 1 the base risk is about 1 in 10, and environmental dice alone make
-hazards meaningful (ice ~1 in 5, deep mud ~1 in 3). **Open decision:** DN 1 or
-DN 2, and whether halving distance is enough compensation for Careful at the
-chosen DN.
+hazards meaningful (ice ~1 in 5, deep mud ~1 in 3).
+
+**Decided (2026-10-22): DN 1** for ordinary Reckless movement, with the
+existing failure ladders. Veteran pilots run about 7–8 dice, so DN 1 keeps
+them capable while hazards still bite Green pilots; raising the universal DN
+to 2 would mostly punish Green pilots without addressing environmental
+severity. Severity is carried by **terrain** (dice penalties, restrictions,
+consequences); harder maneuvers are **separate tasks** with their own DN (2 for
+difficult control tasks). Severe hazards stay dangerous to Elite pilots through
+specialized tasks, terrain-specific consequences, and movement restrictions.
+Benchmarks: `rules conventions.md`, "Task DN and Environmental Modifiers".
 
 ---
 

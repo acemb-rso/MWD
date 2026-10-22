@@ -81,4 +81,32 @@ Make a Con Check at the end of each turn:
 * Some armors also provide a defense bonus
 * Armor with a rating of 0 provides no resistance
 
+## Task DN and Environmental Modifiers
+
+**The task sets the DN; circumstances modify the dice.** Environmental
+conditions (terrain, weather, visibility) change the dice pool, movement,
+resources, or consequences. They do not ordinarily change a task's DN unless a
+specific rule says so. (EW example: Acquire Contact DN 1, Track DN 2, Lock DN 3;
+interference and tracking penalties affect dice.)
+
+Keep two things separate:
+* **Terrain severity** sets environmental dice penalties, movement
+  restrictions, and hazard consequences.
+* **Maneuver difficulty** sets the task DN.
+
+Movement benchmarks:
+
+| Movement difficulty | Treatment | Intended behavior |
+| --- | --- | --- |
+| Routine hazardous movement | DN 1, −1 die | Green pilots face some danger; Veterans usually succeed |
+| Substantial interference | DN 1, −2 dice | Green pilots face meaningful risk; Veterans are reliable |
+| Difficult control task | DN 2, applicable environment dice | Meaningful risk even for Veterans |
+| Extreme physical hazard | Specialized task or unavoidable environmental consequences | Elite pilots remain vulnerable |
+
+Ordinary Reckless movement is DN 1. Crossing ice during a normal Run uses the
+generic DN 1 control task with a substantial environmental penalty; a
+particularly dangerous maneuver on the same ice is a separately defined DN 2
+task. Severe environments threaten even Elite pilots through specialized
+control tasks, terrain-specific consequences, and movement restrictions — not
+by raising the universal DN. Details: `Environment-Catalog.md`.
 
