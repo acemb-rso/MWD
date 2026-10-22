@@ -44,22 +44,16 @@ function vehicle({
   };
 }
 
-test("vehicle movement profile normalizes doctrine and broad terrain hooks", () => {
-  const system = {
-    mwd: {
-      movementProfile: "hover",
-      favoredTerrain: ["water", "open", "bog"],
-      adverseTerrain: "forest, urban, lava",
-    },
-  };
+test("vehicle movement profile normalizes doctrine and affordances", () => {
+  const system = { mwd: { movementProfile: "hover" } };
 
   normalizeVehicleMovementProfile(system);
   const summary = buildVehicleProfileSummary(system);
 
   assert.equal(summary.key, "hover");
   assert.equal(summary.family, "ground");
-  assert.deepEqual(summary.favoredTerrain, ["water", "open"]);
-  assert.deepEqual(summary.adverseTerrain, ["forest", "urban"]);
+  // Terrain relations come from the terrain mobility matrix, not the profile.
+  assert.equal(summary.favoredTerrain, undefined);
   assert.ok(summary.affordances.includes("redline"));
 });
 

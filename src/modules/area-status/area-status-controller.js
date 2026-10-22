@@ -10,6 +10,7 @@ import {
   normalizeAreaStatusSource,
 } from "./area-status-sources.js";
 import { collectTerrainRegionAreaStatusSources } from "../terrain/terrain-regions.js";
+import { isGroundTerrainExempt } from "../terrain/terrain-mobility.js";
 import { AreaStatusOwnership } from "./area-status-ownership.js";
 import {
   reconcileAreaStatusRegions,
@@ -143,6 +144,7 @@ export class AreaStatusController {
           const actor = getTokenActor(token);
           const actorUuid = String(actor?.uuid ?? "").trim();
           if (!actor || !actorUuid) continue;
+          if (source.groundOnly && isGroundTerrainExempt(actor)) continue;
           for (const statusId of source.statusIds) {
             const entry = getStatusConditionDefinition(statusId);
             if (!entry || !isStatusConditionApplicableToActor(entry, actor)) {

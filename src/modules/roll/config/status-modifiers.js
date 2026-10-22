@@ -360,24 +360,16 @@ export const STATUS_MAP = Object.freeze({
   spotted: marker("Spotted", "Indirect-fire designation (visual only; validity is token-scoped metadata)."),
 
   // Terrain occupancy, generated from terrain-catalog.js (the single source of
-  // terrain magnitudes). Terrain with no occupancy effect is a marker.
-  // Terrain is a circumstance: it changes movement and the piloting dice pool,
-  // never a task's DN.
-  ...Object.fromEntries(listTerrainStatusEntries().map(terrain => {
-    const machineState = {};
-    if (terrain.movementPenaltySteps) {
-      machineState.movement = [{ id: `${terrain.statusId}.movement`, movementPenaltySteps: terrain.movementPenaltySteps }];
-    }
-    if (terrain.pilotingDice) {
-      machineState.dice = [{
-        id: `${terrain.statusId}.pilotingDice`,
-        selector: "pilotingDice",
-        value: terrain.pilotingDice,
-        tags: ["piloting", "terrain"],
-      }];
-    }
-    return [terrain.statusId, Object.keys(machineState).length
-      ? machine(`Terrain: ${terrain.label}`, machineState)
-      : marker(`Terrain: ${terrain.label}`, "Terrain occupancy marker (vehicle terrain affinity).")];
-  })),
+  // terrain magnitudes). Statuses carry movement only: terrain dice depend on
+  // the occupant's mobility type and stack per function, so they are computed
+  // in the machine rule state (terrain-mobility.js), never here. Terrain is a
+  // circumstance: it changes movement and dice, never a task's DN.
+  ...Object.fromEntries(listTerrainStatusEntries().map(terrain => [
+    terrain.statusId,
+    terrain.movementPenaltySteps
+      ? machine(`Terrain: ${terrain.label}`, {
+        movement: [{ id: `${terrain.statusId}.movement`, movementPenaltySteps: terrain.movementPenaltySteps }],
+      })
+      : marker(`Terrain: ${terrain.label}`, "Terrain occupancy marker (dice via the mobility matrix)."),
+  ])),
 });

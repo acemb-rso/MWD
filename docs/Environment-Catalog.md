@@ -141,7 +141,9 @@ Temperature modifies Pending Heat or dissipation, not dice.
 
 ## 5. Mobility-specific terrain interaction
 
-Proposed compatibility matrix (activates `favoredTerrain` / `adverseTerrain`).
+Compatibility matrix, implemented as `TERRAIN_MOBILITY_MATRIX` in
+`terrain/terrain-catalog.js` (replaces the per-vehicle `favoredTerrain` /
+`adverseTerrain` lists, which are now inert).
 
 | Terrain | Wheeled | Tracked | Hover | Walker / BattleMech | VTOL |
 | --- | --- | --- | --- | --- | --- |
@@ -244,13 +246,41 @@ specific consequence, or both; when a terrain-specific consequence is
 configured to, it **replaces** the generic failure result, so one failed roll
 never imposes several unrelated conditions.
 
-**Falling damage:** the movement resolver only decides that a fall happened.
-MWD has no machine fall-damage rule yet (falls today only apply Prone), so one
-**fall event** is defined once and shared by reckless Sprint, crit-driven falls
-and knockdowns: machine damage scaled by mass or weight class, applied through
-HarmEngine, with armor/structure and criticals handled as ordinary damage.
-Pilot harm follows the existing rule (`critical-hit.md`: only catastrophic
-falls or impacts harm the pilot); no new pilot-damage rule.
+**Falling damage (decided 2026-10-22):** the movement resolver only decides
+that a fall happened. MWD has no machine fall-damage rule yet (falls today only
+apply Prone), so one **fall event** is defined once and shared by reckless
+Sprint, crit-driven falls and knockdowns:
+
+1. A qualifying event (failed reckless Sprint, a critical-hit result, ...)
+   triggers a fall.
+2. The machine becomes Prone.
+3. The fall event applies fixed damage by BattleMech weight class through
+   HarmEngine.
+4. Existing Armor and Structure rules (and criticals) resolve it as ordinary
+   damage.
+5. Pilot harm only when the originating rule specifies a catastrophic fall or
+   qualifying violent impact (`critical-hit.md`); no new pilot-damage rule.
+
+| Weight class | Tonnage | Fall damage |
+| --- | --- | --- |
+| Light | 20–35 t | 2 |
+| Medium | 40–55 t | 3 |
+| Heavy | 60–75 t | 4 |
+| Assault | 80–100 t | 5 |
+
+- **Weight class, not tonnage:** predictable, consistent per class, no
+  arithmetic in play; matches MWD's abstracted damage and durability. Falls
+  from significant height can add damage later without changing the base rule.
+- **No Chassis reduction** for now: mass already sets the damage, so using
+  Chassis to reduce it would count mass twice.
+- **Prone never implies a fall:** applying Prone (Drop Prone, other knockdown
+  mechanics) never triggers fall damage on its own; only the fall event does.
+- **One impact per action:** an originating action produces at most one
+  impact-damage event and never duplicates damage already resolved by a
+  collision.
+- **Provisional:** weight class measures mass, not resilience. Validate the
+  2/3/4/5 scale against typical Armor and Structure totals per class (a
+  comparable consequence across classes) **before enabling the fall event**.
 
 ### Balance: DN 2 vs. starting pools
 
@@ -287,8 +317,15 @@ Benchmarks: `rules conventions.md`, "Task DN and Environmental Modifiers".
 
 ### What exists today and must change to match this catalog
 
-The terrain Regions shipped in 0.7.0/0.7.1 (`terrain/terrain-catalog.js`) were
-built before this catalog. Differences to resolve first:
+**Step 1 done (0.7.1):** terrain values, traction stacking
+(`terrain/environment-dice.js`), the §5 matrix including Walker
+(`terrain/terrain-mobility.js`), and the flight exemption now match this
+catalog; see [Terrain-Regions.md](Terrain-Regions.md). Restricted traversal is
+still deferred (counts as adverse for dice). The table below records what
+changed.
+
+The terrain Regions shipped in 0.7.0 (`terrain/terrain-catalog.js`) were
+built before this catalog. Differences resolved:
 
 | Area | Shipped | Catalog | Change |
 | --- | --- | --- | --- |

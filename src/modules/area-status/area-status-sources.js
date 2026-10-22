@@ -61,6 +61,7 @@ export function normalizeAreaStatusSource(source = {}) {
     statusIds: Array.from(new Set((Array.isArray(source.statusIds) ? source.statusIds : [])
       .map(value => String(value ?? "").trim())
       .filter(Boolean))),
+    groundOnly: source.groundOnly === true,
     active: source.active !== false,
   };
 

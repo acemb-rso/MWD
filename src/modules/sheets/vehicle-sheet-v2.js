@@ -64,7 +64,8 @@ import {
   buildMachineEwActionChoices,
 } from "../mwd/machine-quick-actions.js";
 import { MWD_SKILLS } from "../mwd/skills.js";
-import { buildVehicleProfileSummary, VEHICLE_FLIGHT_SUBTYPES, VEHICLE_MOVEMENT_PROFILES, VEHICLE_TERRAIN_CLASSES } from "../mwd/vehicle-profiles.js";
+import { buildVehicleProfileSummary, VEHICLE_FLIGHT_SUBTYPES, VEHICLE_MOVEMENT_PROFILES } from "../mwd/vehicle-profiles.js";
+import { FLIGHT_TERRAIN_MOBILITY, getActorTerrainMobility, getTerrainForMobilityRelation } from "../terrain/terrain-mobility.js";
 import { buildVehicleRangedWeapons, performVehicleRangedAttack } from "../mwd/vehicle-ranged-actions.js";
 import { buildMachineMeleeProfiles, performMachineMeleeAttack } from "../mwd/battlemech-melee-actions.js";
 import {
@@ -560,22 +561,21 @@ export class VehicleSheetV2 extends BaseActorSheetV2 {
       label,
       selected: value === profile.flightSubtype,
     }));
-    const terrainOptions = VEHICLE_TERRAIN_CLASSES.map(value => ({
-      value,
-      label: startCase(value),
-    }));
+    // Favored / adverse terrain is derived from the terrain mobility matrix.
+    const mobility = getActorTerrainMobility(this.actor);
+    const terrainText = (...relations) => mobility === FLIGHT_TERRAIN_MOBILITY
+      ? "Ignores ground terrain"
+      : relations.flatMap(relation => getTerrainForMobilityRelation(mobility, relation)
+        .map(terrain => relation === "restricted" ? `${terrain.label} (restricted)` : terrain.label)).join(", ") || "None";
     return {
       ...profile,
       profileOptions,
       flightSubtypeOptions,
-      terrainOptions,
-      favoredTerrainText: profile.favoredTerrain.map(startCase).join(", "),
-      adverseTerrainText: profile.adverseTerrain.map(startCase).join(", "),
+      favoredTerrainText: terrainText("favored"),
+      adverseTerrainText: terrainText("adverse", "restricted"),
       affordanceText: profile.affordances.map(startCase).join(", "),
       profilePath: "system.mwd.movementProfile",
       flightSubtypePath: "system.mwd.flightSubtype",
-      favoredTerrainPath: "system.mwd.favoredTerrain",
-      adverseTerrainPath: "system.mwd.adverseTerrain",
     };
   }
 

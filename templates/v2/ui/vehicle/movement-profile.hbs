@@ -1,7 +1,7 @@
 {{!--
 templates/v2/ui/vehicle/movement-profile.hbs
 Purpose: Surfaces vehicle propulsion and terrain hook data.
-How it fits: Stores broad terrain/profile scaffolding for providers without sheet-side rules.
+How it fits: Edits the profile; favored/adverse terrain is read-only, derived from the terrain mobility matrix.
 --}}
 
 {{#if vehicleSheet.movementProfile}}
@@ -20,14 +20,14 @@ How it fits: Stores broad terrain/profile scaffolding for providers without shee
           {{selectOptions vehicleSheet.movementProfile.flightSubtypeOptions selected=vehicleSheet.movementProfile.flightSubtype valueAttr="value" labelAttr="label" localize=false}}
         </select>
       </label>
-      <label class="mwd-gmgadget__field">
+      <div class="mwd-gmgadget__field">
         <span class="mwd-gmgadget__field-label">Favored Terrain</span>
-        <input type="text" name="{{vehicleSheet.movementProfile.favoredTerrainPath}}" value="{{vehicleSheet.movementProfile.favoredTerrainText}}" data-edit-field="staged" />
-      </label>
-      <label class="mwd-gmgadget__field">
+        <span>{{vehicleSheet.movementProfile.favoredTerrainText}}</span>
+      </div>
+      <div class="mwd-gmgadget__field">
         <span class="mwd-gmgadget__field-label">Adverse Terrain</span>
-        <input type="text" name="{{vehicleSheet.movementProfile.adverseTerrainPath}}" value="{{vehicleSheet.movementProfile.adverseTerrainText}}" data-edit-field="staged" />
-      </label>
+        <span>{{vehicleSheet.movementProfile.adverseTerrainText}}</span>
+      </div>
     </div>
   {{else}}
     <section class="mwd-item-hero">

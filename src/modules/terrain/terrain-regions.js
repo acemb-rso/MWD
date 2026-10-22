@@ -58,6 +58,8 @@ export function collectTerrainRegionAreaStatusSources(scene = null) {
       label: String(region.name ?? "").trim() || "Terrain",
       allegiance: "any",
       statusIds: getTerrainStatusIds(getRegionTerrain(region)),
+      // Flight mobility ignores ground terrain (terrain-mobility.js).
+      groundOnly: true,
       active: true,
     };
   }).filter(source => source.regionUuid && source.statusIds.length);

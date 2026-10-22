@@ -2,8 +2,9 @@
 
 Design for review item #1 (see [MaxTech-Review.md](MaxTech-Review.md)).
 **Status:** 1a (occupancy) core implemented: catalog, terrain statuses, region
-sources in the area-status controller, vehicle affinity. Authored through a
-native Region Behavior. 1b (line of effect) designed here, not yet built. All magnitudes are **provisional, to be set by playtesting**,
+sources in the area-status controller, the mobility matrix and traction
+stacking from [Environment-Catalog.md](Environment-Catalog.md) (§5, §6), and
+the flight exemption. Authored through a native Region Behavior. 1b (line of effect) designed here, not yet built. All magnitudes are **provisional, to be set by playtesting**,
 and live in data.
 
 ## Model
@@ -15,7 +16,9 @@ single source of truth for what each one means:
 | Field | Used by | Meaning |
 | --- | --- | --- |
 | `statusId` | 1a occupancy | Status projected onto machines inside the region; its mechanics live in `status-modifiers.js` |
-| `vehicleTerrainClass` | 1a affinity | Maps to the vehicle profile vocabulary (road, open, rough, forest, urban, water) for favored/adverse terrain |
+| `movementPenaltySteps` | 1a occupancy | Movement steps lost (status mechanics) |
+| `pilotingDice` / `diceFunction` | 1a occupancy | Handling dice for piloting rolls, in the `traction` environment function |
+| `pilotingDiceMobility` | 1a occupancy | Mobility types the dice apply to (e.g. sand: wheeled, tracked) |
 | `obscuring` | 1b line of effect | How much the region obscures an attack or sensor line crossing it |
 
 Terrain region data (one shape, whatever the authoring path):
@@ -46,10 +49,25 @@ GM terrain Region ──collectTerrainRegionAreaStatusSources──▶ source { 
   ownership, so terrain statuses never delete manual or unrelated statuses and
   leave as soon as the token leaves the region.
 - Terrain statuses are not shown as manual toggles; they are projections.
-- **Vehicle terrain affinity** (activates `favoredTerrain` / `adverseTerrain`):
-  terrain statuses declare their `vehicleTerrainClass`; a vehicle occupying
-  favored terrain gains Piloting dice, adverse terrain costs Piloting dice
-  (provisional ±1).
+- **Movement** comes from the terrain status (`status-modifiers.js`, generated
+  from the catalog). **Dice** do not: they depend on who occupies the terrain,
+  so the machine rule state computes them (`terrain/terrain-mobility.js`):
+  - Mobility: BattleMech → `walker`; ground vehicle → its movement profile
+    (wheeled, tracked, hover); flight vehicles (VTOL, drone, aerospace) →
+    `flight`, which ignores ground terrain. Terrain sources are `groundOnly`,
+    so the controller never projects terrain statuses onto flight units.
+  - `TERRAIN_MOBILITY_MATRIX` (catalog §5) relates each mobility to terrain:
+    **favored** ignores the terrain's penalty and gains +1; **adverse** takes
+    the stronger of the terrain's penalty and −1; **restricted** (traversal
+    needs a capability, not yet modeled) counts as adverse for dice;
+    **normal** takes the terrain's own penalty.
+  - Contributions combine in `terrain/environment-dice.js` (catalog §6):
+    per function the strongest penalty applies and a bonus applies once;
+    functions add; the routine combined penalty is capped at −2. Terrain is
+    all `traction` for now; weather adds `visibility`, `wind`, `electronic`.
+  - The vehicle sheet shows favored / adverse terrain derived from the matrix
+    (read-only). Per-vehicle `system.mwd.favoredTerrain` / `adverseTerrain`
+    are inert legacy data.
 - Terrain *triggers* persistent consequences (bog-down, reckless movement:
   review #4) but does not own them.
 
@@ -60,25 +78,29 @@ piloting rolls. Terrain is a circumstance, so it never changes a task's DN
 (design rule in MaxTech-Review.md). Machines only for now; personal-scale terrain follows later
 through the same data.
 
-| Terrain | Movement | Piloting dice | Vehicle class | Obscuring (1b) |
-| --- | --- | --- | --- | --- |
-| Road | 0 | 0 | road | 0 |
-| Open | 0 | 0 | open | 0 |
-| Rough | −1 | 0 | rough | 0 |
-| Light Woods | −1 | 0 | forest | 1 |
-| Heavy Woods | −2 | −1 | forest | 2 |
-| Jungle | −2 | −1 | forest | 2 |
-| Urban | −1 | 0 | urban | 0 |
-| Water | −1 | −1 | water | 0 |
+Piloting dice below are the terrain's own (normal-relation) value before the
+mobility matrix and stacking.
+
+| Terrain | Movement | Piloting dice | Obscuring (1b) |
+| --- | --- | --- | --- |
+| Road | 0 | 0 | 0 |
+| Open | 0 | 0 | 0 |
+| Rough | −1 | −1 | 0 |
+| Light Woods | −1 | 0 | 1 |
+| Heavy Woods | −2 | −1 | 2 |
+| Light Jungle | −1 | −1 | 1 |
+| Heavy Jungle | −2 | −1 | 2 |
+| Urban | −1 | 0 | 0 |
+| Shallow Water | −1 | 0 | 0 |
 
 | Condition | Movement | Piloting dice |
 | --- | --- | --- |
 | Mud | −1 | −1 |
 | Deep Snow | −1 | −1 |
-| Ice | 0 | −2 |
-| Sand | 0 | −1 |
+| Ice | 0 | −1 |
+| Sand | 0 | −1 (wheeled, tracked only) |
 | Swamp | −1 | −1 |
-| Rubble | −1 | 0 |
+| Rubble | −1 | −1 |
 
 ## 1b. Line of effect (designed, not built)
 

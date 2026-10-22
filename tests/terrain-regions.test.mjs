@@ -14,6 +14,7 @@ import {
 import { getAffectedTokensForSource, normalizeAreaStatusSource, isAreaStatusSourceUsable } from "../src/modules/area-status/area-status-sources.js";
 import { isTokenInRegion } from "../src/modules/utils/region.js";
 import { getMachineMovementEffects, getMachinePilotingDnModifier, getMachinePilotingDiceModifier } from "../src/modules/mwd/machine-state-effects.js";
+import { getActorTerrainMobility, isGroundTerrainExempt } from "../src/modules/terrain/terrain-mobility.js";
 import { STATUS_MAP } from "../src/modules/roll/config/status-modifiers.js";
 import { getDefaultStatusConditionCatalog } from "../src/modules/status/status-condition-catalog.js";
 
@@ -57,15 +58,17 @@ test("every terrain status is registered and generated from the terrain catalog"
     id: "terrainWoodsHeavy.movement",
     movementPenaltySteps: TERRAIN_CLASSES.woodsHeavy.movementPenaltySteps,
   }]);
-  assert.equal(STATUS_MAP.terrainWoodsHeavy.machineState.dice[0].selector, "pilotingDice");
-  assert.equal(STATUS_MAP.terrainWoodsHeavy.machineState.dice[0].value, TERRAIN_CLASSES.woodsHeavy.pilotingDice);
+  // Dice depend on the occupant's mobility, so statuses carry movement only.
+  assert.equal(STATUS_MAP.terrainWoodsHeavy.machineState.dice, undefined);
   assert.deepEqual(STATUS_MAP.terrainRoad.roles, ["visualMarker"]);
+  assert.deepEqual(STATUS_MAP.terrainIce.roles, ["visualMarker"]);
 });
 
-test("occupied terrain slows machines and costs piloting dice (never DN), stacking base and conditions", () => {
+test("occupied terrain slows machines and costs piloting dice (never DN); traction penalties do not stack", () => {
   const inHeavyMud = machine({ statuses: ["terrainWoodsHeavy", "terrainMud"] });
   assert.equal(getMachineMovementEffects(inHeavyMud).movementPenalty, 90);
-  assert.equal(getMachinePilotingDiceModifier(inHeavyMud), -2);
+  // Heavy woods and mud are both traction: the strongest penalty applies.
+  assert.equal(getMachinePilotingDiceModifier(inHeavyMud), -1);
   // Environment modifies the dice pool; the task keeps its DN.
   assert.equal(getMachinePilotingDnModifier(inHeavyMud), 0);
   assert.equal(getMachineMovementEffects(machine({ statuses: ["terrainRoad"] })).movementPenalty, 0);
@@ -91,6 +94,7 @@ test("terrain Regions become region-kind area-status sources affecting every occ
     assert.equal(source.kind, "region");
     assert.equal(source.allegiance, "any");
     assert.deepEqual(source.statusIds, ["terrainWoodsLight", "terrainMud"]);
+    assert.equal(source.groundOnly, true);
     assert.equal(isAreaStatusSourceUsable(source), true);
 
     const affected = getAffectedTokensForSource(scene, source).map(entry => entry.id).sort();
@@ -115,14 +119,30 @@ test("region membership prefers Foundry's tracked tokens and falls back to the c
   assert.equal(isTokenInRegion(null, tracked), false);
 });
 
-test("vehicles gain dice in favored terrain and lose them in adverse terrain; mechs are unaffected", () => {
-  const wheeled = statuses => machine({ type: "vehicle", statuses, mwd: { movementProfile: "wheeled", favoredTerrain: ["road", "urban"], adverseTerrain: ["rough", "forest", "water"] } });
-  assert.equal(getMachinePilotingDiceModifier(wheeled(["terrainRoad"])), 1);
-  assert.equal(getMachinePilotingDiceModifier(wheeled(["terrainWoodsLight"])), -1);
-  assert.equal(getMachinePilotingDiceModifier(wheeled(["terrainOpen"])), 0);
-  // Profile defaults apply when the vehicle has no authored preference lists:
-  // hover favors water (+1), which offsets water's own piloting penalty (-1).
-  assert.equal(getMachinePilotingDiceModifier(machine({ type: "vehicle", statuses: ["terrainWater"], mwd: { movementProfile: "hover" } })), 0);
-  assert.equal(getMachinePilotingDiceModifier(machine({ type: "vehicle", statuses: ["terrainWater"], mwd: { movementProfile: "tracked" } })), -2);
+test("the mobility matrix sets terrain dice: favored replaces the penalty, adverse takes the stronger", () => {
+  const vehicle = (movementProfile, statuses) => machine({ type: "vehicle", statuses, mwd: { movementProfile } });
+  assert.equal(getMachinePilotingDiceModifier(vehicle("wheeled", ["terrainRoad"])), 1);
+  assert.equal(getMachinePilotingDiceModifier(vehicle("wheeled", ["terrainRough"])), -1);
+  assert.equal(getMachinePilotingDiceModifier(vehicle("wheeled", ["terrainWoodsLight"])), 0);
+  // Restricted counts as adverse for dice until capabilities are modeled.
+  assert.equal(getMachinePilotingDiceModifier(vehicle("wheeled", ["terrainWoodsHeavy"])), -1);
+  // Favored terrain bonus offsets a condition's traction penalty once.
+  assert.equal(getMachinePilotingDiceModifier(vehicle("wheeled", ["terrainOpen", "terrainMud"])), 0);
+  assert.equal(getMachinePilotingDiceModifier(vehicle("hover", ["terrainWater"])), 1);
+  assert.equal(getMachinePilotingDiceModifier(vehicle("tracked", ["terrainWater"])), -1);
+  // Sand slows wheels and tracks only.
+  assert.equal(getMachinePilotingDiceModifier(vehicle("tracked", ["terrainSand"])), -1);
+  assert.equal(getMachinePilotingDiceModifier(vehicle("hover", ["terrainSand"])), 0);
   assert.equal(getMachinePilotingDiceModifier(machine({ type: "battlemech", statuses: ["terrainRoad"] })), 0);
+  assert.equal(getMachinePilotingDiceModifier(machine({ type: "battlemech", statuses: ["terrainSwamp"] })), -1);
+});
+
+test("flight mobility ignores ground terrain", () => {
+  const vtol = machine({ type: "vehicle", statuses: ["terrainWoodsHeavy", "terrainMud"], mwd: { movementProfile: "vtol" } });
+  assert.equal(getActorTerrainMobility(vtol), "flight");
+  assert.equal(isGroundTerrainExempt(vtol), true);
+  assert.equal(getMachinePilotingDiceModifier(vtol), 0);
+  assert.equal(getActorTerrainMobility(machine({ type: "battlemech" })), "walker");
+  assert.equal(isGroundTerrainExempt(machine({ type: "vehicle", mwd: { movementProfile: "hover" } })), false);
+  assert.equal(getActorTerrainMobility({ type: "character" }), null);
 });
