@@ -1,12 +1,22 @@
 // src/modules/terrain/terrain-region-behavior.js
 // Purpose: Registers the native "Terrain" Region Behavior, so GMs author
 // terrain on a Region's Behaviors tab in Foundry's Region config.
-// How it fits: The behavior only stores { terrainClass, conditions }; it
-// handles no Region events. terrain-regions.js getRegionTerrain reads it, and
-// the area-status controller projects the terrain statuses.
+// How it fits: The behavior stores { terrainClass, conditions } and handles no
+// Region events. terrain-regions.js getRegionTerrain reads it (the area-status
+// controller projects occupancy statuses, used for Handling dice), and its
+// _getTerrainEffects feeds Foundry's movement cost system per moving token
+// (terrain-movement-cost.js).
 // See docs/Terrain-Regions.md.
 
-import { DEFAULT_TERRAIN_CLASS, TERRAIN_CLASSES, TERRAIN_CONDITIONS } from "./terrain-catalog.js";
+import { DEFAULT_TERRAIN_CLASS, getTerrainEntries, TERRAIN_CLASSES, TERRAIN_CONDITIONS } from "./terrain-catalog.js";
+import { getTerrainMovementContributions } from "./terrain-mobility.js";
+
+/** Terrain effects this behavior's terrain imposes on one moving token's segment. */
+export function getTerrainBehaviorEffects(terrain = {}, token = null, segment = {}) {
+  const entries = getTerrainEntries({ terrainClass: terrain.terrainClass, conditions: Array.from(terrain.conditions ?? []) });
+  return getTerrainMovementContributions(token?.actor ?? null, entries, { action: segment?.action ?? "walk" })
+    .map(contribution => ({ name: "mwdTerrain", ...contribution }));
+}
 
 export const TERRAIN_BEHAVIOR_TYPE = "terrain";
 const NAMESPACED_TERRAIN_BEHAVIOR_TYPE = `mwd.${TERRAIN_BEHAVIOR_TYPE}`;
@@ -69,6 +79,10 @@ export function registerTerrainRegionBehavior() {
             hint: "Conditions layered on the base terrain.",
           }),
         };
+      }
+
+      _getTerrainEffects(token, segment) {
+        return getTerrainBehaviorEffects(this, token, segment);
       }
     }
 

@@ -3,7 +3,7 @@
 // Workflow: status catalog determines availability; this map declares what an
 // active status contributes; existing subsystem helpers consume typed fields.
 
-import { getTerrainReplacingStatusIds, listTerrainStatusEntries } from "../../terrain/terrain-catalog.js";
+import { listTerrainStatusEntries } from "../../terrain/terrain-catalog.js";
 
 export const STATUS_ROLES = Object.freeze({
   rollModifier: "rollModifier",
@@ -359,23 +359,12 @@ export const STATUS_MAP = Object.freeze({
   narced: marker("NARCed", "Target beacon marker."),
   spotted: marker("Spotted", "Indirect-fire designation (visual only; validity is token-scoped metadata)."),
 
-  // Terrain occupancy, generated from terrain-catalog.js (the single source of
-  // terrain magnitudes). Statuses carry movement only: terrain dice depend on
-  // the occupant's mobility type and stack per function, so they are computed
-  // in the machine rule state (terrain-mobility.js), never here. Terrain is a
-  // circumstance: it changes movement and dice, never a task's DN. A more
-  // severe form (Deep Mud) suppresses the one it replaces (Mud), including
-  // across overlapping Regions.
+  // Terrain occupancy markers, generated from terrain-catalog.js. Terrain
+  // carries no status mechanics: movement is a path cost resolved by Foundry's
+  // movement cost system and Handling dice are computed in the machine rule
+  // state, both in terrain-mobility.js. The status records where a machine is.
   ...Object.fromEntries(listTerrainStatusEntries().map(terrain => [
     terrain.statusId,
-    terrain.movementPenaltySteps
-      ? machine(`Terrain: ${terrain.label}`, {
-        movement: [{
-          id: `${terrain.statusId}.movement`,
-          movementPenaltySteps: terrain.movementPenaltySteps,
-          suppressedByStatuses: getTerrainReplacingStatusIds(terrain.id),
-        }],
-      })
-      : marker(`Terrain: ${terrain.label}`, "Terrain occupancy marker (dice via the mobility matrix)."),
+    marker(`Terrain: ${terrain.label}`, "Terrain occupancy marker (movement cost and dice via terrain-mobility.js)."),
   ])),
 });

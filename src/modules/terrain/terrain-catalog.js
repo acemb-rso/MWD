@@ -1,16 +1,19 @@
 // src/modules/terrain/terrain-catalog.js
 // Purpose: Canonical terrain classes and terrain conditions for terrain Regions.
 // How it fits: The single source of truth for what a terrain means and how
-// strongly: the status projected onto occupants (status-modifiers.js generates
-// its movement mechanics from these values), the Handling dice it costs and for
-// which mobility types, how each mobility type relates to it (the mobility
-// matrix), and its obscuring value for line of effect.
+// strongly: its movement cost multiplier along a path (terrain-mobility.js
+// resolves it for Foundry's movement cost system), the Handling dice it costs
+// occupants and for which mobility types, how each mobility type relates to it
+// (the mobility matrix), and its obscuring value for line of effect.
 // See docs/Terrain-Regions.md and docs/Environment-Catalog.md.
 // All magnitudes here are PROVISIONAL, pending playtesting.
 
 import { withoutReplaced } from "./environment-dice.js";
 
-// movementPenaltySteps: movement steps lost while occupying (30 m each).
+// movementCost: path cost multiplier (×1 clear, ×2 difficult, ×3 severe):
+//   30 m of ×2 terrain consumes 60 m of allowance.
+// category: "base" (one per location) or "condition" (layered on the base).
+// hazardous: a control hazard; Careful movement doubles its segment cost.
 // pilotingDice: Handling dice (piloting rolls) while occupying; a penalty in
 //   the "traction" environment function (environment-dice.js). Terrain is a
 //   circumstance: it modifies dice, never a task's DN.
@@ -18,12 +21,14 @@ import { withoutReplaced } from "./environment-dice.js";
 // obscuring: line-of-effect obscuring value (review #1b; not yet consumed).
 // replaces: terrain ids this entry supersedes when both are present (a more
 //   severe form; never stacks with it).
-function entry(id, label, { movementPenaltySteps = 0, pilotingDice = 0, pilotingDiceMobility = null, obscuring = 0, replaces = [] } = {}) {
+function entry(id, label, category, { movementCost = 1, hazardous = false, pilotingDice = 0, pilotingDiceMobility = null, obscuring = 0, replaces = [] } = {}) {
   return Object.freeze({
     id,
     label,
+    category,
     statusId: `terrain${id.charAt(0).toUpperCase()}${id.slice(1)}`,
-    movementPenaltySteps,
+    movementCost,
+    hazardous,
     pilotingDice,
     diceFunction: "traction",
     pilotingDiceMobility: pilotingDiceMobility ? Object.freeze([...pilotingDiceMobility]) : null,
@@ -34,26 +39,26 @@ function entry(id, label, { movementPenaltySteps = 0, pilotingDice = 0, piloting
 
 // Base terrain: exactly one per terrain Region.
 export const TERRAIN_CLASSES = Object.freeze({
-  road: entry("road", "Road"),
-  open: entry("open", "Open"),
-  rough: entry("rough", "Rough", { movementPenaltySteps: 1, pilotingDice: -1 }),
-  woodsLight: entry("woodsLight", "Light Woods", { movementPenaltySteps: 1, obscuring: 1 }),
-  woodsHeavy: entry("woodsHeavy", "Heavy Woods", { movementPenaltySteps: 2, pilotingDice: -1, obscuring: 2 }),
-  jungleLight: entry("jungleLight", "Light Jungle", { movementPenaltySteps: 1, pilotingDice: -1, obscuring: 1 }),
-  jungle: entry("jungle", "Heavy Jungle", { movementPenaltySteps: 2, pilotingDice: -1, obscuring: 2 }),
-  urban: entry("urban", "Urban", { movementPenaltySteps: 1 }),
-  water: entry("water", "Shallow Water", { movementPenaltySteps: 1 }),
+  road: entry("road", "Road", "base"),
+  open: entry("open", "Open", "base"),
+  rough: entry("rough", "Rough", "base", { movementCost: 2, pilotingDice: -1 }),
+  woodsLight: entry("woodsLight", "Light Woods", "base", { movementCost: 2, obscuring: 1 }),
+  woodsHeavy: entry("woodsHeavy", "Heavy Woods", "base", { movementCost: 3, pilotingDice: -1, obscuring: 2 }),
+  jungleLight: entry("jungleLight", "Light Jungle", "base", { movementCost: 2, pilotingDice: -1, obscuring: 1 }),
+  jungle: entry("jungle", "Heavy Jungle", "base", { movementCost: 3, pilotingDice: -1, obscuring: 2 }),
+  urban: entry("urban", "Urban", "base", { movementCost: 2 }),
+  water: entry("water", "Shallow Water", "base", { movementCost: 2 }),
 });
 
 // Conditions layered on the base terrain: any number per terrain Region.
 export const TERRAIN_CONDITIONS = Object.freeze({
-  mud: entry("mud", "Mud", { movementPenaltySteps: 1, pilotingDice: -1 }),
-  deepMud: entry("deepMud", "Deep Mud", { movementPenaltySteps: 2, pilotingDice: -2, replaces: ["mud"] }),
-  deepSnow: entry("deepSnow", "Deep Snow", { movementPenaltySteps: 1, pilotingDice: -1 }),
-  ice: entry("ice", "Ice", { pilotingDice: -1 }),
-  sand: entry("sand", "Sand", { pilotingDice: -1, pilotingDiceMobility: ["wheeled", "tracked"] }),
-  swamp: entry("swamp", "Swamp", { movementPenaltySteps: 1, pilotingDice: -1 }),
-  rubble: entry("rubble", "Rubble", { movementPenaltySteps: 1, pilotingDice: -1 }),
+  mud: entry("mud", "Mud", "condition", { movementCost: 2, hazardous: true, pilotingDice: -1 }),
+  deepMud: entry("deepMud", "Deep Mud", "condition", { movementCost: 3, hazardous: true, pilotingDice: -2, replaces: ["mud"] }),
+  deepSnow: entry("deepSnow", "Deep Snow", "condition", { movementCost: 2, hazardous: true, pilotingDice: -1 }),
+  ice: entry("ice", "Ice", "condition", { hazardous: true, pilotingDice: -1 }),
+  sand: entry("sand", "Sand", "condition", { pilotingDice: -1, pilotingDiceMobility: ["wheeled", "tracked"] }),
+  swamp: entry("swamp", "Swamp", "condition", { movementCost: 2, hazardous: true, pilotingDice: -1 }),
+  rubble: entry("rubble", "Rubble", "condition", { movementCost: 2, pilotingDice: -1 }),
 });
 
 export const DEFAULT_TERRAIN_CLASS = "open";
@@ -61,10 +66,11 @@ export const DEFAULT_TERRAIN_CLASS = "open";
 // Mobility matrix (Environment-Catalog §5). Terrain not listed is normal for
 // that mobility. The mobility profile decides how strongly terrain affects a
 // unit instead of stacking on the terrain's own penalty:
-// favored: the terrain's penalty is ignored and the unit gains the favored
-//   bonus; adverse: the stronger of the terrain's penalty and the adverse
-//   penalty; restricted: traversal needs a capability (not yet modeled), so it
-//   counts as adverse for dice.
+// Dice — favored: the terrain's penalty is ignored and the unit gains the
+//   favored bonus; adverse: the stronger of the terrain's penalty and the
+//   adverse penalty; restricted: counts as adverse.
+// Movement — favored: that terrain's excess cost is ignored; adverse: +1 to its
+//   multiplier; restricted: impassable (no traversal capability is modeled).
 // Flight mobility (VTOL, drone, aerospace) is unaffected by ground terrain.
 export const TERRAIN_MOBILITY_MATRIX = Object.freeze({
   wheeled: Object.freeze({
@@ -97,13 +103,6 @@ export function getTerrainEntryByStatusId(statusId = "") {
 export function getTerrainEntryById(id = "") {
   const key = String(id ?? "").trim();
   return TERRAIN_CLASSES[key] ?? TERRAIN_CONDITIONS[key] ?? null;
-}
-
-// Status ids of the entries that supersede this one (e.g. Deep Mud for Mud).
-export function getTerrainReplacingStatusIds(id = "") {
-  return listTerrainStatusEntries()
-    .filter(item => item.replaces.includes(id))
-    .map(item => item.statusId);
 }
 
 

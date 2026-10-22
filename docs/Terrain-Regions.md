@@ -16,7 +16,7 @@ single source of truth for what each one means:
 | Field | Used by | Meaning |
 | --- | --- | --- |
 | `statusId` | 1a occupancy | Status projected onto machines inside the region; its mechanics live in `status-modifiers.js` |
-| `movementPenaltySteps` | 1a occupancy | Movement steps lost (status mechanics) |
+| `movementCost` / `category` / `hazardous` | Movement cost | Path cost multiplier (×1 / ×2 / ×3), base terrain vs. condition, control hazard (Careful doubles) |
 | `pilotingDice` / `diceFunction` | 1a occupancy | Handling dice for piloting rolls, in the `traction` environment function |
 | `pilotingDiceMobility` | 1a occupancy | Mobility types the dice apply to (e.g. sand: wheeled, tracked) |
 | `obscuring` | 1b line of effect | How much the region obscures an attack or sensor line crossing it |
@@ -49,9 +49,10 @@ GM terrain Region ──collectTerrainRegionAreaStatusSources──▶ source { 
   ownership, so terrain statuses never delete manual or unrelated statuses and
   leave as soon as the token leaves the region.
 - Terrain statuses are not shown as manual toggles; they are projections.
-- **Movement** comes from the terrain status (`status-modifiers.js`, generated
-  from the catalog). **Dice** do not: they depend on who occupies the terrain,
-  so the machine rule state computes them (`terrain/terrain-mobility.js`):
+- Terrain statuses are **occupancy markers** with no mechanics of their own.
+  **Movement** is a path cost (see "Movement cost" below). **Dice** depend on
+  who occupies the terrain, so the machine rule state computes them
+  (`terrain/terrain-mobility.js`):
   - Mobility: BattleMech → `walker`; ground vehicle → its movement profile
     (wheeled, tracked, hover); flight vehicles (VTOL, drone, aerospace) →
     `flight`, which ignores ground terrain. Terrain sources are `groundOnly`,
@@ -71,37 +72,79 @@ GM terrain Region ──collectTerrainRegionAreaStatusSources──▶ source { 
 - Terrain *triggers* persistent consequences (bog-down, reckless movement:
   review #4) but does not own them.
 
+### Movement cost (decided 2026-10-22)
+
+Terrain affects the part of a route that crosses it, not the machine's whole
+allowance. Walk / Run / Sprint (and vehicle actions) show unpenalized
+allowances; Foundry's token ruler prices the path.
+
+- **Cost:** ×1 clear, ×2 difficult, ×3 severe. 30 m of ×2 terrain consumes
+  60 m of allowance; the ruler totals segments, never one multiplier per route.
+- **Composition** (`resolveTerrainMovementCost`, the single canonical
+  resolver for the ruler preview and later enforcement):
+  `M = 1 + Σ excess`, never multiplied (Heavy Woods ×3 + Mud ×2 = ×4; + Deep Mud
+  ×3 = ×5). The same terrain counts once (overlapping Heavy Woods Regions stay
+  ×3); one base terrain per location (the more costly applies); superseded
+  conditions drop out (Deep Mud replaces Mud). Other behaviors' Foundry
+  `difficulty` adds as excess (`d − 1`; null is impassable).
+- **Mobility:** favored ignores that terrain contribution's excess (per
+  contribution, so it never cancels an unrelated condition); adverse +1 to its
+  multiplier; **restricted is impassable** (∞) unless a capability permits
+  traversal (none modeled yet); flight, and the `fly` / `jump` / `blink` /
+  `displace` movement actions, pay no ground cost (jump launch and landing
+  hazards belong to the movement-risk procedure).
+- **Careful / Reckless:** Careful doubles the cost of **hazardous** stretches
+  (Mud, Deep Mud, Deep Snow, Ice, Swamp) after composition (10 m of Heavy
+  Woods + Mud: 40 m Reckless, 80 m Careful). The choice is the Token HUD
+  **Careful movement** toggle (`flags.mwd.carefulMovement`). Careful does not
+  negate Bogged, exposure or other terrain consequences; Reckless pays normal
+  cost and the hazard-triggered DN 1 check.
+- **Ruler (show-only, interim):** the route is coloured green within the
+  smallest movement allowance, amber within the largest, red beyond it, dark
+  red where impassable. Nothing blocks an over-budget move yet; impassable
+  stretches are unreachable to Foundry's pathing.
+- **Adapters** (`terrain/terrain-movement-cost.js`): the Terrain behavior's
+  `_getTerrainEffects` emits `mwdTerrain` effects for the moving token;
+  `MwdTerrainData` (`CONFIG.Token.movement.TerrainData`) composes them and
+  prices segments; the token ruler subclass colours them. Only the native
+  behavior participates, not the `flags.mwd.terrain` fallback.
+- **Later (acceptance criteria):** validate the route against the declared
+  action's allowance at movement commit with the same resolver (scripted
+  updates can bypass the ruler), including action extensions and GM
+  overrides; detect route-wide hazards for the movement-risk check (a route
+  can start and end clear but cross ice); Walk / Run / Sprint use their own
+  allowances against the same path cost.
+
 ### Provisional occupancy effects
 
-Movement penalty is in movement steps (30 m each); Piloting dice apply to
-piloting rolls. Terrain is a circumstance, so it never changes a task's DN
+Piloting dice apply to piloting rolls. Terrain is a circumstance, so it never changes a task's DN
 (design rule in MaxTech-Review.md). Machines only for now; personal-scale terrain follows later
 through the same data.
 
 Piloting dice below are the terrain's own (normal-relation) value before the
 mobility matrix and stacking.
 
-| Terrain | Movement | Piloting dice | Obscuring (1b) |
+| Terrain | Movement cost | Piloting dice | Obscuring (1b) |
 | --- | --- | --- | --- |
-| Road | 0 | 0 | 0 |
-| Open | 0 | 0 | 0 |
-| Rough | −1 | −1 | 0 |
-| Light Woods | −1 | 0 | 1 |
-| Heavy Woods | −2 | −1 | 2 |
-| Light Jungle | −1 | −1 | 1 |
-| Heavy Jungle | −2 | −1 | 2 |
-| Urban | −1 | 0 | 0 |
-| Shallow Water | −1 | 0 | 0 |
+| Road | ×1 | 0 | 0 |
+| Open | ×1 | 0 | 0 |
+| Rough | ×2 | −1 | 0 |
+| Light Woods | ×2 | 0 | 1 |
+| Heavy Woods | ×3 | −1 | 2 |
+| Light Jungle | ×2 | −1 | 1 |
+| Heavy Jungle | ×3 | −1 | 2 |
+| Urban | ×2 | 0 | 0 |
+| Shallow Water | ×2 | 0 | 0 |
 
-| Condition | Movement | Piloting dice |
-| --- | --- | --- |
-| Mud | −1 | −1 |
-| Deep Mud (replaces Mud) | −2 | −2 |
-| Deep Snow | −1 | −1 |
-| Ice | 0 | −1 |
-| Sand | 0 | −1 (wheeled, tracked only) |
-| Swamp | −1 | −1 |
-| Rubble | −1 | −1 |
+| Condition | Movement cost | Hazardous | Piloting dice |
+| --- | --- | --- | --- |
+| Mud | ×2 | Yes | −1 |
+| Deep Mud (replaces Mud) | ×3 | Yes | −2 |
+| Deep Snow | ×2 | Yes | −1 |
+| Ice | ×1 | Yes | −1 |
+| Sand | ×1 | No | −1 (wheeled, tracked only) |
+| Swamp | ×2 | Yes | −1 |
+| Rubble | ×2 | No | −1 |
 
 ## 1b. Line of effect (designed, not built)
 
@@ -138,6 +181,5 @@ generates from the behavior's schema.
   reconciliation.
 - `flags.mwd.terrain` remains a fallback (macros, or if the behavior type is
   unavailable). `getRegionTerrain` prefers an enabled behavior.
-- Foundry v14's own terrain movement-cost system (`ModifyMovementCost`,
-  `_getTerrainEffects`) applies to ruler movement; MWD movement is
-  action-based, so it is not used.
+- Movement cost uses Foundry v14's terrain movement-cost system
+  (`_getTerrainEffects`, `TerrainData`); see "Movement cost".

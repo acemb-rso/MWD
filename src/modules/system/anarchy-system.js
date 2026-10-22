@@ -29,6 +29,7 @@ import { SystemSettings } from './system-settings.js';
 import { registerSchemaMigrationSettings, runSchemaMigrationGate } from "./migration/migration-runner.js";
 import { registerTerrainRegionBehavior } from "../terrain/terrain-region-behavior.js";
 import { registerSceneConditionsConfig } from "../terrain/scene-conditions-config.js";
+import { registerTerrainMovementCost } from "../terrain/terrain-movement-cost.js";
 import { registerActorSheetsV2 } from "../sheets/register-actor-sheets-v2.js";
 import { registerItemSheetsV2 } from "../sheets/register-item-sheets-v2.js";
 import { preloadTemplatesV2 } from "../sheets/preload-templates.js";
@@ -313,6 +314,7 @@ export class AnarchySystem {
     registerMwdSensorDetectionMode();
     registerTerrainRegionBehavior();
     registerSceneConditionsConfig();
+    registerTerrainMovementCost();
     registerMachineSensorOverlayHooks();
     registerMWDChatActions();
     registerAutoAnimations();

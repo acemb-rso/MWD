@@ -54,26 +54,22 @@ test("every terrain status is registered and generated from the terrain catalog"
     assert.ok(registered.has(statusId), statusId);
     assert.ok(STATUS_MAP[statusId], statusId);
   }
-  assert.deepEqual(STATUS_MAP.terrainWoodsHeavy.machineState.movement, [{
-    id: "terrainWoodsHeavy.movement",
-    movementPenaltySteps: TERRAIN_CLASSES.woodsHeavy.movementPenaltySteps,
-    suppressedByStatuses: [],
-  }]);
-  assert.deepEqual(STATUS_MAP.terrainMud.machineState.movement[0].suppressedByStatuses, ["terrainDeepMud"]);
-  // Dice depend on the occupant's mobility, so statuses carry movement only.
-  assert.equal(STATUS_MAP.terrainWoodsHeavy.machineState.dice, undefined);
+  // Movement is a path cost and dice are computed from mobility, so terrain
+  // statuses are occupancy markers only.
+  assert.deepEqual(STATUS_MAP.terrainWoodsHeavy.roles, ["visualMarker"]);
+  assert.equal(STATUS_MAP.terrainWoodsHeavy.machineState, undefined);
   assert.deepEqual(STATUS_MAP.terrainRoad.roles, ["visualMarker"]);
   assert.deepEqual(STATUS_MAP.terrainIce.roles, ["visualMarker"]);
 });
 
-test("occupied terrain slows machines and costs piloting dice (never DN); traction penalties do not stack", () => {
+test("occupied terrain costs piloting dice (never DN) but no longer reduces speed; traction penalties do not stack", () => {
   const inHeavyMud = machine({ statuses: ["terrainWoodsHeavy", "terrainMud"] });
-  assert.equal(getMachineMovementEffects(inHeavyMud).movementPenalty, 90);
+  // Movement is priced along the path (movement cost), not taken off speed.
+  assert.equal(getMachineMovementEffects(inHeavyMud).movementPenalty, 0);
   // Heavy woods and mud are both traction: the strongest penalty applies.
   assert.equal(getMachinePilotingDiceModifier(inHeavyMud), -1);
   // Environment modifies the dice pool; the task keeps its DN.
   assert.equal(getMachinePilotingDnModifier(inHeavyMud), 0);
-  assert.equal(getMachineMovementEffects(machine({ statuses: ["terrainRoad"] })).movementPenalty, 0);
 });
 
 test("terrain Regions become region-kind area-status sources affecting every occupant", () => {
@@ -141,12 +137,9 @@ test("the mobility matrix sets terrain dice: favored replaces the penalty, adver
 
 test("Deep Mud replaces Mud rather than stacking with it", () => {
   assert.deepEqual(normalizeRegionTerrain({ terrainClass: "open", conditions: ["mud", "deepMud"] }).conditions, ["deepMud"]);
-  // Overlapping Regions can still project both statuses: Mud's movement is
-  // suppressed and Deep Mud's dice apply.
+  // Overlapping Regions can still project both statuses: Deep Mud's dice apply.
   const both = machine({ statuses: ["terrainMud", "terrainDeepMud"] });
-  assert.equal(getMachineMovementEffects(both).movementPenalty, 60);
   assert.equal(getMachinePilotingDiceModifier(both), -2);
-  assert.equal(getMachineMovementEffects(machine({ statuses: ["terrainMud"] })).movementPenalty, 30);
 });
 
 test("flight mobility ignores ground terrain", () => {
