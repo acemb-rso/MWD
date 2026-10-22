@@ -293,6 +293,12 @@ numbers are to-hit/MP and do not translate 1:1).
 
 ### 4. Movement risk automation (persistent consequences)
 
+**Superseded in detail by** the movement-risk procedure in
+[Environment-Catalog.md](Environment-Catalog.md) (decided 2026-10-22):
+hazard-triggered Careful/Reckless choice, fixed-DN check with environmental
+dice, BattleMech and vehicle failure ladders, Bogged as a separate terrain
+consequence, one shared fall event.
+
 The outcomes here are persistent actor statuses with their own lifetime; they
 outlive the terrain or condition that caused them.
 

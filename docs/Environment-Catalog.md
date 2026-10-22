@@ -193,6 +193,86 @@ Every environmental definition has four parts:
 4. **Lifecycle** — scene-wide, Region-based (occupancy or line of effect),
    persistent, or event-triggered.
 
+## Movement-risk procedure (decided 2026-10-22)
+
+A procedure on existing movement, not a new action family and not statuses.
+Normal movement outside hazards is unchanged.
+
+1. The actor declares a movement action and route.
+2. The system identifies the terrain and weather hazards the route touches.
+3. **Only if** the movement is hazardous, the actor chooses **Careful** or
+   **Reckless**. The choice is never offered otherwise.
+4. **Careful:** movement distance through the hazard is **halved**; the
+   ordinary terrain-risk check is skipped. No extra SA. Careful avoids the
+   movement-risk check only, not other environmental consequences (a
+   BattleMech carefully crossing fire still takes heat and exposure).
+5. **Reckless:** full distance; a **Handling + Piloting** check, **fixed
+   DN** (proposed 2, see balance below), with environmental conditions
+   adding or removing **dice** (Ice −1, Deep Mud −2, Dense Fog at speed −1,
+   favored/adverse terrain ±1).
+6. On failure, apply the consequence for the **declared movement mode and
+   machine type** (not the margin of failure).
+
+**BattleMech failure ladder** (unchanged from MaxTech-Review #4):
+
+| Movement | Failed reckless check |
+| --- | --- |
+| Walk | Unstable |
+| Run | Skidding |
+| Sprint | Prone + falling damage |
+
+The Sprint stability notice becomes the reckless-Sprint check when applicable.
+
+**Vehicle failure ladder** (by mobility and action):
+
+| Vehicle movement | Failed check |
+| --- | --- |
+| Normal Move | Skidding |
+| Redline | Skidding + Strain |
+| Hover high-speed maneuver | Skidding or forced displacement |
+| VTOL risky maneuver | Unstable or a control-loss event; never ground Prone |
+
+Stalled is not a Redline failure (it is a specific engine failure, not loss of
+traction). Overturning and crashing can come later as specialized hazards.
+
+**DN does not scale with speed:** the ladder already scales the consequence,
+so scaling DN too would double-penalize faster movement.
+
+**Bogged is separate:** a terrain-specific consequence (e.g. deep mud), not a
+rung of the ladder. Hazardous terrain may define a general reckless risk, a
+specific consequence, or both; when a terrain-specific consequence is
+configured to, it **replaces** the generic failure result, so one failed roll
+never imposes several unrelated conditions.
+
+**Falling damage:** the movement resolver only decides that a fall happened.
+MWD has no machine fall-damage rule yet (falls today only apply Prone), so one
+**fall event** is defined once and shared by reckless Sprint, crit-driven falls
+and knockdowns: machine damage scaled by mass or weight class, applied through
+HarmEngine, with armor/structure and criticals handled as ordinary damage.
+Pilot harm follows the existing rule (`critical-hit.md`: only catastrophic
+falls or impacts harm the pilot); no new pilot-damage rule.
+
+### Balance: DN 2 vs. starting pools
+
+Dice succeed on 5+ (4+ with pre-roll Edge). Default Handling is 4 for
+BattleMechs and 3 for vehicles; pools of Handling + Piloting are typically 5–6
+for a new pilot.
+
+| Pool | DN 2 | DN 2, −1 die | DN 2, −2 dice | DN 2 with Edge | DN 1 |
+| --- | --- | --- | --- | --- | --- |
+| 4 | 41% | 26% | 11% | 69% | 80% |
+| 5 | 54% | 41% | 26% | 81% | 87% |
+| 6 | 65% | 54% | 41% | 89% | 91% |
+| 7 | 74% | 65% | 54% | 94% | 94% |
+| 8 | 80% | 74% | 65% | 96% | 96% |
+
+At DN 2 a new pilot fails a reckless move on ice about half the time and in
+deep mud about two times in three, which makes Careful the default choice. At
+DN 1 the base risk is about 1 in 10, and environmental dice alone make
+hazards meaningful (ice ~1 in 5, deep mud ~1 in 3). **Open decision:** DN 1 or
+DN 2, and whether halving distance is enough compensation for Careful at the
+chosen DN.
+
 ---
 
 ## Implementation plan: initial 12 presets
