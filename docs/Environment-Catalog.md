@@ -250,14 +250,14 @@ never imposes several unrelated conditions.
 *what kind* of descent happened. MWD has no machine fall-damage rule yet (falls
 today only apply Prone), so one **fall impact** is defined once and shared by
 reckless Sprint, crit-driven falls, knockdowns, and descents from elevation.
-The resolver keeps three separate concepts:
+The resolver keeps these separate:
 
-- **Controlled descent:** a deliberate maneuver the pilot initiates and keeps
-  control of; the first 10 m of height are exempt.
-- **Powered descent:** Jump Jets successfully arrest the descent; no fall
-  event and no damage.
-- **Fall impact:** an uncontrolled or forced fall; full damage from the whole
-  height, then automatic Chassis mitigation.
+| Situation | Resolution |
+| --- | --- |
+| Planned Jump Jet movement or descent | Normal movement; no fall damage |
+| Emergency Jump Jet Arrest | 1 Reaction, Handling + Piloting DN 2; success negates fall damage |
+| Controlled unpowered descent | First 10 m exempt from height damage; the rest takes damage and Chassis mitigation |
+| Uncontrolled or forced fall (fall impact) | Full weight-class and height damage, then automatic Chassis mitigation |
 
 | Event | Classification | First 10 m exempt | Fall damage |
 | --- | --- | --- | --- |
@@ -266,7 +266,8 @@ The resolver keeps three separate concepts:
 | Leaping down from elevation | Controlled descent | Yes | Based on remaining height |
 | Successful Climb and Drop | Controlled descent | Yes | Based on remaining height |
 | Dangle and Drop | Controlled descent | Yes | Based on remaining height |
-| Jump Jet-assisted descent | Powered descent | Entire fall | None |
+| Planned Jump Jet movement or descent | Powered movement | Entire fall | None |
+| Emergency Jump Jet Arrest (success) | Powered descent | Entire fall | None |
 | Failed reckless Sprint | Uncontrolled fall | No | Full |
 | Failed stability check | Uncontrolled fall | No | Full |
 | Pushed off a ledge | Forced fall | No | Full |
@@ -296,15 +297,28 @@ The resolver keeps three separate concepts:
   qualifying violent impact (`critical-hit.md`). There is no new pilot-damage
   rule.
 
-**Jump Jet exception:** a powered descent negates fall damage entirely when
-all of these hold:
+**Emergency Jump Jet Arrest:**
 
-- the machine has operational Jump Jets;
-- the pilot can activate them before impact;
-- the jets have enough capability to control the descent;
-- machine state and environment do not prohibit the maneuver.
+| Property | Rule |
+| --- | --- |
+| Trigger | Involuntary fall from elevation |
+| Cost | 1 Reaction Action |
+| Prerequisite | Installed, functional Jump Jets |
+| Roll | Handling + Piloting (environmental dice apply) |
+| DN | 2 (Difficult) |
+| Success | Controlled landing; no fall damage |
+| Failure | Normal fall damage |
+| Impact mitigation | Automatic Chassis + Chassis if the fall occurs |
+| Forced displacement | Preserved; a successful arrest does not reverse knockback |
 
-A failed or unavailable Jump Jet descent resolves as an uncontrolled fall.
+- **Functional Jump Jets are sufficient.** Jump rating is not compared with
+  fall height, so lighter and heavier BattleMechs need no exception.
+  "Functional" is the derived jumping state (`mwd/battlemech-mobility.js`):
+  installed jump modules, with no Jump Jet Failure status and no crit gating
+  jump.
+- **One control attempt:** the arrest is for an unexpected forced fall (pushed
+  off a ledge, for example). It is not a second chance after a failed reckless
+  movement or stability check; those falls resolve directly as a fall impact.
 
 **Invariants:**
 - **Prone never implies a fall:** applying Prone (Drop Prone, other knockdown
@@ -312,14 +326,18 @@ A failed or unavailable Jump Jet descent resolves as an uncontrolled fall.
 - **One impact per action:** an originating action produces at most one
   impact-damage event. It never duplicates damage already resolved by a
   collision.
-- No new statuses or action costs beyond the movement actions involved.
+- No new statuses. The only new action cost is the optional Emergency Jump
+  Jet Arrest Reaction.
 
 **Open before enabling the fall impact:**
 - **Height rounding:** proposed reading is `base + per-10 m × floor(effective
   height / 10)`, so a standing fall or a short drop takes base damage. Partial
   increments could round up instead.
-- **Jump Jet arrest:** automatic when the conditions hold, or a roll (and on
-  which pool)? Does it consume jump movement or heat?
+- **Jump Jet arrest heat:** does an arrest generate jump heat?
+- **Crit-driven falls:** crit results that impose a fall *without* a
+  stability check (e.g. "collapses hard") count as forced, so an arrest is
+  eligible. Results that call a stability check first are not, under the
+  one-control-attempt rule. Confirm.
 - **Height source:** token elevation difference, Region elevation, or a GM
   entry?
 - **Calibration:** the mitigation pool (Chassis + Chassis) was set from a
