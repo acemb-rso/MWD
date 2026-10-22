@@ -286,7 +286,7 @@ The resolver keeps three separate concepts:
   mitigation). This keeps dropping from a ledge distinct from a Jump Jet
   landing.
 - **Automatic impact mitigation:** for any fall that produces damage,
-  `Final damage = max(0, fall damage − successes on the mitigation roll)`. The
+  `Final damage = max(0, fall damage − successes on Chassis + Chassis)`. The
   roll is automatic, costs no Reaction, and does not prevent Prone or
   displacement.
 - The fall impact makes the machine Prone and applies the damage through
@@ -315,11 +315,6 @@ A failed or unavailable Jump Jet descent resolves as an uncontrolled fall.
 - No new statuses or action costs beyond the movement actions involved.
 
 **Open before enabling the fall impact:**
-- **Mitigation pool:** this design says Chassis + Chassis, but
-  `Machine-Attributes.md` §4 defines fall/crash mitigation as **Chassis +
-  Handling** (Handling = control, Chassis = structural tolerance). One must
-  change. (This mitigation also supersedes the earlier "no Chassis reduction"
-  note.)
 - **Height rounding:** proposed reading is `base + per-10 m × floor(effective
   height / 10)`, so a standing fall or a short drop takes base damage. Partial
   increments could round up instead.
@@ -327,9 +322,9 @@ A failed or unavailable Jump Jet descent resolves as an uncontrolled fall.
   which pool)? Does it consume jump movement or heat?
 - **Height source:** token elevation difference, Region elevation, or a GM
   entry?
-- **Calibration:** the per-10 m slope is steep. An uncontrolled 30 m fall
-  deals 5 (Light) vs. 17 (Assault) before mitigation. Validate it against
-  typical Armor and Structure totals per class.
+- **Calibration:** the mitigation pool (Chassis + Chassis) was set from a
+  representative sample. Confirm the height slope the same way: an
+  uncontrolled 30 m fall deals 5 (Light) vs. 17 (Assault) before mitigation.
 
 ### Balance: DN 2 vs. starting pools
 

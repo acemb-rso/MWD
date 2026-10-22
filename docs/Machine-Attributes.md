@@ -69,14 +69,17 @@ Resistance = Chassis
 
 ### 4. Fall / Crash Mitigation
 
-Combines with Handling:
+Impact mitigation rolls Chassis twice (decided 2026-10-22, from working the
+math on a representative sample of machines):
 
 ```text
-Mitigation / Test = Chassis + Handling
+Mitigation = Chassis + Chassis
 ```
 
-* Handling = control
-* Chassis = structural tolerance
+* Structural tolerance is what absorbs an impact; control (Handling) already
+  decided whether the machine fell at all (reckless and stability checks).
+* Automatic, no Reaction cost; successes reduce fall damage (see "Falls and
+  descents" in Environment-Catalog.md).
 
 ---
 
