@@ -281,11 +281,14 @@ The resolver keeps these separate:
 | Heavy | 60–75 t | 4 | +3 |
 | Assault | 80–100 t | 5 | +4 |
 
-- Effective height: the full height for an uncontrolled or forced fall; the
-  height minus 10 m for a controlled descent.
-- A controlled descent of 10 m or less still takes base damage (before
-  mitigation). This keeps dropping from a ledge distinct from a Jump Jet
-  landing.
+- **Base damage is the first 10 m.** A machine that falls where it stands or
+  from a short drop takes base damage only.
+- **Height is the GM's call.** The GM judges the fall height and so the number
+  of additional 10 m increments beyond the first; the system does not measure
+  elevation. `Fall damage = base + per-10 m × additional increments`.
+- **Controlled descent:** one fewer increment, never below base. A controlled
+  descent of 10 m or less still takes base damage (before mitigation), which
+  keeps dropping from a ledge distinct from a Jump Jet landing.
 - **Automatic impact mitigation:** for any fall that produces damage,
   `Final damage = max(0, fall damage − successes on Chassis + Chassis)`. The
   roll is automatic, costs no Reaction, and does not prevent Prone or
@@ -335,14 +338,10 @@ The resolver keeps these separate:
   Jet Arrest Reaction.
 
 **Open before enabling the fall impact:**
-- **Height rounding:** proposed reading is `base + per-10 m × floor(effective
-  height / 10)`, so a standing fall or a short drop takes base damage. Partial
-  increments could round up instead.
-- **Height source:** token elevation difference, Region elevation, or a GM
-  entry?
 - **Calibration:** the mitigation pool (Chassis + Chassis) was set from a
   representative sample. Confirm the height slope the same way: an
-  uncontrolled 30 m fall deals 5 (Light) vs. 17 (Assault) before mitigation.
+  uncontrolled 30 m fall (2 additional increments) deals 4 (Light) vs. 13
+  (Assault) before mitigation. Playtest how falls come up in play.
 
 ### Balance: DN 2 vs. starting pools
 
