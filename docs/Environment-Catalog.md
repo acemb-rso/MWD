@@ -295,7 +295,9 @@ D = max(0, B + I × ceil(max(0, H − A) / 10) − S)
 | Assault | 80–100 t | 5 | +4 |
 
 - **Each 10 m or fraction thereof** of effective height adds the increment.
-  A machine that falls where it stands (H = 0) takes base damage only.
+  A machine that falls where it stands (H = 0) takes base damage only. Since H
+  is the GM's judgement, an insignificant uncontrolled drop (a meter or two)
+  can simply be played as 0 m.
 - **Controlled descent:** the first 10 m are subtracted from the height
   calculation. Base damage still applies to an actual drop, so a controlled
   descent of 10 m or less takes base damage: the allowance exempts only the
