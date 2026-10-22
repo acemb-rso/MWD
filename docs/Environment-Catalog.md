@@ -302,7 +302,7 @@ The resolver keeps these separate:
 | Property | Rule |
 | --- | --- |
 | Trigger | Involuntary fall from elevation |
-| Cost | 1 Reaction Action |
+| Cost | 1 Reaction Action; generates 1 heat |
 | Prerequisite | Installed, functional Jump Jets |
 | Roll | Handling + Piloting (environmental dice apply) |
 | DN | 2 (Difficult) |
@@ -319,6 +319,11 @@ The resolver keeps these separate:
 - **One control attempt:** the arrest is for an unexpected forced fall (pushed
   off a ledge, for example). It is not a second chance after a failed reckless
   movement or stability check; those falls resolve directly as a fall impact.
+- **Catastrophic failure:** a fall caused by catastrophic machine failure
+  (e.g. the Legs catastrophic fallback, "collapses hard") is forced but sudden,
+  with little or no chance for control, so it cannot be arrested. With the
+  one-control-attempt rule, no crit-driven fall is eligible: crit results
+  either call a stability check first or are catastrophic.
 
 **Invariants:**
 - **Prone never implies a fall:** applying Prone (Drop Prone, other knockdown
@@ -333,11 +338,6 @@ The resolver keeps these separate:
 - **Height rounding:** proposed reading is `base + per-10 m × floor(effective
   height / 10)`, so a standing fall or a short drop takes base damage. Partial
   increments could round up instead.
-- **Jump Jet arrest heat:** does an arrest generate jump heat?
-- **Crit-driven falls:** crit results that impose a fall *without* a
-  stability check (e.g. "collapses hard") count as forced, so an arrest is
-  eligible. Results that call a stability check first are not, under the
-  one-control-attempt rule. Confirm.
 - **Height source:** token elevation difference, Region elevation, or a GM
   entry?
 - **Calibration:** the mitigation pool (Chassis + Chassis) was set from a
