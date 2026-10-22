@@ -464,11 +464,12 @@ Typed scene conditions live on the scene, not in Regions: the GM ticks them in
   mobility only; High Wind's Handling −1 applies to hover and VTOL.
 
 Slices: (1) data, authoring, shelter, Handling ✔; (2) heat (cooling, Extreme
-Heat; values open); (3) wind on attacks; (4) visibility and targeting method.
+Heat; total heat and capacity, values pending); (3) wind on attacks; (4) visibility and targeting method.
 
-**Open:** heat magnitudes. Dissipation defaults to 1 and effective dissipation
-never drops below 1, so an Extreme Heat "−1 dissipation" does nothing to a
-default mech; Extreme Heat likely needs added heat instead.
+**Heat (slice 2), pending the user's rework:** temperature effects will act on
+**total heat and heat capacity**, not on dissipation (dissipation defaults to 1
+and never drops below 1, so dissipation modifiers barely register). Slice 2
+waits for those values.
 
 ## Implementation plan: initial 12 presets
 
