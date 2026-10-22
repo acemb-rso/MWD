@@ -215,6 +215,33 @@ Normal movement outside hazards is unchanged.
 6. On failure, apply the consequence for the **declared movement mode and
    machine type** (not the margin of failure).
 
+**Trigger rule (decided 2026-10-22).** Risky movement is a classification made
+during movement resolution, not a new action. One hazard never imposes the
+same penalty twice or forces two control checks for one maneuver. A generic
+hazardous-movement check happens only when **all** of these hold:
+
+1. the route meets an active hazard that can cause loss of control;
+2. the machine's mobility type is susceptible to it;
+3. the action does not already resolve that hazard through its own control
+   test;
+4. the player chooses Reckless rather than Careful.
+
+| Machine action | Careful / Reckless choice |
+| --- | --- |
+| Walk / Safe Thrust | Yes, when applicable |
+| Run | Yes |
+| Sprint | Yes; the existing Sprint stability hook *becomes* this check (never both) |
+| Vehicle normal Move | Yes |
+| Vehicle Redline | Yes |
+| Jump Move | Only for applicable landing or terrain hazards (no ground traction in flight) |
+| Difficult Maneuver | No generic check: keeps its task DN, terrain modifies its Handling + Piloting dice, its own result resolves success or failure |
+| Climb | No; its own climbing rules |
+| Controlled Descent | No; the controlled-descent rules |
+| Charge / Ram | No; existing control and collision resolution |
+| Tactical Reposition | No; its established movement test where applicable |
+
+Action costs, heat and Strain are unchanged.
+
 **BattleMech failure ladder** (unchanged from MaxTech-Review #4):
 
 | Movement | Failed reckless check |
@@ -549,24 +576,99 @@ Terrain movement consequences stay separate from these dice penalties.
 - A targeting-method selector never bypasses the Track/Lock permission and
   TargetingData gates.
 
-**Open (conflicts with shipped or designed work):**
-- **Ice and mud values:** the proposal lists Ice −1 or −2 and Deep Mud −2.
-  The shipped catalog has Ice −1 and Mud −1 (step 1). Is Deep Mud a separate,
-  stronger condition from Mud?
-- **Line of effect (1b) vs. existing obscured values:** Terrain-Regions.md
-  designed 1b as −1 attack/Acquire die per obscuring point (heavy woods = 2)
-  replacing `obscuredLight` / `obscuredHeavy`. This proposal keeps the existing
-  +1 / +3 *tracking* penalties for smoke. Pick one scale for terrain and smoke
-  obscuring: map obscuring 1 → +1 and 2 → +3 tracking (reuse EW), or keep 1b's
-  per-point dice.
-- **Wind default without a migration:** derive wind sensitivity from the
-  machine weapon's required hardpoint type (ballistic, missile → sensitive;
-  energy → not), with a weapon/payload keyword overriding it (flamers,
-  guided payloads). Personal weapons need their own default.
-- **Targeting-method default:** proposed — sensor-assisted when the attacker
-  holds Track or Lock on the target, indirect when the attack uses
-  spotting/indirect fire, otherwise visual/manual (with the visibility check).
-- **Penalty cap scope:** the −2 routine cap (§6) applies per roll pool
-  (piloting, tracking, attack), not across pools.
-- **"Risky movement":** which machine actions count (Run, Sprint, reckless
-  moves, Difficult Maneuver)? Shared with #4.
+**Integration decisions (decided 2026-10-22):**
+
+| # | Issue | Decision |
+| --- | --- | --- |
+| 1 | Ice and Mud | Keep the shipped −1 dice. **Deep Mud** is a separate, more severe condition (−2 Handling dice, greater movement restriction and Bogged risk). Mud and Deep Mud are mutually exclusive in one location; Deep Mud replaces Mud, never stacks with it. |
+| 2 | Obscuring scale | One scale, the EW tracking scale: obscuring 0 = 0, 1 (light) = +1, 2 (heavy) = +3 tracking penalty (dice, never DN). Retires the competing per-point attack-dice obscuration. |
+| 3 | Wind-sensitive weapons | Default from existing hardpoint types and weapon categories; a normalized environmental weapon/payload trait overrides it. No migration. |
+| 4 | Targeting method | Indirect when the attack uses indirect fire or spotting; otherwise sensor-assisted when it has applicable Track/Lock **and** a permitted sensor solution for this attack; otherwise visual/manual. |
+| 5 | −2 cap | Per roll, on ordinary environmental dice penalties only. |
+| 6 | Risky movement | Hazardous Walk / Run / Sprint / vehicle movement triggers Careful / Reckless; actions with their own control test use it instead (see the movement-risk trigger rule). |
+
+1. **Ice, Mud, Deep Mud:**
+
+   | Condition | Handling | Additional |
+   | --- | --- | --- |
+   | Ice | −1 | Loss-of-control risk |
+   | Mud | −1 | Movement restriction; possible Bogged risk |
+   | Deep Mud | −2 | Greater movement restriction and Bogged risk |
+   | Deep Snow | −1 (proposed) | Movement restriction and Bogged risk |
+
+2. **Obscuring as line of effect:** evaluate the obscuring Regions the
+   relevant sightline crosses, determine the effective obscuring level, convert
+   it to the EW tracking penalty and apply it **once**. No additional
+   environmental attack-dice penalty for the same obscuration.
+   - Heavy (+3) is a deliberate exception to the −2 environmental cap: it is
+     EW tracking friction, outside that cap.
+   - Acquisition and the later attack are separate rolls, and each may feel
+     the obscuration. Within one roll it is never applied twice.
+   - Retiring the `obscuredLight` / `obscuredHeavy` statuses must keep
+     unrelated EW penalties (ECM, stealth, degraded sensors, target motion).
+   - The 0/1/2 level is **severity, not a count of Regions**: two light smoke
+     Regions do not become heavy unless the area design explicitly makes
+     obscuring additive.
+3. **Wind sensitivity defaults:**
+
+   | Hardpoint / category | Wind-sensitive |
+   | --- | --- |
+   | Machine ballistic | Yes |
+   | Machine missile | Yes |
+   | Machine energy | No |
+   | Personal ballistic projectile | Yes |
+   | Personal thrown projectile | Yes |
+   | Personal missile / rocket | Yes |
+   | Personal energy | No |
+   | Melee | No |
+
+   Personal weapons use their existing category and traits where possible,
+   and fall back to the broad type only when nothing more specific exists.
+   Exceptions (flamers, guided projectiles, specialized ammunition, unusual
+   atmospheric behavior) are a normalized environmental trait, not a list of
+   weapon names. That trait also covers where Maximum Tech's ballistic class
+   is broader than MWD's hardpoint taxonomy.
+4. **Targeting method:**
+   - A visual/manual attack uses the visual-contact test in
+     `machine-stealth.js`. If it fails, the attack is not permitted by that
+     method, and the system never invents a sensor solution.
+   - Sensor-assisted attacks keep the Track/Lock permissions, and electronic
+     interference applies normally.
+   - Sensor-assisted does not mean immune to physical obscuration (an optical
+     sensor still suffers in fog or smoke).
+   - **Sensor bypass is configurable, capability-driven data**, not hardcoded:
+     not every sensor defeats darkness, fog, smoke or blowing sand the same
+     way.
+5. **Cap scope examples:**
+
+   | Roll | Effects | Environmental penalty |
+   | --- | --- | --- |
+   | Handling + Piloting | Mud −1, rain-slicked −1 (both traction) | −1 |
+   | Handling + Piloting | Ice −1, high wind −1 (independent groups) | −2 |
+   | Visual acquisition | Fog −2, light smoke | Obscuration/EW rules, not a second generic visibility penalty |
+   | Ballistic attack | High wind −2 | −2 |
+   | Attack through heavy obscuration | EW tracking +3 | −3 (EW, outside the cap) |
+
+   The cap never suppresses EW, status effects, Burn, damage penalties or
+   other independent systems. It is not a cap on all of a roll's negative
+   modifiers, which would make a badly damaged machine immune to further
+   environmental penalties.
+
+**Implementation cautions:**
+- Stacking groups are not resolver lanes. Electronic keeps EW's richer
+  composition model.
+- Normalize a condition once. A Blizzard supplies wind, visibility and
+  traction effects that coexist, but it replaces overlapping constituent
+  weather (separately selected High Wind, Heavy Snowfall) rather than
+  stacking with it.
+
+**Still open:**
+- **Deep Mud movement:** how many movement steps (Mud is 1)?
+- **Additive obscuring along a line:** 1b summed obscuring values along the
+  sightline (BattleTech style: several light woods hexes accumulate). Under
+  "severity, not count", the effective level is the highest crossed. Decide
+  whether crossing several light Regions escalates to heavy, and whether
+  anything blocks line of effect outright (1b had "3+ blocks").
+- **Manual obscured statuses:** retire `obscuredLight` / `obscuredHeavy`
+  outright (actors carrying them would need a migration step), or keep them
+  as a GM override feeding the same scale.

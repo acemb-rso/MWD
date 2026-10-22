@@ -105,14 +105,18 @@ mobility matrix and stacking.
 ## 1b. Line of effect (designed, not built)
 
 When an attack, Acquire, or spot resolves, a provider samples the attacker →
-target segment at grid resolution, collects the terrain regions it crosses
-(each once, including the endpoints' own regions), sums their `obscuring`
-values, and emits a **dice** part (attack dice and Acquire dice; never DN). Derived at resolve time, never stored.
-Foundry walls stay the hard line-of-sight blocker. This replaces target-side
+target segment at grid resolution, collects the terrain (and smoke) regions it
+crosses (each once, including the endpoints' own regions), determines the
+effective obscuring level (0 clear, 1 light, 2 heavy), and converts it to the
+**EW tracking penalty**: 1 → +1, 2 → +3 (dice, never DN; decided 2026-10-22,
+see Environment-Catalog.md). Applied once per roll, with no separate
+attack-dice obscuration. Derived at resolve time, never stored. Foundry walls
+stay the hard line-of-sight blocker. This replaces target-side
 `obscuredLight` / `obscuredHeavy` for terrain-based obscuring.
 
-Open: magnitude per obscuring point; whether a total of 3 blocks line of
-effect; whether elevation clears an obstruction.
+Open: whether several light Regions along one line escalate to heavy (the
+level is severity, not a count); whether anything blocks line of effect
+outright; whether elevation clears an obstruction.
 
 ## Authoring
 
