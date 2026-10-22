@@ -274,25 +274,52 @@ The resolver keeps these separate:
 
 **Damage** (weight class, not tonnage):
 
-| Weight class | Tonnage | Base damage | Additional per 10 m |
+```text
+D = max(0, B + I × ceil(max(0, H − A) / 10) − S)
+```
+
+| Variable | Meaning |
+| --- | --- |
+| D | Final fall damage |
+| B | Base damage by weight class |
+| I | Increment per 10 m by weight class |
+| H | Fall distance in meters, judged by the GM (the system does not measure elevation) |
+| A | Controlled-descent allowance: 10 m for a controlled descent, otherwise 0 |
+| S | Successes on the automatic Chassis + Chassis mitigation roll |
+
+| Weight class | Tonnage | Base damage B | Increment I per 10 m |
 | --- | --- | --- | --- |
 | Light | 20–35 t | 2 | +1 |
 | Medium | 40–55 t | 3 | +2 |
 | Heavy | 60–75 t | 4 | +3 |
 | Assault | 80–100 t | 5 | +4 |
 
-- **Base damage is the first 10 m.** A machine that falls where it stands or
-  from a short drop takes base damage only.
-- **Height is the GM's call.** The GM judges the fall height and so the number
-  of additional 10 m increments beyond the first; the system does not measure
-  elevation. `Fall damage = base + per-10 m × additional increments`.
-- **Controlled descent:** one fewer increment, never below base. A controlled
-  descent of 10 m or less still takes base damage (before mitigation), which
-  keeps dropping from a ledge distinct from a Jump Jet landing.
-- **Automatic impact mitigation:** for any fall that produces damage,
-  `Final damage = max(0, fall damage − successes on Chassis + Chassis)`. The
-  roll is automatic, costs no Reaction, and does not prevent Prone or
-  displacement.
+- **Each 10 m or fraction thereof** of effective height adds the increment.
+  A machine that falls where it stands (H = 0) takes base damage only.
+- **Controlled descent:** the first 10 m are subtracted from the height
+  calculation. Base damage still applies to an actual drop, so a controlled
+  descent of 10 m or less takes base damage: the allowance exempts only the
+  height damage. This keeps dropping from a ledge distinct from a Jump Jet
+  landing.
+- **Uncontrolled or forced fall:** no height allowance.
+- **Automatic impact mitigation:** roll Chassis + Chassis; every success
+  reduces the damage by 1, whatever caused the fall. No action cost; it does
+  not prevent Prone or displacement. Unnecessary when an Emergency Jump Jet
+  Arrest succeeds.
+
+Worked example, Warhammer (Heavy, Chassis 5) falling 30 m:
+
+| Step | Uncontrolled fall | Controlled descent |
+| --- | --- | --- |
+| Base damage | 4 | 4 |
+| Effective height | 30 m | 20 m |
+| Height damage | +9 | +6 |
+| Incoming damage | 13 | 10 |
+| Mitigation (example: 3 successes) | −3 | −3 |
+| Final damage | 10 | 7 |
+
+A successful Emergency Jump Jet Arrest makes the final damage 0, with no
+mitigation roll.
 - The fall impact makes the machine Prone and applies the damage through
   HarmEngine. Existing Armor and Structure rules (and criticals) resolve it as
   ordinary damage.
@@ -337,11 +364,10 @@ The resolver keeps these separate:
 - No new statuses. The only new action cost is the optional Emergency Jump
   Jet Arrest Reaction.
 
-**Open before enabling the fall impact:**
+**Still to confirm in play:**
 - **Calibration:** the mitigation pool (Chassis + Chassis) was set from a
-  representative sample. Confirm the height slope the same way: an
-  uncontrolled 30 m fall (2 additional increments) deals 4 (Light) vs. 13
-  (Assault) before mitigation. Playtest how falls come up in play.
+  representative sample. Playtest how falls come up in play: an uncontrolled
+  30 m fall deals 5 (Light) vs. 17 (Assault) before mitigation.
 
 ### Balance: DN 2 vs. starting pools
 
