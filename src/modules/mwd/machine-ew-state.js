@@ -269,8 +269,9 @@ export function getTrackingPenalty(targetActor, targetCombatant, options = {}) {
   // (options.attackerActor, e.g. ECM Jamming). Attack code consumes only the sum.
   let penalty = getMachineAttackerTrackingPenalty(options.attackerActor);
   const statuses = targetActor?.statuses ?? new Set();
-  const derivedStatuses = getAssetModuleDerivedStatuses(targetActor);
-  if (statuses.has("ecmShrouded") || derivedStatuses.has("ecmShrouded")) penalty += 1;
+  // The ECM cloud's +1 goes through the same observer check as its Acquire DN
+  // and Track cap, so an Active Probe that sees through it lifts all three.
+  if (isEcmShroudEffective(targetActor, { attacker: options.attackerActor })) penalty += 1;
   if (statuses.has("obscuredLight")) penalty += 1;
   if (statuses.has("obscuredHeavy")) penalty += 3;
   if (statuses.has("obscured")) penalty += 1;

@@ -183,8 +183,9 @@ test("EW panel exposes Contact targets as acquire-ready but not targeting-ready"
   assert.equal(row.targetAction.enabled, true);
   assert.equal(row.targetAction.title, "Targeting Data unavailable until Track.");
   assert.deepEqual(row.compactActions.map(action => action.id), ["acquire", "target", "ecmSpike", "tagTarget"]);
-  assert.equal(row.compactActions.find(action => action.id === "tagTarget")?.enabled, false);
-  assert.match(row.compactActions.find(action => action.id === "tagTarget")?.title ?? "", /TAG asset module/i);
+  // Hint-only: enabled, with the requirement in the tooltip; the executor refuses.
+  assert.equal(row.compactActions.find(action => action.id === "tagTarget")?.enabled, true);
+  assert.match(row.compactActions.find(action => action.id === "tagTarget")?.title ?? "", /TAG Designator weapon/i);
   assert.equal(row.compactActions.find(action => action.id === "acquire")?.dn, 2);
   assert.equal(row.compactActions.find(action => action.id === "target")?.dn, 2);
   assert.equal(row.compactActions.find(action => action.id === "ecmSpike")?.action, "machineEwAction");

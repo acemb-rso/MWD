@@ -38,7 +38,7 @@ import { buildBattlemechHeatModel, resolveBattlemechPendingHeat } from "./machin
 import { prepareMachineRemedyRoll } from "./machine-intents.js";
 import { resolveMachineOperator } from "./machine-operator.js";
 import { resolveMachineSceneToken } from "./machine-token-resolution.js";
-import { getMachineRepairIssues } from "./machine-repair-issues.js";
+import { getMachineRepairIssues, getRepairableMachineStatusIssue } from "./machine-repair-issues.js";
 import { performVehicleMovementAction } from "./vehicle-movement-actions.js";
 import { resolveVehiclePendingStrain } from "./vehicle-strain.js";
 import { findAttachedBattleArmorTargets } from "./battle-armor.js";
@@ -594,6 +594,14 @@ function machineMovementKindForAction(actor, actionKey = "") {
   return "";
 }
 
+export function findActionRemedyIssue(actor, action = {}) {
+  for (const statusId of action.resolves ?? []) {
+    const issue = getRepairableMachineStatusIssue(actor, statusId);
+    if (issue?.remediable && issue.remedyKey === action.key) return issue;
+  }
+  return null;
+}
+
 function disabledMachineActionResult(action, fallbackReason = "") {
   const reason = String(action?.implementation?.reason ?? fallbackReason ?? "").trim()
     || `${action?.label ?? "That machine action"} is not implemented yet.`;
@@ -818,6 +826,19 @@ async function executeMachineCatalogAction(actor, request = {}) {
   const implementationState = String(action.implementation?.state ?? "ready").trim() || "ready";
   if (implementationState === "disabled" || implementationState === "stub") {
     return disabledMachineActionResult(action);
+  }
+
+  // An action that is the declared field remedy of a status the machine has
+  // (Stand for Prone, Extinguish for On Fire, Power Cycle for Shutdown) rolls
+  // through the remediation pipeline: remedy DN, and the status clears on
+  // success.
+  const remedyIssue = findActionRemedyIssue(actor, action);
+  if (remedyIssue) {
+    return performMachineCriticalRepair(actor, {
+      issue: remedyIssue,
+      remedyKey: action.key,
+      operatorActorUuid: String(request.operatorActorUuid ?? "").trim(),
+    });
   }
 
   switch (action.resolver) {
@@ -1200,7 +1221,7 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
       execution: "skill",
       enabled: hasTargets && hasTag,
       reason: !hasTag ? "Requires a mounted TAG Designator weapon." : "Target a token before using TAG.",
-      mechanics: "Gunnery roll; applies TAG designation to target on completion.",
+      mechanics: "Gunnery roll; applies TAG designation to the target on success.",
     }),
     buildEwAction({
       id: "narcTarget",
@@ -1209,7 +1230,7 @@ export function buildMachineEwActionChoices(actor, { token = null, includeDisabl
       execution: "skill",
       enabled: hasTargets && hasNarc,
       reason: !hasNarc ? "Requires a mounted NARC launcher weapon." : "Target a token before using NARC.",
-      mechanics: "Gunnery roll; attaches NARC beacon to target on completion.",
+      mechanics: "Gunnery roll; attaches a NARC beacon to the target on success.",
     }),
     buildEwAction({
       id: "shareTargetingData",
@@ -1253,7 +1274,6 @@ export async function performMachineElectronicWarfare(actor, {
   }
 
   const beaconKeywords = { tagTarget: "tag", narcTarget: "narc" };
-  const beaconStatuses = { tagTarget: "tagged", narcTarget: "narced" };
   const beaconKeyword = beaconKeywords[selectedAction.id] ?? null;
   const beaconWeapon = beaconKeyword
     ? getMountedMachineItems(actor, { canonicalType: TEMPLATE.itemType.mechWeapon })
@@ -1337,14 +1357,8 @@ export async function performMachineElectronicWarfare(actor, {
     });
   }
 
-  const beaconStatus = beaconStatuses[selectedAction.id] ?? null;
-  if (beaconStatus && targetRow?.targetTokenUuid) {
-    const targetToken = await fromUuid(targetRow.targetTokenUuid);
-    const targetActor = targetToken?.actor ?? targetToken;
-    if (targetActor) {
-      await targetActor.toggleStatusEffect(beaconStatus, { active: true, overlay: false });
-    }
-  }
+  // TAG / NARC statuses are the catalog's `appliesToTarget`, written on a
+  // successful roll only (with the GM relay) by resolveTargetStatusActionExecution.
 
   return { ok: true, action: selectedAction, target: targetRow };
 }

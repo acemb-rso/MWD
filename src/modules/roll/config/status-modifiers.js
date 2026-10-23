@@ -127,7 +127,7 @@ export const STATUS_MAP = Object.freeze({
 
   onFire: {
     label: "On Fire",
-    roles: [R.rollModifier, R.machineState],
+    roles: [R.rollModifier, R.machineState, R.repairIssue],
     mods: [
       { id: "onFire.physical", domains: ["physical", "combat", "attack", "movement"], tags: ["fire", "hazard"], value: -2 },
       { id: "onFire.mental", domains: ["mental"], tags: ["fire", "hazard"], value: -1 },
@@ -135,6 +135,8 @@ export const STATUS_MAP = Object.freeze({
     machineState: {
       startTurn: [{ id: "onFire.startHeat", heat: 1, effectText: "On Fire: gain 1 Heat at the start of the turn." }],
     },
+    // Machine field remedy; personal Extinguish is handled by the personal combat actions.
+    repair: repair({ remedyKey: "extinguish", effectSummary: "The machine keeps gaining heat until the fire is extinguished." }),
   },
 
   drugged: roll("Drugged", [
@@ -298,7 +300,7 @@ export const STATUS_MAP = Object.freeze({
   shutdown: machine("Shutdown", {
     gates: [{ id: "shutdown.cannotAct", cannotAct: true }],
     targeting: [{ id: "shutdown.targeting", rangeCapClose: true, noTargetingDataGeneration: true, noTargetingDataUse: true, effectText: "Shutdown: the machine cannot act until it is power-cycled." }],
-  }),
+  }, { roles: [R.machineState, R.repairIssue], repair: repair({ remedyKey: "powerCycle", effectSummary: "The machine cannot act until it is power-cycled." }) }),
   overheating: machine("Thermal Surge", {
     startTurn: [{ id: "overheating.startHeat", heat: 2 }],
   }, { roles: [R.machineState, R.repairIssue], repair: repair({ remedyKey: "coolantDump", locationKey: "torso", effectSummary: "Heat continues to spike until the cooling issue is cleared." }) }),

@@ -197,3 +197,38 @@ test("the GM relay handler applies only the catalog-declared statuses", async ()
     delete globalThis.game;
   }
 });
+
+test("an Active Probe that sees through an ECM cloud also lifts its tracking penalty", () => {
+  const { actor: target } = createMachine({ statuses: ["ecmShrouded"] });
+  const { actor: plain } = createMachine({ name: "Plain Mech" });
+  const { actor: probing } = createMachine({ name: "Probe Mech" });
+  probing.items = [{
+    id: "probe",
+    name: "Active Probe",
+    type: "assetModule",
+    canonicalType: "assetModule",
+    system: {
+      activation: { mode: "toggle", active: true },
+      effects: [{ id: "ignore-shroud", timing: "active", requires: { actionIds: ["acquireTarget"] }, modifies: { bypassStatuses: ["ecmShrouded"] } }],
+    },
+  }];
+  assert.equal(getTrackingPenalty(target, null, { attackerActor: plain }), 1);
+  assert.equal(getTrackingPenalty(target, null, { attackerActor: probing }), 0);
+  assert.equal(getAcquireCeiling(target, { attackerActor: probing }), "lock");
+});
+
+test("TAG and NARC apply their designation only on a successful roll", async () => {
+  for (const [actionKey, statusId] of [["tagTarget", "tagged"], ["narcTarget", "narced"]]) {
+    assert.deepEqual(getMachineActionDefinition(actionKey).appliesToTarget, [statusId]);
+    const { actor: attacker } = createMachine({ name: "Spotter" });
+    const { actor: target } = createMachine();
+    await withTargetToken(target, async () => {
+      const payload = { machineActionKey: actionKey, targetTokenId: "target-token" };
+      const failed = await resolveTargetStatusActionExecution({ attacker, payload, ctx: { difficulty: { dn: 1 } }, outcomeModel: { successes: 0 } });
+      assert.equal(failed.ok, false);
+      assert.equal(target.statuses.has(statusId), false);
+      await resolveTargetStatusActionExecution({ attacker, payload, ctx: { difficulty: { dn: 1 } }, outcomeModel: { successes: 1 } });
+      assert.equal(target.statuses.has(statusId), true);
+    });
+  }
+});

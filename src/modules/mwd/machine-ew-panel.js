@@ -165,7 +165,9 @@ function buildCompactActions({
       label: "Spike",
       icon: "fa-bolt",
       dn: 1,
-      enabled: !sensorActionsBlocked,
+      // Hint-only, like Acquire / Target: the EW executor refuses with the
+      // specific reason, so the button never fails silently.
+      enabled: true,
       title: sensorActionsBlocked ? sensorBlockTitle : "Launch an ECM Spike roll against this target.",
     },
     {
@@ -175,10 +177,10 @@ function buildCompactActions({
       label: "TAG",
       icon: "fa-location-crosshairs",
       dn: 1,
-      enabled: hasTag && !sensorActionsBlocked,
+      enabled: true,
       title: sensorActionsBlocked
         ? sensorBlockTitle
-        : hasTag ? "Launch a TAG roll against this target." : "Requires an installed TAG asset module.",
+        : hasTag ? "Launch a TAG roll against this target." : "Requires a mounted TAG Designator weapon.",
     },
   ].map(action => ({
     ...action,

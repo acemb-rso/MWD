@@ -529,7 +529,7 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     category: "simple",
     resolver: "movement",
     tags: ["posture", "recovery"],
-    resolves: ["prone"],
+    resolves: ["proneMechFall"],
   }),
   stabalize: action("stabalize", {
     label: "Stabilize",
@@ -614,7 +614,7 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     category: "complex",
     resolver: "recovery",
     tags: ["hazard", "fire", "recovery"],
-    resolves: ["burning"],
+    resolves: ["onFire"],
   }),
   tagTarget: action("tagTarget", {
     label: "TAG Target",
@@ -625,6 +625,7 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     resolver: "targeting",
     intent: "tagTarget",
     tags: ["targeting", "tag"],
+    appliesToTarget: ["tagged"],
     notes: "Apply a TAG enabler flag for guided systems.",
   }),
   narcTarget: action("narcTarget", {
@@ -636,6 +637,7 @@ export const MACHINE_ACTION_DEFINITIONS = Object.freeze({
     resolver: "targeting",
     intent: "narcTarget",
     tags: ["targeting", "narc"],
+    appliesToTarget: ["narced"],
     notes: "Attach a NARC beacon to target for persistent guided-system support.",
   }),
   shareTargetingData: action("shareTargetingData", {
