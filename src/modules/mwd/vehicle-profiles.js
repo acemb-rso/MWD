@@ -4,7 +4,7 @@
 // How it fits: Movement, CQ, and terrain consume this shared profile model
 // instead of hardcoding vehicle subtype behavior in sheets. How terrain affects
 // each profile is the terrain mobility matrix (terrain/terrain-catalog.js), not
-// per-vehicle data; legacy system.mwd.favoredTerrain / adverseTerrain are inert.
+// per-vehicle data (the old per-vehicle lists are removed by schema step 2).
 
 export const VEHICLE_MOVEMENT_PROFILES = Object.freeze({
   wheeled: Object.freeze({

@@ -14,6 +14,7 @@ import {
 const FIXTURE_URL = new URL("./fixtures/world-dev-pre-schema1.json", import.meta.url);
 const loadFixture = () => JSON.parse(readFileSync(FIXTURE_URL, "utf8"));
 const baseline = SCHEMA_MIGRATIONS.find(step => step.version === 1);
+const vehicleTerrainLists = SCHEMA_MIGRATIONS.find(step => step.version === 2);
 
 function setPath(target, path, value) {
   const parts = path.split(".");
@@ -59,7 +60,8 @@ const machine = (overrides = {}) => ({
 
 test("schema version registry is ordered and gates unsupported versions", () => {
   assert.equal(CURRENT_SCHEMA_VERSION, SCHEMA_MIGRATIONS.at(-1).version);
-  assert.deepEqual(getPendingSchemaSteps(0).map(step => step.version), [1]);
+  assert.deepEqual(getPendingSchemaSteps(0).map(step => step.version), [1, 2]);
+  assert.deepEqual(getPendingSchemaSteps(1).map(step => step.version), [2]);
   assert.deepEqual(getPendingSchemaSteps(CURRENT_SCHEMA_VERSION), []);
   assert.throws(() => getPendingSchemaSteps(CURRENT_SCHEMA_VERSION + 1), /newer than this system supports/);
   assert.throws(() => getPendingSchemaSteps(-1), /Unsupported/);
@@ -201,4 +203,48 @@ test("dev-world fixture: baseline upgrade applies the expected changes and is id
   const replan = planSchemaStep(baseline, world);
   assert.deepEqual(replan.operations, []);
   assert.deepEqual(replan.reviews, []);
+});
+
+test("schema 2 removes vehicle favored/adverse terrain lists from actors and unlinked token deltas", () => {
+  const world = {
+    actors: [
+      { _id: "v1", name: "Tank", type: "vehicle", system: { mwd: { movementProfile: "tracked", favoredTerrain: ["open"], adverseTerrain: ["water"] } }, items: [] },
+      { _id: "v2", name: "Hover", type: "vehicle", system: { mwd: { movementProfile: "hover" } }, items: [] },
+      { _id: "m1", name: "Mech", type: "battlemech", system: { mwd: { favoredTerrain: ["road"] } }, items: [] },
+    ],
+    items: [],
+    scenes: [{
+      _id: "s1",
+      name: "Field",
+      tokens: [
+        { _id: "t1", name: "Tank token", actorId: "v1", actorLink: false, delta: { system: { mwd: { adverseTerrain: "forest" } } } },
+        { _id: "t2", name: "Linked tank", actorId: "v1", actorLink: true, delta: { system: { mwd: { favoredTerrain: ["road"] } } } },
+        { _id: "t3", name: "Mech token", actorId: "m1", actorLink: false, delta: { system: { mwd: { favoredTerrain: ["road"] } } } },
+      ],
+    }],
+  };
+  const plan = planSchemaStep(vehicleTerrainLists, world);
+  assert.deepEqual(plan.reviews, []);
+  assert.deepEqual(plan.operations.map(op => [op.label, op.unset]), [
+    ["Tank", ["system.mwd.favoredTerrain", "system.mwd.adverseTerrain"]],
+    ["Token Tank token (scene Field)", ["delta.system.mwd.adverseTerrain"]],
+  ]);
+
+  applyOperations(world, plan.operations);
+  assert.deepEqual(world.actors[0].system.mwd, { movementProfile: "tracked" });
+  // Only vehicles: the BattleMech field is not this step's marker.
+  assert.deepEqual(world.actors[2].system.mwd, { favoredTerrain: ["road"] });
+  assert.deepEqual(planSchemaStep(vehicleTerrainLists, world).operations, []);
+});
+
+test("dev-world fixture: schema 2 after the baseline is idempotent", () => {
+  const world = loadFixture();
+  applyOperations(world, planSchemaStep(baseline, world).operations);
+  const plan = planSchemaStep(vehicleTerrainLists, world);
+  assert.deepEqual(plan.reviews, []);
+  assert.ok(plan.operations.every(op => op.unset.every(path => /(^|\.)(favoredTerrain|adverseTerrain)$/.test(path))));
+  applyOperations(world, plan.operations);
+  assert.deepEqual(planSchemaStep(vehicleTerrainLists, world).operations, []);
+  const vehicles = world.actors.filter(actor => actor.type === "vehicle");
+  assert.ok(vehicles.every(actor => !("favoredTerrain" in (actor.system?.mwd ?? {})) && !("adverseTerrain" in (actor.system?.mwd ?? {}))));
 });

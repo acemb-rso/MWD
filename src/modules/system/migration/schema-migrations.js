@@ -30,6 +30,9 @@ const MACHINE_TYPES = new Set(["vehicle", "battlemech"]);
 // value is indistinguishable from an untouched default.
 const GUTS_TEMPLATE_DEFAULT = 1;
 const LEGACY_MECH_WEAPON_FIELDS = Object.freeze(["hardpointId", "hardpointType", "hardpointSize", "mountLocation"]);
+// Per-vehicle terrain preference lists, superseded by the terrain mobility
+// matrix (terrain/terrain-catalog.js) in 0.7.1; nothing reads them.
+const LEGACY_VEHICLE_TERRAIN_FIELDS = Object.freeze(["favoredTerrain", "adverseTerrain"]);
 
 const itemType = item => String(item?.type ?? "").trim();
 
@@ -281,6 +284,34 @@ function planLegacyArmorMitigation({ actors, items }) {
 }
 
 // ---------------------------------------------------------------------------
+// Vehicle terrain lists (schema 2): remove the inert favored / adverse terrain
+// lists from vehicles and from unlinked vehicle-token deltas. Marker: the
+// field is present.
+function legacyVehicleTerrainUnset(mwd = {}, prefix = "system.mwd") {
+  return LEGACY_VEHICLE_TERRAIN_FIELDS.filter(field => Object.hasOwn(mwd ?? {}, field)).map(field => `${prefix}.${field}`);
+}
+
+function planLegacyVehicleTerrainLists({ actors, scenes }) {
+  const operations = [];
+  const vehicleIds = new Set();
+  for (const actor of actors) {
+    if (actor.type !== "vehicle") continue;
+    vehicleIds.add(actor._id);
+    const op = operation({ kind: "actor", actorId: actor._id, label: actor.name }, {}, legacyVehicleTerrainUnset(actor.system?.mwd));
+    if (op) operations.push(op);
+  }
+  for (const scene of scenes) {
+    for (const token of scene.tokens ?? []) {
+      if (token.actorLink || !vehicleIds.has(token.actorId)) continue;
+      const label = `Token ${token.name ?? token._id} (scene ${scene.name})`;
+      const op = operation({ kind: "token", sceneId: scene._id, tokenId: token._id, label }, {}, legacyVehicleTerrainUnset(token.delta?.system?.mwd, "delta.system.mwd"));
+      if (op) operations.push(op);
+    }
+  }
+  return { operations, reviews: [] };
+}
+
+// ---------------------------------------------------------------------------
 // Step registry.
 
 function planBaselineV1(world) {
@@ -302,6 +333,12 @@ export const SCHEMA_MIGRATIONS = Object.freeze([
     id: "baseline-2026-10",
     label: "Baseline upgrade (monitor storage, Guts rename, hardpoint links, typed armor)",
     plan: planBaselineV1,
+  }),
+  Object.freeze({
+    version: 2,
+    id: "vehicle-terrain-lists-2026-10",
+    label: "Remove vehicle favored/adverse terrain lists (replaced by the terrain mobility matrix)",
+    plan: planLegacyVehicleTerrainLists,
   }),
 ]);
 

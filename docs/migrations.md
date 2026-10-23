@@ -75,6 +75,18 @@ payloads (normalized at runtime by `MWDItem`), vehicle profile/strain/crew and
 Regression fixture: `tests/fixtures/world-dev-pre-schema1.json`, a sanitized
 snapshot of the `dev` world before migration.
 
+## Schema 2 — vehicle terrain lists (2026-10, 0.7.1)
+
+The terrain mobility matrix (`terrain/terrain-catalog.js`) replaced per-vehicle
+favored / adverse terrain, so the stored lists were inert.
+
+| Transform | Legacy marker | Change | Not guessed |
+| --- | --- | --- | --- |
+| Vehicle terrain lists | `system.mwd.favoredTerrain` / `adverseTerrain` present on a vehicle, or in an unlinked vehicle token's delta | Remove the fields | — (nothing reads them; no data to preserve) |
+
+The fields were also removed from `template.json` and the vehicle creation
+defaults, so Foundry no longer re-supplies them and the re-plan is empty.
+
 ## Adding a schema step
 
 1. Classify the change: does it alter persisted document shape or meaning?

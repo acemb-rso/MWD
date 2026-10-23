@@ -100,8 +100,6 @@ const templateData = {
           },
           movementProfile: "tracked",
           flightSubtype: "",
-          favoredTerrain: ["open", "rough", "urban"],
-          adverseTerrain: ["water"],
           affordances: ["stabilizedFire", "hullDown"],
           locations: {
             body:   { enabled: true,  stress: 0, condition: 0, tags: ["crewCompartment", "engine", "ammoStore"], destroyed: false },
